@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                               measure_2d.hpp
+/*******************************************************************************
+* djinterp [math]                                                 measure_2d.hpp
 *
 * 2D measurements with closed-form / numerical dispatch.
 *   Provides free function templates that compute geometric quantities
@@ -16,21 +16,25 @@
 *   centroid<Shape>(s)            - geometric centroid
 *   bounding_box<Edge|Shape>(x)   - axis-aligned bbox in Cartesian
 *
+*
 * path:      /inc/djinterp/math/geometry/measure_2d.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_MEASURE_2D_
-#define DJINTERP_MATH_GEOMETRY_MEASURE_2D_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_MEASURE_2D_HPP
+#define DJINTERP_MATH_GEOMETRY_MEASURE_2D_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <type_traits>
+// djinterp
 #include "../../djinterp.hpp"
-#include "../coordinate.hpp"
+#include "../coordinate/coordinate.hpp"
 #include "./geometry_common.hpp"
 #include "./edge.hpp"
 #include "./shape_2d.hpp"
@@ -486,4 +490,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_MEASURE_2D_
+#endif  // DJINTERP_MATH_GEOMETRY_MEASURE_2D_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                             pdf_template.hpp
+/*******************************************************************************
+* djinterp [core]                                               pdf_template.hpp
 *
 *   A PDF-specialised document_template.  Everything a template IS -- an element
 * sequence, `{token}` interpolation, named styles, `repeat` over a bound
@@ -53,18 +53,24 @@
 *
 * path:      /inc/djinterp/core/util/pdf/pdf_template.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_PDF_TEMPLATE_
-#define DJINTERP_UTIL_PDF_TEMPLATE_ 1
+#ifndef DJINTERP_UTIL_PDF_PDF_TEMPLATE_HPP
+#define DJINTERP_UTIL_PDF_PDF_TEMPLATE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <map>
 #include <string>
-
 // djinterp
-#include "../../djinterp.hpp"                        // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../../djinterp.hpp"                        // NS_*, D_NODISCARD, D_NOEXCEPT
 #include "../document/document_template.hpp"         // document_template, template_context,
                                                      // template_element, render_template
 #include "./pdf_canvas.hpp"                          // pdf_page_size, pdf_unit, canvas_style,
@@ -257,7 +263,7 @@ public:
         configure_(_renderer, /*owned_canvas=*/true);
         render_template(*this, _context, _renderer);
 
-        return _renderer.save(_path);
+        return _renderer.save(_path.c_str());
     }
 
     // render_into
@@ -337,5 +343,6 @@ private:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_PDF_TEMPLATE_
+#endif  // DJINTERP_UTIL_PDF_PDF_TEMPLATE_HPP

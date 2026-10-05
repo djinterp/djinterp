@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                              token/token.hpp
+/*******************************************************************************
+* djinterp [parse]                                                     token.hpp
 *
 * Generic token primitives — token, traits, and concepts merged.
 *   A token, in the formal-language sense, is a discriminated lexeme:
@@ -39,17 +39,25 @@
 *
 * path:      /inc/djinterp/parse/token/token.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_TOKEN_
-#define DJINTERP_PARSE_TOKEN_ 1
+#ifndef DJINTERP_PARSE_TOKEN_TOKEN_HPP
+#define DJINTERP_PARSE_TOKEN_TOKEN_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../../core/meta/type_utility.hpp"  // void_t, clean_t
 #include "../../core/meta/member_traits.hpp"
 #include "../parse.hpp"
 
@@ -66,26 +74,26 @@ NS_PARSE
 //   struct: a discriminated lexeme — the (kind, value) pair that
 // constitutes the most abstract notion of a token.  The kind is
 // drawn from a finite set of categories (the user-supplied
-// _KindType); the value carries the associated payload.
+// KindType); the value carries the associated payload.
 //
 //   Both type parameters are abstract: the struct imposes no
 // requirements on input domain, source-stream representation, or
 // metadata.  Tokens may be produced from text, binary, token
 // streams, or any other source.
 //
-//   _KindType   should support equality comparison.  Common choices
+//   KindType    should support equality comparison.  Common choices
 //               include user-defined enums, small integer types,
 //               and string-like types.
 //
-//   _ValueType  is unconstrained.  Use an empty struct (or any
+//   ValueType   is unconstrained.  Use an empty struct (or any
 //               cheaply-constructible placeholder) for tokens that
 //               carry no payload.
-template<typename _KindType,
-         typename _ValueType>
+template<typename KindType,
+         typename ValueType>
 struct token
 {
-    using kind_type  = _KindType;
-    using value_type = _ValueType;
+    using kind_type  = KindType;
+    using value_type = ValueType;
 
     kind_type   kind;
     value_type  value;
@@ -113,12 +121,12 @@ struct token
 //   function: two tokens are equal iff their kinds and values
 // compare equal.  Requires both kind_type and value_type to
 // support equality comparison.
-template<typename _KindType,
-         typename _ValueType>
+template<typename KindType,
+         typename ValueType>
 inline bool
 operator==(
-    const token<_KindType, _ValueType>& _a,
-    const token<_KindType, _ValueType>& _b
+    const token<KindType, ValueType>& _a,
+    const token<KindType, ValueType>& _b
 )
 {
     return ( (_a.kind  == _b.kind ) &&
@@ -127,12 +135,12 @@ operator==(
 
 // operator!= (token, token)
 //   function: negation of operator==.
-template<typename _KindType,
-         typename _ValueType>
+template<typename KindType,
+         typename ValueType>
 inline bool
 operator!=(
-    const token<_KindType, _ValueType>& _a,
-    const token<_KindType, _ValueType>& _b
+    const token<KindType, ValueType>& _a,
+    const token<KindType, ValueType>& _b
 )
 {
     return (!(_a == _b));
@@ -155,21 +163,21 @@ NS_INTERNAL
 
     // is_token_helper
     //   trait: primary template (failure case).
-    template<typename _T,
+    template<typename T,
              typename = void>
     struct is_token_helper : std::false_type
     {};
 
     // is_token_helper (success case)
-    //   trait: succeeds when _T exposes both kind_type and
+    //   trait: succeeds when T exposes both kind_type and
     // value_type typedefs.  The pairing of these two names —
     // neither common alone in non-token types — is taken as the
     // structural signature of a token.
-    template<typename _T>
+    template<typename T>
     struct is_token_helper<
-        _T,
-        void_t<typename clean_t<_T>::kind_type,
-               typename clean_t<_T>::value_type>
+        T,
+        void_t<typename clean_t<T>::kind_type,
+               typename clean_t<T>::value_type>
     > : std::true_type
     {};
 
@@ -177,13 +185,13 @@ NS_END  // internal
 
 // is_token
 //   trait: full structural check for token conformance.
-template<typename _T>
-struct is_token : internal::is_token_helper<_T>
+template<typename T>
+struct is_token : internal::is_token_helper<T>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    static constexpr bool is_token_v = is_token<_T>::value;
+    template<typename T>
+    static constexpr bool is_token_v = is_token<T>::value;
 #endif
 
 
@@ -195,10 +203,10 @@ NS_INTERNAL
 
     // tokens_compatible_helper
     //   trait: primary template (failure case).
-    template<typename _A,
-             typename _B,
-             bool     _BothTokens = ( is_token<_A>::value &&
-                                      is_token<_B>::value ),
+    template<typename A,
+             typename B,
+             bool     BothTokens = ( is_token<A>::value &&
+                                      is_token<B>::value ),
              typename             = void>
     struct tokens_compatible_helper : std::false_type
     {};
@@ -206,15 +214,15 @@ NS_INTERNAL
     // tokens_compatible_helper (success case)
     //   trait: both are tokens sharing kind_type — drawn from the
     // same alphabet of categories.
-    template<typename _A,
-             typename _B>
+    template<typename A,
+             typename B>
     struct tokens_compatible_helper<
-        _A, _B,
+        A, B,
         true,
         typename std::enable_if<
             std::is_same<
-                typename clean_t<_A>::kind_type,
-                typename clean_t<_B>::kind_type>::value>::type
+                typename clean_t<A>::kind_type,
+                typename clean_t<B>::kind_type>::value>::type
     > : std::true_type
     {};
 
@@ -223,17 +231,17 @@ NS_END  // internal
 // tokens_compatible
 //   trait: two token types share kind_type and are therefore drawn
 // from the same alphabet of categories.
-template<typename _A,
-         typename _B>
+template<typename A,
+         typename B>
 struct tokens_compatible
-    : internal::tokens_compatible_helper<_A, _B>
+    : internal::tokens_compatible_helper<A, B>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _A,
-             typename _B>
+    template<typename A,
+             typename B>
     static constexpr bool tokens_compatible_v =
-        tokens_compatible<_A, _B>::value;
+        tokens_compatible<A, B>::value;
 #endif
 
 
@@ -259,31 +267,31 @@ D_DEFINE_MEMBER_TYPE_OR(token_value_type, value_type, void)
 
     // token_kind_typed
     //   concept: a type exposing kind_type.
-    template<typename _T>
-    concept token_kind_typed = has_kind_type<_T>::value;
+    template<typename T>
+    concept token_kind_typed = has_kind_type<T>::value;
 
     // token_value_typed
     //   concept: a type exposing value_type.
-    template<typename _T>
-    concept token_value_typed = has_value_type<_T>::value;
+    template<typename T>
+    concept token_value_typed = has_value_type<T>::value;
 
     // token_surface
     //   concept: a type exposing both nested types.
-    template<typename _T>
+    template<typename T>
     concept token_surface =
-        ( has_kind_type<_T>::value &&
-          has_value_type<_T>::value );
+        ( has_kind_type<T>::value &&
+          has_value_type<T>::value );
 
     // token_concept
     //   concept: structurally conforming token.
-    template<typename _T>
-    concept token_concept = is_token<_T>::value;
+    template<typename T>
+    concept token_concept = is_token<T>::value;
 
     // tokens_same_alphabet
     //   concept: a token pair drawn from the same kind alphabet.
-    template<typename _A,
-             typename _B>
-    concept tokens_same_alphabet = tokens_compatible<_A, _B>::value;
+    template<typename A,
+             typename B>
+    concept tokens_same_alphabet = tokens_compatible<A, B>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -291,5 +299,7 @@ D_DEFINE_MEMBER_TYPE_OR(token_value_type, value_type, void)
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_TOKEN_
+
+#endif  // DJINTERP_PARSE_TOKEN_TOKEN_HPP

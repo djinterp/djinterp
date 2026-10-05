@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 in_place.hpp
 *
 * in_place_t / in_place:
@@ -26,22 +26,24 @@
 * C++11+ only).
 *
 *
-* path:      /inc/djinterp/re_std/optional/in_place.hpp
+* path:      /inc/re_std/optional/in_place.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_IN_PLACE_
-#define DJINTERP_RE_STD_UTILITY_IN_PLACE_ 1
+#ifndef RE_STD_OPTIONAL_IN_PLACE_HPP
+#define RE_STD_OPTIONAL_IN_PLACE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+namespace re_std
+{
 
 
     // in_place_t
@@ -51,7 +53,7 @@ NS_RESTD
     //           accidentally trigger it via brace-initialization.
     struct in_place_t
     {
-        explicit D_CONSTEXPR in_place_t() D_NOEXCEPT
+        explicit RE_STD_CONSTEXPR in_place_t() RE_STD_NOEXCEPT
         {}
     };
 
@@ -66,15 +68,15 @@ NS_RESTD
     //             namespace-scope rule), giving each TU its own copy --
     //             functionally indistinguishable since in_place_t is
     //             stateless.
-    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP17_OR_HIGHER
         inline
     #endif
-    D_CONSTEXPR in_place_t in_place{};
+    RE_STD_CONSTEXPR in_place_t in_place{};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_UTILITY_IN_PLACE_
+#endif  // RE_STD_OPTIONAL_IN_PLACE_HPP

@@ -1,18 +1,31 @@
-/******************************************************************************
-* djinterp [container]                                    contiguous_filter.c
+/*******************************************************************************
+* djinterp [c]                                                    array_filter.c
 *
 *   Implementation of zero-overhead filter operations for contiguous containers.
 *   All functions operate on raw (void*, count, element_size) triples and
 * delegate to the functional module's filter.h where appropriate.
 *
-*   This file is compiled only when D_CFG_CONTAINER_ARRAY_FILTER is enabled.
+*   Its definitions are compiled only when D_CFG_CONTAINER_ARRAY_FILTER is
+* enabled: the same gate array_filter.h applies to their declarations.
 *
 *
-* path:      \src\container\contiguous_filter.c
+* path:      /src/djinterp/c/container/array/array_filter.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.20
-******************************************************************************/
-#include "..\..\..\..\inc\c\container\array\array_filter.h"
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.29
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/container/array/array_filter.h"
+
+// the header declares nothing unless the knob is on, so the definitions, and
+// the headers only they need, sit behind the same gate
+#if D_CFG_IS_ON(D_CFG_CONTAINER_ARRAY_FILTER)
+
+// std
+#include <stdlib.h>  // malloc, calloc, free
+#include <string.h>  // memmove
+// djinterp
+#include "../../../../../inc/djinterp/c/functional/filter.h"  // d_filter_*
+#include "../../../../../inc/djinterp/c/memory/dmemory.h"     // d_memcpy
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1362,9 +1375,9 @@ Return:
 static struct d_contiguous_filter_result
 d_cf_apply_single_op
 (
-    const void*                    _elements,
-    size_t                         _count,
-    size_t                         _element_size,
+    const void*                      _elements,
+    size_t                           _count,
+    size_t                           _element_size,
     const struct d_filter_operation* _op
 )
 {
@@ -1569,11 +1582,11 @@ Return:
 struct d_contiguous_filter_result
 d_contiguous_filter_apply_union
 (
-    const void*                 _elements,
-    size_t                      _count,
-    size_t                      _element_size,
+    const void*                  _elements,
+    size_t                       _count,
+    size_t                       _element_size,
     const struct d_filter_union* _combo,
-    fn_function_comparator      _comparator
+    fn_function_comparator       _comparator
 )
 {
     struct d_contiguous_filter_result* chain_results = NULL;
@@ -2288,7 +2301,7 @@ void*
 d_contiguous_filter_result_release
 (
     struct d_contiguous_filter_result* _result,
-    size_t*                       _out_count
+    size_t*                            _out_count
 )
 {
     void* data;
@@ -2417,3 +2430,5 @@ d_contiguous_filter_apply_builder
 
     return result;
 }
+
+#endif  // D_CFG_CONTAINER_ARRAY_FILTER

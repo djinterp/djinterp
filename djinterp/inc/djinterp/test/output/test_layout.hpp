@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                                test_layout.hpp
 *
 *   The STRUCTURAL half of the layout-driven report render: fold a finished
@@ -46,21 +46,40 @@
 * self-suppresses below it.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    report_to_layout            (the fold: report -> layout_doc<report_op>)
-* II.   report_metadata_bag         (cover / meta_ref bindings)
-* III.  make_report_resolver        (content_resolver over a borrowed report)
-* IV.   render_test_report          (drive any document_renderer)
-*
-*
 * path:      /inc/djinterp/test/output/test_layout.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_LAYOUT_
-#define DJINTERP_TEST_LAYOUT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    report_to_layout            (the fold: report -> layout_doc<report_op>)
+      -----------------------------------------------------------------------
+
+II.   report_metadata_bag         (cover / meta_ref bindings)
+      -------------------------------------------------------
+
+III.  make_report_resolver        (content_resolver over a borrowed report)
+      ---------------------------------------------------------------------
+
+IV.   render_test_report          (drive any document_renderer)
+      ---------------------------------------------------------
+      1.    render_report_layout  (render_document, for a report term)
+      2.    render_test_report    (fold, bind, render)
+*/
+
+#ifndef DJINTERP_TEST_OUTPUT_TEST_LAYOUT_HPP
+#define DJINTERP_TEST_OUTPUT_TEST_LAYOUT_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but
+// core/util/document/layout/layout.hpp, which it reaches, needs C++14. The
+// owner's ruling: compile at every level first; port down only where something
+// needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -68,16 +87,14 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../core/djinterp.hpp"                     // NS_*, gates, D_NODISCARD
+#include "../../djinterp.hpp"                     // NS_*, gates, D_NODISCARD
 #include "../../core/util/document/report_dialect.hpp" // report_op, the combinator
                                                        //   surface, make_report_signature
-#include "../../core/util/document/layout_interpret.hpp"
-                                                       // render_document, content_resolver
+#include "../../core/util/document/layout/layout_interpret.hpp"
+                                                       // renumber, outline, emit,
+                                                       //   content_resolver
 #include "./test_report_content.hpp"                   // resolve_report_content + keys
 #include "./test_report.hpp"                           // test_report + the model
-
-
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 
 NS_DJINTERP
@@ -229,6 +246,33 @@ make_report_resolver(
 ///                IV.  render_test_report                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
+// render_report_layout
+//   function: layout_interpret.hpp's render_document for a report_op term --
+// number it, collect its outline, emit it, and run the emission against
+// _renderer between begin_document and end_document. The template arguments
+// are named because an annotated term's atom type is never deduced: layout_doc
+// is an alias whose atom sits in a nested-name-specifier. (This spelled the
+// pipeline out while render_document could not be instantiated -- R1; lane 2's
+// round 3 named its passes' arguments, and this became a call.)
+inline void
+render_report_layout(
+    const ::djinterp::layout_doc< ::djinterp::report_op>&       _doc,
+    const ::djinterp::layout_signature< ::djinterp::report_op>& _signature,
+    const ::djinterp::content_resolver&                         _body,
+    const ::djinterp::doc_attributes&                           _metadata,
+    ::djinterp::document_renderer&                              _renderer
+)
+{
+    ::djinterp::render_document< ::djinterp::report_op,
+                                 ::djinterp::layout_atom>(_doc,
+                                                          _signature,
+                                                          _body,
+                                                          _metadata,
+                                                          _renderer);
+
+    return;
+}
+
 // render_test_report
 //   function: the whole pipeline for one report -- fold to a term, bind its
 // content, and drive _renderer through the interpreter (number -> outline ->
@@ -239,12 +283,11 @@ render_test_report(
     ::djinterp::document_renderer& _renderer
 )
 {
-    ::djinterp::render_document(
-        report_to_layout(_report),
-        ::djinterp::make_report_signature(),
-        make_report_resolver(_report),
-        report_metadata_bag(_report),
-        _renderer);
+    render_report_layout(report_to_layout(_report),
+                         ::djinterp::make_report_signature(),
+                         make_report_resolver(_report),
+                         report_metadata_bag(_report),
+                         _renderer);
 
     return;
 }
@@ -253,8 +296,7 @@ render_test_report(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
-
-#endif  // DJINTERP_TEST_LAYOUT_
+#endif  // DJINTERP_TEST_OUTPUT_TEST_LAYOUT_HPP

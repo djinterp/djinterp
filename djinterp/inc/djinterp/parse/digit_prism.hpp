@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                  example/digit_prism.hpp
+/*******************************************************************************
+* djinterp [parse]                                               digit_prism.hpp
 *
 * Worked example: the prism as cata / ana over a live polynomial functor.
 *   The smallest non-trivial μF that exercises the whole apparatus:
@@ -53,11 +53,18 @@
 *
 * path:      /inc/djinterp/parse/digit_prism.hpp
 * link(s):   ch-parsing.tex, ch-recursion.tex
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_EXAMPLE_DIGIT_PRISM_
-#define DJINTERP_PARSE_EXAMPLE_DIGIT_PRISM_ 1
+#ifndef DJINTERP_PARSE_DIGIT_PRISM_HPP
+#define DJINTERP_PARSE_DIGIT_PRISM_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <string>
@@ -94,11 +101,11 @@ using digit_list = std::vector<char>;
 // (poly_var, the recursive position).  Because every constituent
 // is a registered Functor, list_base<A> is one too -- which is what
 // lets cata fold it.
-template<typename _A>
+template<typename A>
 using list_base =
-    poly_sum< poly_unit<_A>,
-              poly_product< poly_const<char, _A>,
-                            poly_var<_A> > >;
+    poly_sum< poly_unit<A>,
+              poly_product< poly_const<char, A>,
+                            poly_var<A> > >;
 
 }  // namespace example
 
@@ -126,8 +133,8 @@ struct recursive_traits< ::djinterp::parse::example::digit_list, void>
 {
     using is_specialized = std::true_type;
 
-    template<typename _A>
-    using base = ::djinterp::parse::example::list_base<_A>;
+    template<typename A>
+    using base = ::djinterp::parse::example::list_base<A>;
 
     static
     ::djinterp::parse::example::list_base<
@@ -140,10 +147,10 @@ struct recursive_traits< ::djinterp::parse::example::digit_list, void>
         namespace ps = ::djinterp::parse;
 
         using carrier = ex::digit_list;
-        using nil_t   = ps::poly_unit<carrier>;
-        using head_t  = ps::poly_const<char, carrier>;
-        using tail_t  = ps::poly_var<carrier>;
-        using cons_t  = ps::poly_product<head_t, tail_t>;
+        using nil_t   = ::djinterp::poly_unit<carrier>;
+        using head_t  = ::djinterp::poly_const<char, carrier>;
+        using tail_t  = ::djinterp::poly_var<carrier>;
+        using cons_t  = ::djinterp::poly_product<head_t, tail_t>;
         using layer_t = ex::list_base<carrier>;
 
         if (_v.empty())
@@ -168,8 +175,8 @@ struct corecursive_traits< ::djinterp::parse::example::digit_list, void>
 {
     using is_specialized = std::true_type;
 
-    template<typename _A>
-    using base = ::djinterp::parse::example::list_base<_A>;
+    template<typename A>
+    using base = ::djinterp::parse::example::list_base<A>;
 
     static
     ::djinterp::parse::example::digit_list
@@ -401,5 +408,7 @@ eval_digits(
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_EXAMPLE_DIGIT_PRISM_
+
+#endif  // DJINTERP_PARSE_DIGIT_PRISM_HPP

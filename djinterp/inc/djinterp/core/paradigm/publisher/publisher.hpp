@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [paradigm]                                               pubsub.hpp
+/*******************************************************************************
+* djinterp [core]                                                  publisher.hpp
 *
 * Publish-subscribe paradigm foundation:
 *   A publish-subscribe system decouples the senders of messages
@@ -16,12 +16,11 @@
 * queued/asynchronous dispatchers, priority delivery, filtered or
 * wildcard routing, retained-value channels, and so on.  The shared
 * machinery is factored into three reusable pieces:
-*
-*     1. subscription        RAII handle for a single registration.
-*     2. subscriber_registry topic -> subscribers storage + dispatch.
-*     3. broker              CRTP base wiring subscribe/publish around
-*                            the registry, with the delivery step left
-*                            as a customization point for derived types.
+*  1. subscription        RAII handle for a single registration.
+*  2. subscriber_registry topic -> subscribers storage + dispatch.
+*  3. broker              CRTP base wiring subscribe/publish around
+*                         the registry, with the delivery step left
+*                         as a customization point for derived types.
 *
 *   A derived module customizes only how each message is delivered by
 * overriding the public do_publish / do_deliver hooks; everything else
@@ -67,25 +66,34 @@
 *   s.unsubscribe();
 *
 *
-* path:      /inc/djinterp/core/paradigm/pubsub/pubsub.hpp
+* path:      /inc/djinterp/core/paradigm/publisher/publisher.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.08
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARADIGM_PUBSUB_
-#define DJINTERP_PARADIGM_PUBSUB_ 1
+#ifndef DJINTERP_PARADIGM_PUBLISHER_PUBLISHER_HPP
+#define DJINTERP_PARADIGM_PUBLISHER_PUBLISHER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <functional>
 #include <memory>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
+#include "../../meta/type_utility.hpp"  // void_t
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t, uint64_t
 
 
 NS_DJINTERP
@@ -97,7 +105,7 @@ NS_DJINTERP
 
 // pubsub_status
 //   typedef: classifies the outcome of a publish operation.
-typedef std::int32_t pubsub_status;
+typedef re_std::int32_t pubsub_status;
 
 // DPubSubStatus*
 //   constants: standard publish status codes.  Derived brokers may
@@ -120,7 +128,7 @@ constexpr pubsub_status DPubSubStatusUserBase       = 64;
 // reserved to mean "no subscription" (a default-constructed token).
 struct subscription_token
 {
-    using id_type = std::uint64_t;
+    using id_type = re_std::uint64_t;
 
     id_type id;
 
@@ -459,15 +467,15 @@ private:
 //   struct: a self-describing message pairing a topic with its payload.
 // Convenient for queued or asynchronous brokers that need to store
 // messages between publication and delivery.
-template<typename _Topic,
-         typename _Payload>
+template<typename Topic,
+         typename Payload>
 struct pubsub_message
 {
-    using topic_type   = _Topic;
-    using payload_type = _Payload;
+    using topic_type   = Topic;
+    using payload_type = Payload;
 
-    _Topic   topic;
-    _Payload payload;
+    Topic    topic;
+    Payload payload;
 
     // pubsub_message (default)
     //   constructs a value-initialized message.
@@ -479,8 +487,8 @@ struct pubsub_message
     // pubsub_message (copy fields)
     //   constructs a message from a topic and payload.
     pubsub_message(
-        const _Topic&   _topic,
-        const _Payload& _payload
+        const Topic&   _topic,
+        const Payload& _payload
     )
         : topic  (_topic),
           payload(_payload)
@@ -489,8 +497,8 @@ struct pubsub_message
     // pubsub_message (move fields)
     //   constructs a message by moving a topic and payload.
     pubsub_message(
-        _Topic&&   _topic,
-        _Payload&& _payload
+        Topic&&   _topic,
+        Payload&& _payload
     )
         : topic  (std::move(_topic)),
           payload(std::move(_payload))
@@ -514,13 +522,13 @@ struct pubsub_message
 // hand each live handler to a caller-supplied function, but it has no
 // notion of how delivery is performed.  That keeps it reusable across
 // every delivery policy a derived broker might implement.
-template<typename _Topic,
-         typename _Handler>
+template<typename Topic,
+         typename Handler>
 class subscriber_registry
 {
 public:
-    using topic_type   = _Topic;
-    using handler_type = _Handler;
+    using topic_type   = Topic;
+    using handler_type = Handler;
     using token_type   = subscription_token;
     using size_type    = std::size_t;
 
@@ -745,11 +753,11 @@ public:
     // registration order, skipping deactivated entries.  Returns the
     // number of handlers visited.  The registry performs no delivery
     // itself - the supplied function decides what "deliver" means.
-    template<typename _Fn>
+    template<typename Fn>
     size_type
     dispatch(
         const topic_type& _topic,
-        _Fn               _fn
+        Fn                _fn
     )
     {
         bucket* b = find_bucket(_topic);
@@ -945,7 +953,7 @@ private:
 // unsubscribe surface, leaving only the delivery policy to the derived
 // type.
 //
-//   The type triad (_Topic, _Payload, _Handler) is supplied as template
+//   The type triad (Topic, Payload, Handler) is supplied as template
 // parameters; the derived class inherits the resulting typedefs rather
 // than redeclaring them.  The handler defaults to a std::function
 // invocable as void(topic, payload) but may be any invocable type.
@@ -976,21 +984,21 @@ private:
 // broker mid-delivery invokes undefined behaviour under the default
 // policy.  Derived policies that require re-entrant mutation should
 // override do_publish to dispatch against a snapshot.
-template<typename _Derived,
-         typename _Topic,
-         typename _Payload,
-         typename _Handler = std::function<void(const _Topic&, const _Payload&)>>
+template<typename Derived,
+         typename Topic,
+         typename Payload,
+         typename Handler = std::function<void(const Topic&, const Payload&)>>
 class broker
 {
 public:
-    using derived_type      = _Derived;
-    using topic_type        = _Topic;
-    using payload_type      = _Payload;
-    using handler_type      = _Handler;
+    using derived_type      = Derived;
+    using topic_type        = Topic;
+    using payload_type      = Payload;
+    using handler_type      = Handler;
     using token_type        = subscription_token;
     using subscription_type = subscription;
-    using message_type      = pubsub_message<_Topic, _Payload>;
-    using registry_type     = subscriber_registry<_Topic, _Handler>;
+    using message_type      = pubsub_message<Topic, Payload>;
+    using registry_type     = subscriber_registry<Topic, Handler>;
     using status_type       = pubsub_status;
     using size_type         = std::size_t;
 
@@ -1293,20 +1301,20 @@ private:
 // overrides of its own; it exists to give callers an immediately usable
 // publish-subscribe object and to serve as the canonical example of a
 // concrete broker.
-template<typename _Topic,
-         typename _Payload,
-         typename _Handler = std::function<void(const _Topic&, const _Payload&)>>
+template<typename Topic,
+         typename Payload,
+         typename Handler = std::function<void(const Topic&, const Payload&)>>
 class bus
-    : public broker<bus<_Topic, _Payload, _Handler>,
-                    _Topic,
-                    _Payload,
-                    _Handler>
+    : public broker<bus<Topic, Payload, Handler>,
+                    Topic,
+                    Payload,
+                    Handler>
 {
 public:
-    using base_type = broker<bus<_Topic, _Payload, _Handler>,
-                             _Topic,
-                             _Payload,
-                             _Handler>;
+    using base_type = broker<bus<Topic, Payload, Handler>,
+                             Topic,
+                             Payload,
+                             Handler>;
 
     using topic_type        = typename base_type::topic_type;
     using payload_type      = typename base_type::payload_type;
@@ -1339,90 +1347,94 @@ public:
 //   trait: detects a callable `subscribe(topic_type, handler_type)`.
 // Primary template is std::false_type; the specialization succeeds when
 // the expression is well-formed.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct pubsub_has_subscribe : std::false_type
 {};
 
-template<typename _Type>
-struct pubsub_has_subscribe<_Type, std::void_t<
+template<typename Type>
+struct pubsub_has_subscribe<Type, void_t<
     decltype(
-        std::declval<_Type&>().subscribe(
-            std::declval<const typename _Type::topic_type&>(),
-            std::declval<typename _Type::handler_type>()))
+        std::declval<Type&>().subscribe(
+            std::declval<const typename Type::topic_type&>(),
+            std::declval<typename Type::handler_type>()))
     >> : std::true_type
 {};
 
 
 // pubsub_has_publish
 //   trait: detects a callable `publish(topic_type, payload_type)`.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct pubsub_has_publish : std::false_type
 {};
 
-template<typename _Type>
-struct pubsub_has_publish<_Type, std::void_t<
+template<typename Type>
+struct pubsub_has_publish<Type, void_t<
     decltype(
-        std::declval<_Type&>().publish(
-            std::declval<const typename _Type::topic_type&>(),
-            std::declval<const typename _Type::payload_type&>()))
+        std::declval<Type&>().publish(
+            std::declval<const typename Type::topic_type&>(),
+            std::declval<const typename Type::payload_type&>()))
     >> : std::true_type
 {};
 
 
 // pubsub_has_unsubscribe
 //   trait: detects a callable `unsubscribe(token_type)`.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct pubsub_has_unsubscribe : std::false_type
 {};
 
-template<typename _Type>
-struct pubsub_has_unsubscribe<_Type, std::void_t<
+template<typename Type>
+struct pubsub_has_unsubscribe<Type, void_t<
     decltype(
-        std::declval<_Type&>().unsubscribe(
-            std::declval<const typename _Type::token_type&>()))
+        std::declval<Type&>().unsubscribe(
+            std::declval<const typename Type::token_type&>()))
     >> : std::true_type
 {};
 
 
 // is_broker
-//   trait: composite - true iff _Type satisfies the broker protocol
+//   trait: composite - true iff Type satisfies the broker protocol
 // (subscribe, publish, and unsubscribe).
-template<typename _Type>
+template<typename Type>
 struct is_broker
 {
     static constexpr bool value =
-        ( pubsub_has_subscribe  <_Type>::value &&
-          pubsub_has_publish    <_Type>::value &&
-          pubsub_has_unsubscribe<_Type>::value );
+        ( pubsub_has_subscribe  <Type>::value &&
+          pubsub_has_publish    <Type>::value &&
+          pubsub_has_unsubscribe<Type>::value );
 };
 
 // is_broker_v
-//   value: convenience alias for is_broker<_Type>::value.
-template<typename _Type>
-constexpr bool is_broker_v = is_broker<_Type>::value;
+//   value: convenience alias for is_broker<Type>::value.
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+template<typename Type>
+constexpr bool is_broker_v = is_broker<Type>::value;
+#endif
 
 
 // is_subscription
 //   trait: detects the subscription-handle protocol (active + token).
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct is_subscription : std::false_type
 {};
 
-template<typename _Type>
-struct is_subscription<_Type, std::void_t<
-    decltype(static_cast<bool>(std::declval<const _Type&>().active())),
-    decltype(std::declval<_Type&>().unsubscribe())
+template<typename Type>
+struct is_subscription<Type, void_t<
+    decltype(static_cast<bool>(std::declval<const Type&>().active())),
+    decltype(std::declval<Type&>().unsubscribe())
     >> : std::true_type
 {};
 
 // is_subscription_v
-//   value: convenience alias for is_subscription<_Type>::value.
-template<typename _Type>
-constexpr bool is_subscription_v = is_subscription<_Type>::value;
+//   value: convenience alias for is_subscription<Type>::value.
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+template<typename Type>
+constexpr bool is_subscription_v = is_subscription<Type>::value;
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1435,18 +1447,18 @@ constexpr bool is_subscription_v = is_subscription<_Type>::value;
 // broker_type
 //   concept: constrains types that satisfy the broker protocol - the
 // subscribe, publish, and unsubscribe member functions.
-template<typename _Type>
-concept broker_type = is_broker<_Type>::value;
+template<typename Type>
+concept broker_type = is_broker<Type>::value;
 
 // handler_for
 //   concept: constrains callables usable as a subscriber for the given
 // topic and payload types, i.e. invocable as void(topic, payload).
-template<typename _Handler,
-         typename _Topic,
-         typename _Payload>
-concept handler_for = requires(_Handler           _h,
-                               const _Topic&      _t,
-                               const _Payload&    _p)
+template<typename Handler,
+         typename Topic,
+         typename Payload>
+concept handler_for = requires(Handler            _h,
+                               const Topic&      _t,
+                               const Payload&    _p)
 {
     _h(_t, _p);
 };
@@ -1461,32 +1473,34 @@ concept handler_for = requires(_Handler           _h,
 // make_bus
 //   factory: creates a default synchronous bus for the given topic and
 // payload types.
-template<typename _Topic,
-         typename _Payload,
-         typename _Handler = std::function<void(const _Topic&, const _Payload&)>>
+template<typename Topic,
+         typename Payload,
+         typename Handler = std::function<void(const Topic&, const Payload&)>>
 D_NODISCARD
-bus<_Topic, _Payload, _Handler>
+bus<Topic, Payload, Handler>
 make_bus()
 {
-    return bus<_Topic, _Payload, _Handler>();
+    return bus<Topic, Payload, Handler>();
 }
 
 // make_message
 //   factory: creates a message envelope from a topic and payload.
-template<typename _Topic,
-         typename _Payload>
+template<typename Topic,
+         typename Payload>
 D_NODISCARD
-pubsub_message<_Topic, _Payload>
+pubsub_message<Topic, Payload>
 make_message(
-    const _Topic&   _topic,
-    const _Payload& _payload
+    const Topic&   _topic,
+    const Payload& _payload
 )
 {
-    return pubsub_message<_Topic, _Payload>(_topic, _payload);
+    return pubsub_message<Topic, Payload>(_topic, _payload);
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARADIGM_PUBSUB_
+
+#endif  // DJINTERP_PARADIGM_PUBLISHER_PUBLISHER_HPP

@@ -6,15 +6,15 @@
 * of individual POSIX features (threads, real-time, sockets, shared memory,
 * semaphores, message queues, memory mapping), exposing the D_ENV_POSIX_*
 * interface and its utility macros.
-*   Requires cfg_env.h (for the D_CFG_ENV_* switches). This header is an
-* internal component of env.h and is #included by it; do not #include it
-* directly.
+*   It includes its own configuration, cfg_env_posix.h, and reads no other env
+* section, so it gives the same answers whether a unit includes it directly or
+* through env.h.
 *
 *
 * path:      /inc/djinterp/env/env_posix.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.09.30
 *******************************************************************************/
 
 /*
@@ -77,6 +77,9 @@ TABLE OF CONTENTS
 
 #ifndef DJINTERP_ENV_ENV_POSIX_H
 #define DJINTERP_ENV_ENV_POSIX_H 1
+
+// djinterp
+#include "../config/core/env/cfg_env_posix.h"  // D_CFG_ENV_POSIX_ENABLED
 
 
 //==============================================================================
@@ -205,7 +208,7 @@ TABLE OF CONTENTS
 // translation unit included before env.h.
 
 
-#if D_CFG_ENV_POSIX_ENABLED
+#if D_CFG_IS_ON(D_CFG_ENV_POSIX_ENABLED)
 
 // 2.1    Automatic detection
 //------------------------------------------------------------------------------

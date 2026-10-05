@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                              size.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                     size.hpp
 *
+* size function header:
 * size(c) returns c.size() for containers, or the extent N for raw
 * arrays of size N. The array overload returns std::size_t (the
 * signed C++20 ssize variant is a separate symbol, ssize.hpp, not
@@ -9,40 +10,42 @@
 * added in std C++17.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/size.hpp
+* path:      /inc/re_std/iterator/size.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_SIZE_
-#define DJINTERP_RE_STD_ITERATOR_SIZE_ 1
+#ifndef RE_STD_ITERATOR_SIZE_HPP
+#define RE_STD_ITERATOR_SIZE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
 
 
 namespace re_std
 {
 
-template<typename _C>
-D_CONSTEXPR auto size(const _C& _c) -> decltype(_c.size())
+template<typename C>
+RE_STD_CONSTEXPR auto size(const C& _c) -> decltype(_c.size())
 {
     return _c.size();
 }
 
-template<typename _T, std::size_t _N>
-D_CONSTEXPR std::size_t size(const _T (&)[_N]) D_NOEXCEPT
+template<typename T, std::size_t N>
+RE_STD_CONSTEXPR std::size_t size(const T (&)[N]) RE_STD_NOEXCEPT
 {
-    return _N;
+    return N;
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_SIZE_
+#endif  // RE_STD_ITERATOR_SIZE_HPP

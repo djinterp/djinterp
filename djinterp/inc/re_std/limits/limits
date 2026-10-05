@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                          limits
+/*******************************************************************************
+* djinterp [re_std]                                                       limits
 *
 * umbrella header for the re_std limits module:
 *   pulls in numeric_limits<T> and the two rounding/denormal enumerations.
@@ -7,17 +7,18 @@
 *   may include its granular header instead.
 *
 *
-* path:      /inc/re_std/limits
+* path:      /inc/re_std/limits/limits
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_LIMITS_
-#define DJINTERP_RE_STD_LIMITS_ 1
+#ifndef RE_STD_LIMITS_LIMITS
+#define RE_STD_LIMITS_LIMITS 1
 
 // re_std :: limits
-#include "limits/float_round_style.hpp"
-#include "limits/float_denorm_style.hpp"
-#include "limits/numeric_limits.hpp"
+#include "./float_round_style.hpp"
+#include "./float_denorm_style.hpp"
+#include "./numeric_limits.hpp"
 
-#endif  // DJINTERP_RE_STD_LIMITS_
+#endif  // RE_STD_LIMITS_LIMITS

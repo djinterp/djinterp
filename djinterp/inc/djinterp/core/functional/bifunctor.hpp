@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                         bifunctor.hpp
+/*******************************************************************************
+* djinterp [core]                                                  bifunctor.hpp
 *
 * Bifunctor protocol: map over both type parameters at once (C++).
 *   A bifunctor is a two-parameter type constructor F<A, B> that is a functor in
@@ -32,37 +32,52 @@
 *   std::pair<int, int> p(3, 4);
 *   auto p2 = map_second(p, [](int y){ return y + 100; });   // (3, 104)
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/bifunctor.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.12
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS
+      ---------------------------------------------
+
 I.    BIFUNCTOR PROTOCOL
-      1.  bifunctor_traits<F>                     (primary, undefined)
-      2.  is_bifunctor<T>                         (detection trait)
+      ------------------
+      1.    bifunctor_traits<F>                     (primary, undefined)
+      2.    is_bifunctor<T>                         (detection trait)
+
 II.   GENERIC BIFUNCTOR OPERATIONS
-      1.  bimap                                   (the one obligation, delegated)
-      2.  map_first                               (bimap with identity right)
-      3.  map_second                              (bimap with identity left)
+      ----------------------------
+      1.    bimap                                   (the one obligation, delegated)
+      2.    map_first                               (bimap with identity right)
+      3.    map_second                              (bimap with identity left)
+
 III.  INSTANCES
-      1.  std::pair<A, B>
-      2.  kv_pair<K, V>
+      ---------
+      1.    std::pair<A, B>
+      2.    kv_pair<K, V>
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_BIFUNCTOR_
-#define DJINTERP_FUNCTIONAL_BIFUNCTOR_ 1
+#ifndef DJINTERP_FUNCTIONAL_BIFUNCTOR_HPP
+#define DJINTERP_FUNCTIONAL_BIFUNCTOR_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // void_t
 #include "../meta/kv_pair.hpp"
 
 
@@ -87,8 +102,8 @@ NS_DJINTERP
 // second template parameter is a SFINAE hook used by the family instances
 // that key on a structural trait. The primary is left undefined so a use on a
 // non-bifunctor produces a clean resolution error.
-template<typename _Bifunctor,
-         typename _Enable = void>
+template<typename Bifunctor,
+         typename Enable = void>
 struct bifunctor_traits;
 
 
@@ -98,41 +113,41 @@ NS_INTERNAL
     //   helper: SFINAE detector for whether bifunctor_traits<T> is
     // specialized. Looks for the is_specialized marker that every
     // specialization provides.
-    template<typename _Type>
+    template<typename Type>
     struct is_bifunctor_helper
     {
     private:
-        template<typename _T>
+        template<typename T>
         static auto test(int)
             -> decltype(
-                typename bifunctor_traits<_T>::is_specialized{},
+                typename bifunctor_traits<T>::is_specialized{},
                 std::true_type{});
 
         template<typename>
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 
 // is_bifunctor
-//   trait: true if _Type has a specialization of bifunctor_traits (after
+//   trait: true if Type has a specialization of bifunctor_traits (after
 // cv-ref stripping). Used to SFINAE-constrain generic operations.
-template<typename _Type>
+template<typename Type>
 struct is_bifunctor
-    : internal::is_bifunctor_helper<typename std::decay<_Type>::type>::type
+    : internal::is_bifunctor_helper<typename std::decay<Type>::type>::type
 {
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // is_bifunctor_v
-//   value: convenience alias for is_bifunctor<_Type>::value.
-template<typename _Type>
-static constexpr bool is_bifunctor_v = is_bifunctor<_Type>::value;
+//   value: convenience alias for is_bifunctor<Type>::value.
+template<typename Type>
+static constexpr bool is_bifunctor_v = is_bifunctor<Type>::value;
 #endif
 
 
@@ -147,30 +162,30 @@ NS_INTERNAL
 
     // bifunctor_first_type_helper / bifunctor_second_type_helper
     //   helpers: SFINAE extractors for the two parameter types.
-    template<typename _AlwaysVoid,
-             typename _Bifunctor>
+    template<typename AlwaysVoid,
+             typename Bifunctor>
     struct bifunctor_first_type_helper
     {};
 
-    template<typename _Bifunctor>
+    template<typename Bifunctor>
     struct bifunctor_first_type_helper<
-        void_t<typename bifunctor_traits<_Bifunctor>::first_type>,
-        _Bifunctor>
+        void_t<typename bifunctor_traits<Bifunctor>::first_type>,
+        Bifunctor>
     {
-        using type = typename bifunctor_traits<_Bifunctor>::first_type;
+        using type = typename bifunctor_traits<Bifunctor>::first_type;
     };
 
-    template<typename _AlwaysVoid,
-             typename _Bifunctor>
+    template<typename AlwaysVoid,
+             typename Bifunctor>
     struct bifunctor_second_type_helper
     {};
 
-    template<typename _Bifunctor>
+    template<typename Bifunctor>
     struct bifunctor_second_type_helper<
-        void_t<typename bifunctor_traits<_Bifunctor>::second_type>,
-        _Bifunctor>
+        void_t<typename bifunctor_traits<Bifunctor>::second_type>,
+        Bifunctor>
     {
-        using type = typename bifunctor_traits<_Bifunctor>::second_type;
+        using type = typename bifunctor_traits<Bifunctor>::second_type;
     };
 
     // bifunctor_identity_helper
@@ -179,10 +194,10 @@ NS_INTERNAL
     // it can appear in trailing return types on every floor.
     struct bifunctor_identity_helper
     {
-        template<typename _X>
+        template<typename X>
         D_CONSTEXPR
-        _X operator()(
-            _X _x
+        X operator()(
+            X _x
         ) const
         {
             return _x;
@@ -195,36 +210,36 @@ NS_END  // internal
 // bifunctor_first_type / bifunctor_second_type
 //   traits: the first and second parameter types of a bifunctor F.
 // SFINAE-friendly.
-template<typename _Bifunctor>
+template<typename Bifunctor>
 struct bifunctor_first_type
 {
     using type = typename internal::bifunctor_first_type_helper<
-        void, typename std::decay<_Bifunctor>::type>::type;
+        void, typename std::decay<Bifunctor>::type>::type;
 };
 
-template<typename _Bifunctor>
+template<typename Bifunctor>
 struct bifunctor_second_type
 {
     using type = typename internal::bifunctor_second_type_helper<
-        void, typename std::decay<_Bifunctor>::type>::type;
+        void, typename std::decay<Bifunctor>::type>::type;
 };
 
 // bifunctor_first_type_t / bifunctor_second_type_t
 //   types: convenience aliases.
-template<typename _Bifunctor>
-using bifunctor_first_type_t = typename bifunctor_first_type<_Bifunctor>::type;
+template<typename Bifunctor>
+using bifunctor_first_type_t = typename bifunctor_first_type<Bifunctor>::type;
 
-template<typename _Bifunctor>
-using bifunctor_second_type_t = typename bifunctor_second_type<_Bifunctor>::type;
+template<typename Bifunctor>
+using bifunctor_second_type_t = typename bifunctor_second_type<Bifunctor>::type;
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // Bifunctor
-    //   concept: satisfied when _Type is a specialized bifunctor. The
+    //   concept: satisfied when Type is a specialized bifunctor. The
     // PascalCase typeclass face, alongside Functor / Applicative / Foldable.
-    template<typename _Type>
-    concept Bifunctor = is_bifunctor<_Type>::value;
+    template<typename Type>
+    concept Bifunctor = is_bifunctor<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -240,24 +255,24 @@ using bifunctor_second_type_t = typename bifunctor_second_type<_Bifunctor>::type
 //   function: maps both parameters at once -- f : A -> C over the first, g :
 //   B -> D over the second -- yielding F<C, D>. The result type is whatever the
 // instance produces, so it is deduced.
-template<typename _Bifunctor,
-         typename _First,
-         typename _Second>
+template<typename Bifunctor,
+         typename First,
+         typename Second>
 D_NODISCARD
 D_CONSTEXPR
 auto bimap
 (
-    _Bifunctor&& _fab,
-    _First       _f,
-    _Second      _g
+    Bifunctor&& _fab,
+    First        _f,
+    Second       _g
 )
--> decltype(bifunctor_traits<typename std::decay<_Bifunctor>::type>::bimap(
-       std::forward<_Bifunctor>(_fab),
+-> decltype(bifunctor_traits<typename std::decay<Bifunctor>::type>::bimap(
+       std::forward<Bifunctor>(_fab),
        _f,
        _g))
 {
-    return bifunctor_traits<typename std::decay<_Bifunctor>::type>::bimap(
-        std::forward<_Bifunctor>(_fab),
+    return bifunctor_traits<typename std::decay<Bifunctor>::type>::bimap(
+        std::forward<Bifunctor>(_fab),
         _f,
         _g);
 }
@@ -266,22 +281,22 @@ auto bimap
 // map_first
 //   function: maps only the first parameter (f : A -> C), leaving the second
 // untouched -- bimap with identity on the right. For result this is its map.
-template<typename _Bifunctor,
-         typename _Function>
+template<typename Bifunctor,
+         typename Function>
 D_NODISCARD
 D_CONSTEXPR
 auto map_first
 (
-    _Bifunctor&& _fab,
-    _Function    _f
+    Bifunctor&& _fab,
+    Function     _f
 )
 -> decltype(::djinterp::bimap(
-       std::forward<_Bifunctor>(_fab),
+       std::forward<Bifunctor>(_fab),
        _f,
        internal::bifunctor_identity_helper()))
 {
     return ::djinterp::bimap(
-        std::forward<_Bifunctor>(_fab),
+        std::forward<Bifunctor>(_fab),
         _f,
         internal::bifunctor_identity_helper());
 }
@@ -290,22 +305,22 @@ auto map_first
 // map_second
 //   function: maps only the second parameter (g : B -> D), leaving the first
 // untouched -- bimap with identity on the left. For result this is its map_err.
-template<typename _Bifunctor,
-         typename _Function>
+template<typename Bifunctor,
+         typename Function>
 D_NODISCARD
 D_CONSTEXPR
 auto map_second
 (
-    _Bifunctor&& _fab,
-    _Function    _g
+    Bifunctor&& _fab,
+    Function     _g
 )
 -> decltype(::djinterp::bimap(
-       std::forward<_Bifunctor>(_fab),
+       std::forward<Bifunctor>(_fab),
        internal::bifunctor_identity_helper(),
        _g))
 {
     return ::djinterp::bimap(
-        std::forward<_Bifunctor>(_fab),
+        std::forward<Bifunctor>(_fab),
         internal::bifunctor_identity_helper(),
         _g);
 }
@@ -319,29 +334,29 @@ auto map_second
 // Written in the explicit two-argument `<T, void>` form against the
 // SFINAE-hooked primary.
 
-// bifunctor_traits<std::pair<_A, _B>>
+// bifunctor_traits<std::pair<A, B>>
 //   instance: maps each component of the pair.
-template<typename _A,
-         typename _B>
-struct bifunctor_traits<std::pair<_A, _B>, void>
+template<typename A,
+         typename B>
+struct bifunctor_traits<std::pair<A, B>, void>
 {
     using is_specialized = std::true_type;
-    using first_type     = _A;
-    using second_type    = _B;
+    using first_type     = A;
+    using second_type    = B;
 
-    template<typename _First,
-             typename _Second>
+    template<typename First,
+             typename Second>
     static
     D_CONSTEXPR
     std::pair<
-        typename std::decay<decltype(std::declval<_First&>()(
-            std::declval<const _A&>()))>::type,
-        typename std::decay<decltype(std::declval<_Second&>()(
-            std::declval<const _B&>()))>::type>
+        typename std::decay<decltype(std::declval<First&>()(
+            std::declval<const A&>()))>::type,
+        typename std::decay<decltype(std::declval<Second&>()(
+            std::declval<const B&>()))>::type>
     bimap(
-        const std::pair<_A, _B>& _p,
-        _First                   _f,
-        _Second                  _g
+        const std::pair<A, B>& _p,
+        First                    _f,
+        Second                   _g
     )
     {
         return std::make_pair(_f(_p.first), _g(_p.second));
@@ -349,37 +364,37 @@ struct bifunctor_traits<std::pair<_A, _B>, void>
 };
 
 
-// bifunctor_traits<kv_pair<_Key, _Value>>
+// bifunctor_traits<kv_pair<Key, Value>>
 //   instance: maps the key and the value. Note kv_pair's equality / ordering
 // compare keys only, so mapping the value preserves identity while mapping the
 // key may change it -- expected, and the caller's concern.
-template<typename _Key,
-         typename _Value>
-struct bifunctor_traits<kv_pair<_Key, _Value>, void>
+template<typename Key,
+         typename Value>
+struct bifunctor_traits<kv_pair<Key, Value>, void>
 {
     using is_specialized = std::true_type;
-    using first_type     = _Key;
-    using second_type    = _Value;
+    using first_type     = Key;
+    using second_type    = Value;
 
-    template<typename _First,
-             typename _Second>
+    template<typename First,
+             typename Second>
     static
     D_CONSTEXPR
     kv_pair<
-        typename std::decay<decltype(std::declval<_First&>()(
-            std::declval<const _Key&>()))>::type,
-        typename std::decay<decltype(std::declval<_Second&>()(
-            std::declval<const _Value&>()))>::type>
+        typename std::decay<decltype(std::declval<First&>()(
+            std::declval<const Key&>()))>::type,
+        typename std::decay<decltype(std::declval<Second&>()(
+            std::declval<const Value&>()))>::type>
     bimap(
-        const kv_pair<_Key, _Value>& _kv,
-        _First                       _f,
-        _Second                      _g
+        const kv_pair<Key, Value>& _kv,
+        First                        _f,
+        Second                       _g
     )
     {
         using mapped_key_t = typename std::decay<decltype(
-            std::declval<_First&>()(std::declval<const _Key&>()))>::type;
+            std::declval<First&>()(std::declval<const Key&>()))>::type;
         using mapped_value_t = typename std::decay<decltype(
-            std::declval<_Second&>()(std::declval<const _Value&>()))>::type;
+            std::declval<Second&>()(std::declval<const Value&>()))>::type;
 
         return kv_pair<mapped_key_t, mapped_value_t>(
             _f(_kv.m_key), _g(_kv.m_value));
@@ -389,5 +404,7 @@ struct bifunctor_traits<kv_pair<_Key, _Value>, void>
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_BIFUNCTOR_
+
+#endif  // DJINTERP_FUNCTIONAL_BIFUNCTOR_HPP

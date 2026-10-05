@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                              buffer.hpp
+/*******************************************************************************
+* djinterp [core]                                                     buffer.hpp
 *
 * Foundational buffer module for the djinterp container framework.
 *   A buffer is temporary storage that is written in stages and consumed
@@ -38,33 +38,54 @@
 *
 * path:      /inc/djinterp/core/container/buffer/buffer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.29
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.      growth strategy enum
-II.     cursor model enum
-III.    growth policies
-IV.     cursor policies
-V.      buffer_base (CRTP)
-VI.     growth policy selection
-VII.    cursor policy selection
-VIII.   default policy aliases
+I.    growth strategy enum
+      --------------------
+
+II.   cursor model enum
+      -----------------
+
+III.  growth policies
+      ---------------
+
+IV.   cursor policies
+      ---------------
+
+V.    buffer_base (CRTP)
+      ------------------
+
+VI.   growth policy selection
+      -----------------------
+
+VII.  cursor policy selection
+      -----------------------
+
+VIII. default policy aliases
+      ----------------------
 */
 
-#ifndef DJINTERP_CONTAINER_BUFFER_
-#define DJINTERP_CONTAINER_BUFFER_ 1
+#ifndef DJINTERP_CONTAINER_BUFFER_BUFFER_HPP
+#define DJINTERP_CONTAINER_BUFFER_BUFFER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -75,24 +96,22 @@ NS_DJINTERP
 // =============================================================================
 
 // buffer_growth_strategy
-//   enum: classifies the growth strategy a buffer uses when the write cursor 
+//   enum: classifies the growth strategy a buffer uses when the write cursor
 // reaches capacity.
 enum class buffer_growth_strategy
 {
-    // no growth - capacity is fixed at construction
-    // or compile time; writes beyond capacity fail
+    // no growth - capacity is fixed at construction or compile time; writes
+    // beyond capacity fail
     none,
 
     // grow by a constant byte increment each time
     // capacity is exhausted
     linear,
 
-    // double capacity each time it is exhausted
-    // (amortized O(1) append)
+    // double capacity each time it is exhausted (amortized O(1) append)
     exponential,
 
-    // grow in multiples of the OS memory page size
-    // (typically 4096 bytes)
+    // grow in multiples of the OS memory page size (typically 4096 bytes)
     page_aligned
 };
 
@@ -102,17 +121,15 @@ enum class buffer_growth_strategy
 // =============================================================================
 
 // buffer_cursor_model
-//   enum: classifies how the buffer tracks read/write
-// positions.
+//   enum: classifies how the buffer tracks read/write positions.
 enum class buffer_cursor_model
 {
-    // single write cursor only - the consumer
-    // manages read position externally (e.g. by
-    // taking the whole buffer via data()/release())
+    // single write cursor only - the consumer manages read position externally
+    // (e.g. by taking the whole buffer via data()/release())
     write_only,
 
-    // paired write + read cursors - supports
-    // incremental consumption via advance()/consume()
+    // paired write + read cursors - supports incremental consumption via
+    // advance()/consume()
     dual
 };
 
@@ -130,16 +147,16 @@ enum class buffer_cursor_model
 // where possible.
 
 // fixed_growth_policy
-//   struct: no growth.  Capacity is set at construction
-// and never changes.  Writes that exceed capacity fail.
+//   struct: no growth. Capacity is set at construction and never changes.
+// Writes that exceed capacity fail.
 struct fixed_growth_policy
 {
     static constexpr buffer_growth_strategy strategy = buffer_growth_strategy::none;
     static constexpr bool can_grow = false;
 
     // compute
-    //   returns the current capacity unchanged.
-    // _required is ignored - growth is not permitted.
+    //   returns the current capacity unchanged. _required is ignored - growth
+    // is not permitted.
     static constexpr std::size_t
     compute(std::size_t _current,
             std::size_t /*_required*/) noexcept
@@ -149,23 +166,23 @@ struct fixed_growth_policy
 };
 
 // linear_growth_policy
-//   struct: grow by a constant increment.  The increment
-// defaults to 4096 bytes but can be overridden via the
-// _Increment template parameter.
-template<std::size_t _Increment = 4096>
+//   struct: grow by a constant increment. The increment
+// defaults to 4096 bytes but can be overridden via the Increment template
+// parameter.
+template<std::size_t Increment = 4096>
 struct linear_growth_policy
 {
     static constexpr buffer_growth_strategy strategy = buffer_growth_strategy::linear;
     static constexpr bool        can_grow   = true;
-    static constexpr std::size_t increment  = _Increment;
+    static constexpr std::size_t increment  = Increment;
 
-    static_assert(_Increment > 0,
-        "linear_growth_policy: _Increment must be "
+    static_assert(Increment > 0,
+        "linear_growth_policy: Increment must be "
         "greater than zero.");
 
     // compute
-    //   returns the smallest capacity >= _required that
-    // is a multiple of _Increment above _current.
+    //   returns the smallest capacity >= _required that is a multiple of
+    // Increment above _current.
     static constexpr std::size_t
     compute(
         std::size_t _current,
@@ -176,7 +193,7 @@ struct linear_growth_policy
 
         while (cap < _required)
         {
-            cap += _Increment;
+            cap += Increment;
         }
 
         return cap;
@@ -184,9 +201,8 @@ struct linear_growth_policy
 };
 
 // exponential_growth_policy
-//   struct: double capacity on exhaustion.  Provides
-// amortized O(1) appends.  The minimum initial capacity
-// is 64 bytes.
+//   struct: double capacity on exhaustion. Provides amortized O(1) appends.
+// The minimum initial capacity is 64 bytes.
 struct exponential_growth_policy
 {
     static constexpr buffer_growth_strategy strategy =
@@ -195,9 +211,9 @@ struct exponential_growth_policy
     static constexpr std::size_t min_capacity = 64;
 
     // compute
-    //   returns the smallest power-of-two-like capacity
-    // >= _required, starting from _current doubled.
-    static constexpr std::size_t
+    //   returns the smallest power-of-two-like capacity >= _required, starting
+    // from _current doubled.
+    static D_CONSTEXPR_CPP14 std::size_t
     compute(std::size_t _current,
             std::size_t _required) noexcept
     {
@@ -215,32 +231,30 @@ struct exponential_growth_policy
 };
 
 // page_growth_policy
-//   struct: grow in multiples of the OS page size.
-// The page size defaults to 4096 bytes but can be
-// overridden at compile time.
-template<std::size_t _PageSize = 4096>
+//   struct: grow in multiples of the OS page size. The page size defaults to
+// 4096 bytes but can be overridden at compile time.
+template<std::size_t PageSize = 4096>
 struct page_growth_policy
 {
     static constexpr buffer_growth_strategy strategy =
         buffer_growth_strategy::page_aligned;
     static constexpr bool        can_grow  = true;
-    static constexpr std::size_t page_size = _PageSize;
+    static constexpr std::size_t page_size = PageSize;
 
-    static_assert(_PageSize > 0 &&
-                  (_PageSize & (_PageSize - 1)) == 0,
-        "page_growth_policy: _PageSize must be a "
+    static_assert(PageSize > 0 &&
+                  (PageSize & (PageSize - 1)) == 0,
+        "page_growth_policy: PageSize must be a "
         "positive power of two.");
 
     // compute
-    //   returns the smallest page-aligned capacity
-    // >= _required.
+    //   returns the smallest page-aligned capacity >= _required.
     static constexpr std::size_t
     compute(std::size_t /*_current*/,
             std::size_t  _required) noexcept
     {
         // round up to next page boundary
-        return (_required + _PageSize - 1)
-            & ~(_PageSize - 1);
+        return (_required + PageSize - 1)
+            & ~(PageSize - 1);
     }
 };
 
@@ -255,9 +269,8 @@ struct page_growth_policy
 // arithmetic.
 
 // write_only_cursor_policy
-//   struct: single write cursor.  The consumer retrieves
-// the accumulated data via data()/size() and manages any
-// read offset externally.
+//   struct: single write cursor. The consumer retrieves the accumulated data
+// via data()/size() and manages any read offset externally.
 struct write_only_cursor_policy
 {
     static constexpr buffer_cursor_model model = buffer_cursor_model::write_only;
@@ -277,8 +290,8 @@ struct write_only_cursor_policy
     }
 
     // writable
-    //   returns the number of bytes available for
-    // writing between the write cursor and capacity.
+    //   returns the number of bytes available for writing between the write
+    // cursor and capacity.
     static constexpr std::size_t
     writable(
         const cursor_state& _state,
@@ -290,7 +303,7 @@ struct write_only_cursor_policy
 
     // advance_write
     //   advances the write cursor by _n bytes.
-    static constexpr void
+    static D_CONSTEXPR_CPP14 void
     advance_write(cursor_state& _state,
                   std::size_t   _n) noexcept
     {
@@ -308,9 +321,8 @@ struct write_only_cursor_policy
     }
 
     // reset
-    //   resets the write cursor to the beginning
-    // without releasing storage.
-    static constexpr void
+    //   resets the write cursor to the beginning without releasing storage.
+    static D_CONSTEXPR_CPP14 void
     reset(cursor_state& _state) noexcept
     {
         _state.write_pos = 0;
@@ -320,10 +332,9 @@ struct write_only_cursor_policy
 };
 
 // dual_cursor_policy
-//   struct: paired write + read cursors.  Supports
-// incremental production and consumption.  The readable
-// region is [read_pos, write_pos); the writable region
-// is [write_pos, capacity).
+//   struct: paired write + read cursors. Supports incremental production and
+// consumption. The readable region is [read_pos, write_pos); the writable
+// region is [write_pos, capacity).
 struct dual_cursor_policy
 {
     static constexpr buffer_cursor_model model =
@@ -345,8 +356,8 @@ struct dual_cursor_policy
     }
 
     // writable
-    //   returns the number of bytes available for
-    // writing between the write cursor and capacity.
+    //   returns the number of bytes available for writing between the write
+    // cursor and capacity.
     static constexpr std::size_t
     writable(const cursor_state& _state,
              std::size_t         _capacity) noexcept
@@ -355,8 +366,8 @@ struct dual_cursor_policy
     }
 
     // readable
-    //   returns the number of unconsumed bytes between
-    // the read cursor and the write cursor.
+    //   returns the number of unconsumed bytes between the read cursor and the
+    // write cursor.
     static constexpr std::size_t
     readable(const cursor_state& _state) noexcept
     {
@@ -365,7 +376,7 @@ struct dual_cursor_policy
 
     // advance_write
     //   advances the write cursor by _n bytes.
-    static constexpr void
+    static D_CONSTEXPR_CPP14 void
     advance_write(cursor_state& _state,
                   std::size_t   _n) noexcept
     {
@@ -376,7 +387,7 @@ struct dual_cursor_policy
 
     // advance_read
     //   advances the read cursor by _n bytes.
-    static constexpr void
+    static D_CONSTEXPR_CPP14 void
     advance_read(cursor_state& _state,
                  std::size_t   _n) noexcept
     {
@@ -402,9 +413,8 @@ struct dual_cursor_policy
     }
 
     // reset
-    //   resets both cursors to the beginning without
-    // releasing storage.
-    static constexpr void
+    //   resets both cursors to the beginning without releasing storage.
+    static D_CONSTEXPR_CPP14 void
     reset(cursor_state& _state) noexcept
     {
         _state.write_pos = 0;
@@ -414,9 +424,8 @@ struct dual_cursor_policy
     }
 
     // compact
-    //   shifts unconsumed data to the front of the
-    // buffer and resets both cursors accordingly.
-    // Returns the number of bytes that were shifted.
+    //   shifts unconsumed data to the front of the buffer and resets both
+    // cursors accordingly. Returns the number of bytes that were shifted.
     static std::size_t
     compact(cursor_state& _state,
             char*         _data) noexcept
@@ -462,14 +471,14 @@ struct dual_cursor_policy
 // The derived class owns the memory.  buffer_base never
 // allocates or frees.
 
-template<typename _Derived,
-         typename _GrowthPolicy,
-         typename _CursorPolicy>
+template<typename Derived,
+         typename GrowthPolicy,
+         typename CursorPolicy>
 class buffer_base
 {
 protected:
     buffer_base() noexcept
-        : m_cursors(_CursorPolicy::init())
+        : m_cursors(CursorPolicy::init())
     {}
 
     ~buffer_base() = default;
@@ -482,7 +491,7 @@ protected:
     buffer_base(buffer_base&& _other) noexcept
         : m_cursors(_other.m_cursors)
     {
-        _CursorPolicy::reset(_other.m_cursors);
+        CursorPolicy::reset(_other.m_cursors);
     }
 
     buffer_base& operator=(buffer_base&& _other) noexcept
@@ -490,98 +499,96 @@ protected:
         if (this != &_other)
         {
             m_cursors = _other.m_cursors;
-            _CursorPolicy::reset(_other.m_cursors);
+            CursorPolicy::reset(_other.m_cursors);
         }
 
         return *this;
     }
 
 private:
-    _Derived& self()
+    Derived& self()
     {
-        return static_cast<_Derived&>(*this);
+        return static_cast<Derived&>(*this);
     }
 
-    const _Derived& self() const
+    const Derived& self() const
     {
-        return static_cast<const _Derived&>(*this);
+        return static_cast<const Derived&>(*this);
     }
 
 public:
     // --- policy types ---
 
-    using growth_policy = _GrowthPolicy;
-    using cursor_policy = _CursorPolicy;
+    using growth_policy = GrowthPolicy;
+    using cursor_policy = CursorPolicy;
     using cursor_state  =
-        typename _CursorPolicy::cursor_state;
+        typename CursorPolicy::cursor_state;
 
     // --- capacity and growth constants ---
 
     static constexpr buffer_growth_strategy growth_strategy =
-        _GrowthPolicy::strategy;
+        GrowthPolicy::strategy;
 
     static constexpr buffer_cursor_model cursor_model =
-        _CursorPolicy::model;
+        CursorPolicy::model;
 
     static constexpr bool can_grow =
-        _GrowthPolicy::can_grow;
+        GrowthPolicy::can_grow;
 
     static constexpr bool has_read_cursor =
-        _CursorPolicy::has_read_cursor;
+        CursorPolicy::has_read_cursor;
 
     // --- state predicates ---
 
     // empty
-    //   returns true if no data has been written, or all
-    // written data has been consumed (dual-cursor mode).
+    //   returns true if no data has been written, or all written data has been
+    // consumed (dual-cursor mode).
     bool empty() const noexcept
     {
-        if constexpr (_CursorPolicy::has_read_cursor)
+        if constexpr (CursorPolicy::has_read_cursor)
         {
-            return _CursorPolicy::readable(
+            return CursorPolicy::readable(
                        m_cursors) == 0;
         }
         else
         {
-            return _CursorPolicy::written(
+            return CursorPolicy::written(
                        m_cursors) == 0;
         }
     }
 
     // full
-    //   returns true if the write cursor has reached
-    // capacity and the growth policy does not allow
-    // expansion.
+    //   returns true if the write cursor has reached capacity and the growth
+    // policy does not allow expansion.
     bool full() const noexcept
     {
-        return _CursorPolicy::writable(
+        return CursorPolicy::writable(
                    m_cursors,
                    self().capacity()) == 0
-            && !_GrowthPolicy::can_grow;
+            && !GrowthPolicy::can_grow;
     }
 
     // size
-    //   returns the number of meaningful bytes.
-    // Write-only: total bytes written.
-    // Dual-cursor: unconsumed bytes (write - read).
+    //   returns the number of meaningful bytes. Write-only: total bytes
+    // written. Dual-cursor: unconsumed bytes (write - read).
     std::size_t size() const noexcept
     {
-        if constexpr (_CursorPolicy::has_read_cursor)
+        if constexpr (CursorPolicy::has_read_cursor)
         {
-            return _CursorPolicy::readable(m_cursors);
+            return CursorPolicy::readable(m_cursors);
         }
         else
         {
-            return _CursorPolicy::written(m_cursors);
+            return CursorPolicy::written(m_cursors);
         }
     }
 
     // writable
-    //   returns the number of bytes that can be written
-    // without triggering growth.
+    //   returns the number of bytes that can be written without triggering
+    // growth.
     std::size_t writable() const noexcept
     {
-        return _CursorPolicy::writable(
+        return CursorPolicy::writable(
             m_cursors, self().capacity());
     }
 
@@ -589,23 +596,22 @@ public:
     //   returns the current write cursor offset.
     std::size_t write_position() const noexcept
     {
-        return _CursorPolicy::written(m_cursors);
+        return CursorPolicy::written(m_cursors);
     }
 
     // --- write operations ---
 
     // write
-    //   appends _n bytes from _src to the buffer,
-    // growing if necessary and permitted.  Returns the
-    // number of bytes actually written (may be less than
-    // _n if the buffer is fixed and full).
+    //   appends _n bytes from _src to the buffer, growing if necessary and
+    // permitted. Returns the number of bytes actually written (may be less
+    // than _n if the buffer is fixed and full).
     std::size_t
     write(
         const void* _src,
         std::size_t _n
     ) noexcept
     {
-        if ( (!_src) || 
+        if ( (!_src) ||
              (_n == 0) )
         {
             return 0;
@@ -615,7 +621,7 @@ public:
         if (!ensure_writable(_n))
         {
             // growth failed - write what fits
-            _n = _CursorPolicy::writable(
+            _n = CursorPolicy::writable(
                      m_cursors, self().capacity());
 
             if (_n == 0)
@@ -626,18 +632,18 @@ public:
 
         std::memcpy(
             self().storage()
-                + _CursorPolicy::written(m_cursors),
+                + CursorPolicy::written(m_cursors),
             _src,
             _n);
 
-        _CursorPolicy::advance_write(m_cursors, _n);
+        CursorPolicy::advance_write(m_cursors, _n);
 
         return _n;
     }
 
     // write_byte
-    //   appends a single byte to the buffer, growing if
-    // necessary.  Returns true on success.
+    //   appends a single byte to the buffer, growing if necessary. Returns
+    // true on success.
     bool write_byte(
         char _byte
     ) noexcept
@@ -646,8 +652,8 @@ public:
     }
 
     // write_fill
-    //   appends _n copies of _byte to the buffer.
-    // Returns the number of bytes actually written.
+    //   appends _n copies of _byte to the buffer. Returns the number of bytes
+    // actually written.
     std::size_t
     write_fill(
         char        _byte,
@@ -661,7 +667,7 @@ public:
 
         if (!ensure_writable(_n))
         {
-            _n = _CursorPolicy::writable(
+            _n = CursorPolicy::writable(
                      m_cursors, self().capacity());
 
             if (_n == 0)
@@ -672,11 +678,11 @@ public:
 
         std::memset(
             self().storage()
-                + _CursorPolicy::written(m_cursors),
+                + CursorPolicy::written(m_cursors),
             static_cast<unsigned char>(_byte),
             _n);
 
-        _CursorPolicy::advance_write(m_cursors, _n);
+        CursorPolicy::advance_write(m_cursors, _n);
 
         return _n;
     }
@@ -684,12 +690,11 @@ public:
     // --- read operations (dual-cursor only) ---
 
     // read
-    //   copies up to _n bytes from the read cursor into
-    // _dst and advances the read cursor.  Returns the
-    // number of bytes actually read.
-    // Only available when has_read_cursor is true.
-    template<typename _CP = _CursorPolicy>
-    std::enable_if_t<_CP::has_read_cursor, std::size_t>
+    //   copies up to _n bytes from the read cursor into _dst and advances the
+    // read cursor. Returns the number of bytes actually read. Only available
+    // when has_read_cursor is true.
+    template<typename CP = CursorPolicy>
+    std::enable_if_t<CP::has_read_cursor, std::size_t>
     read(void*       _dst,
          std::size_t _n) noexcept
     {
@@ -699,7 +704,7 @@ public:
         }
 
         std::size_t avail =
-            _CursorPolicy::readable(m_cursors);
+            CursorPolicy::readable(m_cursors);
 
         if (_n > avail)
         {
@@ -711,97 +716,91 @@ public:
             self().storage() + m_cursors.read_pos,
             _n);
 
-        _CursorPolicy::advance_read(m_cursors, _n);
+        CursorPolicy::advance_read(m_cursors, _n);
 
         return _n;
     }
 
     // peek
-    //   returns a const pointer to the unconsumed data
-    // at the read cursor without advancing it.
-    // Only available when has_read_cursor is true.
-    template<typename _CP = _CursorPolicy>
-    std::enable_if_t<_CP::has_read_cursor, const char*>
+    //   returns a const pointer to the unconsumed data at the read cursor
+    // without advancing it. Only available when has_read_cursor is true.
+    template<typename CP = CursorPolicy>
+    std::enable_if_t<CP::has_read_cursor, const char*>
     peek() const noexcept
     {
         return self().storage() + m_cursors.read_pos;
     }
 
     // read_position
-    //   returns the current read cursor offset.
-    // Only available when has_read_cursor is true.
-    template<typename _CP = _CursorPolicy>
-    std::enable_if_t<_CP::has_read_cursor, std::size_t>
+    //   returns the current read cursor offset. Only available when
+    // has_read_cursor is true.
+    template<typename CP = CursorPolicy>
+    std::enable_if_t<CP::has_read_cursor, std::size_t>
     read_position() const noexcept
     {
-        return _CursorPolicy::consumed(m_cursors);
+        return CursorPolicy::consumed(m_cursors);
     }
 
     // readable
-    //   returns the number of unconsumed bytes available
-    // for reading.
-    // Only available when has_read_cursor is true.
-    template<typename _CP = _CursorPolicy>
-    std::enable_if_t<_CP::has_read_cursor, std::size_t>
+    //   returns the number of unconsumed bytes available for reading. Only
+    // available when has_read_cursor is true.
+    template<typename CP = CursorPolicy>
+    std::enable_if_t<CP::has_read_cursor, std::size_t>
     readable() const noexcept
     {
-        return _CursorPolicy::readable(m_cursors);
+        return CursorPolicy::readable(m_cursors);
     }
 
     // advance
-    //   advances the read cursor by _n bytes without
-    // copying.  Returns the number of bytes actually
-    // advanced (clamped to available).
-    // Only available when has_read_cursor is true.
-    template<typename _CP = _CursorPolicy>
-    std::enable_if_t<_CP::has_read_cursor, std::size_t>
+    //   advances the read cursor by _n bytes without copying. Returns the
+    // number of bytes actually advanced (clamped to available). Only available
+    // when has_read_cursor is true.
+    template<typename CP = CursorPolicy>
+    std::enable_if_t<CP::has_read_cursor, std::size_t>
     advance(std::size_t _n) noexcept
     {
         std::size_t avail =
-            _CursorPolicy::readable(m_cursors);
+            CursorPolicy::readable(m_cursors);
 
         if (_n > avail)
         {
             _n = avail;
         }
 
-        _CursorPolicy::advance_read(m_cursors, _n);
+        CursorPolicy::advance_read(m_cursors, _n);
 
         return _n;
     }
 
     // compact
-    //   shifts unconsumed data to the front, freeing
-    // space at the tail for more writes.  Returns the
-    // number of unconsumed bytes that remain.
-    // Only available when has_read_cursor is true.
-    template<typename _CP = _CursorPolicy>
-    std::enable_if_t<_CP::has_read_cursor, std::size_t>
+    //   shifts unconsumed data to the front, freeing space at the tail for
+    // more writes. Returns the number of unconsumed bytes that remain. Only
+    // available when has_read_cursor is true.
+    template<typename CP = CursorPolicy>
+    std::enable_if_t<CP::has_read_cursor, std::size_t>
     compact() noexcept
     {
-        return _CursorPolicy::compact(
+        return CursorPolicy::compact(
             m_cursors, self().storage());
     }
 
     // --- data access ---
 
     // write_head
-    //   returns a mutable pointer to the current write
-    // position.  The caller may write directly and then
-    // call commit() to advance the cursor.
+    //   returns a mutable pointer to the current write position. The caller
+    // may write directly and then call commit() to advance the cursor.
     char* write_head() noexcept
     {
         return self().storage()
-            + _CursorPolicy::written(m_cursors);
+            + CursorPolicy::written(m_cursors);
     }
 
     // commit
-    //   advances the write cursor by _n bytes after a
-    // direct write to write_head().  The caller must
-    // ensure _n <= writable().
+    //   advances the write cursor by _n bytes after a direct write to
+    // write_head(). The caller must ensure _n <= writable().
     void commit(std::size_t _n) noexcept
     {
-        _CursorPolicy::advance_write(m_cursors, _n);
+        CursorPolicy::advance_write(m_cursors, _n);
 
         return;
     }
@@ -809,11 +808,11 @@ public:
     // --- buffer lifecycle ---
 
     // reset
-    //   resets all cursors to zero without releasing
-    // storage.  The buffer can be reused immediately.
+    //   resets all cursors to zero without releasing storage. The buffer can
+    // be reused immediately.
     void reset() noexcept
     {
-        _CursorPolicy::reset(m_cursors);
+        CursorPolicy::reset(m_cursors);
 
         return;
     }
@@ -822,7 +821,7 @@ public:
     //   resets cursors and zeroes the storage region.
     void clear() noexcept
     {
-        _CursorPolicy::reset(m_cursors);
+        CursorPolicy::reset(m_cursors);
 
         if (self().capacity() > 0)
         {
@@ -837,9 +836,8 @@ public:
     // --- capacity management ---
 
     // reserve
-    //   ensures the buffer has at least _capacity bytes
-    // of total storage.  Does nothing if capacity is
-    // already sufficient.  Returns true on success,
+    //   ensures the buffer has at least _capacity bytes of total storage. Does
+    // nothing if capacity is already sufficient. Returns true on success,
     // false if growth is not permitted or fails.
     bool reserve(std::size_t _capacity) noexcept
     {
@@ -848,14 +846,14 @@ public:
             return true;
         }
 
-        if constexpr (!_GrowthPolicy::can_grow)
+        if constexpr (!GrowthPolicy::can_grow)
         {
             return false;
         }
         else
         {
             std::size_t new_cap =
-                _GrowthPolicy::compute(
+                GrowthPolicy::compute(
                     self().capacity(), _capacity);
 
             return self().grow(new_cap);
@@ -864,13 +862,13 @@ public:
 
 protected:
     // ensure_writable
-    //   ensures that at least _n bytes are available for
-    // writing, growing the buffer if necessary and
-    // permitted.  Returns true if the space is available.
+    //   ensures that at least _n bytes are available for writing, growing the
+    // buffer if necessary and permitted. Returns true if the space is
+    // available.
     bool ensure_writable(std::size_t _n) noexcept
     {
         std::size_t avail =
-            _CursorPolicy::writable(
+            CursorPolicy::writable(
                 m_cursors, self().capacity());
 
         if (avail >= _n)
@@ -878,17 +876,17 @@ protected:
             return true;
         }
 
-        if constexpr (!_GrowthPolicy::can_grow)
+        if constexpr (!GrowthPolicy::can_grow)
         {
             return false;
         }
         else
         {
             std::size_t needed =
-                _CursorPolicy::written(m_cursors) + _n;
+                CursorPolicy::written(m_cursors) + _n;
 
             std::size_t new_cap =
-                _GrowthPolicy::compute(
+                GrowthPolicy::compute(
                     self().capacity(), needed);
 
             return self().grow(new_cap);
@@ -905,7 +903,7 @@ protected:
 // =============================================================================
 // Compile-time selection of growth policy by enum value.
 
-template<buffer_growth_strategy _Strategy>
+template<buffer_growth_strategy Strategy>
 struct select_growth_policy;
 
 template<>
@@ -932,9 +930,12 @@ struct select_growth_policy<buffer_growth_strategy::page_aligned>
     using type = page_growth_policy<>;
 };
 
-template<buffer_growth_strategy _Strategy>
+// select_growth_policy_t
+//   type: the carrier of select_growth_policy -- its `::type`, for use where a
+// type rather than a value is wanted.
+template<buffer_growth_strategy Strategy>
 using select_growth_policy_t =
-    typename select_growth_policy<_Strategy>::type;
+    typename select_growth_policy<Strategy>::type;
 
 
 // =============================================================================
@@ -942,7 +943,7 @@ using select_growth_policy_t =
 // =============================================================================
 // Compile-time selection of cursor policy by enum value.
 
-template<buffer_cursor_model _Model>
+template<buffer_cursor_model Model>
 struct select_cursor_policy;
 
 template<>
@@ -957,8 +958,11 @@ struct select_cursor_policy<buffer_cursor_model::dual>
     using type = dual_cursor_policy;
 };
 
-template<buffer_cursor_model _Model>
-using select_cursor_policy_t = typename select_cursor_policy<_Model>::type;
+// select_cursor_policy_t
+//   type: the carrier of select_cursor_policy -- its `::type`, for use where a
+// type rather than a value is wanted.
+template<buffer_cursor_model Model>
+using select_cursor_policy_t = typename select_cursor_policy<Model>::type;
 
 
 // =============================================================================
@@ -974,5 +978,6 @@ using default_cursor_policy = dual_cursor_policy;
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_BUFFER_
+#endif  // DJINTERP_CONTAINER_BUFFER_BUFFER_HPP

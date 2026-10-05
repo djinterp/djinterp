@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                partition.hpp
 *
 * partition algorithm header:
@@ -29,16 +29,17 @@
 *     C++98 the same code path is used since iter_swap exists at C++98.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/partition.hpp
+* path:      /inc/re_std/algorithm/partition.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_PARTITION_
-#define DJINTERP_RE_STD_ALGORITHM_PARTITION_ 1
+#ifndef RE_STD_ALGORITHM_PARTITION_HPP
+#define RE_STD_ALGORITHM_PARTITION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 
@@ -47,16 +48,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -68,13 +62,13 @@ NS_RESTD
 // satisfying _pred come first. Returns the iterator to the first
 // element that does not satisfy _pred (the partition point); returns
 // _last if every element satisfies _pred.
-template<typename _BidirIt,
-         typename _Pred>
-D_CONSTEXPR_CPP14 _BidirIt
+template<typename BidirIt,
+         typename Pred>
+RE_STD_CONSTEXPR_CPP14 BidirIt
 partition(
-    _BidirIt _first,
-    _BidirIt _last,
-    _Pred    _pred
+    BidirIt _first,
+    BidirIt _last,
+    Pred    _pred
 )
 {
     while (true)
@@ -108,7 +102,7 @@ partition(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_PARTITION_
+#endif  // RE_STD_ALGORITHM_PARTITION_HPP

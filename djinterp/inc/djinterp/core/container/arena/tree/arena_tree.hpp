@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                        arena_tree.hpp
+/*******************************************************************************
+* djinterp [core]                                                 arena_tree.hpp
 *
 * Arena-Allocated Tree Container:
 *   A thin wrapper over arena<> that adds single-root ownership and
@@ -15,50 +15,65 @@
 *   For a forest (multiple roots), use arena<> directly.
 *
 * DEPENDENCIES:
-*   arena.hpp   — generalized arena container
-*
-* TABLE OF CONTENTS
-* =================
-* I.    arena_tree
-* II.   Convenience Aliases
+*   arena.hpp   - generalized arena container
 *
 *
-* path:      /inc/container/arena/arena_tree.hpp
+* path:      /inc/djinterp/core/container/arena/tree/arena_tree.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_ARENA_TREE_
-#define DJINTERP_CONTAINER_ARENA_TREE_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    arena_tree
+      ----------
 
-#include "../../../djinterp.hpp"
+II.   Convenience Aliases
+      -------------------
+*/
+
+#ifndef DJINTERP_CONTAINER_ARENA_TREE_ARENA_TREE_HPP
+#define DJINTERP_CONTAINER_ARENA_TREE_ARENA_TREE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
+#include "../../../../djinterp.hpp"
 #include "../arena.hpp"
+// re_std
+#include "../../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 
 
 NS_DJINTERP
 
 
-// =============================================================================
+// ===========================================================================
 // I.   arena_tree
-// =============================================================================
+// ===========================================================================
 
 // arena_tree
-//   class: a single-rooted tree backed by an arena.
-// Inherits all arena operations and adds root management.
+//   class: a single-rooted tree backed by an arena. Inherits all arena
+// operations and adds root management.
 //
 // Template parameters:
-//   _Payload     — the domain data stored per node
-//   _LinkPolicy  — determines link topology (default: full)
-//   _Allocator   — STL allocator for the backing storage
+//   Payload - the domain data stored per node
+//   LinkPolicy - determines link topology (default: full)
+//   Allocator - STL allocator for the backing storage
 
-template<typename _Payload,
-         typename _LinkPolicy = full_nary_link_policy,
-         typename _Allocator  = std::allocator<
-             arena_node<_Payload, _LinkPolicy>>>
-class arena_tree : public arena<_Payload, _LinkPolicy, _Allocator>
+template<typename Payload,
+         typename LinkPolicy = full_nary_link_policy,
+         typename Allocator   = std::allocator<
+             arena_node<Payload, LinkPolicy>>>
+class arena_tree : public arena<Payload, LinkPolicy, Allocator>
 {
 private:
-    using base_type = arena<_Payload, _LinkPolicy, _Allocator>;
+    using base_type = arena<Payload, LinkPolicy, Allocator>;
 
 public:
     using typename base_type::payload_type;
@@ -77,32 +92,28 @@ public:
     arena_tree()
         : base_type()
         , m_root(null_node)
-    {
-    }
+    {};
 
     // arena_tree (with capacity)
     explicit
     arena_tree(size_type _reserve)
         : base_type(_reserve)
         , m_root(null_node)
-    {
-    }
+    {};
 
     // arena_tree (allocator-extended)
     explicit
     arena_tree(const allocator_type& _alloc)
         : base_type(_alloc)
         , m_root(null_node)
-    {
-    }
+    {};
 
     // arena_tree (capacity + allocator)
     arena_tree(size_type             _reserve,
                const allocator_type& _alloc)
         : base_type(_reserve, _alloc)
         , m_root(null_node)
-    {
-    }
+    {};
 
     // rule-of-five: default.
     arena_tree(const arena_tree&)            = default;
@@ -133,7 +144,7 @@ public:
     }
 
     // set_root
-    //   method: explicitly sets the root.  Use with care.
+    //   method: explicitly sets the root. Use with care.
     void
     set_root(node_id _id) noexcept
     {
@@ -158,10 +169,9 @@ public:
     // which is the common case for tree construction.
 
     // create_root
-    //   method: allocates a root node.  Asserts that no
-    // root exists.
+    //   method: allocates a root node. Asserts that no root exists.
     node_id
-    create_root(const _Payload& _data)
+    create_root(const Payload& _data)
     {
         assert(m_root == null_node);
 
@@ -172,20 +182,20 @@ public:
 
     // create_root (move)
     node_id
-    create_root(_Payload&& _data)
+    create_root(Payload&& _data)
     {
         assert(m_root == null_node);
 
         m_root = base_type::allocate(
-            static_cast<_Payload&&>(_data));
+            static_cast<Payload&&>(_data));
 
         return m_root;
     }
 
     // create_root (explicit stable_id)
     node_id
-    create_root(std::uint64_t   _stable_id,
-                const _Payload& _data)
+    create_root(re_std::uint64_t   _stable_id,
+                const Payload& _data)
     {
         assert(m_root == null_node);
 
@@ -196,24 +206,24 @@ public:
 
     // create_root (explicit stable_id, move)
     node_id
-    create_root(std::uint64_t _stable_id,
-                _Payload&&    _data)
+    create_root(re_std::uint64_t _stable_id,
+                Payload&&    _data)
     {
         assert(m_root == null_node);
 
         m_root = base_type::allocate(
             _stable_id,
-            static_cast<_Payload&&>(_data));
+            static_cast<Payload&&>(_data));
 
         return m_root;
     }
 
     // add_child
-    //   method: allocates a new node and appends it as the
-    // last child of _parent.  Returns the new node_id.
+    //   method: allocates a new node and appends it as the last child of
+    // _parent. Returns the new node_id.
     node_id
     add_child(node_id         _parent,
-              const _Payload& _data)
+              const Payload& _data)
     {
         node_id child = base_type::allocate(_data);
         base_type::append_child(_parent, child);
@@ -224,10 +234,10 @@ public:
     // add_child (move)
     node_id
     add_child(node_id    _parent,
-              _Payload&& _data)
+              Payload&& _data)
     {
         node_id child = base_type::allocate(
-            static_cast<_Payload&&>(_data));
+            static_cast<Payload&&>(_data));
         base_type::append_child(_parent, child);
 
         return child;
@@ -235,9 +245,9 @@ public:
 
     // add_child (explicit stable_id)
     node_id
-    add_child(node_id         _parent,
-              std::uint64_t   _stable_id,
-              const _Payload& _data)
+    add_child(node_id          _parent,
+              re_std::uint64_t _stable_id,
+              const Payload&   _data)
     {
         node_id child = base_type::allocate(
             _stable_id, _data);
@@ -250,7 +260,7 @@ public:
     //   method: allocates and prepends as the first child.
     node_id
     add_child_first(node_id         _parent,
-                    const _Payload& _data)
+                    const Payload& _data)
     {
         node_id child = base_type::allocate(_data);
         base_type::prepend_child(_parent, child);
@@ -262,7 +272,7 @@ public:
     //   method: allocates and inserts after _sibling.
     node_id
     add_sibling_after(node_id         _sibling,
-                      const _Payload& _data)
+                      const Payload& _data)
     {
         node_id child = base_type::allocate(_data);
         base_type::insert_after(_sibling, child);
@@ -276,8 +286,8 @@ public:
     // =================================================================
 
     // remove
-    //   method: detaches and deallocates a single node.
-    // Does NOT remove children — they become orphaned.
+    //   method: detaches and deallocates a single node. Does NOT remove
+    // children - they become orphaned.
     void
     remove(node_id _id)
     {
@@ -293,8 +303,8 @@ public:
     }
 
     // remove_subtree
-    //   method: detaches _id and recursively deallocates
-    // _id and all its descendants.
+    //   method: detaches _id and recursively deallocates _id and all its
+    // descendants.
     void
     remove_subtree(node_id _id)
     {
@@ -387,36 +397,36 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Convenience Aliases
-// =============================================================================
+// ===========================================================================
 
 // nary_tree
-//   alias: arena tree with full n-ary links.  O(1)
-// everything.  The default general-purpose tree.
-template<typename _Payload>
-using nary_tree = arena_tree<_Payload, full_nary_link_policy>;
+//   alias: arena tree with full n-ary links. O(1) everything. The default
+// general-purpose tree.
+template<typename Payload>
+using nary_tree = arena_tree<Payload, full_nary_link_policy>;
 
 // lcrs_tree
-//   alias: minimal 2-link arena tree.  Smallest node
-// footprint.
-template<typename _Payload>
-using lcrs_tree = arena_tree<_Payload, lcrs_link_policy>;
+//   alias: minimal 2-link arena tree. Smallest node footprint.
+template<typename Payload>
+using lcrs_tree = arena_tree<Payload, lcrs_link_policy>;
 
 // parented_tree
 //   alias: 3-link arena tree with parent back-pointer.
-template<typename _Payload>
-using parented_tree = arena_tree<_Payload,
+template<typename Payload>
+using parented_tree = arena_tree<Payload,
                                  parented_lcrs_link_policy>;
 
 // binary_tree
 //   alias: arena tree with left/right/parent links.
-template<typename _Payload>
-using binary_tree = arena_tree<_Payload,
+template<typename Payload>
+using binary_tree = arena_tree<Payload,
                                parented_binary_link_policy>;
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_ARENA_TREE_
+#endif  // DJINTERP_CONTAINER_ARENA_TREE_ARENA_TREE_HPP

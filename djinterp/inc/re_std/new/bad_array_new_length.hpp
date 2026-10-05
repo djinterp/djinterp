@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                     bad_array_new_length.hpp
 *
 * bad_array_new_length header:
@@ -19,26 +19,29 @@
 * to surface this error condition just throw the back-port.
 *
 *
-* path:      /inc/djinterp/re_std/new/bad_array_new_length.hpp
+* path:      /inc/re_std/new/bad_array_new_length.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BAD_ARRAY_NEW_LENGTH_
-#define DJINTERP_RE_STD_BAD_ARRAY_NEW_LENGTH_ 1
+#ifndef RE_STD_NEW_BAD_ARRAY_NEW_LENGTH_HPP
+#define RE_STD_NEW_BAD_ARRAY_NEW_LENGTH_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./bad_alloc.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   BAD_ARRAY_NEW_LENGTH
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // C++11+ std::bad_array_new_length is available. Pass-through.
 using std::bad_array_new_length;
@@ -62,7 +65,7 @@ public:
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_BAD_ARRAY_NEW_LENGTH_
+#endif  // RE_STD_NEW_BAD_ARRAY_NEW_LENGTH_HPP

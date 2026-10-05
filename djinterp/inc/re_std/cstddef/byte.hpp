@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                     byte.hpp
 *
 * the byte type:
@@ -51,22 +51,24 @@
 * language ceiling, recorded as such in the coverage entry.
 *
 *
-* path:      /inc/djinterp/re_std/cstddef/byte.hpp
+* path:      /inc/re_std/cstddef/byte.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDDEF_BYTE_
-#define DJINTERP_RE_STD_CSTDDEF_BYTE_ 1
+#ifndef RE_STD_CSTDDEF_BYTE_HPP
+#define RE_STD_CSTDDEF_BYTE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+namespace re_std
+{
 
     // byte
     //   enum: distinct type for raw object storage. Scoped, so it never
@@ -75,10 +77,10 @@ NS_RESTD
     enum class byte : unsigned char
     {};
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CSTDDEF_BYTE_
+#endif  // RE_STD_CSTDDEF_BYTE_HPP

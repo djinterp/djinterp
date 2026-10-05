@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                  unreachable.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              unreachable.hpp
 *
 * unreachable-code marker:
 *   Marks a code path as logically unreachable. Behaviour if reached
@@ -16,19 +16,22 @@
 * compiler intrinsics, which all major compilers have shipped for years.
 *
 *
-* path:      /inc/djinterp/re_std/utility/unreachable.hpp
+* path:      /inc/re_std/utility/unreachable.hpp
 * link(s):   TBA
-* author(s): re_std team                                 date: 2026.05.02
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_UNREACHABLE_
-#define DJINTERP_RE_STD_UTILITY_UNREACHABLE_ 1
+#ifndef RE_STD_UTILITY_UNREACHABLE_HPP
+#define RE_STD_UTILITY_UNREACHABLE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-NS_RESTD
+namespace re_std
+{
 
 // =============================================================================
 // UNREACHABLE
@@ -42,11 +45,11 @@ NS_RESTD
 //   falls back to an infinite loop.
 [[noreturn]] inline void unreachable() noexcept
 {
-    #if defined(D_ENV_COMPILER_GCC) \
-        || defined(D_ENV_COMPILER_CLANG) \
-        || defined(D_ENV_COMPILER_INTEL)
+    #if defined(RE_STD_COMPILER_GCC) \
+        || defined(RE_STD_COMPILER_CLANG) \
+        || defined(RE_STD_COMPILER_INTEL)
         __builtin_unreachable();
-    #elif defined(D_ENV_COMPILER_MSVC)
+    #elif defined(RE_STD_COMPILER_MSVC)
         __assume(0);
     #else
         // Fallback: infinite loop. Satisfies [[noreturn]] without
@@ -55,8 +58,8 @@ NS_RESTD
     #endif
 }
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_UTILITY_UNREACHABLE_
+#endif  // RE_STD_UTILITY_UNREACHABLE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [config/test]                                    cfg_test_event.h    
+/*******************************************************************************
+* djinterp [config]                                             cfg_test_event.h
 *
 *   Configuration for the DTest event module.
 *
@@ -20,14 +20,18 @@
 * looking for d_test_event_id finds it in the file that uses it.  A config header
 * that also typedefs is a second place to look for one answer.
 *
-* path:      /inc/djinterp/config/c/test/cfg_test_event.h
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.11
-******************************************************************************/
+*
+* path:      /inc/djinterp/config/test/cfg_test_event.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.11
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_CONFIG_C_TEST_EVENT
-#define DJINTERP_CONFIG_C_TEST_EVENT 1
+#ifndef DJINTERP_CONFIG_TEST_CFG_TEST_EVENT_H
+#define DJINTERP_CONFIG_TEST_CFG_TEST_EVENT_H 1
 
-#include "../../cfg_common.h"
+// djinterp
+#include "../cfg_common.h"
 
 
 // =============================================================================
@@ -112,4 +116,4 @@
 // check gone the preset has no opinion about this module.
 
 
-#endif  // DJINTERP_CONFIG_C_TEST_EVENT
+#endif  // DJINTERP_CONFIG_TEST_CFG_TEST_EVENT_H

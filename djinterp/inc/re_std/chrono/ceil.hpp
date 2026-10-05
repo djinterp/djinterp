@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                     ceil.hpp
 *
 * chrono::ceil for durations and time_points:
@@ -23,21 +23,22 @@
 *   BACK-PORT: C++17 in std, C++11 here.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/ceil.hpp
+* path:      /inc/re_std/chrono/ceil.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_CEIL_
-#define DJINTERP_RE_STD_CHRONO_CEIL_ 1
+#ifndef RE_STD_CHRONO_CEIL_HPP
+#define RE_STD_CHRONO_CEIL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "./duration_cast.hpp"
 #include "./duration_arithmetic.hpp"
@@ -46,58 +47,60 @@
 #include "../type_traits/enable_if.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
-NS_INTERNAL
+namespace internal
+{
 
     // ceil_adjust
     //   function: step forward one tick if the truncating cast landed
     // below the true value.
-    template<typename _To,
-             typename _Rep,
-             typename _Period>
-    D_CONSTEXPR _To ceil_adjust(const _To&                     _t,
-                                const duration<_Rep, _Period>& _d)
+    template<typename To,
+             typename Rep,
+             typename Period>
+    RE_STD_CONSTEXPR To ceil_adjust(const To&                     _t,
+                                const duration<Rep, Period>& _d)
     {
-        return (_t < _d) ? _To(_t.count() + 1) : _t;
+        return (_t < _d) ? To(_t.count() + 1) : _t;
     }
 
-NS_END  // internal
+}  // internal
 
     // ceil
     //   function: coarsen a duration, rounding toward positive infinity.
-    template<typename _To,
-             typename _Rep,
-             typename _Period>
-    D_CONSTEXPR
-    typename enable_if<internal::is_duration<_To>::value, _To>::type
-    ceil(const duration<_Rep, _Period>& _d)
+    template<typename To,
+             typename Rep,
+             typename Period>
+    RE_STD_CONSTEXPR
+    typename enable_if<internal::is_duration<To>::value, To>::type
+    ceil(const duration<Rep, Period>& _d)
     {
-        return internal::ceil_adjust(duration_cast<_To>(_d), _d);
+        return internal::ceil_adjust(duration_cast<To>(_d), _d);
     }
 
     // ceil
     //   function: coarsen a time_point, rounding toward the future.
-    template<typename _To,
-             typename _Clock,
-             typename _Duration>
-    D_CONSTEXPR
-    typename enable_if< internal::is_duration<_To>::value,
-                        time_point<_Clock, _To> >::type
-    ceil(const time_point<_Clock, _Duration>& _t)
+    template<typename To,
+             typename Clock,
+             typename Duration>
+    RE_STD_CONSTEXPR
+    typename enable_if< internal::is_duration<To>::value,
+                        time_point<Clock, To> >::type
+    ceil(const time_point<Clock, Duration>& _t)
     {
-        return time_point<_Clock, _To>(ceil<_To>(_t.time_since_epoch()));
+        return time_point<Clock, To>(ceil<To>(_t.time_since_epoch()));
     }
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_CEIL_
+#endif  // RE_STD_CHRONO_CEIL_HPP

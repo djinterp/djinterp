@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                            rbegin.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                   rbegin.hpp
 *
+* rbegin function header:
 * rbegin(c) returns an iterator to the last element, traversing in
 * reverse. For containers with member rbegin(), forwards. For raw
 * arrays and initializer_list, wraps end()/il.end() in a
@@ -9,19 +10,22 @@
 * added in std C++14.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/rbegin.hpp
+* path:      /inc/re_std/iterator/rbegin.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_RBEGIN_
-#define DJINTERP_RE_STD_ITERATOR_RBEGIN_ 1
+#ifndef RE_STD_ITERATOR_RBEGIN_HPP
+#define RE_STD_ITERATOR_RBEGIN_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
     #include <initializer_list>
 
@@ -31,33 +35,32 @@
 namespace re_std
 {
 
-template<typename _C>
-D_CONSTEXPR auto rbegin(_C& _c) -> decltype(_c.rbegin())
+template<typename C>
+RE_STD_CONSTEXPR auto rbegin(C& _c) -> decltype(_c.rbegin())
 {
     return _c.rbegin();
 }
 
-template<typename _C>
-D_CONSTEXPR auto rbegin(const _C& _c) -> decltype(_c.rbegin())
+template<typename C>
+RE_STD_CONSTEXPR auto rbegin(const C& _c) -> decltype(_c.rbegin())
 {
     return _c.rbegin();
 }
 
-template<typename _T, std::size_t _N>
-D_CONSTEXPR reverse_iterator<_T*> rbegin(_T (&_arr)[_N])
+template<typename T, std::size_t N>
+RE_STD_CONSTEXPR reverse_iterator<T*> rbegin(T (&_arr)[N])
 {
-    return reverse_iterator<_T*>(_arr + _N);
+    return reverse_iterator<T*>(_arr + N);
 }
 
-template<typename _E>
-D_CONSTEXPR reverse_iterator<const _E*> rbegin(std::initializer_list<_E> _il)
+template<typename E>
+RE_STD_CONSTEXPR reverse_iterator<const E*> rbegin(std::initializer_list<E> _il)
 {
-    return reverse_iterator<const _E*>(_il.end());
+    return reverse_iterator<const E*>(_il.end());
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_RBEGIN_
+#endif  // RE_STD_ITERATOR_RBEGIN_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                           oracle_table.hpp
+/*******************************************************************************
+* djinterp [core]                                               oracle_table.hpp
 *
 * djinterp Oracle table module:
 *   Oracle-specific database_table subclass providing vendor features
@@ -15,8 +15,8 @@
 *   - PURGE and recyclebin-aware drop
 *
 *   LAYER DIAGRAM:
-*     oracle_table<_Config>
-*       -> database_table<oracle_connection, value, _Config>
+*     oracle_table<Config>
+*       -> database_table<oracle_connection, value, Config>
 *
 *   NOTE: this header forward-declares oracle_connection. The concrete
 * class definition lives in oracle.hpp. Include oracle.hpp before
@@ -25,13 +25,22 @@
 *   PORTABILITY:
 *   Requires C++17 or later.
 *
+*
 * path:      /inc/djinterp/core/db/oracle/oracle_table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.23
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_ORACLE_TABLE_
-#define DJINTERP_DATABASE_ORACLE_TABLE_
+#ifndef DJINTERP_DB_ORACLE_ORACLE_TABLE_HPP
+#define DJINTERP_DB_ORACLE_ORACLE_TABLE_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
@@ -87,16 +96,16 @@ NS_DJINTERP
     //   class: Oracle-specific database table. Extends the generic
     // database_table with Oracle DDL, identifier quoting, optimizer
     // hints, flashback queries, and tablespace control.
-    template<typename _Config = void>
+    template<typename Config = void>
     class oracle_table
         : public database_table<oracle_connection,
                                 value,
-                                _Config>
+                                Config>
     {
     private:
         using base_type = database_table<oracle_connection,
                                          value,
-                                         _Config>;
+                                         Config>;
 
     public:
         using typename base_type::size_type;
@@ -104,7 +113,7 @@ NS_DJINTERP
         using typename base_type::row_type;
         using typename base_type::connection_type;
         using typename base_type::schema_type;
-        using self_type = oracle_table<_Config>;
+        using self_type = oracle_table<Config>;
 
         using type_support    = ora_type_support;
         using feature_support = ora_feature_support;
@@ -163,7 +172,8 @@ NS_DJINTERP
         {
         }
 
-        ~oracle_table() override = default;
+        // non-virtual: the base is not a polymorphic type.
+        ~oracle_table() = default;
 
         // disable copying
         oracle_table(const oracle_table&)            = delete;
@@ -273,7 +283,7 @@ NS_DJINTERP
         //   function: refreshes the local cache with data as it existed
         // at the specified system change number (SCN). Requires undo
         // retention to cover that SCN.
-        void refresh_as_of_scn(std::uint64_t _scn)
+        void refresh_as_of_scn(re_std::uint64_t _scn)
         {
             this->validate_connected("refresh_as_of_scn");
 
@@ -342,14 +352,14 @@ NS_DJINTERP
     protected:
 
         // =================================================================
-        //  protected overrides
+        //  protected helpers (concrete — not overrides)
         // =================================================================
 
         // field_type_to_sql
-        //   function: overrides type mapping for Oracle. Uses Oracle-
+        //   function: concrete vendor type mapping for Oracle. Uses Oracle-
         // native types (NUMBER, VARCHAR2, RAW, CLOB, TIMESTAMP WITH
         // TIME ZONE) rather than the defaults.
-        const char* field_type_to_sql(field_type _type) const override
+        const char* field_type_to_sql(field_type _type) const
         {
             switch (_type)
             {
@@ -396,7 +406,8 @@ NS_DJINTERP
                 case field_type::null:
                 case field_type::custom:
                 default:
-                    return base_type::field_type_to_sql(_type);
+                    // common types defer to the connection's type mapping
+                    return field_type_to_oracle_sql(_type);
             }
         }
 
@@ -414,5 +425,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_ORACLE_TABLE_
+#endif  // DJINTERP_DB_ORACLE_ORACLE_TABLE_HPP

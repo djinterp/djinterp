@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                                    swap.h
+/*******************************************************************************
+* djinterp [c]                                                            swap.h
 *
 *   Byte-wise exchange of two objects of equal size.
 * The operation memcpy leaves out: a swap is neither a copy nor a move, and
@@ -15,13 +15,14 @@
 * nothing, and loops rather than requiring an object to fit.
 *
 *
-* path:      /djinterp/c/util/swap.h
+* path:      /inc/djinterp/c/util/swap.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SWAP_
-#define DJINTERP_UTILITY_SWAP_ 1
+#ifndef DJINTERP_C_UTIL_SWAP_H
+#define DJINTERP_C_UTIL_SWAP_H 1
 
 // std
 #include <stddef.h>
@@ -41,4 +42,4 @@ void    d_memswap(void*  _first,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_UTILITY_SWAP_
+#endif  // DJINTERP_C_UTIL_SWAP_H

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                    solve.hpp
+/*******************************************************************************
+* djinterp [math]                                                      solve.hpp
 *
 * Linear-system solvers for the linear-algebra subframework.
 *   High-level free function templates that turn the factorizations in
@@ -30,13 +30,15 @@
 *     members; the factor-once objects in decomposition.hpp remain available
 *     when the factorization itself is wanted, e.g. lu(A).inverse().
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/solve.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.22
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_SOLVE_
-#define DJINTERP_MATH_LINALG_SOLVE_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_SOLVE_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_SOLVE_HPP 1
 
 // std
 #include <cstddef>
@@ -264,4 +266,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_SOLVE_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_SOLVE_HPP

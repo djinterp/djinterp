@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                            read_only.hpp
+/*******************************************************************************
+* djinterp [core]                                                  read_only.hpp
 *
 *   The READ_ONLY access-capability tag: a handle that grants observation but
 * NOT modification.  It is a corner of the access lattice headed by read_write
@@ -18,13 +18,14 @@
 *   C++11 baseline.
 *
 *
-* path:      /inc/djinterp/core/container/access/read_only.hpp
+* path:      /inc/djinterp/core/meta/read_only.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_READ_ONLY_
-#define DJINTERP_READ_ONLY_ 1
+#ifndef DJINTERP_META_READ_ONLY_HPP
+#define DJINTERP_META_READ_ONLY_HPP 1
 
 // djinterp
 #include "../../djinterp.hpp"   // NS_*
@@ -37,16 +38,16 @@ NS_DJINTERP
 //   tag: the access capability granting observation only.
 struct read_only
 {
-    static constexpr bool can_read  = true;
-    static constexpr bool can_write = false;
+    static D_CONSTEXPR_VAR bool can_read  = true;
+    static D_CONSTEXPR_VAR bool can_write = false;
 
     // name
     //   function: the capability's stable spelling.
-    static constexpr const char* name() noexcept { return "read_only"; }
+    static D_CONSTEXPR const char* name() D_NOEXCEPT { return "read_only"; }
 };
 
 
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_READ_ONLY_
+#endif  // DJINTERP_META_READ_ONLY_HPP

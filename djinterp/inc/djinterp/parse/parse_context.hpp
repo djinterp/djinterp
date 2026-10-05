@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                              parse_context.hpp
+/*******************************************************************************
+* djinterp [parse]                                             parse_context.hpp
 *
 * Parse session bundle.
 *   `parse_context` is the per-session bundle threaded through a
@@ -28,8 +28,8 @@
 * from here, so parse_context is templated on the string-table
 * type with the convention that the table exposes
 *
-*       std::uint32_t intern(const std::string& s);
-*       const std::string& lookup(std::uint32_t id) const;
+*       re_std::uint32_t intern(const std::string& s);
+*       const std::string& lookup(re_std::uint32_t id) const;
 *
 * — anything providing those two members works.  Callers supplying
 * a project string_table get a strongly-typed context; callers who
@@ -52,22 +52,32 @@
 *
 * path:      /inc/djinterp/parse/parse_context.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_PARSE_CONTEXT_
-#define DJINTERP_PARSE_PARSE_CONTEXT_ 1
+#ifndef DJINTERP_PARSE_PARSE_CONTEXT_HPP
+#define DJINTERP_PARSE_PARSE_CONTEXT_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but core/container/arena/arena.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
 // djinterp
 #include "../djinterp.hpp"
+#include "../core/meta/type_utility.hpp"  // void_t, clean_t
 #include "./parse.hpp"
 #include "./symbol_model.hpp"
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint32_t
 
 
 NS_DJINTERP
@@ -130,12 +140,12 @@ public:
     //   method: interns _s, returning its uint32_t id.  Repeat
     // calls with the same string return the same id.
     D_NODISCARD
-    std::uint32_t
+    re_std::uint32_t
     intern(
         const std::string& _s
     )
     {
-        std::unordered_map<std::string, std::uint32_t>::const_iterator it =
+        std::unordered_map<std::string, re_std::uint32_t>::const_iterator it =
             m_index.find(_s);
 
         if (it != m_index.end())
@@ -143,8 +153,8 @@ public:
             return (it->second);
         }
 
-        std::uint32_t id =
-            static_cast<std::uint32_t>(m_strings.size());
+        re_std::uint32_t id =
+            static_cast<re_std::uint32_t>(m_strings.size());
 
         m_strings.push_back(_s);
         m_index[_s] = id;
@@ -158,7 +168,7 @@ public:
     D_NODISCARD
     const std::string&
     lookup(
-        std::uint32_t _id
+        re_std::uint32_t _id
     ) const
     {
         return m_strings[_id];
@@ -191,7 +201,7 @@ public:
 
 private:
     std::vector<std::string>                       m_strings;
-    std::unordered_map<std::string, std::uint32_t> m_index;
+    std::unordered_map<std::string, re_std::uint32_t> m_index;
 };
 
 
@@ -205,7 +215,7 @@ private:
 // through frontends / scanners by reference so a single session
 // accumulates one coherent set of outputs.
 //
-//   Templated on _StringTable so projects with their own
+//   Templated on StringTable so projects with their own
 // string_table type bind directly; the default
 // `identity_string_table` provides a working stub for tests and
 // simple frontends.
@@ -213,11 +223,11 @@ private:
 //   No copy: a parse_context owns mutable state, including the
 // symbol_tree arena, and copying it would silently fork the
 // session.  Move is left implicit on the underlying members.
-template<typename _StringTable = identity_string_table>
+template<typename StringTable = identity_string_table>
 class parse_context
 {
 public:
-    using string_table_type = _StringTable;
+    using string_table_type = StringTable;
     using symbol_tree_type  = symbol_tree;
     using diagnostic_type   = parse_error;
     using diagnostics_type  = std::vector<parse_error>;
@@ -280,7 +290,7 @@ public:
     // the context, so this saves the verbose `ctx.strings().
     // intern(s)` at every call site.
     D_NODISCARD
-    std::uint32_t
+    re_std::uint32_t
     intern(
         const std::string& _s
     )
@@ -415,18 +425,18 @@ private:
 NS_INTERNAL
 
     // is_parse_context_helper
-    template<typename _T,
+    template<typename T,
              typename = void>
     struct is_parse_context_helper : std::false_type
     {};
 
-    template<typename _T>
+    template<typename T>
     struct is_parse_context_helper<
-        _T,
-        void_t<typename clean_t<_T>::string_table_type,
-               typename clean_t<_T>::symbol_tree_type,
-               typename clean_t<_T>::diagnostics_type,
-               typename clean_t<_T>::stats_type>
+        T,
+        void_t<typename clean_t<T>::string_table_type,
+               typename clean_t<T>::symbol_tree_type,
+               typename clean_t<T>::diagnostics_type,
+               typename clean_t<T>::stats_type>
     > : std::true_type
     {};
 
@@ -437,15 +447,15 @@ NS_END  // internal
 // project may roll its own parse_context-like type; what matters
 // downstream is the four nested typedefs above plus the standard
 // accessors symbols / strings / diagnostics / stats.
-template<typename _T>
-struct is_parse_context : internal::is_parse_context_helper<_T>
+template<typename T>
+struct is_parse_context : internal::is_parse_context_helper<T>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     static constexpr bool is_parse_context_v =
-        is_parse_context<_T>::value;
+        is_parse_context<T>::value;
 #endif
 
 
@@ -454,8 +464,8 @@ struct is_parse_context : internal::is_parse_context_helper<_T>
     // parse_context_concept
     //   concept: a parse session bundle — has the four nested
     // typedefs and corresponding accessors.
-    template<typename _T>
-    concept parse_context_concept = is_parse_context<_T>::value;
+    template<typename T>
+    concept parse_context_concept = is_parse_context<T>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -463,5 +473,7 @@ struct is_parse_context : internal::is_parse_context_helper<_T>
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_PARSE_CONTEXT_
+
+#endif  // DJINTERP_PARSE_PARSE_CONTEXT_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [config/test]                                    cfg_test_metadata.h 
+/*******************************************************************************
+* djinterp [config]                                          cfg_test_metadata.h
 *
 *   Configuration for the DTest metadata module.
 *
@@ -20,14 +20,18 @@
 * looking for d_test_key_id finds it in the file that uses it.  A config header
 * that also typedefs is a second place to look for one answer.
 *
-* path:      /inc/djinterp/config/c/test/cfg_test_metadata.h
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.11
-******************************************************************************/
+*
+* path:      /inc/djinterp/config/test/cfg_test_metadata.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.11
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_CONFIG_C_TEST_METADATA
-#define DJINTERP_CONFIG_C_TEST_METADATA 1
+#ifndef DJINTERP_CONFIG_TEST_CFG_TEST_METADATA_H
+#define DJINTERP_CONFIG_TEST_CFG_TEST_METADATA_H 1
 
-#include "../../cfg_common.h"
+// djinterp
+#include "../cfg_common.h"
 
 
 // =============================================================================
@@ -124,4 +128,4 @@
 // rev07 recorded the off path as tested when it had been tested in a build the
 // oracle does not use.
 
-#endif  // DJINTERP_CONFIG_C_TEST_METADATA
+#endif  // DJINTERP_CONFIG_TEST_CFG_TEST_METADATA_H

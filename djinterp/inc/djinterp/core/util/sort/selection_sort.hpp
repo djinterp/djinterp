@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                        selection_sort.hpp
+/*******************************************************************************
+* djinterp [core]                                             selection_sort.hpp
 *
 *   Selection sort: the sequential driver.
 * In-place, iterative, comparison-based, NOT stable.  Each position takes the
@@ -40,8 +40,8 @@
 *     space:      O(1)
 *     stable:     no
 *
-*   REQUIREMENTS.  _RandomIterator must be a random-access iterator; the
-* element type must be swappable.  _Comparator must be a std::sort-convention
+*   REQUIREMENTS.  RandomIterator must be a random-access iterator; the
+* element type must be swappable.  Comparator must be a std::sort-convention
 * binary predicate -- which every model of is_comparator is, so the composed
 * comparators from the functional layer drop in unchanged:
 *
@@ -52,19 +52,23 @@
 * at which point stability has no meaning.
 *
 *
-* path:      /djinterp/cpp/util/sort/selection_sort.hpp
+* path:      /inc/djinterp/core/util/sort/selection_sort.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.03.22
-*                                                         revised: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.22
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_SELECTION_HPP_
-#define DJINTERP_UTILITY_SORT_SELECTION_HPP_ 1
+#ifndef DJINTERP_UTIL_SORT_SELECTION_SORT_HPP
+#define DJINTERP_UTIL_SORT_SELECTION_SORT_HPP 1
 
+// std
+#include <functional>                   // std::less
+#include <iterator>                     // std::iterator_traits
 // djinterp
-#include "../../djinterp.hpp"
-#include "./sort_common.hpp"
-#include "./selection_sort_common.hpp"
+#include "../../../djinterp.hpp"        // framework root
+#include "./selection_sort_common.hpp"  // internal::selection_sort_apply
+#include "./sort_common.hpp"            // sort_order,
+                                        // internal::order_comparator
 
 
 NS_DJINTERP
@@ -81,13 +85,13 @@ NS_INTERNAL
     //
     //   A single sweep is the whole sort, so like insertion_sort_apply and
     // unlike bubble_sort_apply there is no loop here.
-    template<typename _RandomIterator,
-             typename _Comparator>
-    void selection_sort_apply(_RandomIterator _first,
-                              _RandomIterator _last,
-                              _Comparator     _comparator)
+    template<typename RandomIterator,
+             typename Comparator>
+    void selection_sort_apply(RandomIterator _first,
+                              RandomIterator _last,
+                              Comparator      _comparator)
     {
-        typedef typename std::iterator_traits<_RandomIterator>::difference_type
+        typedef typename std::iterator_traits<RandomIterator>::difference_type
             difference_type;
 
         selection_pass(_first,
@@ -112,11 +116,11 @@ NS_END  // internal
 // selection_sort
 //   function: sorts the range [_first, _last) using selection sort with the
 // comparator _comparator.
-template<typename _RandomIterator,
-         typename _Comparator>
-void selection_sort(_RandomIterator _first,
-                    _RandomIterator _last,
-                    _Comparator     _comparator)
+template<typename RandomIterator,
+         typename Comparator>
+void selection_sort(RandomIterator _first,
+                    RandomIterator _last,
+                    Comparator      _comparator)
 {
     internal::selection_sort_apply(_first,
                                    _last,
@@ -127,7 +131,7 @@ void selection_sort(_RandomIterator _first,
 
 // ----------------------------------------------------------------------------
 // B.  selection_sort(first, last)      (C++11+)
-//     Uses operator< via less<value_type>.
+//     Uses operator< via std::less<value_type>.
 // ----------------------------------------------------------------------------
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -135,16 +139,16 @@ void selection_sort(_RandomIterator _first,
 // selection_sort
 //   function: sorts the range [_first, _last) using selection sort with the
 // default ascending comparator.
-template<typename _RandomIterator>
-void selection_sort(_RandomIterator _first,
-                    _RandomIterator _last)
+template<typename RandomIterator>
+void selection_sort(RandomIterator _first,
+                    RandomIterator _last)
 {
-    typedef typename std::iterator_traits<_RandomIterator>::value_type
+    typedef typename std::iterator_traits<RandomIterator>::value_type
         value_type;
 
     internal::selection_sort_apply(_first,
                                    _last,
-                                   less<value_type>());
+                                   std::less<value_type>());
 
     return;
 }
@@ -166,14 +170,14 @@ void selection_sort(_RandomIterator _first,
 // points and matching what internal::order_comparator's constructor accepts --
 // the previous `bool _ascending` parameter could not compile, since sort_order
 // is a scoped enum and admits no implicit conversion from bool.
-template<typename _RandomIterator,
-         typename _Comparator>
-void selection_sort_ordered(_RandomIterator _first,
-                            _RandomIterator _last,
-                            _Comparator     _comparator,
-                            sort_order      _order)
+template<typename RandomIterator,
+         typename Comparator>
+void selection_sort_ordered(RandomIterator    _first,
+                            RandomIterator    _last,
+                            Comparator        _comparator,
+                            sort_order::value _order)
 {
-    internal::order_comparator<_Comparator> wrapped(_comparator, _order);
+    internal::order_comparator<Comparator> wrapped(_comparator, _order);
 
     internal::selection_sort_apply(_first,
                                    _last,
@@ -186,4 +190,4 @@ void selection_sort_ordered(_RandomIterator _first,
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_SORT_SELECTION_HPP_
+#endif  // DJINTERP_UTIL_SORT_SELECTION_SORT_HPP

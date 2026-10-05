@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                               uninitialized_copy.hpp
+/*******************************************************************************
+* djinterp [re_std]                                       uninitialized_copy.hpp
 *
+* uninitialized_copy function header:
 * copy elements from [first, last) into raw uninitialized storage at
 * d_first, constructing each destination element via copy-construction.
 *
@@ -19,18 +20,26 @@
 *   iterator to the past-the-end position in the destination range.
 *
 *
-* path:      /inc/djinterp/re_std/memory/uninitialized_copy.hpp
+* path:      /inc/re_std/memory/uninitialized_copy.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_UNINITIALIZED_COPY_
-#define DJINTERP_RE_STD_MEMORY_UNINITIALIZED_COPY_ 1
+#ifndef RE_STD_MEMORY_UNINITIALIZED_COPY_HPP
+#define RE_STD_MEMORY_UNINITIALIZED_COPY_HPP 1
 
-#include "djinterp.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#if D_ENV_CPP98_HAS_NEW
+// re_std
 
+#if RE_STD_HAS_HEADER_NEW
+
+    // std
     #include <new>
 
     #include "re_std/memory/addressof.hpp"
@@ -41,19 +50,19 @@
 namespace re_std
 {
 
-template<typename _InputIt, typename _ForwardIt>
-_ForwardIt uninitialized_copy
+template<typename InputIt, typename ForwardIt>
+ForwardIt uninitialized_copy
 (
-    _InputIt    _first,
-    _InputIt    _last,
-    _ForwardIt  _d_first
+    InputIt    _first,
+    InputIt    _last,
+    ForwardIt  _d_first
 )
 {
-    typedef typename iterator_traits<_ForwardIt>::value_type _T;
+    typedef typename iterator_traits<ForwardIt>::value_type _T;
 
-    _ForwardIt _current = _d_first;
+    ForwardIt _current = _d_first;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             for (; _first != _last; ++_first, (void)++_current)
@@ -85,8 +94,10 @@ _ForwardIt uninitialized_copy
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_HAS_HEADER_NEW
 
-#endif  // D_ENV_CPP98_HAS_NEW
+#endif  // floor, for now
 
-#endif  // DJINTERP_RE_STD_MEMORY_UNINITIALIZED_COPY_
+
+#endif  // RE_STD_MEMORY_UNINITIALIZED_COPY_HPP

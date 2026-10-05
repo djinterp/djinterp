@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                              any_swap.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 any_swap.hpp
 *
 * any swap specialization header:
 *   Provides a non-member swap overload for re_std::any. This is the
@@ -9,20 +9,26 @@
 * which handles both SBO and heap storage paths.
 *
 *
-* path:      /inc/djinterp/re_std/any/any_swap.hpp
+* path:      /inc/re_std/any/any_swap.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ANY_SWAP_
-#define DJINTERP_RE_STD_ANY_SWAP_ 1
+#ifndef RE_STD_ANY_ANY_SWAP_HPP
+#define RE_STD_ANY_ANY_SWAP_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// any.hpp exists wherever `long long` does (decision 4.6), so this header
+// does too: under ISO strict C++98 it is empty, as any.hpp is.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_HAS_LONG_LONG
+
+// re_std
 #include "./any.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -31,13 +37,14 @@ NS_RESTD
 
 // swap
 //   function: exchanges the contents of two any objects. Delegates to
-// the any::swap member function.
-D_CONSTEXPR_INLINE void
+// the any::swap member function. Not constexpr, as std's is not: any
+// manages its storage at run time.
+RE_STD_INLINE void
 swap(
     any& _lhs,
     any& _rhs
 )
-D_NOEXCEPT
+RE_STD_NOEXCEPT
 {
     _lhs.swap(_rhs);
 
@@ -45,7 +52,9 @@ D_NOEXCEPT
 }
 
 
-NS_END  // re_std
+}  // re_std
+
+#endif  // RE_STD_HAS_LONG_LONG
 
 
-#endif  // DJINTERP_RE_STD_ANY_SWAP_
+#endif  // RE_STD_ANY_ANY_SWAP_HPP

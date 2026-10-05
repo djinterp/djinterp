@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                             partial_sort.hpp
 *
 * partial_sort algorithm header:
@@ -30,23 +30,25 @@
 *   should refactor.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/partial_sort.hpp
+* path:      /inc/re_std/algorithm/partial_sort.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_
-#define DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_ 1
+#ifndef RE_STD_ALGORITHM_PARTIAL_SORT_HPP
+#define RE_STD_ALGORITHM_PARTIAL_SORT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -54,24 +56,24 @@ NS_RESTD
 // ===========================================================================
 
 // _partial_sift_down_
-//   max-heap sift-down. Same shape as sort.hpp's _sort_sift_down_;
+//   function: max-heap sift-down. Same shape as sort.hpp's _sort_sift_down_;
 // duplicated to keep the two files independent until heap primitives
 // ship publicly.
-template<typename _RandomIt,
-         typename _Distance,
-         typename _Compare>
+template<typename RandomIt,
+         typename Distance,
+         typename Compare>
 void
 _partial_sift_down_(
-    _RandomIt _first,
-    _Distance _start,
-    _Distance _length,
-    _Compare  _comp
+    RandomIt _first,
+    Distance _start,
+    Distance _length,
+    Compare  _comp
 )
 {
-    _Distance _parent = _start;
+    Distance _parent = _start;
     while (true)
     {
-        _Distance _child = static_cast<_Distance>(2 * _parent + 1);
+        Distance _child = static_cast<Distance>(2 * _parent + 1);
         if (_child >= _length)
         {
             break;
@@ -99,17 +101,17 @@ _partial_sift_down_(
 //   function: arranges the smallest k = _middle - _first elements of
 // [_first, _last) at the front in sorted order; [_middle, _last)
 // retains the rest in unspecified order. Per _comp.
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 partial_sort(
-    _RandomIt _first,
-    _RandomIt _middle,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _middle,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _k = _middle - _first;
     if (_k < 2)
@@ -119,8 +121,8 @@ partial_sort(
         if ( (_k == 1) &&
              (_first != _last) )
         {
-            _RandomIt _min = _first;
-            for (_RandomIt _it = _first + 1; _it != _last; ++_it)
+            RandomIt _min = _first;
+            for (RandomIt _it = _first + 1; _it != _last; ++_it)
             {
                 if (_comp(*_it, *_min))
                 {
@@ -140,7 +142,7 @@ partial_sort(
 
     // 2. for each element of [_middle, _last): if it is smaller than
     //    the heap's max, evict the max and sift the new value down
-    for (_RandomIt _it = _middle; _it != _last; ++_it)
+    for (RandomIt _it = _middle; _it != _last; ++_it)
     {
         if (_comp(*_it, *_first))
         {
@@ -161,20 +163,20 @@ partial_sort(
 
 // partial_sort (default operator<)
 //   function: as above with re_std::less<value_type>().
-template<typename _RandomIt>
+template<typename RandomIt>
 void
 partial_sort(
-    _RandomIt _first,
-    _RandomIt _middle,
-    _RandomIt _last
+    RandomIt _first,
+    RandomIt _middle,
+    RandomIt _last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
     partial_sort(_first, _middle, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_
+#endif  // RE_STD_ALGORITHM_PARTIAL_SORT_HPP

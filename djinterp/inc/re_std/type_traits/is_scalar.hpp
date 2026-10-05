@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                               is_scalar.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                is_scalar.hpp
 *
 * is_scalar trait header:
-*   Yields true_type if _Type is a scalar type (per [basic.types]):
+*   Yields true_type if Type is a scalar type (per [basic.types]):
 *     - arithmetic (integral or floating-point)
 *     - enumeration
 *     - pointer
@@ -21,79 +21,81 @@
 *     is_scalar<void>::value            -> false
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_scalar.hpp
+* path:      /inc/re_std/type_traits/is_scalar.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_SCALAR_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_SCALAR_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_SCALAR_HPP
+#define RE_STD_TYPE_TRAITS_IS_SCALAR_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./is_arithmetic.hpp"
 #include "./is_enum.hpp"
 #include "./is_pointer.hpp"
 #include "./is_member_pointer.hpp"
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     #include "./is_null_pointer.hpp"
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_SCALAR
 // =============================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // is_scalar (C++11+)
     //   trait: arithmetic OR enum OR pointer OR member-pointer OR nullptr_t.
-    template<typename _Type>
+    template<typename Type>
     struct is_scalar
         : integral_constant<bool,
-              ( is_arithmetic<_Type>::value      ||
-                is_enum<_Type>::value            ||
-                is_pointer<_Type>::value         ||
-                is_member_pointer<_Type>::value  ||
-                is_null_pointer<_Type>::value )>
+              ( is_arithmetic<Type>::value      ||
+                is_enum<Type>::value            ||
+                is_pointer<Type>::value         ||
+                is_member_pointer<Type>::value  ||
+                is_null_pointer<Type>::value )>
     {};
 
 #else
 
     // is_scalar (C++98/03)
     //   trait: arithmetic OR enum OR pointer OR member-pointer.
-    template<typename _Type>
+    template<typename Type>
     struct is_scalar
         : integral_constant<bool,
-              ( is_arithmetic<_Type>::value      ||
-                is_enum<_Type>::value            ||
-                is_pointer<_Type>::value         ||
-                is_member_pointer<_Type>::value )>
+              ( is_arithmetic<Type>::value      ||
+                is_enum<Type>::value            ||
+                is_pointer<Type>::value         ||
+                is_member_pointer<Type>::value )>
     {};
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // =============================================================================
 // II.  IS_SCALAR_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_scalar_v
-    //   variable: convenience for is_scalar<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_scalar_v = is_scalar<_Type>::value;
+    //   variable: convenience for is_scalar<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_scalar_v = is_scalar<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_SCALAR_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_SCALAR_HPP

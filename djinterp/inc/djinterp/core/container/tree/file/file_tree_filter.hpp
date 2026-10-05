@@ -1,15 +1,15 @@
-/******************************************************************************
-* djinterp [fs]                                         file_tree_filter.hpp
+/*******************************************************************************
+* djinterp [core]                                           file_tree_filter.hpp
 *
 * Filterable file tree with predicate combinator integration:
 *   This header bridges file_tree and the functional module, providing
 * arena-aware predicate factories and a pipeline-compatible query
-* interface.  Predicates operate on (const file_tree&, node_id) pairs,
+* interface.  Predicates operate on (const file_tree&, file_node_id) pairs,
 * capturing the tree reference so they compose freely with
 * predicate_and, predicate_or, predicate_not, and the variadic
 * all_of / any_of / none_of combinators.
 *
-*   The query class (file_tree_query) produces d_pipeline<node_id>
+*   The query class (file_tree_query) produces function_pipeline<file_node_id>
 * results, enabling full pipeline chaining (map, take, skip, fold,
 * group_by, etc.) on the filtered node set.
 *
@@ -38,7 +38,7 @@
 *
 *   auto result = file_tree_query(ft)
 *       .where(pred)
-*       .sorted([&](node_id a, node_id b) {
+*       .sorted([&](file_node_id a, file_node_id b) {
 *           return ft[a].data.size > ft[b].data.size;
 *       })
 *       .to_vector();
@@ -49,46 +49,61 @@
 *       predicate_not(by_hidden()));
 *
 *
-* path:      /inc/cpp/fs/file_tree_filter.hpp
+* path:      /inc/djinterp/core/container/tree/file/file_tree_filter.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.03.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_FS_FILE_TREE_FILTER_
-#define DJINTERP_FS_FILE_TREE_FILTER_ 1
+#ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_FILTER_HPP
+#define DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_FILTER_HPP 1
 
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
+#include <algorithm>   // std::sort      -- used by sorted(); was not included
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
-#include <string>
-#include <vector>
 #include <functional>
-
-#include "../../../djinterp.hpp"
-#include "../../arena/arena.hpp"
+#include <map>         // std::map       -- used by group_by(); was not included
+#include <string>
+#include <utility>     // std::pair      -- used by partition(); was missing
+#include <vector>
+// djinterp
+#include "../../../../djinterp.hpp"
 #include "./file_tree.hpp"
 #include "./file_attributes.hpp"
-#include "../functional/predicate_combinators.hpp"
-#include "../../../functional/pipeline.hpp"
+#include "../../../functional/predicate.hpp"   // predicate_and / all_of / ...
+#include "../../../functional/pipeline.hpp"    // function_pipeline<T>
+// re_std
+#include "../../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 
 
 NS_DJINTERP
-NS_FS
 
+// NOTE. This header used to open NS_FS. There IS NO NS_FS -- nothing in the
+// framework defines that macro, so the name appeared bare in the source and
+// the file could not compile. The core, the umbrella, the traits, the concepts
+// and all six scanners are in flat djinterp; so is this now.
 
-// bring in the types we depend on.
-using djinterp::container::node_id;
-using djinterp::container::null_node;
-using djinterp::functional::d_pipeline;
-using djinterp::functional::predicate_and;
-using djinterp::functional::predicate_or;
-using djinterp::functional::predicate_not;
-using djinterp::functional::predicate_xor;
-using djinterp::functional::predicate_nand;
-using djinterp::functional::predicate_nor;
-using djinterp::functional::all_of;
-using djinterp::functional::any_of;
-using djinterp::functional::none_of;
+// bring in the types we depend on. file_node_id / null_file_node come from
+// file_tree_common.hpp (via file_tree.hpp). The arena is gone: a file_node_id is a
+// POINTER into the pool, not an index. Every bool(file_node_id) predicate below is
+// unaffected -- the handle changed type, not role -- and _tree[id].data still
+// dereferences it. The functional module is FLAT in djinterp -- there is no
+// djinterp::functional namespace, and the eager pipeline is
+// function_pipeline<T>, not d_pipeline<T>. These names are therefore already
+// in scope; the ten using-declarations that stood here named nothing at all.
+// Depended upon:
+//
+//     function_pipeline<T> pipeline.hpp (source factory: ::from)
+//     predicate_and / _or / _not /
+//     _xor / _nand / _nor predicate.hpp
+//     all_of / any_of / none_of predicate.hpp
 
 
 // ================================================================
@@ -96,10 +111,10 @@ using djinterp::functional::none_of;
 // ================================================================
 
 // file_node_predicate
-//   typedef: the canonical predicate signature for file tree
-// filtering.  Predicates are evaluated against a node_id with
-// the file_tree captured by reference inside the callable.
-using file_node_predicate = std::function<bool(node_id)>;
+//   typedef: the canonical predicate signature for file tree filtering.
+// Predicates are evaluated against a file_node_id with the file_tree captured by
+// reference inside the callable.
+using file_node_predicate = std::function<bool(file_node_id)>;
 
 
 // ================================================================
@@ -108,26 +123,28 @@ using file_node_predicate = std::function<bool(node_id)>;
 
 // by_name
 //   factory: matches nodes whose name equals _name exactly.
+template<typename Tree>
 inline file_node_predicate
 by_name
 (
-    const file_tree& _tree,
-    const char*      _name
+    const       Tree& _tree,
+    const char* _name
 )
 {
     std::string target(_name);
 
-    return [&_tree, target](node_id _id) -> bool
+    return [&_tree, target](file_node_id _id) -> bool
     {
         return (_tree.name_str(_id) == target);
     };
 }
 
 // by_name (std::string overload)
+template<typename Tree>
 inline file_node_predicate
 by_name
 (
-    const file_tree& _tree,
+    const              Tree& _tree,
     const std::string& _name
 )
 {
@@ -136,14 +153,15 @@ by_name
 
 // by_name_contains
 //   factory: matches nodes whose name contains _substr.
+template<typename Tree>
 inline file_node_predicate
 by_name_contains
 (
-    const file_tree&   _tree,
+    const              Tree& _tree,
     const std::string& _substr
 )
 {
-    return [&_tree, _substr](node_id _id) -> bool
+    return [&_tree, _substr](file_node_id _id) -> bool
     {
         return (_tree.name_str(_id).find(_substr)
                 != std::string::npos);
@@ -152,14 +170,15 @@ by_name_contains
 
 // by_name_prefix
 //   factory: matches nodes whose name starts with _prefix.
+template<typename Tree>
 inline file_node_predicate
 by_name_prefix
 (
-    const file_tree&   _tree,
+    const              Tree& _tree,
     const std::string& _prefix
 )
 {
-    return [&_tree, _prefix](node_id _id) -> bool
+    return [&_tree, _prefix](file_node_id _id) -> bool
     {
         std::string n = _tree.name_str(_id);
 
@@ -174,14 +193,15 @@ by_name_prefix
 
 // by_name_suffix
 //   factory: matches nodes whose name ends with _suffix.
+template<typename Tree>
 inline file_node_predicate
 by_name_suffix
 (
-    const file_tree&   _tree,
+    const              Tree& _tree,
     const std::string& _suffix
 )
 {
-    return [&_tree, _suffix](node_id _id) -> bool
+    return [&_tree, _suffix](file_node_id _id) -> bool
     {
         std::string n = _tree.name_str(_id);
 
@@ -203,12 +223,13 @@ by_name_suffix
 // ================================================================
 
 // by_ext
-//   factory: matches nodes whose name ends with _ext.
-// _ext should include the dot (e.g. ".cpp").
+//   factory: matches nodes whose name ends with _ext. _ext should include the
+// dot (e.g. ".cpp").
+template<typename Tree>
 inline file_node_predicate
 by_ext
 (
-    const file_tree&   _tree,
+    const              Tree& _tree,
     const std::string& _ext
 )
 {
@@ -216,16 +237,16 @@ by_ext
 }
 
 // by_any_ext
-//   factory: matches nodes whose name ends with any of the
-// given extensions.
+//   factory: matches nodes whose name ends with any of the given extensions.
+template<typename Tree>
 inline file_node_predicate
 by_any_ext
 (
-    const file_tree&              _tree,
-    std::vector<std::string>      _exts
+    const                    Tree& _tree,
+    std::vector<std::string> _exts
 )
 {
-    return [&_tree, _exts](node_id _id) -> bool
+    return [&_tree, _exts](file_node_id _id) -> bool
     {
         std::string n = _tree.name_str(_id);
 
@@ -252,14 +273,15 @@ by_any_ext
 
 // by_type
 //   factory: matches nodes of the given file_type.
+template<typename Tree>
 inline file_node_predicate
 by_type
 (
-    const file_tree& _tree,
-    file_type        _type
+    const     Tree& _tree,
+    file_type _type
 )
 {
-    return [&_tree, _type](node_id _id) -> bool
+    return [&_tree, _type](file_node_id _id) -> bool
     {
         return (_tree[_id].data.type == _type);
     };
@@ -267,10 +289,11 @@ by_type
 
 // by_directory
 //   factory: matches directory nodes.
+template<typename Tree>
 inline file_node_predicate
 by_directory
 (
-    const file_tree& _tree
+    const Tree& _tree
 )
 {
     return by_type(_tree, file_type_directory);
@@ -278,10 +301,11 @@ by_directory
 
 // by_regular
 //   factory: matches regular file nodes.
+template<typename Tree>
 inline file_node_predicate
 by_regular
 (
-    const file_tree& _tree
+    const Tree& _tree
 )
 {
     return by_type(_tree, file_type_regular);
@@ -289,10 +313,11 @@ by_regular
 
 // by_symlink
 //   factory: matches symlink nodes.
+template<typename Tree>
 inline file_node_predicate
 by_symlink
 (
-    const file_tree& _tree
+    const Tree& _tree
 )
 {
     return by_type(_tree, file_type_symlink);
@@ -305,14 +330,15 @@ by_symlink
 
 // by_size_gt
 //   factory: matches nodes whose size is greater than _threshold.
+template<typename Tree>
 inline file_node_predicate
 by_size_gt
 (
-    const file_tree& _tree,
-    std::uint64_t    _threshold
+    const         Tree& _tree,
+    re_std::uint64_t _threshold
 )
 {
-    return [&_tree, _threshold](node_id _id) -> bool
+    return [&_tree, _threshold](file_node_id _id) -> bool
     {
         return (_tree[_id].data.size > _threshold);
     };
@@ -320,14 +346,15 @@ by_size_gt
 
 // by_size_lt
 //   factory: matches nodes whose size is less than _threshold.
+template<typename Tree>
 inline file_node_predicate
 by_size_lt
 (
-    const file_tree& _tree,
-    std::uint64_t    _threshold
+    const         Tree& _tree,
+    re_std::uint64_t _threshold
 )
 {
-    return [&_tree, _threshold](node_id _id) -> bool
+    return [&_tree, _threshold](file_node_id _id) -> bool
     {
         return (_tree[_id].data.size < _threshold);
     };
@@ -335,17 +362,18 @@ by_size_lt
 
 // by_size_between
 //   factory: matches nodes whose size is in [_min, _max].
+template<typename Tree>
 inline file_node_predicate
 by_size_between
 (
-    const file_tree& _tree,
-    std::uint64_t    _min,
-    std::uint64_t    _max
+    const         Tree& _tree,
+    re_std::uint64_t _min,
+    re_std::uint64_t _max
 )
 {
-    return [&_tree, _min, _max](node_id _id) -> bool
+    return [&_tree, _min, _max](file_node_id _id) -> bool
     {
-        std::uint64_t sz = _tree[_id].data.size;
+        re_std::uint64_t sz = _tree[_id].data.size;
 
         return (sz >= _min && sz <= _max);
     };
@@ -353,13 +381,14 @@ by_size_between
 
 // by_empty
 //   factory: matches nodes with size == 0.
+template<typename Tree>
 inline file_node_predicate
 by_empty
 (
-    const file_tree& _tree
+    const Tree& _tree
 )
 {
-    return [&_tree](node_id _id) -> bool
+    return [&_tree](file_node_id _id) -> bool
     {
         return (_tree[_id].data.size == 0);
     };
@@ -372,19 +401,20 @@ by_empty
 
 // by_depth_eq
 //   factory: matches nodes at exactly _depth levels from root.
+template<typename Tree>
 inline file_node_predicate
 by_depth_eq
 (
-    const file_tree& _tree,
-    std::size_t      _depth
+    const       Tree& _tree,
+    std::size_t _depth
 )
 {
-    return [&_tree, _depth](node_id _id) -> bool
+    return [&_tree, _depth](file_node_id _id) -> bool
     {
         std::size_t d = 0;
-        node_id current = _tree[_id].parent;
+        file_node_id current = _tree[_id].parent;
 
-        while (current != null_node)
+        while (current != null_file_node)
         {
             ++d;
             current = _tree[current].parent;
@@ -396,19 +426,20 @@ by_depth_eq
 
 // by_depth_le
 //   factory: matches nodes at depth <= _max_depth.
+template<typename Tree>
 inline file_node_predicate
 by_depth_le
 (
-    const file_tree& _tree,
-    std::size_t      _max_depth
+    const       Tree& _tree,
+    std::size_t _max_depth
 )
 {
-    return [&_tree, _max_depth](node_id _id) -> bool
+    return [&_tree, _max_depth](file_node_id _id) -> bool
     {
         std::size_t d = 0;
-        node_id current = _tree[_id].parent;
+        file_node_id current = _tree[_id].parent;
 
-        while (current != null_node)
+        while (current != null_file_node)
         {
             ++d;
 
@@ -426,11 +457,12 @@ by_depth_le
 
 // by_max_depth
 //   factory: alias for by_depth_le.
+template<typename Tree>
 inline file_node_predicate
 by_max_depth
 (
-    const file_tree& _tree,
-    std::size_t      _max_depth
+    const       Tree& _tree,
+    std::size_t _max_depth
 )
 {
     return by_depth_le(_tree, _max_depth);
@@ -441,34 +473,50 @@ by_max_depth
 //  predicate factories — path
 // ================================================================
 
+// ----------------------------------------------------------------
+//  path predicates -- these match the ADDRESS, not the disk path
+// ----------------------------------------------------------------
+//   These three used to match against full_path(), and could not work: the old
+// full_path() prepended THE ROOT'S OWN NAME, so every path began "project/..."
+// and by_path_prefix("src") never matched anything.  (The core has since been
+// fixed: address() is the tree-relative word of labels and round-trips through
+// resolve(); full_path() is the openable path on disk, root_path() +
+// address().) They now match the ADDRESS, which is what a caller means by "the
+// path of this node in this tree" -- by_path_prefix("src/core") matches, and
+// the answer does not depend on where the tree happens to have been scanned
+// from. For the on-disk spelling, match full_path() instead; it is a different
+// question.
+
 // by_path_contains
 //   factory: matches nodes whose full path contains _substr.
+template<typename Tree>
 inline file_node_predicate
 by_path_contains
 (
-    const file_tree&   _tree,
+    const              Tree& _tree,
     const std::string& _substr
 )
 {
-    return [&_tree, _substr](node_id _id) -> bool
+    return [&_tree, _substr](file_node_id _id) -> bool
     {
-        return (_tree.full_path(_id).find(_substr)
+        return (_tree.address(_id).find(_substr)
                 != std::string::npos);
     };
 }
 
 // by_path_prefix
 //   factory: matches nodes whose full path starts with _prefix.
+template<typename Tree>
 inline file_node_predicate
 by_path_prefix
 (
-    const file_tree&   _tree,
+    const              Tree& _tree,
     const std::string& _prefix
 )
 {
-    return [&_tree, _prefix](node_id _id) -> bool
+    return [&_tree, _prefix](file_node_id _id) -> bool
     {
-        std::string p = _tree.full_path(_id);
+        std::string p = _tree.address(_id);
 
         if (p.size() < _prefix.size())
         {
@@ -481,18 +529,19 @@ by_path_prefix
 
 // by_ancestor
 //   factory: matches nodes that are descendants of _ancestor.
+template<typename Tree>
 inline file_node_predicate
 by_ancestor
 (
-    const file_tree& _tree,
-    node_id          _ancestor
+    const   Tree& _tree,
+    file_node_id _ancestor
 )
 {
-    return [&_tree, _ancestor](node_id _id) -> bool
+    return [&_tree, _ancestor](file_node_id _id) -> bool
     {
-        node_id current = _tree[_id].parent;
+        file_node_id current = _tree[_id].parent;
 
-        while (current != null_node)
+        while (current != null_file_node)
         {
             if (current == _ancestor)
             {
@@ -507,16 +556,16 @@ by_ancestor
 }
 
 // by_parent
-//   factory: matches nodes that are immediate children of
-// _parent_id.
+//   factory: matches nodes that are immediate children of _parent_id.
+template<typename Tree>
 inline file_node_predicate
 by_parent
 (
-    const file_tree& _tree,
-    node_id          _parent_id
+    const   Tree& _tree,
+    file_node_id _parent_id
 )
 {
-    return [&_tree, _parent_id](node_id _id) -> bool
+    return [&_tree, _parent_id](file_node_id _id) -> bool
     {
         return (_tree[_id].parent == _parent_id);
     };
@@ -528,15 +577,16 @@ by_parent
 // ================================================================
 
 // by_hidden
-//   factory: matches nodes whose name starts with '.'
-// (POSIX hidden file convention).
+//   factory: matches nodes whose name starts with '.' (POSIX hidden file
+// convention).
+template<typename Tree>
 inline file_node_predicate
 by_hidden
 (
-    const file_tree& _tree
+    const Tree& _tree
 )
 {
-    return [&_tree](node_id _id) -> bool
+    return [&_tree](file_node_id _id) -> bool
     {
         std::size_t len = 0;
         const char* n   = _tree.name(_id, &len);
@@ -552,13 +602,14 @@ by_hidden
 
 // by_has_children
 //   factory: matches nodes that have at least one child.
+template<typename Tree>
 inline file_node_predicate
 by_has_children
 (
-    const file_tree& _tree
+    const Tree& _tree
 )
 {
-    return [&_tree](node_id _id) -> bool
+    return [&_tree](file_node_id _id) -> bool
     {
         return _tree[_id].has_children();
     };
@@ -566,13 +617,14 @@ by_has_children
 
 // by_is_leaf
 //   factory: matches nodes with no children.
+template<typename Tree>
 inline file_node_predicate
 by_is_leaf
 (
-    const file_tree& _tree
+    const Tree& _tree
 )
 {
-    return [&_tree](node_id _id) -> bool
+    return [&_tree](file_node_id _id) -> bool
     {
         return !_tree[_id].has_children();
     };
@@ -580,19 +632,20 @@ by_is_leaf
 
 // by_child_count_gt
 //   factory: matches directories with more than _n children.
+template<typename Tree>
 inline file_node_predicate
 by_child_count_gt
 (
-    const file_tree& _tree,
-    std::size_t      _n
+    const       Tree& _tree,
+    std::size_t _n
 )
 {
-    return [&_tree, _n](node_id _id) -> bool
+    return [&_tree, _n](file_node_id _id) -> bool
     {
         std::size_t count = 0;
-        node_id c = _tree[_id].first_child;
+        file_node_id c = _tree[_id].first_child;
 
-        while (c != null_node)
+        while (c != null_file_node)
         {
             ++count;
 
@@ -616,9 +669,9 @@ by_child_count_gt
 NS_INTERNAL
 
     // glob_match
-    //   helper: matches a string against a glob pattern.
-    // Supports: * (any sequence), ? (any single char).
-    // Does not support ** or character classes.
+    //   helper: matches a string against a glob pattern. Supports: * (any
+    // sequence), ? (any single char). Does not support ** or character
+    // classes.
     inline bool
     glob_match
     (
@@ -678,8 +731,8 @@ NS_INTERNAL
     }
 
     // glob_path_match
-    //   helper: matches a path against a glob pattern with **
-    // support.  ** matches zero or more path components.
+    //   helper: matches a path against a glob pattern with ** support. **
+    // matches zero or more path components.
     inline bool
     glob_path_match
     (
@@ -771,16 +824,17 @@ NS_END  // internal
 
 
 // by_glob
-//   factory: matches nodes whose name matches a glob pattern
-// (* and ? wildcards).
+//   factory: matches nodes whose name matches a glob pattern (* and ?
+// wildcards).
+template<typename Tree>
 inline file_node_predicate
 by_glob
 (
-    const file_tree&   _tree,
+    const              Tree& _tree,
     const std::string& _pattern
 )
 {
-    return [&_tree, _pattern](node_id _id) -> bool
+    return [&_tree, _pattern](file_node_id _id) -> bool
     {
         return internal::glob_match(
             _pattern.c_str(),
@@ -789,20 +843,21 @@ by_glob
 }
 
 // by_path_glob
-//   factory: matches nodes whose full path matches a glob
-// pattern with ** support for recursive directory matching.
+//   factory: matches nodes whose full path matches a glob pattern with **
+// support for recursive directory matching.
+template<typename Tree>
 inline file_node_predicate
 by_path_glob
 (
-    const file_tree&   _tree,
+    const              Tree& _tree,
     const std::string& _pattern
 )
 {
-    return [&_tree, _pattern](node_id _id) -> bool
+    return [&_tree, _pattern](file_node_id _id) -> bool
     {
         return internal::glob_path_match(
             _pattern.c_str(),
-            _tree.full_path(_id).c_str());
+            _tree.address(_id).c_str());
     };
 }
 
@@ -812,17 +867,17 @@ by_path_glob
 // ================================================================
 
 // by_custom
-//   factory: wraps a user-provided function that receives the
-// tree and node_id.  Useful for predicates that need to inspect
-// multiple fields.
+//   factory: wraps a user-provided function that receives the tree and
+// file_node_id. Useful for predicates that need to inspect multiple fields.
+template<typename Tree>
 inline file_node_predicate
 by_custom
 (
-    const file_tree& _tree,
-    std::function<bool(const file_tree&, node_id)> _fn
+    const Tree&                              _tree,
+    std::function<bool(const Tree&, file_node_id)> _fn
 )
 {
-    return [&_tree, _fn](node_id _id) -> bool
+    return [&_tree, _fn](file_node_id _id) -> bool
     {
         return _fn(_tree, _id);
     };
@@ -834,24 +889,24 @@ by_custom
 // ================================================================
 
 // collect_matching
-//   gathers all node_ids in the tree (BFS from _root) that
-// satisfy _predicate.
-inline std::vector<node_id>
+//   gathers all node_ids in the tree (BFS from _root) that satisfy _predicate.
+template<typename Tree>
+inline std::vector<file_node_id>
 collect_matching
 (
-    const file_tree&          _tree,
-    node_id                   _root,
+    const Tree&               _tree,
+    file_node_id                   _root,
     const file_node_predicate& _predicate
 )
 {
-    std::vector<node_id> result;
+    std::vector<file_node_id> result;
 
     _tree.visit_breadth_first(_root,
-        [&](node_id _id, std::size_t)
+        [&](file_node_id _id, std::size_t)
         {
             if (_predicate(_id))
             {
-                result.push_(_id);
+                result.push_back(_id);
             }
         });
 
@@ -860,36 +915,37 @@ collect_matching
 
 // collect_matching (entire tree)
 //   overload that starts from node 0 (root).
-inline std::vector<node_id>
+template<typename Tree>
+inline std::vector<file_node_id>
 collect_matching
 (
-    const file_tree&          _tree,
+    const Tree&               _tree,
     const file_node_predicate& _predicate
 )
 {
     if (_tree.empty())
     {
-        return std::vector<node_id>();
+        return std::vector<file_node_id>();
     }
 
     return collect_matching(_tree, 0, _predicate);
 }
 
 // count_matching
-//   counts nodes satisfying _predicate without allocating a
-// result vector.
+//   counts nodes satisfying _predicate without allocating a result vector.
+template<typename Tree>
 inline std::size_t
 count_matching
 (
-    const file_tree&          _tree,
-    node_id                   _root,
+    const Tree&               _tree,
+    file_node_id                   _root,
     const file_node_predicate& _predicate
 )
 {
     std::size_t count = 0;
 
     _tree.visit_breadth_first(_root,
-        [&](node_id _id, std::size_t)
+        [&](file_node_id _id, std::size_t)
         {
             if (_predicate(_id))
             {
@@ -901,46 +957,47 @@ count_matching
 }
 
 // first_matching
-//   returns the first node_id satisfying _predicate (DFS),
-// or null_node if none found.
-inline node_id
+//   returns the first file_node_id satisfying _predicate (DFS), or null_file_node if
+// none found.
+template<typename Tree>
+inline file_node_id
 first_matching
 (
-    const file_tree&          _tree,
-    node_id                   _root,
+    const Tree&               _tree,
+    file_node_id                   _root,
     const file_node_predicate& _predicate
 )
 {
-    // manual DFS with early exit — visit_depth_first doesn't
-    // support short-circuiting.
+    // manual DFS with early exit — visit_depth_first doesn't support
+    // short-circuiting.
     struct frame
     {
-        node_id id;
+        file_node_id id;
     };
 
     std::vector<frame> stack;
-    stack.push_({ _root });
+    stack.push_back({ _root });
 
     while (!stack.empty())
     {
-        frame f = stack.();
-        stack.pop_();
+        frame f = stack.back();
+        stack.pop_back();
 
         if (_predicate(f.id))
         {
             return f.id;
         }
 
-        node_id c = _tree[f.id].last_child;
+        file_node_id c = _tree[f.id].last_child;
 
-        while (c != null_node)
+        while (c != null_file_node)
         {
-            stack.push_({ c });
+            stack.push_back({ c });
             c = _tree[c].prev_sibling;
         }
     }
 
-    return null_node;
+    return null_file_node;
 }
 
 
@@ -951,11 +1008,20 @@ first_matching
 // file_tree_query
 //   class: pipeline-producing query interface for file_tree.
 // Wraps a file_tree reference and provides fluent filtering
-// that returns d_pipeline<node_id> results compatible with
-// the full functional module pipeline API.
+// that returns function_pipeline<file_node_id> results compatible with the full
+// functional module pipeline API.
+//   TEMPLATED ON THE TREE. file_tree is a template ALIAS (file_tree.hpp maps
+// an operating_system onto a scanner policy), so the bare `const file_tree&`
+// this class used to hold was ill-formed -- an alias template named with no
+// argument list. Every use site in this header was a hard error; the header
+// was
+// simply never instantiated, and an uninstantiated header template is never
+// checked. Templating also lets an option-carrying tree through unchanged.
+template<typename Tree = file_tree_default>
 class file_tree_query
 {
 public:
+    using tree_type = Tree;
 
     // --------------------------------------------------------
     //  construction
@@ -966,8 +1032,8 @@ public:
     explicit
     file_tree_query
     (
-        const file_tree& _tree,
-        node_id          _root = 0
+        const tree_type& _tree,
+        file_node_id          _root = 0
     )
         : m_tree(_tree),
           m_root(_root),
@@ -977,9 +1043,9 @@ public:
         {
             // seed with all node_ids via BFS.
             _tree.visit_breadth_first(_root,
-                [this](node_id _id, std::size_t)
+                [this](file_node_id _id, std::size_t)
                 {
-                    m_ids.push_(_id);
+                    m_ids.push_back(_id);
                 });
         }
     }
@@ -988,8 +1054,8 @@ public:
     //   constructs a query from a pre-collected set of ids.
     file_tree_query
     (
-        const file_tree&         _tree,
-        std::vector<node_id>&&   _ids
+        const tree_type&       _tree,
+        std::vector<file_node_id>&& _ids
     )
         : m_tree(_tree),
           m_root(0),
@@ -1002,22 +1068,22 @@ public:
     // --------------------------------------------------------
 
     // where
-    //   applies a predicate and returns a new query containing
-    // only the matching nodes.
+    //   applies a predicate and returns a new query containing only the
+    // matching nodes.
     file_tree_query
     where
     (
         const file_node_predicate& _predicate
     ) const
     {
-        std::vector<node_id> result;
+        std::vector<file_node_id> result;
         result.reserve(m_ids.size());
 
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
             if (_predicate(id))
             {
-                result.push_(id);
+                result.push_back(id);
             }
         }
 
@@ -1032,14 +1098,14 @@ public:
         const file_node_predicate& _predicate
     ) const
     {
-        std::vector<node_id> result;
+        std::vector<file_node_id> result;
         result.reserve(m_ids.size());
 
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
             if (!_predicate(id))
             {
-                result.push_(id);
+                result.push_back(id);
             }
         }
 
@@ -1077,14 +1143,14 @@ public:
 
     // sorted
     //   returns a new query with nodes sorted by _cmp.
-    template<typename _Compare>
+    template<typename Compare>
     file_tree_query
     sorted
     (
-        _Compare _cmp
+        Compare _cmp
     ) const
     {
-        std::vector<node_id> result(m_ids);
+        std::vector<file_node_id> result(m_ids);
 
         std::sort(result.begin(), result.end(), _cmp);
 
@@ -1096,7 +1162,7 @@ public:
     file_tree_query
     sorted_by_name() const
     {
-        return sorted([this](node_id a, node_id b) -> bool
+        return sorted([this](file_node_id a, file_node_id b) -> bool
         {
             return (m_tree.name_str(a) < m_tree.name_str(b));
         });
@@ -1107,7 +1173,7 @@ public:
     file_tree_query
     sorted_by_size() const
     {
-        return sorted([this](node_id a, node_id b) -> bool
+        return sorted([this](file_node_id a, file_node_id b) -> bool
         {
             return (m_tree[a].data.size > m_tree[b].data.size);
         });
@@ -1129,10 +1195,10 @@ public:
         std::size_t count = (_n < m_ids.size())
                           ? _n : m_ids.size();
 
-        std::vector<node_id> result(
+        std::vector<file_node_id> result(
             m_ids.begin(),
             m_ids.begin() + static_cast<
-                std::vector<node_id>::difference_type>(count));
+                std::vector<file_node_id>::difference_type>(count));
 
         return file_tree_query(m_tree, std::move(result));
     }
@@ -1148,12 +1214,12 @@ public:
         if (_n >= m_ids.size())
         {
             return file_tree_query(
-                m_tree, std::vector<node_id>());
+                m_tree, std::vector<file_node_id>());
         }
 
-        std::vector<node_id> result(
+        std::vector<file_node_id> result(
             m_ids.begin() + static_cast<
-                std::vector<node_id>::difference_type>(_n),
+                std::vector<file_node_id>::difference_type>(_n),
             m_ids.end());
 
         return file_tree_query(m_tree, std::move(result));
@@ -1166,19 +1232,19 @@ public:
 
     // to_vector
     //   returns the node_ids as a vector.
-    std::vector<node_id>
+    std::vector<file_node_id>
     to_vector() const
     {
         return m_ids;
     }
 
     // to_pipeline
-    //   converts the query result to a d_pipeline<node_id>
-    // for full functional module integration.
-    d_pipeline<node_id>
+    //   converts the query result to a function_pipeline<file_node_id> for full
+    // functional module integration.
+    function_pipeline<file_node_id>
     to_pipeline() const
     {
-        return d_pipeline<node_id>::from(m_ids);
+        return function_pipeline<file_node_id>::from(m_ids);
     }
 
     // to_names
@@ -1189,9 +1255,9 @@ public:
         std::vector<std::string> result;
         result.reserve(m_ids.size());
 
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
-            result.push_(m_tree.name_str(id));
+            result.push_back(m_tree.name_str(id));
         }
 
         return result;
@@ -1205,24 +1271,24 @@ public:
         std::vector<std::string> result;
         result.reserve(m_ids.size());
 
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
-            result.push_(m_tree.full_path(id));
+            result.push_back(m_tree.full_path(id));
         }
 
         return result;
     }
 
     // for_each
-    //   invokes _fn on each matching node_id.
-    template<typename _Fn>
+    //   invokes _fn on each matching file_node_id.
+    template<typename Fn>
     const file_tree_query&
     for_each
     (
-        _Fn _fn
+        Fn _fn
     ) const
     {
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
             _fn(id);
         }
@@ -1232,17 +1298,17 @@ public:
 
     // fold
     //   folds all matching node_ids with an accumulator.
-    template<typename _Acc, typename _Fn>
-    _Acc
+    template<typename Acc, typename Fn>
+    Acc
     fold
     (
-        _Acc _init,
-        _Fn  _fn
+        Acc _init,
+        Fn   _fn
     ) const
     {
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
-            _init = _fn(static_cast<const _Acc&>(_init), id);
+            _init = _fn(static_cast<const Acc&>(_init), id);
         }
 
         return _init;
@@ -1256,7 +1322,7 @@ public:
         const file_node_predicate& _predicate
     ) const
     {
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
             if (_predicate(id))
             {
@@ -1275,7 +1341,7 @@ public:
         const file_node_predicate& _predicate
     ) const
     {
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
             if (!_predicate(id))
             {
@@ -1304,7 +1370,7 @@ public:
     {
         std::size_t n = 0;
 
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
             if (_predicate(id))
             {
@@ -1324,16 +1390,16 @@ public:
     }
 
     // first
-    //   returns the first node_id, or null_node if empty.
-    node_id
+    //   returns the first file_node_id, or null_file_node if empty.
+    file_node_id
     first() const
     {
-        return m_ids.empty() ? null_node : m_ids.front();
+        return m_ids.empty() ? null_file_node : m_ids.front();
     }
 
     // tree
     //   returns a reference to the underlying file_tree.
-    const file_tree&
+    const tree_type&
     tree() const
     {
         return m_tree;
@@ -1346,12 +1412,12 @@ public:
 
     // group_by_ext
     //   groups matching nodes by file extension.
-    std::map<std::string, std::vector<node_id>>
+    std::map<std::string, std::vector<file_node_id>>
     group_by_ext() const
     {
-        std::map<std::string, std::vector<node_id>> result;
+        std::map<std::string, std::vector<file_node_id>> result;
 
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
             std::string n = m_tree.name_str(id);
             std::string ext;
@@ -1363,7 +1429,7 @@ public:
                 ext = n.substr(dot);
             }
 
-            result[ext].push_(id);
+            result[ext].push_back(id);
         }
 
         return result;
@@ -1371,21 +1437,21 @@ public:
 
     // group_by
     //   groups matching nodes by a key function.
-    template<typename _KeyFn>
+    template<typename KeyFn>
     auto
     group_by
     (
-        _KeyFn _key_fn
-    ) const -> std::map<decltype(_key_fn(std::declval<node_id>())),
-                        std::vector<node_id>>
+        KeyFn _key_fn
+    ) const -> std::map<decltype(_key_fn(std::declval<file_node_id>())),
+                        std::vector<file_node_id>>
     {
-        using key_type = decltype(_key_fn(std::declval<node_id>()));
+        using key_type = decltype(_key_fn(std::declval<file_node_id>()));
 
-        std::map<key_type, std::vector<node_id>> result;
+        std::map<key_type, std::vector<file_node_id>> result;
 
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
-            result[_key_fn(id)].push_(id);
+            result[_key_fn(id)].push_back(id);
         }
 
         return result;
@@ -1399,18 +1465,18 @@ public:
         const file_node_predicate& _predicate
     ) const
     {
-        std::vector<node_id> pass;
-        std::vector<node_id> fail;
+        std::vector<file_node_id> pass;
+        std::vector<file_node_id> fail;
 
-        for (node_id id : m_ids)
+        for (file_node_id id : m_ids)
         {
             if (_predicate(id))
             {
-                pass.push_(id);
+                pass.push_back(id);
             }
             else
             {
-                fail.push_(id);
+                fail.push_back(id);
             }
         }
 
@@ -1421,14 +1487,28 @@ public:
 
 
 private:
-    const file_tree&     m_tree;
-    node_id              m_root;
-    std::vector<node_id> m_ids;
+    const tree_type&     m_tree;
+    file_node_id              m_root;
+    std::vector<file_node_id> m_ids;
 };
 
 
-NS_END  // fs
+// make_file_tree_query
+//   factory: deduces the tree type. Class-template argument deduction only
+// arrived in C++17, so pre-C++17 callers need this rather than spelling the
+// backend out by hand.
+template<typename Tree>
+file_tree_query<Tree>
+make_file_tree_query(
+    const Tree& _tree
+)
+{
+    return file_tree_query<Tree>(_tree);
+}
+
+
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FS_FILE_TREE_FILTER_
+#endif  // DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_FILTER_HPP

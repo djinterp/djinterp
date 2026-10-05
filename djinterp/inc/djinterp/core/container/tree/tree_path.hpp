@@ -1,12 +1,12 @@
-/******************************************************************************
-* djinterp [container]                                        tree_path.hpp
+/*******************************************************************************
+* djinterp [core]                                                  tree_path.hpp
 *
 * Path operations for arena-backed trees:
 *   This header provides the arena_path_policy - a container_path
-* accessor policy for arena<_Payload> - and convenience wrappers that
+* accessor policy for arena<Payload> - and convenience wrappers that
 * eliminate the need to specify the policy at every call site.
 *
-*   The policy is parameterized on _Payload and a _ComponentAccessor
+*   The policy is parameterized on Payload and a ComponentAccessor
 * callable that extracts a typed component from the payload.  This
 * keeps the arena completely generic: it never assumes payloads
 * contain a name field or that components are strings.  The caller
@@ -19,57 +19,60 @@
 *   - make_tree_path         factory with deduced template types
 *
 *
-* path:      /inc/cpp/container/tree_path.hpp
+* path:      /inc/djinterp/core/container/tree/tree_path.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.03.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_TREE_PATH_
-#define DJINTERP_CONTAINER_TREE_PATH_ 1
+#ifndef DJINTERP_CONTAINER_TREE_TREE_PATH_HPP
+#define DJINTERP_CONTAINER_TREE_TREE_PATH_HPP 1
+
+// FLOOR, FOR NOW: below C++20 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../util/path/path.hpp"
+#include "../../../djinterp.hpp"
+#include "../../paradigm/path/path.hpp"
 #include "../arena/arena.hpp"
 #include "../container_path.hpp"
 
 
 NS_DJINTERP
 
-
 // ================================================================
 //  arena_path_policy
 // ================================================================
 
 // arena_path_policy
-//   class: accessor policy satisfying the container_path_policy
-// concept for arena<_Payload>.
+//   class: accessor policy satisfying the container_path_policy concept for
+// arena<Payload>.
 //
-// _ComponentAccessor must be a callable with signature:
-//   _ComponentType (const arena<_Payload>&, node_id)
-//
-// The returned component is compared via operator== during
-// resolve operations.  For string-based trees, _ComponentType
-// is typically component_view; for other trees it may be an
+// ComponentAccessor must be a callable with signature:
+//   ComponentType (const arena<Payload>&, node_id) The returned component is
+// compared via operator== during resolve operations. For string-based trees,
+// ComponentType is typically component_view; for other trees it may be an
 // integer, bitset, or any equality-comparable type.
 //
-// The component accessor is stored as an instance member,
-// making the policy thread-safe and self-contained.
-template<typename _Payload,
-         typename _ComponentAccessor,
-         typename _ComponentType>
+// The component accessor is stored as an instance member, making the policy
+// thread-safe and self-contained.
+template<typename Payload,
+         typename ComponentAccessor,
+         typename ComponentType>
 class arena_path_policy
 {
 public:
-    using container_type = arena<_Payload>;
+    using container_type = arena<Payload>;
     using index_type     = node_id;
-    using component_type = _ComponentType;
+    using component_type = ComponentType;
 
     // --------------------------------------------------------
     //  construction
@@ -78,7 +81,7 @@ public:
     // arena_path_policy
     //   constructs a policy bound to a component accessor.
     explicit arena_path_policy(
-            _ComponentAccessor _accessor
+            ComponentAccessor _accessor
         )
             : m_accessor(_accessor)
         {}
@@ -98,8 +101,7 @@ public:
     // is_null
     //   returns true if _id is the null sentinel.
     bool
-    is_null
-    (
+    is_null(
         index_type _id
     ) const
     {
@@ -109,8 +111,7 @@ public:
     // parent
     //   returns the parent index of _id.
     index_type
-    parent
-    (
+    parent(
         const container_type& _arena,
         index_type            _id
     ) const
@@ -121,8 +122,7 @@ public:
     // first_child
     //   returns the first child index of _id.
     index_type
-    first_child
-    (
+    first_child(
         const container_type& _arena,
         index_type            _id
     ) const
@@ -133,8 +133,7 @@ public:
     // next_sibling
     //   returns the next sibling index of _id.
     index_type
-    next_sibling
-    (
+    next_sibling(
         const container_type& _arena,
         index_type            _id
     ) const
@@ -143,11 +142,9 @@ public:
     }
 
     // component
-    //   returns the component of the element at _id via the
-    // bound accessor.
+    //   returns the component of the element at _id via the bound accessor.
     component_type
-    component
-    (
+    component(
         const container_type& _arena,
         index_type            _id
     ) const
@@ -156,7 +153,7 @@ public:
     }
 
 private:
-    _ComponentAccessor m_accessor;
+    ComponentAccessor m_accessor;
 };
 
 
@@ -166,11 +163,8 @@ private:
 
 // tree_path
 //   class: convenience wrapper that binds an arena to a
-// component accessor and provides path operations without
-// requiring the caller to specify the policy or pass it
-// manually.
-//
-// Usage (string components):
+// component accessor and provides path operations without requiring the caller
+// to specify the policy or pass it manually. Usage (string components):
 //   auto comp_fn = [&pool](
 //       const arena<my_payload>& a,
 //       node_id id) -> component_view
@@ -182,9 +176,7 @@ private:
 //   tree_path<my_payload, decltype(comp_fn), component_view>
 //       tp(my_arena, comp_fn);
 //   node_id n = tp.resolve(root, "src/core/main.cpp");
-//   std::string p = tp.build(n);
-//
-// Usage (integer components):
+//   std::string p = tp.build(n); Usage (integer components):
 //   auto key_fn = [](
 //       const arena<radix_node>& a,
 //       node_id id) -> uint8_t
@@ -197,27 +189,26 @@ private:
 //   uint8_t keys[] = {0x01, 0x0A, 0xFF};
 //   node_id n = tp.resolve(root, keys, 3);
 //
-template<typename _Payload,
-         typename _ComponentAccessor,
-         typename _ComponentType>
+template<typename Payload,
+         typename ComponentAccessor,
+         typename ComponentType>
 class tree_path
 {
 public:
     using policy_type    = arena_path_policy<
-        _Payload, _ComponentAccessor, _ComponentType>;
-    using container_type = arena<_Payload>;
-    using component_type = _ComponentType;
+        Payload, ComponentAccessor, ComponentType>;
+    using container_type = arena<Payload>;
+    using component_type = ComponentType;
 
     // --------------------------------------------------------
     //  construction
     // --------------------------------------------------------
 
     // tree_path
-    //   constructs a tree_path bound to an arena and a
-    // component accessor.
+    //   constructs a tree_path bound to an arena and a component accessor.
     tree_path(
             const container_type& _arena,
-            _ComponentAccessor    _accessor
+            ComponentAccessor     _accessor
         )
             : m_arena(_arena),
               m_policy(_accessor)
@@ -229,13 +220,12 @@ public:
 
     // resolve
     //   resolves a component sequence from _root.
-    template<typename _Iter>
+    template<typename Iter>
     node_id
-    resolve
-    (
+    resolve(
         node_id _root,
-        _Iter   _begin,
-        _Iter   _end
+        Iter    _begin,
+        Iter    _end
     ) const
     {
         return container_path_resolve(
@@ -248,12 +238,11 @@ public:
 
     // resolve (pointer + count overload)
     //   resolves from a contiguous array of components.
-    template<typename _Component>
+    template<typename Component>
     node_id
-    resolve
-    (
+    resolve(
         node_id           _root,
-        const _Component* _components,
+        const Component* _components,
         std::size_t       _count
     ) const
     {
@@ -267,12 +256,11 @@ public:
 
     // resolve (vector overload)
     //   resolves from a vector of components.
-    template<typename _Component>
+    template<typename Component>
     node_id
-    resolve
-    (
+    resolve(
         node_id                        _root,
-        const std::vector<_Component>& _components
+        const std::vector<Component>& _components
     ) const
     {
         return container_path_resolve(
@@ -287,11 +275,10 @@ public:
     // --------------------------------------------------------
 
     // resolve
-    //   resolves a string path from _root.  Requires
-    // component_type to be comparable with component_view.
+    //   resolves a string path from _root. Requires component_type to be
+    // comparable with component_view.
     node_id
-    resolve
-    (
+    resolve(
         node_id     _root,
         const char* _path,
         std::size_t _path_len
@@ -308,8 +295,7 @@ public:
     // resolve (std::string overload)
     //   function: resolves a path given as std::string.
     node_id
-    resolve
-    (
+    resolve(
         node_id            _root,
         const std::string& _path
     ) const
@@ -324,8 +310,7 @@ public:
     // collect
     //   returns the component sequence from root to _id.
     std::vector<component_type>
-    collect
-    (
+    collect(
         node_id _id
     ) const
     {
@@ -340,13 +325,12 @@ public:
     // --------------------------------------------------------
 
     // build
-    //   constructs the full path string from root to _id.
-    // Requires component_type to be component_view.
+    //   constructs the full path string from root to _id. Requires
+    // component_type to be component_view.
     std::string
-    build
-    (
+    build(
         node_id _id,
-        char    _sep = djinterp::path::path_separator
+        char    _sep = path_separator
     ) const
     {
         return container_path_build(
@@ -363,8 +347,7 @@ public:
     // depth
     //   returns the depth of _id (root = 0).
     std::size_t
-    depth
-    (
+    depth(
         node_id _id
     ) const
     {
@@ -381,8 +364,7 @@ public:
     // ancestors
     //   returns all ancestors of _id (parent first, root last).
     std::vector<node_id>
-    ancestors
-    (
+    ancestors(
         node_id _id
     ) const
     {
@@ -393,11 +375,9 @@ public:
     }
 
     // ancestor_chain
-    //   returns the full chain from root to _id (root first,
-    // _id last).
+    //   returns the full chain from root to _id (root first, _id last).
     std::vector<node_id>
-    ancestor_chain
-    (
+    ancestor_chain(
         node_id _id
     ) const
     {
@@ -414,8 +394,7 @@ public:
     // lca
     //   computes the lowest common ancestor of _a and _b.
     node_id
-    lca
-    (
+    lca(
         node_id _a,
         node_id _b
     ) const
@@ -432,11 +411,9 @@ public:
     // --------------------------------------------------------
 
     // relative
-    //   computes the relative path from _from to _to as a
-    // path_address.
+    //   computes the relative path from _from to _to as a path_address.
     path_address<component_type>
-    relative
-    (
+    relative(
         node_id _from,
         node_id _to
     ) const
@@ -449,14 +426,13 @@ public:
     }
 
     // relative_string
-    //   computes the relative path as a string with ".."
-    // segments.  Requires component_type to be component_view.
+    //   computes the relative path as a string with ".." segments. Requires
+    // component_type to be component_view.
     std::string
-    relative_string
-    (
+    relative_string(
         node_id _from,
         node_id _to,
-        char    _sep = djinterp::path::path_separator
+        char    _sep = path_separator
     ) const
     {
         return container_path_relative_string(
@@ -474,8 +450,7 @@ public:
     // is_ancestor
     //   returns true if _ancestor is an ancestor of _descendant.
     bool
-    is_ancestor
-    (
+    is_ancestor(
         node_id _ancestor,
         node_id _descendant
     ) const
@@ -519,23 +494,23 @@ private:
 
 // make_tree_path
 //   factory: creates a tree_path with deduced template types.
-// _ComponentType must be explicitly specified as the first
-// template argument since it cannot be deduced.
+// ComponentType must be explicitly specified as the first template argument
+// since it cannot be deduced.
 //
 // Usage:
 //   auto tp = make_tree_path<component_view>(
 //       my_arena, my_accessor);
-template<typename _ComponentType,
-         typename _Payload,
-         typename _ComponentAccessor>
-tree_path<_Payload, _ComponentAccessor, _ComponentType>
+template<typename ComponentType,
+         typename Payload,
+         typename ComponentAccessor>
+tree_path<Payload, ComponentAccessor, ComponentType>
 make_tree_path
 (
-    const arena<_Payload>& _arena,
-    _ComponentAccessor     _accessor
+    const arena<Payload>& _arena,
+    ComponentAccessor      _accessor
 )
 {
-    return tree_path<_Payload, _ComponentAccessor, _ComponentType>(
+    return tree_path<Payload, ComponentAccessor, ComponentType>(
         _arena,
         _accessor);
 }
@@ -543,5 +518,6 @@ make_tree_path
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_TREE_PATH_
+#endif  // DJINTERP_CONTAINER_TREE_TREE_PATH_HPP

@@ -45,6 +45,7 @@
 #include "../djinterp.hpp"
 #include "../env/net/env_net.h"
 #include "../core/container/buffer/byte_buffer.hpp"
+#include "./http/http.hpp"  // HTTP's vocabulary, aliased below
 
 
 #if !D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -129,34 +130,15 @@ using port_type = std::uint16_t;
 ///                       III.   ENUMERATIONS                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// http_method
-//   enum: the HTTP request methods. `delete_` carries a trailing underscore to
-// avoid the `delete` keyword (and the Win32 DELETE macro); the rest are the
-// verbs' lowercase spellings.
-enum class http_method : unsigned char
-{
-    get,
-    head,
-    post,
-    put,
-    delete_,
-    patch,
-    options,
-    trace,
-    connect
-};
-
-// http_version
-//   enum: the HTTP wire-protocol versions a request may pin or a response may
-// report. `unknown` is the zero value / unset sentinel.
-enum class http_version : unsigned char
-{
-    unknown = 0,
-    http_1_0,
-    http_1_1,
-    http_2,
-    http_3
-};
+// http_method, http_version, http_status, status_category
+//   type: net/http/http.hpp's enumerations under web.hpp's names, while HTTP
+// moves out of this header. Every enumerator web.hpp named is still there,
+// status_category's unknown and success and http_status's
+// payload_too_large and unprocessable_entity as aliases.
+using http_method     = ::djinterp::net::http_method;
+using http_version    = ::djinterp::net::http_version;
+using http_status     = ::djinterp::net::http_status;
+using status_category = ::djinterp::net::http_status_class;
 
 // url_scheme
 //   enum: the URI schemes this vocabulary recognizes. `unknown` is the zero
@@ -172,67 +154,6 @@ enum class url_scheme : unsigned char
     ftps,
     file,
     data
-};
-
-// http_status
-//   enum: the commonly used HTTP status codes. Not exhaustive -- any integer
-// is a valid status on the wire, so the classifier helpers below take a plain
-// int and this enum is a convenience for the well-known values.
-enum class http_status : int
-{
-    // 1xx informational
-    continue_             = 100,
-    switching_protocols   = 101,
-    // 2xx success
-    ok                    = 200,
-    created               = 201,
-    accepted              = 202,
-    no_content            = 204,
-    partial_content       = 206,
-    // 3xx redirection
-    moved_permanently     = 301,
-    found                 = 302,
-    see_other             = 303,
-    not_modified          = 304,
-    temporary_redirect    = 307,
-    permanent_redirect    = 308,
-    // 4xx client error
-    bad_request           = 400,
-    unauthorized          = 401,
-    forbidden             = 403,
-    not_found             = 404,
-    method_not_allowed    = 405,
-    not_acceptable        = 406,
-    request_timeout       = 408,
-    conflict              = 409,
-    gone                  = 410,
-    length_required       = 411,
-    payload_too_large     = 413,
-    uri_too_long          = 414,
-    unsupported_media_type = 415,
-    im_a_teapot           = 418,
-    unprocessable_entity  = 422,
-    too_many_requests     = 429,
-    // 5xx server error
-    internal_server_error = 500,
-    not_implemented       = 501,
-    bad_gateway           = 502,
-    service_unavailable   = 503,
-    gateway_timeout       = 504,
-    http_version_not_supported = 505
-};
-
-// status_category
-//   enum: the class an HTTP status code falls into, keyed on its leading
-// digit. `unknown` covers codes outside the 100-599 range.
-enum class status_category : unsigned char
-{
-    unknown = 0,
-    informational,
-    success,
-    redirection,
-    client_error,
-    server_error
 };
 
 // transport_error
@@ -278,6 +199,7 @@ to_string(
         case http_method::options: return "OPTIONS";
         case http_method::trace:   return "TRACE";
         case http_method::connect: return "CONNECT";
+        case http_method::other:   return "";
     }
 
     return "";
@@ -898,44 +820,11 @@ parse_query(
 ///                     VII.   CONSTANT TABLES                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// content_type
-//   namespace: canonical MIME type strings for common HTTP payloads.
-D_NAMESPACE(content_type)
-
-    // application/json
-    D_CONSTEXPR const char* const json               = "application/json";
-    // application/octet-stream
-    D_CONSTEXPR const char* const octet_stream       = "application/octet-stream";
-    // application/x-www-form-urlencoded
-    D_CONSTEXPR const char* const form_urlencoded    = "application/x-www-form-urlencoded";
-    // multipart/form-data
-    D_CONSTEXPR const char* const multipart_form_data = "multipart/form-data";
-    // application/xml
-    D_CONSTEXPR const char* const xml                = "application/xml";
-    // text/plain
-    D_CONSTEXPR const char* const text_plain         = "text/plain";
-    // text/html
-    D_CONSTEXPR const char* const text_html          = "text/html";
-    // text/event-stream (server-sent events)
-    D_CONSTEXPR const char* const event_stream       = "text/event-stream";
-
-NS_END  // content_type
-
-// header_name
-//   namespace: canonical spellings of frequently used HTTP header names.
-D_NAMESPACE(header_name)
-
-    D_CONSTEXPR const char* const accept             = "Accept";
-    D_CONSTEXPR const char* const accept_encoding    = "Accept-Encoding";
-    D_CONSTEXPR const char* const authorization      = "Authorization";
-    D_CONSTEXPR const char* const connection         = "Connection";
-    D_CONSTEXPR const char* const content_length     = "Content-Length";
-    D_CONSTEXPR const char* const content_type       = "Content-Type";
-    D_CONSTEXPR const char* const host               = "Host";
-    D_CONSTEXPR const char* const location           = "Location";
-    D_CONSTEXPR const char* const user_agent         = "User-Agent";
-
-NS_END  // header_name
+// content_type, header_name
+//   namespace: net/http/http.hpp's http_media and http_field under web.hpp's
+// names; every constant web.hpp named is there.
+namespace content_type = ::djinterp::net::http_media;
+namespace header_name  = ::djinterp::net::http_field;
 
 
 ///////////////////////////////////////////////////////////////////////////////

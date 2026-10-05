@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                   vector.hpp
+/*******************************************************************************
+* djinterp [math]                                                     vector.hpp
 *
 * Fixed-size column vector for the linear-algebra subframework.
 *   vector<_T, _N> stores its components by value in a std::array and every
@@ -21,17 +21,19 @@
 *   The constexpr bodies use loops and local mutation (relaxed constexpr), the
 * same baseline expression.hpp relies on.
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/vector.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.22
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_VECTOR_
-#define DJINTERP_MATH_LINALG_VECTOR_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_VECTOR_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_VECTOR_HPP 1
 
 // std
-#include <cstddef>
 #include <array>
+#include <cstddef>
 #include <type_traits>
 // djinterp
 #include "../../djinterp.hpp"
@@ -829,4 +831,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_VECTOR_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_VECTOR_HPP

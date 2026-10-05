@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                   matrix.hpp
+/*******************************************************************************
+* djinterp [math]                                                     matrix.hpp
 *
 * Fixed-size, row-major matrix for the linear-algebra subframework.
 *   matrix<_T, _Rows, _Cols> stores its entries by value in a flat std::array
@@ -26,17 +26,19 @@
 * LU/QR/Cholesky decompositions, linear-system solvers, and the eigen routines
 * live in their own headers and build on this one.
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/matrix.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.22
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_MATRIX_
-#define DJINTERP_MATH_LINALG_MATRIX_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_MATRIX_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_MATRIX_HPP 1
 
 // std
-#include <cstddef>
 #include <array>
+#include <cstddef>
 #include <type_traits>
 // djinterp
 #include "../../djinterp.hpp"
@@ -817,4 +819,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_MATRIX_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_MATRIX_HPP

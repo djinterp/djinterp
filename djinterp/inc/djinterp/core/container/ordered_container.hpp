@@ -1,47 +1,71 @@
-/******************************************************************************
-* djinterp [container]                                    ordered_container.hpp
+/*******************************************************************************
+* djinterp [core]                                          ordered_container.hpp
 *
 *   The ORDER axis (the spec, Sortedness): whether a container has POSITIONAL
 * IDENTITY.  A container is ORDERED iff a position function is part of its
-* structure - it may be written as a finite sequence (e_1, ..., e_n) in which each
+* structure - it may be written as a finite sequence (e_1, ..., e_n) in which
+* each
 * position is meaningful, so a permutation of the elements is a DIFFERENT
-* container.  It is UNORDERED iff no position function is part of its structure -
-* two containers differing only by a permutation are equal; there is no meaningful
+* container. It is UNORDERED iff no position function is part of its structure
+* -
+* two containers differing only by a permutation are equal; there is no
+* meaningful
 * first, second, or next element.
 *
 *   Note this is positional identity, NOT storage layout or presentation: an
-* associative container (set, multiset, map) is UNORDERED here - its identity is
-* its bag, permutations are equal - even though a comparator lets it be ENUMERATED
+* associative container (set, multiset, map) is UNORDERED here - its identity
+* is
+* its bag, permutations are equal - even though a comparator lets it be
+* ENUMERATED
 * in sorted order.  That monotone enumeration is the Sortedness axis's concern
-* (sorted_container.hpp), not a positional order.  The distinguishing structural
+* (sorted_container.hpp), not a positional order. The distinguishing
+* structural
 * tell is thus a key_type: a keyed / associative container is unordered; an
 * iterable without one is a positional sequence, and ordered.
 *
 *   This header upgrades the former sequential_container.hpp: it corrects the
 * verdict (positional identity excludes ALL associatives, not only the hash-
-* ordered ones), and provides the CRTP base of order-dependent operations and the
-* free order algorithms for any ordered container.  Element ORDER being defined,
-* these read positions without knowing the backing.  Sortedness - whether those
-* positions are in comparator order - is layered on top in sorted_container.hpp.
+* ordered ones), and provides the CRTP base of order-dependent operations and
+* the
+* free order algorithms for any ordered container. Element ORDER being
+* defined,
+* these read positions without knowing the backing. Sortedness - whether those
+* positions are in comparator order - is layered on top in
+* sorted_container.hpp.
 *
 *   PORTABILITY:
 *   C++11 baseline; `_v` companions degrade with the language as the rest do.
 *
-* TABLE OF CONTENTS
-* =================
-* I.    Order-axis traits + sequential layout
-* II.   ordered_base (CRTP order operations)
-* III.  Free-function order algorithms
-*
 *
 * path:      /inc/djinterp/core/container/ordered_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.24
-*                                                          revised: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_ORDERED_
-#define DJINTERP_CONTAINER_ORDERED_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    Order-axis traits + sequential layout
+      -------------------------------------
+
+II.   ordered_base (CRTP order operations)
+      ------------------------------------
+
+III.  Free-function order algorithms
+      ------------------------------
+
+      revised: 2026.06.30
+*/
+
+#ifndef DJINTERP_CONTAINER_ORDERED_CONTAINER_HPP
+#define DJINTERP_CONTAINER_ORDERED_CONTAINER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <algorithm>
@@ -50,7 +74,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"                       // clean_t, NS_*, feature macros
+#include "../../djinterp.hpp"                       // clean_t, NS_*, feature macros
 #include "../meta/trait_detect.hpp"              // D_TYPE_TRAIT_* detection macros, D_VOID_T
 #include "./traits/ordered_container_traits.hpp" // order-axis classifiers (canonical home)
 
@@ -75,12 +99,12 @@ NS_DJINTERP
 // II.  ordered_base (CRTP order operations)
 // ===========================================================================
 
-//   Order-dependent operations for any ordered container.  The derived class
+//   Order-dependent operations for any ordered container. The derived class
 // exposes begin() / end() (and size() for the rotate / shift operations); this
-// base never allocates or owns data.  Return types are written with trailing
+// base never allocates or owns data. Return types are written with trailing
 // decltype so the operations remain C++11-clean.
 
-template<typename _Derived>
+template<typename Derived>
 class ordered_base
 {
 protected:
@@ -92,18 +116,18 @@ public:
 
     // front
     //   returns a reference to the first element.
-    template<typename _D = _Derived>
+    template<typename D = Derived>
     auto front() const
-        -> decltype(*std::begin(std::declval<const _D&>()))
+        -> decltype(*std::begin(std::declval<const D&>()))
     {
         return *std::begin(self());
     }
 
     // back
     //   returns a reference to the last element.
-    template<typename _D = _Derived>
+    template<typename D = Derived>
     auto back() const
-        -> decltype(*std::begin(std::declval<const _D&>()))
+        -> decltype(*std::begin(std::declval<const D&>()))
     {
         auto _it = std::end(self());
         --_it;
@@ -113,9 +137,9 @@ public:
 
     // nth
     //   returns an iterator to the _n-th element.
-    template<typename _D = _Derived>
+    template<typename D = Derived>
     auto nth(std::size_t _n) const
-        -> decltype(std::begin(std::declval<const _D&>()))
+        -> decltype(std::begin(std::declval<const D&>()))
     {
         auto _it = std::begin(self());
         std::advance(_it, _n);
@@ -134,8 +158,8 @@ public:
     }
 
     // is_sorted (custom comparator)
-    template<typename _Compare>
-    bool is_sorted(_Compare _cmp) const
+    template<typename Compare>
+    bool is_sorted(Compare _cmp) const
     {
         return std::is_sorted(std::begin(self()), std::end(self()), _cmp);
     }
@@ -217,10 +241,10 @@ public:
 
     // shift_left
     //   shifts the elements left by _n, filling vacated positions with _fill.
-    template<typename _Value>
+    template<typename Value>
     void shift_left(
         std::size_t   _n,
-        const _Value& _fill
+        const Value& _fill
     )
     {
         std::size_t _sz = self().size();
@@ -246,10 +270,10 @@ public:
 
     // shift_right
     //   shifts the elements right by _n, filling vacated positions with _fill.
-    template<typename _Value>
+    template<typename Value>
     void shift_right(
         std::size_t   _n,
-        const _Value& _fill
+        const Value& _fill
     )
     {
         std::size_t _sz = self().size();
@@ -276,16 +300,16 @@ public:
 private:
     // self
     //   the derived reference, via the CRTP downcast.
-    _Derived&
+    Derived&
     self()
     {
-        return static_cast<_Derived&>(*this);
+        return static_cast<Derived&>(*this);
     }
 
-    const _Derived&
+    const Derived&
     self() const
     {
-        return static_cast<const _Derived&>(*this);
+        return static_cast<const Derived&>(*this);
     }
 };
 
@@ -296,16 +320,16 @@ private:
 
 // starts_with
 //   function: true iff _container begins with _prefix.
-template<typename _Container,
-         typename _Prefix>
+template<typename Container,
+         typename Prefix>
 typename std::enable_if<
-        is_ordered_container<_Container>::value
-     && is_ordered_container<_Prefix>::value,
+        is_ordered_container<Container>::value
+     && is_ordered_container<Prefix>::value,
     bool
 >::type
 starts_with(
-    const _Container& _container,
-    const _Prefix&    _prefix
+    const Container& _container,
+    const Prefix&    _prefix
 )
 {
     auto _c_it  = std::begin(_container);
@@ -327,16 +351,16 @@ starts_with(
 
 // ends_with
 //   function: true iff _container ends with _suffix.
-template<typename _Container,
-         typename _Suffix>
+template<typename Container,
+         typename Suffix>
 typename std::enable_if<
-        is_ordered_container<_Container>::value
-     && is_ordered_container<_Suffix>::value,
+        is_ordered_container<Container>::value
+     && is_ordered_container<Suffix>::value,
     bool
 >::type
 ends_with(
-    const _Container& _container,
-    const _Suffix&    _suffix
+    const Container& _container,
+    const Suffix&    _suffix
 )
 {
     auto _c_sz = _container.size();
@@ -367,16 +391,16 @@ ends_with(
 
 // contains_subsequence
 //   function: true iff _sub appears as a contiguous subsequence of _container.
-template<typename _Container,
-         typename _Sub>
+template<typename Container,
+         typename Sub>
 typename std::enable_if<
-        is_ordered_container<_Container>::value
-     && is_ordered_container<_Sub>::value,
+        is_ordered_container<Container>::value
+     && is_ordered_container<Sub>::value,
     bool
 >::type
 contains_subsequence(
-    const _Container& _container,
-    const _Sub&       _sub
+    const Container& _container,
+    const Sub&       _sub
 )
 {
     return ( std::search(std::begin(_container), std::end(_container),
@@ -387,5 +411,6 @@ contains_subsequence(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_ORDERED_
+#endif  // DJINTERP_CONTAINER_ORDERED_CONTAINER_HPP

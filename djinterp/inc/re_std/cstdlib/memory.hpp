@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   memory.hpp
 *
 * the C allocation functions (re-exports):
@@ -30,48 +30,50 @@
 * multiple of it.
 *
 *
-* path:      /inc/djinterp/re_std/cstdlib/memory.hpp
+* path:      /inc/re_std/cstdlib/memory.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDLIB_MEMORY_
-#define DJINTERP_RE_STD_CSTDLIB_MEMORY_ 1
+#ifndef RE_STD_CSTDLIB_MEMORY_HPP
+#define RE_STD_CSTDLIB_MEMORY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstdlib>
 
 
-// D_RE_STD_HAS_ALIGNED_ALLOC
+// RE_STD_HAS_ALIGNED_ALLOC
 //   constant: 1 if std::aligned_alloc is declared. C++17 and later only,
 // and never on MSVC. Overridable by the user for a runtime the checks
 // below do not know about.
-#ifndef D_RE_STD_HAS_ALIGNED_ALLOC
-    #if !D_ENV_LANG_IS_CPP17_OR_HIGHER
-        #define D_RE_STD_HAS_ALIGNED_ALLOC  0
-    #elif defined(D_ENV_COMPILER_MSVC) || defined(_MSC_VER)
-        #define D_RE_STD_HAS_ALIGNED_ALLOC  0
+#ifndef RE_STD_HAS_ALIGNED_ALLOC
+    #if !RE_STD_LANG_IS_CPP17_OR_HIGHER
+        #define RE_STD_HAS_ALIGNED_ALLOC  0
+    #elif defined(RE_STD_COMPILER_MSVC) || defined(_MSC_VER)
+        #define RE_STD_HAS_ALIGNED_ALLOC  0
     #elif defined(__APPLE__)
         // Apple's libc declares it from the macOS 10.15 / iOS 13 SDKs on.
         #if defined(__MAC_OS_X_VERSION_MIN_REQUIRED) &&                       \
             __MAC_OS_X_VERSION_MIN_REQUIRED < 101500
-            #define D_RE_STD_HAS_ALIGNED_ALLOC  0
+            #define RE_STD_HAS_ALIGNED_ALLOC  0
         #else
-            #define D_RE_STD_HAS_ALIGNED_ALLOC  1
+            #define RE_STD_HAS_ALIGNED_ALLOC  1
         #endif
     #else
-        #define D_RE_STD_HAS_ALIGNED_ALLOC  1
+        #define RE_STD_HAS_ALIGNED_ALLOC  1
     #endif
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
     // malloc
     //   function: allocate uninitialised storage, or null on failure.
@@ -92,20 +94,20 @@ NS_RESTD
     // realloc / aligned_alloc. Never from new.
     using ::std::free;
 
-#if D_RE_STD_HAS_ALIGNED_ALLOC
+#if RE_STD_HAS_ALIGNED_ALLOC
 
     // aligned_alloc
     //   function: allocate storage at the requested alignment. Released
     // with free, unlike the Windows _aligned_malloc it is often confused
-    // with. Absent where D_RE_STD_HAS_ALIGNED_ALLOC is 0.
+    // with. Absent where RE_STD_HAS_ALIGNED_ALLOC is 0.
     using ::std::aligned_alloc;
 
-#endif  // D_RE_STD_HAS_ALIGNED_ALLOC
+#endif  // RE_STD_HAS_ALIGNED_ALLOC
 
-NS_END  // re_std
-
-
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_CSTDLIB_MEMORY_
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+#endif  // RE_STD_CSTDLIB_MEMORY_HPP

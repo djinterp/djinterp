@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                 interval.hpp
+/*******************************************************************************
+* djinterp [math]                                                   interval.hpp
 *
 * Unified compile-time interval template.
 *   This header provides a single, fully generic interval type parameterized
@@ -33,14 +33,15 @@
 *   value_type, size_type, lower_bound, upper_bound, step,
 *   is_left_open, is_right_open
 *
-* 
+*
 * path:      /inc/djinterp/math/interval/interval.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2024.04.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_INTERVAL_
-#define DJINTERP_MATH_INTERVAL_ 1
+#ifndef DJINTERP_MATH_INTERVAL_INTERVAL_HPP
+#define DJINTERP_MATH_INTERVAL_INTERVAL_HPP 1
 
 // std
 #include <cstddef>
@@ -49,7 +50,7 @@
 #include <string>
 #include <type_traits>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./closed_interval.hpp"
 #include "./open_interval.hpp"
 #include "./discrete_interval.hpp"
@@ -1991,4 +1992,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_INTERVAL_
+#endif  // DJINTERP_MATH_INTERVAL_INTERVAL_HPP

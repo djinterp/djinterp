@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                        remove_volatile.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          remove_volatile.hpp
 *
 * remove_volatile trait header:
 *   Strips top-level volatile-qualifier from a type. Yields member
@@ -14,19 +14,21 @@
 *     remove_volatile<const volatile int>::type  -> const int    (const kept)
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/remove_volatile.hpp
+* path:      /inc/re_std/type_traits/remove_volatile.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_VOLATILE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_VOLATILE_ 1
+#ifndef RE_STD_TYPE_TRAITS_REMOVE_VOLATILE_HPP
+#define RE_STD_TYPE_TRAITS_REMOVE_VOLATILE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -35,18 +37,18 @@ NS_RESTD
 
 // remove_volatile
 //   trait: passthrough (primary template).
-template<typename _Type>
+template<typename Type>
 struct remove_volatile
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-// remove_volatile<volatile _Type>
+// remove_volatile<volatile Type>
 //   trait: specialization stripping top-level volatile.
-template<typename _Type>
-struct remove_volatile<volatile _Type>
+template<typename Type>
+struct remove_volatile<volatile Type>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
 
@@ -54,17 +56,17 @@ struct remove_volatile<volatile _Type>
 // II.  REMOVE_VOLATILE_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // remove_volatile_t
-    //   alias: convenience alias for remove_volatile<_Type>::type.
-    template<typename _Type>
-    using remove_volatile_t = typename remove_volatile<_Type>::type;
+    //   alias: convenience alias for remove_volatile<Type>::type.
+    template<typename Type>
+    using remove_volatile_t = typename remove_volatile<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_VOLATILE_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_REMOVE_VOLATILE_HPP

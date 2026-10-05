@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [markdown]                                             markdown.hpp
+/*******************************************************************************
+* djinterp [core]                                                   markdown.hpp
 *
 *   Foundational Markdown module for the djinterp framework. Models
 * a CommonMark-aligned bipartite AST: documents contain *blocks*
@@ -11,7 +11,7 @@
 * would conflate two different content models.
 *
 *   ZERO OVERHEAD:
-*   - Block kind and inline kind enums are `std::uint8_t`-backed.
+*   - Block kind and inline kind enums are `re_std::uint8_t`-backed.
 *   - Category and classification predicates are `D_CONSTEXPR` and
 *     fold to compile-time constants when the kind is known
 *     statically.
@@ -29,39 +29,66 @@
 *   The runtime `markdown_flavor` enum identifies the document's
 * target dialect (CommonMark, GitHub Flavored, GitLab, Pandoc,
 * MultiMarkdown, kramdown, Markdown Extra). A full
-* compile-time-policy `markdown_dialect<_Flag>` template, mirroring
+* compile-time-policy `markdown_dialect<Flag>` template, mirroring
 * `html_dialect`, is a likely follow-on.
 *
 *
-* path:      /inc/djinterp/core/util/markdown/markdown.hpp
+* path:      /inc/djinterp/core/text/markdown/markdown.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    SHARED TYPES & CONSTANTS
+      ------------------------
+
 II.   FLAVOUR & RENDER TARGET ENUMS
+      -----------------------------
+
 III.  BLOCK KIND ENUM
+      ---------------
+
 IV.   INLINE KIND ENUM
+      ----------------
+
 V.    BLOCK CATEGORY CLASSIFICATION
+      -----------------------------
+
 VI.   INLINE CATEGORY CLASSIFICATION
+      ------------------------------
+
 VII.  HEADING / LIST / CODE FENCE STYLE
+      ---------------------------------
+
 VIII. BACKEND TAG DISPATCH
+      --------------------
+
 IX.   BACKEND DETECTION
+      -----------------
+
 X.    SUB-MODULE INCLUDES
+      -------------------
 */
 
-#ifndef DJINTERP_MARKDOWN_
-#define DJINTERP_MARKDOWN_ 1
+#ifndef DJINTERP_TEXT_MARKDOWN_MARKDOWN_HPP
+#define DJINTERP_TEXT_MARKDOWN_MARKDOWN_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
 // djinterp
 #include "../../../djinterp.hpp"
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,7 +155,7 @@ using markdown_size_t   = std::size_t;
 //   enum: identifies the document's target markdown dialect.
 // Drives which extensions (tables, strikethrough, task lists,
 // footnotes, math, etc.) are parsed and rendered.
-enum class markdown_flavor : std::uint8_t
+enum class markdown_flavor : re_std::uint8_t
 {
     commonmark,         // CommonMark 0.30 baseline
     github,             // GitHub Flavored Markdown (GFM)
@@ -147,7 +174,7 @@ enum class markdown_flavor : std::uint8_t
 //   enum: identifies an output format for document rendering.
 // Documents expose `render_to_*` methods per target; backends
 // implement whichever they support.
-enum class markdown_render_target : std::uint8_t
+enum class markdown_render_target : re_std::uint8_t
 {
     markdown,           // round-trip to markdown source
     html,               // HTML4 / HTML5 fragment
@@ -167,10 +194,10 @@ enum class markdown_render_target : std::uint8_t
 
 // markdown_block_kind
 //   enum: discriminator for every standard markdown block-level
-// element. Backed by `std::uint8_t`. The `unknown` value is
+// element. Backed by `re_std::uint8_t`. The `unknown` value is
 // used for elements not in this list (custom directives,
 // flavour-specific extensions not yet modelled).
-enum class markdown_block_kind : std::uint8_t
+enum class markdown_block_kind : re_std::uint8_t
 {
     // document root
     document,
@@ -233,8 +260,8 @@ enum class markdown_block_kind : std::uint8_t
 
 // markdown_inline_kind
 //   enum: discriminator for every standard markdown
-// inline-level element. Backed by `std::uint8_t`.
-enum class markdown_inline_kind : std::uint8_t
+// inline-level element. Backed by `re_std::uint8_t`.
+enum class markdown_inline_kind : re_std::uint8_t
 {
     // text
     text,                       // plain text run
@@ -639,7 +666,7 @@ is_break_inline_kind(
 
 // markdown_heading_style
 //   enum: ATX (`# Heading`) vs Setext (`Heading\n=======`).
-enum class markdown_heading_style : std::uint8_t
+enum class markdown_heading_style : re_std::uint8_t
 {
     atx,            // # H1, ## H2, ...
     atx_closed,     // # H1 #, ## H2 ##, ...
@@ -650,7 +677,7 @@ enum class markdown_heading_style : std::uint8_t
 
 // markdown_list_style
 //   enum: which bullet character / numeral style to use.
-enum class markdown_list_style : std::uint8_t
+enum class markdown_list_style : re_std::uint8_t
 {
     dash,           // -
     plus,           // +
@@ -662,7 +689,7 @@ enum class markdown_list_style : std::uint8_t
 
 // markdown_code_fence_style
 //   enum: backtick or tilde fences for fenced code blocks.
-enum class markdown_code_fence_style : std::uint8_t
+enum class markdown_code_fence_style : re_std::uint8_t
 {
     backtick,       // ```
     tilde,          // ~~~
@@ -672,7 +699,7 @@ enum class markdown_code_fence_style : std::uint8_t
 
 // markdown_table_alignment
 //   enum: per-column alignment for table cells.
-enum class markdown_table_alignment : std::uint8_t
+enum class markdown_table_alignment : re_std::uint8_t
 {
     none,
     left,           // :---
@@ -732,7 +759,7 @@ NS_INTERNAL
     // has_markdown_backend_tag_helper
     //   trait: SFINAE helper detecting a nested
     // `markdown_backend_tag` alias. Primary template (failure).
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_markdown_backend_tag_helper
     {
@@ -741,10 +768,10 @@ NS_INTERNAL
 
     // has_markdown_backend_tag_helper (specialization)
     //   trait: success case.
-    template<typename _Type>
+    template<typename Type>
     struct has_markdown_backend_tag_helper<
-        _Type,
-        void_t<typename _Type::markdown_backend_tag>
+        Type,
+        void_t<typename Type::markdown_backend_tag>
     >
     {
         D_STATIC_CONSTEXPR bool value = true;
@@ -755,23 +782,23 @@ namespace markdown {
 
 
 // is_markdown_backend
-//   trait: true if `_Type` has a nested
+//   trait: true if `Type` has a nested
 // `markdown_backend_tag` type.
-template<typename    _Type>
+template<typename    Type>
 struct is_markdown_backend
 {
     D_STATIC_CONSTEXPR bool value =
         ::djinterp::internal::has_markdown_backend_tag_helper<
-            clean_t<_Type>>::value;
+            clean_t<Type>>::value;
 };
 
 
 // is_markdown_backend_v
 //   constant: convenience accessor.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_STATIC_CONSTEXPR bool is_markdown_backend_v =
-        is_markdown_backend<_Type>::value;
+        is_markdown_backend<Type>::value;
 #endif
 
 
@@ -787,5 +814,6 @@ NS_END  // djinterp
 #include "./markdown_template.hpp"
 #include "./markdown_template_concepts.hpp"
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_MARKDOWN_
+#endif  // DJINTERP_TEXT_MARKDOWN_MARKDOWN_HPP

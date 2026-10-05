@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           minmax_element.hpp
 *
 * minmax_element algorithm header:
@@ -22,16 +22,17 @@
 *     giving 3 comparisons per 2 elements.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/minmax_element.hpp
+* path:      /inc/re_std/algorithm/minmax_element.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.24
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_MINMAX_ELEMENT_
-#define DJINTERP_RE_STD_ALGORITHM_MINMAX_ELEMENT_ 1
+#ifndef RE_STD_ALGORITHM_MINMAX_ELEMENT_HPP
+#define RE_STD_ALGORITHM_MINMAX_ELEMENT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../utility/pair.hpp"
 
@@ -40,16 +41,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -59,25 +53,25 @@ NS_RESTD
 // minmax_element
 //   function: pair(first-smallest, last-largest). Both members are
 // _last when the range is empty.
-template<typename _ForwardIt>
-D_CONSTEXPR_CPP14 pair<_ForwardIt, _ForwardIt>
+template<typename ForwardIt>
+RE_STD_CONSTEXPR_CPP14 pair<ForwardIt, ForwardIt>
 minmax_element(
-    _ForwardIt _first,
-    _ForwardIt _last
+    ForwardIt _first,
+    ForwardIt _last
 )
 {
-    _ForwardIt _min = _first;
-    _ForwardIt _max = _first;
+    ForwardIt _min = _first;
+    ForwardIt _max = _first;
 
     if (_first == _last)
     {
-        return pair<_ForwardIt, _ForwardIt>(_last, _last);
+        return pair<ForwardIt, ForwardIt>(_last, _last);
     }
 
     ++_first;
     if (_first == _last)
     {
-        return pair<_ForwardIt, _ForwardIt>(_min, _max);
+        return pair<ForwardIt, ForwardIt>(_min, _max);
     }
 
     // second element: equal goes to _max, keeping max at the later index
@@ -93,7 +87,7 @@ minmax_element(
 
     while (_first != _last)
     {
-        _ForwardIt _lhs = _first;
+        ForwardIt _lhs = _first;
         ++_first;
 
         if (_first == _last)
@@ -137,7 +131,7 @@ minmax_element(
         ++_first;
     }
 
-    return pair<_ForwardIt, _ForwardIt>(_min, _max);
+    return pair<ForwardIt, ForwardIt>(_min, _max);
 }
 
 
@@ -147,27 +141,27 @@ minmax_element(
 
 // minmax_element (comparator)
 //   function: as above but ordering is decided by _comp.
-template<typename _ForwardIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 pair<_ForwardIt, _ForwardIt>
+template<typename ForwardIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 pair<ForwardIt, ForwardIt>
 minmax_element(
-    _ForwardIt _first,
-    _ForwardIt _last,
-    _Compare   _comp
+    ForwardIt _first,
+    ForwardIt _last,
+    Compare   _comp
 )
 {
-    _ForwardIt _min = _first;
-    _ForwardIt _max = _first;
+    ForwardIt _min = _first;
+    ForwardIt _max = _first;
 
     if (_first == _last)
     {
-        return pair<_ForwardIt, _ForwardIt>(_last, _last);
+        return pair<ForwardIt, ForwardIt>(_last, _last);
     }
 
     ++_first;
     if (_first == _last)
     {
-        return pair<_ForwardIt, _ForwardIt>(_min, _max);
+        return pair<ForwardIt, ForwardIt>(_min, _max);
     }
 
     if (_comp(*_first, *_min))
@@ -182,7 +176,7 @@ minmax_element(
 
     while (_first != _last)
     {
-        _ForwardIt _lhs = _first;
+        ForwardIt _lhs = _first;
         ++_first;
 
         if (_first == _last)
@@ -223,11 +217,11 @@ minmax_element(
         ++_first;
     }
 
-    return pair<_ForwardIt, _ForwardIt>(_min, _max);
+    return pair<ForwardIt, ForwardIt>(_min, _max);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_MINMAX_ELEMENT_
+#endif  // RE_STD_ALGORITHM_MINMAX_ELEMENT_HPP

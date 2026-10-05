@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [functional]                                            bind_front.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               bind_front.hpp
 *
+* bind_front class header:
 *   bind_front(f, args...) - partial application with the bound arguments placed
 * before the call arguments.
 *
@@ -19,89 +20,95 @@
 * add it, so this is a nine-year back-port.
 *
 *
-* path:      /inc/djinterp/re_std/functional/bind_front.hpp
+* path:      /inc/re_std/functional/bind_front.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_BIND_FRONT_
-#define DJINTERP_RE_STD_FUNCTIONAL_BIND_FRONT_ 1
+#ifndef RE_STD_FUNCTIONAL_BIND_FRONT_HPP
+#define RE_STD_FUNCTIONAL_BIND_FRONT_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
+#include "../utility/make_integer_sequence.hpp"
 #include "../tuple/tuple.hpp"
+#include "../tuple/tuple_get.hpp"
 #include "./invoke.hpp"
 
-NS_RESTD
 
-NS_INTERNAL
+namespace re_std
+{
+
+namespace internal
+{
 
     // bind_front_t
     //   class: the object returned by bind_front().
-    template<typename _Func, typename... _Bound>
+    template<typename Func, typename... Bound>
     class bind_front_t
     {
-        typedef make_index_sequence<sizeof...(_Bound)> _Indices;
+        typedef make_index_sequence<sizeof...(Bound)> _Indices;
 
-        _Func            m_func;
-        tuple<_Bound...> m_bound;
+        Func            m_func;
+        tuple<Bound...> m_bound;
 
         //   Static so the const and non-const operator() overloads share one
-        // definition; _Tup deduces as const when the object is.
-        template<typename _F, typename _Tup, typename... _Args, size_t... _I>
-        static D_CONSTEXPR_CPP14 auto expand(_F& f, _Tup& bound,
-                                             index_sequence<_I...>,
-                                             _Args&&... args)
-            -> decltype(re_std::invoke(f, re_std::get<_I>(bound)..., static_cast<_Args&&>(args)...))
+        // definition; Tup deduces as const when the object is.
+        template<typename F, typename Tup, typename... Args, size_t... I>
+        static RE_STD_CONSTEXPR_CPP14 auto expand(F& f, Tup& bound,
+                                             index_sequence<I...>,
+                                             Args&&... args)
+            -> decltype(re_std::invoke(f, re_std::get<I>(bound)..., static_cast<Args&&>(args)...))
         {
-            return re_std::invoke(f, re_std::get<_I>(bound)..., static_cast<_Args&&>(args)...);
+            return re_std::invoke(f, re_std::get<I>(bound)..., static_cast<Args&&>(args)...);
         }
 
     public:
-        template<typename _F2, typename... _B2>
-        D_CONSTEXPR explicit bind_front_t(_F2&& f, _B2&&... b)
-            : m_func(static_cast<_F2&&>(f)), m_bound(static_cast<_B2&&>(b)...)
+        template<typename F2, typename... B2>
+        RE_STD_CONSTEXPR explicit bind_front_t(F2&& f, B2&&... b)
+            : m_func(static_cast<F2&&>(f)), m_bound(static_cast<B2&&>(b)...)
         {}
 
-        template<typename... _Args>
-        D_CONSTEXPR_CPP14 auto operator()(_Args&&... args)
+        template<typename... Args>
+        RE_STD_CONSTEXPR_CPP14 auto operator()(Args&&... args)
             -> decltype(expand(m_func, m_bound, _Indices(),
-                               static_cast<_Args&&>(args)...))
+                               static_cast<Args&&>(args)...))
         {
             return expand(m_func, m_bound, _Indices(),
-                          static_cast<_Args&&>(args)...);
+                          static_cast<Args&&>(args)...);
         }
 
-        template<typename... _Args>
-        D_CONSTEXPR auto operator()(_Args&&... args) const
+        template<typename... Args>
+        RE_STD_CONSTEXPR auto operator()(Args&&... args) const
             -> decltype(expand(m_func, m_bound, _Indices(),
-                               static_cast<_Args&&>(args)...))
+                               static_cast<Args&&>(args)...))
         {
             return expand(m_func, m_bound, _Indices(),
-                          static_cast<_Args&&>(args)...);
+                          static_cast<Args&&>(args)...);
         }
     };
 
-NS_END  // internal
+}  // internal
 
 // bind_front
 //   function: bind the leading arguments of func.
-template<typename _Func, typename... _Bound>
-D_CONSTEXPR internal::bind_front_t<typename decay<_Func>::type,
-                             typename decay<_Bound>::type...>
-bind_front(_Func&& func, _Bound&&... bound)
+template<typename Func, typename... Bound>
+RE_STD_CONSTEXPR internal::bind_front_t<typename decay<Func>::type,
+                             typename decay<Bound>::type...>
+bind_front(Func&& func, Bound&&... bound)
 {
-    return internal::bind_front_t<typename decay<_Func>::type,
-                            typename decay<_Bound>::type...>(
-        static_cast<_Func&&>(func), static_cast<_Bound&&>(bound)...);
+    return internal::bind_front_t<typename decay<Func>::type,
+                            typename decay<Bound>::type...>(
+        static_cast<Func&&>(func), static_cast<Bound&&>(bound)...);
 }
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_BIND_FRONT_
+#endif  // RE_STD_FUNCTIONAL_BIND_FRONT_HPP

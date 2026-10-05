@@ -1,11 +1,11 @@
-/******************************************************************************
-* djinterp [re_std]                                           make_unsigned.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            make_unsigned.hpp
 *
 * make_unsigned trait header:
-*   Yields the unsigned integral type corresponding to _Type. Per
+*   Yields the unsigned integral type corresponding to Type. Per
 * [meta.trans.sign]:
-*   - if _Type is unsigned, _Type is yielded (idempotent);
-*   - if _Type is signed, the corresponding unsigned type;
+*   - if Type is unsigned, Type is yielded (idempotent);
+*   - if Type is signed, the corresponding unsigned type;
 *   - cv-qualifiers on the input are preserved on the output.
 *
 *     make_unsigned<int>::type           -> unsigned int
@@ -19,30 +19,33 @@
 * only.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/make_unsigned.hpp
+* path:      /inc/re_std/type_traits/make_unsigned.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_MAKE_UNSIGNED_
-#define DJINTERP_RE_STD_TYPE_TRAITS_MAKE_UNSIGNED_ 1
+#ifndef RE_STD_TYPE_TRAITS_MAKE_UNSIGNED_HPP
+#define RE_STD_TYPE_TRAITS_MAKE_UNSIGNED_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   MAKE_UNSIGNED
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // make_unsigned_unqualified
-    //   helper: maps the unqualified integral type.
-    template<typename _Type>
+    //   trait: maps the unqualified integral type.
+    template<typename Type>
     struct make_unsigned_unqualified;
 
     // signed -> unsigned
@@ -79,7 +82,7 @@ NS_INTERNAL
     struct make_unsigned_unqualified<unsigned long>
     { typedef unsigned long type; };
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     template<>
     struct make_unsigned_unqualified<long long>
     { typedef unsigned long long type; };
@@ -94,36 +97,36 @@ NS_INTERNAL
     struct make_unsigned_unqualified<char>
     { typedef unsigned char type; };
 
-NS_END  // internal
+}  // internal
 
 
 // make_unsigned
 //   trait: dispatches via cv-pattern specialization onto the internal
 // mapping helper.
-template<typename _Type>
+template<typename Type>
 struct make_unsigned
 {
-    typedef typename internal::make_unsigned_unqualified<_Type>::type type;
+    typedef typename internal::make_unsigned_unqualified<Type>::type type;
 };
 
-template<typename _Type>
-struct make_unsigned<const _Type>
+template<typename Type>
+struct make_unsigned<const Type>
 {
-    typedef const typename internal::make_unsigned_unqualified<_Type>::type type;
+    typedef const typename internal::make_unsigned_unqualified<Type>::type type;
 };
 
-template<typename _Type>
-struct make_unsigned<volatile _Type>
+template<typename Type>
+struct make_unsigned<volatile Type>
 {
     typedef volatile
-        typename internal::make_unsigned_unqualified<_Type>::type type;
+        typename internal::make_unsigned_unqualified<Type>::type type;
 };
 
-template<typename _Type>
-struct make_unsigned<const volatile _Type>
+template<typename Type>
+struct make_unsigned<const volatile Type>
 {
     typedef const volatile
-        typename internal::make_unsigned_unqualified<_Type>::type type;
+        typename internal::make_unsigned_unqualified<Type>::type type;
 };
 
 
@@ -131,17 +134,17 @@ struct make_unsigned<const volatile _Type>
 // II.  MAKE_UNSIGNED_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // make_unsigned_t
-    //   alias: convenience alias for make_unsigned<_Type>::type.
-    template<typename _Type>
-    using make_unsigned_t = typename make_unsigned<_Type>::type;
+    //   alias: convenience alias for make_unsigned<Type>::type.
+    template<typename Type>
+    using make_unsigned_t = typename make_unsigned<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_MAKE_UNSIGNED_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_MAKE_UNSIGNED_HPP

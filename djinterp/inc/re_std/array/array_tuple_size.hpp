@@ -1,13 +1,13 @@
-/******************************************************************************
-* djinterp [re_std]                                        array_tuple_size.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         array_tuple_size.hpp
 *
 * array tuple_size specialization header:
-*   Specialises re_std::tuple_size for array<_Type, _Size>:
+*   Specialises re_std::tuple_size for array<Type, Size>:
 *
-*     tuple_size<array<_Type, _Size>>::value == _Size
+*     tuple_size<array<Type, Size>>::value == Size
 *
 *   Together with array_tuple_element.hpp and array_get.hpp this
-* makes array<_Type, _Size> a tuple-like type — usable with
+* makes array<Type, Size> a tuple-like type — usable with
 * structured bindings (C++17+) and the apply / make_from_tuple
 * machinery in <tuple>.
 *
@@ -18,38 +18,48 @@
 * specialisation here — no extra work needed.
 *
 *
-* path:      /inc/djinterp/re_std/array/array_tuple_size.hpp
+* path:      /inc/re_std/array/array_tuple_size.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ARRAY_TUPLE_SIZE_
-#define DJINTERP_RE_STD_ARRAY_TUPLE_SIZE_ 1
+#ifndef RE_STD_ARRAY_ARRAY_TUPLE_SIZE_HPP
+#define RE_STD_ARRAY_ARRAY_TUPLE_SIZE_HPP 1
 
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// std
 #include <cstddef>
-
-#include "../../core/djinterp.hpp"
+// re_std
 #include "./array.hpp"
 #include "../tuple/tuple_size.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   tuple_size<array>
 // ===========================================================================
 
-// tuple_size<array<_Type, _Size>>
-//   trait: yields _Size as a std::size_t integral_constant.
-template<typename    _Type,
-         std::size_t _Size>
-struct tuple_size<array<_Type, _Size> >
-    : re_std::integral_constant<std::size_t, _Size>
+// tuple_size<array<Type, Size>>
+//   trait: yields Size as a std::size_t integral_constant.
+template<typename    Type,
+         std::size_t Size>
+struct tuple_size<array<Type, Size> >
+    : re_std::integral_constant<std::size_t, Size>
 {};
 
 
-NS_END  // re_std
+}  // re_std
+
+#endif  // floor, for now
 
 
-#endif  // DJINTERP_RE_STD_ARRAY_TUPLE_SIZE_
+#endif  // RE_STD_ARRAY_ARRAY_TUPLE_SIZE_HPP

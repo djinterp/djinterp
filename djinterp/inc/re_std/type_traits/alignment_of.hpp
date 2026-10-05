@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [re_std]                                           alignment_of.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             alignment_of.hpp
 *
 * alignment_of trait header:
-*   Yields the alignment requirement of _Type as a `std::size_t` value.
-* On C++11+ this is `alignof(_Type)`; on C++98/03 it falls back to
+*   Yields the alignment requirement of Type as a `std::size_t` value.
+* On C++11+ this is `alignof(Type)`; on C++98/03 it falls back to
 * compiler-specific intrinsics (`__alignof__` for GCC/Clang/Intel,
 * `__alignof` for MSVC).
 *
@@ -13,52 +13,54 @@
 *     alignment_of<int[3]>::value       -> alignment_of element type
 *
 *   PORTABILITY:
-*   The detection macro D_RE_STD_HAS_ALIGNOF reflects whether a usable
+*   The detection macro RE_STD_HAS_ALIGNOF reflects whether a usable
 * alignof or compiler intrinsic is available. When neither is present,
 * the trait is omitted; consumer code must gate on that macro.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/alignment_of.hpp
+* path:      /inc/re_std/type_traits/alignment_of.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ALIGNMENT_OF_
-#define DJINTERP_RE_STD_TYPE_TRAITS_ALIGNMENT_OF_ 1
+#ifndef RE_STD_TYPE_TRAITS_ALIGNMENT_OF_HPP
+#define RE_STD_TYPE_TRAITS_ALIGNMENT_OF_HPP 1
 
 // std
 #include <cstddef>
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 
 
 // =============================================================================
-// 0.   D_RE_STD_HAS_ALIGNOF / RESOLUTION
+// 0.   RE_STD_HAS_ALIGNOF / RESOLUTION
 // =============================================================================
 
-#ifndef D_RE_STD_HAS_ALIGNOF
-    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        #define D_RE_STD_HAS_ALIGNOF             1
-        #define D_RE_STD_ALIGNOF_(T)             alignof(T)
-    #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
-            defined(D_ENV_COMPILER_CLANG) ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
-        #define D_RE_STD_HAS_ALIGNOF             1
-        #define D_RE_STD_ALIGNOF_(T)             __alignof__(T)
-    #elif defined(D_ENV_COMPILER_MSVC)
-        #define D_RE_STD_HAS_ALIGNOF             1
-        #define D_RE_STD_ALIGNOF_(T)             __alignof(T)
+#ifndef RE_STD_HAS_ALIGNOF
+    #if RE_STD_LANG_IS_CPP11_OR_HIGHER
+        #define RE_STD_HAS_ALIGNOF             1
+        #define RE_STD_ALIGNOF_(T)             alignof(T)
+    #elif ( defined(RE_STD_COMPILER_GCC)   ||                                  \
+            defined(RE_STD_COMPILER_CLANG) ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
+        #define RE_STD_HAS_ALIGNOF             1
+        #define RE_STD_ALIGNOF_(T)             __alignof__(T)
+    #elif defined(RE_STD_COMPILER_MSVC)
+        #define RE_STD_HAS_ALIGNOF             1
+        #define RE_STD_ALIGNOF_(T)             __alignof(T)
     #else
-        #define D_RE_STD_HAS_ALIGNOF             0
+        #define RE_STD_HAS_ALIGNOF             0
     #endif
-#endif  // D_RE_STD_HAS_ALIGNOF
+#endif  // RE_STD_HAS_ALIGNOF
 
 
-#if D_RE_STD_HAS_ALIGNOF
+#if RE_STD_HAS_ALIGNOF
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -66,10 +68,10 @@ NS_RESTD
 // =============================================================================
 
 // alignment_of
-//   trait: yields the alignment requirement of _Type as ::value.
-template<typename _Type>
+//   trait: yields the alignment requirement of Type as ::value.
+template<typename Type>
 struct alignment_of
-    : integral_constant<std::size_t, D_RE_STD_ALIGNOF_(_Type)>
+    : integral_constant<std::size_t, RE_STD_ALIGNOF_(Type)>
 {};
 
 
@@ -77,20 +79,20 @@ struct alignment_of
 // II.  ALIGNMENT_OF_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // alignment_of_v
-    //   variable: convenience for alignment_of<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR std::size_t alignment_of_v = alignment_of<_Type>::value;
+    //   variable: convenience for alignment_of<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR std::size_t alignment_of_v = alignment_of<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // D_RE_STD_HAS_ALIGNOF
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ALIGNMENT_OF_
+#endif  // RE_STD_HAS_ALIGNOF
+
+
+#endif  // RE_STD_TYPE_TRAITS_ALIGNMENT_OF_HPP

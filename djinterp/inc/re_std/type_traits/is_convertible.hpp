@@ -1,15 +1,15 @@
-/******************************************************************************
-* djinterp [re_std]                                         is_convertible.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           is_convertible.hpp
 *
 * is_convertible trait header:
-*   is_convertible<_From, _To>::value is true iff the imaginary function
-* `_To test() { return declval<_From>(); }` is well-formed -- i.e. an implicit
-* conversion from _From to _To exists.  Both cv void operands are convertible
+*   is_convertible<From, To>::value is true iff the imaginary function
+* `To test() { return declval<From>(); }` is well-formed -- i.e. an implicit
+* conversion from From to To exists.  Both cv void operands are convertible
 * to each other and to nothing else; array and function types decay as usual.
 *
 *   IMPLEMENTATION:
 *   The portable SFINAE probe is exact for the ordinary cases and needs no
-* intrinsic: a helper taking `_To` by value is called with `declval<_From>()`
+* intrinsic: a helper taking `To` by value is called with `declval<From>()`
 * inside decltype.  The void/void case is handled ahead of the probe, since a
 * function parameter of type void is ill-formed.
 *
@@ -17,16 +17,22 @@
 *   C++11 baseline (decltype + declval).  The _v spelling is C++14+.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_convertible.hpp
+* path:      /inc/re_std/type_traits/is_convertible.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.27
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_CONVERTIBLE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_CONVERTIBLE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_CONVERTIBLE_HPP
+#define RE_STD_TYPE_TRAITS_IS_CONVERTIBLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// re_std
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
@@ -35,46 +41,48 @@
 #include "../utility/declval.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_CONVERTIBLE
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_convertible_probe_
-    //   helper: primary -- the conversion is ill-formed.
-    template<typename _From,
-             typename _To,
+    //   trait: primary -- the conversion is ill-formed.
+    template<typename From,
+             typename To,
              typename = void>
     struct is_convertible_probe_ : false_type
     {};
 
     // is_convertible_probe_ (viable)
-    //   helper: specialization -- selected when a _To-taking function may be
-    // called with a _From, which is precisely the standard's imaginary-return
+    //   function: specialization -- selected when a To-taking function may be
+    // called with a From, which is precisely the standard's imaginary-return
     // formulation.
-    template<typename _From,
-             typename _To>
-    struct is_convertible_probe_<_From, _To,
-        void_t<decltype( declval<void (&)(_To)>()( declval<_From>() ) )> >
+    template<typename From,
+             typename To>
+    struct is_convertible_probe_<From, To,
+        void_t<decltype( declval<void (&)(To)>()( declval<From>() ) )> >
         : true_type
     {};
 
-NS_END  // internal
+}  // internal
 
 // is_convertible
-//   trait: whether _From implicitly converts to _To.  Both-void is true; a
+//   trait: whether From implicitly converts to To.  Both-void is true; a
 // single void operand is false; otherwise the SFINAE probe decides.
-template<typename _From,
-         typename _To>
+template<typename From,
+         typename To>
 struct is_convertible
     : integral_constant<bool,
-        ( ( is_void<_From>::value && is_void<_To>::value ) ||
-          ( !is_void<_From>::value && !is_void<_To>::value &&
-            internal::is_convertible_probe_<_From, _To>::value ) )>
+        ( ( is_void<From>::value && is_void<To>::value ) ||
+          ( !is_void<From>::value && !is_void<To>::value &&
+            internal::is_convertible_probe_<From, To>::value ) )>
 {};
 
 
@@ -82,16 +90,18 @@ struct is_convertible
 // II.  IS_CONVERTIBLE_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _From,
-         typename _To>
-D_CONSTEXPR bool is_convertible_v = is_convertible<_From, _To>::value;
+template<typename From,
+         typename To>
+RE_STD_CONSTEXPR bool is_convertible_v = is_convertible<From, To>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
+
+#endif  // floor, for now
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_CONVERTIBLE_
+#endif  // RE_STD_TYPE_TRAITS_IS_CONVERTIBLE_HPP

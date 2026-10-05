@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                    make_pair.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                make_pair.hpp
 *
 * pair factory function:
 *   Constructs a `pair` deducing element types from arguments.
@@ -26,31 +26,34 @@
 * survives only on that tier.
 *
 *
-* path:      /inc/djinterp/re_std/utility/make_pair.hpp
+* path:      /inc/re_std/utility/make_pair.hpp
 * link(s):   TBA
-* author(s): re_std team                                date: 2026.04.30
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_MAKE_PAIR_
-#define DJINTERP_RE_STD_UTILITY_MAKE_PAIR_ 1
+#ifndef RE_STD_UTILITY_MAKE_PAIR_HPP
+#define RE_STD_UTILITY_MAKE_PAIR_HPP 1
 
-#include "djinterp.hpp"
-#include "../utility/pair.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
+#include "pair.hpp"
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-    #include "../utility/forward.hpp"
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
+    #include "forward.hpp"
     #include "../type_traits/decay.hpp"
     // decay + reference_wrapper unwrap, per [pairs.spec]/p7
     #include "../functional/unwrap_ref_decay.hpp"
 #endif
 
-NS_RESTD
+namespace re_std
+{
 
 // =============================================================================
 // MAKE_PAIR
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
     // make_pair (C++11+: perfect forwarding, decay + unwrap)
     //   function: constructs a pair<V1, V2> from forwarded arguments,
@@ -58,17 +61,17 @@ NS_RESTD
     //   (stripping references and cv, and applying array-to-pointer /
     //   function-to-pointer), then reference_wrapper<X> collapsed to
     //   X&. Matches std::make_pair exactly.
-    template<typename _T1, typename _T2>
-    D_CONSTEXPR
-    pair<typename unwrap_ref_decay<_T1>::type,
-         typename unwrap_ref_decay<_T2>::type>
-    make_pair(_T1&& _x,
-              _T2&& _y)
+    template<typename T1, typename T2>
+    RE_STD_CONSTEXPR
+    pair<typename unwrap_ref_decay<T1>::type,
+         typename unwrap_ref_decay<T2>::type>
+    make_pair(T1&& _x,
+              T2&& _y)
     {
-        return pair<typename unwrap_ref_decay<_T1>::type,
-                    typename unwrap_ref_decay<_T2>::type>(
-            re_std::forward<_T1>(_x),
-            re_std::forward<_T2>(_y));
+        return pair<typename unwrap_ref_decay<T1>::type,
+                    typename unwrap_ref_decay<T2>::type>(
+            re_std::forward<T1>(_x),
+            re_std::forward<T2>(_y));
     }
 
 #else
@@ -76,16 +79,16 @@ NS_RESTD
     // make_pair (C++98/03: pass-by-value)
     //   function: constructs a pair<T1, T2> from copied arguments.
     //   Pass-by-value strips references and cv-qualifiers naturally.
-    template<typename _T1, typename _T2>
-    pair<_T1, _T2>
-    make_pair(_T1 _x,
-              _T2 _y)
+    template<typename T1, typename T2>
+    pair<T1, T2>
+    make_pair(T1 _x,
+              T2 _y)
     {
-        return pair<_T1, _T2>(_x, _y);
+        return pair<T1, T2>(_x, _y);
     }
 
 #endif
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // DJINTERP_RE_STD_UTILITY_MAKE_PAIR_
+#endif  // RE_STD_UTILITY_MAKE_PAIR_HPP

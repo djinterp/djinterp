@@ -1,19 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                                test_config.h
+/*******************************************************************************
+* djinterp [config]                                                test_config.h
 *
 * Feature configuration for the djinterp DTest module.
 *
 *
-* path:      /inc/c/core/config/test/test_config.h
+* path:      /inc/djinterp/config/core/test/test_config.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_C_CONFIG_TEST_
-#define DJINTERP_C_CONFIG_TEST_ 1
+#ifndef DJINTERP_CONFIG_CORE_TEST_TEST_CONFIG_H
+#define DJINTERP_CONFIG_CORE_TEST_TEST_CONFIG_H 1
 
-#include "../../../djinterp.h"
-#include "../../../dconfig.h"
+#include "../../../c/djinterp.h"
+#include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 
 
 #ifndef D_CFG_TEST_ENABLE_CLI
@@ -70,4 +71,4 @@
 #endif  // D_IS_ENABLED(D_EMOJIS)
 
 
-#endif  // DJINTERP_C_CONFIG_TEST_
+#endif  // DJINTERP_CONFIG_CORE_TEST_TEST_CONFIG_H

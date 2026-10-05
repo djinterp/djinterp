@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                iter_swap.hpp
 *
 * iter_swap algorithm header:
@@ -12,16 +12,17 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/iter_swap.hpp
+* path:      /inc/re_std/algorithm/iter_swap.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_ITER_SWAP_
-#define DJINTERP_RE_STD_ALGORITHM_ITER_SWAP_ 1
+#ifndef RE_STD_ALGORITHM_ITER_SWAP_HPP
+#define RE_STD_ALGORITHM_ITER_SWAP_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../utility/swap.hpp"
 
@@ -30,16 +31,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -50,12 +44,12 @@ NS_RESTD
 //   function: exchanges *_a and *_b. The unqualified swap call picks
 // up user-supplied swap overloads via ADL, falling back to
 // re_std::swap if none is found.
-template<typename _ForwardIt1,
-         typename _ForwardIt2>
-D_CONSTEXPR_CPP14 void
+template<typename ForwardIt1,
+         typename ForwardIt2>
+RE_STD_CONSTEXPR_CPP14 void
 iter_swap(
-    _ForwardIt1 _a,
-    _ForwardIt2 _b
+    ForwardIt1 _a,
+    ForwardIt2 _b
 )
 {
     using re_std::swap;
@@ -63,7 +57,7 @@ iter_swap(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_ITER_SWAP_
+#endif  // RE_STD_ALGORITHM_ITER_SWAP_HPP

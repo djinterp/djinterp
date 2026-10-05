@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                           foldable.hpp
+/*******************************************************************************
+* djinterp [core]                                                   foldable.hpp
 *
 * Foldable protocol and the generic folds (C++).
 *   A foldable here is a type constructor F<T> -- a context holding zero or
@@ -34,32 +34,44 @@
 *   bool ok  = fold_all(some_result,
 *                       [](int x){ return x > 0; });
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/foldable.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS
+      ---------------------------------------------
+
 I.    FOLDABLE PROTOCOL
-      1.  foldable_traits<F>                      (primary, undefined)
-      2.  is_foldable<T>                          (detection trait)
+      -----------------
+      1.    foldable_traits<F>                      (primary, undefined)
+      2.    is_foldable<T>                          (detection trait)
+
 II.   GENERIC FOLDABLE OPERATIONS
-      1.  fold_left                               (the one obligation, delegated)
-      2.  fold_right                              (derived; materialize + rev)
-      3.  fold_map                                (map each elem then combine)
-      4.  fold_to_vector                          (collect elements)
-      5.  fold_length                             (element count)
-      6.  fold_is_empty                           (no elements?)
-      7.  fold_any / fold_all                     (existential / universal)
+      ---------------------------
+      1.    fold_left                               (the one obligation, delegated)
+      2.    fold_right                              (derived; materialize + rev)
+      3.    fold_map                                (map each elem then combine)
+      4.    fold_to_vector                          (collect elements)
+      5.    fold_length                             (element count)
+      6.    fold_is_empty                           (no elements?)
+      7.    fold_any / fold_all                     (existential / universal)
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_FOLDABLE_
-#define DJINTERP_FUNCTIONAL_FOLDABLE_ 1
+#ifndef DJINTERP_FUNCTIONAL_FOLDABLE_HPP
+#define DJINTERP_FUNCTIONAL_FOLDABLE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -67,7 +79,8 @@ II.   GENERIC FOLDABLE OPERATIONS
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // void_t
 
 
 NS_DJINTERP
@@ -82,8 +95,8 @@ NS_DJINTERP
 // foldable specializes foldable_traits<F> to expose:
 //
 //     - value_type      : the inner type T of F<T>
-//     - fold_left(fa, init, f) : static _Acc fold_left(const F&, _Acc, f)
-//                         where f : (_Acc, const T&) -> _Acc, threading the
+//     - fold_left(fa, init, f) : static Acc fold_left(const F&, Acc, f)
+//                         where f : (Acc, const T&) -> Acc, threading the
 //                         accumulator left-to-right through the elements
 //     - is_specialized  = true_type (marker)
 //
@@ -93,8 +106,8 @@ NS_DJINTERP
 // rather than a concrete template; concrete instances (maybe, result) leave
 // it at the default. The primary is left undefined so a use on a
 // non-foldable produces a clean resolution error.
-template<typename _Foldable,
-         typename _Enable = void>
+template<typename Foldable,
+         typename Enable = void>
 struct foldable_traits;
 
 
@@ -104,41 +117,41 @@ NS_INTERNAL
     //   helper: SFINAE detector for whether foldable_traits<T> is
     // specialized. Looks for the is_specialized marker that every
     // specialization provides.
-    template<typename _Type>
+    template<typename Type>
     struct is_foldable_helper
     {
     private:
-        template<typename _T>
+        template<typename T>
         static auto test(int)
             -> decltype(
-                typename foldable_traits<_T>::is_specialized{},
+                typename foldable_traits<T>::is_specialized{},
                 std::true_type{});
 
         template<typename>
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 
 // is_foldable
-//   trait: true if _Type has a specialization of foldable_traits (after
+//   trait: true if Type has a specialization of foldable_traits (after
 // cv-ref stripping). Used to SFINAE-constrain generic foldable operations.
-template<typename _Type>
+template<typename Type>
 struct is_foldable
-    : internal::is_foldable_helper<typename std::decay<_Type>::type>::type
+    : internal::is_foldable_helper<typename std::decay<Type>::type>::type
 {
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // is_foldable_v
-//   value: convenience alias for is_foldable<_Type>::value.
-template<typename _Type>
-static constexpr bool is_foldable_v = is_foldable<_Type>::value;
+//   value: convenience alias for is_foldable<Type>::value.
+template<typename Type>
+static constexpr bool is_foldable_v = is_foldable<Type>::value;
 #endif
 
 
@@ -159,19 +172,19 @@ NS_INTERNAL
     // foldable_value_type_helper
     //   helper: SFINAE extractor for foldable_traits<F>::value_type
     // (primary: no `type`, soft failure).
-    template<typename _AlwaysVoid,
-             typename _Foldable>
+    template<typename AlwaysVoid,
+             typename Foldable>
     struct foldable_value_type_helper
     {};
 
     // foldable_value_type_helper (well-formed specialization)
     //   helper: yields foldable_traits<F>::value_type when present.
-    template<typename _Foldable>
+    template<typename Foldable>
     struct foldable_value_type_helper<
-        void_t<typename foldable_traits<_Foldable>::value_type>,
-        _Foldable>
+        void_t<typename foldable_traits<Foldable>::value_type>,
+        Foldable>
     {
-        using type = typename foldable_traits<_Foldable>::value_type;
+        using type = typename foldable_traits<Foldable>::value_type;
     };
 
 NS_END  // internal
@@ -181,47 +194,47 @@ NS_END  // internal
 //   trait: the inner value type T of a foldable F, i.e.
 // foldable_traits<F>::value_type. SFINAE-friendly: has a `::type` only
 // when F is a specialized foldable.
-template<typename _Foldable>
+template<typename Foldable>
 struct foldable_value_type
 {
     using type = typename internal::foldable_value_type_helper<
-        void, typename std::decay<_Foldable>::type>::type;
+        void, typename std::decay<Foldable>::type>::type;
 };
 
 // foldable_value_type_t
 //   type: convenience alias for foldable_value_type<F>::type.
-template<typename _Foldable>
-using foldable_value_type_t = typename foldable_value_type<_Foldable>::type;
+template<typename Foldable>
+using foldable_value_type_t = typename foldable_value_type<Foldable>::type;
 
 
-// foldable_traits<std::vector<_Type>>
+// foldable_traits<std::vector<Type>>
 //   instance: the canonical container foldable. A std::vector folds over its
 // elements in order. This is provided here (rather than in a type header)
 // because std::vector is a standard type with no djinterp header of its own,
 // and it is the natural materialized foldable -- the target of fold_to_vector
 // and the usual argument to mconcat. Written in the explicit two-argument
 // `<T, void>` form against the SFINAE-hooked primary.
-template<typename _Type>
-struct foldable_traits<std::vector<_Type>, void>
+template<typename Type>
+struct foldable_traits<std::vector<Type>, void>
 {
     using is_specialized = std::true_type;
-    using value_type     = _Type;
+    using value_type     = Type;
 
     // fold_left
     //   strict left fold over the vector's elements; the accumulator is
     // threaded by move so collecting folds stay O(n). D_CONSTEXPR --
     // std::vector is a literal type only from C++20.
-    template<typename _Acc,
-             typename _Function>
+    template<typename Acc,
+             typename Function>
     static
-    D_CONSTEXPR
-    _Acc fold_left(
-        const std::vector<_Type>& _xs,
-        _Acc                      _init,
-        _Function                 _function
+    D_CONSTEXPR_CPP14
+    Acc fold_left(
+        const std::vector<Type>& _xs,
+        Acc                       _init,
+        Function                  _function
     )
     {
-        for (typename std::vector<_Type>::const_iterator _it = _xs.begin();
+        for (typename std::vector<Type>::const_iterator _it = _xs.begin();
              _it != _xs.end();
              ++_it)
         {
@@ -246,29 +259,29 @@ struct foldable_traits<std::vector<_Type>, void>
 
 // fold_left
 //   function: strict left fold. Threads _init through the elements of _fa
-// left-to-right via _function : (_Acc, const T&) -> _Acc, returning the final
+// left-to-right via _function : (Acc, const T&) -> Acc, returning the final
 // accumulator. The result type is whatever the instance's fold_left produces,
 // so it is deduced.
-template<typename _Foldable,
-         typename _Acc,
-         typename _Function>
+template<typename Foldable,
+         typename Acc,
+         typename Function>
 D_NODISCARD
 D_CONSTEXPR
 auto fold_left
 (
-    _Foldable&& _fa,
-    _Acc        _init,
-    _Function&& _function
+    Foldable&& _fa,
+    Acc         _init,
+    Function&& _function
 )
--> decltype(foldable_traits<typename std::decay<_Foldable>::type>::fold_left(
-       std::forward<_Foldable>(_fa),
+-> decltype(foldable_traits<typename std::decay<Foldable>::type>::fold_left(
+       std::forward<Foldable>(_fa),
        std::move(_init),
-       std::forward<_Function>(_function)))
+       std::forward<Function>(_function)))
 {
-    return foldable_traits<typename std::decay<_Foldable>::type>::fold_left(
-        std::forward<_Foldable>(_fa),
+    return foldable_traits<typename std::decay<Foldable>::type>::fold_left(
+        std::forward<Foldable>(_fa),
         std::move(_init),
-        std::forward<_Function>(_function));
+        std::forward<Function>(_function));
 }
 
 
@@ -279,14 +292,14 @@ NS_INTERNAL
     // the accumulating vector and threads it on by move (so the whole
     // collection is O(n)). A named functor (not a lambda) keeps the reducer
     // usable on every floor.
-    template<typename _Value>
+    template<typename Value>
     struct foldable_push_helper
     {
-        D_CONSTEXPR
-        std::vector<_Value>
+        D_CONSTEXPR_CPP14
+        std::vector<Value>
         operator()(
-            std::vector<_Value> _acc,
-            const _Value&       _element
+            std::vector<Value> _acc,
+            const Value&       _element
         ) const
         {
             _acc.push_back(_element);
@@ -298,14 +311,14 @@ NS_INTERNAL
     // foldable_count_helper
     //   helper: the reducer behind fold_length -- ignores the element and
     // increments the running count.
-    template<typename _Value>
+    template<typename Value>
     struct foldable_count_helper
     {
         D_CONSTEXPR
         std::size_t
         operator()(
             std::size_t   _acc,
-            const _Value& /*_element*/
+            const Value& /*_element*/
         ) const
         {
             return _acc + 1;
@@ -315,14 +328,14 @@ NS_INTERNAL
     // foldable_emptiness_helper
     //   helper: the reducer behind fold_is_empty -- the first element seen
     // flips the accumulator to false.
-    template<typename _Value>
+    template<typename Value>
     struct foldable_emptiness_helper
     {
         D_CONSTEXPR
         bool
         operator()(
             bool          /*_acc*/,
-            const _Value& /*_element*/
+            const Value& /*_element*/
         ) const
         {
             return false;
@@ -334,25 +347,25 @@ NS_END  // internal
 
 // fold_right
 //   function: right fold. Folds the elements with _function : (const T&,
-// _Acc) -> _Acc, associating to the right. Implemented by materializing the
+// Acc) -> Acc, associating to the right. Implemented by materializing the
 // elements (via fold_to_vector) and folding the buffer in reverse, so it is
 // well-defined for any finite foldable; an infinite view / producer must be
 // bounded first. D_CONSTEXPR because it builds a std::vector.
-template<typename _Foldable,
-         typename _Acc,
-         typename _Function>
+template<typename Foldable,
+         typename Acc,
+         typename Function>
 D_NODISCARD
-D_CONSTEXPR
-typename std::decay<_Acc>::type
+D_CONSTEXPR_CPP14
+typename std::decay<Acc>::type
 fold_right
 (
-    const _Foldable& _fa,
-    _Acc&&           _init,
-    _Function        _function
+    const Foldable& _fa,
+    Acc&&           _init,
+    Function         _function
 )
 {
-    using value_t = foldable_value_type_t<_Foldable>;
-    using acc_t   = typename std::decay<_Acc>::type;
+    using value_t = foldable_value_type_t<Foldable>;
+    using acc_t   = typename std::decay<Acc>::type;
 
     std::vector<value_t> buffer =
         ::djinterp::fold_left(
@@ -360,7 +373,7 @@ fold_right
             std::vector<value_t>(),
             internal::foldable_push_helper<value_t>());
 
-    acc_t accumulator = std::forward<_Acc>(_init);
+    acc_t accumulator = std::forward<Acc>(_init);
 
     for (typename std::vector<value_t>::const_reverse_iterator it =
              buffer.rbegin();
@@ -379,27 +392,27 @@ fold_right
 // combines them with _combine : (M, M) -> M, starting from the identity
 // _empty. The monoid (its identity and combine) is supplied explicitly, since
 // the framework has no Monoid protocol yet. Left-associated, threaded by move.
-template<typename _Foldable,
-         typename _Function,
-         typename _Monoid,
-         typename _Combine>
+template<typename Foldable,
+         typename Function,
+         typename Monoid,
+         typename Combine>
 D_NODISCARD
 D_CONSTEXPR
-_Monoid
+Monoid
 fold_map
 (
-    const _Foldable& _fa,
-    _Function        _function,
-    _Monoid          _empty,
-    _Combine         _combine
+    const Foldable& _fa,
+    Function         _function,
+    Monoid           _empty,
+    Combine          _combine
 )
 {
-    using value_t = foldable_value_type_t<_Foldable>;
+    using value_t = foldable_value_type_t<Foldable>;
 
     return ::djinterp::fold_left(
         _fa,
         std::move(_empty),
-        [_function, _combine](_Monoid _acc, const value_t& _element) -> _Monoid
+        [_function, _combine](Monoid _acc, const value_t& _element) -> Monoid
         {
             return _combine(std::move(_acc), _function(_element));
         });
@@ -411,16 +424,16 @@ fold_map
 // (left-to-right) order. The materialized counterpart of the lazy views /
 // producers, and the bridge any foldable can use to reach the eager helpers.
 // D_CONSTEXPR because it builds a std::vector.
-template<typename _Foldable>
+template<typename Foldable>
 D_NODISCARD
 D_CONSTEXPR
-std::vector<foldable_value_type_t<_Foldable>>
+std::vector<foldable_value_type_t<Foldable>>
 fold_to_vector
 (
-    const _Foldable& _fa
+    const Foldable& _fa
 )
 {
-    using value_t = foldable_value_type_t<_Foldable>;
+    using value_t = foldable_value_type_t<Foldable>;
 
     return ::djinterp::fold_left(
         _fa,
@@ -433,16 +446,16 @@ fold_to_vector
 //   function: the number of elements a foldable yields (0 or 1 for
 // maybe / result; the sequence length for a view / producer). An infinite
 // source must be bounded first.
-template<typename _Foldable>
+template<typename Foldable>
 D_NODISCARD
 D_CONSTEXPR
 std::size_t
 fold_length
 (
-    const _Foldable& _fa
+    const Foldable& _fa
 )
 {
-    using value_t = foldable_value_type_t<_Foldable>;
+    using value_t = foldable_value_type_t<Foldable>;
 
     return ::djinterp::fold_left(
         _fa,
@@ -454,16 +467,16 @@ fold_length
 // fold_is_empty
 //   function: true when a foldable yields no elements (nothing / err, or an
 // empty sequence). Does not short-circuit; an infinite source must be bounded.
-template<typename _Foldable>
+template<typename Foldable>
 D_NODISCARD
 D_CONSTEXPR
 bool
 fold_is_empty
 (
-    const _Foldable& _fa
+    const Foldable& _fa
 )
 {
-    using value_t = foldable_value_type_t<_Foldable>;
+    using value_t = foldable_value_type_t<Foldable>;
 
     return ::djinterp::fold_left(
         _fa,
@@ -475,18 +488,18 @@ fold_is_empty
 // fold_any
 //   function: true when at least one element satisfies _predicate. Folds the
 // disjunction; does not short-circuit (every element is visited).
-template<typename _Foldable,
-         typename _Predicate>
+template<typename Foldable,
+         typename Predicate>
 D_NODISCARD
 D_CONSTEXPR
 bool
 fold_any
 (
-    const _Foldable& _fa,
-    _Predicate       _predicate
+    const Foldable& _fa,
+    Predicate        _predicate
 )
 {
-    using value_t = foldable_value_type_t<_Foldable>;
+    using value_t = foldable_value_type_t<Foldable>;
 
     return ::djinterp::fold_left(
         _fa,
@@ -501,18 +514,18 @@ fold_any
 // fold_all
 //   function: true when every element satisfies _predicate (vacuously true
 // for an empty foldable). Folds the conjunction; does not short-circuit.
-template<typename _Foldable,
-         typename _Predicate>
+template<typename Foldable,
+         typename Predicate>
 D_NODISCARD
 D_CONSTEXPR
 bool
 fold_all
 (
-    const _Foldable& _fa,
-    _Predicate       _predicate
+    const Foldable& _fa,
+    Predicate        _predicate
 )
 {
-    using value_t = foldable_value_type_t<_Foldable>;
+    using value_t = foldable_value_type_t<Foldable>;
 
     return ::djinterp::fold_left(
         _fa,
@@ -527,15 +540,17 @@ fold_all
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // Foldable
-    //   concept: satisfied when _Type is a specialized foldable. The
+    //   concept: satisfied when Type is a specialized foldable. The
     // PascalCase typeclass face, alongside Functor / Applicative.
-    template<typename _Type>
-    concept Foldable = is_foldable<_Type>::value;
+    template<typename Type>
+    concept Foldable = is_foldable<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_FOLDABLE_
+
+#endif  // DJINTERP_FUNCTIONAL_FOLDABLE_HPP

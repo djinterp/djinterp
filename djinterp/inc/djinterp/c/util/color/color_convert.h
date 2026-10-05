@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                            color_convert.h
+/*******************************************************************************
+* djinterp [c]                                                   color_convert.h
 *
 *   Cross-model conversion shared kernel for the djinterp color module.
 * Every color-space conversion is implemented exactly once here, operating
@@ -15,8 +15,9 @@
 *
 * path:      /inc/djinterp/c/util/color/color_convert.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -24,42 +25,57 @@ TABLE OF CONTENTS
 I.    HSL HELPER
       ----------
       a. d_color_hsl_hue_to_rgb
+
 II.   RGB <-> HSL
-      ----------
+      -----------
       a. d_color_convert_rgb_to_hsl
       b. d_color_convert_hsl_to_rgb
+
 III.  RGB <-> HSV
-      ----------
+      -----------
       a. d_color_convert_rgb_to_hsv
       b. d_color_convert_hsv_to_rgb
+
 IV.   HSL <-> HSV   (via RGB)
-      ----------
+      -----------------------
       a. d_color_convert_hsl_to_hsv
       b. d_color_convert_hsv_to_hsl
+
 V.    RGB <-> CMYK
-      -----------
+      ------------
       a. d_color_convert_rgb_to_cmyk
       b. d_color_convert_cmyk_to_rgb
+
 VI.   RGB <-> YCBCR (BT.601)
-      ------------
+      ----------------------
       a. d_color_convert_rgb_to_ycbcr
       b. d_color_convert_ycbcr_to_rgb
+
 VII.  RGB <-> XYZ
-      ----------
+      -----------
       a. d_color_convert_rgb_to_xyz
       b. d_color_convert_xyz_to_rgb
+
 VIII. XYZ <-> LAB
-      ----------
+      -----------
       a. d_color_convert_xyz_to_lab
       b. d_color_convert_lab_to_xyz
+
 IX.   RGB <-> LAB   (via XYZ)
-      ----------
+      -----------------------
       a. d_color_convert_rgb_to_lab
       b. d_color_convert_lab_to_rgb
 */
 
-#ifndef  DJINTERP_C_COLOR_CONVERT_
-#define  DJINTERP_C_COLOR_CONVERT_ 1
+#ifndef DJINTERP_C_UTIL_COLOR_COLOR_CONVERT_H
+#define DJINTERP_C_UTIL_COLOR_COLOR_CONVERT_H 1
+
+// FLOOR, FOR NOW: its C++ face is empty below C++11, rather than an
+// error (README rule 5). The owner's ruling: compile at every level first;
+// port to C++98 only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if ( (!D_ENV_LANG_USING_CPP) ||                                         \
+      (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
 
 // std
 #include <math.h>
@@ -605,5 +621,7 @@ d_color_convert_lab_to_rgb(
 
 D_COLOR_NS_CLOSE
 
+#endif  // floor, for now
 
-#endif  /*  DJINTERP_C_COLOR_CONVERT_ */
+
+#endif  // DJINTERP_C_UTIL_COLOR_COLOR_CONVERT_H

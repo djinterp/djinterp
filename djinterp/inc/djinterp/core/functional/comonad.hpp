@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                           comonad.hpp
+/*******************************************************************************
+* djinterp [core]                                                    comonad.hpp
 *
 * Comonad protocol: extract, extend, duplicate -- the dual of Monad (C++).
 *   Where a monad lets you put a value into a context (unit) and sequence
@@ -34,37 +34,52 @@
 *                      });                            // ("ctx", 20)
 *   auto ww = duplicate(w);                           // ("ctx", ("ctx", 10))
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/comonad.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.12
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS
+      ---------------------------------------------
+
 I.    COMONAD PROTOCOL
-      1.  comonad_traits<W>                       (primary, undefined)
-      2.  is_comonad<T>                           (detection trait)
+      ----------------
+      1.    comonad_traits<W>                       (primary, undefined)
+      2.    is_comonad<T>                           (detection trait)
+
 II.   GENERIC COMONAD OPERATIONS
-      1.  extract                                 (W<A> -> A)
-      2.  extend                                  (cobind: W<A> -> (W<A>->B) -> W<B>)
-      3.  duplicate                               (extend with identity)
+      --------------------------
+      1.    extract                                 (W<A> -> A)
+      2.    extend                                  (cobind: W<A> -> (W<A>->B) -> W<B>)
+      3.    duplicate                               (extend with identity)
+
 III.  INSTANCES                                    (the Env comonad)
-      1.  std::pair<E, A>
-      2.  kv_pair<K, V>
+      --------------------------------------------------------------
+      1.    std::pair<E, A>
+      2.    kv_pair<K, V>
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_COMONAD_
-#define DJINTERP_FUNCTIONAL_COMONAD_ 1
+#ifndef DJINTERP_FUNCTIONAL_COMONAD_HPP
+#define DJINTERP_FUNCTIONAL_COMONAD_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // void_t
 #include "../meta/kv_pair.hpp"
 
 
@@ -89,8 +104,8 @@ NS_DJINTERP
 // template parameter is a SFINAE hook used by the family instances that key on
 // a structural trait. The primary is left undefined so a use on a non-comonad
 // produces a clean resolution error.
-template<typename _Comonad,
-         typename _Enable = void>
+template<typename Comonad,
+         typename Enable = void>
 struct comonad_traits;
 
 
@@ -99,41 +114,41 @@ NS_INTERNAL
     // is_comonad_helper
     //   helper: SFINAE detector for whether comonad_traits<T> is specialized.
     // Looks for the is_specialized marker that every specialization provides.
-    template<typename _Type>
+    template<typename Type>
     struct is_comonad_helper
     {
     private:
-        template<typename _T>
+        template<typename T>
         static auto test(int)
             -> decltype(
-                typename comonad_traits<_T>::is_specialized{},
+                typename comonad_traits<T>::is_specialized{},
                 std::true_type{});
 
         template<typename>
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 
 // is_comonad
-//   trait: true if _Type has a specialization of comonad_traits (after cv-ref
+//   trait: true if Type has a specialization of comonad_traits (after cv-ref
 // stripping). Used to SFINAE-constrain generic operations.
-template<typename _Type>
+template<typename Type>
 struct is_comonad
-    : internal::is_comonad_helper<typename std::decay<_Type>::type>::type
+    : internal::is_comonad_helper<typename std::decay<Type>::type>::type
 {
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // is_comonad_v
-//   value: convenience alias for is_comonad<_Type>::value.
-template<typename _Type>
-static constexpr bool is_comonad_v = is_comonad<_Type>::value;
+//   value: convenience alias for is_comonad<Type>::value.
+template<typename Type>
+static constexpr bool is_comonad_v = is_comonad<Type>::value;
 #endif
 
 
@@ -148,17 +163,17 @@ NS_INTERNAL
 
     // comonad_value_type_helper
     //   helper: SFINAE extractor for comonad_traits<W>::value_type.
-    template<typename _AlwaysVoid,
-             typename _Comonad>
+    template<typename AlwaysVoid,
+             typename Comonad>
     struct comonad_value_type_helper
     {};
 
-    template<typename _Comonad>
+    template<typename Comonad>
     struct comonad_value_type_helper<
-        void_t<typename comonad_traits<_Comonad>::value_type>,
-        _Comonad>
+        void_t<typename comonad_traits<Comonad>::value_type>,
+        Comonad>
     {
-        using type = typename comonad_traits<_Comonad>::value_type;
+        using type = typename comonad_traits<Comonad>::value_type;
     };
 
     // comonad_identity_helper
@@ -168,10 +183,10 @@ NS_INTERNAL
     // value and returns it, so extend sees f : W<A> -> W<A>.
     struct comonad_identity_helper
     {
-        template<typename _X>
+        template<typename X>
         D_CONSTEXPR
-        _X operator()(
-            _X _x
+        X operator()(
+            X _x
         ) const
         {
             return _x;
@@ -183,26 +198,26 @@ NS_END  // internal
 
 // comonad_value_type
 //   trait: the focus type A of a comonad W. SFINAE-friendly.
-template<typename _Comonad>
+template<typename Comonad>
 struct comonad_value_type
 {
     using type = typename internal::comonad_value_type_helper<
-        void, typename std::decay<_Comonad>::type>::type;
+        void, typename std::decay<Comonad>::type>::type;
 };
 
 // comonad_value_type_t
 //   type: convenience alias for comonad_value_type<W>::type.
-template<typename _Comonad>
-using comonad_value_type_t = typename comonad_value_type<_Comonad>::type;
+template<typename Comonad>
+using comonad_value_type_t = typename comonad_value_type<Comonad>::type;
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // Comonad
-    //   concept: satisfied when _Type is a specialized comonad. The PascalCase
+    //   concept: satisfied when Type is a specialized comonad. The PascalCase
     // typeclass face, alongside Functor / Monad / Foldable.
-    template<typename _Type>
-    concept Comonad = is_comonad<_Type>::value;
+    template<typename Type>
+    concept Comonad = is_comonad<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -217,39 +232,39 @@ using comonad_value_type_t = typename comonad_value_type<_Comonad>::type;
 // extract
 //   function: reads the focus value out of a comonad, W<A> -> A. The dual of
 // the monad's unit.
-template<typename _Comonad>
+template<typename Comonad>
 D_NODISCARD
 D_CONSTEXPR
 auto extract
 (
-    _Comonad&& _w
+    Comonad&& _w
 )
--> decltype(comonad_traits<typename std::decay<_Comonad>::type>::extract(
-       std::forward<_Comonad>(_w)))
+-> decltype(comonad_traits<typename std::decay<Comonad>::type>::extract(
+       std::forward<Comonad>(_w)))
 {
-    return comonad_traits<typename std::decay<_Comonad>::type>::extract(
-        std::forward<_Comonad>(_w));
+    return comonad_traits<typename std::decay<Comonad>::type>::extract(
+        std::forward<Comonad>(_w));
 }
 
 
 // extend
 //   function: the co-bind. Applies f : W<A> -> B to the whole comonad and to
 // every sub-context, producing W<B>. The dual of the monad's bind.
-template<typename _Comonad,
-         typename _Function>
+template<typename Comonad,
+         typename Function>
 D_NODISCARD
 D_CONSTEXPR
 auto extend
 (
-    _Comonad&& _w,
-    _Function  _function
+    Comonad&& _w,
+    Function   _function
 )
--> decltype(comonad_traits<typename std::decay<_Comonad>::type>::extend(
-       std::forward<_Comonad>(_w),
+-> decltype(comonad_traits<typename std::decay<Comonad>::type>::extend(
+       std::forward<Comonad>(_w),
        _function))
 {
-    return comonad_traits<typename std::decay<_Comonad>::type>::extend(
-        std::forward<_Comonad>(_w),
+    return comonad_traits<typename std::decay<Comonad>::type>::extend(
+        std::forward<Comonad>(_w),
         _function);
 }
 
@@ -257,19 +272,19 @@ auto extend
 // duplicate
 //   function: nests a comonad one level, W<A> -> W<W<A>> -- extend with the
 // identity. The dual of the monad's join.
-template<typename _Comonad>
+template<typename Comonad>
 D_NODISCARD
 D_CONSTEXPR
 auto duplicate
 (
-    _Comonad&& _w
+    Comonad&& _w
 )
 -> decltype(::djinterp::extend(
-       std::forward<_Comonad>(_w),
+       std::forward<Comonad>(_w),
        internal::comonad_identity_helper()))
 {
     return ::djinterp::extend(
-        std::forward<_Comonad>(_w),
+        std::forward<Comonad>(_w),
         internal::comonad_identity_helper());
 }
 
@@ -281,33 +296,33 @@ auto duplicate
 // second component, the first rides along as the environment. Written in the
 // explicit two-argument `<T, void>` form against the SFINAE-hooked primary.
 
-// comonad_traits<std::pair<_Env, _Focus>>
+// comonad_traits<std::pair<Env, Focus>>
 //   instance: focus is .second; .first is the environment.
-template<typename _Env,
-         typename _Focus>
-struct comonad_traits<std::pair<_Env, _Focus>, void>
+template<typename Env,
+         typename Focus>
+struct comonad_traits<std::pair<Env, Focus>, void>
 {
     using is_specialized = std::true_type;
-    using value_type     = _Focus;
+    using value_type     = Focus;
 
     static
     D_CONSTEXPR
-    _Focus extract(
-        const std::pair<_Env, _Focus>& _w
+    Focus extract(
+        const std::pair<Env, Focus>& _w
     )
     {
         return _w.second;
     }
 
-    template<typename _Function>
+    template<typename Function>
     static
     D_CONSTEXPR
-    std::pair<_Env,
-              typename std::decay<decltype(std::declval<_Function&>()(
-                  std::declval<const std::pair<_Env, _Focus>&>()))>::type>
+    std::pair<Env,
+              typename std::decay<decltype(std::declval<Function&>()(
+                  std::declval<const std::pair<Env, Focus>&>()))>::type>
     extend(
-        const std::pair<_Env, _Focus>& _w,
-        _Function                       _function
+        const std::pair<Env, Focus>& _w,
+        Function                        _function
     )
     {
         return std::make_pair(_w.first, _function(_w));
@@ -315,45 +330,47 @@ struct comonad_traits<std::pair<_Env, _Focus>, void>
 };
 
 
-// comonad_traits<kv_pair<_Key, _Value>>
+// comonad_traits<kv_pair<Key, Value>>
 //   instance: focus is the value; the key is the environment.
-template<typename _Key,
-         typename _Value>
-struct comonad_traits<kv_pair<_Key, _Value>, void>
+template<typename Key,
+         typename Value>
+struct comonad_traits<kv_pair<Key, Value>, void>
 {
     using is_specialized = std::true_type;
-    using value_type     = _Value;
+    using value_type     = Value;
 
     static
     D_CONSTEXPR
-    _Value extract(
-        const kv_pair<_Key, _Value>& _w
+    Value extract(
+        const kv_pair<Key, Value>& _w
     )
     {
         return _w.m_value;
     }
 
-    template<typename _Function>
+    template<typename Function>
     static
     D_CONSTEXPR
-    kv_pair<_Key,
-            typename std::decay<decltype(std::declval<_Function&>()(
-                std::declval<const kv_pair<_Key, _Value>&>()))>::type>
+    kv_pair<Key,
+            typename std::decay<decltype(std::declval<Function&>()(
+                std::declval<const kv_pair<Key, Value>&>()))>::type>
     extend(
-        const kv_pair<_Key, _Value>& _w,
-        _Function                    _function
+        const kv_pair<Key, Value>& _w,
+        Function                     _function
     )
     {
         using mapped_t = typename std::decay<decltype(
-            std::declval<_Function&>()(
-                std::declval<const kv_pair<_Key, _Value>&>()))>::type;
+            std::declval<Function&>()(
+                std::declval<const kv_pair<Key, Value>&>()))>::type;
 
-        return kv_pair<_Key, mapped_t>(_w.m_key, _function(_w));
+        return kv_pair<Key, mapped_t>(_w.m_key, _function(_w));
     }
 };
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_COMONAD_
+
+#endif  // DJINTERP_FUNCTIONAL_COMONAD_HPP

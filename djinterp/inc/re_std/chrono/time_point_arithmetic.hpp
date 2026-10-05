@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                    time_point_arithmetic.hpp
 *
 * the time_point arithmetic operators:
@@ -27,21 +27,22 @@
 * reading is not a runtime surprise -- it does not compile.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/time_point_arithmetic.hpp
+* path:      /inc/re_std/chrono/time_point_arithmetic.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_TIME_POINT_ARITHMETIC_
-#define DJINTERP_RE_STD_CHRONO_TIME_POINT_ARITHMETIC_ 1
+#ifndef RE_STD_CHRONO_TIME_POINT_ARITHMETIC_HPP
+#define RE_STD_CHRONO_TIME_POINT_ARITHMETIC_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./time_point.hpp"
 #include "./time_point_common_type.hpp"
 #include "./duration_arithmetic.hpp"
@@ -49,77 +50,78 @@
 #include "../type_traits/common_type.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
     // operator+
     //   function: advance a point by a length.
-    template<typename _Clock, typename _Duration1,
-             typename _Rep2,  typename _Period2>
-    D_CONSTEXPR
-    time_point<_Clock,
-               typename common_type<_Duration1,
-                                    duration<_Rep2, _Period2> >::type>
-    operator+(const time_point<_Clock, _Duration1>& _t,
-              const duration<_Rep2, _Period2>&      _d)
+    template<typename Clock, typename Duration1,
+             typename Rep2,  typename Period2>
+    RE_STD_CONSTEXPR
+    time_point<Clock,
+               typename common_type<Duration1,
+                                    duration<Rep2, Period2> >::type>
+    operator+(const time_point<Clock, Duration1>& _t,
+              const duration<Rep2, Period2>&      _d)
     {
-        typedef typename common_type<_Duration1,
-                                     duration<_Rep2, _Period2> >::type _CD;
-        return time_point<_Clock, _CD>(_t.time_since_epoch() + _d);
+        typedef typename common_type<Duration1,
+                                     duration<Rep2, Period2> >::type _CD;
+        return time_point<Clock, _CD>(_t.time_since_epoch() + _d);
     }
 
     // operator+
     //   function: the same, with the length on the left.
-    template<typename _Rep1,  typename _Period1,
-             typename _Clock, typename _Duration2>
-    D_CONSTEXPR
-    time_point<_Clock,
-               typename common_type<duration<_Rep1, _Period1>,
-                                    _Duration2>::type>
-    operator+(const duration<_Rep1, _Period1>&      _d,
-              const time_point<_Clock, _Duration2>& _t)
+    template<typename Rep1,  typename Period1,
+             typename Clock, typename Duration2>
+    RE_STD_CONSTEXPR
+    time_point<Clock,
+               typename common_type<duration<Rep1, Period1>,
+                                    Duration2>::type>
+    operator+(const duration<Rep1, Period1>&      _d,
+              const time_point<Clock, Duration2>& _t)
     {
         return _t + _d;
     }
 
     // operator-
     //   function: move a point back by a length.
-    template<typename _Clock, typename _Duration1,
-             typename _Rep2,  typename _Period2>
-    D_CONSTEXPR
-    time_point<_Clock,
-               typename common_type<_Duration1,
-                                    duration<_Rep2, _Period2> >::type>
-    operator-(const time_point<_Clock, _Duration1>& _t,
-              const duration<_Rep2, _Period2>&      _d)
+    template<typename Clock, typename Duration1,
+             typename Rep2,  typename Period2>
+    RE_STD_CONSTEXPR
+    time_point<Clock,
+               typename common_type<Duration1,
+                                    duration<Rep2, Period2> >::type>
+    operator-(const time_point<Clock, Duration1>& _t,
+              const duration<Rep2, Period2>&      _d)
     {
-        typedef typename common_type<_Duration1,
-                                     duration<_Rep2, _Period2> >::type _CD;
-        return time_point<_Clock, _CD>(_t.time_since_epoch() - _d);
+        typedef typename common_type<Duration1,
+                                     duration<Rep2, Period2> >::type _CD;
+        return time_point<Clock, _CD>(_t.time_since_epoch() - _d);
     }
 
     // operator-
     //   function: the distance between two points on the same clock.
     // Returns a duration, not a time_point.
-    template<typename _Clock,
-             typename _Duration1,
-             typename _Duration2>
-    D_CONSTEXPR
-    typename common_type<_Duration1, _Duration2>::type
-    operator-(const time_point<_Clock, _Duration1>& _lhs,
-              const time_point<_Clock, _Duration2>& _rhs)
+    template<typename Clock,
+             typename Duration1,
+             typename Duration2>
+    RE_STD_CONSTEXPR
+    typename common_type<Duration1, Duration2>::type
+    operator-(const time_point<Clock, Duration1>& _lhs,
+              const time_point<Clock, Duration2>& _rhs)
     {
         return _lhs.time_since_epoch() - _rhs.time_since_epoch();
     }
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_TIME_POINT_ARITHMETIC_
+#endif  // RE_STD_CHRONO_TIME_POINT_ARITHMETIC_HPP

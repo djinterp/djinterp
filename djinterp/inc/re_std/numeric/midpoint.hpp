@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                         midpoint.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 midpoint.hpp
 *
+* midpoint algorithm header:
 * midpoint(_a, _b) returns the average of _a and _b without overflow.
 *
 * For INTEGRAL types, the obvious (a + b) / 2 formula overflows when
@@ -23,19 +24,22 @@
 * added in std C++20.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/midpoint.hpp
+* path:      /inc/re_std/numeric/midpoint.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_MIDPOINT_
-#define DJINTERP_RE_STD_NUMERIC_MIDPOINT_ 1
+#ifndef RE_STD_NUMERIC_MIDPOINT_HPP
+#define RE_STD_NUMERIC_MIDPOINT_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
     #include <type_traits>
 
@@ -49,31 +53,30 @@ namespace re_std
 //
 // Because we work in the unsigned-of-common-type and only re-cast at
 // the end, no intermediate overflow is possible.
-template<typename _T>
+template<typename T>
 constexpr typename std::enable_if
 <
-    std::is_integral<_T>::value
-    && !std::is_same<typename std::remove_cv<_T>::type, bool>::value,
-    _T
+    std::is_integral<T>::value
+    && !std::is_same<typename std::remove_cv<T>::type, bool>::value,
+    T
 >::type
-midpoint(_T _a, _T _b) D_NOEXCEPT
+midpoint(T _a, T _b) RE_STD_NOEXCEPT
 {
-    typedef typename std::make_unsigned<_T>::type _U;
+    typedef typename std::make_unsigned<T>::type _U;
     return _a > _b
-        ? static_cast<_T>(_a - static_cast<_T>(static_cast<_U>(_a - _b) / 2))
-        : static_cast<_T>(_a + static_cast<_T>(static_cast<_U>(_b - _a) / 2));
+        ? static_cast<T>(_a - static_cast<T>(static_cast<_U>(_a - _b) / 2))
+        : static_cast<T>(_a + static_cast<T>(static_cast<_U>(_b - _a) / 2));
 }
 
 // Pointer overload — pointers into the same array.
-template<typename _T>
-constexpr _T* midpoint(_T* _a, _T* _b) D_NOEXCEPT
+template<typename T>
+constexpr T* midpoint(T* _a, T* _b) RE_STD_NOEXCEPT
 {
     return _a + (_b - _a) / 2;
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_NUMERIC_MIDPOINT_
+#endif  // RE_STD_NUMERIC_MIDPOINT_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                      edge.hpp
+/*******************************************************************************
+* djinterp [math]                                                       edge.hpp
 *
 * Dimension-agnostic edge / curve primitives.
 *   Provides edge types satisfying the structural edge interface defined
@@ -19,22 +19,26 @@
 *   quadratic_bezier<System>       - degree-2 Bezier
 *   cubic_bezier<System>           - degree-3 Bezier
 *
+*
 * path:      /inc/djinterp/math/geometry/edge.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_EDGE_
-#define DJINTERP_MATH_GEOMETRY_EDGE_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_EDGE_HPP
+#define DJINTERP_MATH_GEOMETRY_EDGE_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <tuple>
 #include <type_traits>
+// djinterp
 #include "../../djinterp.hpp"
-#include "../coordinate.hpp"
+#include "../coordinate/coordinate.hpp"
 #include "./geometry_common.hpp"
 
 
@@ -900,4 +904,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_EDGE_
+#endif  // DJINTERP_MATH_GEOMETRY_EDGE_HPP

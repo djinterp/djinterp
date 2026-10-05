@@ -1,4 +1,15 @@
-#include "../../../../inc/c/container/vector/vector.h"
+/*******************************************************************************
+* djinterp [c]                                                          vector.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/container/vector/vector.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.29
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/container/vector/vector.h"
 
 
 // =============================================================================
@@ -73,7 +84,7 @@ Return:
   - a newly allocated `d_vector` structure, or
   - NULL, if memory allocation failed or _element_size is 0.
 */
-D_INLINE struct d_vector*
+struct d_vector*
 d_vector_new_default
 (
     size_t _element_size
@@ -153,8 +164,8 @@ d_vector_new_from_args
 
 Parameter(s):
   _element_size: size in bytes of each element
-  _arg_count:    number of arguments that follow
-  ...:           variadic arguments to initialize the vector with
+  _arg_count:    number of arguments that follow ...: variadic arguments to
+                 initialize the vector with
 Return:
   A pointer to either:
   - a newly allocated `d_vector` structure, or
@@ -344,7 +355,7 @@ Return:
   - true, if reservation was successful, or
   - false, if reallocation failed or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_reserve
 (
     struct d_vector* _vector,
@@ -374,7 +385,7 @@ Return:
   - true, if shrink was successful, or
   - false, if reallocation failed or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_shrink_to_fit
 (
     struct d_vector* _vector
@@ -403,7 +414,7 @@ Return:
   - true, if sufficient capacity exists or was allocated, or
   - false, if reallocation failed or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_ensure_capacity
 (
     struct d_vector* _vector,
@@ -433,7 +444,7 @@ Return:
   - true, if growth was successful, or
   - false, if reallocation failed or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_grow
 (
     struct d_vector* _vector
@@ -461,7 +472,7 @@ Return:
   - true, if operation completed successfully (shrink may or may not occur), or
   - false, if _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_maybe_shrink
 (
     struct d_vector* _vector
@@ -487,7 +498,7 @@ Parameter(s):
 Return:
   The number of available slots, or 0 if _vector is NULL.
 */
-D_INLINE size_t
+size_t
 d_vector_available
 (
     const struct d_vector* _vector
@@ -518,7 +529,7 @@ Return:
   - true, if the element was successfully appended, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_push_back
 (
     struct d_vector* _vector,
@@ -550,7 +561,7 @@ Return:
   - true, if the element was successfully prepended, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_push_front
 (
     struct d_vector* _vector,
@@ -582,7 +593,7 @@ Return:
   - true, if the element was successfully removed, or
   - false, if the vector is empty or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_pop_back
 (
     struct d_vector* _vector,
@@ -613,7 +624,7 @@ Return:
   - true, if the element was successfully removed, or
   - false, if the vector is empty or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_pop_front
 (
     struct d_vector* _vector,
@@ -645,7 +656,7 @@ Return:
   - true, if the element was successfully inserted, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_insert_element
 (
     struct d_vector* _vector,
@@ -681,7 +692,7 @@ Return:
   - true, if the elements were successfully inserted, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_insert_elements
 (
     struct d_vector* _vector,
@@ -716,7 +727,7 @@ Return:
   - true, if the element was successfully removed, or
   - false, if index is invalid or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_erase
 (
     struct d_vector* _vector,
@@ -747,7 +758,7 @@ Return:
   - true, if the elements were successfully removed, or
   - false, if indices are invalid or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_erase_range
 (
     struct d_vector* _vector,
@@ -776,7 +787,7 @@ Parameter(s):
 Return:
   none
 */
-D_INLINE void
+void
 d_vector_clear
 (
     struct d_vector* _vector
@@ -807,7 +818,7 @@ Return:
   - true, if the element was successfully appended, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_append_element
 (
     struct d_vector* _vector,
@@ -839,7 +850,7 @@ Return:
   - true, if the elements were successfully appended, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_append_elements
 (
     struct d_vector* _vector,
@@ -873,7 +884,7 @@ Return:
   - false, if reallocation failed, parameters are invalid, or element sizes
     don't match.
 */
-D_INLINE bool
+bool
 d_vector_append_vector
 (
     struct d_vector*       _destination,
@@ -908,7 +919,7 @@ Return:
   - true, if the element was successfully prepended, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_prepend_element
 (
     struct d_vector* _vector,
@@ -940,7 +951,7 @@ Return:
   - true, if the elements were successfully prepended, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_prepend_elements
 (
     struct d_vector* _vector,
@@ -974,7 +985,7 @@ Return:
   - false, if reallocation failed, parameters are invalid, or element sizes
     don't match.
 */
-D_INLINE bool
+bool
 d_vector_prepend_vector
 (
     struct d_vector*       _destination,
@@ -1015,7 +1026,7 @@ Return:
   - true, if resize was successful, or
   - false, if reallocation failed or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_resize
 (
     struct d_vector* _vector,
@@ -1048,7 +1059,7 @@ Return:
   - true, if resize was successful, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_resize_fill
 (
     struct d_vector* _vector,
@@ -1084,7 +1095,7 @@ Parameter(s):
 Return:
   Pointer to the element, or NULL if index is invalid or _vector is NULL.
 */
-D_INLINE void*
+void*
 d_vector_at
 (
     const struct d_vector* _vector,
@@ -1112,7 +1123,7 @@ Parameter(s):
 Return:
   Pointer to the first element, or NULL if the vector is empty or NULL.
 */
-D_INLINE void*
+void*
 d_vector_front
 (
     const struct d_vector* _vector
@@ -1136,7 +1147,7 @@ Parameter(s):
 Return:
   Pointer to the last element, or NULL if the vector is empty or NULL.
 */
-D_INLINE void*
+void*
 d_vector_back
 (
     const struct d_vector* _vector
@@ -1162,7 +1173,7 @@ Parameter(s):
 Return:
   Pointer to the underlying array, or NULL if _vector is NULL.
 */
-D_INLINE void*
+void*
 d_vector_data
 (
     const struct d_vector* _vector
@@ -1189,7 +1200,7 @@ Return:
   - true, if the element was successfully copied, or
   - false, if index is invalid or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_get
 (
     const struct d_vector* _vector,
@@ -1282,7 +1293,7 @@ Return:
   - true, if the vector is empty or NULL, or
   - false, if the vector contains elements.
 */
-D_INLINE bool
+bool
 d_vector_is_empty
 (
     const struct d_vector* _vector
@@ -1307,7 +1318,7 @@ Return:
   - true, if count equals capacity, or
   - false, if there is available capacity or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_is_full
 (
     const struct d_vector* _vector
@@ -1330,7 +1341,7 @@ Parameter(s):
 Return:
   The number of elements, or 0 if _vector is NULL.
 */
-D_INLINE size_t
+size_t
 d_vector_size
 (
     const struct d_vector* _vector
@@ -1353,7 +1364,7 @@ Parameter(s):
 Return:
   The current capacity, or 0 if _vector is NULL.
 */
-D_INLINE size_t
+size_t
 d_vector_capacity
 (
     const struct d_vector* _vector
@@ -1373,7 +1384,7 @@ Parameter(s):
 Return:
   The element size, or 0 if _vector is NULL.
 */
-D_INLINE size_t
+size_t
 d_vector_element_size
 (
     const struct d_vector* _vector
@@ -1400,7 +1411,7 @@ Parameter(s):
 Return:
   Index of first occurrence, or -1 if not found or parameters are invalid.
 */
-D_INLINE ssize_t
+ssize_t
 d_vector_find
 (
     const struct d_vector* _vector,
@@ -1473,7 +1484,7 @@ Return:
   - true, if the value was found, or
   - false, if the value was not found or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_contains
 (
     const struct d_vector* _vector,
@@ -1545,7 +1556,7 @@ Return:
   - true, if swap was successful, or
   - false, if indices are invalid or _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_swap
 (
     struct d_vector* _vector,
@@ -1574,7 +1585,7 @@ Return:
   - true, if reverse was successful, or
   - false, if _vector is NULL.
 */
-D_INLINE bool
+bool
 d_vector_reverse
 (
     struct d_vector* _vector
@@ -1597,7 +1608,7 @@ Parameter(s):
 Return:
   none
 */
-D_INLINE void
+void
 d_vector_sort
 (
     struct d_vector* _vector,
@@ -1631,7 +1642,7 @@ Return:
   - true, if copy was successful, or
   - false, if destination is too small or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_copy_to
 (
     const struct d_vector* _vector,
@@ -1661,7 +1672,7 @@ d_vector_free
 Parameter(s):
   _vector: pointer to the `d_vector` to deallocate
 Return:
-  none
+  none.
 */
 void
 d_vector_free
@@ -1688,10 +1699,7 @@ Parameter(s):
   _vector:  pointer to the `d_vector` to deallocate
   _free_fn: function to use for freeing each pointed-to object
 Return:
-  none
-Note:
-  This function assumes each element is a pointer (element_size == sizeof(void*)).
-  Behavior is undefined if used with non-pointer element types.
+  none.
 */
 void
 d_vector_free_deep

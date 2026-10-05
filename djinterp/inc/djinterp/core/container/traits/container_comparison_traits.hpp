@@ -1,63 +1,92 @@
-/******************************************************************************
-* djinterp [container]                             container_comparison_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                container_comparison_traits.hpp
 *
-*   The comparison of two container TYPES: where they stand, axis by axis, on the
+*   The comparison of two container TYPES: where they stand, axis by axis, on
+* the
 * content, discipline, and realization scales - their comparison profile.  A
 * profile is deliberately a vector, not a scalar: two containers a permutation
-* apart and two an allocator apart are incomparably different, not more-or-less
+* apart and two an allocator apart are incomparably different, not
+* more-or-less
 * different, and this module keeps them on separate axes.
 *
 *   Three groups of axis, following the formal model:
 *
-*     CONTENT   an equivalence hierarchy - structural, sequential, multiset, set,
-*               nested finest-to-coarsest.  A type carries a NATIVE level lambda
-*               (a set compares at =set, a sequence at =seq, a nested container at
+*     CONTENT an equivalence hierarchy - structural, sequential, multiset,
+*   set,
+*               nested finest-to-coarsest. A type carries a NATIVE level
+*             lambda
+*               (a set compares at =set, a sequence at =seq, a nested
+*             container at
 *               =str); two types compare at the COARSER of their natives.  The
-*               native level is a type-level fact and is what this module reports.
-*               Deciding the actual =L between two container VALUES is a value-
-*               level operation (it reads contents) and is left to a companion.
+*               native level is a type-level fact and is what this module
+*             reports.
+*               Deciding the actual =L between two container VALUES is a
+*             value-
+*               level operation (it reads contents) and is left to a
+*             companion.
 *
-*     DISCIPLINE the overlay strength order - one discipline may be at least as
-*               restrictive as another (guaranteeing at least as much), refine it
-*               either way, or be incomparable.  Read straight off overlay_subsumes.
+*     DISCIPLINE the overlay strength order - one discipline may be at least
+*   as
+*               restrictive as another (guaranteeing at least as much), refine
+*             it
+*               either way, or be incomparable. Read straight off
+*             overlay_subsumes.
 *
 *     REALIZATION three content-blind preorders.  LIFETIME (a two-point total
-*               order, compile-time the more static end).  ITERABILITY (the five-
-*               element capability lattice: not-iterable at the bottom, then the
-*               stage x mode kinds, which reduce to a product of compile-reachable
-*               and non-const-reachable).  STORAGE (an equivalence: same siting).
+*               order, compile-time the more static end). ITERABILITY (the
+*             five-
+*               element capability lattice: not-iterable at the bottom, then
+*             the
+*               stage x mode kinds, which reduce to a product of
+*             compile-reachable
+*               and non-const-reachable). STORAGE (an equivalence: same
+*             siting).
 *
 *   The per-axis relations combine into one PRODUCT refinement: a type refines
-* another only if it stands at least as high on every type-decidable axis at once
+* another only if it stands at least as high on every type-decidable axis at
+* once
 * - stronger discipline, and every realization at least as capable.  Mutual
-* refinement is agreement; a mixed verdict is incomparability.  The landmarks of
-* the introduction sit on this order: EQUAL is mutual refinement on discipline and
+* refinement is agreement; a mixed verdict is incomparability. The landmarks
+* of
+* the introduction sit on this order: EQUAL is mutual refinement on discipline
+* and
 * realization (value and realization agree, up to content and identity), and
 * EQUIVALENT-ON-S is mutual refinement on the axes of S.
 *
 *   DIRECTION.  A relation is read of the LEFT operand against the right:
-* `greater` is Left the stronger / finer / more-capable / more-static, `less` the
+* `greater` is Left the stronger / finer / more-capable / more-static, `less`
+* the
 * reverse, `equivalent` agreement, `incomparable` a genuine mismatch.  An
-* equivalence axis (storage) yields only `equivalent` or `incomparable`, never an
+* equivalence axis (storage) yields only `equivalent` or `incomparable`, never
+* an
 * ordering.
+*
+*            container_comparison_traits.hpp
 *
 *
 * path:      /inc/djinterp/core/container/traits/container_comparison_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_COMPARISON_TRAITS_
-#define DJINTERP_CONTAINER_COMPARISON_TRAITS_ 1
+#ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_COMPARISON_TRAITS_HPP
+#define DJINTERP_CONTAINER_TRAITS_CONTAINER_COMPARISON_TRAITS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"                  // clean_t, NS_*, feature macros
+#include "../../../djinterp.hpp"                  // clean_t, NS_*, feature macros
 #include "../../meta/lifetime.hpp"             // lifetime, is_compile_time
 #include "../../meta/storage.hpp"              // storage_duration, storage_of
 #include "../../meta/multiplicity.hpp"         // multiplicity_kind
-#include "./constexpr_container_traits.hpp"    // container_lifetime
+#include "./constexpr_container_traits.hpp"    // container_lifetime_of
 #include "./iterable_container_traits.hpp"     // is_iterable_container, iteration_mode_of
 #include "./container_overlay_traits.hpp"      // overlay_of, overlay_subsumes
 #include "./hierarchical_container_traits.hpp" // is_hierarchical_container
@@ -71,7 +100,7 @@ NS_DJINTERP
 // ===========================================================================
 
 // order_relation
-//   enum: the standing of a left operand against a right, on one axis.  On a
+//   enum: the standing of a left operand against a right, on one axis. On a
 // preorder axis all four arise; on an equivalence axis only equivalent and
 // incomparable do.
 enum class order_relation
@@ -94,10 +123,10 @@ order_relation_name(order_relation _r) noexcept
 }
 
 // order_relation_meet
-//   function: the product-order combination of two axis relations.  Agreement is
-// the unit; a shared direction is preserved; opposing directions - or any
-// incomparability - collapse to incomparable.  This is how the per-axis verdicts
-// fold into the single refinement relation.
+//   function: the product-order combination of two axis relations. Agreement
+// is the unit; a shared direction is preserved; opposing directions - or any
+// incomparability - collapse to incomparable. This is how the per-axis
+// verdicts fold into the single refinement relation.
 constexpr order_relation
 order_relation_meet(order_relation _a, order_relation _b) noexcept
 {
@@ -115,7 +144,7 @@ order_relation_meet(order_relation _a, order_relation _b) noexcept
 // ===========================================================================
 
 // content_level
-//   enum: a rung of the content hierarchy, coarsest to finest.  A type's native
+//   enum: a rung of the content hierarchy, coarsest to finest. A type's native
 // rung is fixed by its discipline, exactly as the frontier equalities nest.
 enum class content_level
 {
@@ -147,8 +176,8 @@ content_level_rank(content_level _l) noexcept
 }
 
 // content_level_coarser
-//   function: the coarser of two rungs - the rung at which two types compare, per
-// the formal ``coarser of the two native levels''.
+//   function: the coarser of two rungs - the rung at which two types compare,
+// per the formal ``coarser of the two native levels''.
 constexpr content_level
 content_level_coarser(content_level _a, content_level _b) noexcept
 {
@@ -158,12 +187,15 @@ content_level_coarser(content_level _a, content_level _b) noexcept
 NS_INTERNAL
 
     // native_content_level_helper
-    //   helper: the native rung from the structure and multiplicity verdicts.  A
-    // nested container compares structurally; otherwise the multiplicity kind
-    // fixes the rung - a sequence at seq, a multiset at bag, a unique discipline
-    // at set.
+    //   helper: the native rung from the structure and multiplicity verdicts.
+    // A nested container compares structurally; otherwise the multiplicity
+    // kind fixes the rung - a sequence at seq, a multiset at bag, a unique
+    // discipline at set.
     constexpr content_level
-    native_content_level_helper(bool _hierarchical, multiplicity_kind _mk) noexcept
+    native_content_level_helper(
+        bool                     _hierarchical,
+        multiplicity_kind::value _mk
+    ) noexcept
     {
         return _hierarchical
                    ? content_level::str
@@ -181,11 +213,11 @@ NS_END  // internal
 
 // native_content_level_of
 //   trait: the content rung at which a type natively compares.
-template<typename _Type>
+template<typename Type>
 struct native_content_level_of
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
     static constexpr content_level value =
@@ -195,13 +227,13 @@ public:
 };
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
+    template<typename Type>
     inline constexpr content_level native_content_level_of_v =
-        native_content_level_of<_Type>::value;
+        native_content_level_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr content_level native_content_level_of_v =
-        native_content_level_of<_Type>::value;
+        native_content_level_of<Type>::value;
 #endif
 
 
@@ -210,20 +242,20 @@ public:
 // ===========================================================================
 
 // discipline_relation
-//   trait: how two types' disciplines compare under the overlay strength order.
-// `greater` is the left more restrictive (it wears every restriction the right
-// does, and more); mutual containment is discipline-equality.
-template<typename _Left,
-         typename _Right>
+//   trait: how two types' disciplines compare under the overlay strength
+// order. `greater` is the left more restrictive (it wears every restriction
+// the right does, and more); mutual containment is discipline-equality.
+template<typename Left,
+         typename Right>
 struct discipline_relation
 {
 private:
     static constexpr bool left_subsumes_right =
-        overlay_subsumes( overlay_of<clean_t<_Left>>::value(),
-                          overlay_of<clean_t<_Right>>::value() );
+        overlay_subsumes( overlay_of<clean_t<Left>>::value(),
+                          overlay_of<clean_t<Right>>::value() );
     static constexpr bool right_subsumes_left =
-        overlay_subsumes( overlay_of<clean_t<_Right>>::value(),
-                          overlay_of<clean_t<_Left>>::value() );
+        overlay_subsumes( overlay_of<clean_t<Right>>::value(),
+                          overlay_of<clean_t<Left>>::value() );
 
 public:
     static constexpr order_relation value =
@@ -247,26 +279,27 @@ NS_INTERNAL
     // is_compile_stage_helper
     //   helper: whether a type's defining data are fixed by compile time - the
     // stage the Lifetime axis reports, taken as the more static (higher) end.
-    template<typename _Type>
+    template<typename Type>
     struct is_compile_stage_helper
         : std::integral_constant<bool,
-              is_compile_time( container_lifetime<clean_t<_Type>>::value )>
+              is_compile_time( container_lifetime_of<clean_t<Type>>::value )>
     {};
 
 NS_END  // internal
 
 // lifetime_relation
-//   trait: how two types stand on staticity.  A total order - never incomparable
+//   trait: how two types stand on staticity. A total order - never
+// incomparable
 // - with the compile-time stage the stronger (greater).
-template<typename _Left,
-         typename _Right>
+template<typename Left,
+         typename Right>
 struct lifetime_relation
 {
 private:
     static constexpr bool left_static  =
-        internal::is_compile_stage_helper<_Left>::value;
+        internal::is_compile_stage_helper<Left>::value;
     static constexpr bool right_static =
-        internal::is_compile_stage_helper<_Right>::value;
+        internal::is_compile_stage_helper<Right>::value;
 
 public:
     static constexpr order_relation value =
@@ -282,10 +315,11 @@ public:
 NS_INTERNAL
 
     // iterability_relation_helper
-    //   helper: the capability lattice as a product.  Not-iterable is the bottom;
-    // among iterables the order is the product of compile-reachable traversal and
-    // non-const-reachable traversal, so the two mixed kinds - compile/const and
-    // runtime/non-const - are incomparable, as the lattice has them.
+    //   helper: the capability lattice as a product. Not-iterable is the
+    // bottom; among iterables the order is the product of compile-reachable
+    // traversal and non-const-reachable traversal, so the two mixed kinds -
+    // compile/const and runtime/non-const - are incomparable, as the lattice
+    // has them.
     constexpr order_relation
     iterability_relation_helper(bool _iter_l, bool _stage_l, bool _mode_l,
                                 bool _iter_r, bool _stage_r, bool _mode_r) noexcept
@@ -304,10 +338,10 @@ NS_INTERNAL
 
     // non_const_reachable_helper
     //   helper: whether a type admits a non-const (settable) traversal.
-    template<typename _Type>
+    template<typename Type>
     struct non_const_reachable_helper
         : std::integral_constant<bool,
-              iteration_mode_of<clean_t<_Type>>::value
+              iteration_mode_of<clean_t<Type>>::value
                   == iteration_mode::non_const>
     {};
 
@@ -315,15 +349,16 @@ NS_END  // internal
 
 // iterability_relation
 //   trait: how two types compare on traversal capability, in the five-element
-// lattice.  The compile-reachable bit is read from the Lifetime axis, per the
-// formal entailment that a compile-time-fixed container traverses at compile time.
-template<typename _Left,
-         typename _Right>
+// lattice. The compile-reachable bit is read from the Lifetime axis, per the
+// formal entailment that a compile-time-fixed container traverses at compile
+// time.
+template<typename Left,
+         typename Right>
 struct iterability_relation
 {
 private:
-    using L = clean_t<_Left>;
-    using R = clean_t<_Right>;
+    using L = clean_t<Left>;
+    using R = clean_t<Right>;
 
 public:
     static constexpr order_relation value =
@@ -343,16 +378,16 @@ public:
 // ---------------------------------------------------------------------------
 
 // storage_relation
-//   trait: whether two types share a storage class.  An equivalence axis -
+//   trait: whether two types share a storage class. An equivalence axis -
 // content is invariant under siting - so the verdict is only equivalent or
 // incomparable, never an ordering.
-template<typename _Left,
-         typename _Right>
+template<typename Left,
+         typename Right>
 struct storage_relation
 {
     static constexpr order_relation value =
-        ( storage_of<clean_t<_Left>>::value
-              == storage_of<clean_t<_Right>>::value )
+        ( storage_of<clean_t<Left>>::value
+              == storage_of<clean_t<Right>>::value )
             ? order_relation::equivalent
             : order_relation::incomparable;
 };
@@ -363,18 +398,19 @@ struct storage_relation
 // ===========================================================================
 
 // comparison_profile
-//   trait: the assembled comparison of two types - the native content rungs and
-// the rung they share, the discipline order, and the three realization preorders,
-// together with the product refinement over the type-decidable axes (discipline
-// and realization).  The content =L itself reads values and is not decided here;
-// the shared rung bounds the level at which it could be.
-template<typename _Left,
-         typename _Right>
+//   trait: the assembled comparison of two types - the native content rungs
+// and
+// the rung they share, the discipline order, and the three realization
+// preorders, together with the product refinement over the type-decidable axes
+// (discipline and realization). The content =L itself reads values and is not
+// decided here; the shared rung bounds the level at which it could be.
+template<typename Left,
+         typename Right>
 struct comparison_profile
 {
 private:
-    using L = clean_t<_Left>;
-    using R = clean_t<_Right>;
+    using L = clean_t<Left>;
+    using R = clean_t<Right>;
 
 public:
     // content (native rungs; the shared rung is the coarser)
@@ -405,70 +441,72 @@ public:
 };
 
 // refinement_of
-//   trait: the product refinement relation alone - the standing of two types over
-// discipline and realization together.
-template<typename _Left,
-         typename _Right>
+//   trait: the product refinement relation alone - the standing of two types
+// over discipline and realization together.
+template<typename Left,
+         typename Right>
 struct refinement_of
 {
     static constexpr order_relation value =
-        comparison_profile<_Left, _Right>::refinement;
+        comparison_profile<Left, Right>::refinement;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Left, typename _Right>
+    template<typename Left, typename Right>
     inline constexpr order_relation refinement_of_v =
-        refinement_of<_Left, _Right>::value;
+        refinement_of<Left, Right>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Left, typename _Right>
+    template<typename Left, typename Right>
     constexpr order_relation refinement_of_v =
-        refinement_of<_Left, _Right>::value;
+        refinement_of<Left, Right>::value;
 #endif
 
 // realization_equal
 //   trait: true iff two types agree on discipline and every realization axis -
-// the type-decidable half of ``equal''.  Full equality adds agreement of the
+// the type-decidable half of ``equal''. Full equality adds agreement of the
 // contents at the shared level, a value-level fact.
-template<typename _Left,
-         typename _Right>
+template<typename Left,
+         typename Right>
 struct realization_equal
     : std::integral_constant<bool,
-          refinement_of<_Left, _Right>::value == order_relation::equivalent>
+          refinement_of<Left, Right>::value == order_relation::equivalent>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Left, typename _Right>
+    template<typename Left, typename Right>
     inline constexpr bool realization_equal_v =
-        realization_equal<_Left, _Right>::value;
+        realization_equal<Left, Right>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Left, typename _Right>
+    template<typename Left, typename Right>
     constexpr bool realization_equal_v =
-        realization_equal<_Left, _Right>::value;
+        realization_equal<Left, Right>::value;
 #endif
 
 // realization_comparable
 //   trait: true iff two types are ordered (or equal) on the refinement order -
-// i.e. not incomparable.  When false, the two differ in ways that make neither a
-// refinement of the other (a permutation against an allocator difference, say).
-template<typename _Left,
-         typename _Right>
+// i.e. not incomparable. When false, the two differ in ways that make neither
+// a refinement of the other (a permutation against an allocator difference,
+// say).
+template<typename Left,
+         typename Right>
 struct realization_comparable
     : std::integral_constant<bool,
-          refinement_of<_Left, _Right>::value != order_relation::incomparable>
+          refinement_of<Left, Right>::value != order_relation::incomparable>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Left, typename _Right>
+    template<typename Left, typename Right>
     inline constexpr bool realization_comparable_v =
-        realization_comparable<_Left, _Right>::value;
+        realization_comparable<Left, Right>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Left, typename _Right>
+    template<typename Left, typename Right>
     constexpr bool realization_comparable_v =
-        realization_comparable<_Left, _Right>::value;
+        realization_comparable<Left, Right>::value;
 #endif
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_COMPARISON_TRAITS_
+#endif  // DJINTERP_CONTAINER_TRAITS_CONTAINER_COMPARISON_TRAITS_HPP

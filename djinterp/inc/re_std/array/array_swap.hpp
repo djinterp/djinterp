@@ -1,47 +1,46 @@
-/******************************************************************************
-* djinterp [re_std]                                              array_swap.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               array_swap.hpp
 *
 * array swap specialization header:
 *   Provides a non-member swap overload for re_std::array. ADL-friendly;
 * delegates to the array::swap member function (element-wise swap).
 *
 *   CONSTRAINT:
-*   std::swap-for-array is constrained on is_swappable_v<_Type> from
-* C++17. re_std omits the constraint — _Type's swappability is
+*   std::swap-for-array is constrained on is_swappable_v<Type> from
+* C++17. re_std omits the constraint — Type's swappability is
 * enforced naturally at instantiation of the member swap (which
-* uses copy-assign of _Type, requiring CopyAssignable). This is a
+* uses copy-assign of Type, requiring CopyAssignable). This is a
 * slight relaxation vs std but avoids dragging in is_swappable
 * infrastructure for a corner case rarely exercised in user code.
 *
 *   CONSTEXPR:
 *   constexpr from C++20 (P1023, applied through to the member swap).
-* Pre-C++20 the qualifier degrades to empty via D_CONSTEXPR_CPP20.
+* Pre-C++20 the qualifier degrades to empty via RE_STD_CONSTEXPR_CPP20.
 *
 *
-* path:      /inc/djinterp/re_std/array/array_swap.hpp
+* path:      /inc/re_std/array/array_swap.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ARRAY_SWAP_
-#define DJINTERP_RE_STD_ARRAY_SWAP_ 1
+#ifndef RE_STD_ARRAY_ARRAY_SWAP_HPP
+#define RE_STD_ARRAY_ARRAY_SWAP_HPP 1
 
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// std
 #include <cstddef>
-
-#include "../../core/djinterp.hpp"
+// re_std
 #include "./array.hpp"
 
 
-#ifndef D_CONSTEXPR_CPP20
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        #define D_CONSTEXPR_CPP20   constexpr
-    #else
-        #define D_CONSTEXPR_CPP20
-    #endif
-#endif
-
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -49,15 +48,15 @@ NS_RESTD
 // ===========================================================================
 
 // swap
-//   function: exchanges the contents of two array<_Type, _Size>
+//   function: exchanges the contents of two array<Type, Size>
 // objects. Delegates to the array::swap member function (element-wise
 // swap).
-template<typename    _Type,
-         std::size_t _Size>
-D_CONSTEXPR_CPP20 void
+template<typename    Type,
+         std::size_t Size>
+RE_STD_CONSTEXPR_CPP20 void
 swap(
-    array<_Type, _Size>& _lhs,
-    array<_Type, _Size>& _rhs
+    array<Type, Size>& _lhs,
+    array<Type, Size>& _rhs
 )
 {
     _lhs.swap(_rhs);
@@ -66,7 +65,9 @@ swap(
 }
 
 
-NS_END  // re_std
+}  // re_std
+
+#endif  // floor, for now
 
 
-#endif  // DJINTERP_RE_STD_ARRAY_SWAP_
+#endif  // RE_STD_ARRAY_ARRAY_SWAP_HPP

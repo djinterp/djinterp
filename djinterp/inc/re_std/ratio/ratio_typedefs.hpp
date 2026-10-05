@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           ratio_typedefs.hpp
 *
 * SI prefix typedefs header:
@@ -29,29 +29,31 @@
 * provided here, since no platform re_std targets has one.
 *
 *
-* path:      /inc/djinterp/re_std/ratio/ratio_typedefs.hpp
+* path:      /inc/re_std/ratio/ratio_typedefs.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RATIO_RATIO_TYPEDEFS_
-#define DJINTERP_RE_STD_RATIO_RATIO_TYPEDEFS_ 1
+#ifndef RE_STD_RATIO_RATIO_TYPEDEFS_HPP
+#define RE_STD_RATIO_RATIO_TYPEDEFS_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstdint>
 #include <climits>
 
-// djinterp
+// re_std
 #include "./ratio.hpp"
+#include "../cstdint/cstdint.hpp"  // INTMAX_MAX
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -97,21 +99,21 @@ typedef ratio< 1000000000000000000, 1> exa;
     typedef ratio<1000000000000000000000,    1> zetta;
     typedef ratio<1000000000000000000000000, 1> yotta;
 
-    #define D_RE_STD_HAS_WIDE_SI_PREFIXES 1
+    #define RE_STD_HAS_WIDE_SI_PREFIXES 1
 
 #else
 
     // Signals to a consumer that zepto / yocto / zetta / yotta are absent
     // on this platform, so it can diagnose rather than fail to find them.
-    #define D_RE_STD_HAS_WIDE_SI_PREFIXES 0
+    #define RE_STD_HAS_WIDE_SI_PREFIXES 0
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RATIO_RATIO_TYPEDEFS_
+#endif  // RE_STD_RATIO_RATIO_TYPEDEFS_HPP

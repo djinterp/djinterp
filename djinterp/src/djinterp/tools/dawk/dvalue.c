@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                     dvalue.c
+/*******************************************************************************
+* djinterp [djinterp]                                                   dvalue.c
 *
 *   Definitions for the non-inline declarations in dvalue.h.
 *     One scanner serves both numeric questions. d_awk_looks_numeric asks
@@ -12,9 +12,9 @@
 *
 * path:      /src/djinterp/tools/dawk/dvalue.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dvalue.h"  // corresponding header
 // std
 #include <math.h>    // isnan, isinf, floor

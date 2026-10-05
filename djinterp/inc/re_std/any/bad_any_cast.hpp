@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           bad_any_cast.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             bad_any_cast.hpp
 *
 * bad_any_cast exception header:
 *   Provides the exception type thrown by any_cast when the requested type
@@ -10,67 +10,82 @@
 *   - neither               -> standalone class (no base, non-virtual what())
 *
 *
-* path:      /inc/djinterp/re_std/any/bad_any_cast.hpp
+* path:      /inc/re_std/any/bad_any_cast.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BAD_ANY_CAST_
-#define DJINTERP_RE_STD_BAD_ANY_CAST_ 1
+#ifndef RE_STD_ANY_BAD_ANY_CAST_HPP
+#define RE_STD_ANY_BAD_ANY_CAST_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   CONDITIONAL INCLUDES
 // ===========================================================================
 
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if RE_STD_HAS_RTTI
+    // std
     #include <typeinfo>
-#elif D_ENV_CPP98_HAS_EXCEPTION
+#elif RE_STD_HAS_EXCEPTIONS
+    // std
     #include <exception>
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   BAD_ANY_CAST
 // ===========================================================================
 
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if RE_STD_HAS_RTTI
 
 // bad_any_cast
-//   exception: thrown by any_cast when the requested type does not
+//   class: thrown by any_cast when the requested type does not
 // match the type of the stored value.
 // inherits: std::bad_cast -> std::exception.
 class bad_any_cast : public std::bad_cast
 {
 public:
     const char*
-    what() const D_NOEXCEPT
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        override
+    what() const
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+        RE_STD_NOEXCEPT override
+#else
+        // C++98's std::exception::what() is throw(), and an override may not
+        // have a looser exception specification -- a requirement of the
+        // base, not a choice of spelling, so not RE_STD_NOEXCEPT's (decision 3.1)
+        throw()
 #endif
     {
         return "bad any_cast";
     }
 };
 
-#elif D_ENV_CPP98_HAS_EXCEPTION
+#elif RE_STD_HAS_EXCEPTIONS
 
 // bad_any_cast
-//   exception: thrown by any_cast when the requested type does not
+//   class: thrown by any_cast when the requested type does not
 // match the type of the stored value.
 // note: <typeinfo> unavailable; inherits std::exception directly.
 class bad_any_cast : public std::exception
 {
 public:
     const char*
-    what() const D_NOEXCEPT
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        override
+    what() const
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+        RE_STD_NOEXCEPT override
+#else
+        // C++98's std::exception::what() is throw(), and an override may not
+        // have a looser exception specification -- a requirement of the
+        // base, not a choice of spelling, so not RE_STD_NOEXCEPT's (decision 3.1)
+        throw()
 #endif
     {
         return "bad any_cast";
@@ -80,7 +95,7 @@ public:
 #else
 
 // bad_any_cast
-//   exception: thrown by any_cast when the requested type does not
+//   class: thrown by any_cast when the requested type does not
 // match the type of the stored value.
 // note: exceptions disabled or unavailable; standalone class. what()
 // is non-virtual. Throw and catch by type only.
@@ -88,16 +103,16 @@ class bad_any_cast
 {
 public:
     const char*
-    what() const D_NOEXCEPT
+    what() const RE_STD_NOEXCEPT
     {
         return "bad any_cast";
     }
 };
 
-#endif  // D_ENV_CPP98_HAS_TYPEINFO / D_ENV_CPP98_HAS_EXCEPTION
+#endif  // RE_STD_HAS_RTTI / RE_STD_HAS_EXCEPTIONS
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_BAD_ANY_CAST_
+#endif  // RE_STD_ANY_BAD_ANY_CAST_HPP

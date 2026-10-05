@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 search_n.hpp
 *
 * search_n algorithm header:
@@ -12,37 +12,32 @@
 *   - std::search_n is C++98.
 *   - _count <= 0 returns _first per LWG 426 (matches every modern
 *     standard library).
-*   - Uses operator< on _count for the counted loop; _Size needs only
+*   - Uses operator< on _count for the counted loop; Size needs only
 *     integral-like comparison-with-zero and decrement (or, here,
 *     incrementing a running counter).
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/search_n.hpp
+* path:      /inc/re_std/algorithm/search_n.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_SEARCH_N_
-#define DJINTERP_RE_STD_ALGORITHM_SEARCH_N_ 1
+#ifndef RE_STD_ALGORITHM_SEARCH_N_HPP
+#define RE_STD_ALGORITHM_SEARCH_N_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -54,15 +49,15 @@ NS_RESTD
 // run of _count consecutive elements in [_first, _last) equal to
 // _value via operator==. Returns _first for _count <= 0 (per LWG 426)
 // and _last on no-match.
-template<typename _ForwardIt,
-         typename _Size,
-         typename _Type>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt,
+         typename Size,
+         typename Type>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 search_n(
-    _ForwardIt   _first,
-    _ForwardIt   _last,
-    _Size        _count,
-    const _Type& _value
+    ForwardIt   _first,
+    ForwardIt   _last,
+    Size        _count,
+    const Type& _value
 )
 {
     // LWG 426: count <= 0 -> return first unchanged
@@ -80,8 +75,8 @@ search_n(
         }
 
         // found a candidate run; try to extend to _count
-        _ForwardIt _candidate = _first;
-        _Size      _matched   = 1;
+        ForwardIt _candidate = _first;
+        Size      _matched   = 1;
 
         ++_first;
 
@@ -115,17 +110,17 @@ search_n(
 // search_n (predicate)
 //   function: as above but each element is compared to _value via the
 // user-supplied binary predicate _pred(elem, _value).
-template<typename _ForwardIt,
-         typename _Size,
-         typename _Type,
-         typename _BinaryPred>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt,
+         typename Size,
+         typename Type,
+         typename BinaryPred>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 search_n(
-    _ForwardIt   _first,
-    _ForwardIt   _last,
-    _Size        _count,
-    const _Type& _value,
-    _BinaryPred  _pred
+    ForwardIt   _first,
+    ForwardIt   _last,
+    Size        _count,
+    const Type& _value,
+    BinaryPred  _pred
 )
 {
     if (_count <= 0)
@@ -141,8 +136,8 @@ search_n(
             continue;
         }
 
-        _ForwardIt _candidate = _first;
-        _Size      _matched   = 1;
+        ForwardIt _candidate = _first;
+        Size      _matched   = 1;
 
         ++_first;
 
@@ -169,7 +164,7 @@ search_n(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_SEARCH_N_
+#endif  // RE_STD_ALGORITHM_SEARCH_N_HPP

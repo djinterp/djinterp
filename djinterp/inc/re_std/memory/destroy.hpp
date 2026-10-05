@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                       destroy.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  destroy.hpp
 *
 * range destruction:
 *   re_std::destroy(_first, _last) calls destroy_at on each element of
@@ -20,18 +20,20 @@
 * and C++14 the bodies are non-constexpr because they iterate.
 *
 *
-* path:      /inc/djinterp/re_std/memory/destroy.hpp
+* path:      /inc/re_std/memory/destroy.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.01
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.01
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_DESTROY_
-#define DJINTERP_RE_STD_MEMORY_DESTROY_ 1
+#ifndef RE_STD_MEMORY_DESTROY_HPP
+#define RE_STD_MEMORY_DESTROY_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/memory/addressof.hpp"
     #include "re_std/memory/destroy_at.hpp"
@@ -47,10 +49,10 @@ namespace re_std
 // destroy(_first, _last)
 //   function: destroys every element in the half-open range
 //             [_first, _last) by calling destroy_at on its address.
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-    template<typename _ForwardIt>
-    constexpr void destroy(_ForwardIt _first, _ForwardIt _last)
+    template<typename ForwardIt>
+    constexpr void destroy(ForwardIt _first, ForwardIt _last)
     {
         for (; _first != _last; ++_first)
         {
@@ -60,8 +62,8 @@ namespace re_std
 
 #else
 
-    template<typename _ForwardIt>
-    void destroy(_ForwardIt _first, _ForwardIt _last)
+    template<typename ForwardIt>
+    void destroy(ForwardIt _first, ForwardIt _last)
     {
         for (; _first != _last; ++_first)
         {
@@ -79,10 +81,10 @@ namespace re_std
 // destroy_n(_first, _n)
 //   function: destroys _n elements starting at _first. Returns the
 //             iterator just past the last destroyed element.
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-    template<typename _ForwardIt, typename _Size>
-    constexpr _ForwardIt destroy_n(_ForwardIt _first, _Size _n)
+    template<typename ForwardIt, typename Size>
+    constexpr ForwardIt destroy_n(ForwardIt _first, Size _n)
     {
         for (; _n > 0; (void)++_first, --_n)
         {
@@ -93,8 +95,8 @@ namespace re_std
 
 #else
 
-    template<typename _ForwardIt, typename _Size>
-    _ForwardIt destroy_n(_ForwardIt _first, _Size _n)
+    template<typename ForwardIt, typename Size>
+    ForwardIt destroy_n(ForwardIt _first, Size _n)
     {
         for (; _n > 0; (void)++_first, --_n)
         {
@@ -106,8 +108,7 @@ namespace re_std
 #endif
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_DESTROY_
+#endif  // RE_STD_MEMORY_DESTROY_HPP

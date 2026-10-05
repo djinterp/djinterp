@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                                test_tree.hpp
+/*******************************************************************************
+* djinterp [test]                                                  test_tree.hpp
 *
 *   The default, general-use test container.  test_tree is one concrete
 * implementation of the test_container contract (test_container.hpp);
@@ -11,7 +11,7 @@
 *   test_tree pairs a set of test kinds with a forest of root
 *   test_objects:
 *       test_tree = { kinds ; <forest of root test_objects> }
-*   The forest is a single backing tree (default nary_tree<_Element>)
+*   The forest is a single backing tree (default nary_tree<Element>)
 * whose ROOT NODE is the implied conjunctive root of the formal model:
 * the sequential test roots (the queue) are its immediate children, and
 * the whole run succeeds iff every root succeeds.  The conjunctive root
@@ -27,7 +27,7 @@
 * registered leaf parent, and otherwise enforces rank monotonicity via
 * can_be_child_of(kinds, child, parent).  Top-level roots (add_root) are
 * unconstrained - the conjunctive root admits any sequence.  The
-* _ValidateRank flag compiles the checks out entirely when false.
+* ValidateRank flag compiles the checks out entirely when false.
 *
 *   RUN SURFACE:
 *   A sequential counting surface (count_passed / count_failed /
@@ -51,24 +51,41 @@
 *   C++11 minimum.  `_v` companions on C++14+.  Concepts on C++20.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    TEST TREE
-* II.   TEST-TREE DETECTION
-* III.  CONVENIENCE ALIASES
-*
-*
 * path:      /inc/djinterp/test/test_tree.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.17
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_TREE_
-#define DJINTERP_TEST_TREE_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    TEST TREE
+      ---------
 
-#ifndef __cplusplus
-    #error "test_tree.hpp requires C++ compilation"
-#endif
+II.   TEST-TREE DETECTION
+      -------------------
+
+III.  CONVENIENCE ALIASES
+      -------------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_TREE_HPP
+#define DJINTERP_TEST_TEST_TREE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but
+// core/container/tree/nary/nary_tree.hpp, which it reaches, needs C++17
+// (lowered from C++20 by round 3's lane 2). The owner's ruling: compile at
+// every level first; port down only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
+#include "../env/env.h"  // D_ENV_LANG_IS_CPP11_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 
 // std
 #include <cstddef>
@@ -76,17 +93,13 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
+#include "../core/meta/type_utility.hpp"  // clean_t
 #include "../core/meta/type_traits.hpp"
 #include "../core/container/tree/nary/nary_tree.hpp"
 #include "./test_common.hpp"
 #include "./test_kind.hpp"
 #include "./test_container.hpp"
-
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "test_tree.hpp requires C++11 or higher"
-#endif
 
 
 NS_DJINTERP
@@ -105,15 +118,15 @@ NS_TEST
 // and a run / counting surface.
 //
 // Template parameters:
-//   _Element:       the test object element type (must satisfy the test
+//   Element:       the test object element type (must satisfy the test
 //                   object protocol, is_test_evaluable).
-//   _Underlying:    the forest backing.  Must expose root(), size(),
+//   Underlying:    the forest backing.  Must expose root(), size(),
 //                   append_child(node_type*, value_type), and begin()/
-//                   end().  Default: nary_tree<_Element>.
-//   _KindContainer: storage for the test kinds - any range of test_kind
+//                   end().  Default: nary_tree<Element>.
+//   KindContainer: storage for the test kinds - any range of test_kind
 //                   records (a test_kind_set<C> also qualifies).
 //                   Default: std::vector<test_kind>.
-//   _ValidateRank:  compile-time flag.  When true (default), append_child
+//   ValidateRank:  compile-time flag.  When true (default), append_child
 //                   enforces the leaf / rank rules; when false they are
 //                   compiled out.
 //
@@ -122,47 +135,47 @@ NS_TEST
 //   auto* r = t.add_root(make_test(0, true));
 //   t.append_child(r, make_test(1, true));   // rank-checked
 //   bool ok = t.all_passed();
-template<typename _Element,
-         typename _Underlying    = ::djinterp::nary_tree<_Element>,
-         typename _KindContainer = ::std::vector<test_kind>,
-         bool     _ValidateRank  = true>
+template<typename Element,
+         typename Underlying     = ::djinterp::nary_tree<Element>,
+         typename KindContainer = ::std::vector<test_kind>,
+         bool     ValidateRank   = true>
 class test_tree
 {
     static_assert(
-        is_test_evaluable<_Element>::value,
-        "`_Element` must satisfy the test object protocol "
+        is_test_evaluable<Element>::value,
+        "`Element` must satisfy the test object protocol "
         "(is_test_evaluable).");
 
     static_assert(
-        has_root_method<_Underlying>::value,
-        "`_Underlying` must expose root() (forest backing).");
+        has_root_method<Underlying>::value,
+        "`Underlying` must expose root() (forest backing).");
 
     static_assert(
-        has_size_accessor<_Underlying>::value,
-        "`_Underlying` must expose size() (forest backing).");
+        has_size_accessor<Underlying>::value,
+        "`Underlying` must expose size() (forest backing).");
 
     static_assert(
-        has_append_child_method<_Underlying>::value,
-        "`_Underlying` must expose append_child(node_type*, "
+        has_append_child_method<Underlying>::value,
+        "`Underlying` must expose append_child(node_type*, "
         "value_type) (forest backing).");
 
     static_assert(
-        has_begin_end<_Underlying>::value,
-        "`_Underlying` must expose begin()/end() for the run / "
+        has_begin_end<Underlying>::value,
+        "`Underlying` must expose begin()/end() for the run / "
         "counting surface.");
 
 public:
     // -----------------------------------------------------------------
     //  type aliases
     // -----------------------------------------------------------------
-    using value_type                = _Element;
-    using underlying_container_type = _Underlying;
-    using kind_container_type       = _KindContainer;
-    using node_type                 = typename _Underlying::node_type;
+    using value_type                = Element;
+    using underlying_container_type = Underlying;
+    using kind_container_type       = KindContainer;
+    using node_type                 = typename Underlying::node_type;
     using size_type                 = std::size_t;
 
     // compile-time rank-validation flag
-    static constexpr bool validate_rank = _ValidateRank;
+    static constexpr bool validate_rank = ValidateRank;
 
 
     // -----------------------------------------------------------------
@@ -259,30 +272,30 @@ public:
     // -----------------------------------------------------------------
     //  forwarded iteration (sequential walk of the forest)
     // -----------------------------------------------------------------
-    //   Trailing return types deduce from `_Underlying`, which is in
+    //   Trailing return types deduce from `Underlying`, which is in
     // scope here, since members declared lower in the class are not yet
     // visible in the trailing-return context.
 
     auto
-    begin() -> decltype(std::declval<_Underlying&>().begin())
+    begin() -> decltype(std::declval<Underlying&>().begin())
     {
         return m_forest.begin();
     }
 
     auto
-    end() -> decltype(std::declval<_Underlying&>().end())
+    end() -> decltype(std::declval<Underlying&>().end())
     {
         return m_forest.end();
     }
 
     auto
-    begin() const -> decltype(std::declval<const _Underlying&>().begin())
+    begin() const -> decltype(std::declval<const Underlying&>().begin())
     {
         return m_forest.begin();
     }
 
     auto
-    end() const -> decltype(std::declval<const _Underlying&>().end())
+    end() const -> decltype(std::declval<const Underlying&>().end())
     {
         return m_forest.end();
     }
@@ -293,13 +306,13 @@ public:
     // -----------------------------------------------------------------
 
     auto
-    root() -> decltype(std::declval<_Underlying&>().root())
+    root() -> decltype(std::declval<Underlying&>().root())
     {
         return m_forest.root();
     }
 
     auto
-    root() const -> decltype(std::declval<const _Underlying&>().root())
+    root() const -> decltype(std::declval<const Underlying&>().root())
     {
         return m_forest.root();
     }
@@ -342,7 +355,7 @@ public:
     // structural rules through the kind set: a registered leaf parent
     // admits no children, and otherwise the child's resolved rank must
     // not exceed the parent's (can_be_child_of).  Returns nullptr if
-    // _parent is null or the insertion is rejected.  When _ValidateRank
+    // _parent is null or the insertion is rejected.  When ValidateRank
     // is false the checks are compiled out.
     node_type*
     append_child(
@@ -371,10 +384,10 @@ public:
     // count_by_status
     //   walks the forest and counts elements whose status() matches
     // _status (compared numerically, so any status representation works).
-    template<typename _StatusType>
+    template<typename StatusType>
     size_type
     count_by_status(
-        _StatusType _status
+        StatusType _status
     ) const
     {
         size_type count = 0;
@@ -462,7 +475,7 @@ private:
 
 
     // -----------------------------------------------------------------
-    //  internal: rank / leaf admission (dispatch on _ValidateRank)
+    //  internal: rank / leaf admission (dispatch on ValidateRank)
     // -----------------------------------------------------------------
 
     // rank_admits
@@ -476,7 +489,7 @@ private:
         return rank_admits_dispatch(
             _parent,
             _child,
-            std::integral_constant<bool, _ValidateRank>{});
+            std::integral_constant<bool, ValidateRank>{});
     }
 
     // rank_admits_dispatch (validation enabled)
@@ -530,26 +543,26 @@ NS_INTERNAL
     // is_test_tree_instantiation
     //   trait: detects whether a type is an instantiation of the
     // test_tree class template.
-    template<typename _Type>
+    template<typename Type>
     struct is_test_tree_instantiation : std::false_type
     {};
 
-    template<typename    _Element,
-             typename    _Underlying,
-             typename    _KindContainer,
-             bool        _ValidateRank>
+    template<typename    Element,
+             typename    Underlying,
+             typename    KindContainer,
+             bool        ValidateRank>
     struct is_test_tree_instantiation<
-        test_tree<_Element, _Underlying, _KindContainer, _ValidateRank>>
+        test_tree<Element, Underlying, KindContainer, ValidateRank>>
         : std::true_type
     {};
 
 NS_END  // internal
 
 // is_test_tree
-//   trait: true iff _Type is an instantiation of test_tree.
-template<typename _Type>
+//   trait: true iff Type is an instantiation of test_tree.
+template<typename Type>
 struct is_test_tree
-    : internal::is_test_tree_instantiation<clean_t<_Type>>
+    : internal::is_test_tree_instantiation<clean_t<Type>>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_test_tree)
@@ -560,9 +573,9 @@ D_TYPE_TRAIT_VALUE_BOOL(is_test_tree)
 // test_tree_type
 //   concept: the type is an instantiation of test_tree; mirrors
 // is_test_tree.
-template<typename _Type>
+template<typename Type>
 concept test_tree_type =
-    is_test_tree<clean_t<_Type>>::value;
+    is_test_tree<clean_t<Type>>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -579,5 +592,8 @@ concept test_tree_type =
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_TEST_TREE_
+#endif  // floor, for now
+
+#endif  // DJINTERP_TEST_TEST_TREE_HPP

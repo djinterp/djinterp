@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         view_interface.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           view_interface.hpp
 *
 * view_interface CRTP base header:
 *   Provides the C++20 CRTP base class that supplies a uniform set of
@@ -19,57 +19,60 @@
 *     default enable_view specialisation.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/view_interface.hpp
+* path:      /inc/re_std/ranges/view_interface.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_VIEW_INTERFACE_
-#define DJINTERP_RE_STD_RANGES_VIEW_INTERFACE_ 1
+#ifndef RE_STD_RANGES_VIEW_INTERFACE_HPP
+#define RE_STD_RANGES_VIEW_INTERFACE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "./view_base.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   VIEW_INTERFACE
 // ===========================================================================
 
-// view_interface<_Derived>
+// view_interface<Derived>
 //   class: CRTP base supplying empty / operator bool / size /
 // front / back / operator[] / data in terms of begin() and end()
 // on the most-derived type.
 // note: the public derivation from view_base ensures
-// enable_view<_Derived>::value is true under the default trait
+// enable_view<Derived>::value is true under the default trait
 // specialisation. Users who want enable_view to be false should
 // either skip view_interface or specialise enable_view explicitly.
-template<typename _Derived>
+template<typename Derived>
 class view_interface : public view_base
 {
 private:
     // derived (mutable)
     //   function: CRTP downcast helper. Returns a reference to the
     // most-derived object.
-    D_CONSTEXPR_CPP14 _Derived&
+    RE_STD_CONSTEXPR_CPP14 Derived&
     derived()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
-        return static_cast<_Derived&>(*this);
+        return static_cast<Derived&>(*this);
     }
 
     // derived (const)
     //   function: const CRTP downcast helper.
-    D_CONSTEXPR _Derived const&
+    RE_STD_CONSTEXPR Derived const&
     derived() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
-        return static_cast<_Derived const&>(*this);
+        return static_cast<Derived const&>(*this);
     }
 
 
@@ -78,7 +81,7 @@ public:
     //   function: true iff begin() == end(). Available whenever the
     // derived range supports forward-iterator comparison between its
     // iterator and sentinel.
-    D_CONSTEXPR_CPP14 bool
+    RE_STD_CONSTEXPR_CPP14 bool
     empty()
     {
         return (derived().begin() == derived().end());
@@ -86,7 +89,7 @@ public:
 
     // empty (const)
     //   function: const overload.
-    D_CONSTEXPR bool
+    RE_STD_CONSTEXPR bool
     empty() const
     {
         return (derived().begin() == derived().end());
@@ -97,7 +100,7 @@ public:
     // contains at least one element. explicit on C++11+; on C++98
     // the safe-bool idiom would be required, but view_interface is
     // gated out on C++98 anyway.
-    D_CONSTEXPR_CPP14 explicit
+    RE_STD_CONSTEXPR_CPP14 explicit
     operator bool()
     {
         return !empty();
@@ -105,7 +108,7 @@ public:
 
     // operator bool (const)
     //   function: const overload.
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     operator bool() const
     {
         return !empty();
@@ -115,7 +118,7 @@ public:
     //   function: end() - begin(). Available when the iterator type
     // is sized_sentinel_for the sentinel (i.e. supports the
     // arithmetic). Instantiation is lazy.
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     size()
         -> decltype(derived().end() - derived().begin())
@@ -125,7 +128,7 @@ public:
 
     // size (const)
     //   function: const overload.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     size() const
         -> decltype(derived().end() - derived().begin())
@@ -135,7 +138,7 @@ public:
 
     // front
     //   function: *begin(). Precondition: !empty().
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     front()
         -> decltype(*derived().begin())
@@ -145,7 +148,7 @@ public:
 
     // front (const)
     //   function: const overload.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     front() const
         -> decltype(*derived().begin())
@@ -157,7 +160,7 @@ public:
     //   function: *(end() - 1). Requires the iterator type to be
     // bidirectional and end() to be reachable / decrementable from.
     // Precondition: !empty().
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     back()
         -> decltype(*(--derived().end()))
@@ -169,7 +172,7 @@ public:
 
     // back (const)
     //   function: const overload.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR_CPP14
     auto
     back() const
         -> decltype(*(--derived().end()))
@@ -181,13 +184,13 @@ public:
 
     // operator[]
     //   function: begin()[_n]. Requires random-access iteration on
-    // the derived range. _Index is templated to allow either signed
+    // the derived range. Index is templated to allow either signed
     // or unsigned indexing (matching the C++20 size_t / ptrdiff_t
     // tolerance of subscript).
-    template<typename _Index>
-    D_CONSTEXPR_CPP14
+    template<typename Index>
+    RE_STD_CONSTEXPR_CPP14
     auto
-    operator[](_Index _n)
+    operator[](Index _n)
         -> decltype(derived().begin()[_n])
     {
         return derived().begin()[_n];
@@ -195,10 +198,10 @@ public:
 
     // operator[] (const)
     //   function: const overload.
-    template<typename _Index>
-    D_CONSTEXPR
+    template<typename Index>
+    RE_STD_CONSTEXPR
     auto
-    operator[](_Index _n) const
+    operator[](Index _n) const
         -> decltype(derived().begin()[_n])
     {
         return derived().begin()[_n];
@@ -217,34 +220,34 @@ public:
     // intentionally NOT used because that traps on proxy iterators.
     // Derived views with a meaningful .data() are expected to
     // shadow this member directly.
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     data()
         -> decltype(&(*derived().begin()))
     {
         return (derived().begin() == derived().end())
-            ? static_cast<decltype(&(*derived().begin()))>(D_NULLPTR)
+            ? static_cast<decltype(&(*derived().begin()))>(RE_STD_NULLPTR)
             : &(*derived().begin());
     }
 
     // data (const)
     //   function: const overload.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     data() const
         -> decltype(&(*derived().begin()))
     {
         return (derived().begin() == derived().end())
-            ? static_cast<decltype(&(*derived().begin()))>(D_NULLPTR)
+            ? static_cast<decltype(&(*derived().begin()))>(RE_STD_NULLPTR)
             : &(*derived().begin());
     }
 };
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_VIEW_INTERFACE_
+#endif  // RE_STD_RANGES_VIEW_INTERFACE_HPP

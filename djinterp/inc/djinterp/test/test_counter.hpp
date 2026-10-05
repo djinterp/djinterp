@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             test_counter.hpp
+/*******************************************************************************
+* djinterp [test]                                               test_counter.hpp
 *
 *   A nestable, bounded counter for test instrumentation with optional
 * event dispatch.  Wraps util::counter for value and bounds tracking,
@@ -28,30 +28,41 @@
 * djinterp.hpp for namespace macros and constexpr support.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    test_counter
-*
-*
 * path:      /inc/djinterp/test/test_counter.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.08
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_COUNTER_
-#define DJINTERP_TEST_COUNTER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    test_counter
+      ------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_COUNTER_HPP
+#define DJINTERP_TEST_TEST_COUNTER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but core/util/counter/counter.hpp,
+// which it includes, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <limits>
 #include <tuple>
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "../core/util/counter/counter.hpp"
 #include "../core/event/event_dispatcher.hpp"
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 
 NS_DJINTERP
@@ -65,7 +76,7 @@ NS_TEST
 //   class: a bounded, nestable counter for test instrumentation
 // with optional event dispatch.
 //
-//   Wraps util::counter<_ValueType> for core value tracking.
+//   Wraps util::counter<ValueType> for core value tracking.
 // Fires events through an optional event_dispatcher pointer on
 // increment, decrement, bound clamping, and reset.
 //
@@ -80,20 +91,20 @@ NS_TEST
 //   eh.bind<test_counter<int>::on_increment>(
 //       [](int old_v, int new_v) { ... });
 //   c.increment(5);       // fires on_increment(0, 5)
-template<typename _ValueType = std::int64_t>
+template<typename ValueType = re_std::int64_t>
 class test_counter
 {
-    static_assert(std::is_arithmetic<_ValueType>::value,
-                  "`_ValueType` must be an arithmetic type.");
+    static_assert(std::is_arithmetic<ValueType>::value,
+                  "`ValueType` must be an arithmetic type.");
 
 private:
-    using self_type     = test_counter<_ValueType>;
-    using base_type     = counter<_ValueType>;
+    using self_type     = test_counter<ValueType>;
+    using base_type     = counter<ValueType>;
     using children_type = std::vector<self_type>;
     using observed_type = std::vector<self_type*>;
 
 public:
-    using value_type = _ValueType;
+    using value_type = ValueType;
     using size_type  = std::size_t;
 
     // -----------------------------------------------------------------
@@ -434,16 +445,16 @@ private:
     // emit
     //   fires an event through the attached handler if one is
     // present.  No-op when m_handler is nullptr.
-    template<typename    _Event,
-             typename... _Args>
+    template<typename    Event,
+             typename... Args>
     void
     emit(
-        _Args... _args
+        Args... _args
     )
     {
         if (m_handler)
         {
-            m_handler->fire<_Event>(_args...);
+            m_handler->fire<Event>(_args...);
         }
 
         return;
@@ -460,5 +471,7 @@ private:
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_COUNTER_
+
+#endif  // DJINTERP_TEST_TEST_COUNTER_HPP

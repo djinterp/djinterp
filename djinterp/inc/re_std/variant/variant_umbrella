@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                       variant
+/*******************************************************************************
+* djinterp [re_std]                                             variant_umbrella
 *
 * variant umbrella header:
 *   Convenience header that #includes every granular module under
@@ -36,26 +36,27 @@
 *     - Full constexpr surface
 *
 *
-* path:      /inc/djinterp/re_std/variant
+* path:      /inc/re_std/variant/variant_umbrella
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_UMBRELLA_
-#define DJINTERP_RE_STD_VARIANT_UMBRELLA_ 1
+#ifndef RE_STD_VARIANT_VARIANT_UMBRELLA
+#define RE_STD_VARIANT_VARIANT_UMBRELLA 1
 
-#include "./variant/monostate.hpp"
-#include "./variant/bad_variant_access.hpp"
-#include "./variant/variant_npos.hpp"
-#include "./variant/variant_size.hpp"
-#include "./variant/variant_alternative.hpp"
-#include "./variant/variant.hpp"
-#include "./variant/holds_alternative.hpp"
-#include "./variant/variant_get.hpp"
-#include "./variant/variant_get_if.hpp"
-#include "./variant/visit.hpp"
-#include "./variant/variant_compare.hpp"
-#include "./variant/variant_swap.hpp"
+#include "./monostate.hpp"
+#include "./bad_variant_access.hpp"
+#include "./variant_npos.hpp"
+#include "./variant_size.hpp"
+#include "./variant_alternative.hpp"
+#include "./variant.hpp"
+#include "./holds_alternative.hpp"
+#include "./variant_get.hpp"
+#include "./variant_get_if.hpp"
+#include "./visit.hpp"
+#include "./variant_compare.hpp"
+#include "./variant_swap.hpp"
 
 
-#endif  // DJINTERP_RE_STD_VARIANT_UMBRELLA_
+#endif  // RE_STD_VARIANT_VARIANT_UMBRELLA

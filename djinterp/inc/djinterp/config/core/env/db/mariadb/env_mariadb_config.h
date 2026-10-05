@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [db][config]                                   env_mariadb_config.h
+/*******************************************************************************
+* djinterp [db][config]                                     env_mariadb_config.h
 *
 * Per-module configuration for env_mariadb.h. Owns all D_CFG_ENV_MARIADB_*
 * defaults and the pre-defined-detection auto-activation logic for

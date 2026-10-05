@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                           array_compare.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            array_compare.hpp
 *
 * array comparison operators header:
-*   Provides the six legacy relational operators for array<_Type, _Size>:
+*   Provides the six legacy relational operators for array<Type, Size>:
 *   operator== (element-wise equality), operator!= (defined as !(==)),
 *   operator< (lexicographic less-than), and operator<=, operator>,
 *   operator>= (defined via the canonical reflection through op<).
@@ -23,37 +23,36 @@
 *     for-loops directly.
 *
 *   ELEMENT-TYPE REQUIREMENTS:
-*   _Type must be EqualityComparable for op== / op!=, and
+*   Type must be EqualityComparable for op== / op!=, and
 * LessThanComparable for op< and friends. Mismatches produce
 * compile errors at the instantiation site of the relevant operator.
 * No SFINAE constraint — matches std and avoids dragging in the
 * has_op_eq / has_op_lt trait infrastructure.
 *
 *
-* path:      /inc/djinterp/re_std/array/array_compare.hpp
+* path:      /inc/re_std/array/array_compare.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ARRAY_COMPARE_
-#define DJINTERP_RE_STD_ARRAY_COMPARE_ 1
+#ifndef RE_STD_ARRAY_ARRAY_COMPARE_HPP
+#define RE_STD_ARRAY_ARRAY_COMPARE_HPP 1
 
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// std
 #include <cstddef>
-
-#include "../../core/djinterp.hpp"
+// re_std
 #include "./array.hpp"
 
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14   constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
-
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -63,15 +62,15 @@ NS_RESTD
 // operator==
 //   function: true if every pair of corresponding elements compares
 // equal. Zero-size arrays always compare equal.
-template<typename    _Type,
-         std::size_t _Size>
-D_CONSTEXPR_CPP14 bool
+template<typename    Type,
+         std::size_t Size>
+RE_STD_CONSTEXPR_CPP14 bool
 operator==(
-    array<_Type, _Size> const& _lhs,
-    array<_Type, _Size> const& _rhs
+    array<Type, Size> const& _lhs,
+    array<Type, Size> const& _rhs
 )
 {
-    for (std::size_t _i = 0; _i < _Size; ++_i)
+    for (std::size_t _i = 0; _i < Size; ++_i)
     {
         if (!(_lhs[_i] == _rhs[_i]))
         {
@@ -86,12 +85,12 @@ operator==(
 //   function: defined as !(_lhs == _rhs). On C++20 the standard
 // synthesises this from op<=>; re_std keeps it explicit so user
 // code compiled at C++11–C++17 can still rely on it.
-template<typename    _Type,
-         std::size_t _Size>
-D_CONSTEXPR_CPP14 bool
+template<typename    Type,
+         std::size_t Size>
+RE_STD_CONSTEXPR_CPP14 bool
 operator!=(
-    array<_Type, _Size> const& _lhs,
-    array<_Type, _Size> const& _rhs
+    array<Type, Size> const& _lhs,
+    array<Type, Size> const& _rhs
 )
 {
     return !(_lhs == _rhs);
@@ -106,15 +105,15 @@ operator!=(
 //   function: lexicographic less-than. Element-wise comparison
 // using operator<; returns the result of the first mismatched pair.
 // note: zero-size arrays compare equal, so op< returns false.
-template<typename    _Type,
-         std::size_t _Size>
-D_CONSTEXPR_CPP14 bool
+template<typename    Type,
+         std::size_t Size>
+RE_STD_CONSTEXPR_CPP14 bool
 operator<(
-    array<_Type, _Size> const& _lhs,
-    array<_Type, _Size> const& _rhs
+    array<Type, Size> const& _lhs,
+    array<Type, Size> const& _rhs
 )
 {
-    for (std::size_t _i = 0; _i < _Size; ++_i)
+    for (std::size_t _i = 0; _i < Size; ++_i)
     {
         if (_lhs[_i] < _rhs[_i])  return true;
         if (_rhs[_i] < _lhs[_i])  return false;
@@ -125,12 +124,12 @@ operator<(
 
 // operator<=
 //   function: defined as !(_rhs < _lhs).
-template<typename    _Type,
-         std::size_t _Size>
-D_CONSTEXPR_CPP14 bool
+template<typename    Type,
+         std::size_t Size>
+RE_STD_CONSTEXPR_CPP14 bool
 operator<=(
-    array<_Type, _Size> const& _lhs,
-    array<_Type, _Size> const& _rhs
+    array<Type, Size> const& _lhs,
+    array<Type, Size> const& _rhs
 )
 {
     return !(_rhs < _lhs);
@@ -138,12 +137,12 @@ operator<=(
 
 // operator>
 //   function: defined as _rhs < _lhs.
-template<typename    _Type,
-         std::size_t _Size>
-D_CONSTEXPR_CPP14 bool
+template<typename    Type,
+         std::size_t Size>
+RE_STD_CONSTEXPR_CPP14 bool
 operator>(
-    array<_Type, _Size> const& _lhs,
-    array<_Type, _Size> const& _rhs
+    array<Type, Size> const& _lhs,
+    array<Type, Size> const& _rhs
 )
 {
     return _rhs < _lhs;
@@ -151,19 +150,21 @@ operator>(
 
 // operator>=
 //   function: defined as !(_lhs < _rhs).
-template<typename    _Type,
-         std::size_t _Size>
-D_CONSTEXPR_CPP14 bool
+template<typename    Type,
+         std::size_t Size>
+RE_STD_CONSTEXPR_CPP14 bool
 operator>=(
-    array<_Type, _Size> const& _lhs,
-    array<_Type, _Size> const& _rhs
+    array<Type, Size> const& _lhs,
+    array<Type, Size> const& _rhs
 )
 {
     return !(_lhs < _rhs);
 }
 
 
-NS_END  // re_std
+}  // re_std
+
+#endif  // floor, for now
 
 
-#endif  // DJINTERP_RE_STD_ARRAY_COMPARE_
+#endif  // RE_STD_ARRAY_ARRAY_COMPARE_HPP

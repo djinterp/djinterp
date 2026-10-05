@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                in_place_type.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            in_place_type.hpp
 *
 * in_place_type tag type and variable:
 *   Disambiguating tag for type-tagged in-place construction in
@@ -10,7 +10,7 @@
 *
 *   Provided as a class template (in_place_type_t<T>) plus a variable
 * template (in_place_type<T>) on C++14+. The variable template is
-* gated on D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES; on C++11 only
+* gated on RE_STD_LANG_HAS_VARIABLE_TEMPLATES; on C++11 only
 * the type is available, and callers must construct in_place_type_t<T>{}
 * explicitly.
 *
@@ -19,19 +19,22 @@
 * since variant itself is planned at C++11+.
 *
 *
-* path:      /inc/djinterp/re_std/utility/in_place_type.hpp
+* path:      /inc/re_std/utility/in_place_type.hpp
 * link(s):   TBA
-* author(s): re_std team                                 date: 2026.05.02
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_IN_PLACE_TYPE_
-#define DJINTERP_RE_STD_UTILITY_IN_PLACE_TYPE_ 1
+#ifndef RE_STD_UTILITY_IN_PLACE_TYPE_HPP
+#define RE_STD_UTILITY_IN_PLACE_TYPE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-NS_RESTD
+namespace re_std
+{
 
 // =============================================================================
 // IN_PLACE_TYPE
@@ -42,30 +45,30 @@ NS_RESTD
 //   explicit constexpr default constructor so brace-initialisation of
 //   a variant from {} cannot accidentally select an in_place_type_t
 //   constructor.
-template<typename _Type>
+template<typename Type>
 struct in_place_type_t
 {
-    explicit D_CONSTEXPR in_place_type_t() noexcept
+    explicit RE_STD_CONSTEXPR in_place_type_t() noexcept
     {}
 };
 
 // in_place_type
 //   variable: template variable yielding a default-constructed
-//   in_place_type_t<_Type>. Inline on C++17+ for single-instance
+//   in_place_type_t<Type>. Inline on C++17+ for single-instance
 //   linkage; on C++14 each TU gets its own copy (harmless because
 //   in_place_type_t is stateless).
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-    template<typename _Type>
-    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    template<typename Type>
+    #if RE_STD_LANG_IS_CPP17_OR_HIGHER
     inline
     #endif
-    D_CONSTEXPR in_place_type_t<_Type> in_place_type{};
+    RE_STD_CONSTEXPR in_place_type_t<Type> in_place_type{};
 
 #endif
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_UTILITY_IN_PLACE_TYPE_
+#endif  // RE_STD_UTILITY_IN_PLACE_TYPE_HPP

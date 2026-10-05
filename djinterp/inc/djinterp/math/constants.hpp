@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                constants.hpp
+/*******************************************************************************
+* djinterp [math]                                                  constants.hpp
 *
 * Mathematical constants, compile-time rationals, and number bases.
 *   This is the single source of truth for numeric constants across the math
@@ -11,13 +11,15 @@
 *   Also provides a value-holding compile-time rational number (an expression
 * leaf) and the number_base / radix system.
 *
+*
 * path:      /inc/djinterp/math/constants.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.04
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.04
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CONSTANTS_
-#define DJINTERP_MATH_CONSTANTS_ 1
+#ifndef DJINTERP_MATH_CONSTANTS_HPP
+#define DJINTERP_MATH_CONSTANTS_HPP 1
 
 // std
 #include <cstddef>
@@ -371,4 +373,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_CONSTANTS_
+#endif  // DJINTERP_MATH_CONSTANTS_HPP

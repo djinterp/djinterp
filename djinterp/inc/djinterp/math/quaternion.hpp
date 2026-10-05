@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                              quaternion.hpp
+/*******************************************************************************
+* djinterp [math]                                                 quaternion.hpp
 *
 * Unit quaternions for representing and composing 3D rotations without gimbal
 * lock.
@@ -21,17 +21,20 @@
 * square root (from_axis_angle, norm, normalize, slerp) are ordinary runtime
 * functions, mirroring the scalar kernel split elsewhere in the subframework.
 *
+*
 * path:      /inc/djinterp/math/quaternion.hpp
-* link:      TBA
-* author(s): TBA                                           created: 2026.06.18
-******************************************************************************/
+* link(s):   TBA
+* author(s): TBA                                             created: 2026.06.18
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_QUATERNION_
-#define DJINTERP_MATH_QUATERNION_ 1
+#ifndef DJINTERP_MATH_QUATERNION_HPP
+#define DJINTERP_MATH_QUATERNION_HPP 1
 
 // std
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
+// djinterp
 // djinterp [math]
 #include "./math_common.hpp"
 #include "./linear_algebra/vector.hpp"
@@ -344,4 +347,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_QUATERNION_
+#endif  // DJINTERP_MATH_QUATERNION_HPP

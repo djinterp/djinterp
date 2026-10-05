@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             make_tuple.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               make_tuple.hpp
 *
 * make_tuple factory header:
 *   Creates a tuple object, deducing element types from the arguments
@@ -27,72 +27,75 @@
 * ref is the composable form.
 *
 *
-* path:      /inc/djinterp/re_std/tuple/make_tuple.hpp
+* path:      /inc/re_std/tuple/make_tuple.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_MAKE_TUPLE_
-#define DJINTERP_RE_STD_TUPLE_MAKE_TUPLE_ 1
+#ifndef RE_STD_TUPLE_MAKE_TUPLE_HPP
+#define RE_STD_TUPLE_MAKE_TUPLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
+
+
+// re_std
 #include "./tuple.hpp"
 #include "../type_traits/decay.hpp"
 // decay + reference_wrapper unwrap, per [tuple.creation]/p2
 #include "../functional/unwrap_ref_decay.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   MAKE_TUPLE
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // make_tuple_decay
-    //   helper: the [tuple.creation] Vi computation -- decay, then
+    //   trait: the [tuple.creation] Vi computation -- decay, then
     // collapse reference_wrapper<X> to X&. Kept as a named alias
     // rather than using unwrap_ref_decay directly at the call site so
     // the standard's Vi notation stays visible in the signature.
-    template<typename _T>
+    template<typename T>
     struct make_tuple_decay
     {
-        typedef typename re_std::unwrap_ref_decay<_T>::type type;
+        typedef typename re_std::unwrap_ref_decay<T>::type type;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // make_tuple
 //   function: creates a tuple from forwarded arguments. Element types
 // are computed via internal::make_tuple_decay, i.e. decay followed by
 // reference_wrapper unwrap.
-template<typename... _Types>
-D_CONSTEXPR
-tuple<typename internal::make_tuple_decay<_Types>::type...>
+template<typename... Types>
+RE_STD_CONSTEXPR
+tuple<typename internal::make_tuple_decay<Types>::type...>
 make_tuple(
-    _Types&&... _args
+    Types&&... _args
 )
 {
-    return tuple<typename internal::make_tuple_decay<_Types>::type...>(
-        static_cast<_Types&&>(_args)...);
+    return tuple<typename internal::make_tuple_decay<Types>::type...>(
+        static_cast<Types&&>(_args)...);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_MAKE_TUPLE_
+#endif  // RE_STD_TUPLE_MAKE_TUPLE_HPP

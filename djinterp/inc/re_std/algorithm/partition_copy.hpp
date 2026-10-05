@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           partition_copy.hpp
 *
 * partition_copy algorithm header:
@@ -13,16 +13,17 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/partition_copy.hpp
+* path:      /inc/re_std/algorithm/partition_copy.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_PARTITION_COPY_
-#define DJINTERP_RE_STD_ALGORITHM_PARTITION_COPY_ 1
+#ifndef RE_STD_ALGORITHM_PARTITION_COPY_HPP
+#define RE_STD_ALGORITHM_PARTITION_COPY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../utility/pair.hpp"
 
@@ -31,16 +32,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -51,17 +45,17 @@ NS_RESTD
 //   function: copies each element of [_first, _last) into one of two
 // output ranges based on _pred. Returns pair(end_of_true_out,
 // end_of_false_out).
-template<typename _InputIt,
-         typename _OutputItTrue,
-         typename _OutputItFalse,
-         typename _Pred>
-D_CONSTEXPR_CPP14 pair<_OutputItTrue, _OutputItFalse>
+template<typename InputIt,
+         typename OutputItTrue,
+         typename OutputItFalse,
+         typename Pred>
+RE_STD_CONSTEXPR_CPP14 pair<OutputItTrue, OutputItFalse>
 partition_copy(
-    _InputIt        _first,
-    _InputIt        _last,
-    _OutputItTrue   _d_first_true,
-    _OutputItFalse  _d_first_false,
-    _Pred           _pred
+    InputIt        _first,
+    InputIt        _last,
+    OutputItTrue   _d_first_true,
+    OutputItFalse  _d_first_false,
+    Pred           _pred
 )
 {
     for (; _first != _last; ++_first)
@@ -78,11 +72,11 @@ partition_copy(
         }
     }
 
-    return pair<_OutputItTrue, _OutputItFalse>(_d_first_true, _d_first_false);
+    return pair<OutputItTrue, OutputItFalse>(_d_first_true, _d_first_false);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_PARTITION_COPY_
+#endif  // RE_STD_ALGORITHM_PARTITION_COPY_HPP

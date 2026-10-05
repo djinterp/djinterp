@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                        output_packaging.hpp
+/*******************************************************************************
+* djinterp [core]                                           output_packaging.hpp
 *
 *   The runtime packaging vocabulary the document-output stack consumes:
 * document_bundle collects a run's documents and drives them through this
@@ -39,36 +39,47 @@
 * than failing to compile.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    PACK MODE               (pack_mode)
-* II.   NAMING & SUFFIX HELPERS (codec_suffix / format_extension /
-*                                default_base_name)
-* III.  OUTPUT CONFIG           (output_config)
-* IV.   OUTPUT SINKS            (output_sink / disk_output_sink /
-*                                buffer_output_sink)
-*
-*
 * path:      /inc/djinterp/core/util/output/output_packaging.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_OUTPUT_PACKAGING_
-#define DJINTERP_UTILITY_OUTPUT_PACKAGING_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    PACK MODE               (pack_mode)
+      -----------------------------------
+
+II.   NAMING & SUFFIX HELPERS (codec_suffix / format_extension /
+      ----------------------------------------------------------
+
+      default_base_name)
+
+III.  OUTPUT CONFIG           (output_config)
+      ---------------------------------------
+
+IV.   OUTPUT SINKS            (output_sink / disk_output_sink /
+      ---------------------------------------------------------
+
+      buffer_output_sink)
+*/
+
+#ifndef DJINTERP_UTIL_OUTPUT_OUTPUT_PACKAGING_HPP
+#define DJINTERP_UTIL_OUTPUT_OUTPUT_PACKAGING_HPP 1
 
 // std
 #include <cstddef>
-#include <functional>
 #include <fstream>
+#include <functional>
 #include <sstream>
 #include <string>
 // djinterp
-#include "../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT, gates
-#include "../compress.hpp"           // byte_blob, status, codec_id, leaves
-#include "../archive.hpp"            // entry, entry_list, format_id, leaves
-#include "../compress_options.hpp"   // compress_options
-#include "../archive_options.hpp"    // archive_options
+#include "../../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT, gates
+#include "../compress/compress.hpp"           // byte_blob, status, codec_id, leaves
+#include "../archive/archive.hpp"            // entry, entry_list, format_id, leaves
+#include "../compress/compress_options.hpp"   // compress_options
+#include "../archive/archive_options.hpp"    // archive_options
 
 
 // output_packaging is the C++17 configuration face over the C++98 facades;
@@ -374,4 +385,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-#endif  // DJINTERP_UTILITY_OUTPUT_PACKAGING_
+#endif  // DJINTERP_UTIL_OUTPUT_OUTPUT_PACKAGING_HPP

@@ -1,8 +1,9 @@
-/******************************************************************************
-* re_std [type_traits]                              is_corresponding_member.hpp
+/*******************************************************************************
+* djinterp [re_std]                                  is_corresponding_member.hpp
 *
+* is_corresponding_member trait header:
 *   common-initial-sequence member detection:
-*   `is_corresponding_member(m1, m2)` reports whether _StructA and _StructB are
+*   `is_corresponding_member(m1, m2)` reports whether StructA and StructB are
 * standard-layout, non-union class types and m1 and m2 name members at the same
 * position in their common initial sequence.  This is the query that makes
 * reading the common prefix of two struct types through a union well-defined,
@@ -23,23 +24,30 @@
 * file and closes the family.
 *
 *   STD IS C++20; re_std IS C++98 (constexpr from C++11).
-*   The builtin is accepted in every language mode; D_CONSTEXPR and D_NOEXCEPT
+*   The builtin is accepted in every language mode; RE_STD_CONSTEXPR and RE_STD_NOEXCEPT
 * widen the function from C++11 up, nine years ahead of std's C++20.
 *
 *   DEGRADATION (no #error, ever):
 *   Member offsets within a common initial sequence are not derivable from the
 * type system, so there is no sound non-trivial subset.  Without the builtin
 * the function exists and returns false unconditionally - never a false
-* positive - and D_RE_STD_HAS_IS_CORRESPONDING_MEMBER is 0 so callers can tell.
+* positive - and RE_STD_HAS_IS_CORRESPONDING_MEMBER is 0 so callers can tell.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_corresponding_member.hpp
+* path:      /inc/re_std/type_traits/is_corresponding_member.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.12
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_HPP
+#define RE_STD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./type_traits.hpp"
@@ -49,45 +57,46 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
+// RE_STD_HAS_IS_CORRESPONDING_MEMBER
 //   constant: 1 if the __builtin_is_corresponding_member builtin is
 // available.  Detected independently of the rest of the family for the same
 // reason as its three siblings: vendors shipped these four at different times.
-#ifndef D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
+#ifndef RE_STD_HAS_IS_CORRESPONDING_MEMBER
     #if defined(__has_builtin)
         #if __has_builtin(__builtin_is_corresponding_member)
-            #define D_RE_STD_HAS_IS_CORRESPONDING_MEMBER  1
+            #define RE_STD_HAS_IS_CORRESPONDING_MEMBER  1
         #endif
     #endif
 
-    #ifndef D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
-        #if ( defined(D_ENV_COMPILER_GCC) &&                                  \
-              D_ENV_COMPILER_VERSION_AT_LEAST(12, 0, 0) )
-            #define D_RE_STD_HAS_IS_CORRESPONDING_MEMBER  1
-        #elif ( defined(D_ENV_COMPILER_MSVC) &&                               \
-                D_ENV_COMPILER_VERSION_AT_LEAST(19, 29, 0) )
-            #define D_RE_STD_HAS_IS_CORRESPONDING_MEMBER  1
+    #ifndef RE_STD_HAS_IS_CORRESPONDING_MEMBER
+        #if ( defined(RE_STD_COMPILER_GCC) &&                                  \
+              RE_STD_COMPILER_VERSION_AT_LEAST(12, 0, 0) )
+            #define RE_STD_HAS_IS_CORRESPONDING_MEMBER  1
+        #elif ( defined(RE_STD_COMPILER_MSVC) &&                               \
+                RE_STD_COMPILER_VERSION_AT_LEAST(19, 29, 0) )
+            #define RE_STD_HAS_IS_CORRESPONDING_MEMBER  1
         #else
-            #define D_RE_STD_HAS_IS_CORRESPONDING_MEMBER  0
+            #define RE_STD_HAS_IS_CORRESPONDING_MEMBER  0
         #endif
-    #endif  // D_RE_STD_HAS_IS_CORRESPONDING_MEMBER (fallback)
-#endif  // D_RE_STD_HAS_IS_CORRESPONDING_MEMBER (outer guard)
+    #endif  // RE_STD_HAS_IS_CORRESPONDING_MEMBER (fallback)
+#endif  // RE_STD_HAS_IS_CORRESPONDING_MEMBER (outer guard)
 
 
-NS_RESTD
+namespace re_std
+{
 
 // is_corresponding_member
 //   function: true if m1 and m2 name members at the same position in the
-// common initial sequence of _StructA and _StructB.
-#if D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
+// common initial sequence of StructA and StructB.
+#if RE_STD_HAS_IS_CORRESPONDING_MEMBER
 
-    template<typename _StructA,
-             typename _StructB,
-             typename _MemberA,
-             typename _MemberB>
-    D_NODISCARD D_CONSTEXPR bool is_corresponding_member(
-        _MemberA _StructA::* m1,
-        _MemberB _StructB::* m2) D_NOEXCEPT
+    template<typename StructA,
+             typename StructB,
+             typename MemberA,
+             typename MemberB>
+    RE_STD_NODISCARD RE_STD_CONSTEXPR bool is_corresponding_member(
+        MemberA StructA::* m1,
+        MemberB StructB::* m2) RE_STD_NOEXCEPT
     {
         return __builtin_is_corresponding_member(m1, m2);
     }
@@ -98,18 +107,22 @@ NS_RESTD
     //   function: conservative stand-in used when the builtin is absent.
     // Always false.  Parameters are left unnamed so the degraded arm stays
     // -Wunused-parameter clean.
-    template<typename _StructA,
-             typename _StructB,
-             typename _MemberA,
-             typename _MemberB>
-    D_NODISCARD D_CONSTEXPR bool is_corresponding_member(
-        _MemberA _StructA::*,
-        _MemberB _StructB::*) D_NOEXCEPT
+    template<typename StructA,
+             typename StructB,
+             typename MemberA,
+             typename MemberB>
+    RE_STD_NODISCARD RE_STD_CONSTEXPR bool is_corresponding_member(
+        MemberA StructA::*,
+        MemberB StructB::*) RE_STD_NOEXCEPT
     {
         return false;
     }
 
-#endif  // D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
+#endif  // RE_STD_HAS_IS_CORRESPONDING_MEMBER
 
-NS_END  // re_std
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_
+}  // re_std
+
+#endif  // floor, for now
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                               math_symbols.h
+/*******************************************************************************
+* djinterp [core]                                                 math_symbols.h
 *
 * Mathematical symbols as UTF-8 string literals.
 *   Works in plain C99+ without embedding non-ASCII in your source.
@@ -30,15 +30,17 @@
 *   XIII. Brackets & Delimiters
 *   XIV.  Miscellaneous Mathematical
 *
-* path:      \inc\math\math_symbols.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2024.04.24
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/text/symbol/math_symbols.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.24
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_SYMBOLS_
-#define DJINTERP_MATH_SYMBOLS_ 1
+#ifndef DJINTERP_TEXT_SYMBOL_MATH_SYMBOLS_H
+#define DJINTERP_TEXT_SYMBOL_MATH_SYMBOLS_H 1
 
-#include "../../djinterp.h"
+#include "../../../c/djinterp.h"
 
 
 // ============================================================================
@@ -519,18 +521,18 @@
 #define D_SYM_MATH_RANGLE                   "\xE2\x9F\xA9"      // U+27E9
 #define D_SYM_MATH_DOUBLE_LANGLE            "\xE2\x9F\xAA"      // U+27EA
 #define D_SYM_MATH_DOUBLE_RANGLE            "\xE2\x9F\xAB"      // U+27EB
-																   
-// floor and ceiling											   
+
+// floor and ceiling
 #define D_SYM_MATH_LFLOOR                   "\xE2\x8C\x8A"      // U+230A
 #define D_SYM_MATH_RFLOOR                   "\xE2\x8C\x8B"      // U+230B
 #define D_SYM_MATH_LCEIL                    "\xE2\x8C\x88"      // U+2308
 #define D_SYM_MATH_RCEIL                    "\xE2\x8C\x89"      // U+2309
-																   
-// double brackets												   
+
+// double brackets
 #define D_SYM_MATH_LBRACKET_DBL             "\xE2\x9F\xA6"      // U+27E6
 #define D_SYM_MATH_RBRACKET_DBL             "\xE2\x9F\xA7"      // U+27E7
-																   
-// vertical bars												   
+
+// vertical bars
 #define D_SYM_MATH_VERT                     "\x7C"              // U+007C
 #define D_SYM_MATH_DOUBLE_VERT              "\xE2\x80\x96"      // U+2016
 #define D_SYM_MATH_TRIPLE_VERT              "\xE2\x81\x9D"      // U+205D
@@ -580,4 +582,4 @@
 #define D_SYM_MATH_REFERENCE_MARK           "\xE2\x80\xBB"      // U+203B
 
 
-#endif  // DJINTERP_MATH_SYMBOLS_
+#endif  // DJINTERP_TEXT_SYMBOL_MATH_SYMBOLS_H

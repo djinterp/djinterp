@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                          env_sqlite_config.h
+/*******************************************************************************
+* djinterp [core]                                            env_sqlite_config.h
 *
 * Per-module configuration for env_sqlite.h. Owns all D_CFG_ENV_SQLITE_*
 * defaults and the pre-defined-detection auto-activation logic for
@@ -11,7 +11,7 @@
 *   NOTE: SQLite has no official C++ header in the standard distribution,
 * so only C_PATH is provided.
 *
-* path:      /inc/djinterp/config/core/env/db/env_sqlite_config.h
+* path:      /inc/djinterp/config/core/env/db/sqlite/env_sqlite_config.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.22
 ******************************************************************************/

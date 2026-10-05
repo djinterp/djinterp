@@ -7,10 +7,11 @@
 * shared function-pointer typedefs, the global keyword vocabulary, and
 * negative-indexing types and macros.
 *
+*
 * path:      /inc/djinterp/c/djinterp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.09.22
+*                                                            revised: 2026.10.03
 *******************************************************************************/
 
 /*
@@ -45,6 +46,7 @@ TABLE OF CONTENTS
          1.  bool
          2.  D_RESTRICT
          3.  ssize_t
+         4.  D_LONG_LONG_DIAG_PUSH / D_LONG_LONG_DIAG_POP
     2.  Static assertion
          1.  D_STATIC_ASSERT
     3.  Qualifier kit
@@ -56,7 +58,6 @@ TABLE OF CONTENTS
          6.  C constexpr fallbacks
          7.  C inline-variable qualifiers
          8.  D_NOINLINE
-         9.  D_NODISCARD
     4.  Function pointers
          1.  fn_apply
          2.  fn_apply_context
@@ -101,15 +102,13 @@ TABLE OF CONTENTS
 #define DJINTERP_C_DJINTERP_H 1
 
 // std
-#include <limits.h>                          // LONG_MAX, LLONG_MAX
-#include <stddef.h>                          // size_t
-#include <stdint.h>                          // fixed-width integer types
+#include <limits.h>                    // LONG_MAX, LLONG_MAX, SSIZE_MAX
+#include <stddef.h>                    // size_t
 // djinterp
-#include "../env/env.h"                      // language/compiler/OS detection
-#include "../env/c/env_attributes.h"         // standard attribute detection
-#include "../env/c/env_vendor_attributes.h"  // vendor attribute detection
-#include "../config/cfg_qualifiers.h"        // qualifier configuration
-#include "./dmacro.h"                        // macro utilities
+#include "../env/env.h"                // language/compiler/OS detection
+#include "../env/c/env_attributes.h"   // D_NODISCARD
+#include "../config/cfg_qualifiers.h"  // qualifier configuration
+#include "./dmacro_token.h"            // D_CONCAT
 
 
 //==============================================================================
@@ -272,7 +271,7 @@ TABLE OF CONTENTS
     // C99 or newer - use the standard header
     // std
     #include <stdbool.h>  // bool, true, false
-#elif defined(__cplusplus)
+#elif D_ENV_LANG_USING_CPP
     // C++ has built-in bool
     // nothing to do, C++ already has bool, true, false
 #else
@@ -288,7 +287,7 @@ TABLE OF CONTENTS
 //   qualifier: portable restrict/no-alias spelling for C and C++.
 // `restrict` is a C keyword but not a C++ keyword. C uses the standard keyword;
 // C++ uses the compiler extension when one is available.
-#if !defined(__cplusplus)
+#if !D_ENV_LANG_USING_CPP
     #define D_RESTRICT restrict
 #elif ( defined(D_ENV_COMPILER_GCC) ||                                        \
         defined(D_ENV_COMPILER_CLANG) )
@@ -298,33 +297,78 @@ TABLE OF CONTENTS
 #else
     // unknown C++ compiler: no alias qualifier; correct but not optimal.
     #define D_RESTRICT
-#endif  // !defined(__cplusplus)
+#endif  // !D_ENV_LANG_USING_CPP
 
 // 2.1.3
 // ssize_t
-//   type: signed integer type corresponding to `size_t`.
-#ifndef _SSIZE_T_DEFINED
-    #ifndef _SSIZE_T
-        #ifndef __ssize_t_defined
-            #ifndef _SSIZE_T_
-                #ifndef ssize_t
-                    #if D_ENV_OS_USING_WINDOWS64
-                        typedef long long ssize_t;
-                        #define SSIZE_MAX LLONG_MAX
-                    #else
-                        typedef long ssize_t;
-                        #define SSIZE_MAX LONG_MAX
-                    #endif  // D_ENV_OS_USING_WINDOWS64
+//   type: signed integer type corresponding to `size_t`. The env layer decides
+// where it comes from: under the MSVC toolchain family (cl, clang-cl), whose C
+// runtime has none, it is declared here as the same type as the Windows SDK's
+// SSIZE_T (`long long` on 64-bit Windows, `long` on 32-bit); everywhere else,
+// MinGW included, it comes from <sys/types.h>. SSIZE_MAX is supplied where
+// <limits.h> left it out, as POSIX does unless POSIX names are enabled.
+//   D_SSIZE_T_DEFINED guards the block and is set once ssize_t is available by
+// either route; pre-define it to supply ssize_t some other way. It stands in
+// for the C libraries' own guards (_SSIZE_T_DEFINED, __ssize_t_defined, ...),
+// which are reserved identifiers and so cannot be defined here.
+#ifndef D_SSIZE_T_DEFINED
+    #define D_SSIZE_T_DEFINED 1
 
-                    #define _SSIZE_T_
-                    #define _SSIZE_T_DEFINED
-                    #define __ssize_t_defined
-                    #define _SSIZE_T
-                #endif  // ssize_t
-            #endif  // _SSIZE_T_
-        #endif  // __ssize_t_defined
-    #endif  // _SSIZE_T
-#endif  // _SSIZE_T_DEFINED
+    #if D_ENV_COMPILER_MSVC_FAMILY
+        #ifndef ssize_t
+            #if D_ENV_OS_USING_WINDOWS64
+                typedef long long ssize_t;
+            #else
+                typedef long ssize_t;
+            #endif
+        #endif  // ssize_t
+    #else
+        // posix
+        #include <sys/types.h>  // ssize_t
+    #endif
+
+    #ifndef SSIZE_MAX
+        #if D_ENV_OS_USING_WINDOWS64
+            #define SSIZE_MAX LLONG_MAX
+        #else
+            #define SSIZE_MAX LONG_MAX
+        #endif
+    #endif  // SSIZE_MAX
+#endif  // D_SSIZE_T_DEFINED
+
+// 2.1.4
+// D_LONG_LONG_DIAG_PUSH / D_LONG_LONG_DIAG_POP
+//   macro: bracket framework code that spells `long long` -- the type, a
+// cast to it, an LL literal -- so it builds without a diagnostic where `long
+// long` is an extension rather than standard: C++ before C++11 in the default
+// mode, under -pedantic. GCC and Clang do not report -Wlong-long between them
+// (Clang's -Wc++11-long-long is in that group); everywhere else, including
+// every C build (the floor is C99, which has the type) and every C++11 one,
+// the pair is empty. A user's own `long long` is the user's choice and is not
+// covered: a default-mode C++98 build that writes one needs -Wno-long-long
+// (decision 4.6).
+//   Whether the type exists at all is D_ENV_HAS_LONG_LONG's question, not the
+// pair's: the code it brackets is also gated on that, since ISO strict C++98
+// (-DD_CFG_ENV_ISO_STRICT=1) has no `long long`. A diagnostic is checked where
+// the code is expanded, so bracket the declaration or definition that spells
+// the type, not the macro it may come from.
+//   pre-definable: define both before including this header to override.
+#ifndef D_LONG_LONG_DIAG_PUSH
+    #if ( (D_ENV_HAS_LONG_LONG)                &&                             \
+          (D_ENV_LANG_USING_CPP)               &&                             \
+          (!D_ENV_LANG_IS_CPP11_OR_HIGHER)     &&                             \
+          ( (defined(D_ENV_COMPILER_GCC)) ||                                  \
+            (defined(D_ENV_COMPILER_CLANG)) ) )
+        #define D_LONG_LONG_DIAG_PUSH                                         \
+            _Pragma("GCC diagnostic push")                                    \
+            _Pragma("GCC diagnostic ignored \"-Wlong-long\"")
+        #define D_LONG_LONG_DIAG_POP                                          \
+            _Pragma("GCC diagnostic pop")
+    #else
+        #define D_LONG_LONG_DIAG_PUSH
+        #define D_LONG_LONG_DIAG_POP
+    #endif
+#endif  // D_LONG_LONG_DIAG_PUSH
 
 // 2.2    Static assertion
 //------------------------------------------------------------------------------
@@ -372,7 +416,9 @@ TABLE OF CONTENTS
 // C fallbacks for the constexpr and inline-variable families. Each is gated by
 // a D_INTERNAL_CFG_* switch from cfg_qualifiers.h (included above) and honors
 // a definition the user supplies first; D_CFG_TESTING comes from the config
-// layer.
+// layer. D_NODISCARD is not defined here: like every standard attribute it
+// comes from env_attributes.h, included above, which defines it once for
+// both languages.
 //   why `inline` needs care: in C++ / on MSVC an `inline` function is merged
 // across TUs (header-safe alone); in standard C a bare header `inline` emits
 // no symbol, so `static inline` is the only header-only-safe spelling (a bare
@@ -385,17 +431,9 @@ TABLE OF CONTENTS
 // outside testing, dropped in testing so functions stay real / breakpoint-
 // able / coverable, never at the cost of linker safety.
 
-// D_INTERNAL_QUAL_TESTING
-//   macro (internal): 0/1 testing signal. Respects a value already supplied by
-// cfg_qualifiers.h; otherwise uses the config layer's canonical D_CFG_TESTING,
-// and failing that normalizes the raw D_TESTING build flag (empty-safe).
-#ifndef D_INTERNAL_QUAL_TESTING
-    #if defined(D_CFG_TESTING)
-        #define D_INTERNAL_QUAL_TESTING     (D_CFG_TESTING == 1)
-    #else
-        #define D_INTERNAL_QUAL_TESTING     ((D_TESTING + 0) == 1)
-    #endif
-#endif  // D_INTERNAL_QUAL_TESTING
+// D_INTERNAL_QUAL_TESTING, the 0/1 testing signal the qualifiers below read,
+// is cfg_qualifiers.h's alone (included above, and it always defines it): a
+// fallback here was dead code and a second derivation of one config value.
 
 // D_INTERNAL_INLINE_QUAL
 //   macro (internal): the inline keyword, plus a force-inline hint outside
@@ -416,7 +454,7 @@ TABLE OF CONTENTS
 #elif ( defined(D_ENV_COMPILER_GCC) ||                                        \
         defined(D_ENV_COMPILER_CLANG) )
     // covers GCC, Clang, Apple Clang, and both Intel front-ends.
-    #if defined(__cplusplus)
+    #if D_ENV_LANG_USING_CPP
         // C++ inline is one merged definition -> linker-safe, no `static`.
         #if D_INTERNAL_QUAL_TESTING
             #define D_INTERNAL_INLINE_QUAL  inline
@@ -442,7 +480,7 @@ TABLE OF CONTENTS
     // `inline` exists in both languages at the floor, so there is no case
     // left in which it has to be spelled as nothing.
     #define D_INTERNAL_INLINE_QUAL          inline
-    #if defined(__cplusplus)
+    #if D_ENV_LANG_USING_CPP
         #define D_INTERNAL_INLINE_NEEDS_STATIC 0
     #else
         #define D_INTERNAL_INLINE_NEEDS_STATIC 1
@@ -507,7 +545,7 @@ TABLE OF CONTENTS
 //   macro: C linkage for a BLOCK of declarations: the form a header wants,
 // since it costs one line at each end rather than a qualifier on every line.
 // both expand to nothing under C, so a C-only build sees no trace of them and
-// the header needs no `#ifdef __cplusplus` of its own.
+// the header needs no language test of its own.
 //     D_EXTERN_C_BEGIN
 //     int d_foo(void);
 //     D_EXTERN_C_END
@@ -540,7 +578,7 @@ TABLE OF CONTENTS
 // before C23 (and C23 constexpr is objects-only), so provide header-safe
 // fallbacks for shared C/C++ headers. Defined directly (not by naive
 // composition) to avoid a double-`static` in C.
-#if ( !defined(__cplusplus) &&                                                \
+#if ( (!D_ENV_LANG_USING_CPP) &&                                              \
       (D_INTERNAL_CFG_CONSTEXPR == 1) )
     // D_CONSTEXPR
     //   qualifier: `constexpr` under C23, where it applies to objects only;
@@ -582,10 +620,10 @@ TABLE OF CONTENTS
 // with D_EXTERN_C, a shared C/C++ header can then write them unconditionally.
 // The C++ definitions, which are the ones that do something, live in
 // djinterp.hpp.
-//   guarded on !__cplusplus because djinterp.hpp includes THIS header first;
+//   guarded to C mode because djinterp.hpp includes THIS header first;
 // an unguarded definition here would win its #ifndef and silently disable the
 // C++17 spelling.
-#if !defined(__cplusplus)
+#if !D_ENV_LANG_USING_CPP
     // D_INLINE_VAR
     //   qualifier: empty, since C has no inline variables.
     #if ( !defined(D_INLINE_VAR) &&                                           \
@@ -613,53 +651,6 @@ TABLE OF CONTENTS
 #else
     #define D_NOINLINE
 #endif
-
-// 2.3.9
-// D_NODISCARD
-//   qualifier: indicates that a function return value should not be silently
-// discarded. The compiler will emit a warning (or error, depending
-// on settings) if the caller ignores the return value.
-//
-//   resolution order:
-//     1.  C++17  / C23  - [[nodiscard]] is standard.
-//     2.  __has_cpp_attribute / __has_c_attribute - catches compilers
-//         that support the attribute before the standard mandates it.
-//     3.  GCC / Clang - __attribute__((warn_unused_result)) in both
-//         C and C++ modes, all the way back to GCC 3.4 / Clang 3.0.
-//     4.  Everything else - empty (no diagnostic, but no breakage).
-//
-//   pre-definable: users may #define D_NODISCARD before including
-// this header to override the detected value.
-#ifndef D_NODISCARD
-    // standard attribute form
-    #if defined(__cplusplus)
-        #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-            #define D_NODISCARD [[nodiscard]]
-        #elif defined(__has_cpp_attribute)
-            #if __has_cpp_attribute(nodiscard)
-                #define D_NODISCARD [[nodiscard]]
-            #endif
-        #endif
-    #else
-        #if D_ENV_LANG_IS_C23_OR_HIGHER
-            #define D_NODISCARD [[nodiscard]]
-        #elif defined(__has_c_attribute)
-            #if __has_c_attribute(nodiscard)
-                #define D_NODISCARD [[nodiscard]]
-            #endif
-        #endif
-    #endif  // __cplusplus
-
-    // compiler-specific fallback
-    #ifndef D_NODISCARD
-        #if ( defined(D_ENV_COMPILER_GCC) ||                                  \
-              defined(D_ENV_COMPILER_CLANG) )
-            #define D_NODISCARD __attribute__((warn_unused_result))
-        #else
-            #define D_NODISCARD
-        #endif
-    #endif  // D_NODISCARD (fallback)
-#endif  // D_NODISCARD (outer guard)
 
 // 2.4    Function pointers
 //------------------------------------------------------------------------------
@@ -902,14 +893,17 @@ D_EXTERN_C_END
 // 5.3.2
 // D_NEG_IDX
 //   macro: given a negative index and the size of the vector (in number of
-// elements), returns the non-negative valid index equivalent.
+// elements), returns the non-negative valid index equivalent, as a size_t.
+// Both arms are size_t, so the result has one type whatever the signedness
+// of `_index`; for a negative `_index` the sum is taken in size_t, where it
+// wraps to exactly `_count` less the index's magnitude.
 //   note: this does not check if `_index` corresponds to a valid index within
 // the span of the vector; that must be done by the caller to avoid an
 // out-of-bounds index. Evaluates `_index` more than once.
 #define D_NEG_IDX(_index, _count)                                             \
     ( (_index) < 0                                                            \
-      ? (_count) + (_index)                                                   \
-      : (_index) )
+      ? (size_t)(_count) + (size_t)(_index)                                   \
+      : (size_t)(_index) )
 
 // 5.3.3
 // D_ARR_IDX

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [util]                                           atomic_counter.hpp
+/*******************************************************************************
+* djinterp [core]                                             atomic_counter.hpp
 *
 * Lock-free atomic counter with bounded increment/decrement.
 *   Uses std::atomic with CAS loops to enforce [min, max] bounds without
@@ -31,23 +31,32 @@
 *   Requires C++11 or later.  C++20 adds wait/notify support.
 *
 *
-* path:      /inc/djinterp/util/counter/atomic_counter.hpp
+* path:      /inc/djinterp/core/util/counter/atomic_counter.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_COUNTER_ATOMIC_
-#define DJINTERP_UTILITY_COUNTER_ATOMIC_ 1
+#ifndef DJINTERP_UTIL_COUNTER_ATOMIC_COUNTER_HPP
+#define DJINTERP_UTIL_COUNTER_ATOMIC_COUNTER_HPP 1
 
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <atomic>
-#include <cstdint>
 #include <limits>
 #include <type_traits>
-#include "../../djinterp.hpp"
+// djinterp
+#include "../../../djinterp.hpp"
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 
 NS_DJINTERP
-NS_UTIL
 
 
 // =========================================================================
@@ -62,18 +71,18 @@ NS_UTIL
 //   Does NOT support children or nesting.  Use mutex_counter for
 // hierarchical counters.
 //
-//   Template parameter `_ValueType` must be an integral type
+//   Template parameter `ValueType` must be an integral type
 // (floating-point atomics lack the required CAS semantics on most
 // platforms).
 // =========================================================================
-template<typename _ValueType = std::int64_t>
+template<typename ValueType = re_std::int64_t>
 class atomic_counter
 {
-    static_assert(std::is_integral_v<_ValueType>,
-                  "`_ValueType` must be an integral type.");
+    static_assert(std::is_integral_v<ValueType>,
+                  "`ValueType` must be an integral type.");
 
 public:
-    using value_type = _ValueType;
+    using value_type = ValueType;
 
     // --- policy descriptors (for trait compatibility) ---
     static constexpr bool is_threadsafe = true;
@@ -96,10 +105,10 @@ public:
     //   constructor: constructs with an initial value and optional
     // min/max bounds.
     atomic_counter(
-		value_type _initial,
-		value_type _min = std::numeric_limits<value_type>::lowest(),
-		value_type _max = std::numeric_limits<value_type>::max()
-	) noexcept
+        value_type _initial,
+        value_type _min = std::numeric_limits<value_type>::lowest(),
+        value_type _max = std::numeric_limits<value_type>::max()
+    ) noexcept
         : m_value(_initial),
           m_initial(_initial),
           m_min(_min),
@@ -122,10 +131,10 @@ public:
     // uses a CAS loop: loads the current value, computes the desired
     // value (clamped), and attempts to swap.  Retries on contention.
     bool increment(
-		value_type        _amount  = value_type{1},
-		std::memory_order _success = std::memory_order_acq_rel,
-		std::memory_order _failure = std::memory_order_acquire
-	) noexcept
+        value_type        _amount  = value_type{1},
+        std::memory_order _success = std::memory_order_acq_rel,
+        std::memory_order _failure = std::memory_order_acquire
+    ) noexcept
     {
         value_type current = m_value.load(
                                  std::memory_order_relaxed);
@@ -169,10 +178,10 @@ public:
     //   atomically decrements by `_amount`. returns false and clamps
     // to min if the operation would exceed the lower bound.
     bool decrement(
-		value_type        _amount  = value_type{1},
-		std::memory_order _success = std::memory_order_acq_rel,
-		std::memory_order _failure = std::memory_order_acquire
-	) noexcept
+        value_type        _amount  = value_type{1},
+        std::memory_order _success = std::memory_order_acq_rel,
+        std::memory_order _failure = std::memory_order_acquire
+    ) noexcept
     {
         value_type current = m_value.load(
                                  std::memory_order_relaxed);
@@ -214,11 +223,11 @@ public:
     // increment.  Returns the clamped-to value if the bound was hit.
     // `_succeeded` is set to false if clamping occurred.
     value_type fetch_increment(
-		bool&             _succeeded,
-		value_type        _amount  = value_type{1},
-		std::memory_order _success = std::memory_order_acq_rel,
-		std::memory_order _failure = std::memory_order_acquire
-	) noexcept
+        bool&             _succeeded,
+        value_type        _amount  = value_type{1},
+        std::memory_order _success = std::memory_order_acq_rel,
+        std::memory_order _failure = std::memory_order_acquire
+    ) noexcept
     {
         value_type current = m_value.load(
                                  std::memory_order_relaxed);
@@ -261,11 +270,11 @@ public:
     //   atomically decrements and returns the value BEFORE the
     // decrement.  `_succeeded` is set to false if clamping occurred.
     value_type fetch_decrement(
-		bool&             _succeeded,
-		value_type        _amount  = value_type{1},
-		std::memory_order _success = std::memory_order_acq_rel,
-		std::memory_order _failure = std::memory_order_acquire
-	) noexcept
+        bool&             _succeeded,
+        value_type        _amount  = value_type{1},
+        std::memory_order _success = std::memory_order_acq_rel,
+        std::memory_order _failure = std::memory_order_acquire
+    ) noexcept
     {
         value_type current = m_value.load(
                                  std::memory_order_relaxed);
@@ -307,9 +316,9 @@ public:
     // reset
     //   atomically stores the initial value.
     void reset(
-		std::memory_order _order =
-			std::memory_order_release
-	) noexcept
+        std::memory_order _order =
+            std::memory_order_release
+    ) noexcept
     {
         m_value.store(m_initial, _order);
 
@@ -323,9 +332,9 @@ public:
     // load
     //   returns the current counter value.
     value_type load(
-		std::memory_order _order =
-			std::memory_order_acquire
-	) const noexcept
+        std::memory_order _order =
+            std::memory_order_acquire
+    ) const noexcept
     {
         return m_value.load(_order);
     }
@@ -364,9 +373,9 @@ public:
     // at_min
     //   returns true if the counter is at or below its lower bound.
     bool at_min(
-		std::memory_order _order =
-			std::memory_order_acquire
-	) const noexcept
+        std::memory_order _order =
+            std::memory_order_acquire
+    ) const noexcept
     {
         return (m_value.load(_order) <= m_min);
     }
@@ -374,9 +383,9 @@ public:
     // at_max
     //   returns true if the counter is at or above its upper bound.
     bool at_max(
-		std::memory_order _order =
-			std::memory_order_acquire
-	) const noexcept
+        std::memory_order _order =
+            std::memory_order_acquire
+    ) const noexcept
     {
         return (m_value.load(_order) >= m_max);
     }
@@ -389,11 +398,11 @@ public:
     //   raw CAS passthrough for patterns not covered by
     // increment/decrement (e.g. conditional set).
     bool compare_exchange_weak(
-		value_type&       _expected,
-		value_type        _desired,
-		std::memory_order _success = std::memory_order_acq_rel,
-		std::memory_order _failure = std::memory_order_acquire
-	) noexcept
+        value_type&       _expected,
+        value_type        _desired,
+        std::memory_order _success = std::memory_order_acq_rel,
+        std::memory_order _failure = std::memory_order_acquire
+    ) noexcept
     {
         return m_value.compare_exchange_weak(
             _expected, _desired, _success, _failure);
@@ -402,11 +411,11 @@ public:
     // compare_exchange_strong
     //   strong CAS passthrough.
     bool compare_exchange_strong(
-		value_type&       _expected,
-		value_type        _desired,
-		std::memory_order _success = std::memory_order_acq_rel,
-		std::memory_order _failure = std::memory_order_acquire
-	) noexcept
+        value_type&       _expected,
+        value_type        _desired,
+        std::memory_order _success = std::memory_order_acq_rel,
+        std::memory_order _failure = std::memory_order_acquire
+    ) noexcept
     {
         return m_value.compare_exchange_strong(
             _expected, _desired, _success, _failure);
@@ -430,9 +439,9 @@ public:
     // wait
     //   blocks until the value differs from `_old`.
     void wait(
-		value_type        _old,
-		std::memory_order _order = std::memory_order_acquire
-	) const noexcept
+        value_type        _old,
+        std::memory_order _order = std::memory_order_acquire
+    ) const noexcept
     {
         m_value.wait(_old, _order);
     }
@@ -461,8 +470,8 @@ private:
 };
 
 
-NS_END  // util
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTILITY_COUNTER_ATOMIC_
+#endif  // DJINTERP_UTIL_COUNTER_ATOMIC_COUNTER_HPP

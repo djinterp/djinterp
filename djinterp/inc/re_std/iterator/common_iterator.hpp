@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [iterator]                                         common_iterator.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          common_iterator.hpp
 *
+* common_iterator class header:
 *   common_iterator - erases an iterator/sentinel pair into a single type.
 *
 *   WHY IT IS NEEDED.
@@ -36,52 +37,54 @@
 * iterator_traits and a union, both available at C++11.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/common_iterator.hpp
+* path:      /inc/re_std/iterator/common_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_COMMON_ITERATOR_
-#define DJINTERP_RE_STD_ITERATOR_COMMON_ITERATOR_ 1
+#ifndef RE_STD_ITERATOR_COMMON_ITERATOR_HPP
+#define RE_STD_ITERATOR_COMMON_ITERATOR_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
 #include "../memory/addressof.hpp"
 #include "./iterator_traits.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // common_iterator
-//   class: holds either an _Iter or a _Sent, presenting one iterator type.
-template<typename _Iter, typename _Sent>
+//   class: holds either an Iter or a Sent, presenting one iterator type.
+template<typename Iter, typename Sent>
 class common_iterator
 {
-    typedef iterator_traits<_Iter> _Traits;
+    typedef iterator_traits<Iter> _Traits;
 
     union
     {
-        _Iter m_iter;
-        _Sent m_sent;
+        Iter m_iter;
+        Sent m_sent;
     };
     bool m_is_iter;
 
     void destroy()
     {
-        if (m_is_iter) { m_iter.~_Iter(); }
-        else           { m_sent.~_Sent(); }
+        if (m_is_iter) { m_iter.~Iter(); }
+        else           { m_sent.~Sent(); }
         return;
     }
 
     void construct_from(const common_iterator& other)
     {
         m_is_iter = other.m_is_iter;
-        if (m_is_iter) { ::new (static_cast<void*>(re_std::addressof(m_iter))) _Iter(other.m_iter); }
-        else           { ::new (static_cast<void*>(re_std::addressof(m_sent))) _Sent(other.m_sent); }
+        if (m_is_iter) { ::new (static_cast<void*>(re_std::addressof(m_iter))) Iter(other.m_iter); }
+        else           { ::new (static_cast<void*>(re_std::addressof(m_sent))) Sent(other.m_sent); }
         return;
     }
 
@@ -94,9 +97,9 @@ public:
 
     common_iterator() : m_iter(), m_is_iter(true) {}
 
-    common_iterator(_Iter it) : m_iter(it), m_is_iter(true) {}
+    common_iterator(Iter it) : m_iter(it), m_is_iter(true) {}
 
-    common_iterator(_Sent se) : m_sent(se), m_is_iter(false) {}
+    common_iterator(Sent se) : m_sent(se), m_is_iter(false) {}
 
     common_iterator(const common_iterator& other) { construct_from(other); }
 
@@ -130,18 +133,18 @@ public:
         return tmp;
     }
 
-    bool holds_iterator() const D_NOEXCEPT { return m_is_iter; }
+    bool holds_iterator() const RE_STD_NOEXCEPT { return m_is_iter; }
 
-    const _Iter& iter() const { return m_iter; }
-    const _Sent& sent() const { return m_sent; }
+    const Iter& iter() const { return m_iter; }
+    const Sent& sent() const { return m_sent; }
 };
 
 // operator==
 //   function: three cases, and the sentinel/sentinel one is unconditionally
 // true - see the header note on why comparing the sentinels would be wrong.
-template<typename _Iter, typename _Sent>
-bool operator==(const common_iterator<_Iter, _Sent>& a,
-                const common_iterator<_Iter, _Sent>& b)
+template<typename Iter, typename Sent>
+bool operator==(const common_iterator<Iter, Sent>& a,
+                const common_iterator<Iter, Sent>& b)
 {
     if (a.holds_iterator() && b.holds_iterator())
     {
@@ -156,14 +159,14 @@ bool operator==(const common_iterator<_Iter, _Sent>& a,
                               : (b.iter() == a.sent());
 }
 
-template<typename _Iter, typename _Sent>
-bool operator!=(const common_iterator<_Iter, _Sent>& a,
-                const common_iterator<_Iter, _Sent>& b)
+template<typename Iter, typename Sent>
+bool operator!=(const common_iterator<Iter, Sent>& a,
+                const common_iterator<Iter, Sent>& b)
 {
     return !(a == b);
 }
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_ITERATOR_COMMON_ITERATOR_
+#endif  // RE_STD_ITERATOR_COMMON_ITERATOR_HPP

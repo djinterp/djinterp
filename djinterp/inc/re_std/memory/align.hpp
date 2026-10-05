@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                             align.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                    align.hpp
 *
 * runtime alignment helper:
 *   align(_alignment, _size, _ptr, _space) attempts to advance _ptr
@@ -17,33 +17,41 @@
 * added in std C++11; re_std matches the C++11 signature.
 *
 *
-* path:      /inc/djinterp/re_std/memory/align.hpp
+* path:      /inc/re_std/memory/align.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_ALIGN_
-#define DJINTERP_RE_STD_MEMORY_ALIGN_ 1
+#ifndef RE_STD_MEMORY_ALIGN_HPP
+#define RE_STD_MEMORY_ALIGN_HPP 1
 
-#include "djinterp.hpp"
-
-#include <cstddef>
-#include <cstdint>
+// std
+#include <cstddef>                 // size_t
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
+#include "../cstdint/cstdint.hpp"  // uintptr_t, and INTPTR_MAX when it exists
 
 
 namespace re_std
 {
 
+//   align needs an integer that round-trips a pointer. re_std's cstdint
+// provides uintptr_t where the target has one (INTPTR_MAX) -- from C++11
+// today, and at C++98 once it rests on dstdint.h (decision 4.7) -- and
+// align is absent where it does not.
+#ifdef INTPTR_MAX
+
 inline void* align(std::size_t _alignment,
                    std::size_t _size,
                    void*&      _ptr,
-                   std::size_t& _space) D_NOEXCEPT
+                   std::size_t& _space) RE_STD_NOEXCEPT
 {
     // Compute the offset needed to bring _ptr up to alignment.
     // Mask works because _alignment is required to be a power of two.
-    const std::uintptr_t _addr = reinterpret_cast<std::uintptr_t>(_ptr);
-    const std::uintptr_t _aligned_addr =
-        (_addr + _alignment - 1) & ~(static_cast<std::uintptr_t>(_alignment) - 1);
+    const uintptr_t _addr = reinterpret_cast<uintptr_t>(_ptr);
+    const uintptr_t _aligned_addr =
+        (_addr + _alignment - 1) & ~(static_cast<uintptr_t>(_alignment) - 1);
     const std::size_t _padding = static_cast<std::size_t>(_aligned_addr - _addr);
 
     if (_padding + _size > _space)
@@ -57,6 +65,7 @@ inline void* align(std::size_t _alignment,
 }
 
 
-}  // namespace re_std
+#endif  // INTPTR_MAX
 
-#endif  // DJINTERP_RE_STD_MEMORY_ALIGN_
+}  // re_std
+#endif  // RE_STD_MEMORY_ALIGN_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             test_handler.hpp
+/*******************************************************************************
+* djinterp [test]                                               test_handler.hpp
 *
 *   DTest framework session root.  Composes a typed `event_dispatcher` (from
 * the C++ event subsystem) with per-session result counters and a tree
@@ -71,9 +71,9 @@
 *     handler.clear_printer();         // unbinds (also done in dtor)
 *
 *   CONVENIENCE MACROS:
-*     D_TEST_ON(_handler, _Event, _lambda)        binds a listener
-*     D_TEST_FIRE(_handler, _Event, ...)          immediate dispatch
-*     D_TEST_QUEUE(_handler, _Event, ...)         deferred dispatch
+*     D_TEST_ON(_handler, Event, _lambda)        binds a listener
+*     D_TEST_FIRE(_handler, Event, ...)          immediate dispatch
+*     D_TEST_QUEUE(_handler, Event, ...)         deferred dispatch
 *
 *   PORTABILITY:
 *   C++11 minimum.  All standard-version gating goes through the env.h
@@ -84,22 +84,39 @@
 * event subsystem's static_assert path.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    PORTABILITY CHECKS
-* II.   FORWARD DECLARATIONS
-* III.  SESSION RESULTS
-* IV.   TEST HANDLER
-* V.    CONVENIENCE MACROS
-*
-*
 * path:      /inc/djinterp/test/test_handler.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.17
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_HANDLER_
-#define DJINTERP_TEST_HANDLER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    PORTABILITY CHECKS
+      ------------------
+
+II.   FORWARD DECLARATIONS
+      --------------------
+
+III.  SESSION RESULTS
+      ---------------
+
+IV.   TEST HANDLER
+      ------------
+
+V.    CONVENIENCE MACROS
+      ------------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_HANDLER_HPP
+#define DJINTERP_TEST_TEST_HANDLER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // =========================================================================
 // I.   INCLUDES AND PORTABILITY CHECKS
@@ -115,7 +132,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "../core/event/event_handler.hpp"
 #include "../core/event/event_dispatcher.hpp"
 #include "./test_common.hpp"
@@ -307,17 +324,17 @@ public:
     // ---- listener registration ----
 
     // on
-    //   binds a callable as a listener for _Event on this
+    //   binds a callable as a listener for Event on this
     // handler's event_dispatcher.  Returns the handler_id for
     // later enable / disable / unbind.
-    template<typename _Event,
-             typename _Callable>
+    template<typename Event,
+             typename Callable>
     handler_id on(
-        _Callable&& _fn
+        Callable&& _fn
     )
     {
-        return m_events.bind<_Event>(
-            std::forward<_Callable>(_fn));
+        return m_events.bind<Event>(
+            std::forward<Callable>(_fn));
     }
 
     // off
@@ -352,31 +369,31 @@ public:
     // ---- dispatch ----
 
     // fire
-    //   dispatches _Event immediately to every enabled
+    //   dispatches Event immediately to every enabled
     // listener.  Returns the number of listeners invoked
     // (the `invoked` field of the dispatcher's enriched
     // dispatch_result).
-    template<typename _Event,
-             typename... _Args>
+    template<typename Event,
+             typename... Args>
     std::size_t fire(
-        _Args&&... _args
+        Args&&... _args
     )
     {
-        return m_events.fire<_Event>(
-            std::forward<_Args>(_args)...).invoked;
+        return m_events.fire<Event>(
+            std::forward<Args>(_args)...).invoked;
     }
 
     // queue
-    //   enqueues _Event for later processing.  Arguments are
+    //   enqueues Event for later processing.  Arguments are
     // captured by value at enqueue time.
-    template<typename _Event,
-             typename... _Args>
+    template<typename Event,
+             typename... Args>
     void queue(
-        _Args&&... _args
+        Args&&... _args
     )
     {
-        m_events.queue<_Event>(
-            std::forward<_Args>(_args)...);
+        m_events.queue<Event>(
+            std::forward<Args>(_args)...);
 
         return;
     }
@@ -403,12 +420,12 @@ public:
 
     // has_listeners_for
     //   returns true if at least one listener is bound for
-    // _Event.  Cheap O(1) probe; intended for short-circuiting
+    // Event.  Cheap O(1) probe; intended for short-circuiting
     // expensive payload construction at fire sites.
-    template<typename _Event>
+    template<typename Event>
     bool has_listeners_for() const
     {
-        return m_events.has_handlers_for<_Event>();
+        return m_events.has_handlers_for<Event>();
     }
 
     // ---- printer wiring ----
@@ -466,7 +483,7 @@ public:
     // printer
     //   returns the currently attached printer, or nullptr if
     // none is attached.
-    D_CONSTEXPR test_printer*
+    D_CONSTEXPR_CPP14 test_printer*
     printer() const D_NOEXCEPT
     {
         return m_printer;
@@ -507,14 +524,14 @@ public:
     // and updating the session counters.  Brackets the walk
     // with start_session / end_session.
     //
-    // _Iterable must expose begin() / end() yielding values
+    // Iterable must expose begin() / end() yielding values
     // that satisfy the test_object protocol (status() and
     // type_id() accessors).  Each node's status is taken as
     // authoritative; the walk fires events and tallies, it
     // does not evaluate.
-    template<typename _Iterable>
+    template<typename Iterable>
     void run(
-        _Iterable& _nodes
+        Iterable& _nodes
     )
     {
         start_session();
@@ -557,42 +574,42 @@ public:
 
     // result
     //   returns the current session_result snapshot by value.
-    D_CONSTEXPR session_result result() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 session_result result() const D_NOEXCEPT
     {
         return m_result;
     }
 
     // passed
     //   returns the running passed count.
-    D_CONSTEXPR std::size_t passed() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 std::size_t passed() const D_NOEXCEPT
     {
         return m_result.passed;
     }
 
     // failed
     //   returns the running failed count.
-    D_CONSTEXPR std::size_t failed() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 std::size_t failed() const D_NOEXCEPT
     {
         return m_result.failed;
     }
 
     // skipped
     //   returns the running skipped count.
-    D_CONSTEXPR std::size_t skipped() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 std::size_t skipped() const D_NOEXCEPT
     {
         return m_result.skipped;
     }
 
     // errors
     //   returns the running error count.
-    D_CONSTEXPR std::size_t errors() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 std::size_t errors() const D_NOEXCEPT
     {
         return m_result.errors;
     }
 
     // pending
     //   returns the running pending count.
-    D_CONSTEXPR std::size_t pending() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 std::size_t pending() const D_NOEXCEPT
     {
         return m_result.pending;
     }
@@ -600,7 +617,7 @@ public:
     // total
     //   returns the total nodes observed across all status
     // categories.
-    D_CONSTEXPR std::size_t total() const D_NOEXCEPT
+    D_CONSTEXPR_CPP14 std::size_t total() const D_NOEXCEPT
     {
         return m_result.total;
     }
@@ -808,17 +825,17 @@ private:
     // fire_if_listened
     //   short-circuits the no-listener path: skips payload
     // construction and the dispatch call entirely when no
-    // listeners are bound for _Event.
-    template<typename _Event,
-             typename... _Args>
+    // listeners are bound for Event.
+    template<typename Event,
+             typename... Args>
     void fire_if_listened(
-        _Args&&... _args
+        Args&&... _args
     )
     {
-        if (m_events.has_handlers_for<_Event>())
+        if (m_events.has_handlers_for<Event>())
         {
-            m_events.fire<_Event>(
-                std::forward<_Args>(_args)...);
+            m_events.fire<Event>(
+                std::forward<Args>(_args)...);
         }
 
         return;
@@ -906,25 +923,27 @@ protected:
 
 // D_TEST_ON
 //   macro: shorthand for binding a listener.  Mirrors
-// `_handler.on<_Event>(_lambda)` while keeping call sites tight.
-#define D_TEST_ON(_handler, _Event, _lambda)                                  \
-    (_handler).template on<_Event>(_lambda)
+// `_handler.on<Event>(_lambda)` while keeping call sites tight.
+#define D_TEST_ON(_handler, Event, _lambda)                                  \
+    (_handler).template on<Event>(_lambda)
 
 // D_TEST_FIRE
 //   macro: shorthand for immediate dispatch.  Mirrors
-// `_handler.fire<_Event>(...)`.
-#define D_TEST_FIRE(_handler, _Event, ...)                                    \
-    (_handler).template fire<_Event>(__VA_ARGS__)
+// `_handler.fire<Event>(...)`.
+#define D_TEST_FIRE(_handler, Event, ...)                                    \
+    (_handler).template fire<Event>(__VA_ARGS__)
 
 // D_TEST_QUEUE
 //   macro: shorthand for deferred dispatch.  Mirrors
-// `_handler.queue<_Event>(...)`.
-#define D_TEST_QUEUE(_handler, _Event, ...)                                   \
-    (_handler).template queue<_Event>(__VA_ARGS__)
+// `_handler.queue<Event>(...)`.
+#define D_TEST_QUEUE(_handler, Event, ...)                                   \
+    (_handler).template queue<Event>(__VA_ARGS__)
 
 
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_HANDLER_
+
+#endif  // DJINTERP_TEST_TEST_HANDLER_HPP

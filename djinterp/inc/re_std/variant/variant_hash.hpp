@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [variant]                                            variant_hash.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             variant_hash.hpp
 *
+* variant_hash support header:
 *   hash<variant<Ts...>>.
 *
 *   THE INDEX MUST BE MIXED IN, not just the alternative's hash.
@@ -24,65 +25,72 @@
 *
 *   STD IS C++17; re_std IS C++11 - inherits variant's own floor.
 *
-* path:      /inc/djinterp/re_std/variant/variant_hash.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/variant/variant_hash.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_VARIANT_HASH_
-#define DJINTERP_RE_STD_VARIANT_VARIANT_HASH_ 1
+#ifndef RE_STD_VARIANT_VARIANT_HASH_HPP
+#define RE_STD_VARIANT_VARIANT_HASH_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../functional/hash.hpp"
 #include "./variant.hpp"
+#include "./variant_get.hpp"
 
-NS_RESTD
-NS_INTERNAL
+namespace re_std
+{
+namespace internal
+{
 
     // variant_hash_dispatch
     //   struct: linear index dispatch, so duplicate alternative types are
     // still hashed by the alternative actually held.
-    template<size_t _Index, size_t _Size>
+    template<size_t Index, size_t Size>
     struct variant_hash_dispatch
     {
-        template<typename _Variant>
-        static size_t apply(const _Variant& value, size_t index)
+        template<typename Variant>
+        static size_t apply(const Variant& value, size_t index)
         {
-            if (index == _Index)
+            if (index == Index)
             {
                 typedef typename remove_cv<
                     typename remove_reference<
-                        decltype(re_std::get<_Index>(value))>::type>::type _Alt;
-                return hash<_Alt>()(re_std::get<_Index>(value));
+                        decltype(re_std::get<Index>(value))>::type>::type _Alt;
+                return hash<_Alt>()(re_std::get<Index>(value));
             }
-            return variant_hash_dispatch<_Index + 1, _Size>::apply(value, index);
+            return variant_hash_dispatch<Index + 1, Size>::apply(value, index);
         }
     };
 
-    template<size_t _Size>
-    struct variant_hash_dispatch<_Size, _Size>
+    template<size_t Size>
+    struct variant_hash_dispatch<Size, Size>
     {
-        template<typename _Variant>
-        static size_t apply(const _Variant&, size_t) { return 0; }
+        template<typename Variant>
+        static size_t apply(const Variant&, size_t) { return 0; }
     };
 
-NS_END  // internal
+}  // internal
 
-// hash<variant<_Types...>>
+// hash<variant<Types...>>
 //   struct: hashes the index combined with the held alternative.
-template<typename... _Types>
-struct hash<variant<_Types...> >
+template<typename... Types>
+struct hash<variant<Types...> >
 {
-    typedef variant<_Types...> argument_type;
+    typedef variant<Types...> argument_type;
     typedef size_t             result_type;
 
     //   Arbitrary; chosen only to be unlikely to collide with a small hash.
     static const size_t k_valueless_hash = static_cast<size_t>(0x9E3779B9u);
 
-    size_t operator()(const variant<_Types...>& value) const
+    size_t operator()(const variant<Types...>& value) const
     {
         if (value.valueless_by_exception())
         {
@@ -90,7 +98,7 @@ struct hash<variant<_Types...> >
         }
         const size_t index = value.index();
         const size_t inner =
-            internal::variant_hash_dispatch<0, sizeof...(_Types)>::apply(
+            internal::variant_hash_dispatch<0, sizeof...(Types)>::apply(
                 value, index);
         //   Mix the index in - see the header note on variant<int,int>.
         return inner ^ (index * static_cast<size_t>(0x9E3779B9u)
@@ -98,8 +106,8 @@ struct hash<variant<_Types...> >
     }
 };
 
-NS_END
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_VARIANT_VARIANT_HASH_
+#endif  // RE_STD_VARIANT_VARIANT_HASH_HPP

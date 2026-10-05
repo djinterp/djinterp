@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [re_std]                                              string_view
+/*******************************************************************************
+* djinterp [re_std]                                                  string_view
 *
 * string_view umbrella header:
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/re_std/string_view/. Mirrors the standard <string_view>
+* /inc/re_std/string_view/. Mirrors the standard <string_view>
 * convenience header. This umbrella adds no symbols of its own.
 *
 *   GRANULARITY:
@@ -18,26 +18,39 @@
 * include char_traits.hpp directly for that.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    CHAR TRAITS
-* II.   BASIC_STRING_VIEW
-* III.  TYPE ALIASES
-* IV.   COMPARISON OPERATORS
-* V.    HASH SUPPORT
-* VI.   LITERAL OPERATORS
-*
-*
-* path:      /inc/djinterp/re_std/string_view/string_view
+* path:      /inc/re_std/string_view/string_view
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_STRING_VIEW_
-#define DJINTERP_RE_STD_STRING_VIEW_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    CHAR TRAITS
+      -----------
 
-// djinterp
-#include "../../core/djinterp.hpp"
+II.   BASIC_STRING_VIEW
+      -----------------
+
+III.  TYPE ALIASES
+      ------------
+
+IV.   COMPARISON OPERATORS
+      --------------------
+
+V.    HASH SUPPORT
+      ------------
+
+VI.   LITERAL OPERATORS
+      -----------------
+*/
+
+#ifndef RE_STD_STRING_VIEW_STRING_VIEW
+#define RE_STD_STRING_VIEW_STRING_VIEW 1
+
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // =============================================================================
@@ -82,4 +95,4 @@
 #include "./string_view_literals.hpp"
 
 
-#endif  // DJINTERP_RE_STD_STRING_VIEW_
+#endif  // RE_STD_STRING_VIEW_STRING_VIEW

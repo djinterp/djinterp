@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                              test_thread.hpp
+/*******************************************************************************
+* djinterp [test]                                                test_thread.hpp
 *
 *   Exception-capturing test thread: a managed thread wrapper for the
 * DTest framework that captures exceptions, records timings, and
@@ -43,42 +43,67 @@
 * to the single-threaded C++98 stub.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    THREAD STATE
-* II.   TEST THREAD
-* III.  THREAD GROUP
-* IV.   FACTORY HELPERS
-* V.    THREADSAFE-TESTABLE TRAITS      (folded: test_thread_traits.hpp)
-* VI.   THREADSAFE-TESTABLE CONCEPTS    (folded: test_thread_concepts.hpp)
-*
-*
 * path:      /inc/djinterp/test/sync/test_thread.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_THREAD_
-#define DJINTERP_TEST_THREAD_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    THREAD STATE
+      ------------
+
+II.   TEST THREAD
+      -----------
+
+III.  THREAD GROUP
+      ------------
+
+IV.   FACTORY HELPERS
+      ---------------
+
+V.    THREADSAFE-TESTABLE TRAITS      (folded: test_thread_traits.hpp)
+      ----------------------------------------------------------------
+
+VI.   THREADSAFE-TESTABLE CONCEPTS    (folded: test_thread_concepts.hpp)
+      ------------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_TEST_SYNC_TEST_THREAD_HPP
+#define DJINTERP_TEST_SYNC_TEST_THREAD_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but math/interval/closed_interval.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <exception>
 #include <string>
 
+// djinterp
+#include "../../djinterp.hpp"  // framework root: env, read by the gates below
+#include "../../core/meta/type_utility.hpp"  // void_t
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // fixed-width integers
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>
     #include <chrono>
     #include <functional>
     #include <thread>
+    #include <type_traits>
     #include <utility>
     #include <vector>
-    #include <type_traits>
 #endif
 
 // djinterp
-#include "../../core/djinterp.hpp"
 #include "../../core/sync/condvar.hpp"
 #include "../test_common.hpp"
 
@@ -87,8 +112,8 @@
 // stub path needs none of them.
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include "../../core/meta/type_traits.hpp"
-    #include "../../core/container/meta/threadsafe_container_traits.hpp"
-    #include "../../core/container/meta/concurrency_strategy_traits.hpp"
+    #include "../../core/container/traits/threadsafe_container_traits.hpp"
+    #include "../../core/container/traits/concurrency_strategy_traits.hpp"
 #endif
 
 
@@ -371,11 +396,11 @@ public:
     // true if the thread joined, false on timeout.  When false
     // is returned the thread is still running and must be
     // joined or detached separately.
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     bool
     try_join_for(
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     )
     {
         if (!m_thread.joinable())
@@ -815,11 +840,11 @@ public:
     //   attempts to join all threads within _timeout.
     // Returns true if every thread joined.  Threads that
     // did not finish are left running.
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     bool
     try_join_all_for(
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     )
     {
         bool all_joined = true;
@@ -954,33 +979,33 @@ private:
 // make_test_thread
 //   function: convenience constructor for an anonymous
 // test_thread bound to a worker callable.
-template<typename _Worker>
+template<typename Worker>
 inline test_thread
 make_test_thread(
     std::size_t _id,
-    _Worker&&   _worker
+    Worker&&   _worker
 )
 {
     return test_thread(_id,
                        test_thread::worker_fn(
-                           static_cast<_Worker&&>(_worker)));
+                           static_cast<Worker&&>(_worker)));
 }
 
 // make_named_test_thread
 //   function: convenience constructor for a named
 // test_thread.
-template<typename _Worker>
+template<typename Worker>
 inline test_thread
 make_named_test_thread(
     std::size_t _id,
     std::string _name,
-    _Worker&&   _worker
+    Worker&&   _worker
 )
 {
     return test_thread(_id,
                        static_cast<std::string&&>(_name),
                        test_thread::worker_fn(
-                           static_cast<_Worker&&>(_worker)));
+                           static_cast<Worker&&>(_worker)));
 }
 
 #endif  // C++11
@@ -1011,15 +1036,15 @@ NS_TRAITS
 // the test classification stays in lockstep with the
 // container classification.
 
-using ::has_concurrency_strategy_tag;
-using ::has_read_lock_method;
-using ::has_write_lock_method;
-using ::has_snapshot_method;
-using ::has_cow_state_type;
-using ::has_rcu_protected_type;
-using ::has_epoch_type;
-using ::has_hazard_domain_type;
-using ::has_atomic_load_at;
+using ::djinterp::has_concurrency_strategy_tag;
+using ::djinterp::has_read_lock_method;
+using ::djinterp::has_write_lock_method;
+using ::djinterp::has_snapshot_method;
+using ::djinterp::has_cow_state_type;
+using ::djinterp::has_rcu_protected_type;
+using ::djinterp::has_epoch_type;
+using ::djinterp::has_hazard_domain_type;
+using ::djinterp::has_atomic_load_at;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1032,17 +1057,17 @@ using ::has_atomic_load_at;
 // has_mutex_type for symmetry with the rest of this
 // header's nested-alias detection family.
 
-using ::has_lock_policy_type;
-using ::has_atomic_size_type;
-using ::has_atomic_version_type;
+using ::djinterp::has_lock_policy_type;
+using ::djinterp::has_atomic_size_type;
+using ::djinterp::has_atomic_version_type;
 
 // has_mutex_type
 //   alias: presence-detection for a `mutex_type` nested
 // alias.  Same predicate as upstream
 // `has_mutex_type_alias`, exposed here under
 // a shorter name.
-template<typename _Type>
-using has_mutex_type = ::has_mutex_type_alias<_Type>;
+template<typename Type>
+using has_mutex_type = ::djinterp::has_mutex_type_alias<Type>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1051,18 +1076,18 @@ using has_mutex_type = ::has_mutex_type_alias<_Type>;
 //   These probes have no upstream counterpart.
 
 // has_thread_safety_level
-//   trait: true if _Type exposes a `thread_safety_level`
+//   trait: true if Type exposes a `thread_safety_level`
 // nested alias.  Distinct from upstream
 // `container_thread_safety_level<T>` which is a value
 // extractor, not a presence probe.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_thread_safety_level : std::false_type
 {};
 
-template<typename _Type>
-struct has_thread_safety_level<_Type, void_t<
-    typename _Type::thread_safety_level
+template<typename Type>
+struct has_thread_safety_level<Type, void_t<
+    typename Type::thread_safety_level
 >> : std::true_type
 {};
 
@@ -1074,28 +1099,28 @@ struct has_thread_safety_level<_Type, void_t<
 // these add try_lock and the composite.
 
 // has_try_lock_method
-//   trait: true if _Type exposes try_lock() returning an
+//   trait: true if Type exposes try_lock() returning an
 // optional / pointer guard.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_try_lock_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_try_lock_method<_Type, void_t<
-    decltype(std::declval<_Type&>().try_lock())
+template<typename Type>
+struct has_try_lock_method<Type, void_t<
+    decltype(std::declval<Type&>().try_lock())
 >> : std::true_type
 {};
 
 // has_full_lock_interface
 //   trait: composite - both read_lock() and write_lock()
 // are present.
-template<typename _Type>
+template<typename Type>
 struct has_full_lock_interface
 {
     static D_CONSTEXPR bool value =
-        ( has_read_lock_method<_Type>::value &&
-          has_write_lock_method<_Type>::value );
+        ( has_read_lock_method<Type>::value &&
+          has_write_lock_method<Type>::value );
 };
 
 
@@ -1106,28 +1131,28 @@ struct has_full_lock_interface
 // publish() and the composite.
 
 // has_publish_method
-//   trait: true if _Type exposes publish(...) for COW-style
+//   trait: true if Type exposes publish(...) for COW-style
 // state replacement.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_publish_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_publish_method<_Type, void_t<
-    decltype(std::declval<_Type&>().publish())
+template<typename Type>
+struct has_publish_method<Type, void_t<
+    decltype(std::declval<Type&>().publish())
 >> : std::true_type
 {};
 
 // has_cow_interface
 //   trait: composite - snapshot() and publish() both
 // present, indicating COW-style lifecycle.
-template<typename _Type>
+template<typename Type>
 struct has_cow_interface
 {
     static D_CONSTEXPR bool value =
-        ( has_snapshot_method<_Type>::value &&
-          has_publish_method<_Type>::value );
+        ( has_snapshot_method<Type>::value &&
+          has_publish_method<Type>::value );
 };
 
 
@@ -1139,58 +1164,58 @@ struct has_cow_interface
 // scalar atomic wrappers.
 
 // has_atomic_load_method
-//   trait: true if _Type exposes load() as a const member.
-template<typename _Type,
+//   trait: true if Type exposes load() as a const member.
+template<typename Type,
          typename = void>
 struct has_atomic_load_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_atomic_load_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().load())
+template<typename Type>
+struct has_atomic_load_method<Type, void_t<
+    decltype(std::declval<const Type&>().load())
 >> : std::true_type
 {};
 
 // has_atomic_store_method
-//   trait: true if _Type exposes store(value) as a mutable
+//   trait: true if Type exposes store(value) as a mutable
 // member.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_atomic_store_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_atomic_store_method<_Type, void_t<
-    decltype(std::declval<_Type&>().store(
-        std::declval<typename _Type::value_type>()))
+template<typename Type>
+struct has_atomic_store_method<Type, void_t<
+    decltype(std::declval<Type&>().store(
+        std::declval<typename Type::value_type>()))
 >> : std::true_type
 {};
 
 // has_atomic_compare_exchange_method
-//   trait: true if _Type exposes
+//   trait: true if Type exposes
 // compare_exchange_weak(expected, desired) as a mutable
 // member.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_atomic_compare_exchange_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_atomic_compare_exchange_method<_Type, void_t<
-    decltype(std::declval<_Type&>().compare_exchange_weak(
-        std::declval<typename _Type::value_type&>(),
-        std::declval<typename _Type::value_type>()))
+template<typename Type>
+struct has_atomic_compare_exchange_method<Type, void_t<
+    decltype(std::declval<Type&>().compare_exchange_weak(
+        std::declval<typename Type::value_type&>(),
+        std::declval<typename Type::value_type>()))
 >> : std::true_type
 {};
 
 // has_atomic_interface
 //   trait: composite - load() and store() both present.
-template<typename _Type>
+template<typename Type>
 struct has_atomic_interface
 {
     static D_CONSTEXPR bool value =
-        ( has_atomic_load_method<_Type>::value &&
-          has_atomic_store_method<_Type>::value );
+        ( has_atomic_load_method<Type>::value &&
+          has_atomic_store_method<Type>::value );
 };
 
 
@@ -1201,56 +1226,56 @@ struct has_atomic_interface
 // upstream probes plus the test-specific atomic probes.
 
 // is_locked_testable
-//   trait: true if _Type appears to use lock-based
+//   trait: true if Type appears to use lock-based
 // synchronization (lock_policy_type alias OR full
 // read_lock/write_lock interface).
-template<typename _Type>
+template<typename Type>
 struct is_locked_testable
 {
     static D_CONSTEXPR bool value =
-        ( has_lock_policy_type<_Type>::value     ||
-          has_full_lock_interface<_Type>::value );
+        ( has_lock_policy_type<Type>::value     ||
+          has_full_lock_interface<Type>::value );
 };
 
 // is_cow_testable
-//   trait: true if _Type appears to use copy-on-write
+//   trait: true if Type appears to use copy-on-write
 // (cow_state_type alias OR snapshot()/publish() interface).
-template<typename _Type>
+template<typename Type>
 struct is_cow_testable
 {
     static D_CONSTEXPR bool value =
-        ( has_cow_state_type<_Type>::value      ||
-          has_cow_interface<_Type>::value );
+        ( has_cow_state_type<Type>::value      ||
+          has_cow_interface<Type>::value );
 };
 
 // is_rcu_testable
-//   trait: true if _Type exposes RCU markers.
-template<typename _Type>
+//   trait: true if Type exposes RCU markers.
+template<typename Type>
 struct is_rcu_testable
 {
     static D_CONSTEXPR bool value =
-        has_rcu_protected_type<_Type>::value;
+        has_rcu_protected_type<Type>::value;
 };
 
 // is_hazard_testable
-//   trait: true if _Type exposes hazard-pointer markers.
-template<typename _Type>
+//   trait: true if Type exposes hazard-pointer markers.
+template<typename Type>
 struct is_hazard_testable
 {
     static D_CONSTEXPR bool value =
-        has_hazard_domain_type<_Type>::value;
+        has_hazard_domain_type<Type>::value;
 };
 
 // is_lock_free_testable
-//   trait: true if _Type appears to be lock-free (atomic
+//   trait: true if Type appears to be lock-free (atomic
 // interface OR hazard / RCU strategy).
-template<typename _Type>
+template<typename Type>
 struct is_lock_free_testable
 {
     static D_CONSTEXPR bool value =
-        ( has_atomic_interface<_Type>::value ||
-          is_hazard_testable<_Type>::value   ||
-          is_rcu_testable<_Type>::value );
+        ( has_atomic_interface<Type>::value ||
+          is_hazard_testable<Type>::value   ||
+          is_rcu_testable<Type>::value );
 };
 
 
@@ -1259,85 +1284,85 @@ struct is_lock_free_testable
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_threadsafe_testable
-//   trait: true if _Type is recognized as threadsafe under
+//   trait: true if Type is recognized as threadsafe under
 // any supported strategy.
-template<typename _Type>
+template<typename Type>
 struct is_threadsafe_testable
 {
     static D_CONSTEXPR bool value =
-        ( is_locked_testable<_Type>::value          ||
-          is_cow_testable<_Type>::value             ||
-          is_rcu_testable<_Type>::value             ||
-          is_hazard_testable<_Type>::value          ||
-          has_atomic_interface<_Type>::value        ||
-          has_concurrency_strategy_tag<_Type>::value ||
-          has_thread_safety_level<_Type>::value );
+        ( is_locked_testable<Type>::value          ||
+          is_cow_testable<Type>::value             ||
+          is_rcu_testable<Type>::value             ||
+          is_hazard_testable<Type>::value          ||
+          has_atomic_interface<Type>::value        ||
+          has_concurrency_strategy_tag<Type>::value ||
+          has_thread_safety_level<Type>::value );
 };
 
 // thread_test_class
 //   struct: comprehensive structural classification of a
 // type for the threadsafe testing harness.  Every flag
 // is independent and may be queried in isolation.
-template<typename _Type>
+template<typename Type>
 struct thread_test_class
 {
     // nested type aliases
     static D_CONSTEXPR bool has_safety_level =
-        has_thread_safety_level<_Type>::value;
+        has_thread_safety_level<Type>::value;
     static D_CONSTEXPR bool has_strategy_tag =
-        has_concurrency_strategy_tag<_Type>::value;
+        has_concurrency_strategy_tag<Type>::value;
     static D_CONSTEXPR bool has_lock_policy =
-        has_lock_policy_type<_Type>::value;
+        has_lock_policy_type<Type>::value;
     static D_CONSTEXPR bool has_mutex =
-        has_mutex_type<_Type>::value;
+        has_mutex_type<Type>::value;
     static D_CONSTEXPR bool has_cow_state =
-        has_cow_state_type<_Type>::value;
+        has_cow_state_type<Type>::value;
     static D_CONSTEXPR bool has_rcu_protected =
-        has_rcu_protected_type<_Type>::value;
+        has_rcu_protected_type<Type>::value;
     static D_CONSTEXPR bool has_hazard_domain =
-        has_hazard_domain_type<_Type>::value;
+        has_hazard_domain_type<Type>::value;
 
     // lock interface
     static D_CONSTEXPR bool has_read_lock =
-        has_read_lock_method<_Type>::value;
+        has_read_lock_method<Type>::value;
     static D_CONSTEXPR bool has_write_lock =
-        has_write_lock_method<_Type>::value;
+        has_write_lock_method<Type>::value;
     static D_CONSTEXPR bool has_try_lock =
-        has_try_lock_method<_Type>::value;
+        has_try_lock_method<Type>::value;
     static D_CONSTEXPR bool has_full_lock =
-        has_full_lock_interface<_Type>::value;
+        has_full_lock_interface<Type>::value;
 
     // cow interface
     static D_CONSTEXPR bool has_snapshot =
-        has_snapshot_method<_Type>::value;
+        has_snapshot_method<Type>::value;
     static D_CONSTEXPR bool has_publish =
-        has_publish_method<_Type>::value;
+        has_publish_method<Type>::value;
     static D_CONSTEXPR bool has_cow =
-        has_cow_interface<_Type>::value;
+        has_cow_interface<Type>::value;
 
     // atomic interface
     static D_CONSTEXPR bool has_load =
-        has_atomic_load_method<_Type>::value;
+        has_atomic_load_method<Type>::value;
     static D_CONSTEXPR bool has_store =
-        has_atomic_store_method<_Type>::value;
+        has_atomic_store_method<Type>::value;
     static D_CONSTEXPR bool has_compare_exchange =
-        has_atomic_compare_exchange_method<_Type>::value;
+        has_atomic_compare_exchange_method<Type>::value;
     static D_CONSTEXPR bool has_atomic =
-        has_atomic_interface<_Type>::value;
+        has_atomic_interface<Type>::value;
 
     // strategy classification
     static D_CONSTEXPR bool is_locked =
-        is_locked_testable<_Type>::value;
+        is_locked_testable<Type>::value;
     static D_CONSTEXPR bool is_cow =
-        is_cow_testable<_Type>::value;
+        is_cow_testable<Type>::value;
     static D_CONSTEXPR bool is_rcu =
-        is_rcu_testable<_Type>::value;
+        is_rcu_testable<Type>::value;
     static D_CONSTEXPR bool is_hazard =
-        is_hazard_testable<_Type>::value;
+        is_hazard_testable<Type>::value;
     static D_CONSTEXPR bool is_lock_free =
-        is_lock_free_testable<_Type>::value;
+        is_lock_free_testable<Type>::value;
     static D_CONSTEXPR bool is_threadsafe =
-        is_threadsafe_testable<_Type>::value;
+        is_threadsafe_testable<Type>::value;
 };
 
 
@@ -1348,87 +1373,87 @@ struct thread_test_class
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     // re-exported _v variants from traits
-    using ::has_concurrency_strategy_tag_v;
-    using ::has_read_lock_method_v;
-    using ::has_write_lock_method_v;
-    using ::has_snapshot_method_v;
-    using ::has_cow_state_type_v;
-    using ::has_rcu_protected_type_v;
-    using ::has_epoch_type_v;
-    using ::has_hazard_domain_type_v;
-    using ::has_atomic_load_at_v;
+    using ::djinterp::has_concurrency_strategy_tag_v;
+    using ::djinterp::has_read_lock_method_v;
+    using ::djinterp::has_write_lock_method_v;
+    using ::djinterp::has_snapshot_method_v;
+    using ::djinterp::has_cow_state_type_v;
+    using ::djinterp::has_rcu_protected_type_v;
+    using ::djinterp::has_epoch_type_v;
+    using ::djinterp::has_hazard_domain_type_v;
+    using ::djinterp::has_atomic_load_at_v;
 
     // re-exported _v variants from djinterp
-    using ::has_lock_policy_type_v;
-    using ::has_atomic_size_type_v;
-    using ::has_atomic_version_type_v;
+    using ::djinterp::has_lock_policy_type_v;
+    using ::djinterp::has_atomic_size_type_v;
+    using ::djinterp::has_atomic_version_type_v;
 
     // has_mutex_type_v: same predicate as upstream
     // has_mutex_type_alias_v.
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_mutex_type_v =
-        ::has_mutex_type_alias_v<_Type>;
+        ::djinterp::has_mutex_type_alias_v<Type>;
 
     // test-specific
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_thread_safety_level_v =
-        has_thread_safety_level<_Type>::value;
+        has_thread_safety_level<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_try_lock_method_v =
-        has_try_lock_method<_Type>::value;
+        has_try_lock_method<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_full_lock_interface_v =
-        has_full_lock_interface<_Type>::value;
+        has_full_lock_interface<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_publish_method_v =
-        has_publish_method<_Type>::value;
+        has_publish_method<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_cow_interface_v =
-        has_cow_interface<_Type>::value;
+        has_cow_interface<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_atomic_load_method_v =
-        has_atomic_load_method<_Type>::value;
+        has_atomic_load_method<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_atomic_store_method_v =
-        has_atomic_store_method<_Type>::value;
+        has_atomic_store_method<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_atomic_compare_exchange_method_v =
-        has_atomic_compare_exchange_method<_Type>::value;
+        has_atomic_compare_exchange_method<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_atomic_interface_v =
-        has_atomic_interface<_Type>::value;
+        has_atomic_interface<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_locked_testable_v =
-        is_locked_testable<_Type>::value;
+        is_locked_testable<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_cow_testable_v =
-        is_cow_testable<_Type>::value;
+        is_cow_testable<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_rcu_testable_v =
-        is_rcu_testable<_Type>::value;
+        is_rcu_testable<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_hazard_testable_v =
-        is_hazard_testable<_Type>::value;
+        is_hazard_testable<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_lock_free_testable_v =
-        is_lock_free_testable<_Type>::value;
+        is_lock_free_testable<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_threadsafe_testable_v =
-        is_threadsafe_testable<_Type>::value;
+        is_threadsafe_testable<Type>::value;
 
 #endif  // variable templates
 
@@ -1446,45 +1471,45 @@ struct thread_test_class
 
 // safety_level_aware_type
 //   concept: the type exposes a thread_safety_level alias.
-template<typename _Type>
+template<typename Type>
 concept safety_level_aware_type =
-    has_thread_safety_level<_Type>::value;
+    has_thread_safety_level<Type>::value;
 
 // strategy_tagged_type
 //   concept: the type exposes a concurrency_strategy_tag.
-template<typename _Type>
+template<typename Type>
 concept strategy_tagged_type =
-    has_concurrency_strategy_tag<_Type>::value;
+    has_concurrency_strategy_tag<Type>::value;
 
 // lock_policy_aware_type
 //   concept: the type exposes a lock_policy_type alias.
-template<typename _Type>
+template<typename Type>
 concept lock_policy_aware_type =
-    has_lock_policy_type<_Type>::value;
+    has_lock_policy_type<Type>::value;
 
 // mutex_aware_type
 //   concept: the type exposes a mutex_type alias.
-template<typename _Type>
+template<typename Type>
 concept mutex_aware_type =
-    has_mutex_type<_Type>::value;
+    has_mutex_type<Type>::value;
 
 // cow_state_aware_type
 //   concept: the type exposes a cow_state_type alias.
-template<typename _Type>
+template<typename Type>
 concept cow_state_aware_type =
-    has_cow_state_type<_Type>::value;
+    has_cow_state_type<Type>::value;
 
 // rcu_protected_aware_type
 //   concept: the type exposes an rcu_protected_type alias.
-template<typename _Type>
+template<typename Type>
 concept rcu_protected_aware_type =
-    has_rcu_protected_type<_Type>::value;
+    has_rcu_protected_type<Type>::value;
 
 // hazard_domain_aware_type
 //   concept: the type exposes a hazard_domain_type alias.
-template<typename _Type>
+template<typename Type>
 concept hazard_domain_aware_type =
-    has_hazard_domain_type<_Type>::value;
+    has_hazard_domain_type<Type>::value;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1493,28 +1518,28 @@ concept hazard_domain_aware_type =
 
 // read_lockable_type
 //   concept: the type exposes read_lock() as a const member.
-template<typename _Type>
+template<typename Type>
 concept read_lockable_type =
-    has_read_lock_method<_Type>::value;
+    has_read_lock_method<Type>::value;
 
 // write_lockable_type
 //   concept: the type exposes write_lock() as a mutable member.
-template<typename _Type>
+template<typename Type>
 concept write_lockable_type =
-    has_write_lock_method<_Type>::value;
+    has_write_lock_method<Type>::value;
 
 // try_lockable_type
 //   concept: the type exposes try_lock().
-template<typename _Type>
+template<typename Type>
 concept try_lockable_type =
-    has_try_lock_method<_Type>::value;
+    has_try_lock_method<Type>::value;
 
 // fully_lockable_type
 //   concept: the type exposes both read_lock() and
 // write_lock() - full reader/writer interface.
-template<typename _Type>
+template<typename Type>
 concept fully_lockable_type =
-    has_full_lock_interface<_Type>::value;
+    has_full_lock_interface<Type>::value;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1523,21 +1548,21 @@ concept fully_lockable_type =
 
 // snapshottable_type
 //   concept: the type exposes snapshot().
-template<typename _Type>
+template<typename Type>
 concept snapshottable_type =
-    has_snapshot_method<_Type>::value;
+    has_snapshot_method<Type>::value;
 
 // publishable_type
 //   concept: the type exposes publish().
-template<typename _Type>
+template<typename Type>
 concept publishable_type =
-    has_publish_method<_Type>::value;
+    has_publish_method<Type>::value;
 
 // cow_capable_type
 //   concept: the type exposes the full COW interface.
-template<typename _Type>
+template<typename Type>
 concept cow_capable_type =
-    has_cow_interface<_Type>::value;
+    has_cow_interface<Type>::value;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1546,28 +1571,28 @@ concept cow_capable_type =
 
 // atomic_loadable_type
 //   concept: the type exposes load().
-template<typename _Type>
+template<typename Type>
 concept atomic_loadable_type =
-    has_atomic_load_method<_Type>::value;
+    has_atomic_load_method<Type>::value;
 
 // atomic_storable_type
 //   concept: the type exposes store(value).
-template<typename _Type>
+template<typename Type>
 concept atomic_storable_type =
-    has_atomic_store_method<_Type>::value;
+    has_atomic_store_method<Type>::value;
 
 // atomic_cas_type
 //   concept: the type exposes compare_exchange_weak.
-template<typename _Type>
+template<typename Type>
 concept atomic_cas_type =
-    has_atomic_compare_exchange_method<_Type>::value;
+    has_atomic_compare_exchange_method<Type>::value;
 
 // atomic_capable_type
 //   concept: the type exposes the full atomic interface
 // (load + store).
-template<typename _Type>
+template<typename Type>
 concept atomic_capable_type =
-    has_atomic_interface<_Type>::value;
+    has_atomic_interface<Type>::value;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1576,34 +1601,34 @@ concept atomic_capable_type =
 
 // locked_testable_type
 //   concept: the type uses lock-based synchronization.
-template<typename _Type>
+template<typename Type>
 concept locked_testable_type =
-    is_locked_testable<_Type>::value;
+    is_locked_testable<Type>::value;
 
 // cow_testable_type
 //   concept: the type uses copy-on-write synchronization.
-template<typename _Type>
+template<typename Type>
 concept cow_testable_type =
-    is_cow_testable<_Type>::value;
+    is_cow_testable<Type>::value;
 
 // rcu_testable_type
 //   concept: the type uses RCU / epoch-based reclamation.
-template<typename _Type>
+template<typename Type>
 concept rcu_testable_type =
-    is_rcu_testable<_Type>::value;
+    is_rcu_testable<Type>::value;
 
 // hazard_testable_type
 //   concept: the type uses hazard-pointer protection.
-template<typename _Type>
+template<typename Type>
 concept hazard_testable_type =
-    is_hazard_testable<_Type>::value;
+    is_hazard_testable<Type>::value;
 
 // lock_free_testable_type
 //   concept: the type appears lock-free (atomic OR hazard
 // OR RCU).
-template<typename _Type>
+template<typename Type>
 concept lock_free_testable_type =
-    is_lock_free_testable<_Type>::value;
+    is_lock_free_testable<Type>::value;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1613,39 +1638,39 @@ concept lock_free_testable_type =
 // threadsafe_testable_type
 //   concept: shorthand for any type recognized as
 // threadsafe by the trait system.
-template<typename _Type>
+template<typename Type>
 concept threadsafe_testable_type =
-    is_threadsafe_testable<_Type>::value;
+    is_threadsafe_testable<Type>::value;
 
 // classified_thread_test_type
 //   concept: shorthand for any type recognized by
 // thread_test_class as threadsafe.
-template<typename _Type>
+template<typename Type>
 concept classified_thread_test_type =
-    thread_test_class<_Type>::is_threadsafe;
+    thread_test_class<Type>::is_threadsafe;
 
 // fully_described_threadsafe_type
 //   concept: a thread-safe type that exposes both type
 // aliases AND a method-level interface - the richest
 // classification suitable for full-spectrum tests.
-template<typename _Type>
+template<typename Type>
 concept fully_described_threadsafe_type =
-    threadsafe_testable_type<_Type>          &&
-    ( safety_level_aware_type<_Type>         ||
-      strategy_tagged_type<_Type> )          &&
-    ( fully_lockable_type<_Type>             ||
-      cow_capable_type<_Type>                ||
-      atomic_capable_type<_Type> );
+    threadsafe_testable_type<Type>          &&
+    ( safety_level_aware_type<Type>         ||
+      strategy_tagged_type<Type> )          &&
+    ( fully_lockable_type<Type>             ||
+      cow_capable_type<Type>                ||
+      atomic_capable_type<Type> );
 
 // race_testable_type
 //   concept: a type that can meaningfully be subjected to
 // race-probing - exposes either a reader/writer interface
 // or atomic loads.
-template<typename _Type>
+template<typename Type>
 concept race_testable_type =
-    fully_lockable_type<_Type> ||
-    snapshottable_type<_Type>  ||
-    atomic_loadable_type<_Type>;
+    fully_lockable_type<Type> ||
+    snapshottable_type<Type>  ||
+    atomic_loadable_type<Type>;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -1657,5 +1682,7 @@ NS_END  // traits
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_THREAD_
+
+#endif  // DJINTERP_TEST_SYNC_TEST_THREAD_HPP

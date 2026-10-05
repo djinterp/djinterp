@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                    insertion_sort_common.h
+/*******************************************************************************
+* djinterp [c]                                           insertion_sort_common.h
 *
 *   The primitives every insertion sort is built from, sequential or otherwise.
 * An insertion sort is a driver wrapped around two operations: place one
@@ -47,13 +47,14 @@
 *     space:       O(1)
 *
 *
-* path:      /djinterp/c/util/sort/insertion_sort_common.h
+* path:      /inc/djinterp/c/util/sort/insertion_sort_common.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_INSERTION_COMMON_
-#define DJINTERP_UTILITY_SORT_INSERTION_COMMON_ 1
+#ifndef DJINTERP_C_UTIL_SORT_INSERTION_SORT_COMMON_H
+#define DJINTERP_C_UTIL_SORT_INSERTION_SORT_COMMON_H 1
 
 // std
 #include <stddef.h>
@@ -108,4 +109,4 @@ void   d_insertion_pass(void*                           _base,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_UTILITY_SORT_INSERTION_COMMON_
+#endif  // DJINTERP_C_UTIL_SORT_INSERTION_SORT_COMMON_H

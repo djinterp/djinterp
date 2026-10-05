@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [sass]                                            sass_printer.hpp
+/*******************************************************************************
+* djinterp [core]                                               sass_printer.hpp
 *
 *   Sink-based output for Sass / SCSS stylesheets - the Sass analogue
-* of css_printer / pdf_printer.  A sass_printer<_Sink> routes a
+* of css_printer / pdf_printer.  A sass_printer<Sink> routes a
 * stylesheet's rendered source to any sink (a callable taking
 * `(const char*, std::size_t)`), so Sass output flows through the same
 * sink abstraction as the rest of the framework.
@@ -26,26 +26,42 @@
 *     sass::sass_to_stream(std::cout, sheet);                           // to stream
 *
 *
-* path:      /inc/djinterp/core/util/sass/sass_printer.hpp
+* path:      /inc/djinterp/core/text/css/sass/sass_printer.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.24
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    RENDER MODE
-II.   sass_printer<_Sink>          (generic sink)
+      -----------
+
+II.   sass_printer<Sink>          (generic sink)
+      -------------------------------------------
+
 III.  STRING / STREAM HELPERS
+      -----------------------
+
 IV.   FILE PRINTER
+      ------------
 */
 
-#ifndef DJINTERP_SASS_PRINTER_
-#define DJINTERP_SASS_PRINTER_ 1
+#ifndef DJINTERP_TEXT_CSS_SASS_SASS_PRINTER_HPP
+#define DJINTERP_TEXT_CSS_SASS_SASS_PRINTER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../../djinterp.hpp"
 #include "./sass.hpp"           // sass_string_t, has_render_to_scss_source_method, ...
+// re_std
+#include "../../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t
 
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -70,7 +86,7 @@ namespace sass {
 
 // sass_render_mode
 //   enum: selects which stylesheet render target a printer invokes.
-enum class sass_render_mode : std::uint8_t
+enum class sass_render_mode : re_std::uint8_t
 {
     scss,           // render_to_scss_source   (SCSS source)
     indented,       // render_to_sass_source   (indented .sass source)
@@ -84,10 +100,10 @@ namespace internal {
 //   helper: renders _sheet in the requested mode.  The chosen render
 // target must exist on the stylesheet (the default backend supplies
 // all three).
-template <typename _Sheet>
+template <typename Sheet>
 inline sass_string_t
 sass_render(
-    const _Sheet&       _sheet,
+    const Sheet&       _sheet,
     sass_render_mode    _mode
 )
 {
@@ -113,19 +129,19 @@ sass_render(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   sass_printer<_Sink>                                ///
+///                II.   sass_printer<Sink>                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // sass_printer
-//   class: writes a stylesheet's rendered source to a sink.  _Sink is
+//   class: writes a stylesheet's rendered source to a sink.  Sink is
 // any callable invocable as `sink(const char*, std::size_t)`.
-template <typename _Sink>
+template <typename Sink>
 class sass_printer
 {
 public:
     explicit
     sass_printer(
-        _Sink               _sink,
+        Sink                _sink,
         sass_render_mode    _mode = sass_render_mode::scss
     )
     :   m_sink(std::move(_sink)),
@@ -134,14 +150,14 @@ public:
 
     // print
     //   function: render _sheet and push the bytes to the sink.
-    template <typename _Sheet>
+    template <typename Sheet>
     void
     print(
-        const _Sheet&       _sheet
+        const Sheet&       _sheet
     )
     {
         static_assert(
-            has_render_to_scss_source_method<clean_t<_Sheet>>::value,
+            has_render_to_scss_source_method<clean_t<Sheet>>::value,
             "sass_printer::print requires a stylesheet exposing "
             "render_to_scss_source().");
 
@@ -153,21 +169,21 @@ public:
     void             set_mode(sass_render_mode _m) { m_mode = _m; }
 
 private:
-    _Sink            m_sink;
+    Sink             m_sink;
     sass_render_mode m_mode;
 };
 
 
 // make_sass_printer
 //   function: factory that deduces the sink type.
-template <typename _Sink>
-inline sass_printer<_Sink>
+template <typename Sink>
+inline sass_printer<Sink>
 make_sass_printer(
-    _Sink               _sink,
+    Sink                _sink,
     sass_render_mode    _mode = sass_render_mode::scss
 )
 {
-    return sass_printer<_Sink>(std::move(_sink), _mode);
+    return sass_printer<Sink>(std::move(_sink), _mode);
 }
 
 
@@ -177,15 +193,15 @@ make_sass_printer(
 
 // sass_to_string
 //   function: returns the rendered source for _sheet in the given mode.
-template <typename _Sheet>
+template <typename Sheet>
 D_NODISCARD inline sass_string_t
 sass_to_string(
-    const _Sheet&       _sheet,
+    const Sheet&       _sheet,
     sass_render_mode    _mode = sass_render_mode::scss
 )
 {
     static_assert(
-        has_render_to_scss_source_method<clean_t<_Sheet>>::value,
+        has_render_to_scss_source_method<clean_t<Sheet>>::value,
         "sass_to_string requires a stylesheet exposing "
         "render_to_scss_source().");
 
@@ -195,16 +211,16 @@ sass_to_string(
 
 // sass_to_stream
 //   function: writes the rendered source for _sheet to _os.
-template <typename _Sheet>
+template <typename Sheet>
 inline void
 sass_to_stream(
     std::ostream&       _os,
-    const _Sheet&       _sheet,
+    const Sheet&       _sheet,
     sass_render_mode    _mode = sass_render_mode::scss
 )
 {
     static_assert(
-        has_render_to_scss_source_method<clean_t<_Sheet>>::value,
+        has_render_to_scss_source_method<clean_t<Sheet>>::value,
         "sass_to_stream requires a stylesheet exposing "
         "render_to_scss_source().");
 
@@ -244,14 +260,14 @@ public:
     }
 
     // print -- render a stylesheet into the file.
-    template <typename _Sheet>
+    template <typename Sheet>
     void
     print(
-        const _Sheet&       _sheet
+        const Sheet&       _sheet
     )
     {
         static_assert(
-            has_render_to_scss_source_method<clean_t<_Sheet>>::value,
+            has_render_to_scss_source_method<clean_t<Sheet>>::value,
             "sass_file_printer::print requires render_to_scss_source().");
 
         const sass_string_t out = internal::sass_render(_sheet, m_mode);
@@ -269,11 +285,11 @@ private:
 // save_sass_to_file
 //   function: render _sheet and write it to _path; returns whether the
 // file stream remained good.
-template <typename _Sheet>
+template <typename Sheet>
 inline bool
 save_sass_to_file(
     const std::string&  _path,
-    const _Sheet&       _sheet,
+    const Sheet&       _sheet,
     sass_render_mode    _mode = sass_render_mode::scss
 )
 {
@@ -291,4 +307,6 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
-#endif  // DJINTERP_SASS_PRINTER_
+#endif  // floor, for now
+
+#endif  // DJINTERP_TEXT_CSS_SASS_SASS_PRINTER_HPP

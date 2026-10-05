@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                            move_backward.hpp
 *
 * move_backward algorithm header:
@@ -14,22 +14,24 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/move_backward.hpp
+* path:      /inc/re_std/algorithm/move_backward.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_MOVE_BACKWARD_
-#define DJINTERP_RE_STD_ALGORITHM_MOVE_BACKWARD_ 1
+#ifndef RE_STD_ALGORITHM_MOVE_BACKWARD_HPP
+#define RE_STD_ALGORITHM_MOVE_BACKWARD_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   GATE: rvalue references required
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 // re_std
 #include "../utility/move.hpp"
@@ -39,16 +41,9 @@
 // 1.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -59,13 +54,13 @@ NS_RESTD
 //   function: moves [_first, _last) into the range ending at _d_last,
 // proceeding from the back. Returns the iterator one before the first
 // element written.
-template<typename _BidirIt1,
-         typename _BidirIt2>
-D_CONSTEXPR_CPP14 _BidirIt2
+template<typename BidirIt1,
+         typename BidirIt2>
+RE_STD_CONSTEXPR_CPP14 BidirIt2
 move_backward(
-    _BidirIt1 _first,
-    _BidirIt1 _last,
-    _BidirIt2 _d_last
+    BidirIt1 _first,
+    BidirIt1 _last,
+    BidirIt2 _d_last
 )
 {
     while (_first != _last)
@@ -79,10 +74,10 @@ move_backward(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_MOVE_BACKWARD_
+#endif  // RE_STD_ALGORITHM_MOVE_BACKWARD_HPP

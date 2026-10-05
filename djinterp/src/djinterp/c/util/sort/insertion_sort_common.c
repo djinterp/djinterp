@@ -1,4 +1,15 @@
-#include "./insertion_sort_common.h"
+/*******************************************************************************
+* djinterp [c]                                           insertion_sort_common.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/util/sort/insertion_sort_common.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.20
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/util/sort/insertion_sort_common.h"
 
 // std
 #include <string.h>

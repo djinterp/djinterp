@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                             postgres.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                                   postgres.hpp
+*
 * djinterp PostgreSQL connection module:
 *   This header provides the PostgreSQL-specific connection implementation
 * and associated data type infrastructure for the djinterp database
@@ -39,25 +39,35 @@
 *   This header requires C++17 or later. It does not include <libpq-fe.h>;
 * the concrete _impl method definitions in postgres.cpp include it.
 *
-* 
+*
 *   DETECTION:
 *   Also carries this database's capability-detection traits and C++20 concepts
 * (trailing sections), folded in from postgres_traits.hpp and the matching *_concepts.hpp;
 * detection now lives with the connection. Concepts gated on concept support.
 *
+*
 * path:      /inc/djinterp/core/db/postgres/postgres.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.26
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.26
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_POSTGRES_
-#define DJINTERP_DATABASE_POSTGRES_
+#ifndef DJINTERP_DB_POSTGRES_POSTGRES_HPP
+#define DJINTERP_DB_POSTGRES_POSTGRES_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint32_t,
+                                                   // uint16_t, uint8_t, int64_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
-#include "../../../env/db/env_postgresql.h"
+#include "../../meta/type_utility.hpp"  // clean_t, self
 #include "../database_connection.hpp"
-#include "../database_traits.hpp"
+#include "../../../env/db/postgres/env_postgres.h"  // D_ENV_PG_DETECTED, D_ENV_PG_HAS_*
 
 
 NS_DJINTERP
@@ -548,113 +558,206 @@ struct pg_feature_support
     // SQL features
     static constexpr bool has_cte =
     #if D_ENV_PG_HAS_CTE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_cte_materialized =
     #if D_ENV_PG_HAS_CTE_MATERIALIZED
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_window_functions =
     #if D_ENV_PG_HAS_WINDOW_FUNCTIONS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_lateral =
     #if D_ENV_PG_HAS_LATERAL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_upsert =
     #if D_ENV_PG_HAS_UPSERT
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_merge =
     #if D_ENV_PG_HAS_MERGE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_grouping_sets =
     #if D_ENV_PG_HAS_GROUPING_SETS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_row_level_security =
     #if D_ENV_PG_HAS_ROW_LEVEL_SECURITY
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_stored_procedures =
     #if D_ENV_PG_HAS_STORED_PROCEDURES
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_returning =
     #if D_ENV_PG_HAS_RETURNING
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_materialized_views =
     #if D_ENV_PG_HAS_MATERIALIZED_VIEWS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_full_text_search =
     #if D_ENV_PG_HAS_FULL_TEXT_SEARCH
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_tablesample =
     #if D_ENV_PG_HAS_TABLESAMPLE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // partitioning
     static constexpr bool has_declarative_partitioning =
     #if D_ENV_PG_HAS_DECLARATIVE_PARTITIONING
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_hash_partitioning =
     #if D_ENV_PG_HAS_HASH_PARTITIONING
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // replication
     static constexpr bool has_logical_repl =
     #if D_ENV_PG_HAS_LOGICAL_REPL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_streaming_repl =
     #if D_ENV_PG_HAS_STREAMING_REPL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // parallel
     static constexpr bool has_parallel_query =
     #if D_ENV_PG_HAS_PARALLEL_QUERY
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_jit =
     #if D_ENV_PG_HAS_JIT
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // indexes
     static constexpr bool has_covering_index =
     #if D_ENV_PG_HAS_COVERING_INDEX
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_brin =
     #if D_ENV_PG_HAS_INDEX_BRIN
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // libpq
     static constexpr bool has_pipeline =
     #if D_ENV_PG_HAS_LIBPQ_PIPELINE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_chunked_result =
     #if D_ENV_PG_HAS_LIBPQ_CHUNKED_RESULT
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_close_prepared =
     #if D_ENV_PG_HAS_LIBPQ_CLOSE_PREPARED
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // auth
     static constexpr bool has_scram =
     #if D_ENV_PG_HAS_SCRAM_SHA_256
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // extensions
     static constexpr bool has_fdw =
     #if D_ENV_PG_HAS_FDW
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_create_extension =
     #if D_ENV_PG_HAS_CREATE_EXTENSION
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_event_triggers =
     #if D_ENV_PG_HAS_EVENT_TRIGGERS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // composite
     static constexpr bool has_modern_sql =
     #if D_ENV_PG_HAS_MODERN_SQL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_modern_json =
     #if D_ENV_PG_HAS_MODERN_JSON
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool is_fully_modern =
     #if D_ENV_PG_IS_FULLY_MODERN
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
 #else
     static constexpr bool has_cte                      = false;
@@ -706,17 +809,17 @@ struct pg_version_info
 {
 #if D_ENV_PG_DETECTED
     static constexpr bool          detected = true;
-    static constexpr std::uint32_t id       = D_ENV_PG_VERSION_ID;
-    static constexpr std::uint16_t major    = D_ENV_PG_VERSION_MAJOR;
-    static constexpr std::uint16_t release  = D_ENV_PG_VERSION_RELEASE;
+    static constexpr re_std::uint32_t id       = D_ENV_PG_VERSION_ID;
+    static constexpr re_std::uint16_t major    = D_ENV_PG_VERSION_MAJOR;
+    static constexpr re_std::uint16_t release  = D_ENV_PG_VERSION_RELEASE;
     static constexpr bool          is_legacy_versioning =
         D_ENV_PG_IS_LEGACY_VERSIONING;
     static constexpr const char*   string   = D_ENV_PG_VERSION_STRING;
 #else
     static constexpr bool          detected = false;
-    static constexpr std::uint32_t id       = 0;
-    static constexpr std::uint16_t major    = 0;
-    static constexpr std::uint16_t release  = 0;
+    static constexpr re_std::uint32_t id       = 0;
+    static constexpr re_std::uint16_t major    = 0;
+    static constexpr re_std::uint16_t release  = 0;
     static constexpr bool          is_legacy_versioning = false;
     static constexpr const char*   string   = "not detected";
 #endif
@@ -724,7 +827,7 @@ struct pg_version_info
     // at_least
     //   function: returns true if the detected version is at least
     // the specified major version (post-10 convention).
-    static constexpr bool at_least(std::uint16_t _major) noexcept
+    static constexpr bool at_least(re_std::uint16_t _major) noexcept
     {
         return id >= (_major * 10000u);
     }
@@ -733,9 +836,9 @@ struct pg_version_info
     //   function: returns true if the detected version is at least
     // the specified pre-10 (major, minor, patch) version.
     static constexpr bool at_least_legacy(
-        std::uint16_t _major,
-        std::uint16_t _minor,
-        std::uint16_t _patch) noexcept
+        re_std::uint16_t _major,
+        re_std::uint16_t _minor,
+        re_std::uint16_t _patch) noexcept
     {
         return id >= (_major * 10000u + _minor * 100u + _patch);
     }
@@ -748,7 +851,7 @@ struct pg_version_info
 
 // pg_ssl_mode
 //   enumeration: PostgreSQL SSL connection modes (sslmode parameter).
-enum class pg_ssl_mode : std::uint8_t
+enum class pg_ssl_mode : re_std::uint8_t
 {
     disable       = 0,      // no SSL
     allow         = 1,      // try non-SSL, then SSL
@@ -1150,26 +1253,26 @@ public:
     // _impl methods (defined in postgres.cpp)
     // -----------------------------------------------------------------
 
-    void        connect_impl();
-    void        disconnect_impl();
-    bool        is_connected_impl() const;
-    bool        ping_impl() const;
+    void        connect_helper();
+    void        disconnect_helper();
+    bool        is_connected_helper() const;
+    bool        ping_helper() const;
 
-    auto        execute_query_impl(const std::string& _query)
+    auto        execute_query_helper(const std::string& _query)
                     -> std::unique_ptr<
                         result_set<struct pg_result_set_impl>>;
-    std::int64_t execute_update_impl(const std::string& _query);
-    bool        execute_impl(const std::string& _query);
+    re_std::int64_t execute_update_helper(const std::string& _query);
+    bool        execute_helper(const std::string& _query);
 
     auto        prepare_impl(const std::string& _query)
                     -> std::unique_ptr<
                         statement<struct pg_statement_impl>>;
 
-    std::string  get_server_version_impl() const;
-    std::string  get_last_error_impl() const;
-    int          get_last_error_code_impl() const;
-    std::int64_t get_last_insert_id_impl() const;
-    std::int64_t get_affected_rows_impl() const;
+    std::string  get_server_version_helper() const;
+    std::string  get_last_error_helper() const;
+    int          get_last_error_code_helper() const;
+    re_std::int64_t get_last_insert_id_impl() const;
+    re_std::int64_t get_affected_rows_impl() const;
 
     // PostgreSQL-specific _impl methods
     bool send_query_impl(const std::string& _query);
@@ -1277,30 +1380,30 @@ struct pg_statement_impl;
 // pg_send_query_t
 //   detector: send_query(const std::string&) method.
 // wraps PQsendQuery().
-template<typename _T>
-using pg_send_query_t = decltype(std::declval<_T&>().send_query(
+template<typename T>
+using pg_send_query_t = decltype(std::declval<T&>().send_query(
     std::declval<const std::string&>()));
 
 // pg_get_result_t
 //   detector: get_result() method.
 // wraps PQgetResult().
-template<typename _T>
+template<typename T>
 using pg_get_result_t =
-    decltype(std::declval<_T&>().get_result());
+    decltype(std::declval<T&>().get_result());
 
 // pg_is_busy_t
 //   detector: is_busy() const method.
 // wraps PQisBusy().
-template<typename _T>
+template<typename T>
 using pg_is_busy_t =
-    decltype(std::declval<const _T&>().is_busy());
+    decltype(std::declval<const T&>().is_busy());
 
 // pg_consume_input_t
 //   detector: consume_input() method.
 // wraps PQconsumeInput().
-template<typename _T>
+template<typename T>
 using pg_consume_input_t =
-    decltype(std::declval<_T&>().consume_input());
+    decltype(std::declval<T&>().consume_input());
 
 // -------------------------------------------------------------------------
 // B.  pipeline mode
@@ -1309,23 +1412,23 @@ using pg_consume_input_t =
 // pg_enter_pipeline_t
 //   detector: enter_pipeline() method.
 // wraps PQenterPipelineMode().
-template<typename _T>
+template<typename T>
 using pg_enter_pipeline_t =
-    decltype(std::declval<_T&>().enter_pipeline());
+    decltype(std::declval<T&>().enter_pipeline());
 
 // pg_exit_pipeline_t
 //   detector: exit_pipeline() method.
 // wraps PQexitPipelineMode().
-template<typename _T>
+template<typename T>
 using pg_exit_pipeline_t =
-    decltype(std::declval<_T&>().exit_pipeline());
+    decltype(std::declval<T&>().exit_pipeline());
 
 // pg_pipeline_sync_t
 //   detector: pipeline_sync() method.
 // wraps PQpipelineSync().
-template<typename _T>
+template<typename T>
 using pg_pipeline_sync_t =
-    decltype(std::declval<_T&>().pipeline_sync());
+    decltype(std::declval<T&>().pipeline_sync());
 
 // -------------------------------------------------------------------------
 // C.  COPY protocol
@@ -1333,25 +1436,25 @@ using pg_pipeline_sync_t =
 
 // pg_copy_in_start_t
 //   detector: copy_in_start(const std::string&) method.
-template<typename _T>
+template<typename T>
 using pg_copy_in_start_t =
-    decltype(std::declval<_T&>().copy_in_start(
+    decltype(std::declval<T&>().copy_in_start(
         std::declval<const std::string&>()));
 
 // pg_copy_data_t
 //   detector: copy_data(const char*, std::size_t) method.
 // wraps PQputCopyData().
-template<typename _T>
-using pg_copy_data_t = decltype(std::declval<_T&>().copy_data(
+template<typename T>
+using pg_copy_data_t = decltype(std::declval<T&>().copy_data(
     std::declval<const char*>(),
     std::declval<std::size_t>()));
 
 // pg_copy_end_t
 //   detector: copy_end() method.
 // wraps PQputCopyEnd().
-template<typename _T>
+template<typename T>
 using pg_copy_end_t =
-    decltype(std::declval<_T&>().copy_end());
+    decltype(std::declval<T&>().copy_end());
 
 // -------------------------------------------------------------------------
 // D.  LISTEN / NOTIFY
@@ -1360,24 +1463,24 @@ using pg_copy_end_t =
 // pg_listen_t
 //   detector: listen(const std::string&) method.
 // executes LISTEN <channel>.
-template<typename _T>
-using pg_listen_t = decltype(std::declval<_T&>().listen(
+template<typename T>
+using pg_listen_t = decltype(std::declval<T&>().listen(
     std::declval<const std::string&>()));
 
 // pg_notify_t
 //   detector: notify(const std::string&, const std::string&) method.
 // executes pg_notify().
-template<typename _T>
-using pg_notify_t = decltype(std::declval<_T&>().notify(
+template<typename T>
+using pg_notify_t = decltype(std::declval<T&>().notify(
     std::declval<const std::string&>(),
     std::declval<const std::string&>()));
 
 // pg_get_notification_t
 //   detector: get_notification() method.
 // wraps PQnotifies().
-template<typename _T>
+template<typename T>
 using pg_get_notification_t =
-    decltype(std::declval<_T&>().get_notification());
+    decltype(std::declval<T&>().get_notification());
 
 // -------------------------------------------------------------------------
 // E.  parameterized execution
@@ -1387,8 +1490,8 @@ using pg_get_notification_t =
 //   detector: exec_params(const std::string&,
 // const std::vector<std::string>&) method.
 // wraps PQexecParams().
-template<typename _T>
-using pg_exec_params_t = decltype(std::declval<_T&>().exec_params(
+template<typename T>
+using pg_exec_params_t = decltype(std::declval<T&>().exec_params(
     std::declval<const std::string&>(),
     std::declval<const std::vector<std::string>&>()));
 
@@ -1399,23 +1502,23 @@ using pg_exec_params_t = decltype(std::declval<_T&>().exec_params(
 // pg_get_backend_pid_t
 //   detector: get_backend_pid() const method.
 // wraps PQbackendPID().
-template<typename _T>
+template<typename T>
 using pg_get_backend_pid_t =
-    decltype(std::declval<const _T&>().get_backend_pid());
+    decltype(std::declval<const T&>().get_backend_pid());
 
 // pg_transaction_status_t
 //   detector: get_transaction_status() const method.
 // wraps PQtransactionStatus().
-template<typename _T>
+template<typename T>
 using pg_transaction_status_t =
-    decltype(std::declval<const _T&>().get_transaction_status());
+    decltype(std::declval<const T&>().get_transaction_status());
 
 // pg_parameter_status_t
 //   detector: get_parameter_status(const std::string&) const method.
 // wraps PQparameterStatus().
-template<typename _T>
+template<typename T>
 using pg_parameter_status_t =
-    decltype(std::declval<const _T&>().get_parameter_status(
+    decltype(std::declval<const T&>().get_parameter_status(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1425,9 +1528,9 @@ using pg_parameter_status_t =
 // pg_field_type_oid_t
 //   detector: field_type_oid(int) const method.
 // wraps PQftype().
-template<typename _T>
+template<typename T>
 using pg_field_type_oid_t =
-    decltype(std::declval<const _T&>().field_type_oid(
+    decltype(std::declval<const T&>().field_type_oid(
         std::declval<int>()));
 
 // -------------------------------------------------------------------------
@@ -1436,16 +1539,16 @@ using pg_field_type_oid_t =
 
 // pg_table_exists_t
 //   detector: table_exists(const std::string&) const method.
-template<typename _T>
+template<typename T>
 using pg_table_exists_t =
-    decltype(std::declval<const _T&>().table_exists(
+    decltype(std::declval<const T&>().table_exists(
         std::declval<const std::string&>()));
 
 // pg_get_table_names_t
 //   detector: get_table_names() const method.
-template<typename _T>
+template<typename T>
 using pg_get_table_names_t =
-    decltype(std::declval<const _T&>().get_table_names());
+    decltype(std::declval<const T&>().get_table_names());
 
 // -------------------------------------------------------------------------
 // I.  escape
@@ -1454,17 +1557,17 @@ using pg_get_table_names_t =
 // pg_escape_literal_t
 //   detector: escape_literal(const std::string&) const method.
 // wraps PQescapeLiteral().
-template<typename _T>
+template<typename T>
 using pg_escape_literal_t =
-    decltype(std::declval<const _T&>().escape_literal(
+    decltype(std::declval<const T&>().escape_literal(
         std::declval<const std::string&>()));
 
 // pg_escape_identifier_t
 //   detector: escape_identifier(const std::string&) const method.
 // wraps PQescapeIdentifier().
-template<typename _T>
+template<typename T>
 using pg_escape_identifier_t =
-    decltype(std::declval<const _T&>().escape_identifier(
+    decltype(std::declval<const T&>().escape_identifier(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1473,14 +1576,14 @@ using pg_escape_identifier_t =
 
 // pg_lo_import_t
 //   detector: lo_import(const std::string&) method.
-template<typename _T>
-using pg_lo_import_t = decltype(std::declval<_T&>().lo_import(
+template<typename T>
+using pg_lo_import_t = decltype(std::declval<T&>().lo_import(
     std::declval<const std::string&>()));
 
 // pg_lo_export_t
 //   detector: lo_export(unsigned int, const std::string&) method.
-template<typename _T>
-using pg_lo_export_t = decltype(std::declval<_T&>().lo_export(
+template<typename T>
+using pg_lo_export_t = decltype(std::declval<T&>().lo_export(
     std::declval<unsigned int>(),
     std::declval<const std::string&>()));
 
@@ -1490,152 +1593,152 @@ using pg_lo_export_t = decltype(std::declval<_T&>().lo_export(
 // =============================================================================
 
 // has_pg_async
-//   trait: checks if type _T supports asynchronous query dispatch
+//   trait: checks if type T supports asynchronous query dispatch
 // (send_query + get_result + is_busy + consume_input).
-template<typename _T>
+template<typename T>
 struct has_pg_async : djinterp::conjunction<
-    is_detected<pg_send_query_t, clean_t<_T>>,
-    is_detected<pg_get_result_t, clean_t<_T>>,
-    is_detected<pg_is_busy_t, clean_t<_T>>,
-    is_detected<pg_consume_input_t, clean_t<_T>>>
+    is_detected<pg_send_query_t, clean_t<T>>,
+    is_detected<pg_get_result_t, clean_t<T>>,
+    is_detected<pg_is_busy_t, clean_t<T>>,
+    is_detected<pg_consume_input_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_pg_async_v = has_pg_async<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_pg_async_v = has_pg_async<clean_t<T>>::value;
 #endif
 
 // has_pg_pipeline
-//   trait: checks if type _T supports pipeline mode
+//   trait: checks if type T supports pipeline mode
 // (enter_pipeline + exit_pipeline + pipeline_sync).
-template<typename _T>
+template<typename T>
 struct has_pg_pipeline : djinterp::conjunction<
-    is_detected<pg_enter_pipeline_t, clean_t<_T>>,
-    is_detected<pg_exit_pipeline_t, clean_t<_T>>,
-    is_detected<pg_pipeline_sync_t, clean_t<_T>>>
+    is_detected<pg_enter_pipeline_t, clean_t<T>>,
+    is_detected<pg_exit_pipeline_t, clean_t<T>>,
+    is_detected<pg_pipeline_sync_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_pg_pipeline_v = has_pg_pipeline<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_pg_pipeline_v = has_pg_pipeline<clean_t<T>>::value;
 #endif
 
 // has_pg_copy
-//   trait: checks if type _T supports the COPY protocol
+//   trait: checks if type T supports the COPY protocol
 // (copy_in_start + copy_data + copy_end).
-template<typename _T>
+template<typename T>
 struct has_pg_copy : djinterp::conjunction<
-    is_detected<pg_copy_in_start_t, clean_t<_T>>,
-    is_detected<pg_copy_data_t, clean_t<_T>>,
-    is_detected<pg_copy_end_t, clean_t<_T>>>
+    is_detected<pg_copy_in_start_t, clean_t<T>>,
+    is_detected<pg_copy_data_t, clean_t<T>>,
+    is_detected<pg_copy_end_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_pg_copy_v = has_pg_copy<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_pg_copy_v = has_pg_copy<clean_t<T>>::value;
 #endif
 
 // has_pg_listen_notify
-//   trait: checks if type _T supports LISTEN/NOTIFY
+//   trait: checks if type T supports LISTEN/NOTIFY
 // (listen + notify + get_notification).
-template<typename _T>
+template<typename T>
 struct has_pg_listen_notify : djinterp::conjunction<
-    is_detected<pg_listen_t, clean_t<_T>>,
-    is_detected<pg_notify_t, clean_t<_T>>,
-    is_detected<pg_get_notification_t, clean_t<_T>>>
+    is_detected<pg_listen_t, clean_t<T>>,
+    is_detected<pg_notify_t, clean_t<T>>,
+    is_detected<pg_get_notification_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_pg_listen_notify_v =
-        has_pg_listen_notify<clean_t<_T>>::value;
+        has_pg_listen_notify<clean_t<T>>::value;
 #endif
 
 // has_pg_diagnostics
-//   trait: checks if type _T supports connection diagnostics
+//   trait: checks if type T supports connection diagnostics
 // (get_backend_pid + get_transaction_status + get_parameter_status).
-template<typename _T>
+template<typename T>
 struct has_pg_diagnostics : djinterp::conjunction<
-    is_detected<pg_get_backend_pid_t, clean_t<_T>>,
-    is_detected<pg_transaction_status_t, clean_t<_T>>,
-    is_detected<pg_parameter_status_t, clean_t<_T>>>
+    is_detected<pg_get_backend_pid_t, clean_t<T>>,
+    is_detected<pg_transaction_status_t, clean_t<T>>,
+    is_detected<pg_parameter_status_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_pg_diagnostics_v =
-        has_pg_diagnostics<clean_t<_T>>::value;
+        has_pg_diagnostics<clean_t<T>>::value;
 #endif
 
 // has_pg_escape
-//   trait: checks if type _T supports PostgreSQL escaping
+//   trait: checks if type T supports PostgreSQL escaping
 // (escape_literal + escape_identifier).
-template<typename _T>
+template<typename T>
 struct has_pg_escape : djinterp::conjunction<
-    is_detected<pg_escape_literal_t, clean_t<_T>>,
-    is_detected<pg_escape_identifier_t, clean_t<_T>>>
+    is_detected<pg_escape_literal_t, clean_t<T>>,
+    is_detected<pg_escape_identifier_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_pg_escape_v = has_pg_escape<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_pg_escape_v = has_pg_escape<clean_t<T>>::value;
 #endif
 
 // has_pg_large_objects
-//   trait: checks if type _T supports large object API
+//   trait: checks if type T supports large object API
 // (lo_import + lo_export).
-template<typename _T>
+template<typename T>
 struct has_pg_large_objects : djinterp::conjunction<
-    is_detected<pg_lo_import_t, clean_t<_T>>,
-    is_detected<pg_lo_export_t, clean_t<_T>>>
+    is_detected<pg_lo_import_t, clean_t<T>>,
+    is_detected<pg_lo_export_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_pg_large_objects_v =
-        has_pg_large_objects<clean_t<_T>>::value;
+        has_pg_large_objects<clean_t<T>>::value;
 #endif
 
 // has_pg_schema_query
-//   trait: checks if type _T supports schema introspection
+//   trait: checks if type T supports schema introspection
 // (table_exists + get_table_names).
-template<typename _T>
+template<typename T>
 struct has_pg_schema_query : djinterp::conjunction<
-    is_detected<pg_table_exists_t, clean_t<_T>>,
-    is_detected<pg_get_table_names_t, clean_t<_T>>>
+    is_detected<pg_table_exists_t, clean_t<T>>,
+    is_detected<pg_get_table_names_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_pg_schema_query_v =
-        has_pg_schema_query<clean_t<_T>>::value;
+        has_pg_schema_query<clean_t<T>>::value;
 #endif
 
 // is_pg_connection
-//   trait: compound trait verifying type _T implements a PostgreSQL
+//   trait: compound trait verifying type T implements a PostgreSQL
 // connection interface (connection + async + diagnostics + escape +
 // schema queries).
-template<typename _T>
+template<typename T>
 struct is_pg_connection : djinterp::conjunction<
-    is_connection<clean_t<_T>>,
-    has_pg_async<clean_t<_T>>,
-    has_pg_diagnostics<clean_t<_T>>,
-    has_pg_escape<clean_t<_T>>,
-    has_pg_schema_query<clean_t<_T>>>
+    is_connection<clean_t<T>>,
+    has_pg_async<clean_t<T>>,
+    has_pg_diagnostics<clean_t<T>>,
+    has_pg_escape<clean_t<T>>,
+    has_pg_schema_query<clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool is_pg_connection_v = is_pg_connection<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool is_pg_connection_v = is_pg_connection<clean_t<T>>::value;
 #endif
 
 
@@ -1648,147 +1751,147 @@ struct is_pg_connection : djinterp::conjunction<
 // -------------------------------------------------------------------------
 
 // pg_can_send_query
-//   tagless trait: true if _T has send_query().
-template<typename _T,
+//   tagless trait: true if T has send_query().
+template<typename T,
          typename = void>
 constexpr bool pg_can_send_query = false;
 
-template<typename _T>
-constexpr bool pg_can_send_query<_T,
-    std::void_t<pg_send_query_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_can_send_query<T,
+    std::void_t<pg_send_query_t<T>>> = true;
 
 // pg_can_enter_pipeline
-//   tagless trait: true if _T has enter_pipeline().
-template<typename _T,
+//   tagless trait: true if T has enter_pipeline().
+template<typename T,
          typename = void>
 constexpr bool pg_can_enter_pipeline = false;
 
-template<typename _T>
-constexpr bool pg_can_enter_pipeline<_T,
-    std::void_t<pg_enter_pipeline_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_can_enter_pipeline<T,
+    std::void_t<pg_enter_pipeline_t<T>>> = true;
 
 // pg_can_copy_data
-//   tagless trait: true if _T has copy_data().
-template<typename _T,
+//   tagless trait: true if T has copy_data().
+template<typename T,
          typename = void>
 constexpr bool pg_can_copy_data = false;
 
-template<typename _T>
-constexpr bool pg_can_copy_data<_T,
-    std::void_t<pg_copy_data_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_can_copy_data<T,
+    std::void_t<pg_copy_data_t<T>>> = true;
 
 // pg_can_listen
-//   tagless trait: true if _T has listen().
-template<typename _T,
+//   tagless trait: true if T has listen().
+template<typename T,
          typename = void>
 constexpr bool pg_can_listen = false;
 
-template<typename _T>
-constexpr bool pg_can_listen<_T,
-    std::void_t<pg_listen_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_can_listen<T,
+    std::void_t<pg_listen_t<T>>> = true;
 
 // pg_can_notify
-//   tagless trait: true if _T has notify().
-template<typename _T,
+//   tagless trait: true if T has notify().
+template<typename T,
          typename = void>
 constexpr bool pg_can_notify = false;
 
-template<typename _T>
-constexpr bool pg_can_notify<_T,
-    std::void_t<pg_notify_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_can_notify<T,
+    std::void_t<pg_notify_t<T>>> = true;
 
 // pg_can_exec_params
-//   tagless trait: true if _T has exec_params().
-template<typename _T,
+//   tagless trait: true if T has exec_params().
+template<typename T,
          typename = void>
 constexpr bool pg_can_exec_params = false;
 
-template<typename _T>
-constexpr bool pg_can_exec_params<_T,
-    std::void_t<pg_exec_params_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_can_exec_params<T,
+    std::void_t<pg_exec_params_t<T>>> = true;
 
 // pg_can_escape_literal
-//   tagless trait: true if _T has escape_literal().
-template<typename _T,
+//   tagless trait: true if T has escape_literal().
+template<typename T,
          typename = void>
 constexpr bool pg_can_escape_literal = false;
 
-template<typename _T>
-constexpr bool pg_can_escape_literal<_T,
-    std::void_t<pg_escape_literal_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_can_escape_literal<T,
+    std::void_t<pg_escape_literal_t<T>>> = true;
 
 // pg_can_query_schema
-//   tagless trait: true if _T has table_exists().
-template<typename _T,
+//   tagless trait: true if T has table_exists().
+template<typename T,
          typename = void>
 constexpr bool pg_can_query_schema = false;
 
-template<typename _T>
-constexpr bool pg_can_query_schema<_T,
-    std::void_t<pg_table_exists_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_can_query_schema<T,
+    std::void_t<pg_table_exists_t<T>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
 // -------------------------------------------------------------------------
 
 // pg_does_async
-//   tagless trait: true if _T supports async query dispatch.
-template<typename _T,
+//   tagless trait: true if T supports async query dispatch.
+template<typename T,
          typename = void>
 constexpr bool pg_does_async = false;
 
-template<typename _T>
-constexpr bool pg_does_async<_T, std::void_t<
-    pg_send_query_t<_T>,
-    pg_get_result_t<_T>,
-    pg_is_busy_t<_T>,
-    pg_consume_input_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_does_async<T, std::void_t<
+    pg_send_query_t<T>,
+    pg_get_result_t<T>,
+    pg_is_busy_t<T>,
+    pg_consume_input_t<T>>> = true;
 
 // pg_does_pipeline
-//   tagless trait: true if _T supports pipeline mode.
-template<typename _T,
+//   tagless trait: true if T supports pipeline mode.
+template<typename T,
          typename = void>
 constexpr bool pg_does_pipeline = false;
 
-template<typename _T>
-constexpr bool pg_does_pipeline<_T, std::void_t<
-    pg_enter_pipeline_t<_T>,
-    pg_exit_pipeline_t<_T>,
-    pg_pipeline_sync_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_does_pipeline<T, std::void_t<
+    pg_enter_pipeline_t<T>,
+    pg_exit_pipeline_t<T>,
+    pg_pipeline_sync_t<T>>> = true;
 
 // pg_does_copy
-//   tagless trait: true if _T supports the COPY protocol.
-template<typename _T,
+//   tagless trait: true if T supports the COPY protocol.
+template<typename T,
          typename = void>
 constexpr bool pg_does_copy = false;
 
-template<typename _T>
-constexpr bool pg_does_copy<_T, std::void_t<
-    pg_copy_in_start_t<_T>,
-    pg_copy_data_t<_T>,
-    pg_copy_end_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_does_copy<T, std::void_t<
+    pg_copy_in_start_t<T>,
+    pg_copy_data_t<T>,
+    pg_copy_end_t<T>>> = true;
 
 // pg_does_listen_notify
-//   tagless trait: true if _T supports LISTEN/NOTIFY.
-template<typename _T,
+//   tagless trait: true if T supports LISTEN/NOTIFY.
+template<typename T,
          typename = void>
 constexpr bool pg_does_listen_notify = false;
 
-template<typename _T>
-constexpr bool pg_does_listen_notify<_T, std::void_t<
-    pg_listen_t<_T>,
-    pg_notify_t<_T>,
-    pg_get_notification_t<_T>>> = true;
+template<typename T>
+constexpr bool pg_does_listen_notify<T, std::void_t<
+    pg_listen_t<T>,
+    pg_notify_t<T>,
+    pg_get_notification_t<T>>> = true;
 
 // pg_is_full_connection
-//   tagless trait: true if _T satisfies the complete PostgreSQL
+//   tagless trait: true if T satisfies the complete PostgreSQL
 // connection interface.
-template<typename _T>
+template<typename T>
 constexpr bool pg_is_full_connection =
-    ( is_connectable<clean_t<_T>>         &&
-      pg_does_async<clean_t<_T>>          &&
-      pg_can_escape_literal<clean_t<_T>>  &&
-      pg_can_query_schema<clean_t<_T>> );
+    ( is_connectable<clean_t<T>>         &&
+      pg_does_async<clean_t<T>>          &&
+      pg_can_escape_literal<clean_t<T>>  &&
+      pg_can_query_schema<clean_t<T>> );
 
 
 // =============================================================================
@@ -1797,33 +1900,33 @@ constexpr bool pg_is_full_connection =
 
 // enable_if_pg_connection
 //   type: SFINAE helper for PostgreSQL connection constraints.
-template<typename _T>
+template<typename T>
 using enable_if_pg_connection =
-    typename std::enable_if<is_pg_connection<clean_t<_T>>::value>::type;
+    typename std::enable_if<is_pg_connection<clean_t<T>>::value>::type;
 
 // enable_if_has_pg_async
 //   type: SFINAE helper for PostgreSQL async constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_pg_async =
-    typename std::enable_if<has_pg_async<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_pg_async<clean_t<T>>::value>::type;
 
 // enable_if_has_pg_pipeline
 //   type: SFINAE helper for PostgreSQL pipeline constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_pg_pipeline =
-    typename std::enable_if<has_pg_pipeline<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_pg_pipeline<clean_t<T>>::value>::type;
 
 // enable_if_has_pg_copy
 //   type: SFINAE helper for PostgreSQL COPY constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_pg_copy =
-    typename std::enable_if<has_pg_copy<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_pg_copy<clean_t<T>>::value>::type;
 
 // enable_if_has_pg_listen_notify
 //   type: SFINAE helper for PostgreSQL LISTEN/NOTIFY constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_pg_listen_notify =
-    typename std::enable_if<has_pg_listen_notify<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_pg_listen_notify<clean_t<T>>::value>::type;
 
 
 // ===========================================================================
@@ -1844,77 +1947,77 @@ using enable_if_has_pg_listen_notify =
 // postgres_connection
 //   concept: constrains types implementing the PostgreSQL connection
 // interface.
-template<typename _Type>
+template<typename Type>
 concept postgres_connection =
-    is_pg_connection<clean_t<_Type>>::value;
+    is_pg_connection<clean_t<Type>>::value;
 
 // Pg_connection
 //   concept: alias for postgres_connection using the shorter pg prefix.
-template<typename _Type>
+template<typename Type>
 concept Pg_connection =
-    postgres_connection<_Type>;
+    postgres_connection<Type>;
 
 // non_postgres_connection
 //   concept: constrains types that do not implement the PostgreSQL
 // connection interface.
-template<typename _Type>
+template<typename Type>
 concept non_postgres_connection =
-    !postgres_connection<_Type>;
+    !postgres_connection<Type>;
 
 // postgres_async_connection
 //   concept: constrains PostgreSQL connections supporting asynchronous
 // query dispatch.
-template<typename _Type>
+template<typename Type>
 concept postgres_async_connection =
-    has_pg_async<clean_t<_Type>>::value;
+    has_pg_async<clean_t<Type>>::value;
 
 // postgres_pipeline_connection
 //   concept: constrains PostgreSQL connections supporting pipeline mode.
-template<typename _Type>
+template<typename Type>
 concept postgres_pipeline_connection =
-    has_pg_pipeline<clean_t<_Type>>::value;
+    has_pg_pipeline<clean_t<Type>>::value;
 
 // postgres_copy_connection
 //   concept: constrains PostgreSQL connections supporting the COPY
 // protocol.
-template<typename _Type>
+template<typename Type>
 concept postgres_copy_connection =
-    has_pg_copy<clean_t<_Type>>::value;
+    has_pg_copy<clean_t<Type>>::value;
 
 // postgres_listen_notify_connection
 //   concept: constrains PostgreSQL connections supporting LISTEN /
 // NOTIFY.
-template<typename _Type>
+template<typename Type>
 concept postgres_listen_notify_connection =
-    has_pg_listen_notify<clean_t<_Type>>::value;
+    has_pg_listen_notify<clean_t<Type>>::value;
 
 // postgres_diagnostics_connection
 //   concept: constrains PostgreSQL connections supporting backend
 // diagnostics and parameter status queries.
-template<typename _Type>
+template<typename Type>
 concept postgres_diagnostics_connection =
-    has_pg_diagnostics<clean_t<_Type>>::value;
+    has_pg_diagnostics<clean_t<Type>>::value;
 
 // postgres_escape_connection
 //   concept: constrains PostgreSQL connections supporting literal and
 // identifier escaping.
-template<typename _Type>
+template<typename Type>
 concept postgres_escape_connection =
-    has_pg_escape<clean_t<_Type>>::value;
+    has_pg_escape<clean_t<Type>>::value;
 
 // postgres_large_object_connection
 //   concept: constrains PostgreSQL connections supporting the large
 // object API.
-template<typename _Type>
+template<typename Type>
 concept postgres_large_object_connection =
-    has_pg_large_objects<clean_t<_Type>>::value;
+    has_pg_large_objects<clean_t<Type>>::value;
 
 // postgres_schema_query_connection
 //   concept: constrains PostgreSQL connections supporting schema
 // introspection.
-template<typename _Type>
+template<typename Type>
 concept postgres_schema_query_connection =
-    has_pg_schema_query<clean_t<_Type>>::value;
+    has_pg_schema_query<clean_t<Type>>::value;
 
 
 // =============================================================================
@@ -1923,147 +2026,147 @@ concept postgres_schema_query_connection =
 
 // postgres_send_query_connection
 //   concept: constrains types exposing send_query(const string&).
-template<typename _Type>
+template<typename Type>
 concept postgres_send_query_connection =
-    pg_can_send_query<clean_t<_Type>>;
+    pg_can_send_query<clean_t<Type>>;
 
 // postgres_result_polling_connection
 //   concept: constrains types exposing get_result().
-template<typename _Type>
+template<typename Type>
 concept postgres_result_polling_connection =
-    is_detected<pg_get_result_t, clean_t<_Type>>::value;
+    is_detected<pg_get_result_t, clean_t<Type>>::value;
 
 // postgres_busy_state_query
 //   concept: constrains types exposing is_busy() const.
-template<typename _Type>
+template<typename Type>
 concept postgres_busy_state_query =
-    is_detected<pg_is_busy_t, clean_t<_Type>>::value;
+    is_detected<pg_is_busy_t, clean_t<Type>>::value;
 
 // postgres_input_consuming_connection
 //   concept: constrains types exposing consume_input().
-template<typename _Type>
+template<typename Type>
 concept postgres_input_consuming_connection =
-    is_detected<pg_consume_input_t, clean_t<_Type>>::value;
+    is_detected<pg_consume_input_t, clean_t<Type>>::value;
 
 // postgres_pipeline_enterable_connection
 //   concept: constrains types exposing enter_pipeline().
-template<typename _Type>
+template<typename Type>
 concept postgres_pipeline_enterable_connection =
-    pg_can_enter_pipeline<clean_t<_Type>>;
+    pg_can_enter_pipeline<clean_t<Type>>;
 
 // postgres_pipeline_exitable_connection
 //   concept: constrains types exposing exit_pipeline().
-template<typename _Type>
+template<typename Type>
 concept postgres_pipeline_exitable_connection =
-    is_detected<pg_exit_pipeline_t, clean_t<_Type>>::value;
+    is_detected<pg_exit_pipeline_t, clean_t<Type>>::value;
 
 // postgres_pipeline_sync_connection
 //   concept: constrains types exposing pipeline_sync().
-template<typename _Type>
+template<typename Type>
 concept postgres_pipeline_sync_connection =
-    is_detected<pg_pipeline_sync_t, clean_t<_Type>>::value;
+    is_detected<pg_pipeline_sync_t, clean_t<Type>>::value;
 
 // postgres_copy_in_connection
 //   concept: constrains types exposing copy_in_start(const string&).
-template<typename _Type>
+template<typename Type>
 concept postgres_copy_in_connection =
-    is_detected<pg_copy_in_start_t, clean_t<_Type>>::value;
+    is_detected<pg_copy_in_start_t, clean_t<Type>>::value;
 
 // postgres_copy_data_connection
 //   concept: constrains types exposing copy_data(const char*, size_t).
-template<typename _Type>
+template<typename Type>
 concept postgres_copy_data_connection =
-    pg_can_copy_data<clean_t<_Type>>;
+    pg_can_copy_data<clean_t<Type>>;
 
 // postgres_copy_end_connection
 //   concept: constrains types exposing copy_end().
-template<typename _Type>
+template<typename Type>
 concept postgres_copy_end_connection =
-    is_detected<pg_copy_end_t, clean_t<_Type>>::value;
+    is_detected<pg_copy_end_t, clean_t<Type>>::value;
 
 // postgres_listenable_connection
 //   concept: constrains types exposing listen(const string&).
-template<typename _Type>
+template<typename Type>
 concept postgres_listenable_connection =
-    pg_can_listen<clean_t<_Type>>;
+    pg_can_listen<clean_t<Type>>;
 
 // postgres_notifiable_connection
 //   concept: constrains types exposing notify(channel, payload).
-template<typename _Type>
+template<typename Type>
 concept postgres_notifiable_connection =
-    pg_can_notify<clean_t<_Type>>;
+    pg_can_notify<clean_t<Type>>;
 
 // postgres_notification_query_connection
 //   concept: constrains types exposing get_notification().
-template<typename _Type>
+template<typename Type>
 concept postgres_notification_query_connection =
-    is_detected<pg_get_notification_t, clean_t<_Type>>::value;
+    is_detected<pg_get_notification_t, clean_t<Type>>::value;
 
 // postgres_parameterized_execution_connection
 //   concept: constrains types exposing exec_params(query, params).
-template<typename _Type>
+template<typename Type>
 concept postgres_parameterized_execution_connection =
-    pg_can_exec_params<clean_t<_Type>>;
+    pg_can_exec_params<clean_t<Type>>;
 
 // postgres_backend_pid_connection
 //   concept: constrains types exposing get_backend_pid() const.
-template<typename _Type>
+template<typename Type>
 concept postgres_backend_pid_connection =
-    is_detected<pg_get_backend_pid_t, clean_t<_Type>>::value;
+    is_detected<pg_get_backend_pid_t, clean_t<Type>>::value;
 
 // postgres_transaction_status_connection
 //   concept: constrains types exposing get_transaction_status() const.
-template<typename _Type>
+template<typename Type>
 concept postgres_transaction_status_connection =
-    is_detected<pg_transaction_status_t, clean_t<_Type>>::value;
+    is_detected<pg_transaction_status_t, clean_t<Type>>::value;
 
 // postgres_parameter_status_connection
 //   concept: constrains types exposing get_parameter_status(name) const.
-template<typename _Type>
+template<typename Type>
 concept postgres_parameter_status_connection =
-    is_detected<pg_parameter_status_t, clean_t<_Type>>::value;
+    is_detected<pg_parameter_status_t, clean_t<Type>>::value;
 
 // postgres_field_oid_introspection_connection
 //   concept: constrains types exposing field_type_oid(int) const.
-template<typename _Type>
+template<typename Type>
 concept postgres_field_oid_introspection_connection =
-    is_detected<pg_field_type_oid_t, clean_t<_Type>>::value;
+    is_detected<pg_field_type_oid_t, clean_t<Type>>::value;
 
 // postgres_table_exists_query
 //   concept: constrains types exposing table_exists(name) const.
-template<typename _Type>
+template<typename Type>
 concept postgres_table_exists_query =
-    pg_can_query_schema<clean_t<_Type>>;
+    pg_can_query_schema<clean_t<Type>>;
 
 // postgres_table_names_query
 //   concept: constrains types exposing get_table_names() const.
-template<typename _Type>
+template<typename Type>
 concept postgres_table_names_query =
-    is_detected<pg_get_table_names_t, clean_t<_Type>>::value;
+    is_detected<pg_get_table_names_t, clean_t<Type>>::value;
 
 // postgres_escape_literal_connection
 //   concept: constrains types exposing escape_literal(text) const.
-template<typename _Type>
+template<typename Type>
 concept postgres_escape_literal_connection =
-    pg_can_escape_literal<clean_t<_Type>>;
+    pg_can_escape_literal<clean_t<Type>>;
 
 // postgres_escape_identifier_connection
 //   concept: constrains types exposing escape_identifier(text) const.
-template<typename _Type>
+template<typename Type>
 concept postgres_escape_identifier_connection =
-    is_detected<pg_escape_identifier_t, clean_t<_Type>>::value;
+    is_detected<pg_escape_identifier_t, clean_t<Type>>::value;
 
 // postgres_lo_import_connection
 //   concept: constrains types exposing lo_import(path).
-template<typename _Type>
+template<typename Type>
 concept postgres_lo_import_connection =
-    is_detected<pg_lo_import_t, clean_t<_Type>>::value;
+    is_detected<pg_lo_import_t, clean_t<Type>>::value;
 
 // postgres_lo_export_connection
 //   concept: constrains types exposing lo_export(oid, path).
-template<typename _Type>
+template<typename Type>
 concept postgres_lo_export_connection =
-    is_detected<pg_lo_export_t, clean_t<_Type>>::value;
+    is_detected<pg_lo_export_t, clean_t<Type>>::value;
 
 
 // =============================================================================
@@ -2073,44 +2176,44 @@ concept postgres_lo_export_connection =
 // postgres_async_dispatchable
 //   concept: constrains types satisfying the full tagless async query
 // dispatch capability set.
-template<typename _Type>
+template<typename Type>
 concept postgres_async_dispatchable =
-    pg_does_async<clean_t<_Type>>;
+    pg_does_async<clean_t<Type>>;
 
 // postgres_pipelined_connection
 //   concept: constrains types satisfying the full tagless pipeline
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept postgres_pipelined_connection =
-    pg_does_pipeline<clean_t<_Type>>;
+    pg_does_pipeline<clean_t<Type>>;
 
 // postgres_copy_protocol_connection
 //   concept: constrains types satisfying the full tagless COPY protocol
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept postgres_copy_protocol_connection =
-    pg_does_copy<clean_t<_Type>>;
+    pg_does_copy<clean_t<Type>>;
 
 // postgres_listen_notifiable_connection
 //   concept: constrains types satisfying the full tagless LISTEN /
 // NOTIFY capability set.
-template<typename _Type>
+template<typename Type>
 concept postgres_listen_notifiable_connection =
-    pg_does_listen_notify<clean_t<_Type>>;
+    pg_does_listen_notify<clean_t<Type>>;
 
 // postgres_full_connection
 //   concept: constrains types satisfying the complete tagless
 // PostgreSQL connection capability set.
-template<typename _Type>
+template<typename Type>
 concept postgres_full_connection =
-    pg_is_full_connection<clean_t<_Type>>;
+    pg_is_full_connection<clean_t<Type>>;
 
 // pg_full_connection
 //   concept: alias for postgres_full_connection using the shorter pg
 // prefix.
-template<typename _Type>
+template<typename Type>
 concept pg_full_connection =
-    postgres_full_connection<_Type>;
+    postgres_full_connection<Type>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -2118,5 +2221,6 @@ concept pg_full_connection =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_POSTGRES_
+#endif  // DJINTERP_DB_POSTGRES_POSTGRES_HPP

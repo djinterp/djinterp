@@ -1,16 +1,22 @@
-/******************************************************************************
-* djinterp [container]                             container_overlay_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                   container_overlay_traits.hpp
 *
-*   SFINAE traits for the OVERLAY view of a container (the spec, Restrictions /
-* Overlays).  An overlay is the synthesis the earlier axes were building toward:
-* a finite SET of restrictions a container's contents satisfy, with the backing
-* (vector, list, tree, array) deliberately forgotten.  The named containers are
+*   SFINAE traits for the OVERLAY view of a container (the spec, Restrictions
+* /
+* Overlays). An overlay is the synthesis the earlier axes were building
+* toward:
+* a finite SET of restrictions a container's contents satisfy, with the
+* backing
+* (vector, list, tree, array) deliberately forgotten. The named containers are
 * canonical overlays - set, multiset, map, multimap - and bounded or interval
 * variants are mere conjunctions.
 *
-*   RESTRICTIONS AND SCOPE.  A restriction is a predicate on containers; its scope
-* records what it inspects - STATIC (the value type alone), BAG-LEVEL (the value
-* bag, blind to order and construction), or SEQUENCE-LEVEL (the ordered sequence).
+*   RESTRICTIONS AND SCOPE. A restriction is a predicate on containers; its
+* scope
+* records what it inspects - STATIC (the value type alone), BAG-LEVEL (the
+* value
+* bag, blind to order and construction), or SEQUENCE-LEVEL (the ordered
+* sequence).
 * The vocabulary, drawn from the earlier axes:
 *     multiplicity  mu_m^E  (bag-level)   #_E(c,x) <= m per class
 *     capacity      gamma_k (bag-level)   |c| <= kappa
@@ -19,17 +25,22 @@
 *     keyed         eta     (static)      the value type is a pair Key x Val
 *
 *   AN OVERLAY is order-blind when every restriction it bears is bag-level or
-* static - it then sees a container only through its bag, so a list, a tree, an
+* static - it then sees a container only through its bag, so a list, a tree,
+* an
 * array, and a vector with the same contents wear it alike (conformance is a
-* property of CONTENTS, not CONSTRUCTION).  The canonical overlays are all order-
+* property of CONTENTS, not CONSTRUCTION). The canonical overlays are all
+* order-
 * blind; a comparator merely supplies a sorted PRESENTATION without that order
-* joining the overlay's identity.  Sorted (sigma) is therefore an opt-in addition
+* joining the overlay's identity. Sorted (sigma) is therefore an opt-in
+* addition
 * here - NOT inferred from a container being associative - and is the proper
 * concern of the forthcoming Sortedness axis, to which this hook defers.
 *
-*   COMPOSITION AND STRENGTH.  Overlays form a meet-semilattice: the meet unions
+*   COMPOSITION AND STRENGTH. Overlays form a meet-semilattice: the meet
+* unions
 * restrictions (extensions intersect), the top is the empty overlay worn by
-* everything, and one overlay is stronger than another (subsumes it) exactly when
+* everything, and one overlay is stronger than another (subsumes it) exactly
+* when
 * its extension is contained - it admits fewer containers.  overlay_meet and
 * overlay_subsumes realise these; the latter is the strength order container
 * comparison consumes.
@@ -44,17 +55,24 @@
 *
 * path:      /inc/djinterp/core/container/traits/container_overlay_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_OVERLAY_TRAITS_
-#define DJINTERP_CONTAINER_OVERLAY_TRAITS_ 1
+#ifndef DJINTERP_CONTAINER_TRAITS_CONTAINER_OVERLAY_TRAITS_HPP
+#define DJINTERP_CONTAINER_TRAITS_CONTAINER_OVERLAY_TRAITS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"                       // clean_t, NS_*, feature macros
+#include "../../../djinterp.hpp"                       // clean_t, NS_*, feature macros
 #include "../../meta/trait_detect.hpp"              // D_TYPE_TRAIT_* detection macros, D_VOID_T
 #include "../../meta/multiplicity.hpp"               // multiplicity_kind + ranks
 #include "./container_multiplicity_traits.hpp"       // multiplicity_kind_of (mu, the E+m parameter)
@@ -108,9 +126,9 @@ restriction_kind_name(restriction_kind _k) noexcept
 }
 
 // scope_of_restriction
-//   function: the scope each restriction kind carries.  Only sorted is sequence-
-// level (the rest are bag-level or static), which is what makes an overlay
-// without it order-blind.
+//   function: the scope each restriction kind carries. Only sorted is
+// sequence- level (the rest are bag-level or static), which is what makes an
+// overlay without it order-blind.
 constexpr restriction_scope
 scope_of_restriction(restriction_kind _k) noexcept
 {
@@ -125,14 +143,14 @@ scope_of_restriction(restriction_kind _k) noexcept
 // ===========================================================================
 
 // is_keyed_container
-//   trait: the keyed restriction eta (static) - the value type is a pair
-// Key x Val, detected by its first_type / second_type aliases.  A keyed value
-// type re-bases the duplicate-equivalence onto the key, but eta itself asserts
-// only the pair SHAPE and so is independent of uniqueness (a sequence of pairs is
+//   trait: the keyed restriction eta (static) - the value type is a pair Key x
+// Val, detected by its first_type / second_type aliases. A keyed value type
+// re-bases the duplicate-equivalence onto the key, but eta itself asserts only
+// the pair SHAPE and so is independent of uniqueness (a sequence of pairs is
 // keyed yet wears no mu_1).
 D_TYPE_TRAIT_TRUE(is_keyed_container,
-    typename clean_t<_Type>::value_type::first_type,
-    typename clean_t<_Type>::value_type::second_type)
+    typename clean_t<Type>::value_type::first_type,
+    typename clean_t<Type>::value_type::second_type)
 
 
 NS_INTERNAL
@@ -140,22 +158,26 @@ NS_INTERNAL
     // overlay_sorted_invariant_helper
     //   helper: the sorted restriction sigma (sequence-level) is opt-in - a
     // container asserts sorted order as part of its IDENTITY via a static
-    // `sorted_invariant` constant.  It is NOT inferred from associativity, whose
-    // sorting is mere presentation.  The Sortedness axis will own this; until
-    // then the hook reads the opt-in and otherwise reports false (order-blind).
-    template<typename _Type,
+    // `sorted_invariant` constant. It is NOT inferred from associativity,
+    // whose sorting is mere presentation. The Sortedness axis will own this;
+    // until then the hook reads the opt-in and otherwise reports false
+    // (order-blind).
+    template<typename Type,
              typename = void>
     struct overlay_sorted_invariant_helper
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Type>
-    struct overlay_sorted_invariant_helper<_Type,
-        D_VOID_T<decltype(clean_t<_Type>::sorted_invariant)>>
+    // overlay_sorted_invariant_helper specialization
+    //   helper: the detected case -- selected when the type declares the
+    // static member `sorted_invariant`.
+    template<typename Type>
+    struct overlay_sorted_invariant_helper<Type,
+        D_VOID_T<decltype(clean_t<Type>::sorted_invariant)>>
     {
         static constexpr bool value =
-            static_cast<bool>(clean_t<_Type>::sorted_invariant);
+            static_cast<bool>(clean_t<Type>::sorted_invariant);
     };
 
 NS_END  // internal
@@ -166,17 +188,18 @@ NS_END  // internal
 // ===========================================================================
 
 // overlay
-//   value type: the restrictions a container's contents bear.  mu is carried as
+//   value type: the restrictions a container's contents bear. mu is carried as
 // its multiplicity_kind (the E + m parameterisation - sequence is the vacuous
-// cap); the remaining restrictions are present/absent flags.  A literal type, so
-// it composes and compares at compile time.
+// cap); the remaining restrictions are present/absent flags. A literal type,
+// so it composes and compares at compile time.
 struct overlay
 {
-    multiplicity_kind mult;             // mu  (bag-level): the E + m parameter
-    bool              keyed;            // eta (static)
-    bool              sorted;           // sigma (sequence-level)
-    bool              capacity_bounded; // gamma (bag-level)
-    bool              domain_bounded;   // delta (bag-level)
+    multiplicity_kind::value mult;             // mu  (bag-level): the E + m
+                                               // parameter
+    bool                     keyed;            // eta (static)
+    bool                     sorted;           // sigma (sequence-level)
+    bool                     capacity_bounded; // gamma (bag-level)
+    bool                     domain_bounded;   // delta (bag-level)
 };
 
 // overlay_top
@@ -188,8 +211,8 @@ overlay_top() noexcept
 }
 
 // is_order_blind
-//   function: true iff the overlay bears no sequence-level restriction - i.e. it
-// is not sorted, so it observes a container only through its bag.
+//   function: true iff the overlay bears no sequence-level restriction - i.e.
+// it is not sorted, so it observes a container only through its bag.
 constexpr bool
 is_order_blind(overlay _o) noexcept
 {
@@ -197,10 +220,10 @@ is_order_blind(overlay _o) noexcept
 }
 
 // overlay_subsumes
-//   function: the strength order - true iff _a <= _b, i.e. [_a] is contained in
-// [_b] (_a is the MORE restrictive, admitting fewer containers).  Component-wise:
-// _a's multiplicity is at least as tight (smaller rank), and _a bears every
-// flag-restriction _b requires.
+//   function: the strength order - true iff _a <= _b, i.e. [_a] is contained
+// in [_b] (_a is the MORE restrictive, admitting fewer containers).
+// Component-wise: _a's multiplicity is at least as tight (smaller rank), and
+// _a bears every flag-restriction _b requires.
 constexpr bool
 overlay_subsumes(overlay _a, overlay _b) noexcept
 {
@@ -214,9 +237,9 @@ overlay_subsumes(overlay _a, overlay _b) noexcept
 }
 
 // overlay_meet
-//   function: the composition (meet) - the union of two overlays' restrictions,
-// the stronger combined overlay.  Multiplicity takes the tighter (smaller-rank)
-// kind; the flag-restrictions take the disjunction.
+//   function: the composition (meet) - the union of two overlays'
+// restrictions, the stronger combined overlay. Multiplicity takes the tighter
+// (smaller-rank) kind; the flag-restrictions take the disjunction.
 constexpr overlay
 overlay_meet(overlay _a, overlay _b) noexcept
 {
@@ -237,17 +260,18 @@ overlay_meet(overlay _a, overlay _b) noexcept
 
 // overlay_of
 //   trait: assembles the overlay a type wears from the per-axis verdicts -
-// multiplicity from the multiplicity axis, capacity and domain from boundedness,
-// keyed and sorted from the local signals.  Each restriction is exposed as a
-// static member, and value() materialises the descriptor for the algebra.
-template<typename _Type>
+// multiplicity from the multiplicity axis, capacity and domain from
+// boundedness, keyed and sorted from the local signals. Each restriction is
+// exposed as a static member, and value() materialises the descriptor for the
+// algebra.
+template<typename Type>
 struct overlay_of
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
-    static constexpr multiplicity_kind mult =
+    static constexpr multiplicity_kind::value mult =
         multiplicity_kind_of<clean_type>::value;
     static constexpr bool keyed =
         is_keyed_container<clean_type>::value;
@@ -269,24 +293,25 @@ public:
 
 // is_order_blind_overlay
 //   trait: true iff the overlay a type wears is order-blind (bears no sigma).
-template<typename _Type>
+template<typename Type>
 struct is_order_blind_overlay
-    : std::integral_constant<bool, !overlay_of<clean_t<_Type>>::sorted>
+    : std::integral_constant<bool, !overlay_of<clean_t<Type>>::sorted>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_order_blind_overlay)
 
 // wears_overlay
-//   function: true iff a type's overlay is at least as strong as a target - i.e.
-// the type conforms to (wears) the target overlay.  A function template - the
-// target is a constexpr argument, not a class-type non-type parameter, which the
-// C++11 baseline does not admit - constexpr-evaluable at usage sites.
-template<typename _Type>
+//   function: true iff a type's overlay is at least as strong as a target -
+// i.e. the type conforms to (wears) the target overlay. A function template -
+// the target is a constexpr argument, not a class-type non-type parameter,
+// which the C++11 baseline does not admit - constexpr-evaluable at usage
+// sites.
+template<typename Type>
 constexpr bool
 wears_overlay(overlay _target) noexcept
 {
     return overlay_subsumes(
-               overlay_of<clean_t<_Type>>::value(), _target );
+               overlay_of<clean_t<Type>>::value(), _target );
 }
 
 
@@ -295,8 +320,8 @@ wears_overlay(overlay _target) noexcept
 // ===========================================================================
 
 // canonical_overlay
-//   enum: the named overlays - the 2x2 of keyed? against may-repeat?  A type that
-// wears none of them (a plain sequence, or a non-container) is `none`.
+//   enum: the named overlays - the 2x2 of keyed? against may-repeat? A type
+// that wears none of them (a plain sequence, or a non-container) is `none`.
 enum class canonical_overlay
 {
     none,        // wears the trivial overlay (a sequence) / not a container
@@ -319,10 +344,10 @@ canonical_overlay_name(canonical_overlay _c) noexcept
 
 // classify_canonical
 //   function: the named overlay from the two distinguishing axes - the
-// multiplicity (unique vs repeatable) and whether the value type is keyed.  A
+// multiplicity (unique vs repeatable) and whether the value type is keyed. A
 // sequence (the vacuous cap, no equivalence) or an unknown wears none.
 constexpr canonical_overlay
-classify_canonical(multiplicity_kind _m, bool _keyed) noexcept
+classify_canonical(multiplicity_kind::value _m, bool _keyed) noexcept
 {
     return ( _m == multiplicity_kind::unique
                  ? ( _keyed ? canonical_overlay::map : canonical_overlay::set )
@@ -334,11 +359,11 @@ classify_canonical(multiplicity_kind _m, bool _keyed) noexcept
 // canonical_overlay_of
 //   trait: the named overlay a type wears (its multiplicity-canonical base;
 // bounded / domain variants are recorded separately in overlay_of).
-template<typename _Type>
+template<typename Type>
 struct canonical_overlay_of
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
     static constexpr canonical_overlay value =
@@ -349,17 +374,20 @@ public:
     using type = std::integral_constant<canonical_overlay, value>;
 };
 
-template<typename _Type>
-using canonical_overlay_of_t = typename canonical_overlay_of<_Type>::type;
+// canonical_overlay_of_t / canonical_overlay_of_v
+//   type / value: the carrier and, where the language permits, the value
+// companion of canonical_overlay_of.
+template<typename Type>
+using canonical_overlay_of_t = typename canonical_overlay_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
+    template<typename Type>
     inline constexpr canonical_overlay canonical_overlay_of_v =
-        canonical_overlay_of<_Type>::value;
+        canonical_overlay_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr canonical_overlay canonical_overlay_of_v =
-        canonical_overlay_of<_Type>::value;
+        canonical_overlay_of<Type>::value;
 #endif
 
 
@@ -367,15 +395,15 @@ using canonical_overlay_of_t = typename canonical_overlay_of<_Type>::type;
 // VI.  Aggregate snapshot
 // ===========================================================================
 
-template<typename _Type>
+template<typename Type>
 struct overlay_container_class
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
     // borne restrictions
-    static constexpr multiplicity_kind mult =
+    static constexpr multiplicity_kind::value mult =
         overlay_of<clean_type>::mult;
     static constexpr bool keyed =
         overlay_of<clean_type>::keyed;
@@ -398,5 +426,6 @@ public:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_OVERLAY_TRAITS_
+#endif  // DJINTERP_CONTAINER_TRAITS_CONTAINER_OVERLAY_TRAITS_HPP

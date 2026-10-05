@@ -3,13 +3,13 @@
 *
 * Definitions for the declarations in `dio.h`.
 *   Each wrapper defers to the C library, choosing the Annex K / MSVC secure
-* variant where D_STUDIO_HAS_SCANF_S is set and a standard fallback elsewhere.
+* variant where D_ENV_C_HAS_SCANF_S is set and a standard fallback elsewhere.
 *
 *
 * path:      /src/djinterp/c/dio.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.05.19
-*                                                            revised: 2026.09.24
+*                                                            revised: 2026.09.30
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dio.h"  // corresponding header
 // std
@@ -45,7 +45,7 @@ d_sscanf(
 /*
 d_sscanf_s
   Collects the variadic arguments and calls vsscanf_s where
-D_STUDIO_HAS_SCANF_S is set, vsscanf otherwise. vsscanf does not consume the
+D_ENV_C_HAS_SCANF_S is set, vsscanf otherwise. vsscanf does not consume the
 buffer-size arguments the _s convention adds after each %s, %c, and %[, so on
 the fallback path such a call misreads its arguments.
 */
@@ -61,7 +61,7 @@ d_sscanf_s(
     va_start(args,
              _format);
 
-#if D_STUDIO_HAS_SCANF_S
+#if D_ENV_C_HAS_SCANF_S
     const int result = vsscanf_s(_buffer,
                                  _format,
                                  args);
@@ -94,7 +94,7 @@ d_vsscanf(
 
 /*
 d_vsscanf_s
-  vsscanf_s where D_STUDIO_HAS_SCANF_S is set, vsscanf otherwise, with the
+  vsscanf_s where D_ENV_C_HAS_SCANF_S is set, vsscanf otherwise, with the
 fallback caveat described at d_sscanf_s.
 */
 int
@@ -104,7 +104,7 @@ d_vsscanf_s(
     va_list     _argptr
 )
 {
-#if D_STUDIO_HAS_SCANF_S
+#if D_ENV_C_HAS_SCANF_S
 
     return vsscanf_s(_buffer,
                      _format,
@@ -158,7 +158,7 @@ d_fscanf_s(
     va_start(args,
              _format);
 
-#if D_STUDIO_HAS_SCANF_S
+#if D_ENV_C_HAS_SCANF_S
     const int result = vfscanf_s(_stream,
                                  _format,
                                  args);
@@ -203,7 +203,7 @@ d_sprintf_s(
 
 /*
 d_vsprintf_s
-  vsprintf_s where D_STUDIO_HAS_SCANF_S is set; otherwise vsnprintf, which
+  vsprintf_s where D_ENV_C_HAS_SCANF_S is set; otherwise vsnprintf, which
 truncates where vsprintf_s would report the overflow.
 */
 int
@@ -214,7 +214,7 @@ d_vsprintf_s(
     va_list     _argptr
 )
 {
-#if D_STUDIO_HAS_SCANF_S
+#if D_ENV_C_HAS_SCANF_S
 
     return vsprintf_s(_buffer,
                       _size,
@@ -286,11 +286,11 @@ d_vsnprintf(
 }
 
 // character and string I/O
-#if D_STUDIO_HAS_SCANF_S
+#if D_ENV_C_HAS_SCANF_S
 
 /*
 d_gets_s
-  gets_s, where D_STUDIO_HAS_SCANF_S is set.
+  gets_s, where D_ENV_C_HAS_SCANF_S is set.
 */
 char*
 d_gets_s(

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [db][config]                                     env_mysql_config.h
+/*******************************************************************************
+* djinterp [db][config]                                       env_mysql_config.h
 *
 * Per-module configuration for env_mysql.h (Oracle MySQL). Owns all
 * D_CFG_ENV_MYSQL_* defaults and the pre-defined-detection auto-activation

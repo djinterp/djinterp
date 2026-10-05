@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                       calculus/sequence.hpp
+/*******************************************************************************
+* djinterp [math]                                                   sequence.hpp
 *
 * Sequences.
 *   A sequence maps an index n (0-based) to a term value. A general sequence
@@ -14,16 +14,19 @@
 *   power_sequence<T>(p)          - n^p (integer p)
 *   fibonacci_sequence            - 0,1,1,2,3,5,...
 *
+*
 * path:      /inc/djinterp/math/calculus/sequence.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.06.20
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CALCULUS_SEQUENCE_
-#define DJINTERP_MATH_CALCULUS_SEQUENCE_ 1
+#ifndef DJINTERP_MATH_CALCULUS_SEQUENCE_HPP
+#define DJINTERP_MATH_CALCULUS_SEQUENCE_HPP 1
 
+// std
 #include <cstddef>
-
+// djinterp
 #include "../../djinterp.hpp"
 
 
@@ -185,4 +188,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_CALCULUS_SEQUENCE_
+#endif  // DJINTERP_MATH_CALCULUS_SEQUENCE_HPP

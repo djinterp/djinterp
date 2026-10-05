@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                runtime_error.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            runtime_error.hpp
 *
 * runtime_error:
 *   base of the "errors detectable only as the program runs" branch of
@@ -10,20 +10,23 @@
 * holder defined alongside logic_error.
 *
 *
-* path:      /inc/djinterp/re_std/stdexception/runtime_error.hpp
+* path:      /inc/re_std/stdexception/runtime_error.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_STDEXCEPT_RUNTIME_ERROR_
-#define DJINTERP_RE_STD_STDEXCEPT_RUNTIME_ERROR_ 1
+#ifndef RE_STD_STDEXCEPTION_RUNTIME_ERROR_HPP
+#define RE_STD_STDEXCEPTION_RUNTIME_ERROR_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "../exception/exception.hpp"
 #include "logic_error.hpp" // for re_std::internal::fixed_message in the fallback
 
-#if D_ENV_CPP98_HAS_STDEXCEPT
+#if RE_STD_HAS_EXCEPTIONS
 
+    // std
     #include <stdexcept>
 
 namespace re_std
@@ -32,8 +35,7 @@ namespace re_std
     //   class: using-declaration from std::runtime_error.
     using std::runtime_error;
 
-} // namespace re_std
-
+}  // re_std
 #else // freestanding fallback
 
 namespace re_std
@@ -44,14 +46,14 @@ namespace re_std
     class runtime_error : public exception
     {
     public:
-        explicit runtime_error(const char* _what) D_NOEXCEPT
+        explicit runtime_error(const char* _what) RE_STD_NOEXCEPT
             : m_msg(_what)
         {}
 
-        virtual ~runtime_error() D_NOEXCEPT
+        virtual ~runtime_error() RE_STD_NOEXCEPT
         {}
 
-        virtual const char* what() const D_NOEXCEPT
+        virtual const char* what() const RE_STD_NOEXCEPT
         {
             return m_msg.c_str();
         }
@@ -60,8 +62,7 @@ namespace re_std
         internal::fixed_message m_msg;
     };
 
-} // namespace re_std
+}  // re_std
+#endif // RE_STD_HAS_EXCEPTIONS
 
-#endif // D_ENV_CPP98_HAS_STDEXCEPT
-
-#endif  // DJINTERP_RE_STD_STDEXCEPT_RUNTIME_ERROR_
+#endif  // RE_STD_STDEXCEPTION_RUNTIME_ERROR_HPP

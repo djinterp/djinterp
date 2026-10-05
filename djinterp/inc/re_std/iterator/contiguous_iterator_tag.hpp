@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                           contiguous_iterator_tag.hpp
+/*******************************************************************************
+* djinterp [re_std]                                  contiguous_iterator_tag.hpp
 *
+* contiguous_iterator_tag class header:
 * tag for contiguous iterators — random-access PLUS the guarantee that
 * logically adjacent elements are physically adjacent in memory
 * (i.e. *(it + n) and it[n] refer to the same byte address). Derives
@@ -18,18 +19,20 @@
 * on those tiers as well).
 *
 *
-* path:      /inc/djinterp/re_std/iterator/contiguous_iterator_tag.hpp
+* path:      /inc/re_std/iterator/contiguous_iterator_tag.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_CONTIGUOUS_ITERATOR_TAG_
-#define DJINTERP_RE_STD_ITERATOR_CONTIGUOUS_ITERATOR_TAG_ 1
+#ifndef RE_STD_ITERATOR_CONTIGUOUS_ITERATOR_TAG_HPP
+#define RE_STD_ITERATOR_CONTIGUOUS_ITERATOR_TAG_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
     #include "re_std/iterator/random_access_iterator_tag.hpp"
 
@@ -42,8 +45,7 @@ struct contiguous_iterator_tag : public random_access_iterator_tag
 };
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_CONTIGUOUS_ITERATOR_TAG_
+#endif  // RE_STD_ITERATOR_CONTIGUOUS_ITERATOR_TAG_HPP

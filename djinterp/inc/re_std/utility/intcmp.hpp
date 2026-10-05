@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                         intcmp.hpp -- cmp_* family
+/*******************************************************************************
+* djinterp [re_std]                                                   intcmp.hpp
 *
 * sign-safe integer comparison functions:
 *   cmp_equal, cmp_not_equal, cmp_less, cmp_greater, cmp_less_equal,
@@ -37,21 +37,24 @@
 * sequence of partial specs).
 *
 *
-* path:      /inc/djinterp/re_std/utility/intcmp.hpp
+* path:      /inc/re_std/utility/intcmp.hpp
 * link(s):   TBA
-* author(s): re_std team                                date: 2026.05.09
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.05.09
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_INTCMP_
-#define DJINTERP_RE_STD_UTILITY_INTCMP_ 1
+#ifndef RE_STD_UTILITY_INTCMP_HPP
+#define RE_STD_UTILITY_INTCMP_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-    #include <type_traits>  // std::is_signed, std::make_unsigned -- documented localised exception
+    // std
     #include <limits>       // std::numeric_limits (for in_range)
+    #include <type_traits>  // std::is_signed, std::make_unsigned -- documented localised exception
 
 
 namespace re_std
@@ -62,48 +65,48 @@ namespace internal
     // ------------------------------------------------------------
     // primary template: same signedness -- direct comparison.
     // ------------------------------------------------------------
-    template<typename _T, typename _U,
-             bool _TSigned = std::is_signed<_T>::value,
-             bool _USigned = std::is_signed<_U>::value>
+    template<typename T, typename U,
+             bool TSigned = std::is_signed<T>::value,
+             bool USigned = std::is_signed<U>::value>
     struct intcmp_eq
     {
-        static D_CONSTEXPR bool apply(_T _t, _U _u) D_NOEXCEPT
+        static RE_STD_CONSTEXPR bool apply(T _t, U _u) RE_STD_NOEXCEPT
         {
             return _t == _u;
         }
     };
 
     // signed-vs-unsigned: never equal if signed is negative.
-    template<typename _T, typename _U>
-    struct intcmp_eq<_T, _U, true, false>
+    template<typename T, typename U>
+    struct intcmp_eq<T, U, true, false>
     {
-        static D_CONSTEXPR bool apply(_T _t, _U _u) D_NOEXCEPT
+        static RE_STD_CONSTEXPR bool apply(T _t, U _u) RE_STD_NOEXCEPT
         {
             return _t >= 0
-                && static_cast<typename std::make_unsigned<_T>::type>(_t) == _u;
+                && static_cast<typename std::make_unsigned<T>::type>(_t) == _u;
         }
     };
 
     // unsigned-vs-signed: mirror.
-    template<typename _T, typename _U>
-    struct intcmp_eq<_T, _U, false, true>
+    template<typename T, typename U>
+    struct intcmp_eq<T, U, false, true>
     {
-        static D_CONSTEXPR bool apply(_T _t, _U _u) D_NOEXCEPT
+        static RE_STD_CONSTEXPR bool apply(T _t, U _u) RE_STD_NOEXCEPT
         {
             return _u >= 0
-                && _t == static_cast<typename std::make_unsigned<_U>::type>(_u);
+                && _t == static_cast<typename std::make_unsigned<U>::type>(_u);
         }
     };
 
     // ------------------------------------------------------------
     // intcmp_lt: same shape, less-than.
     // ------------------------------------------------------------
-    template<typename _T, typename _U,
-             bool _TSigned = std::is_signed<_T>::value,
-             bool _USigned = std::is_signed<_U>::value>
+    template<typename T, typename U,
+             bool TSigned = std::is_signed<T>::value,
+             bool USigned = std::is_signed<U>::value>
     struct intcmp_lt
     {
-        static D_CONSTEXPR bool apply(_T _t, _U _u) D_NOEXCEPT
+        static RE_STD_CONSTEXPR bool apply(T _t, U _u) RE_STD_NOEXCEPT
         {
             return _t < _u;
         }
@@ -111,67 +114,65 @@ namespace internal
 
     // signed-vs-unsigned: signed is < unsigned iff signed is negative
     //   (any negative int < any unsigned), or its unsigned-cast is <.
-    template<typename _T, typename _U>
-    struct intcmp_lt<_T, _U, true, false>
+    template<typename T, typename U>
+    struct intcmp_lt<T, U, true, false>
     {
-        static D_CONSTEXPR bool apply(_T _t, _U _u) D_NOEXCEPT
+        static RE_STD_CONSTEXPR bool apply(T _t, U _u) RE_STD_NOEXCEPT
         {
             return _t < 0
-                || static_cast<typename std::make_unsigned<_T>::type>(_t) < _u;
+                || static_cast<typename std::make_unsigned<T>::type>(_t) < _u;
         }
     };
 
     // unsigned-vs-signed: unsigned < signed only if signed > 0 AND
     //   unsigned < unsigned_cast_of_signed.
-    template<typename _T, typename _U>
-    struct intcmp_lt<_T, _U, false, true>
+    template<typename T, typename U>
+    struct intcmp_lt<T, U, false, true>
     {
-        static D_CONSTEXPR bool apply(_T _t, _U _u) D_NOEXCEPT
+        static RE_STD_CONSTEXPR bool apply(T _t, U _u) RE_STD_NOEXCEPT
         {
             return _u >= 0
-                && _t < static_cast<typename std::make_unsigned<_U>::type>(_u);
+                && _t < static_cast<typename std::make_unsigned<U>::type>(_u);
         }
     };
 
-}  // namespace internal
-
-
+}  // internal
 // =====================================================================
 // Public cmp_* functions.
 // =====================================================================
 
-template<typename _T, typename _U>
-D_CONSTEXPR bool cmp_equal(_T _t, _U _u) D_NOEXCEPT
+template<typename T, typename U>
+RE_STD_CONSTEXPR bool cmp_equal(T _t, U _u) RE_STD_NOEXCEPT
 {
-    return internal::intcmp_eq<_T, _U>::apply(_t, _u);
+    return internal::intcmp_eq<T, U>::apply(_t, _u);
 }
 
-template<typename _T, typename _U>
-D_CONSTEXPR bool cmp_not_equal(_T _t, _U _u) D_NOEXCEPT
+template<typename T, typename U>
+RE_STD_CONSTEXPR bool cmp_not_equal(T _t, U _u) RE_STD_NOEXCEPT
 {
     return !re_std::cmp_equal(_t, _u);
 }
 
-template<typename _T, typename _U>
-D_CONSTEXPR bool cmp_less(_T _t, _U _u) D_NOEXCEPT
+template<typename T, typename U>
+RE_STD_CONSTEXPR bool cmp_less(T _t, U _u) RE_STD_NOEXCEPT
 {
-    return internal::intcmp_lt<_T, _U>::apply(_t, _u);
+    return internal::intcmp_lt<T, U>::apply(_t, _u);
 }
 
-template<typename _T, typename _U>
-D_CONSTEXPR bool cmp_greater(_T _t, _U _u) D_NOEXCEPT
+template<typename T, typename U>
+RE_STD_CONSTEXPR bool cmp_greater(T _t, U _u) RE_STD_NOEXCEPT
 {
     return re_std::cmp_less(_u, _t);
 }
 
-template<typename _T, typename _U>
-D_CONSTEXPR bool cmp_less_equal(_T _t, _U _u) D_NOEXCEPT
+template<typename T, typename U>
+RE_STD_CONSTEXPR bool cmp_less_equal(T _t, U _u) RE_STD_NOEXCEPT
 {
     return !re_std::cmp_less(_u, _t);
 }
 
-template<typename _T, typename _U>
-D_CONSTEXPR bool cmp_greater_equal(_T _t, _U _u) D_NOEXCEPT
+template<typename T, typename U>
+RE_STD_CONSTEXPR bool cmp_greater_equal(T _t, U _u) RE_STD_NOEXCEPT
 {
     return !re_std::cmp_less(_t, _u);
 }
@@ -181,16 +182,15 @@ D_CONSTEXPR bool cmp_greater_equal(_T _t, _U _u) D_NOEXCEPT
 // in_range<R>(_v): whether _v fits in R's representable range.
 // =====================================================================
 
-template<typename _R, typename _T>
-D_CONSTEXPR bool in_range(_T _t) D_NOEXCEPT
+template<typename R, typename T>
+RE_STD_CONSTEXPR bool in_range(T _t) RE_STD_NOEXCEPT
 {
-    return re_std::cmp_greater_equal(_t, std::numeric_limits<_R>::min())
-        && re_std::cmp_less_equal(_t, std::numeric_limits<_R>::max());
+    return re_std::cmp_greater_equal(_t, std::numeric_limits<R>::min())
+        && re_std::cmp_less_equal(_t, std::numeric_limits<R>::max());
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_UTILITY_INTCMP_
+#endif  // RE_STD_UTILITY_INTCMP_HPP

@@ -1,20 +1,28 @@
-/******************************************************************************
-* djinterp [parse]                                                  common.hpp
+/*******************************************************************************
+* djinterp [parse]                                                   command.hpp
 *
 *
 * path:      /inc/djinterp/parse/command/command.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.18
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_COMMAND_
-#define DJINTERP_PARSE_COMMAND_ 1
+#ifndef DJINTERP_PARSE_COMMAND_COMMAND_HPP
+#define DJINTERP_PARSE_COMMAND_COMMAND_HPP 1
 
-// std
-#include <cstdint>
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 // djinterp
 #include "../../djinterp.hpp"
 #include "../parsers/c/preprocessor.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t, uint64_t,
+                                                // uint8_t
 
 
 NS_DJINTERP
@@ -33,46 +41,46 @@ NS_DJINTERP
 // C++-only values occupy 0x00A0-0x00FF (see cpp.hpp).
 namespace symbol_kind
 {
-    constexpr std::uint16_t unknown            = 0x0000;
+    constexpr re_std::uint16_t unknown            = 0x0000;
 
     // aggregate types (shared)
-    constexpr std::uint16_t struct_decl        = 0x0001;
-    constexpr std::uint16_t enum_decl          = 0x0002;
-    constexpr std::uint16_t enum_constant      = 0x0003;
+    constexpr re_std::uint16_t struct_decl        = 0x0001;
+    constexpr re_std::uint16_t enum_decl          = 0x0002;
+    constexpr re_std::uint16_t enum_constant      = 0x0003;
 
     // functions (shared)
-    constexpr std::uint16_t function_decl      = 0x0010;
+    constexpr re_std::uint16_t function_decl      = 0x0010;
 
     // data (shared)
-    constexpr std::uint16_t field_decl         = 0x0020;
-    constexpr std::uint16_t variable_decl      = 0x0021;
-    constexpr std::uint16_t parameter_decl     = 0x0022;
+    constexpr re_std::uint16_t field_decl         = 0x0020;
+    constexpr re_std::uint16_t variable_decl      = 0x0021;
+    constexpr re_std::uint16_t parameter_decl     = 0x0022;
 
     // type aliasing (shared)
-    constexpr std::uint16_t typedef_decl       = 0x0030;
+    constexpr re_std::uint16_t typedef_decl       = 0x0030;
 
     // preprocessor (shared — included via preprocessor.hpp, but
     // we alias the most common ones here for convenience)
-    constexpr std::uint16_t macro_def          = 0x0050;
-    constexpr std::uint16_t include_directive  = 0x0060;
+    constexpr re_std::uint16_t macro_def          = 0x0050;
+    constexpr re_std::uint16_t include_directive  = 0x0060;
 
     // translation unit (root of a parsed file)
-    constexpr std::uint16_t translation_unit   = 0x0070;
+    constexpr re_std::uint16_t translation_unit   = 0x0070;
 
     // base class specifier (child of a class/struct node)
-    constexpr std::uint16_t base_specifier     = 0x0071;
+    constexpr re_std::uint16_t base_specifier     = 0x0071;
 
     // template parameter (child of a template node)
-    constexpr std::uint16_t template_param     = 0x0072;
+    constexpr re_std::uint16_t template_param     = 0x0072;
 };
 
 // is_symbol_kind
 //   returns true if a uint16_t kind value falls in the
 // symbol_kind range (0x0000-0x00FF).
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_symbol_kind
 (
-    std::uint16_t _kind
+    re_std::uint16_t _kind
 )
 {
     return (_kind <= 0x00FF);
@@ -86,10 +94,10 @@ is_symbol_kind
 // is_type_kind
 //   returns true if _kind represents a type declaration
 // (struct, enum, class, union, typedef, type alias, template).
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_type_kind
 (
-    std::uint16_t _kind
+    re_std::uint16_t _kind
 )
 {
     return ( (_kind == symbol_kind::struct_decl)   ||
@@ -101,10 +109,10 @@ is_type_kind
 // is_function_kind
 //   returns true if _kind represents a callable declaration
 // (function, method, constructor, destructor).
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_function_kind
 (
-    std::uint16_t _kind
+    re_std::uint16_t _kind
 )
 {
     return ( (_kind == symbol_kind::function_decl) ||
@@ -114,10 +122,10 @@ is_function_kind
 // is_data_kind
 //   returns true if _kind represents a data declaration
 // (field, variable, parameter, enum constant).
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_data_kind
 (
-    std::uint16_t _kind
+    re_std::uint16_t _kind
 )
 {
     return ( (_kind == symbol_kind::field_decl)     ||
@@ -130,10 +138,10 @@ is_data_kind
 //   returns true if _kind represents a declaration that
 // introduces a new scope (struct, class, namespace, enum,
 // function, method, template, translation unit).
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_scope_kind
 (
-    std::uint16_t _kind
+    re_std::uint16_t _kind
 )
 {
     return ( (_kind == symbol_kind::struct_decl)        ||
@@ -155,7 +163,7 @@ is_scope_kind
 inline const char*
 symbol_kind_to_string
 (
-    std::uint16_t _kind
+    re_std::uint16_t _kind
 )
 {
     switch (_kind)
@@ -193,7 +201,7 @@ symbol_kind_to_string
 //     bits  0-15:  base type_info16 (kind, subtype, signed, cv)
 //     bits 16-23:  pointer depth
 //     bits 24-31:  C storage class (type_info_c.h)
-//     bits 32-47:  C++ modifiers (type_info_cpp.h)
+//     bits 32-47:  C++ modifiers (type_info_cpp.hpp)
 //     bits 48-63:  user type ID (when CUSTOM bit set)
 //
 //   Only the qualifier/modifier bits are defined here.  The type
@@ -204,29 +212,29 @@ namespace qualifier
     // --------------------------------------------------------
     //  CV qualifiers (bits 11-12, from type_info_common.h)
     // --------------------------------------------------------
-    constexpr std::uint64_t const_       = (1ULL << 11);
-    constexpr std::uint64_t volatile_    = (1ULL << 12);
+    constexpr re_std::uint64_t const_       = (1ULL << 11);
+    constexpr re_std::uint64_t volatile_    = (1ULL << 12);
 
     // --------------------------------------------------------
     //  C storage class (bits 24-31, from type_info_c.h)
     // --------------------------------------------------------
-    constexpr std::uint64_t restrict_    = (1ULL << 24);
-    constexpr std::uint64_t atomic_      = (1ULL << 25);
-    constexpr std::uint64_t static_      = (1ULL << 26);
-    constexpr std::uint64_t extern_      = (1ULL << 27);
-    constexpr std::uint64_t inline_      = (1ULL << 28);
-    constexpr std::uint64_t noreturn_    = (1ULL << 29);
+    constexpr re_std::uint64_t restrict_    = (1ULL << 24);
+    constexpr re_std::uint64_t atomic_      = (1ULL << 25);
+    constexpr re_std::uint64_t static_      = (1ULL << 26);
+    constexpr re_std::uint64_t extern_      = (1ULL << 27);
+    constexpr re_std::uint64_t inline_      = (1ULL << 28);
+    constexpr re_std::uint64_t noreturn_    = (1ULL << 29);
 
     // --------------------------------------------------------
     //  masks
     // --------------------------------------------------------
-    constexpr std::uint64_t cv_mask      = (const_ | volatile_);
+    constexpr re_std::uint64_t cv_mask      = (const_ | volatile_);
 
-    constexpr std::uint64_t c_storage_mask =
+    constexpr re_std::uint64_t c_storage_mask =
         ( restrict_ | atomic_ | static_ | extern_ |
           inline_   | noreturn_ );
 
-    constexpr std::uint64_t none         = 0;
+    constexpr re_std::uint64_t none         = 0;
 };
 
 
@@ -236,22 +244,29 @@ namespace qualifier
 
 // has_qualifier
 //   returns true if _quals contains the specified flag(s).
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 has_qualifier
 (
-    std::uint64_t _quals,
-    std::uint64_t _flag
+    re_std::uint64_t _quals,
+    re_std::uint64_t _flag
 )
 {
     return ((_quals & _flag) != 0);
 }
 
+// qualifier predicates
+//   functions: whether a qualifier word carries each qualifier. They live
+// in namespace qualifier, beside the flags, so that names such as
+// is_template and is_const stay clear of the type traits of the same name.
+namespace qualifier
+{
+
 // is_const
 //   returns true if the const qualifier is present.
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_const
 (
-    std::uint64_t _quals
+    re_std::uint64_t _quals
 )
 {
     return has_qualifier(_quals, qualifier::const_);
@@ -259,10 +274,10 @@ is_const
 
 // is_volatile
 //   returns true if the volatile qualifier is present.
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_volatile
 (
-    std::uint64_t _quals
+    re_std::uint64_t _quals
 )
 {
     return has_qualifier(_quals, qualifier::volatile_);
@@ -270,10 +285,10 @@ is_volatile
 
 // is_static
 //   returns true if the static storage class is present.
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_static
 (
-    std::uint64_t _quals
+    re_std::uint64_t _quals
 )
 {
     return has_qualifier(_quals, qualifier::static_);
@@ -281,10 +296,10 @@ is_static
 
 // is_extern
 //   returns true if the extern storage class is present.
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_extern
 (
-    std::uint64_t _quals
+    re_std::uint64_t _quals
 )
 {
     return has_qualifier(_quals, qualifier::extern_);
@@ -292,14 +307,16 @@ is_extern
 
 // is_inline
 //   returns true if the inline specifier is present.
-inline constexpr bool
+D_CONSTEXPR_INLINE_VAR bool
 is_inline
 (
-    std::uint64_t _quals
+    re_std::uint64_t _quals
 )
 {
     return has_qualifier(_quals, qualifier::inline_);
 }
+
+}  // namespace qualifier
 
 
 // ================================================================
@@ -313,10 +330,10 @@ is_inline
 // exclusive — a declaration has exactly one access level.
 namespace access_specifier
 {
-    constexpr std::uint8_t unspecified = 0x00;
-    constexpr std::uint8_t public_     = 0x01;
-    constexpr std::uint8_t protected_  = 0x02;
-    constexpr std::uint8_t private_    = 0x03;
+    constexpr re_std::uint8_t unspecified = 0x00;
+    constexpr re_std::uint8_t public_     = 0x01;
+    constexpr re_std::uint8_t protected_  = 0x02;
+    constexpr re_std::uint8_t private_    = 0x03;
 };
 
 // access_specifier_to_string
@@ -324,7 +341,7 @@ namespace access_specifier
 inline const char*
 access_specifier_to_string
 (
-    std::uint8_t _access
+    re_std::uint8_t _access
 )
 {
     switch (_access)
@@ -342,5 +359,7 @@ access_specifier_to_string
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_COMMAND_
+
+#endif  // DJINTERP_PARSE_COMMAND_COMMAND_HPP

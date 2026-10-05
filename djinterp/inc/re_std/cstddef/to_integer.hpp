@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                               to_integer.hpp
 *
 * the to_integer function template:
@@ -22,43 +22,45 @@
 *   C++11 FLOOR: follows byte.
 *
 *
-* path:      /inc/djinterp/re_std/cstddef/to_integer.hpp
+* path:      /inc/re_std/cstddef/to_integer.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDDEF_TO_INTEGER_
-#define DJINTERP_RE_STD_CSTDDEF_TO_INTEGER_ 1
+#ifndef RE_STD_CSTDDEF_TO_INTEGER_HPP
+#define RE_STD_CSTDDEF_TO_INTEGER_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./byte.hpp"
 #include "../type_traits/enable_if.hpp"
 #include "../type_traits/is_integral.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
     // to_integer
-    //   function: the byte's value as _IntType. Participates in overload
-    // resolution only when _IntType is an integer type.
-    template<typename _IntType>
-    D_CONSTEXPR
-    typename enable_if<is_integral<_IntType>::value, _IntType>::type
-    to_integer(byte _b) D_NOEXCEPT
+    //   function: the byte's value as IntType. Participates in overload
+    // resolution only when IntType is an integer type.
+    template<typename IntType>
+    RE_STD_CONSTEXPR
+    typename enable_if<is_integral<IntType>::value, IntType>::type
+    to_integer(byte _b) RE_STD_NOEXCEPT
     {
-        return static_cast<_IntType>(_b);
+        return static_cast<IntType>(_b);
     }
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CSTDDEF_TO_INTEGER_
+#endif  // RE_STD_CSTDDEF_TO_INTEGER_HPP

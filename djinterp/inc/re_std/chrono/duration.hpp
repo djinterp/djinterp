@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 duration.hpp
 *
 * the duration class template:
@@ -33,7 +33,7 @@
 * rules permit mutation in a constant expression -- a three-year lead.
 * The const observers are constexpr from C++11, matching std.
 *
-*   The mutators use D_CONSTEXPR_CPP14 rather than D_CONSTEXPR for a
+*   The mutators use RE_STD_CONSTEXPR_CPP14 rather than RE_STD_CONSTEXPR for a
 * second reason beyond the tier: on C++11, constexpr on a member function
 * implies const, which would make every one of these a const member
 * returning a reference to a modified object -- ill-formed at best and a
@@ -44,21 +44,22 @@
 * one implementation with one behaviour across compilers.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/duration.hpp
+* path:      /inc/re_std/chrono/duration.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_DURATION_
-#define DJINTERP_RE_STD_CHRONO_DURATION_ 1
+#ifndef RE_STD_CHRONO_DURATION_HPP
+#define RE_STD_CHRONO_DURATION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration_fwd.hpp"
 #include "./duration_cast_impl.hpp"
 #include "./duration_values.hpp"
@@ -71,28 +72,29 @@
 #include "../cstdint/cstdint.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
     // duration
-    //   class: a tick count of type _Rep, where one tick is _Period
-    // seconds. _Period is a re_std::ratio and is compile-time only.
-    template<typename _Rep,
-             typename _Period>
+    //   class: a tick count of type Rep, where one tick is Period
+    // seconds. Period is a re_std::ratio and is compile-time only.
+    template<typename Rep,
+             typename Period>
     class duration
     {
     public:
         // rep
         //   typedef: the arithmetic type holding the tick count.
-        typedef _Rep                            rep;
+        typedef Rep                            rep;
 
         // period
         //   typedef: seconds per tick, reduced. ratio normalises at
         // definition, so duration<int, ratio<2,4> >::period is ratio<1,2>
         // and the two spellings name the same specialisation.
-        typedef typename _Period::type          period;
+        typedef typename Period::type          period;
 
     private:
         rep     m_rep;
@@ -101,7 +103,7 @@ namespace chrono
         // limit, and a negative or zero period would invert or collapse
         // the arithmetic. Both are rejected at definition rather than
         // producing a confusing failure deep inside a conversion.
-        static_assert(!internal::is_duration<_Rep>::value,
+        static_assert(!internal::is_duration<Rep>::value,
             "re_std::chrono::duration: representation may not be a duration");
 
         static_assert(period::num > 0,
@@ -137,12 +139,12 @@ namespace chrono
         //   Constrained on the rep being convertible, and on not
         // narrowing a floating-point count into an integral duration:
         // duration<int>(2.5) would silently become 2, so it is refused.
-        template<typename _Rep2,
+        template<typename Rep2,
                  typename = typename enable_if<
-                     is_convertible<const _Rep2&, rep>::value &&
+                     is_convertible<const Rep2&, rep>::value &&
                      ( treat_as_floating_point<rep>::value ||
-                       !treat_as_floating_point<_Rep2>::value ) >::type>
-        D_CONSTEXPR explicit duration(const _Rep2& _r)
+                       !treat_as_floating_point<Rep2>::value ) >::type>
+        RE_STD_CONSTEXPR explicit duration(const Rep2& _r)
             : m_rep(static_cast<rep>(_r))
         {}
 
@@ -151,19 +153,19 @@ namespace chrono
         // conversion is exact, or when the target rep is floating point.
         // See the header comment -- this constraint is the type's whole
         // reason for existing.
-        template<typename _Rep2,
-                 typename _Period2,
+        template<typename Rep2,
+                 typename Period2,
                  typename = typename enable_if<
                      treat_as_floating_point<rep>::value ||
-                     ( ratio_divide<_Period2, period>::den == 1 &&
-                       !treat_as_floating_point<_Rep2>::value ) >::type>
-        D_CONSTEXPR duration(const duration<_Rep2, _Period2>& _d)
+                     ( ratio_divide<Period2, period>::den == 1 &&
+                       !treat_as_floating_point<Rep2>::value ) >::type>
+        RE_STD_CONSTEXPR duration(const duration<Rep2, Period2>& _d)
             : m_rep(internal::duration_cast_helper<
                         duration,
-                        typename ratio_divide<_Period2, period>::type,
-                        typename common_type<rep, _Rep2, std::intmax_t>::type,
-                        ratio_divide<_Period2, period>::num == 1,
-                        ratio_divide<_Period2, period>::den == 1
+                        typename ratio_divide<Period2, period>::type,
+                        typename common_type<rep, Rep2, intmax_t>::type,
+                        ratio_divide<Period2, period>::num == 1,
+                        ratio_divide<Period2, period>::den == 1
                     >::cast(_d).count())
         {}
 
@@ -181,7 +183,7 @@ namespace chrono
         //   function: the raw tick count, with no scaling applied. The
         // period is not part of the value, so this number is meaningless
         // without the type.
-        D_CONSTEXPR rep count() const
+        RE_STD_CONSTEXPR rep count() const
         {
             return m_rep;
         }
@@ -192,14 +194,14 @@ namespace chrono
 
         // operator+ (unary)
         //   function: the duration unchanged.
-        D_CONSTEXPR duration operator+() const
+        RE_STD_CONSTEXPR duration operator+() const
         {
             return *this;
         }
 
         // operator- (unary)
         //   function: the negated duration.
-        D_CONSTEXPR duration operator-() const
+        RE_STD_CONSTEXPR duration operator-() const
         {
             return duration(-m_rep);
         }
@@ -208,24 +210,24 @@ namespace chrono
         //   function: step the tick count by one tick -- which is one
         // PERIOD, not one second. ++ on a duration<int, milli> advances
         // by a millisecond.
-        D_CONSTEXPR_CPP14 duration& operator++()
+        RE_STD_CONSTEXPR_CPP14 duration& operator++()
         {
             ++m_rep;
             return *this;
         }
 
-        D_CONSTEXPR_CPP14 duration operator++(int)
+        RE_STD_CONSTEXPR_CPP14 duration operator++(int)
         {
             return duration(m_rep++);
         }
 
-        D_CONSTEXPR_CPP14 duration& operator--()
+        RE_STD_CONSTEXPR_CPP14 duration& operator--()
         {
             --m_rep;
             return *this;
         }
 
-        D_CONSTEXPR_CPP14 duration operator--(int)
+        RE_STD_CONSTEXPR_CPP14 duration operator--(int)
         {
             return duration(m_rep--);
         }
@@ -234,13 +236,13 @@ namespace chrono
         //   function: add or subtract a duration of the SAME type. Mixed
         // periods go through the free operators, which compute a common
         // type -- there is no common type to assign back into here.
-        D_CONSTEXPR_CPP14 duration& operator+=(const duration& _d)
+        RE_STD_CONSTEXPR_CPP14 duration& operator+=(const duration& _d)
         {
             m_rep += _d.count();
             return *this;
         }
 
-        D_CONSTEXPR_CPP14 duration& operator-=(const duration& _d)
+        RE_STD_CONSTEXPR_CPP14 duration& operator-=(const duration& _d)
         {
             m_rep -= _d.count();
             return *this;
@@ -248,19 +250,19 @@ namespace chrono
 
         // operator*= / operator/= / operator%=
         //   function: scale by a scalar of the representation type.
-        D_CONSTEXPR_CPP14 duration& operator*=(const rep& _r)
+        RE_STD_CONSTEXPR_CPP14 duration& operator*=(const rep& _r)
         {
             m_rep *= _r;
             return *this;
         }
 
-        D_CONSTEXPR_CPP14 duration& operator/=(const rep& _r)
+        RE_STD_CONSTEXPR_CPP14 duration& operator/=(const rep& _r)
         {
             m_rep /= _r;
             return *this;
         }
 
-        D_CONSTEXPR_CPP14 duration& operator%=(const rep& _r)
+        RE_STD_CONSTEXPR_CPP14 duration& operator%=(const rep& _r)
         {
             m_rep %= _r;
             return *this;
@@ -269,7 +271,7 @@ namespace chrono
         // operator%=
         //   function: remainder against another duration of the same
         // type.
-        D_CONSTEXPR_CPP14 duration& operator%=(const duration& _d)
+        RE_STD_CONSTEXPR_CPP14 duration& operator%=(const duration& _d)
         {
             m_rep %= _d.count();
             return *this;
@@ -281,7 +283,7 @@ namespace chrono
 
         // zero
         //   function: a duration of no length.
-        static D_CONSTEXPR duration zero() D_NOEXCEPT
+        static RE_STD_CONSTEXPR duration zero() RE_STD_NOEXCEPT
         {
             return duration(duration_values<rep>::zero());
         }
@@ -289,14 +291,14 @@ namespace chrono
         // min
         //   function: the most negative representable duration -- not the
         // shortest positive one. See duration_values.hpp.
-        static D_CONSTEXPR duration min() D_NOEXCEPT
+        static RE_STD_CONSTEXPR duration min() RE_STD_NOEXCEPT
         {
             return duration(duration_values<rep>::min());
         }
 
         // max
         //   function: the longest representable duration.
-        static D_CONSTEXPR duration max() D_NOEXCEPT
+        static RE_STD_CONSTEXPR duration max() RE_STD_NOEXCEPT
         {
             return duration(duration_values<rep>::max());
         }
@@ -304,10 +306,10 @@ namespace chrono
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_DURATION_
+#endif  // RE_STD_CHRONO_DURATION_HPP

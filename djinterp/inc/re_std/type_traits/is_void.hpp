@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                is_void.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  is_void.hpp
 *
 * is_void trait header:
 *   Detects whether a type, ignoring cv-qualifiers, is `void`.
@@ -13,33 +13,36 @@
 *                                                   void)
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_void.hpp
+* path:      /inc/re_std/type_traits/is_void.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_VOID_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_VOID_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_VOID_HPP
+#define RE_STD_TYPE_TRAITS_IS_VOID_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./remove_cv.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_VOID
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_void_base
     //   trait: false (primary template).
-    template<typename _Type>
+    template<typename Type>
     struct is_void_base : false_type
     {};
 
@@ -49,13 +52,13 @@ NS_INTERNAL
     struct is_void_base<void> : true_type
     {};
 
-NS_END  // internal
+}  // internal
 
 // is_void
-//   trait: true if _Type is `void`, ignoring cv-qualifiers.
-template<typename _Type>
+//   trait: true if Type is `void`, ignoring cv-qualifiers.
+template<typename Type>
 struct is_void
-    : internal::is_void_base<typename remove_cv<_Type>::type>
+    : internal::is_void_base<typename remove_cv<Type>::type>
 {};
 
 
@@ -63,17 +66,17 @@ struct is_void
 // II.  IS_VOID_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_void_v
-    //   variable: convenience for is_void<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_void_v = is_void<_Type>::value;
+    //   variable: convenience for is_void<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_void_v = is_void<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_VOID_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_VOID_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                       file_attributes.hpp
+/*******************************************************************************
+* djinterp [core]                                            file_attributes.hpp
 *
 * Portable file attribute and metadata types:
 *   This header provides platform-independent representations of file
@@ -13,6 +13,14 @@
 * encodings are a closed enum.  All types are trivially copyable
 * and fixed-size, suitable for storage in arena_node payloads.
 *
+*   Metadata population is OS-selectable, mirroring file_tree<>.  The
+* backend is a policy chosen by an operating_system selector and gated
+* by cfg_filesys.h: the native backend is always available, and naming
+* a foreign one (e.g. the Win32 populator on Linux) is a compile error
+* unless the matching D_CFG_FILESYS_ALLOW_* flag is set.  This keeps the
+* attribute layer consistent with the file_tree layer and prevents
+* compiling code that can never run on the current host.
+*
 * Contents:
 *   - file_encoding          text encoding identification
 *   - file_attr_flag         NTFS/POSIX attribute bitfield
@@ -20,54 +28,81 @@
 *   - file_detail_group      grouping of detail categories
 *   - file_timestamps        creation, modification, access times
 *   - file_metadata          composite descriptor
-*   - file_attributes        population from the OS
+*   - win32_attr_populator   Win32 metadata backend (policy)
+*   - posix_attr_populator   POSIX metadata backend (policy)
+*   - null_attr_populator    no-op backend (policy)
+*   - basic_file_attributes  population class, templated on a populator
+*   - file_attributes<OS>    OS-selectable alias over basic_file_attributes
+*   - file_attributes        back-compat alias = detected-backend form
 *
 * Platform support:
-*   - Win32    GetFileAttributesW, FindFirstFileW, IPropertyStore
-*   - POSIX    stat/lstat, getxattr (Linux), listxattr (macOS)
+*   - Win32    GetFileAttributesExW, GetFileInformationByHandle
+*   - POSIX    lstat, listxattr (Linux), listxattr+XATTR_NOFOLLOW (macOS)
 *
 *
-* path:      /inc/cpp/fs/file_attributes.hpp
+* path:      /inc/djinterp/core/container/tree/file/file_attributes.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.03.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_FS_FILE_ATTRIBUTES_
-#define DJINTERP_FS_FILE_ATTRIBUTES_ 1
+#ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_ATTRIBUTES_HPP
+#define DJINTERP_CONTAINER_TREE_FILE_FILE_ATTRIBUTES_HPP 1
 
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <string>
-
-#include "../../../djinterp.hpp"
+// djinterp
+#include "../../../../djinterp.hpp"
+#include "../../../../config/core/container/tree/file/cfg_filesys.h"
+#include "./fs_os.hpp"
+// re_std
+#include "../../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t,
+                                                      // uint16_t, uint32_t,
+                                                      // uint64_t
 
 
 // ================================================================
 //  platform headers
 // ================================================================
+// Pull in the system headers required by each ENABLED populator
+// backend.  The native backend is always enabled (cfg_filesys.h);
+// foreign backends only when the user has opted in, in which case the
+// host must actually provide the corresponding headers.  Real syscall
+// availability is still gated by raw predefines (_WIN32, __linux__,
+// __APPLE__) inside the backends below — selection (which populator)
+// and availability (which API the host has) are kept separate, exactly
+// as in the file_tree layer.
 
-#if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
+#if D_FILESYS_ENABLE_WINDOWS && defined(_WIN32)
     #ifndef WIN32_LEAN_AND_MEAN
         #define WIN32_LEAN_AND_MEAN
     #endif
+    // windows
     #include <windows.h>
-#elif D_ENV_IS_OS_POSIX_LIKE(D_ENV_OS_ID)
+#endif
+
+#if ( D_FILESYS_ENABLE_POSIX || D_FILESYS_ENABLE_BSD   || \
+      D_FILESYS_ENABLE_LINUX || D_FILESYS_ENABLE_APPLE || \
+      D_FILESYS_ENABLE_IOS ) && !defined(_WIN32)
+    // posix
     #include <sys/stat.h>
     #include <unistd.h>
-    #if defined(__linux__)
-        #include <sys/xattr.h>
-    #elif defined(__APPLE__)
+    #if defined(__linux__) || defined(__APPLE__)
+        // linux
         #include <sys/xattr.h>
     #endif
-#else
-    #include <sys/stat.h>
-    #include <unistd.h>
 #endif
 
 
 NS_DJINTERP
-NS_FS
 
 
 // ================================================================
@@ -75,10 +110,10 @@ NS_FS
 // ================================================================
 
 // file_encoding
-//   enum: identifies the text encoding of a file's content.
-// Detection is heuristic — these values represent the best
-// guess from a BOM or byte-pattern scan.
-enum file_encoding : std::uint8_t
+//   enum: identifies the text encoding of a file's content. Detection is
+// heuristic — these values represent the best guess from a BOM or byte-pattern
+// scan.
+enum file_encoding : re_std::uint8_t
 {
     file_encoding_unknown       = 0,
 
@@ -155,9 +190,8 @@ file_encoding_is_unicode
 }
 
 // detect_bom
-//   examines the first bytes of a buffer and returns the
-// encoding indicated by a byte-order mark, or
-// file_encoding_unknown if no BOM is found.
+//   examines the first bytes of a buffer and returns the encoding indicated by
+// a byte-order mark, or file_encoding_unknown if no BOM is found.
 D_STATIC_INLINE
 file_encoding
 detect_bom
@@ -217,48 +251,42 @@ detect_bom
 // ================================================================
 
 // file_attr_flag
-//   enum: bitfield of file attributes.  The values are chosen
-// to map directly to NTFS FILE_ATTRIBUTE_* constants where
-// applicable, with POSIX-only flags occupying the upper bits.
+//   enum: bitfield of file attributes. The values are chosen
+// to map directly to NTFS FILE_ATTRIBUTE_* constants where applicable, with
+// POSIX-only flags occupying the upper bits.
 //
 // On Windows these come from GetFileAttributesW or
-// WIN32_FIND_DATA::dwFileAttributes.
-//
-// On POSIX they are synthesized from struct stat::st_mode.
-enum file_attr_flag : std::uint32_t
+// WIN32_FIND_DATA::dwFileAttributes. On POSIX they are synthesized from struct
+// stat::st_mode.
+enum file_attr_flag : re_std::uint32_t
 {
     // --------------------------------------------------------
     //  NTFS-mapped flags (low 16 bits)
     // --------------------------------------------------------
 
     // file_attr_readonly
-    //   flag: file is read-only.
-    // NTFS: FILE_ATTRIBUTE_READONLY (0x1)
-    // POSIX: !(st_mode & S_IWUSR)
+    //   flag: file is read-only. NTFS: FILE_ATTRIBUTE_READONLY (0x1) POSIX:
+    // !(st_mode & S_IWUSR)
     file_attr_readonly          = 0x00000001,
 
     // file_attr_hidden
-    //   flag: file is hidden.
-    // NTFS: FILE_ATTRIBUTE_HIDDEN (0x2)
-    // POSIX: name starts with '.'
+    //   flag: file is hidden. NTFS: FILE_ATTRIBUTE_HIDDEN (0x2) POSIX: name
+    // starts with '.'
     file_attr_hidden            = 0x00000002,
 
     // file_attr_system
-    //   flag: file is a system file.
-    // NTFS: FILE_ATTRIBUTE_SYSTEM (0x4)
-    // POSIX: not applicable (never set)
+    //   flag: file is a system file. NTFS: FILE_ATTRIBUTE_SYSTEM (0x4) POSIX:
+    // not applicable (never set)
     file_attr_system            = 0x00000004,
 
     // file_attr_directory
-    //   flag: entry is a directory.
-    // NTFS: FILE_ATTRIBUTE_DIRECTORY (0x10)
+    //   flag: entry is a directory. NTFS: FILE_ATTRIBUTE_DIRECTORY (0x10)
     // POSIX: S_ISDIR(st_mode)
     file_attr_directory         = 0x00000010,
 
     // file_attr_archive
-    //   flag: file has been modified since last up.
-    // NTFS: FILE_ATTRIBUTE_ARCHIVE (0x20)
-    // POSIX: not applicable (never set)
+    //   flag: file has been modified since last up. NTFS:
+    // FILE_ATTRIBUTE_ARCHIVE (0x20) POSIX: not applicable (never set)
     file_attr_archive           = 0x00000020,
 
     // file_attr_device
@@ -268,44 +296,41 @@ enum file_attr_flag : std::uint32_t
     file_attr_device            = 0x00000040,
 
     // file_attr_normal
-    //   flag: file has no other attributes set.
-    // NTFS: FILE_ATTRIBUTE_NORMAL (0x80)
+    //   flag: file has no other attributes set. NTFS: FILE_ATTRIBUTE_NORMAL
+    // (0x80)
     file_attr_normal            = 0x00000080,
 
     // file_attr_temporary
-    //   flag: file is being used for temporary storage.
-    // NTFS: FILE_ATTRIBUTE_TEMPORARY (0x100)
+    //   flag: file is being used for temporary storage. NTFS:
+    // FILE_ATTRIBUTE_TEMPORARY (0x100)
     file_attr_temporary         = 0x00000100,
 
     // file_attr_sparse
-    //   flag: file is sparse.
-    // NTFS: FILE_ATTRIBUTE_SPARSE_FILE (0x200)
+    //   flag: file is sparse. NTFS: FILE_ATTRIBUTE_SPARSE_FILE (0x200)
     file_attr_sparse            = 0x00000200,
 
     // file_attr_reparse_point
-    //   flag: file has a reparse point (symlink, junction).
-    // NTFS: FILE_ATTRIBUTE_REPARSE_POINT (0x400)
-    // POSIX: S_ISLNK(st_mode)
+    //   flag: file has a reparse point (symlink, junction). NTFS:
+    // FILE_ATTRIBUTE_REPARSE_POINT (0x400) POSIX: S_ISLNK(st_mode)
     file_attr_reparse_point     = 0x00000400,
 
     // file_attr_compressed
-    //   flag: file or directory is compressed.
-    // NTFS: FILE_ATTRIBUTE_COMPRESSED (0x800)
+    //   flag: file or directory is compressed. NTFS: FILE_ATTRIBUTE_COMPRESSED
+    // (0x800)
     file_attr_compressed        = 0x00000800,
 
     // file_attr_offline
-    //   flag: file data is not immediately available.
-    // NTFS: FILE_ATTRIBUTE_OFFLINE (0x1000)
+    //   flag: file data is not immediately available. NTFS:
+    // FILE_ATTRIBUTE_OFFLINE (0x1000)
     file_attr_offline           = 0x00001000,
 
     // file_attr_not_indexed
-    //   flag: file will not be indexed by content indexer.
-    // NTFS: FILE_ATTRIBUTE_NOT_CONTENT_INDEXED (0x2000)
+    //   flag: file will not be indexed by content indexer. NTFS:
+    // FILE_ATTRIBUTE_NOT_CONTENT_INDEXED (0x2000)
     file_attr_not_indexed       = 0x00002000,
 
     // file_attr_encrypted
-    //   flag: file is encrypted (EFS).
-    // NTFS: FILE_ATTRIBUTE_ENCRYPTED (0x4000)
+    //   flag: file is encrypted (EFS). NTFS: FILE_ATTRIBUTE_ENCRYPTED (0x4000)
     file_attr_encrypted         = 0x00004000,
 
     // --------------------------------------------------------
@@ -328,19 +353,16 @@ enum file_attr_flag : std::uint32_t
     file_attr_sticky            = 0x00040000,
 
     // file_attr_symlink
-    //   flag: entry is a symbolic link.
-    // POSIX: S_ISLNK(st_mode)
-    // Win32: reparse point (also sets file_attr_reparse_point)
+    //   flag: entry is a symbolic link. POSIX: S_ISLNK(st_mode) Win32: reparse
+    // point (also sets file_attr_reparse_point)
     file_attr_symlink           = 0x00080000,
 
     // file_attr_pipe
-    //   flag: entry is a named pipe (FIFO).
-    // POSIX: S_ISFIFO(st_mode)
+    //   flag: entry is a named pipe (FIFO). POSIX: S_ISFIFO(st_mode)
     file_attr_pipe              = 0x00100000,
 
     // file_attr_socket
-    //   flag: entry is a Unix domain socket.
-    // POSIX: S_ISSOCK(st_mode)
+    //   flag: entry is a Unix domain socket. POSIX: S_ISSOCK(st_mode)
     file_attr_socket            = 0x00200000,
 
     // --------------------------------------------------------
@@ -366,7 +388,7 @@ enum file_attr_flag : std::uint32_t
 
 // D_FILE_ATTR_HAS
 //   macro: tests whether a flag set contains a specific flag.
-#define D_FILE_ATTR_HAS(_flags, _flag)  \
+#define D_FILE_ATTR_HAS(_flags, _flag) \
     ( ((_flags) & (_flag)) != 0 )
 
 
@@ -375,17 +397,15 @@ enum file_attr_flag : std::uint32_t
 // ================================================================
 
 // file_detail
-//   enum: identifies a category of extended file metadata from
-// the Windows Shell property system.  On POSIX, a subset of
-// these can be populated from xattr, EXIF, ID3, or similar
-// sources — most will simply report as unavailable.
-//
-// Values are grouped by domain.  The grouping enum
+//   enum: identifies a category of extended file metadata from the Windows
+// Shell property system. On POSIX, a subset of these can be populated from
+// xattr, EXIF, ID3, or similar sources — most will simply report as
+// unavailable. Values are grouped by domain. The grouping enum
 // file_detail_group provides the domain classification.
 //
-// The enumerators below correspond to the columns available
-// in the Windows Explorer "Choose Details" dialog.
-enum file_detail : std::uint16_t
+// The enumerators below correspond to the columns available in the Windows
+// Explorer "Choose Details" dialog.
+enum file_detail : re_std::uint16_t
 {
     // --------------------------------------------------------
     //  core / filesystem (0x00–)
@@ -582,9 +602,9 @@ enum file_detail : std::uint16_t
 // ================================================================
 
 // file_detail_group
-//   enum: the domain group that a file_detail belongs to.
-// Derived by masking the high byte of the file_detail value.
-enum file_detail_group : std::uint8_t
+//   enum: the domain group that a file_detail belongs to. Derived by masking
+// the high byte of the file_detail value.
+enum file_detail_group : re_std::uint8_t
 {
     file_detail_group_core          = 0x00,
     file_detail_group_document      = 0x01,
@@ -607,8 +627,8 @@ file_detail_to_group
     file_detail _detail
 )
 {
-    std::uint8_t high = static_cast<std::uint8_t>(
-        (static_cast<std::uint16_t>(_detail) >> 8) & 0xFF
+    re_std::uint8_t high = static_cast<re_std::uint8_t>(
+        (static_cast<re_std::uint16_t>(_detail) >> 8) & 0xFF
     );
 
     if (high <= 0x08)
@@ -649,16 +669,15 @@ file_detail_group_name
 // ================================================================
 
 // file_timestamps
-//   struct: platform-independent timestamp representation.
-// All values are in nanoseconds since the Unix epoch
-// (1970-01-01T00:00:00Z).  A value of 0 indicates
-// "not available".
+//   struct: platform-independent timestamp representation. All values are in
+// nanoseconds since the Unix epoch (1970-01-01T00:00:00Z). A value of 0
+// indicates "not available".
 struct file_timestamps
 {
-    std::uint64_t   created;        // birth time (btime)
-    std::uint64_t   modified;       // last data modification
-    std::uint64_t   accessed;       // last access
-    std::uint64_t   changed;        // last metadata change (POSIX ctime)
+    re_std::uint64_t created;        // birth time (btime)
+    re_std::uint64_t modified;       // last data modification
+    re_std::uint64_t accessed;       // last access
+    re_std::uint64_t changed;        // last metadata change (POSIX ctime)
 
     // file_timestamps (default)
     file_timestamps
@@ -676,38 +695,38 @@ struct file_timestamps
 // ================================================================
 
 // file_metadata
-//   struct: composite descriptor holding all portable
-// file attributes.  Fixed-size and trivially copyable —
-// suitable for storage in arena_node payloads alongside
-// or replacing file_entry.
+//   struct: composite descriptor holding all portable file attributes.
+// Fixed-size and trivially copyable —
+// suitable for storage in arena_node payloads alongside or replacing
+// file_entry.
 struct file_metadata
 {
     // --------------------------------------------------------
     //  core
     // --------------------------------------------------------
-    std::uint64_t       size;
+    re_std::uint64_t    size;
     file_timestamps     timestamps;
-    std::uint32_t       attr_flags;     // OR'd file_attr_flag
+    re_std::uint32_t    attr_flags;     // OR'd file_attr_flag
     file_encoding       encoding;
 
     // --------------------------------------------------------
     //  permissions (POSIX)
     // --------------------------------------------------------
-    std::uint16_t       mode;           // raw st_mode (0 on Win)
-    std::uint32_t       uid;            // owner user id
-    std::uint32_t       gid;            // owner group id
+    re_std::uint16_t    mode;           // raw st_mode (0 on Win)
+    re_std::uint32_t    uid;            // owner user id
+    re_std::uint32_t    gid;            // owner group id
 
     // --------------------------------------------------------
     //  identity
     // --------------------------------------------------------
-    std::uint64_t       inode;          // st_ino (POSIX) / file index (Win)
-    std::uint32_t       link_count;     // st_nlink / number of hard links
-    std::uint64_t       device;         // st_dev (POSIX) / volume serial (Win)
+    re_std::uint64_t    inode;          // st_ino (POSIX) / file index (Win)
+    re_std::uint32_t    link_count;     // st_nlink / number of hard links
+    re_std::uint64_t    device;         // st_dev (POSIX) / volume serial (Win)
 
     // --------------------------------------------------------
     //  padding / reserved
     // --------------------------------------------------------
-    std::uint8_t        _pad[3];
+    re_std::uint8_t     _pad[3];
 
     // file_metadata (default)
     file_metadata
@@ -767,23 +786,29 @@ struct file_metadata
 
 
 // ================================================================
-//  file_attributes (population)
+//  basic_file_attributes (population)
 // ================================================================
 
-// file_attributes
-//   class: static methods for populating file_metadata from
-// OS-level queries.
-class file_attributes
+// basic_file_attributes
+//   class: metadata population, parameterized on a populator policy. The
+// populator supplies populate_impl(path, out); this class adds the public,
+// OS-independent surface (the populate() entry points and the
+// encoding-detection helpers). file_attributes<OS> below binds a concrete
+// populator chosen by an operating_system selector.
+template<typename Populator>
+class basic_file_attributes
 {
 public:
+
+    using populator_type = Populator;
 
     // --------------------------------------------------------
     //  populate
     // --------------------------------------------------------
 
     // populate
-    //   fills _out with metadata from the file at _path.
-    // Returns true on success, false on failure.
+    //   fills _out with metadata from the file at _path. Returns true on
+    // success, false on failure.
     static bool
     populate
     (
@@ -793,7 +818,7 @@ public:
     {
         _out = file_metadata();
 
-        return populate_impl(_path, _out);
+        return Populator::populate_impl(_path, _out);
     }
 
     // populate (std::string overload)
@@ -812,11 +837,10 @@ public:
     // --------------------------------------------------------
 
     // detect_encoding
-    //   performs BOM detection on the first _len bytes of
-    // _data.  Returns the detected encoding, or
-    // file_encoding_unknown if no BOM is found.
-    // A more thorough heuristic (byte-frequency, UTF-8
-    // validation) can be layered on top.
+    //   performs BOM detection on the first _len bytes of _data. Returns the
+    // detected encoding, or file_encoding_unknown if no BOM is found. A more
+    // thorough heuristic (byte-frequency, UTF-8 validation) can be layered on
+    // top.
     static file_encoding
     detect_encoding
     (
@@ -898,47 +922,51 @@ public:
             return file_encoding_utf8;
         }
 
-        // could be Latin-1, Windows-1252, or another
-        // single-byte encoding — caller may refine.
+        // could be Latin-1, Windows-1252, or another single-byte encoding —
+        // caller may refine.
         return file_encoding_unknown;
     }
+};
 
 
-private:
+// ================================================================
+//  win32_attr_populator
+// ================================================================
 
-    // --------------------------------------------------------
-    //  platform implementation
-    // --------------------------------------------------------
+#if D_FILESYS_ENABLE_WINDOWS && defined(_WIN32)
 
-#if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
-
+// win32_attr_populator
+//   policy: populates file_metadata from Win32 queries (GetFileAttributesExW +
+// GetFileInformationByHandle).
+struct win32_attr_populator
+{
     // ============================================
     //  Win32 constants
     // ============================================
 
     // WINDOWS_TICK
     //   constant: number of 100-ns intervals per second.
-    static D_CONSTEXPR std::uint64_t WINDOWS_TICK
+    static D_CONSTEXPR re_std::uint64_t WINDOWS_TICK
         = UINT64_C(10000000);
 
     // EPOCH_DIFFERENCE
-    //   constant: 100-ns intervals between the Windows epoch
-    // (1601-01-01) and the Unix epoch (1970-01-01).
-    static D_CONSTEXPR std::uint64_t EPOCH_DIFFERENCE
+    //   constant: 100-ns intervals between the Windows epoch (1601-01-01) and
+    // the Unix epoch (1970-01-01).
+    static D_CONSTEXPR re_std::uint64_t EPOCH_DIFFERENCE
         = UINT64_C(116444736000000000);
 
     // filetime_to_ns
     //   converts a FILETIME to nanoseconds since Unix epoch.
     D_STATIC_INLINE
-    std::uint64_t
+    re_std::uint64_t
     filetime_to_ns
     (
         const FILETIME& _ft
     )
     {
-        std::uint64_t ticks =
-            (static_cast<std::uint64_t>(_ft.dwHighDateTime) << 32) |
-            static_cast<std::uint64_t>(_ft.dwLowDateTime);
+        re_std::uint64_t ticks =
+            (static_cast<re_std::uint64_t>(_ft.dwHighDateTime) << 32) |
+            static_cast<re_std::uint64_t>(_ft.dwLowDateTime);
 
         if (ticks < EPOCH_DIFFERENCE)
         {
@@ -981,8 +1009,7 @@ private:
     }
 
     // is_executable_extension
-    //   returns true if _path ends with a known executable
-    // extension.
+    //   returns true if _path ends with a known executable extension.
     D_STATIC_INLINE
     bool
     is_executable_extension
@@ -1053,8 +1080,8 @@ private:
 
         // size
         _out.size =
-            (static_cast<std::uint64_t>(fad.nFileSizeHigh) << 32) |
-            static_cast<std::uint64_t>(fad.nFileSizeLow);
+            (static_cast<re_std::uint64_t>(fad.nFileSizeHigh) << 32) |
+            static_cast<re_std::uint64_t>(fad.nFileSizeLow);
 
         // timestamps
         _out.timestamps.created  =
@@ -1089,7 +1116,7 @@ private:
             FILE_SHARE_DELETE,
             nullptr,
             OPEN_EXISTING,
-            FILE_FLAG_UP_SEMANTICS, // required for dirs
+            FILE_FLAG_BACKUP_SEMANTICS, // required for dirs
             nullptr
         );
 
@@ -1100,9 +1127,9 @@ private:
             if (GetFileInformationByHandle(hFile, &bhfi))
             {
                 _out.inode =
-                    (static_cast<std::uint64_t>(
+                    (static_cast<re_std::uint64_t>(
                         bhfi.nFileIndexHigh) << 32) |
-                    static_cast<std::uint64_t>(
+                    static_cast<re_std::uint64_t>(
                         bhfi.nFileIndexLow);
 
                 _out.link_count = bhfi.nNumberOfLinks;
@@ -1114,9 +1141,26 @@ private:
 
         return true;
     }
+};
 
-#else
+#endif  // D_FILESYS_ENABLE_WINDOWS && _WIN32
 
+
+// ================================================================
+//  posix_attr_populator
+// ================================================================
+
+#if ( D_FILESYS_ENABLE_POSIX || D_FILESYS_ENABLE_BSD   || \
+      D_FILESYS_ENABLE_LINUX || D_FILESYS_ENABLE_APPLE || \
+      D_FILESYS_ENABLE_IOS ) && !defined(_WIN32)
+
+// posix_attr_populator
+//   policy: populates file_metadata from POSIX queries (lstat plus optional
+// listxattr). Birth time is filled on platforms that expose it (macOS
+// st_birthtimespec); plain Linux leaves created == 0 unless a statx layer is
+// added separately.
+struct posix_attr_populator
+{
     // ============================================
     //  POSIX implementation
     // ============================================
@@ -1124,15 +1168,15 @@ private:
     // timespec_to_ns
     //   converts a struct timespec to nanoseconds since epoch.
     D_STATIC_INLINE
-    std::uint64_t
+    re_std::uint64_t
     timespec_to_ns
     (
         const struct timespec& _ts
     )
     {
-        return static_cast<std::uint64_t>(_ts.tv_sec)
+        return static_cast<re_std::uint64_t>(_ts.tv_sec)
                * UINT64_C(1000000000)
-             + static_cast<std::uint64_t>(_ts.tv_nsec);
+             + static_cast<re_std::uint64_t>(_ts.tv_nsec);
     }
 
     // populate_impl (POSIX)
@@ -1152,7 +1196,7 @@ private:
         }
 
         // size
-        _out.size = static_cast<std::uint64_t>(st.st_size);
+        _out.size = static_cast<re_std::uint64_t>(st.st_size);
 
         // timestamps
         //   platforms vary in which timespec fields they expose.
@@ -1171,29 +1215,29 @@ private:
         #else
             // generic POSIX fall (seconds only)
             _out.timestamps.modified =
-                static_cast<std::uint64_t>(st.st_mtime)
+                static_cast<re_std::uint64_t>(st.st_mtime)
                 * UINT64_C(1000000000);
             _out.timestamps.accessed =
-                static_cast<std::uint64_t>(st.st_atime)
+                static_cast<re_std::uint64_t>(st.st_atime)
                 * UINT64_C(1000000000);
             _out.timestamps.changed  =
-                static_cast<std::uint64_t>(st.st_ctime)
+                static_cast<re_std::uint64_t>(st.st_ctime)
                 * UINT64_C(1000000000);
             _out.timestamps.created  = 0;
         #endif
 
         // raw mode and ownership
-        _out.mode = static_cast<std::uint16_t>(st.st_mode & 0xFFFF);
-        _out.uid  = static_cast<std::uint32_t>(st.st_uid);
-        _out.gid  = static_cast<std::uint32_t>(st.st_gid);
+        _out.mode = static_cast<re_std::uint16_t>(st.st_mode & 0xFFFF);
+        _out.uid  = static_cast<re_std::uint32_t>(st.st_uid);
+        _out.gid  = static_cast<re_std::uint32_t>(st.st_gid);
 
         // identity
-        _out.inode      = static_cast<std::uint64_t>(st.st_ino);
-        _out.link_count = static_cast<std::uint32_t>(st.st_nlink);
-        _out.device     = static_cast<std::uint64_t>(st.st_dev);
+        _out.inode      = static_cast<re_std::uint64_t>(st.st_ino);
+        _out.link_count = static_cast<re_std::uint32_t>(st.st_nlink);
+        _out.device     = static_cast<re_std::uint64_t>(st.st_dev);
 
         // synthesize attribute flags from st_mode.
-        std::uint32_t flags = file_attr_none;
+        re_std::uint32_t flags = file_attr_none;
 
         if (S_ISDIR(st.st_mode))  { flags |= file_attr_directory;  }
         if (S_ISLNK(st.st_mode))  { flags |= file_attr_symlink |
@@ -1224,8 +1268,8 @@ private:
         #endif
 
         // hidden: POSIX convention — name starts with '.'.
-        // Caller must check this separately as we only have
-        // the path here, not a guaranteed leaf name.
+        // Caller must check this separately as we only have the path here, not
+        // a guaranteed leaf name.
         {
             const char* leaf = _path;
             const char* p    = _path;
@@ -1275,14 +1319,216 @@ private:
 
         return true;
     }
+};
 
-#endif  // platform
+#endif  // posix family enabled && !_WIN32
 
+
+// ================================================================
+//  null_attr_populator
+// ================================================================
+
+// null_attr_populator
+//   policy: the fallback populator. Compiles everywhere and reports failure
+// (leaving _out default-constructed). Bound to
+// operating_system::none, and used as the dependent type past the
+// disabled-selector static_assert below so diagnostics stay focused.
+struct null_attr_populator
+{
+    static bool
+    populate_impl
+    (
+        const char*    /*_path*/,
+        file_metadata& /*_out*/
+    )
+    {
+        return false;
+    }
 };
 
 
-NS_END  // fs
+// ================================================================
+//  attr_populator  (operating_system -> populator policy)
+// ================================================================
+
+// disabled_attr_backend_selected
+//   trait: dependent-false helper so the primary attr_populator template
+// static_asserts only when actually instantiated.
+template<operating_system OS>
+struct disabled_attr_backend_selected
+{
+    static constexpr bool value = false;
+};
+
+// attr_populator (primary)
+//   Reached only for selectors whose backend was NOT enabled for this build.
+// Instantiating it is a hard error with remediation guidance.
+template<operating_system OS>
+struct attr_populator
+{
+    static_assert(
+        disabled_attr_backend_selected<OS>::value,
+        "file_attributes: the requested operating_system backend is not "
+        "enabled for this build. It is foreign to the current target and "
+        "hidden by default. Opt in before including file_attributes.hpp by "
+        "defining the matching D_CFG_FILESYS_ALLOW_* flag (per-OS, OS-group, "
+        "or the master D_CFG_FILESYS_ALLOW_FOREIGN). See cfg_filesys.h.");
+
+    using type = null_attr_populator;
+};
+
+// `none` is always available: an explicit no-op populator.
+template<> struct attr_populator<operating_system::none>
+{ using type = null_attr_populator; };
+
+// The Win32 and POSIX populators are real types only on their native host
+// (they wrap host-only APIs). A selector is mapped to its real populator when
+// (a) its backend is enabled AND (b) that populator's struct actually exists
+// in this translation unit; otherwise the selector maps to null_attr_populator
+// so that naming an enabled-but- non-native backend still compiles into a
+// no-op (matching the off-platform stub behavior of the file_tree scanners).
+
+#if D_FILESYS_ENABLE_WINDOWS && defined(_WIN32)
+    template<> struct attr_populator<operating_system::windows>
+    { using type = win32_attr_populator; };
+    template<> struct attr_populator<operating_system::windows10>
+    { using type = win32_attr_populator; };
+    template<> struct attr_populator<operating_system::windows11>
+    { using type = win32_attr_populator; };
+#elif D_FILESYS_ENABLE_WINDOWS
+    // enabled (cross-named) but not the native host: no Win32 API here.
+    template<> struct attr_populator<operating_system::windows>
+    { using type = null_attr_populator; };
+    template<> struct attr_populator<operating_system::windows10>
+    { using type = null_attr_populator; };
+    template<> struct attr_populator<operating_system::windows11>
+    { using type = null_attr_populator; };
+#endif
+
+#if !defined(_WIN32)
+    #if D_FILESYS_ENABLE_POSIX
+        template<> struct attr_populator<operating_system::posix>
+        { using type = posix_attr_populator; };
+    #endif
+    #if D_FILESYS_ENABLE_BSD
+        template<> struct attr_populator<operating_system::bsd>
+        { using type = posix_attr_populator; };
+    #endif
+    #if D_FILESYS_ENABLE_LINUX
+        template<> struct attr_populator<operating_system::linux_generic>
+        { using type = posix_attr_populator; };
+    #endif
+    #if D_FILESYS_ENABLE_APPLE
+        template<> struct attr_populator<operating_system::apple>
+        { using type = posix_attr_populator; };
+    #endif
+    #if D_FILESYS_ENABLE_IOS
+        template<> struct attr_populator<operating_system::ios>
+        { using type = posix_attr_populator; };
+    #endif
+#else
+    // On Windows, the posix-family selectors are foreign. If enabled
+    // (cross-named) they map to the null populator; if not enabled they fall
+    // through to the asserting primary template.
+    #if D_FILESYS_ENABLE_POSIX
+        template<> struct attr_populator<operating_system::posix>
+        { using type = null_attr_populator; };
+    #endif
+    #if D_FILESYS_ENABLE_BSD
+        template<> struct attr_populator<operating_system::bsd>
+        { using type = null_attr_populator; };
+    #endif
+    #if D_FILESYS_ENABLE_LINUX
+        template<> struct attr_populator<operating_system::linux_generic>
+        { using type = null_attr_populator; };
+    #endif
+    #if D_FILESYS_ENABLE_APPLE
+        template<> struct attr_populator<operating_system::apple>
+        { using type = null_attr_populator; };
+    #endif
+    #if D_FILESYS_ENABLE_IOS
+        template<> struct attr_populator<operating_system::ios>
+        { using type = null_attr_populator; };
+    #endif
+#endif
+
+
+NS_INTERNAL
+
+    // detected_attr_os
+    //   resolves the native operating_system selector for this build, matching
+    // the native backend cfg_filesys.h forced on.
+    D_STATIC_CONSTEXPR operating_system detected_attr_os =
+#if   D_FILESYS_NATIVE_WINDOWS
+        operating_system::windows;
+#elif D_FILESYS_NATIVE_IOS
+        operating_system::ios;
+#elif D_FILESYS_NATIVE_APPLE
+        operating_system::apple;
+#elif D_FILESYS_NATIVE_LINUX
+        operating_system::linux_generic;
+#elif D_FILESYS_NATIVE_BSD
+        operating_system::bsd;
+#elif D_FILESYS_NATIVE_POSIX
+        operating_system::posix;
+#else
+        operating_system::none;
+#endif
+
+    // resolve_attr_os
+    //   maps a selector onto its populator, routing automatic through the
+    // detected native selector.
+    template<operating_system OS>
+    struct resolve_attr_os
+    {
+        using type = typename attr_populator<OS>::type;
+    };
+
+    // resolve_attr_os<operating_system::automatic>
+    //   trait: the `operating_system::automatic` case; it maps to `typename
+    // attr_populator<detected_attr_os>::type`.
+    template<>
+    struct resolve_attr_os<operating_system::automatic>
+    {
+        using type = typename attr_populator<detected_attr_os>::type;
+    };
+
+NS_END  // internal
+
+
+// ================================================================
+//  file_attributes
+// ================================================================
+
+// file_attributes
+//   alias: the public, OS-parameterized attribute populator. Selects the
+// populator backend named by OS (defaulting to the detected backend) and
+// exposes basic_file_attributes' surface: populate() and the static
+// detect_encoding()/detect_bom() helpers.
+//
+//   Naming a disabled foreign backend is a compile error; see cfg_filesys.h to
+// opt in.
+//
+// Usage:
+//   file_attributes<> fa; // detected backend
+//   file_metadata m;
+//   file_attributes<>::populate("/etc/hosts", m);
+//
+//   // explicit (requires opt-in if foreign):
+//   file_attributes<operating_system::windows>::populate(p, m);
+template<operating_system OS = operating_system::automatic>
+using file_attributes =
+    basic_file_attributes<
+        typename internal::resolve_attr_os<OS>::type>;
+
+
+// file_attributes_default
+//   type: the detected-backend populator under a plain non-template name.
+using file_attributes_default = file_attributes<operating_system::automatic>;
+
+
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FS_FILE_ATTRIBUTES_
+#endif  // DJINTERP_CONTAINER_TREE_FILE_FILE_ATTRIBUTES_HPP

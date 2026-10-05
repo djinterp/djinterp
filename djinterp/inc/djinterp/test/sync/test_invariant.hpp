@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                          test_invariant.hpp
+/*******************************************************************************
+* djinterp [test]                                             test_invariant.hpp
 *
 *   Concurrent invariant monitoring for the DTest multithreading
 * harness.  An invariant is a predicate that should hold at every
@@ -30,30 +30,55 @@
 *   Requires C++11 or later.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    INVARIANT REPORT
-* II.   POLLING INVARIANT MONITOR
-* III.  MONOTONIC GUARD
-* IV.   BOUNDED GUARD
-* V.    INVARIANT SCOPE (RAII)
-* VI.   FACTORY HELPERS
-*
-*
 * path:      /inc/djinterp/test/sync/test_invariant.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_INVARIANT_
-#define DJINTERP_TEST_INVARIANT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    INVARIANT REPORT
+      ----------------
+
+II.   POLLING INVARIANT MONITOR
+      -------------------------
+
+III.  MONOTONIC GUARD
+      ---------------
+
+IV.   BOUNDED GUARD
+      -------------
+
+V.    INVARIANT SCOPE (RAII)
+      ----------------------
+
+VI.   FACTORY HELPERS
+      ---------------
+*/
+
+#ifndef DJINTERP_TEST_SYNC_TEST_INVARIANT_HPP
+#define DJINTERP_TEST_SYNC_TEST_INVARIANT_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but math/interval/closed_interval.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
 
+// djinterp
+#include "../../djinterp.hpp"  // framework root: env, read by the gates below
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t, int64_t
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>
     #include <chrono>
     #include <condition_variable>
@@ -65,7 +90,6 @@
 #endif
 
 // djinterp
-#include "../../core/djinterp.hpp"
 #include "../../core/sync/atomic.hpp"
 #include "../test_common.hpp"
 #include "../test_object.hpp"
@@ -259,11 +283,11 @@ public:
     // evaluated.  Smaller intervals catch more transient
     // violations but contend more with the system under
     // test.
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_poll_interval(
-        const std::chrono::duration<_Rep, _Period>& _d
+        const std::chrono::duration<Rep, Period>& _d
     )
     {
         m_poll_interval =
@@ -504,19 +528,19 @@ private:
 // decrement is attempted.
 //
 // Template parameter:
-//   _Value: an arithmetic or comparable type with operator<.
+//   Value: an arithmetic or comparable type with operator<.
 //
 // Example:
-//   monotonic_guard<std::uint64_t> seq;
+//   monotonic_guard<re_std::uint64_t> seq;
 //
 //   // worker:
-//   std::uint64_t my_seq = next_sequence();
+//   re_std::uint64_t my_seq = next_sequence();
 //   if (!seq.observe(my_seq)) { /* sequence went backward */ }
-template<typename _Value = std::uint64_t>
+template<typename Value = re_std::uint64_t>
 class monotonic_guard
 {
 public:
-    using value_type = _Value;
+    using value_type = Value;
     using size_type  = std::size_t;
 
     monotonic_guard()
@@ -653,11 +677,11 @@ private:
 //   usage.observe(usage.current() - 1);
 //
 //   if (!usage.success()) { /* somebody went out of bounds */ }
-template<typename _Value = std::int64_t>
+template<typename Value = re_std::int64_t>
 class bounded_guard
 {
 public:
-    using value_type = _Value;
+    using value_type = Value;
     using size_type  = std::size_t;
 
     bounded_guard()
@@ -801,11 +825,11 @@ public:
         m_monitor.start();
     }
 
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     invariant_scope(
         predicate_fn                                _predicate,
-        const std::chrono::duration<_Rep, _Period>& _interval
+        const std::chrono::duration<Rep, Period>& _interval
     )
         : m_monitor(static_cast<predicate_fn&&>(_predicate))
     {
@@ -851,15 +875,15 @@ private:
 
 // make_invariant_monitor
 //   factory: returns a configured invariant_monitor.
-template<typename _Predicate>
+template<typename Predicate>
 inline invariant_monitor
 make_invariant_monitor(
-    _Predicate&& _predicate
+    Predicate&& _predicate
 )
 {
     return invariant_monitor(
         invariant_monitor::predicate_fn(
-            static_cast<_Predicate&&>(_predicate)));
+            static_cast<Predicate&&>(_predicate)));
 }
 
 #endif  // C++11
@@ -868,5 +892,7 @@ make_invariant_monitor(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_INVARIANT_
+
+#endif  // DJINTERP_TEST_SYNC_TEST_INVARIANT_HPP

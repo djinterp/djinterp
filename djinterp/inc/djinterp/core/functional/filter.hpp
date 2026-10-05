@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                            filter.hpp
+/*******************************************************************************
+* djinterp [core]                                                     filter.hpp
 *
 * Template collection filtering with expression-based selection (C++).
 *   Provides a comprehensive, fully typed filtering framework that supports
@@ -31,27 +31,55 @@
 *       filter_builder<int>::build().where(is_even).build_chain());
 *   auto result = combined.apply(my_data);
 *
-* TABLE OF CONTENTS
-* =================
-* I.    FILTER OPERATION TYPE
-* II.   FILTER OPERATION FACTORIES
-* III.  FILTER RESULT
-* IV.   FILTER CHAIN
-* V.    FILTER COMBINATORS
-* VI.   FILTER ITERATOR
-* VII.  FLUENT FILTER BUILDER
-* VIII. TYPED FAST-PATH  (de-erased)
-* IX.   FILTERABLE CONTAINER TRAITS  (folded from filterable_traits.hpp)
-* X.    FILTER STRUCTURAL TRAITS & CONCEPTS
 *
-*
-* path:      \inc\functional\filter.hpp
+* path:      /inc/djinterp/core/functional/filter.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.19
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_FILTER_
-#define DJINTERP_FUNCTIONAL_FILTER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    FILTER OPERATION TYPE
+      ---------------------
+
+II.   FILTER OPERATION FACTORIES
+      --------------------------
+
+III.  FILTER RESULT
+      -------------
+
+IV.   FILTER CHAIN
+      ------------
+
+V.    FILTER COMBINATORS
+      ------------------
+
+VI.   FILTER ITERATOR
+      ---------------
+
+VII.  FLUENT FILTER BUILDER
+      ---------------------
+
+VIII. TYPED FAST-PATH  (de-erased)
+      ----------------------------
+
+IX.   FILTERABLE CONTAINER TRAITS  (folded from filterable_traits.hpp)
+      ----------------------------------------------------------------
+
+X.    FILTER STRUCTURAL TRAITS & CONCEPTS
+      -----------------------------------
+*/
+
+#ifndef DJINTERP_FUNCTIONAL_FILTER_HPP
+#define DJINTERP_FUNCTIONAL_FILTER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <algorithm>
@@ -63,7 +91,10 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/member_types.hpp"  // has_value_type
+#include "../meta/type_utility.hpp"  // void_t, clean
+#include "../meta/type_traits.hpp"   // is_detected, detected_or_t, nonesuch
 #include "./functional_common.hpp"
 
 
@@ -93,9 +124,9 @@ NS_DJINTERP
 // filter_op_fn
 //   type: a filter operation is a function that accepts an input
 // vector and returns the indices of elements that pass.
-template<typename _Type>
+template<typename Type>
 using filter_op_fn = std::function<
-    std::vector<std::size_t>(const std::vector<_Type>&)>;
+    std::vector<std::size_t>(const std::vector<Type>&)>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,11 +136,11 @@ using filter_op_fn = std::function<
 NS_INTERNAL
     // make_take_first_op
     //   helper: keeps the first _n elements.
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_take_first_op(std::size_t _n)
     {
-        return [_n](const std::vector<_Type>& _input)
+        return [_n](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -127,11 +158,11 @@ NS_INTERNAL
 
     // make_take_last_op
     //   helper: keeps the last _n elements.
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_take_last_op(std::size_t _n)
     {
-        return [_n](const std::vector<_Type>& _input)
+        return [_n](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -149,11 +180,11 @@ NS_INTERNAL
 
     // make_skip_first_op
     //   helper: removes the first _n elements.
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_skip_first_op(std::size_t _n)
     {
-        return [_n](const std::vector<_Type>& _input)
+        return [_n](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -171,11 +202,11 @@ NS_INTERNAL
 
     // make_skip_last_op
     //   helper: removes the last _n elements.
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_skip_last_op(std::size_t _n)
     {
-        return [_n](const std::vector<_Type>& _input)
+        return [_n](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -193,11 +224,11 @@ NS_INTERNAL
 
     // make_take_nth_op
     //   helper: keeps every _n-th element.
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_take_nth_op(std::size_t _n)
     {
-        return [_n](const std::vector<_Type>& _input)
+        return [_n](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -218,11 +249,11 @@ NS_INTERNAL
 
     // make_range_op
     //   helper: keeps elements in [start, end).
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_range_op(std::size_t _start, std::size_t _end)
     {
-        return [_start, _end](const std::vector<_Type>& _input)
+        return [_start, _end](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -240,13 +271,13 @@ NS_INTERNAL
 
     // make_slice_op
     //   helper: keeps elements in [start, end) with given step.
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_slice_op(std::size_t _start,
                   std::size_t _end,
                   std::size_t _step)
     {
-        return [_start, _end, _step](const std::vector<_Type>& _input)
+        return [_start, _end, _step](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -270,11 +301,11 @@ NS_INTERNAL
 
     // make_where_op
     //   helper: keeps elements satisfying a predicate.
-    template<typename _Type>
-    filter_op_fn<_Type>
-    make_where_op(std::function<bool(const _Type&)> _pred)
+    template<typename Type>
+    filter_op_fn<Type>
+    make_where_op(std::function<bool(const Type&)> _pred)
     {
-        return [_pred](const std::vector<_Type>& _input)
+        return [_pred](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -293,11 +324,11 @@ NS_INTERNAL
 
     // make_where_not_op
     //   helper: keeps elements failing a predicate.
-    template<typename _Type>
-    filter_op_fn<_Type>
-    make_where_not_op(std::function<bool(const _Type&)> _pred)
+    template<typename Type>
+    filter_op_fn<Type>
+    make_where_not_op(std::function<bool(const Type&)> _pred)
     {
-        return [_pred](const std::vector<_Type>& _input)
+        return [_pred](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -316,11 +347,11 @@ NS_INTERNAL
 
     // make_indices_op
     //   helper: keeps elements at the given indices.
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_indices_op(std::vector<std::size_t> _indices)
     {
-        return [_indices](const std::vector<_Type>& _input)
+        return [_indices](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -339,12 +370,12 @@ NS_INTERNAL
 
     // make_distinct_op
     //   helper: removes duplicates per an equality function.
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_distinct_op(
-        std::function<bool(const _Type&, const _Type&)> _eq)
+        std::function<bool(const Type&, const Type&)> _eq)
     {
-        return [_eq](const std::vector<_Type>& _input)
+        return [_eq](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -376,11 +407,11 @@ NS_INTERNAL
 
     // make_reverse_op
     //   helper: reverses element order.
-    template<typename _Type>
-    filter_op_fn<_Type>
+    template<typename Type>
+    filter_op_fn<Type>
     make_reverse_op()
     {
-        return [](const std::vector<_Type>& _input)
+        return [](const std::vector<Type>& _input)
             -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
@@ -414,18 +445,18 @@ enum class filter_result_status
 
 // filter_result
 //   class: result of applying a filter operation.
-template<typename _Type>
+template<typename Type>
 class filter_result
 {
 private:
-    std::vector<_Type>       m_elements;
+    std::vector<Type>       m_elements;
     std::vector<std::size_t> m_indices;
     filter_result_status     m_status;
     std::string              m_error_message;
 
 public:
     // success constructor
-    filter_result(std::vector<_Type>&&       _elements,
+    filter_result(std::vector<Type>&&       _elements,
                   std::vector<std::size_t>&& _indices)
         : m_elements(std::move(_elements)),
           m_indices(std::move(_indices)),
@@ -464,13 +495,13 @@ public:
     std::size_t count() const { return m_elements.size(); }
 
     D_NODISCARD
-    const std::vector<_Type>& elements() const
+    const std::vector<Type>& elements() const
     {
         return m_elements;
     }
 
     D_NODISCARD
-    std::vector<_Type> take_elements()
+    std::vector<Type> take_elements()
     {
         return std::move(m_elements);
     }
@@ -481,12 +512,12 @@ public:
         return m_indices;
     }
 
-    typename std::vector<_Type>::const_iterator begin() const
+    typename std::vector<Type>::const_iterator begin() const
     {
         return m_elements.begin();
     }
 
-    typename std::vector<_Type>::const_iterator end() const
+    typename std::vector<Type>::const_iterator end() const
     {
         return m_elements.end();
     }
@@ -499,11 +530,11 @@ public:
 
 // filter_chain
 //   class: chain of sequential filter operations.
-template<typename _Type>
+template<typename Type>
 class filter_chain
 {
 private:
-    std::vector<filter_op_fn<_Type>> m_operations;
+    std::vector<filter_op_fn<Type>> m_operations;
 
 public:
     filter_chain() = default;
@@ -515,7 +546,7 @@ public:
 
     // add
     //   method: adds an operation to the chain.
-    void add(filter_op_fn<_Type> _op)
+    void add(filter_op_fn<Type> _op)
     {
         m_operations.push_back(std::move(_op));
 
@@ -526,8 +557,8 @@ public:
     //   method: applies the chain to input data and returns a
     // filter result.
     D_NODISCARD
-    filter_result<_Type>
-    apply(const std::vector<_Type>& _input) const
+    filter_result<Type>
+    apply(const std::vector<Type>& _input) const
     {
         // start with all indices
         std::vector<std::size_t> current_indices;
@@ -543,7 +574,7 @@ public:
         for (const auto& op : m_operations)
         {
             // build a temporary sub-vector for this operation
-            std::vector<_Type> sub;
+            std::vector<Type> sub;
 
             sub.reserve(current_indices.size());
 
@@ -569,7 +600,7 @@ public:
         }
 
         // collect results
-        std::vector<_Type> result_elements;
+        std::vector<Type> result_elements;
 
         result_elements.reserve(current_indices.size());
 
@@ -578,7 +609,7 @@ public:
             result_elements.push_back(_input[idx]);
         }
 
-        return filter_result<_Type>(std::move(result_elements),
+        return filter_result<Type>(std::move(result_elements),
                                     std::move(current_indices));
     }
 
@@ -605,11 +636,11 @@ public:
 // filter_union
 //   function: applies union semantics (OR) over multiple filter
 // chains.  An element is included if it passes any of the chains.
-template<typename _Type>
+template<typename Type>
 D_NODISCARD
-filter_result<_Type>
-filter_union(const std::vector<filter_chain<_Type>>& _chains,
-             const std::vector<_Type>&                _input)
+filter_result<Type>
+filter_union(const std::vector<filter_chain<Type>>& _chains,
+             const std::vector<Type>&                _input)
 {
     std::vector<bool> included(_input.size(), false);
 
@@ -623,7 +654,7 @@ filter_union(const std::vector<filter_chain<_Type>>& _chains,
         }
     }
 
-    std::vector<_Type>       elements;
+    std::vector<Type>       elements;
     std::vector<std::size_t> indices;
 
     for (std::size_t i = 0; i < _input.size(); ++i)
@@ -635,19 +666,19 @@ filter_union(const std::vector<filter_chain<_Type>>& _chains,
         }
     }
 
-    return filter_result<_Type>(std::move(elements),
+    return filter_result<Type>(std::move(elements),
                                 std::move(indices));
 }
 
 // filter_intersection
 //   function: applies intersection semantics (AND) over multiple
 // chains.  An element is included only if it passes all chains.
-template<typename _Type>
+template<typename Type>
 D_NODISCARD
-filter_result<_Type>
+filter_result<Type>
 filter_intersection(
-    const std::vector<filter_chain<_Type>>& _chains,
-    const std::vector<_Type>&               _input)
+    const std::vector<filter_chain<Type>>& _chains,
+    const std::vector<Type>&               _input)
 {
     std::vector<std::size_t> hit_count(_input.size(), 0);
 
@@ -661,7 +692,7 @@ filter_intersection(
         }
     }
 
-    std::vector<_Type>       elements;
+    std::vector<Type>       elements;
     std::vector<std::size_t> indices;
     std::size_t              chain_count = _chains.size();
 
@@ -674,19 +705,19 @@ filter_intersection(
         }
     }
 
-    return filter_result<_Type>(std::move(elements),
+    return filter_result<Type>(std::move(elements),
                                 std::move(indices));
 }
 
 // filter_difference
 //   function: applies difference semantics (A - B).
 // An element is included if it passes _include but not _exclude.
-template<typename _Type>
+template<typename Type>
 D_NODISCARD
-filter_result<_Type>
-filter_difference(const filter_chain<_Type>& _include,
-                  const filter_chain<_Type>& _exclude,
-                  const std::vector<_Type>&  _input)
+filter_result<Type>
+filter_difference(const filter_chain<Type>& _include,
+                  const filter_chain<Type>& _exclude,
+                  const std::vector<Type>&  _input)
 {
     auto included = _include.apply(_input);
     auto excluded = _exclude.apply(_input);
@@ -698,7 +729,7 @@ filter_difference(const filter_chain<_Type>& _include,
         excluded_set[idx] = true;
     }
 
-    std::vector<_Type>       elements;
+    std::vector<Type>       elements;
     std::vector<std::size_t> indices;
 
     for (auto idx : included.indices())
@@ -710,7 +741,7 @@ filter_difference(const filter_chain<_Type>& _include,
         }
     }
 
-    return filter_result<_Type>(std::move(elements),
+    return filter_result<Type>(std::move(elements),
                                 std::move(indices));
 }
 
@@ -721,17 +752,17 @@ filter_difference(const filter_chain<_Type>& _include,
 
 // filter_iterator
 //   class: lazily iterates over filtered results.
-template<typename _Type>
+template<typename Type>
 class filter_iterator
 {
 private:
-    const std::vector<_Type>* m_input;
+    const std::vector<Type>* m_input;
     std::vector<std::size_t>  m_indices;
     std::size_t               m_pos;
 
 public:
-    filter_iterator(const std::vector<_Type>&  _input,
-                    const filter_chain<_Type>& _chain)
+    filter_iterator(const std::vector<Type>&  _input,
+                    const filter_chain<Type>& _chain)
         : m_input(&_input)
         , m_pos(0)
     {
@@ -744,7 +775,7 @@ public:
     bool has_next() const { return m_pos < m_indices.size(); }
 
     D_NODISCARD
-    const _Type& next()
+    const Type& next()
     {
         return (*m_input)[m_indices[m_pos++]];
     }
@@ -770,11 +801,11 @@ public:
 
 // filter_builder
 //   class: fluent builder for constructing filter chains.
-template<typename _Type>
+template<typename Type>
 class filter_builder
 {
 private:
-    filter_chain<_Type> m_chain;
+    filter_chain<Type> m_chain;
 
 public:
     filter_builder() = default;
@@ -786,7 +817,7 @@ public:
     // take_first
     filter_builder& take_first(std::size_t _n)
     {
-        m_chain.add(internal::make_take_first_op<_Type>(_n));
+        m_chain.add(internal::make_take_first_op<Type>(_n));
 
         return *this;
     }
@@ -794,7 +825,7 @@ public:
     // take_last
     filter_builder& take_last(std::size_t _n)
     {
-        m_chain.add(internal::make_take_last_op<_Type>(_n));
+        m_chain.add(internal::make_take_last_op<Type>(_n));
 
         return *this;
     }
@@ -802,7 +833,7 @@ public:
     // take_nth
     filter_builder& take_nth(std::size_t _n)
     {
-        m_chain.add(internal::make_take_nth_op<_Type>(_n));
+        m_chain.add(internal::make_take_nth_op<Type>(_n));
 
         return *this;
     }
@@ -810,7 +841,7 @@ public:
     // skip_first
     filter_builder& skip_first(std::size_t _n)
     {
-        m_chain.add(internal::make_skip_first_op<_Type>(_n));
+        m_chain.add(internal::make_skip_first_op<Type>(_n));
 
         return *this;
     }
@@ -818,7 +849,7 @@ public:
     // skip_last
     filter_builder& skip_last(std::size_t _n)
     {
-        m_chain.add(internal::make_skip_last_op<_Type>(_n));
+        m_chain.add(internal::make_skip_last_op<Type>(_n));
 
         return *this;
     }
@@ -838,7 +869,7 @@ public:
     // range [start, end)
     filter_builder& range(std::size_t _start, std::size_t _end)
     {
-        m_chain.add(internal::make_range_op<_Type>(_start, _end));
+        m_chain.add(internal::make_range_op<Type>(_start, _end));
 
         return *this;
     }
@@ -849,34 +880,34 @@ public:
                           std::size_t _step)
     {
         m_chain.add(
-            internal::make_slice_op<_Type>(_start, _end, _step));
+            internal::make_slice_op<Type>(_start, _end, _step));
 
         return *this;
     }
 
     // where (predicate filter)
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
-    filter_builder& where(_Pred _pred)
+    filter_builder& where(Pred _pred)
     {
-        m_chain.add(internal::make_where_op<_Type>(
-            std::function<bool(const _Type&)>(
+        m_chain.add(internal::make_where_op<Type>(
+            std::function<bool(const Type&)>(
                 std::move(_pred))));
 
         return *this;
     }
 
     // where_not (negated predicate)
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
-    filter_builder& where_not(_Pred _pred)
+    filter_builder& where_not(Pred _pred)
     {
-        m_chain.add(internal::make_where_not_op<_Type>(
-            std::function<bool(const _Type&)>(
+        m_chain.add(internal::make_where_not_op<Type>(
+            std::function<bool(const Type&)>(
                 std::move(_pred))));
 
         return *this;
@@ -885,7 +916,7 @@ public:
     // at (single index)
     filter_builder& at(std::size_t _index)
     {
-        m_chain.add(internal::make_indices_op<_Type>(
+        m_chain.add(internal::make_indices_op<Type>(
             std::vector<std::size_t>{_index}));
 
         return *this;
@@ -894,21 +925,21 @@ public:
     // at_indices (multiple indices)
     filter_builder& at_indices(std::vector<std::size_t> _indices)
     {
-        m_chain.add(internal::make_indices_op<_Type>(
+        m_chain.add(internal::make_indices_op<Type>(
             std::move(_indices)));
 
         return *this;
     }
 
     // distinct (custom equality)
-    template<typename _Eq,
+    template<typename Eq,
              typename = typename std::enable_if<
-                 is_callable<_Eq, const _Type&, const _Type&>::value
+                 is_callable<Eq, const Type&, const Type&>::value
              >::type>
-    filter_builder& distinct(_Eq _eq)
+    filter_builder& distinct(Eq _eq)
     {
-        m_chain.add(internal::make_distinct_op<_Type>(
-            std::function<bool(const _Type&, const _Type&)>(
+        m_chain.add(internal::make_distinct_op<Type>(
+            std::function<bool(const Type&, const Type&)>(
                 std::move(_eq))));
 
         return *this;
@@ -918,7 +949,7 @@ public:
     filter_builder& distinct()
     {
         return distinct(
-            [](const _Type& _a, const _Type& _b)
+            [](const Type& _a, const Type& _b)
             {
                 return _a == _b;
             });
@@ -927,32 +958,32 @@ public:
     // reverse
     filter_builder& reverse()
     {
-        m_chain.add(internal::make_reverse_op<_Type>());
+        m_chain.add(internal::make_reverse_op<Type>());
 
         return *this;
     }
 
     // apply (execute the chain)
     D_NODISCARD
-    filter_result<_Type>
-    apply(const std::vector<_Type>& _input) const
+    filter_result<Type>
+    apply(const std::vector<Type>& _input) const
     {
         return m_chain.apply(_input);
     }
 
     // apply (container)
-    template<typename _Container,
+    template<typename Container,
              typename = typename std::enable_if<
                  std::is_convertible<
                      typename std::decay<decltype(*std::begin(
-                         std::declval<const _Container&>()))>::type,
-                     _Type>::value
+                         std::declval<const Container&>()))>::type,
+                     Type>::value
              >::type>
     D_NODISCARD
-    filter_result<_Type>
-    apply(const _Container& _input) const
+    filter_result<Type>
+    apply(const Container& _input) const
     {
-        std::vector<_Type> vec(std::begin(_input),
+        std::vector<Type> vec(std::begin(_input),
                                std::end(_input));
 
         return m_chain.apply(vec);
@@ -965,50 +996,50 @@ public:
     // ref-qualified one; the original left this unqualified, which is
     // ill-formed. (fixed 2026-05-27)
     D_NODISCARD
-    filter_chain<_Type> build_chain() const &
+    filter_chain<Type> build_chain() const &
     {
         return m_chain;
     }
 
     // build_chain (move)
     D_NODISCARD
-    filter_chain<_Type> build_chain() &&
+    filter_chain<Type> build_chain() &&
     {
         return std::move(m_chain);
     }
 
     // iterator
     D_NODISCARD
-    filter_iterator<_Type>
-    iterator(const std::vector<_Type>& _input) const
+    filter_iterator<Type>
+    iterator(const std::vector<Type>& _input) const
     {
-        return filter_iterator<_Type>(_input, m_chain);
+        return filter_iterator<Type>(_input, m_chain);
     }
 
     // any_match
     D_NODISCARD
-    bool any_match(const std::vector<_Type>& _input) const
+    bool any_match(const std::vector<Type>& _input) const
     {
         return !m_chain.apply(_input).empty();
     }
 
     // all_match
     D_NODISCARD
-    bool all_match(const std::vector<_Type>& _input) const
+    bool all_match(const std::vector<Type>& _input) const
     {
         return m_chain.apply(_input).count() == _input.size();
     }
 
     // none_match
     D_NODISCARD
-    bool none_match(const std::vector<_Type>& _input) const
+    bool none_match(const std::vector<Type>& _input) const
     {
         return m_chain.apply(_input).empty();
     }
 
     // count_matches
     D_NODISCARD
-    std::size_t count_matches(const std::vector<_Type>& _input) const
+    std::size_t count_matches(const std::vector<Type>& _input) const
     {
         return m_chain.apply(_input).count();
     }
@@ -1021,24 +1052,24 @@ public:
 // The filter_chain / filter_builder above type-erase each operation via
 // filter_op_fn = std::function, which is required for the heterogeneous
 // storage that filter_union / filter_intersection / filter_difference
-// rely on (they hold a std::vector<filter_chain<_Type>>).
+// rely on (they hold a std::vector<filter_chain<Type>>).
 //
 //   For the common single-chain case, the typed fast-path below avoids
 // std::function entirely: each operation wraps its predecessor in a
 // stored-by-value step functor producing an index vector, exactly as
 // fn_builder does. This inlines the whole chain. When a caller needs the
 // erased form (to feed a combinator), typed_filter::to_chain() lowers the
-// typed chain into a filter_chain<_Type> by wrapping it in one
+// typed chain into a filter_chain<Type> by wrapping it in one
 // std::function.
 
 NS_INTERNAL
 
     // typed_identity: seed; selects every index.
-    template<typename _Type>
+    template<typename Type>
     struct typed_identity
     {
         std::vector<std::size_t>
-        operator()(const std::vector<_Type>& _in) const
+        operator()(const std::vector<Type>& _in) const
         {
             std::vector<std::size_t> idx;
 
@@ -1053,18 +1084,18 @@ NS_INTERNAL
         }
     };
 
-    // typed_where: keeps indices whose element satisfies _Pred.
-    template<typename _Type,
-             typename _Prev,
-             typename _Pred>
+    // typed_where: keeps indices whose element satisfies Pred.
+    template<typename Type,
+             typename Prev,
+             typename Pred>
     class typed_where
     {
     public:
-        typed_where(const _Prev& _prev, const _Pred& _pred)
+        typed_where(const Prev& _prev, const Pred& _pred)
             : m_prev(_prev), m_pred(_pred) {}
 
         std::vector<std::size_t>
-        operator()(const std::vector<_Type>& _in) const
+        operator()(const std::vector<Type>& _in) const
         {
             std::vector<std::size_t> prev = m_prev(_in);
             std::vector<std::size_t> result;
@@ -1078,21 +1109,21 @@ NS_INTERNAL
         }
 
     private:
-        _Prev m_prev;
-        _Pred m_pred;
+        Prev m_prev;
+        Pred m_pred;
     };
 
     // typed_take: keeps the first _n surviving indices.
-    template<typename _Type,
-             typename _Prev>
+    template<typename Type,
+             typename Prev>
     class typed_take
     {
     public:
-        typed_take(const _Prev& _prev, std::size_t _n)
+        typed_take(const Prev& _prev, std::size_t _n)
             : m_prev(_prev), m_n(_n) {}
 
         std::vector<std::size_t>
-        operator()(const std::vector<_Type>& _in) const
+        operator()(const std::vector<Type>& _in) const
         {
             std::vector<std::size_t> prev = m_prev(_in);
 
@@ -1102,21 +1133,21 @@ NS_INTERNAL
         }
 
     private:
-        _Prev       m_prev;
+        Prev        m_prev;
         std::size_t m_n;
     };
 
     // typed_skip: drops the first _n surviving indices.
-    template<typename _Type,
-             typename _Prev>
+    template<typename Type,
+             typename Prev>
     class typed_skip
     {
     public:
-        typed_skip(const _Prev& _prev, std::size_t _n)
+        typed_skip(const Prev& _prev, std::size_t _n)
             : m_prev(_prev), m_n(_n) {}
 
         std::vector<std::size_t>
-        operator()(const std::vector<_Type>& _in) const
+        operator()(const std::vector<Type>& _in) const
         {
             std::vector<std::size_t> prev = m_prev(_in);
 
@@ -1128,7 +1159,7 @@ NS_INTERNAL
         }
 
     private:
-        _Prev       m_prev;
+        Prev        m_prev;
         std::size_t m_n;
     };
 
@@ -1136,66 +1167,66 @@ NS_END  // internal
 
 
 // typed_filter
-//   class: a single typed filter chain. _Chain is the concrete composed
-// index-producing functor (vector<_Type> -> vector<size_t>). Each
-// fluent operation returns a new typed_filter with a wrapped _Chain.
-template<typename _Type,
-         typename _Chain = internal::typed_identity<_Type> >
+//   class: a single typed filter chain. Chain is the concrete composed
+// index-producing functor (vector<Type> -> vector<size_t>). Each
+// fluent operation returns a new typed_filter with a wrapped Chain.
+template<typename Type,
+         typename Chain = internal::typed_identity<Type> >
 class typed_filter
 {
 public:
-    typedef _Chain chain_type;
+    typedef Chain chain_type;
 
-    explicit typed_filter(_Chain _chain) : m_chain(std::move(_chain)) {}
+    explicit typed_filter(Chain _chain) : m_chain(std::move(_chain)) {}
 
     // create: seeds a typed filter selecting all elements.
-    static typed_filter<_Type, internal::typed_identity<_Type> >
+    static typed_filter<Type, internal::typed_identity<Type> >
     create()
     {
-        return typed_filter<_Type, internal::typed_identity<_Type> >(
-            internal::typed_identity<_Type>());
+        return typed_filter<Type, internal::typed_identity<Type> >(
+            internal::typed_identity<Type>());
     }
 
     // where
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value>::type>
+                 is_predicate<Pred, const Type&>::value>::type>
     D_NODISCARD
-    typed_filter<_Type, internal::typed_where<_Type, _Chain, _Pred> >
-    where(_Pred _pred) const
+    typed_filter<Type, internal::typed_where<Type, Chain, Pred> >
+    where(Pred _pred) const
     {
-        typedef internal::typed_where<_Type, _Chain, _Pred> new_chain;
+        typedef internal::typed_where<Type, Chain, Pred> new_chain;
 
-        return typed_filter<_Type, new_chain>(new_chain(m_chain, _pred));
+        return typed_filter<Type, new_chain>(new_chain(m_chain, _pred));
     }
 
     // take_first
     D_NODISCARD
-    typed_filter<_Type, internal::typed_take<_Type, _Chain> >
+    typed_filter<Type, internal::typed_take<Type, Chain> >
     take_first(std::size_t _n) const
     {
-        typedef internal::typed_take<_Type, _Chain> new_chain;
+        typedef internal::typed_take<Type, Chain> new_chain;
 
-        return typed_filter<_Type, new_chain>(new_chain(m_chain, _n));
+        return typed_filter<Type, new_chain>(new_chain(m_chain, _n));
     }
 
     // skip_first
     D_NODISCARD
-    typed_filter<_Type, internal::typed_skip<_Type, _Chain> >
+    typed_filter<Type, internal::typed_skip<Type, Chain> >
     skip_first(std::size_t _n) const
     {
-        typedef internal::typed_skip<_Type, _Chain> new_chain;
+        typedef internal::typed_skip<Type, Chain> new_chain;
 
-        return typed_filter<_Type, new_chain>(new_chain(m_chain, _n));
+        return typed_filter<Type, new_chain>(new_chain(m_chain, _n));
     }
 
     // apply: run the chain, returning a filter_result.
     D_NODISCARD
-    filter_result<_Type>
-    apply(const std::vector<_Type>& _input) const
+    filter_result<Type>
+    apply(const std::vector<Type>& _input) const
     {
         std::vector<std::size_t> indices = m_chain(_input);
-        std::vector<_Type>       elements;
+        std::vector<Type>       elements;
 
         elements.reserve(indices.size());
 
@@ -1204,24 +1235,24 @@ public:
             elements.push_back(_input[idx]);
         }
 
-        return filter_result<_Type>(std::move(elements),
+        return filter_result<Type>(std::move(elements),
                                     std::move(indices));
     }
 
     // to_chain
     //   method: lowers the typed chain into a std::function-backed
-    // filter_chain<_Type>, for use with the set-theoretic combinators
+    // filter_chain<Type>, for use with the set-theoretic combinators
     // (filter_union / filter_intersection / filter_difference) that
     // require homogeneous storage. This is the one place the typed
     // path pays for a single std::function wrap.
     D_NODISCARD
-    filter_chain<_Type> to_chain() const
+    filter_chain<Type> to_chain() const
     {
-        _Chain chain = m_chain;
-        filter_chain<_Type> result;
+        Chain chain = m_chain;
+        filter_chain<Type> result;
 
-        result.add(filter_op_fn<_Type>(
-            [chain](const std::vector<_Type>& _in)
+        result.add(filter_op_fn<Type>(
+            [chain](const std::vector<Type>& _in)
                 -> std::vector<std::size_t>
             {
                 return chain(_in);
@@ -1231,24 +1262,24 @@ public:
     }
 
     D_NODISCARD
-    const _Chain& chain() const { return m_chain; }
+    const Chain& chain() const { return m_chain; }
 
-    template<typename _T, typename _C>
+    template<typename T, typename C>
     friend class typed_filter;
 
 private:
-    _Chain m_chain;
+    Chain m_chain;
 };
 
 
 // make_typed_filter
 //   function: seeds a typed filter for the given element type.
-template<typename _Type>
+template<typename Type>
 D_NODISCARD
-typed_filter<_Type, internal::typed_identity<_Type> >
+typed_filter<Type, internal::typed_identity<Type> >
 make_typed_filter()
 {
-    return typed_filter<_Type, internal::typed_identity<_Type> >::create();
+    return typed_filter<Type, internal::typed_identity<Type> >::create();
 }
 
 
@@ -1261,191 +1292,110 @@ make_typed_filter()
 // (push_back / insert), and an optional native .filter() method. The
 // composite is_filterable aggregates these.
 //
-//   NOTE: the void_t / detector / is_detected / detected_or_t idiom below is
-// the same one the functional_traits aggregator uses. When this header is
-// compiled together with that aggregator, the two definitions are identical
-// templates in djinterp::internal and so do not conflict; if a future change
-// makes them diverge, gate one behind an include guard.
+//   The detection idiom underneath -- is_detected, detected_or_t, nonesuch --
+// is core/meta/type_traits.hpp's. (This header used to keep its own copy in
+// djinterp::internal, as accumulator.hpp did, on the belief that identical
+// definitions do not conflict; within one translation unit they do, so no
+// unit could include it beside either.)
 
 NS_INTERNAL
 
-    // ---- detection idiom ----
-    template<typename...>
-    struct make_void { typedef void type; };
-    template<typename... _Ts>
-    using void_t = typename make_void<_Ts...>::type;
-
-    template<typename _Default,
-             typename _AlwaysVoid,
-             template<typename...> class _Op,
-             typename... _Args>
-    struct detector
-    {
-        typedef std::false_type value_t;
-        typedef _Default        type;
-    };
-
-    template<typename _Default,
-             template<typename...> class _Op,
-             typename... _Args>
-    struct detector<_Default, void_t<_Op<_Args...> >, _Op, _Args...>
-    {
-        typedef std::true_type  value_t;
-        typedef _Op<_Args...>   type;
-    };
-
-    struct nonesuch
-    {
-        nonesuch()                      = delete;
-        ~nonesuch()                     = delete;
-        nonesuch(const nonesuch&)       = delete;
-        void operator=(const nonesuch&) = delete;
-    };
-
-    template<template<typename...> class _Op,
-             typename... _Args>
-    using is_detected =
-        typename detector<nonesuch, void, _Op, _Args...>::value_t;
-
-    template<typename _Default,
-             template<typename...> class _Op,
-             typename... _Args>
-    using detected_or_t =
-        typename detector<_Default, void, _Op, _Args...>::type;
-
     // begin_expression
     //   trait: expression alias for begin() detection.
-    template<typename _Type>
-    using begin_expression = decltype(std::begin(std::declval<_Type&>()));
+    template<typename Type>
+    using begin_expression = decltype(std::begin(std::declval<Type&>()));
 
     // end_expression
     //   trait: expression alias for end() detection.
-    template<typename _Type>
-    using end_expression = decltype(std::end(std::declval<_Type&>()));
+    template<typename Type>
+    using end_expression = decltype(std::end(std::declval<Type&>()));
 
     // value_type_expr
     //   trait: expression alias for nested value_type detection.
-    template<typename _Type>
-    using value_type_expr = typename _Type::value_type;
+    template<typename Type>
+    using value_type_expr = typename Type::value_type;
 
     // push_back_expression
     //   trait: expression alias for push_back() detection.
-    template<typename _Type>
+    template<typename Type>
     using push_back_expression = decltype(
-        std::declval<_Type&>().push_back(
-            std::declval<typename _Type::value_type>()));
+        std::declval<Type&>().push_back(
+            std::declval<typename Type::value_type>()));
 
     // insert_expression
     //   trait: expression alias for insert() detection.
-    template<typename _Type>
+    template<typename Type>
     using insert_expression = decltype(
-        std::declval<_Type&>().insert(
-            std::declval<_Type&>().end(),
-            std::declval<typename _Type::value_type>()));
+        std::declval<Type&>().insert(
+            std::declval<Type&>().end(),
+            std::declval<typename Type::value_type>()));
 
     // size_expression
     //   trait: expression alias for size() detection.
-    template<typename _Type>
-    using size_expression = decltype(std::declval<const _Type&>().size());
+    template<typename Type>
+    using size_expression = decltype(std::declval<const Type&>().size());
 
     // empty_expression
     //   trait: expression alias for empty() detection.
-    template<typename _Type>
-    using empty_expression = decltype(std::declval<const _Type&>().empty());
-
-    // iterator_expression
-    //   trait: expression alias for nested iterator detection.
-    template<typename _Type>
-    using iterator_expression = typename _Type::iterator;
-
-    // const_iterator_expression
-    //   trait: expression alias for nested const_iterator detection.
-    template<typename _Type>
-    using const_iterator_expression = typename _Type::const_iterator;
+    template<typename Type>
+    using empty_expression = decltype(std::declval<const Type&>().empty());
 
 NS_END  // internal
 
 // has_begin
-//   trait: detects whether std::begin(_Type&) is well-formed.
-template<typename _Type>
+//   trait: detects whether std::begin(Type&) is well-formed.
+template<typename Type>
 struct has_begin
 {
     static D_CONSTEXPR bool value =
-        internal::is_detected<internal::begin_expression, _Type>::value;
+        is_detected<internal::begin_expression, Type>::value;
 };
 
 // has_end
-//   trait: detects whether std::end(_Type&) is well-formed.
-template<typename _Type>
+//   trait: detects whether std::end(Type&) is well-formed.
+template<typename Type>
 struct has_end
 {
     static D_CONSTEXPR bool value =
-        internal::is_detected<internal::end_expression, _Type>::value;
+        is_detected<internal::end_expression, Type>::value;
 };
 
-// has_value_type
-//   trait: detects whether _Type::value_type exists.
-template<typename _Type>
-struct has_value_type
-{
-    static D_CONSTEXPR bool value =
-        internal::is_detected<internal::value_type_expr, _Type>::value;
-};
 
 // has_push_back
-//   trait: detects whether _Type has a push_back(value_type) member.
-template<typename _Type>
+//   trait: detects whether Type has a push_back(value_type) member.
+template<typename Type>
 struct has_push_back
 {
     static D_CONSTEXPR bool value =
-        internal::is_detected<internal::push_back_expression, _Type>::value;
+        is_detected<internal::push_back_expression, Type>::value;
 };
 
 // has_insert
-//   trait: detects whether _Type has an insert(iterator, value_type)
+//   trait: detects whether Type has an insert(iterator, value_type)
 // member.
-template<typename _Type>
+template<typename Type>
 struct has_insert
 {
     static D_CONSTEXPR bool value =
-        internal::is_detected<internal::insert_expression, _Type>::value;
+        is_detected<internal::insert_expression, Type>::value;
 };
 
 // has_size
-//   trait: detects whether _Type has a size() const member.
-template<typename _Type>
+//   trait: detects whether Type has a size() const member.
+template<typename Type>
 struct has_size
 {
     static D_CONSTEXPR bool value =
-        internal::is_detected<internal::size_expression, _Type>::value;
+        is_detected<internal::size_expression, Type>::value;
 };
 
 // has_empty
-//   trait: detects whether _Type has an empty() const member.
-template<typename _Type>
+//   trait: detects whether Type has an empty() const member.
+template<typename Type>
 struct has_empty
 {
     static D_CONSTEXPR bool value =
-        internal::is_detected<internal::empty_expression, _Type>::value;
-};
-
-// has_iterator
-//   trait: detects whether _Type::iterator exists.
-template<typename _Type>
-struct has_iterator
-{
-    static D_CONSTEXPR bool value =
-        internal::is_detected<internal::iterator_expression, _Type>::value;
-};
-
-// has_const_iterator
-//   trait: detects whether _Type::const_iterator exists.
-template<typename _Type>
-struct has_const_iterator
-{
-    static D_CONSTEXPR bool value =
-        internal::is_detected<internal::const_iterator_expression,
-                              _Type>::value;
+        is_detected<internal::empty_expression, Type>::value;
 };
 
 
@@ -1454,54 +1404,54 @@ NS_INTERNAL
     // filter_method_expr
     //   trait: expression alias detecting a .filter() member that accepts a
     // unary predicate.  The predicate signature is bool(const value_type&).
-    template<typename _Type>
+    template<typename Type>
     using filter_method_expr = decltype(
-        std::declval<const _Type&>().filter(
-            std::declval<bool(*)(const typename _Type::value_type&)>()));
+        std::declval<const Type&>().filter(
+            std::declval<bool(*)(const typename Type::value_type&)>()));
 
 NS_END  // internal
 
 // has_filter_method
-//   trait: detects whether _Type has a filter(predicate) member function.
-template<typename _Type>
+//   trait: detects whether Type has a filter(predicate) member function.
+template<typename Type>
 struct has_filter_method
 {
     static D_CONSTEXPR bool value =
-        internal::is_detected<internal::filter_method_expr, _Type>::value;
+        is_detected<internal::filter_method_expr, Type>::value;
 };
 
 // is_iterable
-//   trait: true when _Type supports range-based iteration via std::begin
+//   trait: true when Type supports range-based iteration via std::begin
 // and std::end.
-template<typename _Type>
+template<typename Type>
 struct is_iterable
 {
     static D_CONSTEXPR bool value =
-        ( has_begin<_Type>::value &&
-          has_end<_Type>::value );
+        ( has_begin<Type>::value &&
+          has_end<Type>::value );
 };
 
 // is_output_capable
-//   trait: true when _Type supports at least one insertion method
+//   trait: true when Type supports at least one insertion method
 // (push_back or iterator-based insert), enabling construction of a filtered
 // result container.
-template<typename _Type>
+template<typename Type>
 struct is_output_capable
 {
     static D_CONSTEXPR bool value =
-        ( has_push_back<_Type>::value ||
-          has_insert<_Type>::value );
+        ( has_push_back<Type>::value ||
+          has_insert<Type>::value );
 };
 
 // is_filterable
-//   trait: true when _Type satisfies the complete filterable contract:
+//   trait: true when Type satisfies the complete filterable contract:
 // iterable, exposes value_type, and supports result construction.
-template<typename _Type>
+template<typename Type>
 struct is_filterable
 {
 private:
     typedef typename std::remove_cv<
-                typename std::remove_reference<_Type>::type>::type clean_type;
+                typename std::remove_reference<Type>::type>::type clean_type;
 
 public:
     static D_CONSTEXPR bool value =
@@ -1513,10 +1463,10 @@ public:
 // filterable_value_t
 //   type: extracts value_type from a filterable container, or nonesuch if
 // unavailable.
-template<typename _Type>
+template<typename Type>
 using filterable_value_t =
-    internal::detected_or_t<internal::nonesuch,
-                            internal::value_type_expr, _Type>;
+    detected_or_t<nonesuch,
+                            internal::value_type_expr, Type>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1533,61 +1483,51 @@ using filterable_value_t =
 NS_INTERNAL
 
     // op_call_expr
-    //   trait: expression alias for invoking _Fn on a const vector<_Elem>&.
-    template<typename _Fn,
-             typename _Elem>
+    //   trait: expression alias for invoking Fn on a const vector<Elem>&.
+    template<typename Fn,
+             typename Elem>
     using op_call_expr = decltype(
-        std::declval<const _Fn&>()(
-            std::declval<const std::vector<_Elem>&>()));
+        std::declval<const Fn&>()(
+            std::declval<const std::vector<Elem>&>()));
 
     // filter_apply_expr
-    //   trait: expression alias for _Type.apply(const vector<_Elem>&).
-    template<typename _Type,
-             typename _Elem>
+    //   trait: expression alias for Type.apply(const vector<Elem>&).
+    template<typename Type,
+             typename Elem>
     using filter_apply_expr = decltype(
-        std::declval<const _Type&>().apply(
-            std::declval<const std::vector<_Elem>&>()));
+        std::declval<const Type&>().apply(
+            std::declval<const std::vector<Elem>&>()));
 
     // result_ok_expr / result_indices_expr / result_elements_expr
     //   traits: expression aliases for the filter_result inspection surface.
-    template<typename _Type>
-    using result_ok_expr = decltype(std::declval<const _Type&>().ok());
+    template<typename Type>
+    using result_ok_expr = decltype(std::declval<const Type&>().ok());
 
-    template<typename _Type>
+    template<typename Type>
     using result_indices_expr =
-        decltype(std::declval<const _Type&>().indices());
+        decltype(std::declval<const Type&>().indices());
 
-    template<typename _Type>
+    template<typename Type>
     using result_elements_expr =
-        decltype(std::declval<const _Type&>().elements());
-
-    // strip
-    //   helper: removes reference and cv-qualifiers so the traits below may
-    // be queried on references and const types alike.
-    template<typename _Type>
-    struct strip
-    {
-        typedef typename std::remove_cv<
-                    typename std::remove_reference<_Type>::type>::type type;
-    };
+        decltype(std::declval<const Type&>().elements());
 
 NS_END  // internal
 
 
 // is_filter_operation
-//   trait: true when _Fn is callable as (const std::vector<_Elem>&) and the
+//   trait: true when Fn is callable as (const std::vector<Elem>&) and the
 // result is convertible to std::vector<std::size_t> -- the filter_op_fn
-// protocol. Satisfied by filter_op_fn<_Elem>, the internal typed chains, the
+// protocol. Satisfied by filter_op_fn<Elem>, the internal typed chains, the
 // make_*_op results, and any user lambda of the same shape.
-template<typename _Fn,
-         typename _Elem>
+template<typename Fn,
+         typename Elem>
 struct is_filter_operation
 {
 private:
-    typedef typename internal::strip<_Fn>::type clean_fn;
-    typedef internal::detected_or_t<internal::nonesuch,
+    typedef typename clean<Fn>::type clean_fn;
+    typedef detected_or_t<nonesuch,
                                     internal::op_call_expr,
-                                    clean_fn, _Elem> result_t;
+                                    clean_fn, Elem> result_t;
 
 public:
     static D_CONSTEXPR bool value =
@@ -1597,36 +1537,36 @@ public:
 
 
 // is_filter_applicable
-//   trait: true when _Type exposes .apply(const std::vector<_Elem>&) -- the
+//   trait: true when Type exposes .apply(const std::vector<Elem>&) -- the
 // shape shared by filter_chain, filter_builder, and typed_filter. The lifted
-// "can I run this over a vector<_Elem>?" question.
-template<typename _Type,
-         typename _Elem>
+// "can I run this over a vector<Elem>?" question.
+template<typename Type,
+         typename Elem>
 struct is_filter_applicable
 {
     static D_CONSTEXPR bool value =
-        internal::is_detected<internal::filter_apply_expr,
-                              typename internal::strip<_Type>::type,
-                              _Elem>::value;
+        is_detected<internal::filter_apply_expr,
+                              typename clean<Type>::type,
+                              Elem>::value;
 };
 
 
 // is_filter_result
-//   trait: true when _Type exposes the filter_result inspection surface
+//   trait: true when Type exposes the filter_result inspection surface
 // (ok / indices / elements). Element-type independent.
-template<typename _Type>
+template<typename Type>
 struct is_filter_result
 {
 private:
-    typedef typename internal::strip<_Type>::type clean_type;
+    typedef typename clean<Type>::type clean_type;
 
 public:
     static D_CONSTEXPR bool value =
-        ( internal::is_detected<internal::result_ok_expr,
+        ( is_detected<internal::result_ok_expr,
                                 clean_type>::value       &&
-          internal::is_detected<internal::result_indices_expr,
+          is_detected<internal::result_indices_expr,
                                 clean_type>::value       &&
-          internal::is_detected<internal::result_elements_expr,
+          is_detected<internal::result_elements_expr,
                                 clean_type>::value );
 };
 
@@ -1638,38 +1578,38 @@ public:
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 // is_filterable_v
-//   constant: shorthand for is_filterable<_Type>::value.
-template<typename _Type>
-static D_CONSTEXPR bool is_filterable_v = is_filterable<_Type>::value;
+//   constant: shorthand for is_filterable<Type>::value.
+template<typename Type>
+static D_CONSTEXPR bool is_filterable_v = is_filterable<Type>::value;
 
 // is_iterable_v
-//   constant: shorthand for is_iterable<_Type>::value.
-template<typename _Type>
-static D_CONSTEXPR bool is_iterable_v = is_iterable<_Type>::value;
+//   constant: shorthand for is_iterable<Type>::value.
+template<typename Type>
+static D_CONSTEXPR bool is_iterable_v = is_iterable<Type>::value;
 
 // has_filter_method_v
-//   constant: shorthand for has_filter_method<_Type>::value.
-template<typename _Type>
-static D_CONSTEXPR bool has_filter_method_v = has_filter_method<_Type>::value;
+//   constant: shorthand for has_filter_method<Type>::value.
+template<typename Type>
+static D_CONSTEXPR bool has_filter_method_v = has_filter_method<Type>::value;
 
 // is_filter_operation_v
-//   constant: shorthand for is_filter_operation<_Fn, _Elem>::value.
-template<typename _Fn,
-         typename _Elem>
+//   constant: shorthand for is_filter_operation<Fn, Elem>::value.
+template<typename Fn,
+         typename Elem>
 static D_CONSTEXPR bool is_filter_operation_v =
-    is_filter_operation<_Fn, _Elem>::value;
+    is_filter_operation<Fn, Elem>::value;
 
 // is_filter_applicable_v
-//   constant: shorthand for is_filter_applicable<_Type, _Elem>::value.
-template<typename _Type,
-         typename _Elem>
+//   constant: shorthand for is_filter_applicable<Type, Elem>::value.
+template<typename Type,
+         typename Elem>
 static D_CONSTEXPR bool is_filter_applicable_v =
-    is_filter_applicable<_Type, _Elem>::value;
+    is_filter_applicable<Type, Elem>::value;
 
 // is_filter_result_v
-//   constant: shorthand for is_filter_result<_Type>::value.
-template<typename _Type>
-static D_CONSTEXPR bool is_filter_result_v = is_filter_result<_Type>::value;
+//   constant: shorthand for is_filter_result<Type>::value.
+template<typename Type>
+static D_CONSTEXPR bool is_filter_result_v = is_filter_result<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -1678,36 +1618,36 @@ static D_CONSTEXPR bool is_filter_result_v = is_filter_result<_Type>::value;
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 // filterable_c
-//   concept: satisfied when _Type is a filterable container (section IX).
-template<typename _Type>
-concept filterable_c = is_filterable<_Type>::value;
+//   concept: satisfied when Type is a filterable container (section IX).
+template<typename Type>
+concept filterable_c = is_filterable<Type>::value;
 
 // filter_operation_c
-//   concept: satisfied when _Fn models the filter_op_fn protocol over
-// _Elem -- callable on a const vector<_Elem>& with a result convertible to
+//   concept: satisfied when Fn models the filter_op_fn protocol over
+// Elem -- callable on a const vector<Elem>& with a result convertible to
 // vector<size_t>. Delegates to the trait so it needs no <concepts> include.
-template<typename _Fn,
-         typename _Elem>
-concept filter_operation_c = is_filter_operation<_Fn, _Elem>::value;
+template<typename Fn,
+         typename Elem>
+concept filter_operation_c = is_filter_operation<Fn, Elem>::value;
 
 // filter_applicable_c
-//   concept: satisfied when _Type can be applied over a vector<_Elem> --
-// i.e. exposes .apply(const vector<_Elem>&). Modelled by filter_chain,
+//   concept: satisfied when Type can be applied over a vector<Elem> --
+// i.e. exposes .apply(const vector<Elem>&). Modelled by filter_chain,
 // filter_builder, and typed_filter.
-template<typename _Type,
-         typename _Elem>
+template<typename Type,
+         typename Elem>
 concept filter_applicable_c =
-    requires(const _Type& _t, const std::vector<_Elem>& _in)
+    requires(const Type& _t, const std::vector<Elem>& _in)
     {
         _t.apply(_in);
     };
 
 // filter_result_c
-//   concept: satisfied when _Type exposes the filter_result inspection
+//   concept: satisfied when Type exposes the filter_result inspection
 // surface (ok / indices / elements).
-template<typename _Type>
+template<typename Type>
 concept filter_result_c =
-    requires(const _Type& _r)
+    requires(const Type& _r)
     {
         _r.ok();
         _r.indices();
@@ -1719,5 +1659,7 @@ concept filter_result_c =
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_FILTER_
+
+#endif  // DJINTERP_FUNCTIONAL_FILTER_HPP

@@ -1,6 +1,7 @@
-/******************************************************************************
-* djinterp [re_std]                                                    any.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                      any.hpp
 *
+* any class header:
 *   Constexpr-friendly type-erased value container. A portable alternative
 * to std::any with compile-time evaluation support for small trivial types.
 *
@@ -22,7 +23,7 @@
 *      Types that do not fit the SBO (class types, containers, large
 *      aggregates) are stored in a heap-allocated control block with
 *      type-erased copy/move/destroy via function pointer ops table.
-*      Requires D_ENV_CPP98_HAS_NEW. NOT constexpr.
+*      Requires RE_STD_HAS_HEADER_NEW. NOT constexpr.
 *
 *   TYPE IDENTITY:
 *   Each stored type has a unique identity derived from the address of
@@ -35,57 +36,88 @@
 *   - C++11:    SBO via SFINAE-dispatched template constructors,
 *     explicit operator bool, noexcept. Not constexpr.
 *   - C++14+:   constexpr SBO construction and retrieval.
-*   - Enum SBO gated on D_RE_STD_HAS_IS_ENUM / D_RE_STD_HAS_UNDERLYING_TYPE.
-*   - Move semantics gated on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
-*   - Heap path gated on D_ENV_CPP98_HAS_NEW.
-*   - Emplace gated on D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES.
+*   - Enum SBO gated on RE_STD_HAS_IS_ENUM / RE_STD_HAS_UNDERLYING_TYPE.
+*   - Move semantics gated on RE_STD_LANG_HAS_RVALUE_REFERENCES.
+*   - Heap path gated on RE_STD_HAS_HEADER_NEW.
+*   - Emplace gated on RE_STD_LANG_HAS_VARIADIC_TEMPLATES.
 *
 *   Uses:
 *     env.h              - language version detection
 *     env_cpp98.h        - header availability (new, utility)
 *     env_cpp_features.h - fine-grained feature detection
-*     djinterp.hpp       - D_CONSTEXPR, D_STATIC, D_INLINE, namespaces
+*     config.hpp         - RE_STD_CONSTEXPR, RE_STD_INLINE
 *     type_traits.hpp    - re_std type traits (no <type_traits> dependency)
 *
 *
-* TABLE OF CONTENTS
-* =================
-* 0.    COMPATIBILITY MACROS
-* I.    TYPE IDENTITY
-* II.   STORAGE CATEGORY
-* III.  SBO STORAGE UNION
-* IV.   HEAP CONTROL BLOCK
-* V.    ANY CLASS
-*
-*
-* path:      /inc/djinterp/re_std/any/any.hpp
+* path:      /inc/re_std/any/any.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.06
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ANY_
-#define DJINTERP_RE_STD_ANY_ 1
+/*
+TABLE OF CONTENTS
+=================
+0.    COMPATIBILITY MACROS
+      --------------------
+
+I.    TYPE IDENTITY
+      -------------
+
+II.   STORAGE CATEGORY
+      ----------------
+
+III.  SBO STORAGE UNION
+      -----------------
+
+IV.   HEAP CONTROL BLOCK
+      ------------------
+
+V.    ANY CLASS
+      ---------
+*/
+
+#ifndef RE_STD_ANY_ANY_HPP
+#define RE_STD_ANY_ANY_HPP 1
+
+// `any` keeps a scalar in a `long long` or `unsigned long long` member, so it
+// exists wherever `long long` does (decision 4.6): every C++11 build, and
+// C++98 as the extension, where the diagnostic pair keeps -pedantic quiet.
+// Under ISO strict C++98 there is no `long long`, and `any` is absent --
+// re_std's rule is omit, don't degrade.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_HAS_LONG_LONG
+RE_STD_LONG_LONG_DIAG_PUSH
 
 // std
-#include <cstddef>
-// env detection headers (included transitively via djinterp.hpp,
-// listed here for documentation)
-//   env.h              - D_ENV_LANG_IS_CPP11_OR_HIGHER et al.
-//   env_cpp98.h        - D_ENV_CPP98_HAS_NEW, D_ENV_CPP98_HAS_UTILITY
-//   env_cpp_features.h - D_ENV_CPP_FEATURE_LANG_*, D_ENV_CPP_FEATURE_STL_*
+#include <cstddef>                       // size_t
+// re_std
 
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
+    // std
     #include <new>
 #endif
 
-#if D_ENV_CPP98_HAS_UTILITY
+#if RE_STD_HAS_HEADER_UTILITY
+    // std
     #include <utility>
 #endif
 
-// re_std
-//#include "../type_traits/type_traits.hpp"
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std -- re_std's own traits, never std's: the names below are declared
+// in namespace re_std, so importing std's would collide with them the moment
+// a translation unit also includes re_std's type_traits.
+#include "../type_traits/enable_if.hpp"          // enable_if
+#include "../type_traits/is_const.hpp"           // is_const
+#include "../type_traits/is_enum.hpp"            // is_enum
+#include "../type_traits/is_floating_point.hpp"  // is_floating_point
+#include "../type_traits/is_function.hpp"        // is_function
+#include "../type_traits/is_integral.hpp"        // is_integral
+#include "../type_traits/is_pointer.hpp"         // is_pointer
+#include "../type_traits/is_same.hpp"            // is_same
+#include "../type_traits/is_signed.hpp"          // is_signed
+#include "../type_traits/is_unsigned.hpp"        // is_unsigned
+#include "../type_traits/remove_pointer.hpp"     // remove_pointer
+#include "../type_traits/underlying_type.hpp"    // underlying_type
 
 
 // ===========================================================================
@@ -95,30 +127,9 @@
 // resolves to nullptr. On C++98/03, resolves to 0.
 // NOTE: should migrate to the core header in future.
 
-#ifndef D_NULLPTR
-    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        #define D_NULLPTR   nullptr
-    #else
-        #define D_NULLPTR   0
-    #endif
-#endif
 
-
-NS_RESTD
-
-using std::enable_if;
-using std::is_const;
-using std::is_enum;
-using std::is_floating_point;
-using std::is_function;
-using std::is_integral;
-using std::is_pointer;
-using std::is_same;
-using std::is_signed;
-using std::is_unsigned;
-using std::remove_pointer;
-using std::underlying_type;
-
+namespace re_std
+{
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -133,49 +144,50 @@ using std::underlying_type;
 //   type: opaque identifier for a stored type.
 typedef void(*any_type_id)();
 
-NS_INTERNAL
+namespace internal
+{
 
     // any_type_tag_fn
     //   function: empty function template whose address is
-    // unique per _Type instantiation. Never called.
-    template<typename _Type>
+    // unique per Type instantiation. Never called.
+    template<typename Type>
     void
     any_type_tag_fn()
     {
         return;
     }
 
-NS_END  // internal
+}  // internal
 
 // any_type_id_of
-//   trait: yields the any_type_id for _Type.
-template<typename _Type>
+//   trait: yields the any_type_id for Type.
+template<typename Type>
 struct any_type_id_of
 {
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    D_STATIC_CONSTEXPR any_type_id value = &internal::any_type_tag_fn<_Type>;
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+    RE_STD_STATIC_CONSTEXPR any_type_id value = &internal::any_type_tag_fn<Type>;
 #else
     static const any_type_id value;
 #endif
 };
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     // out-of-class definition (ODR safety)
-    template<typename _Type>
-    D_CONSTEXPR any_type_id any_type_id_of<_Type>::value;
+    template<typename Type>
+    RE_STD_CONSTEXPR any_type_id any_type_id_of<Type>::value;
 #else
     // C++98/03: function pointer address requires out-of-class
     // definition; not a constant expression.
-    template<typename _Type>
-    const any_type_id any_type_id_of<_Type>::value =
-        &internal::any_type_tag_fn<_Type>;
+    template<typename Type>
+    const any_type_id any_type_id_of<Type>::value =
+        &internal::any_type_tag_fn<Type>;
 #endif
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
     // any_type_id_of_v
-    //   variable template: value of any_type_id_of<_Type>.
-    template<typename _Type>
-    D_CONSTEXPR any_type_id any_type_id_of_v = any_type_id_of<_Type>::value;
+    //   variable: variable template: value of any_type_id_of<Type>.
+    template<typename Type>
+    RE_STD_CONSTEXPR any_type_id any_type_id_of_v = any_type_id_of<Type>::value;
 #endif
 
 
@@ -204,7 +216,8 @@ struct DAnyCategory
 };
 
 
-NS_INTERNAL
+namespace internal
+{
 
     // any_category_of
     //   trait: maps a type to its SBO storage category.
@@ -214,10 +227,10 @@ NS_INTERNAL
     // C++11+ path: SFINAE partial specializations
     // -----------------------------------------------------------------
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // primary template: heap fallback
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct any_category_of
     {
@@ -232,72 +245,72 @@ NS_INTERNAL
     };
 
     // signed integrals (not bool)
-    template<typename _Type>
-    struct any_category_of<_Type,
+    template<typename Type>
+    struct any_category_of<Type,
         typename enable_if<
-            ( is_integral<_Type>::value  &&
-              is_signed<_Type>::value    &&
-              !is_same<_Type, bool>::value )
+            ( is_integral<Type>::value  &&
+              is_signed<Type>::value    &&
+              !is_same<Type, bool>::value )
         >::type>
     {
         static const int value = DAnyCategory::cat_signed;
     };
 
     // unsigned integrals (not bool)
-    template<typename _Type>
-    struct any_category_of<_Type,
+    template<typename Type>
+    struct any_category_of<Type,
         typename enable_if<
-            ( is_integral<_Type>::value  &&
-              is_unsigned<_Type>::value  &&
-              !is_same<_Type, bool>::value )
+            ( is_integral<Type>::value  &&
+              is_unsigned<Type>::value  &&
+              !is_same<Type, bool>::value )
         >::type>
     {
         static const int value = DAnyCategory::cat_unsigned;
     };
 
     // floating point
-    template<typename _Type>
-    struct any_category_of<_Type,
+    template<typename Type>
+    struct any_category_of<Type,
         typename enable_if<
-            is_floating_point<_Type>::value
+            is_floating_point<Type>::value
         >::type>
     {
         static const int value = DAnyCategory::cat_floating;
     };
 
     // enum types (stored via underlying integral)
-#if D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
-    template<typename _Type>
-    struct any_category_of<_Type,
+#if RE_STD_HAS_IS_ENUM && RE_STD_HAS_UNDERLYING_TYPE
+    template<typename Type>
+    struct any_category_of<Type,
         typename enable_if<
-            is_enum<_Type>::value
+            is_enum<Type>::value
         >::type>
     {
         static const int value =
             ( is_signed<
-                  typename underlying_type<_Type>::type
+                  typename underlying_type<Type>::type
               >::value
               ? DAnyCategory::cat_signed
               : DAnyCategory::cat_unsigned );
     };
-#endif  // D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
+#endif  // RE_STD_HAS_IS_ENUM && RE_STD_HAS_UNDERLYING_TYPE
 
     // non-const pointer (not function pointer)
-    template<typename _Type>
-    struct any_category_of<_Type*,
+    template<typename Type>
+    struct any_category_of<Type*,
         typename enable_if<
-            ( !is_function<_Type>::value &&
-              !is_const<_Type>::value )
+            ( !is_function<Type>::value &&
+              !is_const<Type>::value )
         >::type>
     {
         static const int value = DAnyCategory::cat_pointer;
     };
 
     // const pointer (not function pointer)
-    template<typename _Type>
-    struct any_category_of<const _Type*,
+    template<typename Type>
+    struct any_category_of<const Type*,
         typename enable_if<
-            !is_function<_Type>::value
+            !is_function<Type>::value
         >::type>
     {
         static const int value = DAnyCategory::cat_cpointer;
@@ -310,7 +323,7 @@ NS_INTERNAL
 #else  // C++98/03
 
     // primary template: heap fallback
-    template<typename _Type>
+    template<typename Type>
     struct any_category_of
     {
         static const int value = DAnyCategory::cat_heap;
@@ -384,47 +397,48 @@ NS_INTERNAL
     { static const int value = DAnyCategory::cat_floating; };
 
     // pointers (partial specialization - works in C++98)
-    template<typename _Type>
-    struct any_category_of<_Type*>
+    template<typename Type>
+    struct any_category_of<Type*>
     {
         static const int value = DAnyCategory::cat_pointer;
     };
 
-    template<typename _Type>
-    struct any_category_of<const _Type*>
+    template<typename Type>
+    struct any_category_of<const Type*>
     {
         static const int value = DAnyCategory::cat_cpointer;
     };
 
-    // note: function pointers will match _Type* and attempt
+    // note: function pointers will match Type* and attempt
     // static_cast<void*>, which is ill-formed. This produces
     // a compile error (not silent misbehavior).
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // is_sbo_type
-    //   trait: true if _Type uses the SBO path.
-    template<typename _Type>
+    //   trait: true if Type uses the SBO path.
+    template<typename Type>
     struct is_sbo_type
     {
         static const bool value =
-            ( any_category_of<_Type>::value != DAnyCategory::cat_heap );
+            ( any_category_of<Type>::value != DAnyCategory::cat_heap );
     };
 
     // get_tag
     //   type: tag for category-based dispatch of get<T>().
-    template<int _Cat>
+    template<int Cat>
     struct get_tag
     {};
 
-NS_END  // internal
+}  // internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                III. SBO STORAGE UNION                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-NS_INTERNAL
+namespace internal
+{
 
     // any_sbo
     //   union: small buffer storage with per-member constexpr
@@ -440,71 +454,72 @@ NS_INTERNAL
         const void*        v_cpointer;
 
         // default: zero-initialized unsigned
-        D_CONSTEXPR any_sbo() D_NOEXCEPT
+        RE_STD_CONSTEXPR any_sbo() RE_STD_NOEXCEPT
             : v_unsigned(0)
         {}
 
         // per-category constructors (the DAnyCategory::Value tag
         // parameter disambiguates overloads)
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         any_sbo(
             bool                _v,
             DAnyCategory::Value
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
             : v_bool(_v)
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         any_sbo(
             long long           _v,
             DAnyCategory::Value
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
             : v_signed(_v)
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         any_sbo(
             unsigned long long  _v,
             DAnyCategory::Value
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
             : v_unsigned(_v)
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         any_sbo(
             double              _v,
             DAnyCategory::Value
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
             : v_floating(_v)
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         any_sbo(
             void*               _v,
             DAnyCategory::Value
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
             : v_pointer(_v)
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         any_sbo(
             const void*         _v,
             DAnyCategory::Value
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
             : v_cpointer(_v)
         {}
     };
 
-NS_END  // internal
+}  // internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                IV.  HEAP CONTROL BLOCK                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
 
-NS_INTERNAL
+namespace internal
+{
 
     // any_heap_ops
     //   struct: type-erased operations table for heap storage.
@@ -516,48 +531,48 @@ NS_INTERNAL
 
     // heap_destroy
     //   function: typed destroy operation for heap storage.
-    template<typename _Type>
-    D_STATIC void
+    template<typename Type>
+    static void
     heap_destroy(
         void* _p
     )
     {
-        delete static_cast<_Type*>(_p);
+        delete static_cast<Type*>(_p);
 
         return;
     }
 
     // heap_clone
     //   function: typed clone operation for heap storage.
-    template<typename _Type>
-    D_STATIC void*
+    template<typename Type>
+    static void*
     heap_clone(
         const void* _p
     )
     {
-        return new _Type(*static_cast<const _Type*>(_p));
+        return new Type(*static_cast<const Type*>(_p));
     }
 
     // any_heap_ops_for
-    //   function: returns the operations table for _Type.
+    //   function: returns the operations table for Type.
     // Uses a local static for safe lazy initialization
     // (thread-safe in C++11 per [stmt.dcl]/4).
-    template<typename _Type>
+    template<typename Type>
     const any_heap_ops*
     any_heap_ops_for()
     {
-        D_STATIC const any_heap_ops ops =
+        static const any_heap_ops ops =
         {
-            &heap_destroy<_Type>,
-            &heap_clone<_Type>
+            &heap_destroy<Type>,
+            &heap_clone<Type>
         };
 
         return &ops;
     }
 
-NS_END  // internal
+}  // internal
 
-#endif  // D_ENV_CPP98_HAS_NEW
+#endif  // RE_STD_HAS_HEADER_NEW
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -574,7 +589,7 @@ class any
     //  safe-bool idiom (C++98/03)
     // -----------------------------------------------------------------
 
-#if (!D_ENV_LANG_IS_CPP11_OR_HIGHER)
+#if (!RE_STD_LANG_IS_CPP11_OR_HIGHER)
 private:
     // safe_bool_member
     //   type: pointer-to-member used for the safe-bool idiom.
@@ -593,16 +608,16 @@ private:
 
 public:
     // -----------------------------------------------------------------
-    //  construction: empty
+    //  function: empty
     // -----------------------------------------------------------------
 
-    D_CONSTEXPR any() D_NOEXCEPT
+    RE_STD_CONSTEXPR any() RE_STD_NOEXCEPT
         : m_category(DAnyCategory::cat_empty),
-          m_type_id(D_NULLPTR),
+          m_type_id(RE_STD_NULLPTR),
           m_sbo()
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -610,197 +625,197 @@ public:
     // CONSTRUCTORS: C++11+ (SFINAE-dispatched templates)
     // =================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // -----------------------------------------------------------------
-    //  construction: bool
+    //  function: bool
     // -----------------------------------------------------------------
 
-    D_CONSTEXPR any(
+    RE_STD_CONSTEXPR any(
         bool _v
-    ) D_NOEXCEPT
+    ) RE_STD_NOEXCEPT
         : m_category(DAnyCategory::cat_bool),
           m_type_id(any_type_id_of<bool>::value),
           m_sbo(_v, DAnyCategory::cat_bool)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: signed integrals (not bool)
+    //  function: signed integrals (not bool)
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( is_integral<_Type>::value &&
-                   is_signed<_Type>::value   &&
-                   !is_same<_Type, bool>::value ),
+                 ( is_integral<Type>::value &&
+                   is_signed<Type>::value   &&
+                   !is_same<Type, bool>::value ),
                  int>::type = 0>
-    D_CONSTEXPR any(
-        _Type _v
-    ) D_NOEXCEPT
+    RE_STD_CONSTEXPR any(
+        Type _v
+    ) RE_STD_NOEXCEPT
         : m_category(DAnyCategory::cat_signed),
-          m_type_id(any_type_id_of<_Type>::value),
+          m_type_id(any_type_id_of<Type>::value),
           m_sbo(static_cast<long long>(_v), DAnyCategory::cat_signed)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: unsigned integrals (not bool)
+    //  function: unsigned integrals (not bool)
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( is_integral<_Type>::value  &&
-                   is_unsigned<_Type>::value  &&
-                   !is_same<_Type, bool>::value ),
+                 ( is_integral<Type>::value  &&
+                   is_unsigned<Type>::value  &&
+                   !is_same<Type, bool>::value ),
                  int>::type = 0>
-    D_CONSTEXPR any(
-        _Type _v
-    ) D_NOEXCEPT
+    RE_STD_CONSTEXPR any(
+        Type _v
+    ) RE_STD_NOEXCEPT
         : m_category(DAnyCategory::cat_unsigned),
-          m_type_id(any_type_id_of<_Type>::value),
+          m_type_id(any_type_id_of<Type>::value),
           m_sbo(static_cast<unsigned long long>(_v),
                 DAnyCategory::cat_unsigned)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: floating point
+    //  function: floating point
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 is_floating_point<_Type>::value,
+                 is_floating_point<Type>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR any(
-        _Type _v
-    ) D_NOEXCEPT
+    RE_STD_CONSTEXPR any(
+        Type _v
+    ) RE_STD_NOEXCEPT
         : m_category(DAnyCategory::cat_floating),
-          m_type_id(any_type_id_of<_Type>::value),
+          m_type_id(any_type_id_of<Type>::value),
           m_sbo(static_cast<double>(_v),
                 DAnyCategory::cat_floating)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: enum
+    //  function: enum
     // -----------------------------------------------------------------
 
-#if D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
-    template<typename _Type,
+#if RE_STD_HAS_IS_ENUM && RE_STD_HAS_UNDERLYING_TYPE
+    template<typename Type,
              typename enable_if<
-                 is_enum<_Type>::value,
+                 is_enum<Type>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR any(
-        _Type _v
-    ) D_NOEXCEPT
+    RE_STD_CONSTEXPR any(
+        Type _v
+    ) RE_STD_NOEXCEPT
         : m_category(
               static_cast<DAnyCategory::Value>(
-                  internal::any_category_of<_Type>::value)),
-          m_type_id(any_type_id_of<_Type>::value),
+                  internal::any_category_of<Type>::value)),
+          m_type_id(any_type_id_of<Type>::value),
           m_sbo(static_cast<unsigned long long>(
                     static_cast<
-                        typename underlying_type<_Type>::type>(_v)),
+                        typename underlying_type<Type>::type>(_v)),
                 static_cast<DAnyCategory::Value>(
-                    internal::any_category_of<_Type>::value))
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+                    internal::any_category_of<Type>::value))
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
-#endif  // D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
+#endif  // RE_STD_HAS_IS_ENUM && RE_STD_HAS_UNDERLYING_TYPE
 
     // -----------------------------------------------------------------
-    //  construction: non-const pointer (not function pointer)
+    //  function: non-const pointer (not function pointer)
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( is_pointer<_Type>::value &&
+                 ( is_pointer<Type>::value &&
                    !is_const<
-                       typename remove_pointer<_Type>::type
+                       typename remove_pointer<Type>::type
                    >::value &&
                    !is_function<
-                       typename remove_pointer<_Type>::type
+                       typename remove_pointer<Type>::type
                    >::value ),
                  int>::type = 0>
-    D_CONSTEXPR any(
-        _Type _v
-    ) D_NOEXCEPT
+    RE_STD_CONSTEXPR any(
+        Type _v
+    ) RE_STD_NOEXCEPT
         : m_category(DAnyCategory::cat_pointer),
-          m_type_id(any_type_id_of<_Type>::value),
+          m_type_id(any_type_id_of<Type>::value),
           m_sbo(static_cast<void*>(_v),
                 DAnyCategory::cat_pointer)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: const pointer (not function pointer)
+    //  function: const pointer (not function pointer)
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( is_pointer<_Type>::value &&
+                 ( is_pointer<Type>::value &&
                    is_const<
-                       typename remove_pointer<_Type>::type
+                       typename remove_pointer<Type>::type
                    >::value &&
                    !is_function<
-                       typename remove_pointer<_Type>::type
+                       typename remove_pointer<Type>::type
                    >::value ),
                  int>::type = 0>
-    D_CONSTEXPR any(
-        _Type _v
-    ) D_NOEXCEPT
+    RE_STD_CONSTEXPR any(
+        Type _v
+    ) RE_STD_NOEXCEPT
         : m_category(DAnyCategory::cat_cpointer),
-          m_type_id(any_type_id_of<_Type>::value),
+          m_type_id(any_type_id_of<Type>::value),
           m_sbo(static_cast<const void*>(_v),
                 DAnyCategory::cat_cpointer)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: heap (everything else)
+    //  function: heap (everything else)
     // -----------------------------------------------------------------
 
-#if D_ENV_CPP98_HAS_NEW
-    template<typename _Type,
+#if RE_STD_HAS_HEADER_NEW
+    template<typename Type,
              typename enable_if<
-                 ( !is_integral<_Type>::value        &&
-                   !is_floating_point<_Type>::value   &&
-                   !is_enum<_Type>::value             &&
-                   !is_pointer<_Type>::value ),
+                 ( !is_integral<Type>::value        &&
+                   !is_floating_point<Type>::value   &&
+                   !is_enum<Type>::value             &&
+                   !is_pointer<Type>::value ),
                  int
              >::type = 0>
     any(
-        const _Type& _v
+        const Type& _v
     )
         : m_category(DAnyCategory::cat_heap),
-          m_type_id(any_type_id_of<_Type>::value),
+          m_type_id(any_type_id_of<Type>::value),
           m_sbo(),
-          m_heap(new _Type(_v)),
-          m_heap_ops(internal::any_heap_ops_for<_Type>())
+          m_heap(new Type(_v)),
+          m_heap_ops(internal::any_heap_ops_for<Type>())
     {}
-#endif  // D_ENV_CPP98_HAS_NEW
+#endif  // RE_STD_HAS_HEADER_NEW
 
     // =================================================================
     // CONSTRUCTORS: C++98/03 (explicit per-type overloads)
@@ -809,7 +824,7 @@ public:
 #else  // C++98/03
 
     // -----------------------------------------------------------------
-    //  construction: bool
+    //  function: bool
     // -----------------------------------------------------------------
 
     any(
@@ -818,14 +833,14 @@ public:
         : m_category(DAnyCategory::cat_bool),
           m_type_id(any_type_id_of<bool>::value),
           m_sbo(_v, DAnyCategory::cat_bool)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: signed integrals
+    //  function: signed integrals
     // -----------------------------------------------------------------
 
     any(
@@ -834,9 +849,9 @@ public:
         : m_category(DAnyCategory::cat_signed),
           m_type_id(any_type_id_of<signed char>::value),
           m_sbo(static_cast<long long>(_v), DAnyCategory::cat_signed)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -846,9 +861,9 @@ public:
         : m_category(DAnyCategory::cat_signed),
           m_type_id(any_type_id_of<short>::value),
           m_sbo(static_cast<long long>(_v), DAnyCategory::cat_signed)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -858,9 +873,9 @@ public:
         : m_category(DAnyCategory::cat_signed),
           m_type_id(any_type_id_of<int>::value),
           m_sbo(static_cast<long long>(_v), DAnyCategory::cat_signed)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -870,9 +885,9 @@ public:
         : m_category(DAnyCategory::cat_signed),
           m_type_id(any_type_id_of<long>::value),
           m_sbo(static_cast<long long>(_v), DAnyCategory::cat_signed)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -882,14 +897,14 @@ public:
         : m_category(DAnyCategory::cat_signed),
           m_type_id(any_type_id_of<long long>::value),
           m_sbo(_v, DAnyCategory::cat_signed)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: unsigned integrals
+    //  function: unsigned integrals
     // -----------------------------------------------------------------
 
     any(
@@ -899,9 +914,9 @@ public:
           m_type_id(any_type_id_of<unsigned char>::value),
           m_sbo(static_cast<unsigned long long>(_v),
                 DAnyCategory::cat_unsigned)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -912,9 +927,9 @@ public:
           m_type_id(any_type_id_of<unsigned short>::value),
           m_sbo(static_cast<unsigned long long>(_v),
                 DAnyCategory::cat_unsigned)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -925,9 +940,9 @@ public:
           m_type_id(any_type_id_of<unsigned int>::value),
           m_sbo(static_cast<unsigned long long>(_v),
                 DAnyCategory::cat_unsigned)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -938,9 +953,9 @@ public:
           m_type_id(any_type_id_of<unsigned long>::value),
           m_sbo(static_cast<unsigned long long>(_v),
                 DAnyCategory::cat_unsigned)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -950,14 +965,14 @@ public:
         : m_category(DAnyCategory::cat_unsigned),
           m_type_id(any_type_id_of<unsigned long long>::value),
           m_sbo(_v, DAnyCategory::cat_unsigned)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: char / wchar_t (platform-dependent signedness)
+    //  function: char / wchar_t (platform-dependent signedness)
     //  note: char may be signed or unsigned; the category_of
     // specialization handles this. Type identity is preserved.
     // -----------------------------------------------------------------
@@ -972,9 +987,9 @@ public:
           m_sbo(static_cast<long long>(_v),
                 static_cast<DAnyCategory::Value>(
                     internal::any_category_of<char>::value))
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -988,14 +1003,14 @@ public:
           m_sbo(static_cast<long long>(_v),
                 static_cast<DAnyCategory::Value>(
                     internal::any_category_of<wchar_t>::value))
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: floating point
+    //  function: floating point
     // -----------------------------------------------------------------
 
     any(
@@ -1005,9 +1020,9 @@ public:
           m_type_id(any_type_id_of<float>::value),
           m_sbo(static_cast<double>(_v),
                 DAnyCategory::cat_floating)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -1017,9 +1032,9 @@ public:
         : m_category(DAnyCategory::cat_floating),
           m_type_id(any_type_id_of<double>::value),
           m_sbo(_v, DAnyCategory::cat_floating)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
@@ -1030,76 +1045,76 @@ public:
           m_type_id(any_type_id_of<long double>::value),
           m_sbo(static_cast<double>(_v),
                 DAnyCategory::cat_floating)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: non-const pointer
-    //  note: template deduction on _Type* restricts to pointer
+    //  function: non-const pointer
+    //  note: template deduction on Type* restricts to pointer
     // types. Function pointers will fail at the static_cast to
     // void* (compile error, not silent misbehavior).
     // -----------------------------------------------------------------
 
-    template<typename _Type>
+    template<typename Type>
     any(
-        _Type* _v
+        Type* _v
     )
         : m_category(DAnyCategory::cat_pointer),
-          m_type_id(any_type_id_of<_Type*>::value),
+          m_type_id(any_type_id_of<Type*>::value),
           m_sbo(static_cast<void*>(_v),
                 DAnyCategory::cat_pointer)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: const pointer
+    //  function: const pointer
     // -----------------------------------------------------------------
 
-    template<typename _Type>
+    template<typename Type>
     any(
-        const _Type* _v
+        const Type* _v
     )
         : m_category(DAnyCategory::cat_cpointer),
-          m_type_id(any_type_id_of<const _Type*>::value),
+          m_type_id(any_type_id_of<const Type*>::value),
           m_sbo(static_cast<const void*>(_v),
                 DAnyCategory::cat_cpointer)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
-          m_heap_ops(D_NULLPTR)
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
+          m_heap_ops(RE_STD_NULLPTR)
 #endif
     {}
 
     // -----------------------------------------------------------------
-    //  construction: heap (const reference - C++98 only)
+    //  function: heap (const reference - C++98 only)
     //  note: the template parameter is unconstrained in C++98.
     // Overload resolution prefers the explicit non-template
     // constructors above for SBO types; only non-SBO types
     // (class types, containers, etc.) reach this overload.
-    // The pointer constructors above (taking _Type* and
-    // const _Type*) are more specialized than this template
+    // The pointer constructors above (taking Type* and
+    // const Type*) are more specialized than this template
     // and will always be preferred for pointer arguments.
     // -----------------------------------------------------------------
 
-#if D_ENV_CPP98_HAS_NEW
-    template<typename _Type>
+#if RE_STD_HAS_HEADER_NEW
+    template<typename Type>
     any(
-        const _Type& _v
+        const Type& _v
     )
         : m_category(DAnyCategory::cat_heap),
-          m_type_id(any_type_id_of<_Type>::value),
+          m_type_id(any_type_id_of<Type>::value),
           m_sbo(),
-          m_heap(new _Type(_v)),
-          m_heap_ops(internal::any_heap_ops_for<_Type>())
+          m_heap(new Type(_v)),
+          m_heap_ops(internal::any_heap_ops_for<Type>())
     {}
-#endif  // D_ENV_CPP98_HAS_NEW
+#endif  // RE_STD_HAS_HEADER_NEW
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER (constructors)
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER (constructors)
 
     // =================================================================
     // COPY / MOVE / DESTRUCTOR (shared across all tiers)
@@ -1115,15 +1130,15 @@ public:
         : m_category(_other.m_category),
           m_type_id(_other.m_type_id),
           m_sbo(_other.m_sbo)
-#if D_ENV_CPP98_HAS_NEW
-        , m_heap(D_NULLPTR),
+#if RE_STD_HAS_HEADER_NEW
+        , m_heap(RE_STD_NULLPTR),
           m_heap_ops(_other.m_heap_ops)
 #endif
     {
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
         if ( (_other.m_category == DAnyCategory::cat_heap) &&
-             (_other.m_heap != D_NULLPTR)                  &&
-             (_other.m_heap_ops != D_NULLPTR) )
+             (_other.m_heap != RE_STD_NULLPTR)                  &&
+             (_other.m_heap_ops != RE_STD_NULLPTR) )
         {
             m_heap = m_heap_ops->clone(_other.m_heap);
         }
@@ -1134,28 +1149,28 @@ public:
     //  move constructor (C++11+)
     // -----------------------------------------------------------------
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
     any(
         any&& _other
-    ) D_NOEXCEPT
+    ) RE_STD_NOEXCEPT
         : m_category(_other.m_category),
           m_type_id(_other.m_type_id),
           m_sbo(_other.m_sbo)
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
         , m_heap(_other.m_heap),
           m_heap_ops(_other.m_heap_ops)
 #endif
     {
         _other.m_category = DAnyCategory::cat_empty;
-        _other.m_type_id  = D_NULLPTR;
-#if D_ENV_CPP98_HAS_NEW
-        _other.m_heap     = D_NULLPTR;
-        _other.m_heap_ops = D_NULLPTR;
+        _other.m_type_id  = RE_STD_NULLPTR;
+#if RE_STD_HAS_HEADER_NEW
+        _other.m_heap     = RE_STD_NULLPTR;
+        _other.m_heap_ops = RE_STD_NULLPTR;
 #endif
     }
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
     // -----------------------------------------------------------------
     //  copy assignment
@@ -1174,12 +1189,12 @@ public:
             m_type_id  = _other.m_type_id;
             m_sbo      = _other.m_sbo;
 
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
             m_heap_ops = _other.m_heap_ops;
 
             if ( (_other.m_category == DAnyCategory::cat_heap) &&
-                 (_other.m_heap != D_NULLPTR)                  &&
-                 (_other.m_heap_ops != D_NULLPTR) )
+                 (_other.m_heap != RE_STD_NULLPTR)                  &&
+                 (_other.m_heap_ops != RE_STD_NULLPTR) )
             {
                 m_heap = m_heap_ops->clone(_other.m_heap);
             }
@@ -1193,12 +1208,12 @@ public:
     //  move assignment (C++11+)
     // -----------------------------------------------------------------
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
     any&
     operator=(
         any&& _other
-    ) D_NOEXCEPT
+    ) RE_STD_NOEXCEPT
     {
         if (this != &_other)
         {
@@ -1208,21 +1223,21 @@ public:
             m_type_id         = _other.m_type_id;
             m_sbo             = _other.m_sbo;
 
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
             m_heap            = _other.m_heap;
             m_heap_ops        = _other.m_heap_ops;
-            _other.m_heap     = D_NULLPTR;
-            _other.m_heap_ops = D_NULLPTR;
+            _other.m_heap     = RE_STD_NULLPTR;
+            _other.m_heap_ops = RE_STD_NULLPTR;
 #endif
 
             _other.m_category = DAnyCategory::cat_empty;
-            _other.m_type_id  = D_NULLPTR;
+            _other.m_type_id  = RE_STD_NULLPTR;
         }
 
         return *this;
     }
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
     // -----------------------------------------------------------------
     //  destructor
@@ -1236,17 +1251,20 @@ public:
     // =================================================================
     // OBSERVERS
     // =================================================================
+    //   constexpr from C++14 (RE_STD_CONSTEXPR_CPP14). any is not a literal type
+    // -- it has a user-provided destructor -- and C++11 requires the class
+    // of a constexpr member function to be one; C++14 dropped that rule.
 
     // has_value
-    D_CONSTEXPR bool
-    has_value() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 bool
+    has_value() const RE_STD_NOEXCEPT
     {
         return (m_category != DAnyCategory::cat_empty);
     }
 
     // operator bool
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    D_CONSTEXPR explicit operator bool() const D_NOEXCEPT
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+    RE_STD_CONSTEXPR_CPP14 explicit operator bool() const RE_STD_NOEXCEPT
     {
         return has_value();
     }
@@ -1257,36 +1275,36 @@ public:
     // while allowing use in boolean contexts (if, while, &&, etc.).
     operator safe_bool_type() const
     {
-        return has_value() ? &any::safe_bool_fn : D_NULLPTR;
+        return has_value() ? &any::safe_bool_fn : RE_STD_NULLPTR;
     }
 #endif
 
     // category
-    D_CONSTEXPR DAnyCategory::Value
-    category() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 DAnyCategory::Value
+    category() const RE_STD_NOEXCEPT
     {
         return m_category;
     }
 
     // type
-    D_CONSTEXPR any_type_id
-    type() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 any_type_id
+    type() const RE_STD_NOEXCEPT
     {
         return m_type_id;
     }
 
     // holds
-    //   returns true if the stored value was originally of type _Type.
-    template<typename _Type>
-    D_CONSTEXPR bool
-    holds() const D_NOEXCEPT
+    //   returns true if the stored value was originally of type Type.
+    template<typename Type>
+    RE_STD_CONSTEXPR_CPP14 bool
+    holds() const RE_STD_NOEXCEPT
     {
-        return (m_type_id == any_type_id_of<_Type>::value);
+        return (m_type_id == any_type_id_of<Type>::value);
     }
 
     // is_sbo
-    D_CONSTEXPR bool
-    is_sbo() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 bool
+    is_sbo() const RE_STD_NOEXCEPT
     {
         return ( (m_category != DAnyCategory::cat_empty) &&
                  (m_category != DAnyCategory::cat_heap) );
@@ -1307,19 +1325,19 @@ public:
     // C++11+ path: SFINAE-dispatched get<T>()
     // =================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // -----------------------------------------------------------------
     //  SBO - bool
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 is_same<_Type, bool>::value,
+                 is_same<Type, bool>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _Type
-    get() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 Type
+    get() const RE_STD_NOEXCEPT
     {
         return m_sbo.v_bool;
     }
@@ -1328,146 +1346,146 @@ public:
     //  SBO - signed integral
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( is_integral<_Type>::value &&
-                   is_signed<_Type>::value   &&
-                   !is_same<_Type, bool>::value ),
+                 ( is_integral<Type>::value &&
+                   is_signed<Type>::value   &&
+                   !is_same<Type, bool>::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _Type
-    get() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 Type
+    get() const RE_STD_NOEXCEPT
     {
-        return static_cast<_Type>(m_sbo.v_signed);
+        return static_cast<Type>(m_sbo.v_signed);
     }
 
     // -----------------------------------------------------------------
     //  SBO - unsigned integral
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( is_integral<_Type>::value  &&
-                   is_unsigned<_Type>::value  &&
-                   !is_same<_Type, bool>::value ),
+                 ( is_integral<Type>::value  &&
+                   is_unsigned<Type>::value  &&
+                   !is_same<Type, bool>::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _Type
-    get() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 Type
+    get() const RE_STD_NOEXCEPT
     {
-        return static_cast<_Type>(m_sbo.v_unsigned);
+        return static_cast<Type>(m_sbo.v_unsigned);
     }
 
     // -----------------------------------------------------------------
     //  SBO - floating point
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 is_floating_point<_Type>::value,
+                 is_floating_point<Type>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _Type
-    get() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 Type
+    get() const RE_STD_NOEXCEPT
     {
-        return static_cast<_Type>(m_sbo.v_floating);
+        return static_cast<Type>(m_sbo.v_floating);
     }
 
     // -----------------------------------------------------------------
     //  SBO - enum
     // -----------------------------------------------------------------
 
-#if D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
-    template<typename _Type,
+#if RE_STD_HAS_IS_ENUM && RE_STD_HAS_UNDERLYING_TYPE
+    template<typename Type,
              typename enable_if<
-                 is_enum<_Type>::value,
+                 is_enum<Type>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _Type
-    get() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 Type
+    get() const RE_STD_NOEXCEPT
     {
-        return static_cast<_Type>(
+        return static_cast<Type>(
             static_cast<
-                typename underlying_type<_Type>::type>(
+                typename underlying_type<Type>::type>(
                     m_sbo.v_unsigned));
     }
-#endif  // D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
+#endif  // RE_STD_HAS_IS_ENUM && RE_STD_HAS_UNDERLYING_TYPE
 
     // -----------------------------------------------------------------
     //  SBO - non-const pointer
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( is_pointer<_Type>::value &&
+                 ( is_pointer<Type>::value &&
                    !is_const<
-                       typename remove_pointer<_Type>::type
+                       typename remove_pointer<Type>::type
                    >::value &&
                    !is_function<
-                       typename remove_pointer<_Type>::type
+                       typename remove_pointer<Type>::type
                    >::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _Type
-    get() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 Type
+    get() const RE_STD_NOEXCEPT
     {
-        return static_cast<_Type>(m_sbo.v_pointer);
+        return static_cast<Type>(m_sbo.v_pointer);
     }
 
     // -----------------------------------------------------------------
     //  SBO - const pointer
     // -----------------------------------------------------------------
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( is_pointer<_Type>::value &&
+                 ( is_pointer<Type>::value &&
                    is_const<
-                       typename remove_pointer<_Type>::type
+                       typename remove_pointer<Type>::type
                    >::value &&
                    !is_function<
-                       typename remove_pointer<_Type>::type
+                       typename remove_pointer<Type>::type
                    >::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _Type
-    get() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 Type
+    get() const RE_STD_NOEXCEPT
     {
-        return static_cast<_Type>(m_sbo.v_cpointer);
+        return static_cast<Type>(m_sbo.v_cpointer);
     }
 
     // -----------------------------------------------------------------
     //  heap (const and mutable)
     // -----------------------------------------------------------------
 
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( !is_integral<_Type>::value        &&
-                   !is_floating_point<_Type>::value  &&
-                   !is_enum<_Type>::value            &&
-                   !is_pointer<_Type>::value ),
+                 ( !is_integral<Type>::value        &&
+                   !is_floating_point<Type>::value  &&
+                   !is_enum<Type>::value            &&
+                   !is_pointer<Type>::value ),
                  int>::type = 0>
-    const _Type&
+    const Type&
     get() const
     {
-        return *static_cast<const _Type*>(m_heap);
+        return *static_cast<const Type*>(m_heap);
     }
 
-    template<typename _Type,
+    template<typename Type,
              typename enable_if<
-                 ( !is_integral<_Type>::value        &&
-                   !is_floating_point<_Type>::value  &&
-                   !is_enum<_Type>::value            &&
-                   !is_pointer<_Type>::value ),
+                 ( !is_integral<Type>::value        &&
+                   !is_floating_point<Type>::value  &&
+                   !is_enum<Type>::value            &&
+                   !is_pointer<Type>::value ),
                  int>::type = 0>
-    _Type&
+    Type&
     get()
     {
-        return *static_cast<_Type*>(m_heap);
+        return *static_cast<Type*>(m_heap);
     }
 
-#endif  // D_ENV_CPP98_HAS_NEW
+#endif  // RE_STD_HAS_HEADER_NEW
 
     // =================================================================
     // C++98/03 path: tag-dispatched get<T>()
@@ -1476,27 +1494,27 @@ public:
 #else  // C++98/03
 
     // get (by value)
-    //   returns the stored value cast to _Type. Dispatches to
+    //   returns the stored value cast to Type. Dispatches to
     // the appropriate SBO member or heap pointer based on the
     // type's storage category.
-    template<typename _Type>
-    _Type
+    template<typename Type>
+    Type
     get() const
     {
-        return get_impl<_Type>(
+        return get_impl<Type>(
             internal::get_tag<
-                internal::any_category_of<_Type>::value>());
+                internal::any_category_of<Type>::value>());
     }
 
     // get (mutable reference - heap only)
-#if D_ENV_CPP98_HAS_NEW
-    template<typename _Type>
-    _Type&
+#if RE_STD_HAS_HEADER_NEW
+    template<typename Type>
+    Type&
     get_mut()
     {
-        return *static_cast<_Type*>(m_heap);
+        return *static_cast<Type*>(m_heap);
     }
-#endif  // D_ENV_CPP98_HAS_NEW
+#endif  // RE_STD_HAS_HEADER_NEW
 
 private:
     // -----------------------------------------------------------------
@@ -1504,188 +1522,188 @@ private:
     // -----------------------------------------------------------------
 
     // bool
-    template<typename _Type>
-    _Type
+    template<typename Type>
+    Type
     get_impl(
         internal::get_tag<DAnyCategory::cat_bool>
     ) const
     {
-        return static_cast<_Type>(m_sbo.v_bool);
+        return static_cast<Type>(m_sbo.v_bool);
     }
 
     // signed integral
-    template<typename _Type>
-    _Type
+    template<typename Type>
+    Type
     get_impl(
         internal::get_tag<DAnyCategory::cat_signed>
     ) const
     {
-        return static_cast<_Type>(m_sbo.v_signed);
+        return static_cast<Type>(m_sbo.v_signed);
     }
 
     // unsigned integral
-    template<typename _Type>
-    _Type
+    template<typename Type>
+    Type
     get_impl(
         internal::get_tag<DAnyCategory::cat_unsigned>
     ) const
     {
-        return static_cast<_Type>(m_sbo.v_unsigned);
+        return static_cast<Type>(m_sbo.v_unsigned);
     }
 
     // floating point
-    template<typename _Type>
-    _Type
+    template<typename Type>
+    Type
     get_impl(
         internal::get_tag<DAnyCategory::cat_floating>
     ) const
     {
-        return static_cast<_Type>(m_sbo.v_floating);
+        return static_cast<Type>(m_sbo.v_floating);
     }
 
     // non-const pointer
-    template<typename _Type>
-    _Type
+    template<typename Type>
+    Type
     get_impl(
         internal::get_tag<DAnyCategory::cat_pointer>
     ) const
     {
-        return static_cast<_Type>(m_sbo.v_pointer);
+        return static_cast<Type>(m_sbo.v_pointer);
     }
 
     // const pointer
-    template<typename _Type>
-    _Type
+    template<typename Type>
+    Type
     get_impl(
         internal::get_tag<DAnyCategory::cat_cpointer>
     ) const
     {
-        return static_cast<_Type>(m_sbo.v_cpointer);
+        return static_cast<Type>(m_sbo.v_cpointer);
     }
 
     // heap
-#if D_ENV_CPP98_HAS_NEW
-    template<typename _Type>
-    _Type
+#if RE_STD_HAS_HEADER_NEW
+    template<typename Type>
+    Type
     get_impl(
         internal::get_tag<DAnyCategory::cat_heap>
     ) const
     {
-        return *static_cast<const _Type*>(m_heap);
+        return *static_cast<const Type*>(m_heap);
     }
-#endif  // D_ENV_CPP98_HAS_NEW
+#endif  // RE_STD_HAS_HEADER_NEW
 
 public:
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER (get)
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER (get)
 
     // =================================================================
     // TYPED RETRIEVAL: get_ref<T>() (heap types)
     // =================================================================
     // Returns a reference to the heap-stored value. Only valid
-    // when the any holds a heap-allocated value of type _Type.
+    // when the any holds a heap-allocated value of type Type.
     // Used by any_cast pointer and reference overloads.
 
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
 
-    template<typename _Type>
-    _Type&
+    template<typename Type>
+    Type&
     get_ref()
     {
-        return *static_cast<_Type*>(m_heap);
+        return *static_cast<Type*>(m_heap);
     }
 
-    template<typename _Type>
-    const _Type&
+    template<typename Type>
+    const Type&
     get_ref() const
     {
-        return *static_cast<const _Type*>(m_heap);
+        return *static_cast<const Type*>(m_heap);
     }
 
-#endif  // D_ENV_CPP98_HAS_NEW
+#endif  // RE_STD_HAS_HEADER_NEW
 
     // =================================================================
     // MODIFIERS
     // =================================================================
 
     // -----------------------------------------------------------------
-    //  emplace: SBO path (C++11+ only - requires variadics)
+    //  function: SBO path (C++11+ only - requires variadics)
     // -----------------------------------------------------------------
 
-#if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#if RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
-    template<typename    _Type,
-             typename... _Args,
+    template<typename    Type,
+             typename... Args,
              typename enable_if<
-                 ( internal::any_category_of<_Type>::value !=
+                 ( internal::any_category_of<Type>::value !=
                    DAnyCategory::cat_heap ),
                  int>::type = 0>
     void
     emplace(
-        _Args&&... _args
+        Args&&... _args
     )
     {
-        *this = any(_Type(static_cast<_Args&&>(_args)...));
+        *this = any(Type(static_cast<Args&&>(_args)...));
 
         return;
     }
 
     // -----------------------------------------------------------------
-    //  emplace: heap path
+    //  function: heap path
     // -----------------------------------------------------------------
 
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
 
-    template<typename    _Type,
-             typename... _Args,
+    template<typename    Type,
+             typename... Args,
              typename enable_if<
-                 ( internal::any_category_of<_Type>::value ==
+                 ( internal::any_category_of<Type>::value ==
                    DAnyCategory::cat_heap ),
                  int>::type = 0>
     void
     emplace(
-        _Args&&... _args
-    )
-    {
-        reset();
-
-        m_heap     = new _Type(static_cast<_Args&&>(_args)...);
-        m_heap_ops = internal::any_heap_ops_for<_Type>();
-        m_category = DAnyCategory::cat_heap;
-        m_type_id  = any_type_id_of<_Type>::value;
-
-        return;
-    }
-
-    // -----------------------------------------------------------------
-    //  emplace: heap path (initializer_list)
-    // -----------------------------------------------------------------
-
-    template<typename    _Type,
-             typename    _U,
-             typename... _Args,
-             typename enable_if<
-                 ( internal::any_category_of<_Type>::value ==
-                   DAnyCategory::cat_heap ),
-                 int>::type = 0>
-    void
-    emplace(
-        std::initializer_list<_U> _il,
-        _Args&&...                _args
+        Args&&... _args
     )
     {
         reset();
 
-        m_heap     = new _Type(_il, static_cast<_Args&&>(_args)...);
-        m_heap_ops = internal::any_heap_ops_for<_Type>();
+        m_heap     = new Type(static_cast<Args&&>(_args)...);
+        m_heap_ops = internal::any_heap_ops_for<Type>();
         m_category = DAnyCategory::cat_heap;
-        m_type_id  = any_type_id_of<_Type>::value;
+        m_type_id  = any_type_id_of<Type>::value;
 
         return;
     }
 
-#endif  // D_ENV_CPP98_HAS_NEW
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+    // -----------------------------------------------------------------
+    //  function: heap path (initializer_list)
+    // -----------------------------------------------------------------
+
+    template<typename    Type,
+             typename    U,
+             typename... Args,
+             typename enable_if<
+                 ( internal::any_category_of<Type>::value ==
+                   DAnyCategory::cat_heap ),
+                 int>::type = 0>
+    void
+    emplace(
+        std::initializer_list<U> _il,
+        Args&&...                _args
+    )
+    {
+        reset();
+
+        m_heap     = new Type(_il, static_cast<Args&&>(_args)...);
+        m_heap_ops = internal::any_heap_ops_for<Type>();
+        m_category = DAnyCategory::cat_heap;
+        m_type_id  = any_type_id_of<Type>::value;
+
+        return;
+    }
+
+#endif  // RE_STD_HAS_HEADER_NEW
+#endif  // RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
     // -----------------------------------------------------------------
     //  reset
@@ -1693,21 +1711,21 @@ public:
     // -----------------------------------------------------------------
 
     void
-    reset() D_NOEXCEPT
+    reset() RE_STD_NOEXCEPT
     {
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
         if ( (m_category == DAnyCategory::cat_heap) &&
-             (m_heap != D_NULLPTR)                  &&
-             (m_heap_ops != D_NULLPTR) )
+             (m_heap != RE_STD_NULLPTR)                  &&
+             (m_heap_ops != RE_STD_NULLPTR) )
         {
             m_heap_ops->destroy(m_heap);
-            m_heap     = D_NULLPTR;
-            m_heap_ops = D_NULLPTR;
+            m_heap     = RE_STD_NULLPTR;
+            m_heap_ops = RE_STD_NULLPTR;
         }
 #endif
 
         m_category = DAnyCategory::cat_empty;
-        m_type_id  = D_NULLPTR;
+        m_type_id  = RE_STD_NULLPTR;
 
         return;
     }
@@ -1719,7 +1737,7 @@ public:
     void
     swap(
         any& _other
-    ) D_NOEXCEPT
+    ) RE_STD_NOEXCEPT
     {
         any tmp(*this);
         *this = _other;
@@ -1733,14 +1751,17 @@ private:
     any_type_id                    m_type_id;
     internal::any_sbo              m_sbo;
 
-#if D_ENV_CPP98_HAS_NEW
+#if RE_STD_HAS_HEADER_NEW
     void*                          m_heap;
     const internal::any_heap_ops*  m_heap_ops;
 #endif
 };
 
 
-NS_END  // re_std
+}  // re_std
+
+RE_STD_LONG_LONG_DIAG_POP
+#endif  // RE_STD_HAS_LONG_LONG
 
 
-#endif  // DJINTERP_RE_STD_ANY_
+#endif  // RE_STD_ANY_ANY_HPP

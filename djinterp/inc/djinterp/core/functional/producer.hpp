@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                           producer.hpp
+/*******************************************************************************
+* djinterp [core]                                                   producer.hpp
 *
 * First-class producers (sources) for functional dataflow (C++).
 *   A producer is a pull-driven source of values: a callable of signature
@@ -34,59 +34,75 @@
 *   // sequencing: 1..3 then 100..102
 *   auto seq = concat(range(1, 4), range(100, 103));
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/producer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    PRODUCER STEP TYPE
-      1.  producer_step<T>                    (has_value + value)
+      ------------------
+      1.    producer_step<T>                    (has_value + value)
+
 II.   INTERNAL PRODUCER HELPER CLASSES
-      1.  iterate_helper                      (seed + step function)
-      2.  unfold_helper                       (state -> maybe value)
-      3.  range_helper                        (numeric range)
-      4.  repeat_helper                       (infinite single value)
-      5.  repeat_n_helper                     (n-bounded single value)
-      6.  cycle_helper                        (repeat container forever)
-      7.  generate_helper                     (call nullary fn forever)
-      8.  empty_producer_helper
-      9.  single_helper                       (one-shot value)
-      10. take_n_helper                       (first n then exhaust)
-      11. drop_n_helper                       (skip first n)
-      12. concat_helper                       (sequence two producers)
-      13. interleave_helper                   (alternate between two)
-      14. transform_helper                    (apply f to outputs)
-      15. filter_helper                       (keep matching outputs)
+      --------------------------------
+      1.    iterate_helper                      (seed + step function)
+      2.    unfold_helper                       (state -> maybe value)
+      3.    range_helper                        (numeric range)
+      4.    repeat_helper                       (infinite single value)
+      5.    repeat_n_helper                     (n-bounded single value)
+      6.    cycle_helper                        (repeat container forever)
+      7.    generate_helper                     (call nullary fn forever)
+      8.    empty_producer_helper
+      9.    single_helper                       (one-shot value)
+      10.   take_n_helper                       (first n then exhaust)
+      11.   drop_n_helper                       (skip first n)
+      12.   concat_helper                       (sequence two producers)
+      13.   interleave_helper                   (alternate between two)
+      14.   transform_helper                    (apply f to outputs)
+      15.   filter_helper                       (keep matching outputs)
+
 III.  PRODUCER FACTORIES   (flat in djinterp)
-      1.  iterate
-      2.  unfold
-      3.  range / iota
-      4.  repeat / repeat_n
-      5.  cycle
-      6.  generate
-      7.  empty
-      8.  single
-      9.  take_n / drop_n
-      10. concat / interleave
-      11. transform / filter
-      12. from_container
+      ---------------------------------------
+      1.    iterate
+      2.    unfold
+      3.    range / iota
+      4.    repeat / repeat_n
+      5.    cycle
+      6.    generate
+      7.    empty
+      8.    single
+      9.    take_n / drop_n
+      10.   concat / interleave
+      11.   transform / filter
+      12.   from_container
+
 IV.   TERMINAL CONVENIENCES
-      1.  collect                             (drain to vector)
-      2.  for_each                            (apply consumer until exhaust)
-      3.  fold                                (drain via accumulator step)
+      ---------------------
+      1.    collect                             (drain to vector)
+      2.    for_each                            (apply consumer until exhaust)
+      3.    fold                                (drain via accumulator step)
+
 V.    PRODUCER TRAITS & CONCEPTS
-      1.  is_producer_step<T>                 (is T a producer_step?)
-      2.  is_producer<T>                      (does T model the protocol?)
-      3.  producer_value_type<T>              (the emitted value type)
-      4.  producer_step_type / producer       (C++20 concepts)
+      --------------------------
+      1.    is_producer_step<T>                 (is T a producer_step?)
+      2.    is_producer<T>                      (does T model the protocol?)
+      3.    producer_value_type<T>              (the emitted value type)
+      4.    producer_step_type / producer       (C++20 concepts)
 */
 
-#ifndef DJINTERP_FUNCTIONAL_PRODUCER_
-#define DJINTERP_FUNCTIONAL_PRODUCER_ 1
+#ifndef DJINTERP_FUNCTIONAL_PRODUCER_HPP
+#define DJINTERP_FUNCTIONAL_PRODUCER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -95,7 +111,7 @@ V.    PRODUCER TRAITS & CONCEPTS
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./function_traits.hpp"
 #include "./functor.hpp"
 #include "./foldable.hpp"
@@ -115,11 +131,11 @@ NS_DJINTERP
 // has_value is true. This is a minimal Maybe<T> dedicated to the
 // producer protocol; producers do not depend on a full maybe<T>
 // module to avoid circular include order.
-template<typename _Type>
+template<typename Type>
 struct producer_step
 {
     bool   has_value;
-    _Type  value;
+    Type   value;
 
     D_CONSTEXPR
     producer_step()
@@ -129,7 +145,7 @@ struct producer_step
 
     D_CONSTEXPR
     explicit producer_step(
-        const _Type& _value
+        const Type& _value
     )
         : has_value(true)
         , value(_value)
@@ -137,7 +153,7 @@ struct producer_step
 
     D_CONSTEXPR
     explicit producer_step(
-        _Type&& _value
+        Type&& _value
     )
         : has_value(true)
         , value(std::move(_value))
@@ -149,28 +165,28 @@ struct producer_step
 //   function: convenience builder for a producer_step containing a
 // value. Decays the input type so that the resulting step holds a
 // non-reference value.
-template<typename _Type>
+template<typename Type>
 D_CONSTEXPR
-producer_step<typename std::decay<_Type>::type>
+producer_step<typename std::decay<Type>::type>
 make_step
 (
-    _Type&& _value
+    Type&& _value
 )
 {
-    return producer_step<typename std::decay<_Type>::type>(
-        std::forward<_Type>(_value));
+    return producer_step<typename std::decay<Type>::type>(
+        std::forward<Type>(_value));
 }
 
 
 // no_step
 //   function: produces an empty step of the given type, signalling
 // exhaustion to a downstream consumer.
-template<typename _Type>
+template<typename Type>
 D_CONSTEXPR
-producer_step<_Type>
+producer_step<Type>
 no_step()
 {
-    return producer_step<_Type>();
+    return producer_step<Type>();
 }
 
 
@@ -187,19 +203,19 @@ NS_INTERNAL
     //   documented `.collect()` usage. Deriving every helper from this
     //   base provides collect() once, in terms of the derived operator().
     //   (added 2026-05-30)
-    template<typename _Derived>
+    template<typename Derived>
     class producer_base
     {
     public:
         // collect
         //   pulls all remaining values into a vector by repeatedly
         // invoking the derived producer until exhaustion.
-        template<typename _D = _Derived>
-        std::vector<typename _D::value_type>
+        template<typename D = Derived>
+        std::vector<typename D::value_type>
         collect() const
         {
-            const _Derived& self = static_cast<const _Derived&>(*this);
-            std::vector<typename _D::value_type> result;
+            const Derived& self = static_cast<const Derived&>(*this);
+            std::vector<typename D::value_type> result;
 
             while (true)
             {
@@ -221,24 +237,24 @@ NS_INTERNAL
     //   helper: infinite producer driven by repeated application of
     // a step function to a seed. The seed is the first value emitted;
     // each subsequent value is _step(previous).
-    template<typename _Seed,
-             typename _Step>
+    template<typename Seed,
+             typename Step>
     class iterate_helper
-        : public producer_base<iterate_helper<_Seed, _Step>>
+        : public producer_base<iterate_helper<Seed, Step>>
     {
     public:
-        using value_type = _Seed;
-        using step_type  = producer_step<_Seed>;
+        using value_type = Seed;
+        using step_type  = producer_step<Seed>;
 
-        template<typename _SeedFwd,
-                 typename _StepFwd>
+        template<typename SeedFwd,
+                 typename StepFwd>
         D_CONSTEXPR
         iterate_helper(
-            _SeedFwd&& _seed,
-            _StepFwd&& _step
+            SeedFwd&& _seed,
+            StepFwd&& _step
         )
-            : m_current(std::forward<_SeedFwd>(_seed))
-            , m_step(std::forward<_StepFwd>(_step))
+            : m_current(std::forward<SeedFwd>(_seed))
+            , m_step(std::forward<StepFwd>(_step))
             , m_first(true)
         {}
 
@@ -257,8 +273,8 @@ NS_INTERNAL
         }
 
     private:
-        mutable _Seed m_current;
-        _Step         m_step;
+        mutable Seed m_current;
+        Step          m_step;
         mutable bool  m_first;
     };
 
@@ -266,27 +282,27 @@ NS_INTERNAL
     // unfold_helper
     //   helper: open-ended producer in which the step function
     // examines the current state and may either yield a value (and
-    // a new state) or signal exhaustion. _Step has the signature
+    // a new state) or signal exhaustion. Step has the signature
     // producer_step<pair<Value, State>>(State).
-    template<typename _State,
-             typename _Step,
-             typename _Value>
+    template<typename State,
+             typename Step,
+             typename Value>
     class unfold_helper
-        : public producer_base<unfold_helper<_State, _Step, _Value>>
+        : public producer_base<unfold_helper<State, Step, Value>>
     {
     public:
-        using value_type = _Value;
-        using step_type  = producer_step<_Value>;
+        using value_type = Value;
+        using step_type  = producer_step<Value>;
 
-        template<typename _StateFwd,
-                 typename _StepFwd>
+        template<typename StateFwd,
+                 typename StepFwd>
         D_CONSTEXPR
         unfold_helper(
-            _StateFwd&& _state,
-            _StepFwd&&  _step
+            StateFwd&& _state,
+            StepFwd&&  _step
         )
-            : m_state(std::forward<_StateFwd>(_state))
-            , m_step(std::forward<_StepFwd>(_step))
+            : m_state(std::forward<StateFwd>(_state))
+            , m_step(std::forward<StepFwd>(_step))
             , m_done(false)
         {}
 
@@ -294,7 +310,7 @@ NS_INTERNAL
         {
             if (m_done)
             {
-                return no_step<_Value>();
+                return no_step<Value>();
             }
 
             auto result = m_step(m_state);
@@ -303,7 +319,7 @@ NS_INTERNAL
             {
                 m_done = true;
 
-                return no_step<_Value>();
+                return no_step<Value>();
             }
 
             m_state = result.value.second;
@@ -312,8 +328,8 @@ NS_INTERNAL
         }
 
     private:
-        mutable _State m_state;
-        _Step          m_step;
+        mutable State m_state;
+        Step           m_step;
         mutable bool   m_done;
     };
 
@@ -322,19 +338,19 @@ NS_INTERNAL
     //   helper: numeric range from _start (inclusive) to _end
     // (exclusive) with optional step. Direction is determined by the
     // sign of _step; a zero step is treated as exhausted.
-    template<typename _Int>
+    template<typename Int>
     class range_helper
-        : public producer_base<range_helper<_Int>>
+        : public producer_base<range_helper<Int>>
     {
     public:
-        using value_type = _Int;
-        using step_type  = producer_step<_Int>;
+        using value_type = Int;
+        using step_type  = producer_step<Int>;
 
         D_CONSTEXPR
         range_helper(
-            _Int _start,
-            _Int _end,
-            _Int _step
+            Int _start,
+            Int _end,
+            Int _step
         )
             : m_current(_start)
             , m_end(_end)
@@ -345,42 +361,42 @@ NS_INTERNAL
         {
             // exhausted if step is zero, or if direction would not
             // close the gap
-            if ( (m_step == _Int(0)) ||
-                 ( (m_step > _Int(0)) && (m_current >= m_end) ) ||
-                 ( (m_step < _Int(0)) && (m_current <= m_end) ) )
+            if ( (m_step == Int(0)) ||
+                 ( (m_step > Int(0)) && (m_current >= m_end) ) ||
+                 ( (m_step < Int(0)) && (m_current <= m_end) ) )
             {
-                return no_step<_Int>();
+                return no_step<Int>();
             }
 
-            _Int v = m_current;
-            m_current = static_cast<_Int>(m_current + m_step);
+            Int v = m_current;
+            m_current = static_cast<Int>(m_current + m_step);
 
             return make_step(v);
         }
 
     private:
-        mutable _Int m_current;
-        _Int         m_end;
-        _Int         m_step;
+        mutable Int m_current;
+        Int          m_end;
+        Int          m_step;
     };
 
 
     // repeat_helper
     //   helper: produces a stored value indefinitely.
-    template<typename _Value>
+    template<typename Value>
     class repeat_helper
-        : public producer_base<repeat_helper<_Value>>
+        : public producer_base<repeat_helper<Value>>
     {
     public:
-        using value_type = _Value;
-        using step_type  = producer_step<_Value>;
+        using value_type = Value;
+        using step_type  = producer_step<Value>;
 
-        template<typename _ValueFwd>
+        template<typename ValueFwd>
         explicit D_CONSTEXPR
         repeat_helper(
-            _ValueFwd&& _value
+            ValueFwd&& _value
         )
-            : m_value(std::forward<_ValueFwd>(_value))
+            : m_value(std::forward<ValueFwd>(_value))
         {}
 
         step_type operator()() const
@@ -389,28 +405,28 @@ NS_INTERNAL
         }
 
     private:
-        _Value m_value;
+        Value m_value;
     };
 
 
     // repeat_n_helper
     //   helper: produces a stored value exactly _n times, then
     // signals exhaustion.
-    template<typename _Value>
+    template<typename Value>
     class repeat_n_helper
-        : public producer_base<repeat_n_helper<_Value>>
+        : public producer_base<repeat_n_helper<Value>>
     {
     public:
-        using value_type = _Value;
-        using step_type  = producer_step<_Value>;
+        using value_type = Value;
+        using step_type  = producer_step<Value>;
 
-        template<typename _ValueFwd>
+        template<typename ValueFwd>
         D_CONSTEXPR
         repeat_n_helper(
-            _ValueFwd&& _value,
+            ValueFwd&& _value,
             std::size_t _n
         )
-            : m_value(std::forward<_ValueFwd>(_value))
+            : m_value(std::forward<ValueFwd>(_value))
             , m_remaining(_n)
         {}
 
@@ -418,7 +434,7 @@ NS_INTERNAL
         {
             if (m_remaining == 0)
             {
-                return no_step<_Value>();
+                return no_step<Value>();
             }
 
             --m_remaining;
@@ -427,7 +443,7 @@ NS_INTERNAL
         }
 
     private:
-        _Value                      m_value;
+        Value                       m_value;
         mutable std::size_t         m_remaining;
     };
 
@@ -436,21 +452,21 @@ NS_INTERNAL
     //   helper: cycles through a container forever. Holds the
     // container by value to avoid lifetime hazards. Yields exhaustion
     // immediately if the container is empty (avoiding a hang).
-    template<typename _Container>
+    template<typename Container>
     class cycle_helper
-        : public producer_base<cycle_helper<_Container>>
+        : public producer_base<cycle_helper<Container>>
     {
     public:
         using value_type = typename std::decay<decltype(
-            *std::begin(std::declval<const _Container&>()))>::type;
+            *std::begin(std::declval<const Container&>()))>::type;
         using step_type  = producer_step<value_type>;
 
-        template<typename _ContainerFwd>
+        template<typename ContainerFwd>
         explicit D_CONSTEXPR
         cycle_helper(
-            _ContainerFwd&& _container
+            ContainerFwd&& _container
         )
-            : m_container(std::forward<_ContainerFwd>(_container))
+            : m_container(std::forward<ContainerFwd>(_container))
             , m_it(std::begin(m_container))
         {}
 
@@ -473,29 +489,29 @@ NS_INTERNAL
         }
 
     private:
-        _Container m_container;
-        mutable typename _Container::const_iterator m_it;
+        Container m_container;
+        mutable typename Container::const_iterator m_it;
     };
 
 
     // generate_helper
     //   helper: invokes a nullary function on each pull and yields
     // its result. Useful for random numbers, time samples, etc.
-    template<typename _Function>
+    template<typename Function>
     class generate_helper
-        : public producer_base<generate_helper<_Function>>
+        : public producer_base<generate_helper<Function>>
     {
     public:
         using value_type = typename std::decay<
-            decltype(std::declval<_Function&>()())>::type;
+            decltype(std::declval<Function&>()())>::type;
         using step_type  = producer_step<value_type>;
 
-        template<typename _FunctionFwd>
+        template<typename FunctionFwd>
         explicit D_CONSTEXPR
         generate_helper(
-            _FunctionFwd&& _function
+            FunctionFwd&& _function
         )
-            : m_function(std::forward<_FunctionFwd>(_function))
+            : m_function(std::forward<FunctionFwd>(_function))
         {}
 
         step_type operator()() const
@@ -504,23 +520,23 @@ NS_INTERNAL
         }
 
     private:
-        mutable _Function m_function;
+        mutable Function m_function;
     };
 
 
     // empty_producer_helper
     //   helper: produces no values. Useful as an identity for concat.
-    template<typename _Type>
+    template<typename Type>
     struct empty_producer_helper
-        : public producer_base<empty_producer_helper<_Type>>
+        : public producer_base<empty_producer_helper<Type>>
     {
-        using value_type = _Type;
-        using step_type  = producer_step<_Type>;
+        using value_type = Type;
+        using step_type  = producer_step<Type>;
 
         D_CONSTEXPR
         step_type operator()() const
         {
-            return no_step<_Type>();
+            return no_step<Type>();
         }
     };
 
@@ -528,20 +544,20 @@ NS_INTERNAL
     // single_helper
     //   helper: produces a single stored value, then signals
     // exhaustion. Equivalent to repeat_n(_value, 1) but cheaper.
-    template<typename _Value>
+    template<typename Value>
     class single_helper
-        : public producer_base<single_helper<_Value>>
+        : public producer_base<single_helper<Value>>
     {
     public:
-        using value_type = _Value;
-        using step_type  = producer_step<_Value>;
+        using value_type = Value;
+        using step_type  = producer_step<Value>;
 
-        template<typename _ValueFwd>
+        template<typename ValueFwd>
         explicit D_CONSTEXPR
         single_helper(
-            _ValueFwd&& _value
+            ValueFwd&& _value
         )
-            : m_value(std::forward<_ValueFwd>(_value))
+            : m_value(std::forward<ValueFwd>(_value))
             , m_done(false)
         {}
 
@@ -549,7 +565,7 @@ NS_INTERNAL
         {
             if (m_done)
             {
-                return no_step<_Value>();
+                return no_step<Value>();
             }
 
             m_done = true;
@@ -558,7 +574,7 @@ NS_INTERNAL
         }
 
     private:
-        _Value       m_value;
+        Value        m_value;
         mutable bool m_done;
     };
 
@@ -567,21 +583,21 @@ NS_INTERNAL
     //   helper: forwards at most _n values from an inner producer,
     // then signals exhaustion regardless of whether the inner
     // producer is exhausted.
-    template<typename _Producer>
+    template<typename Producer>
     class take_n_helper
-        : public producer_base<take_n_helper<_Producer>>
+        : public producer_base<take_n_helper<Producer>>
     {
     public:
-        using value_type = typename _Producer::value_type;
+        using value_type = typename Producer::value_type;
         using step_type  = producer_step<value_type>;
 
-        template<typename _ProducerFwd>
+        template<typename ProducerFwd>
         D_CONSTEXPR
         take_n_helper(
-            _ProducerFwd&& _producer,
+            ProducerFwd&& _producer,
             std::size_t    _n
         )
-            : m_producer(std::forward<_ProducerFwd>(_producer))
+            : m_producer(std::forward<ProducerFwd>(_producer))
             , m_remaining(_n)
         {}
 
@@ -630,7 +646,7 @@ NS_INTERNAL
         }
 
     private:
-        mutable _Producer    m_producer;
+        mutable Producer     m_producer;
         mutable std::size_t  m_remaining;
     };
 
@@ -640,21 +656,21 @@ NS_INTERNAL
     // on first use, then forwards subsequent pulls. If the inner
     // producer is exhausted within the first _n pulls, the wrapper
     // is also exhausted.
-    template<typename _Producer>
+    template<typename Producer>
     class drop_n_helper
-        : public producer_base<drop_n_helper<_Producer>>
+        : public producer_base<drop_n_helper<Producer>>
     {
     public:
-        using value_type = typename _Producer::value_type;
+        using value_type = typename Producer::value_type;
         using step_type  = producer_step<value_type>;
 
-        template<typename _ProducerFwd>
+        template<typename ProducerFwd>
         D_CONSTEXPR
         drop_n_helper(
-            _ProducerFwd&& _producer,
+            ProducerFwd&& _producer,
             std::size_t    _n
         )
-            : m_producer(std::forward<_ProducerFwd>(_producer))
+            : m_producer(std::forward<ProducerFwd>(_producer))
             , m_to_drop(_n)
         {}
 
@@ -678,7 +694,7 @@ NS_INTERNAL
         }
 
     private:
-        mutable _Producer    m_producer;
+        mutable Producer     m_producer;
         mutable std::size_t  m_to_drop;
     };
 
@@ -686,24 +702,24 @@ NS_INTERNAL
     // concat_helper
     //   helper: emits all values of _first, then all values of
     // _second. _first and _second must have the same value_type.
-    template<typename _First,
-             typename _Second>
+    template<typename First,
+             typename Second>
     class concat_helper
-        : public producer_base<concat_helper<_First, _Second>>
+        : public producer_base<concat_helper<First, Second>>
     {
     public:
-        using value_type = typename _First::value_type;
+        using value_type = typename First::value_type;
         using step_type  = producer_step<value_type>;
 
-        template<typename _FirstFwd,
-                 typename _SecondFwd>
+        template<typename FirstFwd,
+                 typename SecondFwd>
         D_CONSTEXPR
         concat_helper(
-            _FirstFwd&&  _first,
-            _SecondFwd&& _second
+            FirstFwd&&  _first,
+            SecondFwd&& _second
         )
-            : m_first(std::forward<_FirstFwd>(_first))
-            , m_second(std::forward<_SecondFwd>(_second))
+            : m_first(std::forward<FirstFwd>(_first))
+            , m_second(std::forward<SecondFwd>(_second))
             , m_first_done(false)
         {}
 
@@ -725,8 +741,8 @@ NS_INTERNAL
         }
 
     private:
-        mutable _First   m_first;
-        mutable _Second  m_second;
+        mutable First    m_first;
+        mutable Second   m_second;
         mutable bool     m_first_done;
     };
 
@@ -735,24 +751,24 @@ NS_INTERNAL
     //   helper: alternates one pull from each of two producers. If
     // either producer is exhausted, the wrapper signals exhaustion
     // immediately (does NOT fall back to the longer one).
-    template<typename _First,
-             typename _Second>
+    template<typename First,
+             typename Second>
     class interleave_helper
-        : public producer_base<interleave_helper<_First, _Second>>
+        : public producer_base<interleave_helper<First, Second>>
     {
     public:
-        using value_type = typename _First::value_type;
+        using value_type = typename First::value_type;
         using step_type  = producer_step<value_type>;
 
-        template<typename _FirstFwd,
-                 typename _SecondFwd>
+        template<typename FirstFwd,
+                 typename SecondFwd>
         D_CONSTEXPR
         interleave_helper(
-            _FirstFwd&&  _first,
-            _SecondFwd&& _second
+            FirstFwd&&  _first,
+            SecondFwd&& _second
         )
-            : m_first(std::forward<_FirstFwd>(_first))
-            , m_second(std::forward<_SecondFwd>(_second))
+            : m_first(std::forward<FirstFwd>(_first))
+            , m_second(std::forward<SecondFwd>(_second))
             , m_turn(false)
         {}
 
@@ -765,8 +781,8 @@ NS_INTERNAL
         }
 
     private:
-        mutable _First   m_first;
-        mutable _Second  m_second;
+        mutable First    m_first;
+        mutable Second   m_second;
         mutable bool     m_turn;
     };
 
@@ -775,27 +791,27 @@ NS_INTERNAL
     //   helper: applies a function to each value emitted by an inner
     // producer. value_type is the result of the function applied to
     // the inner value_type.
-    template<typename _Producer,
-             typename _Function>
+    template<typename Producer,
+             typename Function>
     class transform_helper
-        : public producer_base<transform_helper<_Producer, _Function>>
+        : public producer_base<transform_helper<Producer, Function>>
     {
     public:
-        using source_type = typename _Producer::value_type;
+        using source_type = typename Producer::value_type;
         using value_type  = typename std::decay<decltype(
-            std::declval<_Function&>()(
+            std::declval<Function&>()(
                 std::declval<const source_type&>()))>::type;
         using step_type   = producer_step<value_type>;
 
-        template<typename _ProducerFwd,
-                 typename _FunctionFwd>
+        template<typename ProducerFwd,
+                 typename FunctionFwd>
         D_CONSTEXPR
         transform_helper(
-            _ProducerFwd&& _producer,
-            _FunctionFwd&& _function
+            ProducerFwd&& _producer,
+            FunctionFwd&& _function
         )
-            : m_producer(std::forward<_ProducerFwd>(_producer))
-            , m_function(std::forward<_FunctionFwd>(_function))
+            : m_producer(std::forward<ProducerFwd>(_producer))
+            , m_function(std::forward<FunctionFwd>(_function))
         {}
 
         step_type operator()() const
@@ -811,8 +827,8 @@ NS_INTERNAL
         }
 
     private:
-        mutable _Producer m_producer;
-        mutable _Function m_function;
+        mutable Producer m_producer;
+        mutable Function m_function;
     };
 
 
@@ -820,24 +836,24 @@ NS_INTERNAL
     //   helper: forwards only those values from an inner producer
     // that satisfy a predicate. Pulls repeatedly from the inner
     // producer until a match or exhaustion is found.
-    template<typename _Producer,
-             typename _Predicate>
+    template<typename Producer,
+             typename Predicate>
     class filter_helper
-        : public producer_base<filter_helper<_Producer, _Predicate>>
+        : public producer_base<filter_helper<Producer, Predicate>>
     {
     public:
-        using value_type = typename _Producer::value_type;
+        using value_type = typename Producer::value_type;
         using step_type  = producer_step<value_type>;
 
-        template<typename _ProducerFwd,
-                 typename _PredicateFwd>
+        template<typename ProducerFwd,
+                 typename PredicateFwd>
         D_CONSTEXPR
         filter_helper(
-            _ProducerFwd&&  _producer,
-            _PredicateFwd&& _predicate
+            ProducerFwd&&  _producer,
+            PredicateFwd&& _predicate
         )
-            : m_producer(std::forward<_ProducerFwd>(_producer))
-            , m_predicate(std::forward<_PredicateFwd>(_predicate))
+            : m_producer(std::forward<ProducerFwd>(_producer))
+            , m_predicate(std::forward<PredicateFwd>(_predicate))
         {}
 
         step_type operator()() const
@@ -859,8 +875,8 @@ NS_INTERNAL
         }
 
     private:
-        mutable _Producer  m_producer;
-        mutable _Predicate m_predicate;
+        mutable Producer   m_producer;
+        mutable Predicate m_predicate;
     };
 
 NS_END  // internal
@@ -879,48 +895,48 @@ NS_END  // internal
     //   function: infinite producer iterate(x, f) yielding x, f(x),
     // f(f(x)), and so on. Useful for arithmetic progressions,
     // recurrences, and other deterministic sequences.
-    template<typename _Seed,
-             typename _Step>
+    template<typename Seed,
+             typename Step>
     D_CONSTEXPR
-    internal::iterate_helper<typename std::decay<_Seed>::type,
-                             typename std::decay<_Step>::type>
+    internal::iterate_helper<typename std::decay<Seed>::type,
+                             typename std::decay<Step>::type>
     iterate(
-        _Seed&& _seed,
-        _Step&& _step
+        Seed&& _seed,
+        Step&& _step
     )
     {
         return internal::iterate_helper<
-            typename std::decay<_Seed>::type,
-            typename std::decay<_Step>::type>(
-                std::forward<_Seed>(_seed),
-                std::forward<_Step>(_step));
+            typename std::decay<Seed>::type,
+            typename std::decay<Step>::type>(
+                std::forward<Seed>(_seed),
+                std::forward<Step>(_step));
     }
 
 
     // unfold
     //   function: builds a producer from a state seed and a step
     // function of signature producer_step<pair<Value, State>>(State).
-    // Returning an empty step signals exhaustion. _Value must be
+    // Returning an empty step signals exhaustion. Value must be
     // supplied explicitly because the step's return type is generally
     // not deducible from the state alone.
-    template<typename _Value,
-             typename _State,
-             typename _Step>
+    template<typename Value,
+             typename State,
+             typename Step>
     D_CONSTEXPR
-    internal::unfold_helper<typename std::decay<_State>::type,
-                            typename std::decay<_Step>::type,
-                            _Value>
+    internal::unfold_helper<typename std::decay<State>::type,
+                            typename std::decay<Step>::type,
+                            Value>
     unfold(
-        _State&& _state,
-        _Step&&  _step
+        State&& _state,
+        Step&&  _step
     )
     {
         return internal::unfold_helper<
-            typename std::decay<_State>::type,
-            typename std::decay<_Step>::type,
-            _Value>(
-                std::forward<_State>(_state),
-                std::forward<_Step>(_step));
+            typename std::decay<State>::type,
+            typename std::decay<Step>::type,
+            Value>(
+                std::forward<State>(_state),
+                std::forward<Step>(_step));
     }
 
 
@@ -928,75 +944,75 @@ NS_END  // internal
     //   function: numeric range producer. Emits _start, _start + _step,
     // ..., stopping when _step's direction would not bring the value
     // closer to _end. _step may be negative for descending ranges.
-    template<typename _Int>
+    template<typename Int>
     D_CONSTEXPR
-    internal::range_helper<_Int>
+    internal::range_helper<Int>
     range(
-        _Int _start,
-        _Int _end,
-        _Int _step
+        Int _start,
+        Int _end,
+        Int _step
     )
     {
-        return internal::range_helper<_Int>(_start, _end, _step);
+        return internal::range_helper<Int>(_start, _end, _step);
     }
 
 
     // range (default step)
     //   function: half-open range [_start, _end) with step = 1.
-    template<typename _Int>
+    template<typename Int>
     D_CONSTEXPR
-    internal::range_helper<_Int>
+    internal::range_helper<Int>
     range(
-        _Int _start,
-        _Int _end
+        Int _start,
+        Int _end
     )
     {
-        return internal::range_helper<_Int>(_start, _end, _Int(1));
+        return internal::range_helper<Int>(_start, _end, Int(1));
     }
 
 
     // iota
     //   function: alias for range with start and end, matching the
     // STL <numeric>/<ranges> naming convention.
-    template<typename _Int>
+    template<typename Int>
     D_CONSTEXPR
-    internal::range_helper<_Int>
+    internal::range_helper<Int>
     iota(
-        _Int _start,
-        _Int _end
+        Int _start,
+        Int _end
     )
     {
-        return internal::range_helper<_Int>(_start, _end, _Int(1));
+        return internal::range_helper<Int>(_start, _end, Int(1));
     }
 
 
     // repeat
     //   function: infinite producer emitting _value on every pull.
     // Pair with take_n or a bounded consumer to make it finite.
-    template<typename _Value>
+    template<typename Value>
     D_CONSTEXPR
-    internal::repeat_helper<typename std::decay<_Value>::type>
+    internal::repeat_helper<typename std::decay<Value>::type>
     repeat(
-        _Value&& _value
+        Value&& _value
     )
     {
-        return internal::repeat_helper<typename std::decay<_Value>::type>(
-            std::forward<_Value>(_value));
+        return internal::repeat_helper<typename std::decay<Value>::type>(
+            std::forward<Value>(_value));
     }
 
 
     // repeat_n
     //   function: emits _value exactly _n times, then exhausts.
-    template<typename _Value>
+    template<typename Value>
     D_CONSTEXPR
-    internal::repeat_n_helper<typename std::decay<_Value>::type>
+    internal::repeat_n_helper<typename std::decay<Value>::type>
     repeat_n(
-        _Value&&     _value,
+        Value&&     _value,
         std::size_t  _n
     )
     {
-        return internal::repeat_n_helper<typename std::decay<_Value>::type>(
-            std::forward<_Value>(_value), _n);
+        return internal::repeat_n_helper<typename std::decay<Value>::type>(
+            std::forward<Value>(_value), _n);
     }
 
 
@@ -1004,58 +1020,58 @@ NS_END  // internal
     //   function: infinite producer that emits the elements of
     // _container in order, restarting from the beginning each time
     // the end is reached. Empty containers exhaust immediately.
-    template<typename _Container>
+    template<typename Container>
     D_CONSTEXPR
-    internal::cycle_helper<typename std::decay<_Container>::type>
+    internal::cycle_helper<typename std::decay<Container>::type>
     cycle(
-        _Container&& _container
+        Container&& _container
     )
     {
         return internal::cycle_helper<
-            typename std::decay<_Container>::type>(
-                std::forward<_Container>(_container));
+            typename std::decay<Container>::type>(
+                std::forward<Container>(_container));
     }
 
 
     // generate
     //   function: infinite producer that invokes a nullary function
     // on every pull and emits its result.
-    template<typename _Function>
+    template<typename Function>
     D_CONSTEXPR
-    internal::generate_helper<typename std::decay<_Function>::type>
+    internal::generate_helper<typename std::decay<Function>::type>
     generate(
-        _Function&& _function
+        Function&& _function
     )
     {
         return internal::generate_helper<
-            typename std::decay<_Function>::type>(
-                std::forward<_Function>(_function));
+            typename std::decay<Function>::type>(
+                std::forward<Function>(_function));
     }
 
 
     // empty
     //   function: producer that yields no values. The element type
     // must be explicit since there is no other source for it.
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR
-    internal::empty_producer_helper<_Type>
+    internal::empty_producer_helper<Type>
     empty()
     {
-        return internal::empty_producer_helper<_Type>{};
+        return internal::empty_producer_helper<Type>{};
     }
 
 
     // single
     //   function: producer that emits _value once and then exhausts.
-    template<typename _Value>
+    template<typename Value>
     D_CONSTEXPR
-    internal::single_helper<typename std::decay<_Value>::type>
+    internal::single_helper<typename std::decay<Value>::type>
     single(
-        _Value&& _value
+        Value&& _value
     )
     {
-        return internal::single_helper<typename std::decay<_Value>::type>(
-            std::forward<_Value>(_value));
+        return internal::single_helper<typename std::decay<Value>::type>(
+            std::forward<Value>(_value));
     }
 
 
@@ -1063,97 +1079,97 @@ NS_END  // internal
     //   function: bounds an inner producer to its first _n outputs.
     // The resulting producer also exposes a .collect() method for
     // direct conversion to vector.
-    template<typename _Producer>
+    template<typename Producer>
     D_CONSTEXPR
-    internal::take_n_helper<typename std::decay<_Producer>::type>
+    internal::take_n_helper<typename std::decay<Producer>::type>
     take_n(
-        _Producer&&  _producer,
+        Producer&&  _producer,
         std::size_t  _n
     )
     {
         return internal::take_n_helper<
-            typename std::decay<_Producer>::type>(
-                std::forward<_Producer>(_producer), _n);
+            typename std::decay<Producer>::type>(
+                std::forward<Producer>(_producer), _n);
     }
 
 
     // drop_n
     //   function: discards the first _n outputs of an inner producer
     // and forwards the rest.
-    template<typename _Producer>
+    template<typename Producer>
     D_CONSTEXPR
-    internal::drop_n_helper<typename std::decay<_Producer>::type>
+    internal::drop_n_helper<typename std::decay<Producer>::type>
     drop_n(
-        _Producer&&  _producer,
+        Producer&&  _producer,
         std::size_t  _n
     )
     {
         return internal::drop_n_helper<
-            typename std::decay<_Producer>::type>(
-                std::forward<_Producer>(_producer), _n);
+            typename std::decay<Producer>::type>(
+                std::forward<Producer>(_producer), _n);
     }
 
 
     // concat
     //   function: sequence two producers; emits all of _first, then
     // all of _second.
-    template<typename _First,
-             typename _Second>
+    template<typename First,
+             typename Second>
     D_CONSTEXPR
-    internal::concat_helper<typename std::decay<_First>::type,
-                            typename std::decay<_Second>::type>
+    internal::concat_helper<typename std::decay<First>::type,
+                            typename std::decay<Second>::type>
     concat(
-        _First&&  _first,
-        _Second&& _second
+        First&&  _first,
+        Second&& _second
     )
     {
         return internal::concat_helper<
-            typename std::decay<_First>::type,
-            typename std::decay<_Second>::type>(
-                std::forward<_First>(_first),
-                std::forward<_Second>(_second));
+            typename std::decay<First>::type,
+            typename std::decay<Second>::type>(
+                std::forward<First>(_first),
+                std::forward<Second>(_second));
     }
 
 
     // interleave
     //   function: alternate one pull from each of two producers.
     // Exhausts as soon as either inner producer exhausts.
-    template<typename _First,
-             typename _Second>
+    template<typename First,
+             typename Second>
     D_CONSTEXPR
-    internal::interleave_helper<typename std::decay<_First>::type,
-                                typename std::decay<_Second>::type>
+    internal::interleave_helper<typename std::decay<First>::type,
+                                typename std::decay<Second>::type>
     interleave(
-        _First&&  _first,
-        _Second&& _second
+        First&&  _first,
+        Second&& _second
     )
     {
         return internal::interleave_helper<
-            typename std::decay<_First>::type,
-            typename std::decay<_Second>::type>(
-                std::forward<_First>(_first),
-                std::forward<_Second>(_second));
+            typename std::decay<First>::type,
+            typename std::decay<Second>::type>(
+                std::forward<First>(_first),
+                std::forward<Second>(_second));
     }
 
 
     // transform
     //   function: producer wrapper that applies _function to each
     // value emitted by _producer.
-    template<typename _Producer,
-             typename _Function>
+    template<typename Producer,
+             typename Function>
     D_CONSTEXPR
-    internal::transform_helper<typename std::decay<_Producer>::type,
-                               typename std::decay<_Function>::type>
+    internal::transform_helper<typename std::decay<Producer>::type,
+                               typename std::decay<Function>::type>
     transform(
-        _Producer&& _producer,
-        _Function&& _function
+        Producer&& _producer,
+        Function&& _function
     )
     {
         return internal::transform_helper<
-            typename std::decay<_Producer>::type,
-            typename std::decay<_Function>::type>(
-                std::forward<_Producer>(_producer),
-                std::forward<_Function>(_function));
+            typename std::decay<Producer>::type,
+            typename std::decay<Function>::type>(
+                std::forward<Producer>(_producer),
+                std::forward<Function>(_function));
     }
 
 
@@ -1161,21 +1177,21 @@ NS_END  // internal
     //   function: producer wrapper that emits only those inner values
     // satisfying _predicate. Each pull may invoke the inner producer
     // multiple times until a match (or exhaustion) is found.
-    template<typename _Producer,
-             typename _Predicate>
+    template<typename Producer,
+             typename Predicate>
     D_CONSTEXPR
-    internal::filter_helper<typename std::decay<_Producer>::type,
-                            typename std::decay<_Predicate>::type>
+    internal::filter_helper<typename std::decay<Producer>::type,
+                            typename std::decay<Predicate>::type>
     filter(
-        _Producer&&  _producer,
-        _Predicate&& _predicate
+        Producer&&  _producer,
+        Predicate&& _predicate
     )
     {
         return internal::filter_helper<
-            typename std::decay<_Producer>::type,
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Producer>(_producer),
-                std::forward<_Predicate>(_predicate));
+            typename std::decay<Producer>::type,
+            typename std::decay<Predicate>::type>(
+                std::forward<Producer>(_producer),
+                std::forward<Predicate>(_predicate));
     }
 
 
@@ -1183,22 +1199,22 @@ NS_END  // internal
     //   function: turns any iterable container into a finite producer.
     // The container is held by value; pass by std::move to avoid a
     // copy. The producer exhausts when the iterator reaches end().
-    template<typename _Container>
+    template<typename Container>
     class from_container_producer
-        : public internal::producer_base<from_container_producer<_Container> >
+        : public internal::producer_base<from_container_producer<Container> >
     {
     public:
-        using container_type = typename std::decay<_Container>::type;
+        using container_type = typename std::decay<Container>::type;
         using value_type     = typename std::decay<decltype(
             *std::begin(std::declval<const container_type&>()))>::type;
         using step_type      = producer_step<value_type>;
 
-        template<typename _ContainerFwd>
+        template<typename ContainerFwd>
         explicit D_CONSTEXPR
         from_container_producer(
-            _ContainerFwd&& _container
+            ContainerFwd&& _container
         )
-            : m_container(std::forward<_ContainerFwd>(_container))
+            : m_container(std::forward<ContainerFwd>(_container))
             , m_it(std::begin(m_container))
             , m_end(std::end(m_container))
         {}
@@ -1223,16 +1239,16 @@ NS_END  // internal
     };
 
     // from_container (factory)
-    template<typename _Container>
+    template<typename Container>
     D_CONSTEXPR
-    from_container_producer<typename std::decay<_Container>::type>
+    from_container_producer<typename std::decay<Container>::type>
     from_container(
-        _Container&& _container
+        Container&& _container
     )
     {
         return from_container_producer<
-            typename std::decay<_Container>::type>(
-                std::forward<_Container>(_container));
+            typename std::decay<Container>::type>(
+                std::forward<Container>(_container));
     }
 
 
@@ -1244,14 +1260,14 @@ NS_END  // internal
 //   function: drains a producer (which must be finite or already
 // bounded) into a std::vector. Pulls until the producer signals
 // exhaustion.
-template<typename _Producer>
-D_NODISCARD std::vector<typename _Producer::value_type>
+template<typename Producer>
+D_NODISCARD std::vector<typename Producer::value_type>
 collect
 (
-    _Producer& _producer
+    Producer& _producer
 )
 {
-    std::vector<typename _Producer::value_type> result;
+    std::vector<typename Producer::value_type> result;
 
     while (true)
     {
@@ -1272,13 +1288,13 @@ collect
 // for_each (producer)
 //   function: pulls every value from _producer and forwards it to
 // _consumer, until the producer signals exhaustion.
-template<typename _Producer,
-         typename _Consumer>
+template<typename Producer,
+         typename Consumer>
 void
 for_each
 (
-    _Producer& _producer,
-    _Consumer  _consumer
+    Producer& _producer,
+    Consumer   _consumer
 )
 {
     while (true)
@@ -1299,15 +1315,15 @@ for_each
 // fold (producer)
 //   function: drains a producer through a binary step function and
 // accumulator, returning the final accumulated value.
-template<typename _Producer,
-         typename _Acc,
-         typename _Step>
-D_NODISCARD _Acc
+template<typename Producer,
+         typename Acc,
+         typename Step>
+D_NODISCARD Acc
 fold
 (
-    _Producer& _producer,
-    _Acc       _init,
-    _Step      _step
+    Producer& _producer,
+    Acc        _init,
+    Step       _step
 )
 {
     while (true)
@@ -1319,7 +1335,7 @@ fold
             break;
         }
 
-        _init = _step(static_cast<const _Acc&>(_init), step.value);
+        _init = _step(static_cast<const Acc&>(_init), step.value);
     }
 
     return _init;
@@ -1351,88 +1367,88 @@ NS_INTERNAL
 
     // producer_void_t
     //   type: header-local alias for producer_make_void<...>::type.
-    template<typename... _Types>
-    using producer_void_t = typename producer_make_void<_Types...>::type;
+    template<typename... Types>
+    using producer_void_t = typename producer_make_void<Types...>::type;
 
 
     // is_producer_step_helper
-    //   trait: detects whether _Type is a producer_step specialization
+    //   trait: detects whether Type is a producer_step specialization
     // (primary / failure case).
-    template<typename _Type>
+    template<typename Type>
     struct is_producer_step_helper : std::false_type
     {};
 
-    // is_producer_step_helper<producer_step<_Value>>
+    // is_producer_step_helper<producer_step<Value>>
     //   trait: success specialization for producer_step.
-    template<typename _Value>
-    struct is_producer_step_helper<producer_step<_Value> > : std::true_type
+    template<typename Value>
+    struct is_producer_step_helper<producer_step<Value> > : std::true_type
     {};
 
 
     // is_producer_helper
-    //   trait: detects whether _Type satisfies the producer protocol --
+    //   trait: detects whether Type satisfies the producer protocol --
     // it has a nested value_type, is const-invocable with no arguments,
     // and the call result is a producer_step. Primary / failure case.
-    template<typename _Type,
-             typename _AlwaysVoid = void>
+    template<typename Type,
+             typename AlwaysVoid = void>
     struct is_producer_helper : std::false_type
     {};
 
     // is_producer_helper (success case)
     //   trait: specialization that fires only when every protocol element
     // is well-formed.
-    template<typename _Type>
+    template<typename Type>
     struct is_producer_helper<
-        _Type,
+        Type,
         producer_void_t<
-            typename _Type::value_type,
-            decltype(std::declval<const _Type&>()())> >
+            typename Type::value_type,
+            decltype(std::declval<const Type&>()())> >
         : is_producer_step_helper<
               typename std::decay<
-                  decltype(std::declval<const _Type&>()())>::type>
+                  decltype(std::declval<const Type&>()())>::type>
     {};
 
 NS_END  // internal
 
 
 // is_producer_step
-//   trait: true if _Type (decayed) is a producer_step specialization.
-template<typename _Type>
+//   trait: true if Type (decayed) is a producer_step specialization.
+template<typename Type>
 struct is_producer_step
-    : internal::is_producer_step_helper<typename std::decay<_Type>::type>
+    : internal::is_producer_step_helper<typename std::decay<Type>::type>
 {};
 
 
 // is_producer
-//   trait: true if _Type (decayed) models the producer protocol: a nested
+//   trait: true if Type (decayed) models the producer protocol: a nested
 // value_type, const-nullary-invocable, returning a producer_step.
-template<typename _Type>
+template<typename Type>
 struct is_producer
-    : internal::is_producer_helper<typename std::decay<_Type>::type>
+    : internal::is_producer_helper<typename std::decay<Type>::type>
 {};
 
 
 // producer_value_type
 //   trait: extracts the value_type a producer emits. Only well-formed when
-// is_producer<_Type>::value is true; intended for use behind that guard.
-template<typename _Type>
+// is_producer<Type>::value is true; intended for use behind that guard.
+template<typename Type>
 struct producer_value_type
 {
-    typedef typename std::decay<_Type>::type::value_type type;
+    typedef typename std::decay<Type>::type::value_type type;
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // is_producer_step_v
-    //   value: convenience alias for is_producer_step<_Type>::value.
-    template<typename _Type>
+    //   value: convenience alias for is_producer_step<Type>::value.
+    template<typename Type>
     static constexpr bool is_producer_step_v =
-        is_producer_step<_Type>::value;
+        is_producer_step<Type>::value;
 
     // is_producer_v
-    //   value: convenience alias for is_producer<_Type>::value.
-    template<typename _Type>
-    static constexpr bool is_producer_v = is_producer<_Type>::value;
+    //   value: convenience alias for is_producer<Type>::value.
+    template<typename Type>
+    static constexpr bool is_producer_v = is_producer<Type>::value;
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
@@ -1440,13 +1456,13 @@ struct producer_value_type
 
     // producer_step_type
     //   concept: satisfied by any producer_step specialization.
-    template<typename _Type>
-    concept producer_step_type = is_producer_step<_Type>::value;
+    template<typename Type>
+    concept producer_step_type = is_producer_step<Type>::value;
 
     // producer
     //   concept: satisfied by any type modeling the producer protocol.
-    template<typename _Type>
-    concept producer = is_producer<_Type>::value;
+    template<typename Type>
+    concept producer = is_producer<Type>::value;
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
@@ -1471,13 +1487,13 @@ struct producer_value_type
 // none_t put the decision in the type so template recursion can dispatch on it.
 // A step is an ordinary constexpr callable that returns one or the other, e.g.
 //
-//   template<auto _Limit>
+//   template<auto Limit>
 //   struct iota_step
 //   {
-//       template<auto _I>
-//       D_CONSTEXPR auto operator()(val_t<_I>) const
+//       template<auto I>
+//       D_CONSTEXPR auto operator()(val_t<I>) const
 //       {
-//           if constexpr (_I < _Limit) return some_t<val_t<_I>, val_t<_I + 1>>{};
+//           if constexpr (I < Limit) return some_t<val_t<I>, val_t<I + 1>>{};
 //           else                       return none_t{};
 //       }
 //   };
@@ -1489,65 +1505,65 @@ struct none_t
 {};
 
 // some_t
-//   compile-time unfold step result: a value carrier _Value together with the
-// next state carrier _Next.  Distinct from none_t at the type level so the
+//   compile-time unfold step result: a value carrier Value together with the
+// next state carrier Next.  Distinct from none_t at the type level so the
 // driver can branch by type.
-template<typename _Value,
-         typename _Next>
+template<typename Value,
+         typename Next>
 struct some_t
 {
-    using value = _Value;
-    using next  = _Next;
+    using value = Value;
+    using next  = Next;
 };
 
 NS_INTERNAL
 
     // unfold_ct_helper
-    //   metafunction: type-level recursion that drives a constexpr unfold _Step
-    // from a state to exhaustion, growing the accumulated value_list _Acc.
-    // Dispatched on the step's result type _StepResult (none_t or some_t<V,N>).
-    template<typename _Step,
-             typename _Acc,
-             typename _StepResult>
+    //   metafunction: type-level recursion that drives a constexpr unfold Step
+    // from a state to exhaustion, growing the accumulated value_list Acc.
+    // Dispatched on the step's result type StepResult (none_t or some_t<V,N>).
+    template<typename Step,
+             typename Acc,
+             typename StepResult>
     struct unfold_ct_helper;
 
     // exhausted: the accumulated list is the result.
-    template<typename _Step,
-             typename _Acc>
-    struct unfold_ct_helper<_Step, _Acc, none_t>
+    template<typename Step,
+             typename Acc>
+    struct unfold_ct_helper<Step, Acc, none_t>
     {
-        using type = _Acc;
+        using type = Acc;
     };
 
-    // yielded value carrier _Value with next state carrier _Next: append the
+    // yielded value carrier Value with next state carrier Next: append the
     // value to the list and recurse on the next state.
-    template<typename _Step,
-             typename _Acc,
-             typename _Value,
-             typename _Next>
-    struct unfold_ct_helper<_Step, _Acc, some_t<_Value, _Next>>
+    template<typename Step,
+             typename Acc,
+             typename Value,
+             typename Next>
+    struct unfold_ct_helper<Step, Acc, some_t<Value, Next>>
     {
         using grown = decltype(
-            append(std::declval<_Acc>(), std::declval<_Value>()));
+            append(std::declval<Acc>(), std::declval<Value>()));
 
         using type = typename unfold_ct_helper<
-            _Step,
+            Step,
             grown,
-            decltype(std::declval<const _Step&>()(std::declval<_Next>()))
+            decltype(std::declval<const Step&>()(std::declval<Next>()))
         >::type;
     };
 
 NS_END
 
 // unfold_ct_t
-//   type: the value_list produced by running constexpr unfold _Step from the
-// initial state carrier _Init to exhaustion at compile time.
-template<typename _Step,
-         typename _Init>
+//   type: the value_list produced by running constexpr unfold Step from the
+// initial state carrier Init to exhaustion at compile time.
+template<typename Step,
+         typename Init>
 using unfold_ct_t = typename internal::unfold_ct_helper<
-    _Step,
+    Step,
     value_list<>,
-    decltype(std::declval<const _Step&>()(std::declval<_Init>()))
+    decltype(std::declval<const Step&>()(std::declval<Init>()))
 >::type;
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -1568,33 +1584,33 @@ using unfold_ct_t = typename internal::unfold_ct_helper<
 // monad bridge in functor.hpp (a producer is not a monad) and the view
 // instance.
 
-template<typename _Producer>
+template<typename Producer>
 struct functor_traits<
-    _Producer,
-    typename std::enable_if<is_producer<_Producer>::value>::type>
+    Producer,
+    typename std::enable_if<is_producer<Producer>::value>::type>
 {
     using is_specialized = std::true_type;
-    using value_type     = typename producer_value_type<_Producer>::type;
+    using value_type     = typename producer_value_type<Producer>::type;
 
     // map
     //   functorial map by delegating to the flat transform combinator (the
     // existing per-type fmap for producers). Lazy: the wrapped producer is
     // pulled only when the result producer is invoked.
-    template<typename _ProducerArg,
-             typename _Function>
+    template<typename ProducerArg,
+             typename Function>
     static
     D_CONSTEXPR
     auto map(
-        _ProducerArg&& _producer,
-        _Function&&    _function
+        ProducerArg&& _producer,
+        Function&&    _function
     )
     -> decltype(::djinterp::transform(
-           std::forward<_ProducerArg>(_producer),
-           std::forward<_Function>(_function)))
+           std::forward<ProducerArg>(_producer),
+           std::forward<Function>(_function)))
     {
         return ::djinterp::transform(
-            std::forward<_ProducerArg>(_producer),
-            std::forward<_Function>(_function));
+            std::forward<ProducerArg>(_producer),
+            std::forward<Function>(_function));
     }
 };
 
@@ -1612,30 +1628,30 @@ struct functor_traits<
 // caller's producer untouched); an infinite producer must be bounded before
 // folding.
 
-template<typename _Producer>
+template<typename Producer>
 struct foldable_traits<
-    _Producer,
-    typename std::enable_if<is_producer<_Producer>::value>::type>
+    Producer,
+    typename std::enable_if<is_producer<Producer>::value>::type>
 {
     using is_specialized = std::true_type;
-    using value_type     = typename producer_value_type<_Producer>::type;
+    using value_type     = typename producer_value_type<Producer>::type;
 
     // fold_left
     //   strict left fold by pulling a copy of the producer to exhaustion; the
     // accumulator is threaded by move so collecting folds stay O(n).
     //   D_CONSTEXPR -- a producer is not a literal type before C++20, and
     // the pull loop needs relaxed constexpr.
-    template<typename _Acc,
-             typename _Function>
+    template<typename Acc,
+             typename Function>
     static
-    D_CONSTEXPR
-    _Acc fold_left(
-        const _Producer& _producer,
-        _Acc             _init,
-        _Function        _function
+    D_CONSTEXPR_CPP14
+    Acc fold_left(
+        const Producer& _producer,
+        Acc              _init,
+        Function         _function
     )
     {
-        _Producer _cursor = _producer;
+        Producer _cursor = _producer;
 
         while (true)
         {
@@ -1656,5 +1672,7 @@ struct foldable_traits<
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_PRODUCER_
+
+#endif  // DJINTERP_FUNCTIONAL_PRODUCER_HPP

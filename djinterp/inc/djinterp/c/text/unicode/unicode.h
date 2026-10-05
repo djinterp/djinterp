@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [text]                                                    unicode.h
+/*******************************************************************************
+* djinterp [c]                                                         unicode.h
 *
 * Unicode building blocks (utf-8).
 *   This header defines commonly used unicode codepoints as utf-8 string
@@ -7,18 +7,19 @@
 * joiner/format controls, and selected combining marks used in emoji/text
 * sequences. These constants are intended to be composed by higher-level
 * modules (e.g. emoji flags, keycaps, and zwj sequences).
-* 
 *
-* path:      \inc\text\unicode\unicode.h             
+*
+* path:      /inc/djinterp/c/text/unicode/unicode.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.10.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.08
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_TEXT_UNICODE_
-#define DJINTERP_TEXT_UNICODE_
+#ifndef DJINTERP_C_TEXT_UNICODE_UNICODE_H
+#define DJINTERP_C_TEXT_UNICODE_UNICODE_H 1
 
 
-// regional Indicator Letters (UTF-8) 
+// regional Indicator Letters (UTF-8)
 #define D_UNICODE_RI_A  "\xF0\x9F\x87\xA6"          // U+1F1E6
 #define D_UNICODE_RI_B  "\xF0\x9F\x87\xA7"          // U+1F1E7
 #define D_UNICODE_RI_C  "\xF0\x9F\x87\xA8"          // U+1F1E8
@@ -49,7 +50,7 @@
 // variation selectors
 
 // D_UNICODE_VS15
-//   constant: variation selector-15 (requests text presentation when 
+//   constant: variation selector-15 (requests text presentation when
 // applicable).
 #define D_UNICODE_VS15           "\xEF\xB8\x8E"     // U+FE0E
 
@@ -75,4 +76,4 @@
 #define D_UNICODE_KEYCAP_SUFFIX  "\xE2\x83\xA3"     // U+20E3
 
 
-#endif	// DJINTERP_TEXT_UNICODE_
+#endif  // DJINTERP_C_TEXT_UNICODE_UNICODE_H

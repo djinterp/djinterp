@@ -1,33 +1,36 @@
-/******************************************************************************
-* djinterp [re_std]                                              variant_swap.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             variant_swap.hpp
 *
 * variant swap header:
 *   ADL-friendly non-member swap delegating to the member swap.
 *
 *
-* path:      /inc/djinterp/re_std/variant/variant_swap.hpp
+* path:      /inc/re_std/variant/variant_swap.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_SWAP_
-#define DJINTERP_RE_STD_VARIANT_SWAP_ 1
+#ifndef RE_STD_VARIANT_VARIANT_SWAP_HPP
+#define RE_STD_VARIANT_VARIANT_SWAP_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "./variant.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-template<typename... _Types>
+template<typename... Types>
 void
 swap(
-    variant<_Types...>& _lhs,
-    variant<_Types...>& _rhs
+    variant<Types...>& _lhs,
+    variant<Types...>& _rhs
 )
 {
     _lhs.swap(_rhs);
@@ -36,10 +39,10 @@ swap(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_VARIANT_SWAP_
+#endif  // RE_STD_VARIANT_VARIANT_SWAP_HPP

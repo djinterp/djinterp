@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                   launder.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  launder.hpp
 *
 * std::launder back-port:
 *   Per [ptr.launder], launder(p) is the standard's way of obtaining
@@ -33,62 +33,59 @@
 * compile-time-evaluable.
 *
 *   DETECTION MACRO:
-*   D_RE_STD_HAS_LAUNDER_INTRINSIC
+*   RE_STD_HAS_LAUNDER_INTRINSIC
 *     - 1 if a compiler builtin is available (the safe path is taken).
 *     - 0 if only the identity fallback is available (best-effort).
 *   Override by predefining before #include.
 *
 *
-* path:      /inc/djinterp/re_std/new/launder.hpp
+* path:      /inc/re_std/new/launder.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_LAUNDER_
-#define DJINTERP_RE_STD_LAUNDER_ 1
+#ifndef RE_STD_NEW_LAUNDER_HPP
+#define RE_STD_NEW_LAUNDER_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
+
+// std
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+    #include <new>  // std::launder
+#endif
 
 
 // ===========================================================================
 // 0.   DETECTION
 // ===========================================================================
 
-#ifndef D_RE_STD_HAS_LAUNDER_INTRINSIC
+#ifndef RE_STD_HAS_LAUNDER_INTRINSIC
     // GCC 7+ ships __builtin_launder; Clang since 3.6.
     #if defined(__has_builtin)
         #if __has_builtin(__builtin_launder)
-            #define D_RE_STD_HAS_LAUNDER_INTRINSIC 1
+            #define RE_STD_HAS_LAUNDER_INTRINSIC 1
         #else
-            #define D_RE_STD_HAS_LAUNDER_INTRINSIC 0
+            #define RE_STD_HAS_LAUNDER_INTRINSIC 0
         #endif
     #elif defined(__GNUC__) && (__GNUC__ >= 7)
-        #define D_RE_STD_HAS_LAUNDER_INTRINSIC 1
+        #define RE_STD_HAS_LAUNDER_INTRINSIC 1
     #else
-        #define D_RE_STD_HAS_LAUNDER_INTRINSIC 0
+        #define RE_STD_HAS_LAUNDER_INTRINSIC 0
     #endif
 #endif
 
 
-#ifndef D_CONSTEXPR_CPP17
-    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-        #define D_CONSTEXPR_CPP17   constexpr
-    #else
-        #define D_CONSTEXPR_CPP17
-    #endif
-#endif
-
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   LAUNDER
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-
-#include <new>
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
 // C++17+: defer to std::launder. The std implementation itself almost
 // always dispatches to the compiler builtin, so we get the strong
@@ -101,13 +98,13 @@ using std::launder;
 //   When the builtin is available: forward to it (strong guarantee).
 //   Otherwise: identity function (best-effort, documented in the
 // module-level subtitle above).
-template<typename _Type>
-D_CONSTEXPR_CPP17 _Type*
+template<typename Type>
+RE_STD_CONSTEXPR_CPP17 Type*
 launder(
-    _Type* _p
-) D_NOEXCEPT
+    Type* _p
+) RE_STD_NOEXCEPT
 {
-#if D_RE_STD_HAS_LAUNDER_INTRINSIC
+#if RE_STD_HAS_LAUNDER_INTRINSIC
     return __builtin_launder(_p);
 #else
     return _p;
@@ -117,7 +114,7 @@ launder(
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_LAUNDER_
+#endif  // RE_STD_NEW_LAUNDER_HPP

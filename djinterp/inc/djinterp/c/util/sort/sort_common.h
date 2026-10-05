@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                             sort_common.h
+/*******************************************************************************
+* djinterp [c]                                                     sort_common.h
 *
 *   The C sort subsystem's shared base.
 * Everything here is vocabulary the algorithms have in common: how an ordering
@@ -28,21 +28,22 @@
 * D_SORT_STATUS_BUFFER_TOO_SMALL rather than allocating one.
 *
 *
-* path:      /djinterp/c/util/sort/sort_common.h
+* path:      /inc/djinterp/c/util/sort/sort_common.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.07
-*                                                         revised: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.07
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_COMMON_
-#define DJINTERP_UTILITY_SORT_COMMON_ 1
+#ifndef DJINTERP_C_UTIL_SORT_SORT_COMMON_H
+#define DJINTERP_C_UTIL_SORT_SORT_COMMON_H 1
 
 // std
 #include <stddef.h>
-#include <stdint.h>
 // djinterp
 #include "../../djinterp.h"
 #include "../swap.h"
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // fixed-width types, for users
 
 
 D_EXTERN_C_BEGIN
@@ -224,4 +225,4 @@ d_sort_precedes
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_UTILITY_SORT_COMMON_
+#endif  // DJINTERP_C_UTIL_SORT_SORT_COMMON_H

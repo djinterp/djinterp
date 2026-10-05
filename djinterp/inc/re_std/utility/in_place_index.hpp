@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                               in_place_index.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           in_place_index.hpp
 *
 * in_place_index tag type and variable:
 *   Disambiguating tag for index-tagged in-place construction in
@@ -16,21 +16,25 @@
 *   Introduced in C++17 alongside <variant>.
 *
 *
-* path:      /inc/djinterp/re_std/utility/in_place_index.hpp
+* path:      /inc/re_std/utility/in_place_index.hpp
 * link(s):   TBA
-* author(s): re_std team                                 date: 2026.05.02
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_IN_PLACE_INDEX_
-#define DJINTERP_RE_STD_UTILITY_IN_PLACE_INDEX_ 1
+#ifndef RE_STD_UTILITY_IN_PLACE_INDEX_HPP
+#define RE_STD_UTILITY_IN_PLACE_INDEX_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>  // std::size_t
 
-NS_RESTD
+namespace re_std
+{
 
 // =============================================================================
 // IN_PLACE_INDEX
@@ -38,28 +42,28 @@ NS_RESTD
 
 // in_place_index_t
 //   struct: tag type for index-tagged in-place construction.
-template<std::size_t _Index>
+template<std::size_t Index>
 struct in_place_index_t
 {
-    explicit D_CONSTEXPR in_place_index_t() noexcept
+    explicit RE_STD_CONSTEXPR in_place_index_t() noexcept
     {}
 };
 
 // in_place_index
 //   variable: template variable yielding a default-constructed
-//   in_place_index_t<_Index>.
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+//   in_place_index_t<Index>.
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-    template<std::size_t _Index>
-    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    template<std::size_t Index>
+    #if RE_STD_LANG_IS_CPP17_OR_HIGHER
     inline
     #endif
-    D_CONSTEXPR in_place_index_t<_Index> in_place_index{};
+    RE_STD_CONSTEXPR in_place_index_t<Index> in_place_index{};
 
 #endif
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_UTILITY_IN_PLACE_INDEX_
+#endif  // RE_STD_UTILITY_IN_PLACE_INDEX_HPP

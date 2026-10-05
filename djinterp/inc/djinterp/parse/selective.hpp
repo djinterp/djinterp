@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                          selective.hpp
+/*******************************************************************************
+* djinterp [parse]                                                 selective.hpp
 *
 * Selective protocol: select, branch, ifS — between Applicative and Monad.
 *   A Selective applicative sits between Applicative and Monad in the
@@ -22,7 +22,7 @@
 *   `branch` and `ifS` are derived once from `select`; the protocol
 * trait specialises like the other algebra protocols (functor,
 * applicative, monad, alternative, traversable) — `selective_traits
-* <F, _Enable = void>` with the SFINAE hook so a monad bridge picks
+* <F, Enable = void>` with the SFINAE hook so a monad bridge picks
 * up every Monad as a Selective without per-type code.
 *
 *   NOTE on the free construction.  The formal `free_selective<F,
@@ -40,7 +40,7 @@
 *
 * CONTENTS
 *   I.    either<L, R>                       discriminated union
-*   II.   selective_traits<F, _Enable>       protocol
+*   II.   selective_traits<F, Enable>       protocol
 *   III.  is_selective + Selective concept
 *   IV.   selective_traits<M>  monad bridge  every monad is selective
 *   V.    selective_select                   protocol entry point
@@ -50,11 +50,18 @@
 *
 * path:      /inc/djinterp/parse/selective.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_SELECTIVE_
-#define DJINTERP_FUNCTIONAL_SELECTIVE_ 1
+#ifndef DJINTERP_PARSE_SELECTIVE_HPP
+#define DJINTERP_PARSE_SELECTIVE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <functional>
@@ -80,14 +87,14 @@ NS_DJINTERP
 // chooses behaviour based on whether the value is Left or Right.
 //
 //   Value-semantic, copyable, default-constructs to a Left of a
-// default _L.  Comparison is by tag-then-arm.
-template<typename _L,
-         typename _R>
+// default L.  Comparison is by tag-then-arm.
+template<typename L,
+         typename R>
 class either
 {
 public:
-    using left_type  = _L;
-    using right_type = _R;
+    using left_type  = L;
+    using right_type = R;
 
     either()
         : m_is_left(true),
@@ -98,7 +105,7 @@ public:
     D_NODISCARD
     static either
     left(
-        const _L& _l
+        const L& _l
     )
     {
         either e;
@@ -110,7 +117,7 @@ public:
     D_NODISCARD
     static either
     right(
-        const _R& _r
+        const R& _r
     )
     {
         either e;
@@ -132,29 +139,29 @@ public:
     }
 
     D_NODISCARD
-    const _L& left_value() const
+    const L& left_value() const
     {
         return m_left;
     }
 
     D_NODISCARD
-    const _R& right_value() const
+    const R& right_value() const
     {
         return m_right;
     }
 
 private:
     bool m_is_left;
-    _L   m_left;
-    _R   m_right;
+    L    m_left;
+    R    m_right;
 };
 
-template<typename _L,
-         typename _R>
+template<typename L,
+         typename R>
 inline bool
 operator==(
-    const either<_L, _R>& _a,
-    const either<_L, _R>& _b
+    const either<L, R>& _a,
+    const either<L, R>& _b
 )
 {
     if (_a.is_left() != _b.is_left())
@@ -170,12 +177,12 @@ operator==(
     return (_a.right_value() == _b.right_value());
 }
 
-template<typename _L,
-         typename _R>
+template<typename L,
+         typename R>
 inline bool
 operator!=(
-    const either<_L, _R>& _a,
-    const either<_L, _R>& _b
+    const either<L, R>& _a,
+    const either<L, R>& _b
 )
 {
     return (!(_a == _b));
@@ -192,21 +199,21 @@ operator!=(
 //
 //     using is_specialized = std::true_type;
 //     using value_type     = ...                       inner A
-//     template<typename _U> using rebind = F<_U>;
+//     template<typename U> using rebind = F<U>;
 //
 //     // select : F<either<L, R>> -> F<L -> R> -> F<R>
-//     template<typename _L, typename _R, typename _FunctionEffect>
-//     static F<_R> select(
-//         const F<either<_L, _R>>& fab,
-//         const _FunctionEffect&   ff
+//     template<typename L, typename R, typename FunctionEffect>
+//     static F<R> select(
+//         const F<either<L, R>>& fab,
+//         const FunctionEffect&   ff
 //     );
 //
 //   The second template parameter is a SFINAE hook so a monad-to-
 // selective bridge can supply the protocol for every Monad without
 // per-type specialisation.  The primary is left undefined so use
 // on a non-selective produces a clean resolution error.
-template<typename _Selective,
-         typename _Enable = void>
+template<typename Selective,
+         typename Enable = void>
 struct selective_traits;
 
 
@@ -220,89 +227,89 @@ NS_INTERNAL
     //   helper: SFINAE detector for whether selective_traits<T> is
     // specialised.  Looks for the is_specialized marker every
     // specialisation provides.
-    template<typename _Type>
+    template<typename Type>
     struct is_selective_helper
     {
     private:
-        template<typename _T>
+        template<typename T>
         static auto test(int)
             -> decltype(
-                typename selective_traits<_T>::is_specialized{},
+                typename selective_traits<T>::is_specialized{},
                 std::true_type{});
 
         template<typename>
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 // is_selective
-//   trait: true iff _Type has a specialised selective_traits.
-template<typename _Type>
+//   trait: true iff Type has a specialised selective_traits.
+template<typename Type>
 struct is_selective
     : internal::is_selective_helper<
-          typename std::decay<_Type>::type>::type
+          typename std::decay<Type>::type>::type
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     static constexpr bool is_selective_v =
-        is_selective<_Type>::value;
+        is_selective<Type>::value;
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // Selective
-    //   concept: satisfied when _Type is a specialised selective.
-    template<typename _Type>
-    concept Selective = is_selective<_Type>::value;
+    //   concept: satisfied when Type is a specialised selective.
+    template<typename Type>
+    concept Selective = is_selective<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 // ================================================================
-//  IV.  selective_traits<_M>  monad bridge
+//  IV.  selective_traits<M>  monad bridge
 // ================================================================
 
-// selective_traits<_Monad>
+// selective_traits<Monad>
 //   specialisation: every monad is a selective.  select is bind
 // followed by case-analysis: on Right return pure(r), on Left bind
 // the handler and apply it.  Provided here so maybe, result,
 // parser, and any future monad participate as selectives with no
 // per-type code.  Concrete carriers wishing a non-monadic selective
 // instance supply a non-overlapping specialisation.
-template<typename _Monad>
+template<typename Monad>
 struct selective_traits<
-    _Monad,
-    typename std::enable_if<is_monad<_Monad>::value>::type>
+    Monad,
+    typename std::enable_if<is_monad<Monad>::value>::type>
 {
     using is_specialized = std::true_type;
-    using value_type     = typename monad_value_type<_Monad>::type;
+    using value_type     = typename monad_value_type<Monad>::type;
 
-    template<typename _U>
-    using rebind = typename monad_rebind<_Monad, _U>::type;
+    template<typename U>
+    using rebind = typename monad_rebind<Monad, U>::type;
 
     // select
     //   selective select via monadic bind.
-    template<typename _L,
-             typename _R,
-             typename _FunctionEffect>
+    template<typename L,
+             typename R,
+             typename FunctionEffect>
     static
-    typename monad_rebind<_Monad, _R>::type
+    typename monad_rebind<Monad, R>::type
     select(
         const typename monad_rebind<
-            _Monad, either<_L, _R>>::type& _disc,
-        const _FunctionEffect&             _handler
+            Monad, either<L, R>>::type& _disc,
+        const FunctionEffect&             _handler
     )
     {
-        using r_effect = typename monad_rebind<_Monad, _R>::type;
+        using r_effect = typename monad_rebind<Monad, R>::type;
 
         return ::djinterp::monad_bind(
             _disc,
-            [_handler](const either<_L, _R>& _e) -> r_effect
+            [_handler](const either<L, R>& _e) -> r_effect
             {
                 if (_e.is_right())
                 {
@@ -310,11 +317,11 @@ struct selective_traits<
                         _e.right_value());
                 }
 
-                _L l_val = _e.left_value();
+                L l_val = _e.left_value();
 
                 return ::djinterp::monad_bind(
                     _handler,
-                    [l_val](const std::function<_R(_L)>& _fn)
+                    [l_val](const std::function<R(L)>& _fn)
                         -> r_effect
                     {
                         return ::djinterp::pure<r_effect>(
@@ -332,21 +339,21 @@ struct selective_traits<
 // selective_select
 //   function: the protocol entry point.  Delegates to
 // selective_traits<F>::select after verifying participation.
-template<typename _DiscEffect,
-         typename _FunctionEffect>
+template<typename DiscEffect,
+         typename FunctionEffect>
 D_NODISCARD
 auto selective_select(
-    const _DiscEffect&     _disc,
-    const _FunctionEffect& _handler
+    const DiscEffect&     _disc,
+    const FunctionEffect& _handler
 )
--> decltype(selective_traits<_DiscEffect>::select(
+-> decltype(selective_traits<DiscEffect>::select(
        _disc, _handler))
 {
-    static_assert(is_selective<_DiscEffect>::value,
-                  "selective_select: _DiscEffect must be a "
+    static_assert(is_selective<DiscEffect>::value,
+                  "selective_select: DiscEffect must be a "
                   "registered selective");
 
-    return selective_traits<_DiscEffect>::select(_disc, _handler);
+    return selective_traits<DiscEffect>::select(_disc, _handler);
 }
 
 
@@ -360,33 +367,33 @@ auto selective_select(
 // appropriate handler depending on the arm.  Implemented by two
 // nested selects: the first reshapes the Either so the second can
 // route the surviving arm through the Right handler.
-template<typename _DiscEffect,
-         typename _LeftEffect,
-         typename _RightEffect>
+template<typename DiscEffect,
+         typename LeftEffect,
+         typename RightEffect>
 D_NODISCARD
 auto selective_branch(
-    const _DiscEffect&  _disc,
-    const _LeftEffect&  _fl,
-    const _RightEffect& _fr
+    const DiscEffect&  _disc,
+    const LeftEffect&  _fl,
+    const RightEffect& _fr
 )
 -> typename monad_rebind<
-       _DiscEffect,
+       DiscEffect,
        typename std::decay<decltype(
-           std::declval<typename _LeftEffect::value_type>()(
-               std::declval<typename _DiscEffect::value_type
+           std::declval<typename LeftEffect::value_type>()(
+               std::declval<typename DiscEffect::value_type
                    ::left_type>()))>::type>::type
 {
-    using disc_value = typename _DiscEffect::value_type;
+    using disc_value = typename DiscEffect::value_type;
     using L = typename disc_value::left_type;
     using R = typename disc_value::right_type;
     using C = typename std::decay<decltype(
-        std::declval<typename _LeftEffect::value_type>()(
+        std::declval<typename LeftEffect::value_type>()(
             std::declval<L>()))>::type;
     using either_RC  = either<R, C>;
     using mid_effect =
-        typename monad_rebind<_DiscEffect, either_RC>::type;
+        typename monad_rebind<DiscEffect, either_RC>::type;
     using r_effect =
-        typename monad_rebind<_DiscEffect, C>::type;
+        typename monad_rebind<DiscEffect, C>::type;
 
     // First pass: bind on _disc, route Left through _fl into
     // Right(C), and Right(r) into Left(r) for the next select.
@@ -421,23 +428,23 @@ auto selective_branch(
 //   function: ifS — a Boolean-discriminated branch.  Given F<bool>,
 // F<A>, F<A>, return whichever branch the bool selects.  Unlike
 // the pure-applicative `if`, only the chosen branch is run.
-template<typename _CondEffect,
-         typename _ThenEffect,
-         typename _ElseEffect>
+template<typename CondEffect,
+         typename ThenEffect,
+         typename ElseEffect>
 D_NODISCARD
 auto selective_if_s(
-    const _CondEffect& _cond,
-    const _ThenEffect& _then,
-    const _ElseEffect& _else
+    const CondEffect& _cond,
+    const ThenEffect& _then,
+    const ElseEffect& _else
 )
--> _ThenEffect
+-> ThenEffect
 {
-    static_assert(is_selective<_CondEffect>::value,
-                  "selective_if_s: _CondEffect must be selective");
+    static_assert(is_selective<CondEffect>::value,
+                  "selective_if_s: CondEffect must be selective");
 
     return ::djinterp::monad_bind(
         _cond,
-        [_then, _else](bool _b) -> _ThenEffect
+        [_then, _else](bool _b) -> ThenEffect
         {
             return _b ? _then : _else;
         });
@@ -448,16 +455,16 @@ auto selective_if_s(
 //   function: whenS — run the effect only when the condition is
 // true; otherwise leave it.  Returns a bool indicating whether the
 // effect was run.
-template<typename _CondEffect,
-         typename _Effect>
+template<typename CondEffect,
+         typename Effect>
 D_NODISCARD
 auto selective_when_s(
-    const _CondEffect& _cond,
-    const _Effect&     _eff
+    const CondEffect& _cond,
+    const Effect&     _eff
 )
--> typename monad_rebind<_CondEffect, bool>::type
+-> typename monad_rebind<CondEffect, bool>::type
 {
-    using r_effect = typename monad_rebind<_CondEffect, bool>::type;
+    using r_effect = typename monad_rebind<CondEffect, bool>::type;
 
     return ::djinterp::monad_bind(
         _cond,
@@ -467,7 +474,7 @@ auto selective_when_s(
             {
                 return ::djinterp::monad_bind(
                     _eff,
-                    [](const typename _Effect::value_type& /*_v*/)
+                    [](const typename Effect::value_type& /*_v*/)
                         -> r_effect
                     {
                         return ::djinterp::pure<r_effect>(true);
@@ -481,5 +488,7 @@ auto selective_when_s(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_SELECTIVE_
+
+#endif  // DJINTERP_PARSE_SELECTIVE_HPP

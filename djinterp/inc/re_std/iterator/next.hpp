@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                              next.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                     next.hpp
 *
+* next function header:
 * next(_it, _n=1) returns a copy of _it advanced by _n positions.
 * Convenience wrapper around advance() that takes the iterator by
 * value and returns the result.
@@ -8,18 +9,20 @@
 * added in std C++11.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/next.hpp
+* path:      /inc/re_std/iterator/next.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_NEXT_
-#define DJINTERP_RE_STD_ITERATOR_NEXT_ 1
+#ifndef RE_STD_ITERATOR_NEXT_HPP
+#define RE_STD_ITERATOR_NEXT_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/iterator/iterator_traits.hpp"
     #include "re_std/iterator/advance.hpp"
@@ -28,11 +31,11 @@
 namespace re_std
 {
 
-template<typename _It>
-D_CONSTEXPR _It next
+template<typename It>
+RE_STD_CONSTEXPR_CPP14 It next
 (
-    _It _it,
-    typename iterator_traits<_It>::difference_type _n = 1
+    It _it,
+    typename iterator_traits<It>::difference_type _n = 1
 )
 {
     re_std::advance(_it, _n);
@@ -40,8 +43,7 @@ D_CONSTEXPR _It next
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_NEXT_
+#endif  // RE_STD_ITERATOR_NEXT_HPP

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                    high_resolution_clock.hpp
 *
 * the high_resolution_clock typedef:
@@ -27,31 +27,33 @@
 * for generic code that names it, not as a recommendation.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/high_resolution_clock.hpp
+* path:      /inc/re_std/chrono/high_resolution_clock.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_HIGH_RESOLUTION_CLOCK_
-#define DJINTERP_RE_STD_CHRONO_HIGH_RESOLUTION_CLOCK_ 1
+#ifndef RE_STD_CHRONO_HIGH_RESOLUTION_CLOCK_HPP
+#define RE_STD_CHRONO_HIGH_RESOLUTION_CLOCK_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./steady_clock.hpp"
 #include "./system_clock.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
-#if D_RE_STD_HAS_MONOTONIC_CLOCK
+#if RE_STD_HAS_MONOTONIC_CLOCK
 
     // high_resolution_clock
     //   typedef: steady_clock. A steady source is available, so the
@@ -70,10 +72,10 @@ namespace chrono
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_HIGH_RESOLUTION_CLOCK_
+#endif  // RE_STD_CHRONO_HIGH_RESOLUTION_CLOCK_HPP

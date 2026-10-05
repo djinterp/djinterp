@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 count_if.hpp
 *
 * count_if algorithm header:
@@ -12,16 +12,17 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/count_if.hpp
+* path:      /inc/re_std/algorithm/count_if.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_COUNT_IF_
-#define DJINTERP_RE_STD_ALGORITHM_COUNT_IF_ 1
+#ifndef RE_STD_ALGORITHM_COUNT_IF_HPP
+#define RE_STD_ALGORITHM_COUNT_IF_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../iterator/iterator_traits.hpp"
 
@@ -30,16 +31,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -49,16 +43,16 @@ NS_RESTD
 // count_if
 //   function: returns the number of elements in [_first, _last) for
 // which _pred returns true.
-template<typename _InputIt,
-         typename _Pred>
-D_CONSTEXPR_CPP14 typename iterator_traits<_InputIt>::difference_type
+template<typename InputIt,
+         typename Pred>
+RE_STD_CONSTEXPR_CPP14 typename iterator_traits<InputIt>::difference_type
 count_if(
-    _InputIt _first,
-    _InputIt _last,
-    _Pred    _pred
+    InputIt _first,
+    InputIt _last,
+    Pred    _pred
 )
 {
-    typename iterator_traits<_InputIt>::difference_type _result = 0;
+    typename iterator_traits<InputIt>::difference_type _result = 0;
 
     for (; _first != _last; ++_first)
     {
@@ -72,7 +66,7 @@ count_if(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_COUNT_IF_
+#endif  // RE_STD_ALGORITHM_COUNT_IF_HPP

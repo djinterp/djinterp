@@ -1,8 +1,20 @@
-#include "./swap.h"
+/*******************************************************************************
+* djinterp [c]                                                            swap.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/util/swap.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.10.03
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/util/swap.h"
 
 // std
-#include <stdint.h>
 #include <string.h>
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 
 // D_INTERNAL_SWAP_BLOCK

@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                         transform_exclusive_scan.hpp
+/*******************************************************************************
+* djinterp [re_std]                                 transform_exclusive_scan.hpp
 *
 * like exclusive_scan but applies _unary_op to each input before
 * folding:
@@ -9,49 +9,42 @@
 *   d[i] = bin_op(d[i-1],  unary(src[i-1]))
 *
 *
-* path:      /inc/djinterp/re_std/numeric/transform_exclusive_scan.hpp
+* path:      /inc/re_std/numeric/transform_exclusive_scan.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_TRANSFORM_EXCLUSIVE_SCAN_
-#define DJINTERP_RE_STD_NUMERIC_TRANSFORM_EXCLUSIVE_SCAN_ 1
+#ifndef RE_STD_NUMERIC_TRANSFORM_EXCLUSIVE_SCAN_HPP
+#define RE_STD_NUMERIC_TRANSFORM_EXCLUSIVE_SCAN_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/utility/move.hpp"
-
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
 
 namespace re_std
 {
 
-template<typename _InputIt, typename _OutputIt, typename _T,
-         typename _BinOp, typename _UnaryOp>
-D_CONSTEXPR_CPP14 _OutputIt transform_exclusive_scan
+template<typename InputIt, typename OutputIt, typename T,
+         typename BinOp, typename UnaryOp>
+RE_STD_CONSTEXPR_CPP14 OutputIt transform_exclusive_scan
 (
-    _InputIt    _first,
-    _InputIt    _last,
-    _OutputIt   _d_first,
-    _T          _init,
-    _BinOp      _bin_op,
-    _UnaryOp    _unary_op
+    InputIt    _first,
+    InputIt    _last,
+    OutputIt   _d_first,
+    T          _init,
+    BinOp      _bin_op,
+    UnaryOp    _unary_op
 )
 {
     while (_first != _last)
     {
-        _T _next = _bin_op(_init, _unary_op(*_first));
+        T _next = _bin_op(_init, _unary_op(*_first));
         *_d_first = re_std::move(_init);
         _init = re_std::move(_next);
         ++_first;
@@ -61,8 +54,7 @@ D_CONSTEXPR_CPP14 _OutputIt transform_exclusive_scan
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_NUMERIC_TRANSFORM_EXCLUSIVE_SCAN_
+#endif  // RE_STD_NUMERIC_TRANSFORM_EXCLUSIVE_SCAN_HPP

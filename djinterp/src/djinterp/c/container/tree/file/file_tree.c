@@ -1,4 +1,18 @@
+/*******************************************************************************
+* djinterp [c]                                                       file_tree.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/container/tree/file/file_tree.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.29
+*******************************************************************************/
 #include "../../../../../../inc/djinterp/c/container/tree/file/file_tree.h"
+
+// djinterp
+#include "../../../../../../inc/djinterp/c/string_fn.h"  // d_strdup, d_strtok_r
 
 
 // D_FILE_TREE_DEFAULT_CHILD_CAPACITY
@@ -9,6 +23,9 @@
 
 /*******************************************************************************
 * Internal helpers
+*
+*
+* path:      /src/djinterp/c/container/tree/file/file_tree.c
 *******************************************************************************/
 
 /*
@@ -318,11 +335,11 @@ d_file_tree_internal_split_parent_child
 name. The caller must free the returned strings.
 
 Parameter(s):
-  _path:        the full path to split.
-  _separator:   the path separator character.
-  _parent_out:  receives a newly allocated string for the parent portion
-                (empty string if the path has no separator).
-  _child_out:   receives a newly allocated string for the final component.
+  _path:       the full path to split.
+  _separator:  the path separator character.
+  _parent_out: receives a newly allocated string for the parent portion (empty
+               string if the path has no separator).
+  _child_out:  receives a newly allocated string for the final component.
 Return:
   0 on success, -1 on failure.
 */
@@ -1059,13 +1076,13 @@ d_file_tree_new_from_path
     }
 
     // verify the path is a directory
-    if (!d_is_dir(_filesystem_path))
+    if (!d_dir_exists(_filesystem_path))
     {
         return NULL;
     }
 
     // extract the directory's own name for the tree root
-    root_name = d_basename(_filesystem_path,
+    root_name = d_path_basename(_filesystem_path,
                            name_buf,
                            sizeof(name_buf));
 
@@ -1083,7 +1100,7 @@ d_file_tree_new_from_path
         return NULL;
     }
 
-    dir = d_opendir(_filesystem_path);
+    dir = d_dir_open(_filesystem_path);
     if (!dir)
     {
         d_file_tree_free(tree);
@@ -1091,14 +1108,14 @@ d_file_tree_new_from_path
         return NULL;
     }
 
-    entry = d_readdir(dir);
+    entry = d_dir_read(dir);
     while (entry)
     {
         // skip . and ..
         if ( (strcmp(entry->d_name, ".") == 0) ||
              (strcmp(entry->d_name, "..") == 0) )
         {
-            entry = d_readdir(dir);
+            entry = d_dir_read(dir);
             continue;
         }
 
@@ -1143,7 +1160,7 @@ d_file_tree_new_from_path
 
             target_buf[0] = '\0';
 #if D_FILE_HAS_SYMLINKS
-            link_len = d_readlink(child_path,
+            link_len = d_file_readlink(child_path,
                                   target_buf,
                                   D_FILE_PATH_MAX);
             if ( (link_len > 0) &&
@@ -1171,11 +1188,11 @@ d_file_tree_new_from_path
             {
                 // populate file metadata
                 struct d_stat_t st;
-                if (d_stat(child_path, &st) == 0)
+                if (d_file_stat(child_path, &st) == 0)
                 {
                     child_node->file_size = st.st_size;
                     child_node->mode      = st.st_mode;
-                    child_node->mtime     = st.st_mtime;
+                    child_node->mtime     = st.st_modified;
                 }
 
                 d_file_tree_internal_dir_add_child(tree->root,
@@ -1184,10 +1201,10 @@ d_file_tree_new_from_path
             }
         }
 
-        entry = d_readdir(dir);
+        entry = d_dir_read(dir);
     }
 
-    d_closedir(dir);
+    d_dir_close(dir);
 
     return tree;
 }

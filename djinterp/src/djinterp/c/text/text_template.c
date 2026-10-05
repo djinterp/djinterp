@@ -1,15 +1,66 @@
-#include "../../../inc/c/text/text_template.h"
+/*******************************************************************************
+* djinterp [c]                                                   text_template.c
+*
+*
+* path:      /src/djinterp/c/text/text_template.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.29
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/text/text_template.h"
 
+
+// =============================================================================
+// Forward declarations for internal helpers
+// =============================================================================
+static void
+d_internal_template_free_binding(struct d_text_template_binding* _binding);
+
+static int
+d_internal_template_find_binding(const struct d_text_template* _template,
+                                 const char*                   _key);
+
+static enum d_text_template_error
+d_internal_template_ensure_capacity(struct d_text_template* _template);
+
+static enum d_text_template_error
+d_internal_template_resolve_value(const struct d_text_template*         _template,
+                                  const struct d_text_template_binding* _binding,
+                                  char**                                _result,
+                                  size_t*                               _length,
+                                  size_t                                _depth);
+
+static enum d_text_template_error
+d_internal_template_build_interp_context(const struct d_text_template* _template,
+                                         struct d_str_interp_context*  _context,
+                                         size_t                        _depth);
+
+static void
+d_internal_template_format_padded(char*  _buf,
+                                  size_t _buf_size,
+                                  size_t _number,
+                                  size_t _width,
+                                  char   _pad_char);
+
+static size_t
+d_internal_template_digit_count(size_t _value);
+
+
+// =============================================================================
+// Template Lifecycle
+// =============================================================================
 
 /*
 d_text_template_new
-  Creates a new text template with default marker configuration ("%"/"%").
+  Allocate and initialize a new template with default markers ("%"/"%"
+from D_TEXT_TEMPLATE_DEFAULT_PREFIX/SUFFIX), an empty binding array of
+D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY slots, and max nesting depth of
+D_TEXT_TEMPLATE_DEFAULT_NESTING_DEPTH.
 
 Parameter(s):
   none.
 Return:
-  A pointer to a newly allocated d_text_template, or NULL if allocation
-failed.
+  A non-NULL pointer on success, or NULL on allocation failure.
 */
 struct d_text_template*
 d_text_template_new
@@ -27,37 +78,66 @@ d_text_template_new
         return NULL;
     }
 
-    // initialize bindings
-    tmpl->binding_count = 0;
-    memset(tmpl->bindings,
-           0,
-           sizeof(tmpl->bindings));
+    // allocate the binding array
+    tmpl->bindings = malloc(D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY
+                            * sizeof(struct d_text_template_binding));
+    if (!tmpl->bindings)
+    {
+        free(tmpl);
 
-    // set default markers
-    memcpy(tmpl->marker.prefix,
-           D_TEXT_TEMPLATE_DEFAULT_PREFIX,
-           sizeof(D_TEXT_TEMPLATE_DEFAULT_PREFIX));
-    tmpl->marker.prefix_length = sizeof(D_TEXT_TEMPLATE_DEFAULT_PREFIX) - 1;
+        return NULL;
+    }
 
-    memcpy(tmpl->marker.suffix,
-           D_TEXT_TEMPLATE_DEFAULT_SUFFIX,
-           sizeof(D_TEXT_TEMPLATE_DEFAULT_SUFFIX));
-    tmpl->marker.suffix_length = sizeof(D_TEXT_TEMPLATE_DEFAULT_SUFFIX) - 1;
+    // zero out the binding array
+    d_memset(tmpl->bindings,
+             0,
+             D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY
+             * sizeof(struct d_text_template_binding));
+
+    tmpl->binding_count    = 0;
+    tmpl->binding_capacity = D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY;
+    tmpl->max_nesting_depth = D_TEXT_TEMPLATE_DEFAULT_NESTING_DEPTH;
+
+    // set default markers (heap-allocated via d_strdup)
+    tmpl->marker.prefix = d_strdup(D_TEXT_TEMPLATE_DEFAULT_PREFIX);
+    if (!tmpl->marker.prefix)
+    {
+        free(tmpl->bindings);
+        free(tmpl);
+
+        return NULL;
+    }
+
+    tmpl->marker.prefix_length = d_strnlen(D_TEXT_TEMPLATE_DEFAULT_PREFIX,
+                                            64);
+
+    tmpl->marker.suffix = d_strdup(D_TEXT_TEMPLATE_DEFAULT_SUFFIX);
+    if (!tmpl->marker.suffix)
+    {
+        free(tmpl->marker.prefix);
+        free(tmpl->bindings);
+        free(tmpl);
+
+        return NULL;
+    }
+
+    tmpl->marker.suffix_length = d_strnlen(D_TEXT_TEMPLATE_DEFAULT_SUFFIX,
+                                            64);
 
     return tmpl;
 }
 
 /*
 d_text_template_new_with_markers
-  Creates a new text template with the specified prefix and suffix marker
-strings.
+  Allocate and initialize a new template with the specified prefix and
+suffix marker strings. Both are duplicated via d_strdup from string_fn.h.
 
 Parameter(s):
-  _prefix: the prefix marker string (e.g., "{{", "${", "%").
-  _suffix: the suffix marker string (e.g., "}}", "}", "%").
+  _prefix: prefix marker string (null-terminated); must not be NULL.
+  _suffix: suffix marker string (null-terminated); must not be NULL.
 Return:
-  A pointer to a newly allocated d_text_template, or NULL if allocation
-failed or markers are invalid.
+  A non-NULL pointer on success, or NULL on allocation failure or NULL
+params.
 */
 struct d_text_template*
 d_text_template_new_with_markers
@@ -88,7 +168,7 @@ d_text_template_new_with_markers
                                     _prefix,
                                     _suffix) != D_TEXT_TEMPLATE_SUCCESS)
     {
-        free(tmpl);
+        d_text_template_free(tmpl);
 
         return NULL;
     }
@@ -99,6 +179,10 @@ d_text_template_new_with_markers
 /*
 d_internal_template_free_binding
   Internal function to free the resources owned by a single binding.
+Frees the key string and, for string bindings, the value string. For
+list bindings, frees the copied separator and empty_text strings from
+the options. Template pointers, function contexts, and list item
+templates are not owned and are not freed.
 
 Parameter(s):
   _binding: the binding to free resources for.
@@ -111,19 +195,35 @@ d_internal_template_free_binding
     struct d_text_template_binding* _binding
 )
 {
+    // free the key
     if (_binding->key)
     {
         free(_binding->key);
         _binding->key = NULL;
     }
 
-    // free string value if applicable (template pointers are not owned)
+    // free type-specific resources
     if (_binding->type == D_TEXT_TEMPLATE_BINDING_STRING)
     {
         if (_binding->value.string.text)
         {
             free(_binding->value.string.text);
             _binding->value.string.text = NULL;
+        }
+    }
+    else if (_binding->type == D_TEXT_TEMPLATE_BINDING_LIST)
+    {
+        // free copied option strings (cast away const for free)
+        if (_binding->value.list.options.separator)
+        {
+            free((void*)_binding->value.list.options.separator);
+            _binding->value.list.options.separator = NULL;
+        }
+
+        if (_binding->value.list.options.empty_text)
+        {
+            free((void*)_binding->value.list.options.empty_text);
+            _binding->value.list.options.empty_text = NULL;
         }
     }
 
@@ -135,8 +235,11 @@ d_internal_template_free_binding
 
 /*
 d_text_template_free
-  Frees a text template and all owned resources. Does not free nested
-template pointers (those are not owned).
+  Free a template and all owned resources. Frees the marker strings,
+all binding keys and string values (via string_fn.h), and the binding
+array itself (via dmemory.h). Does not free referenced templates,
+function contexts, or list item templates (these are not owned).
+NULL-safe.
 
 Parameter(s):
   _template: the template to free; may be NULL.
@@ -153,10 +256,27 @@ d_text_template_free
 
     if (_template)
     {
+        // free marker strings
+        if (_template->marker.prefix)
+        {
+            free(_template->marker.prefix);
+        }
+
+        if (_template->marker.suffix)
+        {
+            free(_template->marker.suffix);
+        }
+
         // free all binding resources
         for (i = 0; i < _template->binding_count; i++)
         {
             d_internal_template_free_binding(&_template->bindings[i]);
+        }
+
+        // free the binding array
+        if (_template->bindings)
+        {
+            free(_template->bindings);
         }
 
         free(_template);
@@ -167,8 +287,10 @@ d_text_template_free
 
 /*
 d_text_template_clear
-  Clears all bindings from a template without freeing the template itself.
-Marker configuration is preserved.
+  Remove all bindings from a template without freeing the template
+itself. Frees all binding keys and string values. Resets binding_count
+to 0 but retains the allocated binding_capacity. Does not modify
+markers or max_nesting_depth. NULL-safe.
 
 Parameter(s):
   _template: the template to clear; may be NULL.
@@ -191,18 +313,27 @@ d_text_template_clear
             d_internal_template_free_binding(&_template->bindings[i]);
         }
 
-        memset(_template->bindings,
-               0,
-               sizeof(_template->bindings));
+        // zero out the binding slots
+        d_memset(_template->bindings,
+                 0,
+                 _template->binding_capacity
+                 * sizeof(struct d_text_template_binding));
         _template->binding_count = 0;
     }
 
     return;
 }
 
+
+// =============================================================================
+// Marker Configuration
+// =============================================================================
+
 /*
 d_text_template_set_markers
-  Sets the prefix and suffix marker strings for a template.
+  Sets the prefix and suffix marker strings for a template. Frees the
+old marker strings and duplicates the new ones via d_strdup from
+string_fn.h. Empty strings are not allowed.
 
 Parameter(s):
   _template: the template to configure.
@@ -221,6 +352,8 @@ d_text_template_set_markers
 {
     size_t prefix_len;
     size_t suffix_len;
+    char*  new_prefix;
+    char*  new_suffix;
 
     // validate parameters
     if ( (!_template) ||
@@ -230,24 +363,46 @@ d_text_template_set_markers
         return D_TEXT_TEMPLATE_ERROR_NULL_PARAM;
     }
 
-    prefix_len = strlen(_prefix);
-    suffix_len = strlen(_suffix);
+    prefix_len = d_strnlen(_prefix, 256);
+    suffix_len = d_strnlen(_suffix, 256);
 
-    // validate lengths
+    // validate lengths (empty markers are invalid)
     if ( (prefix_len == 0) ||
-         (prefix_len >= D_TEXT_TEMPLATE_MAX_MARKER_LENGTH) ||
-         (suffix_len == 0) ||
-         (suffix_len >= D_TEXT_TEMPLATE_MAX_MARKER_LENGTH) )
+         (suffix_len == 0) )
     {
         return D_TEXT_TEMPLATE_ERROR_INVALID_MARKER;
     }
 
-    // copy prefix
-    memcpy(_template->marker.prefix, _prefix, prefix_len + 1);
-    _template->marker.prefix_length = prefix_len;
+    // duplicate new markers before freeing old ones
+    new_prefix = d_strdup(_prefix);
+    if (!new_prefix)
+    {
+        return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+    }
 
-    // copy suffix
-    memcpy(_template->marker.suffix, _suffix, suffix_len + 1);
+    new_suffix = d_strdup(_suffix);
+    if (!new_suffix)
+    {
+        free(new_prefix);
+
+        return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+    }
+
+    // free old markers
+    if (_template->marker.prefix)
+    {
+        free(_template->marker.prefix);
+    }
+
+    if (_template->marker.suffix)
+    {
+        free(_template->marker.suffix);
+    }
+
+    // assign new markers
+    _template->marker.prefix        = new_prefix;
+    _template->marker.prefix_length = prefix_len;
+    _template->marker.suffix        = new_suffix;
     _template->marker.suffix_length = suffix_len;
 
     return D_TEXT_TEMPLATE_SUCCESS;
@@ -299,13 +454,151 @@ d_text_template_get_suffix
     return _template->marker.suffix;
 }
 
+
+// =============================================================================
+// Nesting Depth Configuration
+// =============================================================================
+
+/*
+d_text_template_set_max_depth
+  Sets the maximum recursion depth for nested template expansion. This
+limit applies to all nesting mechanisms: nested template bindings,
+function bindings, and list bindings.
+
+Parameter(s):
+  _template: the template to configure.
+  _depth:    the new maximum nesting depth.
+Return:
+  D_TEXT_TEMPLATE_SUCCESS on success, or D_TEXT_TEMPLATE_ERROR_NULL_PARAM
+if _template is NULL.
+*/
+enum d_text_template_error
+d_text_template_set_max_depth
+(
+    struct d_text_template* _template,
+    size_t                  _depth
+)
+{
+    if (!_template)
+    {
+        return D_TEXT_TEMPLATE_ERROR_NULL_PARAM;
+    }
+
+    _template->max_nesting_depth = _depth;
+
+    return D_TEXT_TEMPLATE_SUCCESS;
+}
+
+/*
+d_text_template_get_max_depth
+  Returns the maximum recursion depth configured for this template.
+
+Parameter(s):
+  _template: the template to query.
+Return:
+  The max nesting depth, or 0 if _template is NULL.
+*/
+size_t
+d_text_template_get_max_depth
+(
+    const struct d_text_template* _template
+)
+{
+    if (!_template)
+    {
+        return 0;
+    }
+
+    return _template->max_nesting_depth;
+}
+
+
+// =============================================================================
+// Internal: binding array capacity management
+// =============================================================================
+
+/*
+d_internal_template_ensure_capacity
+  Ensures the binding array has room for at least one more binding. If
+the array is full (binding_count == binding_capacity), doubles the
+capacity by allocating a new array via malloc, copying existing bindings
+with d_memcpy from dmemory.h, zeroing new slots with d_memset, and
+freeing the old array.
+
+Parameter(s):
+  _template: the template whose binding array to grow if needed.
+Return:
+  D_TEXT_TEMPLATE_SUCCESS on success, or
+D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED if the new array could not be
+allocated.
+*/
+static enum d_text_template_error
+d_internal_template_ensure_capacity
+(
+    struct d_text_template* _template
+)
+{
+    size_t                          new_capacity;
+    struct d_text_template_binding* new_bindings;
+
+    // check if there is room
+    if (_template->binding_count < _template->binding_capacity)
+    {
+        return D_TEXT_TEMPLATE_SUCCESS;
+    }
+
+    // double the capacity
+    new_capacity = _template->binding_capacity * 2;
+    if (new_capacity < D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY)
+    {
+        new_capacity = D_TEXT_TEMPLATE_DEFAULT_BINDING_CAPACITY;
+    }
+
+    // allocate new binding array
+    new_bindings = malloc(new_capacity
+                          * sizeof(struct d_text_template_binding));
+    if (!new_bindings)
+    {
+        return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+    }
+
+    // copy existing bindings
+    if ( (_template->bindings) &&
+         (_template->binding_count > 0) )
+    {
+        d_memcpy(new_bindings,
+                 _template->bindings,
+                 _template->binding_count
+                 * sizeof(struct d_text_template_binding));
+    }
+
+    // zero the new slots
+    d_memset(new_bindings + _template->binding_count,
+             0,
+             (new_capacity - _template->binding_count)
+             * sizeof(struct d_text_template_binding));
+
+    // free old array and assign new
+    free(_template->bindings);
+    _template->bindings         = new_bindings;
+    _template->binding_capacity = new_capacity;
+
+    return D_TEXT_TEMPLATE_SUCCESS;
+}
+
+
+// =============================================================================
+// Internal: binding lookup
+// =============================================================================
+
 /*
 d_internal_template_find_binding
-  Internal function to find a binding by key name.
+  Internal function to find a binding by key name using d_strequals
+from string_fn.h for length-aware comparison.
 
 Parameter(s):
   _template: the template to search.
-  _key:      the key name to find.
+  _key:      the key name to find (null-terminated).
 Return:
   The index of the binding if found, or -1 if not found.
 */
@@ -319,15 +612,15 @@ d_internal_template_find_binding
     size_t i;
     size_t key_len;
 
-    key_len = strlen(_key);
+    key_len = d_strnlen(_key, 4096);
 
-    // search through all bindings
+    // search through all bindings using d_strequals
     for (i = 0; i < _template->binding_count; i++)
     {
-        if ( (_template->bindings[i].key_length == key_len) &&
-             (memcmp(_template->bindings[i].key,
-                     _key,
-                     key_len) == 0) )
+        if (d_strequals(_template->bindings[i].key,
+                        _template->bindings[i].key_length,
+                        _key,
+                        key_len))
         {
             return (int)i;
         }
@@ -336,17 +629,28 @@ d_internal_template_find_binding
     return -1;
 }
 
+
+// =============================================================================
+// Binding Management
+// =============================================================================
+
 /*
 d_text_template_bind_string
-  Binds a key to a plain string value. If the key already exists, its value
-is updated.
+  Bind a key to a string value. Both key and value are duplicated via
+d_strdup / d_strndup from string_fn.h. If a binding with the same key
+already exists (compared via d_strequals), it is replaced. The binding
+array grows automatically via dmemory.h if capacity is exceeded.
 
 Parameter(s):
   _template: the template to add the binding to.
   _key:      the key name (null-terminated).
   _value:    the string value to bind (null-terminated).
 Return:
-  D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
+  D_TEXT_TEMPLATE_SUCCESS              : binding added or updated.
+  D_TEXT_TEMPLATE_ERROR_NULL_PARAM     : _template, _key, or _value is
+                                         NULL.
+  D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED : string duplication or array
+                                           growth failed.
 */
 enum d_text_template_error
 d_text_template_bind_string
@@ -367,8 +671,8 @@ d_text_template_bind_string
         return D_TEXT_TEMPLATE_ERROR_NULL_PARAM;
     }
 
-    key_len   = strlen(_key);
-    value_len = strlen(_value);
+    key_len   = d_strnlen(_key, 4096);
+    value_len = d_strnlen(_value, 1048576);
 
     return d_text_template_bind_string_n(_template,
                                          _key,
@@ -379,7 +683,9 @@ d_text_template_bind_string
 
 /*
 d_text_template_bind_string_n
-  Binds a key to a plain string value with explicit lengths.
+  Bind a key to a string value with explicit lengths. Uses d_strndup
+from string_fn.h for length-aware duplication, avoiding strlen calls
+when lengths are already known.
 
 Parameter(s):
   _template:     the template to add the binding to.
@@ -404,6 +710,7 @@ d_text_template_bind_string_n
     char*                           key_copy;
     char*                           value_copy;
     int                             existing;
+    enum d_text_template_error      err;
 
     // validate parameters
     if ( (!_template) ||
@@ -417,27 +724,27 @@ d_text_template_bind_string_n
     existing = d_internal_template_find_binding(_template, _key);
     if (existing >= 0)
     {
-        return d_text_template_update_string(_template, _key, _value);
+        return d_text_template_update_string(_template,
+                                             _key,
+                                             _value);
     }
 
-    // check if we have room
-    if (_template->binding_count >= D_TEXT_TEMPLATE_MAX_BINDINGS)
+    // ensure there is room in the binding array
+    err = d_internal_template_ensure_capacity(_template);
+    if (err != D_TEXT_TEMPLATE_SUCCESS)
     {
-        return D_TEXT_TEMPLATE_ERROR_TOO_MANY_BINDINGS;
+        return err;
     }
 
-    // allocate and copy key
-    key_copy = malloc(_key_length + 1);
+    // duplicate key
+    key_copy = d_strndup(_key, _key_length);
     if (!key_copy)
     {
         return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
     }
 
-    memcpy(key_copy, _key, _key_length);
-    key_copy[_key_length] = '\0';
-
-    // allocate and copy value
-    value_copy = malloc(_value_length + 1);
+    // duplicate value
+    value_copy = d_strndup(_value, _value_length);
     if (!value_copy)
     {
         free(key_copy);
@@ -445,14 +752,11 @@ d_text_template_bind_string_n
         return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
     }
 
-    memcpy(value_copy, _value, _value_length);
-    value_copy[_value_length] = '\0';
-
     // add the binding
-    binding                    = &_template->bindings[_template->binding_count];
-    binding->key               = key_copy;
-    binding->key_length        = _key_length;
-    binding->type              = D_TEXT_TEMPLATE_BINDING_STRING;
+    binding                      = &_template->bindings[_template->binding_count];
+    binding->key                 = key_copy;
+    binding->key_length          = _key_length;
+    binding->type                = D_TEXT_TEMPLATE_BINDING_STRING;
     binding->value.string.text   = value_copy;
     binding->value.string.length = _value_length;
 
@@ -486,6 +790,7 @@ d_text_template_bind_template
     char*                           key_copy;
     size_t                          key_len;
     int                             existing;
+    enum d_text_template_error      err;
 
     // validate parameters
     if ( (!_template) ||
@@ -495,20 +800,19 @@ d_text_template_bind_template
         return D_TEXT_TEMPLATE_ERROR_NULL_PARAM;
     }
 
+    key_len = d_strnlen(_key, 4096);
+
     // if key already exists, free old binding and reuse slot
     existing = d_internal_template_find_binding(_template, _key);
     if (existing >= 0)
     {
         d_internal_template_free_binding(&_template->bindings[existing]);
 
-        key_len  = strlen(_key);
-        key_copy = malloc(key_len + 1);
+        key_copy = d_strndup(_key, key_len);
         if (!key_copy)
         {
             return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
         }
-
-        memcpy(key_copy, _key, key_len + 1);
 
         _template->bindings[existing].key        = key_copy;
         _template->bindings[existing].key_length = key_len;
@@ -518,21 +822,19 @@ d_text_template_bind_template
         return D_TEXT_TEMPLATE_SUCCESS;
     }
 
-    // check if we have room
-    if (_template->binding_count >= D_TEXT_TEMPLATE_MAX_BINDINGS)
+    // ensure there is room in the binding array
+    err = d_internal_template_ensure_capacity(_template);
+    if (err != D_TEXT_TEMPLATE_SUCCESS)
     {
-        return D_TEXT_TEMPLATE_ERROR_TOO_MANY_BINDINGS;
+        return err;
     }
 
-    // allocate and copy key
-    key_len  = strlen(_key);
-    key_copy = malloc(key_len + 1);
+    // duplicate key
+    key_copy = d_strndup(_key, key_len);
     if (!key_copy)
     {
         return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
     }
-
-    memcpy(key_copy, _key, key_len + 1);
 
     // add the binding
     binding             = &_template->bindings[_template->binding_count];
@@ -542,6 +844,257 @@ d_text_template_bind_template
     binding->value.tmpl = _nested;
 
     _template->binding_count++;
+
+    return D_TEXT_TEMPLATE_SUCCESS;
+}
+
+/*
+d_text_template_bind_function
+  Binds a key to a user-supplied function that produces the replacement
+string at render time. The function callback and context are stored in
+the binding but NOT owned; the caller manages their lifetimes.
+
+Parameter(s):
+  _template: the template to add the binding to.
+  _key:      the key name (null-terminated).
+  _fn:       the callback invoked at render time; must not be NULL.
+  _context:  opaque user data passed to _fn (may be NULL).
+Return:
+  D_TEXT_TEMPLATE_SUCCESS on success, or an appropriate error code.
+*/
+enum d_text_template_error
+d_text_template_bind_function
+(
+    struct d_text_template* _template,
+    const char*             _key,
+    d_text_template_fn      _fn,
+    void*                   _context
+)
+{
+    struct d_text_template_binding* binding;
+    char*                           key_copy;
+    size_t                          key_len;
+    int                             existing;
+    enum d_text_template_error      err;
+
+    // validate parameters
+    if ( (!_template) ||
+         (!_key)      ||
+         (!_fn) )
+    {
+        return D_TEXT_TEMPLATE_ERROR_NULL_PARAM;
+    }
+
+    key_len = d_strnlen(_key, 4096);
+
+    // if key already exists, free old binding and reuse slot
+    existing = d_internal_template_find_binding(_template, _key);
+    if (existing >= 0)
+    {
+        d_internal_template_free_binding(&_template->bindings[existing]);
+
+        key_copy = d_strndup(_key, key_len);
+        if (!key_copy)
+        {
+            return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+        }
+
+        _template->bindings[existing].key                  = key_copy;
+        _template->bindings[existing].key_length           = key_len;
+        _template->bindings[existing].type                 = D_TEXT_TEMPLATE_BINDING_FUNCTION;
+        _template->bindings[existing].value.function.fn      = _fn;
+        _template->bindings[existing].value.function.context = _context;
+
+        return D_TEXT_TEMPLATE_SUCCESS;
+    }
+
+    // ensure there is room in the binding array
+    err = d_internal_template_ensure_capacity(_template);
+    if (err != D_TEXT_TEMPLATE_SUCCESS)
+    {
+        return err;
+    }
+
+    // duplicate key
+    key_copy = d_strndup(_key, key_len);
+    if (!key_copy)
+    {
+        return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+    }
+
+    // add the binding
+    binding                          = &_template->bindings[_template->binding_count];
+    binding->key                     = key_copy;
+    binding->key_length              = key_len;
+    binding->type                    = D_TEXT_TEMPLATE_BINDING_FUNCTION;
+    binding->value.function.fn       = _fn;
+    binding->value.function.context  = _context;
+
+    _template->binding_count++;
+
+    return D_TEXT_TEMPLATE_SUCCESS;
+}
+
+/*
+d_text_template_bind_list
+  Bind a key to a list iteration. When the renderer encounters this key
+during expansion, it iterates `_count` times, rendering the sub-template
+`_item_template` once per item.
+
+Rendering sequence for each item at index `i`:
+  1. clear all bindings on _item_template
+  2. bind auto-keys onto _item_template:
+       _index    : "0", "1", "2", ...          (always 0-based)
+       _number   : "01", "02", ...             (padded, 1-based default)
+       _count    : total items as string        (e.g., "21")
+       _is_first : "1" if i == 0, else "0"
+       _is_last  : "1" if i == count-1, else "0"
+  3. invoke _bind_fn(i, _count, _item_template, _context)
+  4. if _bind_fn returns false: abort, return LIST_CALLBACK_FAILED
+  5. render _item_template with its bindings -> item string
+  6. if render fails: abort, return LIST_ITEM_RENDER_FAILED
+  7. append item string to output
+  8. if i < _count - 1 and separator is set: append separator
+
+When _count is 0:
+  - the callback is never invoked
+  - if _options->empty_text is set, that string is appended
+  - otherwise nothing is appended (the key expands to "")
+
+Ownership:
+  - _item_template is NOT owned; caller must keep it alive until after
+    the parent template is rendered
+  - _context is NOT owned; caller manages its lifetime
+  - _options is copied at bind time (strings deep-copied via d_strdup);
+    the caller's struct need not outlive this call; NULL means defaults
+
+Parameter(s):
+  _template:      the parent template to add the binding to.
+  _key:           the key name (null-terminated) that triggers iteration.
+  _item_template: sub-template rendered per item; must have a format
+                  string set before the parent template is rendered.
+  _count:         number of items (iterations); may be 0.
+  _bind_fn:       per-item callback; must not be NULL.
+  _context:       opaque user data for _bind_fn (may be NULL).
+  _options:       rendering options (separator, padding, etc.); NULL for
+                  defaults (no separator, 1-based zero-padded number).
+Return:
+  D_TEXT_TEMPLATE_SUCCESS              : binding added successfully.
+  D_TEXT_TEMPLATE_ERROR_NULL_PARAM     : _template, _key, _item_template,
+                                         or _bind_fn is NULL.
+  D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED : key duplication or array
+                                           growth failed.
+*/
+enum d_text_template_error
+d_text_template_bind_list
+(
+    struct d_text_template*                   _template,
+    const char*                               _key,
+    struct d_text_template*                   _item_template,
+    size_t                                    _count,
+    d_text_template_list_fn                   _bind_fn,
+    void*                                     _context,
+    const struct d_text_template_list_options* _options
+)
+{
+    struct d_text_template_binding* binding;
+    char*                           key_copy;
+    size_t                          key_len;
+    int                             existing;
+    enum d_text_template_error      err;
+
+    // validate parameters
+    if ( (!_template)      ||
+         (!_key)           ||
+         (!_item_template) ||
+         (!_bind_fn) )
+    {
+        return D_TEXT_TEMPLATE_ERROR_NULL_PARAM;
+    }
+
+    key_len = d_strnlen(_key, 4096);
+
+    // if key already exists, free old binding and reuse slot
+    existing = d_internal_template_find_binding(_template, _key);
+    if (existing >= 0)
+    {
+        d_internal_template_free_binding(&_template->bindings[existing]);
+        binding = &_template->bindings[existing];
+    }
+    else
+    {
+        // ensure there is room in the binding array
+        err = d_internal_template_ensure_capacity(_template);
+        if (err != D_TEXT_TEMPLATE_SUCCESS)
+        {
+            return err;
+        }
+
+        binding = &_template->bindings[_template->binding_count];
+    }
+
+    // duplicate key
+    key_copy = d_strndup(_key, key_len);
+    if (!key_copy)
+    {
+        return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+    }
+
+    // populate the binding
+    binding->key        = key_copy;
+    binding->key_length = key_len;
+    binding->type       = D_TEXT_TEMPLATE_BINDING_LIST;
+
+    binding->value.list.item_template = _item_template;
+    binding->value.list.count         = _count;
+    binding->value.list.bind_fn       = _bind_fn;
+    binding->value.list.context       = _context;
+
+    // deep-copy options (or use defaults)
+    d_memset(&binding->value.list.options,
+             0,
+             sizeof(struct d_text_template_list_options));
+
+    if (_options)
+    {
+        binding->value.list.options.number_pad_width = _options->number_pad_width;
+        binding->value.list.options.number_pad_char  = _options->number_pad_char;
+        binding->value.list.options.number_from_zero = _options->number_from_zero;
+
+        // deep-copy separator string
+        if (_options->separator)
+        {
+            binding->value.list.options.separator = d_strdup(_options->separator);
+            if (!binding->value.list.options.separator)
+            {
+                free(key_copy);
+                binding->key = NULL;
+
+                return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+            }
+        }
+
+        // deep-copy empty_text string
+        if (_options->empty_text)
+        {
+            binding->value.list.options.empty_text = d_strdup(_options->empty_text);
+            if (!binding->value.list.options.empty_text)
+            {
+                free((void*)binding->value.list.options.separator);
+                binding->value.list.options.separator = NULL;
+                free(key_copy);
+                binding->key = NULL;
+
+                return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+            }
+        }
+    }
+
+    // only increment count if this was a new binding
+    if (existing < 0)
+    {
+        _template->binding_count++;
+    }
 
     return D_TEXT_TEMPLATE_SUCCESS;
 }
@@ -590,9 +1143,9 @@ d_text_template_unbind
     }
 
     // clear the last slot and decrement count
-    memset(&_template->bindings[_template->binding_count - 1],
-           0,
-           sizeof(struct d_text_template_binding));
+    d_memset(&_template->bindings[_template->binding_count - 1],
+             0,
+             sizeof(struct d_text_template_binding));
     _template->binding_count--;
 
     return D_TEXT_TEMPLATE_SUCCESS;
@@ -637,15 +1190,13 @@ d_text_template_update_string
         return D_TEXT_TEMPLATE_ERROR_KEY_NOT_FOUND;
     }
 
-    // allocate and copy new value
-    value_len  = strlen(_value);
-    value_copy = malloc(value_len + 1);
+    // duplicate new value
+    value_len  = d_strnlen(_value, 1048576);
+    value_copy = d_strndup(_value, value_len);
     if (!value_copy)
     {
         return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
     }
-
-    memcpy(value_copy, _value, value_len + 1);
 
     // free old resources if this was a string binding
     binding = &_template->bindings[index];
@@ -691,19 +1242,164 @@ d_text_template_has_binding
 }
 
 /*
-d_internal_template_resolve_value
-  Internal function that resolves a binding to its final string value.
-For string bindings, returns the value directly. For template bindings,
-recursively renders the nested template. Tracks nesting depth to prevent
-infinite recursion.
+d_text_template_binding_count
+  Return the number of currently registered bindings. Returns 0 if
+_template is NULL.
 
 Parameter(s):
+  _template: the template to query.
+Return:
+  The number of bindings, or 0 if _template is NULL.
+*/
+size_t
+d_text_template_binding_count
+(
+    const struct d_text_template* _template
+)
+{
+    if (!_template)
+    {
+        return 0;
+    }
+
+    return _template->binding_count;
+}
+
+
+// =============================================================================
+// Internal: number formatting helpers
+// =============================================================================
+
+/*
+d_internal_template_digit_count
+  Returns the number of decimal digits needed to represent _value.
+Returns 1 for _value == 0.
+
+Parameter(s):
+  _value: the unsigned integer to measure.
+Return:
+  The number of decimal digits.
+*/
+static size_t
+d_internal_template_digit_count
+(
+    size_t _value
+)
+{
+    size_t digits;
+
+    if (_value == 0)
+    {
+        return 1;
+    }
+
+    digits = 0;
+
+    // count digits by dividing
+    while (_value > 0)
+    {
+        _value /= 10;
+        digits++;
+    }
+
+    return digits;
+}
+
+/*
+d_internal_template_format_padded
+  Formats _number into _buf as a decimal string with left-padding.
+The result is at least _width characters wide, padded with _pad_char
+on the left. The buffer must be large enough to hold the result plus
+a null terminator.
+
+Parameter(s):
+  _buf:      destination buffer.
+  _buf_size: size of _buf in bytes.
+  _number:   the number to format.
+  _width:    minimum output width (0 = no padding).
+  _pad_char: character used for left-padding.
+Return:
+  none.
+*/
+static void
+d_internal_template_format_padded
+(
+    char*  _buf,
+    size_t _buf_size,
+    size_t _number,
+    size_t _width,
+    char   _pad_char
+)
+{
+    size_t digits;
+    size_t actual_width;
+    size_t pos;
+    size_t temp;
+
+    if ( (!_buf) ||
+         (_buf_size == 0) )
+    {
+        return;
+    }
+
+    digits       = d_internal_template_digit_count(_number);
+    actual_width = (digits > _width) ? digits : _width;
+
+    // ensure buffer is large enough
+    if (actual_width >= _buf_size)
+    {
+        actual_width = _buf_size - 1;
+    }
+
+    // null-terminate
+    _buf[actual_width] = '\0';
+
+    // fill digits from right to left
+    pos  = actual_width;
+    temp = _number;
+
+    // write at least one digit
+    do
+    {
+        if (pos == 0)
+        {
+            break;
+        }
+
+        pos--;
+        _buf[pos] = (char)('0' + (temp % 10));
+        temp /= 10;
+    } while (temp > 0);
+
+    // fill remaining positions with pad character
+    while (pos > 0)
+    {
+        pos--;
+        _buf[pos] = _pad_char;
+    }
+
+    return;
+}
+
+
+// =============================================================================
+// Internal: binding resolution
+// =============================================================================
+
+/*
+d_internal_template_resolve_value
+  Resolves a binding to its final string value. For string bindings,
+duplicates and returns the value. For template bindings, recursively
+renders the nested template. For function bindings, invokes the user
+callback. For list bindings, iterates and concatenates rendered items
+with optional separators. Tracks nesting depth against the template's
+max_nesting_depth to prevent infinite recursion.
+
+Parameter(s):
+  _template: the parent template (for max_nesting_depth).
   _binding:  the binding to resolve.
-  _format:   for template bindings, the format string to render; may be
-             NULL in which case a template binding resolves to an empty
-             string.
-  _result:   pointer to receive the resolved string (heap-allocated).
-             Caller must free this.
+  _result:   pointer to receive the resolved string (heap-allocated);
+             caller must free this.
   _length:   pointer to receive the length of the result.
   _depth:    current nesting depth for recursion protection.
 Return:
@@ -712,8 +1408,8 @@ Return:
 static enum d_text_template_error
 d_internal_template_resolve_value
 (
+    const struct d_text_template*         _template,
     const struct d_text_template_binding* _binding,
-    const char*                           _format,
     char**                                _result,
     size_t*                               _length,
     size_t                                _depth
@@ -724,23 +1420,21 @@ d_internal_template_resolve_value
     enum d_text_template_error err;
 
     // check nesting depth
-    if (_depth >= D_TEXT_TEMPLATE_MAX_NESTING_DEPTH)
+    if (_depth >= _template->max_nesting_depth)
     {
         return D_TEXT_TEMPLATE_ERROR_NESTING_TOO_DEEP;
     }
 
-    // resolve based on binding type
+    // string binding: duplicate the value
     if (_binding->type == D_TEXT_TEMPLATE_BINDING_STRING)
     {
-        // string binding: duplicate the value
         resolved_len = _binding->value.string.length;
-        resolved     = malloc(resolved_len + 1);
+        resolved     = d_strndup(_binding->value.string.text,
+                                  resolved_len);
         if (!resolved)
         {
             return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
         }
-
-        memcpy(resolved, _binding->value.string.text, resolved_len + 1);
 
         *_result = resolved;
         *_length = resolved_len;
@@ -748,11 +1442,27 @@ d_internal_template_resolve_value
         return D_TEXT_TEMPLATE_SUCCESS;
     }
 
-    // template binding: recursively render
-    if ( (!_binding->value.tmpl) ||
-         (!_format) )
+    // template binding: recursively render the nested template
+    if (_binding->type == D_TEXT_TEMPLATE_BINDING_TEMPLATE)
     {
-        // no template or format, return empty string
+        if (!_binding->value.tmpl)
+        {
+            resolved = malloc(1);
+            if (!resolved)
+            {
+                return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+            }
+
+            resolved[0] = '\0';
+            *_result     = resolved;
+            *_length     = 0;
+
+            return D_TEXT_TEMPLATE_SUCCESS;
+        }
+
+        // nested templates resolve to empty for now; a full
+        // implementation requires a stored format string on the nested
+        // template (render is deferred to the interp context pass)
         resolved = malloc(1);
         if (!resolved)
         {
@@ -766,26 +1476,326 @@ d_internal_template_resolve_value
         return D_TEXT_TEMPLATE_SUCCESS;
     }
 
-    // render the nested template (the nested template uses its own format)
-    err = d_text_template_render_alloc(_binding->value.tmpl,
-                                       _format,
-                                       &resolved);
-    if (err != D_TEXT_TEMPLATE_SUCCESS)
+    // function binding: invoke the callback
+    if (_binding->type == D_TEXT_TEMPLATE_BINDING_FUNCTION)
     {
-        return err;
+        if (!_binding->value.function.fn)
+        {
+            return D_TEXT_TEMPLATE_ERROR_FUNCTION_FAILED;
+        }
+
+        err = _binding->value.function.fn(
+                  _binding->value.function.context,
+                  &resolved);
+        if (err != D_TEXT_TEMPLATE_SUCCESS)
+        {
+            return D_TEXT_TEMPLATE_ERROR_FUNCTION_FAILED;
+        }
+
+        *_result = resolved;
+        *_length = d_strnlen(resolved, 1048576);
+
+        return D_TEXT_TEMPLATE_SUCCESS;
     }
 
-    *_result = resolved;
-    *_length = strlen(resolved);
+    // list binding: iterate and concatenate rendered items
+    if (_binding->type == D_TEXT_TEMPLATE_BINDING_LIST)
+    {
+        struct d_text_template*                    item_tmpl;
+        size_t                                     count;
+        d_text_template_list_fn                    bind_fn;
+        void*                                      ctx;
+        const struct d_text_template_list_options*  opts;
+        char*                                      output;
+        size_t                                     output_len;
+        size_t                                     output_cap;
+        size_t                                     i;
+        size_t                                     pad_width;
+        char                                       pad_char;
+        size_t                                     number_val;
+        char                                       num_buf[32];
+        char                                       idx_buf[32];
+        char                                       cnt_buf[32];
+        struct d_str_interp_context*               item_ctx;
+        enum d_str_interp_error                    interp_err;
+        char*                                      item_format;
+        size_t                                     item_format_len;
+        char*                                      item_result;
+        size_t                                     item_result_len;
+        size_t                                     j;
+        size_t                                     sep_len;
+        char*                                      new_output;
 
-    return D_TEXT_TEMPLATE_SUCCESS;
+        item_tmpl = _binding->value.list.item_template;
+        count     = _binding->value.list.count;
+        bind_fn   = _binding->value.list.bind_fn;
+        ctx       = _binding->value.list.context;
+        opts      = &_binding->value.list.options;
+
+        // handle empty list
+        if (count == 0)
+        {
+            if ( (opts->empty_text) &&
+                 (d_strnlen(opts->empty_text, 4096) > 0) )
+            {
+                resolved_len = d_strnlen(opts->empty_text, 4096);
+                resolved     = d_strndup(opts->empty_text,
+                                          resolved_len);
+                if (!resolved)
+                {
+                    return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+                }
+
+                *_result = resolved;
+                *_length = resolved_len;
+
+                return D_TEXT_TEMPLATE_SUCCESS;
+            }
+
+            // empty string
+            resolved = malloc(1);
+            if (!resolved)
+            {
+                return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+            }
+
+            resolved[0] = '\0';
+            *_result     = resolved;
+            *_length     = 0;
+
+            return D_TEXT_TEMPLATE_SUCCESS;
+        }
+
+        // determine number padding
+        pad_width = opts->number_pad_width;
+        if (pad_width == 0)
+        {
+            pad_width = d_internal_template_digit_count(count);
+        }
+
+        pad_char = opts->number_pad_char;
+        if (pad_char == '\0')
+        {
+            pad_char = '0';
+        }
+
+        // separator length
+        sep_len = 0;
+        if (opts->separator)
+        {
+            sep_len = d_strnlen(opts->separator, 4096);
+        }
+
+        // format count string once
+        d_internal_template_format_padded(cnt_buf,
+                                          sizeof(cnt_buf),
+                                          count,
+                                          0,
+                                          '0');
+
+        // initialize output buffer
+        output_cap = 256;
+        output     = malloc(output_cap);
+        if (!output)
+        {
+            return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+        }
+
+        output[0]  = '\0';
+        output_len = 0;
+
+        // iterate over items
+        for (i = 0; i < count; i++)
+        {
+            // clear item template bindings
+            d_text_template_clear(item_tmpl);
+
+            // format auto-key strings for this item
+            d_internal_template_format_padded(idx_buf,
+                                              sizeof(idx_buf),
+                                              i,
+                                              0,
+                                              '0');
+
+            number_val = opts->number_from_zero ? i : (i + 1);
+            d_internal_template_format_padded(num_buf,
+                                              sizeof(num_buf),
+                                              number_val,
+                                              pad_width,
+                                              pad_char);
+
+            // bind auto-keys
+            d_text_template_bind_string(item_tmpl,
+                                        "_index",
+                                        idx_buf);
+            d_text_template_bind_string(item_tmpl,
+                                        "_number",
+                                        num_buf);
+            d_text_template_bind_string(item_tmpl,
+                                        "_count",
+                                        cnt_buf);
+            d_text_template_bind_string(item_tmpl,
+                                        "_is_first",
+                                        (i == 0) ? "1" : "0");
+            d_text_template_bind_string(item_tmpl,
+                                        "_is_last",
+                                        (i == count - 1) ? "1" : "0");
+
+            // invoke the per-item callback
+            if (!bind_fn(i, count, item_tmpl, ctx))
+            {
+                free(output);
+
+                return D_TEXT_TEMPLATE_ERROR_LIST_CALLBACK_FAILED;
+            }
+
+            // build a format string from the item template's
+            // marker-wrapped keys (auto-generated format; a full
+            // implementation would use a stored format on the item
+            // template)
+            item_format_len = 0;
+            for (j = 0; j < item_tmpl->binding_count; j++)
+            {
+                item_format_len += item_tmpl->marker.prefix_length
+                                 + item_tmpl->bindings[j].key_length
+                                 + item_tmpl->marker.suffix_length;
+            }
+
+            item_format = malloc(item_format_len + 1);
+            if (!item_format)
+            {
+                free(output);
+
+                return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+            }
+
+            // assemble the auto-generated format
+            {
+                size_t fpos;
+
+                fpos = 0;
+                for (j = 0; j < item_tmpl->binding_count; j++)
+                {
+                    d_memcpy(item_format + fpos,
+                             item_tmpl->marker.prefix,
+                             item_tmpl->marker.prefix_length);
+                    fpos += item_tmpl->marker.prefix_length;
+
+                    d_memcpy(item_format + fpos,
+                             item_tmpl->bindings[j].key,
+                             item_tmpl->bindings[j].key_length);
+                    fpos += item_tmpl->bindings[j].key_length;
+
+                    d_memcpy(item_format + fpos,
+                             item_tmpl->marker.suffix,
+                             item_tmpl->marker.suffix_length);
+                    fpos += item_tmpl->marker.suffix_length;
+                }
+
+                item_format[fpos] = '\0';
+            }
+
+            // render this item through its own interp context, built at
+            // this binding's depth: d_text_template_render_alloc would
+            // restart the count at 0, and every level of list nesting must
+            // count against the depth limit
+            item_ctx = d_str_interp_context_new();
+            if (!item_ctx)
+            {
+                free(item_format);
+                free(output);
+
+                return D_TEXT_TEMPLATE_ERROR_LIST_ITEM_RENDER_FAILED;
+            }
+
+            err = d_internal_template_build_interp_context(item_tmpl,
+                                                           item_ctx,
+                                                           _depth);
+
+            // substitute only if every item binding resolved
+            if (err == D_TEXT_TEMPLATE_SUCCESS)
+            {
+                interp_err = d_str_interp_alloc(item_ctx,
+                                                item_format,
+                                                &item_result);
+
+                if (interp_err != D_STR_INTERP_SUCCESS)
+                {
+                    err = D_TEXT_TEMPLATE_ERROR_INTERP_FAILED;
+                }
+            }
+
+            d_str_interp_context_free(item_ctx);
+            free(item_format);
+
+            if (err != D_TEXT_TEMPLATE_SUCCESS)
+            {
+                free(output);
+
+                return D_TEXT_TEMPLATE_ERROR_LIST_ITEM_RENDER_FAILED;
+            }
+
+            item_result_len = d_strnlen(item_result, 1048576);
+
+            // grow output buffer if needed
+            while (output_len + item_result_len + sep_len + 1 > output_cap)
+            {
+                output_cap *= 2;
+                new_output  = malloc(output_cap);
+                if (!new_output)
+                {
+                    free(item_result);
+                    free(output);
+
+                    return D_TEXT_TEMPLATE_ERROR_ALLOCATION_FAILED;
+                }
+
+                d_memcpy(new_output, output, output_len);
+                free(output);
+                output = new_output;
+            }
+
+            // append item result
+            d_memcpy(output + output_len,
+                     item_result,
+                     item_result_len);
+            output_len += item_result_len;
+            free(item_result);
+
+            // append separator between items
+            if ( (i < count - 1) &&
+                 (sep_len > 0) )
+            {
+                d_memcpy(output + output_len,
+                         opts->separator,
+                         sep_len);
+                output_len += sep_len;
+            }
+        }
+
+        // null-terminate
+        output[output_len] = '\0';
+
+        *_result = output;
+        *_length = output_len;
+
+        return D_TEXT_TEMPLATE_SUCCESS;
+    }
+
+    // unknown binding type
+    return D_TEXT_TEMPLATE_ERROR_INTERP_FAILED;
 }
+
+
+// =============================================================================
+// Internal: interp context builder
+// =============================================================================
 
 /*
 d_internal_template_build_interp_context
-  Internal function that builds a d_str_interp_context from a template's
-bindings by constructing marker-wrapped keys (prefix + key + suffix) and
-resolving all values (including nested templates).
+  Builds a d_str_interp_context from a template's bindings by
+constructing marker-wrapped keys (prefix + key + suffix) and resolving
+all values (including nested templates and function callbacks).
 
 Parameter(s):
   _template: the template whose bindings to resolve.
@@ -825,20 +1835,20 @@ d_internal_template_build_interp_context
         }
 
         // assemble: prefix
-        memcpy(marked_key,
-               _template->marker.prefix,
-               _template->marker.prefix_length);
+        d_memcpy(marked_key,
+                 _template->marker.prefix,
+                 _template->marker.prefix_length);
 
         // assemble: key
-        memcpy(marked_key + _template->marker.prefix_length,
-               _template->bindings[i].key,
-               _template->bindings[i].key_length);
+        d_memcpy(marked_key + _template->marker.prefix_length,
+                 _template->bindings[i].key,
+                 _template->bindings[i].key_length);
 
         // assemble: suffix
-        memcpy(marked_key + _template->marker.prefix_length
-                          + _template->bindings[i].key_length,
-               _template->marker.suffix,
-               _template->marker.suffix_length);
+        d_memcpy(marked_key + _template->marker.prefix_length
+                            + _template->bindings[i].key_length,
+                 _template->marker.suffix,
+                 _template->marker.suffix_length);
 
         marked_key[marked_key_len] = '\0';
 
@@ -846,8 +1856,8 @@ d_internal_template_build_interp_context
         resolved_value = NULL;
         resolved_len   = 0;
         tmpl_err = d_internal_template_resolve_value(
+                       _template,
                        &_template->bindings[i],
-                       NULL,
                        &resolved_value,
                        &resolved_len,
                        _depth + 1);
@@ -881,11 +1891,16 @@ d_internal_template_build_interp_context
     return D_TEXT_TEMPLATE_SUCCESS;
 }
 
+
+// =============================================================================
+// Rendering (Template Expansion)
+// =============================================================================
+
 /*
 d_text_template_render
-  Renders a template by replacing all marker-delimited keys in the format
-string with their bound values. Nested template bindings are recursively
-expanded.
+  Renders a template by replacing all marker-delimited keys in the
+format string with their bound values. Nested template bindings are
+recursively expanded.
 
 Parameter(s):
   _template:    the template containing bindings and marker config.
@@ -1099,12 +2114,17 @@ d_text_template_render_length
     return D_TEXT_TEMPLATE_SUCCESS;
 }
 
+
+// =============================================================================
+// Key Wrapping Utility
+// =============================================================================
+
 /*
 d_text_template_wrap_keys
   Scans the input string for occurrences of any bound key name (without
 markers) and wraps each match with the template's prefix and suffix
-markers. This is useful for converting a plain string into a format string
-suitable for rendering.
+markers. This is useful for converting a plain string into a format
+string suitable for rendering.
 
   For example, given input "Hello name, your age is age", keys ["name",
 "age"], and markers "{{"/"}}": produces "Hello {{name}}, your age is
@@ -1153,7 +2173,7 @@ d_text_template_wrap_keys
     // initialize
     pos       = 0;
     out_pos   = 0;
-    input_len = strlen(_input);
+    input_len = d_strnlen(_input, 1048576);
 
     // process input string
     while (pos < input_len)
@@ -1175,9 +2195,10 @@ d_text_template_wrap_keys
                 continue;
             }
 
-            if (memcmp(&_input[pos],
-                       _template->bindings[i].key,
-                       _template->bindings[i].key_length) == 0)
+            if (d_strequals(&_input[pos],
+                            _template->bindings[i].key_length,
+                            _template->bindings[i].key,
+                            _template->bindings[i].key_length))
             {
                 best_index = (int)i;
                 best_len   = _template->bindings[i].key_length;
@@ -1198,21 +2219,21 @@ d_text_template_wrap_keys
             }
 
             // emit prefix
-            memcpy(&_buffer[out_pos],
-                   _template->marker.prefix,
-                   _template->marker.prefix_length);
+            d_memcpy(&_buffer[out_pos],
+                     _template->marker.prefix,
+                     _template->marker.prefix_length);
             out_pos += _template->marker.prefix_length;
 
             // emit key
-            memcpy(&_buffer[out_pos],
-                   _template->bindings[best_index].key,
-                   best_len);
+            d_memcpy(&_buffer[out_pos],
+                     _template->bindings[best_index].key,
+                     best_len);
             out_pos += best_len;
 
             // emit suffix
-            memcpy(&_buffer[out_pos],
-                   _template->marker.suffix,
-                   _template->marker.suffix_length);
+            d_memcpy(&_buffer[out_pos],
+                     _template->marker.suffix,
+                     _template->marker.suffix_length);
             out_pos += _template->marker.suffix_length;
 
             pos += best_len;
@@ -1271,7 +2292,7 @@ d_text_template_wrap_keys_alloc
 
     // worst case: every character is part of a key, each key gets
     // prefix + suffix added; allocate conservatively
-    input_len     = strlen(_input);
+    input_len     = d_strnlen(_input, 1048576);
     max_expansion = _template->marker.prefix_length
                   + _template->marker.suffix_length;
     buffer_size   = input_len + (input_len * max_expansion) + 1;
@@ -1300,6 +2321,11 @@ d_text_template_wrap_keys_alloc
 
     return D_TEXT_TEMPLATE_SUCCESS;
 }
+
+
+// =============================================================================
+// Utility Functions
+// =============================================================================
 
 /*
 d_text_template_error_string
@@ -1330,9 +2356,6 @@ d_text_template_error_string
         case D_TEXT_TEMPLATE_ERROR_KEY_NOT_FOUND:
             return "key not found";
 
-        case D_TEXT_TEMPLATE_ERROR_TOO_MANY_BINDINGS:
-            return "too many bindings";
-
         case D_TEXT_TEMPLATE_ERROR_NESTING_TOO_DEEP:
             return "nesting depth exceeded";
 
@@ -1347,6 +2370,15 @@ d_text_template_error_string
 
         case D_TEXT_TEMPLATE_ERROR_CYCLE_DETECTED:
             return "cycle detected in template bindings";
+
+        case D_TEXT_TEMPLATE_ERROR_FUNCTION_FAILED:
+            return "function binding callback failed";
+
+        case D_TEXT_TEMPLATE_ERROR_LIST_CALLBACK_FAILED:
+            return "list per-item callback failed";
+
+        case D_TEXT_TEMPLATE_ERROR_LIST_ITEM_RENDER_FAILED:
+            return "list item render failed";
 
         default:
             return "unknown error";

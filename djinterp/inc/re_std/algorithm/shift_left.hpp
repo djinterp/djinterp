@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                               shift_left.hpp
 *
 * shift_left algorithm header:
@@ -13,24 +13,25 @@
 *   - std::shift_left is C++20; re_std back-ports to C++98 (no language
 *     blocker — the algorithm is just a forward walk with assignment).
 *   - C++11+ uses move assignment for the shifted elements; C++98 uses
-*     copy assignment (gated on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES).
+*     copy assignment (gated on RE_STD_LANG_HAS_RVALUE_REFERENCES).
 *   - constexpr in std from C++20; re_std lifts to C++14.
 *   - Non-positive _n is a no-op that returns _last.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/shift_left.hpp
+* path:      /inc/re_std/algorithm/shift_left.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_SHIFT_LEFT_
-#define DJINTERP_RE_STD_ALGORITHM_SHIFT_LEFT_ 1
+#ifndef RE_STD_ALGORITHM_SHIFT_LEFT_HPP
+#define RE_STD_ALGORITHM_SHIFT_LEFT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../iterator/iterator_traits.hpp"
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
     #include "../utility/move.hpp"
 #endif
 
@@ -39,16 +40,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -60,12 +54,12 @@ NS_RESTD
 // iterator one past the last element of the resulting (shorter) valid
 // range. Returns _last when _n <= 0, _first when _n >= the range
 // length.
-template<typename _ForwardIt>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 shift_left(
-    _ForwardIt _first,
-    _ForwardIt _last,
-    typename iterator_traits<_ForwardIt>::difference_type _n
+    ForwardIt _first,
+    ForwardIt _last,
+    typename iterator_traits<ForwardIt>::difference_type _n
 )
 {
     if (_n <= 0)
@@ -74,8 +68,8 @@ shift_left(
     }
 
     // advance the source pointer by _n, watching for premature end
-    _ForwardIt _source = _first;
-    typename iterator_traits<_ForwardIt>::difference_type _i = 0;
+    ForwardIt _source = _first;
+    typename iterator_traits<ForwardIt>::difference_type _i = 0;
     while ( (_i < _n) &&
             (_source != _last) )
     {
@@ -89,10 +83,10 @@ shift_left(
     }
 
     // pull [_source, _last) forward over [_first, ...)
-    _ForwardIt _dest = _first;
+    ForwardIt _dest = _first;
     while (_source != _last)
     {
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
         *_dest = re_std::move(*_source);
 #else
         *_dest = *_source;
@@ -105,7 +99,7 @@ shift_left(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_SHIFT_LEFT_
+#endif  // RE_STD_ALGORITHM_SHIFT_LEFT_HPP

@@ -10,7 +10,7 @@
 * path:      /src/djinterp/net/ftp/ftp_endpoint.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_endpoint.h"  // corresponding header
 // std
@@ -508,6 +508,87 @@ d_ftp_parse_port(
 }
 
 /*
+d_ftp_internal_eprt_fields
+  File-local: cuts an EPRT argument, wrapped in its delimiter, into exactly
+three fields: protocol, address, and port.
+*/
+D_STATIC bool
+d_ftp_internal_eprt_fields(
+    struct d_ftp_span  _text,
+    struct d_ftp_span* _fields
+)
+{
+    size_t count = 0u;
+    size_t start = 1u;
+
+    // cut a field at each further delimiter
+    for (size_t index = 1u; index < _text.length; index++)
+    {
+        // only delimiters end fields
+        if (_text.data[index] != _text.data[0])
+        {
+            continue;
+        }
+
+        // a fourth field is a delimiter too many
+        if (count == 3u)
+        {
+            return false;
+        }
+
+        _fields[count].data   = _text.data + start;
+        _fields[count].length = index - start;
+        count++;
+        start = index + 1u;
+    }
+
+    return (count == 3u);
+}
+
+/*
+d_ftp_internal_eprt_store
+  File-local: checks an EPRT argument's address, of the protocol's family,
+and its port of 1 to 65535, then stores them.
+*/
+D_STATIC enum d_ftp_error
+d_ftp_internal_eprt_store(
+    const struct d_ftp_span* _fields,
+    uint64_t                 _protocol,
+    struct d_ftp_endpoint*   _out
+)
+{
+    uint8_t    octets[4]  = { 0 };
+    uint64_t   port       = 0u;
+    const bool address_ok = (_protocol == 1u)
+                            ? d_ftp_internal_parse_ipv4(_fields[1].data,
+                                                        _fields[1].length,
+                                                        octets)
+                            : d_ftp_internal_is_ipv6_text(_fields[1].data,
+                                                          _fields[1].length);
+
+    // a well-formed address and a port of 1 to 65535
+    if ( (!address_ok)                                 ||
+         (!d_ftp_internal_parse_uint(_fields[2].data,
+                                     _fields[2].length,
+                                     65535u,
+                                     &port))           ||
+         (port == 0u) )
+    {
+        return D_FTP_ERROR_MALFORMED;
+    }
+
+    memcpy(_out->address,
+           _fields[1].data,
+           _fields[1].length);
+
+    _out->address[_fields[1].length] = '\0';
+    _out->family = (_protocol == 1u) ? D_FTP_FAMILY_IPV4 : D_FTP_FAMILY_IPV6;
+    _out->port   = (uint16_t)port;
+
+    return D_FTP_OK;
+}
+
+/*
 d_ftp_parse_eprt
   Splits at the delimiter the argument opens with, which must also close it,
 into exactly three fields: protocol, address, and port.
@@ -526,51 +607,21 @@ d_ftp_parse_eprt(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct d_ftp_span text = d_ftp_internal_trim(_text,
-                                                       _length);
+    const struct d_ftp_span text      = d_ftp_internal_trim(_text,
+                                                            _length);
+    struct d_ftp_span       fields[3] = { { NULL, 0u } };
+    uint64_t                protocol  = 0u;
 
-    // wrapped in one delimiter, which is no digit
-    if ( (text.length < 2u)                                  ||
-         (!d_ftp_internal_is_delimiter(text.data[0]))        ||
-         (text.data[text.length - 1u] != text.data[0]) )
-    {
-        return D_FTP_ERROR_MALFORMED;
-    }
-
-    struct d_ftp_span fields[3] = { { NULL, 0u } };
-    size_t            count     = 0;
-    size_t            start     = 1u;
-
-    // cut a field at each further delimiter
-    for (size_t index = 1u; index < text.length; index++)
-    {
-        // only delimiters end fields
-        if (text.data[index] != text.data[0])
-        {
-            continue;
-        }
-
-        // a fourth field is a delimiter too many
-        if (count == 3u)
-        {
-            return D_FTP_ERROR_MALFORMED;
-        }
-
-        fields[count].data   = text.data + start;
-        fields[count].length = index - start;
-        count++;
-        start = index + 1u;
-    }
-
-    uint64_t   protocol = 0;
-    const bool numeric  = ( (count == 3u) &&
-                            (d_ftp_internal_parse_uint(fields[0].data,
-                                                       fields[0].length,
-                                                       255u,
-                                                       &protocol)) );
-
-    // three fields, the first a number
-    if (!numeric)
+    // one delimiter, no digit, around three fields, the first a number
+    if ( (text.length < 2u)                                   ||
+         (!d_ftp_internal_is_delimiter(text.data[0]))         ||
+         (text.data[text.length - 1u] != text.data[0])        ||
+         (!d_ftp_internal_eprt_fields(text,
+                                      fields))                ||
+         (!d_ftp_internal_parse_uint(fields[0].data,
+                                     fields[0].length,
+                                     255u,
+                                     &protocol)) )
     {
         return D_FTP_ERROR_MALFORMED;
     }
@@ -582,36 +633,9 @@ d_ftp_parse_eprt(
         return D_FTP_ERROR_PROTOCOL_UNSUPPORTED;
     }
 
-    uint8_t    octets[4]  = { 0 };
-    uint64_t   port       = 0;
-    const bool address_ok = (protocol == 1u)
-                            ? d_ftp_internal_parse_ipv4(fields[1].data,
-                                                        fields[1].length,
-                                                        octets)
-                            : d_ftp_internal_is_ipv6_text(fields[1].data,
-                                                          fields[1].length);
-    const bool port_ok    = d_ftp_internal_parse_uint(fields[2].data,
-                                                      fields[2].length,
-                                                      65535u,
-                                                      &port);
-
-    // a well-formed address and a port of 1 to 65535
-    if ( (!address_ok) ||
-         (!port_ok)    ||
-         (port == 0u) )
-    {
-        return D_FTP_ERROR_MALFORMED;
-    }
-
-    memcpy(_out->address,
-           fields[1].data,
-           fields[1].length);
-
-    _out->address[fields[1].length] = '\0';
-    _out->family = (protocol == 1u) ? D_FTP_FAMILY_IPV4 : D_FTP_FAMILY_IPV6;
-    _out->port   = (uint16_t)port;
-
-    return D_FTP_OK;
+    return d_ftp_internal_eprt_store(fields,
+                                     protocol,
+                                     _out);
 }
 
 /*

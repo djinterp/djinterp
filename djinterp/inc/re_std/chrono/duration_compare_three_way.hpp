@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                               duration_compare_three_way.hpp
 *
 * the duration three-way comparison:
@@ -23,31 +23,34 @@
 * the overload simply drops out.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/duration_compare_three_way.hpp
+* path:      /inc/re_std/chrono/duration_compare_three_way.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_DURATION_COMPARE_THREE_WAY_
-#define DJINTERP_RE_STD_CHRONO_DURATION_COMPARE_THREE_WAY_ 1
+#ifndef RE_STD_CHRONO_DURATION_COMPARE_THREE_WAY_HPP
+#define RE_STD_CHRONO_DURATION_COMPARE_THREE_WAY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 // std
 //   required for the ordering types the builtin <=> yields.
+// std
 #include <compare>
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "./duration_common_type.hpp"
 #include "../type_traits/common_type.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
@@ -55,28 +58,28 @@ namespace chrono
     // operator<=>
     //   function: three-way comparison across periods. The result is the
     // representation's own ordering category.
-    template<typename _Rep1, typename _Period1,
-             typename _Rep2, typename _Period2>
-    D_CONSTEXPR auto operator<=>(const duration<_Rep1, _Period1>& _lhs,
-                                 const duration<_Rep2, _Period2>& _rhs)
+    template<typename Rep1, typename Period1,
+             typename Rep2, typename Period2>
+    RE_STD_CONSTEXPR auto operator<=>(const duration<Rep1, Period1>& _lhs,
+                                 const duration<Rep2, Period2>& _rhs)
         -> decltype(
-            common_type< duration<_Rep1, _Period1>,
-                         duration<_Rep2, _Period2> >::type::zero().count()
+            common_type< duration<Rep1, Period1>,
+                         duration<Rep2, Period2> >::type::zero().count()
             <=>
-            common_type< duration<_Rep1, _Period1>,
-                         duration<_Rep2, _Period2> >::type::zero().count() )
+            common_type< duration<Rep1, Period1>,
+                         duration<Rep2, Period2> >::type::zero().count() )
     {
-        typedef typename common_type< duration<_Rep1, _Period1>,
-                                      duration<_Rep2, _Period2> >::type _CD;
+        typedef typename common_type< duration<Rep1, Period1>,
+                                      duration<Rep2, Period2> >::type _CD;
         return _CD(_lhs).count() <=> _CD(_rhs).count();
     }
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_DURATION_COMPARE_THREE_WAY_
+#endif  // RE_STD_CHRONO_DURATION_COMPARE_THREE_WAY_HPP

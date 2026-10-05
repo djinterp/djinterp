@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                bit_width.hpp
 *
 * bit_width header:
@@ -19,25 +19,27 @@
 * is constexpr from C++11.
 *
 *
-* path:      /inc/djinterp/re_std/bit/bit_width.hpp
+* path:      /inc/re_std/bit/bit_width.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_BIT_WIDTH_
-#define DJINTERP_RE_STD_BIT_BIT_WIDTH_ 1
+#ifndef RE_STD_BIT_BIT_WIDTH_HPP
+#define RE_STD_BIT_BIT_WIDTH_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./bit_internal.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -46,20 +48,20 @@ NS_RESTD
 
 // bit_width
 //   function: bits needed to represent _v; 0 when _v is 0.
-template<typename _T>
-D_CONSTEXPR typename internal::bit_enable<_T, int>::type
+template<typename T>
+RE_STD_CONSTEXPR typename internal::bit_enable<T, int>::type
 bit_width(
-    _T _v
-) D_NOEXCEPT
+    T _v
+) RE_STD_NOEXCEPT
 {
-    return internal::bit_width_rec<_T>(_v);
+    return internal::bit_width_rec<T>(_v);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BIT_BIT_WIDTH_
+#endif  // RE_STD_BIT_BIT_WIDTH_HPP

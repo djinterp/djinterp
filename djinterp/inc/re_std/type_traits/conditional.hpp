@@ -1,27 +1,29 @@
-/******************************************************************************
-* djinterp [re_std]                                            conditional.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              conditional.hpp
 *
 * conditional trait header:
 *   Compile-time type selector. Yields member typedef `type` as
-* `_IfTrue` when `_Condition` is true, otherwise `_IfFalse`.
+* `IfTrue` when `Condition` is true, otherwise `IfFalse`.
 *
 *   USAGE:
 *     typename conditional<sizeof(int) == 4, int, long>::type four_byte;
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/conditional.hpp
+* path:      /inc/re_std/type_traits/conditional.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_CONDITIONAL_
-#define DJINTERP_RE_STD_TYPE_TRAITS_CONDITIONAL_ 1
+#ifndef RE_STD_TYPE_TRAITS_CONDITIONAL_HPP
+#define RE_STD_TYPE_TRAITS_CONDITIONAL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -29,22 +31,22 @@ NS_RESTD
 // =============================================================================
 
 // conditional
-//   trait: yields _IfTrue when _Condition is true (primary template).
-template<bool      _Condition,
-         typename  _IfTrue,
-         typename  _IfFalse>
+//   trait: yields IfTrue when Condition is true (primary template).
+template<bool      Condition,
+         typename  IfTrue,
+         typename  IfFalse>
 struct conditional
 {
-    typedef _IfTrue type;
+    typedef IfTrue type;
 };
 
 // conditional<false, ...>
-//   trait: specialization yielding _IfFalse when _Condition is false.
-template<typename _IfTrue,
-         typename _IfFalse>
-struct conditional<false, _IfTrue, _IfFalse>
+//   trait: specialization yielding IfFalse when Condition is false.
+template<typename IfTrue,
+         typename IfFalse>
+struct conditional<false, IfTrue, IfFalse>
 {
-    typedef _IfFalse type;
+    typedef IfFalse type;
 };
 
 
@@ -52,21 +54,21 @@ struct conditional<false, _IfTrue, _IfFalse>
 // II.  CONDITIONAL_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // conditional_t
     //   alias: convenience alias for
-    // conditional<_Condition, _IfTrue, _IfFalse>::type.
-    template<bool      _Condition,
-             typename  _IfTrue,
-             typename  _IfFalse>
+    // conditional<Condition, IfTrue, IfFalse>::type.
+    template<bool      Condition,
+             typename  IfTrue,
+             typename  IfFalse>
     using conditional_t =
-        typename conditional<_Condition, _IfTrue, _IfFalse>::type;
+        typename conditional<Condition, IfTrue, IfFalse>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_CONDITIONAL_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_CONDITIONAL_HPP

@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                             begin.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                    begin.hpp
 *
 * free-function begin(container) - the canonical way to start a range
 * iteration in generic code. Three overload categories:
@@ -21,57 +21,56 @@
 * added in std C++11; size_t-based array overload existed earlier.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/begin.hpp
+* path:      /inc/re_std/iterator/begin.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_BEGIN_
-#define DJINTERP_RE_STD_ITERATOR_BEGIN_ 1
+#ifndef RE_STD_ITERATOR_BEGIN_HPP
+#define RE_STD_ITERATOR_BEGIN_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-    #include <cstddef>
-    #include <initializer_list>
+    // std
+    #include <cstddef>                        // size_t
+    // re_std
+    #include "../initializer_list/begin.hpp"  // begin(initializer_list<E>)
 
 
 namespace re_std
 {
 
 // 1. container with member begin(), non-const.
-template<typename _C>
-D_CONSTEXPR auto begin(_C& _c) -> decltype(_c.begin())
+template<typename C>
+RE_STD_CONSTEXPR auto begin(C& _c) -> decltype(_c.begin())
 {
     return _c.begin();
 }
 
 // 1b. container with member begin(), const.
-template<typename _C>
-D_CONSTEXPR auto begin(const _C& _c) -> decltype(_c.begin())
+template<typename C>
+RE_STD_CONSTEXPR auto begin(const C& _c) -> decltype(_c.begin())
 {
     return _c.begin();
 }
 
 // 2. raw array.
-template<typename _T, std::size_t _N>
-D_CONSTEXPR _T* begin(_T (&_arr)[_N]) D_NOEXCEPT
+template<typename T, std::size_t N>
+RE_STD_CONSTEXPR T* begin(T (&_arr)[N]) RE_STD_NOEXCEPT
 {
     return _arr;
 }
 
-// 3. initializer_list.
-template<typename _E>
-D_CONSTEXPR const _E* begin(std::initializer_list<_E> _il) D_NOEXCEPT
-{
-    return _il.begin();
-}
+// 3. initializer_list: defined once, in initializer_list/begin.hpp, where
+//    std declares it (<initializer_list>), and included above.
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_BEGIN_
+#endif  // RE_STD_ITERATOR_BEGIN_HPP

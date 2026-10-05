@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                         version
+/*******************************************************************************
+* djinterp [re_std]                                                      version
 *
+* version umbrella header:
 * re_std's <version>. The standard <version> (C++20) is the aggregator of
 * every __cpp_lib_* library feature-test macro. re_std surfaces those by
 * including the platform <version> when the language is C++20 or later —
@@ -9,15 +10,20 @@
 *
 * Before C++20 there is no aggregator header; the per-feature __cpp_lib_*
 * macros (C++17) live in their individual headers. re_std's own capability
-* signalling pre-C++20 is the D_RE_STD_* / D_ENV_* detection table in
-* <djinterp>, NOT __cpp_lib_* — this header is intentionally a no-op there.
+* signalling pre-C++20 is its own RE_STD_* detection (config.hpp and the
+* probes beside each facility), NOT __cpp_lib_* — this header is
+* intentionally a no-op there.
 *
-* path:      /inc/re_std/version
-***********************************************************************/
-#ifndef DJINTERP_RE_STD_VERSION_
-#define DJINTERP_RE_STD_VERSION_ 1
-#include "djinterp.hpp"
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+*
+* path:      /inc/re_std/version/version
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
+#ifndef RE_STD_VERSION_VERSION
+#define RE_STD_VERSION_VERSION 1
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 #  if defined(__has_include)
 #    if __has_include(<version>)
 #      include <version>
@@ -26,4 +32,4 @@
 #    include <version>
 #  endif
 #endif
-#endif  // DJINTERP_RE_STD_VERSION_
+#endif  // RE_STD_VERSION_VERSION

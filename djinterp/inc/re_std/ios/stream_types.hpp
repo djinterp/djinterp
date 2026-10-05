@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [ios]                                                  stream_types.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             stream_types.hpp
 *
+* stream_types support header:
 *   the stream position and size types: streamoff, streamsize, fpos<StateT>,
 * and the streampos family.
 *
@@ -26,46 +27,43 @@
 *
 *   STD IS C++98; re_std IS C++98.
 *
-* path:      /inc/djinterp/re_std/ios/stream_types.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/ios/stream_types.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_IOS_STREAM_TYPES_
-#define DJINTERP_RE_STD_IOS_STREAM_TYPES_ 1
+#ifndef RE_STD_IOS_STREAM_TYPES_HPP
+#define RE_STD_IOS_STREAM_TYPES_HPP 1
 
-#include "../../core/djinterp.hpp"
-#include "../type_traits/type_traits.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 //   mbstate_t is a C library type; <cwchar> is the portable spelling and is
 // available in C++98.
 #include <cwchar>
+// re_std
+#include "../type_traits/type_traits.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // streamoff
 //   typedef: a signed offset in a stream, wide enough for the largest file
 // the platform supports.
-#if D_ENV_HAS_LONG_LONG
-    //   D_ENV_HAS_LONG_LONG is 1 on every mainstream compiler even at C++98,
+#if RE_STD_HAS_LONG_LONG
+    //   RE_STD_HAS_LONG_LONG is 1 on every mainstream compiler even at C++98,
     // where `long long` is an extension rather than a standard type - so
     // -Wpedantic emits "ISO C++ 1998 does not support 'long long'" here.
-    // Suppressed locally, as in numeric/saturation_arith.hpp.
-    //
-    //   TODO(djinterp): this is now the THIRD file carrying its own copy of
-    // this block (saturation_arith.hpp, the numeric test stub, and here), and
-    // every header that names long long will need it.  It belongs in
-    // djinterp.hpp as a shared D_LONG_LONG_DIAG_PUSH / D_LONG_LONG_DIAG_POP
-    // pair - see patches/ for the NS_END precedent.
-    #if defined(__GNUC__) || defined(__clang__)
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wlong-long"
-    #endif
-
+    // config.hpp's shared pair suppresses it where it applies.
+    RE_STD_LONG_LONG_DIAG_PUSH
     typedef long long streamoff;
-
-    #if defined(__GNUC__) || defined(__clang__)
-        #pragma GCC diagnostic pop
-    #endif
+    RE_STD_LONG_LONG_DIAG_POP
 #else
     typedef long      streamoff;
 #endif
@@ -78,11 +76,11 @@ typedef streamoff streamsize;
 // fpos
 //   class: a stream position - an offset plus the conversion state needed to
 // resume decoding there.
-template<typename _StateT>
+template<typename StateT>
 class fpos
 {
     streamoff m_offset;
-    _StateT   m_state;
+    StateT   m_state;
 
 public:
     fpos() : m_offset(0), m_state() {}
@@ -90,8 +88,8 @@ public:
 
     operator streamoff() const { return m_offset; }
 
-    _StateT state() const        { return m_state; }
-    void    state(_StateT value) { m_state = value; return; }
+    StateT state() const        { return m_state; }
+    void    state(StateT value) { m_state = value; return; }
 
     fpos& operator+=(streamoff off) { m_offset += off; return *this; }
     fpos& operator-=(streamoff off) { m_offset -= off; return *this; }
@@ -105,14 +103,14 @@ public:
     // integral makes both arguments exact matches, and the member wins
     // outright.  Constrained to integral types so it cannot swallow anything
     // else.
-    template<typename _Int>
-    typename enable_if<is_integral<_Int>::value, fpos>::type
-    operator+(_Int off) const
+    template<typename Int>
+    typename enable_if<is_integral<Int>::value, fpos>::type
+    operator+(Int off) const
     { fpos tmp(*this); tmp += static_cast<streamoff>(off); return tmp; }
 
-    template<typename _Int>
-    typename enable_if<is_integral<_Int>::value, fpos>::type
-    operator-(_Int off) const
+    template<typename Int>
+    typename enable_if<is_integral<Int>::value, fpos>::type
+    operator-(Int off) const
     { fpos tmp(*this); tmp -= static_cast<streamoff>(off); return tmp; }
 
     //   Position minus position is a DISTANCE, not a position.  There is
@@ -121,12 +119,12 @@ public:
     { return m_offset - other.m_offset; }
 };
 
-template<typename _StateT>
-bool operator==(const fpos<_StateT>& a, const fpos<_StateT>& b)
+template<typename StateT>
+bool operator==(const fpos<StateT>& a, const fpos<StateT>& b)
 { return static_cast<streamoff>(a) == static_cast<streamoff>(b); }
 
-template<typename _StateT>
-bool operator!=(const fpos<_StateT>& a, const fpos<_StateT>& b)
+template<typename StateT>
+bool operator!=(const fpos<StateT>& a, const fpos<StateT>& b)
 { return !(a == b); }
 
 typedef fpos<std::mbstate_t> streampos;
@@ -134,6 +132,9 @@ typedef fpos<std::mbstate_t> wstreampos;
 typedef fpos<std::mbstate_t> u16streampos;
 typedef fpos<std::mbstate_t> u32streampos;
 
-NS_END
+}
 
-#endif  // DJINTERP_RE_STD_IOS_STREAM_TYPES_
+#endif  // floor, for now
+
+
+#endif  // RE_STD_IOS_STREAM_TYPES_HPP

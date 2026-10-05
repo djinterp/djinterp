@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [ranges]                                                   zip_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 zip_view.hpp
 *
+* zip_view view header:
 *   zip_view - walks N ranges in lockstep, yielding a tuple of references.
 *
 *   IT ENDS AT THE SHORTEST RANGE, and that single rule is most of the design.
@@ -27,84 +28,95 @@
 *
 *   INTERFACE ASSUMPTIONS: see ADAPTOR_ASSUMPTIONS.txt in this directory.
 *
-* path:      /inc/djinterp/re_std/ranges/zip_view.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/ranges/zip_view.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_ZIP_VIEW_
-#define DJINTERP_RE_STD_RANGES_ZIP_VIEW_ 1
+#ifndef RE_STD_RANGES_ZIP_VIEW_HPP
+#define RE_STD_RANGES_ZIP_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
+#include "../utility/make_integer_sequence.hpp"
 #include "../tuple/tuple.hpp"
-#include "../iterator/iterator_tags.hpp"
-#include "./range_traits.hpp"
-#include "./range_access.hpp"
+#include "../tuple/tuple_get.hpp"
 #include "./view_interface.hpp"
+#include "../iterator/input_iterator_tag.hpp"
+#include "./ranges_access.hpp"
+#include "./iterator_t.hpp"
+#include "./range_reference_t.hpp"
+#include "./sentinel_t.hpp"
 
-NS_RESTD
-D_NAMESPACE(ranges)
+namespace re_std
+{
+namespace ranges
+{
 
-NS_INTERNAL
+namespace internal
+{
 
     // zip_ops
     //   struct: lockstep operations over a tuple of component iterators.
     // Recursive rather than a fold expression, which would need C++17.
-    template<size_t _Index, size_t _Count>
+    template<size_t Index, size_t Count>
     struct zip_ops
     {
-        template<typename _Its, typename _Sents>
-        static bool any_at_end(const _Its& its, const _Sents& sents)
+        template<typename Its, typename Sents>
+        static bool any_at_end(const Its& its, const Sents& sents)
         {
             //   ANY, not all - see the header note.
-            return (re_std::get<_Index>(its) == re_std::get<_Index>(sents))
-                || zip_ops<_Index + 1, _Count>::any_at_end(its, sents);
+            return (re_std::get<Index>(its) == re_std::get<Index>(sents))
+                || zip_ops<Index + 1, Count>::any_at_end(its, sents);
         }
 
-        template<typename _Its>
-        static void advance(_Its& its)
+        template<typename Its>
+        static void advance(Its& its)
         {
-            ++re_std::get<_Index>(its);
-            zip_ops<_Index + 1, _Count>::advance(its);
+            ++re_std::get<Index>(its);
+            zip_ops<Index + 1, Count>::advance(its);
         }
     };
 
-    template<size_t _Count>
-    struct zip_ops<_Count, _Count>
+    template<size_t Count>
+    struct zip_ops<Count, Count>
     {
-        template<typename _Its, typename _Sents>
-        static bool any_at_end(const _Its&, const _Sents&) { return false; }
+        template<typename Its, typename Sents>
+        static bool any_at_end(const Its&, const Sents&) { return false; }
 
-        template<typename _Its>
-        static void advance(_Its&) { return; }
+        template<typename Its>
+        static void advance(Its&) { return; }
     };
 
-NS_END  // internal
+}  // internal
 
 
 // zip_view
 //   class: N ranges walked in lockstep.
-template<typename... _Views>
-class zip_view : public view_interface<zip_view<_Views...> >
+template<typename... Views>
+class zip_view : public view_interface<zip_view<Views...> >
 {
-    typedef tuple<iterator_t<_Views>...> _IterTuple;
-    typedef tuple<sentinel_t<_Views>...> _SentTuple;
-    typedef internal::zip_ops<0, sizeof...(_Views)> _Ops;
-    typedef make_index_sequence<sizeof...(_Views)>  _Indices;
+    typedef tuple<iterator_t<Views>...> _IterTuple;
+    typedef tuple<sentinel_t<Views>...> _SentTuple;
+    typedef internal::zip_ops<0, sizeof...(Views)> _Ops;
+    typedef make_index_sequence<sizeof...(Views)>  _Indices;
 
-    tuple<_Views...> m_views;
+    tuple<Views...> m_views;
 
-    template<size_t... _I>
-    _IterTuple make_begin(index_sequence<_I...>)
-    { return _IterTuple(ranges::begin(re_std::get<_I>(m_views))...); }
+    template<size_t... I>
+    _IterTuple make_begin(index_sequence<I...>)
+    { return _IterTuple(ranges::begin(re_std::get<I>(m_views))...); }
 
-    template<size_t... _I>
-    _SentTuple make_end(index_sequence<_I...>)
-    { return _SentTuple(ranges::end(re_std::get<_I>(m_views))...); }
+    template<size_t... I>
+    _SentTuple make_end(index_sequence<I...>)
+    { return _SentTuple(ranges::end(re_std::get<I>(m_views))...); }
 
 public:
     class sentinel
@@ -120,17 +132,17 @@ public:
     {
         _IterTuple m_its;
 
-        template<size_t... _I>
-        tuple<range_reference_t<_Views>...> deref(index_sequence<_I...>) const
-        { return tuple<range_reference_t<_Views>...>(*re_std::get<_I>(m_its)...); }
+        template<size_t... I>
+        tuple<range_reference_t<Views>...> deref(index_sequence<I...>) const
+        { return tuple<range_reference_t<Views>...>(*re_std::get<I>(m_its)...); }
 
     public:
         //   value_type and reference DIFFER - tuple of values versus tuple of
         // references. Declaring both is what lets algorithms copy an element
         // out while still writing through the iterator.
         typedef tuple<typename remove_reference<
-                    range_reference_t<_Views> >::type...> value_type;
-        typedef tuple<range_reference_t<_Views>...>       reference;
+                    range_reference_t<Views> >::type...> value_type;
+        typedef tuple<range_reference_t<Views>...>       reference;
         typedef ptrdiff_t                                 difference_type;
         typedef void                                      pointer;
         typedef input_iterator_tag                        iterator_category;
@@ -141,14 +153,14 @@ public:
         const _IterTuple& iters() const { return m_its; }
 
         reference operator*() const
-        { return deref(make_index_sequence<sizeof...(_Views)>()); }
+        { return deref(make_index_sequence<sizeof...(Views)>()); }
 
         iterator& operator++() { _Ops::advance(m_its); return *this; }
         iterator  operator++(int) { iterator t = *this; ++(*this); return t; }
 
         //   HIDDEN FRIENDS, not namespace-scope templates. A non-member
-        // template taking `typename zip_view<_Views...>::iterator` puts
-        // _Views in a NON-DEDUCED context, so it can never be called - the
+        // template taking `typename zip_view<Views...>::iterator` puts
+        // Views in a NON-DEDUCED context, so it can never be called - the
         // first draft did exactly that and silently had no comparison
         // operators at all. Defining them inside the class sidesteps
         // deduction entirely and keeps them findable by ADL.
@@ -169,16 +181,16 @@ public:
     };
 
     zip_view() : m_views() {}
-    explicit zip_view(_Views... views)
-        : m_views(static_cast<_Views&&>(views)...) {}
+    explicit zip_view(Views... views)
+        : m_views(static_cast<Views&&>(views)...) {}
 
     iterator begin() { return iterator(make_begin(_Indices())); }
     sentinel end()   { return sentinel(make_end(_Indices())); }
 };
 
-NS_END  // ranges
-NS_END
+}  // ranges
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_RANGES_ZIP_VIEW_
+#endif  // RE_STD_RANGES_ZIP_VIEW_HPP

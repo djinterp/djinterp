@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                                      cfloat
+/*******************************************************************************
+* djinterp [re_std]                                                       cfloat
 *
 * <cfloat> umbrella header:
-*   Aggregates the granular headers under /inc/djinterp/re_std/cfloat/.
+*   Aggregates the granular headers under /inc/re_std/cfloat/.
 * Mirrors the standard <cfloat> convenience header and adds no symbols of
 * its own.
 *
@@ -35,18 +35,19 @@
 * and uniform across every floating-point type.
 *
 *
-* path:      /inc/djinterp/re_std/cfloat/cfloat
+* path:      /inc/re_std/cfloat/cfloat
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CFLOAT_
-#define DJINTERP_RE_STD_CFLOAT_ 1
+#ifndef RE_STD_CFLOAT_CFLOAT
+#define RE_STD_CFLOAT_CFLOAT 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 #include "./cfloat.hpp"
 
 
-#endif  // DJINTERP_RE_STD_CFLOAT_
+#endif  // RE_STD_CFLOAT_CFLOAT

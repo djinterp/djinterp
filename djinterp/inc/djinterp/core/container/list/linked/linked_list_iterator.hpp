@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [container]                                linked_list_iterator.hpp
+/*******************************************************************************
+* djinterp [core]                                       linked_list_iterator.hpp
 *
 * Versatile iterator family for every permutation of linked-list node:
 *   This header provides a single iterator class template,
-* linked_list_iterator, that adapts itself — through node-trait
-* introspection — to the topology of the underlying node:
+* linked_list_iterator, that adapts itself - through node-trait
+* introspection - to the topology of the underlying node:
 *     - singly-linked : forward_iterator_tag
 *     - doubly-linked : bidirectional_iterator_tag
 *     - xor-linked    : bidirectional_iterator_tag (with prev state)
@@ -12,49 +12,66 @@
 *   It also handles the cross-cutting axes:
 *     - linear vs circular            (end-detection rule)
 *     - sentinel vs no-sentinel       (end-pointer comparison)
-*     - mutable vs const              (template _IsConst flag)
-*     - forward vs reverse            (template _IsReverse flag)
+*     - mutable vs const              (template IsConst flag)
+*     - forward vs reverse            (template IsReverse flag)
 *   The iterator is non-owning: it merely traverses an external node
 * graph through the link members detected by linked_list_traits.hpp.
-* Iterator validity follows the standard linked-list rules — only the
+* Iterator validity follows the standard linked-list rules - only the
 * iterator pointing at an erased node is invalidated, all others
 * remain stable.
 *   For range-based-for support, ranges and adaptors are provided as
 * free functions:
 *     for (auto& x : a_linked_list)              // standard
 *     for (auto& x : reversed(a_linked_list))    // reverse adaptor
-* 
+*
 * PORTABILITY:
 *   C++11 baseline.  The file uses a tag-dispatch pattern internally
 * rather than `if constexpr` so it works on every supported standard.
 *
-* 
+*
 * path:      /inc/djinterp/core/container/list/linked/linked_list_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-1.  iterator-category dispatch (next/prev advancement)
-2.  linked_list_iterator class template
-3.  convenience aliases (const, reverse, etc.)
-4.  range adaptor (reversed)
-5.  free constructors (begin/end helpers)
+1.    iterator-category dispatch (next/prev advancement)
+      --------------------------------------------------
+
+2.    linked_list_iterator class template
+      -----------------------------------
+
+3.    convenience aliases (const, reverse, etc.)
+      ------------------------------------------
+
+4.    range adaptor (reversed)
+      ------------------------
+
+5.    free constructors (begin/end helpers)
+      -------------------------------------
 */
 
-#ifndef DJINTERP_CONTAINER_LINKED_LIST_ITERATOR_
-#define DJINTERP_CONTAINER_LINKED_LIST_ITERATOR_ 1
+#ifndef DJINTERP_CONTAINER_LIST_LINKED_LINKED_LIST_ITERATOR_HPP
+#define DJINTERP_CONTAINER_LIST_LINKED_LINKED_LIST_ITERATOR_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <iterator>
 #include <type_traits>
 // djinterp
-#include "../../../djinterp.hpp"
+#include "../../../../djinterp.hpp"
 #include "./linked_list_traits.hpp"
+// re_std
+#include "../../../../../re_std/cstdint/cstdint.hpp"  // re_std::uintptr_t
 
 
 NS_DJINTERP
@@ -67,60 +84,66 @@ NS_DJINTERP
 NS_INTERNAL
 
     // ll_iterator_category
-    //   trait: derives the standard iterator-category tag from the
-    // node shape detected by linked_list_traits.hpp.  Doubly- and
-    // XOR-linked nodes yield bidirectional; everything else yields
-    // forward.
-    template<typename _Node,
-             bool     _Bi = ( is_doubly_linked_node<_Node>::value ||
-                              is_xor_linked_node<_Node>::value )>
+    //   trait: derives the standard iterator-category tag from the node shape
+    // detected by linked_list_traits.hpp. Doubly- and XOR-linked nodes yield
+    // bidirectional; everything else yields forward.
+    template<typename Node,
+             bool     Bi = ( is_doubly_linked_node<Node>::value ||
+                              is_xor_linked_node<Node>::value )>
     struct ll_iterator_category
     {
         using type = std::forward_iterator_tag;
     };
 
-    template<typename _Node>
-    struct ll_iterator_category<_Node, true>
+    // ll_iterator_category<Node, true>
+    //   helper: the case where `( is_doubly_linked_node<Node>::value ||
+    // is_xor_linked_node<Node>::value )` is true; it maps to
+    // `std::bidirectional_iterator_tag`.
+    template<typename Node>
+    struct ll_iterator_category<Node, true>
     {
         using type = std::bidirectional_iterator_tag;
     };
 
     // ll_payload_type
-    //   trait: deduces the payload type carried by _Node.  Prefers
-    // a `value` member over a `data()` accessor.
-    template<typename _Node,
-             bool     _HasValue = internal::has_node_value_helper<_Node>::value>
+    //   trait: deduces the payload type carried by Node. Prefers a `value`
+    // member over a `data()` accessor.
+    template<typename Node,
+             bool     HasValue = internal::has_node_value_helper<Node>::value>
     struct ll_payload_type
     {
         using type = typename std::remove_reference<
-            decltype(std::declval<_Node&>().data())>::type;
+            decltype(std::declval<Node&>().data())>::type;
     };
 
-    template<typename _Node>
-    struct ll_payload_type<_Node, true>
+    // ll_payload_type<Node, true>
+    //   helper: the case where `internal::has_node_value_helper<Node>::value`
+    // is true; it maps to `typename std::remove_reference<
+    // decltype(std::declval<Node&>().value)>::type`.
+    template<typename Node>
+    struct ll_payload_type<Node, true>
     {
         using type = typename std::remove_reference<
-            decltype(std::declval<_Node&>().value)>::type;
+            decltype(std::declval<Node&>().value)>::type;
     };
 
     // ll_payload_ref
-    //   helper: returns a reference to the payload through whichever
-    // accessor _Node exposes.  Dispatches at compile time via the
-    // _HasValue tag.
-    template<typename _Node>
+    //   helper: returns a reference to the payload through whichever accessor
+    // Node exposes. Dispatches at compile time via the HasValue tag.
+    template<typename Node>
     inline auto
     ll_payload_ref(
-        _Node&     _n,
+        Node&     _n,
         std::true_type  /* has .value */
     ) noexcept -> decltype(_n.value)&
     {
         return _n.value;
     }
 
-    template<typename _Node>
+    template<typename Node>
     inline auto
     ll_payload_ref(
-        _Node&     _n,
+        Node&     _n,
         std::false_type /* uses .data() */
     ) noexcept -> decltype(_n.data())&
     {
@@ -129,16 +152,16 @@ NS_INTERNAL
 
 
 // ===========================================================================
-// ADVANCEMENT POLICIES — internal tag-dispatched advance / retreat
+// ADVANCEMENT POLICIES - internal tag-dispatched advance / retreat
 // ===========================================================================
 
     // advance_singly
     //   helper: forward step for a singly-linked node.
-    template<typename _Node>
-    inline _Node*
+    template<typename Node>
+    inline Node*
     advance_singly(
-        _Node*  _curr,
-        _Node*  /* _prev unused */
+        Node*  _curr,
+        Node*  /* _prev unused */
     ) noexcept
     {
         return (_curr != nullptr) ? _curr->next : nullptr;
@@ -146,10 +169,10 @@ NS_INTERNAL
 
     // advance_doubly_forward
     //   helper: forward step for a doubly-linked node.
-    template<typename _Node>
-    inline _Node*
+    template<typename Node>
+    inline Node*
     advance_doubly_forward(
-        _Node* _curr
+        Node* _curr
     ) noexcept
     {
         return (_curr != nullptr) ? _curr->next : nullptr;
@@ -157,24 +180,24 @@ NS_INTERNAL
 
     // advance_doubly_backward
     //   helper: backward step for a doubly-linked node.
-    template<typename _Node>
-    inline _Node*
+    template<typename Node>
+    inline Node*
     advance_doubly_backward(
-        _Node* _curr
+        Node* _curr
     ) noexcept
     {
         return (_curr != nullptr) ? _curr->prev : nullptr;
     }
 
     // advance_xor
-    //   helper: forward (or backward — same code) step for an XOR-
-    // linked node.  XOR-linked traversal needs to know the previous
-    // node so that next == link XOR prev.
-    template<typename _Node>
-    inline _Node*
+    //   helper: forward (or backward - same code) step for an XOR- linked
+    // node. XOR-linked traversal needs to know the previous node so that next
+    // == link XOR prev.
+    template<typename Node>
+    inline Node*
     advance_xor(
-        _Node* _curr,
-        _Node* _prev
+        Node* _curr,
+        Node* _prev
     ) noexcept
     {
         if (_curr == nullptr)
@@ -182,12 +205,12 @@ NS_INTERNAL
             return nullptr;
         }
 
-        std::uintptr_t prev_bits =
-            reinterpret_cast<std::uintptr_t>(_prev);
-        std::uintptr_t link_bits =
-            static_cast<std::uintptr_t>(_curr->link);
+        re_std::uintptr_t prev_bits =
+            reinterpret_cast<re_std::uintptr_t>(_prev);
+        re_std::uintptr_t link_bits =
+            static_cast<re_std::uintptr_t>(_curr->link);
 
-        return reinterpret_cast<_Node*>(prev_bits ^ link_bits);
+        return reinterpret_cast<Node*>(prev_bits ^ link_bits);
     }
 
 NS_END  // internal
@@ -198,34 +221,33 @@ NS_END  // internal
 // ===========================================================================
 
 // linked_list_iterator
-//   class: a non-owning forward / bidirectional iterator over a
-// linked-list node graph.  Adapts to the underlying node shape:
+//   class: a non-owning forward / bidirectional iterator over a linked-list
+// node graph. Adapts to the underlying node shape:
 //
-//   _Node       - the concrete node type (must satisfy
+//   Node - the concrete node type (must satisfy
 //                 is_linked_list_node)
-//   _IsConst    - when true, dereferences yield const references
-//   _IsReverse  - when true, ++ moves toward the head; only valid
+//   IsConst - when true, dereferences yield const references
+//   IsReverse - when true, ++ moves toward the head; only valid
 //                 when the node shape supports backward traversal
 //                 (doubly- or xor-linked).
 //
-//   Comparison is performed by raw pointer equality on the current
-// node.  An end-iterator is constructed with m_current == nullptr.
-// Sentinel-based lists pass the address of the sentinel node as
-// the end value.
-template<typename _Node,
-         bool     _IsConst   = false,
-         bool     _IsReverse = false>
+//   Comparison is performed by raw pointer equality on the current node. An
+// end-iterator is constructed with m_current == nullptr. Sentinel-based lists
+// pass the address of the sentinel node as the end value.
+template<typename Node,
+         bool     IsConst    = false,
+         bool     IsReverse = false>
 class linked_list_iterator
 {
-    // Reverse iteration is only meaningful when the underlying node
-    // shape supports backward traversal.  Without this guard a user
-    // could construct linked_list_iterator<SinglyNode, false, true>
-    // and have ++ silently no-op via the catch-all step helper.
-    // Failing fast at instantiation is preferable.
+    // Reverse iteration is only meaningful when the underlying node shape
+    // supports backward traversal. Without this guard a user
+    // could construct linked_list_iterator<SinglyNode, false, true> and have
+    // ++ silently no-op via the catch-all step helper. Failing fast at
+    // instantiation is preferable.
     static_assert(
-        ( !_IsReverse                                   ||
-           is_doubly_linked_node<_Node>::value          ||
-           is_xor_linked_node<_Node>::value ),
+        ( !IsReverse                                    ||
+           is_doubly_linked_node<Node>::value          ||
+           is_xor_linked_node<Node>::value ),
         "reverse_linked_list_iterator requires a "
         "bidirectional node shape (doubly- or xor-linked).");
 
@@ -234,23 +256,23 @@ public:
     // standard iterator type aliases
     // -----------------------------------------------------------------
     using iterator_category =
-        typename internal::ll_iterator_category<_Node>::type;
+        typename internal::ll_iterator_category<Node>::type;
     using value_type        =
-        typename internal::ll_payload_type<_Node>::type;
+        typename internal::ll_payload_type<Node>::type;
     using difference_type   = std::ptrdiff_t;
     using pointer           = typename std::conditional<
-                                  _IsConst,
+                                  IsConst,
                                   const value_type*,
                                   value_type*>::type;
     using reference         = typename std::conditional<
-                                  _IsConst,
+                                  IsConst,
                                   const value_type&,
                                   value_type&>::type;
-    using node_type         = _Node;
+    using node_type         = Node;
     using node_pointer      = typename std::conditional<
-                                  _IsConst,
-                                  const _Node*,
-                                  _Node*>::type;
+                                  IsConst,
+                                  const Node*,
+                                  Node*>::type;
 
     // -----------------------------------------------------------------
     // constructors
@@ -265,10 +287,9 @@ public:
     {}
 
     // linked_list_iterator
-    //   constructor: from a starting node.  Used by begin() / end()
-    // factories.  _origin is non-null for circular lists; the
-    // iterator considers itself "at end" when it returns to the
-    // origin after at least one advance.
+    //   constructor: from a starting node. Used by begin() / end() factories.
+    // _origin is non-null for circular lists; the iterator considers itself
+    // "at end" when it returns to the origin after at least one advance.
     explicit
     linked_list_iterator(
         node_pointer _start,
@@ -288,9 +309,9 @@ public:
     operator*() const noexcept
     {
         return internal::ll_payload_ref(
-            *const_cast<_Node*>(m_current),
+            *const_cast<Node*>(m_current),
             djinterp::bool_constant<
-                internal::has_node_value_helper<_Node>::value>{});
+                internal::has_node_value_helper<Node>::value>{});
     }
 
     pointer
@@ -300,14 +321,14 @@ public:
     }
 
     // -----------------------------------------------------------------
-    // forward advance — operator++
+    // forward advance - operator++
     // -----------------------------------------------------------------
 
     linked_list_iterator&
     operator++() noexcept
     {
         m_step_advance(
-            djinterp::bool_constant<_IsReverse>{},
+            djinterp::bool_constant<IsReverse>{},
             ll_node_shape{});
 
         return *this;
@@ -324,27 +345,27 @@ public:
     }
 
     // -----------------------------------------------------------------
-    // backward advance — operator-- (only when the node supports it)
+    // backward advance - operator-- (only when the node supports it)
     // -----------------------------------------------------------------
 
-    template<typename _N = _Node,
+    template<typename N = Node,
              typename = typename std::enable_if<
-                 ( is_doubly_linked_node<_N>::value ||
-                   is_xor_linked_node<_N>::value )>::type>
+                 ( is_doubly_linked_node<N>::value ||
+                   is_xor_linked_node<N>::value )>::type>
     linked_list_iterator&
     operator--() noexcept
     {
         m_step_retreat(
-            djinterp::bool_constant<_IsReverse>{},
+            djinterp::bool_constant<IsReverse>{},
             ll_node_shape{});
 
         return *this;
     }
 
-    template<typename _N = _Node,
+    template<typename N = Node,
              typename = typename std::enable_if<
-                 ( is_doubly_linked_node<_N>::value ||
-                   is_xor_linked_node<_N>::value )>::type>
+                 ( is_doubly_linked_node<N>::value ||
+                   is_xor_linked_node<N>::value )>::type>
     linked_list_iterator
     operator--(int) noexcept
     {
@@ -395,8 +416,8 @@ public:
     }
 
 private:
-    // internal node-shape tag — selects the right step helper at
-    // compile time without requiring `if constexpr`.
+    // internal node-shape tag - selects the right step helper at compile time
+    // without requiring `if constexpr`.
     enum ll_shape
     {
         shape_singly,
@@ -408,11 +429,11 @@ private:
     static constexpr ll_shape
     pick_shape() noexcept
     {
-        return is_xor_linked_node<_Node>::value
+        return is_xor_linked_node<Node>::value
                  ? shape_xor
-             : is_doubly_linked_node<_Node>::value
+             : is_doubly_linked_node<Node>::value
                  ? shape_doubly
-             : is_skip_list_node<_Node>::value
+             : is_skip_list_node<Node>::value
                  ? shape_skip
                  : shape_singly;
     }
@@ -420,7 +441,7 @@ private:
     using ll_node_shape = std::integral_constant<ll_shape, pick_shape()>;
 
     // -----------------------------------------------------------------
-    // step helpers — singly
+    // step helpers - singly
     // -----------------------------------------------------------------
 
     void
@@ -449,7 +470,7 @@ private:
     }
 
     // -----------------------------------------------------------------
-    // step helpers — doubly
+    // step helpers - doubly
     // -----------------------------------------------------------------
 
     void
@@ -523,7 +544,7 @@ private:
     }
 
     // -----------------------------------------------------------------
-    // step helpers — xor-linked
+    // step helpers - xor-linked
     // -----------------------------------------------------------------
 
     void
@@ -553,9 +574,9 @@ private:
         std::integral_constant<ll_shape, shape_xor>
     ) noexcept
     {
-        // For reverse iteration on an XOR list we keep m_prev as the
-        // node "ahead" of m_current and step backward by treating
-        // that node as the prev for the XOR computation.
+        // For reverse iteration on an XOR list we keep m_prev as the node
+        // "ahead" of m_current and step backward by treating that node as the
+        // prev for the XOR computation.
         node_pointer prv = internal::advance_xor(m_current, m_prev);
 
         m_prev    = m_current;
@@ -568,8 +589,8 @@ private:
         std::integral_constant<ll_shape, shape_xor>
     ) noexcept
     {
-        // operator-- on a forward XOR iterator: same as m_step_advance
-        // with the "reverse" tag.
+        // operator-- on a forward XOR iterator: same as m_step_advance with
+        // the "reverse" tag.
         m_step_advance(std::true_type{},
                        std::integral_constant<ll_shape, shape_xor>{});
     }
@@ -585,7 +606,7 @@ private:
     }
 
     // -----------------------------------------------------------------
-    // step helpers — skip list (forward at level 0)
+    // step helpers - skip list (forward at level 0)
     // -----------------------------------------------------------------
 
     void
@@ -616,17 +637,17 @@ private:
     // unused-shape catch-alls (keep tag dispatch closed for SFINAE)
     // -----------------------------------------------------------------
 
-    template<ll_shape _S>
+    template<ll_shape S>
     void
     m_step_advance(
         std::true_type /* reverse */,
-        std::integral_constant<ll_shape, _S>
+        std::integral_constant<ll_shape, S>
     ) noexcept
     {
         // Reverse on a forward-only shape is a no-op at runtime; the
-        // compile-time static_assert in operator-- guards against
-        // user-visible misuse.  Reaching here means the shape
-        // overload was not provided on purpose.
+        // compile-time static_assert in operator-- guards against user-visible
+        // misuse. Reaching here means the shape overload was not provided on
+        // purpose.
     }
 
     // -----------------------------------------------------------------
@@ -645,22 +666,21 @@ private:
 
 // const_linked_list_iterator
 //   alias: const variant of linked_list_iterator.
-template<typename _Node>
+template<typename Node>
 using const_linked_list_iterator =
-    linked_list_iterator<_Node, true, false>;
+    linked_list_iterator<Node, true, false>;
 
 // reverse_linked_list_iterator
-//   alias: reverse variant (only valid for doubly- or xor-linked
-// nodes).
-template<typename _Node>
+//   alias: reverse variant (only valid for doubly- or xor-linked nodes).
+template<typename Node>
 using reverse_linked_list_iterator =
-    linked_list_iterator<_Node, false, true>;
+    linked_list_iterator<Node, false, true>;
 
 // const_reverse_linked_list_iterator
 //   alias: const + reverse variant.
-template<typename _Node>
+template<typename Node>
 using const_reverse_linked_list_iterator =
-    linked_list_iterator<_Node, true, true>;
+    linked_list_iterator<Node, true, true>;
 
 
 // ===========================================================================
@@ -668,20 +688,20 @@ using const_reverse_linked_list_iterator =
 // ===========================================================================
 
 // linked_list_reverse_view
-//   class: lightweight view that flips the begin/end of a list-like
-// container so that range-based-for traverses backward.  Requires
-// the wrapped container's node type to support backward traversal.
-template<typename _List>
+//   class: lightweight view that flips the begin/end of a list-like container
+// so that range-based-for traverses backward. Requires the wrapped container's
+// node type to support backward traversal.
+template<typename List>
 class linked_list_reverse_view
 {
 public:
-    using node_type = typename _List::node_type;
+    using node_type = typename List::node_type;
     using iterator  = reverse_linked_list_iterator<node_type>;
     using const_iterator =
         const_reverse_linked_list_iterator<node_type>;
 
     constexpr explicit
-    linked_list_reverse_view(_List& _list) noexcept
+    linked_list_reverse_view(List& _list) noexcept
         : m_list(&_list)
     {}
 
@@ -710,20 +730,20 @@ public:
     }
 
 private:
-    _List* m_list;
+    List* m_list;
 };
 
 // reversed
-//   factory: range adaptor producing a reverse view of _list.
-// Compatible with range-based-for; requires _list to satisfy
-// is_doubly_linked_list (or is_xor_linked_list).
-template<typename _List>
-inline linked_list_reverse_view<_List>
+//   factory: range adaptor producing a reverse view of _list. Compatible with
+// range-based-for; requires _list to satisfy is_doubly_linked_list (or
+// is_xor_linked_list).
+template<typename List>
+inline linked_list_reverse_view<List>
 reversed(
-    _List& _list
+    List& _list
 ) noexcept
 {
-    return linked_list_reverse_view<_List>(_list);
+    return linked_list_reverse_view<List>(_list);
 }
 
 
@@ -734,35 +754,34 @@ reversed(
 // without naming the full template parameters.
 
 // make_linked_list_iterator
-//   factory: deduces the node type and constructs a forward
-// iterator.
-template<typename _Node>
-inline linked_list_iterator<_Node>
+//   factory: deduces the node type and constructs a forward iterator.
+template<typename Node>
+inline linked_list_iterator<Node>
 make_linked_list_iterator(
-    _Node*  _start,
-    _Node*  _prev   = nullptr,
-    _Node*  _origin = nullptr
+    Node*  _start,
+    Node*  _prev   = nullptr,
+    Node*  _origin = nullptr
 ) noexcept
 {
-    return linked_list_iterator<_Node>(_start, _prev, _origin);
+    return linked_list_iterator<Node>(_start, _prev, _origin);
 }
 
 // make_const_linked_list_iterator
-//   factory: deduces the node type and constructs a const forward
-// iterator.
-template<typename _Node>
-inline const_linked_list_iterator<_Node>
+//   factory: deduces the node type and constructs a const forward iterator.
+template<typename Node>
+inline const_linked_list_iterator<Node>
 make_const_linked_list_iterator(
-    const _Node* _start,
-    const _Node* _prev   = nullptr,
-    const _Node* _origin = nullptr
+    const Node* _start,
+    const Node* _prev   = nullptr,
+    const Node* _origin = nullptr
 ) noexcept
 {
-    return const_linked_list_iterator<_Node>(_start, _prev, _origin);
+    return const_linked_list_iterator<Node>(_start, _prev, _origin);
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_LINKED_LIST_ITERATOR_
+#endif  // DJINTERP_CONTAINER_LIST_LINKED_LINKED_LIST_ITERATOR_HPP

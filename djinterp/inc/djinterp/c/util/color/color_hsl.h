@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                                color_hsl.h
+/*******************************************************************************
+* djinterp [c]                                                       color_hsl.h
 *
 *   HSL shared kernel for the djinterp color module. Defines the HSL POD and
 * its construction, validation, and clamping. Conversions to and from other
@@ -8,20 +8,35 @@
 *
 * path:      /inc/djinterp/c/util/color/color_hsl.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    d_color_hsl          (POD)
+      --------------------------
+
 II.   d_color_hsl_make
+      ----------------
+
 III.  d_color_hsl_is_valid
+      --------------------
+
 IV.   d_color_hsl_clamp
+      -----------------
 */
 
-#ifndef  DJINTERP_C_COLOR_HSL_
-#define  DJINTERP_C_COLOR_HSL_ 1
+#ifndef DJINTERP_C_UTIL_COLOR_COLOR_HSL_H
+#define DJINTERP_C_UTIL_COLOR_COLOR_HSL_H 1
+
+// FLOOR, FOR NOW: its C++ face is empty below C++11, rather than an
+// error (README rule 5). The owner's ruling: compile at every level first;
+// port to C++98 only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if ( (!D_ENV_LANG_USING_CPP) ||                                         \
+      (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
 
 // djinterp
 #include "../../djinterp.h"
@@ -111,5 +126,7 @@ d_color_hsl_clamp(
 
 D_COLOR_NS_CLOSE
 
+#endif  // floor, for now
 
-#endif  /*  DJINTERP_C_COLOR_HSL_ */
+
+#endif  // DJINTERP_C_UTIL_COLOR_COLOR_HSL_H

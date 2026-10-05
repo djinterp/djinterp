@@ -7,7 +7,7 @@
 * path:      /src/djinterp/net/ftp/ftp_feature.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_feature.h"  // corresponding header
 // std
@@ -103,9 +103,95 @@ d_ftp_internal_has_token(
 }
 
 /*
+d_ftp_internal_feature_tokens
+  File-local: records a feature whose parameters name what it offers: AUTH's
+mechanisms -- "TLS", "SSL", or variants such as "TLS-C" -- "REST STREAM",
+and "MODE Z". Reports whether `_name` was one of them.
+*/
+D_STATIC bool
+d_ftp_internal_feature_tokens(
+    struct d_ftp_span      _name,
+    struct d_ftp_span      _parameters,
+    struct d_ftp_features* _features
+)
+{
+    // AUTH lists mechanisms
+    if (d_ftp_internal_equals_nocase(_name.data,
+                                     _name.length,
+                                     "AUTH"))
+    {
+        _features->flags |= (d_ftp_internal_has_token(_parameters,
+                                                      "TLS"))
+                            ? (uint32_t)D_FTP_FEATURE_AUTH_TLS : 0u;
+        _features->flags |= (d_ftp_internal_has_token(_parameters,
+                                                      "SSL"))
+                            ? (uint32_t)D_FTP_FEATURE_AUTH_SSL : 0u;
+
+        return true;
+    }
+
+    // "REST STREAM": restarts in stream mode
+    if (d_ftp_internal_equals_nocase(_name.data,
+                                     _name.length,
+                                     "REST"))
+    {
+        _features->flags |= (d_ftp_internal_has_token(_parameters,
+                                                      "STREAM"))
+                            ? (uint32_t)D_FTP_FEATURE_REST_STREAM : 0u;
+
+        return true;
+    }
+
+    // "MODE Z": deflate transfers
+    if (d_ftp_internal_equals_nocase(_name.data,
+                                     _name.length,
+                                     "MODE"))
+    {
+        _features->flags |= (d_ftp_internal_has_token(_parameters,
+                                                      "Z"))
+                            ? (uint32_t)D_FTP_FEATURE_MODE_Z : 0u;
+
+        return true;
+    }
+
+    return false;
+}
+
+/*
+d_ftp_internal_feature_lists
+  File-local: records a feature whose parameters are a list kept for the
+caller: MLST's facts and LANG's languages.
+*/
+D_STATIC void
+d_ftp_internal_feature_lists(
+    struct d_ftp_span      _name,
+    struct d_ftp_span      _parameters,
+    struct d_ftp_features* _features
+)
+{
+    // MLST lists the facts the server can report
+    if (d_ftp_internal_equals_nocase(_name.data,
+                                     _name.length,
+                                     "MLST"))
+    {
+        _features->flags      |= D_FTP_FEATURE_MLST;
+        _features->mlst_facts  = _parameters;
+    }
+    else if (d_ftp_internal_equals_nocase(_name.data,
+                                          _name.length,
+                                          "LANG"))
+    {
+        _features->flags     |= D_FTP_FEATURE_LANG;
+        _features->languages  = _parameters;
+    }
+
+    return;
+}
+
+/*
 d_ftp_internal_feature
   File-local: records one FEAT line. Names that stand alone come from the
-table; the five that carry parameters are read here.
+table; the five that carry parameters are read by the helpers above.
 */
 D_STATIC void
 d_ftp_internal_feature(
@@ -117,7 +203,7 @@ d_ftp_internal_feature(
     const size_t count = sizeof(FEATURES) / sizeof(FEATURES[0]);
 
     // names whose presence is the capability
-    for (size_t index = 0; index < count; index++)
+    for (size_t index = 0u; index < count; index++)
     {
         if (d_ftp_internal_equals_nocase(_name.data,
                                          _name.length,
@@ -129,68 +215,14 @@ d_ftp_internal_feature(
         }
     }
 
-    // AUTH lists mechanisms: "TLS", "SSL", or variants such as "TLS-C"
-    if (d_ftp_internal_equals_nocase(_name.data,
-                                     _name.length,
-                                     "AUTH"))
+    // names whose parameters say what is offered, else lists kept whole
+    if (!d_ftp_internal_feature_tokens(_name,
+                                       _parameters,
+                                       _features))
     {
-        if (d_ftp_internal_has_token(_parameters,
-                                     "TLS"))
-        {
-            _features->flags |= D_FTP_FEATURE_AUTH_TLS;
-        }
-
-        if (d_ftp_internal_has_token(_parameters,
-                                     "SSL"))
-        {
-            _features->flags |= D_FTP_FEATURE_AUTH_SSL;
-        }
-
-        return;
-    }
-
-    // "REST STREAM": restarts in stream mode
-    if ( (d_ftp_internal_equals_nocase(_name.data,
-                                       _name.length,
-                                       "REST")) &&
-         (d_ftp_internal_has_token(_parameters,
-                                   "STREAM")) )
-    {
-        _features->flags |= D_FTP_FEATURE_REST_STREAM;
-
-        return;
-    }
-
-    // "MODE Z": deflate transfers
-    if ( (d_ftp_internal_equals_nocase(_name.data,
-                                       _name.length,
-                                       "MODE")) &&
-         (d_ftp_internal_has_token(_parameters,
-                                   "Z")) )
-    {
-        _features->flags |= D_FTP_FEATURE_MODE_Z;
-
-        return;
-    }
-
-    // MLST lists the facts the server can report
-    if (d_ftp_internal_equals_nocase(_name.data,
-                                     _name.length,
-                                     "MLST"))
-    {
-        _features->flags      |= D_FTP_FEATURE_MLST;
-        _features->mlst_facts  = _parameters;
-
-        return;
-    }
-
-    // LANG lists the languages the server offers
-    if (d_ftp_internal_equals_nocase(_name.data,
-                                     _name.length,
-                                     "LANG"))
-    {
-        _features->flags     |= D_FTP_FEATURE_LANG;
-        _features->languages  = _parameters;
+        d_ftp_internal_feature_lists(_name,
+                                     _parameters,
+                                     _features);
     }
 
     return;

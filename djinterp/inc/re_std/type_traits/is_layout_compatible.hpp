@@ -1,8 +1,9 @@
-/******************************************************************************
-* re_std [type_traits]                                 is_layout_compatible.hpp
+/*******************************************************************************
+* djinterp [re_std]                                     is_layout_compatible.hpp
 *
+* is_layout_compatible trait header:
 *   layout-compatibility detection:
-*   `is_layout_compatible<_TypeA, _TypeB>` reports whether two types are
+*   `is_layout_compatible<TypeA, TypeB>` reports whether two types are
 * layout-compatible in the sense of [basic.types.general] - i.e. whether they
 * are the same type, layout-compatible enumerations, or layout-compatible
 * standard-layout class types, in every case disregarding cv-qualification.
@@ -20,21 +21,28 @@
 * after cv-stripping are always layout-compatible, so that case still reports
 * true.  Everything else reports false.  The result is therefore never a false
 * POSITIVE - code that guards a reinterpret_cast on this trait stays correct -
-* but it may be a false NEGATIVE.  Test D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE to
+* but it may be a false NEGATIVE.  Test RE_STD_HAS_IS_LAYOUT_COMPATIBLE to
 * find out which answer you are getting.
 *
 *   PRECONDITION:
-*   _TypeA and _TypeB shall each be a complete type, cv void, or an array of
+*   TypeA and TypeB shall each be a complete type, cv void, or an array of
 * unknown bound.  This mirrors std and cannot be enforced portably.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_layout_compatible.hpp
+* path:      /inc/re_std/type_traits/is_layout_compatible.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.12
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_HPP
+#define RE_STD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./type_traits.hpp"    // integral_constant, is_same, remove_cv
@@ -44,7 +52,7 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
+// RE_STD_HAS_IS_LAYOUT_COMPATIBLE
 //   constant: 1 if the __is_layout_compatible builtin is available.
 //
 //   __has_builtin is the primary probe and is deliberately tried first: it is
@@ -55,41 +63,43 @@
 // still, so a single family-wide version check would be wrong for it.  The
 // version arms below are conservative floors for compilers whose __has_builtin
 // either does not exist or does not answer for type traits.
-#ifndef D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
+#ifndef RE_STD_HAS_IS_LAYOUT_COMPATIBLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_layout_compatible)
-            #define D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE  1
+            #define RE_STD_HAS_IS_LAYOUT_COMPATIBLE  1
         #endif
     #endif
 
-    #ifndef D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
-        #if ( defined(D_ENV_COMPILER_GCC) &&                                  \
-              D_ENV_COMPILER_VERSION_AT_LEAST(12, 0, 0) )
-            #define D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE  1
-        #elif ( defined(D_ENV_COMPILER_MSVC) &&                               \
-                D_ENV_COMPILER_VERSION_AT_LEAST(19, 29, 0) )
-            #define D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE  1
+    #ifndef RE_STD_HAS_IS_LAYOUT_COMPATIBLE
+        #if ( defined(RE_STD_COMPILER_GCC) &&                                  \
+              RE_STD_COMPILER_VERSION_AT_LEAST(12, 0, 0) )
+            #define RE_STD_HAS_IS_LAYOUT_COMPATIBLE  1
+        #elif ( defined(RE_STD_COMPILER_MSVC) &&                               \
+                RE_STD_COMPILER_VERSION_AT_LEAST(19, 29, 0) )
+            #define RE_STD_HAS_IS_LAYOUT_COMPATIBLE  1
         #else
-            #define D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE  0
+            #define RE_STD_HAS_IS_LAYOUT_COMPATIBLE  0
         #endif
-    #endif  // D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE (fallback)
-#endif  // D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE (outer guard)
+    #endif  // RE_STD_HAS_IS_LAYOUT_COMPATIBLE (fallback)
+#endif  // RE_STD_HAS_IS_LAYOUT_COMPATIBLE (outer guard)
 
 
-NS_RESTD
+namespace re_std
+{
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_layout_compatible_base
     //   trait: classification core for is_layout_compatible.  The builtin
     // already disregards cv-qualification on both operands, so the intrinsic
     // arm forwards its arguments untouched.
-#if D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
+#if RE_STD_HAS_IS_LAYOUT_COMPATIBLE
 
-    template<typename _TypeA,
-             typename _TypeB>
+    template<typename TypeA,
+             typename TypeB>
     struct is_layout_compatible_base
-        : integral_constant<bool, __is_layout_compatible(_TypeA, _TypeB)>
+        : integral_constant<bool, __is_layout_compatible(TypeA, TypeB)>
     {};
 
 #else
@@ -98,33 +108,37 @@ NS_INTERNAL
     //   trait: sound-subset classification used when the builtin is absent.
     // Identical types (after cv-stripping) are layout-compatible by
     // definition; every other pair is reported false rather than guessed at.
-    template<typename _TypeA,
-             typename _TypeB>
+    template<typename TypeA,
+             typename TypeB>
     struct is_layout_compatible_base
-        : is_same<typename remove_cv<_TypeA>::type,
-                  typename remove_cv<_TypeB>::type>
+        : is_same<typename remove_cv<TypeA>::type,
+                  typename remove_cv<TypeB>::type>
     {};
 
-#endif  // D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
+#endif  // RE_STD_HAS_IS_LAYOUT_COMPATIBLE
 
-NS_END  // internal
+}  // internal
 
 
 // is_layout_compatible
-//   trait: true if _TypeA and _TypeB are layout-compatible types.
-template<typename _TypeA,
-         typename _TypeB>
+//   trait: true if TypeA and TypeB are layout-compatible types.
+template<typename TypeA,
+         typename TypeB>
 struct is_layout_compatible
-    : internal::is_layout_compatible_base<_TypeA, _TypeB>
+    : internal::is_layout_compatible_base<TypeA, TypeB>
 {};
 
 // is_layout_compatible_v (C++14+)
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _TypeA,
-             typename _TypeB>
-    D_CONSTEXPR bool is_layout_compatible_v
-        = is_layout_compatible<_TypeA, _TypeB>::value;
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+    template<typename TypeA,
+             typename TypeB>
+    RE_STD_CONSTEXPR bool is_layout_compatible_v
+        = is_layout_compatible<TypeA, TypeB>::value;
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-NS_END  // re_std
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_
+}  // re_std
+
+#endif  // floor, for now
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [event]                                                   event.hpp
+/*******************************************************************************
+* djinterp [core]                                               event_common.hpp
 *
 * Event foundations -- the alphabet layer:
 *   The base vocabulary of the event system, formalized after the companion
@@ -26,7 +26,7 @@
 * COMPONENTS:
 *   djinterp::verdict                 - the two-point verdict set P
 *   djinterp::consumed                - true if a verdict halts propagation
-*   djinterp::event_traits<_Event>    - payload_type, arity, has_name, has_args
+*   djinterp::event_traits<Event>    - payload_type, arity, has_name, has_args
 *   D_EVENT(_name, ...)               - declare an event tag with a payload
 *   D_EVENT_EMPTY(_name)              - declare an event tag with empty payload
 *   djinterp::is_event                (C++20 concept)
@@ -48,27 +48,21 @@
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26
 *
-* 
-* path:      /inc/djinterp/core/event/event.hpp
+*
+* path:      /inc/djinterp/core/event/event_common.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_EVENT_COMMON_
-#define DJINTERP_EVENT_COMMON_ 1
+#ifndef DJINTERP_EVENT_EVENT_COMMON_HPP
+#define DJINTERP_EVENT_EVENT_COMMON_HPP 1
 
-// require the C++ framework header
-//#ifndef DJINTERP_
-//    #error "event.hpp requires djinterp.h to be included first"
-//#endif
-//
-//#ifndef __cplusplus
-//    #error "event.hpp can only be used in C++ compilation mode"
-//#endif
-//
-//#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-//    #error "event.hpp requires C++11 or higher"
-//#endif
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -76,7 +70,11 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // clean_t
+// re_std
+#include "../../../re_std/utility/make_integer_sequence.hpp"  // re_std::index_sequence,
+                                                              // make_index_sequence
 
 
 NS_DJINTERP
@@ -85,7 +83,7 @@ NS_DJINTERP
 // =========================================================================
 // I.   INDEX SEQUENCE POLYFILL (C++11)
 // =========================================================================
-// std::index_sequence and std::make_index_sequence are C++14. For C++11
+// re_std::index_sequence and re_std::make_index_sequence are C++14. For C++11
 // portability, an internal implementation is provided and used when the
 // standard version is not available.
 
@@ -95,43 +93,43 @@ NS_INTERNAL
 
     // index_sequence
     //   type: compile-time integer sequence (C++11 polyfill).
-    template<std::size_t... _I>
+    template<std::size_t... I>
     struct index_sequence
     {};
 
     // make_index_sequence_helper
     //   trait: recursive builder for index_sequence.
-    template<std::size_t _N,
-             std::size_t... _I>
+    template<std::size_t N,
+             std::size_t... I>
     struct make_index_sequence_helper
-        : make_index_sequence_helper<_N - 1, _N - 1, _I...>
+        : make_index_sequence_helper<N - 1, N - 1, I...>
     {};
 
     // make_index_sequence_helper<0, ...>
     //   trait: base case; produces the final index_sequence.
-    template<std::size_t... _I>
-    struct make_index_sequence_helper<0, _I...>
+    template<std::size_t... I>
+    struct make_index_sequence_helper<0, I...>
     {
-        using type = index_sequence<_I...>;
+        using type = index_sequence<I...>;
     };
 
     // make_index_sequence
     //   type: alias for the constructed index_sequence.
-    template<std::size_t _N>
+    template<std::size_t N>
     using make_index_sequence =
-        typename make_index_sequence_helper<_N>::type;
+        typename make_index_sequence_helper<N>::type;
 
 #else
 
     // index_sequence
     //   type: alias for the standard library sequence (C++14+).
-    template<std::size_t... _I>
-    using index_sequence = std::index_sequence<_I...>;
+    template<std::size_t... I>
+    using index_sequence = re_std::index_sequence<I...>;
 
     // make_index_sequence
     //   type: alias for the standard library builder (C++14+).
-    template<std::size_t _N>
-    using make_index_sequence = std::make_index_sequence<_N>;
+    template<std::size_t N>
+    using make_index_sequence = re_std::make_index_sequence<N>;
 
 #endif  // !D_ENV_LANG_IS_CPP14_OR_HIGHER
 
@@ -170,88 +168,88 @@ inline bool consumed(verdict _v)
 NS_INTERNAL
 
     // has_payload_type
-    //   trait: detects if _Event has a nested `payload_type` typedef
+    //   trait: detects if Event has a nested `payload_type` typedef
     // (the canonical spelling of the event payload A_e).
-    template<typename _Event,
+    template<typename Event,
              typename = void>
     struct has_payload_type
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Event>
-    struct has_payload_type<_Event,
+    template<typename Event>
+    struct has_payload_type<Event,
         decltype(static_cast<void>(
-            std::declval<typename clean_t<_Event>::payload_type>()
+            std::declval<typename clean_t<Event>::payload_type>()
         ))>
     {
         static constexpr bool value = true;
     };
 
     // has_args_type
-    //   trait: detects if _Event has a nested `args_type` typedef (the
+    //   trait: detects if Event has a nested `args_type` typedef (the
     // legacy spelling of the payload, retained for backward compatibility).
-    template<typename _Event,
+    template<typename Event,
              typename = void>
     struct has_args_type
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Event>
-    struct has_args_type<_Event,
+    template<typename Event>
+    struct has_args_type<Event,
         decltype(static_cast<void>(
-            std::declval<typename clean_t<_Event>::args_type>()
+            std::declval<typename clean_t<Event>::args_type>()
         ))>
     {
         static constexpr bool value = true;
     };
 
     // has_event_payload
-    //   trait: true if _Event declares a payload under either the canonical
+    //   trait: true if Event declares a payload under either the canonical
     // `payload_type` spelling or the legacy `args_type` spelling.
-    template<typename _Event>
+    template<typename Event>
     struct has_event_payload
     {
         static constexpr bool value =
-            ( has_payload_type<_Event>::value ||
-              has_args_type<_Event>::value );
+            ( has_payload_type<Event>::value ||
+              has_args_type<Event>::value );
     };
 
     // event_payload
     //   trait: selects the event's payload tuple, preferring the canonical
     // `payload_type` and falling back to the legacy `args_type`.
     // primary template: canonical spelling present.
-    template<typename _Event,
-             bool _HasPayload = has_payload_type<_Event>::value>
+    template<typename Event,
+             bool HasPayload = has_payload_type<Event>::value>
     struct event_payload
     {
-        using type = typename clean_t<_Event>::payload_type;
+        using type = typename clean_t<Event>::payload_type;
     };
 
     // event_payload (legacy fallback)
     //   trait: used when only the legacy `args_type` spelling is present.
-    template<typename _Event>
-    struct event_payload<_Event, false>
+    template<typename Event>
+    struct event_payload<Event, false>
     {
-        using type = typename clean_t<_Event>::args_type;
+        using type = typename clean_t<Event>::args_type;
     };
 
     // has_event_name
-    //   trait: detects if _Event has a static `name()` member returning
+    //   trait: detects if Event has a static `name()` member returning
     // const char*.
-    template<typename _Event,
+    template<typename Event,
              typename = void>
     struct has_event_name
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Event>
-    struct has_event_name<_Event,
+    template<typename Event>
+    struct has_event_name<Event,
         typename std::enable_if<
             std::is_same<
-                decltype(clean_t<_Event>::name()),
+                decltype(clean_t<Event>::name()),
                 const char*
             >::value
         >::type>
@@ -260,15 +258,15 @@ NS_INTERNAL
     };
 
     // is_tuple
-    //   trait: detects if _T is a std::tuple specialization.
-    template<typename _T>
+    //   trait: detects if T is a std::tuple specialization.
+    template<typename T>
     struct is_tuple
     {
         static constexpr bool value = false;
     };
 
-    template<typename... _Types>
-    struct is_tuple<std::tuple<_Types...>>
+    template<typename... Types>
+    struct is_tuple<std::tuple<Types...>>
     {
         static constexpr bool value = true;
     };
@@ -276,38 +274,38 @@ NS_INTERNAL
     // apply_impl
     //   function: applies a callable to a tuple of arguments (C++11/14
     // fallback for std::apply).
-    template<typename _F,
-             typename _Tuple,
-             std::size_t... _I>
-    auto apply_impl(_F&&    _f,
-                    _Tuple& _t,
-                    index_sequence<_I...>)
-        -> decltype(_f(std::get<_I>(_t)...))
+    template<typename F,
+             typename Tuple,
+             std::size_t... I>
+    auto apply_impl(F&&    _f,
+                    Tuple& _t,
+                    index_sequence<I...>)
+        -> decltype(_f(std::get<I>(_t)...))
     {
-        return _f(std::get<_I>(_t)...);
+        return _f(std::get<I>(_t)...);
     }
 
     // apply_tuple
     //   function: convenience wrapper that deduces the index sequence from
     // the tuple size.
-    template<typename _F,
-             typename _Tuple>
-    auto apply_tuple(_F&&    _f,
-                     _Tuple& _t)
+    template<typename F,
+             typename Tuple>
+    auto apply_tuple(F&&    _f,
+                     Tuple& _t)
         -> decltype(apply_impl(
-            std::forward<_F>(_f),
+            std::forward<F>(_f),
             _t,
             make_index_sequence<
                 std::tuple_size<
-                    typename std::remove_reference<_Tuple>::type
+                    typename std::remove_reference<Tuple>::type
                 >::value>{}))
     {
         return apply_impl(
-            std::forward<_F>(_f),
+            std::forward<F>(_f),
             _t,
             make_index_sequence<
                 std::tuple_size<
-                    typename std::remove_reference<_Tuple>::type
+                    typename std::remove_reference<Tuple>::type
                 >::value>{});
     }
 
@@ -321,12 +319,12 @@ NS_END  // internal
 // event_traits
 //   trait: compile-time introspection for event tag types. Provides access
 // to the event's payload tuple A_e, its arity, and its name.
-// requires: _Event must define a nested `payload_type` (or legacy
+// requires: Event must define a nested `payload_type` (or legacy
 // `args_type`) that is a std::tuple specialization.
-template<typename _Event>
+template<typename Event>
 struct event_traits
 {
-    static_assert(internal::has_event_payload<_Event>::value,
+    static_assert(internal::has_event_payload<Event>::value,
                   "Event type must define a nested `payload_type` (a "
                   "std::tuple of its payload value types). The legacy "
                   "spelling `args_type` is also accepted.");
@@ -334,7 +332,7 @@ struct event_traits
     // payload_type
     //   type: the tuple of payload value domains for this event (A_e).
     using payload_type =
-        typename internal::event_payload<_Event>::type;
+        typename internal::event_payload<Event>::type;
 
     static_assert(internal::is_tuple<payload_type>::value,
                   "Event `payload_type` must be a std::tuple "
@@ -353,7 +351,7 @@ struct event_traits
     // has_name
     //   constant: true if the event provides a static name() member.
     static constexpr bool has_name =
-        internal::has_event_name<_Event>::value;
+        internal::has_event_name<Event>::value;
 
     // has_args
     //   constant: true if the event carries a non-empty payload.
@@ -408,101 +406,103 @@ struct event_traits
 //   concept: constrains types that satisfy the event tag requirements:
 // a nested payload (payload_type or legacy args_type) that is a std::tuple
 // specialization.
-template<typename _Event>
+template<typename Event>
 concept is_event =
-    internal::has_event_payload<_Event>::value &&
+    internal::has_event_payload<Event>::value &&
     internal::is_tuple<
-        typename internal::event_payload<_Event>::type>::value;
+        typename internal::event_payload<Event>::type>::value;
 
 // event_type
 //   concept: constrains types satisfying the event tag protocol.
-template<typename _Type>
+template<typename Type>
 concept event_type =
-    is_event<clean_t<_Type>>;
+    is_event<clean_t<Type>>;
 
 // non_event_type
 //   concept: constrains types that do not satisfy the event tag protocol.
-template<typename _Type>
+template<typename Type>
 concept non_event_type =
-    !event_type<_Type>;
+    !event_type<Type>;
 
 // empty_event_type
 //   concept: constrains event types carrying no payload arguments.
-template<typename _Type>
+template<typename Type>
 concept empty_event_type =
-    event_type<_Type> &&
-    !event_traits<clean_t<_Type>>::has_args;
+    event_type<Type> &&
+    !event_traits<clean_t<Type>>::has_args;
 
 // argument_event_type
 //   concept: constrains event types carrying one or more payload arguments.
-template<typename _Type>
+template<typename Type>
 concept argument_event_type =
-    event_type<_Type> &&
-    event_traits<clean_t<_Type>>::has_args;
+    event_type<Type> &&
+    event_traits<clean_t<Type>>::has_args;
 
 
 // ---- event name ----
 
 // named_event_type
 //   concept: constrains event types exposing a static name() member.
-template<typename _Type>
+template<typename Type>
 concept named_event_type =
-    event_type<_Type> &&
-    event_traits<clean_t<_Type>>::has_name;
+    event_type<Type> &&
+    event_traits<clean_t<Type>>::has_name;
 
 // unnamed_event_type
 //   concept: constrains event types without a static name() member.
-template<typename _Type>
+template<typename Type>
 concept unnamed_event_type =
-    event_type<_Type> &&
-    !event_traits<clean_t<_Type>>::has_name;
+    event_type<Type> &&
+    !event_traits<clean_t<Type>>::has_name;
 
 
 // ---- event arity ----
 
 // event_of_arity
-//   concept: constrains event types with exactly _Arity payload arguments.
-template<typename _Type,
-         std::size_t _Arity>
+//   concept: constrains event types with exactly Arity payload arguments.
+template<typename Type,
+         std::size_t Arity>
 concept event_of_arity =
-    event_type<_Type> &&
-    (event_traits<clean_t<_Type>>::arity == _Arity);
+    event_type<Type> &&
+    (event_traits<clean_t<Type>>::arity == Arity);
 
 // nullary_event_type
 //   concept: constrains event types with zero payload arguments.
-template<typename _Type>
+template<typename Type>
 concept nullary_event_type =
-    event_of_arity<_Type, 0>;
+    event_of_arity<Type, 0>;
 
 // unary_event_type
 //   concept: constrains event types with one payload argument.
-template<typename _Type>
+template<typename Type>
 concept unary_event_type =
-    event_of_arity<_Type, 1>;
+    event_of_arity<Type, 1>;
 
 // binary_event_type
 //   concept: constrains event types with two payload arguments.
-template<typename _Type>
+template<typename Type>
 concept binary_event_type =
-    event_of_arity<_Type, 2>;
+    event_of_arity<Type, 2>;
 
 // ternary_event_type
 //   concept: constrains event types with three payload arguments.
-template<typename _Type>
+template<typename Type>
 concept ternary_event_type =
-    event_of_arity<_Type, 3>;
+    event_of_arity<Type, 3>;
 
 // variadic_event_type
 //   concept: constrains event types with four or more payload arguments.
-template<typename _Type>
+template<typename Type>
 concept variadic_event_type =
-    event_type<_Type> &&
-    (event_traits<clean_t<_Type>>::arity > 3);
+    event_type<Type> &&
+    (event_traits<clean_t<Type>>::arity > 3);
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EVENT_COMMON_
+
+#endif  // DJINTERP_EVENT_EVENT_COMMON_HPP

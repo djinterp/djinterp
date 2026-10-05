@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                                        kv.h
+/*******************************************************************************
+* djinterp [c]                                                              kv.h
 *
 * Reading and writing a datum at an offset and a width the caller supplies,
 * without the alignment, aliasing, endian, sign-extension and overflow faults
@@ -52,7 +52,7 @@
 * =====================================================
 *   An older form computed a value's offset as `sizeof(key_type)`, which is the
 * offset only when the compiler inserted no padding. For the records this
-* framework holds, it does. struct d_test_kv is { uint32_t key; void* value; }: 
+* framework holds, it does. struct d_test_kv is { uint32_t key; void* value; }:
 * key at 0, value at 8, and sizeof(uint32_t) is 4, so the macro read four
 * bytes of padding and the top half of the pointer and compiled clean.
 *
@@ -93,18 +93,30 @@
 *
 * path:      /inc/djinterp/c/meta/kv.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.06
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_KV_
-#define DJINTERP_C_KV_ 1
+#ifndef DJINTERP_C_META_KV_H
+#define DJINTERP_C_META_KV_H 1
 
 // std
 #include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 // djinterp
 #include "../djinterp.h"
+#include "../memory/dmemory.h"  // d_memcpy
+#include "./type_info.h"        // d_type_info16 (struct d_kv_field::type)
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // int8_t, int16_t, int32_t,
+                                              // int64_t, uint8_t, uint16_t,
+                                              // uint32_t, uint64_t
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
 
 
 D_EXTERN_C_BEGIN
@@ -635,7 +647,7 @@ d_kv_write(
     } while (0)
 
 // D_KV_VALUE_PACKED
-//   macro: the value of a PACKED key/value record: offset sizeof(key_type), 
+//   macro: the value of a PACKED key/value record: offset sizeof(key_type),
 // width sizeof(value_type). Pair every use with D_KV_ASSERT_PACKED.
 #define D_KV_VALUE_PACKED(key_type, value_type, ptr, out)                      \
     D_KV_AT(value_type, (ptr), sizeof(key_type), (out))
@@ -746,7 +758,128 @@ D_KV_DEFINE_UNSIGNED(uint64_t, d_kv_uint64_at, d_kv_uint64_narrow)
 // descriptor, not the reads.
 
 
+
+// d_kv_field
+//   struct: where a datum sits and what its bytes mean. The offset is
+// relative to a base the CALLER supplies; this struct never holds one, which
+// is what lets one descriptor address a cell, a value block, or a mapped
+// file. Re-added in relay 92 when `c/util/kv.h` was retired -- the note
+// further up about the descriptor being gone dates from its removal.
+struct d_kv_field
+{
+    uint32_t      offset;   // bytes from the caller's base
+    uint32_t      size;     // width of the datum, in bytes
+    d_type_info16 type;     // what the bytes mean; 0 when untyped
+    uint16_t      flags;    // D_KV_FLAG_*; reserved bits written zero
+};
+
+// D_KV_FLAG_NONE
+//   constant: no flags. The ordinary descriptor.
+#define D_KV_FLAG_NONE      ((uint16_t)0u)
+
+// D_KV_FLAG_SIGNED
+//   constant: the datum is a signed integer. The one flag that changes
+// behaviour: a descriptor-driven read cannot infer signedness from a width.
+#define D_KV_FLAG_SIGNED    ((uint16_t)(1u << 0))
+
+// D_KV_FLAG_MASK
+//   constant: every flag this version defines. Bits outside the mask are
+// reserved and must be written zero, so a later reader can tell an old
+// descriptor from a corrupt one.
+#define D_KV_FLAG_MASK      ((uint16_t)0x0001u)
+
+// D_KV_FIELD_OF
+//   macro: a descriptor for `member` of `record`, unsigned. `type` is the
+// integer type the offset and width are taken as; it matches the 3-argument
+// form D_KV_OFFSET and D_KV_WIDTH use in this header, rather than the
+// 2-argument form the retired c/util/kv.h had. `struct d_kv_field` stores
+// both as uint32_t, so uint32_t is the ordinary argument.
+#define D_KV_FIELD_OF(record, member, type, info)                         \
+{                                                                         \
+    D_KV_OFFSET(record, member, type),                                    \
+    D_KV_WIDTH(record, member, type),                                     \
+    (d_type_info16)(info),                                                \
+    D_KV_FLAG_NONE                                                        \
+}
+
+// D_KV_FIELD_OF_SIGNED
+//   macro: as D_KV_FIELD_OF, for a signed datum.
+#define D_KV_FIELD_OF_SIGNED(record, member, type, info)                  \
+{                                                                         \
+    D_KV_OFFSET(record, member, type),                                    \
+    D_KV_WIDTH(record, member, type),                                     \
+    (d_type_info16)(info),                                                \
+    D_KV_FLAG_SIGNED                                                      \
+}
+
+// D_KV_FIELD_INIT
+//   macro: a zeroed descriptor, for an initialiser with no field yet.
+#define D_KV_FIELD_INIT     { 0u, 0u, (d_type_info16)0, D_KV_FLAG_NONE }
+
+
+
+// d_kv_field_make
+//   function: a descriptor from loose parts, for a layout discovered at run
+// time rather than declared in a struct.
+D_NODISCARD D_INLINE struct d_kv_field
+d_kv_field_make(
+    uint32_t      _offset,
+    uint32_t      _size,
+    d_type_info16 _type,
+    uint16_t      _flags
+)
+{
+    struct d_kv_field field;
+
+    field.offset = _offset;
+    field.size   = _size;
+    field.type   = _type;
+    field.flags  = (uint16_t)(_flags & D_KV_FLAG_MASK);
+
+    return field;
+}
+
+// d_kv_field_is_empty
+//   function: a zero-width descriptor, which is the same answer as "this
+// record has no such datum" -- what a unary option's value column is.
+D_NODISCARD D_INLINE bool
+d_kv_field_is_empty(
+    const struct d_kv_field* _field
+)
+{
+    return ( (!_field) ||
+             (_field->size == 0u) );
+}
+
+// d_kv_field_read
+//   function: opaque copy out through a descriptor.
+D_NODISCARD D_INLINE bool
+d_kv_field_read(
+    const struct d_kv_field* _field,
+    const void*              _base,
+    uint32_t                 _capacity,
+    void*                    _out,
+    size_t                   _out_size
+)
+{
+    // an absent column has nothing to copy
+    if (d_kv_field_is_empty(_field))
+    {
+        return false;
+    }
+
+    return d_kv_read(_base,
+                     _field->offset,
+                     _field->size,
+                     _capacity,
+                     _out,
+                     _out_size);
+}
+
+
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_KV_
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_C_META_KV_H

@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                           make_exception_ptr.hpp
+/*******************************************************************************
+* djinterp [re_std]                                       make_exception_ptr.hpp
 *
 * make_exception_ptr:
 *   captures a copy of a given value as an exception_ptr (effectively
@@ -9,20 +9,23 @@
 * it depends on current_exception(), which is itself ABI-provided.
 *
 *
-* path:      /inc/djinterp/re_std/exception/make_exception_ptr.hpp
+* path:      /inc/re_std/exception/make_exception_ptr.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXCEPTION_MAKE_EXCEPTION_PTR_
-#define DJINTERP_RE_STD_EXCEPTION_MAKE_EXCEPTION_PTR_ 1
+#ifndef RE_STD_EXCEPTION_MAKE_EXCEPTION_PTR_HPP
+#define RE_STD_EXCEPTION_MAKE_EXCEPTION_PTR_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "exception_ptr.hpp"
 
-#if ( D_ENV_LANG_IS_CPP11_OR_HIGHER && \
-      D_ENV_CPP98_HAS_EXCEPTION )
+#if ( RE_STD_LANG_IS_CPP11_OR_HIGHER && \
+      RE_STD_HAS_EXCEPTIONS )
 
+    // std
     #include <exception>
 
 namespace re_std
@@ -31,8 +34,7 @@ namespace re_std
     //   function: using-declaration from std::make_exception_ptr.
     using std::make_exception_ptr;
 
-} // namespace re_std
-
+}  // re_std
 #endif // C++11+ && <exception>
 
-#endif  // DJINTERP_RE_STD_EXCEPTION_MAKE_EXCEPTION_PTR_
+#endif  // RE_STD_EXCEPTION_MAKE_EXCEPTION_PTR_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                bad_cast.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 bad_cast.hpp
 *
 * bad_cast exception header:
 *   Surfaces re_std::bad_cast as a using-declaration for std::bad_cast —
@@ -15,30 +15,33 @@
 * their Tier-1 (typeinfo-available) path.
 *
 *   PORTABILITY:
-*   Gated on D_ENV_CPP98_HAS_TYPEINFO. C++98 baseline; nothing to
+*   Gated on RE_STD_HAS_RTTI. C++98 baseline; nothing to
 * back-port (std::bad_cast has existed since C++98).
 *
 *
-* path:      /inc/djinterp/re_std/typeinfo/bad_cast.hpp
+* path:      /inc/re_std/typeinfo/bad_cast.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPEINFO_BAD_CAST_
-#define DJINTERP_RE_STD_TYPEINFO_BAD_CAST_ 1
+#ifndef RE_STD_TYPEINFO_BAD_CAST_HPP
+#define RE_STD_TYPEINFO_BAD_CAST_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if RE_STD_HAS_RTTI
 
 
 // std (runtime-provided RTTI types)
+// std
 #include <typeinfo>
 
 
-NS_RESTD
+namespace re_std
+{
 
 // bad_cast
 //   class: re-export of std::bad_cast (derives from std::exception).
@@ -46,10 +49,10 @@ NS_RESTD
 // implementation-defined message.
 using ::std::bad_cast;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_CPP98_HAS_TYPEINFO
+#endif  // RE_STD_HAS_RTTI
 
 
-#endif  // DJINTERP_RE_STD_TYPEINFO_BAD_CAST_
+#endif  // RE_STD_TYPEINFO_BAD_CAST_HPP

@@ -47,7 +47,7 @@
 * path:      /inc/djinterp/core/memory/pool_allocator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 /*
@@ -67,6 +67,12 @@ II.   arena_allocator<T>
 
 #ifndef DJINTERP_MEMORY_POOL_ALLOCATOR_HPP
 #define DJINTERP_MEMORY_POOL_ALLOCATOR_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -269,16 +275,16 @@ private:
 //   Every rebound copy shares the same node_pool, which is what makes this
 // work: the container rebinds to its private node type, and THAT
 // instantiation's sizeof is what configures the pool.
-template<typename _Type>
+template<typename Type>
 class pool_allocator
 {
 public:
 
-    using value_type      = _Type;
-    using pointer         = _Type*;
-    using const_pointer   = const _Type*;
-    using reference       = _Type&;
-    using const_reference = const _Type&;
+    using value_type      = Type;
+    using pointer         = Type*;
+    using const_pointer   = const Type*;
+    using reference       = Type&;
+    using const_reference = const Type&;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
 
@@ -297,10 +303,10 @@ public:
     // rebind
     //   trait: the C++11 spelling containers still reach for. Every rebound
     // allocator shares the SAME node_pool.
-    template<typename _Other>
+    template<typename Other>
     struct rebind
     {
-        using other = pool_allocator<_Other>;
+        using other = pool_allocator<Other>;
     };
 
     // pool_allocator (parameterized)
@@ -317,10 +323,10 @@ public:
     //   constructor: the conversion the container performs when it rebinds to
     // its node type -- and the point at which the real node size becomes
     // knowable.
-    template<typename _Other>
+    template<typename Other>
     D_INLINE
     pool_allocator(
-        const pool_allocator<_Other>& _other
+        const pool_allocator<Other>& _other
     ) noexcept
         : m_pool(_other.resource())
     {}
@@ -335,8 +341,8 @@ public:
     )
     {
         void* storage = m_pool->acquire(
-            static_cast<mem_size>(_count * sizeof(_Type)),
-            align_of<_Type>::value);
+            static_cast<mem_size>(_count * sizeof(Type)),
+            align_of<Type>::value);
 
         if (!storage)
         {
@@ -355,8 +361,8 @@ public:
     ) noexcept
     {
         m_pool->release(static_cast<void*>(_ptr),
-                        static_cast<mem_size>(_count * sizeof(_Type)),
-                        align_of<_Type>::value);
+                        static_cast<mem_size>(_count * sizeof(Type)),
+                        align_of<Type>::value);
 
         return;
     }
@@ -366,7 +372,7 @@ public:
     D_INLINE size_type
     max_size() const noexcept
     {
-        return (static_cast<size_type>(D_MEM_SIZE_MAX) / sizeof(_Type));
+        return (static_cast<size_type>(D_MEM_SIZE_MAX) / sizeof(Type));
     }
 
     // resource
@@ -388,23 +394,23 @@ private:
 //   compare: two pool allocators are interchangeable exactly when they name
 // the same node_pool. Anything looser would let a container deallocate into a
 // pool that never vended the slot.
-template<typename _Left,
-         typename _Right>
+template<typename Left,
+         typename Right>
 D_INLINE bool
 operator==(
-    const pool_allocator<_Left>&  _left,
-    const pool_allocator<_Right>& _right
+    const pool_allocator<Left>&  _left,
+    const pool_allocator<Right>& _right
 ) noexcept
 {
     return (_left.resource() == _right.resource());
 }
 
-template<typename _Left,
-         typename _Right>
+template<typename Left,
+         typename Right>
 D_INLINE bool
 operator!=(
-    const pool_allocator<_Left>&  _left,
-    const pool_allocator<_Right>& _right
+    const pool_allocator<Left>&  _left,
+    const pool_allocator<Right>& _right
 ) noexcept
 {
     return !(_left == _right);
@@ -424,24 +430,24 @@ operator!=(
 // defect being tolerated -- it is what an arena is -- and the right response
 // is to reset the arena at the end of the phase, not to reach for a different
 // allocator.
-template<typename _Type>
+template<typename Type>
 class arena_allocator
 {
 public:
 
-    using value_type      = _Type;
-    using pointer         = _Type*;
-    using const_pointer   = const _Type*;
+    using value_type      = Type;
+    using pointer         = Type*;
+    using const_pointer   = const Type*;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
 
     using propagate_on_container_move_assignment = std::true_type;
     using is_always_equal                        = std::false_type;
 
-    template<typename _Other>
+    template<typename Other>
     struct rebind
     {
-        using other = arena_allocator<_Other>;
+        using other = arena_allocator<Other>;
     };
 
     // arena_allocator (parameterized)
@@ -456,16 +462,16 @@ public:
 
     // arena_allocator (rebinding copy)
     //   constructor: the conversion a container performs when it rebinds.
-    template<typename _Other>
+    template<typename Other>
     D_INLINE
     arena_allocator(
-        const arena_allocator<_Other>& _other
+        const arena_allocator<Other>& _other
     ) noexcept
         : m_arena(_other.resource())
     {}
 
     // allocate
-    //   operation: storage for _count objects, aligned for _Type. The product
+    //   operation: storage for _count objects, aligned for Type. The product
     // is guarded against overflow by the kernel.
     D_INLINE pointer
     allocate(
@@ -475,8 +481,8 @@ public:
         void* storage = ::d_arena_allocate_array(
             m_arena,
             static_cast<mem_size>(_count),
-            size_of<_Type>::value,
-            align_of<_Type>::value);
+            size_of<Type>::value,
+            align_of<Type>::value);
 
         if (!storage)
         {
@@ -507,7 +513,7 @@ public:
     D_INLINE size_type
     max_size() const noexcept
     {
-        return (static_cast<size_type>(D_MEM_SIZE_MAX) / sizeof(_Type));
+        return (static_cast<size_type>(D_MEM_SIZE_MAX) / sizeof(Type));
     }
 
     // resource
@@ -526,23 +532,23 @@ private:
 
 // operator== / operator!=  (arena_allocator)
 //   compare: interchangeable exactly when they name the same arena.
-template<typename _Left,
-         typename _Right>
+template<typename Left,
+         typename Right>
 D_INLINE bool
 operator==(
-    const arena_allocator<_Left>&  _left,
-    const arena_allocator<_Right>& _right
+    const arena_allocator<Left>&  _left,
+    const arena_allocator<Right>& _right
 ) noexcept
 {
     return (_left.resource() == _right.resource());
 }
 
-template<typename _Left,
-         typename _Right>
+template<typename Left,
+         typename Right>
 D_INLINE bool
 operator!=(
-    const arena_allocator<_Left>&  _left,
-    const arena_allocator<_Right>& _right
+    const arena_allocator<Left>&  _left,
+    const arena_allocator<Right>& _right
 ) noexcept
 {
     return !(_left == _right);
@@ -584,5 +590,6 @@ D_STATIC_ASSERT(sizeof(node_pool) > sizeof(::d_pool),
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
 #endif  // DJINTERP_MEMORY_POOL_ALLOCATOR_HPP

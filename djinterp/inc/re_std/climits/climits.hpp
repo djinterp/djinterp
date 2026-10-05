@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                  climits.hpp
 *
 * the integer limit macros:
@@ -41,21 +41,21 @@
 * inside #if conditionals, where no function can be called.
 *
 *
-* path:      /inc/djinterp/re_std/climits/climits.hpp
+* path:      /inc/re_std/climits/climits.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CLIMITS_CLIMITS_
-#define DJINTERP_RE_STD_CLIMITS_CLIMITS_ 1
-
-// djinterp
-#include "../../core/djinterp.hpp"
+#ifndef RE_STD_CLIMITS_CLIMITS_HPP
+#define RE_STD_CLIMITS_CLIMITS_HPP 1
 
 // std
 //   the macros themselves. This is the whole payload of the header; there
 // is no namespaced part to add.
 #include <climits>
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
@@ -101,4 +101,4 @@
 #endif
 
 
-#endif  // DJINTERP_RE_STD_CLIMITS_CLIMITS_
+#endif  // RE_STD_CLIMITS_CLIMITS_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                           dynamic_matrix.hpp
+/*******************************************************************************
+* djinterp [math]                                             dynamic_matrix.hpp
 *
 * Runtime-sized matrix companion for the linear-algebra subframework.
 *   dynamic_matrix<_T> mirrors the fixed-size matrix API but chooses its
@@ -23,20 +23,22 @@
 *   - Like the fixed-size type, every operation returns a new value, so results
 *     still chain: a.transposed().scaled(2.0).times(b).
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/dynamic_matrix.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_DYNAMIC_MATRIX_
-#define DJINTERP_MATH_LINALG_DYNAMIC_MATRIX_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_DYNAMIC_MATRIX_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_DYNAMIC_MATRIX_HPP 1
 
 // std
-#include <cstddef>
-#include <vector>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <type_traits>
+#include <vector>
 // djinterp
 #include "../../djinterp.hpp"
 #include "./linalg_common.hpp"
@@ -718,4 +720,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_DYNAMIC_MATRIX_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_DYNAMIC_MATRIX_HPP

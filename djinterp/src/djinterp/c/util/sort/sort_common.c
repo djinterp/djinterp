@@ -1,4 +1,17 @@
-#include "./sort_common.h"
+/*******************************************************************************
+* djinterp [c]                                                     sort_common.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/util/sort/sort_common.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.10.03
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/util/sort/sort_common.h"
+// re_std
+#include "../../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
 
 
 /*

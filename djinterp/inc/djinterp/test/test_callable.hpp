@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            test_callable.hpp
+/*******************************************************************************
+* djinterp [test]                                              test_callable.hpp
 *
 *   The test_callable_table: the out-of-line store of deferred test work
 * that test_common.hpp / test_object.hpp already reference but do not
@@ -44,23 +44,30 @@
 *   C++11 minimum (std::function, lambdas, <utility>).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    PORTABILITY CHECKS
-* II.   TEST CALLABLE TABLE
-*
-*
 * path:      /inc/djinterp/test/test_callable.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.17
+*                                                            revised: 2026.09.30
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_CALLABLE_
-#define DJINTERP_TEST_CALLABLE_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    PORTABILITY CHECKS
+      ------------------
 
-#ifndef __cplusplus
-    #error "test_callable.hpp requires C++ compilation"
-#endif
+II.   TEST CALLABLE TABLE
+      -------------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_CALLABLE_HPP
+#define DJINTERP_TEST_TEST_CALLABLE_HPP 1
+
+// djinterp
+#include "../env/env.h"  // D_ENV_LANG_IS_CPP11_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 
 // std
 #include <cstddef>
@@ -68,13 +75,8 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "./test_common.hpp"
-
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "test_callable.hpp requires C++11 or higher"
-#endif
 
 
 NS_DJINTERP
@@ -336,5 +338,6 @@ private:
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_TEST_CALLABLE_
+#endif  // DJINTERP_TEST_TEST_CALLABLE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                                  adapter.hpp
+/*******************************************************************************
+* djinterp [core]                                                    adapter.hpp
 *
 * Adapter Pattern Module:
 *   Provides a comprehensive, abstract, version-portable foundation for the
@@ -29,22 +29,23 @@
 *   - C++20  : concept-constrained adapters, adaptable_to concept
 *
 *
-* path:      /inc/djinterp/paradigm/adapter/adapter.hpp
+* path:      /inc/djinterp/core/paradigm/adapter/adapter.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    CONFIGURATION & FEATURE GATES
-      --------------------------------
+      -----------------------------
       i.    D_ADAPTER_HAS_IF_CONSTEXPR
       ii.   D_ADAPTER_HAS_CONCEPTS
       iii.  D_ADAPTER_HAS_DEDUCTION_GUIDES
 
 II.   OWNERSHIP POLICIES
-      ---------------------
+      ------------------
       i.    by_reference
       ii.   by_pointer
       iii.  by_value
@@ -52,7 +53,7 @@ II.   OWNERSHIP POLICIES
       v.    by_unique_ptr
 
 III.  ADAPTATION TRAITS
-      --------------------
+      -----------------
       i.    has_value_type (internal)
       ii.   has_size_method (internal)
       iii.  has_begin_end (internal)
@@ -62,25 +63,25 @@ III.  ADAPTATION TRAITS
       vii.  adaptation_class (aggregate)
 
 IV.   OBJECT ADAPTER (C++11+)
-      --------------------------
+      -----------------------
       i.    object_adapter
 
 V.    CLASS ADAPTER (C++11+)
-      -------------------------
+      ----------------------
       i.    class_adapter
 
 VI.   INTERFACE ADAPTER — CRTP (C++11+)
-      -------------------------------------
+      ---------------------------------
       i.    interface_adapter
 
 VII.  METHOD FORWARDING POLICIES
-      -----------------------------
+      --------------------------
       i.    forward_as_is
       ii.   forward_with_transform
       iii.  forward_with_rename
 
 VIII. FUNCTION ADAPTERS (C++11+)
-      -----------------------------
+      --------------------------
       i.    function_adapter
       ii.   result_adapter
       iii.  argument_adapter
@@ -88,40 +89,54 @@ VIII. FUNCTION ADAPTERS (C++11+)
       v.    compose_adapter
 
 IX.   VIEW ADAPTERS (C++11+)
-      -------------------------
+      ----------------------
       i.    adapted_ref
       ii.   adapted_const_ref
       iii.  adapted_view
 
 X.    CONVENIENCE FACTORIES (C++14+)
-      ----------------------------------
+      ------------------------------
       i.    make_object_adapter
       ii.   make_function_adapter
       iii.  make_adapted_ref
       iv.   adapt (universal factory)
 
 XI.   CONCEPT-CONSTRAINED ADAPTERS (C++20+)
-      -----------------------------------------
+      -------------------------------------
       i.    adaptable_to (concept)
       ii.   adapter_for (concept)
       iii.  function_adaptable (concept)
 */
 
-#ifndef DJINTERP_PARADIGM_ADAPTER_
-#define DJINTERP_PARADIGM_ADAPTER_ 1
+#ifndef DJINTERP_PARADIGM_ADAPTER_ADAPTER_HPP
+#define DJINTERP_PARADIGM_ADAPTER_ADAPTER_HPP 1
 
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
 #include <cstddef>
 #include <type_traits>
-#include "../../djinterp.hpp"
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../../meta/type_utility.hpp"  // clean_t
 #include "../../meta/type_traits.hpp"
+// re_std
+#include "../../../../re_std/utility/make_integer_sequence.hpp"  // re_std::index_sequence,
+                                                                 // make_index_sequence
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include <utility>
+    // std
     #include <functional>
     #include <memory>
+    #include <utility>
 #endif
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    // std
     #include <tuple>
 #endif
 
@@ -176,11 +191,11 @@ NS_DJINTERP
 // non-owning. The adaptee must outlive the adapter.
 struct by_reference
 {
-    template<typename _Adaptee>
+    template<typename Adaptee>
     struct storage
     {
-        using stored_type    = _Adaptee&;
-        using reference_type = _Adaptee&;
+        using stored_type    = Adaptee&;
+        using reference_type = Adaptee&;
 
         static D_CONSTEXPR_INLINE reference_type
         access(
@@ -197,11 +212,11 @@ struct by_reference
 // non-owning.
 struct by_pointer
 {
-    template<typename _Adaptee>
+    template<typename Adaptee>
     struct storage
     {
-        using stored_type    = _Adaptee*;
-        using reference_type = _Adaptee&;
+        using stored_type    = Adaptee*;
+        using reference_type = Adaptee&;
 
         static D_CONSTEXPR_INLINE reference_type
         access(
@@ -218,11 +233,11 @@ struct by_pointer
 // owns the adaptee and its lifetime.
 struct by_value
 {
-    template<typename _Adaptee>
+    template<typename Adaptee>
     struct storage
     {
-        using stored_type    = _Adaptee;
-        using reference_type = _Adaptee&;
+        using stored_type    = Adaptee;
+        using reference_type = Adaptee&;
 
         static D_CONSTEXPR_INLINE reference_type
         access(
@@ -232,7 +247,7 @@ struct by_value
             return _s;
         }
 
-        static D_CONSTEXPR_INLINE const _Adaptee&
+        static D_CONSTEXPR_INLINE const Adaptee&
         access(
             const stored_type& _s
         ) noexcept
@@ -247,11 +262,11 @@ struct by_value
 // ownership with reference counting.
 struct by_shared_ptr
 {
-    template<typename _Adaptee>
+    template<typename Adaptee>
     struct storage
     {
-        using stored_type    = std::shared_ptr<_Adaptee>;
-        using reference_type = _Adaptee&;
+        using stored_type    = std::shared_ptr<Adaptee>;
+        using reference_type = Adaptee&;
 
         static reference_type
         access(
@@ -261,7 +276,7 @@ struct by_shared_ptr
             return *_s;
         }
 
-        static D_CONSTEXPR_INLINE const _Adaptee&
+        static D_CONSTEXPR_INLINE const Adaptee&
         access(
             const stored_type& _s
         ) noexcept
@@ -276,11 +291,11 @@ struct by_shared_ptr
 // ownership; the adapter is move-only.
 struct by_unique_ptr
 {
-    template<typename _Adaptee>
+    template<typename Adaptee>
     struct storage
     {
-        using stored_type    = std::unique_ptr<_Adaptee>;
-        using reference_type = _Adaptee&;
+        using stored_type    = std::unique_ptr<Adaptee>;
+        using reference_type = Adaptee&;
 
         static reference_type
         access(
@@ -290,7 +305,7 @@ struct by_unique_ptr
             return *_s;
         }
 
-        static D_CONSTEXPR_INLINE const _Adaptee&
+        static D_CONSTEXPR_INLINE const Adaptee&
         access(
             const stored_type& _s
         ) noexcept
@@ -312,82 +327,82 @@ NS_INTERNAL
     // =====================================================================
 
     // has_value_type
-    //   trait: detects _T::value_type.
-    template<typename _T,
+    //   trait: detects T::value_type.
+    template<typename T,
              typename = void>
     struct has_value_type : std::false_type
     {};
 
-    template<typename _T>
-    struct has_value_type<_T, D_VOID_T<typename _T::value_type>>
+    template<typename T>
+    struct has_value_type<T, D_VOID_T<typename T::value_type>>
         : std::true_type
     {};
 
     // has_size_method
-    //   trait: detects _T::size().
-    template<typename _T,
+    //   trait: detects T::size().
+    template<typename T,
              typename = void>
     struct has_size_method : std::false_type
     {};
 
-    template<typename _T>
-    struct has_size_method<_T, D_VOID_T<
-        decltype(std::declval<const _T>().size())
+    template<typename T>
+    struct has_size_method<T, D_VOID_T<
+        decltype(std::declval<const T>().size())
     >> : std::true_type
     {};
 
     // has_begin_end
-    //   trait: detects _T::begin() and _T::end().
-    template<typename _T,
+    //   trait: detects T::begin() and T::end().
+    template<typename T,
              typename = void>
     struct has_begin_end : std::false_type
     {};
 
-    template<typename _T>
-    struct has_begin_end<_T, D_VOID_T<
-        decltype(std::declval<_T>().begin()),
-        decltype(std::declval<_T>().end())
+    template<typename T>
+    struct has_begin_end<T, D_VOID_T<
+        decltype(std::declval<T>().begin()),
+        decltype(std::declval<T>().end())
     >> : std::true_type
     {};
 
     // has_push_back
-    //   trait: detects _T::push_back(value_type).
-    template<typename _T,
+    //   trait: detects T::push_back(value_type).
+    template<typename T,
              typename = void>
     struct has_push_back : std::false_type
     {};
 
-    template<typename _T>
-    struct has_push_back<_T, D_VOID_T<decltype(
-        std::declval<_T>().push_back(
-            std::declval<typename _T::value_type>()))
+    template<typename T>
+    struct has_push_back<T, D_VOID_T<decltype(
+        std::declval<T>().push_back(
+            std::declval<typename T::value_type>()))
     >> : std::true_type
     {};
 
     // has_insert
-    //   trait: detects _T::insert(value_type).
-    template<typename _T,
+    //   trait: detects T::insert(value_type).
+    template<typename T,
              typename = void>
     struct has_insert : std::false_type
     {};
 
-    template<typename _T>
-    struct has_insert<_T, D_VOID_T<decltype(
-        std::declval<_T>().insert(
-            std::declval<typename _T::value_type>()))
+    template<typename T>
+    struct has_insert<T, D_VOID_T<decltype(
+        std::declval<T>().insert(
+            std::declval<typename T::value_type>()))
     >> : std::true_type
     {};
 
     // has_subscript_operator
-    //   trait: detects _T::operator[](size_t).
-    template<typename _T,
+    //   trait: detects T::operator[](size_t).
+    template<typename T,
              typename = void>
     struct has_subscript_operator : std::false_type
     {};
 
-    template<typename _T>
-    struct has_subscript_operator<_T, D_VOID_T<
-        decltype(std::declval<_T>()[std::declval<std::size_t>()])
+    template<typename T>
+    struct has_subscript_operator<T, D_VOID_T<
+        decltype(std::declval<T>()[std::declval<std::size_t>()])
     >> : std::true_type
     {};
 
@@ -398,19 +413,19 @@ NS_INTERNAL
     // value_types_compatible
     //   trait: true if both types expose value_type and those types are
     // convertible (From::value_type -> To::value_type).
-    template<typename _From,
-             typename _To,
+    template<typename From,
+             typename To,
              typename = void>
     struct value_types_compatible : std::false_type
     {};
 
-    template<typename _From,
-             typename _To>
-    struct value_types_compatible<_From, _To, D_VOID_T<
-        typename _From::value_type,
-        typename _To::value_type
-    >> : std::is_convertible<typename _From::value_type,
-                             typename _To::value_type>
+    template<typename From,
+             typename To>
+    struct value_types_compatible<From, To, D_VOID_T<
+        typename From::value_type,
+        typename To::value_type
+    >> : std::is_convertible<typename From::value_type,
+                             typename To::value_type>
     {};
 
     // =====================================================================
@@ -418,120 +433,120 @@ NS_INTERNAL
     // =====================================================================
 
     // is_invocable_mapping
-    //   trait: true if _Fn can be called with _From& and produces a
-    // result convertible to _To&.
-    template<typename _Fn,
-             typename _From,
-             typename _To,
+    //   trait: true if Fn can be called with From& and produces a
+    // result convertible to To&.
+    template<typename Fn,
+             typename From,
+             typename To,
              typename = void>
     struct is_invocable_mapping : std::false_type
     {};
 
-    template<typename _Fn,
-             typename _From,
-             typename _To>
-    struct is_invocable_mapping<_Fn, _From, _To, D_VOID_T<
-        decltype(std::declval<_Fn>()(std::declval<_From&>()))
+    template<typename Fn,
+             typename From,
+             typename To>
+    struct is_invocable_mapping<Fn, From, To, D_VOID_T<
+        decltype(std::declval<Fn>()(std::declval<From&>()))
     >> : std::is_convertible<
-        decltype(std::declval<_Fn>()(std::declval<_From&>())),
-        _To>
+        decltype(std::declval<Fn>()(std::declval<From&>())),
+        To>
     {};
 
 NS_END  // internal
 
 // are_value_type_compatible
-//   trait: public interface — true if _From's value_type is convertible
-// to _To's value_type.
-template<typename _From,
-         typename _To>
+//   trait: public interface — true if From's value_type is convertible
+// to To's value_type.
+template<typename From,
+         typename To>
 struct are_value_type_compatible
     : internal::value_types_compatible<
-        clean_t<_From>, clean_t<_To>>
+        clean_t<From>, clean_t<To>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _From,
-             typename _To>
+    template<typename From,
+             typename To>
     constexpr bool are_value_type_compatible_v =
-        are_value_type_compatible<_From, _To>::value;
+        are_value_type_compatible<From, To>::value;
 #endif
 
 // is_structurally_adaptable
-//   trait: true if _Adaptee has enough structural surface to be
-// adapted into _Target's interface. Requires at minimum that both
+//   trait: true if Adaptee has enough structural surface to be
+// adapted into Target's interface. Requires at minimum that both
 // types share an iterable interface or both are sized.
-template<typename _Adaptee,
-         typename _Target>
+template<typename Adaptee,
+         typename Target>
 struct is_structurally_adaptable
 {
     static constexpr bool value =
-        ( (internal::has_begin_end<_Adaptee>::value &&
-           internal::has_begin_end<_Target>::value)  ||
-          (internal::has_size_method<_Adaptee>::value &&
-           internal::has_size_method<_Target>::value) ||
-          (internal::has_subscript_operator<_Adaptee>::value &&
-           internal::has_subscript_operator<_Target>::value) );
+        ( (internal::has_begin_end<Adaptee>::value &&
+           internal::has_begin_end<Target>::value)  ||
+          (internal::has_size_method<Adaptee>::value &&
+           internal::has_size_method<Target>::value) ||
+          (internal::has_subscript_operator<Adaptee>::value &&
+           internal::has_subscript_operator<Target>::value) );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Adaptee,
-             typename _Target>
+    template<typename Adaptee,
+             typename Target>
     constexpr bool is_structurally_adaptable_v =
-        is_structurally_adaptable<_Adaptee, _Target>::value;
+        is_structurally_adaptable<Adaptee, Target>::value;
 #endif
 
 // is_invocable_adapter
-//   trait: true if _Fn maps _From to something convertible to _To.
-template<typename _Fn,
-         typename _From,
-         typename _To>
+//   trait: true if Fn maps From to something convertible to To.
+template<typename Fn,
+         typename From,
+         typename To>
 struct is_invocable_adapter
-    : internal::is_invocable_mapping<_Fn, _From, _To>
+    : internal::is_invocable_mapping<Fn, From, To>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Fn,
-             typename _From,
-             typename _To>
+    template<typename Fn,
+             typename From,
+             typename To>
     constexpr bool is_invocable_adapter_v =
-        is_invocable_adapter<_Fn, _From, _To>::value;
+        is_invocable_adapter<Fn, From, To>::value;
 #endif
 
 // adaptation_class
 //   struct: aggregate classification of an adaptee→target relationship.
-template<typename _Adaptee,
-         typename _Target>
+template<typename Adaptee,
+         typename Target>
 struct adaptation_class
 {
     static constexpr bool compatible_values =
-        are_value_type_compatible<_Adaptee, _Target>::value;
+        are_value_type_compatible<Adaptee, Target>::value;
 
     static constexpr bool structurally_adaptable =
-        is_structurally_adaptable<_Adaptee, _Target>::value;
+        is_structurally_adaptable<Adaptee, Target>::value;
 
     static constexpr bool adaptee_iterable =
-        internal::has_begin_end<_Adaptee>::value;
+        internal::has_begin_end<Adaptee>::value;
 
     static constexpr bool target_iterable =
-        internal::has_begin_end<_Target>::value;
+        internal::has_begin_end<Target>::value;
 
     static constexpr bool adaptee_sized =
-        internal::has_size_method<_Adaptee>::value;
+        internal::has_size_method<Adaptee>::value;
 
     static constexpr bool target_sized =
-        internal::has_size_method<_Target>::value;
+        internal::has_size_method<Target>::value;
 
     static constexpr bool adaptee_indexable =
-        internal::has_subscript_operator<_Adaptee>::value;
+        internal::has_subscript_operator<Adaptee>::value;
 
     static constexpr bool target_indexable =
-        internal::has_subscript_operator<_Target>::value;
+        internal::has_subscript_operator<Target>::value;
 
     static constexpr bool adaptee_has_push_back =
-        internal::has_push_back<_Adaptee>::value;
+        internal::has_push_back<Adaptee>::value;
 
     static constexpr bool adaptee_has_insert =
-        internal::has_insert<_Adaptee>::value;
+        internal::has_insert<Adaptee>::value;
 
     // true if direct (no transform) adaptation is plausible
     static constexpr bool is_directly_adaptable =
@@ -546,10 +561,10 @@ struct adaptation_class
 
 // object_adapter
 //   class: composition-based adapter. Holds an adaptee via the
-// specified _OwnershipPolicy and delegates target interface calls
-// to the adaptee through an _AdaptationPolicy.
+// specified OwnershipPolicy and delegates target interface calls
+// to the adaptee through an AdaptationPolicy.
 //
-// _AdaptationPolicy must provide static methods that map target
+// AdaptationPolicy must provide static methods that map target
 // operations onto adaptee operations:
 //   static auto size(adaptee&) -> size_type;
 //   static auto get(adaptee&, index) -> reference;
@@ -567,20 +582,20 @@ struct adaptation_class
 //   object_adapter<legacy_container, my_policy> adapted(legacy);
 //   adapted.size();      // calls legacy.num_elements()
 //   adapted.get(0);      // calls legacy.element_at(0)
-template<typename _Adaptee,
-         typename _AdaptationPolicy,
-         typename _OwnershipPolicy = by_reference>
+template<typename Adaptee,
+         typename AdaptationPolicy,
+         typename OwnershipPolicy = by_reference>
 class object_adapter
 {
 private:
-    using storage_policy = typename _OwnershipPolicy::template
-                               storage<_Adaptee>;
+    using storage_policy = typename OwnershipPolicy::template
+                               storage<Adaptee>;
     using stored_type    = typename storage_policy::stored_type;
 
 public:
-    using adaptee_type      = _Adaptee;
-    using adaptation_policy = _AdaptationPolicy;
-    using ownership_policy  = _OwnershipPolicy;
+    using adaptee_type      = Adaptee;
+    using adaptation_policy = AdaptationPolicy;
+    using ownership_policy  = OwnershipPolicy;
 
     // constructor
     explicit object_adapter(
@@ -591,60 +606,60 @@ public:
 
     // adaptee
     //   function: direct access to the underlying adaptee.
-    D_CONSTEXPR_INLINE _Adaptee&
+    D_CONSTEXPR_CPP14 Adaptee&
     adaptee() noexcept
     {
         return storage_policy::access(m_adaptee);
     }
 
-    D_CONSTEXPR_INLINE const _Adaptee&
+    D_CONSTEXPR_INLINE const Adaptee&
     adaptee() const noexcept
     {
         return storage_policy::access(m_adaptee);
     }
 
     // size — delegated through policy
-    template<typename _P = _AdaptationPolicy>
+    template<typename P = AdaptationPolicy>
     auto size() const
-        -> decltype(_P::size(std::declval<const _Adaptee&>()))
+        -> decltype(P::size(std::declval<const Adaptee&>()))
     {
-        return _AdaptationPolicy::size(adaptee());
+        return AdaptationPolicy::size(adaptee());
     }
 
     // get — delegated through policy
-    template<typename _P = _AdaptationPolicy,
-             typename _Index>
+    template<typename P = AdaptationPolicy,
+             typename Index>
     auto get(
-        _Index _i
+        Index _i
     )
-        -> decltype(_P::get(std::declval<_Adaptee&>(), _i))
+        -> decltype(P::get(std::declval<Adaptee&>(), _i))
     {
-        return _AdaptationPolicy::get(adaptee(), _i);
+        return AdaptationPolicy::get(adaptee(), _i);
     }
 
-    template<typename _P = _AdaptationPolicy,
-             typename _Index>
+    template<typename P = AdaptationPolicy,
+             typename Index>
     auto get(
-        _Index _i
+        Index _i
     ) const
-        -> decltype(_P::get(std::declval<const _Adaptee&>(), _i))
+        -> decltype(P::get(std::declval<const Adaptee&>(), _i))
     {
-        return _AdaptationPolicy::get(adaptee(), _i);
+        return AdaptationPolicy::get(adaptee(), _i);
     }
 
     // forward — generic method forwarding through policy
-    template<typename _P = _AdaptationPolicy,
-             typename... _Args>
+    template<typename P = AdaptationPolicy,
+             typename... Args>
     auto forward(
-        _Args&&... _args
+        Args&&... _args
     )
-        -> decltype(_P::forward(
-            std::declval<_Adaptee&>(),
-            std::forward<_Args>(_args)...))
+        -> decltype(P::forward(
+            std::declval<Adaptee&>(),
+            std::forward<Args>(_args)...))
     {
-        return _AdaptationPolicy::forward(
+        return AdaptationPolicy::forward(
             adaptee(),
-            std::forward<_Args>(_args)...);
+            std::forward<Args>(_args)...);
     }
 
 private:
@@ -658,9 +673,9 @@ private:
 
 // class_adapter
 //   class: multiple-inheritance-based adapter. Inherits publicly from
-// _Target (to satisfy the target interface) and privately from _Adaptee
-// (to gain access to the adaptee's implementation). _Derived must
-// override target virtual methods and delegate to _Adaptee members.
+// Target (to satisfy the target interface) and privately from Adaptee
+// (to gain access to the adaptee's implementation). Derived must
+// override target virtual methods and delegate to Adaptee members.
 //
 // Usage:
 //   class my_adapter
@@ -672,45 +687,45 @@ private:
 //           this->adaptee_ref().legacy_method();
 //       }
 //   };
-template<typename _Target,
-         typename _Adaptee,
-         typename _Derived>
-class class_adapter : public  _Target,
-                      private _Adaptee
+template<typename Target,
+         typename Adaptee,
+         typename Derived>
+class class_adapter : public  Target,
+                      private Adaptee
 {
 protected:
     // adaptee_ref
     //   function: gives derived classes access to the private base.
-    _Adaptee&
+    Adaptee&
     adaptee_ref() noexcept
     {
-        return static_cast<_Adaptee&>(*this);
+        return static_cast<Adaptee&>(*this);
     }
 
-    const _Adaptee&
+    const Adaptee&
     adaptee_ref() const noexcept
     {
-        return static_cast<const _Adaptee&>(*this);
+        return static_cast<const Adaptee&>(*this);
     }
 
 public:
-    using target_type  = _Target;
-    using adaptee_type = _Adaptee;
+    using target_type  = Target;
+    using adaptee_type = Adaptee;
 
     class_adapter() = default;
 
     explicit class_adapter(
-            const _Adaptee& _a
+            const Adaptee& _a
         )
-            : _Target(),
-              _Adaptee(_a)
+            : Target(),
+              Adaptee(_a)
         {}
 
     explicit class_adapter(
-            _Adaptee&& _a
+            Adaptee&& _a
         )
-            : _Target(),
-              _Adaptee(std::move(_a))
+            : Target(),
+              Adaptee(std::move(_a))
         {}
 };
 
@@ -720,10 +735,10 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 
 // interface_adapter
-//   class: CRTP base for zero-overhead interface adaptation. _Derived
+//   class: CRTP base for zero-overhead interface adaptation. Derived
 // implements the target interface by delegating to an internally held
 // adaptee. Unlike object_adapter, there is no policy indirection — the
-// mapping is hard-coded in _Derived, yielding fully inlinable dispatch.
+// mapping is hard-coded in Derived, yielding fully inlinable dispatch.
 //
 // Usage:
 //   class stack_as_deque
@@ -737,19 +752,19 @@ public:
 //       int& back()            { return adaptee().top(); }
 //       std::size_t size()     { return adaptee().size(); }
 //   };
-template<typename _Derived,
-         typename _Adaptee,
-         typename _OwnershipPolicy = by_value>
+template<typename Derived,
+         typename Adaptee,
+         typename OwnershipPolicy = by_value>
 class interface_adapter
 {
 private:
-    using storage_policy = typename _OwnershipPolicy::template
-                               storage<_Adaptee>;
+    using storage_policy = typename OwnershipPolicy::template
+                               storage<Adaptee>;
     using stored_type    = typename storage_policy::stored_type;
 
 public:
-    using adaptee_type     = _Adaptee;
-    using ownership_policy = _OwnershipPolicy;
+    using adaptee_type     = Adaptee;
+    using ownership_policy = OwnershipPolicy;
 
     interface_adapter() = default;
 
@@ -760,13 +775,13 @@ public:
         {}
 
 protected:
-    D_CONSTEXPR_INLINE _Adaptee&
+    D_CONSTEXPR_CPP14 Adaptee&
     adaptee() noexcept
     {
         return storage_policy::access(m_adaptee);
     }
 
-    D_CONSTEXPR_INLINE const _Adaptee&
+    D_CONSTEXPR_INLINE const Adaptee&
     adaptee() const noexcept
     {
         return storage_policy::access(m_adaptee);
@@ -789,40 +804,40 @@ private:
 // adaptee. The simplest mapping — target.foo(args) → adaptee.foo(args).
 struct forward_as_is
 {
-    template<typename _Adaptee,
-             typename _Method,
-             typename... _Args>
+    template<typename Adaptee,
+             typename Method,
+             typename... Args>
     static auto
     invoke(
-        _Adaptee& _a,
-        _Method   _m,
-        _Args&&... _args
+        Adaptee& _a,
+        Method    _m,
+        Args&&... _args
     )
-        -> decltype((_a.*_m)(std::forward<_Args>(_args)...))
+        -> decltype((_a.*_m)(std::forward<Args>(_args)...))
     {
-        return (_a.*_m)(std::forward<_Args>(_args)...);
+        return (_a.*_m)(std::forward<Args>(_args)...);
     }
 };
 
 // forward_with_transform
 //   policy: applies a transformation function to each argument before
 // forwarding. Useful for unit conversion, type coercion, etc.
-template<typename _Transform>
+template<typename Transform>
 struct forward_with_transform
 {
-    template<typename _Adaptee,
-             typename _Method,
-             typename... _Args>
+    template<typename Adaptee,
+             typename Method,
+             typename... Args>
     static auto
     invoke(
-        _Adaptee&   _a,
-        _Method     _m,
-        _Transform& _xform,
-        _Args&&...  _args
+        Adaptee&   _a,
+        Method      _m,
+        Transform& _xform,
+        Args&&...  _args
     )
-        -> decltype((_a.*_m)(_xform(std::forward<_Args>(_args))...))
+        -> decltype((_a.*_m)(_xform(std::forward<Args>(_args))...))
     {
-        return (_a.*_m)(_xform(std::forward<_Args>(_args))...);
+        return (_a.*_m)(_xform(std::forward<Args>(_args))...);
     }
 };
 
@@ -839,82 +854,82 @@ struct forward_with_transform
 // Usage:
 //   auto adapted = function_adapter<decltype(fn), decltype(xform)>(fn, xform);
 //   adapted(args...);  // calls xform on each arg, then fn
-template<typename _Fn,
-         typename _Transform = void>
+template<typename Fn,
+         typename Transform = void>
 class function_adapter
 {
 public:
-    using function_type  = _Fn;
-    using transform_type = _Transform;
+    using function_type  = Fn;
+    using transform_type = Transform;
 
     function_adapter(
-            _Fn        _fn,
-            _Transform _xform
+            Fn         _fn,
+            Transform _xform
         )
             : m_fn(std::move(_fn)),
               m_xform(std::move(_xform))
         {}
 
-    template<typename... _Args>
+    template<typename... Args>
     auto operator()(
-        _Args&&... _args
+        Args&&... _args
     )
-        -> decltype(std::declval<_Fn>()(
-            std::declval<_Transform>()(std::forward<_Args>(_args))...))
+        -> decltype(std::declval<Fn>()(
+            std::declval<Transform>()(std::forward<Args>(_args))...))
     {
-        return m_fn(m_xform(std::forward<_Args>(_args))...);
+        return m_fn(m_xform(std::forward<Args>(_args))...);
     }
 
-    template<typename... _Args>
+    template<typename... Args>
     auto operator()(
-        _Args&&... _args
+        Args&&... _args
     ) const
-        -> decltype(std::declval<const _Fn>()(
-            std::declval<const _Transform>()(std::forward<_Args>(_args))...))
+        -> decltype(std::declval<const Fn>()(
+            std::declval<const Transform>()(std::forward<Args>(_args))...))
     {
-        return m_fn(m_xform(std::forward<_Args>(_args))...);
+        return m_fn(m_xform(std::forward<Args>(_args))...);
     }
 
 private:
-    _Fn        m_fn;
-    _Transform m_xform;
+    Fn         m_fn;
+    Transform m_xform;
 };
 
 // function_adapter (no transform specialization)
 //   class: passthrough adapter that simply wraps a callable with no
 // argument transformation. Useful as a uniform wrapper type.
-template<typename _Fn>
-class function_adapter<_Fn, void>
+template<typename Fn>
+class function_adapter<Fn, void>
 {
 public:
-    using function_type = _Fn;
+    using function_type = Fn;
 
     explicit function_adapter(
-            _Fn _fn
+            Fn _fn
         )
             : m_fn(std::move(_fn))
         {}
 
-    template<typename... _Args>
+    template<typename... Args>
     auto operator()(
-        _Args&&... _args
+        Args&&... _args
     )
-        -> decltype(std::declval<_Fn>()(std::forward<_Args>(_args)...))
+        -> decltype(std::declval<Fn>()(std::forward<Args>(_args)...))
     {
-        return m_fn(std::forward<_Args>(_args)...);
+        return m_fn(std::forward<Args>(_args)...);
     }
 
-    template<typename... _Args>
+    template<typename... Args>
     auto operator()(
-        _Args&&... _args
+        Args&&... _args
     ) const
-        -> decltype(std::declval<const _Fn>()(std::forward<_Args>(_args)...))
+        -> decltype(std::declval<const Fn>()(std::forward<Args>(_args)...))
     {
-        return m_fn(std::forward<_Args>(_args)...);
+        return m_fn(std::forward<Args>(_args)...);
     }
 
 private:
-    _Fn m_fn;
+    Fn m_fn;
 };
 
 // result_adapter
@@ -924,45 +939,45 @@ private:
 // Usage:
 //   result_adapter ra(strlen, [](std::size_t n){ return (int)n; });
 //   int len = ra("hello");
-template<typename _Fn,
-         typename _ResultTransform>
+template<typename Fn,
+         typename ResultTransform>
 class result_adapter
 {
 public:
-    using function_type  = _Fn;
-    using transform_type = _ResultTransform;
+    using function_type  = Fn;
+    using transform_type = ResultTransform;
 
     result_adapter(
-            _Fn              _fn,
-            _ResultTransform _xform
+            Fn               _fn,
+            ResultTransform _xform
         )
             : m_fn(std::move(_fn)),
               m_xform(std::move(_xform))
         {}
 
-    template<typename... _Args>
+    template<typename... Args>
     auto operator()(
-        _Args&&... _args
+        Args&&... _args
     )
-        -> decltype(std::declval<_ResultTransform>()(
-            std::declval<_Fn>()(std::forward<_Args>(_args)...)))
+        -> decltype(std::declval<ResultTransform>()(
+            std::declval<Fn>()(std::forward<Args>(_args)...)))
     {
-        return m_xform(m_fn(std::forward<_Args>(_args)...));
+        return m_xform(m_fn(std::forward<Args>(_args)...));
     }
 
-    template<typename... _Args>
+    template<typename... Args>
     auto operator()(
-        _Args&&... _args
+        Args&&... _args
     ) const
-        -> decltype(std::declval<const _ResultTransform>()(
-            std::declval<const _Fn>()(std::forward<_Args>(_args)...)))
+        -> decltype(std::declval<const ResultTransform>()(
+            std::declval<const Fn>()(std::forward<Args>(_args)...)))
     {
-        return m_xform(m_fn(std::forward<_Args>(_args)...));
+        return m_xform(m_fn(std::forward<Args>(_args)...));
     }
 
 private:
-    _Fn              m_fn;
-    _ResultTransform m_xform;
+    Fn               m_fn;
+    ResultTransform m_xform;
 };
 
 // argument_adapter
@@ -972,14 +987,14 @@ private:
 // Usage:
 //   argument_adapter aa(fn, std::make_tuple(to_int, to_float));
 //   aa("42", "3.14");  // calls fn(to_int("42"), to_float("3.14"))
-template<typename _Fn,
-         typename _ArgTransformTuple>
+template<typename Fn,
+         typename ArgTransformTuple>
 class argument_adapter
 {
 public:
     argument_adapter(
-            _Fn                _fn,
-            _ArgTransformTuple _xforms
+            Fn                 _fn,
+            ArgTransformTuple _xforms
         )
             : m_fn(std::move(_fn)),
               m_xforms(std::move(_xforms))
@@ -987,73 +1002,73 @@ public:
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
-    template<typename... _Args>
+    template<typename... Args>
     auto operator()(
-        _Args&&... _args
+        Args&&... _args
     )
     {
-        return invoke_impl(std::index_sequence_for<_Args...>{},
-                           std::forward<_Args>(_args)...);
+        return invoke_impl(std::index_sequence_for<Args...>{},
+                           std::forward<Args>(_args)...);
     }
 
 private:
-    template<std::size_t... _Is,
-             typename...    _Args>
+    template<std::size_t... Is,
+             typename...    Args>
     auto invoke_impl(
-        std::index_sequence<_Is...>,
-        _Args&&... _args
+        re_std::index_sequence<Is...>,
+        Args&&... _args
     )
     {
         return m_fn(
-            std::get<_Is>(m_xforms)(std::forward<_Args>(_args))...);
+            std::get<Is>(m_xforms)(std::forward<Args>(_args))...);
     }
 
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 private:
-    _Fn                m_fn;
-    _ArgTransformTuple m_xforms;
+    Fn                 m_fn;
+    ArgTransformTuple m_xforms;
 };
 
 // compose_adapter
 //   class: function composition adapter. Chains two callables such
-// that operator()(args...) evaluates _Outer(_Inner(args...)).
-template<typename _Outer,
-         typename _Inner>
+// that operator()(args...) evaluates Outer(Inner(args...)).
+template<typename Outer,
+         typename Inner>
 class compose_adapter
 {
 public:
     compose_adapter(
-            _Outer _outer,
-            _Inner _inner
+            Outer _outer,
+            Inner _inner
         )
             : m_outer(std::move(_outer)),
               m_inner(std::move(_inner))
         {}
 
-    template<typename... _Args>
+    template<typename... Args>
     auto operator()(
-        _Args&&... _args
+        Args&&... _args
     )
-        -> decltype(std::declval<_Outer>()(
-            std::declval<_Inner>()(std::forward<_Args>(_args)...)))
+        -> decltype(std::declval<Outer>()(
+            std::declval<Inner>()(std::forward<Args>(_args)...)))
     {
-        return m_outer(m_inner(std::forward<_Args>(_args)...));
+        return m_outer(m_inner(std::forward<Args>(_args)...));
     }
 
-    template<typename... _Args>
+    template<typename... Args>
     auto operator()(
-        _Args&&... _args
+        Args&&... _args
     ) const
-        -> decltype(std::declval<const _Outer>()(
-            std::declval<const _Inner>()(std::forward<_Args>(_args)...)))
+        -> decltype(std::declval<const Outer>()(
+            std::declval<const Inner>()(std::forward<Args>(_args)...)))
     {
-        return m_outer(m_inner(std::forward<_Args>(_args)...));
+        return m_outer(m_inner(std::forward<Args>(_args)...));
     }
 
 private:
-    _Outer m_outer;
-    _Inner m_inner;
+    Outer m_outer;
+    Inner m_inner;
 };
 
 
@@ -1064,129 +1079,129 @@ private:
 // adapted_ref
 //   class: non-owning mutable reference adapter. Holds a reference to
 // an adaptee and exposes the target interface by delegating through
-// an _AdaptationPolicy — identical to object_adapter<by_reference>
+// an AdaptationPolicy — identical to object_adapter<by_reference>
 // but with a lighter, view-semantic API.
-template<typename _Adaptee,
-         typename _AdaptationPolicy>
+template<typename Adaptee,
+         typename AdaptationPolicy>
 class adapted_ref
 {
 public:
-    using adaptee_type      = _Adaptee;
-    using adaptation_policy = _AdaptationPolicy;
+    using adaptee_type      = Adaptee;
+    using adaptation_policy = AdaptationPolicy;
 
     explicit adapted_ref(
-            _Adaptee& _adaptee
+            Adaptee& _adaptee
         ) noexcept
             : m_ref(_adaptee)
         {}
 
-    _Adaptee&
+    Adaptee&
     adaptee() noexcept
     {
         return m_ref;
     }
 
-    const _Adaptee&
+    const Adaptee&
     adaptee() const noexcept
     {
         return m_ref;
     }
 
-    template<typename _P = _AdaptationPolicy>
+    template<typename P = AdaptationPolicy>
     auto size() const
-        -> decltype(_P::size(std::declval<const _Adaptee&>()))
+        -> decltype(P::size(std::declval<const Adaptee&>()))
     {
-        return _AdaptationPolicy::size(m_ref);
+        return AdaptationPolicy::size(m_ref);
     }
 
-    template<typename _P = _AdaptationPolicy,
-             typename _Index>
+    template<typename P = AdaptationPolicy,
+             typename Index>
     auto get(
-        _Index _i
+        Index _i
     )
-        -> decltype(_P::get(std::declval<_Adaptee&>(), _i))
+        -> decltype(P::get(std::declval<Adaptee&>(), _i))
     {
-        return _AdaptationPolicy::get(m_ref, _i);
+        return AdaptationPolicy::get(m_ref, _i);
     }
 
-    template<typename _P = _AdaptationPolicy,
-             typename _Index>
+    template<typename P = AdaptationPolicy,
+             typename Index>
     auto get(
-        _Index _i
+        Index _i
     ) const
-        -> decltype(_P::get(std::declval<const _Adaptee&>(), _i))
+        -> decltype(P::get(std::declval<const Adaptee&>(), _i))
     {
-        return _AdaptationPolicy::get(m_ref, _i);
+        return AdaptationPolicy::get(m_ref, _i);
     }
 
 private:
-    _Adaptee& m_ref;
+    Adaptee& m_ref;
 };
 
 // adapted_const_ref
 //   class: non-owning const reference adapter. Read-only view of an
 // adaptee through a target interface policy.
-template<typename _Adaptee,
-         typename _AdaptationPolicy>
+template<typename Adaptee,
+         typename AdaptationPolicy>
 class adapted_const_ref
 {
 public:
-    using adaptee_type      = _Adaptee;
-    using adaptation_policy = _AdaptationPolicy;
+    using adaptee_type      = Adaptee;
+    using adaptation_policy = AdaptationPolicy;
 
     explicit adapted_const_ref(
-            const _Adaptee& _adaptee
+            const Adaptee& _adaptee
         ) noexcept
             : m_ref(_adaptee)
         {}
 
-    const _Adaptee&
+    const Adaptee&
     adaptee() const noexcept
     {
         return m_ref;
     }
 
-    template<typename _P = _AdaptationPolicy>
+    template<typename P = AdaptationPolicy>
     auto size() const
-        -> decltype(_P::size(std::declval<const _Adaptee&>()))
+        -> decltype(P::size(std::declval<const Adaptee&>()))
     {
-        return _AdaptationPolicy::size(m_ref);
+        return AdaptationPolicy::size(m_ref);
     }
 
-    template<typename _P = _AdaptationPolicy,
-             typename _Index>
+    template<typename P = AdaptationPolicy,
+             typename Index>
     auto get(
-        _Index _i
+        Index _i
     ) const
-        -> decltype(_P::get(std::declval<const _Adaptee&>(), _i))
+        -> decltype(P::get(std::declval<const Adaptee&>(), _i))
     {
-        return _AdaptationPolicy::get(m_ref, _i);
+        return AdaptationPolicy::get(m_ref, _i);
     }
 
 private:
-    const _Adaptee& m_ref;
+    const Adaptee& m_ref;
 };
 
 // adapted_view
 //   class: non-owning adapter that presents an adaptee's iteration
 // interface through a projection function. Each dereferenced element
-// is transformed by _Projection before being returned.
+// is transformed by Projection before being returned.
 //
 // Usage:
 //   std::vector<std::pair<int,std::string>> data = ...;
 //   auto keys = adapted_view(data, [](auto& p){ return p.first; });
 //   for (auto k : keys) { ... }
-template<typename _Adaptee,
-         typename _Projection>
+template<typename Adaptee,
+         typename Projection>
 class adapted_view
 {
 public:
-    using adaptee_type   = _Adaptee;
-    using projection_type = _Projection;
+    using adaptee_type   = Adaptee;
+    using projection_type = Projection;
 
     adapted_view(
-            _Adaptee&   _adaptee,
-            _Projection _proj
+            Adaptee&   _adaptee,
+            Projection _proj
         )
             : m_ref(_adaptee),
               m_proj(std::move(_proj))
@@ -1198,19 +1213,19 @@ public:
     {
     private:
         using inner_iterator = decltype(std::begin(
-            std::declval<_Adaptee&>()));
+            std::declval<Adaptee&>()));
 
     public:
         explicit iterator(
                 inner_iterator _it,
-                _Projection*   _proj
+                Projection*   _proj
             )
                 : m_it(_it),
                   m_proj(_proj)
             {}
 
         auto operator*()
-            -> decltype(std::declval<_Projection>()(*std::declval<inner_iterator>()))
+            -> decltype(std::declval<Projection>()(*std::declval<inner_iterator>()))
         {
             return (*m_proj)(*m_it);
         }
@@ -1248,7 +1263,7 @@ public:
 
     private:
         inner_iterator m_it;
-        _Projection*   m_proj;
+        Projection*   m_proj;
     };
 
     iterator begin()
@@ -1262,14 +1277,14 @@ public:
     }
 
     auto size() const
-        -> decltype(std::declval<const _Adaptee&>().size())
+        -> decltype(std::declval<const Adaptee&>().size())
     {
         return m_ref.size();
     }
 
 private:
-    _Adaptee&   m_ref;
-    _Projection m_proj;
+    Adaptee&   m_ref;
+    Projection m_proj;
 };
 
 
@@ -1281,116 +1296,116 @@ private:
 
 // make_object_adapter
 //   function: deduces template arguments for object_adapter.
-template<typename _AdaptationPolicy,
-         typename _Adaptee>
+template<typename AdaptationPolicy,
+         typename Adaptee>
 inline auto
 make_object_adapter(
-    _Adaptee& _adaptee
+    Adaptee& _adaptee
 )
 {
-    return object_adapter<_Adaptee,
-                          _AdaptationPolicy,
+    return object_adapter<Adaptee,
+                          AdaptationPolicy,
                           by_reference>(_adaptee);
 }
 
 // make_owning_adapter
 //   function: creates a by-value owning object_adapter.
-template<typename _AdaptationPolicy,
-         typename _Adaptee>
+template<typename AdaptationPolicy,
+         typename Adaptee>
 inline auto
 make_owning_adapter(
-    _Adaptee _adaptee
+    Adaptee _adaptee
 )
 {
-    return object_adapter<_Adaptee,
-                          _AdaptationPolicy,
+    return object_adapter<Adaptee,
+                          AdaptationPolicy,
                           by_value>(std::move(_adaptee));
 }
 
 // make_function_adapter
 //   function: deduces template arguments for function_adapter.
-template<typename _Fn,
-         typename _Transform>
+template<typename Fn,
+         typename Transform>
 inline auto
 make_function_adapter(
-    _Fn&&        _fn,
-    _Transform&& _xform
+    Fn&&        _fn,
+    Transform&& _xform
 )
 {
-    return function_adapter<std::decay_t<_Fn>,
-                            std::decay_t<_Transform>>(
-        std::forward<_Fn>(_fn),
-        std::forward<_Transform>(_xform));
+    return function_adapter<typename std::decay<Fn>::type,
+                            typename std::decay<Transform>::type>(
+        std::forward<Fn>(_fn),
+        std::forward<Transform>(_xform));
 }
 
 // make_function_adapter (no transform)
-template<typename _Fn>
+template<typename Fn>
 inline auto
 make_function_adapter(
-    _Fn&& _fn
+    Fn&& _fn
 )
 {
-    return function_adapter<std::decay_t<_Fn>>(
-        std::forward<_Fn>(_fn));
+    return function_adapter<typename std::decay<Fn>::type>(
+        std::forward<Fn>(_fn));
 }
 
 // make_result_adapter
 //   function: deduces template arguments for result_adapter.
-template<typename _Fn,
-         typename _ResultTransform>
+template<typename Fn,
+         typename ResultTransform>
 inline auto
 make_result_adapter(
-    _Fn&&              _fn,
-    _ResultTransform&& _xform
+    Fn&&              _fn,
+    ResultTransform&& _xform
 )
 {
-    return result_adapter<std::decay_t<_Fn>,
-                          std::decay_t<_ResultTransform>>(
-        std::forward<_Fn>(_fn),
-        std::forward<_ResultTransform>(_xform));
+    return result_adapter<typename std::decay<Fn>::type,
+                          typename std::decay<ResultTransform>::type>(
+        std::forward<Fn>(_fn),
+        std::forward<ResultTransform>(_xform));
 }
 
 // make_compose
 //   function: creates a compose_adapter from two callables.
-template<typename _Outer,
-         typename _Inner>
+template<typename Outer,
+         typename Inner>
 inline auto
 make_compose(
-    _Outer&& _outer,
-    _Inner&& _inner
+    Outer&& _outer,
+    Inner&& _inner
 )
 {
-    return compose_adapter<std::decay_t<_Outer>,
-                           std::decay_t<_Inner>>(
-        std::forward<_Outer>(_outer),
-        std::forward<_Inner>(_inner));
+    return compose_adapter<typename std::decay<Outer>::type,
+                           typename std::decay<Inner>::type>(
+        std::forward<Outer>(_outer),
+        std::forward<Inner>(_inner));
 }
 
 // make_adapted_ref
 //   function: deduces template arguments for adapted_ref.
-template<typename _AdaptationPolicy,
-         typename _Adaptee>
+template<typename AdaptationPolicy,
+         typename Adaptee>
 inline auto
 make_adapted_ref(
-    _Adaptee& _adaptee
+    Adaptee& _adaptee
 )
 {
-    return adapted_ref<_Adaptee, _AdaptationPolicy>(_adaptee);
+    return adapted_ref<Adaptee, AdaptationPolicy>(_adaptee);
 }
 
 // make_adapted_view
 //   function: deduces template arguments for adapted_view.
-template<typename _Adaptee,
-         typename _Projection>
+template<typename Adaptee,
+         typename Projection>
 inline auto
 make_adapted_view(
-    _Adaptee&    _adaptee,
-    _Projection&& _proj
+    Adaptee&    _adaptee,
+    Projection&& _proj
 )
 {
-    return adapted_view<_Adaptee, std::decay_t<_Projection>>(
+    return adapted_view<Adaptee, typename std::decay<Projection>::type>(
         _adaptee,
-        std::forward<_Projection>(_proj));
+        std::forward<Projection>(_proj));
 }
 
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -1405,17 +1420,17 @@ make_adapted_view(
 // adaptable_to
 //   concept: constrains types that share enough structural surface for
 // direct adaptation (compatible value types + structural overlap).
-template<typename _Adaptee,
-         typename _Target>
+template<typename Adaptee,
+         typename Target>
 concept adaptable_to =
-    ( are_value_type_compatible<_Adaptee, _Target>::value &&
-      is_structurally_adaptable<_Adaptee, _Target>::value );
+    ( are_value_type_compatible<Adaptee, Target>::value &&
+      is_structurally_adaptable<Adaptee, Target>::value );
 
 // adapter_for
 //   concept: constrains an adapter type that exposes both adaptee()
 // and at least one target-interface method (size or get).
-template<typename _Adapter>
-concept adapter_for = requires(_Adapter& _a, const _Adapter& _ca)
+template<typename Adapter>
+concept adapter_for = requires(Adapter& _a, const Adapter& _ca)
 {
     _a.adaptee();
     { _ca.size() } -> std::convertible_to<std::size_t>;
@@ -1424,23 +1439,23 @@ concept adapter_for = requires(_Adapter& _a, const _Adapter& _ca)
 // function_adaptable
 //   concept: constrains callables that can be wrapped by
 // function_adapter (must be invocable).
-template<typename _Fn,
-         typename... _Args>
-concept function_adaptable = std::invocable<_Fn, _Args...>;
+template<typename Fn,
+         typename... Args>
+concept function_adaptable = std::invocable<Fn, Args...>;
 
 // constrained_adapt
 //   function: concept-constrained factory for object adapters.
-template<typename _AdaptationPolicy,
-         typename _Adaptee,
-         typename _Target>
-    requires adaptable_to<_Adaptee, _Target>
+template<typename AdaptationPolicy,
+         typename Adaptee,
+         typename Target>
+    requires adaptable_to<Adaptee, Target>
 inline auto
 constrained_adapt(
-    _Adaptee& _adaptee
+    Adaptee& _adaptee
 )
 {
-    return object_adapter<_Adaptee,
-                          _AdaptationPolicy,
+    return object_adapter<Adaptee,
+                          AdaptationPolicy,
                           by_reference>(_adaptee);
 }
 
@@ -1452,5 +1467,7 @@ constrained_adapt(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARADIGM_ADAPTER_
+
+#endif  // DJINTERP_PARADIGM_ADAPTER_ADAPTER_HPP

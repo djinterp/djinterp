@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                            pdf_canvas_document_renderer.hpp
+/*******************************************************************************
+* djinterp [core]                               pdf_canvas_document_renderer.hpp
 *
 *   The SECOND PDF realisation of document_renderer -- the one backed by
 * pdf_canvas rather than pdf_template.  It exists because the two PDF flow
@@ -46,23 +46,32 @@
 *   C++11 baseline (matches document_renderer and pdf_canvas).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    pdf_canvas_document_renderer (class)
-*       a. construction / style registry
-*       b. block overrides
-*       c. list overrides
-*       d. table overrides (buffered)
-*       e. output
-*
-*
 * path:      /inc/djinterp/core/util/pdf/pdf_canvas_document_renderer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_PDF_CANVAS_DOCUMENT_RENDERER_
-#define DJINTERP_UTIL_PDF_CANVAS_DOCUMENT_RENDERER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    pdf_canvas_document_renderer (class)
+      ------------------------------------
+      a. construction / style registry
+      b. block overrides
+      c.    list overrides
+            d. table overrides (buffered)
+            e. output
+*/
+
+#ifndef DJINTERP_UTIL_PDF_PDF_CANVAS_DOCUMENT_RENDERER_HPP
+#define DJINTERP_UTIL_PDF_PDF_CANVAS_DOCUMENT_RENDERER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -72,7 +81,7 @@
 #include <string>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"                       // NS_*, D_NODISCARD
+#include "../../../djinterp.hpp"                       // NS_*, D_NODISCARD
 #include "../document/templates/document_renderer.hpp"
                                                     // document_renderer,
                                                     // doc_attributes, D_OVERRIDE
@@ -874,5 +883,6 @@ private:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_PDF_CANVAS_DOCUMENT_RENDERER_
+#endif  // DJINTERP_UTIL_PDF_PDF_CANVAS_DOCUMENT_RENDERER_HPP

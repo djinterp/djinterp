@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.09.30
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -22,12 +22,24 @@
 // djinterp
 // Root first: user overrides + testing preset + shared helpers.
 #include "cfg_common.h"
-#include "djinterp/config/core/env/cfg_env.h" // environment detection tuning
+#include "djinterp/config/core/env/cfg_env.h"           // env: shared knobs
+#include "djinterp/config/core/env/cfg_env_lang.h"      // env: language
+#include "djinterp/config/core/env/cfg_env_posix.h"     // env: POSIX / XSI
+#include "djinterp/config/core/env/cfg_env_arch.h"      // env: architecture
+#include "djinterp/config/core/env/cfg_env_os.h"        // env: OS
+#include "djinterp/config/core/env/cfg_env_compiler.h"  // env: compiler
+#include "djinterp/config/core/env/cfg_env_build.h"     // env: build type
 #include "cfg_qualifiers.h"      // storage / linkage qualifiers
 #include "djinterp/config/core/container/table/cfg_table.h"  // the table DSL subframework
 #include "djinterp/config/parse/cfg_parse.h"        // the parse substrate
 #include "djinterp/config/parsegen/cfg_parsegen.h"  // parser generation (after parse)
+#include "djinterp/config/net/cfg_net.h"            // net foundation
+#include "djinterp/config/net/curl/cfg_curl.h"      // libcurl binding
 #include "djinterp/config/net/pop/cfg_pop.h"        // POP3 common kernel
+#include "djinterp/config/net/ssh/cfg_ssh.h"        // SSH common kernel
+#include "djinterp/config/net/ssl/cfg_ssl.h"        // SSL/TLS common kernel
+#include "djinterp/config/net/tcp/cfg_tcp.h"        // TCP transport
+#include "djinterp/config/net/http/cfg_http.h"      // HTTP
 // #include "core/<sub>/cfg_<sub>.h"  // <- add future subframeworks here
 
 

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                  surface.hpp
+/*******************************************************************************
+* djinterp [math]                                                    surface.hpp
 *
 * 2-manifold surface primitives embedded in 3D (and higher) space.
 *   The structural surface interface mirrors the edge interface but
@@ -28,22 +28,26 @@
 *   parametric_surface_edge<Surf, System>- wraps math::parametric_surface
 *   implicit_surface<Expr, System>       - zero level set F(x,y,z) = 0
 *
+*
 * path:      /inc/djinterp/math/geometry/surface.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_SURFACE_
-#define DJINTERP_MATH_GEOMETRY_SURFACE_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_SURFACE_HPP
+#define DJINTERP_MATH_GEOMETRY_SURFACE_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <tuple>
 #include <type_traits>
+// djinterp
 #include "../../djinterp.hpp"
-#include "../coordinate.hpp"
+#include "../coordinate/coordinate.hpp"
 #include "./geometry_common.hpp"
 
 
@@ -728,4 +732,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_SURFACE_
+#endif  // DJINTERP_MATH_GEOMETRY_SURFACE_HPP

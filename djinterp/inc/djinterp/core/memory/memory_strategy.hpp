@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/core/memory/memory_strategy.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 /*
@@ -56,6 +56,12 @@ V.    CONTRACT CONFORMANCE
 
 #ifndef DJINTERP_MEMORY_MEMORY_STRATEGY_HPP
 #define DJINTERP_MEMORY_MEMORY_STRATEGY_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -79,7 +85,7 @@ NS_DJINTERP
 // arena_memory_strategy
 //   class: a byte-typed strategy drawing from an arena.
 //   BYTE-TYPED because an arena has no element type: it vends aligned bytes
-// and the caller decides what goes in them. _Type is therefore the type the
+// and the caller decides what goes in them. Type is therefore the type the
 // bytes will be SHAPED for -- it fixes the alignment every allocation
 // satisfies -- and value_type is still unsigned char, which is what tells the
 // classification traits this is a byte strategy.
@@ -88,14 +94,14 @@ NS_DJINTERP
 // omission. supports_individual_release says so, so a container that needs to
 // erase can refuse to instantiate over this strategy at compile time instead
 // of leaking at run time.
-template<typename _Type = unsigned char>
+template<typename Type = unsigned char>
 class arena_memory_strategy
 {
 public:
 
     using arena_type   = arena;
     using value_type   = unsigned char;
-    using element_type = _Type;
+    using element_type = Type;
     using size_type    = std::size_t;
 
     // --- descriptive constants, read off the C configuration ---
@@ -133,7 +139,7 @@ public:
     )
     {
         void* storage = m_arena->allocate(static_cast<mem_size>(_count),
-                                          align_of<_Type>::value);
+                                          align_of<Type>::value);
 
         if (!storage)
         {
@@ -199,12 +205,12 @@ private:
 // erase refuses to instantiate over one -- at compile time, with a diagnostic
 // naming the constant, rather than at run time with a slot that never came
 // back.
-template<typename _Pool>
+template<typename Pool>
 class pool_memory_strategy
 {
 public:
 
-    using pool_type  = typename internal::strategy_clean_t<_Pool>;
+    using pool_type  = typename internal::strategy_clean_t<Pool>;
     using value_type = typename pool_type::element_type;
     using size_type  = std::size_t;
 
@@ -312,7 +318,7 @@ private:
 
 // buffer_memory_strategy
 //   class: an element-typed monotonic bump strategy over an inline array of
-// _Count objects of _Type.
+// Count objects of Type.
 //   THE ONLY STRATEGY THAT OWNS ITS STORAGE, and the only one that never
 // touches an allocator: the array is a member, so a container over this
 // strategy allocates nothing, ever, and can live in static storage or on the
@@ -323,13 +329,13 @@ private:
 // an inline buffer would carry a d_arena struct's worth of counters to
 // administer a bump cursor over a fixed array, and the whole point of this
 // strategy is that it costs the array plus one index.
-template<typename    _Type,
-         std::size_t _Count>
+template<typename    Type,
+         std::size_t Count>
 class buffer_memory_strategy
 {
 public:
 
-    using value_type = _Type;
+    using value_type = Type;
     using size_type  = std::size_t;
 
     // --- descriptive constants ---
@@ -347,7 +353,7 @@ public:
     // extent
     //   constant: the capacity, in objects. Part of the contract for a static
     // strategy, so a container can size itself without asking at run time.
-    static D_CONSTEXPR const std::size_t extent = _Count;
+    static D_CONSTEXPR const std::size_t extent = Count;
 
     D_INLINE
     buffer_memory_strategy() noexcept
@@ -369,8 +375,8 @@ public:
         value_type* result;
 
         if ( (_count == 0) ||
-             (_count > _Count) ||
-             (m_used > (_Count - _count)) )
+             (_count > Count) ||
+             (m_used > (Count - _count)) )
         {
             throw std::bad_alloc();
         }
@@ -414,8 +420,8 @@ public:
     // size / capacity / remaining
     //   query: the array's population.
     D_INLINE size_type size()      const noexcept { return m_used; }
-    D_INLINE size_type capacity()  const noexcept { return _Count; }
-    D_INLINE size_type remaining() const noexcept { return (_Count - m_used); }
+    D_INLINE size_type capacity()  const noexcept { return Count; }
+    D_INLINE size_type remaining() const noexcept { return (Count - m_used); }
 
     // data
     //   query: the first object slot. Laundered through a char* so that the
@@ -436,12 +442,12 @@ public:
 
 private:
 
-    //   Raw aligned storage rather than _Type[_Count]: the array must NOT be
+    //   Raw aligned storage rather than Type[Count]: the array must NOT be
     // default-constructed, because this strategy vends uninitialized slots
     // and the caller decides when an object begins. alignas on a char array
-    // is the C++11 spelling that says so without requiring _Type to be
+    // is the C++11 spelling that says so without requiring Type to be
     // default-constructible.
-    alignas(_Type) unsigned char m_storage[sizeof(_Type) * _Count];
+    alignas(Type) unsigned char m_storage[sizeof(Type) * Count];
     size_type                    m_used;
 };
 
@@ -461,12 +467,12 @@ private:
 //   NOT POINTER-STABLE, because a general allocator makes no such promise --
 // and a container reading this constant will correctly decline to hand out
 // interior pointers across a reallocation.
-template<typename _Alloc>
+template<typename Alloc>
 class allocator_memory_strategy
 {
 public:
 
-    using allocator_type = typename internal::strategy_clean_t<_Alloc>;
+    using allocator_type = typename internal::strategy_clean_t<Alloc>;
     using traits_type    = std::allocator_traits<allocator_type>;
     using value_type     = typename traits_type::value_type;
     using size_type      = std::size_t;
@@ -604,5 +610,6 @@ D_STATIC_ASSERT((!is_memory_strategy<std::allocator<int> >::value),
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
 #endif  // DJINTERP_MEMORY_MEMORY_STRATEGY_HPP

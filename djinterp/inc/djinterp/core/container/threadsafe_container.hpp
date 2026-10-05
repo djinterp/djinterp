@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                threadsafe_container.hpp
+/*******************************************************************************
+* djinterp [core]                                       threadsafe_container.hpp
 *
 * Foundation module for implementing thread-safe containers.
 *   Provides the runtime building blocks that all threadsafe_<container>
@@ -29,13 +29,13 @@
 *     container via operator-> / operator*.  The canonical
 *     access pattern:
 *       auto ref = ts_container.write_access();
-*       ref->push_(42);
+*       ref->push_back(42);
 *       // lock released when ref goes out of scope
 *   LAYER 3: Atomic container state (atomic_state)
 *     Bundled atomic size + version counter for lock-free
 *     metadata.  Enables optimistic reads: snapshot the
 *     version, do the read, check the version hasn't changed.
-*   LAYER 4: CAS retry infrastructure (exponential_off, cas_loop)
+*   LAYER 4: CAS retry infrastructure (exponential_backoff, cas_loop)
 *     Exponential backoff and CAS-loop templates for building
 *     lock-free and wait-free container operations.
 *   Additionally: snapshot_view for safe iteration, batch_guard
@@ -45,7 +45,7 @@
 * VERSIONING:
 *   All features degrade gracefully across C++ standards:
 *     C++98/03:  CRTP base, locked_ref (no move), batch_guard
-*     C++11:     + atomic_state, exponential_off, move semantics
+*     C++11:     + atomic_state, exponential_backoff, move semantics
 *     C++14:     + generic lambda locked_apply
 *     C++17:     + if constexpr policy dispatch, shared_mutex,
 *                  std::optional for try-lock results
@@ -60,43 +60,70 @@
 *
 * path:      /inc/djinterp/core/container/threadsafe_container.hpp
 * link(s):   TBA
-* Samuel 'teer' Neal-Blim                       created: 2026.03.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.29
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.      threadsafe_container_base (CRTP)
-II.     locked accessors (locked_ref, const_locked_ref)
-III.    atomic container state
-IV.     optimistic read protocol
-V.      CAS retry infrastructure
-VI.     snapshot view
-VII.    batch guard
-VIII.   locked range (safe iterator wrapper)
+I.    threadsafe_container_base (CRTP)
+      --------------------------------
+
+II.   locked accessors (locked_ref, const_locked_ref)
+      -----------------------------------------------
+
+III.  atomic container state
+      ----------------------
+
+IV.   optimistic read protocol
+      ------------------------
+
+V.    CAS retry infrastructure
+      ------------------------
+
+VI.   snapshot view
+      -------------
+
+VII.  batch guard
+      -----------
+
+VIII. locked range (safe iterator wrapper)
+      ------------------------------------
 */
 
-#ifndef DJINTERP_THREADSAFE_CONTAINER_
-#define DJINTERP_THREADSAFE_CONTAINER_ 1
+#ifndef DJINTERP_CONTAINER_THREADSAFE_CONTAINER_HPP
+#define DJINTERP_CONTAINER_THREADSAFE_CONTAINER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../sync/threadsafe.hpp"
 #include "../sync/concurrency_strategy_tags.hpp"
 #include "./traits/threadsafe_container_traits.hpp"
 #include "./traits/container_traits.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>
     #include <functional>
+    #include <iterator>
     #include <utility>
     #include <vector>
 #endif
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    // std
     #include <optional>
 #endif
 
@@ -116,24 +143,22 @@ NS_DJINTERP
 //
 // On null_lock_policy, every lock method inlines to nothing.
 
-template<typename _Derived,
-         typename _Policy = default_lock_policy>
+template<typename Derived,
+         typename Policy = default_lock_policy>
 class threadsafe_container_base
 {
 public:
-    using lock_policy_type = _Policy;
-    using mutex_type       = typename _Policy::mutex_type;
-    using read_guard       = typename _Policy::read_lock_type;
-    using write_guard      = typename _Policy::write_lock_type;
+    using lock_policy_type = Policy;
+    using mutex_type       = typename Policy::mutex_type;
+    using read_guard       = typename Policy::read_lock_type;
+    using write_guard      = typename Policy::write_lock_type;
 
     // concurrency_strategy_tag
-    //   alias: declares all types deriving from this base
-    // as lock-based strategy.  Read by
-    // concurrency_strategy_traits.hpp tag-alias fast path.
-    // Derived containers using a mixed strategy (e.g.
-    // locked metadata over a cow payload) should override
-    // this with `hybrid_strategy_tag` in their own
-    // class body.
+    //   alias: declares all types deriving from this base as lock-based
+    // strategy. Read by concurrency_strategy_traits.hpp tag-alias fast path.
+    // Derived containers using a mixed strategy (e.g. locked metadata over a
+    // cow payload) should override this with `hybrid_strategy_tag` in their
+    // own class body.
     using concurrency_strategy_tag = locked_strategy_tag;
 
 protected:
@@ -147,8 +172,8 @@ protected:
         const threadsafe_container_base&)            = delete;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    // movable: mutex is default-initialized in the
-    // moved-to object (no state to transfer)
+    // movable: mutex is default-initialized in the moved-to object (no state
+    // to transfer)
     threadsafe_container_base(
         threadsafe_container_base&&)                 = default;
     threadsafe_container_base& operator=(
@@ -159,9 +184,8 @@ public:
     // --- lock acquisition ---
 
     // read_lock
-    //   acquires a shared (reader) lock if the policy
-    // supports it, exclusive otherwise.  Returns an
-    // RAII guard.
+    //   acquires a shared (reader) lock if the policy supports it, exclusive
+    // otherwise. Returns an RAII guard.
     read_guard read_lock() const
     {
         return read_guard(m_mutex);
@@ -176,18 +200,17 @@ public:
 
     // try_write_lock
     //   attempts a non-blocking exclusive lock.
-    scoped_try_lock<_Policy>
+    scoped_try_lock<Policy>
     try_write_lock() const
     {
-        return scoped_try_lock<_Policy>(m_mutex);
+        return scoped_try_lock<Policy>(m_mutex);
     }
 
     // --- mutex access ---
 
     // mutex
-    //   direct access to the underlying mutex for
-    // interop with external synchronization (e.g.
-    // condition variables).
+    //   direct access to the underlying mutex for interop with external
+    // synchronization (e.g. condition variables).
     mutex_type& mutex() const noexcept
     {
         return m_mutex;
@@ -195,28 +218,28 @@ public:
 
     // --- policy queries (constexpr) ---
 
-    static constexpr thread_safety_level
+    static constexpr thread_safety_level::value
     safety_level() noexcept
     {
-        return _Policy::level;
+        return Policy::level;
     }
 
     static constexpr bool
     is_threadsafe() noexcept
     {
-        return _Policy::is_threadsafe;
+        return Policy::is_threadsafe;
     }
 
     static constexpr bool
     supports_shared() noexcept
     {
-        return _Policy::is_shared;
+        return Policy::is_shared;
     }
 
     static constexpr bool
     supports_timed() noexcept
     {
-        return _Policy::is_timed;
+        return Policy::is_timed;
     }
 
     // --- monograph concurrency signature (lock realisation) ---
@@ -224,38 +247,38 @@ public:
     //   The lock strategy witnesses linearizability by MUTUAL EXCLUSION:
     // every operation acquires one shared lock for its whole extent, so its
     // operations execute as a totally ordered sequence of disjoint critical
-    // sections.  The linearization point may be placed anywhere inside each
-    // critical section, and the realised execution simply IS sequential on
-    // the lock.  This fixes the container's coordinates on the monograph's
-    // access axis; the queries below report them (see
-    // concurrency_strategy_traits.hpp for the enum-typed forms).
+    // sections. The linearization point may be placed anywhere inside each
+    // critical section, and the realised execution simply IS sequential on the
+    // lock. This fixes the container's coordinates on the monograph's access
+    // axis; the queries below report them (see concurrency_strategy_traits.hpp
+    // for the enum-typed forms).
 
     // is_blocking
-    //   progress grade: a real lock is BLOCKING - an agent waits while
-    // another holds the lock.  The null policy degenerates to the
-    // sequential, single-agent case (no blocking, no concurrency).
+    //   progress grade: a real lock is BLOCKING - an agent waits while another
+    // holds the lock. The null policy degenerates to the sequential,
+    // single-agent case (no blocking, no concurrency).
     static constexpr bool
     is_blocking() noexcept
     {
-        return _Policy::is_threadsafe;
+        return Policy::is_threadsafe;
     }
 
     // permits_concurrent_readers
     //   arity: the interface is MWMR, but execution is serial - at most one
-    // agent acts at a time, readers included - UNLESS a reader-writer
-    // (shared) policy grants concurrent readers (the SWMR/region case).
+    // agent acts at a time, readers included - UNLESS a reader-writer (shared)
+    // policy grants concurrent readers (the SWMR/region case).
     static constexpr bool
     permits_concurrent_readers() noexcept
     {
-        return _Policy::is_shared;
+        return Policy::is_shared;
     }
 
     // offers_snapshot_iteration
-    //   iteration overlap-semantics: SNAPSHOT.  A traversal that holds the
-    // lock for its extent sees one frozen value (see locked_range);
+    //   iteration overlap-semantics: SNAPSHOT. A traversal that holds the lock
+    // for its extent sees one frozen value (see locked_range);
     // snapshot_view copies under the lock to give the same guarantee without
-    // holding the lock during iteration.  Either way a reader excludes
-    // writers from the value it observes.
+    // holding the lock during iteration. Either way a reader excludes writers
+    // from the value it observes.
     static constexpr bool
     offers_snapshot_iteration() noexcept
     {
@@ -263,10 +286,10 @@ public:
     }
 
     // has_individual_reclamation
-    //   reclamation duty: INDIVIDUAL.  No agent touches a cell outside the
+    //   reclamation duty: INDIVIDUAL. No agent touches a cell outside the
     // lock, so freeing on erase (under the lock) is sound - the concurrent
-    // soundness condition (no agent can still reach the cell) holds
-    // trivially, and no deferred safe-reclamation discipline is needed.
+    // soundness condition (no agent can still reach the cell) holds trivially,
+    // and no deferred safe-reclamation discipline is needed.
     static constexpr bool
     has_individual_reclamation() noexcept
     {
@@ -288,8 +311,8 @@ private:
 //   threadsafe_vector<int> ts_vec;
 //   {
 //       auto ref = make_locked_ref(ts_vec);
-//       ref->push_(42);
-//       ref->push_(99);
+//       ref->push_back(42);
+//       ref->push_back(99);
 //   } // lock released
 //
 //   {
@@ -298,18 +321,17 @@ private:
 //   } // read lock released
 
 // const_locked_ref
-//   class: holds a read lock and provides const access
-// to the container.
-template<typename _Container,
-         typename _Policy>
+//   class: holds a read lock and provides const access to the container.
+template<typename Container,
+         typename Policy>
 class const_locked_ref
 {
 public:
-    using lock_type = typename _Policy::read_lock_type;
+    using lock_type = typename Policy::read_lock_type;
 
     explicit const_locked_ref(
-        const _Container&          _c,
-        typename _Policy::mutex_type& _mutex
+        const Container&          _c,
+        typename Policy::mutex_type& _mutex
     )
         : m_ref(_c),
           m_lock(_mutex)
@@ -323,43 +345,42 @@ public:
     const_locked_ref& operator=(
         const const_locked_ref&) = delete;
 
-    const _Container*
+    const Container*
     operator->() const noexcept
     {
         return &m_ref;
     }
 
-    const _Container&
+    const Container&
     operator*() const noexcept
     {
         return m_ref;
     }
 
-    const _Container&
+    const Container&
     get() const noexcept
     {
         return m_ref;
     }
 
 private:
-    const _Container& m_ref;
+    const Container& m_ref;
     lock_type         m_lock;
 };
 
 // locked_ref
-//   class: holds a write lock and provides mutable
-// access to the container.
-template<typename _Container,
-         typename _Policy>
+//   class: holds a write lock and provides mutable access to the container.
+template<typename Container,
+         typename Policy>
 class locked_ref
 {
 public:
     using lock_type =
-        typename _Policy::write_lock_type;
+        typename Policy::write_lock_type;
 
     explicit locked_ref(
-        _Container&                   _c,
-        typename _Policy::mutex_type& _mutex)
+        Container&                   _c,
+        typename Policy::mutex_type& _mutex)
         : m_ref(_c),
           m_lock(_mutex)
     {}
@@ -372,86 +393,84 @@ public:
     locked_ref& operator=(
         const locked_ref&) = delete;
 
-    _Container*
+    Container*
     operator->() noexcept
     {
         return &m_ref;
     }
 
-    _Container&
+    Container&
     operator*() noexcept
     {
         return m_ref;
     }
 
-    _Container&
+    Container&
     get() noexcept
     {
         return m_ref;
     }
 
-    // const access is also available through a
-    // write lock (it's a superset of read)
-    const _Container*
+    // const access is also available through a write lock (it's a superset of
+    // read)
+    const Container*
     operator->() const noexcept
     {
         return &m_ref;
     }
 
-    const _Container&
+    const Container&
     operator*() const noexcept
     {
         return m_ref;
     }
 
 private:
-    _Container& m_ref;
+    Container& m_ref;
     lock_type   m_lock;
 };
 
 // --- locked_apply ---
-// Acquires a lock, invokes a callable on the container,
-// and returns the result.  The lock is held for exactly
-// the duration of the callable.
+// Acquires a lock, invokes a callable on the container, and returns the
+// result. The lock is held for exactly the duration of the callable.
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // locked_apply (write)
-//   acquires a write lock and invokes _fn with a mutable
-// reference to the container.
-template<typename _Container,
-         typename _Policy,
-         typename _Fn>
+//   acquires a write lock and invokes _fn with a mutable reference to the
+// container.
+template<typename Container,
+         typename Policy,
+         typename Fn>
 auto
 locked_apply(
-    _Container&                   _c,
-    typename _Policy::mutex_type& _mutex,
-    _Fn&&                         _fn
+    Container&                   _c,
+    typename Policy::mutex_type& _mutex,
+    Fn&&                         _fn
 )
     -> decltype(_fn(_c))
 {
-    typename _Policy::write_lock_type guard(_mutex);
+    typename Policy::write_lock_type guard(_mutex);
 
-    return std::forward<_Fn>(_fn)(_c);
+    return std::forward<Fn>(_fn)(_c);
 }
 
 // locked_apply (read)
-//   acquires a read lock and invokes _fn with a const
-// reference.
-template<typename _Container,
-         typename _Policy,
-         typename _Fn>
+//   acquires a read lock and invokes _fn with a const reference.
+template<typename Container,
+         typename Policy,
+         typename Fn>
 auto
 locked_apply_read(
-    const _Container&             _c,
-    typename _Policy::mutex_type& _mutex,
-    _Fn&&                         _fn
+    const Container&             _c,
+    typename Policy::mutex_type& _mutex,
+    Fn&&                         _fn
 )
     -> decltype(_fn(_c))
 {
-    typename _Policy::read_lock_type guard(_mutex);
+    typename Policy::read_lock_type guard(_mutex);
 
-    return std::forward<_Fn>(_fn)(_c);
+    return std::forward<Fn>(_fn)(_c);
 }
 
 #endif  // C++11
@@ -475,9 +494,8 @@ locked_apply_read(
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // atomic_state
-//   struct: aggregated atomic container metadata.
-// All fields are independently atomic - no mutex needed
-// for reading individual fields.
+//   struct: aggregated atomic container metadata. All fields are independently
+// atomic - no mutex needed for reading individual fields.
 struct atomic_state
 {
     atomic_size    size;
@@ -525,14 +543,14 @@ struct atomic_state
 
     // --- version operations ---
 
-    std::uint64_t load_version(
+    re_std::uint64_t load_version(
         std::memory_order _order = std::memory_order_acquire
     ) const noexcept
     {
         return version.load(_order);
     }
 
-    std::uint64_t increment_version(
+    re_std::uint64_t increment_version(
         std::memory_order _order =
             std::memory_order_acq_rel) noexcept
     {
@@ -540,13 +558,12 @@ struct atomic_state
     }
 
     // snapshot
-    //   captures both size and version atomically
-    // relative to each other (but NOT jointly atomic -
-    // the two loads are sequentially consistent).
+    //   captures both size and version atomically relative to each other (but
+    // NOT jointly atomic - the two loads are sequentially consistent).
     struct snapshot
     {
-        std::size_t   size;
-        std::uint64_t version;
+        std::size_t      size;
+        re_std::uint64_t version;
     };
 
     snapshot take_snapshot() const noexcept
@@ -558,8 +575,8 @@ struct atomic_state
     }
 
     // validate_snapshot
-    //   returns true if the version has not changed
-    // since the snapshot was taken.
+    //   returns true if the version has not changed since the snapshot was
+    // taken.
     bool validate_snapshot(
         const snapshot& _snap) const noexcept
     {
@@ -595,25 +612,23 @@ struct atomic_state
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // optimistic_read
-//   function: executes _fn under optimistic concurrency.
-// _fn receives a const& to the container and must produce
-// a copyable result.  If the version changes during the
-// read, _fn is retried up to _max_retries times, after
-// which a read lock is acquired for a guaranteed-safe read.
-//
-// _state: the container's atomic_state
-// _c:     const reference to the underlying container
-// _mutex: the container's mutex (fall path)
-// _fn:    callable taking const Container&, returning R
-template<typename _Container,
-         typename _Policy,
-         typename _Fn>
+//   function: executes _fn under optimistic concurrency. _fn receives a const&
+// to the container and must produce a copyable result.
+// If the version changes during the
+// read, _fn is retried up to _max_retries times, after which a read lock is
+// acquired for a guaranteed-safe read. _state: the container's atomic_state
+// _c: const reference to the underlying container _mutex: the container's
+// mutex (fallback path)
+// _fn: callable taking const Container&, returning R
+template<typename Container,
+         typename Policy,
+         typename Fn>
 auto
 optimistic_read(
     const atomic_state&           _state,
-    const _Container&             _c,
-    typename _Policy::mutex_type& _mutex,
-    _Fn&&                         _fn,
+    const Container&             _c,
+    typename Policy::mutex_type& _mutex,
+    Fn&&                         _fn,
     unsigned                      _max_retries = 3
 )
     -> decltype(_fn(_c))
@@ -631,10 +646,10 @@ optimistic_read(
         }
     }
 
-    // fall: acquire a real read lock
-    typename _Policy::read_lock_type guard(_mutex);
+    // fallback: acquire a real read lock
+    typename Policy::read_lock_type guard(_mutex);
 
-    return std::forward<_Fn>(_fn)(_c);
+    return std::forward<Fn>(_fn)(_c);
 }
 
 #endif  // C++11
@@ -658,15 +673,14 @@ optimistic_read(
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// exponential_off
-//   class: backs off exponentially between CAS retries.
-// Starts at _initial_spins, doubles up to _max_spins,
-// then yields.  Zero allocation, zero overhead when not
-// spinning.
-class exponential_off
+// exponential_backoff
+//   class: backs off exponentially between CAS retries. Starts at
+// _initial_spins, doubles up to _max_spins, then yields. Zero allocation, zero
+// overhead when not spinning.
+class exponential_backoff
 {
 public:
-    explicit exponential_off(
+    explicit exponential_backoff(
         unsigned _initial_spins = 4,
         unsigned _max_spins     = 1024) noexcept
         : m_current(_initial_spins)
@@ -706,9 +720,9 @@ private:
     //   platform-specific pause hint for spin loops.
     static void spin_pause() noexcept
     {
-    #if defined(__x86_64__) ||                                                \
-        defined(_M_X64)     ||                                                \
-        defined(__i386__)   ||                                                \
+    #if defined(__x86_64__) || \
+        defined(_M_X64)     || \
+        defined(__i386__)   || \
         defined(_M_IX86)
         #if defined(_MSC_VER)
             _mm_pause();
@@ -731,34 +745,29 @@ private:
 };
 
 // cas_loop
-//   function: generic CAS retry loop.  Calls _update_fn
-// with the current value to produce the desired value,
-// then attempts CAS.  Retries with exponential backoff on
-// failure.
-// Returns true if the CAS succeeded, false if
-// _max_attempts was reached.
-//
-// _target:      atomic variable to update
-// _update_fn:   callable (T current) -> T desired
-// _max_attempts: 0 = unlimited
-template<typename _Type,
-         typename _Fn>
+//   function: generic CAS retry loop. Calls _update_fn with the current value
+// to produce the desired value, then attempts CAS. Retries with exponential
+// backoff on failure. Returns true if the CAS succeeded, false if
+// _max_attempts was reached. _target: atomic variable to update _update_fn:
+// callable (T current) -> T desired _max_attempts: 0 = unlimited
+template<typename Type,
+         typename Fn>
 bool
 cas_loop(
-    std::atomic<_Type>& _target,
-    _Fn              _update_fn,
+    std::atomic<Type>& _target,
+    Fn               _update_fn,
     unsigned         _max_attempts = 0)
 {
-    exponential_off off;
+    exponential_backoff backoff;
 
-    _Type current = _target.load(
+    Type current = _target.load(
         std::memory_order_acquire);
 
     unsigned attempt = 0;
 
     while (true)
     {
-        _Type desired = _update_fn(current);
+        Type desired = _update_fn(current);
 
         if (_target.compare_exchange_weak(
                 current, desired,
@@ -776,7 +785,7 @@ cas_loop(
             return false;
         }
 
-        off();
+        backoff();
     }
 }
 
@@ -801,26 +810,25 @@ cas_loop(
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // snapshot_view
-//   class: read-locked copy of a container's elements.
-// The lock is held only during construction (copy).
-// After construction, the snapshot is independent of the
-// source container.
-template<typename _Container,
-         typename _Policy>
+//   class: read-locked copy of a container's elements. The lock is held only
+// during construction (copy). After construction, the snapshot is independent
+// of the source container.
+template<typename Container,
+         typename Policy>
 class snapshot_view
 {
 public:
     using value_type =
-        typename _Container::value_type;
+        typename Container::value_type;
     using const_iterator =
         typename std::vector<value_type>
             ::const_iterator;
 
     snapshot_view(
-        const _Container&             _c,
-        typename _Policy::mutex_type& _mutex)
+        const Container&             _c,
+        typename Policy::mutex_type& _mutex)
     {
-        typename _Policy::read_lock_type guard(
+        typename Policy::read_lock_type guard(
             _mutex);
 
         m_data.assign(
@@ -884,20 +892,20 @@ private:
 // Usage:
 //   {
 //       batch_guard<Policy> batch(container.mutex());
-//       container.push__unsafe(1);
-//       container.push__unsafe(2);
-//       container.push__unsafe(3);
+//       container.push_back_unsafe(1);
+//       container.push_back_unsafe(2);
+//       container.push_back_unsafe(3);
 //   } // all three insertions are visible atomically
 
-template<typename _Policy>
+template<typename Policy>
 class batch_guard
 {
 public:
     using lock_type =
-        typename _Policy::write_lock_type;
+        typename Policy::write_lock_type;
 
     explicit batch_guard(
-        typename _Policy::mutex_type& _mutex)
+        typename Policy::mutex_type& _mutex)
         : m_lock(_mutex)
         , m_count(0)
     {}
@@ -949,20 +957,20 @@ private:
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // locked_range
-//   class: holds a read lock and exposes begin()/end()
-// from the underlying container.
-template<typename _Container,
-         typename _Policy>
+//   class: holds a read lock and exposes begin()/end() from the underlying
+// container.
+template<typename Container,
+         typename Policy>
 class locked_range
 {
 public:
     using const_iterator =
         decltype(std::begin(
-            std::declval<const _Container&>()));
+            std::declval<const Container&>()));
 
     locked_range(
-        const _Container&             _c,
-        typename _Policy::mutex_type& _mutex)
+        const Container&             _c,
+        typename Policy::mutex_type& _mutex)
         : m_ref(_c),
           m_lock(_mutex)
     {}
@@ -987,8 +995,8 @@ public:
     }
 
 private:
-    const _Container&                       m_ref;
-    typename _Policy::read_lock_type m_lock;
+    const Container&                       m_ref;
+    typename Policy::read_lock_type m_lock;
 };
 
 #endif  // C++11
@@ -996,5 +1004,6 @@ private:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_THREADSAFE_CONTAINER_
+#endif  // DJINTERP_CONTAINER_THREADSAFE_CONTAINER_HPP

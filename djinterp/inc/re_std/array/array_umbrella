@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                      array
+/*******************************************************************************
+* djinterp [re_std]                                               array_umbrella
 *
 * array umbrella header:
 *   Convenience header that #includes every granular module under
@@ -20,22 +20,31 @@
 *     array_tuple_element.hpp         - tuple_element<I, array>
 *
 *
-* path:      /inc/djinterp/re_std/array
+* path:      /inc/re_std/array/array_umbrella
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ARRAY_UMBRELLA_
-#define DJINTERP_RE_STD_ARRAY_UMBRELLA_ 1
+#ifndef RE_STD_ARRAY_ARRAY_UMBRELLA
+#define RE_STD_ARRAY_ARRAY_UMBRELLA 1
 
-#include "./array/array.hpp"
-#include "./array/array_get.hpp"
-#include "./array/array_compare.hpp"
-#include "./array/array_compare_three_way.hpp"
-#include "./array/array_swap.hpp"
-#include "./array/to_array.hpp"
-#include "./array/array_tuple_size.hpp"
-#include "./array/array_tuple_element.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+#include "./array.hpp"
+#include "./array_get.hpp"
+#include "./array_compare.hpp"
+#include "./array_compare_three_way.hpp"
+#include "./array_swap.hpp"
+#include "./to_array.hpp"
+#include "./array_tuple_size.hpp"
+#include "./array_tuple_element.hpp"
+
+#endif  // floor, for now
 
 
-#endif  // DJINTERP_RE_STD_ARRAY_UMBRELLA_
+#endif  // RE_STD_ARRAY_ARRAY_UMBRELLA

@@ -10,7 +10,7 @@
 * path:      /src/djinterp/c/string_fn.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.29
 *******************************************************************************/
 #include "../../../inc/djinterp/c/string_fn.h"  // corresponding header
 // std
@@ -21,8 +21,8 @@
 #include <stdlib.h>                               // malloc
 #include <string.h>                               // strlen, strspn, memcmp, ...
 // djinterp
-#include "../../../inc/djinterp/c/djinterp.h"   // framework root
-#include "../../../inc/djinterp/c/dmemory.h"    // d_memcpy
+#include "../../../inc/djinterp/c/djinterp.h"        // framework root
+#include "../../../inc/djinterp/c/memory/dmemory.h"  // d_memcpy
 
 
 // safe copy and concatenation

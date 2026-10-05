@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                is_sorted.hpp
 *
 * is_sorted algorithm header:
@@ -13,16 +13,17 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/is_sorted.hpp
+* path:      /inc/re_std/algorithm/is_sorted.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_IS_SORTED_
-#define DJINTERP_RE_STD_ALGORITHM_IS_SORTED_ 1
+#ifndef RE_STD_ALGORITHM_IS_SORTED_HPP
+#define RE_STD_ALGORITHM_IS_SORTED_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./is_sorted_until.hpp"
 
@@ -31,16 +32,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -49,11 +43,11 @@ NS_RESTD
 
 // is_sorted
 //   function: returns true if every adjacent pair satisfies !(b < a).
-template<typename _ForwardIt>
-D_CONSTEXPR_CPP14 bool
+template<typename ForwardIt>
+RE_STD_CONSTEXPR_CPP14 bool
 is_sorted(
-    _ForwardIt _first,
-    _ForwardIt _last
+    ForwardIt _first,
+    ForwardIt _last
 )
 {
     return re_std::is_sorted_until(_first, _last) == _last;
@@ -66,20 +60,20 @@ is_sorted(
 
 // is_sorted (comparator)
 //   function: as above but adjacent-pair ordering is via _comp.
-template<typename _ForwardIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 bool
+template<typename ForwardIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 bool
 is_sorted(
-    _ForwardIt _first,
-    _ForwardIt _last,
-    _Compare   _comp
+    ForwardIt _first,
+    ForwardIt _last,
+    Compare   _comp
 )
 {
     return re_std::is_sorted_until(_first, _last, _comp) == _last;
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_IS_SORTED_
+#endif  // RE_STD_ALGORITHM_IS_SORTED_HPP

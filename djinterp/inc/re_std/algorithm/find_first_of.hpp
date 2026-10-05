@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                            find_first_of.hpp
 *
 * find_first_of algorithm header:
@@ -15,31 +15,26 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/find_first_of.hpp
+* path:      /inc/re_std/algorithm/find_first_of.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_FIND_FIRST_OF_
-#define DJINTERP_RE_STD_ALGORITHM_FIND_FIRST_OF_ 1
+#ifndef RE_STD_ALGORITHM_FIND_FIRST_OF_HPP
+#define RE_STD_ALGORITHM_FIND_FIRST_OF_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -50,19 +45,19 @@ NS_RESTD
 //   function: returns the first iterator it in [_first1, _last1) for
 // which *it equals some element of [_first2, _last2). Returns _last1 on
 // no-match.
-template<typename _InputIt,
-         typename _ForwardIt>
-D_CONSTEXPR_CPP14 _InputIt
+template<typename InputIt,
+         typename ForwardIt>
+RE_STD_CONSTEXPR_CPP14 InputIt
 find_first_of(
-    _InputIt   _first1,
-    _InputIt   _last1,
-    _ForwardIt _first2,
-    _ForwardIt _last2
+    InputIt   _first1,
+    InputIt   _last1,
+    ForwardIt _first2,
+    ForwardIt _last2
 )
 {
     for (; _first1 != _last1; ++_first1)
     {
-        for (_ForwardIt _it = _first2; _it != _last2; ++_it)
+        for (ForwardIt _it = _first2; _it != _last2; ++_it)
         {
             if (*_first1 == *_it)
             {
@@ -82,21 +77,21 @@ find_first_of(
 // find_first_of (predicate)
 //   function: as above but element comparison is via the user-supplied
 // binary predicate _pred.
-template<typename _InputIt,
-         typename _ForwardIt,
-         typename _BinaryPred>
-D_CONSTEXPR_CPP14 _InputIt
+template<typename InputIt,
+         typename ForwardIt,
+         typename BinaryPred>
+RE_STD_CONSTEXPR_CPP14 InputIt
 find_first_of(
-    _InputIt    _first1,
-    _InputIt    _last1,
-    _ForwardIt  _first2,
-    _ForwardIt  _last2,
-    _BinaryPred _pred
+    InputIt    _first1,
+    InputIt    _last1,
+    ForwardIt  _first2,
+    ForwardIt  _last2,
+    BinaryPred _pred
 )
 {
     for (; _first1 != _last1; ++_first1)
     {
-        for (_ForwardIt _it = _first2; _it != _last2; ++_it)
+        for (ForwardIt _it = _first2; _it != _last2; ++_it)
         {
             if (_pred(*_first1, *_it))
             {
@@ -109,7 +104,7 @@ find_first_of(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_FIND_FIRST_OF_
+#endif  // RE_STD_ALGORITHM_FIND_FIRST_OF_HPP

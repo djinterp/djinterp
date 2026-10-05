@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [less]                                                     less.hpp
+/*******************************************************************************
+* djinterp [core]                                                       less.hpp
 *
 *   Foundational Less module for the djinterp framework. Layered on
 * top of the CSS module: a Less stylesheet IS a CSS stylesheet plus
@@ -12,7 +12,7 @@
 * shape.
 *
 *   ZERO OVERHEAD:
-*   - The Less rule-kind enum is `std::uint8_t`-backed.
+*   - The Less rule-kind enum is `re_std::uint8_t`-backed.
 *   - Category and classification predicates are `D_CONSTEXPR`.
 *   - Built-in function name constants live as
 *     `D_STATIC_CONSTEXPR const char*` literal pointers (no
@@ -38,37 +38,68 @@
 *   - Namespaces are nested mixins acting as scoped accessors.
 *
 *
-* path:      /inc/djinterp/core/util/less/less.hpp
+* path:      /inc/djinterp/core/text/css/less/less.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    SHARED TYPES & CONSTANTS
+      ------------------------
+
 II.   LESS DIALECT ENUM
+      -----------------
+
 III.  LESS RULE KIND ENUM
+      -------------------
+
 IV.   LESS AT-RULE KIND ENUM
+      ----------------------
+
 V.    IMPORT OPTIONS / MERGE MODE
+      ---------------------------
+
 VI.   RULE CATEGORY CLASSIFICATION
+      ----------------------------
+
 VII.  BUILT-IN FUNCTION NAMESPACE
+      ---------------------------
+
 VIII. AT-RULE NAME NAMESPACE
+      ----------------------
+
 IX.   KIND <-> NAME MAPPING
+      ---------------------
+
 X.    BACKEND TAG DISPATCH
+      --------------------
+
 XI.   BACKEND DETECTION
+      -----------------
+
 XII.  SUB-MODULE INCLUDES
+      -------------------
 */
 
-#ifndef DJINTERP_LESS_
-#define DJINTERP_LESS_ 1
+#ifndef DJINTERP_TEXT_CSS_LESS_LESS_HPP
+#define DJINTERP_TEXT_CSS_LESS_LESS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../css/css.hpp"
+#include "../../../../djinterp.hpp"
+#include "../css.hpp"
+// re_std
+#include "../../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,7 +151,7 @@ using less_string_t = ::djinterp::css::css_string_t;
 
 // less_dialect
 //   enum: identifies the implementation / spec target.
-enum class less_dialect : std::uint8_t
+enum class less_dialect : re_std::uint8_t
 {
     less_js,            // less.js (canonical implementation)
     less_node,          // less-node CLI (same engine, different host)
@@ -140,7 +171,7 @@ enum class less_dialect : std::uint8_t
 // standard CSS rule kinds remain reachable through the
 // inherited CSS layer; this enum captures the additions Less
 // introduces.
-enum class less_rule_kind : std::uint8_t
+enum class less_rule_kind : re_std::uint8_t
 {
     // declarations
     variable_declaration,       // @name: value;
@@ -193,7 +224,7 @@ enum class less_rule_kind : std::uint8_t
 //   enum: refines `css::css_at_rule_kind` with Less-specific
 // at-keywords. Less reuses CSS at-rules unchanged, so the
 // additions are limited.
-enum class less_at_rule_kind : std::uint8_t
+enum class less_at_rule_kind : re_std::uint8_t
 {
     import_,                    // @import (with Less filter options)
     plugin,                     // @plugin (Less plugin import)
@@ -227,7 +258,7 @@ enum less_import_option : unsigned
 //   enum: how a Less declaration carrying `+` or `+_` should
 // be merged with previously-encountered declarations sharing
 // the same property name.
-enum class less_merge_mode : std::uint8_t
+enum class less_merge_mode : re_std::uint8_t
 {
     none,                       // no merge (default)
     comma,                      // `prop+: ...` -- comma-merge
@@ -634,7 +665,7 @@ NS_INTERNAL
     // has_less_backend_tag_helper
     //   trait: SFINAE helper detecting a nested
     // `less_backend_tag` alias.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_less_backend_tag_helper
     {
@@ -642,10 +673,10 @@ NS_INTERNAL
     };
 
     // has_less_backend_tag_helper (specialization)
-    template<typename _Type>
+    template<typename Type>
     struct has_less_backend_tag_helper<
-        _Type,
-        void_t<typename _Type::less_backend_tag>
+        Type,
+        void_t<typename Type::less_backend_tag>
     >
     {
         D_STATIC_CONSTEXPR bool value = true;
@@ -656,22 +687,22 @@ namespace less {
 
 
 // is_less_backend
-//   trait: true if `_Type` has a nested `less_backend_tag`
+//   trait: true if `Type` has a nested `less_backend_tag`
 // type.
-template<typename    _Type>
+template<typename    Type>
 struct is_less_backend
 {
     D_STATIC_CONSTEXPR bool value =
         ::djinterp::internal::has_less_backend_tag_helper<
-            clean_t<_Type>>::value;
+            clean_t<Type>>::value;
 };
 
 
 // is_less_backend_v
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_STATIC_CONSTEXPR bool is_less_backend_v =
-        is_less_backend<_Type>::value;
+        is_less_backend<Type>::value;
 #endif
 
 
@@ -687,5 +718,6 @@ NS_END  // djinterp
 #include "./less_template.hpp"
 #include "./less_template_concepts.hpp"
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_LESS_
+#endif  // DJINTERP_TEXT_CSS_LESS_LESS_HPP

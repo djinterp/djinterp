@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                exception_ptr.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            exception_ptr.hpp
 *
 * the exception_ptr facility:
 *   exception_ptr (an opaque, shared-ownership handle to a captured
@@ -12,19 +12,22 @@
 * takes toward operator new (runtime-provided, not reimplementable).
 *
 *
-* path:      /inc/djinterp/re_std/exception/exception_ptr.hpp
+* path:      /inc/re_std/exception/exception_ptr.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXCEPTION_EXCEPTION_PTR_
-#define DJINTERP_RE_STD_EXCEPTION_EXCEPTION_PTR_ 1
+#ifndef RE_STD_EXCEPTION_EXCEPTION_PTR_HPP
+#define RE_STD_EXCEPTION_EXCEPTION_PTR_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if ( D_ENV_LANG_IS_CPP11_OR_HIGHER && \
-      D_ENV_CPP98_HAS_EXCEPTION )
+#if ( RE_STD_LANG_IS_CPP11_OR_HIGHER && \
+      RE_STD_HAS_EXCEPTIONS )
 
+    // std
     #include <exception>
 
 namespace re_std
@@ -44,10 +47,9 @@ namespace re_std
     //   [[noreturn]]; re-raises the exception referenced by the handle.
     using std::rethrow_exception;
 
-} // namespace re_std
-
+}  // re_std
 #endif // C++11+ && <exception>
 // C++98 (or freestanding): exception_ptr is ABI-provided and has no
 // portable reimplementation; the facility is intentionally absent.
 
-#endif  // DJINTERP_RE_STD_EXCEPTION_EXCEPTION_PTR_
+#endif  // RE_STD_EXCEPTION_EXCEPTION_PTR_HPP

@@ -1,7 +1,8 @@
-/******************************************************************************
-* re_std [concepts]                                               invocable.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                invocable.hpp
 *
-*   _Func can be invoked with _Args.
+* invocable concept header:
+*   Func can be invoked with Args.
 *
 *   Expressed through re_std::invoke, so pointer-to-member-function and
 * pointer-to-member-data callables are recognised alongside ordinary functors -
@@ -12,40 +13,42 @@
 * re_std's intrinsic-backed traits there is nothing to detect and nothing to
 * back-port.  Below C++20 this header is EMPTY rather than degraded: a concept
 * that does not exist cannot give a wrong answer, and naming one is an
-* immediate, localised compile error.  Test D_ENV_LANG_IS_CPP20_OR_HIGHER, or
+* immediate, localised compile error.  Test RE_STD_LANG_IS_CPP20_OR_HIGHER, or
 * use the trait-shaped equivalents in re_std::type_traits, which reach C++98.
 *
 *
-* path:      /inc/djinterp/re_std/concepts/invocable.hpp
+* path:      /inc/re_std/concepts/invocable.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CONCEPTS_INVOCABLE_
-#define DJINTERP_RE_STD_CONCEPTS_INVOCABLE_ 1
+#ifndef RE_STD_CONCEPTS_INVOCABLE_HPP
+#define RE_STD_CONCEPTS_INVOCABLE_HPP 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 // re_std
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
 #include "../functional/invoke.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // invocable
-//   concept: _Func is callable with _Args... under the INVOKE protocol.
-template<typename _Func, typename... _Args>
+//   concept: Func is callable with Args... under the INVOKE protocol.
+template<typename Func, typename... Args>
 concept invocable
-    = requires(_Func&& f, _Args&&... args)
+    = requires(Func&& f, Args&&... args)
       {
-          invoke(static_cast<_Func&&>(f), static_cast<_Args&&>(args)...);
+          invoke(static_cast<Func&&>(f), static_cast<Args&&>(args)...);
       };
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_CONCEPTS_INVOCABLE_
+#endif  // RE_STD_CONCEPTS_INVOCABLE_HPP

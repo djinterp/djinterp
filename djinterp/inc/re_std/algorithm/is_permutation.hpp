@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           is_permutation.hpp
 *
 * is_permutation algorithm header:
@@ -29,58 +29,53 @@
 *   The predicate must be an EQUIVALENCE relation, not an ordering.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/is_permutation.hpp
+* path:      /inc/re_std/algorithm/is_permutation.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.24
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_IS_PERMUTATION_
-#define DJINTERP_RE_STD_ALGORITHM_IS_PERMUTATION_ 1
+#ifndef RE_STD_ALGORITHM_IS_PERMUTATION_HPP
+#define RE_STD_ALGORITHM_IS_PERMUTATION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
 // std
 #include <cstddef>
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
+
+namespace re_std
+{
 
 
-NS_RESTD
-
-
-NS_INTERNAL
+namespace internal
+{
 
     // is_permutation_tail
-    //   helper: counting comparison of two equal-length suffixes whose
-    // common prefix has already been stripped. _Pred is an equivalence.
-    template<typename _ForwardIt1,
-             typename _ForwardIt2,
-             typename _Pred>
-    D_CONSTEXPR_CPP14 bool
+    //   function: counting comparison of two equal-length suffixes whose
+    // common prefix has already been stripped. Pred is an equivalence.
+    template<typename ForwardIt1,
+             typename ForwardIt2,
+             typename Pred>
+    RE_STD_CONSTEXPR_CPP14 bool
     is_permutation_tail(
-        _ForwardIt1 _first1,
-        _ForwardIt1 _last1,
-        _ForwardIt2 _first2,
-        _ForwardIt2 _last2,
-        _Pred       _pred
+        ForwardIt1 _first1,
+        ForwardIt1 _last1,
+        ForwardIt2 _first2,
+        ForwardIt2 _last2,
+        Pred       _pred
     )
     {
-        for (_ForwardIt1 _i = _first1; _i != _last1; ++_i)
+        for (ForwardIt1 _i = _first1; _i != _last1; ++_i)
         {
             // skip a value already accounted for by an earlier pass
             bool _seen = false;
-            for (_ForwardIt1 _j = _first1; _j != _i; ++_j)
+            for (ForwardIt1 _j = _first1; _j != _i; ++_j)
             {
                 if (_pred(*_j, *_i))
                 {
@@ -94,7 +89,7 @@ NS_INTERNAL
             }
 
             std::size_t _count2 = 0;
-            for (_ForwardIt2 _k = _first2; _k != _last2; ++_k)
+            for (ForwardIt2 _k = _first2; _k != _last2; ++_k)
             {
                 if (_pred(*_k, *_i))
                 {
@@ -107,7 +102,7 @@ NS_INTERNAL
             }
 
             std::size_t _count1 = 0;
-            for (_ForwardIt1 _j = _i; _j != _last1; ++_j)
+            for (ForwardIt1 _j = _i; _j != _last1; ++_j)
             {
                 if (_pred(*_j, *_i))
                 {
@@ -123,23 +118,23 @@ NS_INTERNAL
     }
 
     // is_permutation_eq
-    //   helper: the default equivalence, operator==. A named functor
+    //   trait: the default equivalence, operator==. A named functor
     // rather than a lambda so the C++98 tier can use it too.
     struct is_permutation_eq
     {
-        template<typename _A,
-                 typename _B>
-        D_CONSTEXPR bool
+        template<typename A,
+                 typename B>
+        RE_STD_CONSTEXPR bool
         operator()(
-            const _A& _a,
-            const _B& _b
+            const A& _a,
+            const B& _b
         ) const
         {
             return _a == _b;
         }
     };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -149,15 +144,15 @@ NS_END  // internal
 // is_permutation (3-arg, predicate)
 //   function: true iff the range beginning at _first2 -- taken to be as
 // long as [_first1, _last1) -- is a rearrangement of it.
-template<typename _ForwardIt1,
-         typename _ForwardIt2,
-         typename _Pred>
-D_CONSTEXPR_CPP14 bool
+template<typename ForwardIt1,
+         typename ForwardIt2,
+         typename Pred>
+RE_STD_CONSTEXPR_CPP14 bool
 is_permutation(
-    _ForwardIt1 _first1,
-    _ForwardIt1 _last1,
-    _ForwardIt2 _first2,
-    _Pred       _pred
+    ForwardIt1 _first1,
+    ForwardIt1 _last1,
+    ForwardIt2 _first2,
+    Pred       _pred
 )
 {
     // strip the common prefix
@@ -176,8 +171,8 @@ is_permutation(
     // walk out the second range's end rather than calling distance /
     // advance: keeps this header free of iterator_traits, so it holds at
     // the C++98 floor and needs only forward iterators.
-    _ForwardIt2 _last2 = _first2;
-    for (_ForwardIt1 _walk = _first1; _walk != _last1; ++_walk)
+    ForwardIt2 _last2 = _first2;
+    for (ForwardIt1 _walk = _first1; _walk != _last1; ++_walk)
     {
         ++_last2;
     }
@@ -193,13 +188,13 @@ is_permutation(
 
 // is_permutation (3-arg)
 //   function: as above, comparing with operator==.
-template<typename _ForwardIt1,
-         typename _ForwardIt2>
-D_CONSTEXPR_CPP14 bool
+template<typename ForwardIt1,
+         typename ForwardIt2>
+RE_STD_CONSTEXPR_CPP14 bool
 is_permutation(
-    _ForwardIt1 _first1,
-    _ForwardIt1 _last1,
-    _ForwardIt2 _first2
+    ForwardIt1 _first1,
+    ForwardIt1 _last1,
+    ForwardIt2 _first2
 )
 {
     return re_std::is_permutation(_first1, _last1, _first2,
@@ -214,23 +209,23 @@ is_permutation(
 // is_permutation (4-arg, predicate)
 //   function: true iff the two explicitly bounded ranges are
 // rearrangements of one another. Unequal lengths are false.
-template<typename _ForwardIt1,
-         typename _ForwardIt2,
-         typename _Pred>
-D_CONSTEXPR_CPP14 bool
+template<typename ForwardIt1,
+         typename ForwardIt2,
+         typename Pred>
+RE_STD_CONSTEXPR_CPP14 bool
 is_permutation(
-    _ForwardIt1 _first1,
-    _ForwardIt1 _last1,
-    _ForwardIt2 _first2,
-    _ForwardIt2 _last2,
-    _Pred       _pred
+    ForwardIt1 _first1,
+    ForwardIt1 _last1,
+    ForwardIt2 _first2,
+    ForwardIt2 _last2,
+    Pred       _pred
 )
 {
     {
         // lengths must match; walk in lockstep rather than calling
         // distance twice.
-        _ForwardIt1 _w1 = _first1;
-        _ForwardIt2 _w2 = _first2;
+        ForwardIt1 _w1 = _first1;
+        ForwardIt2 _w2 = _first2;
         for (; (_w1 != _last1) && (_w2 != _last2); ++_w1, (void)++_w2)
         {
             // empty
@@ -264,14 +259,14 @@ is_permutation(
 
 // is_permutation (4-arg)
 //   function: as above, comparing with operator==.
-template<typename _ForwardIt1,
-         typename _ForwardIt2>
-D_CONSTEXPR_CPP14 bool
+template<typename ForwardIt1,
+         typename ForwardIt2>
+RE_STD_CONSTEXPR_CPP14 bool
 is_permutation(
-    _ForwardIt1 _first1,
-    _ForwardIt1 _last1,
-    _ForwardIt2 _first2,
-    _ForwardIt2 _last2
+    ForwardIt1 _first1,
+    ForwardIt1 _last1,
+    ForwardIt2 _first2,
+    ForwardIt2 _last2
 )
 {
     return re_std::is_permutation(_first1, _last1, _first2, _last2,
@@ -279,7 +274,7 @@ is_permutation(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_IS_PERMUTATION_
+#endif  // RE_STD_ALGORITHM_IS_PERMUTATION_HPP

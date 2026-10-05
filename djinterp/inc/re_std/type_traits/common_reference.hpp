@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                        common_reference.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         common_reference.hpp
 *
 * common_reference trait:
 *   The C++20 generalization of common_type that preserves reference
@@ -39,7 +39,7 @@
 *
 *   PORTABILITY:
 *   Available on C++11 and later, gated on
-* D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES (the trait's signature uses
+* RE_STD_LANG_HAS_ALIAS_TEMPLATES (the trait's signature uses
 * template-template parameters that take a single type and yield a type --
 * that requires alias templates, since the qualifier-applying templates
 * are typically alias templates). Standardized in C++20; re_std backports.
@@ -49,20 +49,21 @@
 * remove_cv, is_reference, is_convertible, void_t, re_std::declval.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/common_reference.hpp
+* path:      /inc/re_std/type_traits/common_reference.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_COMMON_REFERENCE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_COMMON_REFERENCE_ 1
+#ifndef RE_STD_TYPE_TRAITS_COMMON_REFERENCE_HPP
+#define RE_STD_TYPE_TRAITS_COMMON_REFERENCE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if    D_ENV_LANG_IS_CPP11_OR_HIGHER \
-    && D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if    RE_STD_LANG_IS_CPP11_OR_HIGHER \
+    && RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 // re_std
 #include "./common_type.hpp"
@@ -77,39 +78,41 @@
 #include "../utility/declval.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
     // common_reference
     //   trait: primary template -- has no `type` member. Defined with
     //          empty body for reliable SFINAE (see common_type.hpp for
     //          the same reasoning).
-    template<typename... _Ts>
+    template<typename... Ts>
     struct common_reference
     {};
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // copy_cv
-        //   trait: yields _To with _From's cv-qualifiers applied. _From
+        //   trait: yields To with From's cv-qualifiers applied. From
         //          is expected to be a non-reference type. Used inside
         //          the COMMON-REF LL computation.
-        template<typename _From, typename _To>
+        template<typename From, typename To>
         struct copy_cv
-        { typedef _To type; };
+        { typedef To type; };
 
-        template<typename _From, typename _To>
-        struct copy_cv<const _From, _To>
-        { typedef const _To type; };
+        template<typename From, typename To>
+        struct copy_cv<const From, To>
+        { typedef const To type; };
 
-        template<typename _From, typename _To>
-        struct copy_cv<volatile _From, _To>
-        { typedef volatile _To type; };
+        template<typename From, typename To>
+        struct copy_cv<volatile From, To>
+        { typedef volatile To type; };
 
-        template<typename _From, typename _To>
-        struct copy_cv<const volatile _From, _To>
-        { typedef const volatile _To type; };
+        template<typename From, typename To>
+        struct copy_cv<const volatile From, To>
+        { typedef const volatile To type; };
 
         // cond_res
         //   trait: COND-RES(X, Y). Yields the type of the conditional
@@ -118,23 +121,23 @@ NS_RESTD
         //          and qualification of X / Y. The function-reference
         //          dance (`X(&)()`) is the standard's prescribed way to
         //          obtain such an expression.
-        template<typename _X, typename _Y, typename = void>
+        template<typename X, typename Y, typename = void>
         struct cond_res
         {};
 
-        template<typename _X, typename _Y>
+        template<typename X, typename Y>
         struct cond_res<
-            _X,
-            _Y,
+            X,
+            Y,
             re_std::void_t<decltype(
                 false
-                ? re_std::declval<_X(&)()>()()
-                : re_std::declval<_Y(&)()>()() )> >
+                ? re_std::declval<X(&)()>()()
+                : re_std::declval<Y(&)()>()() )> >
         {
             typedef decltype(
                 false
-                ? re_std::declval<_X(&)()>()()
-                : re_std::declval<_Y(&)()>()() ) type;
+                ? re_std::declval<X(&)()>()()
+                : re_std::declval<Y(&)()>()() ) type;
         };
 
         // remove_cvref_local
@@ -142,42 +145,42 @@ NS_RESTD
         //          the basic_common_reference query at bullet 2. Inlined
         //          here (rather than depending on a public remove_cvref)
         //          because remove_cvref may not yet be ported.
-        template<typename _T>
+        template<typename T>
         struct remove_cvref_local
         {
             typedef typename remove_cv<
-                typename remove_reference<_T>::type >::type type;
+                typename remove_reference<T>::type >::type type;
         };
 
         // xref
         //   trait: qualifier-reapplying template. xref<T>::apply<U>
         //          yields U with T's cv- and reference-qualifiers. For
         //          a non-reference cv-unqualified U.
-        template<typename _T>
+        template<typename T>
         struct xref
-        { template<typename _U> using apply = _U; };
+        { template<typename U> using apply = U; };
 
-        template<typename _T>
-        struct xref<const _T>
-        { template<typename _U> using apply = const _U; };
+        template<typename T>
+        struct xref<const T>
+        { template<typename U> using apply = const U; };
 
-        template<typename _T>
-        struct xref<volatile _T>
-        { template<typename _U> using apply = volatile _U; };
+        template<typename T>
+        struct xref<volatile T>
+        { template<typename U> using apply = volatile U; };
 
-        template<typename _T>
-        struct xref<const volatile _T>
-        { template<typename _U> using apply = const volatile _U; };
+        template<typename T>
+        struct xref<const volatile T>
+        { template<typename U> using apply = const volatile U; };
 
-        template<typename _T>
-        struct xref<_T&>
-        { template<typename _U>
-          using apply = typename xref<_T>::template apply<_U>&; };
+        template<typename T>
+        struct xref<T&>
+        { template<typename U>
+          using apply = typename xref<T>::template apply<U>&; };
 
-        template<typename _T>
-        struct xref<_T&&>
-        { template<typename _U>
-          using apply = typename xref<_T>::template apply<_U>&&; };
+        template<typename T>
+        struct xref<T&&>
+        { template<typename U>
+          using apply = typename xref<T>::template apply<U>&&; };
 
         // ----- COMMON-REF(A, B) implementation -----------------------
 
@@ -186,22 +189,22 @@ NS_RESTD
         //          cv-merged lvalue-reference forms. Has `type` only
         //          when cond_res is well-formed (regardless of whether
         //          that type is a reference). The is_reference check
-        //          is applied at the outer common_ref<_X&, _Y&> spec.
-        template<typename _X, typename _Y, typename = void>
+        //          is applied at the outer common_ref<X&, Y&> spec.
+        template<typename X, typename Y, typename = void>
         struct common_ref_LL_inner
         {};
 
-        template<typename _X, typename _Y>
+        template<typename X, typename Y>
         struct common_ref_LL_inner<
-            _X,
-            _Y,
+            X,
+            Y,
             re_std::void_t<typename cond_res<
-                typename copy_cv<_Y, _X>::type&,
-                typename copy_cv<_X, _Y>::type& >::type> >
+                typename copy_cv<Y, X>::type&,
+                typename copy_cv<X, Y>::type& >::type> >
         {
             typedef typename cond_res<
-                typename copy_cv<_Y, _X>::type&,
-                typename copy_cv<_X, _Y>::type& >::type type;
+                typename copy_cv<Y, X>::type&,
+                typename copy_cv<X, Y>::type& >::type type;
         };
 
         // common_ref
@@ -209,253 +212,253 @@ NS_RESTD
         //          four reference-pattern cases (LL / RR / LR / RL)
         //          provide `type` when their respective COMMON-REF
         //          rule is well-formed.
-        template<typename _A, typename _B, typename = void>
+        template<typename A, typename B, typename = void>
         struct common_ref
         {};
 
         // LL: both lvalue refs.
         //   COMMON-REF(X&, Y&) = cond_res<COPYCV(X,Y)&, COPYCV(Y,X)&>
         //   only if that result is itself a reference type.
-        template<typename _X, typename _Y>
+        template<typename X, typename Y>
         struct common_ref<
-            _X&,
-            _Y&,
+            X&,
+            Y&,
             typename enable_if<
                 is_reference<
-                    typename common_ref_LL_inner<_X, _Y>::type
+                    typename common_ref_LL_inner<X, Y>::type
                     >::value
                 >::type>
         {
-            typedef typename common_ref_LL_inner<_X, _Y>::type type;
+            typedef typename common_ref_LL_inner<X, Y>::type type;
         };
 
         // RR: both rvalue refs.
         //   C = remove_reference<COMMON-REF(X&, Y&)>::type&&
         //   only if X&& and Y&& are both convertible to C.
-        template<typename _X, typename _Y>
+        template<typename X, typename Y>
         struct common_ref<
-            _X&&,
-            _Y&&,
+            X&&,
+            Y&&,
             typename enable_if<
                 (    is_reference<
-                         typename common_ref_LL_inner<_X, _Y>::type
+                         typename common_ref_LL_inner<X, Y>::type
                          >::value
                   && is_convertible<
-                         _X&&,
+                         X&&,
                          typename remove_reference<
-                             typename common_ref_LL_inner<_X, _Y>::type
+                             typename common_ref_LL_inner<X, Y>::type
                              >::type&& >::value
                   && is_convertible<
-                         _Y&&,
+                         Y&&,
                          typename remove_reference<
-                             typename common_ref_LL_inner<_X, _Y>::type
+                             typename common_ref_LL_inner<X, Y>::type
                              >::type&& >::value )
                 >::type>
         {
             typedef typename remove_reference<
-                typename common_ref_LL_inner<_X, _Y>::type
+                typename common_ref_LL_inner<X, Y>::type
                 >::type&& type;
         };
 
         // LR: A is rvalue ref, B is lvalue ref.
         //   D = COMMON-REF(const X&, Y&) = LL_inner<const X, Y>::type
         //   only if D is a reference and X&& is convertible to D.
-        template<typename _X, typename _Y>
+        template<typename X, typename Y>
         struct common_ref<
-            _X&&,
-            _Y&,
+            X&&,
+            Y&,
             typename enable_if<
                 (    is_reference<
-                         typename common_ref_LL_inner<const _X, _Y>::type
+                         typename common_ref_LL_inner<const X, Y>::type
                          >::value
                   && is_convertible<
-                         _X&&,
-                         typename common_ref_LL_inner<const _X, _Y>::type
+                         X&&,
+                         typename common_ref_LL_inner<const X, Y>::type
                          >::value )
                 >::type>
         {
-            typedef typename common_ref_LL_inner<const _X, _Y>::type type;
+            typedef typename common_ref_LL_inner<const X, Y>::type type;
         };
 
         // RL: A is lvalue ref, B is rvalue ref. Symmetric to LR --
         //   COMMON-REF(A, B) = COMMON-REF(B, A).
-        template<typename _X, typename _Y>
+        template<typename X, typename Y>
         struct common_ref<
-            _X&,
-            _Y&&,
+            X&,
+            Y&&,
             typename enable_if<
                 (    is_reference<
-                         typename common_ref_LL_inner<const _Y, _X>::type
+                         typename common_ref_LL_inner<const Y, X>::type
                          >::value
                   && is_convertible<
-                         _Y&&,
-                         typename common_ref_LL_inner<const _Y, _X>::type
+                         Y&&,
+                         typename common_ref_LL_inner<const Y, X>::type
                          >::value )
                 >::type>
-            : common_ref<_Y&&, _X&>
+            : common_ref<Y&&, X&>
         {};
 
         // ----- 4-bullet fallback chain -------------------------------
 
         // common_reference_sub1
         //   trait: bullet 1 -- COMMON-REF if well-formed.
-        template<typename _T1, typename _T2, typename = void>
+        template<typename T1, typename T2, typename = void>
         struct common_reference_sub1
         {};
 
-        template<typename _T1, typename _T2>
+        template<typename T1, typename T2>
         struct common_reference_sub1<
-            _T1, _T2,
-            re_std::void_t<typename common_ref<_T1, _T2>::type> >
+            T1, T2,
+            re_std::void_t<typename common_ref<T1, T2>::type> >
         {
-            typedef typename common_ref<_T1, _T2>::type type;
+            typedef typename common_ref<T1, T2>::type type;
         };
 
         // common_reference_sub2
         //   trait: bullet 2 -- basic_common_reference query.
-        template<typename _T1, typename _T2, typename = void>
+        template<typename T1, typename T2, typename = void>
         struct common_reference_sub2
         {};
 
-        template<typename _T1, typename _T2>
+        template<typename T1, typename T2>
         struct common_reference_sub2<
-            _T1, _T2,
+            T1, T2,
             re_std::void_t<typename basic_common_reference<
-                typename remove_cvref_local<_T1>::type,
-                typename remove_cvref_local<_T2>::type,
-                xref<_T1>::template apply,
-                xref<_T2>::template apply >::type> >
+                typename remove_cvref_local<T1>::type,
+                typename remove_cvref_local<T2>::type,
+                xref<T1>::template apply,
+                xref<T2>::template apply >::type> >
         {
             typedef typename basic_common_reference<
-                typename remove_cvref_local<_T1>::type,
-                typename remove_cvref_local<_T2>::type,
-                xref<_T1>::template apply,
-                xref<_T2>::template apply >::type type;
+                typename remove_cvref_local<T1>::type,
+                typename remove_cvref_local<T2>::type,
+                xref<T1>::template apply,
+                xref<T2>::template apply >::type type;
         };
 
         // common_reference_sub3
         //   trait: bullet 3 -- common_type fallback.
-        template<typename _T1, typename _T2, typename = void>
+        template<typename T1, typename T2, typename = void>
         struct common_reference_sub3
         {};
 
-        template<typename _T1, typename _T2>
+        template<typename T1, typename T2>
         struct common_reference_sub3<
-            _T1, _T2,
-            re_std::void_t<typename common_type<_T1, _T2>::type> >
+            T1, T2,
+            re_std::void_t<typename common_type<T1, T2>::type> >
         {
-            typedef typename common_type<_T1, _T2>::type type;
+            typedef typename common_type<T1, T2>::type type;
         };
 
         // common_reference_sub4
         //   trait: bullet 4 -- COND-RES.
-        template<typename _T1, typename _T2, typename = void>
+        template<typename T1, typename T2, typename = void>
         struct common_reference_sub4
         {};
 
-        template<typename _T1, typename _T2>
+        template<typename T1, typename T2>
         struct common_reference_sub4<
-            _T1, _T2,
-            re_std::void_t<typename cond_res<_T1, _T2>::type> >
+            T1, T2,
+            re_std::void_t<typename cond_res<T1, T2>::type> >
         {
-            typedef typename cond_res<_T1, _T2>::type type;
+            typedef typename cond_res<T1, T2>::type type;
         };
 
         // common_reference_2_4: chain link 4 (sub3 fallback to sub4)
-        template<typename _T1, typename _T2, typename = void>
+        template<typename T1, typename T2, typename = void>
         struct common_reference_2_4
-            : common_reference_sub4<_T1, _T2>
+            : common_reference_sub4<T1, T2>
         {};
 
-        template<typename _T1, typename _T2>
+        template<typename T1, typename T2>
         struct common_reference_2_4<
-            _T1, _T2,
-            re_std::void_t<typename common_reference_sub3<_T1, _T2>::type> >
-            : common_reference_sub3<_T1, _T2>
+            T1, T2,
+            re_std::void_t<typename common_reference_sub3<T1, T2>::type> >
+            : common_reference_sub3<T1, T2>
         {};
 
         // common_reference_2_3: chain link 3 (sub2 fallback to 2_4)
-        template<typename _T1, typename _T2, typename = void>
+        template<typename T1, typename T2, typename = void>
         struct common_reference_2_3
-            : common_reference_2_4<_T1, _T2>
+            : common_reference_2_4<T1, T2>
         {};
 
-        template<typename _T1, typename _T2>
+        template<typename T1, typename T2>
         struct common_reference_2_3<
-            _T1, _T2,
-            re_std::void_t<typename common_reference_sub2<_T1, _T2>::type> >
-            : common_reference_sub2<_T1, _T2>
+            T1, T2,
+            re_std::void_t<typename common_reference_sub2<T1, T2>::type> >
+            : common_reference_sub2<T1, T2>
         {};
 
         // common_reference_2_2: chain link 2 (sub1 fallback to 2_3)
-        template<typename _T1, typename _T2, typename = void>
+        template<typename T1, typename T2, typename = void>
         struct common_reference_2_2
-            : common_reference_2_3<_T1, _T2>
+            : common_reference_2_3<T1, T2>
         {};
 
-        template<typename _T1, typename _T2>
+        template<typename T1, typename T2>
         struct common_reference_2_2<
-            _T1, _T2,
-            re_std::void_t<typename common_reference_sub1<_T1, _T2>::type> >
-            : common_reference_sub1<_T1, _T2>
+            T1, T2,
+            re_std::void_t<typename common_reference_sub1<T1, T2>::type> >
+            : common_reference_sub1<T1, T2>
         {};
 
         // common_reference_n_impl
         //   trait: SFINAE-friendly recursive case for n >= 3 args.
         //          Mirrors common_type_n_impl in shape.
-        template<typename _Void, typename _CR, typename... _Rest>
+        template<typename Void, typename CR, typename... Rest>
         struct common_reference_n_impl
         {};
 
-        template<typename _CR, typename... _Rest>
+        template<typename CR, typename... Rest>
         struct common_reference_n_impl<
-            re_std::void_t<typename _CR::type>,
-            _CR,
-            _Rest...>
-            : common_reference<typename _CR::type, _Rest...>
+            re_std::void_t<typename CR::type>,
+            CR,
+            Rest...>
+            : common_reference<typename CR::type, Rest...>
         {};
 
-    NS_END  // internal
+    }  // internal
 
 
-    // common_reference<_T>
+    // common_reference<T>
     //   trait: 1-arg case; type = T (no decay).
-    template<typename _T>
-    struct common_reference<_T>
+    template<typename T>
+    struct common_reference<T>
     {
-        typedef _T type;
+        typedef T type;
     };
 
-    // common_reference<_T1, _T2>
+    // common_reference<T1, T2>
     //   trait: binary case; runs the 4-bullet fallback chain.
-    template<typename _T1, typename _T2>
-    struct common_reference<_T1, _T2>
-        : internal::common_reference_2_2<_T1, _T2>
+    template<typename T1, typename T2>
+    struct common_reference<T1, T2>
+        : internal::common_reference_2_2<T1, T2>
     {};
 
-    // common_reference<_T1, _T2, _R...>
+    // common_reference<T1, T2, R...>
     //   trait: n-arg case (n >= 3 by partial ordering).
-    template<typename _T1,
-             typename _T2,
-             typename... _R>
-    struct common_reference<_T1, _T2, _R...>
+    template<typename T1,
+             typename T2,
+             typename... R>
+    struct common_reference<T1, T2, R...>
         : internal::common_reference_n_impl<
               void,
-              common_reference<_T1, _T2>,
-              _R... >
+              common_reference<T1, T2>,
+              R... >
     {};
 
 
     // common_reference_t
     //   alias: type alias for the trait. Always available because the
     //          enclosing file is gated on alias-templates support.
-    template<typename... _Ts>
-    using common_reference_t = typename common_reference<_Ts...>::type;
+    template<typename... Ts>
+    using common_reference_t = typename common_reference<Ts...>::type;
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // CPP11+ && ALIAS_TEMPLATES
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_COMMON_REFERENCE_
+#endif  // RE_STD_TYPE_TRAITS_COMMON_REFERENCE_HPP

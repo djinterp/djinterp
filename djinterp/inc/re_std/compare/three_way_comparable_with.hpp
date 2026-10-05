@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                               three_way_comparable_with.hpp
+/*******************************************************************************
+* djinterp [re_std]                                three_way_comparable_with.hpp
 *
 * the three_way_comparable_with concept:
 *   The heterogeneous form: constrains TWO types to being three-way
@@ -32,18 +32,19 @@
 * produce re_std's. three_way_comparable.hpp documents the reasoning.
 *
 *
-* path:      /inc/djinterp/re_std/compare/three_way_comparable_with.hpp
+* path:      /inc/re_std/compare/three_way_comparable_with.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_COMPARE_THREE_WAY_COMPARABLE_WITH_
-#define DJINTERP_RE_STD_COMPARE_THREE_WAY_COMPARABLE_WITH_ 1
+#ifndef RE_STD_COMPARE_THREE_WAY_COMPARABLE_WITH_HPP
+#define RE_STD_COMPARE_THREE_WAY_COMPARABLE_WITH_HPP 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 // std
 #include <compare>
@@ -55,37 +56,38 @@
 #include "../type_traits/remove_reference.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
     // three_way_comparable_with
-    //   concept: _T and _U are mutually three-way comparable at a category
-    // at least as strong as _Cat, each is three_way_comparable on its own,
+    //   concept: T and U are mutually three-way comparable at a category
+    // at least as strong as Cat, each is three_way_comparable on its own,
     // and their common reference type is too.
-    template<typename _T,
-             typename _U,
-             typename _Cat = ::std::partial_ordering>
+    template<typename T,
+             typename U,
+             typename Cat = ::std::partial_ordering>
     concept three_way_comparable_with
-        =  three_way_comparable<_T, _Cat>
-        && three_way_comparable<_U, _Cat>
+        =  three_way_comparable<T, Cat>
+        && three_way_comparable<U, Cat>
         && common_reference_with<
-               const typename remove_reference<_T>::type&,
-               const typename remove_reference<_U>::type&>
+               const typename remove_reference<T>::type&,
+               const typename remove_reference<U>::type&>
         && three_way_comparable<
                typename common_reference<
-                   const typename remove_reference<_T>::type&,
-                   const typename remove_reference<_U>::type&>::type,
-               _Cat>
-        && internal::weakly_equality_comparable_with<_T, _U>
-        && internal::partially_ordered_with<_T, _U>
-        && requires(const typename remove_reference<_T>::type& _t,
-                    const typename remove_reference<_U>::type& _u)
+                   const typename remove_reference<T>::type&,
+                   const typename remove_reference<U>::type&>::type,
+               Cat>
+        && internal::weakly_equality_comparable_with<T, U>
+        && internal::partially_ordered_with<T, U>
+        && requires(const typename remove_reference<T>::type& _t,
+                    const typename remove_reference<U>::type& _u)
            {
-               { _t <=> _u } -> internal::compares_as<_Cat>;
-               { _u <=> _t } -> internal::compares_as<_Cat>;
+               { _t <=> _u } -> internal::compares_as<Cat>;
+               { _u <=> _t } -> internal::compares_as<Cat>;
            };
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_COMPARE_THREE_WAY_COMPARABLE_WITH_
+#endif  // RE_STD_COMPARE_THREE_WAY_COMPARABLE_WITH_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                            is_function.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              is_function.hpp
 *
 * is_function trait header:
 *   Detects whether a type is a function type (NOT a function pointer,
@@ -27,21 +27,23 @@
 * extension may add them.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_function.hpp
+* path:      /inc/re_std/type_traits/is_function.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_FUNCTION_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_FUNCTION_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_FUNCTION_HPP
+#define RE_STD_TYPE_TRAITS_IS_FUNCTION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -50,29 +52,29 @@ NS_RESTD
 
 // is_function
 //   trait: false (primary template).
-template<typename _Type>
+template<typename Type>
 struct is_function : false_type
 {};
 
 
-#if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#if RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
 // =============================================================================
 // I-A. C++11+ variadic path
 // =============================================================================
 
-    // is_function<_R(_Args...)>
+    // is_function<R(Args...)>
     //   trait: true for fixed-arity function types.
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...)> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...)> : true_type
     {};
 
-    // is_function<_R(_Args..., ...)>
+    // is_function<R(Args..., ...)>
     //   trait: true for ellipsis-variadic function types.
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...)> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...)> : true_type
     {};
 
     // ---------------------------------------------------------------------
@@ -84,360 +86,360 @@ struct is_function : false_type
     // on them.  Omitting these makes is_function false for every const member
     // function -- and therefore makes re_std::invoke reject it.
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) &> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) &> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) &> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) &> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) &&> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) &&> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) &&> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) &&> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const &> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const &> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const &> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const &> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const &&> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const &&> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const &&> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const &&> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) volatile> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) volatile> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) volatile> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) volatile> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) volatile &> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) volatile &> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) volatile &> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) volatile &> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) volatile &&> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) volatile &&> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) volatile &&> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) volatile &&> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const volatile> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const volatile> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const volatile> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const volatile> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const volatile &> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const volatile &> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const volatile &> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const volatile &> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const volatile &&> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const volatile &&> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const volatile &&> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const volatile &&> : true_type
     {};
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
     // noexcept became part of the type system in C++17, doubling the set.
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) & noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) & noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) & noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) & noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) && noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) && noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) && noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) && noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const & noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const & noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const & noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const & noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const && noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const && noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const && noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const && noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) volatile noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) volatile noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) volatile noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) volatile noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) volatile & noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) volatile & noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) volatile & noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) volatile & noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) volatile && noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) volatile && noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) volatile && noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) volatile && noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const volatile noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const volatile noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const volatile noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const volatile noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const volatile & noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const volatile & noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const volatile & noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const volatile & noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args...) const volatile && noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args...) const volatile && noexcept> : true_type
     {};
 
-    template<typename    _R,
-             typename... _Args>
-    struct is_function<_R(_Args..., ...) const volatile && noexcept> : true_type
+    template<typename    R,
+             typename... Args>
+    struct is_function<R(Args..., ...) const volatile && noexcept> : true_type
     {};
 
-#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP17_OR_HIGHER
 
-#else  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#else  // RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
 // =============================================================================
 // I-B. C++98/03 explicit-arity path (0 through 10)
 // =============================================================================
 
     // arity 0
-    template<typename _R>
-    struct is_function<_R()> : true_type {};
-    template<typename _R>
-    struct is_function<_R(...)> : true_type {};
+    template<typename R>
+    struct is_function<R()> : true_type {};
+    template<typename R>
+    struct is_function<R(...)> : true_type {};
 
     // arity 1
-    template<typename _R, typename _A1>
-    struct is_function<_R(_A1)> : true_type {};
-    template<typename _R, typename _A1>
-    struct is_function<_R(_A1, ...)> : true_type {};
+    template<typename R, typename A1>
+    struct is_function<R(A1)> : true_type {};
+    template<typename R, typename A1>
+    struct is_function<R(A1, ...)> : true_type {};
 
     // arity 2
-    template<typename _R, typename _A1, typename _A2>
-    struct is_function<_R(_A1, _A2)> : true_type {};
-    template<typename _R, typename _A1, typename _A2>
-    struct is_function<_R(_A1, _A2, ...)> : true_type {};
+    template<typename R, typename A1, typename A2>
+    struct is_function<R(A1, A2)> : true_type {};
+    template<typename R, typename A1, typename A2>
+    struct is_function<R(A1, A2, ...)> : true_type {};
 
     // arity 3
-    template<typename _R, typename _A1, typename _A2, typename _A3>
-    struct is_function<_R(_A1, _A2, _A3)> : true_type {};
-    template<typename _R, typename _A1, typename _A2, typename _A3>
-    struct is_function<_R(_A1, _A2, _A3, ...)> : true_type {};
+    template<typename R, typename A1, typename A2, typename A3>
+    struct is_function<R(A1, A2, A3)> : true_type {};
+    template<typename R, typename A1, typename A2, typename A3>
+    struct is_function<R(A1, A2, A3, ...)> : true_type {};
 
     // arity 4
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4>
-    struct is_function<_R(_A1, _A2, _A3, _A4)> : true_type {};
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4>
-    struct is_function<_R(_A1, _A2, _A3, _A4, ...)> : true_type {};
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4>
+    struct is_function<R(A1, A2, A3, A4)> : true_type {};
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4>
+    struct is_function<R(A1, A2, A3, A4, ...)> : true_type {};
 
     // arity 5
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5)> : true_type {};
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, ...)> : true_type {};
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5>
+    struct is_function<R(A1, A2, A3, A4, A5)> : true_type {};
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5>
+    struct is_function<R(A1, A2, A3, A4, A5, ...)> : true_type {};
 
     // arity 6
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6)> : true_type {};
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6, ...)> : true_type {};
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6>
+    struct is_function<R(A1, A2, A3, A4, A5, A6)> : true_type {};
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6>
+    struct is_function<R(A1, A2, A3, A4, A5, A6, ...)> : true_type {};
 
     // arity 7
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6, typename _A7>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6, _A7)> : true_type {};
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6, typename _A7>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6, _A7, ...)>
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6, typename A7>
+    struct is_function<R(A1, A2, A3, A4, A5, A6, A7)> : true_type {};
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6, typename A7>
+    struct is_function<R(A1, A2, A3, A4, A5, A6, A7, ...)>
         : true_type {};
 
     // arity 8
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6, typename _A7,
-             typename _A8>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8)>
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6, typename A7,
+             typename A8>
+    struct is_function<R(A1, A2, A3, A4, A5, A6, A7, A8)>
         : true_type {};
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6, typename _A7,
-             typename _A8>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8, ...)>
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6, typename A7,
+             typename A8>
+    struct is_function<R(A1, A2, A3, A4, A5, A6, A7, A8, ...)>
         : true_type {};
 
     // arity 9
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6, typename _A7,
-             typename _A8, typename _A9>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8, _A9)>
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6, typename A7,
+             typename A8, typename A9>
+    struct is_function<R(A1, A2, A3, A4, A5, A6, A7, A8, A9)>
         : true_type {};
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6, typename _A7,
-             typename _A8, typename _A9>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8, _A9, ...)>
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6, typename A7,
+             typename A8, typename A9>
+    struct is_function<R(A1, A2, A3, A4, A5, A6, A7, A8, A9, ...)>
         : true_type {};
 
     // arity 10
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6, typename _A7,
-             typename _A8, typename _A9, typename _A10>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8, _A9, _A10)>
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6, typename A7,
+             typename A8, typename A9, typename A10>
+    struct is_function<R(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)>
         : true_type {};
-    template<typename _R, typename _A1, typename _A2, typename _A3,
-             typename _A4, typename _A5, typename _A6, typename _A7,
-             typename _A8, typename _A9, typename _A10>
-    struct is_function<_R(_A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8, _A9, _A10,
+    template<typename R, typename A1, typename A2, typename A3,
+             typename A4, typename A5, typename A6, typename A7,
+             typename A8, typename A9, typename A10>
+    struct is_function<R(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10,
                           ...)>
         : true_type {};
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#endif  // RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
 
 // =============================================================================
 // II.  IS_FUNCTION_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_function_v
-    //   variable: convenience for is_function<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_function_v = is_function<_Type>::value;
+    //   variable: convenience for is_function<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_function_v = is_function<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_FUNCTION_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_FUNCTION_HPP

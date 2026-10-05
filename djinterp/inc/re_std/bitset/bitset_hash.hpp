@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              bitset_hash.hpp
 *
 * bitset hash support header:
@@ -14,48 +14,50 @@
 *   std has had hash<bitset> since C++11; re_std matches.
 *
 *
-* path:      /inc/djinterp/re_std/bitset/bitset_hash.hpp
+* path:      /inc/re_std/bitset/bitset_hash.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BITSET_BITSET_HASH_
-#define DJINTERP_RE_STD_BITSET_BITSET_HASH_ 1
+#ifndef RE_STD_BITSET_BITSET_HASH_HPP
+#define RE_STD_BITSET_BITSET_HASH_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 
-// djinterp
+// re_std
 #include "./bitset.hpp"
 #include "../functional/hash.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   HASH<BITSET>
 // ===========================================================================
 
-// hash<bitset<_N>>
+// hash<bitset<N>>
 //   class: mixes the set bits. Relies on bitset's trimming invariant --
 // see the header note.
-template<std::size_t _N>
-struct hash< bitset<_N> >
+template<std::size_t N>
+struct hash< bitset<N> >
 {
     std::size_t
     operator()(
-        const bitset<_N>& _b
+        const bitset<N>& _b
     ) const
     {
-        std::size_t _seed = _N;
-        for (std::size_t _i = 0; _i < _N; ++_i)
+        std::size_t _seed = N;
+        for (std::size_t _i = 0; _i < N; ++_i)
         {
             if (_b[_i])
             {
@@ -68,10 +70,10 @@ struct hash< bitset<_N> >
 };
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BITSET_BITSET_HASH_
+#endif  // RE_STD_BITSET_BITSET_HASH_HPP

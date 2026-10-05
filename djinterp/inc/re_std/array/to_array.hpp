@@ -1,14 +1,14 @@
-/******************************************************************************
-* djinterp [re_std]                                               to_array.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 to_array.hpp
 *
 * to_array factory header:
 *   Provides the two C++20 to_array overloads:
 *
-*     to_array(_Type (&)[_N])    -> array<remove_cv_t<_Type>, _N>
-*     to_array(_Type (&&)[_N])   -> array<remove_cv_t<_Type>, _N>
+*     to_array(Type (&)[N])    -> array<remove_cv_t<Type>, N>
+*     to_array(Type (&&)[N])   -> array<remove_cv_t<Type>, N>
 *
 *   Both overloads strip cv-qualification from the element type and
-* construct an array<remove_cv_t<_Type>, _N> by copying (lvalue
+* construct an array<remove_cv_t<Type>, N> by copying (lvalue
 * overload) or moving (rvalue overload) each element.
 *
 *   PORTABILITY:
@@ -24,7 +24,7 @@
 * availability but offers the same constexpr-ness from intro.
 *
 *   MULTIDIMENSIONAL ARRAYS:
-*   _Type may not itself be an array type — to_array on a 2-D array
+*   Type may not itself be an array type — to_array on a 2-D array
 * is ill-formed per [array.creation]. re_std enforces this via
 * static_assert.
 *
@@ -35,21 +35,24 @@
 *     utility/integer_sequence.hpp - index_sequence machinery
 *
 *
-* path:      /inc/djinterp/re_std/array/to_array.hpp
+* path:      /inc/re_std/array/to_array.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TO_ARRAY_
-#define DJINTERP_RE_STD_TO_ARRAY_ 1
+#ifndef RE_STD_ARRAY_TO_ARRAY_HPP
+#define RE_STD_ARRAY_TO_ARRAY_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 // gate: to_array requires variadic templates + rvalue references +
 // index_sequence — effectively the same set as re_std::make_any.
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
 
+// std
 #include <cstddef>
 
 #include "./array.hpp"
@@ -59,46 +62,48 @@
 #include "../utility/make_integer_sequence.hpp"   // make_index_sequence
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
     // to_array_lvalue
     //   function: index-sequence-expansion helper for the lvalue
     // to_array overload. Copy-initialises each element.
-    template<typename    _Type,
-             std::size_t _N,
-             std::size_t... _Is>
-    D_CONSTEXPR array<typename re_std::remove_cv<_Type>::type, _N>
+    template<typename    Type,
+             std::size_t N,
+             std::size_t... Is>
+    RE_STD_CONSTEXPR array<typename re_std::remove_cv<Type>::type, N>
     to_array_lvalue(
-        _Type (&_src)[_N],
-        re_std::index_sequence<_Is...>
+        Type (&_src)[N],
+        re_std::index_sequence<Is...>
     )
     {
-        return array<typename re_std::remove_cv<_Type>::type, _N>{
-            { _src[_Is]... }
+        return array<typename re_std::remove_cv<Type>::type, N>{
+            { _src[Is]... }
         };
     }
 
     // to_array_rvalue
     //   function: index-sequence-expansion helper for the rvalue
     // to_array overload. Move-initialises each element.
-    template<typename    _Type,
-             std::size_t _N,
-             std::size_t... _Is>
-    D_CONSTEXPR array<typename re_std::remove_cv<_Type>::type, _N>
+    template<typename    Type,
+             std::size_t N,
+             std::size_t... Is>
+    RE_STD_CONSTEXPR array<typename re_std::remove_cv<Type>::type, N>
     to_array_rvalue(
-        _Type (&&_src)[_N],
-        re_std::index_sequence<_Is...>
+        Type (&&_src)[N],
+        re_std::index_sequence<Is...>
     )
     {
-        return array<typename re_std::remove_cv<_Type>::type, _N>{
-            { static_cast<_Type&&>(_src[_Is])... }
+        return array<typename re_std::remove_cv<Type>::type, N>{
+            { static_cast<Type&&>(_src[Is])... }
         };
     }
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -106,22 +111,22 @@ NS_END  // internal
 // ===========================================================================
 
 // to_array (lvalue)
-//   function: creates an array<remove_cv_t<_Type>, _N> from a
+//   function: creates an array<remove_cv_t<Type>, N> from a
 // C-style array, copying each element.
-template<typename    _Type,
-         std::size_t _N>
-D_CONSTEXPR array<typename re_std::remove_cv<_Type>::type, _N>
+template<typename    Type,
+         std::size_t N>
+RE_STD_CONSTEXPR array<typename re_std::remove_cv<Type>::type, N>
 to_array(
-    _Type (&_src)[_N]
+    Type (&_src)[N]
 )
 {
     // multidimensional input forbidden per [array.creation]/p2.
-    static_assert(!re_std::is_array<_Type>::value,
+    static_assert(!re_std::is_array<Type>::value,
         "re_std::to_array: source array element type may not itself be an array");
 
     return internal::to_array_lvalue(
         _src,
-        re_std::make_index_sequence<_N>{});
+        re_std::make_index_sequence<N>{});
 }
 
 
@@ -130,28 +135,28 @@ to_array(
 // ===========================================================================
 
 // to_array (rvalue)
-//   function: creates an array<remove_cv_t<_Type>, _N> from a
+//   function: creates an array<remove_cv_t<Type>, N> from a
 // C-style array rvalue, moving each element.
-template<typename    _Type,
-         std::size_t _N>
-D_CONSTEXPR array<typename re_std::remove_cv<_Type>::type, _N>
+template<typename    Type,
+         std::size_t N>
+RE_STD_CONSTEXPR array<typename re_std::remove_cv<Type>::type, N>
 to_array(
-    _Type (&&_src)[_N]
+    Type (&&_src)[N]
 )
 {
-    static_assert(!re_std::is_array<_Type>::value,
+    static_assert(!re_std::is_array<Type>::value,
         "re_std::to_array: source array element type may not itself be an array");
 
     return internal::to_array_rvalue(
-        static_cast<_Type (&&)[_N]>(_src),
-        re_std::make_index_sequence<_N>{});
+        static_cast<Type (&&)[N]>(_src),
+        re_std::make_index_sequence<N>{});
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // VARIADIC_TEMPLATES && RVALUE_REFERENCES
 
 
-#endif  // DJINTERP_RE_STD_TO_ARRAY_
+#endif  // RE_STD_ARRAY_TO_ARRAY_HPP

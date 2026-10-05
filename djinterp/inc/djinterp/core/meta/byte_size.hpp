@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                          byte_size.hpp
+/*******************************************************************************
+* djinterp [core]                                                  byte_size.hpp
 *
 *   The byte footprint of a container, split as the model splits its storage
 * (Storage axis): a STATIC part - the container object itself, whose inline cells
@@ -37,13 +37,20 @@
 * and walk the container), not constexpr, matching content_equality.hpp.
 *
 *
-* path:      /inc/djinterp/core/container/byte_size.hpp
+* path:      /inc/djinterp/core/meta/byte_size.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.02
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.02
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_BYTE_SIZE_
-#define DJINTERP_BYTE_SIZE_ 1
+#ifndef DJINTERP_META_BYTE_SIZE_HPP
+#define DJINTERP_META_BYTE_SIZE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -51,11 +58,12 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"                          // clean_t, NS_*, feature macros
-#include "../meta/trait_detect.hpp"                 // D_VOID_T, D_TYPE_TRAIT_*
-#include "./traits/element_relation_traits.hpp"     // element_type_of_t (the cell type)
-#include "./traits/iterable_container_traits.hpp"    // is_iterable_container (descent gate)
-#include "./traits/iterator_category_traits.hpp"    // has_data_accessor (contiguous mark)
+#include "../../djinterp.hpp"                          // NS_*, feature macros
+#include "./type_utility.hpp"                          // clean_t
+#include "trait_detect.hpp"                         // D_VOID_T, D_TYPE_TRAIT_*
+#include "../container/traits/element_relation_traits.hpp"     // element_type_of_t (the cell type)
+#include "../container/traits/iterable_container_traits.hpp"    // is_iterable_container (descent gate)
+#include "../container/iterator/iterator_category_traits.hpp"    // has_data_accessor (contiguous mark)
 
 
 NS_DJINTERP
@@ -67,24 +75,24 @@ NS_DJINTERP
 
 // static_byte_size
 //   trait: the exact size in bytes of the container OBJECT - its inline cells
-// and bookkeeping - as sizeof(clean_t<_Container>).  Independent of contents;
+// and bookkeeping - as sizeof(clean_t<Container>).  Independent of contents;
 // a handle-holding dynamic container has a small, fixed static footprint.
-template<typename _Container>
+template<typename Container>
 struct static_byte_size
-    : std::integral_constant<std::size_t, sizeof(clean_t<_Container>)>
+    : std::integral_constant<std::size_t, sizeof(clean_t<Container>)>
 {};
 
 // static_byte_size_v
 //   value: the `_v` companion (a std::size_t, not a bool, so emitted by hand
 // under the same gate the trait-detect macros use for their value companions).
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Container>
+    template<typename Container>
     inline constexpr std::size_t static_byte_size_v =
-        static_byte_size<_Container>::value;
+        static_byte_size<Container>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Container>
+    template<typename Container>
     constexpr std::size_t static_byte_size_v =
-        static_byte_size<_Container>::value;
+        static_byte_size<Container>::value;
 #endif
 
 
@@ -103,56 +111,56 @@ NS_INTERNAL
     // byte_has_capacity_helper
     //   helper: detects a capacity() accessor on a const lvalue - the current
     // allocation of a contiguous store.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct byte_has_capacity_helper : std::false_type
     {};
 
-    template<typename _Type>
-    struct byte_has_capacity_helper<_Type,
-        D_VOID_T<decltype(std::declval<const clean_t<_Type>&>().capacity())>>
+    template<typename Type>
+    struct byte_has_capacity_helper<Type,
+        D_VOID_T<decltype(std::declval<const clean_t<Type>&>().capacity())>>
         : std::true_type
     {};
 
     // byte_has_size_helper
     //   helper: detects a size() accessor on a const lvalue - the element count
     // of a node store (absent on forward_list, which is counted by distance).
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct byte_has_size_helper : std::false_type
     {};
 
-    template<typename _Type>
-    struct byte_has_size_helper<_Type,
-        D_VOID_T<decltype(std::declval<const clean_t<_Type>&>().size())>>
+    template<typename Type>
+    struct byte_has_size_helper<Type,
+        D_VOID_T<decltype(std::declval<const clean_t<Type>&>().size())>>
         : std::true_type
     {};
 
     // byte_has_allocator_helper
     //   helper: detects an allocator_type alias - decisive evidence of dynamic
     // (out-of-line) storage, since static storage takes no allocator.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct byte_has_allocator_helper : std::false_type
     {};
 
-    template<typename _Type>
-    struct byte_has_allocator_helper<_Type,
-        D_VOID_T<typename clean_t<_Type>::allocator_type>>
+    template<typename Type>
+    struct byte_has_allocator_helper<Type,
+        D_VOID_T<typename clean_t<Type>::allocator_type>>
         : std::true_type
     {};
 
     // byte_has_reserve_helper
     //   helper: detects a reserve(size_type) call - a growable, out-of-line
     // store, so also decisive evidence of dynamic storage.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct byte_has_reserve_helper : std::false_type
     {};
 
-    template<typename _Type>
-    struct byte_has_reserve_helper<_Type,
-        D_VOID_T<decltype(std::declval<clean_t<_Type>&>().reserve(
+    template<typename Type>
+    struct byte_has_reserve_helper<Type,
+        D_VOID_T<decltype(std::declval<clean_t<Type>&>().reserve(
             std::declval<std::size_t>()))>>
         : std::true_type
     {};
@@ -160,14 +168,14 @@ NS_INTERNAL
     // byte_has_c_str_helper
     //   helper: detects a c_str() accessor - a text buffer, treated as a leaf
     // atom by the descent rather than a sequence to recurse into.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct byte_has_c_str_helper : std::false_type
     {};
 
-    template<typename _Type>
-    struct byte_has_c_str_helper<_Type,
-        D_VOID_T<decltype(std::declval<const clean_t<_Type>&>().c_str())>>
+    template<typename Type>
+    struct byte_has_c_str_helper<Type,
+        D_VOID_T<decltype(std::declval<const clean_t<Type>&>().c_str())>>
         : std::true_type
     {};
 
@@ -175,22 +183,22 @@ NS_INTERNAL
     //   helper: whether the container's cells are sited dynamically - an
     // allocator_type or a reserve() is decisive; absent both, siting is static
     // and the dynamic footprint is zero.
-    template<typename _Type>
+    template<typename Type>
     struct byte_is_dynamically_sited_helper
         : std::integral_constant<bool,
-              (    byte_has_allocator_helper<clean_t<_Type>>::value
-                || byte_has_reserve_helper<clean_t<_Type>>::value )>
+              (    byte_has_allocator_helper<clean_t<Type>>::value
+                || byte_has_reserve_helper<clean_t<Type>>::value )>
     {};
 
     // byte_recurse_into_element_helper
     //   helper: whether the descent enters an element - true for a nested
     // container, false for a leaf or a text buffer.  Mirrors the descent
     // predicate of content_equality.hpp so both flatten nesting identically.
-    template<typename _Elem>
+    template<typename Elem>
     struct byte_recurse_into_element_helper
         : std::integral_constant<bool,
-              (    is_iterable_container<clean_t<_Elem>>::value
-                && !byte_has_c_str_helper<clean_t<_Elem>>::value )>
+              (    is_iterable_container<clean_t<Elem>>::value
+                && !byte_has_c_str_helper<clean_t<Elem>>::value )>
     {};
 
 NS_END  // internal
@@ -210,77 +218,80 @@ NS_INTERNAL
     //   enum: the footprint shape of a container level - a contiguous dynamic
     // buffer sized by capacity(), a node dynamic store sized by the element
     // count, or a static-sited object with no heap region.
-    enum class byte_shape
+    struct byte_shape
     {
-        contiguous_dynamic,
-        node_dynamic,
-        static_sited
+        enum value
+        {
+            contiguous_dynamic,
+            node_dynamic,
+            static_sited
+        };
     };
 
     // byte_shape_of
-    //   function: the shape of _Container.  A dynamically-sited store with a
+    //   function: the shape of Container.  A dynamically-sited store with a
     // data() accessor and a capacity() is contiguous; any other dynamically-
     // sited store is treated as node-based; everything else is static-sited.
-    template<typename _Container>
-    constexpr byte_shape byte_shape_of()
+    template<typename Container>
+    constexpr byte_shape::value byte_shape_of()
     {
         return
-            ( byte_is_dynamically_sited_helper<_Container>::value
-           && has_data_accessor<clean_t<_Container>>::value
-           && byte_has_capacity_helper<_Container>::value )
+            ( byte_is_dynamically_sited_helper<Container>::value
+           && has_data_accessor<clean_t<Container>>::value
+           && byte_has_capacity_helper<Container>::value )
                 ? byte_shape::contiguous_dynamic
-          : byte_is_dynamically_sited_helper<_Container>::value
+          : byte_is_dynamically_sited_helper<Container>::value
                 ? byte_shape::node_dynamic
                 : byte_shape::static_sited;
     }
 
     // byte_shape_tag
     //   type: a compile-time carrier of a byte_shape, for overload dispatch.
-    template<byte_shape _Shape>
-    using byte_shape_tag = std::integral_constant<byte_shape, _Shape>;
+    template<byte_shape::value Shape>
+    using byte_shape_tag = std::integral_constant<byte_shape::value, Shape>;
 
     // byte_node_count
     //   function: the element count of a node store - size() when present, else
     // the iterator distance (the forward_list case, which has no size()).
-    template<typename _Container>
-    std::size_t byte_node_count(const _Container& _container, std::true_type)
+    template<typename Container>
+    std::size_t byte_node_count(const Container& _container, std::true_type)
     {
         return static_cast<std::size_t>(_container.size());
     }
 
-    template<typename _Container>
-    std::size_t byte_node_count(const _Container& _container, std::false_type)
+    template<typename Container>
+    std::size_t byte_node_count(const Container& _container, std::false_type)
     {
         return static_cast<std::size_t>(
             std::distance(std::begin(_container), std::end(_container)));
     }
 
     // byte_own_dynamic - contiguous: capacity() cells of the element type.
-    template<typename _Container>
+    template<typename Container>
     std::size_t
-    byte_own_dynamic(const _Container& _container,
+    byte_own_dynamic(const Container& _container,
                      byte_shape_tag<byte_shape::contiguous_dynamic>)
     {
         return static_cast<std::size_t>(_container.capacity())
-             * sizeof(element_type_of_t<_Container>);
+             * sizeof(element_type_of_t<Container>);
     }
 
     // byte_own_dynamic - node: element-count cells of the element type (the
     // per-node bookkeeping is excluded, see the file header).
-    template<typename _Container>
+    template<typename Container>
     std::size_t
-    byte_own_dynamic(const _Container& _container,
+    byte_own_dynamic(const Container& _container,
                      byte_shape_tag<byte_shape::node_dynamic>)
     {
         return byte_node_count(_container,
-                   byte_has_size_helper<_Container>{})
-             * sizeof(element_type_of_t<_Container>);
+                   byte_has_size_helper<Container>{})
+             * sizeof(element_type_of_t<Container>);
     }
 
     // byte_own_dynamic - static-sited: cells are inline, so no heap region.
-    template<typename _Container>
+    template<typename Container>
     std::size_t
-    byte_own_dynamic(const _Container&,
+    byte_own_dynamic(const Container&,
                      byte_shape_tag<byte_shape::static_sited>)
     {
         return 0;
@@ -300,31 +311,31 @@ NS_INTERNAL
     // plus (when elements are themselves containers) the dynamic footprint of
     // every element.  The primary stops at the own region; the recursing
     // specialization sums the elements.
-    template<typename _Container,
-             bool _Recurse =
+    template<typename Container,
+             bool Recurse =
                  byte_recurse_into_element_helper<
-                     element_type_of_t<_Container>>::value>
+                     element_type_of_t<Container>>::value>
     struct byte_dynamic_helper
     {
-        static std::size_t compute(const _Container& _container)
+        static std::size_t compute(const Container& _container)
         {
             return byte_own_dynamic(_container,
-                byte_shape_tag<byte_shape_of<_Container>()>{});
+                byte_shape_tag<byte_shape_of<Container>()>{});
         }
     };
 
-    template<typename _Container>
-    struct byte_dynamic_helper<_Container, true>
+    template<typename Container>
+    struct byte_dynamic_helper<Container, true>
     {
-        static std::size_t compute(const _Container& _container)
+        static std::size_t compute(const Container& _container)
         {
             std::size_t _total = byte_own_dynamic(_container,
-                byte_shape_tag<byte_shape_of<_Container>()>{});
+                byte_shape_tag<byte_shape_of<Container>()>{});
 
             for (const auto& _element : _container)
             {
                 _total += byte_dynamic_helper<
-                    clean_t<element_type_of_t<_Container>>>::compute(_element);
+                    clean_t<element_type_of_t<Container>>>::compute(_element);
             }
 
             return _total;
@@ -343,27 +354,29 @@ NS_END  // internal
 // static-sited container, capacity()*sizeof(cell) for a contiguous store,
 // size()*sizeof(cell) for a node store, summed recursively over nested element
 // containers.  An estimate (see the file header); the static part is exact.
-template<typename _Container>
+template<typename Container>
 std::size_t
-dynamic_byte_size(const _Container& _container)
+dynamic_byte_size(const Container& _container)
 {
-    return internal::byte_dynamic_helper<clean_t<_Container>>
+    return internal::byte_dynamic_helper<clean_t<Container>>
         ::compute(_container);
 }
 
 // total_byte_size
 //   function: the whole footprint of a container - its exact static object
 // size plus its (estimated, recursive) dynamic bytes.
-template<typename _Container>
+template<typename Container>
 std::size_t
-total_byte_size(const _Container& _container)
+total_byte_size(const Container& _container)
 {
-    return static_byte_size<_Container>::value
+    return static_byte_size<Container>::value
          + dynamic_byte_size(_container);
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_BYTE_SIZE_
+
+#endif  // DJINTERP_META_BYTE_SIZE_HPP

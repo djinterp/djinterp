@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                   jit_arm64.c
+/*******************************************************************************
+* djinterp [jit]                                                     jit_arm64.c
 *
 * djinterp AArch64 (ARM64) JIT encoder -- implementation (jit_arm64.h).
 *   Each emitter packs register and immediate fields into a verified base
@@ -7,13 +7,14 @@
 * patched by the two relocations at the top, which the shared label facility
 * in jit.h invokes on bind.
 *
-* path:      /inc/djinterp/jit/jit_arm64.c
+*
+* path:      /src/djinterp/jit/jit_arm64.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit_arm64.h"
+#include "../../../inc/djinterp/jit/jit_arm64.h"
 
 
 // ===========================================================================

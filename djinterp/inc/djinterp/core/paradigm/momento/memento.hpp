@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [paradigm]                                              memento.hpp
+/*******************************************************************************
+* djinterp [core]                                                    memento.hpp
 *
 * Memento Pattern Module:
 *   Provides a comprehensive, container-agnostic, version-portable foundation
@@ -21,7 +21,7 @@
 *   PORTABILITY:
 *   - C++11  : core memento protocol, snapshot strategies, history stack,
 *              SFINAE capability traits, caretaker, type-erased memento
-*              (via restd::any - RTTI-free, constexpr-capable)
+*              (via re_std::any - RTTI-free, constexpr-capable)
 *   - C++14  : generic lambda support in for_each_memento, make_caretaker
 *   - C++17  : std::optional integration, string_view tags, if constexpr
 *              dispatch, structured bindings
@@ -31,21 +31,22 @@
 *
 * path:      /inc/djinterp/core/paradigm/momento/memento.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    CONFIGURATION & FEATURE GATES
-      --------------------------------
+      -----------------------------
       i.    D_MEMENTO_HAS_OPTIONAL
       ii.   D_MEMENTO_HAS_CONCEPTS
       iii.  D_MEMENTO_HAS_SPAN
       iv.   D_MEMENTO_DEFAULT_HISTORY_CAPACITY
 
 II.   CAPABILITY TRAITS
-      -------------------
+      -----------------
       i.    has_save_state_method
       ii.   has_restore_state_method
       iii.  has_clone_method
@@ -60,7 +61,7 @@ II.   CAPABILITY TRAITS
       xii.  memento_capability (aggregate)
 
 III.  SNAPSHOT STRATEGIES (POLICIES)
-      --------------------------------
+      ------------------------------
       i.    deep_copy_snapshot
       ii.   clone_snapshot
       iii.  serialized_snapshot
@@ -68,68 +69,80 @@ III.  SNAPSHOT STRATEGIES (POLICIES)
       v.    external_snapshot
 
 IV.   HISTORY POLICIES
-      ------------------
+      ----------------
       i.    unlimited_history
       ii.   bounded_history
       iii.  coalescing_history
 
 V.    MEMENTO CORE
-      ---------------
+      ------------
       i.    memento (snapshot wrapper)
       ii.   memento_metadata
       iii.  memento_originator (CRTP)
       iv.   memento_caretaker
 
 VI.   UNDO / REDO STACK
-      --------------------
+      -----------------
       i.    undo_redo_stack
 
-VII.  TYPE-ERASED MEMENTO (C++11+, via restd::any)
-      ------------------------------------------------
+VII.  TYPE-ERASED MEMENTO (C++11+, via re_std::any)
+      --------------------------------------------
       i.    any_memento
       ii.   any_memento_caretaker
 
 VIII. CONVENIENCE FACTORIES (C++14+)
-      ---------------------------------
+      ------------------------------
       i.    make_memento
       ii.   make_caretaker
 
 IX.   CONCEPT-CONSTRAINED INTERFACES (C++20+)
-      ------------------------------------------
+      ---------------------------------------
       i.    memento_source (concept)
       ii.   memento_target (concept)
       iii.  snapshot_strategy (concept)
       iv.   history_policy (concept)
 */
 
-#ifndef DJINTERP_PARADIGM_MEMENTO_
-#define DJINTERP_PARADIGM_MEMENTO_ 1
+#ifndef DJINTERP_PARADIGM_MOMENTO_MEMENTO_HPP
+#define DJINTERP_PARADIGM_MOMENTO_MEMENTO_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
+#include "../../meta/type_utility.hpp"  // void_t
 #include "../../meta/type_traits.hpp"
-#include "../../../restd/any/any.hpp"
+// re_std
+#include "../../../../re_std/any/any.hpp"  // include
+                                           // "../../../../re_std/any/any.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include <utility>
-    #include <functional>
+    // std
     #include <chrono>
+    #include <functional>
     #include <memory>
+    #include <utility>
 #endif
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    // std
     #include <optional>
     #include <string_view>
 #endif
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-    #include <span>
+    // std
     #include <concepts>
+    #include <span>
 #endif
 
 
@@ -182,114 +195,114 @@ NS_INTERNAL
     // =====================================================================
 
     // has_save_state_method
-    //   trait: detects _Type::save_state() returning a snapshot object.
-    template<typename _Type,
+    //   trait: detects Type::save_state() returning a snapshot object.
+    template<typename Type,
              typename = void>
     struct has_save_state_method : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_save_state_method<_Type, void_t<
-        decltype(std::declval<const _Type>().save_state())
+    template<typename Type>
+    struct has_save_state_method<Type, void_t<
+        decltype(std::declval<const Type>().save_state())
     >> : std::true_type
     {};
 
     // has_restore_state_method
-    //   trait: detects _Type::restore_state(snapshot) accepting the type
+    //   trait: detects Type::restore_state(snapshot) accepting the type
     // returned by save_state().
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_restore_state_method : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_restore_state_method<_Type, void_t<
-        decltype(std::declval<_Type>().restore_state(
-            std::declval<const _Type>().save_state()))
+    template<typename Type>
+    struct has_restore_state_method<Type, void_t<
+        decltype(std::declval<Type>().restore_state(
+            std::declval<const Type>().save_state()))
     >> : std::true_type
     {};
 
     // has_clone_method
-    //   trait: detects _Type::clone() returning a copy of the object.
-    template<typename _Type,
+    //   trait: detects Type::clone() returning a copy of the object.
+    template<typename Type,
              typename = void>
     struct has_clone_method : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_clone_method<_Type, void_t<
-        decltype(std::declval<const _Type>().clone())
+    template<typename Type>
+    struct has_clone_method<Type, void_t<
+        decltype(std::declval<const Type>().clone())
     >> : std::true_type
     {};
 
     // has_serialize_method
-    //   trait: detects _Type::serialize() returning a byte-like sequence.
-    template<typename _Type,
+    //   trait: detects Type::serialize() returning a byte-like sequence.
+    template<typename Type,
              typename = void>
     struct has_serialize_method : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_serialize_method<_Type, void_t<
-        decltype(std::declval<const _Type>().serialize())
+    template<typename Type>
+    struct has_serialize_method<Type, void_t<
+        decltype(std::declval<const Type>().serialize())
     >> : std::true_type
     {};
 
     // has_deserialize_method
-    //   trait: detects a static _Type::deserialize(...) factory or a member
+    //   trait: detects a static Type::deserialize(...) factory or a member
     // deserialize() accepting the output of serialize().
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_deserialize_method : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_deserialize_method<_Type, void_t<
-        decltype(std::declval<_Type>().deserialize(
-            std::declval<const _Type>().serialize()))
+    template<typename Type>
+    struct has_deserialize_method<Type, void_t<
+        decltype(std::declval<Type>().deserialize(
+            std::declval<const Type>().serialize()))
     >> : std::true_type
     {};
 
     // has_diff_method
-    //   trait: detects _Type::diff(other) producing a delta between two
+    //   trait: detects Type::diff(other) producing a delta between two
     // states.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_diff_method : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_diff_method<_Type, void_t<
-        decltype(std::declval<const _Type>().diff(
-            std::declval<const _Type>()))
+    template<typename Type>
+    struct has_diff_method<Type, void_t<
+        decltype(std::declval<const Type>().diff(
+            std::declval<const Type>()))
     >> : std::true_type
     {};
 
     // has_apply_diff_method
-    //   trait: detects _Type::apply_diff(delta) to reconstruct state from
+    //   trait: detects Type::apply_diff(delta) to reconstruct state from
     // a delta.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_apply_diff_method : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_apply_diff_method<_Type, void_t<
-        decltype(std::declval<_Type>().apply_diff(
-            std::declval<const _Type>().diff(std::declval<const _Type>())))
+    template<typename Type>
+    struct has_apply_diff_method<Type, void_t<
+        decltype(std::declval<Type>().apply_diff(
+            std::declval<const Type>().diff(std::declval<const Type>())))
     >> : std::true_type
     {};
 
     // has_equality_operator
-    //   trait: detects operator==(const _Type&, const _Type&).
-    template<typename _Type,
+    //   trait: detects operator==(const Type&, const Type&).
+    template<typename Type,
              typename = void>
     struct has_equality_operator : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_equality_operator<_Type, void_t<
-        decltype(std::declval<const _Type>() == std::declval<const _Type>())
+    template<typename Type>
+    struct has_equality_operator<Type, void_t<
+        decltype(std::declval<const Type>() == std::declval<const Type>())
     >> : std::true_type
     {};
 
@@ -300,97 +313,97 @@ NS_END  // internal
 // =========================================================================
 
 // is_memento_capable
-//   trait: true if _Type has both save_state() and restore_state().
-template<typename _Type>
+//   trait: true if Type has both save_state() and restore_state().
+template<typename Type>
 struct is_memento_capable
 {
     static constexpr bool value =
-        ( internal::has_save_state_method<_Type>::value &&
-          internal::has_restore_state_method<_Type>::value );
+        ( internal::has_save_state_method<Type>::value &&
+          internal::has_restore_state_method<Type>::value );
 };
 
 // is_copyable_memento_capable
-//   trait: true if _Type is copy-constructible (enabling deep-copy snapshots).
-template<typename _Type>
+//   trait: true if Type is copy-constructible (enabling deep-copy snapshots).
+template<typename Type>
 struct is_copyable_memento_capable
 {
-    static constexpr bool value = std::is_copy_constructible<_Type>::value;
+    static constexpr bool value = std::is_copy_constructible<Type>::value;
 };
 
 // is_clonable_memento_capable
-//   trait: true if _Type provides clone().
-template<typename _Type>
+//   trait: true if Type provides clone().
+template<typename Type>
 struct is_clonable_memento_capable
 {
-    static constexpr bool value = internal::has_clone_method<_Type>::value;
+    static constexpr bool value = internal::has_clone_method<Type>::value;
 };
 
 // is_serializable_memento_capable
-//   trait: true if _Type provides serialize() and deserialize().
-template<typename _Type>
+//   trait: true if Type provides serialize() and deserialize().
+template<typename Type>
 struct is_serializable_memento_capable
 {
     static constexpr bool value =
-        ( internal::has_serialize_method<_Type>::value &&
-          internal::has_deserialize_method<_Type>::value );
+        ( internal::has_serialize_method<Type>::value &&
+          internal::has_deserialize_method<Type>::value );
 };
 
 // is_diff_memento_capable
-//   trait: true if _Type provides diff() and apply_diff().
-template<typename _Type>
+//   trait: true if Type provides diff() and apply_diff().
+template<typename Type>
 struct is_diff_memento_capable
 {
     static constexpr bool value =
-        ( internal::has_diff_method<_Type>::value &&
-          internal::has_apply_diff_method<_Type>::value );
+        ( internal::has_diff_method<Type>::value &&
+          internal::has_apply_diff_method<Type>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_memento_capable_v =
-        is_memento_capable<_Type>::value;
+        is_memento_capable<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_copyable_memento_capable_v =
-        is_copyable_memento_capable<_Type>::value;
+        is_copyable_memento_capable<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_clonable_memento_capable_v =
-        is_clonable_memento_capable<_Type>::value;
+        is_clonable_memento_capable<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_serializable_memento_capable_v =
-        is_serializable_memento_capable<_Type>::value;
+        is_serializable_memento_capable<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_diff_memento_capable_v =
-        is_diff_memento_capable<_Type>::value;
+        is_diff_memento_capable<Type>::value;
 
 #endif
 
 // memento_capability
 //   struct: aggregate classification of a type's memento support.
-template<typename _Type>
+template<typename Type>
 struct memento_capability
 {
     static constexpr bool has_save_restore =
-        is_memento_capable<_Type>::value;
+        is_memento_capable<Type>::value;
 
     static constexpr bool has_copy =
-        is_copyable_memento_capable<_Type>::value;
+        is_copyable_memento_capable<Type>::value;
 
     static constexpr bool has_clone =
-        is_clonable_memento_capable<_Type>::value;
+        is_clonable_memento_capable<Type>::value;
 
     static constexpr bool has_serialization =
-        is_serializable_memento_capable<_Type>::value;
+        is_serializable_memento_capable<Type>::value;
 
     static constexpr bool has_diff =
-        is_diff_memento_capable<_Type>::value;
+        is_diff_memento_capable<Type>::value;
 
     static constexpr bool has_equality =
-        internal::has_equality_operator<_Type>::value;
+        internal::has_equality_operator<Type>::value;
 
     // true if any snapshot strategy is viable
     static constexpr bool is_snapshottable =
@@ -407,8 +420,8 @@ struct memento_capability
 
 // Each snapshot strategy is a stateless policy class with two static
 // methods:
-//   static auto capture(const _State& s) -> snapshot_type;
-//   static void restore(_State& s, const snapshot_type& snap);
+//   static auto capture(const State& s) -> snapshot_type;
+//   static void restore(State& s, const snapshot_type& snap);
 //
 // The caretaker and undo_redo_stack are parameterized on these policies.
 
@@ -418,28 +431,28 @@ struct memento_capability
 
 // deep_copy_snapshot
 //   policy: captures state by copy construction and restores by copy
-// assignment. The simplest strategy; requires _State to be copyable.
+// assignment. The simplest strategy; requires State to be copyable.
 struct deep_copy_snapshot
 {
     // snapshot_type_for
     //   type: for a given state type, the snapshot is a plain copy.
-    template<typename _State>
-    using snapshot_type_for = _State;
+    template<typename State>
+    using snapshot_type_for = State;
 
-    template<typename _State>
-    static _State
+    template<typename State>
+    static State
     capture(
-        const _State& _state
+        const State& _state
     )
     {
         return _state;
     }
 
-    template<typename _State>
+    template<typename State>
     static void
     restore(
-        _State&       _state,
-        const _State& _snapshot
+        State&       _state,
+        const State& _snapshot
     )
     {
         _state = _snapshot;
@@ -454,28 +467,28 @@ struct deep_copy_snapshot
 // =========================================================================
 
 // clone_snapshot
-//   policy: captures state via _State::clone() and restores by copy
+//   policy: captures state via State::clone() and restores by copy
 // assignment. For types where copy construction is disabled but a
 // virtual or explicit clone is provided.
 struct clone_snapshot
 {
-    template<typename _State>
-    using snapshot_type_for = decltype(std::declval<const _State>().clone());
+    template<typename State>
+    using snapshot_type_for = decltype(std::declval<const State>().clone());
 
-    template<typename _State>
+    template<typename State>
     static auto
     capture(
-        const _State& _state
+        const State& _state
     ) -> decltype(_state.clone())
     {
         return _state.clone();
     }
 
-    template<typename _State>
+    template<typename State>
     static void
     restore(
-        _State&                                               _state,
-        const decltype(std::declval<const _State>().clone())& _snapshot
+        State&                                               _state,
+        const decltype(std::declval<const State>().clone())& _snapshot
     )
     {
         _state = _snapshot;
@@ -490,30 +503,30 @@ struct clone_snapshot
 // =========================================================================
 
 // serialized_snapshot
-//   policy: captures state via _State::serialize() and restores via
-// _State::deserialize(). Snapshots are stored in the serialized form
+//   policy: captures state via State::serialize() and restores via
+// State::deserialize(). Snapshots are stored in the serialized form
 // (typically std::vector<char> or std::string), enabling compact
 // storage and potential persistence.
 struct serialized_snapshot
 {
-    template<typename _State>
+    template<typename State>
     using snapshot_type_for =
-        decltype(std::declval<const _State>().serialize());
+        decltype(std::declval<const State>().serialize());
 
-    template<typename _State>
+    template<typename State>
     static auto
     capture(
-        const _State& _state
+        const State& _state
     ) -> decltype(_state.serialize())
     {
         return _state.serialize();
     }
 
-    template<typename _State>
+    template<typename State>
     static void
     restore(
-        _State& _state,
-        const decltype(std::declval<const _State>().serialize())& _snapshot
+        State& _state,
+        const decltype(std::declval<const State>().serialize())& _snapshot
     )
     {
         _state.deserialize(_snapshot);
@@ -532,10 +545,10 @@ NS_INTERNAL
     // delta_record
     //   struct: stores a delta (diff) between two states and holds a
     // reference baseline for reconstruction.
-    template<typename _DiffType>
+    template<typename DiffType>
     struct delta_record
     {
-        _DiffType diff;
+        DiffType diff;
         bool      is_baseline;
 
         delta_record()
@@ -544,7 +557,7 @@ NS_INTERNAL
         {}
 
         explicit delta_record(
-            _DiffType _d,
+            DiffType _d,
             bool      _baseline = false
         )
             : diff(std::move(_d)),
@@ -557,7 +570,7 @@ NS_END  // internal
 // delta_snapshot
 //   policy: captures state as a diff from the previous state. The first
 // capture is always a full baseline. Subsequent captures store only the
-// delta (via _State::diff()). Restoration walks deltas back to the
+// delta (via State::diff()). Restoration walks deltas back to the
 // nearest baseline.
 //
 // Note: this policy is stateful at the strategy level - the caretaker
@@ -565,51 +578,51 @@ NS_END  // internal
 // provides the diff/apply_diff wrappers.
 struct delta_snapshot
 {
-    template<typename _State>
+    template<typename State>
     using diff_type = decltype(
-        std::declval<const _State>().diff(std::declval<const _State>()));
+        std::declval<const State>().diff(std::declval<const State>()));
 
-    template<typename _State>
-    using snapshot_type_for = internal::delta_record<diff_type<_State>>;
+    template<typename State>
+    using snapshot_type_for = internal::delta_record<diff_type<State>>;
 
     // capture_baseline
     //   function: captures a full-state diff acting as a baseline.
-    template<typename _State>
-    static snapshot_type_for<_State>
+    template<typename State>
+    static snapshot_type_for<State>
     capture_baseline(
-        const _State& _state
+        const State& _state
     )
     {
         // baseline: diff against a default-constructed state
-        return snapshot_type_for<_State>(
-            _state.diff(_State{}),
+        return snapshot_type_for<State>(
+            _state.diff(State{}),
             true);
     }
 
     // capture_delta
     //   function: captures the diff between _previous and _current.
-    template<typename _State>
-    static snapshot_type_for<_State>
+    template<typename State>
+    static snapshot_type_for<State>
     capture_delta(
-        const _State& _previous,
-        const _State& _current
+        const State& _previous,
+        const State& _current
     )
     {
-        return snapshot_type_for<_State>(
+        return snapshot_type_for<State>(
             _current.diff(_previous),
             false);
     }
 
     // restore_from_baseline
     //   function: restores state from a baseline delta.
-    template<typename _State>
+    template<typename State>
     static void
     restore_from_baseline(
-        _State&                          _state,
-        const snapshot_type_for<_State>& _record
+        State&                          _state,
+        const snapshot_type_for<State>& _record
     )
     {
-        _State base{};
+        State base{};
         base.apply_diff(_record.diff);
         _state = std::move(base);
 
@@ -618,11 +631,11 @@ struct delta_snapshot
 
     // apply_delta
     //   function: applies a non-baseline delta to the current state.
-    template<typename _State>
+    template<typename State>
     static void
     apply_delta(
-        _State&                          _state,
-        const snapshot_type_for<_State>& _record
+        State&                          _state,
+        const snapshot_type_for<State>& _record
     )
     {
         _state.apply_diff(_record.diff);
@@ -641,33 +654,33 @@ struct delta_snapshot
 // Useful when the snapshot mechanism lives outside the state object
 // (e.g., a database transaction, a file checkpoint, or a third-party
 // serialization library).
-template<typename _CaptureCallable,
-         typename _RestoreCallable>
+template<typename CaptureCallable,
+         typename RestoreCallable>
 struct external_snapshot
 {
-    _CaptureCallable capture_fn;
-    _RestoreCallable restore_fn;
+    CaptureCallable capture_fn;
+    RestoreCallable restore_fn;
 
-    template<typename _State>
+    template<typename State>
     using snapshot_type_for =
-        decltype(std::declval<_CaptureCallable>()(
-            std::declval<const _State&>()));
+        decltype(std::declval<CaptureCallable>()(
+            std::declval<const State&>()));
 
-    template<typename _State>
+    template<typename State>
     auto
     capture(
-        const _State& _state
-    ) const -> snapshot_type_for<_State>
+        const State& _state
+    ) const -> snapshot_type_for<State>
     {
         return capture_fn(_state);
     }
 
-    template<typename _State,
-             typename _Snapshot>
+    template<typename State,
+             typename Snapshot>
     void
     restore(
-        _State&          _state,
-        const _Snapshot& _snapshot
+        State&          _state,
+        const Snapshot& _snapshot
     ) const
     {
         restore_fn(_state, _snapshot);
@@ -680,18 +693,18 @@ struct external_snapshot
 
     // make_external_snapshot
     //   function: factory for external_snapshot policies.
-    template<typename _CaptureFn,
-             typename _RestoreFn>
+    template<typename CaptureFn,
+             typename RestoreFn>
     D_CONSTEXPR_INLINE auto
     make_external_snapshot(
-        _CaptureFn&& _capture,
-        _RestoreFn&& _restore
+        CaptureFn&& _capture,
+        RestoreFn&& _restore
     )
-        -> external_snapshot<std::decay_t<_CaptureFn>,
-                             std::decay_t<_RestoreFn>>
+        -> external_snapshot<typename std::decay<CaptureFn>::type,
+                             typename std::decay<RestoreFn>::type>
     {
-        return { std::forward<_CaptureFn>(_capture),
-                 std::forward<_RestoreFn>(_restore) };
+        return { std::forward<CaptureFn>(_capture),
+                 std::forward<RestoreFn>(_restore) };
     }
 
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -710,21 +723,21 @@ struct external_snapshot
 //   policy: retains all snapshots with no eviction.
 struct unlimited_history
 {
-    template<typename _Container,
-             typename _Snapshot>
+    template<typename Container,
+             typename Snapshot>
     static bool
     should_push(
-        const _Container& /* _history */,
-        const _Snapshot&  /* _snapshot */
+        const Container& /* _history */,
+        const Snapshot&  /* _snapshot */
     )
     {
         return true;
     }
 
-    template<typename _Container>
+    template<typename Container>
     static void
     after_push(
-        _Container& /* _history */
+        Container& /* _history */
     )
     {
         return;
@@ -732,31 +745,31 @@ struct unlimited_history
 };
 
 // bounded_history
-//   policy: retains at most _MaxSize snapshots, evicting the oldest
+//   policy: retains at most MaxSize snapshots, evicting the oldest
 // when the limit is reached.
-template<std::size_t _MaxSize = D_MEMENTO_DEFAULT_HISTORY_CAPACITY>
+template<std::size_t MaxSize = D_MEMENTO_DEFAULT_HISTORY_CAPACITY>
 struct bounded_history
 {
-    static constexpr std::size_t max_size = _MaxSize;
+    static constexpr std::size_t max_size = MaxSize;
 
-    template<typename _Container,
-             typename _Snapshot>
+    template<typename Container,
+             typename Snapshot>
     static bool
     should_push(
-        const _Container& /* _history */,
-        const _Snapshot&  /* _snapshot */
+        const Container& /* _history */,
+        const Snapshot&  /* _snapshot */
     )
     {
         return true;
     }
 
-    template<typename _Container>
+    template<typename Container>
     static void
     after_push(
-        _Container& _history
+        Container& _history
     )
     {
-        while (_history.size() > _MaxSize)
+        while (_history.size() > MaxSize)
         {
             _history.erase(_history.begin());
         }
@@ -771,12 +784,12 @@ struct bounded_history
 // operator== on the snapshot type).
 struct coalescing_history
 {
-    template<typename _Container,
-             typename _Snapshot>
+    template<typename Container,
+             typename Snapshot>
     static bool
     should_push(
-        const _Container& _history,
-        const _Snapshot&  _snapshot
+        const Container& _history,
+        const Snapshot&  _snapshot
     )
     {
         if (_history.empty())
@@ -787,10 +800,10 @@ struct coalescing_history
         return !(_history.back().state == _snapshot);
     }
 
-    template<typename _Container>
+    template<typename Container>
     static void
     after_push(
-        _Container& /* _history */
+        Container& /* _history */
     )
     {
         return;
@@ -851,12 +864,12 @@ struct memento_metadata
 
 // memento
 //   struct: a single snapshot entry pairing captured state with metadata.
-template<typename _Snapshot>
+template<typename Snapshot>
 struct memento
 {
-    using snapshot_type = _Snapshot;
+    using snapshot_type = Snapshot;
 
-    _Snapshot        state;
+    Snapshot         state;
     memento_metadata meta;
 
     memento()
@@ -865,7 +878,7 @@ struct memento
     {}
 
     explicit memento(
-        _Snapshot        _s,
+        Snapshot         _s,
         memento_metadata _m = memento_metadata()
     )
         : state(std::move(_s)),
@@ -880,10 +893,10 @@ struct memento
 
 // memento_originator
 //   class: CRTP base that injects save/restore protocol into a state-
-// owning class. _Derived is the concrete type; _SnapshotPolicy is the
+// owning class. Derived is the concrete type; SnapshotPolicy is the
 // strategy used to capture and restore snapshots.
 //
-// _Derived must be accessible via static_cast from this base; it
+// Derived must be accessible via static_cast from this base; it
 // represents the complete state object.
 //
 // Usage:
@@ -900,14 +913,14 @@ struct memento
 //   auto snap = state.create_memento();
 //   // ... mutate state ...
 //   state.restore_memento(snap);
-template<typename _Derived,
-         typename _SnapshotPolicy = deep_copy_snapshot>
+template<typename Derived,
+         typename SnapshotPolicy = deep_copy_snapshot>
 class memento_originator
 {
 public:
-    using snapshot_policy = _SnapshotPolicy;
-    using snapshot_type   = typename _SnapshotPolicy::template
-                                snapshot_type_for<_Derived>;
+    using snapshot_policy = SnapshotPolicy;
+    using snapshot_type   = typename SnapshotPolicy::template
+                                snapshot_type_for<Derived>;
     using memento_type    = memento<snapshot_type>;
 
     // create_memento
@@ -915,8 +928,8 @@ public:
     memento_type
     create_memento() const
     {
-        const _Derived& self = static_cast<const _Derived&>(*this);
-        snapshot_type snap    = _SnapshotPolicy::capture(self);
+        const Derived& self = static_cast<const Derived&>(*this);
+        snapshot_type snap    = SnapshotPolicy::capture(self);
 
         memento_type m(std::move(snap),
                        memento_metadata(m_sequence++));
@@ -932,8 +945,8 @@ public:
         std::string_view _tag
     ) const
     {
-        const _Derived& self = static_cast<const _Derived&>(*this);
-        snapshot_type snap    = _SnapshotPolicy::capture(self);
+        const Derived& self = static_cast<const Derived&>(*this);
+        snapshot_type snap    = SnapshotPolicy::capture(self);
 
         memento_type m(std::move(snap),
                        memento_metadata(m_sequence++, _tag));
@@ -949,14 +962,14 @@ public:
         const memento_type& _memento
     )
     {
-        _Derived& self = static_cast<_Derived&>(*this);
+        Derived& self = static_cast<Derived&>(*this);
 
         // preserve the originator's own bookkeeping across the restore: a
         // whole-object snapshot policy (e.g. deep_copy_snapshot) round-trips
         // m_sequence through the snapshotted state, which would otherwise
         // rewind the monotonic memento counter.
         const std::size_t saved_sequence = m_sequence;
-        _SnapshotPolicy::restore(self,
+        SnapshotPolicy::restore(self,
                                  _memento.state);
         m_sequence = saved_sequence;
 
@@ -984,14 +997,14 @@ private:
 // memento_caretaker
 //   class: manages a history of mementos for a single originator.
 // Parameterized on the snapshot type and the history eviction policy.
-template<typename _Snapshot,
-         typename _HistoryPolicy = unlimited_history>
+template<typename Snapshot,
+         typename HistoryPolicy = unlimited_history>
 class memento_caretaker
 {
 public:
-    using snapshot_type  = _Snapshot;
-    using memento_type   = memento<_Snapshot>;
-    using history_policy = _HistoryPolicy;
+    using snapshot_type  = Snapshot;
+    using memento_type   = memento<Snapshot>;
+    using history_policy = HistoryPolicy;
     using container_type = std::vector<memento_type>;
     using size_type      = std::size_t;
 
@@ -1003,10 +1016,10 @@ public:
         memento_type _m
     )
     {
-        if (_HistoryPolicy::should_push(m_history, _m.state))
+        if (HistoryPolicy::should_push(m_history, _m.state))
         {
             m_history.push_back(std::move(_m));
-            _HistoryPolicy::after_push(m_history);
+            HistoryPolicy::after_push(m_history);
         }
 
         return;
@@ -1090,10 +1103,10 @@ public:
     // for_each
     //   function: iterates over all mementos oldest-to-newest, invoking
     // _fn(const memento_type&) for each.
-    template<typename _Fn>
+    template<typename Fn>
     void
     for_each(
-        _Fn&& _fn
+        Fn&& _fn
     ) const
     {
         for (const auto& m : m_history)
@@ -1106,10 +1119,10 @@ public:
 
     // for_each_reverse
     //   function: iterates newest-to-oldest.
-    template<typename _Fn>
+    template<typename Fn>
     void
     for_each_reverse(
-        _Fn&& _fn
+        Fn&& _fn
     ) const
     {
         for (auto it = m_history.rbegin(); it != m_history.rend(); ++it)
@@ -1141,14 +1154,14 @@ private:
 //   // ... mutate state ...
 //   history.undo(state);          // restore previous, push current to redo
 //   history.redo(state);          // restore forward, push current to undo
-template<typename _State,
-         typename _SnapshotPolicy = deep_copy_snapshot,
-         typename _HistoryPolicy  = unlimited_history>
+template<typename State,
+         typename SnapshotPolicy = deep_copy_snapshot,
+         typename HistoryPolicy   = unlimited_history>
 class undo_redo_stack
 {
 public:
-    using snapshot_type = typename _SnapshotPolicy::template
-                              snapshot_type_for<_State>;
+    using snapshot_type = typename SnapshotPolicy::template
+                              snapshot_type_for<State>;
     using memento_type  = memento<snapshot_type>;
 
     // checkpoint
@@ -1156,11 +1169,11 @@ public:
     // the redo stack (forward history is invalidated by mutation).
     void
     checkpoint(
-        const _State& _state
+        const State& _state
     )
     {
         memento_type m(
-            _SnapshotPolicy::capture(_state),
+            SnapshotPolicy::capture(_state),
             memento_metadata(m_sequence++));
 
         m_undo.push(std::move(m));
@@ -1174,12 +1187,12 @@ public:
     //   function: captures with a descriptive tag.
     void
     checkpoint(
-        const _State&    _state,
+        const State&    _state,
         std::string_view _tag
     )
     {
         memento_type m(
-            _SnapshotPolicy::capture(_state),
+            SnapshotPolicy::capture(_state),
             memento_metadata(m_sequence++, _tag));
 
         m_undo.push(std::move(m));
@@ -1195,7 +1208,7 @@ public:
     // an undo was performed, false if the undo stack was empty.
     bool
     undo(
-        _State& _state
+        State& _state
     )
     {
         if (m_undo.empty())
@@ -1205,13 +1218,13 @@ public:
 
         // save current state to redo before restoring
         memento_type redo_point(
-            _SnapshotPolicy::capture(_state),
+            SnapshotPolicy::capture(_state),
             memento_metadata(m_sequence++));
         m_redo.push(std::move(redo_point));
 
         // restore from undo
         memento_type prev = m_undo.pop();
-        _SnapshotPolicy::restore(_state,
+        SnapshotPolicy::restore(_state,
                                  prev.state);
 
         return true;
@@ -1223,7 +1236,7 @@ public:
     // a redo was performed, false if the redo stack was empty.
     bool
     redo(
-        _State& _state
+        State& _state
     )
     {
         if (m_redo.empty())
@@ -1233,13 +1246,13 @@ public:
 
         // save current state to undo before restoring
         memento_type undo_point(
-            _SnapshotPolicy::capture(_state),
+            SnapshotPolicy::capture(_state),
             memento_metadata(m_sequence++));
         m_undo.push(std::move(undo_point));
 
         // restore from redo
         memento_type next = m_redo.pop();
-        _SnapshotPolicy::restore(_state,
+        SnapshotPolicy::restore(_state,
                                  next.state);
 
         return true;
@@ -1332,25 +1345,25 @@ public:
 #endif  // D_MEMENTO_HAS_OPTIONAL
 
 private:
-    memento_caretaker<snapshot_type, _HistoryPolicy> m_undo;
-    memento_caretaker<snapshot_type, _HistoryPolicy> m_redo;
+    memento_caretaker<snapshot_type, HistoryPolicy> m_undo;
+    memento_caretaker<snapshot_type, HistoryPolicy> m_redo;
     std::size_t m_sequence = 0;
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///         VII.  TYPE-ERASED MEMENTO (C++11+, via restd::any)             ///
+///         VII.  TYPE-ERASED MEMENTO (C++11+, via re_std::any)             ///
 ///////////////////////////////////////////////////////////////////////////////
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // any_memento
 //   class: type-erased memento that can store any snapshot type via
-// restd::any. Useful when a caretaker must manage heterogeneous
+// re_std::any. Useful when a caretaker must manage heterogeneous
 // state objects (e.g., a multi-document editor where each document
 // type has a different snapshot representation).
 //
-// Uses restd::any rather than std::any, making this available from
+// Uses re_std::any rather than std::any, making this available from
 // C++11 with RTTI-free type identity (holds<T>() via function-pointer
 // tags) and constexpr support for SBO-eligible types.
 //
@@ -1362,15 +1375,15 @@ class any_memento
 private:
     // ---- namespace isolation aliases ----
     // Change these if the any header lives in a different namespace.
-    using any_type    = restd::any;
-    using any_id_type = restd::any_type_id;
+    using any_type    = re_std::any;
+    using any_id_type = re_std::any_type_id;
 
 public:
     any_memento() = default;
 
-    template<typename _Snapshot>
+    template<typename Snapshot>
     explicit any_memento(
-            _Snapshot        _snap,
+            Snapshot         _snap,
             memento_metadata _meta = memento_metadata()
         )
             : m_state(std::move(_snap)),
@@ -1379,7 +1392,7 @@ public:
 
     // has_value
     //   function: true if a snapshot is stored.
-    D_CONSTEXPR bool
+    D_CONSTEXPR_CPP14 bool
     has_value() const noexcept
     {
         return m_state.has_value();
@@ -1387,145 +1400,145 @@ public:
 
     // holds
     //   function: true if the stored snapshot was originally of type
-    // _Snapshot. RTTI-free; uses any's function-pointer type identity.
+    // Snapshot. RTTI-free; uses any's function-pointer type identity.
     //
     // Note: no .template disambiguator - any_memento is not a class
     // template, so m_state's type is not dependent.
-    template<typename _Snapshot>
+    template<typename Snapshot>
     D_CONSTEXPR bool
     holds() const noexcept
     {
-        return m_state.holds<_Snapshot>();
+        return m_state.holds<Snapshot>();
     }
 
     // -----------------------------------------------------------------
     // get (const, SBO types - bool)
     // -----------------------------------------------------------------
 
-    template<typename _Snapshot,
+    template<typename Snapshot,
              typename std::enable_if<
-                 std::is_same<_Snapshot, bool>::value,
+                 std::is_same<Snapshot, bool>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _Snapshot
+    D_CONSTEXPR Snapshot
     get() const noexcept
     {
-        return m_state.get<_Snapshot>();
+        return m_state.get<Snapshot>();
     }
 
     // -----------------------------------------------------------------
     // get (const, SBO types - signed integral, not bool)
     // -----------------------------------------------------------------
 
-    template<typename _Snapshot,
+    template<typename Snapshot,
              typename std::enable_if<
-                 ( std::is_integral<_Snapshot>::value &&
-                   std::is_signed<_Snapshot>::value   &&
-                   !std::is_same<_Snapshot, bool>::value ),
+                 ( std::is_integral<Snapshot>::value &&
+                   std::is_signed<Snapshot>::value   &&
+                   !std::is_same<Snapshot, bool>::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _Snapshot
+    D_CONSTEXPR Snapshot
     get() const noexcept
     {
-        return m_state.get<_Snapshot>();
+        return m_state.get<Snapshot>();
     }
 
     // -----------------------------------------------------------------
     // get (const, SBO types - unsigned integral, not bool)
     // -----------------------------------------------------------------
 
-    template<typename _Snapshot,
+    template<typename Snapshot,
              typename std::enable_if<
-                 ( std::is_integral<_Snapshot>::value  &&
-                   std::is_unsigned<_Snapshot>::value  &&
-                   !std::is_same<_Snapshot, bool>::value ),
+                 ( std::is_integral<Snapshot>::value  &&
+                   std::is_unsigned<Snapshot>::value  &&
+                   !std::is_same<Snapshot, bool>::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _Snapshot
+    D_CONSTEXPR Snapshot
     get() const noexcept
     {
-        return m_state.get<_Snapshot>();
+        return m_state.get<Snapshot>();
     }
 
     // -----------------------------------------------------------------
     // get (const, SBO types - floating point)
     // -----------------------------------------------------------------
 
-    template<typename _Snapshot,
+    template<typename Snapshot,
              typename std::enable_if<
-                 std::is_floating_point<_Snapshot>::value,
+                 std::is_floating_point<Snapshot>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _Snapshot
+    D_CONSTEXPR Snapshot
     get() const noexcept
     {
-        return m_state.get<_Snapshot>();
+        return m_state.get<Snapshot>();
     }
 
     // -----------------------------------------------------------------
     // get (const, SBO types - enum)
     // -----------------------------------------------------------------
 
-    template<typename _Snapshot,
+    template<typename Snapshot,
              typename std::enable_if<
-                 std::is_enum<_Snapshot>::value,
+                 std::is_enum<Snapshot>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _Snapshot
+    D_CONSTEXPR Snapshot
     get() const noexcept
     {
-        return m_state.get<_Snapshot>();
+        return m_state.get<Snapshot>();
     }
 
     // -----------------------------------------------------------------
     // get (const, SBO types - pointer)
     // -----------------------------------------------------------------
 
-    template<typename _Snapshot,
+    template<typename Snapshot,
              typename std::enable_if<
-                 std::is_pointer<_Snapshot>::value,
+                 std::is_pointer<Snapshot>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _Snapshot
+    D_CONSTEXPR Snapshot
     get() const noexcept
     {
-        return m_state.get<_Snapshot>();
+        return m_state.get<Snapshot>();
     }
 
     // -----------------------------------------------------------------
     // get (const, heap types)
     // -----------------------------------------------------------------
 
-    template<typename _Snapshot,
+    template<typename Snapshot,
              typename std::enable_if<
-                 ( !std::is_integral<_Snapshot>::value       &&
-                   !std::is_floating_point<_Snapshot>::value &&
-                   !std::is_enum<_Snapshot>::value           &&
-                   !std::is_pointer<_Snapshot>::value ),
+                 ( !std::is_integral<Snapshot>::value       &&
+                   !std::is_floating_point<Snapshot>::value &&
+                   !std::is_enum<Snapshot>::value           &&
+                   !std::is_pointer<Snapshot>::value ),
                  int
              >::type = 0>
-    const _Snapshot&
+    const Snapshot&
     get() const
     {
-        return m_state.get<_Snapshot>();
+        return m_state.get<Snapshot>();
     }
 
     // -----------------------------------------------------------------
     // get (mutable, heap types only)
     // -----------------------------------------------------------------
 
-    template<typename _Snapshot,
+    template<typename Snapshot,
              typename std::enable_if<
-                 ( !std::is_integral<_Snapshot>::value       &&
-                   !std::is_floating_point<_Snapshot>::value &&
-                   !std::is_enum<_Snapshot>::value           &&
-                   !std::is_pointer<_Snapshot>::value ),
+                 ( !std::is_integral<Snapshot>::value       &&
+                   !std::is_floating_point<Snapshot>::value &&
+                   !std::is_enum<Snapshot>::value           &&
+                   !std::is_pointer<Snapshot>::value ),
                  int
              >::type = 0>
-    _Snapshot&
+    Snapshot&
     get()
     {
-        return m_state.get<_Snapshot>();
+        return m_state.get<Snapshot>();
     }
 
     // metadata
@@ -1539,7 +1552,7 @@ public:
     // type
     //   function: returns the any_type_id of the stored snapshot
     // (a function pointer unique per type).
-    D_CONSTEXPR any_id_type
+    D_CONSTEXPR_CPP14 any_id_type
     type() const noexcept
     {
         return m_state.type();
@@ -1564,7 +1577,7 @@ private:
 //   class: caretaker managing a history of type-erased mementos.
 // Accepts any_memento directly; the caller is responsible for
 // type consistency at restore time. Available from C++11.
-template<typename _HistoryPolicy = unlimited_history>
+template<typename HistoryPolicy = unlimited_history>
 class any_memento_caretaker
 {
 public:
@@ -1577,7 +1590,7 @@ public:
     )
     {
         m_history.push_back(std::move(_m));
-        _HistoryPolicy::after_push(m_history);
+        HistoryPolicy::after_push(m_history);
 
         return;
     }
@@ -1640,10 +1653,10 @@ public:
 
     // for_each
     //   function: iterates oldest-to-newest.
-    template<typename _Fn>
+    template<typename Fn>
     void
     for_each(
-        _Fn&& _fn
+        Fn&& _fn
     ) const
     {
         for (const auto& m : m_history)
@@ -1670,32 +1683,32 @@ private:
 // make_memento
 //   function: captures the current state of an object using the given
 // snapshot policy and wraps it in a memento.
-template<typename _SnapshotPolicy = deep_copy_snapshot,
-         typename _State>
+template<typename SnapshotPolicy = deep_copy_snapshot,
+         typename State>
 inline auto
 make_memento(
-    const _State& _state
+    const State& _state
 )
-    -> memento<typename _SnapshotPolicy::template snapshot_type_for<_State>>
+    -> memento<typename SnapshotPolicy::template snapshot_type_for<State>>
 {
-    using snap_t = typename _SnapshotPolicy::template snapshot_type_for<_State>;
+    using snap_t = typename SnapshotPolicy::template snapshot_type_for<State>;
 
     return memento<snap_t>(
-        _SnapshotPolicy::capture(_state));
+        SnapshotPolicy::capture(_state));
 }
 
 // restore_memento
 //   function: restores state from a memento using the given policy.
-template<typename _SnapshotPolicy = deep_copy_snapshot,
-         typename _State,
-         typename _Snapshot>
+template<typename SnapshotPolicy = deep_copy_snapshot,
+         typename State,
+         typename Snapshot>
 inline void
 restore_memento(
-    _State&                   _state,
-    const memento<_Snapshot>& _m
+    State&                   _state,
+    const memento<Snapshot>& _m
 )
 {
-    _SnapshotPolicy::restore(_state,
+    SnapshotPolicy::restore(_state,
                              _m.state);
 
     return;
@@ -1704,24 +1717,24 @@ restore_memento(
 // make_caretaker
 //   function: factory returning a caretaker with the specified
 // snapshot and history policy types.
-template<typename _Snapshot,
-         typename _HistoryPolicy = unlimited_history>
-inline memento_caretaker<_Snapshot, _HistoryPolicy>
+template<typename Snapshot,
+         typename HistoryPolicy = unlimited_history>
+inline memento_caretaker<Snapshot, HistoryPolicy>
 make_caretaker()
 {
-    return memento_caretaker<_Snapshot, _HistoryPolicy>{};
+    return memento_caretaker<Snapshot, HistoryPolicy>{};
 }
 
 // make_undo_redo
 //   function: factory returning an undo_redo_stack for a given state
 // type and policies.
-template<typename _State,
-         typename _SnapshotPolicy = deep_copy_snapshot,
-         typename _HistoryPolicy  = unlimited_history>
-inline undo_redo_stack<_State, _SnapshotPolicy, _HistoryPolicy>
+template<typename State,
+         typename SnapshotPolicy = deep_copy_snapshot,
+         typename HistoryPolicy   = unlimited_history>
+inline undo_redo_stack<State, SnapshotPolicy, HistoryPolicy>
 make_undo_redo()
 {
-    return undo_redo_stack<_State, _SnapshotPolicy, _HistoryPolicy>{};
+    return undo_redo_stack<State, SnapshotPolicy, HistoryPolicy>{};
 }
 
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -1737,62 +1750,62 @@ make_undo_redo()
 //   concept: constrains types that can produce snapshots. Requires
 // either the save_state()/restore_state() protocol or copy
 // constructibility.
-template<typename _Type>
+template<typename Type>
 concept memento_source =
-    ( (requires(const _Type& _t) { _t.save_state(); }  &&
-       requires(_Type& _t, const _Type& _o)
+    ( (requires(const Type& _t) { _t.save_state(); }  &&
+       requires(Type& _t, const Type& _o)
        {
            _t.restore_state(_o.save_state());
        }) ||
-      std::copy_constructible<_Type> );
+      std::copy_constructible<Type> );
 
 // memento_target
 //   concept: constrains types that can accept restored state via
 // copy assignment or a restore_state() method.
-template<typename _Type>
+template<typename Type>
 concept memento_target =
-    ( std::is_copy_assignable_v<_Type> ||
-      requires(_Type& _t, const _Type& _o)
+    ( std::is_copy_assignable<Type>::value ||
+      requires(Type& _t, const Type& _o)
       {
           _t.restore_state(_o.save_state());
       } );
 
 // snapshot_strategy
 //   concept: constrains snapshot policy types. Must provide capture()
-// and restore() static methods compatible with _State.
-template<typename _Policy,
-         typename _State>
-concept snapshot_strategy = requires(const _State& _cs, _State& _s)
+// and restore() static methods compatible with State.
+template<typename Policy,
+         typename State>
+concept snapshot_strategy = requires(const State& _cs, State& _s)
 {
-    { _Policy::capture(_cs) };
-    { _Policy::restore(_s, _Policy::capture(_cs)) };
+    { Policy::capture(_cs) };
+    { Policy::restore(_s, Policy::capture(_cs)) };
 };
 
 // history_policy
 //   concept: constrains history eviction policies.
-template<typename _Policy,
-         typename _Container,
-         typename _Snapshot>
+template<typename Policy,
+         typename Container,
+         typename Snapshot>
 concept history_policy = requires(
-    const _Container& _ch,
-    _Container&       _h,
-    const _Snapshot&  _snap)
+    const Container& _ch,
+    Container&       _h,
+    const Snapshot&  _snap)
 {
-    { _Policy::should_push(_ch, _snap) } -> std::convertible_to<bool>;
-    { _Policy::after_push(_h) };
+    { Policy::should_push(_ch, _snap) } -> std::convertible_to<bool>;
+    { Policy::after_push(_h) };
 };
 
 // constrained_checkpoint
 //   function: concept-constrained checkpoint creation.
-template<typename       _Policy = deep_copy_snapshot,
-         memento_source _State>
-requires snapshot_strategy<_Policy, _State>
+template<typename       Policy = deep_copy_snapshot,
+         memento_source State>
+requires snapshot_strategy<Policy, State>
 inline auto
 constrained_checkpoint(
-    const _State& _state
+    const State& _state
 )
 {
-    return make_memento<_Policy>(_state);
+    return make_memento<Policy>(_state);
 }
 
 #endif  // D_MEMENTO_HAS_CONCEPTS
@@ -1800,5 +1813,7 @@ constrained_checkpoint(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARADIGM_MEMENTO_
+
+#endif  // DJINTERP_PARADIGM_MOMENTO_MEMENTO_HPP

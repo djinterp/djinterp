@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                          open_interval.hpp
+/*******************************************************************************
+* djinterp [math]                                              open_interval.hpp
 *
 * Compile-time open interval (lower, upper).
 *   Both endpoints are exclusive. The value type, bounds, and size type are
@@ -16,13 +16,15 @@
 *   - static constexpr bool is_left_open  = true
 *   - static constexpr bool is_right_open = true
 *
+*
 * path:      /inc/djinterp/math/interval/open_interval.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2024.04.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_OPEN_INTERVAL_
-#define DJINTERP_MATH_OPEN_INTERVAL_ 1
+#ifndef DJINTERP_MATH_INTERVAL_OPEN_INTERVAL_HPP
+#define DJINTERP_MATH_INTERVAL_OPEN_INTERVAL_HPP 1
 
 // std
 #include <cstddef>
@@ -32,7 +34,7 @@
 #include <string>
 #include <type_traits>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -567,4 +569,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_OPEN_INTERVAL_
+#endif  // DJINTERP_MATH_INTERVAL_OPEN_INTERVAL_HPP

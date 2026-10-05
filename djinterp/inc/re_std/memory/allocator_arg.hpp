@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                 allocator_arg.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            allocator_arg.hpp
 *
 * tag type and constant marking allocator-extended ctors:
 *   allocator_arg_t  -  empty tag struct.
@@ -24,15 +24,17 @@
 *   C++98/03 static const      -  internal linkage. Same rationale.
 *
 *
-* path:      /inc/djinterp/re_std/memory/allocator_arg.hpp
+* path:      /inc/re_std/memory/allocator_arg.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.01
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.01
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_ALLOCATOR_ARG_
-#define DJINTERP_RE_STD_MEMORY_ALLOCATOR_ARG_ 1
+#ifndef RE_STD_MEMORY_ALLOCATOR_ARG_HPP
+#define RE_STD_MEMORY_ALLOCATOR_ARG_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 namespace re_std
@@ -48,8 +50,8 @@ namespace re_std
 //           construction from `{}` in some contexts.
 struct allocator_arg_t
 {
-    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        D_CONSTEXPR explicit allocator_arg_t() D_NOEXCEPT
+    #if RE_STD_LANG_IS_CPP11_OR_HIGHER
+        RE_STD_CONSTEXPR explicit allocator_arg_t() RE_STD_NOEXCEPT
         {
         }
     #else
@@ -69,11 +71,11 @@ struct allocator_arg_t
 
 // allocator_arg
 //   constant: the canonical instance.
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
     inline constexpr allocator_arg_t allocator_arg{};
 
-#elif D_ENV_LANG_IS_CPP11_OR_HIGHER
+#elif RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // constexpr at namespace scope is internal linkage in C++11/14.
     // That is fine here: the tag is used by value at call sites, never
@@ -87,6 +89,5 @@ struct allocator_arg_t
 #endif
 
 
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_MEMORY_ALLOCATOR_ARG_
+}  // re_std
+#endif  // RE_STD_MEMORY_ALLOCATOR_ARG_HPP

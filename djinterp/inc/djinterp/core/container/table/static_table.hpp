@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                        static_table.hpp
+/*******************************************************************************
+* djinterp [core]                                               static_table.hpp
 *
 *   static_table -- the compile-time-constant member of the table trio.  A
 * rank-2, rectangular, cell-homogeneous table whose two extents R and C are
@@ -14,20 +14,21 @@
 *                                      overwritten and no row or column added,
 *                                      so I_T and every v_i are frozen.
 *   It is ordered (row-major = lexicographic on multi-indices), bounded (|T| =
-* R*C is a compile-time constant), and iterable.  It is the table analogue of a
+* R*C is a compile-time constant), and iterable. It is the table analogue of a
 * `constexpr std::array` lifted to two coordinates.
 *
 *   RELATION TO THE SIBLINGS:
 *   fixed_table relaxes Mutability to element_mutable (writable cells, frozen
 * shape); table relaxes Storage to dynamic and Mutability to fully_mutable
-* (rows and columns may be added and removed).  All three inherit the read-only
+* (rows and columns may be added and removed). All three inherit the read-only
 * surface from table_base.
 *
 *   NOTE ON CELL TYPES:
-*   The primary template is cell-homogeneous -- one _Type for every cell, the
+*   The primary template is cell-homogeneous -- one Type for every cell, the
 * leading case (a grid of numbers, a matrix over a ring).  The axis-typed
-* (column-typed relational) table, whose rows are heterogeneous records, is the
-* _RowType specialisation noted at the foot of this header; it is not built
+* (column-typed relational) table, whose rows are heterogeneous records, is
+* the
+* RowType specialisation noted at the foot of this header; it is not built
 * here.
 *
 *   PORTABILITY:
@@ -36,19 +37,31 @@
 *
 * path:      /inc/djinterp/core/container/table/static_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    is_static_table (detection trait)
+      ---------------------------------
+
 II.   static_table (class)
+      --------------------
+
 III.  make_static_table / equality
+      ----------------------------
 */
 
-#ifndef DJINTERP_CONTAINER_STATIC_TABLE_
-#define DJINTERP_CONTAINER_STATIC_TABLE_ 1
+#ifndef DJINTERP_CONTAINER_TABLE_STATIC_TABLE_HPP
+#define DJINTERP_CONTAINER_TABLE_STATIC_TABLE_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <array>
@@ -56,12 +69,14 @@ III.  make_static_table / equality
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
+#include "../../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
 #include "./table_base.hpp"                        // table_base, row/column views
 #include "../container_options.hpp"                // axis enums, options base
 #include "../traits/mutable_container_traits.hpp"  // mutability grade
-#include "../serial/encode_options.hpp"             // enc_tau<E>, put_length<L,E>, serial enums
-#include "../serial/decode_options.hpp"             // dec_tau<E>, get_length<L,E>
+#include "../../binary/encode_options.hpp"             // enc_tau<E>, put_length<L,E>, serial enums
+#include "../../binary/decode_options.hpp"             // dec_tau<E>, get_length<L,E>
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 
 
 NS_DJINTERP
@@ -73,48 +88,48 @@ NS_DJINTERP
 
 // static_table (fwd)
 //   class: forward declaration for the detection trait below.
-template<typename    _Type,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _DifferenceType,
-         typename    _SizeType,
-         typename    _Iterator,
-         typename    _ConstIterator,
-         typename... _Options>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    DifferenceType,
+         typename    SizeType,
+         typename    Iterator,
+         typename    ConstIterator,
+         typename... Options>
 class static_table;
 
 // is_static_table
-//   trait: true when _Type (after stripping cv/ref) is a specialization of
+//   trait: true when Type (after stripping cv/ref) is a specialization of
 // static_table.
 NS_INTERNAL
 
-    template<typename _Type>
+    template<typename Type>
     struct is_static_table_impl : std::false_type
     {};
 
-    template<typename    _T,
-             std::size_t _R,
-             std::size_t _C,
-             typename    _D,
-             typename    _S,
-             typename    _I,
-             typename    _CI,
-             typename... _O>
-    struct is_static_table_impl<static_table<_T, _R, _C, _D, _S, _I, _CI, _O...>>
+    template<typename    T,
+             std::size_t R,
+             std::size_t C,
+             typename    D,
+             typename    S,
+             typename    I,
+             typename    CI,
+             typename... O>
+    struct is_static_table_impl<static_table<T, R, C, D, S, I, CI, O...>>
         : std::true_type
     {};
 
 NS_END  // internal
 
-template<typename _Type>
-struct is_static_table : internal::is_static_table_impl<clean_t<_Type>>
+template<typename Type>
+struct is_static_table : internal::is_static_table_impl<clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 // is_static_table_v
-//   value: variable-template shorthand for is_static_table<_Type>::value.
-template<typename _Type>
-inline constexpr bool is_static_table_v = is_static_table<_Type>::value;
+//   value: variable-template shorthand for is_static_table<Type>::value.
+template<typename Type>
+inline constexpr bool is_static_table_v = is_static_table<Type>::value;
 #endif
 
 
@@ -123,57 +138,58 @@ inline constexpr bool is_static_table_v = is_static_table<_Type>::value;
 // ===========================================================================
 
 // static_table
-//   class: a compile-time-constant rank-2 cell-homogeneous table of _Rows by
-// _Cols cells, stored row-major in an inline std::array.  Immutable: it exposes
+//   class: a compile-time-constant rank-2 cell-homogeneous table of Rows by
+// Cols cells, stored row-major in an inline std::array. Immutable: it exposes
 // only the const surface inherited from table_base.
-template<typename    _Type,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _DifferenceType = std::ptrdiff_t,
-         typename    _SizeType       = std::size_t,
-         typename    _Iterator       = const _Type*,
-         typename    _ConstIterator  = const _Type*,
-         typename... _Options>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename    SizeType        = std::size_t,
+         typename    Iterator        = const Type*,
+         typename    ConstIterator   = const Type*,
+         typename... Options>
 class static_table
-    : public table_base<static_table<_Type,
-                                     _Rows,
-                                     _Cols,
-                                     _DifferenceType,
-                                     _SizeType,
-                                     _Iterator,
-                                     _ConstIterator,
-                                     _Options...>,
-                        _Type,
-                        _SizeType,
-                        _DifferenceType>,
-      public options_container_base<_Options...>
+    : public table_base<static_table<Type,
+                                     Rows,
+                                     Cols,
+                                     DifferenceType,
+                                     SizeType,
+                                     Iterator,
+                                     ConstIterator,
+                                     Options...>,
+                        Type,
+                        SizeType,
+                        DifferenceType>,
+      public options_container_base<Options...>
 {
 private:
     using base_type = table_base<static_table,
-                                 _Type,
-                                 _SizeType,
-                                 _DifferenceType>;
+                                 Type,
+                                 SizeType,
+                                 DifferenceType>;
 
     // the flat, row-major cell store; std::array<_,0> is well-formed, so a
     // zero-extent table is legal.
-    using storage_type = std::array<_Type, (_Rows * _Cols)>;
+    using storage_type = std::array<Type, (Rows * Cols)>;
 
 public:
     // --- member types ---
 
-    using value_type      = _Type;
-    using cell_type       = _Type;
-    using size_type       = _SizeType;
-    using difference_type = _DifferenceType;
-    using reference       = _Type&;
-    using const_reference = const _Type&;
-    using pointer         = _Type*;
-    using const_pointer   = const _Type*;
+    using value_type      = Type;
+    using cell_type       = Type;
+    using size_type       = SizeType;
+    using difference_type = DifferenceType;
+    using reference       = Type&;
+    using const_reference = const Type&;
+    using pointer         = Type*;
+    using const_pointer   = const Type*;
 
-    // immutability collapses the two cell-iterator faces onto one const cursor;
-    // both are still named for a uniform iterator surface across the trio.
-    using iterator        = _Iterator;
-    using const_iterator  = _ConstIterator;
+    // immutability collapses the two cell-iterator faces onto one const
+    // cursor; both are still named for a uniform iterator surface across the
+    // trio.
+    using iterator        = Iterator;
+    using const_iterator  = ConstIterator;
 
     // --- axis positions (the first few axes, then the ones that follow) ---
 
@@ -200,33 +216,33 @@ public:
     static constexpr bool compile_time_iterable = true;
     static constexpr bool compile_time_values   = true;
 
-    // Boundedness: a fixed capacity kappa = R*C < infinity.  `extent` is the
+    // Boundedness: a fixed capacity kappa = R*C < infinity. `extent` is the
     // djinterp compile-time fixed-capacity signal the bounded-container trait
     // reads; the domain is left free (no value interval).
-    static constexpr size_type extent = static_cast<size_type>(_Rows * _Cols);
+    static constexpr size_type extent = static_cast<size_type>(Rows * Cols);
     static constexpr size_type max_cells = extent;
 
     // the two compile-time extents (m_1 + 1, m_2 + 1).
-    static constexpr size_type row_extent    = static_cast<size_type>(_Rows);
-    static constexpr size_type column_extent = static_cast<size_type>(_Cols);
+    static constexpr size_type row_extent    = static_cast<size_type>(Rows);
+    static constexpr size_type column_extent = static_cast<size_type>(Cols);
 
     // --- construction ---
 
-    // default: value-initializes every cell to _Type{}.
+    // default: value-initializes every cell to Type{}.
     constexpr static_table()
         : m_cells{}
     {}
 
     // element-wise: exactly R*C cell values in row-major order, e.g.
-    //   static_table<int,2,3>{ 1,2,3, 4,5,6 }.
-    // Constrained to two-or-more cells so it never shadows the copy, move, or
-    // std::array constructors; a 1x1 table uses `filled` or the array form.
-    template<typename... _Cells,
+    //   static_table<int,2,3>{ 1,2,3, 4,5,6 }. Constrained to two-or-more
+    // cells so it never shadows the copy, move, or std::array constructors; a
+    // 1x1 table uses `filled` or the array form.
+    template<typename... Cells,
              typename = typename std::enable_if<
-                 ( (sizeof...(_Cells) == (_Rows * _Cols)) &&
-                   (sizeof...(_Cells) >= 2) )>::type>
-    constexpr static_table(_Cells&&... _cells)
-        : m_cells{ { static_cast<_Type>(static_cast<_Cells&&>(_cells))... } }
+                 ( (sizeof...(Cells) == (Rows * Cols)) &&
+                   (sizeof...(Cells) >= 2) )>::type>
+    constexpr static_table(Cells&&... _cells)
+        : m_cells{ { static_cast<Type>(static_cast<Cells&&>(_cells))... } }
     {}
 
     // from a flat, row-major std::array of the exact cell count.
@@ -241,15 +257,15 @@ public:
     ~static_table()                                        = default;
 
     // filled
-    //   factory: a table with every cell equal to _value.  A named factory,
-    // not a constructor, so a single-argument fill never competes with the
+    //   factory: a table with every cell equal to _value. A named factory, not
+    // a constructor, so a single-argument fill never competes with the
     // element-wise constructor.
-    static constexpr static_table filled(const _Type& _value)
+    static constexpr static_table filled(const Type& _value)
     {
         static_table t;
 
         // write the fill value into every cell
-        for (std::size_t i = 0; i < (_Rows * _Cols); ++i)
+        for (std::size_t i = 0; i < (Rows * Cols); ++i)
         {
             t.m_cells[i] = _value;
         }
@@ -305,102 +321,108 @@ public:
     // cannot receive a re-typed image in place -- so the result is built fresh;
     // being compile-time iterable, a constexpr _fn makes this a functional
     // transformation at stage c (a new constant).
-    template<typename _Fn>
+    template<typename Fn>
     D_NODISCARD constexpr
-    static_table<clean_t<decltype(std::declval<_Fn&>()(std::declval<const _Type&>()))>,
-                 _Rows, _Cols>
-    map(_Fn _fn) const
+    static_table<clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>,
+                 Rows, Cols>
+    map(Fn _fn) const
     {
         using mapped_cell =
-            clean_t<decltype(std::declval<_Fn&>()(std::declval<const _Type&>()))>;
+            clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>;
 
-        std::array<mapped_cell, (_Rows * _Cols)> out{};
+        std::array<mapped_cell, (Rows * Cols)> out{};
 
         // rewrite each cell by its image, in row-major order
-        for (std::size_t i = 0; i < (_Rows * _Cols); ++i)
+        for (std::size_t i = 0; i < (Rows * Cols); ++i)
         {
             out[i] = _fn(m_cells[i]);
         }
 
-        return static_table<mapped_cell, _Rows, _Cols>(out);
+        return static_table<mapped_cell, Rows, Cols>(out);
     }
 
-    // --- serialization (Serialization: shape + cells, under the serial options) ---
+    // --- serialization (Serialization: shape + cells, under the serial
+    // options) ---
 
     // encode_into_e
     //   the parameterised member enc_tau: writes the SHAPE -- rows then cols,
-    // each a length field per <_L, _E> (put_length) -- then the cells in row-major
-    // order, each a leaf under enc_tau<_E> (encode_leaf_into).  This is where the
-    // container-serial options (byte order _E, count width _L) actually reach a
-    // table's own bytes; the non-parameterised member below fixes the default.
-    template<serial_endian _E,
-             serial_length  _L,
-             typename       _Sink>
-    void encode_into_e(_Sink& _sink) const
+    // each a length field per <L, E> (put_length) -- then the cells in
+    // row-major order, each a leaf under enc_tau<E> (encode_leaf_into). This
+    // is where the container-serial options (byte order E, count width L)
+    // actually reach a table's own bytes; the non-parameterised member below
+    // fixes the default.
+    template<serial_endian E,
+             serial_length  L,
+             typename       Sink>
+    void encode_into_e(Sink& _sink) const
     {
-        // shape: a nested container encodes its shape (the two extents), each a
+        // shape: a nested container encodes its shape (the two extents), each
+        // a
         // length field in the chosen width and byte order
-        internal::put_length<_L, _E>(_sink, static_cast<std::uint64_t>(rows()));
-        internal::put_length<_L, _E>(_sink, static_cast<std::uint64_t>(cols()));
+        internal::put_length<L, E>(_sink,
+                                   static_cast<re_std::uint64_t>(rows()));
+        internal::put_length<L, E>(_sink,
+                                   static_cast<re_std::uint64_t>(cols()));
 
         // cells, row-major, each a leaf in the chosen byte order
         for (const_pointer p = data(); p != (data() + this->size()); ++p)
         {
-            encode_leaf_into<_E>(_sink, *p);
+            encode_leaf_into<E>(_sink, *p);
         }
 
         return;
     }
 
     // decode_e
-    //   the parameterised member dec_tau: reads the shape (per <_L,_E>), checks it
-    // matches this fixed R x C type, then reads R*C cells (per enc_tau<_E>) and
-    // rebuilds -- a fresh object equal at the serialised level.
-    template<serial_endian _E,
-             serial_length  _L>
+    //   the parameterised member dec_tau: reads the shape (per <L,E>),
+    // checks it matches this fixed R x C type, then reads R*C cells (per
+    // enc_tau<E>) and rebuilds -- a fresh object equal at the serialised
+    // level.
+    template<serial_endian E,
+             serial_length  L>
     static decode_result<static_table> decode_e(byte_reader& _reader)
     {
-        std::uint64_t _r = 0;
-        std::uint64_t _c = 0;
+        re_std::uint64_t _r = 0;
+        re_std::uint64_t _c = 0;
 
-        if (!internal::get_length<_L, _E>(_reader, _r))
+        if (!internal::get_length<L, E>(_reader, _r))
         {
             return decode_failure<static_table>();
         }
-        if (!internal::get_length<_L, _E>(_reader, _c))
+        if (!internal::get_length<L, E>(_reader, _c))
         {
             return decode_failure<static_table>();
         }
 
         // the stream's shape must match this type's fixed shape
-        if ( (_r != static_cast<std::uint64_t>(_Rows)) ||
-             (_c != static_cast<std::uint64_t>(_Cols)) )
+        if ( (_r != static_cast<re_std::uint64_t>(Rows)) ||
+             (_c != static_cast<re_std::uint64_t>(Cols)) )
         {
             return decode_failure<static_table>();
         }
 
         // R*C cells, row-major; the first short/invalid cell fails the decode
         storage_type _cells{};
-        for (std::size_t i = 0; i < (_Rows * _Cols); ++i)
+        for (std::size_t i = 0; i < (Rows * Cols); ++i)
         {
-            decode_result<_Type> _cell = decode_leaf<_E, _Type>(_reader);
+            decode_result<Type> _cell = decode_leaf<E, Type>(_reader);
             if (!_cell.ok) { return decode_failure<static_table>(); }
 
-            _cells[i] = static_cast<_Type&&>(_cell.value);
+            _cells[i] = static_cast<Type&&>(_cell.value);
         }
 
         return decode_success(static_table(_cells));
     }
 
     // encode_into / decode
-    //   the foundational member surface: the default encoding (big-endian scalars,
-    // an 8-byte count), delegating to the parameterised pair.  This is what the
-    // leaf member surface and the option front ends observe -- a member encoder
-    // owns its byte layout and so is endian-agnostic to the generic recursion, so
-    // encode_using<E,L,F>(t) yields THIS default; call encode_into_e<E,L> directly
-    // for another (endian, length).
-    template<typename _Sink>
-    void encode_into(_Sink& _sink) const
+    //   the foundational member surface: the default encoding (big-endian
+    // scalars, an 8-byte count), delegating to the parameterised pair. This is
+    // what the leaf member surface and the option front ends observe -- a
+    // member encoder owns its byte layout and so is endian-agnostic to the
+    // generic recursion, so encode_using<E,L,F>(t) yields THIS default; call
+    // encode_into_e<E,L> directly for another (endian, length).
+    template<typename Sink>
+    void encode_into(Sink& _sink) const
     {
         this->template encode_into_e<serial_endian::big,
                                      serial_length::u64>(_sink);
@@ -445,7 +467,8 @@ namespace table_axis_conformance
                       == multiplicity_kind::sequence,
                   "static_table must classify as a sequence (m = infinity).");
 
-    // Sortedness / Ordering: ordered, and order-dependent (not sorted in itself).
+    // Sortedness / Ordering: ordered, and order-dependent (not sorted in
+    // itself).
     static_assert(is_ordered_container_v<static_table_probe>,
                   "static_table must classify as ordered.");
     static_assert(sortedness_of<static_table_probe>::value
@@ -463,12 +486,12 @@ namespace table_axis_conformance
                   "static_table structure_kind must be hierarchical.");
 
     // Filterability and Transformability (composite, detection-only): a
-    // filter/transform SOURCE.  Readable and mappable/testable, but its fixed
-    // inline store has no cell-level build (push_back), so an image or selection
-    // is built in a fresh container.  Verified out-of-band against
+    // filter/transform SOURCE. Readable and mappable/testable, but its fixed
+    // inline store has no cell-level build (push_back), so an image or
+    // selection is built in a fresh container. Verified out-of-band against
     // container_{filter,transform}_traits (is_*_source true, is_container_*
-    // false, is_*_input_only true); not asserted here because those two headers
-    // clash and the filter cluster requires C++17.
+    // false, is_*_input_only true); not asserted here because those two
+    // headers clash and the filter cluster requires C++17.
 }
 
 
@@ -477,54 +500,54 @@ namespace table_axis_conformance
 // ===========================================================================
 
 // make_static_table
-//   function: builds a static_table<_Type, _Rows, _Cols> from R*C cell values
+//   function: builds a static_table<Type, Rows, Cols> from R*C cell values
 // given in row-major order, deducing the cell type from the first argument.
-template<std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _First,
-         typename... _Rest>
+template<std::size_t Rows,
+         std::size_t Cols,
+         typename    First,
+         typename... Rest>
 D_NODISCARD constexpr
-static_table<clean_t<_First>, _Rows, _Cols>
-make_static_table(_First&& _first, _Rest&&... _rest)
+static_table<clean_t<First>, Rows, Cols>
+make_static_table(First&& _first, Rest&&... _rest)
 {
-    static_assert(((1 + sizeof...(_Rest)) == (_Rows * _Cols)),
+    static_assert(((1 + sizeof...(Rest)) == (Rows * Cols)),
                   "make_static_table: the number of cell values must equal "
-                  "_Rows * _Cols.");
+                  "Rows * Cols.");
 
-    return static_table<clean_t<_First>, _Rows, _Cols>(
-        static_cast<_First&&>(_first),
-        static_cast<_Rest&&>(_rest)...);
+    return static_table<clean_t<First>, Rows, Cols>(
+        static_cast<First&&>(_first),
+        static_cast<Rest&&>(_rest)...);
 }
 
 // operator== / operator!=
 //   compares two static_tables cell-by-cell after a shape check (positional
 // identity: cell (r,c) against cell (r,c)).
-template<typename    _Type,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _D,
-         typename    _S,
-         typename    _I,
-         typename    _CI,
-         typename... _O>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    D,
+         typename    S,
+         typename    I,
+         typename    CI,
+         typename... O>
 D_NODISCARD constexpr bool operator==(
-    const static_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _a,
-    const static_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _b)
+    const static_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    const static_table<Type, Rows, Cols, D, S, I, CI, O...>& _b)
 {
     return _a.content_equals(_b);
 }
 
-template<typename    _Type,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _D,
-         typename    _S,
-         typename    _I,
-         typename    _CI,
-         typename... _O>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    D,
+         typename    S,
+         typename    I,
+         typename    CI,
+         typename... O>
 D_NODISCARD constexpr bool operator!=(
-    const static_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _a,
-    const static_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _b)
+    const static_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    const static_table<Type, Rows, Cols, D, S, I, CI, O...>& _b)
 {
     return !(_a == _b);
 }
@@ -534,17 +557,18 @@ NS_END  // djinterp
 
 
 // ---------------------------------------------------------------------------
-// _RowType (axis-typed / column-typed relational) extension -- NOT built here.
+// RowType (axis-typed / column-typed relational) extension -- NOT built here.
 //
 //   The column-typed relational table of the formal definition (k = 2, S = {2},
 // cell type tau_{r,c} = tau_c fixed by the column) is the heterogeneous-row
 // case: a row is a record, not a run of one cell type.  That specialisation
-// takes a _RowType (a tuple/record describing the columns) in place of the
-// cell-homogeneous _Type here, and its column projection returns a
+// takes a RowType (a tuple/record describing the columns) in place of the
+// cell-homogeneous Type here, and its column projection returns a
 // single-column-typed view.  It layers on the tuple's dependent (record) form
 // and belongs with the Overlays axis (keying a coordinate); it is a planned
 // sibling, deliberately outside this cell-homogeneous module.
 // ---------------------------------------------------------------------------
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_STATIC_TABLE_
+#endif  // DJINTERP_CONTAINER_TABLE_STATIC_TABLE_HPP

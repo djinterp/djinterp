@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                             dynamic_extent.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           dynamic_extent.hpp
 *
 * the dynamic_extent constant:
 *   Sentinel size used as the default second template argument of
@@ -7,18 +7,21 @@
 * specialization. Equal to (size_t)-1, matching std::dynamic_extent.
 *
 *
-* path:      /inc/djinterp/re_std/span/dynamic_extent.hpp
+* path:      /inc/re_std/span/dynamic_extent.hpp
 * link(s):   TBA
-* author(s): re_std contributors                       date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SPAN_DYNAMIC_EXTENT_
-#define DJINTERP_RE_STD_SPAN_DYNAMIC_EXTENT_ 1
+#ifndef RE_STD_SPAN_DYNAMIC_EXTENT_HPP
+#define RE_STD_SPAN_DYNAMIC_EXTENT_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>  // size_t
 
 namespace re_std
@@ -32,14 +35,13 @@ namespace re_std
     //   matching std); on C++11/14 it is a plain constexpr namespace-scope
     //   constant (internal linkage), which is sufficient since it is only
     //   ever consumed by value as a template argument or in comparisons.
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
     inline constexpr std::size_t dynamic_extent = static_cast<std::size_t>(-1);
 #else
-    D_CONSTEXPR std::size_t dynamic_extent = static_cast<std::size_t>(-1);
+    RE_STD_CONSTEXPR std::size_t dynamic_extent = static_cast<std::size_t>(-1);
 #endif
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_SPAN_DYNAMIC_EXTENT_
+#endif  // RE_STD_SPAN_DYNAMIC_EXTENT_HPP

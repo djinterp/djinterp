@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             common_type.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              common_type.hpp
 *
 * common_type trait:
 *   The "type all of the inputs share" computation, used most prominently
@@ -43,19 +43,20 @@
 *   decay, remove_reference, is_same, void_t, re_std::declval.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/common_type.hpp
+* path:      /inc/re_std/type_traits/common_type.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_COMMON_TYPE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_COMMON_TYPE_ 1
+#ifndef RE_STD_TYPE_TRAITS_COMMON_TYPE_HPP
+#define RE_STD_TYPE_TRAITS_COMMON_TYPE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./decay.hpp"
@@ -65,7 +66,8 @@
 #include "../utility/declval.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
     // common_type
@@ -76,36 +78,37 @@ NS_RESTD
     //          reliably "no such member" -- which is SFINAE-eligible
     //          on all conforming compilers -- rather than "incomplete
     //          type", which can hard-error on stricter implementations.
-    template<typename... _Ts>
+    template<typename... Ts>
     struct common_type
     {};
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // common_type_2_direct
         //   trait: applies the direct rule to two already-decayed types.
         //          Has `type` only when the conditional expression is
         //          well-formed.
-        template<typename _T1,
-                 typename _T2,
+        template<typename T1,
+                 typename T2,
                  typename = void>
         struct common_type_2_direct
         {};
 
-        // common_type_2_direct<_T1, _T2, void>
+        // common_type_2_direct<T1, T2, void>
         //   trait: specialization; selected when the direct conditional
         //          expression is well-formed.
-        template<typename _T1,
-                 typename _T2>
+        template<typename T1,
+                 typename T2>
         struct common_type_2_direct<
-            _T1,
-            _T2,
+            T1,
+            T2,
             re_std::void_t<decltype(
-                false ? re_std::declval<_T1>() : re_std::declval<_T2>() )> >
+                false ? re_std::declval<T1>() : re_std::declval<T2>() )> >
         {
             typedef typename decay<decltype(
-                false ? re_std::declval<_T1>() : re_std::declval<_T2>()
+                false ? re_std::declval<T1>() : re_std::declval<T2>()
                 )>::type type;
         };
 
@@ -114,30 +117,30 @@ NS_RESTD
         //          as `remove_reference<T>::type const&` before the
         //          conditional. Has `type` only when that expression
         //          is well-formed.
-        template<typename _T1,
-                 typename _T2,
+        template<typename T1,
+                 typename T2,
                  typename = void>
         struct common_type_2_fallback
         {};
 
-        // common_type_2_fallback<_T1, _T2, void>
+        // common_type_2_fallback<T1, T2, void>
         //   trait: specialization; selected when the const-lvalue-ref
         //          conditional is well-formed.
-        template<typename _T1,
-                 typename _T2>
+        template<typename T1,
+                 typename T2>
         struct common_type_2_fallback<
-            _T1,
-            _T2,
+            T1,
+            T2,
             re_std::void_t<decltype(
                 false
-                ? re_std::declval<typename remove_reference<_T1>::type const&>()
-                : re_std::declval<typename remove_reference<_T2>::type const&>()
+                ? re_std::declval<typename remove_reference<T1>::type const&>()
+                : re_std::declval<typename remove_reference<T2>::type const&>()
                 )> >
         {
             typedef typename decay<decltype(
                 false
-                ? re_std::declval<typename remove_reference<_T1>::type const&>()
-                : re_std::declval<typename remove_reference<_T2>::type const&>()
+                ? re_std::declval<typename remove_reference<T1>::type const&>()
+                : re_std::declval<typename remove_reference<T2>::type const&>()
                 )>::type type;
         };
 
@@ -145,124 +148,124 @@ NS_RESTD
         //   trait: try direct first; if it has no `type`, fall through
         //          to the fallback. Implemented via void_t-gated partial
         //          spec on the direct's `type` member.
-        template<typename _T1,
-                 typename _T2,
+        template<typename T1,
+                 typename T2,
                  typename = void>
         struct common_type_2_resolve
-            : common_type_2_fallback<_T1, _T2>
+            : common_type_2_fallback<T1, T2>
         {};
 
-        // common_type_2_resolve<_T1, _T2, void>
+        // common_type_2_resolve<T1, T2, void>
         //   trait: specialization; selected when direct rule succeeded.
-        template<typename _T1,
-                 typename _T2>
+        template<typename T1,
+                 typename T2>
         struct common_type_2_resolve<
-            _T1,
-            _T2,
-            re_std::void_t<typename common_type_2_direct<_T1, _T2>::type> >
-            : common_type_2_direct<_T1, _T2>
+            T1,
+            T2,
+            re_std::void_t<typename common_type_2_direct<T1, T2>::type> >
+            : common_type_2_direct<T1, T2>
         {};
 
         // common_type_2_dispatch
-        //   trait: top-level binary dispatch. When _BothDecayed is false,
+        //   trait: top-level binary dispatch. When BothDecayed is false,
         //          decay and recurse to common_type. When true, apply
         //          the rule.
-        template<typename _T1,
-                 typename _T2,
-                 bool     _BothDecayed>
+        template<typename T1,
+                 typename T2,
+                 bool     BothDecayed>
         struct common_type_2_dispatch
-            : common_type<typename decay<_T1>::type,
-                          typename decay<_T2>::type>
+            : common_type<typename decay<T1>::type,
+                          typename decay<T2>::type>
         {};
 
-        // common_type_2_dispatch<_T1, _T2, true>
+        // common_type_2_dispatch<T1, T2, true>
         //   trait: specialization; both already decayed, apply the rule.
-        template<typename _T1,
-                 typename _T2>
-        struct common_type_2_dispatch<_T1, _T2, true>
-            : common_type_2_resolve<_T1, _T2>
+        template<typename T1,
+                 typename T2>
+        struct common_type_2_dispatch<T1, T2, true>
+            : common_type_2_resolve<T1, T2>
         {};
 
         // common_type_2_impl
         //   trait: entry point for the binary case. Computes whether
         //          both arguments are already decayed, then dispatches.
-        template<typename _T1,
-                 typename _T2>
+        template<typename T1,
+                 typename T2>
         struct common_type_2_impl
             : common_type_2_dispatch<
-                  _T1,
-                  _T2,
-                  (    is_same<_T1, typename decay<_T1>::type>::value
-                    && is_same<_T2, typename decay<_T2>::type>::value ) >
+                  T1,
+                  T2,
+                  (    is_same<T1, typename decay<T1>::type>::value
+                    && is_same<T2, typename decay<T2>::type>::value ) >
         {};
 
         // common_type_n_impl
         //   trait: SFINAE-friendly recursive case. Has `type` only when
         //          the inner common_type<T1, T2> resolved to a `type`,
         //          in which case it recurses on common_type<that, R...>.
-        template<typename _Void,
-                 typename _CT,
-                 typename... _Rest>
+        template<typename Void,
+                 typename CT,
+                 typename... Rest>
         struct common_type_n_impl
         {};
 
-        // common_type_n_impl<void, _CT, _Rest...>
-        //   trait: specialization; selected when _CT::type exists.
-        template<typename _CT,
-                 typename... _Rest>
+        // common_type_n_impl<void, CT, Rest...>
+        //   trait: specialization; selected when CT::type exists.
+        template<typename CT,
+                 typename... Rest>
         struct common_type_n_impl<
-            re_std::void_t<typename _CT::type>,
-            _CT,
-            _Rest...>
-            : common_type<typename _CT::type, _Rest...>
+            re_std::void_t<typename CT::type>,
+            CT,
+            Rest...>
+            : common_type<typename CT::type, Rest...>
         {};
 
-    NS_END  // internal
+    }  // internal
 
 
-    // common_type<_T>
-    //   trait: 1-arg case; same as common_type<_T, _T>.
-    template<typename _T>
-    struct common_type<_T>
-        : common_type<_T, _T>
+    // common_type<T>
+    //   trait: 1-arg case; same as common_type<T, T>.
+    template<typename T>
+    struct common_type<T>
+        : common_type<T, T>
     {};
 
-    // common_type<_T1, _T2>
+    // common_type<T1, T2>
     //   trait: binary case. Users specialize this form (full or partial)
     //          to extend behavior. Default behavior delegates to
     //          internal::common_type_2_impl.
-    template<typename _T1,
-             typename _T2>
-    struct common_type<_T1, _T2>
-        : internal::common_type_2_impl<_T1, _T2>
+    template<typename T1,
+             typename T2>
+    struct common_type<T1, T2>
+        : internal::common_type_2_impl<T1, T2>
     {};
 
-    // common_type<_T1, _T2, _R...>
+    // common_type<T1, T2, R...>
     //   trait: n-arg case (n >= 3 by partial ordering against the binary
     //          spec above). Recurses via common_type_n_impl, which is
     //          SFINAE-friendly: if any pairwise step fails, no `type`
     //          member is defined.
-    template<typename _T1,
-             typename _T2,
-             typename... _R>
-    struct common_type<_T1, _T2, _R...>
+    template<typename T1,
+             typename T2,
+             typename... R>
+    struct common_type<T1, T2, R...>
         : internal::common_type_n_impl<
               void,
-              common_type<_T1, _T2>,
-              _R... >
+              common_type<T1, T2>,
+              R... >
     {};
 
 
     // common_type_t (C++14+)
-    #if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-        template<typename... _Ts>
-        using common_type_t = typename common_type<_Ts...>::type;
+    #if RE_STD_LANG_HAS_ALIAS_TEMPLATES
+        template<typename... Ts>
+        using common_type_t = typename common_type<Ts...>::type;
     #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_COMMON_TYPE_
+#endif  // RE_STD_TYPE_TRAITS_COMMON_TYPE_HPP

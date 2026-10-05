@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                        document_format.hpp
+/*******************************************************************************
+* djinterp [core]                                            document_format.hpp
 *
 *   The catalogue of the framework's built-in document formats -- the ONE enum
 * every layer selects an output format with.  It is deliberately a small,
@@ -41,27 +41,41 @@
 *   C++11 baseline; no standard-library dependency beyond <cstddef> / <string>.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    document_format                (the selector enum)
-* II.   SPELLINGS                      (format_name / format_extension /
-*                                       format_from_name)
-* III.  CLASSIFICATION                 (format_is_markup / format_is_binary)
-*
-*
 * path:      /inc/djinterp/core/util/document/document_format.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_DOCUMENT_FORMAT_
-#define DJINTERP_UTIL_DOCUMENT_FORMAT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    document_format                (the selector enum)
+      --------------------------------------------------
+
+II.   SPELLINGS                      (format_name / format_extension /
+      ----------------------------------------------------------------
+
+      format_from_name)
+
+III.  CLASSIFICATION                 (format_is_markup / format_is_binary)
+      --------------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_UTIL_DOCUMENT_DOCUMENT_FORMAT_HPP
+#define DJINTERP_UTIL_DOCUMENT_DOCUMENT_FORMAT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <string>
 // djinterp
-#include "../../djinterp.hpp"   // NS_*, D_NODISCARD, D_NOEXCEPT, gates
+#include "../../../djinterp.hpp"   // NS_*, D_NODISCARD, D_NOEXCEPT, gates
 
 
 NS_DJINTERP
@@ -210,5 +224,6 @@ format_is_binary(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_DOCUMENT_FORMAT_
+#endif  // DJINTERP_UTIL_DOCUMENT_DOCUMENT_FORMAT_HPP

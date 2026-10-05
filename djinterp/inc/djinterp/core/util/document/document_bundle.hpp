@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                       document_bundle.hpp
+/*******************************************************************************
+* djinterp [core]                                            document_bundle.hpp
 *
 *   The assembly half of the document-output stack: a bundle collects the
 * documents a run produced - each a (logical name, extension, DEFERRED
@@ -34,11 +34,11 @@
 * leaves, so any codec or container the build detected is reachable.
 *
 *   NON-THROWING ORCHESTRATION:
-*   write() returns bool (true iff every document rendered, packaged, and 
-* wrote) in keeping with the facades' status-returning style; it raises nothing 
+*   write() returns bool (true iff every document rendered, packaged, and
+* wrote) in keeping with the facades' status-returning style; it raises nothing
 * of its own.  A producer is an arbitrary host closure: one that itself throws
 * will propagate (write() does not wrap it), exactly as a binding_env
-* projection would - producers are expected to be as well-behaved as 
+* projection would - producers are expected to be as well-behaved as
 * projections.
 *
 *   DTEST-AGNOSTIC:
@@ -52,20 +52,28 @@
 *
 * path:      /inc/djinterp/core/util/document/document_bundle.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    BUNDLE ITEM             (bundle_item: name + ext + deferred producer)
+      ---------------------------------------------------------------------
+
 II.   DOCUMENT BUNDLE         (document_bundle: the fluent collection)
+      ----------------------------------------------------------------
+
 III.  WRITE ORCHESTRATOR      (write: render + package + sink)
+      --------------------------------------------------------
+
 IV.   CONVENIENCE WRITES      (write_to_disk / write_to_buffer / write_custom)
+      ------------------------------------------------------------------------
 */
 
-#ifndef DJINTERP_UTIL_DOCUMENT_BUNDLE_
-#define DJINTERP_UTIL_DOCUMENT_BUNDLE_ 1
+#ifndef DJINTERP_UTIL_DOCUMENT_DOCUMENT_BUNDLE_HPP
+#define DJINTERP_UTIL_DOCUMENT_DOCUMENT_BUNDLE_HPP 1
 
 // std
 #include <cstddef>
@@ -74,10 +82,10 @@ IV.   CONVENIENCE WRITES      (write_to_disk / write_to_buffer / write_custom)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"                      // NS_*, D_NODISCARD, D_NOEXCEPT, gates
+#include "../../../djinterp.hpp"              // NS_*, D_NODISCARD, D_NOEXCEPT, gates
 #include "../output/output_packaging.hpp"  // pack_mode, output_config, sinks, ...
-#include "../compress.hpp"                 // byte_blob, status, internal leaves
-#include "../archive.hpp"                  // entry, entry_list, internal leaves
+#include "../compress/compress.hpp"                 // byte_blob, status, internal leaves
+#include "../archive/archive.hpp"                  // entry, entry_list, internal leaves
 
 
 // document_bundle composes output_packaging (C++17); below the floor it
@@ -475,4 +483,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-#endif  // DJINTERP_UTIL_DOCUMENT_BUNDLE_
+#endif  // DJINTERP_UTIL_DOCUMENT_DOCUMENT_BUNDLE_HPP

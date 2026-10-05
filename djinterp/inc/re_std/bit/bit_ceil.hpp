@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 bit_ceil.hpp
 *
 * bit_ceil header:
@@ -8,7 +8,7 @@
 *     bit_ceil(0u) -> 1    bit_ceil(5u) -> 8    bit_ceil(8u) -> 8
 *
 *   THIS ONE CAN OVERFLOW, AND THE STANDARD SAYS SO:
-*   When the answer is not representable in _T the behaviour is
+*   When the answer is not representable in T the behaviour is
 * undefined -- and, per [bit.pow.two], the call is then not a constant
 * expression, so a compile-time use is diagnosed while a run-time use
 * is not. bit_ceil(uint8_t(200)) would need 256. No check is added here
@@ -23,25 +23,27 @@
 *   C++20 in std, back-ported to C++11 and constexpr from C++11.
 *
 *
-* path:      /inc/djinterp/re_std/bit/bit_ceil.hpp
+* path:      /inc/re_std/bit/bit_ceil.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_BIT_CEIL_
-#define DJINTERP_RE_STD_BIT_BIT_CEIL_ 1
+#ifndef RE_STD_BIT_BIT_CEIL_HPP
+#define RE_STD_BIT_BIT_CEIL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./bit_internal.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -50,24 +52,24 @@ NS_RESTD
 
 // bit_ceil
 //   function: least power of two >= _v; 1 for _v of 0 or 1. Undefined
-// when the result is not representable in _T -- see the header note.
-template<typename _T>
-D_CONSTEXPR typename internal::bit_enable<_T>::type
+// when the result is not representable in T -- see the header note.
+template<typename T>
+RE_STD_CONSTEXPR typename internal::bit_enable<T>::type
 bit_ceil(
-    _T _v
-) D_NOEXCEPT
+    T _v
+) RE_STD_NOEXCEPT
 {
     return (_v <= 1)
-        ? static_cast<_T>(1)
-        : static_cast<_T>( static_cast<_T>(1)
-              << internal::bit_width_rec<_T>(static_cast<_T>(_v - 1)) );
+        ? static_cast<T>(1)
+        : static_cast<T>( static_cast<T>(1)
+              << internal::bit_width_rec<T>(static_cast<T>(_v - 1)) );
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BIT_BIT_CEIL_
+#endif  // RE_STD_BIT_BIT_CEIL_HPP

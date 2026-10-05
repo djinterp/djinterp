@@ -3,17 +3,22 @@
 *
 * djinterp CPU architecture detection.
 *   Compile-time detection of the CPU architecture family, bit width, and
-* endianness, exposing the D_ENV_ARCH_* interface and the family / bit-width /
-* endianness helper flags.
-*   Requires cfg_env.h (for the D_CFG_ENV_* switches). This header is an
-* internal component of env.h and is #included by it; do not #include it
-* directly.
+* endianness, and of the width of a pointer, exposing the D_ENV_ARCH_*
+* interface and the family / bit-width / endianness helper flags.
+*   The architecture's width (D_ENV_ARCH_BITS) is the instruction set's; the
+* pointer's (D_ENV_ARCH_POINTER_BITS) is the target ABI's, and the two differ
+* on the 32-bit-pointer ABIs of 64-bit architectures (x32, MIPS n32,
+* arm64_32). Code that sizes an integer to hold a pointer, an index or a hash
+* of an address wants the second.
+*   It includes its own configuration, cfg_env_arch.h, and reads no other env
+* section, so it gives the same answers whether a unit includes it directly or
+* through env.h.
 *
 *
 * path:      /inc/djinterp/env/env_arch.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.02
 *******************************************************************************/
 
 /*
@@ -70,6 +75,10 @@ TABLE OF CONTENTS
               10. Itanium (IA-64)
               11. Alpha
               12. Unknown architecture
+    3.  Pointer width
+         1.  D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS
+         2.  D_ENV_ARCH_POINTER_BITS
+         3.  D_ENV_ARCH_BITS of an unknown architecture
 3.  DERIVED ARCHITECTURE FLAGS
     --------------------------
     1.  Architecture families
@@ -85,6 +94,9 @@ TABLE OF CONTENTS
 
 #ifndef DJINTERP_ENV_ENV_ARCH_H
 #define DJINTERP_ENV_ENV_ARCH_H 1
+
+// djinterp
+#include "../config/core/env/cfg_env_arch.h"  // D_CFG_ENV_ARCH_ENABLED
 
 
 //==============================================================================
@@ -192,7 +204,7 @@ TABLE OF CONTENTS
 // 2.1.1
 // Architecture cases
 
-#if (D_CFG_ENV_ARCH_ENABLED)
+#if D_CFG_IS_ON(D_CFG_ENV_ARCH_ENABLED)
 
     // 2.1.1.1
     // x86-64
@@ -575,8 +587,8 @@ TABLE OF CONTENTS
         #define D_ENV_ARCH_TYPE    D_ENV_ARCH_TYPE_UNKNOWN
 
         // D_ENV_ARCH_BITS
-        //   constant: native architecture width in bits; 0 when unknown.
-        #define D_ENV_ARCH_BITS    0
+        //   constant: native architecture width in bits. Not known here; it
+        // is the pointer's width where that is (2.3.3), else 0.
 
         // D_ENV_ARCH_ENDIAN
         //   constant: byte-order identifier for the detected architecture.
@@ -860,14 +872,95 @@ TABLE OF CONTENTS
         #define D_ENV_ARCH_TYPE    D_ENV_ARCH_TYPE_UNKNOWN
 
         // D_ENV_ARCH_BITS
-        //   constant: configured architecture width in bits; 0 when unknown.
-        #define D_ENV_ARCH_BITS    0
+        //   constant: configured architecture width in bits. Not known here;
+        // it is the configured pointer's width where there is one (2.3.3),
+        // else 0.
 
         // D_ENV_ARCH_ENDIAN
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_UNKNOWN
     #endif  // D_ENV_DETECTED_ARCH_X64
 #endif  // D_CFG_ENV_ARCH_ENABLED
+
+// 2.3    Pointer width
+//------------------------------------------------------------------------------
+// 2.3.1
+// D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS
+//   constant (internal): the width of an object pointer as the target itself
+// states it, 0 where it does not: the compiler's size macro (GCC, Clang and
+// the compilers that emulate them), else the data model the target names
+// (Win64 and LP64 have 64-bit pointers, Win32 and ILP32 32-bit ones), else a
+// 16-bit target the compiler names without stating a size (AVR; MSP430 but
+// for its large memory model, whose pointers have 20 bits).
+#if ( (defined(__SIZEOF_POINTER__)) &&                                         \
+      (defined(__CHAR_BIT__)) )
+    #define D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS                            \
+        (__SIZEOF_POINTER__ * __CHAR_BIT__)
+#elif ( (defined(_WIN64))   ||                                                 \
+        (defined(__LP64__)) ||                                                 \
+        (defined(_LP64)) )
+    #define D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS 64
+#elif ( (defined(_WIN32))    ||                                                \
+        (defined(__ILP32__)) ||                                                \
+        (defined(_ILP32)) )
+    #define D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS 32
+#elif ( (defined(__AVR__)) ||                                                  \
+        ( (defined(__MSP430__)) &&                                             \
+          (!defined(__MSP430X_LARGE__)) ) )
+    #define D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS 16
+#else
+    #define D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS 0
+#endif
+
+// 2.3.2
+// D_ENV_ARCH_POINTER_BITS
+//   constant: the width of an object pointer (`void*`) in bits; 0 when
+// nothing tells. Under automatic detection it is what the target states
+// (2.3.1), else the detected architecture's width. With detection off it is
+// D_ENV_DETECTED_ARCH_POINTER_BITS where the build defines that, else the
+// configured architecture's width: the compiler in use is not consulted,
+// since the configured target need not be its own.
+#if D_CFG_IS_ON(D_CFG_ENV_ARCH_ENABLED)
+    #if (D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS == 64)
+        #define D_ENV_ARCH_POINTER_BITS 64
+    #elif (D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS == 32)
+        #define D_ENV_ARCH_POINTER_BITS 32
+    #elif (D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS == 16)
+        #define D_ENV_ARCH_POINTER_BITS 16
+    #elif (D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS != 0)
+        #define D_ENV_ARCH_POINTER_BITS                                        \
+            D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS
+    #elif defined(D_ENV_ARCH_BITS)
+        #define D_ENV_ARCH_POINTER_BITS D_ENV_ARCH_BITS
+    #else
+        #define D_ENV_ARCH_POINTER_BITS 0
+    #endif
+#elif defined(D_ENV_DETECTED_ARCH_POINTER_BITS)
+    #if !D_CFG_IS_INT_LITERAL(D_ENV_DETECTED_ARCH_POINTER_BITS)
+        #error "D_ENV_DETECTED_ARCH_POINTER_BITS must be 16, 32 or 64"
+    #endif
+
+    #if ( (D_ENV_DETECTED_ARCH_POINTER_BITS != 16) &&                          \
+          (D_ENV_DETECTED_ARCH_POINTER_BITS != 32) &&                          \
+          (D_ENV_DETECTED_ARCH_POINTER_BITS != 64) )
+        #error "D_ENV_DETECTED_ARCH_POINTER_BITS must be 16, 32 or 64"
+    #endif
+
+    #define D_ENV_ARCH_POINTER_BITS D_ENV_DETECTED_ARCH_POINTER_BITS
+#elif defined(D_ENV_ARCH_BITS)
+    #define D_ENV_ARCH_POINTER_BITS D_ENV_ARCH_BITS
+#else
+    #define D_ENV_ARCH_POINTER_BITS 0
+#endif
+
+// 2.3.3
+// D_ENV_ARCH_BITS of an unknown architecture
+//   constant: an architecture this header does not recognise (AVR, MSP430,
+// WebAssembly, LoongArch, m68k, ...) has the width of its pointer, the best
+// measure there is without a case of its own; 0 where that is unknown too.
+#ifndef D_ENV_ARCH_BITS
+    #define D_ENV_ARCH_BITS D_ENV_ARCH_POINTER_BITS
+#endif  // D_ENV_ARCH_BITS
 
 
 //==============================================================================

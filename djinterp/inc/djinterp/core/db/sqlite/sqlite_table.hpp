@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                           sqlite_table.hpp
+/*******************************************************************************
+* djinterp [core]                                               sqlite_table.hpp
 *
 * djinterp SQLite table module:
 *   SQLite-specific database_table subclass providing vendor features
@@ -13,8 +13,8 @@
 *   - PRAGMA-based per-table configuration
 *
 *   LAYER DIAGRAM:
-*     sqlite_table<_Config>
-*       -> database_table<sqlite_connection, value, _Config>
+*     sqlite_table<Config>
+*       -> database_table<sqlite_connection, value, Config>
 *
 *   NOTE: SQLite uses dynamic typing via type affinities rather than
 * strict column types. This class emits affinity names in CREATE TABLE
@@ -27,13 +27,20 @@
 *   PORTABILITY:
 *   Requires C++17 or later.
 *
+*
 * path:      /inc/djinterp/core/db/sqlite/sqlite_table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.23
+*                                                            revised: 2026.09.30
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_SQLITE_TABLE_
-#define DJINTERP_DATABASE_SQLITE_TABLE_
+#ifndef DJINTERP_DB_SQLITE_SQLITE_TABLE_HPP
+#define DJINTERP_DB_SQLITE_SQLITE_TABLE_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
@@ -89,16 +96,16 @@ NS_DJINTERP
     //   class: SQLite-specific database table. Extends the generic
     // database_table with SQLite DDL (WITHOUT ROWID, STRICT), affinity-
     // based typing, ATTACH qualification, and PRAGMA helpers.
-    template<typename _Config = void>
+    template<typename Config = void>
     class sqlite_table
         : public database_table<sqlite_connection,
                                 value,
-                                _Config>
+                                Config>
     {
     private:
         using base_type = database_table<sqlite_connection,
                                          value,
-                                         _Config>;
+                                         Config>;
 
     public:
         using typename base_type::size_type;
@@ -106,7 +113,7 @@ NS_DJINTERP
         using typename base_type::row_type;
         using typename base_type::connection_type;
         using typename base_type::schema_type;
-        using self_type = sqlite_table<_Config>;
+        using self_type = sqlite_table<Config>;
 
         using type_support = sqlite_type_support;
         using version_info = sqlite_version_info;
@@ -172,7 +179,8 @@ NS_DJINTERP
         {
         }
 
-        ~sqlite_table() override = default;
+        // non-virtual: the base is not a polymorphic type.
+        ~sqlite_table() = default;
 
         // disable copying
         sqlite_table(const sqlite_table&)            = delete;
@@ -308,15 +316,15 @@ NS_DJINTERP
     protected:
 
         // =================================================================
-        //  protected overrides
+        //  protected helpers (concrete — not overrides)
         // =================================================================
 
         // field_type_to_sql
-        //   function: overrides type mapping for SQLite. Emits type
+        //   function: concrete vendor type mapping for SQLite. Emits type
         // affinity names rather than strict type names, since SQLite
         // uses dynamic typing. When STRICT is enabled, only the five
         // native types (INTEGER, REAL, TEXT, BLOB, ANY) are permitted.
-        const char* field_type_to_sql(field_type _type) const override
+        const char* field_type_to_sql(field_type _type) const
         {
             switch (_type)
             {
@@ -360,7 +368,8 @@ NS_DJINTERP
                 case field_type::null:
                 case field_type::custom:
                 default:
-                    return base_type::field_type_to_sql(_type);
+                    // common types defer to the connection's type mapping
+                    return field_type_to_sqlite_sql(_type);
             }
         }
 
@@ -377,5 +386,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_SQLITE_TABLE_
+#endif  // DJINTERP_DB_SQLITE_SQLITE_TABLE_HPP

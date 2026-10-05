@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              ratio_equal.hpp
 *
 * ratio_equal header:
@@ -19,28 +19,30 @@
 * from C++14, where variable templates arrive.
 *
 *
-* path:      /inc/djinterp/re_std/ratio/ratio_equal.hpp
+* path:      /inc/re_std/ratio/ratio_equal.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RATIO_RATIO_EQUAL_
-#define DJINTERP_RE_STD_RATIO_RATIO_EQUAL_ 1
+#ifndef RE_STD_RATIO_RATIO_EQUAL_HPP
+#define RE_STD_RATIO_RATIO_EQUAL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./ratio.hpp"
 #include "../type_traits/integral_constant.hpp"
 #include "../type_traits/true_type.hpp"
 #include "../type_traits/false_type.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -49,11 +51,11 @@ NS_RESTD
 
 // ratio_equal
 //   trait: whether two ratios denote the same rational.
-template<typename _R1,
-         typename _R2>
+template<typename R1,
+         typename R2>
 struct ratio_equal
     : integral_constant<bool,
-        ( _R1::num == _R2::num && _R1::den == _R2::den )>
+        ( R1::num == R2::num && R1::den == R2::den )>
 {};
 
 
@@ -61,19 +63,19 @@ struct ratio_equal
 // II.  RATIO_EQUAL_V (C++14+ variable)
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _R1,
-         typename _R2>
-D_CONSTEXPR bool ratio_equal_v = ratio_equal<_R1, _R2>::value;
+template<typename R1,
+         typename R2>
+RE_STD_CONSTEXPR bool ratio_equal_v = ratio_equal<R1, R2>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RATIO_RATIO_EQUAL_
+#endif  // RE_STD_RATIO_RATIO_EQUAL_HPP

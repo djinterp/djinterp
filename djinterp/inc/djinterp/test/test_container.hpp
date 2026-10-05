@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                           test_container.hpp
+/*******************************************************************************
+* djinterp [test]                                             test_container.hpp
 *
 *   The test_container contract.  test_container is not a concrete type:
 * it is the trait + concept surface that detects whether an arbitrary
@@ -42,41 +42,48 @@
 *   C++11 minimum.  `_v` companions on C++14+.  Concepts on C++20.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    STRUCTURAL MEMBER PROBES
-* II.   ELEMENT PROTOCOL
-* III.  TEST-CONTAINER CONTRACT
-* IV.   CONCEPTS
-*
-*
 * path:      /inc/djinterp/test/test_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.17
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_CONTAINER_
-#define DJINTERP_TEST_CONTAINER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    STRUCTURAL MEMBER PROBES
+      ------------------------
 
-#ifndef __cplusplus
-    #error "test_container.hpp requires C++ compilation"
-#endif
+II.   ELEMENT PROTOCOL
+      ----------------
+
+III.  TEST-CONTAINER CONTRACT
+      -----------------------
+
+IV.   CONCEPTS
+      --------
+*/
+
+#ifndef DJINTERP_TEST_TEST_CONTAINER_HPP
+#define DJINTERP_TEST_TEST_CONTAINER_HPP 1
+
+// djinterp
+#include "../env/env.h"  // D_ENV_LANG_IS_CPP11_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 
 // std
 #include <cstddef>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
+#include "../core/meta/type_utility.hpp"  // clean_t
 #include "../core/meta/type_traits.hpp"
 #include "../core/meta/trait_detect.hpp"
 #include "./test_common.hpp"
 #include "./test_object.hpp"   // is_test_evaluable (folded in from test_object_traits; element protocol, section II)
-
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "test_container.hpp requires C++11 or higher"
-#endif
 
 
 NS_DJINTERP
@@ -90,51 +97,51 @@ NS_TEST
 //   The minimal structural members the trait family probes for.  Each
 // is emitted through trait_detect.hpp's SFINAE engine, so the `_v`
 // companion is generated and feature-gated automatically.  The probes
-// query _Type directly; the contract predicates below apply clean_t
+// query Type directly; the contract predicates below apply clean_t
 // before invoking them, so a const / ref-qualified container agrees
 // with its bare form.
 
 // has_value_type
-//   trait: true iff `_Type` exposes a nested value_type alias - the
+//   trait: true iff `Type` exposes a nested value_type alias - the
 // element type the container holds.
 D_TYPE_TRAIT_HAS_TYPE(has_value_type, value_type)
 
 // has_size_accessor
-//   trait: true iff `_Type` exposes size() on a const lvalue.
+//   trait: true iff `Type` exposes size() on a const lvalue.
 D_TYPE_TRAIT_TRUE(has_size_accessor,
-    decltype(std::declval<const _Type&>().size()))
+    decltype(std::declval<const Type&>().size()))
 
 // has_empty_method
-//   trait: true iff `_Type` exposes empty() on a const lvalue.
+//   trait: true iff `Type` exposes empty() on a const lvalue.
 D_TYPE_TRAIT_TRUE(has_empty_method,
-    decltype(std::declval<const _Type&>().empty()))
+    decltype(std::declval<const Type&>().empty()))
 
 // has_begin_end
-//   trait: true iff `_Type` exposes both begin() and end() on a
+//   trait: true iff `Type` exposes both begin() and end() on a
 // non-const lvalue - the sequential traversal a runner walks.
 D_TYPE_TRAIT_TRUE(has_begin_end,
-    decltype(std::declval<_Type&>().begin()),
-    decltype(std::declval<_Type&>().end()))
+    decltype(std::declval<Type&>().begin()),
+    decltype(std::declval<Type&>().end()))
 
 // has_root_method
-//   trait: true iff `_Type` exposes root() on a non-const lvalue - the
+//   trait: true iff `Type` exposes root() on a non-const lvalue - the
 // forest entry point each tree of test_objects hangs from.
 D_TYPE_TRAIT_TRUE(has_root_method,
-    decltype(std::declval<_Type&>().root()))
+    decltype(std::declval<Type&>().root()))
 
 // has_clear_method
-//   trait: true iff `_Type` exposes clear() on a non-const lvalue.
+//   trait: true iff `Type` exposes clear() on a non-const lvalue.
 D_TYPE_TRAIT_TRUE(has_clear_method,
-    decltype(std::declval<_Type&>().clear()))
+    decltype(std::declval<Type&>().clear()))
 
 // has_append_child_method
-//   trait: true iff `_Type` exposes append_child(node_type*,
+//   trait: true iff `Type` exposes append_child(node_type*,
 // value_type) - the build-surface entry point for growing a tree of
 // test_objects.
 D_TYPE_TRAIT_TRUE(has_append_child_method,
-    decltype(std::declval<_Type&>().append_child(
-        std::declval<typename _Type::node_type*>(),
-        std::declval<typename _Type::value_type>())))
+    decltype(std::declval<Type&>().append_child(
+        std::declval<typename Type::node_type*>(),
+        std::declval<typename Type::value_type>())))
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -147,9 +154,9 @@ NS_INTERNAL
     //   trait: guarded element check.  The primary template (no
     // value_type) is false; the guard keeps the contract predicates
     // well-formed for types that do not expose value_type, where
-    // naming _Type::value_type would otherwise be a hard error.
-    template<typename _Type,
-             bool     _HasValueType>
+    // naming Type::value_type would otherwise be a hard error.
+    template<typename Type,
+             bool     HasValueType>
     struct container_element_evaluable
     {
         static constexpr bool value = false;
@@ -157,11 +164,11 @@ NS_INTERNAL
 
     // container_element_evaluable (value_type present)
     //   trait: defers to is_test_evaluable on the element type.
-    template<typename _Type>
-    struct container_element_evaluable<_Type, true>
+    template<typename Type>
+    struct container_element_evaluable<Type, true>
     {
         static constexpr bool value =
-            is_test_evaluable<typename _Type::value_type>::value;
+            is_test_evaluable<typename Type::value_type>::value;
     };
 
 NS_END  // internal
@@ -172,16 +179,16 @@ NS_END  // internal
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_test_object_container
-//   trait: the MINIMUM contract - true iff `_Type` can hold and run
+//   trait: the MINIMUM contract - true iff `Type` can hold and run
 // test_objects.  Requires a value_type whose element satisfies the
 // test object protocol (is_test_evaluable), sequential traversal
 // (begin/end), and capacity reporting (size/empty).  This is the lean
 // "container of test_objects" bar - tree-shaped or flat.
-template<typename _Type>
+template<typename Type>
 struct is_test_object_container
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
     static constexpr bool value =
@@ -201,11 +208,11 @@ D_TYPE_TRAIT_VALUE_BOOL(is_test_object_container)
 //   trait: a forest / tree-shaped test_object container - the minimum
 // contract PLUS a root() entry point, so each held element may be the
 // root of a tree of test_objects walked by child navigation.
-template<typename _Type>
+template<typename Type>
 struct is_rooted_test_container
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
     static constexpr bool value =
@@ -221,11 +228,11 @@ D_TYPE_TRAIT_VALUE_BOOL(is_rooted_test_container)
 // the append_child(node_type*, value_type) build surface used by
 // rank-checked insertion and graft.  Separates the build capability
 // from the read / run minimum above.
-template<typename _Type>
+template<typename Type>
 struct is_buildable_test_container
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
     static constexpr bool value =
@@ -248,54 +255,54 @@ D_TYPE_TRAIT_VALUE_BOOL(is_buildable_test_container)
 
 // value_typed_test_container
 //   concept: exposes a value_type alias.
-template<typename _Type>
+template<typename Type>
 concept value_typed_test_container =
-    has_value_type<clean_t<_Type>>::value;
+    has_value_type<clean_t<Type>>::value;
 
 // iterable_test_container
 //   concept: exposes begin()/end() for sequential traversal.
-template<typename _Type>
+template<typename Type>
 concept iterable_test_container =
-    has_begin_end<clean_t<_Type>>::value;
+    has_begin_end<clean_t<Type>>::value;
 
 // sized_test_container
 //   concept: exposes size() and empty().
-template<typename _Type>
+template<typename Type>
 concept sized_test_container =
-    ( has_size_accessor<clean_t<_Type>>::value &&
-      has_empty_method<clean_t<_Type>>::value );
+    ( has_size_accessor<clean_t<Type>>::value &&
+      has_empty_method<clean_t<Type>>::value );
 
 // rootable_test_container
 //   concept: exposes root().
-template<typename _Type>
+template<typename Type>
 concept rootable_test_container =
-    has_root_method<clean_t<_Type>>::value;
+    has_root_method<clean_t<Type>>::value;
 
 // growable_test_container
 //   concept: exposes append_child(node_type*, value_type).
-template<typename _Type>
+template<typename Type>
 concept growable_test_container =
-    has_append_child_method<clean_t<_Type>>::value;
+    has_append_child_method<clean_t<Type>>::value;
 
 
 // test_object_container
 //   concept: the MINIMUM contract; mirrors is_test_object_container.
-template<typename _Type>
+template<typename Type>
 concept test_object_container =
-    is_test_object_container<clean_t<_Type>>::value;
+    is_test_object_container<clean_t<Type>>::value;
 
 // rooted_test_container
 //   concept: forest / tree-shaped container; mirrors
 // is_rooted_test_container.
-template<typename _Type>
+template<typename Type>
 concept rooted_test_container =
-    is_rooted_test_container<clean_t<_Type>>::value;
+    is_rooted_test_container<clean_t<Type>>::value;
 
 // buildable_test_container
 //   concept: growable container; mirrors is_buildable_test_container.
-template<typename _Type>
+template<typename Type>
 concept buildable_test_container =
-    is_buildable_test_container<clean_t<_Type>>::value;
+    is_buildable_test_container<clean_t<Type>>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -303,5 +310,6 @@ concept buildable_test_container =
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_TEST_CONTAINER_
+#endif  // DJINTERP_TEST_TEST_CONTAINER_HPP

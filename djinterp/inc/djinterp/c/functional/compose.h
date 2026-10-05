@@ -1,20 +1,23 @@
-/******************************************************************************
-* djinterp [functional]                                           compose.h
+/*******************************************************************************
+* djinterp [c]                                                         compose.h
 *
 * Function composition and partial application for the functional module.
 *   Provides transformer composition, partial application helpers, convenience
 * composition macros, and composable function template utilities.
 *
-* 
-* path:      /inc/functional/compose.h
+*
+* path:      /inc/djinterp/c/functional/compose.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.09
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_C_FUNCTIONAL_COMPOSE_
-#define DJINTERP_C_FUNCTIONAL_COMPOSE_ 1
+#ifndef DJINTERP_C_FUNCTIONAL_COMPOSE_H
+#define DJINTERP_C_FUNCTIONAL_COMPOSE_H 1
 
+// std
 #include <stdlib.h>
+// djinterp
 #include "../djinterp.h"
 #include "./functional_common.h"
 
@@ -22,13 +25,13 @@
 
 // D_FUNCTIONAL_THEN
 //   macro: chains two operations sequentially (left-to-right composition).
-// Usage: 
+// Usage:
 //   result = D_FUNCTIONAL_THEN(D_FUNCTIONAL_THEN(func1, func2), f3)(input);
 #define D_FUNCTIONAL_THEN(func1, func2)                                     \
-    d_functional_compose_##func1##_##func2                                  
-                                                                            
-// D_FUNCTIONAL_AND_THEN                                                    
-//   macro: alias for D_FUNCTIONAL_THEN for readability.                    
+    d_functional_compose_##func1##_##func2
+
+// D_FUNCTIONAL_AND_THEN
+//   macro: alias for D_FUNCTIONAL_THEN for readability.
 #define D_FUNCTIONAL_AND_THEN(func1, func2)                                 \
     D_FUNCTIONAL_THEN(func1, func2)
 
@@ -75,7 +78,7 @@
                          (count),                                           \
                          (size),                                            \
                          (test),                                            \
-                         NULL)                               
+                         NULL)
 
 
 /// composable function templates
@@ -95,10 +98,10 @@
         *(type*)_output = func_name(*(const type*)_input);                  \
                                                                             \
         return true;                                                        \
-    }                                                           
+    }
 
-// D_FUNCTIONAL_MAKE_PREDICATE_FROM                             
-//   macro: converts a boolean function to fn_predicate.         
+// D_FUNCTIONAL_MAKE_PREDICATE_FROM
+//   macro: converts a boolean function to fn_predicate.
 #define D_FUNCTIONAL_MAKE_PREDICATE_FROM(func_name,                         \
                                          type)                              \
     D_INLINE bool                                                           \
@@ -155,4 +158,4 @@ void                       d_functional_partial_consumer_apply(const struct d_pa
 void                       d_functional_partial_consumer_free(struct d_partial_consumer* _partial);
 
 
-#endif  // DJINTERP_C_FUNCTIONAL_COMPOSE_
+#endif  // DJINTERP_C_FUNCTIONAL_COMPOSE_H

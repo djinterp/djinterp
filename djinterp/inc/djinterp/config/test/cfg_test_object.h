@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [config/test]                                    cfg_test_object.h   
+/*******************************************************************************
+* djinterp [config]                                            cfg_test_object.h
 *
 *   Configuration for the DTest node module.
 *
@@ -17,22 +17,42 @@
 *   THIS FILE DECLARES KNOBS.  IT DOES NOT DECLARE TYPES.  D_CFG_* originates
 * here with a default and a validation block; the typedef that turns it into a
 * type lives at the top of the module header that owns the type, where a reader
-* looking for d_test_type_id or d_test_callable_id finds it in the file that uses it.  A config header
-* that also typedefs is a second place to look for one answer.
+* looking for d_test_status, d_test_type_id or d_test_callable_id finds it in
+* the file that uses it.  A config header that also typedefs is a second place
+* to look for one answer.
 *
-* path:      /inc/djinterp/config/c/test/cfg_test_object.h
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.11
-******************************************************************************/
+*   THE THREE TYPE KNOBS ARE VALIDATED BY STATIC ASSERTION, NOT BY `#error`.
+* A knob that NAMES a type cannot be checked by the preprocessor -- there is no
+* directive that can ask whether `int32_t` is signed.  The boolean knob below
+* gets its `#error` in section II; the three type knobs get signedness and
+* width assertions in test_common.h, beside the typedefs they produce.
+*
+*
+* path:      /inc/djinterp/config/test/cfg_test_object.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.11
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_CONFIG_C_TEST_OBJECT
-#define DJINTERP_CONFIG_C_TEST_OBJECT 1
+#ifndef DJINTERP_CONFIG_TEST_CFG_TEST_OBJECT_H
+#define DJINTERP_CONFIG_TEST_CFG_TEST_OBJECT_H 1
 
-#include "../../cfg_common.h"
+// djinterp
+#include "../cfg_common.h"
 
 
 // =============================================================================
 // I.   USER KNOBS
 // =============================================================================
+
+// D_CFG_TEST_STATUS_TYPE
+//   knob: type of d_test_status. Must be SIGNED integral -- the value set is
+// dense from 0 and d_test_status_is_valid rejects on `< 0`, which an unsigned
+// type cannot express.
+//   Default int32_t -- what the field was before it was configurable.
+#ifndef D_CFG_TEST_STATUS_TYPE
+#   define D_CFG_TEST_STATUS_TYPE int32_t
+#endif
 
 // D_CFG_TEST_TYPE_ID_TYPE
 //   knob: type of d_test_type_id. Must be SIGNED integral.
@@ -81,4 +101,4 @@
 #   define D_INTERNAL_TEST_OBJECT_VALIDATE_STATUS 0
 #endif
 
-#endif  // DJINTERP_CONFIG_C_TEST_OBJECT
+#endif  // DJINTERP_CONFIG_TEST_CFG_TEST_OBJECT_H

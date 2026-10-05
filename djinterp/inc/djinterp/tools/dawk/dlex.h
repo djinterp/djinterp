@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                       dlex.h
+/*******************************************************************************
+* djinterp [djinterp]                                                     dlex.h
 *
 *   Tokeniser for POSIX awk.
 *     Two rules here are not obvious from the grammar. A slash begins a regular
@@ -12,9 +12,9 @@
 *
 * path:      /inc/djinterp/tools/dawk/dlex.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS

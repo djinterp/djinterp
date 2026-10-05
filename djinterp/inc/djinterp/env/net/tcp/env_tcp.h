@@ -6,10 +6,9 @@
 * detection: the socket API tcp.c compiles against, and whether that API
 * offers unix-domain stream sockets, TCP_NODELAY, and poll. It includes no
 * system header; env_net.h has already probed for them.
-*   Include it after the framework root. Reached any other way, env_net.h's
-* detection may still be incomplete, and every flag here would read as
-* absent; this header refuses to compile in that case rather than disable
-* TCP silently.
+*   Were env_net.h's detection ever incomplete when this header is reached,
+* every flag here would read as absent; it refuses to compile in that case
+* rather than disable TCP silently.
 *
 *
 * path:      /inc/djinterp/env/net/tcp/env_tcp.h

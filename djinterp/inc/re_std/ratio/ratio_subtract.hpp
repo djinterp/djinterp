@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           ratio_subtract.hpp
 *
 * ratio_subtract header:
@@ -15,26 +15,28 @@
 *   C++11, matching std.
 *
 *
-* path:      /inc/djinterp/re_std/ratio/ratio_subtract.hpp
+* path:      /inc/re_std/ratio/ratio_subtract.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RATIO_RATIO_SUBTRACT_
-#define DJINTERP_RE_STD_RATIO_RATIO_SUBTRACT_ 1
+#ifndef RE_STD_RATIO_RATIO_SUBTRACT_HPP
+#define RE_STD_RATIO_RATIO_SUBTRACT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./ratio.hpp"
 #include "./ratio_add.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -43,17 +45,17 @@ NS_RESTD
 
 // ratio_subtract
 //   alias: the reduced difference of two ratios.
-template<typename _R1,
-         typename _R2>
+template<typename R1,
+         typename R2>
 struct ratio_subtract
-    : ratio_add< _R1, ratio<-_R2::num, _R2::den> >::type
+    : ratio_add< R1, ratio<-R2::num, R2::den> >::type
 {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RATIO_RATIO_SUBTRACT_
+#endif  // RE_STD_RATIO_RATIO_SUBTRACT_HPP

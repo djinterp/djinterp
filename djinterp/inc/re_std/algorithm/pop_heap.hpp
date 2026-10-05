@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 pop_heap.hpp
 *
 * pop_heap algorithm header:
@@ -25,16 +25,17 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/pop_heap.hpp
+* path:      /inc/re_std/algorithm/pop_heap.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_POP_HEAP_
-#define DJINTERP_RE_STD_ALGORITHM_POP_HEAP_ 1
+#ifndef RE_STD_ALGORITHM_POP_HEAP_HPP
+#define RE_STD_ALGORITHM_POP_HEAP_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -45,16 +46,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -62,24 +56,24 @@ NS_RESTD
 // ===========================================================================
 
 // _pop_heap_sift_down_
-//   sifts the element at index _start in [_first, _first + _length)
+//   function: sifts the element at index _start in [_first, _first + _length)
 // downward, swapping with the larger child while it compares less
 // under _comp. Children of index i are at 2i + 1 and 2i + 2.
-template<typename _RandomIt,
-         typename _Distance,
-         typename _Compare>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt,
+         typename Distance,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 void
 _pop_heap_sift_down_(
-    _RandomIt _first,
-    _Distance _start,
-    _Distance _length,
-    _Compare  _comp
+    RandomIt _first,
+    Distance _start,
+    Distance _length,
+    Compare  _comp
 )
 {
-    _Distance _parent = _start;
+    Distance _parent = _start;
     while (true)
     {
-        _Distance _child = static_cast<_Distance>(2 * _parent + 1);
+        Distance _child = static_cast<Distance>(2 * _parent + 1);
         if (_child >= _length)
         {
             break;
@@ -107,16 +101,16 @@ _pop_heap_sift_down_(
 //   function: moves the heap's maximum to *(_last - 1) and restores
 // the heap property on [_first, _last - 1). No-op if the input range
 // has fewer than two elements.
-template<typename _RandomIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 void
 pop_heap(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _length = _last - _first;
     if (_length < 2)
@@ -125,26 +119,26 @@ pop_heap(
     }
 
     iter_swap(_first, _last - 1);
-    _pop_heap_sift_down_<_RandomIt, _Diff, _Compare>(
+    _pop_heap_sift_down_<RandomIt, _Diff, Compare>(
         _first, static_cast<_Diff>(0), _length - 1, _comp);
 }
 
 
 // pop_heap (default operator<)
 //   function: as above with re_std::less<value_type>().
-template<typename _RandomIt>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt>
+RE_STD_CONSTEXPR_CPP14 void
 pop_heap(
-    _RandomIt _first,
-    _RandomIt _last
+    RandomIt _first,
+    RandomIt _last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
     pop_heap(_first, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_POP_HEAP_
+#endif  // RE_STD_ALGORITHM_POP_HEAP_HPP

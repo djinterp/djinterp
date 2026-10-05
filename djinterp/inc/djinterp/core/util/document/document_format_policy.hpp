@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                 document_format_policy.hpp
+/*******************************************************************************
+* djinterp [core]                                     document_format_policy.hpp
 *
 *   The runtime bridge from a `document_format` selector to a boxed print
 * policy -- the piece that was split out of document_format.hpp so that header
@@ -37,24 +37,33 @@
 * suppresses below it.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    RUNTIME FACTORY               (make_print_policy / make_boxed_document)
-*
-*
 * path:      /inc/djinterp/core/util/document/document_format_policy.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_DOCUMENT_FORMAT_POLICY_
-#define DJINTERP_UTIL_DOCUMENT_FORMAT_POLICY_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    RUNTIME FACTORY               (make_print_policy / make_boxed_document)
+      -----------------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_UTIL_DOCUMENT_DOCUMENT_FORMAT_POLICY_HPP
+#define DJINTERP_UTIL_DOCUMENT_DOCUMENT_FORMAT_POLICY_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <optional>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "./document_format.hpp"   // document_format (the selector)
 #include "./document.hpp"          // document, and (transitively)
                                    // boxed_print_policy, xml_print_policy,
@@ -140,5 +149,6 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_DOCUMENT_FORMAT_POLICY_
+#endif  // DJINTERP_UTIL_DOCUMENT_DOCUMENT_FORMAT_POLICY_HPP

@@ -10,18 +10,19 @@
 * path:      /src/djinterp/c/dtime.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.21
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.10.03
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dtime.h"      // corresponding header
 // std
 #include <errno.h>                                // errno, EINVAL
 #include <stddef.h>                               // size_t, NULL
-#include <stdint.h>                               // int64_t
 #include <string.h>                               // strlen
 #include <time.h>                                 // localtime_r, strftime, ...
 // djinterp
-#include "../../../inc/djinterp/c/dmemory.h"    // d_memcpy, d_memset
-#include "../../../inc/djinterp/c/string_fn.h"  // d_strncasecmp
+#include "../../../inc/djinterp/c/memory/dmemory.h"  // d_memcpy, d_memset
+#include "../../../inc/djinterp/c/string_fn.h"       // d_strncasecmp
+// re_std
+#include "../../../inc/re_std/cstdint/dstdint.h"  // int64_t
 // platform
 #if defined(D_TIME_PLATFORM_WINDOWS)
     #ifndef WIN32_LEAN_AND_MEAN
@@ -1657,7 +1658,8 @@ d_strftime_s(
         return 0;
     }
 
-#if D_ENV_CRT_MSVC
+#if ( (defined(D_ENV_CRT_MSVC)) &&                                             \
+      (D_ENV_CRT_MSVC) )
     const size_t result = strftime_s(_s,
                                      _maxsize,
                                      _format,

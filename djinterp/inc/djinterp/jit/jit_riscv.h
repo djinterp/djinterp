@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                   jit_riscv.h
+/*******************************************************************************
+* djinterp [jit]                                                     jit_riscv.h
 *
 * djinterp RISC-V (RV32I / RV64I) JIT encoder (fixed-width 32-bit words):
 *   The RISC-V half of the djinterp JIT. Unlike x86/x86-64 or ARM A32/A64, the
@@ -26,16 +26,26 @@
 *
 *   Requires:  jit.h (d_jit_buffer, the emit primitives, the label facility).
 *
+*
 * path:      /inc/djinterp/jit/jit_riscv.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_JIT_RISCV_
-#define DJINTERP_JIT_RISCV_ 1
+#ifndef DJINTERP_JIT_JIT_RISCV_H
+#define DJINTERP_JIT_JIT_RISCV_H 1
 
 // djinterp
 #include "jit.h"
+// re_std
+#include "../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's floor
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
 
 
 // ===========================================================================
@@ -530,4 +540,6 @@ const char* d_jit_riscv_reg_name(int _reg);
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_JIT_RISCV_
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_JIT_JIT_RISCV_H

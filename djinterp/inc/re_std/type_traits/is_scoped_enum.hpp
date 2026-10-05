@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                       is_scoped_enum.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           is_scoped_enum.hpp
 *
 * is_scoped_enum trait header:
 *   is_scoped_enum<T>::value is true iff T is a scoped enumeration --
@@ -20,16 +20,22 @@
 *   C++11 baseline. The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_scoped_enum.hpp
+* path:      /inc/re_std/type_traits/is_scoped_enum.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_SCOPED_ENUM_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_SCOPED_ENUM_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_SCOPED_ENUM_HPP
+#define RE_STD_TYPE_TRAITS_IS_SCOPED_ENUM_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// re_std
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
@@ -39,56 +45,58 @@
 
 
 // =============================================================================
-// 0.   D_RE_STD_HAS_IS_SCOPED_ENUM  (intrinsic detection)
+// 0.   RE_STD_HAS_IS_SCOPED_ENUM  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RE_STD_HAS_IS_SCOPED_ENUM
+#ifndef RE_STD_HAS_IS_SCOPED_ENUM
     #if defined(__has_builtin)
         #if __has_builtin(__is_scoped_enum)
-            #define D_RE_STD_HAS_IS_SCOPED_ENUM  1
+            #define RE_STD_HAS_IS_SCOPED_ENUM  1
         #else
-            #define D_RE_STD_HAS_IS_SCOPED_ENUM  0
+            #define RE_STD_HAS_IS_SCOPED_ENUM  0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
-            defined(D_ENV_COMPILER_CLANG) ||                                  \
-            defined(D_ENV_COMPILER_MSVC)  ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
-        #define D_RE_STD_HAS_IS_SCOPED_ENUM      1
+    #elif ( defined(RE_STD_COMPILER_GCC)   ||                                  \
+            defined(RE_STD_COMPILER_CLANG) ||                                  \
+            defined(RE_STD_COMPILER_MSVC)  ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
+        #define RE_STD_HAS_IS_SCOPED_ENUM      1
     #else
-        #define D_RE_STD_HAS_IS_SCOPED_ENUM      0
+        #define RE_STD_HAS_IS_SCOPED_ENUM      0
     #endif
-#endif  // D_RE_STD_HAS_IS_SCOPED_ENUM
+#endif  // RE_STD_HAS_IS_SCOPED_ENUM
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_SCOPED_ENUM
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_SCOPED_ENUM
+#if RE_STD_HAS_IS_SCOPED_ENUM
 
 // is_scoped_enum
 //   trait: intrinsic-backed -- an enumeration declared with enum class or enum struct.
-template<typename _Type>
-struct is_scoped_enum : integral_constant<bool, __is_scoped_enum(_Type)>
+template<typename Type>
+struct is_scoped_enum : integral_constant<bool, __is_scoped_enum(Type)>
 {};
 
 #else
 
-NS_INTERNAL
+namespace internal
+{
 
 // is_scoped_enum_impl
 //   trait: library-level implementation, selected when the intrinsic is
-// absent. Primary template -- _Type is not an enumeration.
-template<typename _Type,
-         bool = is_enum<_Type>::value>
+// absent. Primary template -- Type is not an enumeration.
+template<typename Type,
+         bool = is_enum<Type>::value>
 struct is_scoped_enum_impl : false_type
 {};
 
-// is_scoped_enum_impl<_Type, true>
-//   trait: _Type IS an enumeration, so the question reduces to whether it
+// is_scoped_enum_impl<Type, true>
+//   trait: Type IS an enumeration, so the question reduces to whether it
 // converts implicitly to its own underlying type. An unscoped enum does;
 // a scoped one does not. That difference is the definition of scoped, and
 // it is observable through is_convertible -- which is why this trait,
@@ -96,39 +104,41 @@ struct is_scoped_enum_impl : false_type
 //
 //   underlying_type is only well-formed for an enumeration, which is
 // exactly what selecting this specialisation has already established.
-template<typename _Type>
-struct is_scoped_enum_impl<_Type, true>
+template<typename Type>
+struct is_scoped_enum_impl<Type, true>
     : integral_constant<bool,
-          !is_convertible<_Type,
-                          typename underlying_type<_Type>::type>::value>
+          !is_convertible<Type,
+                          typename underlying_type<Type>::type>::value>
 {};
 
-NS_END  // internal
+}  // internal
 
 // is_scoped_enum
 //   trait: library-level implementation. NOT a degradation -- it is exact,
 // and it is the reason this header does not need the intrinsic to be
 // correct on any compiler.
-template<typename _Type>
-struct is_scoped_enum : internal::is_scoped_enum_impl<_Type>
+template<typename Type>
+struct is_scoped_enum : internal::is_scoped_enum_impl<Type>
 {};
 
-#endif  // D_RE_STD_HAS_IS_SCOPED_ENUM
+#endif  // RE_STD_HAS_IS_SCOPED_ENUM
 
 
 // =============================================================================
 // II.  IS_SCOPED_ENUM_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool is_scoped_enum_v = is_scoped_enum<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool is_scoped_enum_v = is_scoped_enum<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
+
+#endif  // floor, for now
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_SCOPED_ENUM_
+#endif  // RE_STD_TYPE_TRAITS_IS_SCOPED_ENUM_HPP

@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                             make_error_code.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          make_error_code.hpp
 *
 * the make_error_code factory (re-export):
 *   builds an error_code from an errc value (and, where their headers are
@@ -8,30 +8,32 @@
 *   overloads whose enums are in scope participate in the using-set.
 *
 *
-* path:      /inc/djinterp/re_std/system_error/make_error_code.hpp
+* path:      /inc/re_std/system_error/make_error_code.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_MAKE_ERROR_CODE_
-#define DJINTERP_RE_STD_SYSTEM_ERROR_MAKE_ERROR_CODE_ 1
+#ifndef RE_STD_SYSTEM_ERROR_MAKE_ERROR_CODE_HPP
+#define RE_STD_SYSTEM_ERROR_MAKE_ERROR_CODE_HPP 1
 
-// djinterp
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <system_error>
 
-NS_RESTD
+namespace re_std
+{
 
     // make_error_code
     //   function: re-export of std::make_error_code (errc overload).
     using ::std::make_error_code;
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_MAKE_ERROR_CODE_
+#endif  // RE_STD_SYSTEM_ERROR_MAKE_ERROR_CODE_HPP

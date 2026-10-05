@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               dangling.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 dangling.hpp
 *
 * dangling tag header:
 *   Provides the placeholder type returned in lieu of an iterator or
@@ -14,18 +14,21 @@
 * construction are implicitly constexpr on C++11+.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/dangling.hpp
+* path:      /inc/re_std/ranges/dangling.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_DANGLING_
-#define DJINTERP_RE_STD_RANGES_DANGLING_ 1
+#ifndef RE_STD_RANGES_DANGLING_HPP
+#define RE_STD_RANGES_DANGLING_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -47,7 +50,7 @@ public:
     // default ctor
     //   function: trivial. implicitly constexpr on C++11+.
     dangling()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {}
 
     // value ctors
@@ -55,23 +58,23 @@ public:
     // C++20 ctor requirement that dangling be constructible from any
     // sequence of arguments (used when algorithms instantiate the
     // dangling type with their argument pack).
-    template<typename _Type>
-    dangling(_Type const&)
-    D_NOEXCEPT
+    template<typename Type>
+    dangling(Type const&)
+    RE_STD_NOEXCEPT
     {}
 
-#if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
-    template<typename _T1,
-             typename _T2,
-             typename... _Rest>
-    dangling(_T1 const&, _T2 const&, _Rest const&...)
-    D_NOEXCEPT
+#if RE_STD_LANG_HAS_VARIADIC_TEMPLATES
+    template<typename T1,
+             typename T2,
+             typename... Rest>
+    dangling(T1 const&, T2 const&, Rest const&...)
+    RE_STD_NOEXCEPT
     {}
 #endif
 };
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_RANGES_DANGLING_
+#endif  // RE_STD_RANGES_DANGLING_HPP

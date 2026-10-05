@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                     move.hpp
 *
 * move algorithm header:
@@ -16,22 +16,24 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/move.hpp
+* path:      /inc/re_std/algorithm/move.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_MOVE_
-#define DJINTERP_RE_STD_ALGORITHM_MOVE_ 1
+#ifndef RE_STD_ALGORITHM_MOVE_HPP
+#define RE_STD_ALGORITHM_MOVE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   GATE: rvalue references required
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 // re_std
 #include "../utility/move.hpp"
@@ -41,16 +43,9 @@
 // 1.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -61,13 +56,13 @@ NS_RESTD
 //   function: moves [_first, _last) into [_d_first, _d_first + N) via
 // re_std::move-cast on each element. Returns one past the last element
 // written.
-template<typename _InputIt,
-         typename _OutputIt>
-D_CONSTEXPR_CPP14 _OutputIt
+template<typename InputIt,
+         typename OutputIt>
+RE_STD_CONSTEXPR_CPP14 OutputIt
 move(
-    _InputIt  _first,
-    _InputIt  _last,
-    _OutputIt _d_first
+    InputIt  _first,
+    InputIt  _last,
+    OutputIt _d_first
 )
 {
     for (; _first != _last; ++_first, (void)++_d_first)
@@ -79,10 +74,10 @@ move(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_MOVE_
+#endif  // RE_STD_ALGORITHM_MOVE_HPP

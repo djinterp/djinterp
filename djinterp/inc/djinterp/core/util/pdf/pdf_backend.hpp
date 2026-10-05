@@ -1,5 +1,20 @@
-#ifndef DJINTERP_UTIL_PDF_BACKEND_
-#define DJINTERP_UTIL_PDF_BACKEND_
+/*******************************************************************************
+* djinterp [core]                                                pdf_backend.hpp
+*
+*
+* path:      /inc/djinterp/core/util/pdf/pdf_backend.hpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.10.01
+*******************************************************************************/
+#ifndef DJINTERP_UTIL_PDF_PDF_BACKEND_HPP
+#define DJINTERP_UTIL_PDF_PDF_BACKEND_HPP
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 ///////////////////////////////////////////////////////////////////////////////
 // pdf_backend.hpp
@@ -9,7 +24,8 @@
 // the drawing vocabulary in pdf_primitives.hpp.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "../../env/env_pdf.h"   // external PDF library detection + preferred-backend hint
+// djinterp
+#include "../../../env/env_pdf.h"   // external PDF library detection + preferred-backend hint
 #include "./pdf_primitives.hpp"
 
 NS_DJINTERP
@@ -283,41 +299,41 @@ NS_INTERNAL
     // self-sufficient and does not depend on the traits header.
 
     // adapter_has_draw_path
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct adapter_has_draw_path : std::false_type {};
 
-    template<typename _Type>
-    struct adapter_has_draw_path<_Type, void_t<
-        decltype(std::declval<_Type&>().draw_path(
+    template<typename Type>
+    struct adapter_has_draw_path<Type, void_t<
+        decltype(std::declval<Type&>().draw_path(
             std::declval<const pdf_path&>(),
             std::declval<const pdf_paint&>()))
     >> : std::true_type {};
 
     // adapter_has_save_state
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct adapter_has_save_state : std::false_type {};
 
-    template<typename _Type>
-    struct adapter_has_save_state<_Type, void_t<
-        decltype(std::declval<_Type&>().save_state())
+    template<typename Type>
+    struct adapter_has_save_state<Type, void_t<
+        decltype(std::declval<Type&>().save_state())
     >> : std::true_type {};
 
     // adapter_has_restore_state
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct adapter_has_restore_state : std::false_type {};
 
-    template<typename _Type>
-    struct adapter_has_restore_state<_Type, void_t<
-        decltype(std::declval<_Type&>().restore_state())
+    template<typename Type>
+    struct adapter_has_restore_state<Type, void_t<
+        decltype(std::declval<Type&>().restore_state())
     >> : std::true_type {};
 
     // adapter_has_draw_image
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct adapter_has_draw_image : std::false_type {};
 
-    template<typename _Type>
-    struct adapter_has_draw_image<_Type, void_t<
-        decltype(std::declval<_Type&>().draw_image(
+    template<typename Type>
+    struct adapter_has_draw_image<Type, void_t<
+        decltype(std::declval<Type&>().draw_image(
             std::declval<const pdf_image&>(),
             std::declval<const pdf_rect&>()))
     >> : std::true_type {};
@@ -339,12 +355,12 @@ NS_END  // internal
 //   third_party_backend tp;            // does not derive pdf_backend
 //   backend_adapter<third_party_backend> a(tp);
 //   pdf_document doc(a);
-template<typename _Backend>
+template<typename Backend>
 class backend_adapter : public pdf_backend
 {
 public:
     explicit backend_adapter(
-        _Backend& _backend
+        Backend& _backend
     ) D_NOEXCEPT
         : m_backend(&_backend)
     {}
@@ -445,7 +461,7 @@ public:
     {
         forward_draw_path(
             _path, _paint,
-            internal::adapter_has_draw_path<_Backend>());
+            internal::adapter_has_draw_path<Backend>());
 
         return;
     }
@@ -454,7 +470,7 @@ public:
     save_state() D_OVERRIDE
     {
         forward_save_state(
-            internal::adapter_has_save_state<_Backend>());
+            internal::adapter_has_save_state<Backend>());
 
         return;
     }
@@ -463,7 +479,7 @@ public:
     restore_state() D_OVERRIDE
     {
         forward_restore_state(
-            internal::adapter_has_restore_state<_Backend>());
+            internal::adapter_has_restore_state<Backend>());
 
         return;
     }
@@ -476,7 +492,7 @@ public:
     {
         forward_draw_image(
             _image, _dest,
-            internal::adapter_has_draw_image<_Backend>());
+            internal::adapter_has_draw_image<Backend>());
 
         return;
     }
@@ -595,10 +611,12 @@ private:
         return;
     }
 
-    _Backend* m_backend;
+    Backend* m_backend;
 };
 
 
 NS_END  // djinterp
 
-#endif  // DJINTERP_UTIL_PDF_BACKEND_
+#endif  // floor, for now
+
+#endif  // DJINTERP_UTIL_PDF_PDF_BACKEND_HPP

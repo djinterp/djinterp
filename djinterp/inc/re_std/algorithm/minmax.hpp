@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   minmax.hpp
 *
 * minmax algorithm header:
@@ -15,7 +15,7 @@
 *   - std::minmax is C++11; re_std back-ports the two-argument forms
 *     to C++98. The initializer_list forms cannot be back-ported:
 *     the language cannot form the type before C++11, so they are
-*     gated on D_ENV_LANG_IS_CPP11_OR_HIGHER.
+*     gated on RE_STD_LANG_IS_CPP11_OR_HIGHER.
 *   - constexpr in std from C++14; re_std matches at C++14.
 *   - The initializer_list forms delegate to minmax_element, which is
 *     what gives them the standard-mandated asymmetric tie-breaking
@@ -44,16 +44,17 @@
 * C++11+ too via the converting constructor.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/minmax.hpp
+* path:      /inc/re_std/algorithm/minmax.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.24
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_MINMAX_
-#define DJINTERP_RE_STD_ALGORITHM_MINMAX_ 1
+#ifndef RE_STD_ALGORITHM_MINMAX_HPP
+#define RE_STD_ALGORITHM_MINMAX_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./minmax_element.hpp"
 #include "../utility/pair.hpp"
@@ -64,28 +65,21 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0b.  MINMAX_RESULT  (tiered return type -- see the header note)
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #define D_RE_STD_MINMAX_RESULT(T)  pair<const T&, const T&>
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+    #define RE_STD_MINMAX_RESULT(T)  pair<const T&, const T&>
 #else
     // re_std::pair cannot hold reference members on C++98: its ctor
     // parameter `const _T1&` becomes a reference to a reference.
-    #define D_RE_STD_MINMAX_RESULT(T)  pair<T, T>
+    #define RE_STD_MINMAX_RESULT(T)  pair<T, T>
 #endif
 
 
@@ -96,16 +90,16 @@ NS_RESTD
 // minmax
 //   function: pair(smaller, larger). On a tie returns pair(_a, _b), so
 // the caller's argument order is preserved.
-template<typename _Type>
-D_CONSTEXPR_CPP14 D_RE_STD_MINMAX_RESULT(_Type)
+template<typename Type>
+RE_STD_CONSTEXPR_CPP14 RE_STD_MINMAX_RESULT(Type)
 minmax(
-    const _Type& _a,
-    const _Type& _b
+    const Type& _a,
+    const Type& _b
 )
 {
     return (_b < _a)
-        ? D_RE_STD_MINMAX_RESULT(_Type)(_b, _a)
-        : D_RE_STD_MINMAX_RESULT(_Type)(_a, _b);
+        ? RE_STD_MINMAX_RESULT(Type)(_b, _a)
+        : RE_STD_MINMAX_RESULT(Type)(_a, _b);
 }
 
 
@@ -115,22 +109,22 @@ minmax(
 
 // minmax (comparator)
 //   function: as above but ordering is decided by _comp.
-template<typename _Type,
-         typename _Compare>
-D_CONSTEXPR_CPP14 D_RE_STD_MINMAX_RESULT(_Type)
+template<typename Type,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 RE_STD_MINMAX_RESULT(Type)
 minmax(
-    const _Type& _a,
-    const _Type& _b,
-    _Compare     _comp
+    const Type& _a,
+    const Type& _b,
+    Compare     _comp
 )
 {
     return _comp(_b, _a)
-        ? D_RE_STD_MINMAX_RESULT(_Type)(_b, _a)
-        : D_RE_STD_MINMAX_RESULT(_Type)(_a, _b);
+        ? RE_STD_MINMAX_RESULT(Type)(_b, _a)
+        : RE_STD_MINMAX_RESULT(Type)(_a, _b);
 }
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // ===========================================================================
 // III. MINMAX (INITIALIZER_LIST, DEFAULT operator<)
@@ -140,15 +134,15 @@ minmax(
 //   function: pair(smallest, largest) BY VALUE. Delegates to
 // minmax_element, so the minimum is the leftmost and the maximum the
 // rightmost of any equal run. The list must not be empty.
-template<typename _Type>
-D_CONSTEXPR_CPP14 pair<_Type, _Type>
+template<typename Type>
+RE_STD_CONSTEXPR_CPP14 pair<Type, Type>
 minmax(
-    initializer_list<_Type> _list
+    initializer_list<Type> _list
 )
 {
-    pair<const _Type*, const _Type*> _p =
+    pair<const Type*, const Type*> _p =
         re_std::minmax_element(_list.begin(), _list.end());
-    return pair<_Type, _Type>(*_p.first, *_p.second);
+    return pair<Type, Type>(*_p.first, *_p.second);
 }
 
 
@@ -158,23 +152,23 @@ minmax(
 
 // minmax (initializer_list, comparator)
 //   function: as above but ordering is decided by _comp.
-template<typename _Type,
-         typename _Compare>
-D_CONSTEXPR_CPP14 pair<_Type, _Type>
+template<typename Type,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 pair<Type, Type>
 minmax(
-    initializer_list<_Type> _list,
-    _Compare                _comp
+    initializer_list<Type> _list,
+    Compare                _comp
 )
 {
-    pair<const _Type*, const _Type*> _p =
+    pair<const Type*, const Type*> _p =
         re_std::minmax_element(_list.begin(), _list.end(), _comp);
-    return pair<_Type, _Type>(*_p.first, *_p.second);
+    return pair<Type, Type>(*_p.first, *_p.second);
 }
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_MINMAX_
+#endif  // RE_STD_ALGORITHM_MINMAX_HPP

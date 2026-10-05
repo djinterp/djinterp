@@ -1,4 +1,18 @@
-#include "../../../inc/c/functional/filter.h"
+/*******************************************************************************
+* djinterp [c]                                                          filter.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/functional/filter.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.10.03
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/functional/filter.h"
+
+// djinterp
+#include "../../../../inc/djinterp/c/string_fn.h"  // d_strtok_r
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -740,7 +754,7 @@ d_filter_chain_new_with_capacity
 
     if (_capacity > 0)
     {
-        chain->operations = malloc(_capacity * 
+        chain->operations = malloc(_capacity *
                                    sizeof(struct d_filter_operation));
 
         if (!chain->operations)
@@ -2201,7 +2215,7 @@ d_filter_union_new
 
     if (_capacity > 0)
     {
-        u->filters = malloc(_capacity * 
+        u->filters = malloc(_capacity *
                             sizeof(struct d_filter_chain*));
 
         if (!u->filters)
@@ -2761,8 +2775,8 @@ d_filter_apply_difference
     }
 
     // apply include chain
-    include_result = d_filter_apply_chain(_diff->include, 
-                                          _input, 
+    include_result = d_filter_apply_chain(_diff->include,
+                                          _input,
                                           _count,
                                           _element_size);
 
@@ -2789,7 +2803,7 @@ d_filter_apply_difference
     }
 
     // apply exclude chain
-    exclude_result = d_filter_apply_chain(_diff->exclude, 
+    exclude_result = d_filter_apply_chain(_diff->exclude,
                                           _input,
                                           _count,
                                           _element_size);
@@ -2901,8 +2915,8 @@ d_filter_count_matches
     struct d_filter_result* result;
     size_t                 match_count;
 
-    result = d_filter_apply_chain(_chain, 
-                                  _input, 
+    result = d_filter_apply_chain(_chain,
+                                  _input,
                                   _count,
                                   _element_size);
 
@@ -2945,9 +2959,9 @@ d_filter_any_match
     size_t                       _element_size
 )
 {
-    return (d_filter_count_matches(_chain, 
-                                   _input, 
-                                   _count, 
+    return (d_filter_count_matches(_chain,
+                                   _input,
+                                   _count,
                                    _element_size) > 0);
 }
 
@@ -2972,9 +2986,9 @@ d_filter_all_match
     size_t                       _element_size
 )
 {
-    return (d_filter_count_matches(_chain, 
-                                   _input, 
-                                   _count, 
+    return (d_filter_count_matches(_chain,
+                                   _input,
+                                   _count,
                                    _element_size) == _count);
 }
 
@@ -3234,6 +3248,64 @@ d_filter_op_type_name
     }
 }
 
+// D_INTERNAL_FILTER_PREDICATE_HEX_SIZE
+//   constant: chars needed to render a predicate pointer as "0x" and two hex
+// digits per byte, including the terminating null character.
+#define D_INTERNAL_FILTER_PREDICATE_HEX_SIZE ((2 * sizeof(fn_predicate)) + 3)
+
+/*
+d_filter_predicate_to_hex_internal
+  Internal helper that renders a predicate pointer's value as "0x" and two
+lowercase hex digits per byte, most significant byte first.
+  `%p` cannot print it: it takes a `void*`, and ISO C defines no conversion
+between function and object pointers. The pointer object's own bytes are the
+portable view of its value, since C lets any object be read as an array of
+`unsigned char`, so the pointer is taken here as a function pointer and never
+converted.
+
+Parameter(s):
+  _buffer: destination; holds D_INTERNAL_FILTER_PREDICATE_HEX_SIZE chars.
+  _test:   the predicate pointer to render.
+Return:
+  none.
+*/
+static void
+d_filter_predicate_to_hex_internal
+(
+    char*        _buffer,
+    fn_predicate _test
+)
+{
+    static const char  HEX_DIGITS[] = "0123456789abcdef";
+    const unsigned int probe        = 1u;
+    unsigned char      bytes[sizeof(fn_predicate)];
+    unsigned char      low_first;
+    size_t             i;
+    size_t             b;
+
+    memcpy(bytes, &_test, sizeof(bytes));
+
+    // an unsigned int's low-order byte comes first in memory exactly when
+    // the platform is little-endian; the digits start from the most
+    // significant byte either way, as an address is read
+    memcpy(&low_first, &probe, 1);
+
+    _buffer[0] = '0';
+    _buffer[1] = 'x';
+
+    for (i = 0; i < sizeof(bytes); i++)
+    {
+        b = (low_first == 1u) ? (sizeof(bytes) - 1 - i) : i;
+
+        _buffer[2 + (2 * i)] = HEX_DIGITS[bytes[b] >> 4];
+        _buffer[3 + (2 * i)] = HEX_DIGITS[bytes[b] & 0x0Fu];
+    }
+
+    _buffer[2 + (2 * sizeof(bytes))] = '\0';
+
+    return;
+}
+
 /*
 d_filter_operation_to_string
   Creates a human-readable string description of a filter operation.
@@ -3251,6 +3323,7 @@ d_filter_operation_to_string
 {
     char*  buffer;
     size_t buf_size;
+    char   test_hex[D_INTERNAL_FILTER_PREDICATE_HEX_SIZE];
 
     if (!_op)
     {
@@ -3297,14 +3370,12 @@ d_filter_operation_to_string
         break;
 
     case D_FILTER_OP_WHERE:
-        snprintf(buffer, buf_size, "where(%p)",
-                 (const void*)_op->params.test);
-
-        break;
-
     case D_FILTER_OP_WHERE_NOT:
-        snprintf(buffer, buf_size, "where_not(%p)",
-                 (const void*)_op->params.test);
+        d_filter_predicate_to_hex_internal(test_hex,
+                                           _op->params.test);
+        snprintf(buffer, buf_size, "%s(%s)",
+                 d_filter_op_type_name(_op->type),
+                 test_hex);
 
         break;
 
@@ -3415,7 +3486,8 @@ d_filter_chain_to_string
 d_filter_operation_from_string
   Parses a string into a filter operation. Supports basic formats:
   "take_first(N)", "take_last(N)", "skip_first(N)", "skip_last(N)",
-  "range(S, E)", "head", "tail", "init", "rest", "reverse".
+  "take_nth(N)", "range(S, E)", "slice(S, E, P)", "head", "tail", "init",
+  "rest", "reverse".
 
 Parameter(s):
   _str: the string to parse.
@@ -3439,17 +3511,8 @@ d_filter_operation_from_string
         return NULL;
     }
 
-    op = malloc(sizeof(struct d_filter_operation));
-
-    // ensure that memory allocation was successful
-    if (!op)
-    {
-        return NULL;
-    }
-
-    memset(op, 0, sizeof(*op));
-
-    // parse known formats
+    // parse known formats; each constructor allocates the operation it
+    // returns, so nothing is allocated here
     if (d_sscanf_s(_str, "take_first(%zu)", &n) == 1)
     {
         op = d_filter_take_first(n);
@@ -3535,8 +3598,6 @@ d_filter_operation_from_string
     }
 
     // unknown format
-    free(op);
-
     return NULL;
 }
 

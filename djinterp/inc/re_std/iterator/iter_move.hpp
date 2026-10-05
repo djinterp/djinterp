@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               iter_move.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                iter_move.hpp
 *
 * iter_move header:
 *   Provides the C++20 re_std::iter_move customisation point object
@@ -26,30 +26,34 @@
 *     class-hierarchy idiom (no concepts required).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/iter_move.hpp
+* path:      /inc/re_std/iterator/iter_move.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_ITER_MOVE_
-#define DJINTERP_RE_STD_ITERATOR_ITER_MOVE_ 1
+#ifndef RE_STD_ITERATOR_ITER_MOVE_HPP
+#define RE_STD_ITERATOR_ITER_MOVE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./iterator_traits.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   ITER_MOVE NIEBLOID
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
 namespace _iter_move_fn
 {
@@ -58,8 +62,8 @@ namespace _iter_move_fn
     // priority<N> is convertible to priority<M> for M <= N, so a
     // call expression that names priority<2> as its argument
     // matches the highest-priority overload that accepts the type.
-    template<int _N>
-    struct priority : priority<_N - 1>
+    template<int N>
+    struct priority : priority<N - 1>
     {};
 
     template<>
@@ -68,46 +72,46 @@ namespace _iter_move_fn
 
 
     // poison pill — ensures the unqualified call iter_move(it)
-    // inside _impl below is found via ADL on _I (rather than via
+    // inside _impl below is found via ADL on I (rather than via
     // ordinary lookup picking up some unrelated function).
     void iter_move() = delete;
 
 
     // _impl, priority 2: ADL form. SFINAE-detects iter_move(it).
-    template<typename _I>
-    D_CONSTEXPR_INLINE
+    template<typename I>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _I&&             _it,
+        I&&             _it,
         priority<2>
     )
-        -> decltype(iter_move(static_cast<_I&&>(_it)))
+        -> decltype(iter_move(static_cast<I&&>(_it)))
     {
-        return iter_move(static_cast<_I&&>(_it));
+        return iter_move(static_cast<I&&>(_it));
     }
 
 
     // _impl, priority 1: default fallback. Cast *it to its rvalue
     // reference type. Mirrors the C++20 default for iter_move when
     // no user customisation is provided.
-    template<typename _I>
-    D_CONSTEXPR_INLINE
+    template<typename I>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _I&&             _it,
+        I&&             _it,
         priority<1>
     )
         -> typename conditional<
-                is_lvalue_reference<decltype(*static_cast<_I&&>(_it))>::value,
+                is_lvalue_reference<decltype(*static_cast<I&&>(_it))>::value,
                 typename add_rvalue_reference<
                     typename remove_reference<
-                        decltype(*static_cast<_I&&>(_it))
+                        decltype(*static_cast<I&&>(_it))
                     >::type
                 >::type,
-                decltype(*static_cast<_I&&>(_it))
+                decltype(*static_cast<I&&>(_it))
            >::type
     {
-        typedef decltype(*static_cast<_I&&>(_it)) deref_t;
+        typedef decltype(*static_cast<I&&>(_it)) deref_t;
         typedef typename conditional<
             is_lvalue_reference<deref_t>::value,
             typename add_rvalue_reference<
@@ -115,37 +119,37 @@ namespace _iter_move_fn
             >::type,
             deref_t
         >::type result_t;
-        return static_cast<result_t>(*static_cast<_I&&>(_it));
+        return static_cast<result_t>(*static_cast<I&&>(_it));
     }
 
 
     // fn — the callable type. operator() dispatches to the
-    // highest-priority _impl that compiles for the given _I.
+    // highest-priority _impl that compiles for the given I.
     struct fn
     {
-        template<typename _I>
-        D_CONSTEXPR_INLINE
+        template<typename I>
+        RE_STD_CONSTEXPR_INLINE
         auto
         operator()(
-            _I&&  _it
+            I&&  _it
         ) const
-            -> decltype(_impl(static_cast<_I&&>(_it), priority<2>()))
+            -> decltype(_impl(static_cast<I&&>(_it), priority<2>()))
         {
-            return _impl(static_cast<_I&&>(_it), priority<2>());
+            return _impl(static_cast<I&&>(_it), priority<2>());
         }
     };
 }  // namespace _iter_move_fn
 
-NS_END  // internal
+}  // internal
 
 
 // iter_move
-//   object: the CPO instance. Inline-constexpr on C++17+,
+//   variable: the CPO instance. Inline-constexpr on C++17+,
 // static-constexpr on C++11/14.
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR internal::_iter_move_fn::fn iter_move = internal::_iter_move_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR internal::_iter_move_fn::fn iter_move = internal::_iter_move_fn::fn();
 #else
-static D_CONSTEXPR internal::_iter_move_fn::fn iter_move = internal::_iter_move_fn::fn();
+static RE_STD_CONSTEXPR internal::_iter_move_fn::fn iter_move = internal::_iter_move_fn::fn();
 #endif
 
 
@@ -153,24 +157,24 @@ static D_CONSTEXPR internal::_iter_move_fn::fn iter_move = internal::_iter_move_
 // II.  ITER_RVALUE_REFERENCE_T
 // ===========================================================================
 
-// iter_rvalue_reference_t<_I>
-//   alias: the type yielded by re_std::iter_move on iterator type _I.
-template<typename _I>
+// iter_rvalue_reference_t<I>
+//   alias: the type yielded by re_std::iter_move on iterator type I.
+template<typename I>
 struct iter_rvalue_reference
 {
-    typedef decltype(re_std::iter_move(declval<_I&>())) type;
+    typedef decltype(re_std::iter_move(declval<I&>())) type;
 };
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-template<typename _I>
-using iter_rvalue_reference_t = typename iter_rvalue_reference<_I>::type;
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+template<typename I>
+using iter_rvalue_reference_t = typename iter_rvalue_reference<I>::type;
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_ITERATOR_ITER_MOVE_
+#endif  // RE_STD_ITERATOR_ITER_MOVE_HPP

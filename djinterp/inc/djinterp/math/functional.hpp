@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                               functional.hpp
+/*******************************************************************************
+* djinterp [math]                                                 functional.hpp
 *
 * Bridge between the math module and the functional subframework.
 *   Math expressions, math_function, and math relations all expose operator(),
@@ -26,28 +26,30 @@
 * std-only adapter layer (e.g. to use the adapters without pulling the whole
 * functional subframework).
 *
+*
 * path:      /inc/djinterp/math/functional.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.20
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_FUNCTIONAL_
-#define DJINTERP_MATH_FUNCTIONAL_ 1
+#ifndef DJINTERP_MATH_FUNCTIONAL_HPP
+#define DJINTERP_MATH_FUNCTIONAL_HPP 1
 
 // std
 #include <type_traits>
 #include <utility>
+// djinterp
 // djinterp -- math
 #include "../djinterp.hpp"
 #include "./expression.hpp"
-#include "./function.hpp"
+#include "function/function.hpp"
 
 // djinterp -- functional subframework (see LAYOUT NOTE)
 #ifndef DJINTERP_MATH_FUNCTIONAL_NO_DEPS
-#  include "../functional/functional_traits.hpp"   // is_callable / is_predicate
-#  include "../functional/compose.hpp"             // compose / pipe / pipe_all
-#  include "../functional/curry.hpp"               // curry / flip / uncurry
-#  include "../functional/pipeline.hpp"            // function_pipeline
+#  include "../core/functional/compose.hpp"             // compose / pipe / pipe_all
+#  include "../core/functional/curry.hpp"               // curry / flip / uncurry
+#  include "../core/functional/pipeline.hpp"            // function_pipeline
 #endif
 
 
@@ -191,4 +193,4 @@ NS_END  // djinterp
 * introspectability and a stable value type.
 ******************************************************************************/
 
-#endif  // DJINTERP_MATH_FUNCTIONAL_
+#endif  // DJINTERP_MATH_FUNCTIONAL_HPP

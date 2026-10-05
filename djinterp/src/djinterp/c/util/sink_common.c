@@ -1,19 +1,22 @@
-/******************************************************************************
-* djinterp [utility]                                            sink_common.c
+/*******************************************************************************
+* djinterp [c]                                                     sink_common.c
 *
 *   The spans and the sink.  Nothing here allocates, opens anything, or knows
 * what the bytes mean -- which is what lets every producer in the framework
 * share one destination abstraction instead of inventing its own.
 *
-* path:      /src/djinterp/core/util/sink_common.c
+*
+* path:      /src/djinterp/c/util/sink_common.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
+*                                                            revised: 2026.09.20
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/util/sink_common.h"
 
+
+// std
 // c
 #include <string.h>
-// djinterp
-#include "./sink_common.h"
 
 
 // =============================================================================

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [expression]                                        expression_ops.hpp
+/*******************************************************************************
+* djinterp [parse]                                            expression_ops.hpp
 *
 *   The verbs over an expression term.  expression.hpp defined the noun --
 * the term is mu<expr_layer>, and cata (recursion.hpp) already folds it.
@@ -21,17 +21,18 @@
 * via mconcat over the vector monoid (monoid.hpp / semigroup.hpp).  The
 * recursion is cata's; the per-layer combine is the algebra's.
 *
-*   REQUIREMENTS.  Everything needs _Atom and _OpId copyable (the same as the
+*   REQUIREMENTS.  Everything needs Atom and OpId copyable (the same as the
 * term).  structural_equal and rewrite_to_fixpoint additionally need
 * operator== on both; the map_* transforms need their mapping function
-* callable on a const _Atom& / const _OpId&.  Transforms return a fresh term
+* callable on a const Atom& / const OpId&.  Transforms return a fresh term
 * (the dynamic term is heap-backed, so this allocates per node).
 *
 *
 * path:      /inc/djinterp/parse/expression/expression_ops.hpp
 * link(s):   ch-recursion.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -54,8 +55,14 @@ III.  TRANSFORMS
       4.    substitute
 */
 
-#ifndef DJINTERP_EXPRESSION_EXPRESSION_OPS_
-#define DJINTERP_EXPRESSION_EXPRESSION_OPS_ 1
+#ifndef DJINTERP_PARSE_EXPRESSION_EXPRESSION_OPS_HPP
+#define DJINTERP_PARSE_EXPRESSION_EXPRESSION_OPS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -78,28 +85,28 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 
 // evaluate
-//   function: folds an expression to a _Result -- the catamorphism in its
+//   function: folds an expression to a Result -- the catamorphism in its
 // most-used shape.  _on_leaf : Atom -> R interprets a leaf; _on_apply :
 // (OpId, const vector<R>&) -> R collapses an application from its already-
 // folded children.  Every interpretation is one of these; the structural
 // recursion is cata's.
-template<typename _Result,
-         typename _OpId,
-         typename _Atom,
-         typename _OnLeaf,
-         typename _OnApply>
+template<typename Result,
+         typename OpId,
+         typename Atom,
+         typename OnLeaf,
+         typename OnApply>
 D_NODISCARD
-_Result
+Result
 evaluate
 (
-    const expression<_OpId, _Atom>& _expression,
-    _OnLeaf                         _on_leaf,
-    _OnApply                        _on_apply
+    const expression<OpId, Atom>& _expression,
+    OnLeaf                          _on_leaf,
+    OnApply                         _on_apply
 )
 {
-    return cata<_Result>(
+    return cata<Result>(
         [_on_leaf, _on_apply]
-        (const expr_layer<_OpId, _Atom, _Result>& _layer) -> _Result
+        (const expr_layer<OpId, Atom, Result>& _layer) -> Result
         {
             if (_layer.is_leaf())
             {
@@ -122,22 +129,22 @@ evaluate
 
 // size
 //   function: the total number of nodes -- leaves and applications alike.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
 std::size_t
 size
 (
-    const expression<_OpId, _Atom>& _expression
+    const expression<OpId, Atom>& _expression
 )
 {
     return evaluate<std::size_t>(
         _expression,
-        [](const _Atom&) -> std::size_t
+        [](const Atom&) -> std::size_t
         {
             return 1;
         },
-        [](const _OpId&, const std::vector<std::size_t>& _children)
+        [](const OpId&, const std::vector<std::size_t>& _children)
             -> std::size_t
         {
             // this node plus the sizes of its sub-terms
@@ -154,22 +161,22 @@ size
 // depth
 //   function: the height of the term -- 1 for a leaf or a nullary
 // application, else 1 plus the deepest child.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
 std::size_t
 depth
 (
-    const expression<_OpId, _Atom>& _expression
+    const expression<OpId, Atom>& _expression
 )
 {
     return evaluate<std::size_t>(
         _expression,
-        [](const _Atom&) -> std::size_t
+        [](const Atom&) -> std::size_t
         {
             return 1;
         },
-        [](const _OpId&, const std::vector<std::size_t>& _children)
+        [](const OpId&, const std::vector<std::size_t>& _children)
             -> std::size_t
         {
             return std::size_t(1) + fold_left(
@@ -191,26 +198,26 @@ depth
 //   function: every atom in the term, in left-to-right leaf order -- the
 // free variables when the atom type is a variable.  Child atom-lists are
 // concatenated through the vector monoid (mconcat).
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-std::vector<_Atom>
+std::vector<Atom>
 atoms
 (
-    const expression<_OpId, _Atom>& _expression
+    const expression<OpId, Atom>& _expression
 )
 {
-    return evaluate<std::vector<_Atom> >(
+    return evaluate<std::vector<Atom> >(
         _expression,
-        [](const _Atom& _atom) -> std::vector<_Atom>
+        [](const Atom& _atom) -> std::vector<Atom>
         {
-            std::vector<_Atom> _single;
+            std::vector<Atom> _single;
             _single.push_back(_atom);
 
             return _single;
         },
-        [](const _OpId&, const std::vector<std::vector<_Atom> >& _children)
-            -> std::vector<_Atom>
+        [](const OpId&, const std::vector<std::vector<Atom> >& _children)
+            -> std::vector<Atom>
         {
             return mconcat(_children);
         });
@@ -219,25 +226,25 @@ atoms
 // operators
 //   function: every operator id in the term, each application contributing
 // its own id ahead of its children's.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-std::vector<_OpId>
+std::vector<OpId>
 operators
 (
-    const expression<_OpId, _Atom>& _expression
+    const expression<OpId, Atom>& _expression
 )
 {
-    return evaluate<std::vector<_OpId> >(
+    return evaluate<std::vector<OpId> >(
         _expression,
-        [](const _Atom&) -> std::vector<_OpId>
+        [](const Atom&) -> std::vector<OpId>
         {
-            return std::vector<_OpId>();
+            return std::vector<OpId>();
         },
-        [](const _OpId& _op, const std::vector<std::vector<_OpId> >& _children)
-            -> std::vector<_OpId>
+        [](const OpId& _op, const std::vector<std::vector<OpId> >& _children)
+            -> std::vector<OpId>
         {
-            std::vector<_OpId> _head;
+            std::vector<OpId> _head;
             _head.push_back(_op);
 
             return mappend(_head, mconcat(_children));
@@ -253,20 +260,20 @@ operators
 //   function: whether two terms have the same shape -- identical leaf atoms,
 // identical operators, identical child sequences, recursively.  A binary
 // recursion (cata folds one term), so it is written directly.  Requires
-// operator== on _Atom and _OpId.
-template<typename _OpId,
-         typename _Atom>
+// operator== on Atom and OpId.
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
 bool
 structural_equal
 (
-    const expression<_OpId, _Atom>& _left,
-    const expression<_OpId, _Atom>& _right
+    const expression<OpId, Atom>& _left,
+    const expression<OpId, Atom>& _right
 )
 {
-    const expr_layer<_OpId, _Atom, expression<_OpId, _Atom> >& _l =
+    const expr_layer<OpId, Atom, expression<OpId, Atom> >& _l =
         _left.out();
-    const expr_layer<_OpId, _Atom, expression<_OpId, _Atom> >& _r =
+    const expr_layer<OpId, Atom, expression<OpId, Atom> >& _r =
         _right.out();
 
     if (_l.is_leaf() != _r.is_leaf())
@@ -308,23 +315,23 @@ structural_equal
 
 // contains_operator
 //   function: whether the given operator id appears anywhere in the term.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
 bool
 contains_operator
 (
-    const expression<_OpId, _Atom>& _expression,
-    const _OpId&                    _target
+    const expression<OpId, Atom>& _expression,
+    const OpId&                    _target
 )
 {
     return evaluate<bool>(
         _expression,
-        [](const _Atom&) -> bool
+        [](const Atom&) -> bool
         {
             return false;
         },
-        [_target](const _OpId& _op, const std::vector<bool>& _children) -> bool
+        [_target](const OpId& _op, const std::vector<bool>& _children) -> bool
         {
             if (_op == _target)
             {
@@ -343,23 +350,23 @@ contains_operator
 
 // contains_atom
 //   function: whether the given atom appears at any leaf of the term.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
 bool
 contains_atom
 (
-    const expression<_OpId, _Atom>& _expression,
-    const _Atom&                    _target
+    const expression<OpId, Atom>& _expression,
+    const Atom&                    _target
 )
 {
     return evaluate<bool>(
         _expression,
-        [_target](const _Atom& _atom) -> bool
+        [_target](const Atom& _atom) -> bool
         {
             return (_atom == _target);
         },
-        [](const _OpId&, const std::vector<bool>& _children) -> bool
+        [](const OpId&, const std::vector<bool>& _children) -> bool
         {
             return fold_left(
                 _children,
@@ -384,32 +391,32 @@ contains_atom
 //   function: rebuilds the term with every atom replaced by _function(atom),
 // changing the atom type; operators and shape are preserved.  The new atom
 // type is deduced from the function's result.
-template<typename _OpId,
-         typename _Atom,
-         typename _Function>
+template<typename OpId,
+         typename Atom,
+         typename Function>
 D_NODISCARD
-expression<_OpId, typename std::decay<decltype(
-    std::declval<_Function&>()(std::declval<const _Atom&>()))>::type>
+expression<OpId, typename std::decay<decltype(
+    std::declval<Function&>()(std::declval<const Atom&>()))>::type>
 map_atoms
 (
-    const expression<_OpId, _Atom>& _expression,
-    _Function                       _function
+    const expression<OpId, Atom>& _expression,
+    Function                        _function
 )
 {
     using new_atom = typename std::decay<decltype(
-        std::declval<_Function&>()(std::declval<const _Atom&>()))>::type;
+        std::declval<Function&>()(std::declval<const Atom&>()))>::type;
 
-    return evaluate<expression<_OpId, new_atom> >(
+    return evaluate<expression<OpId, new_atom> >(
         _expression,
-        [_function](const _Atom& _atom) -> expression<_OpId, new_atom>
+        [_function](const Atom& _atom) -> expression<OpId, new_atom>
         {
-            return expr_leaf<_OpId, new_atom>(_function(_atom));
+            return expr_leaf<OpId, new_atom>(_function(_atom));
         },
-        [](const _OpId&                                       _op,
-           const std::vector<expression<_OpId, new_atom> >&    _children)
-            -> expression<_OpId, new_atom>
+        [](const OpId&                                       _op,
+           const std::vector<expression<OpId, new_atom> >&    _children)
+            -> expression<OpId, new_atom>
         {
-            return expr_apply<_OpId, new_atom>(_op, _children);
+            return expr_apply<OpId, new_atom>(_op, _children);
         });
 }
 
@@ -417,32 +424,32 @@ map_atoms
 //   function: rebuilds the term with every operator id replaced by
 // _function(op), changing the operator type; atoms and shape are preserved.
 // The new operator type is deduced from the function's result.
-template<typename _OpId,
-         typename _Atom,
-         typename _Function>
+template<typename OpId,
+         typename Atom,
+         typename Function>
 D_NODISCARD
 expression<typename std::decay<decltype(
-    std::declval<_Function&>()(std::declval<const _OpId&>()))>::type, _Atom>
+    std::declval<Function&>()(std::declval<const OpId&>()))>::type, Atom>
 map_operators
 (
-    const expression<_OpId, _Atom>& _expression,
-    _Function                       _function
+    const expression<OpId, Atom>& _expression,
+    Function                        _function
 )
 {
     using new_op = typename std::decay<decltype(
-        std::declval<_Function&>()(std::declval<const _OpId&>()))>::type;
+        std::declval<Function&>()(std::declval<const OpId&>()))>::type;
 
-    return evaluate<expression<new_op, _Atom> >(
+    return evaluate<expression<new_op, Atom> >(
         _expression,
-        [](const _Atom& _atom) -> expression<new_op, _Atom>
+        [](const Atom& _atom) -> expression<new_op, Atom>
         {
-            return expr_leaf<new_op, _Atom>(_atom);
+            return expr_leaf<new_op, Atom>(_atom);
         },
-        [_function](const _OpId&                              _op,
-                    const std::vector<expression<new_op, _Atom> >& _children)
-            -> expression<new_op, _Atom>
+        [_function](const OpId&                              _op,
+                    const std::vector<expression<new_op, Atom> >& _children)
+            -> expression<new_op, Atom>
         {
-            return expr_apply<new_op, _Atom>(_function(_op), _children);
+            return expr_apply<new_op, Atom>(_function(_op), _children);
         });
 }
 
@@ -456,28 +463,28 @@ map_operators
 // children have been rewritten -- a single bottom-up pass.  _rule is any
 // expression -> expression (a simplification step, a normalization, a
 // constant fold); returning its argument unchanged is a no-op at that node.
-template<typename _OpId,
-         typename _Atom,
-         typename _Rule>
+template<typename OpId,
+         typename Atom,
+         typename Rule>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 transform_bottom_up
 (
-    const expression<_OpId, _Atom>& _expression,
-    _Rule                           _rule
+    const expression<OpId, Atom>& _expression,
+    Rule                            _rule
 )
 {
-    return evaluate<expression<_OpId, _Atom> >(
+    return evaluate<expression<OpId, Atom> >(
         _expression,
-        [_rule](const _Atom& _atom) -> expression<_OpId, _Atom>
+        [_rule](const Atom& _atom) -> expression<OpId, Atom>
         {
-            return _rule(expr_leaf<_OpId, _Atom>(_atom));
+            return _rule(expr_leaf<OpId, Atom>(_atom));
         },
-        [_rule](const _OpId&                                   _op,
-                const std::vector<expression<_OpId, _Atom> >&    _children)
-            -> expression<_OpId, _Atom>
+        [_rule](const OpId&                                   _op,
+                const std::vector<expression<OpId, Atom> >&    _children)
+            -> expression<OpId, Atom>
         {
-            return _rule(expr_apply<_OpId, _Atom>(_op, _children));
+            return _rule(expr_apply<OpId, Atom>(_op, _children));
         });
 }
 
@@ -491,24 +498,24 @@ transform_bottom_up
 // nothing (the fixed point) or _max_passes is reached -- the standard driver
 // for a set of simplification rules.  Convergence is the caller's
 // responsibility; the pass cap guards a non-terminating (non-confluent) rule
-// set.  Requires operator== on _Atom and _OpId (via structural_equal).
-template<typename _OpId,
-         typename _Atom,
-         typename _Rule>
+// set.  Requires operator== on Atom and OpId (via structural_equal).
+template<typename OpId,
+         typename Atom,
+         typename Rule>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 rewrite_to_fixpoint
 (
-    const expression<_OpId, _Atom>& _expression,
-    _Rule                           _rule,
+    const expression<OpId, Atom>& _expression,
+    Rule                            _rule,
     std::size_t                     _max_passes = 1024
 )
 {
-    expression<_OpId, _Atom> _current = _expression;
+    expression<OpId, Atom> _current = _expression;
 
     for (std::size_t _pass = 0; _pass < _max_passes; ++_pass)
     {
-        expression<_OpId, _Atom> _next =
+        expression<OpId, Atom> _next =
             transform_bottom_up(_current, _rule);
 
         // a fixed point -- the rule left every node unchanged this pass
@@ -534,33 +541,35 @@ rewrite_to_fixpoint
 // bind.  _binding is total: it returns expr_leaf(atom) for an atom it does
 // not rebind (leaving it in place).  Operators and application shape are
 // preserved around the substituted leaves.
-template<typename _OpId,
-         typename _Atom,
-         typename _Binding>
+template<typename OpId,
+         typename Atom,
+         typename Binding>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 substitute
 (
-    const expression<_OpId, _Atom>& _expression,
-    _Binding                        _binding
+    const expression<OpId, Atom>& _expression,
+    Binding                         _binding
 )
 {
-    return evaluate<expression<_OpId, _Atom> >(
+    return evaluate<expression<OpId, Atom> >(
         _expression,
-        [_binding](const _Atom& _atom) -> expression<_OpId, _Atom>
+        [_binding](const Atom& _atom) -> expression<OpId, Atom>
         {
             return _binding(_atom);
         },
-        [](const _OpId&                                   _op,
-           const std::vector<expression<_OpId, _Atom> >&    _children)
-            -> expression<_OpId, _Atom>
+        [](const OpId&                                   _op,
+           const std::vector<expression<OpId, Atom> >&    _children)
+            -> expression<OpId, Atom>
         {
-            return expr_apply<_OpId, _Atom>(_op, _children);
+            return expr_apply<OpId, Atom>(_op, _children);
         });
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EXPRESSION_EXPRESSION_OPS_
+
+#endif  // DJINTERP_PARSE_EXPRESSION_EXPRESSION_OPS_HPP

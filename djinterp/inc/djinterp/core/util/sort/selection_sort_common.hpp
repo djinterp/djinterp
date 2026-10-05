@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                  selection_sort_common.hpp
+/*******************************************************************************
+* djinterp [core]                                      selection_sort_common.hpp
 *
 *   The primitives every selection sort is built from.
 * A selection sort is a driver wrapped around two operations: find the element
@@ -48,17 +48,19 @@
 * which is stable and faster besides.
 *
 *
-* path:      /djinterp/cpp/util/sort/selection_sort_common.hpp
+* path:      /inc/djinterp/core/util/sort/selection_sort_common.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_SELECTION_COMMON_HPP_
-#define DJINTERP_UTILITY_SORT_SELECTION_COMMON_HPP_ 1
+#ifndef DJINTERP_UTIL_SORT_SELECTION_SORT_COMMON_HPP
+#define DJINTERP_UTIL_SORT_SELECTION_SORT_COMMON_HPP 1
 
+// std
+#include <algorithm>              // std::iter_swap
 // djinterp
-#include "../../djinterp.hpp"
-#include "./sort_common.hpp"
+#include "../../../djinterp.hpp"  // framework root
 
 
 NS_DJINTERP
@@ -104,16 +106,16 @@ NS_INTERNAL
     // It is also why the scan cannot stop early: nothing learned about the
     // first k elements constrains the rest, which is the whole of why this
     // algorithm is not adaptive.
-    template<typename _RandomIterator,
-             typename _Difference,
-             typename _Comparator>
-    _Difference selection_min_index(_RandomIterator _first,
-                                    _Difference     _begin,
-                                    _Difference     _end,
-                                    _Comparator     _comparator)
+    template<typename RandomIterator,
+             typename Difference,
+             typename Comparator>
+    Difference selection_min_index(RandomIterator _first,
+                                    Difference      _begin,
+                                    Difference      _end,
+                                    Comparator      _comparator)
     {
-        _Difference winner;
-        _Difference index;
+        Difference winner;
+        Difference index;
 
         // an empty run has no minimum to report
         if (_end <= _begin)
@@ -147,16 +149,16 @@ NS_INTERNAL
     //   The final position needs no scan of its own -- once everything else is
     // placed, the one element remaining is the largest, with nothing left to
     // compare against -- so the loop stops one short of the end.
-    template<typename _RandomIterator,
-             typename _Difference,
-             typename _Comparator>
-    void selection_pass(_RandomIterator _first,
-                        _Difference     _begin,
-                        _Difference     _end,
-                        _Comparator     _comparator)
+    template<typename RandomIterator,
+             typename Difference,
+             typename Comparator>
+    void selection_pass(RandomIterator _first,
+                        Difference      _begin,
+                        Difference      _end,
+                        Comparator      _comparator)
     {
-        _Difference position;
-        _Difference winner;
+        Difference position;
+        Difference winner;
 
         // a run of 0 or 1 elements is already sorted
         if ((_end - _begin) < 2)
@@ -188,4 +190,4 @@ NS_END  // internal
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_SORT_SELECTION_COMMON_HPP_
+#endif  // DJINTERP_UTIL_SORT_SELECTION_SORT_COMMON_HPP

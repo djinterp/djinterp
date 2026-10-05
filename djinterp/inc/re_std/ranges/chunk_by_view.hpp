@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                          chunk_by_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            chunk_by_view.hpp
 *
 * chunk_by_view header:
 *   Provides the C++23 predicate-driven chunking adaptor.
@@ -24,17 +24,19 @@
 *   re_std::views::chunk_by(pred)    — bound form for pipe syntax.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/chunk_by_view.hpp
+* path:      /inc/re_std/ranges/chunk_by_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_CHUNK_BY_VIEW_
-#define DJINTERP_RE_STD_RANGES_CHUNK_BY_VIEW_ 1
+#ifndef RE_STD_RANGES_CHUNK_BY_VIEW_HPP
+#define RE_STD_RANGES_CHUNK_BY_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -47,28 +49,29 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   CHUNK_BY_VIEW
 // ===========================================================================
 
-// chunk_by_view<_View, _Pred>
-//   class: groups adjacent elements of _View whose pairwise
+// chunk_by_view<View, Pred>
+//   class: groups adjacent elements of View whose pairwise
 // predicate holds.
-template<typename _View,
-         typename _Pred>
-class chunk_by_view : public view_interface<chunk_by_view<_View, _Pred> >
+template<typename View,
+         typename Pred>
+class chunk_by_view : public view_interface<chunk_by_view<View, Pred> >
 {
 public:
-    typedef _View   base_view;
-    typedef _Pred   predicate_type;
+    typedef View   base_view;
+    typedef Pred   predicate_type;
 
 
 private:
-    _View                           m_base;
-    internal::movable_box<_Pred>    m_pred;
+    View                           m_base;
+    internal::movable_box<Pred>    m_pred;
 
 
 public:
@@ -84,31 +87,31 @@ public:
     {
     private:
         // _bidi_clamp — clamps RA underlyings to bidi (R28 pattern).
-        template<typename _Cat>
+        template<typename Cat>
         struct _bidi_clamp
         {
-            typedef _Cat type;
+            typedef Cat type;
         };
 
     public:
         typedef typename _bidi_clamp<
                               typename iterator_traits<
-                                            iterator_t<_View>
+                                            iterator_t<View>
                                         >::iterator_category
                           >::type                       iterator_category;
-        typedef subrange<iterator_t<_View>,
-                         iterator_t<_View> >            value_type;
+        typedef subrange<iterator_t<View>,
+                         iterator_t<View> >            value_type;
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type            difference_type;
         typedef value_type                              reference;
         typedef void                                    pointer;
 
 
     private:
-        iterator_t<_View>           m_start;
-        iterator_t<_View>           m_chunk_end;
-        iterator_t<_View>           m_base_begin;  // R28: enables operator-- to stop at the very first chunk
+        iterator_t<View>           m_start;
+        iterator_t<View>           m_chunk_end;
+        iterator_t<View>           m_base_begin;  // R28: enables operator-- to stop at the very first chunk
         chunk_by_view const*        m_parent;
 
 
@@ -121,14 +124,14 @@ public:
         void
         find_chunk_end()
         {
-            sentinel_t<_View> base_end = re_std::end(m_parent->m_base);
+            sentinel_t<View> base_end = re_std::end(m_parent->m_base);
             if (m_start == base_end)
             {
                 m_chunk_end = m_start;
                 return;
             }
-            iterator_t<_View> prev = m_start;
-            iterator_t<_View> cur  = m_start;
+            iterator_t<View> prev = m_start;
+            iterator_t<View> cur  = m_start;
             ++cur;
             while (cur != base_end)
             {
@@ -146,19 +149,19 @@ public:
 
     public:
         // default ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_start(),
               m_chunk_end(),
               m_base_begin(),
-              m_parent(D_NULLPTR)
+              m_parent(RE_STD_NULLPTR)
         {}
 
         // value ctor
         iterator(
             chunk_by_view const*  _parent,
-            iterator_t<_View>     _start,
-            iterator_t<_View>     _base_begin
+            iterator_t<View>     _start,
+            iterator_t<View>     _base_begin
         )
             : m_start(_start),
               m_chunk_end(),
@@ -169,14 +172,14 @@ public:
         }
 
 
-        D_CONSTEXPR iterator_t<_View>
+        RE_STD_CONSTEXPR iterator_t<View>
         base() const
         {
             return m_start;
         }
 
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return reference(m_start, m_chunk_end);
@@ -208,7 +211,7 @@ public:
         // m_base_begin. The previous chunk's end becomes the
         // current m_start.
         //
-        //   Compiles only when iterator_t<_View> supports operator--.
+        //   Compiles only when iterator_t<View> supports operator--.
         //   Undefined if invoked at the begin iterator.
         iterator&
         operator--()
@@ -216,7 +219,7 @@ public:
             // The previous chunk's end is exactly the current
             // m_start (since chunk boundaries are between adjacent
             // pairs where the predicate is false).
-            iterator_t<_View> new_chunk_end = m_start;
+            iterator_t<View> new_chunk_end = m_start;
 
             // Step back into the previous chunk's last element.
             --m_start;
@@ -225,7 +228,7 @@ public:
             // pred(*prev, *m_start) holds, prev is in the same chunk.
             while (m_start != m_base_begin)
             {
-                iterator_t<_View> prev = m_start;
+                iterator_t<View> prev = m_start;
                 --prev;
                 if (!(*(m_parent->m_pred))(*prev, *m_start))
                 {
@@ -249,7 +252,7 @@ public:
         }
 
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -257,7 +260,7 @@ public:
             return (m_start == _rhs.m_start);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -274,31 +277,31 @@ public:
     class sentinel
     {
     private:
-        sentinel_t<_View>  m_end;
+        sentinel_t<View>  m_end;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         sentinel()
             : m_end()
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         sentinel(
-            sentinel_t<_View>  _e
+            sentinel_t<View>  _e
         )
             : m_end(_e)
         {}
 
 
-        D_CONSTEXPR sentinel_t<_View>
+        RE_STD_CONSTEXPR sentinel_t<View>
         base() const
         {
             return m_end;
         }
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             iterator const&  _it,
             sentinel const&  _s
@@ -307,7 +310,7 @@ public:
             return (_it.base() == _s.m_end);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             iterator const&  _it,
             sentinel const&  _s
@@ -316,7 +319,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             sentinel const&  _s,
             iterator const&  _it
@@ -325,7 +328,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             sentinel const&  _s,
             iterator const&  _it
@@ -338,32 +341,32 @@ public:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     chunk_by_view()
         : m_base(),
           m_pred()
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     chunk_by_view(
-        _View  _base,
-        _Pred  _pred
+        View  _base,
+        Pred  _pred
     )
-        : m_base(static_cast<_View&&>(_base)),
-          m_pred(static_cast<_Pred&&>(_pred))
+        : m_base(static_cast<View&&>(_base)),
+          m_pred(static_cast<Pred&&>(_pred))
     {}
 
 
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
     }
 
-    D_CONSTEXPR _Pred const&
+    RE_STD_CONSTEXPR Pred const&
     pred() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return *m_pred;
     }
@@ -376,7 +379,7 @@ public:
         return iterator(this, re_std::begin(m_base), re_std::begin(m_base));
     }
 
-    D_CONSTEXPR sentinel
+    RE_STD_CONSTEXPR sentinel
     end() const
     {
         return sentinel(re_std::end(m_base));
@@ -388,41 +391,42 @@ public:
 // II.  CHUNK_BY_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
-
-template<typename _Pred>
-struct chunk_by_closure : range_adaptor_closure<chunk_by_closure<_Pred> >
+namespace internal
 {
-    _Pred pred;
 
-    D_CONSTEXPR
+template<typename Pred>
+struct chunk_by_closure : range_adaptor_closure<chunk_by_closure<Pred> >
+{
+    Pred pred;
+
+    RE_STD_CONSTEXPR
     chunk_by_closure()
         : pred()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     chunk_by_closure(
-        _Pred _p
+        Pred _p
     )
-        : pred(static_cast<_Pred&&>(_p))
+        : pred(static_cast<Pred&&>(_p))
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    chunk_by_view<typename internal::all_dispatch<_R>::type, _Pred>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    chunk_by_view<typename internal::all_dispatch<R>::type, Pred>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
-        return chunk_by_view<view_type, _Pred>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+        typedef typename internal::all_dispatch<R>::type view_type;
+        return chunk_by_view<view_type, Pred>(
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             pred
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -432,43 +436,43 @@ NS_END  // internal
 namespace views
 {
     // views::chunk_by(_r, _pred)  [direct form]
-    template<typename _R,
-             typename _Pred>
-    D_CONSTEXPR_INLINE
-    chunk_by_view<typename internal::all_dispatch<_R>::type,
-                  typename decay<_Pred>::type>
+    template<typename R,
+             typename Pred>
+    RE_STD_CONSTEXPR_INLINE
+    chunk_by_view<typename internal::all_dispatch<R>::type,
+                  typename decay<Pred>::type>
     chunk_by(
-        _R&&    _r,
-        _Pred&& _pred
+        R&&    _r,
+        Pred&& _pred
     )
     {
-        typedef typename internal::all_dispatch<_R>::type  view_type;
-        typedef typename decay<_Pred>::type                pred_type;
+        typedef typename internal::all_dispatch<R>::type  view_type;
+        typedef typename decay<Pred>::type                pred_type;
         return chunk_by_view<view_type, pred_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
-            static_cast<_Pred&&>(_pred)
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
+            static_cast<Pred&&>(_pred)
         );
     }
 
     // views::chunk_by(_pred)  [bound form]
-    template<typename _Pred>
-    D_CONSTEXPR_INLINE
-    internal::chunk_by_closure<typename decay<_Pred>::type>
+    template<typename Pred>
+    RE_STD_CONSTEXPR_INLINE
+    internal::chunk_by_closure<typename decay<Pred>::type>
     chunk_by(
-        _Pred&& _pred
+        Pred&& _pred
     )
     {
-        return internal::chunk_by_closure<typename decay<_Pred>::type>(
-            static_cast<_Pred&&>(_pred)
+        return internal::chunk_by_closure<typename decay<Pred>::type>(
+            static_cast<Pred&&>(_pred)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_CHUNK_BY_VIEW_
+#endif  // RE_STD_RANGES_CHUNK_BY_VIEW_HPP

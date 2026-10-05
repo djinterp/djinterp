@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                    as_bytes.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 as_bytes.hpp
 *
 * free function as_bytes:
 *   Reinterprets a span as a read-only span of bytes. Mirrors
@@ -11,18 +11,21 @@
 * reinterpret_cast, which is never a constant expression.
 *
 *
-* path:      /inc/djinterp/re_std/span/as_bytes.hpp
+* path:      /inc/re_std/span/as_bytes.hpp
 * link(s):   TBA
-* author(s): re_std contributors                       date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SPAN_AS_BYTES_
-#define DJINTERP_RE_STD_SPAN_AS_BYTES_ 1
+#ifndef RE_STD_SPAN_AS_BYTES_HPP
+#define RE_STD_SPAN_AS_BYTES_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
+// std
 #include <cstddef>  // size_t, byte
 
 #include "re_std/span/dynamic_extent.hpp"
@@ -35,21 +38,20 @@ namespace re_std
     //   function: view the elements of _s as immutable bytes. The result
     //   extent is (Extent * sizeof(element_type)) when fixed, else
     //   dynamic_extent.
-    template<typename _Type, std::size_t _Extent>
+    template<typename Type, std::size_t Extent>
     span<const std::byte,
-         (_Extent == dynamic_extent ? dynamic_extent
-                                    : sizeof(_Type) * _Extent)>
-    as_bytes(span<_Type, _Extent> _s) noexcept
+         (Extent == dynamic_extent ? dynamic_extent
+                                    : sizeof(Type) * Extent)>
+    as_bytes(span<Type, Extent> _s) noexcept
     {
         return span<const std::byte,
-                    (_Extent == dynamic_extent
+                    (Extent == dynamic_extent
                          ? dynamic_extent
-                         : sizeof(_Type) * _Extent)>(
+                         : sizeof(Type) * Extent)>(
             reinterpret_cast<const std::byte*>(_s.data()), _s.size_bytes());
     }
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_SPAN_AS_BYTES_
+#endif  // RE_STD_SPAN_AS_BYTES_HPP

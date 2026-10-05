@@ -33,11 +33,17 @@
 * path:      /inc/djinterp/core/memory/memory.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 #ifndef DJINTERP_MEMORY_MEMORY_HPP
 #define DJINTERP_MEMORY_MEMORY_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // djinterp -- the C core first, then the faces over it
 #include "../../c/memory/memory.h"
@@ -48,5 +54,7 @@
 #include "./pool_allocator.hpp"
 #include "./memory_strategy_common.hpp"
 #include "./memory_strategy.hpp"
+
+#endif  // floor, for now
 
 #endif  // DJINTERP_MEMORY_MEMORY_HPP

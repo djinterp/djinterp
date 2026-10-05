@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                          forward_range.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            forward_range.hpp
 *
 * forward_range concept-trait header:
 *   Provides the C++20 forward_range concept as a SFINAE-detection
@@ -15,19 +15,20 @@
 * the C++20 forward_iterator concept beyond category derivation.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/forward_range.hpp
+* path:      /inc/re_std/ranges/forward_range.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_FORWARD_RANGE_
-#define DJINTERP_RE_STD_RANGES_FORWARD_RANGE_ 1
+#ifndef RE_STD_RANGES_FORWARD_RANGE_HPP
+#define RE_STD_RANGES_FORWARD_RANGE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES &&                               \
-      D_ENV_LANG_IS_CPP11_OR_HIGHER )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES &&                               \
+      RE_STD_LANG_IS_CPP11_OR_HIGHER )
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -35,33 +36,35 @@
 #include "./iterator_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
-template<typename _Type,
-         bool     _IsRange = range<_Type>::value>
+template<typename Type,
+         bool     IsRange = range<Type>::value>
 struct forward_range_helper
     : false_type
 {};
 
-template<typename _Type>
-struct forward_range_helper<_Type, true>
+template<typename Type>
+struct forward_range_helper<Type, true>
     : is_base_of<forward_iterator_tag,
-                 typename iterator_traits<iterator_t<_Type> >::iterator_category>
+                 typename iterator_traits<iterator_t<Type> >::iterator_category>
 {};
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
 // I.   FORWARD_RANGE
 // ===========================================================================
 
-template<typename _Type>
+template<typename Type>
 struct forward_range
-    : internal::forward_range_helper<_Type>
+    : internal::forward_range_helper<Type>
 {};
 
 
@@ -69,18 +72,18 @@ struct forward_range
 // II.  FORWARD_RANGE_V
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool forward_range_v = forward_range<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool forward_range_v = forward_range<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RE_STD_RANGES_FORWARD_RANGE_
+#endif  // RE_STD_RANGES_FORWARD_RANGE_HPP

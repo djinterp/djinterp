@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                 range_adaptor_closure.hpp
+/*******************************************************************************
+* djinterp [re_std]                                    range_adaptor_closure.hpp
 *
 * range_adaptor_closure header:
 *   Provides the C++23 range-adaptor-closure CRTP base and the
@@ -27,36 +27,39 @@
 *      range_adaptor_closure), so compositions chain.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/range_adaptor_closure.hpp
+* path:      /inc/re_std/ranges/range_adaptor_closure.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_
-#define DJINTERP_RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_ 1
+#ifndef RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_HPP
+#define RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   RANGE_ADAPTOR_CLOSURE  (CRTP marker base)
 // ===========================================================================
 
-// range_adaptor_closure<_Derived>
+// range_adaptor_closure<Derived>
 //   class: empty CRTP base. Closures derive from this to be
 // recognised by the pipe-detection trait below.
 // note: the C++23 standard adds a single helper member
 // 'operator()' to this base that lets `closure(range)` work uniformly;
 // re_std's closures implement operator() directly on the derived
 // class, so the base is purely a marker.
-template<typename _Derived>
+template<typename Derived>
 struct range_adaptor_closure
 {
 };
@@ -66,50 +69,51 @@ struct range_adaptor_closure
 // II.  IS_RANGE_ADAPTOR_CLOSURE  (SFINAE detection trait)
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
 // is_rac_helper
 //   trait: SFINAE detection — test() is overloaded so that a
 // pointer to a publicly-derived range_adaptor_closure<U> base is
 // preferred; otherwise the catch-all overload kicks in. Result
 // captured as a static bool.
-template<typename _T>
+template<typename T>
 class is_rac_helper
 {
 private:
-    template<typename _U>
-    static D_CONSTEXPR true_type
-    test(range_adaptor_closure<_U> const*);
+    template<typename U>
+    static RE_STD_CONSTEXPR true_type
+    test(range_adaptor_closure<U> const*);
 
-    static D_CONSTEXPR false_type
+    static RE_STD_CONSTEXPR false_type
     test(...);
 
 public:
     static const bool value =
         decltype(test(
-            static_cast<typename decay<_T>::type*>(D_NULLPTR)
+            static_cast<typename decay<T>::type*>(RE_STD_NULLPTR)
         ))::value;
 };
 
-NS_END  // internal
+}  // internal
 
 
 // is_range_adaptor_closure
-//   trait: true when _T (after decay) publicly inherits from
-// range_adaptor_closure<decay_t<_T>>.
-template<typename _T>
+//   trait: true when T (after decay) publicly inherits from
+// range_adaptor_closure<decay_t<T>>.
+template<typename T>
 struct is_range_adaptor_closure
-    : integral_constant<bool, internal::is_rac_helper<_T>::value>
+    : integral_constant<bool, internal::is_rac_helper<T>::value>
 {};
 
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 // is_range_adaptor_closure_v
 //   variable: convenience constexpr accessor.
-template<typename _T>
-D_CONSTEXPR bool is_range_adaptor_closure_v =
-    is_range_adaptor_closure<_T>::value;
+template<typename T>
+RE_STD_CONSTEXPR bool is_range_adaptor_closure_v =
+    is_range_adaptor_closure<T>::value;
 
 #endif  // variable templates
 
@@ -118,33 +122,33 @@ D_CONSTEXPR bool is_range_adaptor_closure_v =
 // III. PIPE_COMPOSITION  (itself a closure)
 // ===========================================================================
 
-// pipe_composition<_C1, _C2>
+// pipe_composition<C1, C2>
 //   class: holds two closures and applies them in sequence —
-// operator()(_R) -> _C2(_C1(_R)). Deriving from
+// operator()(R) -> C2(C1(R)). Deriving from
 // range_adaptor_closure allows compositions to chain naturally:
 // (r | a | b | c) parses as ((r | a) | b) | c, building a final
 // view by binding from the left.
-template<typename _C1,
-         typename _C2>
-struct pipe_composition : range_adaptor_closure<pipe_composition<_C1, _C2> >
+template<typename C1,
+         typename C2>
+struct pipe_composition : range_adaptor_closure<pipe_composition<C1, C2> >
 {
-    _C1 first;
-    _C2 second;
+    C1 first;
+    C2 second;
 
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     pipe_composition()
         : first(),
           second()
     {}
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     pipe_composition(
-        _C1  _c1,
-        _C2  _c2
+        C1  _c1,
+        C2  _c2
     )
-        : first(static_cast<_C1&&>(_c1)),
-          second(static_cast<_C2&&>(_c2))
+        : first(static_cast<C1&&>(_c1)),
+          second(static_cast<C2&&>(_c2))
     {}
 
 
@@ -152,13 +156,13 @@ struct pipe_composition : range_adaptor_closure<pipe_composition<_C1, _C2> >
     //   function: applies first then second. Trailing return type
     // is decltype of the actual chain so SFINAE applies on
     // invocation of an incompatible range.
-    template<typename _R>
-    D_CONSTEXPR
+    template<typename R>
+    RE_STD_CONSTEXPR
     auto
-    operator()(_R&& _r) const
-        -> decltype(second(first(static_cast<_R&&>(_r))))
+    operator()(R&& _r) const
+        -> decltype(second(first(static_cast<R&&>(_r))))
     {
-        return second(first(static_cast<_R&&>(_r)));
+        return second(first(static_cast<R&&>(_r)));
     }
 };
 
@@ -172,20 +176,20 @@ struct pipe_composition : range_adaptor_closure<pipe_composition<_C1, _C2> >
 // closure (i.e. presumed to be a range), apply the RHS closure to
 // it. The non-closure SFINAE constraint avoids overload-resolution
 // ambiguity with the closure|closure form.
-template<typename _LHS,
-         typename _RHS>
-D_CONSTEXPR
+template<typename LHS,
+         typename RHS>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_range_adaptor_closure<_RHS>::value
-        && !is_range_adaptor_closure<_LHS>::value,
-    decltype(declval<_RHS>()(declval<_LHS>()))
+    is_range_adaptor_closure<RHS>::value
+        && !is_range_adaptor_closure<LHS>::value,
+    decltype(declval<RHS>()(declval<LHS>()))
 >::type
 operator|(
-    _LHS&& _lhs,
-    _RHS&& _rhs
+    LHS&& _lhs,
+    RHS&& _rhs
 )
 {
-    return static_cast<_RHS&&>(_rhs)(static_cast<_LHS&&>(_lhs));
+    return static_cast<RHS&&>(_rhs)(static_cast<LHS&&>(_lhs));
 }
 
 
@@ -193,32 +197,32 @@ operator|(
 //   function: when both sides are closures, build a
 // pipe_composition that applies the LHS first and the RHS second
 // when invoked.
-template<typename _LHS,
-         typename _RHS>
-D_CONSTEXPR
+template<typename LHS,
+         typename RHS>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_range_adaptor_closure<_LHS>::value
-        && is_range_adaptor_closure<_RHS>::value,
-    pipe_composition<typename decay<_LHS>::type,
-                     typename decay<_RHS>::type>
+    is_range_adaptor_closure<LHS>::value
+        && is_range_adaptor_closure<RHS>::value,
+    pipe_composition<typename decay<LHS>::type,
+                     typename decay<RHS>::type>
 >::type
 operator|(
-    _LHS&& _lhs,
-    _RHS&& _rhs
+    LHS&& _lhs,
+    RHS&& _rhs
 )
 {
-    return pipe_composition<typename decay<_LHS>::type,
-                            typename decay<_RHS>::type>(
-        static_cast<_LHS&&>(_lhs),
-        static_cast<_RHS&&>(_rhs)
+    return pipe_composition<typename decay<LHS>::type,
+                            typename decay<RHS>::type>(
+        static_cast<LHS&&>(_lhs),
+        static_cast<RHS&&>(_rhs)
     );
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_
+#endif  // RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_HPP

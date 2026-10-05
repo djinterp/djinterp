@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                               sqlite.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                                     sqlite.hpp
+*
 * djinterp SQLite connection module:
 *   This header provides the SQLite-specific connection implementation
 * and associated data type infrastructure for the djinterp database
@@ -43,25 +43,35 @@
 *   This header requires C++17 or later. It does not include <sqlite3.h>;
 * the concrete _helper method definitions in sqlite.cpp include it.
 *
-* 
+*
 *   DETECTION:
 *   Also carries this database's capability-detection traits and C++20 concepts
 * (trailing sections), folded in from sqlite_traits.hpp and the matching *_concepts.hpp;
 * detection now lives with the connection. Concepts gated on concept support.
 *
+*
 * path:      /inc/djinterp/core/db/sqlite/sqlite.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                 created: date: 2026.03.25
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_SQLITE_
-#define DJINTERP_DATABASE_SQLITE_
+#ifndef DJINTERP_DB_SQLITE_SQLITE_HPP
+#define DJINTERP_DB_SQLITE_SQLITE_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t, uint32_t,
+                                                   // uint16_t, int64_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
+#include "../../meta/type_utility.hpp"  // clean_t, self
 #include "../../../env/db/sqlite/env_sqlite.h"
 #include "../database_connection.hpp"
-#include "../database_traits.hpp"
 
 
 NS_DJINTERP
@@ -77,7 +87,7 @@ NS_DJINTERP
 
 // sqlite_affinity
 //   enumeration: the five SQLite storage classes / type affinities.
-enum class sqlite_affinity : std::uint8_t
+enum class sqlite_affinity : re_std::uint8_t
 {
     type_integer   = 1,     // 64-bit signed integer
     type_real      = 2,     // 64-bit IEEE 754 float
@@ -91,7 +101,7 @@ enum class sqlite_affinity : std::uint8_t
 // SQLite affinities. These are the conventional type names used in
 // CREATE TABLE statements; SQLite determines affinity from substring
 // matching on the declared type.
-enum class sqlite_declared_type : std::uint8_t
+enum class sqlite_declared_type : re_std::uint8_t
 {
     // INTEGER affinity
     dt_int          = 0x10,
@@ -343,7 +353,7 @@ inline constexpr sqlite_open_flag& operator|=(sqlite_open_flag&  _a,
 
 // sqlite_journal_mode
 //   enumeration: SQLite journal modes (PRAGMA journal_mode).
-enum class sqlite_journal_mode : std::uint8_t
+enum class sqlite_journal_mode : re_std::uint8_t
 {
     mode_delete    = 0,     // default; rollback journal deleted after txn
     mode_truncate  = 1,     // journal truncated instead of deleted
@@ -355,7 +365,7 @@ enum class sqlite_journal_mode : std::uint8_t
 
 // sqlite_transaction_mode
 //   enumeration: SQLite BEGIN TRANSACTION modes.
-enum class sqlite_transaction_mode : std::uint8_t
+enum class sqlite_transaction_mode : re_std::uint8_t
 {
     deferred       = 0,     // acquire locks lazily (default)
     immediate      = 1,     // acquire RESERVED lock immediately
@@ -799,26 +809,26 @@ struct sqlite_version_info
 {
 #if D_ENV_SQLITE_DETECTED
     static constexpr bool          detected = true;
-    static constexpr std::uint32_t id       = D_ENV_SQLITE_VERSION_ID;
-    static constexpr std::uint16_t major    = D_ENV_SQLITE_VERSION_MAJOR;
-    static constexpr std::uint16_t minor    = D_ENV_SQLITE_VERSION_MINOR;
-    static constexpr std::uint16_t patch    = D_ENV_SQLITE_VERSION_PATCH;
+    static constexpr re_std::uint32_t id       = D_ENV_SQLITE_VERSION_ID;
+    static constexpr re_std::uint16_t major    = D_ENV_SQLITE_VERSION_MAJOR;
+    static constexpr re_std::uint16_t minor    = D_ENV_SQLITE_VERSION_MINOR;
+    static constexpr re_std::uint16_t patch    = D_ENV_SQLITE_VERSION_PATCH;
     static constexpr const char*   string   = D_ENV_SQLITE_VERSION_STRING;
 #else
     static constexpr bool          detected = false;
-    static constexpr std::uint32_t id       = 0;
-    static constexpr std::uint16_t major    = 0;
-    static constexpr std::uint16_t minor    = 0;
-    static constexpr std::uint16_t patch    = 0;
+    static constexpr re_std::uint32_t id       = 0;
+    static constexpr re_std::uint16_t major    = 0;
+    static constexpr re_std::uint16_t minor    = 0;
+    static constexpr re_std::uint16_t patch    = 0;
     static constexpr const char*   string   = "not detected";
 #endif
 
     // at_least
     //   function: returns true if the detected SQLite version is at
     // least (major, minor, patch).
-    static constexpr bool at_least(std::uint16_t _major,
-                                   std::uint16_t _minor,
-                                   std::uint16_t _patch) noexcept
+    static constexpr bool at_least(re_std::uint16_t _major,
+                                   re_std::uint16_t _minor,
+                                   re_std::uint16_t _patch) noexcept
     {
         return id >= (_major * 1000000u + _minor * 1000u + _patch);
     }
@@ -864,8 +874,8 @@ struct sqlite_connect_config
     }
 
     explicit sqlite_connect_config(
-		const std::string& _path
-	)
+        const std::string& _path
+    )
         : file_path(_path),
           open_flags(sqlite_open_flag::read_write),
           journal_mode(sqlite_journal_mode::mode_delete),
@@ -909,8 +919,8 @@ struct sqlite_connect_config
     // with_wal
     //   function: factory for a WAL-mode database.
     static sqlite_connect_config with_wal(
-	const std::string& _path
-	)
+    const std::string& _path
+    )
     {
         sqlite_connect_config config(_path);
 
@@ -988,8 +998,8 @@ public:
     // was provided, uses its file_path and open_flags. Otherwise
     // uses the generic config's database field.
     void open(
-		const std::string& _file_path
-	)
+        const std::string& _file_path
+    )
     {
         m_sqlite_config.file_path = _file_path;
         this->m_config.database   = _file_path;
@@ -1000,9 +1010,9 @@ public:
     // open_v2
     //   function: opens a database file with explicit flags.
     void open_v2(
-		const std::string& _file_path,
-		int                _flags
-	)
+        const std::string& _file_path,
+        int                _flags
+    )
     {
         m_sqlite_config.file_path  = _file_path;
         m_sqlite_config.open_flags = static_cast<sqlite_open_flag>(_flags);
@@ -1018,8 +1028,8 @@ public:
     // set_journal_mode
     //   function: sets the journal mode via PRAGMA journal_mode=X.
     void set_journal_mode(
-		const std::string& _mode
-	)
+        const std::string& _mode
+    )
     {
         this->ensure_connected();
         self().set_journal_mode_helper(_mode);
@@ -1039,8 +1049,8 @@ public:
     // SQLITE_CHECKPOINT_FULL (1), SQLITE_CHECKPOINT_RESTART (2),
     // SQLITE_CHECKPOINT_TRUNCATE (3).
     void checkpoint(
-		int _mode = 0
-	)
+        int _mode = 0
+    )
     {
         this->ensure_connected();
         self().checkpoint_helper(_mode);
@@ -1296,7 +1306,7 @@ public:
     auto        execute_query_helper(const std::string& _query)
                     -> std::unique_ptr<
                         result_set<struct sqlite_result_set_helper>>;
-    std::int64_t execute_update_helper(const std::string& _query);
+    re_std::int64_t execute_update_helper(const std::string& _query);
     bool        execute_helper(const std::string& _query);
 
     auto        prepare_helper(const std::string& _query)
@@ -1306,8 +1316,8 @@ public:
     std::string  get_server_version_helper() const;
     std::string  get_last_error_helper() const;
     int          get_last_error_code_helper() const;
-    std::int64_t get_last_insert_id_helper() const;
-    std::int64_t get_affected_rows_helper() const;
+    re_std::int64_t get_last_insert_id_helper() const;
+    re_std::int64_t get_affected_rows_helper() const;
 
     // SQLite-specific _helper methods
     void        set_journal_mode_helper(const std::string& _mode);
@@ -1349,11 +1359,11 @@ public:
     // serialize
     //   function: serializes the database into a byte vector.
     // Available since SQLite 3.36.0.
-    std::vector<std::uint8_t> serialize();
+    std::vector<re_std::uint8_t> serialize();
 
     // deserialize
     //   function: replaces the database contents from serialized bytes.
-    void deserialize(const std::vector<std::uint8_t>& _data);
+    void deserialize(const std::vector<re_std::uint8_t>& _data);
     #endif
 
     #if D_ENV_SQLITE_HAS_LOAD_EXTENSION
@@ -1415,22 +1425,22 @@ struct sqlite_statement_helper;
 // sqlite_open_t
 //   detector: open(const std::string&) method.
 // wraps sqlite3_open() or sqlite3_open_v2().
-template<typename _T>
-using sqlite_open_t = decltype(std::declval<_T&>().open(
+template<typename T>
+using sqlite_open_t = decltype(std::declval<T&>().open(
     std::declval<const std::string&>()));
 
 // sqlite_open_v2_t
 //   detector: open_v2(const std::string&, int) method.
 // wraps sqlite3_open_v2() with flags parameter.
-template<typename _T>
-using sqlite_open_v2_t = decltype(std::declval<_T&>().open_v2(
+template<typename T>
+using sqlite_open_v2_t = decltype(std::declval<T&>().open_v2(
     std::declval<const std::string&>(),
     std::declval<int>()));
 
 // sqlite_close_t
 //   detector: close() method.
-template<typename _T>
-using sqlite_close_t = decltype(std::declval<_T&>().close());
+template<typename T>
+using sqlite_close_t = decltype(std::declval<T&>().close());
 
 // -------------------------------------------------------------------------
 // B.  journal and WAL management
@@ -1438,22 +1448,22 @@ using sqlite_close_t = decltype(std::declval<_T&>().close());
 
 // sqlite_set_journal_mode_t
 //   detector: set_journal_mode(const std::string&) method.
-template<typename _T>
+template<typename T>
 using sqlite_set_journal_mode_t =
-    decltype(std::declval<_T&>().set_journal_mode(
+    decltype(std::declval<T&>().set_journal_mode(
         std::declval<const std::string&>()));
 
 // sqlite_get_journal_mode_t
 //   detector: get_journal_mode() const method.
-template<typename _T>
+template<typename T>
 using sqlite_get_journal_mode_t =
-    decltype(std::declval<const _T&>().get_journal_mode());
+    decltype(std::declval<const T&>().get_journal_mode());
 
 // sqlite_checkpoint_t
 //   detector: checkpoint(int) method.
 // wraps sqlite3_wal_checkpoint_v2().
-template<typename _T>
-using sqlite_checkpoint_t = decltype(std::declval<_T&>().checkpoint(
+template<typename T>
+using sqlite_checkpoint_t = decltype(std::declval<T&>().checkpoint(
     std::declval<int>()));
 
 // -------------------------------------------------------------------------
@@ -1463,17 +1473,17 @@ using sqlite_checkpoint_t = decltype(std::declval<_T&>().checkpoint(
 // sqlite_execute_pragma_t
 //   detector: execute_pragma(const std::string&, const std::string&)
 // method.
-template<typename _T>
+template<typename T>
 using sqlite_execute_pragma_t =
-    decltype(std::declval<_T&>().execute_pragma(
+    decltype(std::declval<T&>().execute_pragma(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // sqlite_get_pragma_t
 //   detector: get_pragma(const std::string&) const method.
-template<typename _T>
+template<typename T>
 using sqlite_get_pragma_t =
-    decltype(std::declval<const _T&>().get_pragma(
+    decltype(std::declval<const T&>().get_pragma(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1482,14 +1492,14 @@ using sqlite_get_pragma_t =
 
 // sqlite_backup_to_t
 //   detector: backup_to(const std::string&) method.
-template<typename _T>
-using sqlite_backup_to_t = decltype(std::declval<_T&>().backup_to(
+template<typename T>
+using sqlite_backup_to_t = decltype(std::declval<T&>().backup_to(
     std::declval<const std::string&>()));
 
 // sqlite_backup_from_t
 //   detector: backup_from(const std::string&) method.
-template<typename _T>
-using sqlite_backup_from_t = decltype(std::declval<_T&>().backup_from(
+template<typename T>
+using sqlite_backup_from_t = decltype(std::declval<T&>().backup_from(
     std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1498,9 +1508,9 @@ using sqlite_backup_from_t = decltype(std::declval<_T&>().backup_from(
 
 // sqlite_set_busy_timeout_t
 //   detector: set_busy_timeout(int) method.
-template<typename _T>
+template<typename T>
 using sqlite_set_busy_timeout_t =
-    decltype(std::declval<_T&>().set_busy_timeout(
+    decltype(std::declval<T&>().set_busy_timeout(
         std::declval<int>()));
 
 // -------------------------------------------------------------------------
@@ -1509,15 +1519,15 @@ using sqlite_set_busy_timeout_t =
 
 // sqlite_attach_t
 //   detector: attach(const std::string&, const std::string&) method.
-template<typename _T>
-using sqlite_attach_t = decltype(std::declval<_T&>().attach(
+template<typename T>
+using sqlite_attach_t = decltype(std::declval<T&>().attach(
     std::declval<const std::string&>(),
     std::declval<const std::string&>()));
 
 // sqlite_detach_t
 //   detector: detach(const std::string&) method.
-template<typename _T>
-using sqlite_detach_t = decltype(std::declval<_T&>().detach(
+template<typename T>
+using sqlite_detach_t = decltype(std::declval<T&>().detach(
     std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1526,16 +1536,16 @@ using sqlite_detach_t = decltype(std::declval<_T&>().detach(
 
 // sqlite_table_exists_t
 //   detector: table_exists(const std::string&) const method.
-template<typename _T>
+template<typename T>
 using sqlite_table_exists_t =
-    decltype(std::declval<const _T&>().table_exists(
+    decltype(std::declval<const T&>().table_exists(
         std::declval<const std::string&>()));
 
 // sqlite_get_table_names_t
 //   detector: get_table_names() const method.
-template<typename _T>
+template<typename T>
 using sqlite_get_table_names_t =
-    decltype(std::declval<const _T&>().get_table_names());
+    decltype(std::declval<const T&>().get_table_names());
 
 // -------------------------------------------------------------------------
 // H.  extension loading
@@ -1543,16 +1553,16 @@ using sqlite_get_table_names_t =
 
 // sqlite_load_extension_t
 //   detector: load_extension(const std::string&) method.
-template<typename _T>
+template<typename T>
 using sqlite_load_extension_t =
-    decltype(std::declval<_T&>().load_extension(
+    decltype(std::declval<T&>().load_extension(
         std::declval<const std::string&>()));
 
 // sqlite_enable_load_extension_t
 //   detector: enable_load_extension(bool) method.
-template<typename _T>
+template<typename T>
 using sqlite_enable_load_extension_t =
-    decltype(std::declval<_T&>().enable_load_extension(
+    decltype(std::declval<T&>().enable_load_extension(
         std::declval<bool>()));
 
 // -------------------------------------------------------------------------
@@ -1561,15 +1571,15 @@ using sqlite_enable_load_extension_t =
 
 // sqlite_serialize_t
 //   detector: serialize() method.
-template<typename _T>
+template<typename T>
 using sqlite_serialize_t =
-    decltype(std::declval<_T&>().serialize());
+    decltype(std::declval<T&>().serialize());
 
 // sqlite_deserialize_t
-//   detector: deserialize(const std::vector<std::uint8_t>&) method.
-template<typename _T>
-using sqlite_deserialize_t = decltype(std::declval<_T&>().deserialize(
-    std::declval<const std::vector<std::uint8_t>&>()));
+//   detector: deserialize(const std::vector<re_std::uint8_t>&) method.
+template<typename T>
+using sqlite_deserialize_t = decltype(std::declval<T&>().deserialize(
+    std::declval<const std::vector<re_std::uint8_t>&>()));
 
 // -------------------------------------------------------------------------
 // J.  transaction mode
@@ -1577,21 +1587,21 @@ using sqlite_deserialize_t = decltype(std::declval<_T&>().deserialize(
 
 // sqlite_begin_deferred_t
 //   detector: begin_deferred() method.
-template<typename _T>
+template<typename T>
 using sqlite_begin_deferred_t =
-    decltype(std::declval<_T&>().begin_deferred());
+    decltype(std::declval<T&>().begin_deferred());
 
 // sqlite_begin_immediate_t
 //   detector: begin_immediate() method.
-template<typename _T>
+template<typename T>
 using sqlite_begin_immediate_t =
-    decltype(std::declval<_T&>().begin_immediate());
+    decltype(std::declval<T&>().begin_immediate());
 
 // sqlite_begin_exclusive_t
 //   detector: begin_exclusive() method.
-template<typename _T>
+template<typename T>
 using sqlite_begin_exclusive_t =
-    decltype(std::declval<_T&>().begin_exclusive());
+    decltype(std::declval<T&>().begin_exclusive());
 
 
 // =============================================================================
@@ -1599,150 +1609,150 @@ using sqlite_begin_exclusive_t =
 // =============================================================================
 
 // has_sqlite_journal
-//   trait: checks if type _T supports journal mode management
+//   trait: checks if type T supports journal mode management
 // (set_journal_mode + get_journal_mode).
-template<typename _T>
+template<typename T>
 struct has_sqlite_journal : djinterp::conjunction<
-    is_detected<sqlite_set_journal_mode_t, clean_t<_T>>,
-    is_detected<sqlite_get_journal_mode_t, clean_t<_T>>>
+    is_detected<sqlite_set_journal_mode_t, clean_t<T>>,
+    is_detected<sqlite_get_journal_mode_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_sqlite_journal_v = has_sqlite_journal<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_sqlite_journal_v = has_sqlite_journal<clean_t<T>>::value;
 #endif
 
 // has_sqlite_pragma
-//   trait: checks if type _T supports the PRAGMA interface
+//   trait: checks if type T supports the PRAGMA interface
 // (execute_pragma + get_pragma).
-template<typename _T>
+template<typename T>
 struct has_sqlite_pragma : djinterp::conjunction<
-    is_detected<sqlite_execute_pragma_t, clean_t<_T>>,
-    is_detected<sqlite_get_pragma_t, clean_t<_T>>>
+    is_detected<sqlite_execute_pragma_t, clean_t<T>>,
+    is_detected<sqlite_get_pragma_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_sqlite_pragma_v = has_sqlite_pragma<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_sqlite_pragma_v = has_sqlite_pragma<clean_t<T>>::value;
 #endif
 
 // has_sqlite_backup
-//   trait: checks if type _T supports the backup API
+//   trait: checks if type T supports the backup API
 // (backup_to + backup_from).
-template<typename _T>
+template<typename T>
 struct has_sqlite_backup : djinterp::conjunction<
-    is_detected<sqlite_backup_to_t, clean_t<_T>>,
-    is_detected<sqlite_backup_from_t, clean_t<_T>>>
+    is_detected<sqlite_backup_to_t, clean_t<T>>,
+    is_detected<sqlite_backup_from_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_sqlite_backup_v = has_sqlite_backup<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_sqlite_backup_v = has_sqlite_backup<clean_t<T>>::value;
 #endif
 
 // has_sqlite_attach
-//   trait: checks if type _T supports database attachment
+//   trait: checks if type T supports database attachment
 // (attach + detach).
-template<typename _T>
+template<typename T>
 struct has_sqlite_attach : djinterp::conjunction<
-    is_detected<sqlite_attach_t, clean_t<_T>>,
-    is_detected<sqlite_detach_t, clean_t<_T>>>
+    is_detected<sqlite_attach_t, clean_t<T>>,
+    is_detected<sqlite_detach_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_sqlite_attach_v = has_sqlite_attach<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_sqlite_attach_v = has_sqlite_attach<clean_t<T>>::value;
 #endif
 
 // has_sqlite_schema_query
-//   trait: checks if type _T supports schema introspection
+//   trait: checks if type T supports schema introspection
 // (table_exists + get_table_names).
-template<typename _T>
+template<typename T>
 struct has_sqlite_schema_query : djinterp::conjunction<
-    is_detected<sqlite_table_exists_t, clean_t<_T>>,
-    is_detected<sqlite_get_table_names_t, clean_t<_T>>>
+    is_detected<sqlite_table_exists_t, clean_t<T>>,
+    is_detected<sqlite_get_table_names_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_sqlite_schema_query_v =
-        has_sqlite_schema_query<clean_t<_T>>::value;
+        has_sqlite_schema_query<clean_t<T>>::value;
 #endif
 
 // has_sqlite_extension_loading
-//   trait: checks if type _T supports extension loading
+//   trait: checks if type T supports extension loading
 // (load_extension + enable_load_extension).
-template<typename _T>
+template<typename T>
 struct has_sqlite_extension_loading : djinterp::conjunction<
-    is_detected<sqlite_load_extension_t, clean_t<_T>>,
-    is_detected<sqlite_enable_load_extension_t, clean_t<_T>>>
+    is_detected<sqlite_load_extension_t, clean_t<T>>,
+    is_detected<sqlite_enable_load_extension_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_sqlite_extension_loading_v =
-        has_sqlite_extension_loading<clean_t<_T>>::value;
+        has_sqlite_extension_loading<clean_t<T>>::value;
 #endif
 
 // has_sqlite_serialization
-//   trait: checks if type _T supports serialization
+//   trait: checks if type T supports serialization
 // (serialize + deserialize).
-template<typename _T>
+template<typename T>
 struct has_sqlite_serialization : djinterp::conjunction<
-    is_detected<sqlite_serialize_t, clean_t<_T>>,
-    is_detected<sqlite_deserialize_t, clean_t<_T>>>
+    is_detected<sqlite_serialize_t, clean_t<T>>,
+    is_detected<sqlite_deserialize_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_sqlite_serialization_v =
-        has_sqlite_serialization<clean_t<_T>>::value;
+        has_sqlite_serialization<clean_t<T>>::value;
 #endif
 
 // has_sqlite_transaction_modes
-//   trait: checks if type _T supports SQLite transaction modes
+//   trait: checks if type T supports SQLite transaction modes
 // (deferred + immediate + exclusive).
-template<typename _T>
+template<typename T>
 struct has_sqlite_transaction_modes : djinterp::conjunction<
-    is_detected<sqlite_begin_deferred_t, clean_t<_T>>,
-    is_detected<sqlite_begin_immediate_t, clean_t<_T>>,
-    is_detected<sqlite_begin_exclusive_t, clean_t<_T>>>
+    is_detected<sqlite_begin_deferred_t, clean_t<T>>,
+    is_detected<sqlite_begin_immediate_t, clean_t<T>>,
+    is_detected<sqlite_begin_exclusive_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_sqlite_transaction_modes_v =
-        has_sqlite_transaction_modes<clean_t<_T>>::value;
+        has_sqlite_transaction_modes<clean_t<T>>::value;
 #endif
 
 // is_sqlite_connection
-//   trait: compound trait verifying type _T implements a SQLite
+//   trait: compound trait verifying type T implements a SQLite
 // connection interface (connection + journal + pragma + schema
 // queries + transaction modes).
-template<typename _T>
+template<typename T>
 struct is_sqlite_connection : djinterp::conjunction<
-    has_connect<clean_t<_T>>,
-    has_disconnect<clean_t<_T>>,
-    has_execute_query<clean_t<_T>>,
-    has_sqlite_journal<clean_t<_T>>,
-    has_sqlite_pragma<clean_t<_T>>,
-    has_sqlite_schema_query<clean_t<_T>>,
-    has_sqlite_transaction_modes<clean_t<_T>>>
+    has_connect<clean_t<T>>,
+    has_disconnect<clean_t<T>>,
+    has_execute_query<clean_t<T>>,
+    has_sqlite_journal<clean_t<T>>,
+    has_sqlite_pragma<clean_t<T>>,
+    has_sqlite_schema_query<clean_t<T>>,
+    has_sqlite_transaction_modes<clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool is_sqlite_connection_v =
-        is_sqlite_connection<clean_t<_T>>::value;
+        is_sqlite_connection<clean_t<T>>::value;
 #endif
 
 
@@ -1755,161 +1765,161 @@ struct is_sqlite_connection : djinterp::conjunction<
 // -------------------------------------------------------------------------
 
 // sqlite_can_open_v2
-//   tagless trait: true if _T has open_v2() with flags.
-template<typename _T,
+//   tagless trait: true if T has open_v2() with flags.
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_open_v2 = false;
 
-template<typename _T>
-constexpr bool sqlite_can_open_v2<_T,
-    std::void_t<sqlite_open_v2_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_open_v2<T,
+    std::void_t<sqlite_open_v2_t<T>>> = true;
 
 // sqlite_can_set_journal_mode
-//   tagless trait: true if _T has set_journal_mode().
-template<typename _T,
+//   tagless trait: true if T has set_journal_mode().
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_set_journal_mode = false;
 
-template<typename _T>
-constexpr bool sqlite_can_set_journal_mode<_T,
-    std::void_t<sqlite_set_journal_mode_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_set_journal_mode<T,
+    std::void_t<sqlite_set_journal_mode_t<T>>> = true;
 
 // sqlite_can_checkpoint
-//   tagless trait: true if _T has checkpoint().
-template<typename _T,
+//   tagless trait: true if T has checkpoint().
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_checkpoint = false;
 
-template<typename _T>
-constexpr bool sqlite_can_checkpoint<_T,
-    std::void_t<sqlite_checkpoint_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_checkpoint<T,
+    std::void_t<sqlite_checkpoint_t<T>>> = true;
 
 // sqlite_can_execute_pragma
-//   tagless trait: true if _T has execute_pragma().
-template<typename _T,
+//   tagless trait: true if T has execute_pragma().
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_execute_pragma = false;
 
-template<typename _T>
-constexpr bool sqlite_can_execute_pragma<_T,
-    std::void_t<sqlite_execute_pragma_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_execute_pragma<T,
+    std::void_t<sqlite_execute_pragma_t<T>>> = true;
 
 // sqlite_can_backup
-//   tagless trait: true if _T has backup_to().
-template<typename _T,
+//   tagless trait: true if T has backup_to().
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_backup = false;
 
-template<typename _T>
-constexpr bool sqlite_can_backup<_T,
-    std::void_t<sqlite_backup_to_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_backup<T,
+    std::void_t<sqlite_backup_to_t<T>>> = true;
 
 // sqlite_can_attach
-//   tagless trait: true if _T has attach().
-template<typename _T,
+//   tagless trait: true if T has attach().
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_attach = false;
 
-template<typename _T>
-constexpr bool sqlite_can_attach<_T,
-    std::void_t<sqlite_attach_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_attach<T,
+    std::void_t<sqlite_attach_t<T>>> = true;
 
 // sqlite_can_load_extension
-//   tagless trait: true if _T has load_extension().
-template<typename _T,
+//   tagless trait: true if T has load_extension().
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_load_extension = false;
 
-template<typename _T>
-constexpr bool sqlite_can_load_extension<_T,
-    std::void_t<sqlite_load_extension_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_load_extension<T,
+    std::void_t<sqlite_load_extension_t<T>>> = true;
 
 // sqlite_can_serialize
-//   tagless trait: true if _T has serialize().
-template<typename _T,
+//   tagless trait: true if T has serialize().
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_serialize = false;
 
-template<typename _T>
-constexpr bool sqlite_can_serialize<_T,
-    std::void_t<sqlite_serialize_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_serialize<T,
+    std::void_t<sqlite_serialize_t<T>>> = true;
 
 // sqlite_can_set_busy_timeout
-//   tagless trait: true if _T has set_busy_timeout().
-template<typename _T,
+//   tagless trait: true if T has set_busy_timeout().
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_set_busy_timeout = false;
 
-template<typename _T>
-constexpr bool sqlite_can_set_busy_timeout<_T,
-    std::void_t<sqlite_set_busy_timeout_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_set_busy_timeout<T,
+    std::void_t<sqlite_set_busy_timeout_t<T>>> = true;
 
 // sqlite_can_query_schema
-//   tagless trait: true if _T has table_exists().
-template<typename _T,
+//   tagless trait: true if T has table_exists().
+template<typename T,
          typename = void>
 constexpr bool sqlite_can_query_schema = false;
 
-template<typename _T>
-constexpr bool sqlite_can_query_schema<_T,
-    std::void_t<sqlite_table_exists_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_can_query_schema<T,
+    std::void_t<sqlite_table_exists_t<T>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
 // -------------------------------------------------------------------------
 
 // sqlite_does_journal
-//   tagless trait: true if _T supports full journal mode management.
-template<typename _T>
+//   tagless trait: true if T supports full journal mode management.
+template<typename T>
 constexpr bool sqlite_does_journal =
-    ( sqlite_can_set_journal_mode<clean_t<_T>> &&
-      sqlite_can_checkpoint<clean_t<_T>> );
+    ( sqlite_can_set_journal_mode<clean_t<T>> &&
+      sqlite_can_checkpoint<clean_t<T>> );
 
 // sqlite_does_pragma
-//   tagless trait: true if _T supports full PRAGMA interface.
-template<typename _T,
+//   tagless trait: true if T supports full PRAGMA interface.
+template<typename T,
          typename = void>
 constexpr bool sqlite_does_pragma = false;
 
-template<typename _T>
-constexpr bool sqlite_does_pragma<_T, std::void_t<
-    sqlite_execute_pragma_t<_T>,
-    sqlite_get_pragma_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_does_pragma<T, std::void_t<
+    sqlite_execute_pragma_t<T>,
+    sqlite_get_pragma_t<T>>> = true;
 
 // sqlite_does_backup
-//   tagless trait: true if _T supports full backup (to + from).
-template<typename _T,
+//   tagless trait: true if T supports full backup (to + from).
+template<typename T,
          typename = void>
 constexpr bool sqlite_does_backup = false;
 
-template<typename _T>
-constexpr bool sqlite_does_backup<_T, std::void_t<
-    sqlite_backup_to_t<_T>,
-    sqlite_backup_from_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_does_backup<T, std::void_t<
+    sqlite_backup_to_t<T>,
+    sqlite_backup_from_t<T>>> = true;
 
 // sqlite_does_attach
-//   tagless trait: true if _T supports database attachment (attach +
+//   tagless trait: true if T supports database attachment (attach +
 // detach).
-template<typename _T,
+template<typename T,
          typename = void>
 constexpr bool sqlite_does_attach = false;
 
-template<typename _T>
-constexpr bool sqlite_does_attach<_T, std::void_t<
-    sqlite_attach_t<_T>,
-    sqlite_detach_t<_T>>> = true;
+template<typename T>
+constexpr bool sqlite_does_attach<T, std::void_t<
+    sqlite_attach_t<T>,
+    sqlite_detach_t<T>>> = true;
 
 // sqlite_is_full_connection
-//   tagless trait: true if _T satisfies the complete SQLite connection
+//   tagless trait: true if T satisfies the complete SQLite connection
 // interface.
-template<typename _T>
+template<typename T>
 constexpr bool sqlite_is_full_connection =
-    ( can_connect<clean_t<_T>>               &&
-      can_disconnect<clean_t<_T>>            &&
-      can_execute_query<clean_t<_T>>         &&
-      sqlite_does_journal<clean_t<_T>>       &&
-      sqlite_does_pragma<clean_t<_T>>        &&
-      sqlite_can_query_schema<clean_t<_T>> );
+    ( can_connect<clean_t<T>>               &&
+      can_disconnect<clean_t<T>>            &&
+      can_execute_query<clean_t<T>>         &&
+      sqlite_does_journal<clean_t<T>>       &&
+      sqlite_does_pragma<clean_t<T>>        &&
+      sqlite_can_query_schema<clean_t<T>> );
 
 
 // =============================================================================
@@ -1918,27 +1928,27 @@ constexpr bool sqlite_is_full_connection =
 
 // enable_if_sqlite_connection
 //   type: SFINAE helper for SQLite connection constraints.
-template<typename _T>
+template<typename T>
 using enable_if_sqlite_connection =
-    typename std::enable_if<is_sqlite_connection<clean_t<_T>>::value>::type;
+    typename std::enable_if<is_sqlite_connection<clean_t<T>>::value>::type;
 
 // enable_if_has_sqlite_journal
 //   type: SFINAE helper for SQLite journal constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_sqlite_journal =
-    typename std::enable_if<has_sqlite_journal<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_sqlite_journal<clean_t<T>>::value>::type;
 
 // enable_if_has_sqlite_pragma
 //   type: SFINAE helper for SQLite PRAGMA constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_sqlite_pragma =
-    typename std::enable_if<has_sqlite_pragma<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_sqlite_pragma<clean_t<T>>::value>::type;
 
 // enable_if_has_sqlite_backup
 //   type: SFINAE helper for SQLite backup constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_sqlite_backup =
-    typename std::enable_if<has_sqlite_backup<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_sqlite_backup<clean_t<T>>::value>::type;
 
 
 // ===========================================================================
@@ -1958,41 +1968,41 @@ using enable_if_has_sqlite_backup =
 
 // Sqlite_connection
 //   concept: constrains types implementing the SQLite connection interface.
-template<typename _Type>
+template<typename Type>
 concept Sqlite_connection =
-    is_sqlite_connection<clean_t<_Type>>::value;
+    is_sqlite_connection<clean_t<Type>>::value;
 
 // non_sqlite_connection
 //   concept: constrains types that do not implement the SQLite connection
 // interface.
-template<typename _Type>
+template<typename Type>
 concept non_sqlite_connection =
-    !Sqlite_connection<_Type>;
+    !Sqlite_connection<Type>;
 
 // sqlite_openable_connection
 //   concept: constrains SQLite connections exposing open(const string&).
-template<typename _Type>
+template<typename Type>
 concept sqlite_openable_connection =
-    is_detected<sqlite_open_t, clean_t<_Type>>::value;
+    is_detected<sqlite_open_t, clean_t<Type>>::value;
 
 // sqlite_v2_openable_connection
 //   concept: constrains SQLite connections exposing open_v2(path, flags).
-template<typename _Type>
+template<typename Type>
 concept sqlite_v2_openable_connection =
-    sqlite_can_open_v2<clean_t<_Type>>;
+    sqlite_can_open_v2<clean_t<Type>>;
 
 // sqlite_closable_connection
 //   concept: constrains SQLite connections exposing close().
-template<typename _Type>
+template<typename Type>
 concept sqlite_closable_connection =
-    is_detected<sqlite_close_t, clean_t<_Type>>::value;
+    is_detected<sqlite_close_t, clean_t<Type>>::value;
 
 // sqlite_basic_file_connection
 //   concept: constrains SQLite connections exposing both open() and close().
-template<typename _Type>
+template<typename Type>
 concept sqlite_basic_file_connection =
-    ( sqlite_openable_connection<_Type> &&
-      sqlite_closable_connection<_Type> );
+    ( sqlite_openable_connection<Type> &&
+      sqlite_closable_connection<Type> );
 
 
 // =============================================================================
@@ -2002,107 +2012,107 @@ concept sqlite_basic_file_connection =
 // sqlite_journal_connection
 //   concept: constrains SQLite connections supporting journal mode
 // management.
-template<typename _Type>
+template<typename Type>
 concept sqlite_journal_connection =
-    has_sqlite_journal<clean_t<_Type>>::value;
+    has_sqlite_journal<clean_t<Type>>::value;
 
 // sqlite_pragma_connection
 //   concept: constrains SQLite connections supporting the PRAGMA interface.
-template<typename _Type>
+template<typename Type>
 concept sqlite_pragma_connection =
-    has_sqlite_pragma<clean_t<_Type>>::value;
+    has_sqlite_pragma<clean_t<Type>>::value;
 
 // sqlite_backup_connection
 //   concept: constrains SQLite connections supporting backup to/from.
-template<typename _Type>
+template<typename Type>
 concept sqlite_backup_connection =
-    has_sqlite_backup<clean_t<_Type>>::value;
+    has_sqlite_backup<clean_t<Type>>::value;
 
 // sqlite_attach_connection
 //   concept: constrains SQLite connections supporting ATTACH and DETACH.
-template<typename _Type>
+template<typename Type>
 concept sqlite_attach_connection =
-    has_sqlite_attach<clean_t<_Type>>::value;
+    has_sqlite_attach<clean_t<Type>>::value;
 
 // sqlite_schema_query_connection
 //   concept: constrains SQLite connections supporting schema introspection.
-template<typename _Type>
+template<typename Type>
 concept sqlite_schema_query_connection =
-    has_sqlite_schema_query<clean_t<_Type>>::value;
+    has_sqlite_schema_query<clean_t<Type>>::value;
 
 // sqlite_extension_loading_connection
 //   concept: constrains SQLite connections supporting extension loading.
-template<typename _Type>
+template<typename Type>
 concept sqlite_extension_loading_connection =
-    has_sqlite_extension_loading<clean_t<_Type>>::value;
+    has_sqlite_extension_loading<clean_t<Type>>::value;
 
 // sqlite_serialization_connection
 //   concept: constrains SQLite connections supporting serialization and
 // deserialization.
-template<typename _Type>
+template<typename Type>
 concept sqlite_serialization_connection =
-    has_sqlite_serialization<clean_t<_Type>>::value;
+    has_sqlite_serialization<clean_t<Type>>::value;
 
 // sqlite_busy_timeout_connection
 //   concept: constrains SQLite connections exposing set_busy_timeout(int).
-template<typename _Type>
+template<typename Type>
 concept sqlite_busy_timeout_connection =
-    sqlite_can_set_busy_timeout<clean_t<_Type>>;
+    sqlite_can_set_busy_timeout<clean_t<Type>>;
 
 // sqlite_checkpoint_connection
 //   concept: constrains SQLite connections exposing checkpoint(int).
-template<typename _Type>
+template<typename Type>
 concept sqlite_checkpoint_connection =
-    sqlite_can_checkpoint<clean_t<_Type>>;
+    sqlite_can_checkpoint<clean_t<Type>>;
 
 // sqlite_attachable_connection
 //   concept: constrains SQLite connections exposing attach(path, alias).
-template<typename _Type>
+template<typename Type>
 concept sqlite_attachable_connection =
-    sqlite_can_attach<clean_t<_Type>>;
+    sqlite_can_attach<clean_t<Type>>;
 
 // sqlite_detachable_connection
 //   concept: constrains SQLite connections exposing detach(alias).
-template<typename _Type>
+template<typename Type>
 concept sqlite_detachable_connection =
-    is_detected<sqlite_detach_t, clean_t<_Type>>::value;
+    is_detected<sqlite_detach_t, clean_t<Type>>::value;
 
 // sqlite_schema_table_query_connection
 //   concept: constrains SQLite connections exposing table_exists(name).
-template<typename _Type>
+template<typename Type>
 concept sqlite_schema_table_query_connection =
-    sqlite_can_query_schema<clean_t<_Type>>;
+    sqlite_can_query_schema<clean_t<Type>>;
 
 // sqlite_table_name_query_connection
 //   concept: constrains SQLite connections exposing get_table_names().
-template<typename _Type>
+template<typename Type>
 concept sqlite_table_name_query_connection =
-    is_detected<sqlite_get_table_names_t, clean_t<_Type>>::value;
+    is_detected<sqlite_get_table_names_t, clean_t<Type>>::value;
 
 // sqlite_extension_loadable_connection
 //   concept: constrains SQLite connections exposing load_extension(path).
-template<typename _Type>
+template<typename Type>
 concept sqlite_extension_loadable_connection =
-    sqlite_can_load_extension<clean_t<_Type>>;
+    sqlite_can_load_extension<clean_t<Type>>;
 
 // sqlite_extension_toggle_connection
 //   concept: constrains SQLite connections exposing
 // enable_load_extension(bool).
-template<typename _Type>
+template<typename Type>
 concept sqlite_extension_toggle_connection =
-    is_detected<sqlite_enable_load_extension_t, clean_t<_Type>>::value;
+    is_detected<sqlite_enable_load_extension_t, clean_t<Type>>::value;
 
 // sqlite_serializable_connection
 //   concept: constrains SQLite connections exposing serialize().
-template<typename _Type>
+template<typename Type>
 concept sqlite_serializable_connection =
-    sqlite_can_serialize<clean_t<_Type>>;
+    sqlite_can_serialize<clean_t<Type>>;
 
 // sqlite_deserializable_connection
 //   concept: constrains SQLite connections exposing deserialize(bytes).
-template<typename _Type>
+template<typename Type>
 concept sqlite_deserializable_connection =
-    is_detected<sqlite_deserialize_t, clean_t<_Type>>::value;
+    is_detected<sqlite_deserialize_t, clean_t<Type>>::value;
 
 
 // =============================================================================
@@ -2112,27 +2122,27 @@ concept sqlite_deserializable_connection =
 // sqlite_transaction_modes_connection
 //   concept: constrains SQLite connections supporting deferred, immediate,
 // and exclusive begin modes.
-template<typename _Type>
+template<typename Type>
 concept sqlite_transaction_modes_connection =
-    has_sqlite_transaction_modes<clean_t<_Type>>::value;
+    has_sqlite_transaction_modes<clean_t<Type>>::value;
 
 // sqlite_deferred_transaction_connection
 //   concept: constrains SQLite connections exposing begin_deferred().
-template<typename _Type>
+template<typename Type>
 concept sqlite_deferred_transaction_connection =
-    is_detected<sqlite_begin_deferred_t, clean_t<_Type>>::value;
+    is_detected<sqlite_begin_deferred_t, clean_t<Type>>::value;
 
 // sqlite_immediate_transaction_connection
 //   concept: constrains SQLite connections exposing begin_immediate().
-template<typename _Type>
+template<typename Type>
 concept sqlite_immediate_transaction_connection =
-    is_detected<sqlite_begin_immediate_t, clean_t<_Type>>::value;
+    is_detected<sqlite_begin_immediate_t, clean_t<Type>>::value;
 
 // sqlite_exclusive_transaction_connection
 //   concept: constrains SQLite connections exposing begin_exclusive().
-template<typename _Type>
+template<typename Type>
 concept sqlite_exclusive_transaction_connection =
-    is_detected<sqlite_begin_exclusive_t, clean_t<_Type>>::value;
+    is_detected<sqlite_begin_exclusive_t, clean_t<Type>>::value;
 
 
 // =============================================================================
@@ -2141,34 +2151,34 @@ concept sqlite_exclusive_transaction_connection =
 
 // sqlite_journaling_connection
 //   concept: constrains types satisfying the tagless journal capability set.
-template<typename _Type>
+template<typename Type>
 concept sqlite_journaling_connection =
-    sqlite_does_journal<clean_t<_Type>>;
+    sqlite_does_journal<clean_t<Type>>;
 
 // sqlite_pragmatic_connection
 //   concept: constrains types satisfying the tagless PRAGMA capability set.
-template<typename _Type>
+template<typename Type>
 concept sqlite_pragmatic_connection =
-    sqlite_does_pragma<clean_t<_Type>>;
+    sqlite_does_pragma<clean_t<Type>>;
 
 // sqlite_backup_capable_connection
 //   concept: constrains types satisfying the tagless backup capability set.
-template<typename _Type>
+template<typename Type>
 concept sqlite_backup_capable_connection =
-    sqlite_does_backup<clean_t<_Type>>;
+    sqlite_does_backup<clean_t<Type>>;
 
 // sqlite_attached_connection
 //   concept: constrains types satisfying the tagless attach capability set.
-template<typename _Type>
+template<typename Type>
 concept sqlite_attached_connection =
-    sqlite_does_attach<clean_t<_Type>>;
+    sqlite_does_attach<clean_t<Type>>;
 
 // sqlite_full_connection
 //   concept: constrains types satisfying the tagless full SQLite connection
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept sqlite_full_connection =
-    sqlite_is_full_connection<clean_t<_Type>>;
+    sqlite_is_full_connection<clean_t<Type>>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -2176,5 +2186,6 @@ concept sqlite_full_connection =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_SQLITE_
+#endif  // DJINTERP_DB_SQLITE_SQLITE_HPP

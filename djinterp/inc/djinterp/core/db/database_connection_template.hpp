@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                         database_connection_template.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                               database_connection_template.hpp
+*
 * djinterp database connection template module:
 *   This header provides the vendor-parameterized connection template that
 * serves as the bridge between the generic CRTP connection base in
@@ -34,14 +34,22 @@
 * include those headers themselves. The native_handle_type is forward-
 * declared as void* when the vendor header is not present.
 *
-* 
+*
 * path:      /inc/djinterp/core/db/database_connection_template.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_CONNECTION_TEMPLATE_
-#define DJINTERP_DATABASE_CONNECTION_TEMPLATE_
+#ifndef DJINTERP_DB_DATABASE_CONNECTION_TEMPLATE_HPP
+#define DJINTERP_DB_DATABASE_CONNECTION_TEMPLATE_HPP
+
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <type_traits>
@@ -75,7 +83,7 @@ struct vendor_traits<database_type::mariadb>
     using native_handle_type = void*;
 
     static constexpr database_type db_type        = database_type::mariadb;
-    static constexpr std::uint16_t default_port   = 3306;
+    static constexpr re_std::uint16_t default_port   = 3306;
     static constexpr const char*   name           = "mariadb";
     static constexpr const char*   display_name   = "MariaDB";
     static constexpr bool          is_relational  = true;
@@ -119,7 +127,7 @@ struct vendor_traits<database_type::mysql>
     using native_handle_type = void*;
 
     static constexpr database_type db_type        = database_type::mysql;
-    static constexpr std::uint16_t default_port   = 3306;
+    static constexpr re_std::uint16_t default_port   = 3306;
     static constexpr const char*   name           = "mysql";
     static constexpr const char*   display_name   = "MySQL";
     static constexpr bool          is_relational  = true;
@@ -163,7 +171,7 @@ struct vendor_traits<database_type::postgresql>
     using native_handle_type = void*;
 
     static constexpr database_type db_type        = database_type::postgresql;
-    static constexpr std::uint16_t default_port   = 5432;
+    static constexpr re_std::uint16_t default_port   = 5432;
     static constexpr const char*   name           = "postgresql";
     static constexpr const char*   display_name   = "PostgreSQL";
     static constexpr bool          is_relational  = true;
@@ -207,7 +215,7 @@ struct vendor_traits<database_type::sqlite>
     using native_handle_type = void*;
 
     static constexpr database_type db_type        = database_type::sqlite;
-    static constexpr std::uint16_t default_port   = 0;
+    static constexpr re_std::uint16_t default_port   = 0;
     static constexpr const char*   name           = "sqlite";
     static constexpr const char*   display_name   = "SQLite";
     static constexpr bool          is_relational  = true;
@@ -251,7 +259,7 @@ struct vendor_traits<database_type::mongodb>
     using native_handle_type = void*;
 
     static constexpr database_type db_type        = database_type::mongodb;
-    static constexpr std::uint16_t default_port   = 27017;
+    static constexpr re_std::uint16_t default_port   = 27017;
     static constexpr const char*   name           = "mongodb";
     static constexpr const char*   display_name   = "MongoDB";
     static constexpr bool          is_relational  = false;
@@ -294,7 +302,7 @@ struct vendor_traits<database_type::arangodb>
     using native_handle_type = void*;
 
     static constexpr database_type db_type        = database_type::arangodb;
-    static constexpr std::uint16_t default_port   = 8529;
+    static constexpr re_std::uint16_t default_port   = 8529;
     static constexpr const char*   name           = "arangodb";
     static constexpr const char*   display_name   = "ArangoDB";
     static constexpr bool          is_relational  = false;
@@ -338,7 +346,7 @@ struct vendor_traits<database_type::oracle>
     using native_handle_type = void*;
 
     static constexpr database_type db_type        = database_type::oracle;
-    static constexpr std::uint16_t default_port   = 1521;
+    static constexpr re_std::uint16_t default_port   = 1521;
     static constexpr const char*   name           = "oracle";
     static constexpr const char*   display_name   = "Oracle Database";
     static constexpr bool          is_relational  = true;
@@ -381,7 +389,7 @@ struct vendor_traits<database_type::redis>
     using native_handle_type = void*;
 
     static constexpr database_type db_type        = database_type::redis;
-    static constexpr std::uint16_t default_port   = 6379;
+    static constexpr re_std::uint16_t default_port   = 6379;
     static constexpr const char*   name           = "redis";
     static constexpr const char*   display_name   = "Redis";
     static constexpr bool          is_relational  = false;
@@ -425,7 +433,7 @@ struct vendor_traits<database_type::mssql>
     using native_handle_type = void*;
 
     static constexpr database_type db_type        = database_type::mssql;
-    static constexpr std::uint16_t default_port   = 1433;
+    static constexpr re_std::uint16_t default_port   = 1433;
     static constexpr const char*   name           = "mssql";
     static constexpr const char*   display_name   = "Microsoft SQL Server";
     static constexpr bool          is_relational  = true;
@@ -473,7 +481,7 @@ struct vendor_traits<database_type::mssql>
 //
 // Template parameters:
 //   _helper:   the concrete CRTP implementation class
-//   _DbType: the database_type enumerator identifying the vendor
+//   DbType: the database_type enumerator identifying the vendor
 //
 // Example usage (vendor implementation):
 //   class mysql_connection_helper
@@ -481,18 +489,18 @@ struct vendor_traits<database_type::mssql>
 //                                    database_type::mysql>
 //   { ... };
 template<typename      _helper,
-         database_type _DbType>
+         database_type DbType>
 class connection_template : public connection<_helper>
 {
 public:
     // vendor type aliases
-    using traits_type        = vendor_traits<_DbType>;
+    using traits_type        = vendor_traits<DbType>;
     using native_handle_type = typename traits_type::native_handle_type;
     using base_type          = connection<_helper>;
 
     // db_type
     //   value: the database_type enumerator for this connection.
-    static constexpr database_type db_type = _DbType;
+    static constexpr database_type db_type = DbType;
 
     connection_template()
         : base_type(),
@@ -576,7 +584,7 @@ public:
 
     // get_default_port
     //   function: returns the vendor's default TCP port.
-    std::uint16_t get_default_port() const noexcept
+    re_std::uint16_t get_default_port() const noexcept
     {
         return traits_type::default_port;
     }
@@ -634,5 +642,6 @@ protected:
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_CONNECTION_TEMPLATE_
+#endif  // DJINTERP_DB_DATABASE_CONNECTION_TEMPLATE_HPP

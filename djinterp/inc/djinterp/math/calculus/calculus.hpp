@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                            calculus/calculus.hpp
+/*******************************************************************************
+* djinterp [math]                                                   calculus.hpp
 *
 * Calculus subframework umbrella.
 *   Pulls in every calculus header in dependency order. Include this to get
@@ -16,19 +16,22 @@
 * djinterp::math::fn namespace, constants in djinterp::math::constants), and
 * builds on the value-holding expression core (expression.hpp / function.hpp).
 *
+*
 * path:      /inc/djinterp/math/calculus/calculus.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.06.20
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CALCULUS_
-#define DJINTERP_MATH_CALCULUS_ 1
+#ifndef DJINTERP_MATH_CALCULUS_CALCULUS_HPP
+#define DJINTERP_MATH_CALCULUS_CALCULUS_HPP 1
 
-#include "./constants.hpp"
+// djinterp
+#include "../constants.hpp"
 #include "./elementary.hpp"
 #include "./differentiation.hpp"
 #include "./integration.hpp"
 #include "./sequence.hpp"
 #include "./series.hpp"
 
-#endif  // DJINTERP_MATH_CALCULUS_
+#endif  // DJINTERP_MATH_CALCULUS_CALCULUS_HPP

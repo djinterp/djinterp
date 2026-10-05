@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                 basic_common_reference.hpp
+/*******************************************************************************
+* djinterp [re_std]                                   basic_common_reference.hpp
 *
 * basic_common_reference customization-point trait:
 *   The user-extensible hook used by common_reference at bullet 2 of its
@@ -24,13 +24,13 @@
 * MyPtr<Y> have a common reference type related to common_reference<X, Y>:
 *     template<typename _X,
 *              typename _Y,
-*              template<typename> class _TQual,
-*              template<typename> class _UQual>
+*              template<typename> class TQual,
+*              template<typename> class UQual>
 *     struct re_std::basic_common_reference< MyPtr<_X>, MyPtr<_Y>,
-*                                           _TQual, _UQual >
+*                                           TQual, UQual >
 *     {
 *         typedef MyPtr<typename re_std::common_reference<
-*                          _TQual<_X>, _UQual<_Y> >::type> type;
+*                          TQual<_X>, UQual<_Y> >::type> type;
 *     };
 *
 *   Specializations are queried by common_reference only when the first
@@ -49,22 +49,24 @@
 *   None beyond the re_std core macros.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/basic_common_reference.hpp
+* path:      /inc/re_std/type_traits/basic_common_reference.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_ 1
+#ifndef RE_STD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_HPP
+#define RE_STD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+namespace re_std
+{
 
 
     // basic_common_reference
@@ -72,17 +74,17 @@ NS_RESTD
     //          Has no `type` member by default. Users specialize this
     //          template to teach common_reference about their own types.
     //          See header comment for usage and rules.
-    template<typename _T,
-             typename _U,
-             template<typename> class _TQual,
-             template<typename> class _UQual>
+    template<typename T,
+             typename U,
+             template<typename> class TQual,
+             template<typename> class UQual>
     struct basic_common_reference
     {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_
+#endif  // RE_STD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_HPP

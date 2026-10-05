@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                             arangodb.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                                   arangodb.hpp
+*
 * djinterp ArangoDB connection module:
 *   This header provides the ArangoDB-specific connection implementation
 * and associated data type infrastructure for the djinterp database
@@ -46,26 +46,36 @@
 * client headers; concrete _impl methods in arangodb.cpp would use the
 * fuerte driver or direct HTTP calls.
 *
-* 
+*
 *   DETECTION:
 *   Also carries the ArangoDB capability-detection traits and C++20 concepts
 * (trailing sections), folded in from arango_traits.hpp / arango_concepts.hpp; detection
 * now lives with the connection. The connection concept is capitalized (Arango_connection)
 * to avoid the class clash; concepts gated on concept support.
 *
+*
 * path:      /inc/djinterp/core/db/arangodb/arangodb.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.06
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.06
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_ARANGODB_
-#define DJINTERP_DATABASE_ARANGODB_
+#ifndef DJINTERP_DB_ARANGODB_ARANGODB_HPP
+#define DJINTERP_DB_ARANGODB_ARANGODB_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t, uint32_t,
+                                                   // uint16_t, int64_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
-#include "../../../env/db/env_arangodb.h"
+#include "../../meta/type_utility.hpp"  // clean_t, self
+#include "../../../env/db/arangodb/env_arangodb.h"
 #include "../database_connection.hpp"
-#include "../database_traits.hpp"
 
 
 NS_DJINTERP
@@ -83,7 +93,7 @@ NS_DJINTERP
 
 // vpack_type
 //   enumeration: VelocyPack value types.
-enum class vpack_type : std::uint8_t
+enum class vpack_type : re_std::uint8_t
 {
     type_none       = 0x00,     // none / uninitialized
     type_null       = 0x18,     // JSON null
@@ -223,35 +233,62 @@ struct arango_type_support
     // multi-model
     static constexpr bool has_document_collections =
     #if D_ENV_ARANGO_HAS_DOCUMENT_COLLECTIONS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_edge_collections =
     #if D_ENV_ARANGO_HAS_EDGE_COLLECTIONS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_named_graphs =
     #if D_ENV_ARANGO_HAS_NAMED_GRAPHS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // schema
     static constexpr bool has_schema_validation =
     #if D_ENV_ARANGO_HAS_SCHEMA_VALIDATION
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_computed_values =
     #if D_ENV_ARANGO_HAS_COMPUTED_VALUES
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_key_generators =
     #if D_ENV_ARANGO_HAS_KEY_GENERATORS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // protocol
     static constexpr bool has_velocypack =
     #if D_ENV_ARANGO_HAS_VELOCYPACK
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_http2 =
     #if D_ENV_ARANGO_HAS_HTTP2
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_vst_protocol =
     #if D_ENV_ARANGO_HAS_VST_PROTOCOL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
 #else
     static constexpr bool has_document_collections = false;
@@ -275,135 +312,246 @@ struct arango_feature_support
     // AQL
     static constexpr bool has_aql =
     #if D_ENV_ARANGO_HAS_AQL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_aql_window =
     #if D_ENV_ARANGO_HAS_AQL_WINDOW
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_aql_k_paths =
     #if D_ENV_ARANGO_HAS_AQL_K_PATHS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_aql_all_shortest_paths =
     #if D_ENV_ARANGO_HAS_AQL_ALL_SHORTEST_PATHS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_aql_late_materialization =
     #if D_ENV_ARANGO_HAS_AQL_LATE_MATERIALIZATION
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_aql_insert_update =
     #if D_ENV_ARANGO_HAS_AQL_INSERT_UPDATE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // search
     static constexpr bool has_arangosearch =
     #if D_ENV_ARANGO_HAS_ARANGOSEARCH
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_search_alias_views =
     #if D_ENV_ARANGO_HAS_SEARCH_ALIAS_VIEWS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_analyzers =
     #if D_ENV_ARANGO_HAS_ANALYZERS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_nested_search =
     #if D_ENV_ARANGO_HAS_NESTED_SEARCH
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_search_highlight =
     #if D_ENV_ARANGO_HAS_SEARCH_HIGHLIGHT
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // indexes
     static constexpr bool has_index_inverted =
     #if D_ENV_ARANGO_HAS_INDEX_INVERTED
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_index_mdi =
     #if D_ENV_ARANGO_HAS_INDEX_MDI
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_index_mdi_prefixed =
     #if D_ENV_ARANGO_HAS_INDEX_MDI_PREFIXED
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_index_ttl =
     #if D_ENV_ARANGO_HAS_INDEX_TTL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_stored_values =
     #if D_ENV_ARANGO_HAS_STORED_VALUES
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_cache_on_index =
     #if D_ENV_ARANGO_HAS_CACHE_ON_INDEX
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // graph (enterprise)
     static constexpr bool has_smart_graphs =
     #if D_ENV_ARANGO_HAS_SMART_GRAPHS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_enterprise_graphs =
     #if D_ENV_ARANGO_HAS_ENTERPRISE_GRAPHS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_satellite_graphs =
     #if D_ENV_ARANGO_HAS_SATELLITE_GRAPHS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_pregel =
     #if D_ENV_ARANGO_HAS_PREGEL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // transactions
     static constexpr bool has_streaming_trx =
     #if D_ENV_ARANGO_HAS_STREAMING_TRX
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_cluster_trx =
     #if D_ENV_ARANGO_HAS_CLUSTER_TRX
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // clustering
     static constexpr bool has_oneshard =
     #if D_ENV_ARANGO_HAS_ONESHARD
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_satellite_collections =
     #if D_ENV_ARANGO_HAS_SATELLITE_COLLECTIONS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_smart_joins =
     #if D_ENV_ARANGO_HAS_SMART_JOINS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_dc2dc_repl =
     #if D_ENV_ARANGO_HAS_DC2DC_REPL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // security
     static constexpr bool has_encryption_at_rest =
     #if D_ENV_ARANGO_HAS_ENCRYPTION_AT_REST
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_audit_log =
     #if D_ENV_ARANGO_HAS_AUDIT_LOG
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_auth_ldap =
     #if D_ENV_ARANGO_HAS_AUTH_LDAP
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // backup
     static constexpr bool has_hot_backup =
     #if D_ENV_ARANGO_HAS_HOT_BACKUP
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // foxx
     static constexpr bool has_foxx =
     #if D_ENV_ARANGO_HAS_FOXX
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // edition
     static constexpr bool is_enterprise =
     #if D_ENV_ARANGO_IS_ENTERPRISE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // composite
     static constexpr bool has_modern_search =
     #if D_ENV_ARANGO_HAS_MODERN_SEARCH
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_modern_aql =
     #if D_ENV_ARANGO_HAS_MODERN_AQL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_modern_graph =
     #if D_ENV_ARANGO_HAS_MODERN_GRAPH
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool is_fully_modern =
     #if D_ENV_ARANGO_IS_FULLY_MODERN
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
 #else
     static constexpr bool has_aql                      = false;
@@ -459,23 +607,23 @@ struct arango_version_info
 {
 #if D_ENV_ARANGO_DETECTED
     static constexpr bool          detected = true;
-    static constexpr std::uint32_t id       = D_ENV_ARANGO_VERSION_ID;
-    static constexpr std::uint16_t major    = D_ENV_ARANGO_VERSION_MAJOR;
-    static constexpr std::uint16_t minor    = D_ENV_ARANGO_VERSION_MINOR;
-    static constexpr std::uint16_t patch    = D_ENV_ARANGO_VERSION_PATCH;
+    static constexpr re_std::uint32_t id       = D_ENV_ARANGO_VERSION_ID;
+    static constexpr re_std::uint16_t major    = D_ENV_ARANGO_VERSION_MAJOR;
+    static constexpr re_std::uint16_t minor    = D_ENV_ARANGO_VERSION_MINOR;
+    static constexpr re_std::uint16_t patch    = D_ENV_ARANGO_VERSION_PATCH;
     static constexpr const char*   string   = D_ENV_ARANGO_VERSION_STRING;
 #else
     static constexpr bool          detected = false;
-    static constexpr std::uint32_t id       = 0;
-    static constexpr std::uint16_t major    = 0;
-    static constexpr std::uint16_t minor    = 0;
-    static constexpr std::uint16_t patch    = 0;
+    static constexpr re_std::uint32_t id       = 0;
+    static constexpr re_std::uint16_t major    = 0;
+    static constexpr re_std::uint16_t minor    = 0;
+    static constexpr re_std::uint16_t patch    = 0;
     static constexpr const char*   string   = "not detected";
 #endif
 
-    static constexpr bool at_least(std::uint16_t _major,
-                                   std::uint16_t _minor,
-                                   std::uint16_t _patch) noexcept
+    static constexpr bool at_least(re_std::uint16_t _major,
+                                   re_std::uint16_t _minor,
+                                   re_std::uint16_t _patch) noexcept
     {
         return id >= (_major * 10000u + _minor * 100u + _patch);
     }
@@ -488,7 +636,7 @@ struct arango_version_info
 
 // arango_auth_method
 //   enumeration: authentication methods for ArangoDB HTTP API.
-enum class arango_auth_method : std::uint8_t
+enum class arango_auth_method : re_std::uint8_t
 {
     none     = 0,       // no authentication
     basic    = 1,       // HTTP Basic
@@ -982,23 +1130,23 @@ public:
     // _impl methods (defined in arangodb.cpp)
     // -----------------------------------------------------------------
 
-    void connect_impl();
-    void disconnect_impl();
-    bool is_connected_impl() const;
-    bool ping_impl() const;
+    void connect_helper();
+    void disconnect_helper();
+    bool is_connected_helper() const;
+    bool ping_helper() const;
 
     // generic execute_query/execute_update map to AQL
-    auto execute_query_impl(const std::string& _query)
+    auto execute_query_helper(const std::string& _query)
         -> std::unique_ptr<
             result_set<struct arango_result_set_impl>>;
-    std::int64_t execute_update_impl(const std::string& _query);
-    bool execute_impl(const std::string& _query);
+    re_std::int64_t execute_update_helper(const std::string& _query);
+    bool execute_helper(const std::string& _query);
 
-    std::string  get_server_version_impl() const;
-    std::string  get_last_error_impl() const;
-    int          get_last_error_code_impl() const;
-    std::int64_t get_last_insert_id_impl() const;
-    std::int64_t get_affected_rows_impl() const;
+    std::string  get_server_version_helper() const;
+    std::string  get_last_error_helper() const;
+    int          get_last_error_code_helper() const;
+    re_std::int64_t get_last_insert_id_impl() const;
+    re_std::int64_t get_affected_rows_impl() const;
 
     // ArangoDB-specific _impl methods
     std::string execute_aql_impl(const std::string& _aql);
@@ -1141,16 +1289,16 @@ struct arango_result_set_impl;
 
 // arango_execute_aql_t
 //   detector: execute_aql(const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_execute_aql_t =
-    decltype(std::declval<_Type&>().execute_aql(
+    decltype(std::declval<Type&>().execute_aql(
         std::declval<const std::string&>()));
 
 // arango_explain_aql_t
 //   detector: explain_aql(const std::string&) const method.
-template<typename _Type>
+template<typename Type>
 using arango_explain_aql_t =
-    decltype(std::declval<const _Type&>().explain_aql(
+    decltype(std::declval<const Type&>().explain_aql(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1160,27 +1308,27 @@ using arango_explain_aql_t =
 // arango_insert_document_t
 //   detector: insert_document(const std::string&, const std::string&)
 // method.
-template<typename _Type>
+template<typename Type>
 using arango_insert_document_t =
-    decltype(std::declval<_Type&>().insert_document(
+    decltype(std::declval<Type&>().insert_document(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // arango_get_document_t
 //   detector: get_document(const std::string&, const std::string&)
 // const method.
-template<typename _Type>
+template<typename Type>
 using arango_get_document_t =
-    decltype(std::declval<const _Type&>().get_document(
+    decltype(std::declval<const Type&>().get_document(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // arango_update_document_t
 //   detector: update_document(const std::string&, const std::string&,
 // const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_update_document_t =
-    decltype(std::declval<_Type&>().update_document(
+    decltype(std::declval<Type&>().update_document(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
@@ -1188,9 +1336,9 @@ using arango_update_document_t =
 // arango_replace_document_t
 //   detector: replace_document(const std::string&, const std::string&,
 // const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_replace_document_t =
-    decltype(std::declval<_Type&>().replace_document(
+    decltype(std::declval<Type&>().replace_document(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
@@ -1198,9 +1346,9 @@ using arango_replace_document_t =
 // arango_remove_document_t
 //   detector: remove_document(const std::string&, const std::string&)
 // method.
-template<typename _Type>
+template<typename Type>
 using arango_remove_document_t =
-    decltype(std::declval<_Type&>().remove_document(
+    decltype(std::declval<Type&>().remove_document(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
@@ -1210,31 +1358,31 @@ using arango_remove_document_t =
 
 // arango_create_collection_t
 //   detector: create_collection(const std::string&, int) method.
-template<typename _Type>
+template<typename Type>
 using arango_create_collection_t =
-    decltype(std::declval<_Type&>().create_collection(
+    decltype(std::declval<Type&>().create_collection(
         std::declval<const std::string&>(),
         std::declval<int>()));
 
 // arango_drop_collection_t
 //   detector: drop_collection(const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_drop_collection_t =
-    decltype(std::declval<_Type&>().drop_collection(
+    decltype(std::declval<Type&>().drop_collection(
         std::declval<const std::string&>()));
 
 // arango_collection_exists_t
 //   detector: collection_exists(const std::string&) const method.
-template<typename _Type>
+template<typename Type>
 using arango_collection_exists_t =
-    decltype(std::declval<const _Type&>().collection_exists(
+    decltype(std::declval<const Type&>().collection_exists(
         std::declval<const std::string&>()));
 
 // arango_get_collection_names_t
 //   detector: get_collection_names() const method.
-template<typename _Type>
+template<typename Type>
 using arango_get_collection_names_t =
-    decltype(std::declval<const _Type&>().get_collection_names());
+    decltype(std::declval<const Type&>().get_collection_names());
 
 // -------------------------------------------------------------------------
 // D.  graph operations
@@ -1242,17 +1390,17 @@ using arango_get_collection_names_t =
 
 // arango_create_graph_t
 //   detector: create_graph(const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_create_graph_t =
-    decltype(std::declval<_Type&>().create_graph(
+    decltype(std::declval<Type&>().create_graph(
         std::declval<const std::string&>()));
 
 // arango_traverse_t
 //   detector: traverse(const std::string&, const std::string&, int)
 // method.
-template<typename _Type>
+template<typename Type>
 using arango_traverse_t =
-    decltype(std::declval<_Type&>().traverse(
+    decltype(std::declval<Type&>().traverse(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<int>()));
@@ -1260,9 +1408,9 @@ using arango_traverse_t =
 // arango_shortest_path_t
 //   detector: shortest_path(const std::string&, const std::string&,
 // const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_shortest_path_t =
-    decltype(std::declval<_Type&>().shortest_path(
+    decltype(std::declval<Type&>().shortest_path(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
@@ -1273,23 +1421,23 @@ using arango_shortest_path_t =
 
 // arango_begin_stream_trx_t
 //   detector: begin_stream_trx(const std::vector<std::string>&) method.
-template<typename _Type>
+template<typename Type>
 using arango_begin_stream_trx_t =
-    decltype(std::declval<_Type&>().begin_stream_trx(
+    decltype(std::declval<Type&>().begin_stream_trx(
         std::declval<const std::vector<std::string>&>()));
 
 // arango_commit_trx_t
 //   detector: commit_trx(const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_commit_trx_t =
-    decltype(std::declval<_Type&>().commit_trx(
+    decltype(std::declval<Type&>().commit_trx(
         std::declval<const std::string&>()));
 
 // arango_abort_trx_t
 //   detector: abort_trx(const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_abort_trx_t =
-    decltype(std::declval<_Type&>().abort_trx(
+    decltype(std::declval<Type&>().abort_trx(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1298,16 +1446,16 @@ using arango_abort_trx_t =
 
 // arango_create_cursor_t
 //   detector: create_cursor(const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_create_cursor_t =
-    decltype(std::declval<_Type&>().create_cursor(
+    decltype(std::declval<Type&>().create_cursor(
         std::declval<const std::string&>()));
 
 // arango_next_batch_t
 //   detector: next_batch(const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_next_batch_t =
-    decltype(std::declval<_Type&>().next_batch(
+    decltype(std::declval<Type&>().next_batch(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1317,17 +1465,17 @@ using arango_next_batch_t =
 // arango_create_index_t
 //   detector: create_index(const std::string&, const std::string&)
 // method.
-template<typename _Type>
+template<typename Type>
 using arango_create_index_t =
-    decltype(std::declval<_Type&>().create_index(
+    decltype(std::declval<Type&>().create_index(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // arango_get_indexes_t
 //   detector: get_indexes(const std::string&) const method.
-template<typename _Type>
+template<typename Type>
 using arango_get_indexes_t =
-    decltype(std::declval<const _Type&>().get_indexes(
+    decltype(std::declval<const Type&>().get_indexes(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1336,15 +1484,15 @@ using arango_get_indexes_t =
 
 // arango_current_database_t
 //   detector: current_database() const method.
-template<typename _Type>
+template<typename Type>
 using arango_current_database_t =
-    decltype(std::declval<const _Type&>().current_database());
+    decltype(std::declval<const Type&>().current_database());
 
 // arango_list_databases_t
 //   detector: list_databases() const method.
-template<typename _Type>
+template<typename Type>
 using arango_list_databases_t =
-    decltype(std::declval<const _Type&>().list_databases());
+    decltype(std::declval<const Type&>().list_databases());
 
 // -------------------------------------------------------------------------
 // I.  view management
@@ -1352,9 +1500,9 @@ using arango_list_databases_t =
 
 // arango_create_view_t
 //   detector: create_view(const std::string&, const std::string&) method.
-template<typename _Type>
+template<typename Type>
 using arango_create_view_t =
-    decltype(std::declval<_Type&>().create_view(
+    decltype(std::declval<Type&>().create_view(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
@@ -1364,162 +1512,162 @@ using arango_create_view_t =
 // =============================================================================
 
 // has_arango_aql
-//   trait: checks if type _Type supports AQL execution.
-template<typename _Type>
+//   trait: checks if type Type supports AQL execution.
+template<typename Type>
 struct has_arango_aql : djinterp::conjunction<
-    is_detected<arango_execute_aql_t, clean_t<_Type>>,
-    is_detected<arango_explain_aql_t, clean_t<_Type>>>
+    is_detected<arango_execute_aql_t, clean_t<Type>>,
+    is_detected<arango_explain_aql_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
-    constexpr bool has_arango_aql_v = has_arango_aql<clean_t<_Type>>::value;
+    template<typename Type>
+    constexpr bool has_arango_aql_v = has_arango_aql<clean_t<Type>>::value;
 #endif
 
 // has_arango_document_crud
-//   trait: checks if type _Type supports document CRUD
+//   trait: checks if type Type supports document CRUD
 // (insert + get + update + replace + remove).
-template<typename _Type>
+template<typename Type>
 struct has_arango_document_crud : djinterp::conjunction<
-    is_detected<arango_insert_document_t, clean_t<_Type>>,
-    is_detected<arango_get_document_t, clean_t<_Type>>,
-    is_detected<arango_update_document_t, clean_t<_Type>>,
-    is_detected<arango_replace_document_t, clean_t<_Type>>,
-    is_detected<arango_remove_document_t, clean_t<_Type>>>
+    is_detected<arango_insert_document_t, clean_t<Type>>,
+    is_detected<arango_get_document_t, clean_t<Type>>,
+    is_detected<arango_update_document_t, clean_t<Type>>,
+    is_detected<arango_replace_document_t, clean_t<Type>>,
+    is_detected<arango_remove_document_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_arango_document_crud_v =
-        has_arango_document_crud<clean_t<_Type>>::value;
+        has_arango_document_crud<clean_t<Type>>::value;
 #endif
 
 // has_arango_collections
-//   trait: checks if type _Type supports collection management.
-template<typename _Type>
+//   trait: checks if type Type supports collection management.
+template<typename Type>
 struct has_arango_collections : djinterp::conjunction<
-    is_detected<arango_create_collection_t, clean_t<_Type>>,
-    is_detected<arango_drop_collection_t, clean_t<_Type>>,
-    is_detected<arango_collection_exists_t, clean_t<_Type>>,
-    is_detected<arango_get_collection_names_t, clean_t<_Type>>>
+    is_detected<arango_create_collection_t, clean_t<Type>>,
+    is_detected<arango_drop_collection_t, clean_t<Type>>,
+    is_detected<arango_collection_exists_t, clean_t<Type>>,
+    is_detected<arango_get_collection_names_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_arango_collections_v =
-        has_arango_collections<clean_t<_Type>>::value;
+        has_arango_collections<clean_t<Type>>::value;
 #endif
 
 // has_arango_graph
-//   trait: checks if type _Type supports graph operations.
-template<typename _Type>
+//   trait: checks if type Type supports graph operations.
+template<typename Type>
 struct has_arango_graph : djinterp::conjunction<
-    is_detected<arango_create_graph_t, clean_t<_Type>>,
-    is_detected<arango_traverse_t, clean_t<_Type>>,
-    is_detected<arango_shortest_path_t, clean_t<_Type>>>
+    is_detected<arango_create_graph_t, clean_t<Type>>,
+    is_detected<arango_traverse_t, clean_t<Type>>,
+    is_detected<arango_shortest_path_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
-    constexpr bool has_arango_graph_v = has_arango_graph<clean_t<_Type>>::value;
+    template<typename Type>
+    constexpr bool has_arango_graph_v = has_arango_graph<clean_t<Type>>::value;
 #endif
 
 // has_arango_stream_trx
-//   trait: checks if type _Type supports streaming transactions.
-template<typename _Type>
+//   trait: checks if type Type supports streaming transactions.
+template<typename Type>
 struct has_arango_stream_trx : djinterp::conjunction<
-    is_detected<arango_begin_stream_trx_t, clean_t<_Type>>,
-    is_detected<arango_commit_trx_t, clean_t<_Type>>,
-    is_detected<arango_abort_trx_t, clean_t<_Type>>>
+    is_detected<arango_begin_stream_trx_t, clean_t<Type>>,
+    is_detected<arango_commit_trx_t, clean_t<Type>>,
+    is_detected<arango_abort_trx_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_arango_stream_trx_v =
-        has_arango_stream_trx<clean_t<_Type>>::value;
+        has_arango_stream_trx<clean_t<Type>>::value;
 #endif
 
 // has_arango_cursor
-//   trait: checks if type _Type supports cursor-based iteration.
-template<typename _Type>
+//   trait: checks if type Type supports cursor-based iteration.
+template<typename Type>
 struct has_arango_cursor : djinterp::conjunction<
-    is_detected<arango_create_cursor_t, clean_t<_Type>>,
-    is_detected<arango_next_batch_t, clean_t<_Type>>>
+    is_detected<arango_create_cursor_t, clean_t<Type>>,
+    is_detected<arango_next_batch_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
-    constexpr bool has_arango_cursor_v = has_arango_cursor<clean_t<_Type>>::value;
+    template<typename Type>
+    constexpr bool has_arango_cursor_v = has_arango_cursor<clean_t<Type>>::value;
 #endif
 
 // has_arango_indexes
-//   trait: checks if type _Type supports index management.
-template<typename _Type>
+//   trait: checks if type Type supports index management.
+template<typename Type>
 struct has_arango_indexes : djinterp::conjunction<
-    is_detected<arango_create_index_t, clean_t<_Type>>,
-    is_detected<arango_get_indexes_t, clean_t<_Type>>>
+    is_detected<arango_create_index_t, clean_t<Type>>,
+    is_detected<arango_get_indexes_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_arango_indexes_v =
-        has_arango_indexes<clean_t<_Type>>::value;
+        has_arango_indexes<clean_t<Type>>::value;
 #endif
 
 // has_arango_database_ops
-//   trait: checks if type _Type supports database-level operations.
-template<typename _Type>
+//   trait: checks if type Type supports database-level operations.
+template<typename Type>
 struct has_arango_database_ops : djinterp::conjunction<
-    is_detected<arango_current_database_t, clean_t<_Type>>,
-    is_detected<arango_list_databases_t, clean_t<_Type>>>
+    is_detected<arango_current_database_t, clean_t<Type>>,
+    is_detected<arango_list_databases_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_arango_database_ops_v =
-        has_arango_database_ops<clean_t<_Type>>::value;
+        has_arango_database_ops<clean_t<Type>>::value;
 #endif
 
 // has_arango_views
-//   trait: checks if type _Type supports view management.
-template<typename _Type>
-struct has_arango_views : is_detected<arango_create_view_t, clean_t<_Type>>
+//   trait: checks if type Type supports view management.
+template<typename Type>
+struct has_arango_views : is_detected<arango_create_view_t, clean_t<Type>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_arango_views_v =
-        has_arango_views<clean_t<_Type>>::value;
+        has_arango_views<clean_t<Type>>::value;
 #endif
 
 // is_arango_connection
-//   trait: compound trait verifying type _Type implements an ArangoDB
+//   trait: compound trait verifying type Type implements an ArangoDB
 // connection interface (connection + AQL + documents + collections +
 // cursors).
-template<typename _Type>
+template<typename Type>
 struct is_arango_connection : djinterp::conjunction<
-    has_connect<clean_t<_Type>>,
-    has_disconnect<clean_t<_Type>>,
-    has_arango_aql<clean_t<_Type>>,
-    has_arango_document_crud<clean_t<_Type>>,
-    has_arango_collections<clean_t<_Type>>,
-    has_arango_cursor<clean_t<_Type>>>
+    has_connect<clean_t<Type>>,
+    has_disconnect<clean_t<Type>>,
+    has_arango_aql<clean_t<Type>>,
+    has_arango_document_crud<clean_t<Type>>,
+    has_arango_collections<clean_t<Type>>,
+    has_arango_cursor<clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_arango_connection_v =
-        is_arango_connection<clean_t<_Type>>::value;
+        is_arango_connection<clean_t<Type>>::value;
 #endif
 
 
@@ -1531,156 +1679,156 @@ struct is_arango_connection : djinterp::conjunction<
 // A.  individual capability tags
 // -------------------------------------------------------------------------
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_execute_aql = false;
 
-template<typename _Type>
-constexpr bool arango_can_execute_aql<_Type,
-    std::void_t<arango_execute_aql_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_execute_aql<Type,
+    std::void_t<arango_execute_aql_t<Type>>> = true;
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_insert_document = false;
 
-template<typename _Type>
-constexpr bool arango_can_insert_document<_Type,
-    std::void_t<arango_insert_document_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_insert_document<Type,
+    std::void_t<arango_insert_document_t<Type>>> = true;
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_get_document = false;
 
-template<typename _Type>
-constexpr bool arango_can_get_document<_Type,
-    std::void_t<arango_get_document_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_get_document<Type,
+    std::void_t<arango_get_document_t<Type>>> = true;
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_replace_document = false;
 
-template<typename _Type>
-constexpr bool arango_can_replace_document<_Type,
-    std::void_t<arango_replace_document_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_replace_document<Type,
+    std::void_t<arango_replace_document_t<Type>>> = true;
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_traverse = false;
 
-template<typename _Type>
-constexpr bool arango_can_traverse<_Type,
-    std::void_t<arango_traverse_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_traverse<Type,
+    std::void_t<arango_traverse_t<Type>>> = true;
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_create_collection = false;
 
-template<typename _Type>
-constexpr bool arango_can_create_collection<_Type,
-    std::void_t<arango_create_collection_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_create_collection<Type,
+    std::void_t<arango_create_collection_t<Type>>> = true;
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_stream_trx = false;
 
-template<typename _Type>
-constexpr bool arango_can_stream_trx<_Type,
-    std::void_t<arango_begin_stream_trx_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_stream_trx<Type,
+    std::void_t<arango_begin_stream_trx_t<Type>>> = true;
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_create_view = false;
 
-template<typename _Type>
-constexpr bool arango_can_create_view<_Type,
-    std::void_t<arango_create_view_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_create_view<Type,
+    std::void_t<arango_create_view_t<Type>>> = true;
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_create_index = false;
 
-template<typename _Type>
-constexpr bool arango_can_create_index<_Type,
-    std::void_t<arango_create_index_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_create_index<Type,
+    std::void_t<arango_create_index_t<Type>>> = true;
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 constexpr bool arango_can_list_databases = false;
 
-template<typename _Type>
-constexpr bool arango_can_list_databases<_Type,
-    std::void_t<arango_list_databases_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_can_list_databases<Type,
+    std::void_t<arango_list_databases_t<Type>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
 // -------------------------------------------------------------------------
 
 // arango_does_document_crud
-//   tagless trait: true if _Type supports full document CRUD.
-template<typename _Type, typename = void>
+//   tagless trait: true if Type supports full document CRUD.
+template<typename Type, typename = void>
 constexpr bool arango_does_document_crud = false;
 
-template<typename _Type>
-constexpr bool arango_does_document_crud<_Type, std::void_t<
-    arango_insert_document_t<_Type>,
-    arango_get_document_t<_Type>,
-    arango_update_document_t<_Type>,
-    arango_replace_document_t<_Type>,
-    arango_remove_document_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_does_document_crud<Type, std::void_t<
+    arango_insert_document_t<Type>,
+    arango_get_document_t<Type>,
+    arango_update_document_t<Type>,
+    arango_replace_document_t<Type>,
+    arango_remove_document_t<Type>>> = true;
 
 // arango_does_graph
-//   tagless trait: true if _Type supports graph operations.
-template<typename _Type, typename = void>
+//   tagless trait: true if Type supports graph operations.
+template<typename Type, typename = void>
 constexpr bool arango_does_graph = false;
 
-template<typename _Type>
-constexpr bool arango_does_graph<_Type, std::void_t<
-    arango_create_graph_t<_Type>,
-    arango_traverse_t<_Type>,
-    arango_shortest_path_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_does_graph<Type, std::void_t<
+    arango_create_graph_t<Type>,
+    arango_traverse_t<Type>,
+    arango_shortest_path_t<Type>>> = true;
 
 // arango_does_stream_trx
-//   tagless trait: true if _Type supports streaming transactions.
-template<typename _Type, typename = void>
+//   tagless trait: true if Type supports streaming transactions.
+template<typename Type, typename = void>
 constexpr bool arango_does_stream_trx = false;
 
-template<typename _Type>
-constexpr bool arango_does_stream_trx<_Type, std::void_t<
-    arango_begin_stream_trx_t<_Type>,
-    arango_commit_trx_t<_Type>,
-    arango_abort_trx_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_does_stream_trx<Type, std::void_t<
+    arango_begin_stream_trx_t<Type>,
+    arango_commit_trx_t<Type>,
+    arango_abort_trx_t<Type>>> = true;
 
 // arango_does_database_ops
-//   tagless trait: true if _Type supports database-level operations.
-template<typename _Type, typename = void>
+//   tagless trait: true if Type supports database-level operations.
+template<typename Type, typename = void>
 constexpr bool arango_does_database_ops = false;
 
-template<typename _Type>
-constexpr bool arango_does_database_ops<_Type, std::void_t<
-    arango_current_database_t<_Type>,
-    arango_list_databases_t<_Type>>> = true;
+template<typename Type>
+constexpr bool arango_does_database_ops<Type, std::void_t<
+    arango_current_database_t<Type>,
+    arango_list_databases_t<Type>>> = true;
 
 // arango_is_full_connection
-//   tagless trait: true if _Type satisfies the complete ArangoDB
+//   tagless trait: true if Type satisfies the complete ArangoDB
 // connection interface.
-template<typename _Type>
+template<typename Type>
 constexpr bool arango_is_full_connection =
-    ( can_connect<clean_t<_Type>>               &&
-      can_disconnect<clean_t<_Type>>            &&
-      arango_can_execute_aql<clean_t<_Type>>    &&
-      arango_does_document_crud<clean_t<_Type>> &&
-      arango_can_create_collection<clean_t<_Type>> );
+    ( can_connect<clean_t<Type>>               &&
+      can_disconnect<clean_t<Type>>            &&
+      arango_can_execute_aql<clean_t<Type>>    &&
+      arango_does_document_crud<clean_t<Type>> &&
+      arango_can_create_collection<clean_t<Type>> );
 
 
 // =============================================================================
 // XII.  SFINAE HELPERS
 // =============================================================================
 
-template<typename _Type>
+template<typename Type>
 using enable_if_arango_connection =
-    typename std::enable_if<is_arango_connection<clean_t<_Type>>::value>::type;
+    typename std::enable_if<is_arango_connection<clean_t<Type>>::value>::type;
 
-template<typename _Type>
+template<typename Type>
 using enable_if_has_arango_graph =
-    typename std::enable_if<has_arango_graph<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_arango_graph<clean_t<Type>>::value>::type;
 
-template<typename _Type>
+template<typename Type>
 using enable_if_has_arango_stream_trx =
-    typename std::enable_if<has_arango_stream_trx<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_arango_stream_trx<clean_t<Type>>::value>::type;
 
-template<typename _Type>
+template<typename Type>
 using enable_if_has_arango_database_ops =
-    typename std::enable_if<has_arango_database_ops<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_arango_database_ops<clean_t<Type>>::value>::type;
 
 
 // ===========================================================================
@@ -1701,34 +1849,34 @@ using enable_if_has_arango_database_ops =
 // Arango_connection
 //   concept: constrains types implementing the ArangoDB connection
 // interface.
-template<typename _Type>
-concept Arango_connection = is_arango_connection<clean_t<_Type>>::value;
+template<typename Type>
+concept Arango_connection = is_arango_connection<clean_t<Type>>::value;
 
 // non_arango_connection
 //   concept: constrains types that do not implement the ArangoDB
 // connection interface.
-template<typename _Type>
-concept non_arango_connection = !Arango_connection<_Type>;
+template<typename Type>
+concept non_arango_connection = !Arango_connection<Type>;
 
 // aql_connection
 //   concept: constrains types supporting AQL execution and explanation.
-template<typename _Type>
-concept aql_connection = has_arango_aql<clean_t<_Type>>::value;
+template<typename Type>
+concept aql_connection = has_arango_aql<clean_t<Type>>::value;
 
 // document_connection
 //   concept: constrains types supporting full document CRUD.
-template<typename _Type>
-concept document_connection = has_arango_document_crud<clean_t<_Type>>::value;
+template<typename Type>
+concept document_connection = has_arango_document_crud<clean_t<Type>>::value;
 
 // collection_connection
 //   concept: constrains types supporting collection management.
-template<typename _Type>
-concept collection_connection = has_arango_collections<clean_t<_Type>>::value;
+template<typename Type>
+concept collection_connection = has_arango_collections<clean_t<Type>>::value;
 
 // cursor_connection
 //   concept: constrains types supporting cursor-based iteration.
-template<typename _Type>
-concept cursor_connection = has_arango_cursor<clean_t<_Type>>::value;
+template<typename Type>
+concept cursor_connection = has_arango_cursor<clean_t<Type>>::value;
 
 
 // ===========================================================================
@@ -1737,170 +1885,170 @@ concept cursor_connection = has_arango_cursor<clean_t<_Type>>::value;
 
 // graph_connection
 //   concept: constrains types supporting graph operations.
-template<typename _Type>
-concept graph_connection = has_arango_graph<clean_t<_Type>>::value;
+template<typename Type>
+concept graph_connection = has_arango_graph<clean_t<Type>>::value;
 
 // stream_transaction_connection
 //   concept: constrains types supporting streaming transactions.
-template<typename _Type>
+template<typename Type>
 concept stream_transaction_connection =
-has_arango_stream_trx<clean_t<_Type>>::value;
+has_arango_stream_trx<clean_t<Type>>::value;
 
 // index_connection
 //   concept: constrains types supporting index management.
-template<typename _Type>
-concept index_connection = has_arango_indexes<clean_t<_Type>>::value;
+template<typename Type>
+concept index_connection = has_arango_indexes<clean_t<Type>>::value;
 
 // database_ops_connection
 //   concept: constrains types supporting database-level operations.
-template<typename _Type>
-concept database_ops_connection = has_arango_database_ops<clean_t<_Type>>::value;
+template<typename Type>
+concept database_ops_connection = has_arango_database_ops<clean_t<Type>>::value;
 
 // view_connection
 //   concept: constrains types supporting view management.
-template<typename _Type>
-concept view_connection = has_arango_views<clean_t<_Type>>::value;
+template<typename Type>
+concept view_connection = has_arango_views<clean_t<Type>>::value;
 
 // aql_executable_connection
 //   concept: constrains types exposing execute_aql(const string&).
-template<typename _Type>
-concept aql_executable_connection = arango_can_execute_aql<clean_t<_Type>>;
+template<typename Type>
+concept aql_executable_connection = arango_can_execute_aql<clean_t<Type>>;
 
 // aql_explainable_connection
 //   concept: constrains types exposing explain_aql(const string&) const.
-template<typename _Type>
+template<typename Type>
 concept aql_explainable_connection =
-    is_detected<arango_explain_aql_t, clean_t<_Type>>::value;
+    is_detected<arango_explain_aql_t, clean_t<Type>>::value;
 
 // document_insert_connection
 //   concept: constrains types exposing insert_document().
-template<typename _Type>
-concept document_insert_connection = 
-	arango_can_insert_document<clean_t<_Type>>;
+template<typename Type>
+concept document_insert_connection =
+    arango_can_insert_document<clean_t<Type>>;
 
 // document_get_connection
 //   concept: constrains types exposing get_document().
-template<typename _Type>
-concept document_get_connection = arango_can_get_document<clean_t<_Type>>;
+template<typename Type>
+concept document_get_connection = arango_can_get_document<clean_t<Type>>;
 
 // document_update_connection
 //   concept: constrains types exposing update_document().
-template<typename _Type>
+template<typename Type>
 concept document_update_connection =
-    is_detected<arango_update_document_t, clean_t<_Type>>::value;
+    is_detected<arango_update_document_t, clean_t<Type>>::value;
 
 // document_replace_connection
 //   concept: constrains types exposing replace_document().
-template<typename _Type>
+template<typename Type>
 concept document_replace_connection =
-    arango_can_replace_document<clean_t<_Type>>;
+    arango_can_replace_document<clean_t<Type>>;
 
 // document_remove_connection
 //   concept: constrains types exposing remove_document().
-template<typename _Type>
+template<typename Type>
 concept document_remove_connection =
-    is_detected<arango_remove_document_t, clean_t<_Type>>::value;
+    is_detected<arango_remove_document_t, clean_t<Type>>::value;
 
 // collection_create_connection
 //   concept: constrains types exposing create_collection().
-template<typename _Type>
+template<typename Type>
 concept collection_create_connection =
-    arango_can_create_collection<clean_t<_Type>>;
+    arango_can_create_collection<clean_t<Type>>;
 
 // collection_drop_connection
 //   concept: constrains types exposing drop_collection().
-template<typename _Type>
+template<typename Type>
 concept collection_drop_connection =
-    is_detected<arango_drop_collection_t, clean_t<_Type>>::value;
+    is_detected<arango_drop_collection_t, clean_t<Type>>::value;
 
 // collection_exists_query
 //   concept: constrains types exposing collection_exists().
-template<typename _Type>
+template<typename Type>
 concept collection_exists_query =
-    is_detected<arango_collection_exists_t, clean_t<_Type>>::value;
+    is_detected<arango_collection_exists_t, clean_t<Type>>::value;
 
 // collection_name_query
 //   concept: constrains types exposing get_collection_names().
-template<typename _Type>
+template<typename Type>
 concept collection_name_query =
-    is_detected<arango_get_collection_names_t, clean_t<_Type>>::value;
+    is_detected<arango_get_collection_names_t, clean_t<Type>>::value;
 
 // graph_create_connection
 //   concept: constrains types exposing create_graph().
-template<typename _Type>
+template<typename Type>
 concept graph_create_connection =
-    is_detected<arango_create_graph_t, clean_t<_Type>>::value;
+    is_detected<arango_create_graph_t, clean_t<Type>>::value;
 
 // graph_traversal_connection
 //   concept: constrains types exposing traverse().
-template<typename _Type>
-concept graph_traversal_connection = arango_can_traverse<clean_t<_Type>>;
+template<typename Type>
+concept graph_traversal_connection = arango_can_traverse<clean_t<Type>>;
 
 // shortest_path_connection
 //   concept: constrains types exposing shortest_path().
-template<typename _Type>
+template<typename Type>
 concept shortest_path_connection =
-    is_detected<arango_shortest_path_t, clean_t<_Type>>::value;
+    is_detected<arango_shortest_path_t, clean_t<Type>>::value;
 
 // stream_transaction_begin_connection
 //   concept: constrains types exposing begin_stream_trx().
-template<typename _Type>
+template<typename Type>
 concept stream_transaction_begin_connection =
-    arango_can_stream_trx<clean_t<_Type>>;
+    arango_can_stream_trx<clean_t<Type>>;
 
 // stream_transaction_commit_connection
 //   concept: constrains types exposing commit_trx().
-template<typename _Type>
+template<typename Type>
 concept stream_transaction_commit_connection =
-    is_detected<arango_commit_trx_t, clean_t<_Type>>::value;
+    is_detected<arango_commit_trx_t, clean_t<Type>>::value;
 
 // stream_transaction_abort_connection
 //   concept: constrains types exposing abort_trx().
-template<typename _Type>
+template<typename Type>
 concept stream_transaction_abort_connection =
-    is_detected<arango_abort_trx_t, clean_t<_Type>>::value;
+    is_detected<arango_abort_trx_t, clean_t<Type>>::value;
 
 // cursor_create_connection
 //   concept: constrains types exposing create_cursor().
-template<typename _Type>
+template<typename Type>
 concept cursor_create_connection =
-    is_detected<arango_create_cursor_t, clean_t<_Type>>::value;
+    is_detected<arango_create_cursor_t, clean_t<Type>>::value;
 
 // cursor_batch_connection
 //   concept: constrains types exposing next_batch().
-template<typename _Type>
+template<typename Type>
 concept cursor_batch_connection =
-    is_detected<arango_next_batch_t, clean_t<_Type>>::value;
+    is_detected<arango_next_batch_t, clean_t<Type>>::value;
 
 // index_create_connection
 //   concept: constrains types exposing create_index().
-template<typename _Type>
+template<typename Type>
 concept index_create_connection =
-    arango_can_create_index<clean_t<_Type>>;
+    arango_can_create_index<clean_t<Type>>;
 
 // index_query_connection
 //   concept: constrains types exposing get_indexes().
-template<typename _Type>
+template<typename Type>
 concept index_query_connection =
-    is_detected<arango_get_indexes_t, clean_t<_Type>>::value;
+    is_detected<arango_get_indexes_t, clean_t<Type>>::value;
 
 // current_database_query
 //   concept: constrains types exposing current_database().
-template<typename _Type>
+template<typename Type>
 concept current_database_query =
-    is_detected<arango_current_database_t, clean_t<_Type>>::value;
+    is_detected<arango_current_database_t, clean_t<Type>>::value;
 
 // list_databases_query
 //   concept: constrains types exposing list_databases().
-template<typename _Type>
+template<typename Type>
 concept list_databases_query =
-    arango_can_list_databases<clean_t<_Type>>;
+    arango_can_list_databases<clean_t<Type>>;
 
 // view_create_connection
 //   concept: constrains types exposing create_view().
-template<typename _Type>
+template<typename Type>
 concept view_create_connection =
-    arango_can_create_view<clean_t<_Type>>;
+    arango_can_create_view<clean_t<Type>>;
 
 
 // ===========================================================================
@@ -1910,36 +2058,36 @@ concept view_create_connection =
 // arango_document_crud_connection
 //   concept: constrains types satisfying the tagless full document-CRUD
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept arango_document_crud_connection =
-    arango_does_document_crud<clean_t<_Type>>;
+    arango_does_document_crud<clean_t<Type>>;
 
 // arango_graph_capable_connection
 //   concept: constrains types satisfying the tagless graph capability set.
-template<typename _Type>
+template<typename Type>
 concept arango_graph_capable_connection =
-    arango_does_graph<clean_t<_Type>>;
+    arango_does_graph<clean_t<Type>>;
 
 // arango_stream_transaction_capable_connection
 //   concept: constrains types satisfying the tagless streaming-transaction
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept arango_stream_transaction_capable_connection =
-    arango_does_stream_trx<clean_t<_Type>>;
+    arango_does_stream_trx<clean_t<Type>>;
 
 // arango_database_ops_capable_connection
 //   concept: constrains types satisfying the tagless database-operations
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept arango_database_ops_capable_connection =
-    arango_does_database_ops<clean_t<_Type>>;
+    arango_does_database_ops<clean_t<Type>>;
 
 // full_arango_connection
 //   concept: constrains types satisfying the tagless complete ArangoDB
 // connection capability set.
-template<typename _Type>
+template<typename Type>
 concept full_arango_connection =
-    arango_is_full_connection<clean_t<_Type>>;
+    arango_is_full_connection<clean_t<Type>>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -1947,5 +2095,6 @@ concept full_arango_connection =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_ARANGODB_
+#endif  // DJINTERP_DB_ARANGODB_ARANGODB_HPP

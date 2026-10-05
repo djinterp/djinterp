@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [sass]                                            sass_template.hpp
+/*******************************************************************************
+* djinterp [core]                                              sass_template.hpp
 *
 *   Templated Sass / SCSS rule and stylesheet facades and the
 * bundled default backend. Mirrors `xml_template.hpp` /
@@ -17,8 +17,8 @@
 * dart-sass IPC) are free to use distinct types.
 *
 *   FACADES:
-*   - `sass_rule<_Backend>`       extends `css::css_rule<_Backend>`
-*   - `sass_stylesheet<_Backend>` extends `css::css_stylesheet<_Backend>`
+*   - `sass_rule<Backend>`       extends `css::css_rule<Backend>`
+*   - `sass_stylesheet<Backend>` extends `css::css_stylesheet<Backend>`
 *   The Sass-specific information (variable name, mixin name,
 * parameters, condition, etc.) is read from / written to optional
 * fields on the same backend node. This keeps memory layout
@@ -41,24 +41,42 @@
 *                               or sass-embedded)
 *
 *
-* path:      /inc/djinterp/core/util/sass/sass_template.hpp
+* path:      /inc/djinterp/core/text/css/sass/sass_template.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    DEFAULT BACKEND STORAGE EXTENSION
-II.   sass_rule<_Backend>
+      ---------------------------------
+
+II.   sass_rule<Backend>
+      -------------------
+
 III.  INTERNAL EMISSION HELPERS
-IV.   sass_stylesheet<_Backend>
+      -------------------------
+
+IV.   sass_stylesheet<Backend>
+      -------------------------
+
 V.    sass_default_backend
+      --------------------
+
 VI.   FREE HELPERS / FACTORIES
+      ------------------------
 */
 
-#ifndef DJINTERP_SASS_TEMPLATE_
-#define DJINTERP_SASS_TEMPLATE_ 1
+#ifndef DJINTERP_TEXT_CSS_SASS_SASS_TEMPLATE_HPP
+#define DJINTERP_TEXT_CSS_SASS_SASS_TEMPLATE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -69,8 +87,8 @@ VI.   FREE HELPERS / FACTORIES
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../css/css_template.hpp"
+#include "../../../../djinterp.hpp"
+#include "../css_template.hpp"
 #include "./sass.hpp"               // foundation + folded traits/concepts
 
 
@@ -131,23 +149,23 @@ namespace sass {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   sass_rule<_Backend>                                ///
+///                II.   sass_rule<Backend>                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // sass_rule
-//   class: thin facade extending `css::css_rule<_Backend>`
+//   class: thin facade extending `css::css_rule<Backend>`
 // with Sass-specific accessors. The Sass kind discriminator
 // is derived from the underlying CSS rule kind plus the
 // at-keyword string -- no extra storage required for the
 // default backend.
-template<typename _Backend>
+template<typename Backend>
 class sass_rule
-:   public ::djinterp::css::css_rule<_Backend>
+:   public ::djinterp::css::css_rule<Backend>
 {
 public:
     // base_type
     //   type: the underlying CSS rule facade.
-    using base_type = ::djinterp::css::css_rule<_Backend>;
+    using base_type = ::djinterp::css::css_rule<Backend>;
 
     // node_type
     //   type: the backend's rule storage type, inherited from
@@ -742,26 +760,26 @@ namespace sass {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                IV.   sass_stylesheet<_Backend>                          ///
+///                IV.   sass_stylesheet<Backend>                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // sass_stylesheet
 //   class: thin facade extending
-// `css::css_stylesheet<_Backend>` with Sass-specific
+// `css::css_stylesheet<Backend>` with Sass-specific
 // metadata and emission. Adds NO data members beyond the CSS
 // base; the Sass syntax / dialect tags are stored in unused
 // fields of the inherited stylesheet storage (the CSS
 // `syntax_mode` field already covers SCSS / Sass; this facade
 // surfaces them under the Sass-specific enums).
-template<typename _Backend>
+template<typename Backend>
 class sass_stylesheet
-:   public ::djinterp::css::css_stylesheet<_Backend>
+:   public ::djinterp::css::css_stylesheet<Backend>
 {
 public:
-    using base_type       = ::djinterp::css::css_stylesheet<_Backend>;
+    using base_type       = ::djinterp::css::css_stylesheet<Backend>;
     using stylesheet_type = typename base_type::stylesheet_type;
     using rule_node_type  = typename base_type::rule_node_type;
-    using rule_facade     = sass_rule<_Backend>;
+    using rule_facade     = sass_rule<Backend>;
 
 
     /// constructors
@@ -885,11 +903,11 @@ public:
     // add_color_variable
     //   function: appends `$name: <css-color>;` from any native
     // color model (rgb, rgba, cmyk, hsl, ...), via the css bridge.
-    template <typename _Color>
+    template <typename Color>
     rule_facade
     add_color_variable(
         const sass_string_t&    _name,
-        const _Color&           _c,
+        const Color&           _c,
         bool                    _default = false
     )
     {
@@ -900,11 +918,11 @@ public:
     // add_font_variable
     //   function: appends `$name: <css-font-shorthand>;` from a
     // native djinterp::font, via the css bridge.
-    template <unsigned _Feat, typename _ColorT>
+    template <unsigned Feat, typename ColorT>
     rule_facade
     add_font_variable(
         const sass_string_t&                    _name,
-        const ::djinterp::font<_Feat, _ColorT>& _f,
+        const ::djinterp::font<Feat, ColorT>& _f,
         bool                                    _default = false
     )
     {
@@ -1188,27 +1206,27 @@ struct sass_default_backend
 // make_sass_stylesheet
 //   function: factory returning a freshly-built Sass
 // stylesheet facade for the given backend.
-template<typename _Backend>
-inline sass_stylesheet<_Backend>
+template<typename Backend>
+inline sass_stylesheet<Backend>
 make_sass_stylesheet(
     ::djinterp::sass::sass_syntax     _syntax = ::djinterp::sass::sass_syntax::scss
 )
 {
-    return sass_stylesheet<_Backend>(_syntax);
+    return sass_stylesheet<Backend>(_syntax);
 }
 
 
 // make_variable
 //   function: returns a new freestanding variable declaration.
-template<typename _Backend>
-inline sass_rule<_Backend>
+template<typename Backend>
+inline sass_rule<Backend>
 make_variable(
     const sass_string_t&    _name,
     const sass_string_t&    _value,
     bool                    _default = false
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->rule_kind = ::djinterp::css::css_rule_kind::declaration_block;
     n->property  = ( (!_name.empty()) && (_name[0] == '$') )
@@ -1219,20 +1237,20 @@ make_variable(
     {
         n->importance = ::djinterp::css::css_importance::important;
     }
-    return sass_rule<_Backend>(n);
+    return sass_rule<Backend>(n);
 }
 
 
 // make_mixin
 //   function: returns a new freestanding @mixin rule.
-template<typename _Backend>
-inline sass_rule<_Backend>
+template<typename Backend>
+inline sass_rule<Backend>
 make_mixin(
     const sass_string_t&    _name,
     const sass_string_t&    _parameters = sass_string_t()
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::mixin;
     n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
@@ -1243,20 +1261,20 @@ make_mixin(
         n->prelude += _parameters;
         n->prelude += ')';
     }
-    return sass_rule<_Backend>(n);
+    return sass_rule<Backend>(n);
 }
 
 
 // make_include
 //   function: returns a new freestanding @include statement.
-template<typename _Backend>
-inline sass_rule<_Backend>
+template<typename Backend>
+inline sass_rule<Backend>
 make_include(
     const sass_string_t&    _target,
     const sass_string_t&    _arguments = sass_string_t()
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::include;
     n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
@@ -1267,20 +1285,20 @@ make_include(
         n->prelude += _arguments;
         n->prelude += ')';
     }
-    return sass_rule<_Backend>(n);
+    return sass_rule<Backend>(n);
 }
 
 
 // make_extend
 //   function: returns a new freestanding @extend statement.
-template<typename _Backend>
-inline sass_rule<_Backend>
+template<typename Backend>
+inline sass_rule<Backend>
 make_extend(
     const sass_string_t&    _target,
     bool                    _optional = false
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::extend;
     n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
@@ -1289,20 +1307,20 @@ make_extend(
     {
         n->prelude += " !optional";
     }
-    return sass_rule<_Backend>(n);
+    return sass_rule<Backend>(n);
 }
 
 
 // make_use
 //   function: returns a new freestanding @use rule.
-template<typename _Backend>
-inline sass_rule<_Backend>
+template<typename Backend>
+inline sass_rule<Backend>
 make_use(
     const sass_string_t&    _url,
     const sass_string_t&    _namespace = sass_string_t()
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::use;
     n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
@@ -1312,68 +1330,69 @@ make_use(
         n->prelude += " as ";
         n->prelude += _namespace;
     }
-    return sass_rule<_Backend>(n);
+    return sass_rule<Backend>(n);
 }
 
 
 // make_placeholder_rule
 //   function: returns a new freestanding placeholder selector
 // rule (`%name { ... }`).
-template<typename _Backend>
-inline sass_rule<_Backend>
+template<typename Backend>
+inline sass_rule<Backend>
 make_placeholder_rule(
     const sass_string_t&    _name
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->rule_kind = ::djinterp::css::css_rule_kind::style_rule;
     n->selector  = ( (!_name.empty()) && (_name[0] == '%') )
         ? _name
         : sass_string_t("%") + _name;
-    return sass_rule<_Backend>(n);
+    return sass_rule<Backend>(n);
 }
 
 
 // make_each
 //   function: returns a new freestanding @each rule.
-template<typename _Backend>
-inline sass_rule<_Backend>
+template<typename Backend>
+inline sass_rule<Backend>
 make_each(
     const sass_string_t&    _variable,
     const sass_string_t&    _iterable
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::each;
     n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
     n->prelude    = _variable;
     n->prelude   += " in ";
     n->prelude   += _iterable;
-    return sass_rule<_Backend>(n);
+    return sass_rule<Backend>(n);
 }
 
 
 // make_if
 //   function: returns a new freestanding @if rule.
-template<typename _Backend>
-inline sass_rule<_Backend>
+template<typename Backend>
+inline sass_rule<Backend>
 make_if(
     const sass_string_t&    _condition
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::if_;
     n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
     n->prelude    = _condition;
-    return sass_rule<_Backend>(n);
+    return sass_rule<Backend>(n);
 }
 
 
 }   // namespace sass
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_SASS_TEMPLATE_
+#endif  // DJINTERP_TEXT_CSS_SASS_SASS_TEMPLATE_HPP

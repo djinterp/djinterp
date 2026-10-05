@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                                 lifetime.hpp
+/*******************************************************************************
+* djinterp [core]                                                   lifetime.hpp
 *
 *   The framework's foundational LIFETIME vocabulary - the compile-time /
 * runtime classification of a type, factored out so every subsystem draws its
@@ -59,16 +59,24 @@
 *
 * path:      /inc/djinterp/core/meta/lifetime.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_META_LIFETIME_
-#define DJINTERP_META_LIFETIME_ 1
+#ifndef DJINTERP_META_LIFETIME_HPP
+#define DJINTERP_META_LIFETIME_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"      // clean_t, void_t, NS_*, D_ENV_* feature macros
+#include "../../djinterp.hpp"      // NS_*, D_ENV_* feature macros
+#include "./type_utility.hpp"      // clean_t
 #include "./trait_detect.hpp"   // D_VOID_T, D_TYPE_TRAIT_* detection macros
 
 
@@ -84,12 +92,15 @@ NS_DJINTERP
 // - compile-time (constexpr) and runtime - with one bit per stage so the four
 // values form a lattice.  compile-time precedes runtime (c < r); a value fixed
 // at compile time is a fortiori available at runtime.
-enum class lifetime : unsigned
+struct lifetime
 {
-    none         = 0u,                       // neither stage (bottom)
-    compile_time = (1u << 0),                // constexpr stage only
-    runtime      = (1u << 1),                // runtime stage only
-    both         = (compile_time | runtime)  // either stage (top)
+    enum value
+    {
+        none         = 0u,                       // neither stage (bottom)
+        compile_time = (1u << 0),                // constexpr stage only
+        runtime      = (1u << 1),                // runtime stage only
+        both         = (compile_time | runtime)  // either stage (top)
+    };
 };
 
 
@@ -107,13 +118,13 @@ enum class lifetime : unsigned
 // constexpr-capable only if both parts are, runtime-capable only if both
 // parts are.  This is the canonical COMPOSITION operator; it reproduces the
 // Lifetime-axis max-over-stages.
-constexpr lifetime
+constexpr lifetime::value
 lifetime_meet(
-    lifetime _a,
-    lifetime _b
+    lifetime::value _a,
+    lifetime::value _b
 ) noexcept
 {
-    return static_cast<lifetime>(
+    return static_cast<lifetime::value>(
         static_cast<unsigned>(_a) & static_cast<unsigned>(_b) );
 }
 
@@ -121,26 +132,26 @@ lifetime_meet(
 //   function: the lattice join (union of stages) - the lifetime of an
 // alternative that may be either _a or _b (a sum / variant), capable at any
 // stage either operand is.
-constexpr lifetime
+constexpr lifetime::value
 lifetime_join(
-    lifetime _a,
-    lifetime _b
+    lifetime::value _a,
+    lifetime::value _b
 ) noexcept
 {
-    return static_cast<lifetime>(
+    return static_cast<lifetime::value>(
         static_cast<unsigned>(_a) | static_cast<unsigned>(_b) );
 }
 
 // make_lifetime
 //   function: builds a lifetime from two independent stage facts (is the type
 // usable at compile time? at runtime?).
-constexpr lifetime
+constexpr lifetime::value
 make_lifetime(
     bool _is_compile_time,
     bool _is_runtime
 ) noexcept
 {
-    return static_cast<lifetime>(
+    return static_cast<lifetime::value>(
         ( _is_compile_time ? static_cast<unsigned>(lifetime::compile_time) : 0u ) |
         ( _is_runtime      ? static_cast<unsigned>(lifetime::runtime)      : 0u ) );
 }
@@ -149,7 +160,7 @@ make_lifetime(
 //   function: true iff the lifetime includes the compile-time (constexpr)
 // stage - i.e. the type is constexpr-capable (compile_time or both).
 constexpr bool
-is_compile_time(lifetime _life) noexcept
+is_compile_time(lifetime::value _life) noexcept
 {
     return ( ( static_cast<unsigned>(_life) &
                static_cast<unsigned>(lifetime::compile_time) ) != 0u );
@@ -159,7 +170,7 @@ is_compile_time(lifetime _life) noexcept
 //   function: true iff the lifetime includes the runtime stage (runtime or
 // both).
 constexpr bool
-is_runtime(lifetime _life) noexcept
+is_runtime(lifetime::value _life) noexcept
 {
     return ( ( static_cast<unsigned>(_life) &
                static_cast<unsigned>(lifetime::runtime) ) != 0u );
@@ -168,7 +179,7 @@ is_runtime(lifetime _life) noexcept
 // is_both
 //   function: true iff the lifetime spans both stages.
 constexpr bool
-is_both(lifetime _life) noexcept
+is_both(lifetime::value _life) noexcept
 {
     return ( _life == lifetime::both );
 }
@@ -176,7 +187,7 @@ is_both(lifetime _life) noexcept
 // is_none
 //   function: true iff the lifetime spans neither stage (the bottom).
 constexpr bool
-is_none(lifetime _life) noexcept
+is_none(lifetime::value _life) noexcept
 {
     return ( _life == lifetime::none );
 }
@@ -185,7 +196,7 @@ is_none(lifetime _life) noexcept
 //   function: true iff the lifetime is the compile-time stage exclusively
 // (constexpr, not runtime).
 constexpr bool
-is_compile_time_only(lifetime _life) noexcept
+is_compile_time_only(lifetime::value _life) noexcept
 {
     return ( _life == lifetime::compile_time );
 }
@@ -194,7 +205,7 @@ is_compile_time_only(lifetime _life) noexcept
 //   function: true iff the lifetime is the runtime stage exclusively (not
 // constant-evaluable).
 constexpr bool
-is_runtime_only(lifetime _life) noexcept
+is_runtime_only(lifetime::value _life) noexcept
 {
     return ( _life == lifetime::runtime );
 }
@@ -203,7 +214,7 @@ is_runtime_only(lifetime _life) noexcept
 //   function: a stable human-readable spelling of a lifetime, for diagnostics
 // and agent-facing summaries.
 constexpr const char*
-lifetime_name(lifetime _life) noexcept
+lifetime_name(lifetime::value _life) noexcept
 {
     return ( _life == lifetime::both         ? "both"
            : _life == lifetime::compile_time ? "compile_time"
@@ -221,8 +232,8 @@ lifetime_name(lifetime _life) noexcept
 // lifetime_constant
 //   type: an integral_constant specialized to a lifetime value (the lifetime
 // analogue of std::bool_constant).
-template<lifetime _Life>
-using lifetime_constant = std::integral_constant<lifetime, _Life>;
+template<lifetime::value Life>
+using lifetime_constant = std::integral_constant<lifetime::value, Life>;
 
 // none_lifetime / compile_time_lifetime / runtime_lifetime / both_lifetime
 //   type: named carriers for the four lattice values, for tag dispatch.
@@ -237,7 +248,7 @@ using both_lifetime         = lifetime_constant<lifetime::both>;
 // ===========================================================================
 
 // is_literal_type
-//   trait: portable "is _Type a literal type?" - the general structural
+//   trait: portable "is Type a literal type?" - the general structural
 // signal that a type is constexpr-capable.  Strips cv-ref first.  On C++11/14
 // it delegates to std::is_literal_type; on C++17+ (where that trait is
 // deprecated, then removed) it falls back to a conservative heuristic:
@@ -245,20 +256,20 @@ using both_lifetime         = lifetime_constant<lifetime::both>;
 // class types.
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-    template<typename _Type>
+    template<typename Type>
     struct is_literal_type
         : std::integral_constant<bool,
-              ( std::is_scalar<clean_t<_Type>>::value ||
-                ( std::is_trivially_destructible<clean_t<_Type>>::value &&
+              ( std::is_scalar<clean_t<Type>>::value ||
+                ( std::is_trivially_destructible<clean_t<Type>>::value &&
                   std::is_trivially_default_constructible<
-                      clean_t<_Type>>::value ) )>
+                      clean_t<Type>>::value ) )>
     {};
 
 #else  // C++11 / C++14
 
-    template<typename _Type>
+    template<typename Type>
     struct is_literal_type
-        : std::is_literal_type<clean_t<_Type>>
+        : std::is_literal_type<clean_t<Type>>
     {};
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -270,14 +281,14 @@ D_TYPE_TRAIT_VALUE_BOOL(is_literal_type)
 // V.   Opt-in detection
 // ===========================================================================
 //   A type declares its own lifetime by exposing a static member
-//       static constexpr djinterp::lifetime lifetime_category = ...;
+//       static constexpr djinterp::lifetime::value lifetime_category = ...;
 // This is the highest-priority signal: it overrides the structural default.
 
 // has_lifetime_category
 //   trait: detects the opt-in `lifetime_category` static member (cv-ref
 // stripped via clean_t, so the answer agrees for T, const T, T&).
 D_TYPE_TRAIT_TRUE(has_lifetime_category,
-                  decltype(clean_t<_Type>::lifetime_category))
+                  decltype(clean_t<Type>::lifetime_category))
 
 NS_INTERNAL
 
@@ -286,20 +297,21 @@ NS_INTERNAL
     // lifetime::none (primary template - member absent).  The fallback is
     // observed only when has_lifetime_category is false, where the classifier
     // discards it.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct lifetime_category_member
     {
-        static constexpr lifetime value = lifetime::none;
+        static constexpr lifetime::value value = lifetime::none;
     };
 
     // lifetime_category_member (opt-in present)
-    //   trait: reads clean_t<_Type>::lifetime_category.
-    template<typename _Type>
-    struct lifetime_category_member<_Type,
-        D_VOID_T<decltype(clean_t<_Type>::lifetime_category)>>
+    //   trait: reads clean_t<Type>::lifetime_category.
+    template<typename Type>
+    struct lifetime_category_member<Type,
+        D_VOID_T<decltype(clean_t<Type>::lifetime_category)>>
     {
-        static constexpr lifetime value = clean_t<_Type>::lifetime_category;
+        static constexpr lifetime::value value =
+            clean_t<Type>::lifetime_category;
     };
 
 NS_END  // internal
@@ -314,14 +326,14 @@ NS_END  // internal
 // `lifetime_category` member, else a literal type (lifetime::both), else the
 // conservative fallback lifetime::runtime.  Exposes the value plus a
 // lifetime_constant carrier as `::type`.
-template<typename _Type>
+template<typename Type>
 struct lifetime_of
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
-    static constexpr lifetime value =
+    static constexpr lifetime::value value =
         ( has_lifetime_category<clean_type>::value
               ? internal::lifetime_category_member<clean_type>::value
               : ( is_literal_type<clean_type>::value
@@ -332,19 +344,19 @@ public:
 };
 
 // lifetime_of_t
-//   type: convenience alias for lifetime_of<_Type>::type (a carrier).
-template<typename _Type>
-using lifetime_of_t = typename lifetime_of<_Type>::type;
+//   type: convenience alias for lifetime_of<Type>::type (a carrier).
+template<typename Type>
+using lifetime_of_t = typename lifetime_of<Type>::type;
 
 // lifetime_of_v
 //   value: the `_v` companion of lifetime_of (a lifetime, not a bool, so it is
 // emitted by hand rather than via D_TYPE_TRAIT_VALUE_BOOL - same degradation).
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr lifetime lifetime_of_v = lifetime_of<_Type>::value;
+    template<typename Type>
+    inline constexpr lifetime::value lifetime_of_v = lifetime_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
-    constexpr lifetime lifetime_of_v = lifetime_of<_Type>::value;
+    template<typename Type>
+    constexpr lifetime::value lifetime_of_v = lifetime_of<Type>::value;
 #endif
 
 
@@ -356,34 +368,34 @@ using lifetime_of_t = typename lifetime_of<_Type>::type;
 // trait_detect macro.
 
 // is_constexpr_lifetime
-//   trait: true iff _Type is constexpr-capable - its lifetime includes the
+//   trait: true iff Type is constexpr-capable - its lifetime includes the
 // compile-time stage (compile_time or both).
-template<typename _Type>
+template<typename Type>
 struct is_constexpr_lifetime
     : std::integral_constant<bool,
-          is_compile_time(lifetime_of<_Type>::value)>
+          is_compile_time(lifetime_of<Type>::value)>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_constexpr_lifetime)
 
 // is_runtime_only_lifetime
-//   trait: true iff _Type's lifetime is the runtime stage exclusively - it is
+//   trait: true iff Type's lifetime is the runtime stage exclusively - it is
 // NOT constant-evaluable.
-template<typename _Type>
+template<typename Type>
 struct is_runtime_only_lifetime
     : std::integral_constant<bool,
-          is_runtime_only(lifetime_of<_Type>::value)>
+          is_runtime_only(lifetime_of<Type>::value)>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_runtime_only_lifetime)
 
 // is_dual_lifetime
-//   trait: true iff _Type spans both stages (constexpr-capable AND usable at
+//   trait: true iff Type spans both stages (constexpr-capable AND usable at
 // runtime - the literal-type case).
-template<typename _Type>
+template<typename Type>
 struct is_dual_lifetime
     : std::integral_constant<bool,
-          is_both(lifetime_of<_Type>::value)>
+          is_both(lifetime_of<Type>::value)>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_dual_lifetime)
@@ -391,5 +403,7 @@ D_TYPE_TRAIT_VALUE_BOOL(is_dual_lifetime)
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_META_LIFETIME_
+
+#endif  // DJINTERP_META_LIFETIME_HPP

@@ -7,6 +7,7 @@
 * frequent modifications. Provides cross-platform string operations mirroring
 * `string_fn.h` but operating on `d_string` types.
 *
+*
 * path:      /inc/djinterp/c/dstring.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30

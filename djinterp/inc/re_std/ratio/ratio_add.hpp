@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                ratio_add.hpp
 *
 * ratio_add header:
@@ -24,65 +24,68 @@
 *   C++11, matching std.
 *
 *
-* path:      /inc/djinterp/re_std/ratio/ratio_add.hpp
+* path:      /inc/re_std/ratio/ratio_add.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RATIO_RATIO_ADD_
-#define DJINTERP_RE_STD_RATIO_RATIO_ADD_ 1
+#ifndef RE_STD_RATIO_RATIO_ADD_HPP
+#define RE_STD_RATIO_RATIO_ADD_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./ratio.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   RATIO_ADD
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // ratio_add_impl
-    //   helper: lcm-based addition. See the header note for why the
+    //   trait: lcm-based addition. See the header note for why the
     // denominator gcd is taken before anything is multiplied.
-    template<typename _R1,
-             typename _R2>
+    template<typename R1,
+             typename R2>
     struct ratio_add_impl
     {
     private:
-        static const std::intmax_t _s_g =
-            ratio_gcd<_R1::den, _R2::den>::value;
+        static const intmax_t _s_g =
+            ratio_gcd<R1::den, R2::den>::value;
 
     public:
         typedef ratio<
-            _R1::num * (_R2::den / _s_g) + _R2::num * (_R1::den / _s_g),
-            _R1::den * (_R2::den / _s_g) > type;
+            R1::num * (R2::den / _s_g) + R2::num * (R1::den / _s_g),
+            R1::den * (R2::den / _s_g) > type;
     };
 
-NS_END  // internal
+}  // internal
 
 // ratio_add
 //   alias: the reduced sum of two ratios.
-template<typename _R1,
-         typename _R2>
+template<typename R1,
+         typename R2>
 struct ratio_add
-    : internal::ratio_add_impl<_R1, _R2>::type
+    : internal::ratio_add_impl<R1, R2>::type
 {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RATIO_RATIO_ADD_
+#endif  // RE_STD_RATIO_RATIO_ADD_HPP

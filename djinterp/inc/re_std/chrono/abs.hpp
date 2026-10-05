@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                      abs.hpp
 *
 * chrono::abs for durations:
@@ -23,28 +23,30 @@
 * C++11, constexpr throughout.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/abs.hpp
+* path:      /inc/re_std/chrono/abs.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_ABS_
-#define DJINTERP_RE_STD_CHRONO_ABS_ 1
+#ifndef RE_STD_CHRONO_ABS_HPP
+#define RE_STD_CHRONO_ABS_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "./duration_compare.hpp"
 #include "../limits/numeric_limits.hpp"
 #include "../type_traits/enable_if.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
@@ -52,22 +54,22 @@ namespace chrono
     // abs
     //   function: the magnitude of a duration. Signed representations
     // only; undefined for duration::min().
-    template<typename _Rep,
-             typename _Period>
-    D_CONSTEXPR
-    typename enable_if< numeric_limits<_Rep>::is_signed,
-                        duration<_Rep, _Period> >::type
-    abs(const duration<_Rep, _Period>& _d)
+    template<typename Rep,
+             typename Period>
+    RE_STD_CONSTEXPR
+    typename enable_if< numeric_limits<Rep>::is_signed,
+                        duration<Rep, Period> >::type
+    abs(const duration<Rep, Period>& _d)
     {
-        return (_d < duration<_Rep, _Period>::zero()) ? -_d : _d;
+        return (_d < duration<Rep, Period>::zero()) ? -_d : _d;
     }
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_ABS_
+#endif  // RE_STD_CHRONO_ABS_HPP

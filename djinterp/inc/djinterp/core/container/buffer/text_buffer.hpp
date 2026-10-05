@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                       text_buffer.hpp
+/*******************************************************************************
+* djinterp [core]                                                text_buffer.hpp
 *
 * Concrete text buffer for the djinterp container framework.
 *   A text buffer is a growable, staged accumulator for character data.
@@ -42,54 +42,76 @@
 *   container_text_strategy_v  → DTextStrategy::native
 *   container_stream_strategy_v→ DStreamStrategy::native
 *
-* TABLE OF CONTENTS
-* =================
-* I.      text_buffer Class
-*         I.a   Type Aliases and CRTP Contract
-*         I.b   Construction and Destruction
-*         I.c   Move and Copy
-*         I.d   Text Append Operations
-*         I.e   Formatted Append
-*         I.f   Canonical Text Contract
-*         I.g   String Extraction
-*         I.h   Container Protocol
-*         I.i   Ostream Integration
-* II.     Factory Functions
 *
-*
-* path:      /inc/container/text_buffer.hpp
+* path:      /inc/djinterp/core/container/buffer/text_buffer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.29
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_TEXT_BUFFER_
-#define DJINTERP_CONTAINER_TEXT_BUFFER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    text_buffer Class
+      -----------------
 
+      I.a   Type Aliases and CRTP Contract
+
+      I.b   Construction and Destruction
+
+      I.c   Move and Copy
+
+      I.d   Text Append Operations
+
+      I.e   Formatted Append
+
+      I.f   Canonical Text Contract
+
+      I.g   String Extraction
+
+      I.h   Container Protocol
+
+      I.i   Ostream Integration
+
+II.   Factory Functions
+      -----------------
+*/
+
+#ifndef DJINTERP_CONTAINER_BUFFER_TEXT_BUFFER_HPP
+#define DJINTERP_CONTAINER_BUFFER_TEXT_BUFFER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <algorithm>
 #include <cstdarg>
 #include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <ostream>
 #include <iterator>
 #include <limits>
 #include <new>
+#include <ostream>
 #include <string>
 #include <type_traits>
 #include <utility>
-#include "..\djinterp.hpp"
+// djinterp
+#include "../../../djinterp.hpp"
 #include "buffer.hpp"
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    // std
     #include <string_view>
 #endif
 
 // D_ATTRIBUTE_FORMAT_PRINTF
-//   attribute: enables compiler format-string checking
-// for printf-style functions.  _fmt_idx is the 1-based
-// index of the format string parameter; _va_idx is the
-// 1-based index of the first variadic argument.
+//   attribute: enables compiler format-string checking for printf-style
+// functions. _fmt_idx is the 1-based index of the format string parameter;
+// _va_idx is the 1-based index of the first variadic argument.
 #if defined(__GNUC__) || defined(__clang__)
     #define D_ATTRIBUTE_FORMAT_PRINTF(_fmt_idx, _va_idx) \
         __attribute__((format(printf, _fmt_idx, _va_idx)))
@@ -105,19 +127,19 @@ NS_CONTAINER
 // I.   text_buffer Class
 // =============================================================================
 
-template<typename _GrowthPolicy = default_growth_policy,
-         typename _CursorPolicy = write_only_cursor_policy>
+template<typename GrowthPolicy = default_growth_policy,
+         typename CursorPolicy = write_only_cursor_policy>
 class text_buffer
     : public buffer_base<
-          text_buffer<_GrowthPolicy, _CursorPolicy>,
-          _GrowthPolicy,
-          _CursorPolicy>
+          text_buffer<GrowthPolicy, CursorPolicy>,
+          GrowthPolicy,
+          CursorPolicy>
 {
 private:
     using base_type = buffer_base<
-        text_buffer<_GrowthPolicy, _CursorPolicy>,
-        _GrowthPolicy,
-        _CursorPolicy>;
+        text_buffer<GrowthPolicy, CursorPolicy>,
+        GrowthPolicy,
+        CursorPolicy>;
 
     // buffer_base accesses storage()/capacity()/grow()
     friend base_type;
@@ -147,19 +169,17 @@ public:
     // =========================================================================
 
     // default constructor
-    //   creates an empty text buffer with no allocation.
-    // The first append triggers the growth policy.
+    //   creates an empty text buffer with no allocation. The first append
+    // triggers the growth policy.
     text_buffer() noexcept
         : base_type()
         , m_data(nullptr)
         , m_capacity(0)
-    {
-    }
+    {}
 
     // capacity constructor
-    //   creates an empty text buffer pre-allocated to hold
-    // at least _initial_capacity bytes of text content
-    // (plus the null terminator).
+    //   creates an empty text buffer pre-allocated to hold at least
+    // _initial_capacity bytes of text content (plus the null terminator).
     explicit
     text_buffer(size_type _initial_capacity)
         : base_type()
@@ -174,8 +194,8 @@ public:
     }
 
     // string constructor
-    //   creates a text buffer initialized with a copy of
-    // the provided C string.
+    //   creates a text buffer initialized with a copy of the provided C
+    // string.
     explicit
     text_buffer(const char* _str)
         : base_type()
@@ -191,8 +211,8 @@ public:
     }
 
     // string + length constructor
-    //   creates a text buffer initialized with _len bytes
-    // copied from _str.  _str need not be null-terminated.
+    //   creates a text buffer initialized with _len bytes copied from _str.
+    // _str need not be null-terminated.
     text_buffer(const char* _str,
                 size_type   _len)
         : base_type()
@@ -221,8 +241,7 @@ public:
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
     // string_view constructor
-    //   creates a text buffer initialized from a
-    // string_view.
+    //   creates a text buffer initialized from a string_view.
     explicit
     text_buffer(std::string_view _sv)
         : base_type()
@@ -304,8 +323,8 @@ public:
                         sz);
 
             // fresh cursors: content at [0, sz)
-            _CursorPolicy::reset(this->m_cursors);
-            _CursorPolicy::advance_write(
+            CursorPolicy::reset(this->m_cursors);
+            CursorPolicy::advance_write(
                 this->m_cursors, sz);
 
             m_data[sz] = '\0';
@@ -332,8 +351,8 @@ public:
                             _other.content_begin_(),
                             sz);
 
-                _CursorPolicy::reset(this->m_cursors);
-                _CursorPolicy::advance_write(
+                CursorPolicy::reset(this->m_cursors);
+                CursorPolicy::advance_write(
                     this->m_cursors, sz);
 
                 m_data[sz] = '\0';
@@ -357,12 +376,10 @@ public:
     // counted in size().
 
     // append (buffer + length)
-    //   appends _len bytes from _str.  _str need not be
-    // null-terminated.  Returns the number of bytes
-    // actually appended.
-    //
-    // capacity() already reserves one byte for the null
-    // terminator, so ensure_writable(_len) is sufficient.
+    //   appends _len bytes from _str. _str need not be null-terminated.
+    // Returns the number of bytes actually appended. capacity() already
+    // reserves one byte for the null terminator, so ensure_writable(_len) is
+    // sufficient.
     size_type
     append(const char* _str,
            size_type   _len) noexcept
@@ -394,9 +411,8 @@ public:
     }
 
     // append (C string)
-    //   appends a null-terminated C string.  Returns the
-    // number of bytes appended (excluding the source's
-    // null terminator).
+    //   appends a null-terminated C string. Returns the number of bytes
+    // appended (excluding the source's null terminator).
     size_type
     append(const char* _str) noexcept
     {
@@ -427,8 +443,7 @@ public:
 #endif  // C++17
 
     // append (single character)
-    //   appends a single character.  Returns 1 on
-    // success, 0 on failure.
+    //   appends a single character. Returns 1 on success, 0 on failure.
     size_type
     append(char _ch) noexcept
     {
@@ -436,8 +451,8 @@ public:
     }
 
     // append (repeated character)
-    //   appends _count copies of _ch.  Returns the
-    // number of characters actually appended.
+    //   appends _count copies of _ch. Returns the number of characters
+    // actually appended.
     size_type
     append(char      _ch,
            size_type _count) noexcept
@@ -467,8 +482,7 @@ public:
     }
 
     // append_line (buffer + length)
-    //   appends _len bytes from _str followed by a
-    // newline character.
+    //   appends _len bytes from _str followed by a newline character.
     size_type
     append_line(const char* _str,
                 size_type   _len) noexcept
@@ -481,8 +495,7 @@ public:
     }
 
     // append_line (C string)
-    //   appends a null-terminated string followed by a
-    // newline.
+    //   appends a null-terminated string followed by a newline.
     size_type
     append_line(const char* _str) noexcept
     {
@@ -511,9 +524,8 @@ public:
     }
 
     // push_back
-    //   appends a single character.  Satisfies the
-    // Container push_back requirement detected by
-    // has_push_back_v.
+    //   appends a single character. Satisfies the Container push_back
+    // requirement detected by has_push_back_v.
     void push_back(char _ch)
     {
         append(_ch);
@@ -527,13 +539,12 @@ public:
     // =========================================================================
 
     // appendf
-    //   appends formatted text using printf-style format
-    // specifiers.  Returns the number of characters
-    // appended, or 0 on failure.
+    //   appends formatted text using printf-style format specifiers. Returns
+    // the number of characters appended, or 0 on failure.
     //
     //   Uses a two-pass approach: first measures the
-    // required length via vsnprintf with a null buffer,
-    // then writes into the buffer after ensuring capacity.
+    // required length via vsnprintf with a null buffer, then writes into the
+    // buffer after ensuring capacity.
     D_ATTRIBUTE_FORMAT_PRINTF(2, 3)
     size_type
     appendf(const char* _fmt, ...) noexcept
@@ -565,8 +576,8 @@ public:
         size_type len =
             static_cast<size_type>(needed);
 
-        // ensure space for content (null byte is
-        // already reserved by capacity())
+        // ensure space for content (null byte is already reserved by
+        // capacity())
         if (!this->ensure_writable(len))
         {
             va_end(args_copy);
@@ -602,8 +613,8 @@ public:
     //   container_stream_strategy_v→ DStreamStrategy::native
 
     // to_text
-    //   returns the buffer contents as a std::string.
-    // Satisfies has_to_text_method_v.
+    //   returns the buffer contents as a std::string. Satisfies
+    // has_to_text_method_v.
     std::string to_text() const
     {
         if (this->size() == 0)
@@ -616,9 +627,8 @@ public:
     }
 
     // stream_to
-    //   writes as many bytes as fit into _buf (up to
-    // _cap bytes) and returns the number of bytes
-    // written.  Does not advance any internal cursor.
+    //   writes as many bytes as fit into _buf (up to _cap bytes) and returns
+    // the number of bytes written. Does not advance any internal cursor.
     // Satisfies has_stream_to_method_v.
     std::size_t
     stream_to(char*       _buf,
@@ -638,10 +648,9 @@ public:
     }
 
     // to_string
-    //   returns the buffer contents as a std::string.
-    // Satisfies has_to_string_method_v.  Identical to
-    // to_text() but provided for API symmetry with
-    // containers that expose to_string().
+    //   returns the buffer contents as a std::string. Satisfies
+    // has_to_string_method_v. Identical to to_text() but provided for API
+    // symmetry with containers that expose to_string().
     std::string to_string() const
     {
         return to_text();
@@ -653,13 +662,10 @@ public:
     // =========================================================================
 
     // c_str
-    //   returns a const pointer to a null-terminated
-    // string covering the meaningful content region.
-    // O(1) because the null terminator is always
-    // maintained at write_position().
-    //
-    // Write-only cursor: returns the start of storage.
-    // Dual cursor: returns storage + read_position;
+    //   returns a const pointer to a null-terminated string covering the
+    // meaningful content region. O(1) because the null terminator is always
+    // maintained at write_position(). Write-only cursor: returns the start of
+    // storage. Dual cursor: returns storage + read_position;
     //   the null at write_position terminates the
     //   unconsumed region.
     const char* c_str() const noexcept
@@ -673,8 +679,8 @@ public:
     }
 
     // str
-    //   returns the buffer contents as a std::string.
-    // Convenience alias for to_text().
+    //   returns the buffer contents as a std::string. Convenience alias for
+    // to_text().
     std::string str() const
     {
         return to_text();
@@ -682,9 +688,8 @@ public:
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
     // view
-    //   returns a non-owning string_view of the
-    // meaningful content.  The view is invalidated by
-    // any operation that may reallocate the buffer.
+    //   returns a non-owning string_view of the meaningful content. The view
+    // is invalidated by any operation that may reallocate the buffer.
     std::string_view view() const noexcept
     {
         return std::string_view(
@@ -693,9 +698,9 @@ public:
 #endif  // C++17
 
     // substr
-    //   returns a substring from position _pos (relative
-    // to the start of meaningful content) with length
-    // _len.  If _len extends past the end, it is clamped.
+    //   returns a substring from position _pos (relative to the start of
+    // meaningful content) with length _len. If _len extends past the end, it
+    // is clamped.
     std::string
     substr(size_type _pos,
            size_type _len = std::string::npos) const
@@ -718,8 +723,8 @@ public:
     }
 
     // line_count
-    //   returns the number of newline characters in
-    // the meaningful content region.
+    //   returns the number of newline characters in the meaningful content
+    // region.
     size_type line_count() const noexcept
     {
         const char* p   = content_begin_();
@@ -818,10 +823,9 @@ public:
         return rend();
     }
 
-    // --- positional access ---
-    // Indices are relative to the start of meaningful
-    // content (i.e. operator[](0) is the first
-    // unconsumed character in dual-cursor mode).
+    // --- positional access --- Indices are relative to the start of
+    // meaningful content (i.e. operator[](0) is the first unconsumed character
+    // in dual-cursor mode).
 
     reference operator[](size_type _pos) noexcept
     {
@@ -876,10 +880,8 @@ public:
         return m_data[this->write_position() - 1];
     }
 
-    // --- data access ---
-    // data() returns a pointer to the start of the
-    // meaningful content region, consistent with
-    // begin() and size().
+    // --- data access --- data() returns a pointer to the start of the
+    // meaningful content region, consistent with begin() and size().
 
     const char* data() const noexcept
     {
@@ -893,8 +895,7 @@ public:
 
     size_type capacity() const noexcept
     {
-        // report usable capacity (excluding the
-        // reserved null terminator byte)
+        // report usable capacity (excluding the reserved null terminator byte)
         return (m_capacity > 0)
             ? (m_capacity - 1)
             : 0;
@@ -907,8 +908,7 @@ public:
     }
 
     // clear
-    //   resets the buffer to empty and zeroes storage.
-    // Satisfies has_clear_v.
+    //   resets the buffer to empty and zeroes storage. Satisfies has_clear_v.
     void clear() noexcept
     {
         base_type::clear();
@@ -955,11 +955,11 @@ public:
     // Satisfies is_ostream_insertable_v via a friend
     // operator<<.
 
-    template<typename _GP, typename _CP>
+    template<typename GP, typename CP>
     friend std::ostream&
     operator<<(std::ostream&            _os,
-               const text_buffer<_GP,
-                                 _CP>& _buf);
+               const text_buffer<GP,
+                                 CP>& _buf);
 
 
 private:
@@ -979,7 +979,7 @@ private:
     // These compute the start of the meaningful content
     // region, which differs by cursor model:
     //   write_only: m_data
-    //   dual:       m_data + read_pos
+    //   dual: m_data + read_pos
 
     const char* content_begin_() const noexcept
     {
@@ -988,7 +988,7 @@ private:
             return nullptr;
         }
 
-        if constexpr (_CursorPolicy::has_read_cursor)
+        if constexpr (CursorPolicy::has_read_cursor)
         {
             return m_data + this->m_cursors.read_pos;
         }
@@ -1005,7 +1005,7 @@ private:
             return nullptr;
         }
 
-        if constexpr (_CursorPolicy::has_read_cursor)
+        if constexpr (CursorPolicy::has_read_cursor)
         {
             return m_data + this->m_cursors.read_pos;
         }
@@ -1016,11 +1016,9 @@ private:
     }
 
     // grow
-    //   reallocates so that usable capacity is at least
-    // _new_usable bytes.  Raw allocation is _new_usable + 1
-    // to reserve space for the null terminator.
-    // Preserves existing content and null terminator.
-    // Returns true on success.
+    //   reallocates so that usable capacity is at least _new_usable bytes. Raw
+    // allocation is _new_usable + 1 to reserve space for the null terminator.
+    // Preserves existing content and null terminator. Returns true on success.
     bool grow(size_type _new_usable) noexcept
     {
         // already have enough usable capacity
@@ -1082,9 +1080,8 @@ private:
     // --- private capacity helper ---
 
     // raw_capacity
-    //   returns the true allocation size (including the
-    // reserved null terminator byte).  Used internally;
-    // capacity() reports the usable size.
+    //   returns the true allocation size (including the reserved null
+    // terminator byte). Used internally; capacity() reports the usable size.
     size_type raw_capacity() const noexcept
     {
         return m_capacity;
@@ -1098,10 +1095,10 @@ private:
 
 // --- ostream operator (out-of-class definition) ---
 
-template<typename _GP, typename _CP>
+template<typename GP, typename CP>
 std::ostream&
 operator<<(std::ostream&                    _os,
-           const text_buffer<_GP, _CP>&     _buf)
+           const text_buffer<GP, CP>&     _buf)
 {
     if (_buf.size() > 0)
     {
@@ -1119,8 +1116,8 @@ operator<<(std::ostream&                    _os,
 // =============================================================================
 
 // make_text_buffer
-//   creates a text_buffer with default policies and the
-// specified initial capacity.
+//   creates a text_buffer with default policies and the specified initial
+// capacity.
 inline text_buffer<>
 make_text_buffer(std::size_t _capacity = 0)
 {
@@ -1128,8 +1125,7 @@ make_text_buffer(std::size_t _capacity = 0)
 }
 
 // make_text_buffer (from C string)
-//   creates a text_buffer initialized with a copy of
-// the provided string.
+//   creates a text_buffer initialized with a copy of the provided string.
 inline text_buffer<>
 make_text_buffer(const char* _str)
 {
@@ -1145,8 +1141,8 @@ make_text_buffer(const std::string& _str)
 }
 
 // make_fixed_text_buffer
-//   creates a text_buffer with fixed (non-growable)
-// storage of the specified capacity.
+//   creates a text_buffer with fixed (non-growable) storage of the specified
+// capacity.
 inline text_buffer<fixed_growth_policy>
 make_fixed_text_buffer(std::size_t _capacity)
 {
@@ -1157,5 +1153,6 @@ make_fixed_text_buffer(std::size_t _capacity)
 NS_END  // container
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_TEXT_BUFFER_
+#endif  // DJINTERP_CONTAINER_BUFFER_TEXT_BUFFER_HPP

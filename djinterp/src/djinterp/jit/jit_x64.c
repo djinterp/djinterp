@@ -1,18 +1,19 @@
-/******************************************************************************
-* djinterp [jit]                                                     jit_x64.c
+/*******************************************************************************
+* djinterp [jit]                                                       jit_x64.c
 *
 * djinterp x86-64 JIT encoder -- implementation (jit_x64.h).
 *   The instruction emitters: each encodes one x86-64 instruction from the
 * module's byte constants and appends it to a d_jit_buffer. REX.B for extended
 * registers is applied where needed.
 *
-* path:      /inc/djinterp/jit/jit_x64.c
+*
+* path:      /src/djinterp/jit/jit_x64.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit_x64.h"
+#include "../../../inc/djinterp/jit/jit_x64.h"
 
 
 // ===========================================================================

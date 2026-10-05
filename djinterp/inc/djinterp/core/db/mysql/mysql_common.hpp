@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                         mysql_common.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                               mysql_common.hpp
+*
 * djinterp MySQL-family common connection module:
 *   This header provides the shared CRTP connection base for the MySQL-
 * compatible database family (Oracle MySQL and MariaDB). It sits between
@@ -44,28 +44,35 @@
 *
 *   PORTABILITY:
 *   This header requires C++17 or later. It does not include the MySQL C API
-* headers; concrete implementations include <mysql.h> or <mariadb/mysql.h> 
+* headers; concrete implementations include <mysql.h> or <mariadb/mysql.h>
 * themselves.
 *
-* 
+*
 *   DETECTION:
 *   Also carries this database's capability-detection traits and C++20 concepts
 * (trailing sections), folded in from mysql_common_traits.hpp and the matching *_concepts.hpp;
 * detection now lives with the connection. Concepts gated on concept support.
 *
+*
 * path:      /inc/djinterp/core/db/mysql/mysql_common.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_MYSQL_COMMON_
-#define DJINTERP_DATABASE_MYSQL_COMMON_
+#ifndef DJINTERP_DB_MYSQL_MYSQL_COMMON_HPP
+#define DJINTERP_DB_MYSQL_MYSQL_COMMON_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
+#include "../../meta/type_utility.hpp"  // clean_t, self
 #include "../../../env/db/mysql/env_mysql_common.h"
 #include "../database_connection.hpp"
-#include "../database_traits.hpp"
 
 
 NS_DJINTERP
@@ -191,14 +198,14 @@ struct mysql_connect_config
 //
 // Template parameters:
 //   _helper:   the concrete CRTP implementation class
-//   _DbType: database_type::mysql or database_type::mariadb
+//   DbType: database_type::mysql or database_type::mariadb
 template<typename      _helper,
-         database_type _DbType>
+         database_type DbType>
 class mysql_common_connection
-    : public database_connection<_helper, _DbType>
+    : public database_connection<_helper, DbType>
 {
 public:
-    using base_type     = database_connection<_helper, _DbType>;
+    using base_type     = database_connection<_helper, DbType>;
     using traits_type   = typename base_type::traits_type;
 
     mysql_common_connection()
@@ -483,7 +490,7 @@ public:
 
     // get_mysql_config
     //   function: returns the MySQL-specific connection configuration.
-    const mysql_connect_config& 
+    const mysql_connect_config&
     get_mysql_config() const noexcept
     {
         return m_mysql_config;
@@ -516,7 +523,7 @@ public:
     //   function: returns true if this connection targets MariaDB.
     static constexpr bool is_mariadb() noexcept
     {
-        return (_DbType == database_type::mariadb);
+        return (DbType == database_type::mariadb);
     }
 
     // is_oracle_mysql
@@ -524,7 +531,7 @@ public:
     // MySQL.
     static constexpr bool is_oracle_mysql() noexcept
     {
-        return (_DbType == database_type::mysql);
+        return (DbType == database_type::mysql);
     }
 
 protected:
@@ -615,15 +622,15 @@ private:
 
 // mysql_set_charset_t
 //   detector: set_charset(const std::string&) method.
-template<typename _Type>
-using mysql_set_charset_t = decltype(std::declval<_Type&>().set_charset(
+template<typename Type>
+using mysql_set_charset_t = decltype(std::declval<Type&>().set_charset(
     std::declval<const std::string&>()));
 
 // mysql_get_charset_t
 //   detector: get_charset() const method.
-template<typename _Type>
+template<typename Type>
 using mysql_get_charset_t =
-    decltype(std::declval<const _Type&>().get_charset());
+    decltype(std::declval<const Type&>().get_charset());
 
 // -------------------------------------------------------------------------
 // B.  multi-result set iteration
@@ -633,17 +640,17 @@ using mysql_get_charset_t =
 //   detector: next_result() method.
 // wraps mysql_next_result() for iterating over multiple result sets
 // from multi-statement queries or stored procedures.
-template<typename _Type>
+template<typename Type>
 using mysql_next_result_t =
-    decltype(std::declval<_Type&>().next_result());
+    decltype(std::declval<Type&>().next_result());
 
 // mysql_more_results_t
 //   detector: more_results() const method.
 // wraps mysql_more_results() to check if additional result sets
 // remain.
-template<typename _Type>
+template<typename Type>
 using mysql_more_results_t =
-    decltype(std::declval<const _Type&>().more_results());
+    decltype(std::declval<const Type&>().more_results());
 
 // -------------------------------------------------------------------------
 // C.  options API
@@ -653,16 +660,16 @@ using mysql_more_results_t =
 //   detector: set_option(int, const void*) method.
 // wraps mysql_options() for setting connection options before
 // connecting.
-template<typename _Type>
-using mysql_set_option_t = decltype(std::declval<_Type&>().set_option(
+template<typename Type>
+using mysql_set_option_t = decltype(std::declval<Type&>().set_option(
     std::declval<int>(),
     std::declval<const void*>()));
 
 // mysql_get_option_t
 //   detector: get_option(int, void*) const method.
 // wraps mysql_get_option() for querying connection option values.
-template<typename _Type>
-using mysql_get_option_t = decltype(std::declval<const _Type&>().get_option(
+template<typename Type>
+using mysql_get_option_t = decltype(std::declval<const Type&>().get_option(
     std::declval<int>(),
     std::declval<void*>()));
 
@@ -673,30 +680,30 @@ using mysql_get_option_t = decltype(std::declval<const _Type&>().get_option(
 // mysql_get_stat_t
 //   detector: get_stat() const method.
 // wraps mysql_stat() for server status string.
-template<typename _Type>
+template<typename Type>
 using mysql_get_stat_t =
-    decltype(std::declval<const _Type&>().get_stat());
+    decltype(std::declval<const Type&>().get_stat());
 
 // mysql_get_thread_id_t
 //   detector: get_thread_id() const method.
 // wraps mysql_thread_id() for the connection's thread identifier.
-template<typename _Type>
+template<typename Type>
 using mysql_get_thread_id_t =
-    decltype(std::declval<const _Type&>().get_thread_id());
+    decltype(std::declval<const Type&>().get_thread_id());
 
 // mysql_get_warning_count_t
 //   detector: get_warning_count() const method.
 // wraps mysql_warning_count().
-template<typename _Type>
+template<typename Type>
 using mysql_get_warning_count_t =
-    decltype(std::declval<const _Type&>().get_warning_count());
+    decltype(std::declval<const Type&>().get_warning_count());
 
 // mysql_get_sqlstate_t
 //   detector: get_sqlstate() const method.
 // wraps mysql_sqlstate() for SQLSTATE error code access.
-template<typename _Type>
+template<typename Type>
 using mysql_get_sqlstate_t =
-    decltype(std::declval<const _Type&>().get_sqlstate());
+    decltype(std::declval<const Type&>().get_sqlstate());
 
 // -------------------------------------------------------------------------
 // E.  result set mode
@@ -705,16 +712,16 @@ using mysql_get_sqlstate_t =
 // mysql_store_result_t
 //   detector: store_result() method.
 // wraps mysql_store_result() for buffered result sets.
-template<typename _Type>
+template<typename Type>
 using mysql_store_result_t =
-    decltype(std::declval<_Type&>().store_result());
+    decltype(std::declval<Type&>().store_result());
 
 // mysql_use_result_t
 //   detector: use_result() method.
 // wraps mysql_use_result() for streaming (unbuffered) result sets.
-template<typename _Type>
+template<typename Type>
 using mysql_use_result_t =
-    decltype(std::declval<_Type&>().use_result());
+    decltype(std::declval<Type&>().use_result());
 
 // -------------------------------------------------------------------------
 // F.  auto-commit
@@ -723,8 +730,8 @@ using mysql_use_result_t =
 // mysql_set_autocommit_t
 //   detector: set_autocommit(bool) method.
 // wraps mysql_autocommit().
-template<typename _Type>
-using mysql_set_autocommit_t = decltype(std::declval<_Type&>().set_autocommit(
+template<typename Type>
+using mysql_set_autocommit_t = decltype(std::declval<Type&>().set_autocommit(
     std::declval<bool>()));
 
 // -------------------------------------------------------------------------
@@ -734,23 +741,23 @@ using mysql_set_autocommit_t = decltype(std::declval<_Type&>().set_autocommit(
 // mysql_escape_string_t
 //   detector: escape_string(const std::string&) const method.
 // wraps mysql_real_escape_string().
-template<typename _Type>
+template<typename Type>
 using mysql_escape_string_t =
-    decltype(std::declval<const _Type&>().escape_string(
+    decltype(std::declval<const Type&>().escape_string(
         std::declval<const std::string&>()));
 
 // mysql_select_db_t
 //   detector: select_db(const std::string&) method.
 // wraps mysql_select_db() for switching the active database.
-template<typename _Type>
-using mysql_select_db_t = decltype(std::declval<_Type&>().select_db(
+template<typename Type>
+using mysql_select_db_t = decltype(std::declval<Type&>().select_db(
     std::declval<const std::string&>()));
 
 // mysql_change_user_t
 //   detector: change_user(const std::string&, const std::string&,
 // const std::string&) method. wraps mysql_change_user().
-template<typename _Type>
-using mysql_change_user_t = decltype(std::declval<_Type&>().change_user(
+template<typename Type>
+using mysql_change_user_t = decltype(std::declval<Type&>().change_user(
     std::declval<const std::string&>(),
     std::declval<const std::string&>(),
     std::declval<const std::string&>()));
@@ -762,15 +769,15 @@ using mysql_change_user_t = decltype(std::declval<_Type&>().change_user(
 // mysql_get_engine_t
 //   detector: get_engine() const method.
 // returns the default storage engine name.
-template<typename _Type>
+template<typename Type>
 using mysql_get_engine_t =
-    decltype(std::declval<const _Type&>().get_engine());
+    decltype(std::declval<const Type&>().get_engine());
 
 // mysql_set_engine_t
 //   detector: set_engine(const std::string&) method.
 // sets the session default storage engine.
-template<typename _Type>
-using mysql_set_engine_t = decltype(std::declval<_Type&>().set_engine(
+template<typename Type>
+using mysql_set_engine_t = decltype(std::declval<Type&>().set_engine(
     std::declval<const std::string&>()));
 
 
@@ -779,152 +786,152 @@ using mysql_set_engine_t = decltype(std::declval<_Type&>().set_engine(
 // ===========================================================================
 
 // has_mysql_charset
-//   trait: checks if type _Type supports character set management
+//   trait: checks if type Type supports character set management
 // (set_charset + get_charset).
-template<typename _Type>
+template<typename Type>
 struct has_mysql_charset : djinterp::conjunction<
-    is_detected<mysql_set_charset_t, clean_t<_Type>>,
-    is_detected<mysql_get_charset_t, clean_t<_Type>>>
+    is_detected<mysql_set_charset_t, clean_t<Type>>,
+    is_detected<mysql_get_charset_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // has_mysql_charset_v
-    //   value: convenience alias for has_mysql_charset<_Type>::value.
-    template<typename _Type>
-    constexpr bool has_mysql_charset_v = has_mysql_charset<clean_t<_Type>>::value;
+    //   value: convenience alias for has_mysql_charset<Type>::value.
+    template<typename Type>
+    constexpr bool has_mysql_charset_v = has_mysql_charset<clean_t<Type>>::value;
 #endif
 
 // has_mysql_multi_result
-//   trait: checks if type _Type supports multi-result set iteration
+//   trait: checks if type Type supports multi-result set iteration
 // (next_result + more_results).
-template<typename _Type>
+template<typename Type>
 struct has_mysql_multi_result : djinterp::conjunction<
-    is_detected<mysql_next_result_t, clean_t<_Type>>,
-    is_detected<mysql_more_results_t, clean_t<_Type>>>
+    is_detected<mysql_next_result_t, clean_t<Type>>,
+    is_detected<mysql_more_results_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // has_mysql_multi_result_v
-    //   value: convenience alias for has_mysql_multi_result<_Type>::value.
-    template<typename _Type>
+    //   value: convenience alias for has_mysql_multi_result<Type>::value.
+    template<typename Type>
     constexpr bool has_mysql_multi_result_v =
-        has_mysql_multi_result<clean_t<_Type>>::value;
+        has_mysql_multi_result<clean_t<Type>>::value;
 #endif
 
 // has_mysql_options
-//   trait: checks if type _Type supports the MySQL options API
+//   trait: checks if type Type supports the MySQL options API
 // (set_option + get_option).
-template<typename _Type>
+template<typename Type>
 struct has_mysql_options : djinterp::conjunction<
-    is_detected<mysql_set_option_t, clean_t<_Type>>,
-    is_detected<mysql_get_option_t, clean_t<_Type>>>
+    is_detected<mysql_set_option_t, clean_t<Type>>,
+    is_detected<mysql_get_option_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // has_mysql_options_v
-    //   value: convenience alias for has_mysql_options<_Type>::value.
-    template<typename _Type>
-    constexpr bool has_mysql_options_v = has_mysql_options<clean_t<_Type>>::value;
+    //   value: convenience alias for has_mysql_options<Type>::value.
+    template<typename Type>
+    constexpr bool has_mysql_options_v = has_mysql_options<clean_t<Type>>::value;
 #endif
 
 // has_mysql_diagnostics
-//   trait: checks if type _Type supports MySQL server diagnostics
+//   trait: checks if type Type supports MySQL server diagnostics
 // (get_stat + get_thread_id + get_warning_count + get_sqlstate).
-template<typename _Type>
+template<typename Type>
 struct has_mysql_diagnostics : djinterp::conjunction<
-    is_detected<mysql_get_stat_t, clean_t<_Type>>,
-    is_detected<mysql_get_thread_id_t, clean_t<_Type>>,
-    is_detected<mysql_get_warning_count_t, clean_t<_Type>>,
-    is_detected<mysql_get_sqlstate_t, clean_t<_Type>>>
+    is_detected<mysql_get_stat_t, clean_t<Type>>,
+    is_detected<mysql_get_thread_id_t, clean_t<Type>>,
+    is_detected<mysql_get_warning_count_t, clean_t<Type>>,
+    is_detected<mysql_get_sqlstate_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // has_mysql_diagnostics_v
-    //   value: convenience alias for has_mysql_diagnostics<_Type>::value.
-    template<typename _Type>
+    //   value: convenience alias for has_mysql_diagnostics<Type>::value.
+    template<typename Type>
     constexpr bool has_mysql_diagnostics_v =
-        has_mysql_diagnostics<clean_t<_Type>>::value;
+        has_mysql_diagnostics<clean_t<Type>>::value;
 #endif
 
 // has_mysql_result_modes
-//   trait: checks if type _Type supports both buffered and streaming
+//   trait: checks if type Type supports both buffered and streaming
 // result set modes (store_result + use_result).
-template<typename _Type>
+template<typename Type>
 struct has_mysql_result_modes : djinterp::conjunction<
-    is_detected<mysql_store_result_t, clean_t<_Type>>,
-    is_detected<mysql_use_result_t, clean_t<_Type>>>
+    is_detected<mysql_store_result_t, clean_t<Type>>,
+    is_detected<mysql_use_result_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // has_mysql_result_modes_v
-    //   value: convenience alias for has_mysql_result_modes<_Type>::value.
-    template<typename _Type>
+    //   value: convenience alias for has_mysql_result_modes<Type>::value.
+    template<typename Type>
     constexpr bool has_mysql_result_modes_v =
-        has_mysql_result_modes<clean_t<_Type>>::value;
+        has_mysql_result_modes<clean_t<Type>>::value;
 #endif
 
 // has_mysql_escape
-//   trait: checks if type _Type supports MySQL string escaping.
-template<typename _Type>
-struct has_mysql_escape : is_detected<mysql_escape_string_t, clean_t<_Type>>
+//   trait: checks if type Type supports MySQL string escaping.
+template<typename Type>
+struct has_mysql_escape : is_detected<mysql_escape_string_t, clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // has_mysql_escape_v
-    //   value: convenience alias for has_mysql_escape<_Type>::value.
-    template<typename _Type>
-    constexpr bool has_mysql_escape_v = has_mysql_escape<clean_t<_Type>>::value;
+    //   value: convenience alias for has_mysql_escape<Type>::value.
+    template<typename Type>
+    constexpr bool has_mysql_escape_v = has_mysql_escape<clean_t<Type>>::value;
 #endif
 
 // has_mysql_change_user
-//   trait: checks if type _Type supports runtime user switching.
-template<typename _Type>
-struct has_mysql_change_user : is_detected<mysql_change_user_t, clean_t<_Type>>
+//   trait: checks if type Type supports runtime user switching.
+template<typename Type>
+struct has_mysql_change_user : is_detected<mysql_change_user_t, clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // has_mysql_change_user_v
-    //   value: convenience alias for has_mysql_change_user<_Type>::value.
-    template<typename _Type>
+    //   value: convenience alias for has_mysql_change_user<Type>::value.
+    template<typename Type>
     constexpr bool has_mysql_change_user_v =
-        has_mysql_change_user<clean_t<_Type>>::value;
+        has_mysql_change_user<clean_t<Type>>::value;
 #endif
 
 // has_mysql_engine
-//   trait: checks if type _Type supports storage engine queries
+//   trait: checks if type Type supports storage engine queries
 // (get_engine + set_engine).
-template<typename _Type>
+template<typename Type>
 struct has_mysql_engine : djinterp::conjunction<
-    is_detected<mysql_get_engine_t, clean_t<_Type>>,
-    is_detected<mysql_set_engine_t, clean_t<_Type>>>
+    is_detected<mysql_get_engine_t, clean_t<Type>>,
+    is_detected<mysql_set_engine_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // has_mysql_engine_v
-    //   value: convenience alias for has_mysql_engine<_Type>::value.
-    template<typename _Type>
-    constexpr bool has_mysql_engine_v = has_mysql_engine<clean_t<_Type>>::value;
+    //   value: convenience alias for has_mysql_engine<Type>::value.
+    template<typename Type>
+    constexpr bool has_mysql_engine_v = has_mysql_engine<clean_t<Type>>::value;
 #endif
 
 // is_mysql_connection
-//   trait: compound trait verifying type _Type implements a MySQL-
+//   trait: compound trait verifying type Type implements a MySQL-
 // family connection interface (vendor connection + charset +
 // multi-result + diagnostics + escape).
-template<typename _Type>
+template<typename Type>
 struct is_mysql_connection : djinterp::conjunction<
-    is_vendor_connection<clean_t<_Type>>,
-    has_mysql_charset<clean_t<_Type>>,
-    has_mysql_multi_result<clean_t<_Type>>,
-    has_mysql_diagnostics<clean_t<_Type>>,
-    has_mysql_escape<clean_t<_Type>>>
+    is_vendor_connection<clean_t<Type>>,
+    has_mysql_charset<clean_t<Type>>,
+    has_mysql_multi_result<clean_t<Type>>,
+    has_mysql_diagnostics<clean_t<Type>>,
+    has_mysql_escape<clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // is_mysql_connection_v
-    //   value: convenience alias for is_mysql_connection<_Type>::value.
-    template<typename _Type>
+    //   value: convenience alias for is_mysql_connection<Type>::value.
+    template<typename Type>
     constexpr bool is_mysql_connection_v =
-        is_mysql_connection<clean_t<_Type>>::value;
+        is_mysql_connection<clean_t<Type>>::value;
 #endif
 
 
@@ -937,173 +944,173 @@ struct is_mysql_connection : djinterp::conjunction<
 // -------------------------------------------------------------------------
 
 // mysql_can_set_charset
-//   tagless trait: true if _Type has a set_charset() method.
-template<typename _Type,
+//   tagless trait: true if Type has a set_charset() method.
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_set_charset = false;
 
-template<typename _Type>
-constexpr bool mysql_can_set_charset<_Type,
-    std::void_t<mysql_set_charset_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_set_charset<Type,
+    std::void_t<mysql_set_charset_t<Type>>> = true;
 
 // mysql_can_get_charset
-//   tagless trait: true if _Type has a get_charset() method.
-template<typename _Type,
+//   tagless trait: true if Type has a get_charset() method.
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_get_charset = false;
 
-template<typename _Type>
-constexpr bool mysql_can_get_charset<_Type,
-    std::void_t<mysql_get_charset_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_get_charset<Type,
+    std::void_t<mysql_get_charset_t<Type>>> = true;
 
 // mysql_can_iterate_results
-//   tagless trait: true if _Type has next_result() for multi-result
+//   tagless trait: true if Type has next_result() for multi-result
 // iteration.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_iterate_results = false;
 
-template<typename _Type>
-constexpr bool mysql_can_iterate_results<_Type,
-    std::void_t<mysql_next_result_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_iterate_results<Type,
+    std::void_t<mysql_next_result_t<Type>>> = true;
 
 // mysql_can_check_more_results
-//   tagless trait: true if _Type has more_results().
-template<typename _Type,
+//   tagless trait: true if Type has more_results().
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_check_more_results = false;
 
-template<typename _Type>
-constexpr bool mysql_can_check_more_results<_Type,
-    std::void_t<mysql_more_results_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_check_more_results<Type,
+    std::void_t<mysql_more_results_t<Type>>> = true;
 
 // mysql_can_set_option
-//   tagless trait: true if _Type has set_option().
-template<typename _Type,
+//   tagless trait: true if Type has set_option().
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_set_option = false;
 
-template<typename _Type>
-constexpr bool mysql_can_set_option<_Type,
-    std::void_t<mysql_set_option_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_set_option<Type,
+    std::void_t<mysql_set_option_t<Type>>> = true;
 
 // mysql_can_get_stat
-//   tagless trait: true if _Type has get_stat().
-template<typename _Type,
+//   tagless trait: true if Type has get_stat().
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_get_stat = false;
 
-template<typename _Type>
-constexpr bool mysql_can_get_stat<_Type,
-    std::void_t<mysql_get_stat_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_get_stat<Type,
+    std::void_t<mysql_get_stat_t<Type>>> = true;
 
 // mysql_can_get_sqlstate
-//   tagless trait: true if _Type has get_sqlstate().
-template<typename _Type,
+//   tagless trait: true if Type has get_sqlstate().
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_get_sqlstate = false;
 
-template<typename _Type>
-constexpr bool mysql_can_get_sqlstate<_Type,
-    std::void_t<mysql_get_sqlstate_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_get_sqlstate<Type,
+    std::void_t<mysql_get_sqlstate_t<Type>>> = true;
 
 // mysql_can_store_result
-//   tagless trait: true if _Type has store_result().
-template<typename _Type,
+//   tagless trait: true if Type has store_result().
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_store_result = false;
 
-template<typename _Type>
-constexpr bool mysql_can_store_result<_Type,
-    std::void_t<mysql_store_result_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_store_result<Type,
+    std::void_t<mysql_store_result_t<Type>>> = true;
 
 // mysql_can_use_result
-//   tagless trait: true if _Type has use_result() (streaming).
-template<typename _Type,
+//   tagless trait: true if Type has use_result() (streaming).
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_use_result = false;
 
-template<typename _Type>
-constexpr bool mysql_can_use_result<_Type,
-    std::void_t<mysql_use_result_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_use_result<Type,
+    std::void_t<mysql_use_result_t<Type>>> = true;
 
 // mysql_can_escape_string
-//   tagless trait: true if _Type has escape_string().
-template<typename _Type,
+//   tagless trait: true if Type has escape_string().
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_escape_string = false;
 
-template<typename _Type>
-constexpr bool mysql_can_escape_string<_Type,
-    std::void_t<mysql_escape_string_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_escape_string<Type,
+    std::void_t<mysql_escape_string_t<Type>>> = true;
 
 // mysql_can_select_db
-//   tagless trait: true if _Type has select_db().
-template<typename _Type,
+//   tagless trait: true if Type has select_db().
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_select_db = false;
 
-template<typename _Type>
-constexpr bool mysql_can_select_db<_Type,
-    std::void_t<mysql_select_db_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_select_db<Type,
+    std::void_t<mysql_select_db_t<Type>>> = true;
 
 // mysql_can_change_user
-//   tagless trait: true if _Type has change_user().
-template<typename _Type,
+//   tagless trait: true if Type has change_user().
+template<typename Type,
          typename = void>
 constexpr bool mysql_can_change_user = false;
 
-template<typename _Type>
-constexpr bool mysql_can_change_user<_Type,
-    std::void_t<mysql_change_user_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_can_change_user<Type,
+    std::void_t<mysql_change_user_t<Type>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
 // -------------------------------------------------------------------------
 
 // mysql_does_charset
-//   tagless trait: true if _Type supports full charset management
+//   tagless trait: true if Type supports full charset management
 // (set + get).
-template<typename _Type>
+template<typename Type>
 constexpr bool mysql_does_charset =
-    ( mysql_can_set_charset<clean_t<_Type>> &&
-      mysql_can_get_charset<clean_t<_Type>> );
+    ( mysql_can_set_charset<clean_t<Type>> &&
+      mysql_can_get_charset<clean_t<Type>> );
 
 // mysql_does_multi_result
-//   tagless trait: true if _Type supports multi-result iteration
+//   tagless trait: true if Type supports multi-result iteration
 // (next_result + more_results).
-template<typename _Type>
+template<typename Type>
 constexpr bool mysql_does_multi_result =
-    ( mysql_can_iterate_results<clean_t<_Type>>    &&
-      mysql_can_check_more_results<clean_t<_Type>> );
+    ( mysql_can_iterate_results<clean_t<Type>>    &&
+      mysql_can_check_more_results<clean_t<Type>> );
 
 // mysql_does_result_modes
-//   tagless trait: true if _Type supports both buffered and streaming
+//   tagless trait: true if Type supports both buffered and streaming
 // result sets.
-template<typename _Type>
+template<typename Type>
 constexpr bool mysql_does_result_modes =
-    ( mysql_can_store_result<clean_t<_Type>> &&
-      mysql_can_use_result<clean_t<_Type>> );
+    ( mysql_can_store_result<clean_t<Type>> &&
+      mysql_can_use_result<clean_t<Type>> );
 
 // mysql_does_diagnostics
-//   tagless trait: true if _Type supports server diagnostics
+//   tagless trait: true if Type supports server diagnostics
 // (stat + sqlstate).
-template<typename _Type>
+template<typename Type>
 constexpr bool mysql_does_diagnostics =
-    ( mysql_can_get_stat<clean_t<_Type>>     &&
-      mysql_can_get_sqlstate<clean_t<_Type>> );
+    ( mysql_can_get_stat<clean_t<Type>>     &&
+      mysql_can_get_sqlstate<clean_t<Type>> );
 
 // mysql_is_full_connection
-//   tagless trait: true if _Type satisfies the complete MySQL-family
+//   tagless trait: true if Type satisfies the complete MySQL-family
 // connection interface (full vendor + charset + multi-result +
 // diagnostics + escape).
-template<typename _Type>
+template<typename Type>
 constexpr bool mysql_is_full_connection =
-    ( is_full_vendor<clean_t<_Type>>              &&
-      mysql_does_charset<clean_t<_Type>>          &&
-      mysql_does_multi_result<clean_t<_Type>>     &&
-      mysql_does_diagnostics<clean_t<_Type>>      &&
-      mysql_can_escape_string<clean_t<_Type>> );
+    ( is_full_vendor<clean_t<Type>>              &&
+      mysql_does_charset<clean_t<Type>>          &&
+      mysql_does_multi_result<clean_t<Type>>     &&
+      mysql_does_diagnostics<clean_t<Type>>      &&
+      mysql_can_escape_string<clean_t<Type>> );
 
 
 // ===========================================================================
@@ -1112,27 +1119,27 @@ constexpr bool mysql_is_full_connection =
 
 // enable_if_mysql_connection
 //   type: SFINAE helper for MySQL-family connection constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_mysql_connection =
-    typename std::enable_if<is_mysql_connection<clean_t<_Type>>::value>::type;
+    typename std::enable_if<is_mysql_connection<clean_t<Type>>::value>::type;
 
 // enable_if_has_mysql_charset
 //   type: SFINAE helper for MySQL charset constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mysql_charset =
-    typename std::enable_if<has_mysql_charset<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_mysql_charset<clean_t<Type>>::value>::type;
 
 // enable_if_has_mysql_multi_result
 //   type: SFINAE helper for MySQL multi-result constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mysql_multi_result =
-    typename std::enable_if<has_mysql_multi_result<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_mysql_multi_result<clean_t<Type>>::value>::type;
 
 // enable_if_has_mysql_diagnostics
 //   type: SFINAE helper for MySQL diagnostics constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mysql_diagnostics =
-    typename std::enable_if<has_mysql_diagnostics<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_mysql_diagnostics<clean_t<Type>>::value>::type;
 
 
 // ===========================================================================
@@ -1155,64 +1162,64 @@ using enable_if_has_mysql_diagnostics =
 // Mysql_connection
 //   concept: constrains types implementing the MySQL-family connection
 // interface.
-template<typename _Type>
+template<typename Type>
 concept Mysql_connection =
-    is_mysql_connection<clean_t<_Type>>::value;
+    is_mysql_connection<clean_t<Type>>::value;
 
 // non_mysql_connection
 //   concept: constrains types that do not implement the MySQL-family
 // connection interface.
-template<typename _Type>
+template<typename Type>
 concept non_mysql_connection =
-    !Mysql_connection<_Type>;
+    !Mysql_connection<Type>;
 
 // mysql_charset_connection
 //   concept: constrains MySQL-family connections supporting character-set
 // management.
-template<typename _Type>
+template<typename Type>
 concept mysql_charset_connection =
-    has_mysql_charset<clean_t<_Type>>::value;
+    has_mysql_charset<clean_t<Type>>::value;
 
 // mysql_multi_result_connection
 //   concept: constrains MySQL-family connections supporting multi-result
 // iteration.
-template<typename _Type>
+template<typename Type>
 concept mysql_multi_result_connection =
-    has_mysql_multi_result<clean_t<_Type>>::value;
+    has_mysql_multi_result<clean_t<Type>>::value;
 
 // mysql_diagnostics_connection
 //   concept: constrains MySQL-family connections supporting server
 // diagnostics.
-template<typename _Type>
+template<typename Type>
 concept mysql_diagnostics_connection =
-    has_mysql_diagnostics<clean_t<_Type>>::value;
+    has_mysql_diagnostics<clean_t<Type>>::value;
 
 // mysql_result_modes_connection
 //   concept: constrains MySQL-family connections supporting both buffered
 // and streaming result modes.
-template<typename _Type>
+template<typename Type>
 concept mysql_result_modes_connection =
-    has_mysql_result_modes<clean_t<_Type>>::value;
+    has_mysql_result_modes<clean_t<Type>>::value;
 
 // mysql_escape_connection
 //   concept: constrains MySQL-family connections supporting SQL string
 // escaping.
-template<typename _Type>
+template<typename Type>
 concept mysql_escape_connection =
-    has_mysql_escape<clean_t<_Type>>::value;
+    has_mysql_escape<clean_t<Type>>::value;
 
 // mysql_options_connection
 //   concept: constrains MySQL-family connections supporting the options API.
-template<typename _Type>
+template<typename Type>
 concept mysql_options_connection =
-    has_mysql_options<clean_t<_Type>>::value;
+    has_mysql_options<clean_t<Type>>::value;
 
 // mysql_engine_connection
 //   concept: constrains MySQL-family connections supporting storage-engine
 // queries.
-template<typename _Type>
+template<typename Type>
 concept mysql_engine_connection =
-    has_mysql_engine<clean_t<_Type>>::value;
+    has_mysql_engine<clean_t<Type>>::value;
 
 
 // -------------------------------------------------------------------------
@@ -1221,82 +1228,82 @@ concept mysql_engine_connection =
 
 // mysql_select_db_connection
 //   concept: constrains types exposing select_db(database).
-template<typename _Type>
+template<typename Type>
 concept mysql_select_db_connection =
-    is_detected<mysql_select_db_t, clean_t<_Type>>::value;
+    is_detected<mysql_select_db_t, clean_t<Type>>::value;
 
 // mysql_autocommit_connection
 //   concept: constrains types exposing set_autocommit(bool).
-template<typename _Type>
+template<typename Type>
 concept mysql_autocommit_connection =
-    is_detected<mysql_set_autocommit_t, clean_t<_Type>>::value;
+    is_detected<mysql_set_autocommit_t, clean_t<Type>>::value;
 
 // mysql_set_option_connection
 //   concept: constrains types exposing set_option(option, value).
-template<typename _Type>
+template<typename Type>
 concept mysql_set_option_connection =
-    mysql_can_set_option<clean_t<_Type>>;
+    mysql_can_set_option<clean_t<Type>>;
 
 // mysql_get_option_connection
 //   concept: constrains types exposing get_option(option, value).
-template<typename _Type>
+template<typename Type>
 concept mysql_get_option_connection =
-    is_detected<mysql_get_option_t, clean_t<_Type>>::value;
+    is_detected<mysql_get_option_t, clean_t<Type>>::value;
 
 // mysql_stat_connection
 //   concept: constrains types exposing get_stat().
-template<typename _Type>
+template<typename Type>
 concept mysql_stat_connection =
-    mysql_can_get_stat<clean_t<_Type>>;
+    mysql_can_get_stat<clean_t<Type>>;
 
 // mysql_thread_id_connection
 //   concept: constrains types exposing get_thread_id().
-template<typename _Type>
+template<typename Type>
 concept mysql_thread_id_connection =
-    is_detected<mysql_get_thread_id_t, clean_t<_Type>>::value;
+    is_detected<mysql_get_thread_id_t, clean_t<Type>>::value;
 
 // mysql_warning_count_connection
 //   concept: constrains types exposing get_warning_count().
-template<typename _Type>
+template<typename Type>
 concept mysql_warning_count_connection =
-    is_detected<mysql_get_warning_count_t, clean_t<_Type>>::value;
+    is_detected<mysql_get_warning_count_t, clean_t<Type>>::value;
 
 // mysql_sqlstate_connection
 //   concept: constrains types exposing get_sqlstate().
-template<typename _Type>
+template<typename Type>
 concept mysql_sqlstate_connection =
-    mysql_can_get_sqlstate<clean_t<_Type>>;
+    mysql_can_get_sqlstate<clean_t<Type>>;
 
 // mysql_store_result_connection
 //   concept: constrains types exposing store_result().
-template<typename _Type>
+template<typename Type>
 concept mysql_store_result_connection =
-    mysql_can_store_result<clean_t<_Type>>;
+    mysql_can_store_result<clean_t<Type>>;
 
 // mysql_use_result_connection
 //   concept: constrains types exposing use_result().
-template<typename _Type>
+template<typename Type>
 concept mysql_use_result_connection =
-    mysql_can_use_result<clean_t<_Type>>;
+    mysql_can_use_result<clean_t<Type>>;
 
 // mysql_change_user_connection
 //   concept: constrains types exposing change_user(user, password,
 // database).
-template<typename _Type>
+template<typename Type>
 concept mysql_change_user_connection =
-    has_mysql_change_user<clean_t<_Type>>::value;
+    has_mysql_change_user<clean_t<Type>>::value;
 
 // mysql_set_engine_connection
 //   concept: constrains types exposing set_engine(name).
-template<typename _Type>
+template<typename Type>
 concept mysql_set_engine_connection =
-    is_detected<mysql_set_engine_t, clean_t<_Type>>::value;
+    is_detected<mysql_set_engine_t, clean_t<Type>>::value;
 
 // mysql_get_engine_connection
 //   concept: constrains types exposing get_engine().
-template<typename _Type>
+template<typename Type>
 concept mysql_get_engine_connection =
-    is_detected<mysql_get_engine_t, clean_t<_Type>>::value;
+    is_detected<mysql_get_engine_t, clean_t<Type>>::value;
 
 
 // -------------------------------------------------------------------------
@@ -1305,80 +1312,80 @@ concept mysql_get_engine_connection =
 
 // mysql_charset_manageable
 //   concept: constrains types satisfying the tagless charset capability set.
-template<typename _Type>
+template<typename Type>
 concept mysql_charset_manageable =
-    mysql_does_charset<clean_t<_Type>>;
+    mysql_does_charset<clean_t<Type>>;
 
 // mysql_multi_result_iterable
 //   concept: constrains types satisfying the tagless multi-result
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept mysql_multi_result_iterable =
-    mysql_does_multi_result<clean_t<_Type>>;
+    mysql_does_multi_result<clean_t<Type>>;
 
 // mysql_result_mode_selectable
 //   concept: constrains types satisfying the tagless result-mode capability
 // set.
-template<typename _Type>
+template<typename Type>
 concept mysql_result_mode_selectable =
-    mysql_does_result_modes<clean_t<_Type>>;
+    mysql_does_result_modes<clean_t<Type>>;
 
 // mysql_diagnostic_connection_tagless
 //   concept: constrains types satisfying the tagless diagnostics capability
 // set.
-template<typename _Type>
+template<typename Type>
 concept mysql_diagnostic_connection_tagless =
-    mysql_does_diagnostics<clean_t<_Type>>;
+    mysql_does_diagnostics<clean_t<Type>>;
 
 // mysql_charset_settable
 //   concept: constrains types satisfying the tagless set-charset capability.
-template<typename _Type>
+template<typename Type>
 concept mysql_charset_settable =
-    mysql_can_set_charset<clean_t<_Type>>;
+    mysql_can_set_charset<clean_t<Type>>;
 
 // mysql_charset_gettable
 //   concept: constrains types satisfying the tagless get-charset capability.
-template<typename _Type>
+template<typename Type>
 concept mysql_charset_gettable =
-    mysql_can_get_charset<clean_t<_Type>>;
+    mysql_can_get_charset<clean_t<Type>>;
 
 // mysql_result_iterable
 //   concept: constrains types satisfying the tagless next-result capability.
-template<typename _Type>
+template<typename Type>
 concept mysql_result_iterable =
-    mysql_can_iterate_results<clean_t<_Type>>;
+    mysql_can_iterate_results<clean_t<Type>>;
 
 // mysql_more_results_query
 //   concept: constrains types satisfying the tagless more-results capability.
-template<typename _Type>
+template<typename Type>
 concept mysql_more_results_query =
-    mysql_can_check_more_results<clean_t<_Type>>;
+    mysql_can_check_more_results<clean_t<Type>>;
 
 // mysql_string_escapable
 //   concept: constrains types satisfying the tagless escape-string
 // capability.
-template<typename _Type>
+template<typename Type>
 concept mysql_string_escapable =
-    mysql_can_escape_string<clean_t<_Type>>;
+    mysql_can_escape_string<clean_t<Type>>;
 
 // mysql_database_selectable
 //   concept: constrains types satisfying the tagless select-db capability.
-template<typename _Type>
+template<typename Type>
 concept mysql_database_selectable =
-    mysql_can_select_db<clean_t<_Type>>;
+    mysql_can_select_db<clean_t<Type>>;
 
 // mysql_user_switchable
 //   concept: constrains types satisfying the tagless change-user capability.
-template<typename _Type>
+template<typename Type>
 concept mysql_user_switchable =
-    mysql_can_change_user<clean_t<_Type>>;
+    mysql_can_change_user<clean_t<Type>>;
 
 // mysql_full_connection
 //   concept: constrains types satisfying the complete tagless MySQL-family
 // connection capability set.
-template<typename _Type>
+template<typename Type>
 concept mysql_full_connection =
-    mysql_is_full_connection<clean_t<_Type>>;
+    mysql_is_full_connection<clean_t<Type>>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -1386,5 +1393,6 @@ concept mysql_full_connection =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_MYSQL_COMMON_
+#endif  // DJINTERP_DB_MYSQL_MYSQL_COMMON_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                       main.c
+/*******************************************************************************
+* djinterp [djinterp]                                                     main.c
 *
 *   Command-line driver for the dawk interpreter.
 *     The synopsis is awk's: -F for the field separator, -v for a pre-BEGIN
@@ -10,9 +10,9 @@
 *
 * path:      /src/djinterp/tools/dawk/main.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dinterp.h"  // corresponding header
 // std
 #include <stdio.h>   // fprintf, fopen, fread
@@ -21,6 +21,7 @@
 // djinterp
 #include "../../../../inc/djinterp/tools/dawk/dparse.h"  // d_awk_parse
 #include "../../../../inc/djinterp/tools/dawk/dtree.h"   // d_awk_source_tree_init
+#include "../../../../inc/djinterp/tools/dawk/dsettings.h"  // d_settings
 
 
 /*
@@ -118,6 +119,43 @@ main(
     int         at           = 1;
 
     // options precede the program and the file operands
+    // The interpreter's settings.  The registry lives only while options are
+    // read: the values are taken out and it is freed before any path below
+    // can return, so no exit leaves it allocated.
+    char call_depth_text[24];
+    char stack_budget_text[24];
+
+    (void)snprintf(call_depth_text, sizeof(call_depth_text), "%u",
+                   (unsigned)D_AWK_CALL_DEPTH_DEFAULT);
+    (void)snprintf(stack_budget_text, sizeof(stack_budget_text), "%lu",
+                   (unsigned long)D_AWK_STACK_BUDGET_DEFAULT);
+
+    const struct d_setting_def interp_settings[] =
+    {
+        { "interp.call-depth", D_SETTING_INT, call_depth_text, NULL, NULL,
+          1L, 1000000L, NULL,
+          "most nested user-function calls; the same limit on every platform" },
+        { "interp.stack-budget", D_SETTING_INT, stack_budget_text, NULL, NULL,
+          16384L, 1073741824L, NULL,
+          "most C stack a run may consume, in bytes; the real guard against a "
+          "crash -- set it lower on a small thread" }
+    };
+
+    struct d_settings* settings = d_settings_new();
+    char               problem[256];
+
+    if ( (!settings) ||
+         (!d_settings_register(settings, interp_settings, 2u)) ||
+         (!d_settings_apply(settings, getenv("DAWK_SETTINGS"),
+                            D_SETTING_ENVIRONMENT, problem,
+                            sizeof(problem))) )
+    {
+        (void)fprintf(stderr, "dawk: DAWK_SETTINGS: %s\n",
+                      settings ? problem : "cannot build settings");
+        d_settings_free(settings);
+        return 2;
+    }
+
     while ((at < argc) && (argv[at][0] == '-') && (argv[at][1] != '\0'))
     {
         // a lone `--` ends the options
@@ -125,6 +163,29 @@ main(
         {
             at++;
             break;
+        }
+
+        if (strcmp(argv[at], "--settings") == 0)
+        {
+            d_settings_describe(settings, stdout);
+            d_settings_free(settings);
+            return 0;
+        }
+
+        const int taken = d_settings_take_option(settings, argc, argv, &at,
+                                                 problem, sizeof(problem));
+
+        if (taken != 0)
+        {
+            if (taken < 0)
+            {
+                (void)fprintf(stderr, "dawk: %s\n", problem);
+                d_settings_free(settings);
+                return 2;
+            }
+
+            ++at;
+            continue;
         }
 
         const char option = argv[at][1];
@@ -174,6 +235,14 @@ main(
 
         at++;
     }
+
+    const size_t call_depth   = (size_t)d_settings_int(settings,
+                                                       "interp.call-depth");
+    const size_t stack_budget = (size_t)d_settings_int(settings,
+                                                       "interp.stack-budget");
+
+    d_settings_free(settings);
+    settings = NULL;
 
     char*  source        = NULL;
     size_t source_length = 0;
@@ -228,6 +297,11 @@ main(
     }
 
     struct d_awk_interp* const interp = d_awk_interp_new(program);
+
+
+    // a NULL interpreter is handled below; setting limits on it is a no-op
+
+    (void)d_awk_interp_set_limits(interp, call_depth, stack_budget);
 
     // abandon the run when the interpreter could not be held
     if (!interp)

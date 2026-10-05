@@ -1,11 +1,11 @@
-/******************************************************************************
-* djinterp [re_std]                                  add_rvalue_reference.hpp
+/*******************************************************************************
+* djinterp [re_std]                                     add_rvalue_reference.hpp
 *
 * add_rvalue_reference trait header:
-*   Yields the rvalue-reference form of _Type. If _Type is `void` (any
-* cv-qualification), the trait is a no-op. If _Type is an lvalue
+*   Yields the rvalue-reference form of Type. If Type is `void` (any
+* cv-qualification), the trait is a no-op. If Type is an lvalue
 * reference, reference collapsing yields an lvalue reference (`U& &&`
-* collapses to `U&`). If _Type is already an rvalue reference, it is
+* collapses to `U&`). If Type is already an rvalue reference, it is
 * yielded unchanged.
 *
 *     add_rvalue_reference<int>::type             -> int&&
@@ -15,40 +15,42 @@
 *
 *   PORTABILITY:
 *   Rvalue references are a C++11 feature. On C++98/03 this trait is a
-* pure passthrough -- it yields _Type unchanged for any input. This
+* pure passthrough -- it yields Type unchanged for any input. This
 * preserves compilation but is semantically degraded; calling code that
 * requires an rvalue reference must itself be gated on
-* D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
+* RE_STD_LANG_HAS_RVALUE_REFERENCES.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/add_rvalue_reference.hpp
+* path:      /inc/re_std/type_traits/add_rvalue_reference.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_ 1
+#ifndef RE_STD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_HPP
+#define RE_STD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   ADD_RVALUE_REFERENCE
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
     // add_rvalue_reference
-    //   trait: yields _Type&& for referenceable _Type; reference collapsing
+    //   trait: yields Type&& for referenceable Type; reference collapsing
     // turns `U& &&` into `U&` and `U&& &&` into `U&&`.
-    template<typename _Type>
+    template<typename Type>
     struct add_rvalue_reference
     {
-        typedef _Type&& type;
+        typedef Type&& type;
     };
 
     // void specializations: `void&&` is ill-formed.
@@ -81,31 +83,31 @@ NS_RESTD
 
     // add_rvalue_reference
     //   trait: passthrough on C++98/03 (rvalue references unavailable).
-    template<typename _Type>
+    template<typename Type>
     struct add_rvalue_reference
     {
-        typedef _Type type;
+        typedef Type type;
     };
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 
 // =============================================================================
 // II.  ADD_RVALUE_REFERENCE_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // add_rvalue_reference_t
-    //   alias: convenience alias for add_rvalue_reference<_Type>::type.
-    template<typename _Type>
+    //   alias: convenience alias for add_rvalue_reference<Type>::type.
+    template<typename Type>
     using add_rvalue_reference_t =
-        typename add_rvalue_reference<_Type>::type;
+        typename add_rvalue_reference<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_HPP

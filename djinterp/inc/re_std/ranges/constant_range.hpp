@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           constant_range.hpp
 *
 * constant_range header:
@@ -16,17 +16,19 @@
 *     (Phase R1), range_const_reference_t (Phase R23).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/constant_range.hpp
+* path:      /inc/re_std/ranges/constant_range.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_CONSTANT_RANGE_
-#define DJINTERP_RE_STD_RANGES_CONSTANT_RANGE_ 1
+#ifndef RE_STD_RANGES_CONSTANT_RANGE_HPP
+#define RE_STD_RANGES_CONSTANT_RANGE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./input_range.hpp"
@@ -34,24 +36,25 @@
 #include "./range_const_reference_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-// constant_range<_R>
-//   trait: true iff _R is an input_range AND its reference type
+// constant_range<R>
+//   trait: true iff R is an input_range AND its reference type
 // already equals its const-projected reference type.
-template<typename _R, typename = void>
+template<typename R, typename = void>
 struct constant_range : false_type
 {};
 
-template<typename _R>
+template<typename R>
 struct constant_range<
-    _R,
+    R,
     typename enable_if<
-        input_range<_R>::value
+        input_range<R>::value
         && is_same<
-               range_reference_t<_R>,
-               range_const_reference_t<_R>
+               range_reference_t<R>,
+               range_const_reference_t<R>
            >::value,
         void
     >::type
@@ -59,16 +62,16 @@ struct constant_range<
 {};
 
 
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
-template<typename _R>
-D_CONSTEXPR bool constant_range_v = constant_range<_R>::value;
+#if RE_STD_LANG_IS_CPP14_OR_HIGHER
+template<typename R>
+RE_STD_CONSTEXPR bool constant_range_v = constant_range<R>::value;
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_CONSTANT_RANGE_
+#endif  // RE_STD_RANGES_CONSTANT_RANGE_HPP

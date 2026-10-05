@@ -1,20 +1,24 @@
-/******************************************************************************
-* djinterp [core]                                   functional\fn_builder.h
+/*******************************************************************************
+* djinterp [c]                                                      fn_builder.h
 *
 * Fluent builder pattern for constructing function chains.
 *   Provides a builder struct that accumulates transformers and predicates,
 * with fluent (chainable) operations for map, filter, and_then, and where.
 *
-* path:      /inc/functional/fn_builder.h
+*
+* path:      /inc/djinterp/c/functional/fn_builder.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.06
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_FN_BUILDER_
-#define DJINTERP_FUNCTIONAL_FN_BUILDER_ 1
+#ifndef DJINTERP_C_FUNCTIONAL_FN_BUILDER_H
+#define DJINTERP_C_FUNCTIONAL_FN_BUILDER_H 1
 
+// std
 #include <stddef.h>
 #include <stdlib.h>
+// djinterp
 #include "../djinterp.h"
 #include "./functional_common.h"
 
@@ -30,9 +34,9 @@ struct d_fn_builder
 {
     fn_transformer* transforms;      // array of transformers
     fn_predicate*   predicates;      // array of predicates
-    size_t         transform_count;
-    size_t         predicate_count;
-    size_t         capacity;
+    size_t          transform_count;
+    size_t          predicate_count;
+    size_t          capacity;
 };
 
 // i.    builder creation
@@ -51,4 +55,4 @@ bool d_fn_builder_execute(const struct d_fn_builder* _builder, const void* _inpu
 void d_fn_builder_free(struct d_fn_builder* _builder);
 
 
-#endif  // DJINTERP_FUNCTIONAL_FN_BUILDER_
+#endif  // DJINTERP_C_FUNCTIONAL_FN_BUILDER_H

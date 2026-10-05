@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                       dynamodb_table.hpp
+/*******************************************************************************
+* djinterp [core]                                             dynamodb_table.hpp
 *
 * djinterp DynamoDB table module:
 *   A typed wrapper over a single native Amazon DynamoDB table. Unlike
@@ -31,7 +31,7 @@
 * more DynamoDB-specific concepts where finer-grained behaviour is needed.
 *
 *   LAYER DIAGRAM:
-*     dynamodb_table<_Config>
+*     dynamodb_table<Config>
 *       — STANDALONE; no SQL inheritance —
 *       wraps dynamodb_connection
 *
@@ -41,11 +41,19 @@
 *
 * path:      /inc/djinterp/core/db/dynamodb/dynamodb_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.28
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_DYNAMODB_TABLE_
-#define DJINTERP_DATABASE_DYNAMODB_TABLE_
+#ifndef DJINTERP_DB_DYNAMODB_DYNAMODB_TABLE_HPP
+#define DJINTERP_DB_DYNAMODB_DYNAMODB_TABLE_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t, int64_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -117,13 +125,13 @@ NS_DJINTERP
     //   (<partition_key>) or (<partition_key>, <sort_key>).
     //
     // Template parameters:
-    //   _Config: optional compile-time configuration tag (defaults to
+    //   Config: optional compile-time configuration tag (defaults to
     //            `void`); reserved for downstream specialisations.
-    template<typename _Config = void>
+    template<typename Config = void>
     class dynamodb_table
     {
     private:
-        using config_type = _Config;
+        using config_type = Config;
 
     public:
         using size_type       = std::size_t;
@@ -132,7 +140,7 @@ NS_DJINTERP
         using key_type        = dynamodb_key;
         using row_type        = dynamodb_item;
         using connection_type = dynamodb_connection;
-        using self_type       = dynamodb_table<_Config>;
+        using self_type       = dynamodb_table<Config>;
 
         using type_support    = dynamodb_type_support;
         using feature_support = dynamodb_feature_support;
@@ -769,14 +777,14 @@ NS_DJINTERP
                 return std::get<std::string>(_v);
             }
 
-            if (std::holds_alternative<std::int32_t>(_v))
+            if (std::holds_alternative<re_std::int32_t>(_v))
             {
-                return std::to_string(std::get<std::int32_t>(_v));
+                return std::to_string(std::get<re_std::int32_t>(_v));
             }
 
-            if (std::holds_alternative<std::int64_t>(_v))
+            if (std::holds_alternative<re_std::int64_t>(_v))
             {
-                return std::to_string(std::get<std::int64_t>(_v));
+                return std::to_string(std::get<re_std::int64_t>(_v));
             }
 
             if (std::holds_alternative<double>(_v))
@@ -868,5 +876,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_DYNAMODB_TABLE_
+#endif  // DJINTERP_DB_DYNAMODB_DYNAMODB_TABLE_HPP

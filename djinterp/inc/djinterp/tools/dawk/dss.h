@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                          dss.h
+* djinterp [djinterp]                                                      dss.h
 *
 * DSS front end:
 *   Parses the declarative subset of djinterp-dss.peg -- at-rules, style rules,
@@ -12,6 +12,7 @@
 * matching an integer compare rather than a strcmp.
 *   There is no cascade and no specificity: rules are held in source order and
 * the first match wins, as the grammar's committed ordered choice requires.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dss.h
 * link(s):   TBA
@@ -41,6 +42,7 @@ TABLE OF CONTENTS
          7.  d_dss_rule
          8.  d_dss_at_rule
          9.  d_dss_error
+         10. d_dss_warning
     4.  Opaque types
          1.  d_dss_sheet
 2.  OPERATIONS
@@ -71,6 +73,11 @@ TABLE OF CONTENTS
 //   constant: the index reported for an absent reference.  Zero is a valid
 // index into every array, so absence needs a value of its own.
 #define D_DSS_NO_INDEX ((uint32_t)-1)
+
+// d_symbol_table
+//   struct: the shared name table a sheet binds to (dsymbol.h); forward
+// declared so the parser depends on nothing.
+struct d_symbol_table;
 
 // 1.2    Enumerations
 //------------------------------------------------------------------------------
@@ -104,6 +111,39 @@ enum d_dss_combinator
 // d_dss_attr_op
 //   enum: the comparison an attribute selector performs.  The numeric four
 // are the ones CSS lacks and the guide's rules need, e.g. [size>=4k].
+enum d_dss_pseudo
+{
+    D_DSS_PSEUDO_UNKNOWN = 0,  // no pseudo-class, or one the matcher lacks
+    D_DSS_PSEUDO_FIRST_CHILD,
+    D_DSS_PSEUDO_LAST_CHILD,
+    D_DSS_PSEUDO_ONLY_CHILD,
+    D_DSS_PSEUDO_FIRST_OF_TYPE,
+    D_DSS_PSEUDO_LAST_OF_TYPE,
+    D_DSS_PSEUDO_NTH_CHILD,
+    D_DSS_PSEUDO_NTH_LAST_CHILD,
+    D_DSS_PSEUDO_NOT,
+    D_DSS_PSEUDO_IS,
+    D_DSS_PSEUDO_HAS
+};
+
+// d_dss_dialect
+//   enum: the syntax a sheet is written in.  DSS is CSS respelled for awk:
+// `#` comments, `...` for the sibling combinator (awk keeps `~` for regex),
+// `==` and numeric attribute comparisons, and `!name` flags.  CSS is the
+// standard's own: `/* */` comments, `~`, and only `!important`.
+enum d_dss_dialect
+{
+    D_DSS_DIALECT_DSS = 0,
+    D_DSS_DIALECT_CSS
+};
+
+// d_dss_options
+//   struct: how to parse.  A NULL options pointer is the DSS dialect.
+struct d_dss_options
+{
+    uint8_t  dialect;  // d_dss_dialect
+};
+
 enum d_dss_attr_op
 {
     D_DSS_ATTR_PRESENCE = 0,  // [attr]
@@ -147,6 +187,13 @@ struct d_dss_simple
     uint32_t  name;        // interned: type, class, attribute or pseudo name
     uint32_t  value;       // interned: the attribute value, or NO_INDEX
     double    number;      // the attribute value as a number, when numeric
+    uint32_t  first_argument;  // :not :is :has -- a contiguous run of
+    uint32_t  argument_count;  // selectors; zero for any other simple
+    int32_t   nth_a;           // :nth-child(An+B) and :nth-last-child
+    int32_t   nth_b;
+    uint8_t   pseudo;          // d_dss_pseudo, resolved once at parse
+    uint32_t  symbol;          // the name in the bound symbol table, or
+                               // NO_INDEX until d_dss_bind
 };
 
 // 1.3.2
@@ -175,6 +222,9 @@ struct d_dss_selector
     uint32_t  head;
     uint32_t  first_step;
     uint32_t  step_count;
+    uint8_t   leading;     // d_dss_combinator joining a relative selector,
+                           // one inside :has(), to its anchor
+    uint32_t  specificity; // CSS specificity, packed (a << 20) | (b << 10) | c
 };
 
 // 1.3.5
@@ -200,6 +250,8 @@ struct d_dss_declaration
     uint32_t  first_value;
     uint32_t  value_count;
     uint32_t  line;
+    uint32_t  symbol;      // the property in the bound symbol table, or
+                           // NO_INDEX until d_dss_bind
 };
 
 // 1.3.7
@@ -212,6 +264,7 @@ struct d_dss_rule
     uint32_t  first_declaration;
     uint32_t  declaration_count;
     uint32_t  line;
+    uint32_t  layer;       // cascade layer rank; 0 unless layers are in force
 };
 
 // 1.3.8
@@ -239,6 +292,17 @@ struct d_dss_error
     const char*  message;
 };
 
+// 1.3.10
+// d_dss_warning
+//   struct: something the parser accepted but that is almost never meant.
+// The message is a static string.
+struct d_dss_warning
+{
+    uint32_t     line;
+    uint32_t     column;
+    const char*  message;
+};
+
 // 1.4    Opaque types
 //------------------------------------------------------------------------------
 // 1.4.1
@@ -257,7 +321,40 @@ struct d_dss_sheet;
 struct d_dss_sheet* d_dss_parse(const char*         _text,
                                 size_t              _length,
                                 struct d_dss_error* _out_error);
+/**
+ * @brief Parses a sheet in a chosen dialect.
+ *
+ * @param[in]  _text       the sheet's text; need not be terminated.
+ * @param[in]  _length     its length.
+ * @param[in]  _options    the dialect; `NULL` is DSS.
+ * @param[out] _out_error  receives the first error; may be `NULL`.
+ * @return the sheet, or `NULL` on the first syntax error.
+ */
+struct d_dss_sheet* d_dss_parse_ex(const char*                 _text,
+                                   size_t                      _length,
+                                   const struct d_dss_options* _options,
+                                   struct d_dss_error*         _out_error);
+/**
+ * @brief Names every type, attribute, pseudo-class and property of a sheet in
+ *        a shared symbol table.
+ *
+ * @note Bind the sheet to the table its trees use (d_node_tree_new_shared) and
+ *       the matcher compares names as integers; unbound, it compares text.
+ *
+ * @param[in,out] _sheet    the sheet.
+ * @param[in,out] _symbols  the table; the sheet borrows it.
+ * @return `true` on success, `false` if the table could not grow.
+ */
+bool                d_dss_bind(struct d_dss_sheet*    _sheet,
+                               struct d_symbol_table* _symbols);
+struct d_symbol_table*
+                    d_dss_symbols(const struct d_dss_sheet* _sheet);
 void                d_dss_free(struct d_dss_sheet* _sheet);
+// what the parser accepted but warns about; see d_dss_warning
+size_t              d_dss_warning_count(const struct d_dss_sheet* _sheet);
+const struct d_dss_warning*
+                    d_dss_warning_at(const struct d_dss_sheet* _sheet,
+                                     size_t                    _at);
 
 // 2.2    Inspection
 //------------------------------------------------------------------------------
@@ -282,6 +379,13 @@ const struct d_dss_declaration*
                                   uint32_t                  _at);
 const struct d_dss_value*     d_dss_value_at(const struct d_dss_sheet* _sheet,
                                              uint32_t                  _at);
+
+bool                          d_dss_set_rule_layer(struct d_dss_sheet* _sheet,
+                                                   size_t              _at,
+                                                   uint32_t            _layer);
+bool                          d_dss_outranks(const struct d_dss_sheet* _sheet,
+                                             size_t                    _a,
+                                             size_t                    _b);
 
 // 2.3    Text
 //------------------------------------------------------------------------------

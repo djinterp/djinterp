@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                            single_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              single_view.hpp
 *
 * single_view header:
 *   Provides the C++20 single-element view. single_view<T> wraps one
@@ -25,129 +25,133 @@
 * std::views::single as a constructor function.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/single_view.hpp
+* path:      /inc/re_std/ranges/single_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_SINGLE_VIEW_
-#define DJINTERP_RE_STD_RANGES_SINGLE_VIEW_ 1
+#ifndef RE_STD_RANGES_SINGLE_VIEW_HPP
+#define RE_STD_RANGES_SINGLE_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>
 
 #include "../type_traits/type_traits.hpp"
 #include "./view_interface.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   SINGLE_VIEW
 // ===========================================================================
 
-// single_view<_Type>
-//   class: holds one _Type by value and exposes the standard range
-// interface over it. _Type must be a non-reference, non-cv object
+// single_view<Type>
+//   class: holds one Type by value and exposes the standard range
+// interface over it. Type must be a non-reference, non-cv object
 // type — same constraint as the C++20 std::ranges::single_view.
-template<typename _Type>
-class single_view : public view_interface<single_view<_Type> >
+template<typename Type>
+class single_view : public view_interface<single_view<Type> >
 {
 private:
-    _Type m_value;
+    Type m_value;
 
 
 public:
     // default ctor
-    //   function: value-initialises the held _Type. Requires _Type
+    //   function: value-initialises the held Type. Requires Type
     // to be default-constructible.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     single_view()
         : m_value()
     {}
 
     // value ctor (const&)
     //   function: copies _t into the held value.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     single_view(
-        _Type const& _t
+        Type const& _t
     )
         : m_value(_t)
     {}
 
     // value ctor (&&)
     //   function: moves _t into the held value.
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-    D_CONSTEXPR
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
+    RE_STD_CONSTEXPR
     single_view(
-        _Type&& _t
+        Type&& _t
     )
-        : m_value(static_cast<_Type&&>(_t))
+        : m_value(static_cast<Type&&>(_t))
     {}
 #endif
 
 
     // begin / end / data — pointer pair to the held value.
-    D_CONSTEXPR_CPP14 _Type*
+    RE_STD_CONSTEXPR_CPP14 Type*
     begin()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return &m_value;
     }
 
-    D_CONSTEXPR _Type const*
+    RE_STD_CONSTEXPR Type const*
     begin() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return &m_value;
     }
 
-    D_CONSTEXPR_CPP14 _Type*
+    RE_STD_CONSTEXPR_CPP14 Type*
     end()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return (&m_value) + 1;
     }
 
-    D_CONSTEXPR _Type const*
+    RE_STD_CONSTEXPR Type const*
     end() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return (&m_value) + 1;
     }
 
-    D_CONSTEXPR_CPP14 _Type*
+    RE_STD_CONSTEXPR_CPP14 Type*
     data()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return &m_value;
     }
 
-    D_CONSTEXPR _Type const*
+    RE_STD_CONSTEXPR Type const*
     data() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return &m_value;
     }
 
     // size
     //   function: always 1.
-    static D_CONSTEXPR std::size_t
+    static RE_STD_CONSTEXPR std::size_t
     size()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return 1;
     }
 
     // empty
     //   function: always false. Shadows view_interface::empty.
-    static D_CONSTEXPR bool
+    static RE_STD_CONSTEXPR bool
     empty()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return false;
     }
@@ -161,28 +165,28 @@ public:
 namespace views
 {
     // views::single(_t)
-    //   function: returns single_view<decay_t<_T>> constructed from
+    //   function: returns single_view<decay_t<T>> constructed from
     // _t. Decays array and function types per the C++20 contract,
     // and strips references / cv so the resulting view stores a
     // plain object.
-    template<typename _T>
-    D_CONSTEXPR_INLINE
-    single_view<typename decay<_T>::type>
+    template<typename T>
+    RE_STD_CONSTEXPR_INLINE
+    single_view<typename decay<T>::type>
     single(
-        _T&& _t
+        T&& _t
     )
     {
-        return single_view<typename decay<_T>::type>(
-            static_cast<_T&&>(_t)
+        return single_view<typename decay<T>::type>(
+            static_cast<T&&>(_t)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_SINGLE_VIEW_
+#endif  // RE_STD_RANGES_SINGLE_VIEW_HPP

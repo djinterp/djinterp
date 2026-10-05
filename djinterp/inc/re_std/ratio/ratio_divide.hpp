@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                             ratio_divide.hpp
 *
 * ratio_divide header:
@@ -17,26 +17,28 @@
 *   C++11, matching std.
 *
 *
-* path:      /inc/djinterp/re_std/ratio/ratio_divide.hpp
+* path:      /inc/re_std/ratio/ratio_divide.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RATIO_RATIO_DIVIDE_
-#define DJINTERP_RE_STD_RATIO_RATIO_DIVIDE_ 1
+#ifndef RE_STD_RATIO_RATIO_DIVIDE_HPP
+#define RE_STD_RATIO_RATIO_DIVIDE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./ratio.hpp"
 #include "./ratio_multiply.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -46,17 +48,17 @@ NS_RESTD
 // ratio_divide
 //   alias: the reduced quotient of two ratios. A divisor with a zero
 // numerator is rejected by ratio's denominator assert.
-template<typename _R1,
-         typename _R2>
+template<typename R1,
+         typename R2>
 struct ratio_divide
-    : ratio_multiply< _R1, ratio<_R2::den, _R2::num> >::type
+    : ratio_multiply< R1, ratio<R2::den, R2::num> >::type
 {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RATIO_RATIO_DIVIDE_
+#endif  // RE_STD_RATIO_RATIO_DIVIDE_HPP

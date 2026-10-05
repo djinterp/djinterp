@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                               oracle.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                                     oracle.hpp
+*
 * djinterp Oracle Database connection module:
 *   This header provides the Oracle-specific connection implementation and
 * associated data type infrastructure for the djinterp database module,
@@ -41,24 +41,35 @@
 *   This header requires C++17 or later. It does not include <oci.h>; the
 * concrete _impl method definitions in oracle.cpp include it.
 *
-* 
+*
 *   DETECTION:
 *   Also carries this database's capability-detection traits and C++20 concepts
 * (trailing sections), folded in from oracle_traits.hpp and the matching *_concepts.hpp;
 * detection now lives with the connection. Concepts gated on concept support.
 *
+*
 * path:      /inc/djinterp/core/db/oracle/oracle.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.26
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.26
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_ORACLE_
-#define DJINTERP_DATABASE_ORACLE_
+#ifndef DJINTERP_DB_ORACLE_ORACLE_HPP
+#define DJINTERP_DB_ORACLE_ORACLE_HPP
 
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t,
+                                                   // uint32_t, int64_t,
+                                                   // uint64_t, ...
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
 #include "../database_connection.hpp"
-#include "../database_traits.hpp"
-
-#include "../../../env/db/env_oracle.h"
+#include "../../../env/db/oracle/env_oracle.h"
+#include "../../meta/type_utility.hpp"  // clean_t, self
 
 
 NS_DJINTERP
@@ -76,7 +87,7 @@ NS_DJINTERP
 
 // oci_sqlt
 //   enumeration: OCI external data type codes (SQLT_*).
-enum class oci_sqlt : std::uint16_t
+enum class oci_sqlt : re_std::uint16_t
 {
     // -----------------------------------------------------------------
     // character types
@@ -171,7 +182,7 @@ enum class oci_sqlt : std::uint16_t
 //   function: maps an OCI SQLT_* type code to the generic djinterp
 // field_type.
 inline field_type oci_sqlt_to_field_type(
-    std::uint16_t _sqlt_code) noexcept
+    re_std::uint16_t _sqlt_code) noexcept
 {
     switch (static_cast<oci_sqlt>(_sqlt_code))
     {
@@ -302,7 +313,7 @@ inline const char* field_type_to_oracle_sql(
 
 // oci_session_mode
 //   enumeration: OCI session modes for OCISessionBegin / OCILogon2.
-enum class oci_session_mode : std::uint32_t
+enum class oci_session_mode : re_std::uint32_t
 {
     default_mode      = 0x00000000,
     sysdba            = 0x00000002,     // OCI_SYSDBA
@@ -329,37 +340,70 @@ struct ora_type_support
     // types (version-gated)
     static constexpr bool has_json_functions =
     #if D_ENV_ORA_HAS_JSON_FUNCTIONS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_json_data_type =
     #if D_ENV_ORA_HAS_JSON_DATA_TYPE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_json_duality_views =
     #if D_ENV_ORA_HAS_JSON_DUALITY_VIEWS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_json_schema_validation =
     #if D_ENV_ORA_HAS_JSON_SCHEMA_VALIDATION
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_soda =
     #if D_ENV_ORA_HAS_SODA
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_boolean_type =
     #if D_ENV_ORA_HAS_BOOLEAN_TYPE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_sql_domains =
     #if D_ENV_ORA_HAS_SQL_DOMAINS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_identity_columns =
     #if D_ENV_ORA_HAS_IDENTITY_COLUMNS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_virtual_columns =
     #if D_ENV_ORA_HAS_VIRTUAL_COLUMNS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_invisible_columns =
     #if D_ENV_ORA_HAS_INVISIBLE_COLUMNS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_xml_db =
     #if D_ENV_ORA_HAS_XML_DB
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
 #else
     static constexpr bool has_json_functions         = false;
@@ -386,123 +430,222 @@ struct ora_feature_support
     // SQL features
     static constexpr bool has_analytic_functions =
     #if D_ENV_ORA_HAS_ANALYTIC_FUNCTIONS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_recursive_with =
     #if D_ENV_ORA_HAS_RECURSIVE_WITH
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_lateral_inline_view =
     #if D_ENV_ORA_HAS_LATERAL_INLINE_VIEW
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_match_recognize =
     #if D_ENV_ORA_HAS_MATCH_RECOGNIZE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_row_limiting =
     #if D_ENV_ORA_HAS_ROW_LIMITING
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_if_not_exists =
     #if D_ENV_ORA_HAS_IF_NOT_EXISTS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_sql_macro =
     #if D_ENV_ORA_HAS_SQL_MACRO
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_annotations =
     #if D_ENV_ORA_HAS_ANNOTATIONS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_model_clause =
     #if D_ENV_ORA_HAS_MODEL_CLAUSE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_property_graph =
     #if D_ENV_ORA_HAS_PROPERTY_GRAPH
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // multitenant
     static constexpr bool has_multitenant =
     #if D_ENV_ORA_HAS_MULTITENANT
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool multitenant_is_mandatory =
     #if D_ENV_ORA_MULTITENANT_IS_MANDATORY
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // flashback
     static constexpr bool has_flashback_query =
     #if D_ENV_ORA_HAS_FLASHBACK_QUERY
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_flashback_data_archive =
     #if D_ENV_ORA_HAS_FLASHBACK_DATA_ARCHIVE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // security
     static constexpr bool has_unified_audit =
     #if D_ENV_ORA_HAS_UNIFIED_AUDIT
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_sql_firewall =
     #if D_ENV_ORA_HAS_SQL_FIREWALL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // HA (edition + option gated)
     static constexpr bool has_data_guard =
     #if D_ENV_ORA_HAS_DATA_GUARD
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_rac =
     #if D_ENV_ORA_HAS_RAC
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_application_continuity =
     #if D_ENV_ORA_HAS_APPLICATION_CONTINUITY
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // in-memory (option gated)
     static constexpr bool has_in_memory =
     #if D_ENV_ORA_HAS_IN_MEMORY
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // TDE (option gated)
     static constexpr bool has_tde =
     #if D_ENV_ORA_HAS_TDE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // partitioning (option gated)
     static constexpr bool has_interval_partitioning =
     #if D_ENV_ORA_HAS_INTERVAL_PARTITIONING
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // OCI
     static constexpr bool has_oci_json =
     #if D_ENV_ORA_HAS_OCI_JSON
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_oci_soda =
     #if D_ENV_ORA_HAS_OCI_SODA
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_oci_implicit_results =
     #if D_ENV_ORA_HAS_OCI_IMPLICIT_RESULTS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // composite
     static constexpr bool has_modern_sql =
     #if D_ENV_ORA_HAS_MODERN_SQL
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_modern_json =
     #if D_ENV_ORA_HAS_MODERN_JSON
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool has_23ai_features =
     #if D_ENV_ORA_HAS_23AI_FEATURES
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool is_fully_modern =
     #if D_ENV_ORA_IS_FULLY_MODERN
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool is_lts =
     #if D_ENV_ORA_IS_LTS
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
     // edition
     static constexpr bool is_enterprise =
     #if D_ENV_ORA_EDITION_EE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool is_standard =
     #if D_ENV_ORA_EDITION_SE2
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
     static constexpr bool is_express =
     #if D_ENV_ORA_EDITION_XE
-        true;  #else  false;  #endif
+        true;
+    #else
+        false;
+    #endif
 
 #else
     static constexpr bool has_analytic_functions    = false;
@@ -555,17 +698,17 @@ struct ora_version_info
 {
 #if D_ENV_ORA_DETECTED
     static constexpr bool          detected = true;
-    static constexpr std::uint32_t id       = D_ENV_ORA_VERSION_ID;
-    static constexpr std::uint16_t major    = D_ENV_ORA_VERSION_MAJOR;
-    static constexpr std::uint16_t minor    = D_ENV_ORA_VERSION_MINOR;
+    static constexpr re_std::uint32_t id       = D_ENV_ORA_VERSION_ID;
+    static constexpr re_std::uint16_t major    = D_ENV_ORA_VERSION_MAJOR;
+    static constexpr re_std::uint16_t minor    = D_ENV_ORA_VERSION_MINOR;
     static constexpr bool          is_legacy_versioning =
         D_ENV_ORA_IS_LEGACY_VERSIONING;
     static constexpr const char*   string   = D_ENV_ORA_VERSION_STRING;
 #else
     static constexpr bool          detected = false;
-    static constexpr std::uint32_t id       = 0;
-    static constexpr std::uint16_t major    = 0;
-    static constexpr std::uint16_t minor    = 0;
+    static constexpr re_std::uint32_t id       = 0;
+    static constexpr re_std::uint16_t major    = 0;
+    static constexpr re_std::uint16_t minor    = 0;
     static constexpr bool          is_legacy_versioning = false;
     static constexpr const char*   string   = "not detected";
 #endif
@@ -573,7 +716,7 @@ struct ora_version_info
     // at_least
     //   function: returns true if the detected Oracle version is at
     // least the given major version.
-    static constexpr bool at_least(std::uint16_t _major) noexcept
+    static constexpr bool at_least(re_std::uint16_t _major) noexcept
     {
         return id >= (_major * 10000u);
     }
@@ -582,9 +725,9 @@ struct ora_version_info
     //   function: returns true if the detected Oracle version is at
     // least (major, minor, update) using the pre-18c encoding.
     static constexpr bool at_least_legacy(
-        std::uint16_t _major,
-        std::uint16_t _minor,
-        std::uint16_t _update) noexcept
+        re_std::uint16_t _major,
+        re_std::uint16_t _minor,
+        re_std::uint16_t _update) noexcept
     {
         return id >= (_major * 10000u + _minor * 100u + _update);
     }
@@ -646,7 +789,7 @@ struct ora_connect_config
     static ora_connect_config easy_connect(
         const std::string& _host,
         const std::string& _service_name,
-        std::uint16_t      _port = 1521)
+        re_std::uint16_t      _port = 1521)
     {
         ora_connect_config config;
 
@@ -764,7 +907,7 @@ public:
     // execute_batch
     //   function: executes a statement with array bindings for the
     // given number of rows. wraps OCIStmtExecute with iters > 1.
-    std::int64_t execute_batch(const std::string& _query,
+    re_std::int64_t execute_batch(const std::string& _query,
                                std::size_t        _row_count)
     {
         this->ensure_connected();
@@ -809,7 +952,7 @@ public:
 
     // set_scn
     //   function: sets the System Change Number for flashback queries.
-    void set_scn(std::uint64_t _scn)
+    void set_scn(re_std::uint64_t _scn)
     {
         this->ensure_connected();
         self().set_scn_impl(_scn);
@@ -855,7 +998,7 @@ public:
 
     // get_session_id
     //   function: returns the Oracle session ID (SID).
-    std::int64_t get_session_id() const
+    re_std::int64_t get_session_id() const
     {
         return self().get_session_id_impl();
     }
@@ -932,7 +1075,7 @@ public:
     // data type mapping
     // -----------------------------------------------------------------
 
-    static field_type map_sqlt(std::uint16_t _sqlt_code) noexcept
+    static field_type map_sqlt(re_std::uint16_t _sqlt_code) noexcept
     {
         return oci_sqlt_to_field_type(_sqlt_code);
     }
@@ -961,40 +1104,40 @@ public:
     // _impl methods (defined in oracle.cpp)
     // -----------------------------------------------------------------
 
-    void        connect_impl();
-    void        disconnect_impl();
-    bool        is_connected_impl() const;
-    bool        ping_impl() const;
+    void        connect_helper();
+    void        disconnect_helper();
+    bool        is_connected_helper() const;
+    bool        ping_helper() const;
 
-    auto        execute_query_impl(const std::string& _query)
+    auto        execute_query_helper(const std::string& _query)
                     -> std::unique_ptr<
                         result_set<struct oracle_result_set_impl>>;
-    std::int64_t execute_update_impl(const std::string& _query);
-    bool        execute_impl(const std::string& _query);
+    re_std::int64_t execute_update_helper(const std::string& _query);
+    bool        execute_helper(const std::string& _query);
 
     auto        prepare_impl(const std::string& _query)
                     -> std::unique_ptr<
                         statement<struct oracle_statement_impl>>;
 
-    std::string  get_server_version_impl() const;
-    std::string  get_last_error_impl() const;
-    int          get_last_error_code_impl() const;
-    std::int64_t get_last_insert_id_impl() const;
-    std::int64_t get_affected_rows_impl() const;
+    std::string  get_server_version_helper() const;
+    std::string  get_last_error_helper() const;
+    int          get_last_error_code_helper() const;
+    re_std::int64_t get_last_insert_id_impl() const;
+    re_std::int64_t get_affected_rows_impl() const;
 
     // Oracle-specific _impl methods
     void enable_statement_cache_impl(std::size_t _size);
-    std::int64_t execute_batch_impl(const std::string& _query,
+    re_std::int64_t execute_batch_impl(const std::string& _query,
                                      std::size_t _row_count);
     void execute_plsql_impl(const std::string& _plsql_block);
     void enable_server_output_impl(bool _enabled);
     std::vector<std::string> get_server_output_impl();
-    void set_scn_impl(std::uint64_t _scn);
+    void set_scn_impl(re_std::uint64_t _scn);
     void set_as_of_timestamp_impl(const std::string& _timestamp);
     void set_edition_impl(const std::string& _edition);
     std::string  get_instance_name_impl() const;
     std::string  get_service_name_impl() const;
-    std::int64_t get_session_id_impl() const;
+    re_std::int64_t get_session_id_impl() const;
     bool table_exists_impl(const std::string& _name) const;
     std::vector<std::string> get_table_names_impl() const;
 
@@ -1084,16 +1227,16 @@ struct oracle_statement_impl;
 
 // oci_enable_statement_cache_t
 //   detector: enable_statement_cache(std::size_t) method.
-template<typename _T>
+template<typename T>
 using oci_enable_statement_cache_t =
-    decltype(std::declval<_T&>().enable_statement_cache(
+    decltype(std::declval<T&>().enable_statement_cache(
         std::declval<std::size_t>()));
 
 // oci_get_statement_cache_size_t
 //   detector: get_statement_cache_size() const method.
-template<typename _T>
+template<typename T>
 using oci_get_statement_cache_size_t =
-    decltype(std::declval<const _T&>().get_statement_cache_size());
+    decltype(std::declval<const T&>().get_statement_cache_size());
 
 // -------------------------------------------------------------------------
 // B.  batch / array DML
@@ -1101,8 +1244,8 @@ using oci_get_statement_cache_size_t =
 
 // oci_execute_batch_t
 //   detector: execute_batch(const std::string&, std::size_t) method.
-template<typename _T>
-using oci_execute_batch_t = decltype(std::declval<_T&>().execute_batch(
+template<typename T>
+using oci_execute_batch_t = decltype(std::declval<T&>().execute_batch(
     std::declval<const std::string&>(),
     std::declval<std::size_t>()));
 
@@ -1112,21 +1255,21 @@ using oci_execute_batch_t = decltype(std::declval<_T&>().execute_batch(
 
 // oci_read_lob_t
 //   detector: read_lob() method.
-template<typename _T>
+template<typename T>
 using oci_read_lob_t =
-    decltype(std::declval<_T&>().read_lob());
+    decltype(std::declval<T&>().read_lob());
 
 // oci_write_lob_t
-//   detector: write_lob(const std::vector<std::uint8_t>&) method.
-template<typename _T>
-using oci_write_lob_t = decltype(std::declval<_T&>().write_lob(
-    std::declval<const std::vector<std::uint8_t>&>()));
+//   detector: write_lob(const std::vector<re_std::uint8_t>&) method.
+template<typename T>
+using oci_write_lob_t = decltype(std::declval<T&>().write_lob(
+    std::declval<const std::vector<re_std::uint8_t>&>()));
 
 // oci_lob_length_t
 //   detector: lob_length() const method.
-template<typename _T>
+template<typename T>
 using oci_lob_length_t =
-    decltype(std::declval<const _T&>().lob_length());
+    decltype(std::declval<const T&>().lob_length());
 
 // -------------------------------------------------------------------------
 // D.  implicit results
@@ -1134,9 +1277,9 @@ using oci_lob_length_t =
 
 // oci_get_implicit_results_t
 //   detector: get_implicit_results() method.
-template<typename _T>
+template<typename T>
 using oci_get_implicit_results_t =
-    decltype(std::declval<_T&>().get_implicit_results());
+    decltype(std::declval<T&>().get_implicit_results());
 
 // -------------------------------------------------------------------------
 // E.  session pooling
@@ -1144,16 +1287,16 @@ using oci_get_implicit_results_t =
 
 // oci_create_session_pool_t
 //   detector: create_session_pool(std::size_t) method.
-template<typename _T>
+template<typename T>
 using oci_create_session_pool_t =
-    decltype(std::declval<_T&>().create_session_pool(
+    decltype(std::declval<T&>().create_session_pool(
         std::declval<std::size_t>()));
 
 // oci_get_session_t
 //   detector: get_session() method.
-template<typename _T>
+template<typename T>
 using oci_get_session_t =
-    decltype(std::declval<_T&>().get_session());
+    decltype(std::declval<T&>().get_session());
 
 // -------------------------------------------------------------------------
 // F.  server output
@@ -1161,32 +1304,32 @@ using oci_get_session_t =
 
 // oci_enable_server_output_t
 //   detector: enable_server_output(bool) method.
-template<typename _T>
+template<typename T>
 using oci_enable_server_output_t =
-    decltype(std::declval<_T&>().enable_server_output(
+    decltype(std::declval<T&>().enable_server_output(
         std::declval<bool>()));
 
 // oci_get_server_output_t
 //   detector: get_server_output() method.
-template<typename _T>
+template<typename T>
 using oci_get_server_output_t =
-    decltype(std::declval<_T&>().get_server_output());
+    decltype(std::declval<T&>().get_server_output());
 
 // -------------------------------------------------------------------------
 // G.  flashback query
 // -------------------------------------------------------------------------
 
 // oci_set_scn_t
-//   detector: set_scn(std::uint64_t) method.
-template<typename _T>
-using oci_set_scn_t = decltype(std::declval<_T&>().set_scn(
-    std::declval<std::uint64_t>()));
+//   detector: set_scn(re_std::uint64_t) method.
+template<typename T>
+using oci_set_scn_t = decltype(std::declval<T&>().set_scn(
+    std::declval<re_std::uint64_t>()));
 
 // oci_set_as_of_timestamp_t
 //   detector: set_as_of_timestamp(const std::string&) method.
-template<typename _T>
+template<typename T>
 using oci_set_as_of_timestamp_t =
-    decltype(std::declval<_T&>().set_as_of_timestamp(
+    decltype(std::declval<T&>().set_as_of_timestamp(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1195,8 +1338,8 @@ using oci_set_as_of_timestamp_t =
 
 // oci_execute_plsql_t
 //   detector: execute_plsql(const std::string&) method.
-template<typename _T>
-using oci_execute_plsql_t = decltype(std::declval<_T&>().execute_plsql(
+template<typename T>
+using oci_execute_plsql_t = decltype(std::declval<T&>().execute_plsql(
     std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1205,8 +1348,8 @@ using oci_execute_plsql_t = decltype(std::declval<_T&>().execute_plsql(
 
 // oci_set_edition_t
 //   detector: set_edition(const std::string&) method.
-template<typename _T>
-using oci_set_edition_t = decltype(std::declval<_T&>().set_edition(
+template<typename T>
+using oci_set_edition_t = decltype(std::declval<T&>().set_edition(
     std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1215,16 +1358,16 @@ using oci_set_edition_t = decltype(std::declval<_T&>().set_edition(
 
 // oci_soda_create_collection_t
 //   detector: soda_create_collection(const std::string&) method.
-template<typename _T>
+template<typename T>
 using oci_soda_create_collection_t =
-    decltype(std::declval<_T&>().soda_create_collection(
+    decltype(std::declval<T&>().soda_create_collection(
         std::declval<const std::string&>()));
 
 // oci_soda_get_collection_t
 //   detector: soda_get_collection(const std::string&) method.
-template<typename _T>
+template<typename T>
 using oci_soda_get_collection_t =
-    decltype(std::declval<_T&>().soda_get_collection(
+    decltype(std::declval<T&>().soda_get_collection(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1233,21 +1376,21 @@ using oci_soda_get_collection_t =
 
 // oci_get_instance_name_t
 //   detector: get_instance_name() const method.
-template<typename _T>
+template<typename T>
 using oci_get_instance_name_t =
-    decltype(std::declval<const _T&>().get_instance_name());
+    decltype(std::declval<const T&>().get_instance_name());
 
 // oci_get_service_name_t
 //   detector: get_service_name() const method.
-template<typename _T>
+template<typename T>
 using oci_get_service_name_t =
-    decltype(std::declval<const _T&>().get_service_name());
+    decltype(std::declval<const T&>().get_service_name());
 
 // oci_get_session_id_t
 //   detector: get_session_id() const method.
-template<typename _T>
+template<typename T>
 using oci_get_session_id_t =
-    decltype(std::declval<const _T&>().get_session_id());
+    decltype(std::declval<const T&>().get_session_id());
 
 // -------------------------------------------------------------------------
 // L.  schema introspection
@@ -1255,16 +1398,16 @@ using oci_get_session_id_t =
 
 // oci_table_exists_t
 //   detector: table_exists(const std::string&) const method.
-template<typename _T>
+template<typename T>
 using oci_table_exists_t =
-    decltype(std::declval<const _T&>().table_exists(
+    decltype(std::declval<const T&>().table_exists(
         std::declval<const std::string&>()));
 
 // oci_get_table_names_t
 //   detector: get_table_names() const method.
-template<typename _T>
+template<typename T>
 using oci_get_table_names_t =
-    decltype(std::declval<const _T&>().get_table_names());
+    decltype(std::declval<const T&>().get_table_names());
 
 // -------------------------------------------------------------------------
 // M.  CQN (Continuous Query Notification)
@@ -1272,15 +1415,15 @@ using oci_get_table_names_t =
 
 // oci_subscribe_t
 //   detector: subscribe(const std::string&) method.
-template<typename _T>
-using oci_subscribe_t = decltype(std::declval<_T&>().subscribe(
+template<typename T>
+using oci_subscribe_t = decltype(std::declval<T&>().subscribe(
     std::declval<const std::string&>()));
 
 // oci_unsubscribe_t
 //   detector: unsubscribe() method.
-template<typename _T>
+template<typename T>
 using oci_unsubscribe_t =
-    decltype(std::declval<_T&>().unsubscribe());
+    decltype(std::declval<T&>().unsubscribe());
 
 
 // =============================================================================
@@ -1288,206 +1431,206 @@ using oci_unsubscribe_t =
 // =============================================================================
 
 // has_oci_statement_cache
-//   trait: checks if type _T supports statement caching.
-template<typename _T>
+//   trait: checks if type T supports statement caching.
+template<typename T>
 struct has_oci_statement_cache : djinterp::conjunction<
-    is_detected<oci_enable_statement_cache_t, clean_t<_T>>,
-    is_detected<oci_get_statement_cache_size_t, clean_t<_T>>>
+    is_detected<oci_enable_statement_cache_t, clean_t<T>>,
+    is_detected<oci_get_statement_cache_size_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_oci_statement_cache_v =
-        has_oci_statement_cache<clean_t<_T>>::value;
+        has_oci_statement_cache<clean_t<T>>::value;
 #endif
 
 // has_oci_batch_dml
-//   trait: checks if type _T supports array DML / batch execution.
-template<typename _T>
-struct has_oci_batch_dml : is_detected<oci_execute_batch_t, clean_t<_T>>
+//   trait: checks if type T supports array DML / batch execution.
+template<typename T>
+struct has_oci_batch_dml : is_detected<oci_execute_batch_t, clean_t<T>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_oci_batch_dml_v =
-        has_oci_batch_dml<clean_t<_T>>::value;
+        has_oci_batch_dml<clean_t<T>>::value;
 #endif
 
 // has_oci_lob
-//   trait: checks if type _T supports LOB operations.
-template<typename _T>
+//   trait: checks if type T supports LOB operations.
+template<typename T>
 struct has_oci_lob : djinterp::conjunction<
-    is_detected<oci_read_lob_t, clean_t<_T>>,
-    is_detected<oci_write_lob_t, clean_t<_T>>>
+    is_detected<oci_read_lob_t, clean_t<T>>,
+    is_detected<oci_write_lob_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_oci_lob_v = has_oci_lob<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_oci_lob_v = has_oci_lob<clean_t<T>>::value;
 #endif
 
 // has_oci_lob_length
-//   trait: checks if type _T exposes LOB length.
-template<typename _T>
-struct has_oci_lob_length : is_detected<oci_lob_length_t, clean_t<_T>>
+//   trait: checks if type T exposes LOB length.
+template<typename T>
+struct has_oci_lob_length : is_detected<oci_lob_length_t, clean_t<T>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_oci_lob_length_v =
-        has_oci_lob_length<clean_t<_T>>::value;
+        has_oci_lob_length<clean_t<T>>::value;
 #endif
 
 // has_oci_implicit_results
-//   trait: checks if type _T supports implicit PL/SQL results.
-template<typename _T>
+//   trait: checks if type T supports implicit PL/SQL results.
+template<typename T>
 struct has_oci_implicit_results
-    : is_detected<oci_get_implicit_results_t, clean_t<_T>>
+    : is_detected<oci_get_implicit_results_t, clean_t<T>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_oci_implicit_results_v =
-        has_oci_implicit_results<clean_t<_T>>::value;
+        has_oci_implicit_results<clean_t<T>>::value;
 #endif
 
 // has_oci_session_pool
-//   trait: checks if type _T supports session pooling.
-template<typename _T>
+//   trait: checks if type T supports session pooling.
+template<typename T>
 struct has_oci_session_pool : djinterp::conjunction<
-    is_detected<oci_create_session_pool_t, clean_t<_T>>,
-    is_detected<oci_get_session_t, clean_t<_T>>>
+    is_detected<oci_create_session_pool_t, clean_t<T>>,
+    is_detected<oci_get_session_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_oci_session_pool_v =
-        has_oci_session_pool<clean_t<_T>>::value;
+        has_oci_session_pool<clean_t<T>>::value;
 #endif
 
 // has_oci_server_output
-//   trait: checks if type _T supports DBMS_OUTPUT capture.
-template<typename _T>
+//   trait: checks if type T supports DBMS_OUTPUT capture.
+template<typename T>
 struct has_oci_server_output : djinterp::conjunction<
-    is_detected<oci_enable_server_output_t, clean_t<_T>>,
-    is_detected<oci_get_server_output_t, clean_t<_T>>>
+    is_detected<oci_enable_server_output_t, clean_t<T>>,
+    is_detected<oci_get_server_output_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_oci_server_output_v =
-        has_oci_server_output<clean_t<_T>>::value;
+        has_oci_server_output<clean_t<T>>::value;
 #endif
 
 // has_oci_flashback
-//   trait: checks if type _T supports flashback query.
-template<typename _T>
+//   trait: checks if type T supports flashback query.
+template<typename T>
 struct has_oci_flashback : djinterp::conjunction<
-    is_detected<oci_set_scn_t, clean_t<_T>>,
-    is_detected<oci_set_as_of_timestamp_t, clean_t<_T>>>
+    is_detected<oci_set_scn_t, clean_t<T>>,
+    is_detected<oci_set_as_of_timestamp_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_oci_flashback_v = has_oci_flashback<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_oci_flashback_v = has_oci_flashback<clean_t<T>>::value;
 #endif
 
 // has_oci_edition
-//   trait: checks if type _T supports edition-based redefinition.
-template<typename _T>
-struct has_oci_edition : is_detected<oci_set_edition_t, clean_t<_T>>
+//   trait: checks if type T supports edition-based redefinition.
+template<typename T>
+struct has_oci_edition : is_detected<oci_set_edition_t, clean_t<T>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_oci_edition_v = has_oci_edition<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_oci_edition_v = has_oci_edition<clean_t<T>>::value;
 #endif
 
 // has_oci_soda
-//   trait: checks if type _T supports SODA document access.
-template<typename _T>
+//   trait: checks if type T supports SODA document access.
+template<typename T>
 struct has_oci_soda : djinterp::conjunction<
-    is_detected<oci_soda_create_collection_t, clean_t<_T>>,
-    is_detected<oci_soda_get_collection_t, clean_t<_T>>>
+    is_detected<oci_soda_create_collection_t, clean_t<T>>,
+    is_detected<oci_soda_get_collection_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_oci_soda_v = has_oci_soda<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_oci_soda_v = has_oci_soda<clean_t<T>>::value;
 #endif
 
 // has_oci_diagnostics
-//   trait: checks if type _T supports connection diagnostics.
-template<typename _T>
+//   trait: checks if type T supports connection diagnostics.
+template<typename T>
 struct has_oci_diagnostics : djinterp::conjunction<
-    is_detected<oci_get_instance_name_t, clean_t<_T>>,
-    is_detected<oci_get_service_name_t, clean_t<_T>>,
-    is_detected<oci_get_session_id_t, clean_t<_T>>>
+    is_detected<oci_get_instance_name_t, clean_t<T>>,
+    is_detected<oci_get_service_name_t, clean_t<T>>,
+    is_detected<oci_get_session_id_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_oci_diagnostics_v =
-        has_oci_diagnostics<clean_t<_T>>::value;
+        has_oci_diagnostics<clean_t<T>>::value;
 #endif
 
 // has_oci_schema_query
-//   trait: checks if type _T supports schema introspection.
-template<typename _T>
+//   trait: checks if type T supports schema introspection.
+template<typename T>
 struct has_oci_schema_query : djinterp::conjunction<
-    is_detected<oci_table_exists_t, clean_t<_T>>,
-    is_detected<oci_get_table_names_t, clean_t<_T>>>
+    is_detected<oci_table_exists_t, clean_t<T>>,
+    is_detected<oci_get_table_names_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     constexpr bool has_oci_schema_query_v =
-        has_oci_schema_query<clean_t<_T>>::value;
+        has_oci_schema_query<clean_t<T>>::value;
 #endif
 
 // has_oci_cqn
-//   trait: checks if type _T supports continuous query notification.
-template<typename _T>
+//   trait: checks if type T supports continuous query notification.
+template<typename T>
 struct has_oci_cqn : djinterp::conjunction<
-    is_detected<oci_subscribe_t, clean_t<_T>>,
-    is_detected<oci_unsubscribe_t, clean_t<_T>>>
+    is_detected<oci_subscribe_t, clean_t<T>>,
+    is_detected<oci_unsubscribe_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool has_oci_cqn_v = has_oci_cqn<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool has_oci_cqn_v = has_oci_cqn<clean_t<T>>::value;
 #endif
 
 // is_oci_connection
-//   trait: compound trait verifying type _T implements an Oracle OCI
+//   trait: compound trait verifying type T implements an Oracle OCI
 // connection interface (connection + diagnostics + schema +
 // statement cache + PL/SQL execution).
-template<typename _T>
+template<typename T>
 struct is_oci_connection : djinterp::conjunction<
-    is_connection<clean_t<_T>>,
-    has_oci_diagnostics<clean_t<_T>>,
-    has_oci_schema_query<clean_t<_T>>,
-    has_oci_statement_cache<clean_t<_T>>,
-    is_detected<oci_execute_plsql_t, clean_t<_T>>>
+    is_connection<clean_t<T>>,
+    has_oci_diagnostics<clean_t<T>>,
+    has_oci_schema_query<clean_t<T>>,
+    has_oci_statement_cache<clean_t<T>>,
+    is_detected<oci_execute_plsql_t, clean_t<T>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    constexpr bool is_oci_connection_v = is_oci_connection<clean_t<_T>>::value;
+    template<typename T>
+    constexpr bool is_oci_connection_v = is_oci_connection<clean_t<T>>::value;
 #endif
 
 
@@ -1500,167 +1643,167 @@ struct is_oci_connection : djinterp::conjunction<
 // -------------------------------------------------------------------------
 
 // oci_can_execute_batch
-//   tagless trait: true if _T has execute_batch().
-template<typename _T, typename = void>
+//   tagless trait: true if T has execute_batch().
+template<typename T, typename = void>
 constexpr bool oci_can_execute_batch = false;
 
-template<typename _T>
-constexpr bool oci_can_execute_batch<_T,
-    std::void_t<oci_execute_batch_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_execute_batch<T,
+    std::void_t<oci_execute_batch_t<T>>> = true;
 
 // oci_can_execute_plsql
-//   tagless trait: true if _T has execute_plsql().
-template<typename _T, typename = void>
+//   tagless trait: true if T has execute_plsql().
+template<typename T, typename = void>
 constexpr bool oci_can_execute_plsql = false;
 
-template<typename _T>
-constexpr bool oci_can_execute_plsql<_T,
-    std::void_t<oci_execute_plsql_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_execute_plsql<T,
+    std::void_t<oci_execute_plsql_t<T>>> = true;
 
 // oci_can_read_lob
-//   tagless trait: true if _T has read_lob().
-template<typename _T, typename = void>
+//   tagless trait: true if T has read_lob().
+template<typename T, typename = void>
 constexpr bool oci_can_read_lob = false;
 
-template<typename _T>
-constexpr bool oci_can_read_lob<_T,
-    std::void_t<oci_read_lob_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_read_lob<T,
+    std::void_t<oci_read_lob_t<T>>> = true;
 
 // oci_can_lob_length
-//   tagless trait: true if _T has lob_length().
-template<typename _T, typename = void>
+//   tagless trait: true if T has lob_length().
+template<typename T, typename = void>
 constexpr bool oci_can_lob_length = false;
 
-template<typename _T>
-constexpr bool oci_can_lob_length<_T,
-    std::void_t<oci_lob_length_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_lob_length<T,
+    std::void_t<oci_lob_length_t<T>>> = true;
 
 // oci_can_get_implicit_results
-//   tagless trait: true if _T has get_implicit_results().
-template<typename _T, typename = void>
+//   tagless trait: true if T has get_implicit_results().
+template<typename T, typename = void>
 constexpr bool oci_can_get_implicit_results = false;
 
-template<typename _T>
-constexpr bool oci_can_get_implicit_results<_T,
-    std::void_t<oci_get_implicit_results_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_get_implicit_results<T,
+    std::void_t<oci_get_implicit_results_t<T>>> = true;
 
 // oci_can_create_session_pool
-//   tagless trait: true if _T has create_session_pool().
-template<typename _T, typename = void>
+//   tagless trait: true if T has create_session_pool().
+template<typename T, typename = void>
 constexpr bool oci_can_create_session_pool = false;
 
-template<typename _T>
-constexpr bool oci_can_create_session_pool<_T,
-    std::void_t<oci_create_session_pool_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_create_session_pool<T,
+    std::void_t<oci_create_session_pool_t<T>>> = true;
 
 // oci_can_get_session
-//   tagless trait: true if _T has get_session().
-template<typename _T, typename = void>
+//   tagless trait: true if T has get_session().
+template<typename T, typename = void>
 constexpr bool oci_can_get_session = false;
 
-template<typename _T>
-constexpr bool oci_can_get_session<_T,
-    std::void_t<oci_get_session_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_get_session<T,
+    std::void_t<oci_get_session_t<T>>> = true;
 
 // oci_can_set_scn
-//   tagless trait: true if _T has set_scn().
-template<typename _T, typename = void>
+//   tagless trait: true if T has set_scn().
+template<typename T, typename = void>
 constexpr bool oci_can_set_scn = false;
 
-template<typename _T>
-constexpr bool oci_can_set_scn<_T,
-    std::void_t<oci_set_scn_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_set_scn<T,
+    std::void_t<oci_set_scn_t<T>>> = true;
 
 // oci_can_set_edition
-//   tagless trait: true if _T has set_edition().
-template<typename _T, typename = void>
+//   tagless trait: true if T has set_edition().
+template<typename T, typename = void>
 constexpr bool oci_can_set_edition = false;
 
-template<typename _T>
-constexpr bool oci_can_set_edition<_T,
-    std::void_t<oci_set_edition_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_set_edition<T,
+    std::void_t<oci_set_edition_t<T>>> = true;
 
 // oci_can_subscribe
-//   tagless trait: true if _T has subscribe().
-template<typename _T, typename = void>
+//   tagless trait: true if T has subscribe().
+template<typename T, typename = void>
 constexpr bool oci_can_subscribe = false;
 
-template<typename _T>
-constexpr bool oci_can_subscribe<_T,
-    std::void_t<oci_subscribe_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_subscribe<T,
+    std::void_t<oci_subscribe_t<T>>> = true;
 
 // oci_can_query_schema
-//   tagless trait: true if _T has table_exists().
-template<typename _T, typename = void>
+//   tagless trait: true if T has table_exists().
+template<typename T, typename = void>
 constexpr bool oci_can_query_schema = false;
 
-template<typename _T>
-constexpr bool oci_can_query_schema<_T,
-    std::void_t<oci_table_exists_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_can_query_schema<T,
+    std::void_t<oci_table_exists_t<T>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
 // -------------------------------------------------------------------------
 
 // oci_does_lob
-//   tagless trait: true if _T supports full LOB operations.
-template<typename _T, typename = void>
+//   tagless trait: true if T supports full LOB operations.
+template<typename T, typename = void>
 constexpr bool oci_does_lob = false;
 
-template<typename _T>
-constexpr bool oci_does_lob<_T, std::void_t<
-    oci_read_lob_t<_T>,
-    oci_write_lob_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_does_lob<T, std::void_t<
+    oci_read_lob_t<T>,
+    oci_write_lob_t<T>>> = true;
 
 // oci_does_flashback
-//   tagless trait: true if _T supports flashback query.
-template<typename _T, typename = void>
+//   tagless trait: true if T supports flashback query.
+template<typename T, typename = void>
 constexpr bool oci_does_flashback = false;
 
-template<typename _T>
-constexpr bool oci_does_flashback<_T, std::void_t<
-    oci_set_scn_t<_T>,
-    oci_set_as_of_timestamp_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_does_flashback<T, std::void_t<
+    oci_set_scn_t<T>,
+    oci_set_as_of_timestamp_t<T>>> = true;
 
 // oci_does_soda
-//   tagless trait: true if _T supports SODA.
-template<typename _T, typename = void>
+//   tagless trait: true if T supports SODA.
+template<typename T, typename = void>
 constexpr bool oci_does_soda = false;
 
-template<typename _T>
-constexpr bool oci_does_soda<_T, std::void_t<
-    oci_soda_create_collection_t<_T>,
-    oci_soda_get_collection_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_does_soda<T, std::void_t<
+    oci_soda_create_collection_t<T>,
+    oci_soda_get_collection_t<T>>> = true;
 
 // oci_does_server_output
-//   tagless trait: true if _T supports DBMS_OUTPUT capture.
-template<typename _T, typename = void>
+//   tagless trait: true if T supports DBMS_OUTPUT capture.
+template<typename T, typename = void>
 constexpr bool oci_does_server_output = false;
 
-template<typename _T>
-constexpr bool oci_does_server_output<_T, std::void_t<
-    oci_enable_server_output_t<_T>,
-    oci_get_server_output_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_does_server_output<T, std::void_t<
+    oci_enable_server_output_t<T>,
+    oci_get_server_output_t<T>>> = true;
 
 // oci_does_session_pool
-//   tagless trait: true if _T supports session pooling.
-template<typename _T, typename = void>
+//   tagless trait: true if T supports session pooling.
+template<typename T, typename = void>
 constexpr bool oci_does_session_pool = false;
 
-template<typename _T>
-constexpr bool oci_does_session_pool<_T, std::void_t<
-    oci_create_session_pool_t<_T>,
-    oci_get_session_t<_T>>> = true;
+template<typename T>
+constexpr bool oci_does_session_pool<T, std::void_t<
+    oci_create_session_pool_t<T>,
+    oci_get_session_t<T>>> = true;
 
 // oci_is_full_connection
-//   tagless trait: true if _T satisfies the complete Oracle OCI
+//   tagless trait: true if T satisfies the complete Oracle OCI
 // connection interface.
-template<typename _T>
+template<typename T>
 constexpr bool oci_is_full_connection =
-    ( is_connectable<clean_t<_T>>             &&
-      oci_can_execute_plsql<clean_t<_T>>      &&
-      oci_can_query_schema<clean_t<_T>>       &&
-      oci_can_get_implicit_results<clean_t<_T>> );
+    ( is_connectable<clean_t<T>>             &&
+      oci_can_execute_plsql<clean_t<T>>      &&
+      oci_can_query_schema<clean_t<T>>       &&
+      oci_can_get_implicit_results<clean_t<T>> );
 
 
 // =============================================================================
@@ -1669,33 +1812,33 @@ constexpr bool oci_is_full_connection =
 
 // enable_if_oci_connection
 //   type: SFINAE helper for Oracle OCI connection constraints.
-template<typename _T>
+template<typename T>
 using enable_if_oci_connection =
-    typename std::enable_if<is_oci_connection<clean_t<_T>>::value>::type;
+    typename std::enable_if<is_oci_connection<clean_t<T>>::value>::type;
 
 // enable_if_has_oci_flashback
 //   type: SFINAE helper for flashback constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_oci_flashback =
-    typename std::enable_if<has_oci_flashback<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_oci_flashback<clean_t<T>>::value>::type;
 
 // enable_if_has_oci_soda
 //   type: SFINAE helper for SODA constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_oci_soda =
-    typename std::enable_if<has_oci_soda<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_oci_soda<clean_t<T>>::value>::type;
 
 // enable_if_has_oci_lob
 //   type: SFINAE helper for LOB constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_oci_lob =
-    typename std::enable_if<has_oci_lob<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_oci_lob<clean_t<T>>::value>::type;
 
 // enable_if_has_oci_session_pool
 //   type: SFINAE helper for session pool constraints.
-template<typename _T>
+template<typename T>
 using enable_if_has_oci_session_pool =
-    typename std::enable_if<has_oci_session_pool<clean_t<_T>>::value>::type;
+    typename std::enable_if<has_oci_session_pool<clean_t<T>>::value>::type;
 
 
 // ===========================================================================
@@ -1718,34 +1861,34 @@ using enable_if_has_oci_session_pool =
 // oci_connection
 //   concept: constrains types implementing the Oracle OCI connection
 // interface.
-template<typename _Type>
+template<typename Type>
 concept oci_connection =
-    is_oci_connection<clean_t<_Type>>::value;
+    is_oci_connection<clean_t<Type>>::value;
 
 // non_oci_connection
 //   concept: constrains types that do not implement the Oracle OCI
 // connection interface.
-template<typename _Type>
+template<typename Type>
 concept non_oci_connection =
-    !oci_connection<_Type>;
+    !oci_connection<Type>;
 
 // oci_plsql_connection
 //   concept: constrains types exposing execute_plsql(const string&).
-template<typename _Type>
+template<typename Type>
 concept oci_plsql_connection =
-    is_detected<oci_execute_plsql_t, clean_t<_Type>>::value;
+    is_detected<oci_execute_plsql_t, clean_t<Type>>::value;
 
 // oci_diagnostics_connection
 //   concept: constrains types exposing Oracle connection diagnostics.
-template<typename _Type>
+template<typename Type>
 concept oci_diagnostics_connection =
-    has_oci_diagnostics<clean_t<_Type>>::value;
+    has_oci_diagnostics<clean_t<Type>>::value;
 
 // oci_schema_query_connection
 //   concept: constrains types exposing Oracle schema introspection.
-template<typename _Type>
+template<typename Type>
 concept oci_schema_query_connection =
-    has_oci_schema_query<clean_t<_Type>>::value;
+    has_oci_schema_query<clean_t<Type>>::value;
 
 
 // =============================================================================
@@ -1754,69 +1897,69 @@ concept oci_schema_query_connection =
 
 // oci_statement_cache_connection
 //   concept: constrains types supporting statement caching.
-template<typename _Type>
+template<typename Type>
 concept oci_statement_cache_connection =
-    has_oci_statement_cache<clean_t<_Type>>::value;
+    has_oci_statement_cache<clean_t<Type>>::value;
 
 // oci_batch_dml_connection
 //   concept: constrains types supporting batch / array DML execution.
-template<typename _Type>
+template<typename Type>
 concept oci_batch_dml_connection =
-    has_oci_batch_dml<clean_t<_Type>>::value;
+    has_oci_batch_dml<clean_t<Type>>::value;
 
 // oci_lob_connection
 //   concept: constrains types supporting Oracle LOB read/write operations.
-template<typename _Type>
+template<typename Type>
 concept oci_lob_connection =
-    has_oci_lob<clean_t<_Type>>::value;
+    has_oci_lob<clean_t<Type>>::value;
 
 // oci_lob_length_query
 //   concept: constrains types exposing lob_length() const.
-template<typename _Type>
+template<typename Type>
 concept oci_lob_length_query =
-    has_oci_lob_length<clean_t<_Type>>::value;
+    has_oci_lob_length<clean_t<Type>>::value;
 
 // oci_implicit_results_connection
 //   concept: constrains types exposing implicit PL/SQL result retrieval.
-template<typename _Type>
+template<typename Type>
 concept oci_implicit_results_connection =
-    has_oci_implicit_results<clean_t<_Type>>::value;
+    has_oci_implicit_results<clean_t<Type>>::value;
 
 // oci_session_pool_connection
 //   concept: constrains types supporting Oracle session pooling.
-template<typename _Type>
+template<typename Type>
 concept oci_session_pool_connection =
-    has_oci_session_pool<clean_t<_Type>>::value;
+    has_oci_session_pool<clean_t<Type>>::value;
 
 // oci_server_output_connection
 //   concept: constrains types supporting DBMS_OUTPUT capture.
-template<typename _Type>
+template<typename Type>
 concept oci_server_output_connection =
-    has_oci_server_output<clean_t<_Type>>::value;
+    has_oci_server_output<clean_t<Type>>::value;
 
 // oci_flashback_connection
 //   concept: constrains types supporting flashback query controls.
-template<typename _Type>
+template<typename Type>
 concept oci_flashback_connection =
-    has_oci_flashback<clean_t<_Type>>::value;
+    has_oci_flashback<clean_t<Type>>::value;
 
 // oci_edition_connection
 //   concept: constrains types supporting edition-based redefinition.
-template<typename _Type>
+template<typename Type>
 concept oci_edition_connection =
-    has_oci_edition<clean_t<_Type>>::value;
+    has_oci_edition<clean_t<Type>>::value;
 
 // oci_soda_connection
 //   concept: constrains types supporting Oracle SODA access.
-template<typename _Type>
+template<typename Type>
 concept oci_soda_connection =
-    has_oci_soda<clean_t<_Type>>::value;
+    has_oci_soda<clean_t<Type>>::value;
 
 // oci_cqn_connection
 //   concept: constrains types supporting continuous query notification.
-template<typename _Type>
+template<typename Type>
 concept oci_cqn_connection =
-    has_oci_cqn<clean_t<_Type>>::value;
+    has_oci_cqn<clean_t<Type>>::value;
 
 
 // =============================================================================
@@ -1825,114 +1968,114 @@ concept oci_cqn_connection =
 
 // oci_batch_executable
 //   concept: constrains types satisfying the tagless batch-DML capability.
-template<typename _Type>
+template<typename Type>
 concept oci_batch_executable =
-    oci_can_execute_batch<clean_t<_Type>>;
+    oci_can_execute_batch<clean_t<Type>>;
 
 // oci_plsql_executable
 //   concept: constrains types satisfying the tagless PL/SQL capability.
-template<typename _Type>
+template<typename Type>
 concept oci_plsql_executable =
-    oci_can_execute_plsql<clean_t<_Type>>;
+    oci_can_execute_plsql<clean_t<Type>>;
 
 // oci_lob_readable
 //   concept: constrains types satisfying the tagless LOB-read capability.
-template<typename _Type>
+template<typename Type>
 concept oci_lob_readable =
-    oci_can_read_lob<clean_t<_Type>>;
+    oci_can_read_lob<clean_t<Type>>;
 
 // oci_lob_sized
 //   concept: constrains types satisfying the tagless LOB-length capability.
-template<typename _Type>
+template<typename Type>
 concept oci_lob_sized =
-    oci_can_lob_length<clean_t<_Type>>;
+    oci_can_lob_length<clean_t<Type>>;
 
 // oci_implicit_results_capable
 //   concept: constrains types satisfying the tagless implicit-results
 // capability.
-template<typename _Type>
+template<typename Type>
 concept oci_implicit_results_capable =
-    oci_can_get_implicit_results<clean_t<_Type>>;
+    oci_can_get_implicit_results<clean_t<Type>>;
 
 // oci_session_pool_creatable
 //   concept: constrains types satisfying the tagless session-pool creation
 // capability.
-template<typename _Type>
+template<typename Type>
 concept oci_session_pool_creatable =
-    oci_can_create_session_pool<clean_t<_Type>>;
+    oci_can_create_session_pool<clean_t<Type>>;
 
 // oci_session_acquirable
 //   concept: constrains types satisfying the tagless get-session capability.
-template<typename _Type>
+template<typename Type>
 concept oci_session_acquirable =
-    oci_can_get_session<clean_t<_Type>>;
+    oci_can_get_session<clean_t<Type>>;
 
 // oci_flashback_scn_connection
 //   concept: constrains types satisfying the tagless SCN flashback
 // capability.
-template<typename _Type>
+template<typename Type>
 concept oci_flashback_scn_connection =
-    oci_can_set_scn<clean_t<_Type>>;
+    oci_can_set_scn<clean_t<Type>>;
 
 // oci_editionable_connection
 //   concept: constrains types satisfying the tagless edition capability.
-template<typename _Type>
+template<typename Type>
 concept oci_editionable_connection =
-    oci_can_set_edition<clean_t<_Type>>;
+    oci_can_set_edition<clean_t<Type>>;
 
 // oci_subscribable_connection
 //   concept: constrains types satisfying the tagless CQN subscription
 // capability.
-template<typename _Type>
+template<typename Type>
 concept oci_subscribable_connection =
-    oci_can_subscribe<clean_t<_Type>>;
+    oci_can_subscribe<clean_t<Type>>;
 
 // oci_schema_queryable_connection
 //   concept: constrains types satisfying the tagless schema-query
 // capability.
-template<typename _Type>
+template<typename Type>
 concept oci_schema_queryable_connection =
-    oci_can_query_schema<clean_t<_Type>>;
+    oci_can_query_schema<clean_t<Type>>;
 
 // oci_lob_capable_connection
 //   concept: constrains types satisfying the tagless full LOB capability set.
-template<typename _Type>
+template<typename Type>
 concept oci_lob_capable_connection =
-    oci_does_lob<clean_t<_Type>>;
+    oci_does_lob<clean_t<Type>>;
 
 // oci_flashback_capable_connection
 //   concept: constrains types satisfying the tagless full flashback
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept oci_flashback_capable_connection =
-    oci_does_flashback<clean_t<_Type>>;
+    oci_does_flashback<clean_t<Type>>;
 
 // oci_soda_capable_connection
 //   concept: constrains types satisfying the tagless SODA capability set.
-template<typename _Type>
+template<typename Type>
 concept oci_soda_capable_connection =
-    oci_does_soda<clean_t<_Type>>;
+    oci_does_soda<clean_t<Type>>;
 
 // oci_server_output_capable_connection
 //   concept: constrains types satisfying the tagless DBMS_OUTPUT capability
 // set.
-template<typename _Type>
+template<typename Type>
 concept oci_server_output_capable_connection =
-    oci_does_server_output<clean_t<_Type>>;
+    oci_does_server_output<clean_t<Type>>;
 
 // oci_session_pool_capable_connection
 //   concept: constrains types satisfying the tagless session-pool capability
 // set.
-template<typename _Type>
+template<typename Type>
 concept oci_session_pool_capable_connection =
-    oci_does_session_pool<clean_t<_Type>>;
+    oci_does_session_pool<clean_t<Type>>;
 
 // oci_full_connection
 //   concept: constrains types satisfying the tagless complete Oracle OCI
 // connection capability set.
-template<typename _Type>
+template<typename Type>
 concept oci_full_connection =
-    oci_is_full_connection<clean_t<_Type>>;
+    oci_is_full_connection<clean_t<Type>>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -1940,5 +2083,6 @@ concept oci_full_connection =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_ORACLE_
+#endif  // DJINTERP_DB_ORACLE_ORACLE_HPP

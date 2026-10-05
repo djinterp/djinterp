@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 is_final.hpp
 *
 * is_final trait header:
@@ -8,56 +8,58 @@
 *   C++11 baseline.  The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_final.hpp
+* path:      /inc/re_std/type_traits/is_final.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_FINAL_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_FINAL_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_FINAL_HPP
+#define RE_STD_TYPE_TRAITS_IS_FINAL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
 // =============================================================================
-// 0.   D_RE_STD_HAS_IS_FINAL  (intrinsic detection)
+// 0.   RE_STD_HAS_IS_FINAL  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RE_STD_HAS_IS_FINAL
+#ifndef RE_STD_HAS_IS_FINAL
     #if defined(__has_builtin)
         #if __has_builtin(__is_final)
-            #define D_RE_STD_HAS_IS_FINAL  1
+            #define RE_STD_HAS_IS_FINAL  1
         #else
-            #define D_RE_STD_HAS_IS_FINAL  0
+            #define RE_STD_HAS_IS_FINAL  0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
-            defined(D_ENV_COMPILER_CLANG) ||                                  \
-            defined(D_ENV_COMPILER_MSVC)  ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
-        #define D_RE_STD_HAS_IS_FINAL      1
+    #elif ( defined(RE_STD_COMPILER_GCC)   ||                                  \
+            defined(RE_STD_COMPILER_CLANG) ||                                  \
+            defined(RE_STD_COMPILER_MSVC)  ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
+        #define RE_STD_HAS_IS_FINAL      1
     #else
-        #define D_RE_STD_HAS_IS_FINAL      0
+        #define RE_STD_HAS_IS_FINAL      0
     #endif
-#endif  // D_RE_STD_HAS_IS_FINAL
+#endif  // RE_STD_HAS_IS_FINAL
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_FINAL
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_FINAL
+#if RE_STD_HAS_IS_FINAL
 
 // is_final
 //   trait: intrinsic-backed -- a class marked final.
-template<typename _Type>
-struct is_final : integral_constant<bool, __is_final(_Type)>
+template<typename Type>
+struct is_final : integral_constant<bool, __is_final(Type)>
 {};
 
 #else
@@ -65,26 +67,26 @@ struct is_final : integral_constant<bool, __is_final(_Type)>
 // is_final
 //   trait: degraded fallback (always false) when the intrinsic is absent;
 // this property is not observable at the library level.
-template<typename _Type>
+template<typename Type>
 struct is_final : false_type
 {};
 
-#endif  // D_RE_STD_HAS_IS_FINAL
+#endif  // RE_STD_HAS_IS_FINAL
 
 
 // =============================================================================
 // II.  IS_FINAL_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool is_final_v = is_final<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool is_final_v = is_final<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_FINAL_
+#endif  // RE_STD_TYPE_TRAITS_IS_FINAL_HPP

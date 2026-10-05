@@ -1,31 +1,34 @@
-/***********************************************************************
-* re_std                                                    make_shared.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              make_shared.hpp
 *
 * single-allocation factory for shared_ptr.
 *
 * overloads provided:
-*   make_shared<_T>(_args...)         non-array, value-init from args
-*   make_shared<_T[]>(_n)             unbounded array, value-init
-*   make_shared<_T[]>(_n, _u)         unbounded array, copy-init from _u
-*   make_shared<_T[_N]>()             bounded array, value-init
-*   make_shared<_T[_N]>(_u)           bounded array, copy-init from _u
+*   make_shared<T>(_args...)         non-array, value-init from args
+*   make_shared<T[]>(_n)             unbounded array, value-init
+*   make_shared<T[]>(_n, _u)         unbounded array, copy-init from _u
+*   make_shared<T[N]>()             bounded array, value-init
+*   make_shared<T[N]>(_u)           bounded array, copy-init from _u
 *
 * see make_shared_for_overwrite.hpp for the default-init variants.
 *
 *
-* path:      /inc/djinterp/re_std/memory/make_shared.hpp
+* path:      /inc/re_std/memory/make_shared.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_MAKE_SHARED_
-#define DJINTERP_RE_STD_MEMORY_MAKE_SHARED_ 1
+#ifndef RE_STD_MEMORY_MAKE_SHARED_HPP
+#define RE_STD_MEMORY_MAKE_SHARED_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
     #include <new>
 
@@ -46,50 +49,48 @@ namespace internal
 
     // Extracts the extent N of an array type. Yields 0 for non-arrays
     // and unbounded arrays. Used by the bounded-make_shared overloads.
-    template<typename _T>
+    template<typename T>
     struct array_extent
     {
-        static D_CONSTEXPR const std::size_t value = 0;
+        static RE_STD_CONSTEXPR const std::size_t value = 0;
     };
 
-    template<typename _T, std::size_t _N>
-    struct array_extent<_T[_N]>
+    template<typename T, std::size_t N>
+    struct array_extent<T[N]>
     {
-        static D_CONSTEXPR const std::size_t value = _N;
+        static RE_STD_CONSTEXPR const std::size_t value = N;
     };
 
-}  // namespace internal
-
-
+}  // internal
 // ---------------------------------------------------------------------
-// make_shared<_T>(_args...)  -  non-array form
+// make_shared<T>(_args...)  -  non-array form
 // ---------------------------------------------------------------------
-template<typename _T, typename... _Args>
+template<typename T, typename... Args>
 typename enable_if
 <
-    !is_array<_T>::value,
-    shared_ptr<_T>
+    !is_array<T>::value,
+    shared_ptr<T>
 >::type
-make_shared(_Args&&... _args)
+make_shared(Args&&... _args)
 {
-    typedef internal::sp_cb_inplace<_T> cb_t;
-    cb_t* _cb = new cb_t(re_std::forward<_Args>(_args)...);
-    return shared_ptr<_T>::_sp_internal_from_cb(_cb->get(), _cb);
+    typedef internal::sp_cb_inplace<T> cb_t;
+    cb_t* _cb = new cb_t(re_std::forward<Args>(_args)...);
+    return shared_ptr<T>::_sp_internal_from_cb(_cb->get(), _cb);
 }
 
 
 // ---------------------------------------------------------------------
-// make_shared<_T[]>(_n)  -  unbounded array, value-init
+// make_shared<T[]>(_n)  -  unbounded array, value-init
 // ---------------------------------------------------------------------
-template<typename _T>
+template<typename T>
 typename enable_if
 <
-    is_unbounded_array<_T>::value,
-    shared_ptr<_T>
+    is_unbounded_array<T>::value,
+    shared_ptr<T>
 >::type
 make_shared(std::size_t _n)
 {
-    typedef typename remove_extent<_T>::type _U;
+    typedef typename remove_extent<T>::type _U;
     typedef internal::sp_cb_inplace_array<_U> cb_t;
 
     const std::size_t _bytes = cb_t::total_bytes(_n);
@@ -99,7 +100,7 @@ make_shared(std::size_t _n)
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_n);
@@ -125,22 +126,22 @@ make_shared(std::size_t _n)
         }
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
 // ---------------------------------------------------------------------
-// make_shared<_T[]>(_n, _u)  -  unbounded array, copy-init from _u
+// make_shared<T[]>(_n, _u)  -  unbounded array, copy-init from _u
 // ---------------------------------------------------------------------
-template<typename _T>
+template<typename T>
 typename enable_if
 <
-    is_unbounded_array<_T>::value,
-    shared_ptr<_T>
+    is_unbounded_array<T>::value,
+    shared_ptr<T>
 >::type
-make_shared(std::size_t _n, const typename remove_extent<_T>::type& _u)
+make_shared(std::size_t _n, const typename remove_extent<T>::type& _u)
 {
-    typedef typename remove_extent<_T>::type _U;
+    typedef typename remove_extent<T>::type _U;
     typedef internal::sp_cb_inplace_array<_U> cb_t;
 
     const std::size_t _bytes = cb_t::total_bytes(_n);
@@ -150,7 +151,7 @@ make_shared(std::size_t _n, const typename remove_extent<_T>::type& _u)
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_n);
@@ -176,25 +177,25 @@ make_shared(std::size_t _n, const typename remove_extent<_T>::type& _u)
         }
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
 // ---------------------------------------------------------------------
-// make_shared<_T[_N]>()  -  bounded array, value-init
+// make_shared<T[N]>()  -  bounded array, value-init
 // ---------------------------------------------------------------------
-template<typename _T>
+template<typename T>
 typename enable_if
 <
-    is_bounded_array<_T>::value,
-    shared_ptr<_T>
+    is_bounded_array<T>::value,
+    shared_ptr<T>
 >::type
 make_shared()
 {
-    typedef typename remove_extent<_T>::type _U;
+    typedef typename remove_extent<T>::type _U;
     typedef internal::sp_cb_inplace_array<_U> cb_t;
 
-    const std::size_t _n = internal::array_extent<_T>::value;
+    const std::size_t _n = internal::array_extent<T>::value;
     const std::size_t _bytes = cb_t::total_bytes(_n);
     void* _mem = ::operator new(_bytes);
 
@@ -202,7 +203,7 @@ make_shared()
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_n);
@@ -228,25 +229,25 @@ make_shared()
         }
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
 // ---------------------------------------------------------------------
-// make_shared<_T[_N]>(_u)  -  bounded array, copy-init from _u
+// make_shared<T[N]>(_u)  -  bounded array, copy-init from _u
 // ---------------------------------------------------------------------
-template<typename _T>
+template<typename T>
 typename enable_if
 <
-    is_bounded_array<_T>::value,
-    shared_ptr<_T>
+    is_bounded_array<T>::value,
+    shared_ptr<T>
 >::type
-make_shared(const typename remove_extent<_T>::type& _u)
+make_shared(const typename remove_extent<T>::type& _u)
 {
-    typedef typename remove_extent<_T>::type _U;
+    typedef typename remove_extent<T>::type _U;
     typedef internal::sp_cb_inplace_array<_U> cb_t;
 
-    const std::size_t _n = internal::array_extent<_T>::value;
+    const std::size_t _n = internal::array_extent<T>::value;
     const std::size_t _bytes = cb_t::total_bytes(_n);
     void* _mem = ::operator new(_bytes);
 
@@ -254,7 +255,7 @@ make_shared(const typename remove_extent<_T>::type& _u)
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_n);
@@ -280,12 +281,11 @@ make_shared(const typename remove_extent<_T>::type& _u)
         }
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_MAKE_SHARED_
+#endif  // RE_STD_MEMORY_MAKE_SHARED_HPP

@@ -1,8 +1,8 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 is_clock.hpp
 *
 * the is_clock trait:
-*   True if _Type meets the Cpp17Clock requirements -- that is, if it has
+*   True if Type meets the Cpp17Clock requirements -- that is, if it has
 * the five members every clock must have: rep, period, duration,
 * time_point and a static now().
 *
@@ -30,67 +30,69 @@
 * recorded as hard-won rule 9.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/is_clock.hpp
+* path:      /inc/re_std/chrono/is_clock.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_IS_CLOCK_
-#define DJINTERP_RE_STD_CHRONO_IS_CLOCK_ 1
+#ifndef RE_STD_CHRONO_IS_CLOCK_HPP
+#define RE_STD_CHRONO_IS_CLOCK_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "../type_traits/true_type.hpp"
 #include "../type_traits/false_type.hpp"
 #include "../type_traits/void_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
     // is_clock
-    //   trait: true if _Type has the five members a clock must have.
+    //   trait: true if Type has the five members a clock must have.
     // Primary template -- selected when the specialisation's
     // substitution fails.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct is_clock
         : false_type
     {};
 
-    // is_clock<_Type, void>
+    // is_clock<Type, void>
     //   trait: specialisation, selected when every required member name
     // exists and now() is callable.
-    template<typename _Type>
+    template<typename Type>
     struct is_clock<
-        _Type,
-        void_t< typename _Type::rep,
-                typename _Type::period,
-                typename _Type::duration,
-                typename _Type::time_point,
-                decltype(_Type::now()) > >
+        Type,
+        void_t< typename Type::rep,
+                typename Type::period,
+                typename Type::duration,
+                typename Type::time_point,
+                decltype(Type::now()) > >
         : true_type
     {};
 
     // is_clock_v (C++14+)
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
-    D_CONSTEXPR bool is_clock_v = is_clock<_Type>::value;
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_clock_v = is_clock<Type>::value;
 #endif
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_IS_CLOCK_
+#endif  // RE_STD_CHRONO_IS_CLOCK_HPP

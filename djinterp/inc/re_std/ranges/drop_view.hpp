@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                              drop_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                drop_view.hpp
 *
 * drop_view header:
 *   Provides the C++20 suffix adaptor. drop_view<V> skips the first N
@@ -25,17 +25,19 @@
 *   re_std::views::drop(r, n).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/drop_view.hpp
+* path:      /inc/re_std/ranges/drop_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_DROP_VIEW_
-#define DJINTERP_RE_STD_RANGES_DROP_VIEW_ 1
+#ifndef RE_STD_RANGES_DROP_VIEW_HPP
+#define RE_STD_RANGES_DROP_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../iterator/iterator_traits.hpp"
 #include "../iterator/advance.hpp"
@@ -46,24 +48,25 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   DROP_VIEW
 // ===========================================================================
 
-// drop_view<_View>
-//   class: presents _View with the first N elements skipped. begin()
+// drop_view<View>
+//   class: presents View with the first N elements skipped. begin()
 // advances the underlying iterator N times (or to the end, whichever
 // comes first) and caches the result.
-template<typename _View>
-class drop_view : public view_interface<drop_view<_View> >
+template<typename View>
+class drop_view : public view_interface<drop_view<View> >
 {
 public:
-    typedef _View                                  base_view;
+    typedef View                                  base_view;
     typedef typename iterator_traits<
-                          iterator_t<_View>
+                          iterator_t<View>
                       >::difference_type           difference_type;
 
 
@@ -72,15 +75,15 @@ private:
     // We don't have re_std::optional yet, so we use a manual
     // initialised-flag + storage pair. The cache is mutable so
     // begin() const can populate it.
-    _View                       m_base;
+    View                       m_base;
     difference_type             m_count;
     mutable bool                m_cache_init;
-    mutable iterator_t<_View>   m_cache;
+    mutable iterator_t<View>   m_cache;
 
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     drop_view()
         : m_base(),
           m_count(0),
@@ -89,12 +92,12 @@ public:
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     drop_view(
-        _View            _base,
+        View            _base,
         difference_type  _n
     )
-        : m_base(static_cast<_View&&>(_base)),
+        : m_base(static_cast<View&&>(_base)),
           m_count(_n),
           m_cache_init(false),
           m_cache()
@@ -103,7 +106,7 @@ public:
 
     // base
     //   function: returns a copy of the underlying view.
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
@@ -114,13 +117,13 @@ public:
     //   function: advances begin(_base) by m_count positions (or to
     // end), caches the result, and returns it. Subsequent calls
     // return the cached value.
-    iterator_t<_View>
+    iterator_t<View>
     begin()
     {
         if (!m_cache_init)
         {
-            iterator_t<_View> it = re_std::begin(m_base);
-            sentinel_t<_View> e  = re_std::end(m_base);
+            iterator_t<View> it = re_std::begin(m_base);
+            sentinel_t<View> e  = re_std::end(m_base);
             difference_type   n  = m_count;
             while (n > 0 && it != e)
             {
@@ -135,7 +138,7 @@ public:
 
     // end
     //   function: simply the underlying view's end.
-    sentinel_t<_View>
+    sentinel_t<View>
     end()
     {
         return re_std::end(m_base);
@@ -146,7 +149,7 @@ public:
     //   function: max(0, size(base) - n). Only well-formed when the
     // underlying view is sized (decltype-SFINAE'd via the trailing
     // return type).
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR_CPP14
     auto
     size() const
         -> decltype(re_std::size(m_base))
@@ -163,47 +166,48 @@ public:
 // II.  DROP_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
 // drop_closure
 //   class: the bound form of views::drop. Holds a count and, when
 // invoked, constructs a drop_view directly.
-template<typename _N>
-struct drop_closure : range_adaptor_closure<drop_closure<_N> >
+template<typename N>
+struct drop_closure : range_adaptor_closure<drop_closure<N> >
 {
-    _N count;
+    N count;
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     drop_closure()
         : count()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     drop_closure(
-        _N _n
+        N _n
     )
         : count(_n)
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    drop_view<typename internal::all_dispatch<_R>::type>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    drop_view<typename internal::all_dispatch<R>::type>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
+        typedef typename internal::all_dispatch<R>::type view_type;
         typedef typename iterator_traits<
-                              iterator_t<typename remove_reference<_R>::type>
+                              iterator_t<typename remove_reference<R>::type>
                           >::difference_type             diff_type;
         return drop_view<view_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             static_cast<diff_type>(count)
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -213,43 +217,43 @@ NS_END  // internal
 namespace views
 {
     // views::drop(_r, _n)  [direct form]
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    drop_view<typename internal::all_dispatch<_R>::type>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    drop_view<typename internal::all_dispatch<R>::type>
     drop(
-        _R&&                                                            _r,
+        R&&                                                            _r,
         typename iterator_traits<
-                     iterator_t<typename remove_reference<_R>::type>
+                     iterator_t<typename remove_reference<R>::type>
                  >::difference_type                                     _n
     )
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
+        typedef typename internal::all_dispatch<R>::type view_type;
         return drop_view<view_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             _n
         );
     }
 
     // views::drop(_n)  [bound form]
     //   function: returns a drop_closure for pipe composition.
-    template<typename _N>
-    D_CONSTEXPR_INLINE
-    internal::drop_closure<typename decay<_N>::type>
+    template<typename N>
+    RE_STD_CONSTEXPR_INLINE
+    internal::drop_closure<typename decay<N>::type>
     drop(
-        _N&& _n
+        N&& _n
     )
     {
-        return internal::drop_closure<typename decay<_N>::type>(
-            static_cast<_N&&>(_n)
+        return internal::drop_closure<typename decay<N>::type>(
+            static_cast<N&&>(_n)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_DROP_VIEW_
+#endif  // RE_STD_RANGES_DROP_VIEW_HPP

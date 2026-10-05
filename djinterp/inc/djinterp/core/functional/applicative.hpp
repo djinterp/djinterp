@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                        applicative.hpp
+/*******************************************************************************
+* djinterp [core]                                                applicative.hpp
 *
 * Applicative protocol and its generic operations: ap and lift_a2 (C++).
 *   An applicative functor sits between Functor and Monad: it is a context
@@ -38,35 +38,48 @@
 *   // lift a bare value into a chosen applicative
 *   auto p = pure<maybe<int>>(7);            // just(7)
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/applicative.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS
+      ---------------------------------------------
+
 I.    APPLICATIVE PROTOCOL
-      1.  applicative_traits<F>                   (primary, undefined)
-      2.  applicative_traits<F> [monad bridge]    (every monad is applicative)
-      3.  is_applicative<T>                        (detection trait)
+      --------------------
+      1.    applicative_traits<F>                   (primary, undefined)
+      2.    applicative_traits<F> [monad bridge]    (every monad is applicative)
+      3.    is_applicative<T>                        (detection trait)
+
 II.   GENERIC APPLICATIVE OPERATIONS
-      1.  pure<F>                                  (lift value into F)
-      2.  ap                                       (F<a->b> -> F<a> -> F<b>)
-      3.  lift_a2                                  (binary applicative lift)
+      ------------------------------
+      1.    pure<F>                                  (lift value into F)
+      2.    ap                                       (F<a->b> -> F<a> -> F<b>)
+      3.    lift_a2                                  (binary applicative lift)
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_APPLICATIVE_
-#define DJINTERP_FUNCTIONAL_APPLICATIVE_ 1
+#ifndef DJINTERP_FUNCTIONAL_APPLICATIVE_HPP
+#define DJINTERP_FUNCTIONAL_APPLICATIVE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // void_t
 #include "./monad.hpp"
 #include "./functor.hpp"
 
@@ -87,7 +100,7 @@ NS_INTERNAL
     // monad bridge's ap binds across the wrapped function F<A -> B>. A named
     // class (not a lambda) is used so it can appear in the bridge's trailing
     // return type, mirroring kleisli_helper in monad.hpp.
-    template<typename _FunctorA>
+    template<typename FunctorA>
     class applicative_ap_binder
     {
     public:
@@ -96,31 +109,31 @@ NS_INTERNAL
         // constructors when the binder itself is copied (the bridge's map
         // takes its function by value) -- the single-argument analogue of
         // why kleisli_helper's two-argument constructor is collision-free.
-        template<typename _FaFwd,
+        template<typename FaFwd,
                  typename = typename std::enable_if<
                      !std::is_same<
-                         typename std::decay<_FaFwd>::type,
+                         typename std::decay<FaFwd>::type,
                          applicative_ap_binder>::value>::type>
         D_CONSTEXPR
         explicit applicative_ap_binder(
-            _FaFwd&& _fa
+            FaFwd&& _fa
         )
-            : m_fa(std::forward<_FaFwd>(_fa))
+            : m_fa(std::forward<FaFwd>(_fa))
         {}
 
-        template<typename _Function>
+        template<typename Function>
         D_CONSTEXPR
         auto operator()(
-            const _Function& _function
+            const Function& _function
         ) const
         -> decltype(::djinterp::monad_map(
-               std::declval<const _FunctorA&>(), _function))
+               std::declval<const FunctorA&>(), _function))
         {
             return ::djinterp::monad_map(m_fa, _function);
         }
 
     private:
-        _FunctorA m_fa;
+        FunctorA m_fa;
     };
 
 NS_END  // internal
@@ -140,41 +153,41 @@ NS_END  // internal
 //   pure and ap are the whole obligation; lift_a2 is derived generically
 // below. The primary is left undefined so a use on a non-applicative
 // produces a clean resolution error.
-template<typename _Applicative,
-         typename _Enable = void>
+template<typename Applicative,
+         typename Enable = void>
 struct applicative_traits;
 
 
-// applicative_traits<_Applicative> (monad bridge)
+// applicative_traits<Applicative> (monad bridge)
 //   specialization: every monad is an applicative. Keyed on is_monad, this
 // derives pure from the monad's unit and ap from bind + map, so maybe,
 // result, and any future monad participate as applicatives with no per-type
 // specialization. A view / producer is not a monad, so its explicit
 // specialization (in its own header) never overlaps this one.
-template<typename _Applicative>
+template<typename Applicative>
 struct applicative_traits<
-    _Applicative,
-    typename std::enable_if<is_monad<_Applicative>::value>::type>
+    Applicative,
+    typename std::enable_if<is_monad<Applicative>::value>::type>
 {
     using is_specialized = std::true_type;
-    using value_type     = typename monad_value_type<_Applicative>::type;
+    using value_type     = typename monad_value_type<Applicative>::type;
 
-    template<typename _To>
-    using rebind = typename monad_rebind<_Applicative, _To>::type;
+    template<typename To>
+    using rebind = typename monad_rebind<Applicative, To>::type;
 
     // pure
     //   lift a bare value into the applicative via the monad's unit.
-    template<typename _Value>
+    template<typename Value>
     static
     D_CONSTEXPR
     auto pure(
-        _Value&& _value
+        Value&& _value
     )
-    -> decltype(::djinterp::monad_unit<_Applicative>(
-           std::forward<_Value>(_value)))
+    -> decltype(::djinterp::monad_unit<Applicative>(
+           std::forward<Value>(_value)))
     {
-        return ::djinterp::monad_unit<_Applicative>(
-            std::forward<_Value>(_value));
+        return ::djinterp::monad_unit<Applicative>(
+            std::forward<Value>(_value));
     }
 
     // ap
@@ -183,25 +196,25 @@ struct applicative_traits<
     // D_CONSTEXPR follows monad_bind / monad_map: it folds at compile time
     // under C++20 over a monad whose value is a carrier leaf, and runs at
     // runtime on the C++17 floor where maybe / result are not literal types.
-    template<typename _WrappedFn,
-             typename _FunctorA>
+    template<typename WrappedFn,
+             typename FunctorA>
     static
     D_CONSTEXPR
     auto ap(
-        _WrappedFn&& _ff,
-        _FunctorA&&  _fa
+        WrappedFn&& _ff,
+        FunctorA&&  _fa
     )
     -> decltype(::djinterp::monad_bind(
-           std::forward<_WrappedFn>(_ff),
+           std::forward<WrappedFn>(_ff),
            internal::applicative_ap_binder<
-               typename std::decay<_FunctorA>::type>(
-                   std::forward<_FunctorA>(_fa))))
+               typename std::decay<FunctorA>::type>(
+                   std::forward<FunctorA>(_fa))))
     {
         return ::djinterp::monad_bind(
-            std::forward<_WrappedFn>(_ff),
+            std::forward<WrappedFn>(_ff),
             internal::applicative_ap_binder<
-                typename std::decay<_FunctorA>::type>(
-                    std::forward<_FunctorA>(_fa)));
+                typename std::decay<FunctorA>::type>(
+                    std::forward<FunctorA>(_fa)));
     }
 };
 
@@ -212,42 +225,42 @@ NS_INTERNAL
     //   helper: SFINAE detector for whether applicative_traits<T> is
     // specialized. Looks for the is_specialized marker that every
     // specialization (including the monad bridge) provides.
-    template<typename _Type>
+    template<typename Type>
     struct is_applicative_helper
     {
     private:
-        template<typename _T>
+        template<typename T>
         static auto test(int)
             -> decltype(
-                typename applicative_traits<_T>::is_specialized{},
+                typename applicative_traits<T>::is_specialized{},
                 std::true_type{});
 
         template<typename>
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 
 // is_applicative
-//   trait: true if _Type has a specialization of applicative_traits (after
+//   trait: true if Type has a specialization of applicative_traits (after
 // cv-ref stripping). Used to SFINAE-constrain generic applicative
 // operations.
-template<typename _Type>
+template<typename Type>
 struct is_applicative
-    : internal::is_applicative_helper<typename std::decay<_Type>::type>::type
+    : internal::is_applicative_helper<typename std::decay<Type>::type>::type
 {
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // is_applicative_v
-//   value: convenience alias for is_applicative<_Type>::value.
-template<typename _Type>
-static constexpr bool is_applicative_v = is_applicative<_Type>::value;
+//   value: convenience alias for is_applicative<Type>::value.
+template<typename Type>
+static constexpr bool is_applicative_v = is_applicative<Type>::value;
 #endif
 
 
@@ -271,27 +284,27 @@ NS_INTERNAL
     // applicative_value_type_helper
     //   helper: SFINAE extractor for applicative_traits<F>::value_type
     // (primary: no `type`, soft failure).
-    template<typename _AlwaysVoid,
-             typename _Applicative>
+    template<typename AlwaysVoid,
+             typename Applicative>
     struct applicative_value_type_helper
     {};
 
     // applicative_value_type_helper (well-formed specialization)
     //   helper: yields applicative_traits<F>::value_type when present.
-    template<typename _Applicative>
+    template<typename Applicative>
     struct applicative_value_type_helper<
-        void_t<typename applicative_traits<_Applicative>::value_type>,
-        _Applicative>
+        void_t<typename applicative_traits<Applicative>::value_type>,
+        Applicative>
     {
-        using type = typename applicative_traits<_Applicative>::value_type;
+        using type = typename applicative_traits<Applicative>::value_type;
     };
 
     // is_applicable_helper
     //   helper: detection sink for a well-formed ap(Ff, Fa) (primary:
     // false). The well-formed specialization is defined after ap below.
-    template<typename _AlwaysVoid,
-             typename _WrappedFn,
-             typename _FunctorA>
+    template<typename AlwaysVoid,
+             typename WrappedFn,
+             typename FunctorA>
     struct is_applicable_helper : std::false_type
     {};
 
@@ -302,18 +315,18 @@ NS_END  // internal
 //   trait: the inner value type T of an applicative F, i.e.
 // applicative_traits<F>::value_type. SFINAE-friendly: has a `::type` only
 // when F is a specialized applicative.
-template<typename _Applicative>
+template<typename Applicative>
 struct applicative_value_type
 {
     using type = typename internal::applicative_value_type_helper<
-        void, typename std::decay<_Applicative>::type>::type;
+        void, typename std::decay<Applicative>::type>::type;
 };
 
 // applicative_value_type_t
 //   type: convenience alias for applicative_value_type<F>::type.
-template<typename _Applicative>
+template<typename Applicative>
 using applicative_value_type_t =
-    typename applicative_value_type<_Applicative>::type;
+    typename applicative_value_type<Applicative>::type;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -333,36 +346,36 @@ NS_INTERNAL
     // function f and a fixed first argument a, and applied to a second
     // argument b yields f(a, b) -- i.e. `\b -> f(a, b)`. A named class (not
     // a lambda) so it can appear in trailing return types on every floor.
-    template<typename _Function,
-             typename _First>
+    template<typename Function,
+             typename First>
     class applicative_a2_binder
     {
     public:
-        template<typename _FnFwd,
-                 typename _FirstFwd>
+        template<typename FnFwd,
+                 typename FirstFwd>
         D_CONSTEXPR
         applicative_a2_binder(
-            _FnFwd&&    _function,
-            _FirstFwd&& _first
+            FnFwd&&    _function,
+            FirstFwd&& _first
         )
-            : m_function(std::forward<_FnFwd>(_function))
-            , m_first(std::forward<_FirstFwd>(_first))
+            : m_function(std::forward<FnFwd>(_function))
+            , m_first(std::forward<FirstFwd>(_first))
         {}
 
-        template<typename _Second>
+        template<typename Second>
         D_CONSTEXPR
         auto operator()(
-            const _Second& _second
+            const Second& _second
         ) const
-        -> decltype(std::declval<const _Function&>()(
-               std::declval<const _First&>(), _second))
+        -> decltype(std::declval<const Function&>()(
+               std::declval<const First&>(), _second))
         {
             return m_function(m_first, _second);
         }
 
     private:
-        _Function m_function;
-        _First    m_first;
+        Function m_function;
+        First     m_first;
     };
 
     // applicative_a2_curry
@@ -370,39 +383,39 @@ NS_INTERNAL
     // function f and, applied to a first argument a, yields the inner
     // binder `\b -> f(a, b)` -- i.e. `\a -> \b -> f(a, b)`. Mapping this over
     // the first context turns F<A> into F<B -> C>, ready for ap with F<B>.
-    template<typename _Function>
+    template<typename Function>
     class applicative_a2_curry
     {
     public:
         // Self-type guard, as in applicative_ap_binder: this single-argument
         // forwarding constructor must not shadow copy / move when the curry
         // is duplicated (functor_map over the first context copies it).
-        template<typename _FnFwd,
+        template<typename FnFwd,
                  typename = typename std::enable_if<
                      !std::is_same<
-                         typename std::decay<_FnFwd>::type,
+                         typename std::decay<FnFwd>::type,
                          applicative_a2_curry>::value>::type>
         D_CONSTEXPR
         explicit applicative_a2_curry(
-            _FnFwd&& _function
+            FnFwd&& _function
         )
-            : m_function(std::forward<_FnFwd>(_function))
+            : m_function(std::forward<FnFwd>(_function))
         {}
 
-        template<typename _First>
+        template<typename First>
         D_CONSTEXPR
-        applicative_a2_binder<_Function, typename std::decay<_First>::type>
+        applicative_a2_binder<Function, typename std::decay<First>::type>
         operator()(
-            const _First& _first
+            const First& _first
         ) const
         {
             return applicative_a2_binder<
-                _Function, typename std::decay<_First>::type>(
+                Function, typename std::decay<First>::type>(
                     m_function, _first);
         }
 
     private:
-        _Function m_function;
+        Function m_function;
     };
 
 NS_END  // internal
@@ -410,23 +423,23 @@ NS_END  // internal
 
 // pure
 //   function: lifts a plain value into an applicative context. The
-// applicative type _Applicative must be supplied explicitly because there
+// applicative type Applicative must be supplied explicitly because there
 // is no way to deduce F<T> from T alone (the dual of monad_unit).
 //
 //   Example: pure<maybe<int>>(5) -> just(5)
-template<typename _Applicative,
-         typename _Value>
+template<typename Applicative,
+         typename Value>
 D_NODISCARD
 D_CONSTEXPR
 auto pure
 (
-    _Value&& _value
+    Value&& _value
 )
--> decltype(applicative_traits<_Applicative>::pure(
-       std::forward<_Value>(_value)))
+-> decltype(applicative_traits<Applicative>::pure(
+       std::forward<Value>(_value)))
 {
-    return applicative_traits<_Applicative>::pure(
-        std::forward<_Value>(_value));
+    return applicative_traits<Applicative>::pure(
+        std::forward<Value>(_value));
 }
 
 
@@ -436,22 +449,22 @@ auto pure
 // same applicative F; the operation is delegated to applicative_traits<F>::ap
 // keyed on the wrapped-function context. For maybe / result this short-
 // circuits: a nothing / err on either side propagates.
-template<typename _WrappedFn,
-         typename _FunctorA>
+template<typename WrappedFn,
+         typename FunctorA>
 D_NODISCARD
 D_CONSTEXPR
 auto ap
 (
-    _WrappedFn&& _ff,
-    _FunctorA&&  _fa
+    WrappedFn&& _ff,
+    FunctorA&&  _fa
 )
--> decltype(applicative_traits<typename std::decay<_WrappedFn>::type>::ap(
-       std::forward<_WrappedFn>(_ff),
-       std::forward<_FunctorA>(_fa)))
+-> decltype(applicative_traits<typename std::decay<WrappedFn>::type>::ap(
+       std::forward<WrappedFn>(_ff),
+       std::forward<FunctorA>(_fa)))
 {
-    return applicative_traits<typename std::decay<_WrappedFn>::type>::ap(
-        std::forward<_WrappedFn>(_ff),
-        std::forward<_FunctorA>(_fa));
+    return applicative_traits<typename std::decay<WrappedFn>::type>::ap(
+        std::forward<WrappedFn>(_ff),
+        std::forward<FunctorA>(_fa));
 }
 
 
@@ -459,13 +472,13 @@ NS_INTERNAL
 
     // is_applicable_helper (well-formed specialization)
     //   helper: true when ap(Ff, Fa) is a valid expression.
-    template<typename _WrappedFn,
-             typename _FunctorA>
+    template<typename WrappedFn,
+             typename FunctorA>
     struct is_applicable_helper<
         void_t<decltype(::djinterp::ap(
-            std::declval<_WrappedFn>(), std::declval<_FunctorA>()))>,
-        _WrappedFn,
-        _FunctorA> : std::true_type
+            std::declval<WrappedFn>(), std::declval<FunctorA>()))>,
+        WrappedFn,
+        FunctorA> : std::true_type
     {};
 
 NS_END  // internal
@@ -474,10 +487,10 @@ NS_END  // internal
 // is_applicable
 //   trait: true when ap(declval<Ff>(), declval<Fa>()) is a well-formed
 // expression.
-template<typename _WrappedFn,
-         typename _FunctorA>
+template<typename WrappedFn,
+         typename FunctorA>
 struct is_applicable
-    : internal::is_applicable_helper<void, _WrappedFn, _FunctorA>
+    : internal::is_applicable_helper<void, WrappedFn, FunctorA>
 {};
 
 
@@ -485,10 +498,10 @@ struct is_applicable
 
     // is_applicable_v
     //   value: convenience alias for is_applicable<...>::value.
-    template<typename _WrappedFn,
-             typename _FunctorA>
+    template<typename WrappedFn,
+             typename FunctorA>
     constexpr bool is_applicable_v =
-        is_applicable<_WrappedFn, _FunctorA>::value;
+        is_applicable<WrappedFn, FunctorA>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -502,53 +515,55 @@ struct is_applicable
 //
 //   Left-biased like lift_m2 (fa is mapped first); for maybe / result this
 // is observationally irrelevant, but the order is fixed for predictability.
-template<typename _FunctorA,
-         typename _FunctorB,
-         typename _Function>
+template<typename FunctorA,
+         typename FunctorB,
+         typename Function>
 D_NODISCARD
 D_CONSTEXPR
 auto lift_a2
 (
-    _FunctorA&& _fa,
-    _FunctorB&& _fb,
-    _Function&& _function
+    FunctorA&& _fa,
+    FunctorB&& _fb,
+    Function&& _function
 )
 -> decltype(::djinterp::ap(
        ::djinterp::functor_map(
-           std::declval<_FunctorA>(),
+           std::declval<FunctorA>(),
            std::declval<internal::applicative_a2_curry<
-               typename std::decay<_Function>::type> >()),
-       std::declval<_FunctorB>()))
+               typename std::decay<Function>::type> >()),
+       std::declval<FunctorB>()))
 {
     return ::djinterp::ap(
         ::djinterp::functor_map(
-            std::forward<_FunctorA>(_fa),
+            std::forward<FunctorA>(_fa),
             internal::applicative_a2_curry<
-                typename std::decay<_Function>::type>(
-                    std::forward<_Function>(_function))),
-        std::forward<_FunctorB>(_fb));
+                typename std::decay<Function>::type>(
+                    std::forward<Function>(_function))),
+        std::forward<FunctorB>(_fb));
 }
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // Applicative
-    //   concept: satisfied when _Type is a specialized applicative. The
+    //   concept: satisfied when Type is a specialized applicative. The
     // PascalCase typeclass face, alongside Functor / Callable / Predicate.
-    template<typename _Type>
-    concept Applicative = is_applicative<_Type>::value;
+    template<typename Type>
+    concept Applicative = is_applicative<Type>::value;
 
     // applicable_with
-    //   concept: satisfied when ap(_WrappedFn, _FunctorA) is well-formed
+    //   concept: satisfied when ap(WrappedFn, FunctorA) is well-formed
     // (mirrors monad's bindable_with and functor's fmappable_with).
-    template<typename _WrappedFn,
-             typename _FunctorA>
-    concept applicable_with = is_applicable<_WrappedFn, _FunctorA>::value;
+    template<typename WrappedFn,
+             typename FunctorA>
+    concept applicable_with = is_applicable<WrappedFn, FunctorA>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_APPLICATIVE_
+
+#endif  // DJINTERP_FUNCTIONAL_APPLICATIVE_HPP

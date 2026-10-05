@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                      merge_sort_common.hpp
+/*******************************************************************************
+* djinterp [core]                                          merge_sort_common.hpp
 *
 *   The primitives every merge sort is built from.
 * A merge sort is a driver wrapped around two operations: merge two adjacent
@@ -34,17 +34,17 @@
 * O(n log n).
 *
 *
-* path:      /djinterp/cpp/util/sort/merge_sort_common.hpp
+* path:      /inc/djinterp/core/util/sort/merge_sort_common.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_MERGE_COMMON_HPP_
-#define DJINTERP_UTILITY_SORT_MERGE_COMMON_HPP_ 1
+#ifndef DJINTERP_UTIL_SORT_MERGE_SORT_COMMON_HPP
+#define DJINTERP_UTIL_SORT_MERGE_SORT_COMMON_HPP 1
 
 // djinterp
-#include "../../djinterp.hpp"
-#include "./sort_common.hpp"
+#include "../../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -91,20 +91,20 @@ NS_INTERNAL
     // span becomes a straight copy.
     //
     //   _src and _dst must not overlap over [_begin, _end).
-    template<typename _SrcIterator,
-             typename _DstIterator,
-             typename _Difference,
-             typename _Comparator>
-    void merge_runs(_SrcIterator _src,
-                    _DstIterator _dst,
-                    _Difference  _begin,
-                    _Difference  _mid,
-                    _Difference  _end,
-                    _Comparator  _comparator)
+    template<typename SrcIterator,
+             typename DstIterator,
+             typename Difference,
+             typename Comparator>
+    void merge_runs(SrcIterator _src,
+                    DstIterator _dst,
+                    Difference   _begin,
+                    Difference   _mid,
+                    Difference   _end,
+                    Comparator   _comparator)
     {
-        _Difference left;
-        _Difference right;
-        _Difference out;
+        Difference left;
+        Difference right;
+        Difference out;
 
         // an empty span has nothing to merge
         if (_end <= _begin)
@@ -165,19 +165,19 @@ NS_INTERNAL
     //
     //   The run pairs are DISJOINT, which is the property a concurrent driver
     // exploits: no two iterations below touch the same element.
-    template<typename _SrcIterator,
-             typename _DstIterator,
-             typename _Difference,
-             typename _Comparator>
-    void merge_pass(_SrcIterator _src,
-                    _DstIterator _dst,
-                    _Difference  _count,
-                    _Difference  _width,
-                    _Comparator  _comparator)
+    template<typename SrcIterator,
+             typename DstIterator,
+             typename Difference,
+             typename Comparator>
+    void merge_pass(SrcIterator _src,
+                    DstIterator _dst,
+                    Difference   _count,
+                    Difference   _width,
+                    Comparator   _comparator)
     {
-        _Difference begin;
-        _Difference mid;
-        _Difference end;
+        Difference begin;
+        Difference mid;
+        Difference end;
 
         // a zero width would not advance, and an empty range has no runs
         if ( (_width < 1) ||
@@ -220,4 +220,4 @@ NS_END  // internal
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_SORT_MERGE_COMMON_HPP_
+#endif  // DJINTERP_UTIL_SORT_MERGE_SORT_COMMON_HPP

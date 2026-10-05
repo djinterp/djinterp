@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                     jit_ppc.c
+/*******************************************************************************
+* djinterp [jit]                                                       jit_ppc.c
 *
 * djinterp PowerPC (PPC32 / PPC64) JIT encoder -- implementation (jit_ppc.h).
 *   Emitters assemble each instruction through the shared form encoders (X/XO,
@@ -8,13 +8,14 @@
 * +/-32 KB) -- both PC-relative to the branch and invoked by the label facility
 * in jit.h. PowerPC has no delay slots, so nothing follows a branch implicitly.
 *
-* path:      /inc/djinterp/jit/jit_ppc.c
+*
+* path:      /src/djinterp/jit/jit_ppc.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit_ppc.h"
+#include "../../../inc/djinterp/jit/jit_ppc.h"
 
 
 // ===========================================================================

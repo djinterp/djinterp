@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               new_handler.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              new_handler.hpp
 *
 * new_handler facility header:
 *   The new-handler is the function called by operator new when
@@ -23,19 +23,23 @@
 * to it.
 *
 *
-* path:      /inc/djinterp/re_std/new/new_handler.hpp
+* path:      /inc/re_std/new/new_handler.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NEW_HANDLER_
-#define DJINTERP_RE_STD_NEW_HANDLER_ 1
+#ifndef RE_STD_NEW_NEW_HANDLER_HPP
+#define RE_STD_NEW_NEW_HANDLER_HPP 1
 
-#include "../../core/djinterp.hpp"
+// std
 #include <new>
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -51,9 +55,10 @@ typedef std::new_handler new_handler;
 // II.  C++98 STORAGE HELPER (back-port for get_new_handler)
 // ===========================================================================
 
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if !RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-NS_INTERNAL
+namespace internal
+{
 
     // Single global that mirrors the value last passed to set_new_handler.
     // Function-local static = zero-init at first use, no order-of-init
@@ -62,11 +67,11 @@ NS_INTERNAL
     inline new_handler&
     _last_set_handler()
     {
-        static new_handler _h = D_NULLPTR;
+        static new_handler _h = RE_STD_NULLPTR;
         return _h;
     }
 
-NS_END  // internal
+}  // internal
 
 #endif
 
@@ -75,13 +80,13 @@ NS_END  // internal
 // III. SET_NEW_HANDLER
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // C++11+: std::set_new_handler is noexcept. Pass through directly.
 inline new_handler
 set_new_handler(
     new_handler _h
-) D_NOEXCEPT
+) RE_STD_NOEXCEPT
 {
     return std::set_new_handler(_h);
 }
@@ -107,11 +112,11 @@ set_new_handler(
 // IV.  GET_NEW_HANDLER
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // C++11+: pass through to std.
 inline new_handler
-get_new_handler() D_NOEXCEPT
+get_new_handler() RE_STD_NOEXCEPT
 {
     return std::get_new_handler();
 }
@@ -130,7 +135,7 @@ get_new_handler() throw()
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_NEW_HANDLER_
+#endif  // RE_STD_NEW_NEW_HANDLER_HPP

@@ -1,22 +1,25 @@
-/***********************************************************************
-* re_std                                                 weak_ptr_swap.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            weak_ptr_swap.hpp
 *
+* weak_ptr_swap swap specialization header:
 * non-member ADL swap overload for weak_ptr. Delegates to the
 * member swap.
 *
 *
-* path:      /inc/djinterp/re_std/memory/weak_ptr_swap.hpp
+* path:      /inc/re_std/memory/weak_ptr_swap.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_WEAK_PTR_SWAP_
-#define DJINTERP_RE_STD_MEMORY_WEAK_PTR_SWAP_ 1
+#ifndef RE_STD_MEMORY_WEAK_PTR_SWAP_HPP
+#define RE_STD_MEMORY_WEAK_PTR_SWAP_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/memory/weak_ptr.hpp"
 
@@ -24,15 +27,14 @@
 namespace re_std
 {
 
-template<typename _T>
-D_INLINE void swap(weak_ptr<_T>& _lhs, weak_ptr<_T>& _rhs) D_NOEXCEPT
+template<typename T>
+RE_STD_INLINE void swap(weak_ptr<T>& _lhs, weak_ptr<T>& _rhs) RE_STD_NOEXCEPT
 {
     _lhs.swap(_rhs);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_WEAK_PTR_SWAP_
+#endif  // RE_STD_MEMORY_WEAK_PTR_SWAP_HPP

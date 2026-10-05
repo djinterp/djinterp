@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                               color_rgb.h
+/*******************************************************************************
+* djinterp [c]                                                       color_rgb.h
 *
 *   RGB family shared kernel for the djinterp color module. Defines the
 * linear-RGB POD and its companions (straight-alpha RGBA, premultiplied
@@ -18,8 +18,9 @@
 *
 * path:      /inc/djinterp/c/util/color/color_rgb.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -28,60 +29,75 @@ I.    POD TYPES
       ---------
       a. d_color_rgb
       b. d_color_rgba
-      c. d_color_rgba_premul
-      d. d_color_rgb_u8
-      e. d_color_rgba_u8
-      f. d_color_rgb_hex, d_color_rgba_hex
+      c.    d_color_rgba_premul
+            d. d_color_rgb_u8
+            e. d_color_rgba_u8
+            f. d_color_rgb_hex, d_color_rgba_hex
+
 II.   CONSTRUCTION
       ------------
       a. d_color_rgb_make
       b. d_color_rgba_make
-      c. d_color_rgba_premul_make
-      d. d_color_rgb_u8_make
-      e. d_color_rgba_u8_make
+      c.    d_color_rgba_premul_make
+            d. d_color_rgb_u8_make
+            e. d_color_rgba_u8_make
+
 III.  VALIDATION & CLAMPING
       ---------------------
       a. d_color_rgb_is_valid / d_color_rgba_is_valid
       b. d_color_rgb_clamp / d_color_rgba_clamp
+
 IV.   sRGB GAMMA TRANSFER
       -------------------
       a. d_color_srgb_to_linear_component / d_color_linear_to_srgb_component
       b. d_color_rgb_from_srgb / d_color_rgb_to_srgb
+
 V.    ALPHA
       -----
       a. d_color_rgba_from_rgb / d_color_rgb_from_rgba
       b. d_color_rgba_premultiply / d_color_rgba_unpremultiply
-      c. d_color_rgba_blend_over / d_color_rgba_blend_over_straight
+      c.    d_color_rgba_blend_over / d_color_rgba_blend_over_straight
+
 VI.   8-BIT (de)serialization
-      ----------------------
+      -----------------------
       a. d_color_rgb_from_u8 / d_color_rgb_to_u8
       b. d_color_rgba_from_u8 / d_color_rgba_to_u8
+
 VII.  HEX (de)serialization
-      --------------------
+      ---------------------
       a. d_color_rgb_from_hex / d_color_rgb_to_hex
       b. d_color_rgba_from_hex / d_color_rgba_to_hex
-      c. d_color_rgb_from_hex_string / d_color_rgba_from_hex_string
-      d. d_color_rgb_hex_from_string
+      c.    d_color_rgb_from_hex_string / d_color_rgba_from_hex_string
+            d. d_color_rgb_hex_from_string
+
 VIII. OPERATIONS
       ----------
       a. d_color_rgb_luminance / d_color_rgba_luminance
       b. d_color_rgb_contrast_ratio
-      c. d_color_rgb_to_grayscale
-      d. d_color_rgb_invert
-      e. d_color_rgb_lerp / d_color_rgba_lerp
-      f. d_color_rgb_from_temperature
+      c.    d_color_rgb_to_grayscale
+            d. d_color_rgb_invert
+            e. d_color_rgb_lerp / d_color_rgba_lerp
+            f. d_color_rgb_from_temperature
 */
 
-#ifndef  DJINTERP_C_COLOR_RGB_
-#define  DJINTERP_C_COLOR_RGB_ 1
+#ifndef DJINTERP_C_UTIL_COLOR_COLOR_RGB_H
+#define DJINTERP_C_UTIL_COLOR_COLOR_RGB_H 1
+
+// FLOOR, FOR NOW: its C++ face is empty below C++11, rather than an
+// error (README rule 5). The owner's ruling: compile at every level first;
+// port to C++98 only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if ( (!D_ENV_LANG_USING_CPP) ||                                         \
+      (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
 
 // std
 #include <math.h>
 #include <string.h>
-#include <stdint.h>
 // djinterp
 #include "../../djinterp.h"
 #include "./color_common.h"
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // uint8_t, uint32_t
 
 D_COLOR_NS_OPEN
 
@@ -1148,5 +1164,7 @@ d_color_rgb_from_temperature(
 
 D_COLOR_NS_CLOSE
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_C_COLOR_RGB_ */
+
+#endif  // DJINTERP_C_UTIL_COLOR_COLOR_RGB_H

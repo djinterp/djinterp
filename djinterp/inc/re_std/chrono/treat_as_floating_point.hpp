@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                  treat_as_floating_point.hpp
 *
 * the treat_as_floating_point trait:
@@ -25,54 +25,56 @@
 * answer for those.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/treat_as_floating_point.hpp
+* path:      /inc/re_std/chrono/treat_as_floating_point.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_TREAT_AS_FLOATING_POINT_
-#define DJINTERP_RE_STD_CHRONO_TREAT_AS_FLOATING_POINT_ 1
+#ifndef RE_STD_CHRONO_TREAT_AS_FLOATING_POINT_HPP
+#define RE_STD_CHRONO_TREAT_AS_FLOATING_POINT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "../type_traits/is_floating_point.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
     // treat_as_floating_point
-    //   trait: true if _Rep may take part in implicit duration
+    //   trait: true if Rep may take part in implicit duration
     // conversions that are not exact. Defaults to is_floating_point;
     // specialise for a user-defined representation.
-    template<typename _Rep>
+    template<typename Rep>
     struct treat_as_floating_point
-        : is_floating_point<_Rep>
+        : is_floating_point<Rep>
     {};
 
     // treat_as_floating_point_v (C++17, back-ported to C++14)
     //   variable: the trait's value. std added the _v spelling in C++17;
     // re_std provides it wherever variable templates exist, which is
     // C++14.
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Rep>
-    D_CONSTEXPR bool treat_as_floating_point_v =
-        treat_as_floating_point<_Rep>::value;
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+    template<typename Rep>
+    RE_STD_CONSTEXPR bool treat_as_floating_point_v =
+        treat_as_floating_point<Rep>::value;
 #endif
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_TREAT_AS_FLOATING_POINT_
+#endif  // RE_STD_CHRONO_TREAT_AS_FLOATING_POINT_HPP

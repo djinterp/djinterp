@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [optional]                                     optional_less_equal.hpp
+/*******************************************************************************
+* djinterp [re_std]                                      optional_less_equal.hpp
 *
+* optional_less_equal support header:
 *   operator<= for optional<T>, in all three overload families.
 *
 *   Three overload families, as std specifies: optional vs optional, optional vs
@@ -15,29 +16,31 @@
 * used as a map key or sorted without surprises.
 *
 *
-* path:      /inc/djinterp/re_std/optional/optional_less_equal.hpp
+* path:      /inc/re_std/optional/optional_less_equal.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_OPTIONAL_LESS_EQUAL_
-#define DJINTERP_RE_STD_OPTIONAL_LESS_EQUAL_ 1
+#ifndef RE_STD_OPTIONAL_OPTIONAL_LESS_EQUAL_HPP
+#define RE_STD_OPTIONAL_OPTIONAL_LESS_EQUAL_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./optional.hpp"
 #include "./nullopt.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // operator<=
 //   function: optional vs optional.
-template<typename _Type>
-D_CONSTEXPR bool operator<=(const optional<_Type>& a, const optional<_Type>& b)
+template<typename Type>
+RE_STD_CONSTEXPR bool operator<=(const optional<Type>& a, const optional<Type>& b)
 {
     return (a.has_value() != b.has_value())
                ? (!a.has_value())
@@ -47,14 +50,14 @@ D_CONSTEXPR bool operator<=(const optional<_Type>& a, const optional<_Type>& b)
 // operator<=
 //   function: optional vs nullopt_t.  A disengaged optional is equal to
 // nullopt and less than everything else.
-template<typename _Type>
-D_CONSTEXPR bool operator<=(const optional<_Type>& a, nullopt_t) D_NOEXCEPT
+template<typename Type>
+RE_STD_CONSTEXPR bool operator<=(const optional<Type>& a, nullopt_t) RE_STD_NOEXCEPT
 {
     return !a.has_value();
 }
 
-template<typename _Type>
-D_CONSTEXPR bool operator<=(nullopt_t, const optional<_Type>& ) D_NOEXCEPT
+template<typename Type>
+RE_STD_CONSTEXPR bool operator<=(nullopt_t, const optional<Type>& ) RE_STD_NOEXCEPT
 {
     return true;
 }
@@ -62,19 +65,19 @@ D_CONSTEXPR bool operator<=(nullopt_t, const optional<_Type>& ) D_NOEXCEPT
 // operator<=
 //   function: optional vs value.  A disengaged optional compares as if it
 // were below every value.
-template<typename _Type, typename _Other>
-D_CONSTEXPR bool operator<=(const optional<_Type>& a, const _Other& b)
+template<typename Type, typename Other>
+RE_STD_CONSTEXPR bool operator<=(const optional<Type>& a, const Other& b)
 {
     return a.has_value() ? (*a <= b) : (true);
 }
 
-template<typename _Type, typename _Other>
-D_CONSTEXPR bool operator<=(const _Other& a, const optional<_Type>& b)
+template<typename Type, typename Other>
+RE_STD_CONSTEXPR bool operator<=(const Other& a, const optional<Type>& b)
 {
     return b.has_value() ? (a <= *b) : (false);
 }
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_OPTIONAL_LESS_EQUAL_
+#endif  // RE_STD_OPTIONAL_OPTIONAL_LESS_EQUAL_HPP

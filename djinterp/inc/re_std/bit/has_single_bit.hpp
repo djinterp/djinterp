@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           has_single_bit.hpp
 *
 * has_single_bit header:
@@ -14,25 +14,27 @@
 *   C++20 in std, back-ported to C++11 and constexpr from C++11.
 *
 *
-* path:      /inc/djinterp/re_std/bit/has_single_bit.hpp
+* path:      /inc/re_std/bit/has_single_bit.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_HAS_SINGLE_BIT_
-#define DJINTERP_RE_STD_BIT_HAS_SINGLE_BIT_ 1
+#ifndef RE_STD_BIT_HAS_SINGLE_BIT_HPP
+#define RE_STD_BIT_HAS_SINGLE_BIT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./bit_internal.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -41,22 +43,22 @@ NS_RESTD
 
 // has_single_bit
 //   function: whether _v is an integral power of two. False for zero.
-template<typename _T>
-D_CONSTEXPR typename internal::bit_enable<_T, bool>::type
+template<typename T>
+RE_STD_CONSTEXPR typename internal::bit_enable<T, bool>::type
 has_single_bit(
-    _T _v
-) D_NOEXCEPT
+    T _v
+) RE_STD_NOEXCEPT
 {
     // clearing the lowest set bit empties the value only when there was
     // exactly one set bit to clear
-    return (_v != 0) && ( (_v & static_cast<_T>(_v - 1)) == 0 );
+    return (_v != 0) && ( (_v & static_cast<T>(_v - 1)) == 0 );
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BIT_HAS_SINGLE_BIT_
+#endif  // RE_STD_BIT_HAS_SINGLE_BIT_HPP

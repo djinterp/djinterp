@@ -7,7 +7,7 @@
 * path:      /src/djinterp/net/ftp/ftp_url.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_url.h"  // corresponding header
 // std
@@ -152,9 +152,87 @@ d_ftp_internal_url_userinfo(
 }
 
 /*
+d_ftp_internal_url_literal
+  File-local: reads an IPv6 literal in brackets, which only ':' and a port
+may follow; `*_out_port` is where the port starts, or `_end` for none.
+*/
+D_STATIC enum d_ftp_error
+d_ftp_internal_url_literal(
+    const char*       _text,
+    size_t            _start,
+    size_t            _end,
+    struct d_ftp_url* _out,
+    size_t*           _out_port
+)
+{
+    const char* const close = memchr(_text + _start,
+                                     ']',
+                                     _end - _start);
+
+    // an unclosed bracket
+    if (!close)
+    {
+        return D_FTP_ERROR_MALFORMED;
+    }
+
+    const size_t after = (size_t)(close - _text) + 1u;
+
+    // after the bracket: nothing, or ':' and the port
+    if ( (after < _end) &&
+         (_text[after] != ':') )
+    {
+        return D_FTP_ERROR_MALFORMED;
+    }
+
+    _out->host.data    = _text + _start + 1u;
+    _out->host.length  = after - _start - 2u;
+    _out->ipv6_literal = true;
+    *_out_port         = (after < _end) ? (after + 1u) : _end;
+
+    return D_FTP_OK;
+}
+
+/*
+d_ftp_internal_url_port
+  File-local: reads an explicit port of 1 to 65535 from `_start` to `_end`;
+an empty port means the scheme's default (RFC 3986 3.2.3).
+*/
+D_STATIC enum d_ftp_error
+d_ftp_internal_url_port(
+    const char*       _text,
+    size_t            _start,
+    size_t            _end,
+    struct d_ftp_url* _out
+)
+{
+    uint64_t port = 0u;
+
+    // no port: the scheme's default
+    if (_start >= _end)
+    {
+        return D_FTP_OK;
+    }
+
+    // a port of 1 to 65535
+    if ( (!d_ftp_internal_parse_uint(_text + _start,
+                                     _end - _start,
+                                     65535u,
+                                     &port)) ||
+         (port == 0u) )
+    {
+        return D_FTP_ERROR_MALFORMED;
+    }
+
+    _out->port     = (uint16_t)port;
+    _out->has_port = true;
+
+    return D_FTP_OK;
+}
+
+/*
 d_ftp_internal_url_host
   File-local: reads the host, bracketed when it is an IPv6 literal, and an
-optional port; an empty port means the scheme's default (RFC 3986 3.2.3).
+optional port.
 */
 D_STATIC enum d_ftp_error
 d_ftp_internal_url_host(
@@ -164,38 +242,18 @@ d_ftp_internal_url_host(
     struct d_ftp_url* _out
 )
 {
-    size_t port_start = _end;
+    size_t           port_start = _end;
+    enum d_ftp_error error      = D_FTP_OK;
 
-    // an IPv6 literal sits in brackets
+    // an IPv6 literal sits in brackets; any other host runs to a ':'
     if ( (_start < _end) &&
          (_text[_start] == '[') )
     {
-        const char* const close = memchr(_text + _start,
-                                         ']',
-                                         _end - _start);
-
-        // an unclosed bracket
-        if (!close)
-        {
-            return D_FTP_ERROR_MALFORMED;
-        }
-
-        const size_t close_index = (size_t)(close - _text);
-
-        _out->host.data    = _text + _start + 1u;
-        _out->host.length  = close_index - _start - 1u;
-        _out->ipv6_literal = true;
-
-        // after the bracket: nothing, or ':' and the port
-        if ((close_index + 1u) < _end)
-        {
-            if (_text[close_index + 1u] != ':')
-            {
-                return D_FTP_ERROR_MALFORMED;
-            }
-
-            port_start = close_index + 2u;
-        }
+        error = d_ftp_internal_url_literal(_text,
+                                           _start,
+                                           _end,
+                                           _out,
+                                           &port_start);
     }
     else
     {
@@ -207,40 +265,21 @@ d_ftp_internal_url_host(
 
         _out->host.data   = _text + _start;
         _out->host.length = host_end - _start;
-
-        // a ':' introduces the port
-        if (colon)
-        {
-            port_start = host_end + 1u;
-        }
+        port_start        = (colon) ? (host_end + 1u) : _end;
     }
 
     // a URL names a host
-    if (_out->host.length == 0u)
+    if ( (error == D_FTP_OK) &&
+         (_out->host.length == 0u) )
     {
-        return D_FTP_ERROR_MALFORMED;
+        error = D_FTP_ERROR_MALFORMED;
     }
 
-    // an explicit port of 1 to 65535
-    if (port_start < _end)
-    {
-        uint64_t   port   = 0;
-        const bool parsed = d_ftp_internal_parse_uint(_text + port_start,
-                                                      _end - port_start,
-                                                      65535u,
-                                                      &port);
-
-        if ( (!parsed) ||
-             (port == 0u) )
-        {
-            return D_FTP_ERROR_MALFORMED;
-        }
-
-        _out->port     = (uint16_t)port;
-        _out->has_port = true;
-    }
-
-    return D_FTP_OK;
+    return (error != D_FTP_OK) ? error
+                               : d_ftp_internal_url_port(_text,
+                                                         port_start,
+                                                         _end,
+                                                         _out);
 }
 
 /*
@@ -283,10 +322,111 @@ d_ftp_internal_url_path(
 }
 
 /*
+d_ftp_internal_url_clean
+  File-local: reports whether a URL is free of spaces and control
+characters, which must be percent-encoded.
+*/
+D_STATIC bool
+d_ftp_internal_url_clean(
+    const char* _text,
+    size_t      _length
+)
+{
+    // every byte above space, and not DEL
+    for (size_t index = 0u; index < _length; index++)
+    {
+        const unsigned char byte = (unsigned char)_text[index];
+
+        if ( (byte <= 0x20u) ||
+             (byte == 0x7Fu) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
+d_ftp_internal_url_authority
+  File-local: reads the authority between `_start` and `_end`: credentials,
+which end at its last '@' so an unencoded '@' in a password still parses
+the way browsers and curl read it, then the host and port.
+*/
+D_STATIC enum d_ftp_error
+d_ftp_internal_url_authority(
+    const char*       _text,
+    size_t            _start,
+    size_t            _end,
+    struct d_ftp_url* _out
+)
+{
+    size_t host_start = _start;
+
+    // the credentials end at the authority's last '@'
+    for (size_t index = _start; index < _end; index++)
+    {
+        if (_text[index] == '@')
+        {
+            host_start = index + 1u;
+        }
+    }
+
+    // user[:password]
+    if (host_start > _start)
+    {
+        d_ftp_internal_url_userinfo(_text,
+                                    _start,
+                                    host_start - 1u,
+                                    _out);
+    }
+
+    return d_ftp_internal_url_host(_text,
+                                   host_start,
+                                   _end,
+                                   _out);
+}
+
+/*
+d_ftp_internal_url_rest
+  File-local: reads everything after "scheme://": the authority, which runs
+to the first '/', and the path that follows that '/'.
+*/
+D_STATIC enum d_ftp_error
+d_ftp_internal_url_rest(
+    const char*       _text,
+    size_t            _length,
+    size_t            _authority,
+    struct d_ftp_url* _out
+)
+{
+    const char* const slash         = memchr(_text + _authority,
+                                             '/',
+                                             _length - _authority);
+    const size_t      authority_end = (slash) ? (size_t)(slash - _text)
+                                              : _length;
+    enum d_ftp_error  error         =
+        d_ftp_internal_url_authority(_text,
+                                     _authority,
+                                     authority_end,
+                                     _out);
+
+    // the path follows the '/' that ends the authority
+    if ( (error == D_FTP_OK) &&
+         (authority_end < _length) )
+    {
+        error = d_ftp_internal_url_path(_text + authority_end + 1u,
+                                        _length - authority_end - 1u,
+                                        _out);
+    }
+
+    return error;
+}
+
+/*
 d_ftp_url_parse
-  Scheme, authority, path, in that order. The credentials end at the
-authority's last '@', so an unencoded '@' in a password still parses the
-way browsers and curl read it.
+  Scheme, authority, path, in that order; the scheme is recorded last, once
+everything else has parsed.
 */
 enum d_ftp_error
 d_ftp_url_parse(
@@ -306,27 +446,17 @@ d_ftp_url_parse(
            0,
            sizeof(*_out));
 
-    // spaces and control characters must be percent-encoded
-    for (size_t index = 0; index < _length; index++)
-    {
-        const unsigned char byte = (unsigned char)_text[index];
-
-        if ( (byte <= 0x20u) ||
-             (byte == 0x7Fu) )
-        {
-            return D_FTP_ERROR_MALFORMED;
-        }
-    }
-
     const char* const colon      = memchr(_text,
                                           ':',
                                           _length);
     const size_t      scheme_end = (colon) ? (size_t)(colon - _text)
                                            : _length;
 
-    // the scheme ends in "://"
-    if ( ((scheme_end + 3u) > _length)      ||
-         (_text[scheme_end + 1u] != '/')    ||
+    // encoded throughout, and a scheme that ends in "://"
+    if ( (!d_ftp_internal_url_clean(_text,
+                                    _length))      ||
+         ((scheme_end + 3u) > _length)             ||
+         (_text[scheme_end + 1u] != '/')           ||
          (_text[scheme_end + 2u] != '/') )
     {
         return D_FTP_ERROR_MALFORMED;
@@ -341,60 +471,18 @@ d_ftp_url_parse(
         return D_FTP_ERROR_UNSUPPORTED;
     }
 
-    const size_t      authority     = scheme_end + 3u;
-    const char* const slash         = memchr(_text + authority,
-                                             '/',
-                                             _length - authority);
-    const size_t      authority_end = (slash) ? (size_t)(slash - _text)
-                                              : _length;
-    size_t            host_start    = authority;
+    const enum d_ftp_error error = d_ftp_internal_url_rest(_text,
+                                                           _length,
+                                                           scheme_end + 3u,
+                                                           _out);
 
-    // the credentials end at the authority's last '@'
-    for (size_t index = authority; index < authority_end; index++)
+    // the scheme, once the rest has parsed
+    if (error == D_FTP_OK)
     {
-        if (_text[index] == '@')
-        {
-            host_start = index + 1u;
-        }
+        _out->scheme = scheme;
     }
 
-    // user[:password]
-    if (host_start > authority)
-    {
-        d_ftp_internal_url_userinfo(_text,
-                                    authority,
-                                    host_start - 1u,
-                                    _out);
-    }
-
-    const enum d_ftp_error host = d_ftp_internal_url_host(_text,
-                                                          host_start,
-                                                          authority_end,
-                                                          _out);
-
-    // host and port
-    if (host != D_FTP_OK)
-    {
-        return host;
-    }
-
-    // the path follows the '/' that ends the authority
-    if (authority_end < _length)
-    {
-        const enum d_ftp_error path = d_ftp_internal_url_path(
-                                          _text + authority_end + 1u,
-                                          _length - authority_end - 1u,
-                                          _out);
-
-        if (path != D_FTP_OK)
-        {
-            return path;
-        }
-    }
-
-    _out->scheme = scheme;
-
-    return D_FTP_OK;
+    return error;
 }
 
 /*
@@ -434,6 +522,40 @@ d_ftp_internal_is_unreserved(
 }
 
 /*
+d_ftp_internal_percent_byte
+  File-local: decodes the "%XX" escape at `_index` into `*_out_byte`. Fails
+for a truncated or non-hex escape, and for the bytes no path may hold: NUL,
+which truncates a name, and CR and LF, which would inject a command.
+*/
+D_STATIC bool
+d_ftp_internal_percent_byte(
+    const char* _text,
+    size_t      _length,
+    size_t      _index,
+    char*       _out_byte
+)
+{
+    const bool whole = ((_index + 2u) < _length);
+    const int  high  = (whole) ? d_ftp_internal_hex_value(_text[_index + 1u])
+                               : -1;
+    const int  low   = (whole) ? d_ftp_internal_hex_value(_text[_index + 2u])
+                               : -1;
+
+    // a truncated or non-hex escape
+    if ( (high < 0) ||
+         (low < 0) )
+    {
+        return false;
+    }
+
+    *_out_byte = (char)(unsigned char)((high * 16) + low);
+
+    return ( (*_out_byte != '\0') &&
+             (*_out_byte != '\r') &&
+             (*_out_byte != '\n') );
+}
+
+/*
 d_ftp_percent_decode
   Byte by byte, rolling back on any failure so the buffer is left as it was.
 */
@@ -451,48 +573,25 @@ d_ftp_percent_decode(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const size_t mark  = _out->length;
-    size_t       index = 0;
+    const size_t mark = _out->length;
 
     // one byte or one escape per pass
-    while (index < _length)
+    for (size_t index = 0u; index < _length; )
     {
-        char   c     = _text[index];
-        size_t width = 1u;
+        char       c      = _text[index];
+        const bool escape = (c == '%');
 
-        // "%XX" is one byte
-        if (c == '%')
+        // an escape is one byte, when it is a valid one
+        if ( (escape) &&
+             (!d_ftp_internal_percent_byte(_text,
+                                           _length,
+                                           index,
+                                           &c)) )
         {
-            const int high = ((index + 2u) < _length)
-                             ? d_ftp_internal_hex_value(_text[index + 1u])
-                             : -1;
-            const int low  = ((index + 2u) < _length)
-                             ? d_ftp_internal_hex_value(_text[index + 2u])
-                             : -1;
+            d_ftp_internal_rollback(_out,
+                                    mark);
 
-            // a truncated or non-hex escape, or a forbidden byte
-            if ( (high < 0) ||
-                 (low < 0) )
-            {
-                d_ftp_internal_rollback(_out,
-                                        mark);
-
-                return D_FTP_ERROR_MALFORMED;
-            }
-
-            c     = (char)(unsigned char)((high * 16) + low);
-            width = 3u;
-
-            // NUL truncates a name; CR and LF would inject a command
-            if ( (c == '\0') ||
-                 (c == '\r') ||
-                 (c == '\n') )
-            {
-                d_ftp_internal_rollback(_out,
-                                        mark);
-
-                return D_FTP_ERROR_MALFORMED;
-            }
+            return D_FTP_ERROR_MALFORMED;
         }
 
         // the decoded byte
@@ -505,7 +604,7 @@ d_ftp_percent_decode(
             return D_FTP_ERROR_BUFFER_TOO_SMALL;
         }
 
-        index += width;
+        index += (escape) ? 3u : 1u;
     }
 
     return D_FTP_OK;

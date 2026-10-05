@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parsegen]                                            cfg_parsegen.h
+/*******************************************************************************
+* djinterp [config]                                               cfg_parsegen.h
 *
 * Configuration for the parser-generator subsystem.
 *   Owns the knobs parsegen's own containers read. They are separate from
@@ -11,21 +11,22 @@
 * conjunction is resolved here, once, rather than re-derived in each module --
 * which is what the localization rule is for.
 *
-* targets:  parsegen/grammar.h  -> D_INTERNAL_PARSEGEN_GRAMMAR_HEAP /
+* targets:  parsegen/c/grammar.h  -> D_INTERNAL_PARSEGEN_GRAMMAR_HEAP /
 *                                  D_PARSEGEN_GRAMMAR_DEFAULT_NODES /
 *                                  D_PARSEGEN_GRAMMAR_DEFAULT_RULES
-*           parsegen/registry.h -> D_INTERNAL_PARSEGEN_REGISTRY_HEAP
+*           parsegen/c/registry.h -> D_INTERNAL_PARSEGEN_REGISTRY_HEAP
 * requires: cfg_common.h; parse/cfg_parse.h (the pool and heap gates these
 *           derive from)
 *
+*
 * path:      /inc/djinterp/config/parsegen/cfg_parsegen.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 
-#ifndef DJINTERP_CFG_PARSEGEN_
-#define DJINTERP_CFG_PARSEGEN_ 1
+#ifndef DJINTERP_CONFIG_PARSEGEN_CFG_PARSEGEN_H
+#define DJINTERP_CONFIG_PARSEGEN_CFG_PARSEGEN_H 1
 
 // (0) root first: helpers, user overrides, testing flag/preset.
 #include "../cfg_common.h"
@@ -137,4 +138,4 @@
 #endif
 
 
-#endif  // DJINTERP_CFG_PARSEGEN_
+#endif  // DJINTERP_CONFIG_PARSEGEN_CFG_PARSEGEN_H

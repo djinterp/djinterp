@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                                  machine.hpp
+* djinterp [parse]                                                   machine.hpp
 *
 *   The C++ face of the execution substrate declared in machine.h.
 *   `machine` derives from d_parse_machine and `op_set` from d_parse_op_set,
@@ -25,11 +25,12 @@
 * def_raw() exists for handlers that must serve those.  as_machine() is the
 * single place the conversion happens.
 *
+*
 * path:      /inc/djinterp/parse/machine.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -62,17 +63,24 @@ TABLE OF CONTENTS
     3.  Layout guarantees
 */
 
-#ifndef DJINTERP_PARSE_MACHINE_HPP_
-#define DJINTERP_PARSE_MACHINE_HPP_ 1
+#ifndef DJINTERP_PARSE_MACHINE_HPP
+#define DJINTERP_PARSE_MACHINE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstdint>              // std::uint32_t
-#include <type_traits>          // std::is_standard_layout, std::is_empty,
-                                // std::is_invocable_v
+#include <type_traits>       // std::is_standard_layout, std::is_empty,
+                             // std::is_invocable_v
 // djinterp
-#include "../djinterp.hpp"      // framework root
-#include "./diagnostic.hpp"     // parse::diagnostics, parse::span, NS_PARSE
-#include "./machine.h"          // the C substrate this layer faces
+#include "../djinterp.hpp"   // framework root
+#include "./diagnostic.hpp"  // parse::diagnostics, parse::span, NS_PARSE
+#include "./c/machine.h"     // the C substrate this layer faces
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t, uint32_t
 
 
 NS_DJINTERP
@@ -131,8 +139,8 @@ struct machine : d_parse_machine
     //   function: stops the run as failed and reports why through the sink.
     void
     fail(
-        std::uint16_t _domain,
-        std::uint16_t _code,
+        re_std::uint16_t _domain,
+        re_std::uint16_t _code,
         const span&   _span,
         const char*   _message
     ) noexcept
@@ -151,7 +159,7 @@ struct machine : d_parse_machine
 
     // running
     //   accessor: whether the run may continue.
-    constexpr bool
+    D_CONSTEXPR_CPP14 bool
     running() const noexcept
     {
         return (halted == 0);
@@ -160,7 +168,7 @@ struct machine : d_parse_machine
     // succeeded
     //   accessor: whether the run halted successfully.  Meaningful only once
     // the run has halted.
-    constexpr bool
+    D_CONSTEXPR_CPP14 bool
     succeeded() const noexcept
     {
         return ( (halted != 0) &&
@@ -170,19 +178,19 @@ struct machine : d_parse_machine
     // extension
     //   accessor: the active family's private state, typed.  The driver that
     // set `ext` is the only code that knows this type.
-    template<typename _State>
-    _State*
+    template<typename State>
+    State*
     extension() const noexcept
     {
-        return static_cast<_State*>(ext);
+        return static_cast<State*>(ext);
     }
 
     // bind
     //   function: points `ext` at the family state for this run.
-    template<typename _State>
+    template<typename State>
     void
     bind(
-        _State& _state
+        State& _state
     ) noexcept
     {
         ext = static_cast<void*>(&_state);
@@ -238,8 +246,8 @@ using op = ::d_parse_op;
     // Voperator
     //   concept: names the operator protocol -- anything invocable as
     // `void(machine&)`.  PascalCase per the project's concept convention.
-    template<typename _Op>
-    concept Voperator = requires(_Op _op, machine& _machine)
+    template<typename Op>
+    concept Voperator = requires(Op _op, machine& _machine)
     {
         _op(_machine);
     };
@@ -249,10 +257,10 @@ using op = ::d_parse_op;
     //   concept: a Voperator that carries nothing -- a captureless lambda or
     // an empty functor.  These register with no context pointer at all, which
     // is the case that reduces to a direct call after inlining.
-    template<typename _Op>
-    concept StatelessVoperator = ( Voperator<_Op>                  &&
-                                   std::is_empty_v<_Op>            &&
-                                   std::is_default_constructible_v<_Op> );
+    template<typename Op>
+    concept StatelessVoperator = ( Voperator<Op>                  &&
+                                   std::is_empty<Op>::value            &&
+                                   std::is_default_constructible<Op>::value );
 
     #define D_INTERNAL_PARSE_VOP          Voperator
     #define D_INTERNAL_PARSE_VOP_STATELESS      StatelessVoperator
@@ -274,7 +282,7 @@ NS_INTERNAL
     //   function: the C-ABI shim for a callable that carries nothing.  The
     // context slot is unused and the functor is constructed on the spot, so
     // an optimiser sees straight through to the handler body.
-    template<typename _Fn>
+    template<typename Fn>
     void
     stateless_thunk(
         d_parse_machine* _machine,
@@ -283,17 +291,18 @@ NS_INTERNAL
     {
         (void)_ctx;
 
-        _Fn{}(as_machine(*_machine));
+        Fn{}(as_machine(*_machine));
 
         return;
     }
 
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER  // a template<auto> parameter
     // 2.3.2
     // free_thunk
     //   function: the C-ABI shim for a free function taking only the machine.
     // The function is a template argument, so the shim is a direct call with
     // an unused context slot.
-    template<auto _Fn>
+    template<auto Fn>
     void
     free_thunk(
         d_parse_machine* _machine,
@@ -302,44 +311,47 @@ NS_INTERNAL
     {
         (void)_ctx;
 
-        _Fn(as_machine(*_machine));
+        Fn(as_machine(*_machine));
 
         return;
     }
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
     // 2.3.3
     // object_thunk
     //   function: the C-ABI shim for a callable the caller owns and keeps
     // alive, reached through the context slot.
-    template<typename _Obj>
+    template<typename Obj>
     void
     object_thunk(
         d_parse_machine* _machine,
         void*            _ctx
     )
     {
-        (*static_cast<_Obj*>(_ctx))(as_machine(*_machine));
+        (*static_cast<Obj*>(_ctx))(as_machine(*_machine));
 
         return;
     }
 
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER  // a template<auto> parameter
     // 2.3.4
     // state_thunk
     //   function: the C-ABI shim for a free function taking the machine and
     // its family's state.  The function is a template argument, so the call is
     // direct and only the state travels through the context slot.
-    template<auto     _Fn,
-             typename _State>
+    template<auto     Fn,
+             typename State>
     void
     state_thunk(
         d_parse_machine* _machine,
         void*            _ctx
     )
     {
-        _Fn(as_machine(*_machine), *static_cast<_State*>(_ctx));
+        Fn(as_machine(*_machine), *static_cast<State*>(_ctx));
 
         return;
     }
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 NS_END  // internal
 
@@ -362,7 +374,7 @@ public:
     // op_set
     //   constructor: an empty registry over one opcode space, owning nothing.
     explicit op_set(
-        std::uint16_t _family = 0u
+        re_std::uint16_t _family = 0u
     ) noexcept
     {
         d_parse_op_set_init(this, _family, nullptr, 0u);
@@ -371,9 +383,9 @@ public:
     // op_set
     //   constructor: a registry over a caller-supplied table.
     op_set(
-        std::uint16_t _family,
+        re_std::uint16_t _family,
         d_parse_op*   _ops,
-        std::uint32_t _capacity
+        re_std::uint32_t _capacity
     ) noexcept
     {
         d_parse_op_set_init(this, _family, _ops, _capacity);
@@ -425,10 +437,10 @@ public:
     // owns, which then grows on demand.  Returns false if refused.
     D_NODISCARD bool
     reserve(
-        std::uint32_t _capacity = 0u
+        re_std::uint32_t _capacity = 0u
     ) noexcept
     {
-        const std::uint16_t space = family;
+        const re_std::uint16_t space = family;
 
         d_parse_op_set_release(this);
 
@@ -454,79 +466,83 @@ public:
     //   function: registers a callable that carries nothing -- a captureless
     // lambda or an empty functor.  No context pointer is stored and the
     // trampoline inlines away.
-    template<D_INTERNAL_PARSE_VOP_STATELESS _Fn>
+    template<D_INTERNAL_PARSE_VOP_STATELESS Fn>
     D_NODISCARD bool
     def(
         int         _code,
         const char* _name,
-        _Fn
+        Fn
     ) noexcept
     {
-        static_assert(std::is_empty<_Fn>::value,
+        static_assert(std::is_empty<Fn>::value,
                       "this def() takes a callable that captures nothing; use "
                       "def_object for one that owns state, or def_raw for a "
                       "plain C-ABI operator");
 
-        return def_raw(_code, _name, &internal::stateless_thunk<_Fn>, nullptr);
+        return def_raw(_code, _name, &internal::stateless_thunk<Fn>, nullptr);
     }
 
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER  // a template<auto> parameter
     // def
     //   function: registers a free function taking only the machine -- the
     // shape most handlers written in C++ take.  The function is a template
     // argument, so the dispatch is one indirect call to a direct call.
-    template<auto _Fn>
+    template<auto Fn>
     D_NODISCARD bool
     def(
         int         _code,
         const char* _name
     ) noexcept
     {
-        static_assert(std::is_invocable_v<decltype(_Fn), machine&>,
+        static_assert(std::is_invocable<decltype(Fn), machine&>::value,
                       "this def() takes a function callable as (machine&); "
                       "use def_state for one that also takes family state");
 
-        return def_raw(_code, _name, &internal::free_thunk<_Fn>, nullptr);
+        return def_raw(_code, _name, &internal::free_thunk<Fn>, nullptr);
     }
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
     // def_object
     //   function: registers a callable the caller owns.  The object must
     // outlive every dispatch through this registry.
-    template<D_INTERNAL_PARSE_VOP _Obj>
+    template<D_INTERNAL_PARSE_VOP Obj>
     D_NODISCARD bool
     def_object(
         int         _code,
         const char* _name,
-        _Obj&       _object
+        Obj&       _object
     ) noexcept
     {
         return def_raw(_code,
                        _name,
-                       &internal::object_thunk<_Obj>,
+                       &internal::object_thunk<Obj>,
                        static_cast<void*>(&_object));
     }
 
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER  // a template<auto> parameter
     // def_state
     //   function: registers a free function taking the machine and its
     // family's state.  The function is known at compile time, so the dispatch
     // is one indirect call to a direct call.
-    template<auto _Fn,
-             typename _State>
+    template<auto Fn,
+             typename State>
     D_NODISCARD bool
     def_state(
         int         _code,
         const char* _name,
-        _State&     _state
+        State&     _state
     ) noexcept
     {
-        static_assert(std::is_invocable_v<decltype(_Fn), machine&, _State&>,
+        static_assert(std::is_invocable<decltype(Fn), machine&, State&>::value,
                       "def_state takes a function callable as "
-                      "(machine&, _State&)");
+                      "(machine&, State&)");
 
         return def_raw(_code,
                        _name,
-                       &internal::state_thunk<_Fn, _State>,
+                       &internal::state_thunk<Fn, State>,
                        static_cast<void*>(&_state));
     }
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
     // find
     //   accessor: the operator registered for an opcode, or null.
@@ -575,7 +591,7 @@ public:
 
     // size
     //   accessor: one past the highest opcode ever defined.
-    constexpr std::uint32_t
+    D_CONSTEXPR_CPP14 re_std::uint32_t
     size() const noexcept
     {
         return count;
@@ -583,7 +599,7 @@ public:
 
     // space
     //   accessor: which private opcode space this registry reads.
-    constexpr std::uint16_t
+    D_CONSTEXPR_CPP14 re_std::uint16_t
     space() const noexcept
     {
         return family;
@@ -598,21 +614,21 @@ public:
 //   class: a registry carrying its own table, for a family whose opcode space
 // is known at compile time -- which is every family, since an opcode space is
 // an enum.  Allocates nothing.
-template<std::uint32_t _Capacity>
+template<re_std::uint32_t Capacity>
 class fixed_op_set : public op_set
 {
 public:
     // fixed_op_set
     //   constructor: binds the embedded table as this registry's storage.
     explicit fixed_op_set(
-        std::uint16_t _family = 0u
+        re_std::uint16_t _family = 0u
     ) noexcept
     {
-        d_parse_op_set_init(this, _family, m_ops, _Capacity);
+        d_parse_op_set_init(this, _family, m_ops, Capacity);
     }
 
 private:
-    d_parse_op m_ops[_Capacity];
+    d_parse_op m_ops[Capacity];
 };
 
 
@@ -638,5 +654,7 @@ static_assert(std::is_standard_layout<op_set>::value,
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_MACHINE_HPP_
+
+#endif  // DJINTERP_PARSE_MACHINE_HPP

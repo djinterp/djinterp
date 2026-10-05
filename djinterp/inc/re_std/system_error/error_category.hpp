@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                              error_category.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           error_category.hpp
 *
 * the error_category abstract base (re-export):
 *   error_category is an abstract polymorphic base whose concrete instances
@@ -9,30 +9,32 @@
 *   re_std::error_category IS std::error_category.
 *
 *
-* path:      /inc/djinterp/re_std/system_error/error_category.hpp
+* path:      /inc/re_std/system_error/error_category.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_ERROR_CATEGORY_
-#define DJINTERP_RE_STD_SYSTEM_ERROR_ERROR_CATEGORY_ 1
+#ifndef RE_STD_SYSTEM_ERROR_ERROR_CATEGORY_HPP
+#define RE_STD_SYSTEM_ERROR_ERROR_CATEGORY_HPP 1
 
-// djinterp
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <system_error>
 
-NS_RESTD
+namespace re_std
+{
 
     // error_category
     //   class: identity-preserving re-export of the abstract category base.
     using ::std::error_category;
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_ERROR_CATEGORY_
+#endif  // RE_STD_SYSTEM_ERROR_ERROR_CATEGORY_HPP

@@ -1,39 +1,55 @@
-/******************************************************************************
-* djinterp [container]                              sorted_container_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                    sorted_container_traits.hpp
 *
-*   The SORTEDNESS axis, container-side traits: does a container's TYPE promise
+*   The SORTEDNESS axis, container-side traits: does a container's TYPE
+* promise
 * its elements are kept in order (is_sorted_container), on what monotonicity
-* footing (sortedness: unsorted / monotone / strictly-sorted), and may a holder
-* therefore rely on ordered enumeration (admits_sorted_enumeration).  These are
-* the compile-time CLASSIFIERS of the sortedness axis; the instance-level check
-* that walks a particular object's elements (is_sorted_range) is an OPERATION and
+* footing (sortedness: unsorted / monotone / strictly-sorted), and may a
+* holder
+* therefore rely on ordered enumeration (admits_sorted_enumeration). These are
+* the compile-time CLASSIFIERS of the sortedness axis; the instance-level
+* check
+* that walks a particular object's elements (is_sorted_range) is an OPERATION
+* and
 * lives in container/sorted_container.hpp, which includes this header.
 *
-*   Sortedness sits just above the order axis: a sorted container is an ordered
+*   Sortedness sits just above the order axis: a sorted container is an
+* ordered
 * one whose order is a maintained key invariant, so is_ordered_container /
-* is_unordered_container are sourced from ordered_container_traits.hpp rather than
-* re-derived here.  A type opts in through a `sorted_invariant` marker (honoured
-* first); otherwise the standard sorted associatives are recognised structurally.
+* is_unordered_container are sourced from ordered_container_traits.hpp rather
+* than
+* re-derived here. A type opts in through a `sorted_invariant` marker
+* (honoured
+* first); otherwise the standard sorted associatives are recognised
+* structurally.
 *
 *   PORTABILITY:
 *   C++11 baseline.  Each `_v` companion is emitted through the trait_detect
-* macros (inline variable on C++17+, variable template on C++14, absent on C++11).
+* macros (inline variable on C++17+, variable template on C++14, absent on
+* C++11).
 *
 *
 * path:      /inc/djinterp/core/container/traits/sorted_container_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.01
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.01
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_SORTED_CONTAINER_TRAITS_
-#define DJINTERP_SORTED_CONTAINER_TRAITS_ 1
+#ifndef DJINTERP_CONTAINER_TRAITS_SORTED_CONTAINER_TRAITS_HPP
+#define DJINTERP_CONTAINER_TRAITS_SORTED_CONTAINER_TRAITS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"                 // clean_t, NS_*, D_ENV_* feature macros
+#include "../../../djinterp.hpp"                 // clean_t, NS_*, D_ENV_* feature macros
 #include "../../meta/trait_detect.hpp"        // D_TYPE_TRAIT_* detection macros
 #include "./ordered_container_traits.hpp"     // is_ordered_container, is_unordered_container
 
@@ -49,50 +65,55 @@ NS_INTERNAL
 
     // has_key_compare_helper
     //   helper: detects a `key_compare` alias - the comparator of an ordered
-    // associative container.  Its presence is what lets an (unordered) associative
-    // enumerate monotonically; a hash-ordered container has no such comparator.
-    template<typename _Type,
+    // associative container. Its presence is what lets an (unordered)
+    // associative enumerate monotonically; a hash-ordered container has no
+    // such comparator.
+    template<typename Type,
              typename = void>
     struct has_key_compare_helper : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_key_compare_helper<_Type,
-        D_VOID_T<typename clean_t<_Type>::key_compare>>
+    template<typename Type>
+    struct has_key_compare_helper<Type,
+        D_VOID_T<typename clean_t<Type>::key_compare>>
         : std::true_type
     {};
 
     // has_interval_bounds_helper
-    //   helper: detects static `lower_bound` AND `upper_bound` - a closed-interval
-    // carrier, whose arithmetic enumeration is monotone by construction.
-    template<typename _Type,
+    //   helper: detects static `lower_bound` AND `upper_bound` - a
+    // closed-interval carrier, whose arithmetic enumeration is monotone by
+    // construction.
+    template<typename Type,
              typename = void>
     struct has_interval_bounds_helper : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_interval_bounds_helper<_Type,
-        D_VOID_T<decltype(clean_t<_Type>::lower_bound),
-                 decltype(clean_t<_Type>::upper_bound)>>
+    // has_interval_bounds_helper specialization
+    //   helper: the detected case -- selected when the type declares the
+    // static members `lower_bound` and `upper_bound`.
+    template<typename Type>
+    struct has_interval_bounds_helper<Type,
+        D_VOID_T<decltype(clean_t<Type>::lower_bound),
+                 decltype(clean_t<Type>::upper_bound)>>
         : std::true_type
     {};
 
     // sorted_invariant_helper
-    //   helper: reads the opt-in static `sorted_invariant` constant, by which an
-    // ordered sequence asserts it is maintained in sorted order.
-    template<typename _Type,
+    //   helper: reads the opt-in static `sorted_invariant` constant, by which
+    // an ordered sequence asserts it is maintained in sorted order.
+    template<typename Type,
              typename = void>
     struct sorted_invariant_helper
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Type>
-    struct sorted_invariant_helper<_Type,
-        D_VOID_T<decltype(clean_t<_Type>::sorted_invariant)>>
+    template<typename Type>
+    struct sorted_invariant_helper<Type,
+        D_VOID_T<decltype(clean_t<Type>::sorted_invariant)>>
     {
         static constexpr bool value =
-            static_cast<bool>(clean_t<_Type>::sorted_invariant);
+            static_cast<bool>(clean_t<Type>::sorted_invariant);
     };
 
 NS_END  // internal
@@ -126,14 +147,15 @@ sortedness_name(sortedness _s) noexcept
 }
 
 // sortedness_of
-//   trait: classifies a type.  An unordered container is monotone when it carries
-// a comparator, else unordered; an ordered container is sorted when it guarantees
-// comparator order (interval bounds or an opt-in invariant), else order_dependent.
-template<typename _Type>
+//   trait: classifies a type. An unordered container is monotone when it
+// carries a comparator, else unordered; an ordered container is sorted when it
+// guarantees comparator order (interval bounds or an opt-in invariant), else
+// order_dependent.
+template<typename Type>
 struct sortedness_of
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
     static constexpr sortedness value =
@@ -151,17 +173,20 @@ public:
     using type = std::integral_constant<sortedness, value>;
 };
 
-template<typename _Type>
-using sortedness_of_t = typename sortedness_of<_Type>::type;
+// sortedness_of_t / sortedness_of_v
+//   type / value: the carrier and, where the language permits, the value
+// companion of sortedness_of.
+template<typename Type>
+using sortedness_of_t = typename sortedness_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
+    template<typename Type>
     inline constexpr sortedness sortedness_of_v =
-        sortedness_of<_Type>::value;
+        sortedness_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr sortedness sortedness_of_v =
-        sortedness_of<_Type>::value;
+        sortedness_of<Type>::value;
 #endif
 
 
@@ -171,28 +196,32 @@ using sortedness_of_t = typename sortedness_of<_Type>::type;
 
 // is_sorted_container
 //   trait: true iff the type guarantees comparator order along its positions -
-// the ordered, sorted-by-construction case (the sorted restriction at type level).
-template<typename _Type>
+// the ordered, sorted-by-construction case (the sorted restriction at type
+// level).
+template<typename Type>
 struct is_sorted_container
     : std::integral_constant<bool,
-          sortedness_of<clean_t<_Type>>::value == sortedness::sorted>
+          sortedness_of<clean_t<Type>>::value == sortedness::sorted>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_sorted_container)
 
 // is_unsorted_container
 //   trait: the complement of is_sorted_container over containers - a container
-// whose positions are NOT guaranteed in comparator order.  It is gated on being
-// an (iterable) container so a non-container reports false rather than a vacuous
-// true, mirroring the is_ordered / is_unordered complementary pair; the excluded
-// non_container state is what distinguishes this from a bare !is_sorted_container.
+// whose positions are NOT guaranteed in comparator order. It is gated on being
+// an (iterable) container so a non-container reports false rather than a
+// vacuous true, mirroring the is_ordered / is_unordered complementary pair;
+// the
+// excluded
+// non_container state is what distinguishes this from a bare
+// !is_sorted_container.
 // The three container states unordered, monotone, and order_dependent are all
 // unsorted (only the sorted-by-construction sorted state is not).
-template<typename _Type>
+template<typename Type>
 struct is_unsorted_container
     : std::integral_constant<bool,
-             sortedness_of<clean_t<_Type>>::value != sortedness::non_container
-          && sortedness_of<clean_t<_Type>>::value != sortedness::sorted>
+             sortedness_of<clean_t<Type>>::value != sortedness::non_container
+          && sortedness_of<clean_t<Type>>::value != sortedness::sorted>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_unsorted_container)
@@ -200,23 +229,24 @@ D_TYPE_TRAIT_VALUE_BOOL(is_unsorted_container)
 // is_monotone_container
 //   trait: true iff the type is a comparator-equipped unordered container - it
 // has no positions, but its enumeration is sorted by construction.
-template<typename _Type>
+template<typename Type>
 struct is_monotone_container
     : std::integral_constant<bool,
-          sortedness_of<clean_t<_Type>>::value == sortedness::monotone>
+          sortedness_of<clean_t<Type>>::value == sortedness::monotone>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_monotone_container)
 
 // admits_sorted_enumeration
-//   trait: true iff enumerating the container is guaranteed to yield comparator
-// order - either a monotone (associative) or a sorted (ordered) type.  This is
-// the property that lets such a container be PRESENTED in sorted order.
-template<typename _Type>
+//   trait: true iff enumerating the container is guaranteed to yield
+// comparator order - either a monotone (associative) or a sorted (ordered)
+// type. This is the property that lets such a container be PRESENTED in sorted
+// order.
+template<typename Type>
 struct admits_sorted_enumeration
     : std::integral_constant<bool,
-            is_sorted_container<clean_t<_Type>>::value
-         || is_monotone_container<clean_t<_Type>>::value>
+            is_sorted_container<clean_t<Type>>::value
+         || is_monotone_container<clean_t<Type>>::value>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(admits_sorted_enumeration)
@@ -226,11 +256,16 @@ D_TYPE_TRAIT_VALUE_BOOL(admits_sorted_enumeration)
 // V.   Aggregate snapshot
 // ===========================================================================
 
-template<typename _Type>
+// sorted_container_class
+//   trait: one-shot snapshot of the sortedness axis for `Type`. Gathers every
+// signal and verdict this header computes into a single instantiation, so
+// a caller that needs several of them pays for detection once rather than per
+// query.
+template<typename Type>
 struct sorted_container_class
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
     static constexpr bool has_comparator =
@@ -256,5 +291,6 @@ public:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_SORTED_CONTAINER_TRAITS_
+#endif  // DJINTERP_CONTAINER_TRAITS_SORTED_CONTAINER_TRAITS_HPP

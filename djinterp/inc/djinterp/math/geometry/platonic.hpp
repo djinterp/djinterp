@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                 platonic.hpp
+/*******************************************************************************
+* djinterp [math]                                                   platonic.hpp
 *
 * The five Platonic solids as explicit triangle meshes.
 *   Each factory returns a triangle_mesh<cartesian<3, _T>, V, F> whose
@@ -20,16 +20,20 @@
 *   dodecahedron_mesh<_T>(radius)   - 20 vertices, 36 faces   (12 pentagons)
 *   icosahedron_mesh<_T>(radius)    - 12 vertices, 20 faces
 *
+*
 * path:      /inc/djinterp/math/geometry/platonic.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.06.18
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_PLATONIC_
-#define DJINTERP_MATH_GEOMETRY_PLATONIC_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_PLATONIC_HPP
+#define DJINTERP_MATH_GEOMETRY_PLATONIC_HPP 1
 
-#include <cstddef>
+// std
 #include <array>
+#include <cstddef>
+// djinterp
 #include "../../djinterp.hpp"
 #include "../coordinate/coordinate.hpp"
 #include "./geometry_common.hpp"
@@ -446,4 +450,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_PLATONIC_
+#endif  // DJINTERP_MATH_GEOMETRY_PLATONIC_HPP

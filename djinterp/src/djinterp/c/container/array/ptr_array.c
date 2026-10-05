@@ -1,4 +1,15 @@
-#include "../../../../inc/c/container/array/ptr_array.h"
+/*******************************************************************************
+* djinterp [c]                                                       ptr_array.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/container/array/ptr_array.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.29
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/container/array/ptr_array.h"
 
 
 // =============================================================================
@@ -21,6 +32,7 @@ d_ptr_array_new
 )
 {
     struct d_ptr_array* arr;
+    void*               elements;
 
     arr = d_array_common_alloc(sizeof(struct d_ptr_array));
 
@@ -30,7 +42,10 @@ d_ptr_array_new
         return NULL;
     }
 
-    if (!d_array_common_init_sized(arr->elements,
+    // the helper stores a `void*` through its first argument, so it must be
+    // given the address of a `void*` object rather than of the `void**`
+    // member; the member is set from this local afterwards
+    if (!d_array_common_init_sized(&elements,
                                    &(arr->count),
                                    sizeof(void*),
                                    _initial_size))
@@ -39,6 +54,8 @@ d_ptr_array_new
 
         return NULL;
     }
+
+    arr->elements = elements;
 
     return arr;
 }
@@ -53,7 +70,7 @@ Parameter(s):
 Return:
   A pointer to the newly created `d_ptr_array`, or NULL if allocation failed.
 */
-D_INLINE struct d_ptr_array*
+struct d_ptr_array*
 d_ptr_array_new_default_size
 (
     void
@@ -65,7 +82,7 @@ d_ptr_array_new_default_size
 
 /*
 d_ptr_array_new_from_arr
-  Allocate and initialize a new `d_ptr_array` by copying pointers from an 
+  Allocate and initialize a new `d_ptr_array` by copying pointers from an
 existing array.
 
 Parameter(s):
@@ -82,6 +99,7 @@ d_ptr_array_new_from_arr
 )
 {
     struct d_ptr_array* arr;
+    void*               elements;
 
     if ( (!_source) &&
          (_count > 0) )
@@ -97,7 +115,8 @@ d_ptr_array_new_from_arr
         return NULL;
     }
 
-    if (!d_array_common_init_from_array(&(arr->elements),
+    // relayed through a `void*` local; see d_ptr_array_new
+    if (!d_array_common_init_from_array(&elements,
                                         &(arr->count),
                                         sizeof(void*),
                                         _source,
@@ -108,6 +127,8 @@ d_ptr_array_new_from_arr
         return NULL;
     }
 
+    arr->elements = elements;
+
     return arr;
 }
 
@@ -117,8 +138,8 @@ d_ptr_array_new_from_args
   Allocate and initialize a new `d_ptr_array` from variadic pointer arguments.
 
 Parameter(s):
-  _arg_count: number of variadic pointer arguments to process.
-  ...:        variadic arguments containing pointers.
+  _arg_count: number of variadic pointer arguments to process. ...: variadic
+              arguments containing pointers.
 Return:
   A pointer to the newly created `d_ptr_array`, or NULL if allocation failed.
 */
@@ -132,6 +153,7 @@ d_ptr_array_new_from_args
     bool                success;
     va_list             args;
     struct d_ptr_array* arr;
+    void*               elements;
 
     arr = d_array_common_alloc(sizeof(struct d_ptr_array));
 
@@ -142,7 +164,8 @@ d_ptr_array_new_from_args
 
     va_start(args, _arg_count);
 
-    success = d_array_common_init_from_args(&(arr->elements),
+    // relayed through a `void*` local; see d_ptr_array_new
+    success = d_array_common_init_from_args(&elements,
                                             &(arr->count),
                                             sizeof(void*),
                                             _arg_count,
@@ -156,6 +179,8 @@ d_ptr_array_new_from_args
         return NULL;
     }
 
+    arr->elements = elements;
+
     return arr;
 }
 
@@ -168,7 +193,7 @@ d_ptr_array_new_copy
 Parameter(s):
   _other: pointer to the `d_ptr_array` to copy from.
 Return:
-  A pointer to the newly created `d_ptr_array` copy, or NULL if allocation 
+  A pointer to the newly created `d_ptr_array` copy, or NULL if allocation
   failed.
 */
 struct d_ptr_array*
@@ -178,6 +203,7 @@ d_ptr_array_new_copy
 )
 {
     struct d_ptr_array* arr;
+    void*               elements;
 
     if (!_other)
     {
@@ -191,7 +217,8 @@ d_ptr_array_new_copy
         return NULL;
     }
 
-    if (!d_array_common_init_copy(&(arr->elements),
+    // relayed through a `void*` local; see d_ptr_array_new
+    if (!d_array_common_init_copy(&elements,
                                   &(arr->count),
                                   sizeof(void*),
                                   _other->elements,
@@ -202,20 +229,22 @@ d_ptr_array_new_copy
         return NULL;
     }
 
+    arr->elements = elements;
+
     return arr;
 }
 
 
 /*
 d_ptr_array_new_merge
-  Allocate and initialize a new `d_ptr_array` by merging multiple pointer 
+  Allocate and initialize a new `d_ptr_array` by merging multiple pointer
 arrays.
 
 Parameter(s):
-  _count: number of arrays to merge.
-  ...:    variadic arguments containing pointers to `d_ptr_array` structures.
+  _count: number of arrays to merge. ...: variadic arguments containing pointers
+          to `d_ptr_array` structures.
 Return:
-  A pointer to the newly created merged `d_ptr_array`, or NULL if allocation 
+  A pointer to the newly created merged `d_ptr_array`, or NULL if allocation
   failed.
 */
 struct d_ptr_array*
@@ -292,14 +321,14 @@ d_ptr_array_new_merge
 
 /*
 d_ptr_array_new_slice
-  Allocate and initialize a new `d_ptr_array` as a slice starting from the 
+  Allocate and initialize a new `d_ptr_array` as a slice starting from the
 specified index.
 
 Parameter(s):
   _ptr_array: pointer to the source `d_ptr_array`.
   _start:     starting index for the slice (supports negative indexing).
 Return:
-  A pointer to the newly created `d_ptr_array` slice, or NULL if allocation 
+  A pointer to the newly created `d_ptr_array` slice, or NULL if allocation
   failed.
 */
 struct d_ptr_array*
@@ -310,6 +339,7 @@ d_ptr_array_new_slice
 )
 {
     struct d_ptr_array* arr;
+    void*               elements;
     size_t              start_idx;
     size_t              slice_count;
 
@@ -335,7 +365,8 @@ d_ptr_array_new_slice
         return NULL;
     }
 
-    if (!d_array_common_init_from_array(&(arr->elements),
+    // relayed through a `void*` local; see d_ptr_array_new
+    if (!d_array_common_init_from_array(&elements,
                                         &(arr->count),
                                         sizeof(void*),
                                         (const void*)(_ptr_array->elements + start_idx),
@@ -346,22 +377,24 @@ d_ptr_array_new_slice
         return NULL;
     }
 
+    arr->elements = elements;
+
     return arr;
 }
 
 
 /*
 d_ptr_array_new_slice_range
-  Allocate and initialize a new `d_ptr_array` as a slice within the specified 
+  Allocate and initialize a new `d_ptr_array` as a slice within the specified
 range.
 
 Parameter(s):
   _ptr_array: pointer to the source `d_ptr_array`.
   _start:     starting index for the range (supports negative indexing).
-  _end:       ending index for the range, inclusive (supports negative 
+  _end:       ending index for the range, inclusive (supports negative
               indexing).
 Return:
-  A pointer to the newly created `d_ptr_array` slice, or NULL if allocation 
+  A pointer to the newly created `d_ptr_array` slice, or NULL if allocation
   failed.
 */
 struct d_ptr_array*
@@ -373,6 +406,7 @@ d_ptr_array_new_slice_range
 )
 {
     struct d_ptr_array* arr;
+    void*               elements;
     size_t              start_idx;
     size_t              end_idx;
     size_t              slice_count;
@@ -406,7 +440,8 @@ d_ptr_array_new_slice_range
         return NULL;
     }
 
-    if (!d_array_common_init_from_array(&(arr->elements),
+    // relayed through a `void*` local; see d_ptr_array_new
+    if (!d_array_common_init_from_array(&elements,
                                         &(arr->count),
                                         sizeof(void*),
                                         (const void*)(_ptr_array->elements + start_idx),
@@ -416,6 +451,8 @@ d_ptr_array_new_slice_range
 
         return NULL;
     }
+
+    arr->elements = elements;
 
     return arr;
 }
@@ -437,19 +474,32 @@ Return:
   - true, if the pointer was successfully appended, or
   - false, if the operation failed.
 */
-D_INLINE bool
+bool
 d_ptr_array_append_element
 (
     struct d_ptr_array* _ptr_array,
     const void*         _element
 )
 {
-    return (!_ptr_array)
-        ? false
-        : d_array_common_append_element((void**)&(_ptr_array->elements),
-                                        &(_ptr_array->count),
-                                        sizeof(void*),
-                                        &_element);
+    void* elements;
+    bool  success;
+
+    if (!_ptr_array)
+    {
+        return false;
+    }
+
+    // relayed through a `void*` local, and written back whatever the result,
+    // since the helper may have moved the storage; see d_ptr_array_new
+    elements = _ptr_array->elements;
+    success  = d_array_common_append_element(&elements,
+                                             &(_ptr_array->count),
+                                             sizeof(void*),
+                                             &_element);
+
+    _ptr_array->elements = elements;
+
+    return success;
 }
 
 
@@ -466,7 +516,7 @@ Return:
   - true, if the pointers were successfully appended, or
   - false, if the operation failed.
 */
-D_INLINE bool
+bool
 d_ptr_array_append_elements
 (
     struct d_ptr_array* _ptr_array,
@@ -474,15 +524,27 @@ d_ptr_array_append_elements
     size_t              _count
 )
 {
-    return ( (!_ptr_array) ||
-             ( (!_elements) &&
-               (_count > 0) ) )
-        ? false
-        : d_array_common_append_elements((void**)&(_ptr_array->elements),
-                                         &(_ptr_array->count),
-                                         sizeof(void*),
-                                         _elements,
-                                         _count);
+    void* elements;
+    bool  success;
+
+    if ( (!_ptr_array) ||
+         ( (!_elements) &&
+           (_count > 0) ) )
+    {
+        return false;
+    }
+
+    // relayed through a `void*` local; see d_ptr_array_append_element
+    elements = _ptr_array->elements;
+    success  = d_array_common_append_elements(&elements,
+                                              &(_ptr_array->count),
+                                              sizeof(void*),
+                                              _elements,
+                                              _count);
+
+    _ptr_array->elements = elements;
+
+    return success;
 }
 
 
@@ -498,7 +560,7 @@ Return:
   - true, if the pointers were successfully appended, or
   - false, if the operation failed.
 */
-D_INLINE bool
+bool
 d_ptr_array_append_array
 (
     struct d_ptr_array*       _ptr_array,
@@ -596,7 +658,7 @@ Parameter(s):
   _ptr_array: pointer to the `d_ptr_array` to search.
   _value:     pointer value to search for.
 Return:
-  The index of the first occurrence, or -1 if not found or parameters are 
+  The index of the first occurrence, or -1 if not found or parameters are
   invalid.
 */
 ssize_t
@@ -639,7 +701,7 @@ Return:
   - true, if the pointer was successfully inserted, or
   - false, if the operation failed.
 */
-D_INLINE bool
+bool
 d_ptr_array_insert_element
 (
     struct d_ptr_array* _ptr_array,
@@ -647,13 +709,25 @@ d_ptr_array_insert_element
     d_index             _index
 )
 {
-    return (!_ptr_array)
-        ? false
-        : d_array_common_insert_element(&(_ptr_array->elements),
-                                        &(_ptr_array->count),
-                                        sizeof(void*),
-                                        &_element,
-                                        _index);
+    void* elements;
+    bool  success;
+
+    if (!_ptr_array)
+    {
+        return false;
+    }
+
+    // relayed through a `void*` local; see d_ptr_array_append_element
+    elements = _ptr_array->elements;
+    success  = d_array_common_insert_element(&elements,
+                                             &(_ptr_array->count),
+                                             sizeof(void*),
+                                             &_element,
+                                             _index);
+
+    _ptr_array->elements = elements;
+
+    return success;
 }
 
 
@@ -671,7 +745,7 @@ Return:
   - true, if the pointers were successfully inserted, or
   - false, if the operation failed.
 */
-D_INLINE bool
+bool
 d_ptr_array_insert_elements
 (
     struct d_ptr_array* _ptr_array,
@@ -680,16 +754,28 @@ d_ptr_array_insert_elements
     d_index             _index
 )
 {
-    return ( (!_ptr_array) ||
-             ( (!_elements) &&
-               (_count > 0) ) )
-        ? false
-        : d_array_common_insert_elements(&(_ptr_array->elements),
-                                         &(_ptr_array->count),
-                                         sizeof(void*),
-                                         _elements,
-                                         _count,
-                                         _index);
+    void* elements;
+    bool  success;
+
+    if ( (!_ptr_array) ||
+         ( (!_elements) &&
+           (_count > 0) ) )
+    {
+        return false;
+    }
+
+    // relayed through a `void*` local; see d_ptr_array_append_element
+    elements = _ptr_array->elements;
+    success  = d_array_common_insert_elements(&elements,
+                                              &(_ptr_array->count),
+                                              sizeof(void*),
+                                              _elements,
+                                              _count,
+                                              _index);
+
+    _ptr_array->elements = elements;
+
+    return success;
 }
 
 
@@ -706,7 +792,7 @@ Return:
   - true, if the pointers were successfully inserted, or
   - false, if the operation failed.
 */
-D_INLINE bool
+bool
 d_ptr_array_insert_array
 (
     struct d_ptr_array*       _destination,
@@ -735,7 +821,7 @@ Return:
   - true, if the array is empty or NULL, or
   - false, if the array contains elements.
 */
-D_INLINE bool
+bool
 d_ptr_array_is_empty
 (
     const struct d_ptr_array* _ptr_array
@@ -886,7 +972,7 @@ Return:
   - true, if the pointers were successfully prepended, or
   - false, if the operation failed.
 */
-D_INLINE bool
+bool
 d_ptr_array_prepend_array
 (
     struct d_ptr_array*       _destination,
@@ -913,7 +999,7 @@ Return:
   - true, if the array was successfully reversed, or
   - false, if the operation failed.
 */
-D_INLINE bool
+bool
 d_ptr_array_reverse
 (
     struct d_ptr_array* _ptr_array
@@ -933,7 +1019,7 @@ d_ptr_array_resize_amount
 
 Parameter(s):
   _ptr_array: pointer to the `d_ptr_array` to resize.
-  _amount:    amount to change the size by (positive to grow, negative to 
+  _amount:    amount to change the size by (positive to grow, negative to
               shrink).
 Return:
   A boolean value corresponding to either:
@@ -1053,12 +1139,12 @@ d_ptr_array_sort
   The comparator receives pointers to the array elements (i.e., void**).
 
 Parameter(s):
-  _ptr_array:   pointer to the `d_ptr_array` to sort.
-  _comparator:  function to compare two elements.
+  _ptr_array:  pointer to the `d_ptr_array` to sort.
+  _comparator: function to compare two elements.
 Return:
   none
 */
-D_INLINE void
+void
 d_ptr_array_sort
 (
     struct d_ptr_array* _ptr_array,
@@ -1093,7 +1179,7 @@ d_ptr_array_free
 Parameter(s):
   _ptr_array: the `d_ptr_array` being freed.
 Return:
-  none
+  none.
 */
 void
 d_ptr_array_free
@@ -1114,7 +1200,7 @@ d_ptr_array_free
 
 /*
 d_ptr_array_deep_free
-  Free the memory associated with this `d_ptr_array` and all pointed-to 
+  Free the memory associated with this `d_ptr_array` and all pointed-to
 objects.
   Uses the provided free function to free each element.
 
@@ -1122,7 +1208,7 @@ Parameter(s):
   _ptr_array: the `d_ptr_array` being freed.
   _free_fn:   function to use for freeing each pointed-to object.
 Return:
-  none
+  none.
 */
 void
 d_ptr_array_deep_free

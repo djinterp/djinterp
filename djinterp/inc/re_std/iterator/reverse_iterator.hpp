@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                  reverse_iterator.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         reverse_iterator.hpp
 *
+* reverse_iterator class header:
 * iterator adaptor that wraps a bidirectional (or random-access)
 * iterator and presents the inverse traversal: ++r is conceptually
 * --base, *r dereferences the element BEFORE the wrapped iterator's
@@ -33,70 +34,62 @@
 *     because they internally mutate a local copy of base) are only
 *     `constexpr` on C++14+. C++11 forbids constexpr non-static
 *     non-const member functions, so they are unqualified there.
-*     Local D_CONSTEXPR_CPP14 macro below; gated on
-*     D_ENV_LANG_IS_CPP14_OR_HIGHER.
+*     Local RE_STD_CONSTEXPR_CPP14 macro below; gated on
+*     RE_STD_LANG_IS_CPP14_OR_HIGHER.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/reverse_iterator.hpp
+* path:      /inc/re_std/iterator/reverse_iterator.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_REVERSE_ITERATOR_
-#define DJINTERP_RE_STD_ITERATOR_REVERSE_ITERATOR_ 1
+#ifndef RE_STD_ITERATOR_REVERSE_ITERATOR_HPP
+#define RE_STD_ITERATOR_REVERSE_ITERATOR_HPP 1
 
-#include "djinterp.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// re_std
 #include "re_std/iterator/iterator_traits.hpp"
-
-
-// D_CONSTEXPR_CPP14 — `constexpr` on C++14+, empty on C++11.
-//   Used for the mutating-then-returning-this ops in reverse_iterator.
-//   Local definition pending an entry in the global qualifier macro
-//   table (RE_STD_AGENT_README.md). Guarded so this file compiles
-//   whether or not the global macro lands.
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
 
 namespace re_std
 {
 
-template<typename _Iter>
+template<typename Iter>
 class reverse_iterator
 {
 public:
-    typedef _Iter                                              iterator_type;
-    typedef typename iterator_traits<_Iter>::iterator_category iterator_category;
-    typedef typename iterator_traits<_Iter>::value_type        value_type;
-    typedef typename iterator_traits<_Iter>::difference_type   difference_type;
-    typedef typename iterator_traits<_Iter>::pointer           pointer;
-    typedef typename iterator_traits<_Iter>::reference         reference;
+    typedef Iter                                              iterator_type;
+    typedef typename iterator_traits<Iter>::iterator_category iterator_category;
+    typedef typename iterator_traits<Iter>::value_type        value_type;
+    typedef typename iterator_traits<Iter>::difference_type   difference_type;
+    typedef typename iterator_traits<Iter>::pointer           pointer;
+    typedef typename iterator_traits<Iter>::reference         reference;
 
 protected:
-    _Iter current;
+    Iter current;
 
 public:
     // ---- constructors ----
 
-    D_CONSTEXPR reverse_iterator()
+    RE_STD_CONSTEXPR reverse_iterator()
         : current() {}
 
-    D_CONSTEXPR explicit reverse_iterator(iterator_type _x)
+    RE_STD_CONSTEXPR explicit reverse_iterator(iterator_type _x)
         : current(_x) {}
 
-    template<typename _U>
-    D_CONSTEXPR reverse_iterator(const reverse_iterator<_U>& _o)
+    template<typename U>
+    RE_STD_CONSTEXPR reverse_iterator(const reverse_iterator<U>& _o)
         : current(_o.base()) {}
 
-    template<typename _U>
-    D_CONSTEXPR_CPP14 reverse_iterator&
-    operator=(const reverse_iterator<_U>& _o)
+    template<typename U>
+    RE_STD_CONSTEXPR_CPP14 reverse_iterator&
+    operator=(const reverse_iterator<U>& _o)
     {
         current = _o.base();
         return *this;
@@ -104,75 +97,75 @@ public:
 
     // ---- access ----
 
-    D_CONSTEXPR iterator_type base() const { return current; }
+    RE_STD_CONSTEXPR iterator_type base() const { return current; }
 
-    D_CONSTEXPR_CPP14 reference operator*() const
+    RE_STD_CONSTEXPR_CPP14 reference operator*() const
     {
         // Off-by-one: r.current points one past the logical element.
-        _Iter _tmp = current;
+        Iter _tmp = current;
         return *--_tmp;
     }
 
-    D_CONSTEXPR_CPP14 pointer operator->() const
+    RE_STD_CONSTEXPR_CPP14 pointer operator->() const
     {
-        _Iter _tmp = current;
+        Iter _tmp = current;
         --_tmp;
         return to_pointer(_tmp);
     }
 
-    D_CONSTEXPR_CPP14 reference operator[](difference_type _n) const
+    RE_STD_CONSTEXPR_CPP14 reference operator[](difference_type _n) const
     {
         return *(*this + _n);
     }
 
     // ---- arithmetic ----
 
-    D_CONSTEXPR_CPP14 reverse_iterator& operator++()
+    RE_STD_CONSTEXPR_CPP14 reverse_iterator& operator++()
     {
         --current;
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 reverse_iterator operator++(int)
+    RE_STD_CONSTEXPR_CPP14 reverse_iterator operator++(int)
     {
         reverse_iterator _r = *this;
         --current;
         return _r;
     }
 
-    D_CONSTEXPR_CPP14 reverse_iterator& operator--()
+    RE_STD_CONSTEXPR_CPP14 reverse_iterator& operator--()
     {
         ++current;
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 reverse_iterator operator--(int)
+    RE_STD_CONSTEXPR_CPP14 reverse_iterator operator--(int)
     {
         reverse_iterator _r = *this;
         ++current;
         return _r;
     }
 
-    D_CONSTEXPR_CPP14 reverse_iterator
+    RE_STD_CONSTEXPR_CPP14 reverse_iterator
     operator+(difference_type _n) const
     {
         return reverse_iterator(current - _n);
     }
 
-    D_CONSTEXPR_CPP14 reverse_iterator&
+    RE_STD_CONSTEXPR_CPP14 reverse_iterator&
     operator+=(difference_type _n)
     {
         current -= _n;
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 reverse_iterator
+    RE_STD_CONSTEXPR_CPP14 reverse_iterator
     operator-(difference_type _n) const
     {
         return reverse_iterator(current + _n);
     }
 
-    D_CONSTEXPR_CPP14 reverse_iterator&
+    RE_STD_CONSTEXPR_CPP14 reverse_iterator&
     operator-=(difference_type _n)
     {
         current += _n;
@@ -182,57 +175,57 @@ public:
 private:
     // operator-> helper: raw pointer pass-through, class iterator
     // dispatch via member operator->.
-    template<typename _T>
-    static D_CONSTEXPR _T* to_pointer(_T* _p) { return _p; }
+    template<typename T>
+    static RE_STD_CONSTEXPR T* to_pointer(T* _p) { return _p; }
 
-    template<typename _It>
-    static D_CONSTEXPR_CPP14 pointer
-    to_pointer(_It _it) { return _it.operator->(); }
+    template<typename It>
+    static RE_STD_CONSTEXPR_CPP14 pointer
+    to_pointer(It _it) { return _it.operator->(); }
 };
 
 
 // ---- non-member relational ----
 
-template<typename _A, typename _B>
-D_CONSTEXPR bool operator==(const reverse_iterator<_A>& _x,
-                            const reverse_iterator<_B>& _y)
+template<typename A, typename B>
+RE_STD_CONSTEXPR bool operator==(const reverse_iterator<A>& _x,
+                            const reverse_iterator<B>& _y)
 {
     return _x.base() == _y.base();
 }
 
-template<typename _A, typename _B>
-D_CONSTEXPR bool operator!=(const reverse_iterator<_A>& _x,
-                            const reverse_iterator<_B>& _y)
+template<typename A, typename B>
+RE_STD_CONSTEXPR bool operator!=(const reverse_iterator<A>& _x,
+                            const reverse_iterator<B>& _y)
 {
     return _x.base() != _y.base();
 }
 
 // FLIPPED ordering: r1 < r2 iff base(r1) > base(r2). The reverse
 // iterator at the larger base is the "earlier" one in reverse order.
-template<typename _A, typename _B>
-D_CONSTEXPR bool operator<(const reverse_iterator<_A>& _x,
-                           const reverse_iterator<_B>& _y)
+template<typename A, typename B>
+RE_STD_CONSTEXPR bool operator<(const reverse_iterator<A>& _x,
+                           const reverse_iterator<B>& _y)
 {
     return _x.base() > _y.base();
 }
 
-template<typename _A, typename _B>
-D_CONSTEXPR bool operator>(const reverse_iterator<_A>& _x,
-                           const reverse_iterator<_B>& _y)
+template<typename A, typename B>
+RE_STD_CONSTEXPR bool operator>(const reverse_iterator<A>& _x,
+                           const reverse_iterator<B>& _y)
 {
     return _x.base() < _y.base();
 }
 
-template<typename _A, typename _B>
-D_CONSTEXPR bool operator<=(const reverse_iterator<_A>& _x,
-                            const reverse_iterator<_B>& _y)
+template<typename A, typename B>
+RE_STD_CONSTEXPR bool operator<=(const reverse_iterator<A>& _x,
+                            const reverse_iterator<B>& _y)
 {
     return _x.base() >= _y.base();
 }
 
-template<typename _A, typename _B>
-D_CONSTEXPR bool operator>=(const reverse_iterator<_A>& _x,
-                            const reverse_iterator<_B>& _y)
+template<typename A, typename B>
+RE_STD_CONSTEXPR bool operator>=(const reverse_iterator<A>& _x,
+                            const reverse_iterator<B>& _y)
 {
     return _x.base() <= _y.base();
 }
@@ -240,17 +233,17 @@ D_CONSTEXPR bool operator>=(const reverse_iterator<_A>& _x,
 
 // ---- non-member arithmetic ----
 
-template<typename _Iter>
-D_CONSTEXPR reverse_iterator<_Iter>
-operator+(typename reverse_iterator<_Iter>::difference_type _n,
-          const reverse_iterator<_Iter>& _r)
+template<typename Iter>
+RE_STD_CONSTEXPR reverse_iterator<Iter>
+operator+(typename reverse_iterator<Iter>::difference_type _n,
+          const reverse_iterator<Iter>& _r)
 {
-    return reverse_iterator<_Iter>(_r.base() - _n);
+    return reverse_iterator<Iter>(_r.base() - _n);
 }
 
-template<typename _A, typename _B>
-D_CONSTEXPR auto operator-(const reverse_iterator<_A>& _x,
-                           const reverse_iterator<_B>& _y)
+template<typename A, typename B>
+RE_STD_CONSTEXPR auto operator-(const reverse_iterator<A>& _x,
+                           const reverse_iterator<B>& _y)
     -> decltype(_y.base() - _x.base())
 {
     return _y.base() - _x.base();
@@ -260,13 +253,16 @@ D_CONSTEXPR auto operator-(const reverse_iterator<_A>& _x,
 // ---- make_reverse_iterator ----
 // Added in C++14 std; provided unconditionally on C++11+.
 
-template<typename _Iter>
-D_CONSTEXPR reverse_iterator<_Iter> make_reverse_iterator(_Iter _it)
+template<typename Iter>
+RE_STD_CONSTEXPR reverse_iterator<Iter> make_reverse_iterator(Iter _it)
 {
-    return reverse_iterator<_Iter>(_it);
+    return reverse_iterator<Iter>(_it);
 }
 
 
-}  // namespace re_std
+}  // re_std
 
-#endif  // DJINTERP_RE_STD_ITERATOR_REVERSE_ITERATOR_
+#endif  // floor, for now
+
+
+#endif  // RE_STD_ITERATOR_REVERSE_ITERATOR_HPP

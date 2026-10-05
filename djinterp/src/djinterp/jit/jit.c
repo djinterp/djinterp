@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                         jit.c
+/*******************************************************************************
+* djinterp [jit]                                                           jit.c
 *
 * djinterp portable JIT core -- implementation (jit.h).
 *   Executable-memory lifecycle, the emit primitives, and diagnostics. The
@@ -7,13 +7,14 @@
 * carries a POSIX (mmap/mprotect) path, a Windows (VirtualAlloc/VirtualProtect)
 * path, and an Apple MAP_JIT path, selected by D_ENV_JIT_BACKEND.
 *
-* path:      /inc/djinterp/jit/jit.c
+*
+* path:      /src/djinterp/jit/jit.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit.h"
+#include "../../../inc/djinterp/jit/jit.h"
 
 // std / platform -- the backend headers for the selected memory API
 #include <stdio.h>

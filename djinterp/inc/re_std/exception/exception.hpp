@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                    exception.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                exception.hpp
 *
 * the exception base class:
 *   re_std::exception is the root of the standard exception hierarchy.
@@ -12,18 +12,21 @@
 * dependent code still compiles.
 *
 *
-* path:      /inc/djinterp/re_std/exception/exception.hpp
+* path:      /inc/re_std/exception/exception.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXCEPTION_EXCEPTION_
-#define DJINTERP_RE_STD_EXCEPTION_EXCEPTION_ 1
+#ifndef RE_STD_EXCEPTION_EXCEPTION_HPP
+#define RE_STD_EXCEPTION_EXCEPTION_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
 
+    // std
     #include <exception>
 
 namespace re_std
@@ -33,8 +36,7 @@ namespace re_std
     //   preserved across the std/re_std boundary.
     using std::exception;
 
-} // namespace re_std
-
+}  // re_std
 #else // freestanding: no <exception>
 
 namespace re_std
@@ -46,20 +48,19 @@ namespace re_std
     class exception
     {
     public:
-        exception() D_NOEXCEPT
+        exception() RE_STD_NOEXCEPT
         {}
 
-        virtual ~exception() D_NOEXCEPT
+        virtual ~exception() RE_STD_NOEXCEPT
         {}
 
-        virtual const char* what() const D_NOEXCEPT
+        virtual const char* what() const RE_STD_NOEXCEPT
         {
             return "unknown exception";
         }
     };
 
-} // namespace re_std
+}  // re_std
+#endif // RE_STD_HAS_EXCEPTIONS
 
-#endif // D_ENV_CPP98_HAS_EXCEPTION
-
-#endif  // DJINTERP_RE_STD_EXCEPTION_EXCEPTION_
+#endif  // RE_STD_EXCEPTION_EXCEPTION_HPP

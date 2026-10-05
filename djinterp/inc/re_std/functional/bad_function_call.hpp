@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                           bad_function_call.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        bad_function_call.hpp
 *
+* bad_function_call exception header:
 * exception type thrown by `function::operator()` when the wrapper is
 *   empty.
 *   Adapts its inheritance hierarchy to whichever standard headers are
@@ -11,24 +12,32 @@
 * `bad_optional_access`.
 *
 *
-* path:      /inc/djinterp/re_std/functional/bad_function_call.hpp
+* path:      /inc/re_std/functional/bad_function_call.hpp
 * link(s):   TBA
-* author(s): re_std                                      date: 2026.05.07
-***********************************************************************/
+* author(s): re_std                                          created: 2026.05.07
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_
-#define DJINTERP_RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_ 1
+#ifndef RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_HPP
+#define RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_HPP 1
 
-#include "djinterp.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#if D_ENV_CPP98_HAS_EXCEPTION
+// re_std
+
+#if RE_STD_HAS_EXCEPTIONS
+    // std
     #include <exception>
 #endif
 
 namespace re_std
 {
 
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
 
 // bad_function_call
 //   class: thrown by an empty `function`'s call operator. Inherits
@@ -37,20 +46,20 @@ class bad_function_call : public std::exception
 {
 public:
     bad_function_call()
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
         noexcept
 #endif
     {}
 
     virtual ~bad_function_call()
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
         noexcept
 #endif
     {}
 
     virtual const char*
     what() const
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
         noexcept
 #endif
     {
@@ -79,8 +88,11 @@ public:
     }
 };
 
-#endif // D_ENV_CPP98_HAS_EXCEPTION
+#endif // RE_STD_HAS_EXCEPTIONS
 
-} // namespace re_std
+}  // re_std
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_
+#endif  // floor, for now
+
+
+#endif  // RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_HPP

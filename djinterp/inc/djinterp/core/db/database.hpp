@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                             database.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                                   database.hpp
+*
 * djinterp database foundational module:
 *   The foundational module for ALL database-related functionality in
 * djinterp. Holds the greatest-common subset of types, idioms, and
@@ -36,8 +36,8 @@
 *     - `connection<_helper>`    : base for all connection types.
 *     - `statement<_helper>`     : base for prepared statements.
 *     - `result_set<_helper>`    : base for result-set iteration.
-*     - `transaction<_Connection>`  : RAII transaction wrapper.
-*     - `connection_pool<_Connection>` : connection-pool template.
+*     - `transaction<Connection>`  : RAII transaction wrapper.
+*     - `connection_pool<Connection>` : connection-pool template.
 *
 *   Utilities:
 *     - `quote_identifier(name, db_type)` — dialect-aware identifier
@@ -78,26 +78,25 @@
 * such companion ever existed; the module has always been the
 * foundation.
 *
-* 
-*   CONCEPTS:
-*   Also carries the generic connection/result_set/statement concepts (trailing
-* section), folded in from database_concepts.hpp; the three abstraction concepts
-* are capitalized (Connection/Result_set/Statement) to avoid the class clash.
-* Gated on concept support. database_traits.hpp remains the shared detection layer.
 *
 * path:      /inc/djinterp/core/db/database.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_
-#define DJINTERP_DATABASE_ 1
+#ifndef DJINTERP_DB_DATABASE_HPP
+#define DJINTERP_DB_DATABASE_HPP 1
+
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
-#include <cstdint>
 #include <functional>
 #include <map>
 #include <memory>
@@ -108,9 +107,12 @@
 #include <variant>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
-#include "../env/db/env_db.h"
-#include "./database_traits.hpp"
+#include "../../djinterp.hpp"
+#include "../../env/db/env_db.h"
+#include "../meta/type_traits.hpp"  // is_invocable_r
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t, int32_t,
+                                                // int64_t, uint8_t
 
 
 NS_DJINTERP
@@ -124,7 +126,7 @@ NS_DJINTERP
 // Note: these are sequential identifiers, not bit flags. For
 // compile-time bit-flag queries use the D_ENV_DB_FLAG_* macros
 // in env_db.h directly.
-enum class database_type : std::uint16_t
+enum class database_type : re_std::uint16_t
 {
     unknown    = 0x00,
     mariadb    = 0x01,
@@ -140,7 +142,8 @@ enum class database_type : std::uint16_t
     firebase   = 0x0B,
     cassandra  = 0x0C,
     couchdb    = 0x0D,
-    neo4j      = 0x0E
+    neo4j      = 0x0E,
+    dynamodb   = 0x0F
 };
 
 // isolation_level
@@ -195,11 +198,11 @@ enum class field_type
 using value = std::variant<
     std::monostate,                         // null
     bool,                                   // boolean
-    std::int32_t,                           // integer
-    std::int64_t,                           // big integer
+    re_std::int32_t,                           // integer
+    re_std::int64_t,                           // big integer
     double,                                 // floating point
     std::string,                            // string/text
-    std::vector<std::uint8_t>,              // binary/blob
+    std::vector<re_std::uint8_t>,              // binary/blob
     std::chrono::system_clock::time_point   // timestamp
 >;
 
@@ -278,7 +281,7 @@ public:
 struct connection_config
 {
     std::string   host;
-    std::uint16_t port;
+    re_std::uint16_t port;
     std::string   database;
     std::string   username;
     std::string   password;
@@ -337,7 +340,7 @@ struct vendor_info
     database_type   type;
     std::string     name;
     std::string     display_name;
-    std::uint16_t   default_port;
+    re_std::uint16_t   default_port;
     bool            is_relational;
     bool            is_embedded;
     bool            supports_ssl;
@@ -357,7 +360,7 @@ struct vendor_info
 // native handle types, default ports, and other vendor-specific
 // metadata. The unspecialized template provides safe defaults for
 // unknown vendors.
-template<database_type _DbType>
+template<database_type DbType>
 struct vendor_traits
 {
     // native_handle_type
@@ -367,11 +370,11 @@ struct vendor_traits
 
     // db_type
     //   value: the database_type enumerator for this vendor.
-    static constexpr database_type db_type = _DbType;
+    static constexpr database_type db_type = DbType;
 
     // default_port
     //   value: the vendor's default TCP port (0 for unknown/embedded).
-    static constexpr std::uint16_t default_port = 0;
+    static constexpr re_std::uint16_t default_port = 0;
 
     // name
     //   value: short identifier string for the vendor.
@@ -469,14 +472,14 @@ public:
         return impl().last();
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable_r<
                      bool,
-                     decltype(&_Type::absolute),
-                     _Type&,
-                     std::int64_t>::value>>
-    bool absolute(std::int64_t _row)
+                     decltype(&Type::absolute),
+                     Type&,
+                     re_std::int64_t>::value>>
+    bool absolute(re_std::int64_t _row)
     {
         return impl().absolute(_row);
     }
@@ -505,12 +508,12 @@ public:
         return impl().column_index(_name);
     }
 
-    std::int64_t row_count() const
+    re_std::int64_t row_count() const
     {
         return impl().row_count();
     }
 
-    std::int64_t current_row() const
+    re_std::int64_t current_row() const
     {
         return impl().current_row();
     }
@@ -534,12 +537,12 @@ public:
         return impl().get_bool(_index);
     }
 
-    std::optional<std::int32_t> get_int(std::size_t _index) const
+    std::optional<re_std::int32_t> get_int(std::size_t _index) const
     {
         return impl().get_int(_index);
     }
 
-    std::optional<std::int64_t> get_long(std::size_t _index) const
+    std::optional<re_std::int64_t> get_long(std::size_t _index) const
     {
         return impl().get_long(_index);
     }
@@ -554,7 +557,7 @@ public:
         return impl().get_string(_index);
     }
 
-    std::optional<std::vector<std::uint8_t>>
+    std::optional<std::vector<re_std::uint8_t>>
     get_binary(std::size_t _index) const
     {
         return impl().get_binary(_index);
@@ -579,13 +582,13 @@ public:
         return impl().get_bool(_name);
     }
 
-    std::optional<std::int32_t>
+    std::optional<re_std::int32_t>
     get_int(const std::string& _name) const
     {
         return impl().get_int(_name);
     }
 
-    std::optional<std::int64_t>
+    std::optional<re_std::int64_t>
     get_long(const std::string& _name) const
     {
         return impl().get_long(_name);
@@ -603,7 +606,7 @@ public:
         return impl().get_string(_name);
     }
 
-    std::optional<std::vector<std::uint8_t>>
+    std::optional<std::vector<re_std::uint8_t>>
     get_binary(const std::string& _name) const
     {
         return impl().get_binary(_name);
@@ -675,12 +678,12 @@ public:
         impl().bind_bool(_index, _value);
     }
 
-    void bind_int(std::size_t _index, std::int32_t _value)
+    void bind_int(std::size_t _index, re_std::int32_t _value)
     {
         impl().bind_int(_index, _value);
     }
 
-    void bind_long(std::size_t _index, std::int64_t _value)
+    void bind_long(std::size_t _index, re_std::int64_t _value)
     {
         impl().bind_long(_index, _value);
     }
@@ -697,7 +700,7 @@ public:
     }
 
     void bind_binary(std::size_t                     _index,
-                     const std::vector<std::uint8_t>& _value)
+                     const std::vector<re_std::uint8_t>& _value)
     {
         impl().bind_binary(_index, _value);
     }
@@ -706,22 +709,22 @@ public:
     // parameter binding by name (for databases that support it)
     // -----------------------------------------------------------------
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::bind_null),
-                     _Type&,
+                     decltype(&Type::bind_null),
+                     Type&,
                      const std::string&>::value>>
     void bind_null(const std::string& _name)
     {
         impl().bind_null(_name);
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::bind_bool),
-                     _Type&,
+                     decltype(&Type::bind_bool),
+                     Type&,
                      const std::string&,
                      bool>::value>>
     void bind_bool(const std::string& _name, bool _value)
@@ -729,35 +732,35 @@ public:
         impl().bind_bool(_name, _value);
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::bind_int),
-                     _Type&,
+                     decltype(&Type::bind_int),
+                     Type&,
                      const std::string&,
-                     std::int32_t>::value>>
-    void bind_int(const std::string& _name, std::int32_t _value)
+                     re_std::int32_t>::value>>
+    void bind_int(const std::string& _name, re_std::int32_t _value)
     {
         impl().bind_int(_name, _value);
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::bind_long),
-                     _Type&,
+                     decltype(&Type::bind_long),
+                     Type&,
                      const std::string&,
-                     std::int64_t>::value>>
-    void bind_long(const std::string& _name, std::int64_t _value)
+                     re_std::int64_t>::value>>
+    void bind_long(const std::string& _name, re_std::int64_t _value)
     {
         impl().bind_long(_name, _value);
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::bind_double),
-                     _Type&,
+                     decltype(&Type::bind_double),
+                     Type&,
                      const std::string&,
                      double>::value>>
     void bind_double(const std::string& _name, double _value)
@@ -765,11 +768,11 @@ public:
         impl().bind_double(_name, _value);
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::bind_string),
-                     _Type&,
+                     decltype(&Type::bind_string),
+                     Type&,
                      const std::string&,
                      const std::string&>::value>>
     void bind_string(const std::string& _name,
@@ -778,15 +781,15 @@ public:
         impl().bind_string(_name, _value);
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::bind_binary),
-                     _Type&,
+                     decltype(&Type::bind_binary),
+                     Type&,
                      const std::string&,
-                     const std::vector<std::uint8_t>&>::value>>
+                     const std::vector<re_std::uint8_t>&>::value>>
     void bind_binary(const std::string&               _name,
-                     const std::vector<std::uint8_t>& _value)
+                     const std::vector<re_std::uint8_t>& _value)
     {
         impl().bind_binary(_name, _value);
     }
@@ -800,7 +803,7 @@ public:
         return impl().execute_query();
     }
 
-    std::int64_t execute_update()
+    re_std::int64_t execute_update()
     {
         return impl().execute_update();
     }
@@ -854,11 +857,11 @@ private:
 // transaction
 //   class template: RAII wrapper for database transactions using CRTP
 // pattern.
-template<typename _Connection>
+template<typename Connection>
 class transaction
 {
 public:
-    explicit transaction(_Connection& _conn)
+    explicit transaction(Connection& _conn)
         : m_connection(&_conn)
         , m_isolation_level(isolation_level::default_level)
         , m_active(false)
@@ -868,7 +871,7 @@ public:
         m_active = true;
     }
 
-    explicit transaction(_Connection&  _conn,
+    explicit transaction(Connection&  _conn,
                          isolation_level _isolation)
         : m_connection(&_conn)
         , m_isolation_level(_isolation)
@@ -964,11 +967,11 @@ public:
         m_active = false;
     }
 
-    template<typename _Type = _Connection,
+    template<typename Type = Connection,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::create_savepoint),
-                     _Type&,
+                     decltype(&Type::create_savepoint),
+                     Type&,
                      const std::string&>::value>>
     void create_savepoint(const std::string& _name)
     {
@@ -981,11 +984,11 @@ public:
         m_connection->create_savepoint(_name);
     }
 
-    template<typename _Type = _Connection,
+    template<typename Type = Connection,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::rollback_to_savepoint),
-                     _Type&,
+                     decltype(&Type::rollback_to_savepoint),
+                     Type&,
                      const std::string&>::value>>
     void rollback_to_savepoint(const std::string& _name)
     {
@@ -998,11 +1001,11 @@ public:
         m_connection->rollback_to_savepoint(_name);
     }
 
-    template<typename _Type = _Connection,
+    template<typename Type = Connection,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::release_savepoint),
-                     _Type&,
+                     decltype(&Type::release_savepoint),
+                     Type&,
                      const std::string&>::value>>
     void release_savepoint(const std::string& _name)
     {
@@ -1026,7 +1029,7 @@ public:
     }
 
 private:
-    _Connection*    m_connection;
+    Connection*    m_connection;
     isolation_level m_isolation_level;
     bool            m_active;
     bool            m_committed;
@@ -1096,7 +1099,7 @@ public:
         return impl().execute_query(_query);
     }
 
-    std::int64_t execute_update(const std::string& _query)
+    re_std::int64_t execute_update(const std::string& _query)
     {
         return impl().execute_update(_query);
     }
@@ -1125,11 +1128,11 @@ public:
         m_in_transaction = true;
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::begin_transaction),
-                     _Type&,
+                     decltype(&Type::begin_transaction),
+                     Type&,
                      isolation_level>::value>>
     void begin_transaction(isolation_level _isolation)
     {
@@ -1154,22 +1157,22 @@ public:
         return m_in_transaction;
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable_r<
                      isolation_level,
-                     decltype(&_Type::get_isolation_level),
-                     const _Type&>::value>>
+                     decltype(&Type::get_isolation_level),
+                     const Type&>::value>>
     isolation_level get_isolation_level() const
     {
         return impl().get_isolation_level();
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::set_isolation_level),
-                     _Type&,
+                     decltype(&Type::set_isolation_level),
+                     Type&,
                      isolation_level>::value>>
     void set_isolation_level(isolation_level _level)
     {
@@ -1180,33 +1183,33 @@ public:
     // savepoints (if supported)
     // -----------------------------------------------------------------
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::create_savepoint),
-                     _Type&,
+                     decltype(&Type::create_savepoint),
+                     Type&,
                      const std::string&>::value>>
     void create_savepoint(const std::string& _name)
     {
         impl().create_savepoint(_name);
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::rollback_to_savepoint),
-                     _Type&,
+                     decltype(&Type::rollback_to_savepoint),
+                     Type&,
                      const std::string&>::value>>
     void rollback_to_savepoint(const std::string& _name)
     {
         impl().rollback_to_savepoint(_name);
     }
 
-    template<typename _Type = _helper,
+    template<typename Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_Type::release_savepoint),
-                     _Type&,
+                     decltype(&Type::release_savepoint),
+                     Type&,
                      const std::string&>::value>>
     void release_savepoint(const std::string& _name)
     {
@@ -1237,12 +1240,12 @@ public:
         return m_state;
     }
 
-    std::int64_t get_last_insert_id() const
+    re_std::int64_t get_last_insert_id() const
     {
         return impl().get_last_insert_id();
     }
 
-    std::int64_t get_affected_rows() const
+    re_std::int64_t get_affected_rows() const
     {
         return impl().get_affected_rows();
     }
@@ -1306,18 +1309,18 @@ private:
 
 // forward declaration - connection_pool is defined below but
 // referenced by pooled_connection's constructor and m_pool member.
-template<typename _Connection>
+template<typename Connection>
 class connection_pool;
 
 // pooled_connection
 //   class template: RAII wrapper for pooled connections.
-template<typename _Connection>
+template<typename Connection>
 class pooled_connection
 {
 public:
     explicit pooled_connection(
-        connection_pool<_Connection>& _pool,
-        std::unique_ptr<_Connection>  _connection)
+        connection_pool<Connection>& _pool,
+        std::unique_ptr<Connection>  _connection)
         : m_pool(&_pool),
           m_connection(std::move(_connection))
     {}
@@ -1354,37 +1357,37 @@ public:
         return *this;
     }
 
-    _Connection* get() noexcept
+    Connection* get() noexcept
     {
         return m_connection.get();
     }
 
-    const _Connection* get() const noexcept
+    const Connection* get() const noexcept
     {
         return m_connection.get();
     }
 
-    _Connection* operator->() noexcept
+    Connection* operator->() noexcept
     {
         return m_connection.get();
     }
 
-    const _Connection* operator->() const noexcept
+    const Connection* operator->() const noexcept
     {
         return m_connection.get();
     }
 
-    _Connection& operator*()
+    Connection& operator*()
     {
         return *m_connection;
     }
 
-    const _Connection& operator*() const
+    const Connection& operator*() const
     {
         return *m_connection;
     }
 
-    void 
+    void
     release()
     {
         if ( (m_pool) &&
@@ -1397,19 +1400,19 @@ public:
     }
 
 private:
-    connection_pool<_Connection>* m_pool;   // was: void*
-    std::unique_ptr<_Connection>  m_connection;
+    connection_pool<Connection>* m_pool;   // was: void*
+    std::unique_ptr<Connection>  m_connection;
 };
 
 // connection_pool
 //   class template: connection pooling for efficient resource
 // management.
-template<typename _Connection>
+template<typename Connection>
 class connection_pool
 {
 public:
     using connection_factory =
-        std::function<std::unique_ptr<_Connection>()>;
+        std::function<std::unique_ptr<Connection>()>;
 
     explicit connection_pool(
         connection_factory  _factory,
@@ -1437,9 +1440,9 @@ public:
     // connection acquisition
     // -----------------------------------------------------------------
 
-    pooled_connection<_Connection> acquire()
+    pooled_connection<Connection> acquire()
     {
-        std::unique_ptr<_Connection> conn;
+        std::unique_ptr<Connection> conn;
 
         // try to get from idle pool
         if (!m_idle_connections.empty())
@@ -1467,11 +1470,11 @@ public:
 
         m_active_connections.push_back(conn.get());
 
-        return pooled_connection<_Connection>(
+        return pooled_connection<Connection>(
             *this, std::move(conn));
     }
 
-    void release(std::unique_ptr<_Connection> _conn)
+    void release(std::unique_ptr<Connection> _conn)
     {
         if (!_conn)
         {
@@ -1564,7 +1567,7 @@ public:
     }
 
 protected:
-    std::unique_ptr<_Connection> create_connection()
+    std::unique_ptr<Connection> create_connection()
     {
         auto conn = m_factory();
 
@@ -1579,7 +1582,7 @@ protected:
         return conn;
     }
 
-    bool validate_connection(_Connection* _conn)
+    bool validate_connection(Connection* _conn)
     {
         if (!_conn)
         {
@@ -1605,9 +1608,96 @@ protected:
 private:
     connection_factory                               m_factory;
     pool_config                                      m_config;
-    std::vector<std::unique_ptr<_Connection>>        m_idle_connections;
-    std::vector<_Connection*>                        m_active_connections;
+    std::vector<std::unique_ptr<Connection>>        m_idle_connections;
+    std::vector<Connection*>                        m_active_connections;
 };
+
+
+// ===========================================================================
+// XI.  CONNECTION INTERFACE DETECTION
+// ===========================================================================
+//   The generic connection surface as detection traits, which the vendor
+// headers build their compound traits on (is_sqlite_connection, ...). Each
+// comes tagged, a type with ::value for conjunction, and tagless, a
+// constexpr bool, as the vendor headers use both.
+
+// connection_connect_t, ..., connection_last_error_t
+//   type: the call each has_ trait below detects on an lvalue Type.
+template<typename Type>
+using connection_connect_t = decltype(std::declval<Type&>().connect());
+template<typename Type>
+using connection_disconnect_t = decltype(std::declval<Type&>().disconnect());
+template<typename Type>
+using connection_is_connected_t =
+    decltype(std::declval<Type&>().is_connected());
+template<typename Type>
+using connection_execute_t =
+    decltype(std::declval<Type&>().execute(std::declval<const std::string&>()));
+template<typename Type>
+using connection_server_version_t =
+    decltype(std::declval<Type&>().get_server_version());
+template<typename Type>
+using connection_last_error_t =
+    decltype(std::declval<Type&>().get_last_error());
+
+// has_connect, has_disconnect, has_is_connected, has_execute_query,
+// has_server_version, has_last_error
+//   trait: whether Type offers connect(), disconnect(), is_connected(),
+// execute(query), get_server_version() and get_last_error().
+template<typename Type>
+struct has_connect : is_detected<connection_connect_t, Type>
+{};
+template<typename Type>
+struct has_disconnect : is_detected<connection_disconnect_t, Type>
+{};
+template<typename Type>
+struct has_is_connected : is_detected<connection_is_connected_t, Type>
+{};
+template<typename Type>
+struct has_execute_query : is_detected<connection_execute_t, Type>
+{};
+template<typename Type>
+struct has_server_version : is_detected<connection_server_version_t, Type>
+{};
+template<typename Type>
+struct has_last_error : is_detected<connection_last_error_t, Type>
+{};
+
+// is_connection
+//   trait: the generic connection interface -- connect, disconnect,
+// is_connected and execute -- that every vendor connection offers.
+template<typename Type>
+struct is_connection : conjunction<has_connect<Type>,
+                                   has_disconnect<Type>,
+                                   has_is_connected<Type>,
+                                   has_execute_query<Type>>
+{};
+
+// is_vendor_connection
+//   trait: a connection that also reports its server version and its last
+// error, the surface database_connection adds for every vendor.
+template<typename Type>
+struct is_vendor_connection : conjunction<is_connection<Type>,
+                                          has_server_version<Type>,
+                                          has_last_error<Type>>
+{};
+
+// is_connectable, is_full_vendor
+//   constant: the tagless forms of is_connection and is_vendor_connection.
+template<typename Type>
+inline constexpr bool is_connectable = is_connection<Type>::value;
+template<typename Type>
+inline constexpr bool is_full_vendor = is_vendor_connection<Type>::value;
+
+// can_connect, can_disconnect, can_execute_query
+//   constant: the tagless forms of has_connect, has_disconnect and
+// has_execute_query.
+template<typename Type>
+inline constexpr bool can_connect = has_connect<Type>::value;
+template<typename Type>
+inline constexpr bool can_disconnect = has_disconnect<Type>::value;
+template<typename Type>
+inline constexpr bool can_execute_query = has_execute_query<Type>::value;
 
 
 // ===========================================================================
@@ -1653,6 +1743,70 @@ std::string get_type_name(database_type _type);
 //   function: returns human-readable name for field type.
 std::string get_field_type_name(field_type _type);
 
+
+// =========================================================================
+//  DATABASE SERIALIZABILITY  (render-fold target: "template -> store")
+// =========================================================================
+//
+//   These declarations formalize, at the connection-framework level, the
+// database target of the container render fold (containers.tex, sections
+// "Externalisation as a fold" and "Database serializability"). Externalisa-
+// tion is one catamorphism render[[alpha]] with three targets — bits, text,
+// store. The store target factors through the tabular template Theta and
+// folds twice:
+//
+//       container  --enc_T-->  Theta  --[[.]]_D-->  store
+//
+// Adequacy (enc_T: an encoder exists — a container is table-shaped) times
+// Coverage ([[.]]_D: a renderer exists — a store speaks Theta) = database
+// serializability. Because *every* SQL engine covers Theta, one encoder per
+// container-shape and one renderer per engine suffice — the wiring is N+M,
+// never N x M.
+//
+//   THE RENDERER LIVES HERE.  A vendor's dialect — identifier quoting, type
+// spelling, the shape of an upsert — is exactly the store side [[.]]_D, and
+// it is already expressed at connection-framework granularity:
+//     - quote_identifier(name, db_type)                 (identifier quoting)
+//     - dialect_format_limit_offset(db_type, lim, off)  (pagination dialect)
+//     - field_type_to_<vendor>_sql / connection::sql_type_name (type spelling)
+//     - the concrete database_table base's INSERT / upsert paths (write shape)
+// so the concrete database_table needs no virtual override to be dialect-
+// correct: the connection template argument carries the dialect.
+//
+//   store_D / retrieve_D are the two directions of the store target. They are
+// declared here (templated on the connection and on a renderable table, so no
+// definition of either type is needed at this point) and *defined downstream*
+// in db/database_table_render.hpp, which owns the encoder enc_T
+// (relational_table_view) and includes database_table.hpp. Declaring them
+// here — rather than defining them — keeps database.hpp free of any include
+// cycle through database_table.hpp while still anchoring the serializability
+// contract at the framework level.
+
+// store_direction
+//   enum: which way the store target of the render fold is running.
+enum class store_direction
+{
+    store,       // container -> Theta -> store   (enc_T then [[.]]_D)
+    retrieve     // store    -> Theta -> container (the adjoint decode)
+};
+
+// store_D
+//   function template: render a table-shaped container into the store bound
+// to _connection, via the tabular template Theta. RenderableTable is any
+// type for which db/database_table_render.hpp provides the encoder enc_T
+// (in practice a database_table<Connection, ...> or a container table with
+// a table_traits<> view). Defined in database_table_render.hpp.
+template<typename Connection, typename RenderableTable>
+void store_D(Connection&           _connection,
+             const RenderableTable& _table);
+
+// retrieve_D
+//   function template: the adjoint direction — materialize a table-shaped
+// container from the store bound to _connection. Defined in
+// database_table_render.hpp.
+template<typename Connection, typename RenderableTable>
+void retrieve_D(Connection&      _connection,
+                RenderableTable& _table);
 
 
 D_INLINE connection_config::connection_config()
@@ -1700,420 +1854,14 @@ exception::what() const noexcept
     return m_message.c_str();
 }
 
-D_INLINE int 
+D_INLINE int
 exception::error_code() const noexcept
 {
     return m_error_code;
 }
 
-// ===========================================================================
-// XI.   C++20 CONCEPTS
-// ===========================================================================
-//   The generic connection / result_set / statement concepts, folded in from the
-// former database_concepts.hpp. The three abstraction concepts are capitalized
-// (Connection / Result_set / Statement) so they do not collide with the classes
-// of the same name. Gated on concept support; database_traits.hpp (the shared
-// detection utilities) remains a separate module.
-
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
-
-NS_DATABASE
-
-// ===========================================================================
-// A.   Connection Concepts
-// ===========================================================================
-
-// Connection
-//   concept: constrains types implementing the basic Connection interface.
-template<typename _Type>
-concept Connection =
-    is_connection<clean_t<_Type>>::value;
-
-// non_connection
-//   concept: constrains types that do not implement the basic Connection
-// interface.
-template<typename _Type>
-concept non_connection =
-    !Connection<_Type>;
-
-// connectable_connection
-//   concept: constrains types exposing connect().
-template<typename _Type>
-concept connectable_connection =
-    has_connect<clean_t<_Type>>::value;
-
-// disconnectable_connection
-//   concept: constrains types exposing disconnect().
-template<typename _Type>
-concept disconnectable_connection =
-    has_disconnect<clean_t<_Type>>::value;
-
-// connection_state_query
-//   concept: constrains types exposing is_connected() const.
-template<typename _Type>
-concept connection_state_query =
-    is_detected<is_connected_t, clean_t<_Type>>::value;
-
-// query_connection
-//   concept: constrains connections exposing execute_query(const string&).
-template<typename _Type>
-concept query_connection =
-    has_execute_query<clean_t<_Type>>::value;
-
-// update_connection
-//   concept: constrains connections exposing execute_update(const string&).
-template<typename _Type>
-concept update_connection =
-    is_detected<execute_update_t, clean_t<_Type>>::value;
-
-// prepared_connection
-//   concept: constrains connections exposing prepare(const string&).
-template<typename _Type>
-concept prepared_connection =
-    has_prepared_statements<clean_t<_Type>>::value;
-
-
-// ===========================================================================
-// B.  Transaction Concepts
-// ===========================================================================
-
-// transactional_connection
-//   concept: constrains connections supporting begin/commit/rollback.
-template<typename _Type>
-concept transactional_connection =
-    has_transactions<clean_t<_Type>>::value;
-
-// savepoint_connection
-//   concept: constrains connections supporting savepoints.
-template<typename _Type>
-concept savepoint_connection =
-    has_savepoints<clean_t<_Type>>::value;
-
-// transaction_state_query
-//   concept: constrains connections exposing in_transaction() const.
-template<typename _Type>
-concept transaction_state_query =
-    is_detected<in_transaction_t, clean_t<_Type>>::value;
-
-// begin_transaction_connection
-//   concept: constrains connections exposing begin_transaction().
-template<typename _Type>
-concept begin_transaction_connection =
-    is_detected<begin_transaction_t, clean_t<_Type>>::value;
-
-// committable_connection
-//   concept: constrains connections exposing commit().
-template<typename _Type>
-concept committable_connection =
-    is_detected<commit_t, clean_t<_Type>>::value;
-
-// rollback_connection
-//   concept: constrains connections exposing rollback().
-template<typename _Type>
-concept rollback_connection =
-    is_detected<rollback_t, clean_t<_Type>>::value;
-
-// savepoint_creating_connection
-//   concept: constrains connections exposing create_savepoint().
-template<typename _Type>
-concept savepoint_creating_connection =
-    is_detected<create_savepoint_t, clean_t<_Type>>::value;
-
-// savepoint_rollback_connection
-//   concept: constrains connections exposing rollback_to_savepoint().
-template<typename _Type>
-concept savepoint_rollback_connection =
-    is_detected<rollback_to_savepoint_t, clean_t<_Type>>::value;
-
-
-// ===========================================================================
-// C. Result Set Concepts
-// ===========================================================================
-
-// Result_set
-//   concept: constrains types implementing the result-set interface.
-template<typename _Type>
-concept Result_set =
-    is_result_set<clean_t<_Type>>::value;
-
-// non_result_set
-//   concept: constrains types that do not implement the result-set interface.
-template<typename _Type>
-concept non_result_set =
-    !Result_set<_Type>;
-
-// navigable_result_set
-//   concept: constrains result sets supporting next().
-template<typename _Type>
-concept navigable_result_set =
-    is_detected<next_t, clean_t<_Type>>::value;
-
-// counted_result_set
-//   concept: constrains result sets exposing column_count().
-template<typename _Type>
-concept counted_result_set =
-    is_detected<column_count_t, clean_t<_Type>>::value;
-
-// named_result_set
-//   concept: constrains result sets exposing column_name(size_t).
-template<typename _Type>
-concept named_result_set =
-    is_detected<column_name_t, clean_t<_Type>>::value;
-
-// index_addressable_result_set
-//   concept: constrains result sets exposing get_value(size_t).
-template<typename _Type>
-concept index_addressable_result_set =
-    is_detected<get_value_index_t, clean_t<_Type>>::value;
-
-// key_addressable_result_set
-//   concept: constrains result sets exposing get_value(const string&).
-template<typename _Type>
-concept key_addressable_result_set =
-    is_detected<get_value_name_t, clean_t<_Type>>::value;
-
-
-// ===========================================================================
-// D.  Statement Concepts
-// ===========================================================================
-
-// Statement
-//   concept: constrains types implementing the prepared-Statement interface.
-template<typename _Type>
-concept Statement =
-    is_statement<clean_t<_Type>>::value;
-
-// non_statement
-//   concept: constrains types that do not implement the Statement interface.
-template<typename _Type>
-concept non_statement =
-    !Statement<_Type>;
-
-// int_bindable_statement
-//   concept: constrains statements exposing bind_int().
-template<typename _Type>
-concept int_bindable_statement =
-    is_detected<bind_int_t, clean_t<_Type>>::value;
-
-// string_bindable_statement
-//   concept: constrains statements exposing bind_string().
-template<typename _Type>
-concept string_bindable_statement =
-    is_detected<bind_string_t, clean_t<_Type>>::value;
-
-// executable_statement
-//   concept: constrains statements exposing execute().
-template<typename _Type>
-concept executable_statement =
-    is_detected<execute_t, clean_t<_Type>>::value;
-
-// parameterized_statement
-//   concept: constrains statements exposing parameter_count() const.
-template<typename _Type>
-concept parameterized_statement =
-    is_detected<parameter_count_t, clean_t<_Type>>::value;
-
-
-// ===========================================================================
-// E.   Vendor Connection Concepts
-// ===========================================================================
-
-// vendor_connection
-//   concept: constrains types implementing the full vendor Connection
-// interface.
-template<typename _Type>
-concept vendor_connection =
-    is_vendor_connection<clean_t<_Type>>::value;
-
-// pingable_connection
-//   concept: constrains connections exposing ping().
-template<typename _Type>
-concept pingable_connection =
-    has_ping<clean_t<_Type>>::value;
-
-// metadata_connection
-//   concept: constrains connections exposing vendor metadata.
-template<typename _Type>
-concept metadata_connection =
-    has_metadata<clean_t<_Type>>::value;
-
-// error_reporting_connection
-//   concept: constrains connections exposing error reporting.
-template<typename _Type>
-concept error_reporting_connection =
-    has_error_reporting<clean_t<_Type>>::value;
-
-// native_handle_connection
-//   concept: constrains connections exposing a native handle.
-template<typename _Type>
-concept native_handle_connection =
-    has_native_handle<clean_t<_Type>>::value;
-
-// reconnectable_connection
-//   concept: constrains connections exposing reconnect().
-template<typename _Type>
-concept reconnectable_connection =
-    has_reconnect<clean_t<_Type>>::value;
-
-// row_info_connection
-//   concept: constrains connections exposing row mutation information.
-template<typename _Type>
-concept row_info_connection =
-    has_row_info<clean_t<_Type>>::value;
-
-
-// ===========================================================================
-// F.  Tagless Capability Concepts
-// ===========================================================================
-
-// can_connect_connection
-//   concept: constrains types satisfying the tagless can_connect capability.
-template<typename _Type>
-concept can_connect_connection =
-    can_connect<clean_t<_Type>>;
-
-// can_disconnect_connection
-//   concept: constrains types satisfying the tagless can_disconnect
-// capability.
-template<typename _Type>
-concept can_disconnect_connection =
-    can_disconnect<clean_t<_Type>>;
-
-// can_reconnect_connection
-//   concept: constrains types satisfying the tagless can_reconnect
-// capability.
-template<typename _Type>
-concept can_reconnect_connection =
-    can_reconnect<clean_t<_Type>>;
-
-// can_ping_connection
-//   concept: constrains types satisfying the tagless can_ping capability.
-template<typename _Type>
-concept can_ping_connection =
-    can_ping<clean_t<_Type>>;
-
-// can_prepare_connection
-//   concept: constrains types satisfying the tagless can_prepare capability.
-template<typename _Type>
-concept can_prepare_connection =
-    can_prepare<clean_t<_Type>>;
-
-// transacting_connection
-//   concept: constrains types satisfying the tagless transaction compound
-// capability.
-template<typename _Type>
-concept transacting_connection =
-    does_transact<clean_t<_Type>>;
-
-// savepointing_connection
-//   concept: constrains types satisfying the tagless savepoint compound
-// capability.
-template<typename _Type>
-concept savepointing_connection =
-    does_savepoint<clean_t<_Type>>;
-
-// connectable_database
-//   concept: constrains types satisfying the tagless basic Connection
-// interface.
-template<typename _Type>
-concept connectable_database =
-    is_connectable<clean_t<_Type>>;
-
-// full_vendor_database
-//   concept: constrains types satisfying the tagless full vendor interface.
-template<typename _Type>
-concept full_vendor_database =
-    is_full_vendor<clean_t<_Type>>;
-
-// error_reporting_database
-//   concept: constrains types satisfying the tagless error-reporting
-// capability.
-template<typename _Type>
-concept error_reporting_database =
-    does_report_errors<clean_t<_Type>>;
-
-// native_handle_database
-//   concept: constrains types satisfying the tagless native-handle
-// capability.
-template<typename _Type>
-concept native_handle_database =
-    does_expose_native_handle<clean_t<_Type>>;
-
-// row_info_database
-//   concept: constrains types satisfying the tagless row-info capability.
-template<typename _Type>
-concept row_info_database =
-    does_report_row_info<clean_t<_Type>>;
-
-// version_reporting_database
-//   concept: constrains types satisfying the tagless server-version
-// capability.
-template<typename _Type>
-concept version_reporting_database =
-    does_report_version<clean_t<_Type>>;
-
-// navigable_database_result
-//   concept: constrains types satisfying the tagless result-set interface.
-template<typename _Type>
-concept navigable_database_result =
-    is_navigable_result<clean_t<_Type>>;
-
-// bindable_database_statement
-//   concept: constrains types satisfying the tagless Statement interface.
-template<typename _Type>
-concept bindable_database_statement =
-    is_bindable_statement<clean_t<_Type>>;
-
-
-// ===========================================================================
-// G. Extracted Type Concepts
-// ===========================================================================
-
-// query_result_connection
-//   concept: constrains connections whose execute_query() return type yields
-// an extracted result-set type.
-template<typename _Type>
-concept query_result_connection =
-    requires
-    {
-        typename result_set_type<clean_t<_Type>>::type;
-    } && Result_set<result_set_type_t<clean_t<_Type>>>;
-
-// prepared_statement_connection
-//   concept: constrains connections whose prepare() return type yields an
-// extracted Statement type.
-template<typename _Type>
-concept prepared_statement_connection =
-    requires
-    {
-        typename statement_type<clean_t<_Type>>::type;
-    } && Statement<statement_type_t<clean_t<_Type>>>;
-
-// extracted_result_connection
-//   concept: constrains query connections whose extracted result type is not
-// void.
-template<typename _Type>
-concept extracted_result_connection =
-    ( query_result_connection<_Type> &&
-      !std::is_void_v<result_set_type_t<clean_t<_Type>>> );
-
-// extracted_statement_connection
-//   concept: constrains prepared connections whose extracted Statement type is
-// not void.
-template<typename _Type>
-concept extracted_statement_connection =
-    ( prepared_statement_connection<_Type> &&
-      !std::is_void_v<statement_type_t<clean_t<_Type>>> );
-
-
-NS_END  // database
-
-
-#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
-
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_
+#endif  // DJINTERP_DB_DATABASE_HPP

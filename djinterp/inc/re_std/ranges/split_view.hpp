@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             split_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               split_view.hpp
 *
 * split_view header:
 *   Provides the C++23 split adaptor (single-delimiter form).
@@ -26,17 +26,19 @@
 *   re_std::views::split(delim)    — bound form for pipe syntax.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/split_view.hpp
+* path:      /inc/re_std/ranges/split_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_SPLIT_VIEW_
-#define DJINTERP_RE_STD_RANGES_SPLIT_VIEW_ 1
+#ifndef RE_STD_RANGES_SPLIT_VIEW_HPP
+#define RE_STD_RANGES_SPLIT_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -48,27 +50,28 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   SPLIT_VIEW
 // ===========================================================================
 
-// split_view<_View, _Delim>
-//   class: splits _View on occurrences of a single delimiter value.
-template<typename _View,
-         typename _Delim>
-class split_view : public view_interface<split_view<_View, _Delim> >
+// split_view<View, Delim>
+//   class: splits View on occurrences of a single delimiter value.
+template<typename View,
+         typename Delim>
+class split_view : public view_interface<split_view<View, Delim> >
 {
 public:
-    typedef _View   base_view;
-    typedef _Delim  delimiter_type;
+    typedef View   base_view;
+    typedef Delim  delimiter_type;
 
 
 private:
-    _View   m_base;
-    _Delim  m_delim;
+    View   m_base;
+    Delim  m_delim;
 
 
 public:
@@ -80,31 +83,31 @@ public:
     {
     private:
         // _bidi_clamp — clamps RA underlyings to bidi (R28 pattern).
-        template<typename _Cat>
+        template<typename Cat>
         struct _bidi_clamp
         {
-            typedef _Cat type;
+            typedef Cat type;
         };
 
     public:
         typedef typename _bidi_clamp<
                               typename iterator_traits<
-                                            iterator_t<_View>
+                                            iterator_t<View>
                                         >::iterator_category
                           >::type                       iterator_category;
-        typedef subrange<iterator_t<_View>,
-                         iterator_t<_View> >            value_type;
+        typedef subrange<iterator_t<View>,
+                         iterator_t<View> >            value_type;
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type            difference_type;
         typedef value_type                              reference;
         typedef void                                    pointer;
 
 
     private:
-        iterator_t<_View>       m_chunk_start;
-        iterator_t<_View>       m_chunk_end;
-        iterator_t<_View>       m_base_begin;  // R28: enables operator-- termination
+        iterator_t<View>       m_chunk_start;
+        iterator_t<View>       m_chunk_end;
+        iterator_t<View>       m_base_begin;  // R28: enables operator-- termination
         bool                    m_at_end;
         split_view const*       m_parent;
 
@@ -115,7 +118,7 @@ public:
         void
         find_chunk_end()
         {
-            iterator_t<_View> base_end = re_std::end(m_parent->m_base);
+            iterator_t<View> base_end = re_std::end(m_parent->m_base);
             m_chunk_end = m_chunk_start;
             while (m_chunk_end != base_end
                    && !(*m_chunk_end == m_parent->m_delim))
@@ -126,19 +129,19 @@ public:
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_chunk_start(),
               m_chunk_end(),
               m_base_begin(),
               m_at_end(true),
-              m_parent(D_NULLPTR)
+              m_parent(RE_STD_NULLPTR)
         {}
 
         iterator(
             split_view const*    _parent,
-            iterator_t<_View>    _begin,
-            iterator_t<_View>    _base_begin
+            iterator_t<View>    _begin,
+            iterator_t<View>    _base_begin
         )
             : m_chunk_start(_begin),
               m_chunk_end(),
@@ -150,21 +153,21 @@ public:
         }
 
 
-        D_CONSTEXPR iterator_t<_View>
+        RE_STD_CONSTEXPR iterator_t<View>
         base() const
         {
             return m_chunk_start;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         at_end() const
-        D_NOEXCEPT
+        RE_STD_NOEXCEPT
         {
             return m_at_end;
         }
 
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return reference(m_chunk_start, m_chunk_end);
@@ -179,7 +182,7 @@ public:
         iterator&
         operator++()
         {
-            iterator_t<_View> base_end = re_std::end(m_parent->m_base);
+            iterator_t<View> base_end = re_std::end(m_parent->m_base);
             if (m_chunk_end == base_end)
             {
                 m_at_end = true;
@@ -210,7 +213,7 @@ public:
         // found by walking back to either base_begin or the prior
         // delimiter.
         //
-        //   Compiles only when iterator_t<_View> supports operator--.
+        //   Compiles only when iterator_t<View> supports operator--.
         //   Undefined if invoked at the begin iterator of the
         // split_view (m_chunk_start == m_base_begin and not at_end).
         iterator&
@@ -224,16 +227,16 @@ public:
 
             // The previous chunk's end is one position before our
             // chunk_start (at the delimiter).
-            iterator_t<_View> new_chunk_end = m_chunk_start;
+            iterator_t<View> new_chunk_end = m_chunk_start;
             --new_chunk_end;
 
             // Walk back from the delimiter to find the previous
             // chunk's start: either at base_begin, or just past
             // a second delimiter.
-            iterator_t<_View> walker = new_chunk_end;
+            iterator_t<View> walker = new_chunk_end;
             while (walker != m_base_begin)
             {
-                iterator_t<_View> prev = walker;
+                iterator_t<View> prev = walker;
                 --prev;
                 if (*prev == m_parent->m_delim)
                 {
@@ -257,7 +260,7 @@ public:
         }
 
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -267,7 +270,7 @@ public:
                     && m_chunk_start == _rhs.m_chunk_start);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -284,12 +287,12 @@ public:
     class sentinel
     {
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         sentinel()
         {}
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             iterator const&  _it,
             sentinel const&
@@ -298,7 +301,7 @@ public:
             return _it.at_end();
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             iterator const&  _it,
             sentinel const&  _s
@@ -307,7 +310,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             sentinel const&  _s,
             iterator const&  _it
@@ -316,7 +319,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             sentinel const&  _s,
             iterator const&  _it
@@ -328,31 +331,31 @@ public:
 
 
 public:
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     split_view()
         : m_base(),
           m_delim()
     {}
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     split_view(
-        _View   _base,
-        _Delim  _delim
+        View   _base,
+        Delim  _delim
     )
-        : m_base(static_cast<_View&&>(_base)),
-          m_delim(static_cast<_Delim&&>(_delim))
+        : m_base(static_cast<View&&>(_base)),
+          m_delim(static_cast<Delim&&>(_delim))
     {}
 
 
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
     }
 
-    D_CONSTEXPR _Delim const&
+    RE_STD_CONSTEXPR Delim const&
     delim() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_delim;
     }
@@ -364,7 +367,7 @@ public:
         return iterator(this, re_std::begin(m_base), re_std::begin(m_base));
     }
 
-    D_CONSTEXPR sentinel
+    RE_STD_CONSTEXPR sentinel
     end() const
     {
         return sentinel();
@@ -376,41 +379,42 @@ public:
 // II.  SPLIT_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
-
-template<typename _Delim>
-struct split_closure : range_adaptor_closure<split_closure<_Delim> >
+namespace internal
 {
-    _Delim delim;
 
-    D_CONSTEXPR
+template<typename Delim>
+struct split_closure : range_adaptor_closure<split_closure<Delim> >
+{
+    Delim delim;
+
+    RE_STD_CONSTEXPR
     split_closure()
         : delim()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     split_closure(
-        _Delim _d
+        Delim _d
     )
-        : delim(static_cast<_Delim&&>(_d))
+        : delim(static_cast<Delim&&>(_d))
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    split_view<typename internal::all_dispatch<_R>::type, _Delim>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    split_view<typename internal::all_dispatch<R>::type, Delim>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
-        return split_view<view_type, _Delim>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+        typedef typename internal::all_dispatch<R>::type view_type;
+        return split_view<view_type, Delim>(
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             delim
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -420,43 +424,43 @@ NS_END  // internal
 namespace views
 {
     // views::split(_r, _delim)  [direct form]
-    template<typename _R,
-             typename _Delim>
-    D_CONSTEXPR_INLINE
-    split_view<typename internal::all_dispatch<_R>::type,
-               typename decay<_Delim>::type>
+    template<typename R,
+             typename Delim>
+    RE_STD_CONSTEXPR_INLINE
+    split_view<typename internal::all_dispatch<R>::type,
+               typename decay<Delim>::type>
     split(
-        _R&&     _r,
-        _Delim&& _delim
+        R&&     _r,
+        Delim&& _delim
     )
     {
-        typedef typename internal::all_dispatch<_R>::type  view_type;
-        typedef typename decay<_Delim>::type               delim_type;
+        typedef typename internal::all_dispatch<R>::type  view_type;
+        typedef typename decay<Delim>::type               delim_type;
         return split_view<view_type, delim_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
-            static_cast<_Delim&&>(_delim)
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
+            static_cast<Delim&&>(_delim)
         );
     }
 
     // views::split(_delim)  [bound form]
-    template<typename _Delim>
-    D_CONSTEXPR_INLINE
-    internal::split_closure<typename decay<_Delim>::type>
+    template<typename Delim>
+    RE_STD_CONSTEXPR_INLINE
+    internal::split_closure<typename decay<Delim>::type>
     split(
-        _Delim&& _delim
+        Delim&& _delim
     )
     {
-        return internal::split_closure<typename decay<_Delim>::type>(
-            static_cast<_Delim&&>(_delim)
+        return internal::split_closure<typename decay<Delim>::type>(
+            static_cast<Delim&&>(_delim)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_SPLIT_VIEW_
+#endif  // RE_STD_RANGES_SPLIT_VIEW_HPP

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                         duration_compare.hpp
 *
 * the six legacy duration comparison operators:
@@ -31,101 +31,103 @@
 *   CONSTEXPR from C++11, matching std.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/duration_compare.hpp
+* path:      /inc/re_std/chrono/duration_compare.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_DURATION_COMPARE_
-#define DJINTERP_RE_STD_CHRONO_DURATION_COMPARE_ 1
+#ifndef RE_STD_CHRONO_DURATION_COMPARE_HPP
+#define RE_STD_CHRONO_DURATION_COMPARE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "./duration_common_type.hpp"
 #include "../type_traits/common_type.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
     // operator==
     //   function: same length of time, whatever the periods.
-    template<typename _Rep1, typename _Period1,
-             typename _Rep2, typename _Period2>
-    D_CONSTEXPR bool operator==(const duration<_Rep1, _Period1>& _lhs,
-                                const duration<_Rep2, _Period2>& _rhs)
+    template<typename Rep1, typename Period1,
+             typename Rep2, typename Period2>
+    RE_STD_CONSTEXPR bool operator==(const duration<Rep1, Period1>& _lhs,
+                                const duration<Rep2, Period2>& _rhs)
     {
-        typedef typename common_type< duration<_Rep1, _Period1>,
-                                      duration<_Rep2, _Period2> >::type _CD;
+        typedef typename common_type< duration<Rep1, Period1>,
+                                      duration<Rep2, Period2> >::type _CD;
         return _CD(_lhs).count() == _CD(_rhs).count();
     }
 
     // operator<
     //   function: shorter length of time.
-    template<typename _Rep1, typename _Period1,
-             typename _Rep2, typename _Period2>
-    D_CONSTEXPR bool operator<(const duration<_Rep1, _Period1>& _lhs,
-                               const duration<_Rep2, _Period2>& _rhs)
+    template<typename Rep1, typename Period1,
+             typename Rep2, typename Period2>
+    RE_STD_CONSTEXPR bool operator<(const duration<Rep1, Period1>& _lhs,
+                               const duration<Rep2, Period2>& _rhs)
     {
-        typedef typename common_type< duration<_Rep1, _Period1>,
-                                      duration<_Rep2, _Period2> >::type _CD;
+        typedef typename common_type< duration<Rep1, Period1>,
+                                      duration<Rep2, Period2> >::type _CD;
         return _CD(_lhs).count() < _CD(_rhs).count();
     }
 
     // operator!=
     //   function: reflected through ==.
-    template<typename _Rep1, typename _Period1,
-             typename _Rep2, typename _Period2>
-    D_CONSTEXPR bool operator!=(const duration<_Rep1, _Period1>& _lhs,
-                                const duration<_Rep2, _Period2>& _rhs)
+    template<typename Rep1, typename Period1,
+             typename Rep2, typename Period2>
+    RE_STD_CONSTEXPR bool operator!=(const duration<Rep1, Period1>& _lhs,
+                                const duration<Rep2, Period2>& _rhs)
     {
         return !(_lhs == _rhs);
     }
 
     // operator<=
     //   function: reflected through <.
-    template<typename _Rep1, typename _Period1,
-             typename _Rep2, typename _Period2>
-    D_CONSTEXPR bool operator<=(const duration<_Rep1, _Period1>& _lhs,
-                                const duration<_Rep2, _Period2>& _rhs)
+    template<typename Rep1, typename Period1,
+             typename Rep2, typename Period2>
+    RE_STD_CONSTEXPR bool operator<=(const duration<Rep1, Period1>& _lhs,
+                                const duration<Rep2, Period2>& _rhs)
     {
         return !(_rhs < _lhs);
     }
 
     // operator>
     //   function: reflected through <.
-    template<typename _Rep1, typename _Period1,
-             typename _Rep2, typename _Period2>
-    D_CONSTEXPR bool operator>(const duration<_Rep1, _Period1>& _lhs,
-                               const duration<_Rep2, _Period2>& _rhs)
+    template<typename Rep1, typename Period1,
+             typename Rep2, typename Period2>
+    RE_STD_CONSTEXPR bool operator>(const duration<Rep1, Period1>& _lhs,
+                               const duration<Rep2, Period2>& _rhs)
     {
         return _rhs < _lhs;
     }
 
     // operator>=
     //   function: reflected through <.
-    template<typename _Rep1, typename _Period1,
-             typename _Rep2, typename _Period2>
-    D_CONSTEXPR bool operator>=(const duration<_Rep1, _Period1>& _lhs,
-                                const duration<_Rep2, _Period2>& _rhs)
+    template<typename Rep1, typename Period1,
+             typename Rep2, typename Period2>
+    RE_STD_CONSTEXPR bool operator>=(const duration<Rep1, Period1>& _lhs,
+                                const duration<Rep2, Period2>& _rhs)
     {
         return !(_lhs < _rhs);
     }
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_DURATION_COMPARE_
+#endif  // RE_STD_CHRONO_DURATION_COMPARE_HPP

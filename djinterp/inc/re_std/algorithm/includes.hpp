@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 includes.hpp
 *
 * includes algorithm header:
@@ -14,31 +14,26 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/includes.hpp
+* path:      /inc/re_std/algorithm/includes.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_INCLUDES_
-#define DJINTERP_RE_STD_ALGORITHM_INCLUDES_ 1
+#ifndef RE_STD_ALGORITHM_INCLUDES_HPP
+#define RE_STD_ALGORITHM_INCLUDES_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -49,14 +44,14 @@ NS_RESTD
 //   function: returns true if range2 is a multiset-subsequence of
 // range1. Walks both ranges; if range1 exhausts before range2, the
 // answer is false.
-template<typename _InputIt1,
-         typename _InputIt2>
-D_CONSTEXPR_CPP14 bool
+template<typename InputIt1,
+         typename InputIt2>
+RE_STD_CONSTEXPR_CPP14 bool
 includes(
-    _InputIt1 _first1,
-    _InputIt1 _last1,
-    _InputIt2 _first2,
-    _InputIt2 _last2
+    InputIt1 _first1,
+    InputIt1 _last1,
+    InputIt2 _first2,
+    InputIt2 _last2
 )
 {
     while (_first2 != _last2)
@@ -86,16 +81,16 @@ includes(
 // II.  INCLUDES (COMPARATOR)
 // ===========================================================================
 
-template<typename _InputIt1,
-         typename _InputIt2,
-         typename _Compare>
-D_CONSTEXPR_CPP14 bool
+template<typename InputIt1,
+         typename InputIt2,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 bool
 includes(
-    _InputIt1 _first1,
-    _InputIt1 _last1,
-    _InputIt2 _first2,
-    _InputIt2 _last2,
-    _Compare  _comp
+    InputIt1 _first1,
+    InputIt1 _last1,
+    InputIt2 _first2,
+    InputIt2 _last2,
+    Compare  _comp
 )
 {
     while (_first2 != _last2)
@@ -118,7 +113,7 @@ includes(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_INCLUDES_
+#endif  // RE_STD_ALGORITHM_INCLUDES_HPP

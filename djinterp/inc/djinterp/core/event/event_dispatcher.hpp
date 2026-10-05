@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [event]                                        event_dispatcher.hpp
+/*******************************************************************************
+* djinterp [core]                                           event_dispatcher.hpp
 *
 * The facade:
 *   The unified front end of the event system. event_dispatcher composes an
@@ -16,9 +16,9 @@
 * event_handler_concepts.hpp.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   immediate fire        delta_rho at once   -- fire<_Event>(...)
+*   immediate fire        delta_rho at once   -- fire<Event>(...)
 *   queue       q in Sigma-hat*               -- event_queue
-*   enqueue     q . (e,a)  (right concat)      -- queue<_Event>(...)
+*   enqueue     q . (e,a)  (right concat)      -- queue<Event>(...)
 *   process     fold of delta_rho over q,      -- process / process_all
 *               rho read at processing time
 *               (deferral coherence: fire == enqueue-then-process)
@@ -29,28 +29,23 @@
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26
 *
-* 
+*
 * path:      /inc/djinterp/core/event/event_dispatcher.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_EVENT_DISPATCHER_
-#define DJINTERP_EVENT_DISPATCHER_ 1
+#ifndef DJINTERP_EVENT_EVENT_DISPATCHER_HPP
+#define DJINTERP_EVENT_EVENT_DISPATCHER_HPP 1
 
-// require the C++ framework header
-#ifndef DJINTERP_
-    #error "event_dispatcher.hpp requires djinterp.h to be included first"
-#endif
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#ifndef __cplusplus
-    #error "event_dispatcher.hpp can only be used in C++ compilation mode"
-#endif
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "event_dispatcher.hpp requires C++11 or higher"
-#endif
-
+// std
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -59,7 +54,8 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // clean_t
 #include "./event_registry.hpp"
 
 
@@ -75,27 +71,27 @@ NS_INTERNAL
     // dispatch_tuple_impl
     //   function: unpacks a payload tuple and forwards its elements to the
     // registry's typed dispatch.
-    template<typename _Event,
-             typename _Tuple,
-             std::size_t... _I>
+    template<typename Event,
+             typename Tuple,
+             std::size_t... I>
     dispatch_result dispatch_tuple_impl(event_registry& _reg,
-                                        _Tuple&         _payload,
-                                        index_sequence<_I...>)
+                                        Tuple&         _payload,
+                                        index_sequence<I...>)
     {
-        return _reg.template dispatch<_Event>(std::get<_I>(_payload)...);
+        return _reg.template dispatch<Event>(std::get<I>(_payload)...);
     }
 
     // dispatch_tuple
     //   function: dispatches an occurrence held as a payload tuple through
     // the registry (the registry being read at call time).
-    template<typename _Event,
-             typename _Tuple>
+    template<typename Event,
+             typename Tuple>
     dispatch_result dispatch_tuple(event_registry& _reg,
-                                   _Tuple&         _payload)
+                                   Tuple&         _payload)
     {
-        return dispatch_tuple_impl<_Event>(
+        return dispatch_tuple_impl<Event>(
             _reg, _payload,
-            make_index_sequence<std::tuple_size<_Tuple>::value>{});
+            make_index_sequence<std::tuple_size<Tuple>::value>{});
     }
 
     // erased_event
@@ -136,30 +132,30 @@ public:
     // ---- enqueue (right concatenation) ----
 
     // enqueue
-    //   appends an occurrence of _Event, capturing its payload by value. The
+    //   appends an occurrence of Event, capturing its payload by value. The
     // registry is not consulted here; binding happens at processing time.
-    template<typename _Event,
-             typename... _Args>
-    void enqueue(_Args&&... _args)
+    template<typename Event,
+             typename... Args>
+    void enqueue(Args&&... _args)
     {
-        using payload_t = typename event_traits<clean_t<_Event>>::payload_type;
+        using payload_t = typename event_traits<clean_t<Event>>::payload_type;
 
         // capture the payload by value in a shared_ptr so the replay closure
         // remains copyable (a std::function requirement) regardless of the
         // payload's own copy semantics
         auto payload_ptr = std::make_shared<payload_t>(
-            std::forward<_Args>(_args)...);
+            std::forward<Args>(_args)...);
 
         internal::erased_event ev;
-        ev.type_key = internal::type_key<clean_t<_Event>>();
+        ev.type_key = internal::type_key<clean_t<Event>>();
         ev.replay =
             [payload_ptr](event_registry& _reg)
             {
-                internal::dispatch_tuple<_Event>(_reg, *payload_ptr);
+                internal::dispatch_tuple<Event>(_reg, *payload_ptr);
             };
 
         m_queue.push_back(std::move(ev));
-    };
+    }
 
     // ---- process (the deferred fold) ----
 
@@ -265,16 +261,16 @@ public:
     // ---- binding ----
 
     // bind
-    //   registers a handler for _Event (compatibility checked at compile
+    //   registers a handler for Event (compatibility checked at compile
     // time by the registry).
     // returns: a handler_id handle for later management.
-    template<typename _Event,
-             typename _Callable>
-    handler_id bind(_Callable&& _fn)
+    template<typename Event,
+             typename Callable>
+    handler_id bind(Callable&& _fn)
     {
-        return m_registry.template bind<_Event>(
-            std::forward<_Callable>(_fn));
-    };
+        return m_registry.template bind<Event>(
+            std::forward<Callable>(_fn));
+    }
 
     // unbind
     //   removes the handler identified by _id.
@@ -314,28 +310,28 @@ public:
     // ---- immediate dispatch ----
 
     // fire
-    //   dispatches an occurrence of _Event immediately against the registry.
+    //   dispatches an occurrence of Event immediately against the registry.
     // returns: the enriched (count, verdict) dispatch_result.
-    template<typename _Event,
-             typename... _Args>
-    dispatch_result fire(_Args&&... _args)
+    template<typename Event,
+             typename... Args>
+    dispatch_result fire(Args&&... _args)
     {
-        return m_registry.template dispatch<_Event>(
-            std::forward<_Args>(_args)...);
-    };
+        return m_registry.template dispatch<Event>(
+            std::forward<Args>(_args)...);
+    }
 
     // ---- deferred dispatch ----
 
     // queue
-    //   enqueues an occurrence of _Event for later processing (its payload
+    //   enqueues an occurrence of Event for later processing (its payload
     // captured by value).
-    template<typename _Event,
-             typename... _Args>
-    void queue(_Args&&... _args)
+    template<typename Event,
+             typename... Args>
+    void queue(Args&&... _args)
     {
-        m_queue.template enqueue<_Event>(
-            std::forward<_Args>(_args)...);
-    };
+        m_queue.template enqueue<Event>(
+            std::forward<Args>(_args)...);
+    }
 
     // process
     //   processes up to _max queued occurrences (0 means all) against this
@@ -357,24 +353,24 @@ public:
     // ---- run and stage ----
 
     // run
-    //   runs a homogeneous trace of _Event occurrences immediately (the
+    //   runs a homogeneous trace of Event occurrences immediately (the
     // outer fold). See event_registry::run.
-    template<typename _Event,
-             typename _InputIt>
-    run_result run(_InputIt _first,
-                   _InputIt _last)
+    template<typename Event,
+             typename InputIt>
+    run_result run(InputIt _first,
+                   InputIt _last)
     {
-        return m_registry.template run<_Event>(_first, _last);
-    };
+        return m_registry.template run<Event>(_first, _last);
+    }
 
     // compile
-    //   stages the static effective word for _Event into a single closed
+    //   stages the static effective word for Event into a single closed
     // fused_step (the staging operation). See event_registry::compile.
-    template<typename _Event>
-    fused_step<_Event> compile() const
+    template<typename Event>
+    fused_step<Event> compile() const
     {
-        return m_registry.template compile<_Event>();
-    };
+        return m_registry.template compile<Event>();
+    }
 
     // ---- merge ----
 
@@ -390,19 +386,19 @@ public:
 
     // handler_count_for
     //   returns the number of handlers for a specific event type.
-    template<typename _Event>
+    template<typename Event>
     std::size_t handler_count_for() const
     {
-        return m_registry.template handler_count_for<_Event>();
-    };
+        return m_registry.template handler_count_for<Event>();
+    }
 
     // has_handlers_for
     //   returns true if any handler is registered for the given event type.
-    template<typename _Event>
+    template<typename Event>
     bool has_handlers_for() const
     {
-        return m_registry.template has_handlers_for<_Event>();
-    };
+        return m_registry.template has_handlers_for<Event>();
+    }
 
     // ---- aggregate queries ----
 
@@ -500,13 +496,13 @@ struct drive_result
 // with identical per-occurrence handler side effects in identical order. This
 // is the operational form of the fused/erased coherence proposition and the
 // contract any fused build must preserve.
-template<typename _Event,
-         typename _InputIt>
-drive_result drive(const fused_step<_Event>& _step,
-                   _InputIt                  _first,
-                   _InputIt                  _last)
+template<typename Event,
+         typename InputIt>
+drive_result drive(const fused_step<Event>& _step,
+                   InputIt                   _first,
+                   InputIt                   _last)
 {
-    using payload_t = typename fused_step<_Event>::payload_type;
+    using payload_t = typename fused_step<Event>::payload_type;
 
     drive_result agg;
     agg.occurrences    = 0;
@@ -539,18 +535,18 @@ NS_INTERNAL
 
     // has_dispatcher_unbind
     //   trait: detects unbind(handler_id) returning bool.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_unbind
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_unbind<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_unbind<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Dispatcher&>().unbind(
+                decltype(std::declval<Dispatcher&>().unbind(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -561,18 +557,18 @@ NS_INTERNAL
 
     // has_dispatcher_enable
     //   trait: detects enable(handler_id) returning bool.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_enable
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_enable<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_enable<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Dispatcher&>().enable(
+                decltype(std::declval<Dispatcher&>().enable(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -583,18 +579,18 @@ NS_INTERNAL
 
     // has_dispatcher_disable
     //   trait: detects disable(handler_id) returning bool.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_disable
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_disable<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_disable<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Dispatcher&>().disable(
+                decltype(std::declval<Dispatcher&>().disable(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -605,18 +601,18 @@ NS_INTERNAL
 
     // has_dispatcher_is_enabled
     //   trait: detects is_enabled(handler_id) const returning bool.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_is_enabled
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_is_enabled<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_is_enabled<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Dispatcher&>().is_enabled(
+                decltype(std::declval<const Dispatcher&>().is_enabled(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -627,18 +623,18 @@ NS_INTERNAL
 
     // has_dispatcher_contains
     //   trait: detects contains(handler_id) const returning bool.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_contains
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_contains<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_contains<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Dispatcher&>().contains(
+                decltype(std::declval<const Dispatcher&>().contains(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -651,18 +647,18 @@ NS_INTERNAL
 
     // has_dispatcher_handler_count
     //   trait: detects handler_count() const returning size_t.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_handler_count
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_handler_count<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_handler_count<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Dispatcher&>().handler_count()),
+                decltype(std::declval<const Dispatcher&>().handler_count()),
                 std::size_t
             >::value
         >::type>
@@ -672,18 +668,18 @@ NS_INTERNAL
 
     // has_dispatcher_enabled_count
     //   trait: detects enabled_count() const returning size_t.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_enabled_count
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_enabled_count<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_enabled_count<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Dispatcher&>().enabled_count()),
+                decltype(std::declval<const Dispatcher&>().enabled_count()),
                 std::size_t
             >::value
         >::type>
@@ -693,18 +689,18 @@ NS_INTERNAL
 
     // has_dispatcher_pending_events
     //   trait: detects pending_events() const returning size_t.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_pending_events
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_pending_events<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_pending_events<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Dispatcher&>().pending_events()),
+                decltype(std::declval<const Dispatcher&>().pending_events()),
                 std::size_t
             >::value
         >::type>
@@ -716,18 +712,18 @@ NS_INTERNAL
 
     // has_dispatcher_process
     //   trait: detects process(size_t) returning size_t.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_process
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_process<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_process<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Dispatcher&>().process(
+                decltype(std::declval<Dispatcher&>().process(
                     std::declval<std::size_t>())),
                 std::size_t
             >::value
@@ -738,18 +734,18 @@ NS_INTERNAL
 
     // has_dispatcher_process_all
     //   trait: detects process_all() returning size_t.
-    template<typename _Dispatcher,
+    template<typename Dispatcher,
              typename = void>
     struct has_dispatcher_process_all
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher>
-    struct has_dispatcher_process_all<_Dispatcher,
+    template<typename Dispatcher>
+    struct has_dispatcher_process_all<Dispatcher,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Dispatcher&>().process_all()),
+                decltype(std::declval<Dispatcher&>().process_all()),
                 std::size_t
             >::value
         >::type>
@@ -760,24 +756,24 @@ NS_INTERNAL
     // ---- typed op detection ----
 
     // dispatcher_has_bind_impl
-    //   trait: detects bind<_Event>(callable) returning handler_id.
-    template<typename _Dispatcher,
-             typename _Event,
-             typename _Callable,
+    //   trait: detects bind<Event>(callable) returning handler_id.
+    template<typename Dispatcher,
+             typename Event,
+             typename Callable,
              typename = void>
     struct dispatcher_has_bind_impl
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher,
-             typename _Event,
-             typename _Callable>
-    struct dispatcher_has_bind_impl<_Dispatcher, _Event, _Callable,
+    template<typename Dispatcher,
+             typename Event,
+             typename Callable>
+    struct dispatcher_has_bind_impl<Dispatcher, Event, Callable,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Dispatcher&>().template bind<_Event>(
-                    std::declval<_Callable>())),
+                decltype(std::declval<Dispatcher&>().template bind<Event>(
+                    std::declval<Callable>())),
                 handler_id
             >::value
         >::type>
@@ -786,52 +782,52 @@ NS_INTERNAL
     };
 
     // dispatcher_has_fire_impl
-    //   trait: detects fire<_Event>(args...) returning dispatch_result.
-    template<typename _Dispatcher,
-             typename _Event,
-             typename _Void,
-             typename... _Args>
+    //   trait: detects fire<Event>(args...) returning dispatch_result.
+    template<typename Dispatcher,
+             typename Event,
+             typename Void,
+             typename... Args>
     struct dispatcher_has_fire_impl
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher,
-             typename _Event,
-             typename... _Args>
-    struct dispatcher_has_fire_impl<_Dispatcher, _Event,
+    template<typename Dispatcher,
+             typename Event,
+             typename... Args>
+    struct dispatcher_has_fire_impl<Dispatcher, Event,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Dispatcher&>().template fire<_Event>(
-                    std::declval<_Args>()...)),
+                decltype(std::declval<Dispatcher&>().template fire<Event>(
+                    std::declval<Args>()...)),
                 dispatch_result
             >::value
         >::type,
-        _Args...>
+        Args...>
     {
         static constexpr bool value = true;
     };
 
     // dispatcher_has_queue_impl
-    //   trait: detects queue<_Event>(args...) as a well-formed expression.
-    template<typename _Dispatcher,
-             typename _Event,
-             typename _Void,
-             typename... _Args>
+    //   trait: detects queue<Event>(args...) as a well-formed expression.
+    template<typename Dispatcher,
+             typename Event,
+             typename Void,
+             typename... Args>
     struct dispatcher_has_queue_impl
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Dispatcher,
-             typename _Event,
-             typename... _Args>
-    struct dispatcher_has_queue_impl<_Dispatcher, _Event,
+    template<typename Dispatcher,
+             typename Event,
+             typename... Args>
+    struct dispatcher_has_queue_impl<Dispatcher, Event,
         decltype(static_cast<void>(
-            std::declval<_Dispatcher&>().template queue<_Event>(
-                std::declval<_Args>()...)
+            std::declval<Dispatcher&>().template queue<Event>(
+                std::declval<Args>()...)
         )),
-        _Args...>
+        Args...>
     {
         static constexpr bool value = true;
     };
@@ -849,7 +845,7 @@ NS_END  // internal
 // queue operations expected of a dispatcher.
 //
 // note: structural check only; semantic contracts are not verified.
-template<typename _Dispatcher>
+template<typename Dispatcher>
 struct event_dispatcher_traits
 {
     // ---- management detection ----
@@ -857,61 +853,61 @@ struct event_dispatcher_traits
     // has_unbind
     //   constant: true if unbind(handler_id) --> bool.
     static constexpr bool has_unbind =
-        internal::has_dispatcher_unbind<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_unbind<clean_t<Dispatcher>>::value;
 
     // has_enable
     //   constant: true if enable(handler_id) --> bool.
     static constexpr bool has_enable =
-        internal::has_dispatcher_enable<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_enable<clean_t<Dispatcher>>::value;
 
     // has_disable
     //   constant: true if disable(handler_id) --> bool.
     static constexpr bool has_disable =
-        internal::has_dispatcher_disable<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_disable<clean_t<Dispatcher>>::value;
 
     // has_is_enabled
     //   constant: true if is_enabled(handler_id) const --> bool.
     static constexpr bool has_is_enabled =
-        internal::has_dispatcher_is_enabled<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_is_enabled<clean_t<Dispatcher>>::value;
 
     // has_contains
     //   constant: true if contains(handler_id) const --> bool.
     static constexpr bool has_contains =
-        internal::has_dispatcher_contains<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_contains<clean_t<Dispatcher>>::value;
 
     // ---- count detection ----
 
     // has_handler_count
     //   constant: true if handler_count() const --> size_t.
     static constexpr bool has_handler_count =
-        internal::has_dispatcher_handler_count<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_handler_count<clean_t<Dispatcher>>::value;
 
     // has_enabled_count
     //   constant: true if enabled_count() const --> size_t.
     static constexpr bool has_enabled_count =
-        internal::has_dispatcher_enabled_count<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_enabled_count<clean_t<Dispatcher>>::value;
 
     // has_pending_events
     //   constant: true if pending_events() const --> size_t.
     static constexpr bool has_pending_events =
-        internal::has_dispatcher_pending_events<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_pending_events<clean_t<Dispatcher>>::value;
 
     // ---- queue detection ----
 
     // has_process
     //   constant: true if process(size_t) --> size_t.
     static constexpr bool has_process =
-        internal::has_dispatcher_process<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_process<clean_t<Dispatcher>>::value;
 
     // has_process_all
     //   constant: true if process_all() --> size_t.
     static constexpr bool has_process_all =
-        internal::has_dispatcher_process_all<clean_t<_Dispatcher>>::value;
+        internal::has_dispatcher_process_all<clean_t<Dispatcher>>::value;
 
     // ---- composite detection ----
 
     // is_event_dispatcher
-    //   constant: true if _Dispatcher provides the full facade interface.
+    //   constant: true if Dispatcher provides the full facade interface.
     static constexpr bool is_event_dispatcher =
         ( has_unbind         &&
           has_enable         &&
@@ -929,41 +925,41 @@ struct event_dispatcher_traits
 // typed dispatcher detection (exposed for use in concepts and static_assert)
 
 // event_dispatcher_has_bind
-//   trait: true if _Dispatcher exposes bind<_Event>(_Callable) -> handler_id.
-template<typename _Dispatcher,
-         typename _Event,
-         typename _Callable>
+//   trait: true if Dispatcher exposes bind<Event>(Callable) -> handler_id.
+template<typename Dispatcher,
+         typename Event,
+         typename Callable>
 struct event_dispatcher_has_bind
 {
     static constexpr bool value =
         internal::dispatcher_has_bind_impl<
-            clean_t<_Dispatcher>, _Event, _Callable>::value;
+            clean_t<Dispatcher>, Event, Callable>::value;
 };
 
 // event_dispatcher_has_fire
-//   trait: true if _Dispatcher exposes fire<_Event>(_Args...) ->
+//   trait: true if Dispatcher exposes fire<Event>(Args...) ->
 // dispatch_result.
-template<typename _Dispatcher,
-         typename _Event,
-         typename... _Args>
+template<typename Dispatcher,
+         typename Event,
+         typename... Args>
 struct event_dispatcher_has_fire
 {
     static constexpr bool value =
         internal::dispatcher_has_fire_impl<
-            clean_t<_Dispatcher>, _Event, void, _Args...>::value;
+            clean_t<Dispatcher>, Event, void, Args...>::value;
 };
 
 // event_dispatcher_has_queue
-//   trait: true if _Dispatcher exposes queue<_Event>(_Args...) as a
+//   trait: true if Dispatcher exposes queue<Event>(Args...) as a
 // well-formed expression.
-template<typename _Dispatcher,
-         typename _Event,
-         typename... _Args>
+template<typename Dispatcher,
+         typename Event,
+         typename... Args>
 struct event_dispatcher_has_queue
 {
     static constexpr bool value =
         internal::dispatcher_has_queue_impl<
-            clean_t<_Dispatcher>, _Event, void, _Args...>::value;
+            clean_t<Dispatcher>, Event, void, Args...>::value;
 };
 
 
@@ -978,35 +974,35 @@ struct event_dispatcher_has_queue
 // is_event_dispatcher_type
 //   concept: constrains types satisfying the event dispatcher facade
 // structural requirements.
-template<typename _Dispatcher>
+template<typename Dispatcher>
 concept is_event_dispatcher_type =
-    event_dispatcher_traits<clean_t<_Dispatcher>>::is_event_dispatcher;
+    event_dispatcher_traits<clean_t<Dispatcher>>::is_event_dispatcher;
 
 // event_dispatcher_type
 //   concept: readable spelling of is_event_dispatcher_type.
-template<typename _Type>
+template<typename Type>
 concept event_dispatcher_type =
-    is_event_dispatcher_type<clean_t<_Type>>;
+    is_event_dispatcher_type<clean_t<Type>>;
 
 // non_event_dispatcher_type
 //   concept: constrains types that are not event dispatchers.
-template<typename _Type>
+template<typename Type>
 concept non_event_dispatcher_type =
-    !event_dispatcher_type<_Type>;
+    !event_dispatcher_type<Type>;
 
 // processing_event_dispatcher_type
 //   concept: constrains dispatchers exposing process(size_t).
-template<typename _Type>
+template<typename Type>
 concept processing_event_dispatcher_type =
-    event_dispatcher_type<_Type> &&
-    event_dispatcher_traits<clean_t<_Type>>::has_process;
+    event_dispatcher_type<Type> &&
+    event_dispatcher_traits<clean_t<Type>>::has_process;
 
 // draining_event_dispatcher_type
 //   concept: constrains dispatchers exposing process_all().
-template<typename _Type>
+template<typename Type>
 concept draining_event_dispatcher_type =
-    event_dispatcher_type<_Type> &&
-    event_dispatcher_traits<clean_t<_Type>>::has_process_all;
+    event_dispatcher_type<Type> &&
+    event_dispatcher_traits<clean_t<Type>>::has_process_all;
 
 
 // ---- typed capability concepts ----
@@ -1014,77 +1010,79 @@ concept draining_event_dispatcher_type =
 // event_dispatcher_bindable_to
 //   concept: constrains (dispatcher, callable, event) triples where the
 // callable is a valid handler for the event and the dispatcher can bind it.
-template<typename _Dispatcher,
-         typename _Callable,
-         typename _Event>
+template<typename Dispatcher,
+         typename Callable,
+         typename Event>
 concept event_dispatcher_bindable_to =
-    event_dispatcher_type<_Dispatcher> &&
-    handler_for<_Callable, _Event> &&
-    event_dispatcher_has_bind<clean_t<_Dispatcher>, _Event, _Callable>::value;
+    event_dispatcher_type<Dispatcher> &&
+    handler_for<Callable, Event> &&
+    event_dispatcher_has_bind<clean_t<Dispatcher>, Event, Callable>::value;
 
 // event_dispatcher_fireable_for
 //   concept: constrains (dispatcher, event, args...) where the dispatcher
 // can fire the event with those arguments.
-template<typename _Dispatcher,
-         typename _Event,
-         typename... _Args>
+template<typename Dispatcher,
+         typename Event,
+         typename... Args>
 concept event_dispatcher_fireable_for =
-    event_dispatcher_type<_Dispatcher> &&
-    is_event<clean_t<_Event>> &&
-    event_dispatcher_has_fire<clean_t<_Dispatcher>, _Event, _Args...>::value;
+    event_dispatcher_type<Dispatcher> &&
+    is_event<clean_t<Event>> &&
+    event_dispatcher_has_fire<clean_t<Dispatcher>, Event, Args...>::value;
 
 // event_dispatcher_queueable_for
 //   concept: constrains (dispatcher, event, args...) where the dispatcher
 // can queue the event with those arguments.
-template<typename _Dispatcher,
-         typename _Event,
-         typename... _Args>
+template<typename Dispatcher,
+         typename Event,
+         typename... Args>
 concept event_dispatcher_queueable_for =
-    event_dispatcher_type<_Dispatcher> &&
-    is_event<clean_t<_Event>> &&
-    event_dispatcher_has_queue<clean_t<_Dispatcher>, _Event, _Args...>::value;
+    event_dispatcher_type<Dispatcher> &&
+    is_event<clean_t<Event>> &&
+    event_dispatcher_has_queue<clean_t<Dispatcher>, Event, Args...>::value;
 
 
 // ---- composite capability concepts ----
 
 // firing_event_dispatcher_for
-//   concept: a dispatcher that can both bind a handler for _Event and fire
-// that event with _Args.
-template<typename _Dispatcher,
-         typename _Callable,
-         typename _Event,
-         typename... _Args>
+//   concept: a dispatcher that can both bind a handler for Event and fire
+// that event with Args.
+template<typename Dispatcher,
+         typename Callable,
+         typename Event,
+         typename... Args>
 concept firing_event_dispatcher_for =
-    event_dispatcher_bindable_to<_Dispatcher, _Callable, _Event> &&
-    event_dispatcher_fireable_for<_Dispatcher, _Event, _Args...>;
+    event_dispatcher_bindable_to<Dispatcher, Callable, Event> &&
+    event_dispatcher_fireable_for<Dispatcher, Event, Args...>;
 
 // queueing_event_dispatcher_for
-//   concept: a dispatcher that can both bind a handler for _Event and queue
-// that event with _Args.
-template<typename _Dispatcher,
-         typename _Callable,
-         typename _Event,
-         typename... _Args>
+//   concept: a dispatcher that can both bind a handler for Event and queue
+// that event with Args.
+template<typename Dispatcher,
+         typename Callable,
+         typename Event,
+         typename... Args>
 concept queueing_event_dispatcher_for =
-    event_dispatcher_bindable_to<_Dispatcher, _Callable, _Event> &&
-    event_dispatcher_queueable_for<_Dispatcher, _Event, _Args...>;
+    event_dispatcher_bindable_to<Dispatcher, Callable, Event> &&
+    event_dispatcher_queueable_for<Dispatcher, Event, Args...>;
 
 // full_event_dispatcher_for
-//   concept: a dispatcher that can bind a handler for _Event and both fire
-// and queue that event with _Args.
-template<typename _Dispatcher,
-         typename _Callable,
-         typename _Event,
-         typename... _Args>
+//   concept: a dispatcher that can bind a handler for Event and both fire
+// and queue that event with Args.
+template<typename Dispatcher,
+         typename Callable,
+         typename Event,
+         typename... Args>
 concept full_event_dispatcher_for =
-    event_dispatcher_bindable_to<_Dispatcher, _Callable, _Event> &&
-    event_dispatcher_fireable_for<_Dispatcher, _Event, _Args...> &&
-    event_dispatcher_queueable_for<_Dispatcher, _Event, _Args...>;
+    event_dispatcher_bindable_to<Dispatcher, Callable, Event> &&
+    event_dispatcher_fireable_for<Dispatcher, Event, Args...> &&
+    event_dispatcher_queueable_for<Dispatcher, Event, Args...>;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EVENT_DISPATCHER_
+
+#endif  // DJINTERP_EVENT_EVENT_DISPATCHER_HPP

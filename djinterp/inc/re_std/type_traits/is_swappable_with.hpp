@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                      is_swappable_with.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        is_swappable_with.hpp
 *
 * is_swappable_with trait:
-*   true_type if swap(declval<_T>(), declval<_U>()) and the reverse call are
+*   true_type if swap(declval<T>(), declval<U>()) and the reverse call are
 * both well-formed expressions in unevaluated context, false_type otherwise.
 *
 *   LOOKUP:
@@ -20,26 +20,27 @@
 * fallback.
 *
 *   DEPENDENCIES:
-*   re_std::swap from /inc/djinterp/re_std/utility/swap.hpp and re_std::declval
-* from /inc/djinterp/re_std/utility/declval.hpp must be declared before this
+*   re_std::swap from /inc/re_std/utility/swap.hpp and re_std::declval
+* from /inc/re_std/utility/declval.hpp must be declared before this
 * header is included. If the utility headers are not yet present in the
 * tree, this file will fail to compile at the using-declaration on the line
 * `using re_std::swap;`.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_swappable_with.hpp
+* path:      /inc/re_std/type_traits/is_swappable_with.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_SWAPPABLE_WITH_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_SWAPPABLE_WITH_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_SWAPPABLE_WITH_HPP
+#define RE_STD_TYPE_TRAITS_IS_SWAPPABLE_WITH_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./true_type.hpp"
@@ -49,17 +50,19 @@
 #include "../utility/swap.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // swappable_lookup
         //   namespace: dedicated lookup context that brings re_std::swap into
         //              scope. Inside this namespace, an unqualified call to
         //              swap(t, u) finds re_std::swap (via the using-declaration)
-        //              and any ADL-found overload from the namespaces of _T
-        //              or _U, exactly matching the standard's lookup rules
+        //              and any ADL-found overload from the namespaces of T
+        //              or U, exactly matching the standard's lookup rules
         //              for [swappable].
         namespace swappable_lookup
         {
@@ -69,64 +72,64 @@ NS_RESTD
             // is_swappable_with_helper
             //   trait: primary; default to false_type when the swap
             //          expressions are not well-formed.
-            template<typename _T,
-                     typename _U,
+            template<typename T,
+                     typename U,
                      typename = void>
             struct is_swappable_with_helper
                 : false_type
             {};
 
-            // is_swappable_with_helper<_T, _U, void>
+            // is_swappable_with_helper<T, U, void>
             //   trait: specialization; selected when both swap(t, u) and
             //          swap(u, t) are well-formed expressions. Uses void_t
             //          on the decltypes of both directional calls so that
             //          asymmetric swap overloads (one direction only) are
             //          correctly rejected.
-            template<typename _T,
-                     typename _U>
+            template<typename T,
+                     typename U>
             struct is_swappable_with_helper<
-                _T,
-                _U,
+                T,
+                U,
                 re_std::void_t<
-                    decltype( swap( re_std::declval<_T>(),
-                                    re_std::declval<_U>() ) ),
-                    decltype( swap( re_std::declval<_U>(),
-                                    re_std::declval<_T>() ) )
+                    decltype( swap( re_std::declval<T>(),
+                                    re_std::declval<U>() ) ),
+                    decltype( swap( re_std::declval<U>(),
+                                    re_std::declval<T>() ) )
                     > >
                 : true_type
             {};
 
         }  // namespace swappable_lookup
 
-    NS_END  // internal
+    }  // internal
 
 
     // is_swappable_with
-    //   trait: true_type if swap(declval<_T>(), declval<_U>()) and the
+    //   trait: true_type if swap(declval<T>(), declval<U>()) and the
     //          reverse call are both well-formed; false_type otherwise.
     //
-    //   note: _T and _U are passed as-is (no reference-stripping or
+    //   note: T and U are passed as-is (no reference-stripping or
     //         cv-stripping). To test "swappability of objects of type T",
     //         see is_swappable<T>, which forwards add_lvalue_reference<T>::type
     //         on both sides.
-    template<typename _T,
-             typename _U>
+    template<typename T,
+             typename U>
     struct is_swappable_with
-        : internal::swappable_lookup::is_swappable_with_helper<_T, _U>
+        : internal::swappable_lookup::is_swappable_with_helper<T, U>
     {};
 
 
     // is_swappable_with_v (C++14+)
-    #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-        template<typename _T,
-                 typename _U>
-        D_CONSTEXPR bool is_swappable_with_v = is_swappable_with<_T, _U>::value;
+    #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+        template<typename T,
+                 typename U>
+        RE_STD_CONSTEXPR bool is_swappable_with_v = is_swappable_with<T, U>::value;
     #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_SWAPPABLE_WITH_
+#endif  // RE_STD_TYPE_TRAITS_IS_SWAPPABLE_WITH_HPP

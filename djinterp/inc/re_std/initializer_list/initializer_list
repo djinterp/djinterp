@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                initializer_list
+/*******************************************************************************
+* djinterp [re_std]                                             initializer_list
 *
 * umbrella header for the re_std initializer_list module:
 *   pulls in every granular module of <initializer_list>: the
@@ -8,17 +8,18 @@
 *   symbol may include the corresponding granular header instead.
 *
 *
-* path:      /inc/re_std/initializer_list
+* path:      /inc/re_std/initializer_list/initializer_list
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_INITIALIZER_LIST_
-#define DJINTERP_RE_STD_INITIALIZER_LIST_ 1
+#ifndef RE_STD_INITIALIZER_LIST_INITIALIZER_LIST
+#define RE_STD_INITIALIZER_LIST_INITIALIZER_LIST 1
 
 // re_std :: initializer_list
-#include "initializer_list/initializer_list.hpp"
-#include "initializer_list/begin.hpp"
-#include "initializer_list/end.hpp"
+#include "./initializer_list.hpp"
+#include "./begin.hpp"
+#include "./end.hpp"
 
-#endif  // DJINTERP_RE_STD_INITIALIZER_LIST_
+#endif  // RE_STD_INITIALIZER_LIST_INITIALIZER_LIST

@@ -1,22 +1,26 @@
-/******************************************************************************
-* djinterp [text]                                              string_interp.h
+/*******************************************************************************
+* djinterp [c]                                                      str_interp.h
 *
 *   Pure key-value string interpolation engine. Maps named specifiers to
 * replacement values and performs batch find-and-replace substitution on
 * input strings. Marker-aware parsing (prefix/suffix delimiters, nesting)
 * is provided by the higher-level `text_template` module.
 *
-* path:      /inc/text/c/text/string_interp.h
+*
+* path:      /inc/djinterp/c/text/str_interp.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.02
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.02
+*                                                            revised: 2026.09.29
+*******************************************************************************/
 
-#ifndef DJINTERP_C_TEXT_STRING_INTERP_
-#define DJINTERP_C_TEXT_STRING_INTERP_
+#ifndef DJINTERP_C_TEXT_STR_INTERP_H
+#define DJINTERP_C_TEXT_STR_INTERP_H 1
 
+// std
 #include <stddef.h>
+// djinterp
 #include "../djinterp.h"
-#include "../dmemory.h"
+#include "../memory/dmemory.h"
 #include "../string_fn.h"
 
 
@@ -141,4 +145,4 @@ enum d_str_interp_error d_str_interp_quick(char*        _buffer,
 const char* d_str_interp_error_string(enum d_str_interp_error _error);
 
 
-#endif // DJINTERP_C_TEXT_STRING_INTERP_
+#endif // DJINTERP_C_TEXT_STR_INTERP_H

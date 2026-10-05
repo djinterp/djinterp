@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                         forward_as_tuple.hpp
 *
 * forward_as_tuple factory header:
@@ -17,27 +17,29 @@
 *   Requires variadic templates and rvalue references (C++11+).
 *
 *
-* path:      /inc/djinterp/re_std/tuple/forward_as_tuple.hpp
+* path:      /inc/re_std/tuple/forward_as_tuple.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_FORWARD_AS_TUPLE_
-#define DJINTERP_RE_STD_TUPLE_FORWARD_AS_TUPLE_ 1
+#ifndef RE_STD_TUPLE_FORWARD_AS_TUPLE_HPP
+#define RE_STD_TUPLE_FORWARD_AS_TUPLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
+
+
+// re_std
 #include "./tuple.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -45,24 +47,24 @@ NS_RESTD
 // =============================================================================
 
 // forward_as_tuple
-//   function: yields tuple<_Types&&...> bound to the forwarded
+//   function: yields tuple<Types&&...> bound to the forwarded
 // arguments. The result captures lvalues as lvalue references and
 // rvalues as rvalue references.
-template<typename... _Types>
-D_CONSTEXPR
-tuple<_Types&&...>
+template<typename... Types>
+RE_STD_CONSTEXPR
+tuple<Types&&...>
 forward_as_tuple(
-    _Types&&... _args
-) D_NOEXCEPT
+    Types&&... _args
+) RE_STD_NOEXCEPT
 {
-    return tuple<_Types&&...>(static_cast<_Types&&>(_args)...);
+    return tuple<Types&&...>(static_cast<Types&&>(_args)...);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_FORWARD_AS_TUPLE_
+#endif  // RE_STD_TUPLE_FORWARD_AS_TUPLE_HPP

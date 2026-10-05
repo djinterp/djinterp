@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   sample.hpp
 *
 * sample algorithm header:
@@ -32,23 +32,25 @@
 *     headers).
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/sample.hpp
+* path:      /inc/re_std/algorithm/sample.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_SAMPLE_
-#define DJINTERP_RE_STD_ALGORITHM_SAMPLE_ 1
+#ifndef RE_STD_ALGORITHM_SAMPLE_HPP
+#define RE_STD_ALGORITHM_SAMPLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../iterator/iterator_traits.hpp"
 #include "../iterator/input_iterator_tag.hpp"
 #include "../iterator/forward_iterator_tag.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -56,21 +58,21 @@ NS_RESTD
 // ===========================================================================
 
 // _sample_uniform_index_
-//   internal helper: unbiased uniform integer in [0, _bound) via
+//   function: internal helper: unbiased uniform integer in [0, _bound) via
 // rejection sampling. Mirrors the helper in shuffle.hpp; inlined here
 // to keep the two algorithms independent. See shuffle.hpp for the
 // derivation comments.
-template<typename _URBG>
-typename _URBG::result_type
+template<typename URBG>
+typename URBG::result_type
 _sample_uniform_index_(
-    _URBG&                         _g,
-    typename _URBG::result_type    _bound
+    URBG&                         _g,
+    typename URBG::result_type    _bound
 )
 {
-    typedef typename _URBG::result_type _R;
+    typedef typename URBG::result_type _R;
 
-    const _R _u_min      = _URBG::min();
-    const _R _span       = _URBG::max() - _u_min;
+    const _R _u_min      = URBG::min();
+    const _R _span       = URBG::max() - _u_min;
     const _R _residue    = (_span % _bound + 1) % _bound;
     const _R _max_accept = _span - _residue;
 
@@ -93,26 +95,26 @@ _sample_uniform_index_(
 //   Knuth Algorithm S. Walks the population once and decides for each
 // element whether to include it, based on its index and the
 // already-selected count. Preserves input order in the output.
-template<typename _PopIt,
-         typename _SampleIt,
-         typename _Distance,
-         typename _URBG>
-_SampleIt
+template<typename PopIt,
+         typename SampleIt,
+         typename Distance,
+         typename URBG>
+SampleIt
 _sample_impl_(
-    _PopIt                  _first,
-    _PopIt                  _last,
-    _SampleIt               _out,
-    _Distance               _n,
-    _URBG&                  _g,
+    PopIt                  _first,
+    PopIt                  _last,
+    SampleIt               _out,
+    Distance               _n,
+    URBG&                  _g,
     forward_iterator_tag
 )
 {
-    typedef typename _URBG::result_type _R;
+    typedef typename URBG::result_type _R;
 
     // population size in one pass (forward-iterable, so distance is
     // O(N) but allowed)
-    _Distance _remaining = 0;
-    for (_PopIt _it = _first; _it != _last; ++_it)
+    Distance _remaining = 0;
+    for (PopIt _it = _first; _it != _last; ++_it)
     {
         ++_remaining;
     }
@@ -155,21 +157,21 @@ _sample_impl_(
 // iterator since we overwrite reservoir slots in place. The first _n
 // elements are copied unconditionally; each subsequent element of
 // index i replaces a random reservoir slot with probability _n / i.
-template<typename _PopIt,
-         typename _SampleIt,
-         typename _Distance,
-         typename _URBG>
-_SampleIt
+template<typename PopIt,
+         typename SampleIt,
+         typename Distance,
+         typename URBG>
+SampleIt
 _sample_impl_(
-    _PopIt                  _first,
-    _PopIt                  _last,
-    _SampleIt               _out,
-    _Distance               _n,
-    _URBG&                  _g,
+    PopIt                  _first,
+    PopIt                  _last,
+    SampleIt               _out,
+    Distance               _n,
+    URBG&                  _g,
     input_iterator_tag
 )
 {
-    typedef typename _URBG::result_type _R;
+    typedef typename URBG::result_type _R;
 
     if (_n <= 0)
     {
@@ -178,7 +180,7 @@ _sample_impl_(
 
     // fill the reservoir with the first _n elements (or fewer if the
     // population is shorter)
-    _Distance _k = 0;
+    Distance _k = 0;
     while ( (_k < _n) &&
             (_first != _last) )
     {
@@ -189,7 +191,7 @@ _sample_impl_(
 
     // _k = min(_n, population_size); now stream the rest, replacing
     // reservoir slots with diminishing probability
-    _Distance _i = _k;
+    Distance _i = _k;
     while (_first != _last)
     {
         ++_i;
@@ -197,7 +199,7 @@ _sample_impl_(
         const _R _pick  = _sample_uniform_index_(_g, _bound);
         if (_pick < static_cast<_R>(_n))
         {
-            _out[static_cast<_Distance>(_pick)] = *_first;
+            _out[static_cast<Distance>(_pick)] = *_first;
         }
         ++_first;
     }
@@ -216,25 +218,25 @@ _sample_impl_(
 // source of randomness. Returns the iterator one past the last
 // written element. Dispatches on the population's iterator category;
 // see the file header for the algorithm-selection contract.
-template<typename _PopIt,
-         typename _SampleIt,
-         typename _Distance,
-         typename _URBG>
-_SampleIt
+template<typename PopIt,
+         typename SampleIt,
+         typename Distance,
+         typename URBG>
+SampleIt
 sample(
-    _PopIt    _first,
-    _PopIt    _last,
-    _SampleIt _out,
-    _Distance _n,
-    _URBG&    _g
+    PopIt    _first,
+    PopIt    _last,
+    SampleIt _out,
+    Distance _n,
+    URBG&    _g
 )
 {
-    typedef typename iterator_traits<_PopIt>::iterator_category _Cat;
+    typedef typename iterator_traits<PopIt>::iterator_category _Cat;
     return _sample_impl_(_first, _last, _out, _n, _g, _Cat());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_SAMPLE_
+#endif  // RE_STD_ALGORITHM_SAMPLE_HPP

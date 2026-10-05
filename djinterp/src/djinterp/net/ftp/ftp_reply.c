@@ -10,7 +10,7 @@
 * path:      /src/djinterp/net/ftp/ftp_reply.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_reply.h"  // corresponding header
 // std
@@ -34,6 +34,140 @@ enum d_ftp_internal_line
     D_FTP_INTERNAL_LINE_MORE = 0,  // the reply continues
     D_FTP_INTERNAL_LINE_LAST,      // the reply is complete
     D_FTP_INTERNAL_LINE_BAD        // the line cannot belong to a reply
+};
+
+// d_ftp_internal_reply_text
+//   struct: a reply code and its standard text.
+struct d_ftp_internal_reply_text
+{
+    unsigned    code;  // the three-digit code
+    const char* text;  // RFC 959 or RFC 2228 wording
+};
+
+// REPLY_TEXTS
+//   constant: the standard text of every code RFC 959, 2228, and 2428
+// define, in RFC 959's order.
+static const struct d_ftp_internal_reply_text REPLY_TEXTS[] =
+{
+    { D_FTP_REPLY_RESTART_MARKER, "Restart marker reply." },
+    { D_FTP_REPLY_SERVICE_READY_IN, "Service ready in a few minutes." },
+    { D_FTP_REPLY_TRANSFER_STARTING,
+      "Data connection already open; transfer starting." },
+    { D_FTP_REPLY_OPENING_DATA,
+      "File status okay; about to open data connection." },
+    { D_FTP_REPLY_COMMAND_OK, "Command okay." },
+    { D_FTP_REPLY_SUPERFLUOUS,
+      "Command not implemented, superfluous at this site." },
+    { D_FTP_REPLY_SYSTEM_STATUS, "System status." },
+    { D_FTP_REPLY_DIRECTORY_STATUS, "Directory status." },
+    { D_FTP_REPLY_FILE_STATUS, "File status." },
+    { D_FTP_REPLY_HELP, "Help message." },
+    { D_FTP_REPLY_SYSTEM_TYPE, "System type." },
+    { D_FTP_REPLY_SERVICE_READY, "Service ready for new user." },
+    { D_FTP_REPLY_CLOSING_CONTROL, "Service closing control connection." },
+    { D_FTP_REPLY_DATA_OPEN, "Data connection open; no transfer in progress." },
+    { D_FTP_REPLY_CLOSING_DATA, "Closing data connection." },
+    { D_FTP_REPLY_PASSIVE, "Entering Passive Mode." },
+    { D_FTP_REPLY_LONG_PASSIVE, "Entering Long Passive Mode." },
+    { D_FTP_REPLY_EXTENDED_PASSIVE, "Entering Extended Passive Mode." },
+    { D_FTP_REPLY_LOGGED_IN, "User logged in, proceed." },
+    { D_FTP_REPLY_SECURITY_LOGGED_IN,
+      "User logged in, authorized by security data exchange." },
+    { D_FTP_REPLY_SECURITY_ACCEPTED, "Security data exchange complete." },
+    { D_FTP_REPLY_SECURITY_DATA_DONE,
+      "Security data exchange completed successfully." },
+    { D_FTP_REPLY_FILE_ACTION_OK, "Requested file action okay, completed." },
+    { D_FTP_REPLY_PATHNAME, "Pathname created." },
+    { D_FTP_REPLY_NEED_PASSWORD, "User name okay, need password." },
+    { D_FTP_REPLY_NEED_ACCOUNT, "Need account for login." },
+    { D_FTP_REPLY_SECURITY_MECHANISM_OK,
+      "Security mechanism accepted; send security data." },
+    { D_FTP_REPLY_SECURITY_DATA_MORE,
+      "Security data acceptable; more is required." },
+    { D_FTP_REPLY_NEED_PASSWORD_CHALLENGE,
+      "User name okay, need password; challenge follows." },
+    { D_FTP_REPLY_FILE_ACTION_PENDING,
+      "Requested file action pending further information." },
+    { D_FTP_REPLY_SERVICE_UNAVAILABLE,
+      "Service not available, closing control connection." },
+    { D_FTP_REPLY_CANNOT_OPEN_DATA, "Can't open data connection." },
+    { D_FTP_REPLY_TRANSFER_ABORTED, "Connection closed; transfer aborted." },
+    { D_FTP_REPLY_SECURITY_RESOURCE,
+      "Need some unavailable resource to process security." },
+    { D_FTP_REPLY_FILE_BUSY,
+      "Requested file action not taken; file unavailable." },
+    { D_FTP_REPLY_LOCAL_ERROR,
+      "Requested action aborted: local error in processing." },
+    { D_FTP_REPLY_INSUFFICIENT_STORAGE,
+      "Requested action not taken; insufficient storage." },
+    { D_FTP_REPLY_SYNTAX_ERROR, "Syntax error, command unrecognized." },
+    { D_FTP_REPLY_ARGUMENT_ERROR, "Syntax error in parameters or arguments." },
+    { D_FTP_REPLY_NOT_IMPLEMENTED, "Command not implemented." },
+    { D_FTP_REPLY_BAD_SEQUENCE, "Bad sequence of commands." },
+    { D_FTP_REPLY_PARAMETER_UNSUPPORTED,
+      "Command not implemented for that parameter." },
+    { D_FTP_REPLY_PROTOCOL_UNSUPPORTED, "Network protocol not supported." },
+    { D_FTP_REPLY_NOT_LOGGED_IN, "Not logged in." },
+    { D_FTP_REPLY_NEED_ACCOUNT_TO_STORE, "Need account for storing files." },
+    { D_FTP_REPLY_PROTECTION_DENIED,
+      "Command protection level denied for policy reasons." },
+    { D_FTP_REPLY_POLICY_DENIED, "Request denied for policy reasons." },
+    { D_FTP_REPLY_SECURITY_CHECK_FAILED, "Failed security check." },
+    { D_FTP_REPLY_PROT_UNSUPPORTED,
+      "Requested PROT level not supported by mechanism." },
+    { D_FTP_REPLY_COMMAND_PROT_UNSUPPORTED,
+      "Command protection level not supported." },
+    { D_FTP_REPLY_FILE_UNAVAILABLE,
+      "Requested action not taken; file unavailable." },
+    { D_FTP_REPLY_PAGE_TYPE_UNKNOWN,
+      "Requested action aborted: page type unknown." },
+    { D_FTP_REPLY_STORAGE_EXCEEDED,
+      "Requested file action aborted: storage exceeded." },
+    { D_FTP_REPLY_NAME_NOT_ALLOWED,
+      "Requested action not taken; file name not allowed." },
+    { D_FTP_REPLY_INTEGRITY_PROTECTED, "Integrity protected reply." },
+    { D_FTP_REPLY_PRIVATE_PROTECTED,
+      "Confidentiality and integrity protected reply." },
+    { D_FTP_REPLY_CONFIDENTIAL_PROTECTED, "Confidentiality protected reply." }
+};
+
+// d_ftp_internal_reply_error
+//   struct: a negative reply code and the error it means.
+struct d_ftp_internal_reply_error
+{
+    unsigned         code;   // the three-digit code
+    enum d_ftp_error error;  // what it means to a client
+};
+
+// REPLY_ERRORS
+//   constant: the negative codes RFC 959, 2228, and 2428 give a meaning of
+// their own; every other negative code is D_FTP_ERROR_REJECTED.
+static const struct d_ftp_internal_reply_error REPLY_ERRORS[] =
+{
+    { D_FTP_REPLY_SERVICE_UNAVAILABLE, D_FTP_ERROR_SERVICE_UNAVAILABLE },
+    { D_FTP_REPLY_CANNOT_OPEN_DATA, D_FTP_ERROR_DATA_CONNECTION },
+    { D_FTP_REPLY_TRANSFER_ABORTED, D_FTP_ERROR_TRANSFER_ABORTED },
+    { D_FTP_REPLY_FILE_BUSY, D_FTP_ERROR_FILE_UNAVAILABLE },
+    { D_FTP_REPLY_FILE_UNAVAILABLE, D_FTP_ERROR_FILE_UNAVAILABLE },
+    { D_FTP_REPLY_LOCAL_ERROR, D_FTP_ERROR_LOCAL_ERROR },
+    { D_FTP_REPLY_INSUFFICIENT_STORAGE, D_FTP_ERROR_INSUFFICIENT_STORAGE },
+    { D_FTP_REPLY_STORAGE_EXCEEDED, D_FTP_ERROR_INSUFFICIENT_STORAGE },
+    { D_FTP_REPLY_SYNTAX_ERROR, D_FTP_ERROR_COMMAND_UNRECOGNIZED },
+    { D_FTP_REPLY_ARGUMENT_ERROR, D_FTP_ERROR_SYNTAX },
+    { D_FTP_REPLY_NOT_IMPLEMENTED, D_FTP_ERROR_NOT_IMPLEMENTED },
+    { D_FTP_REPLY_PARAMETER_UNSUPPORTED, D_FTP_ERROR_NOT_IMPLEMENTED },
+    { D_FTP_REPLY_BAD_SEQUENCE, D_FTP_ERROR_BAD_SEQUENCE },
+    { D_FTP_REPLY_PROTOCOL_UNSUPPORTED, D_FTP_ERROR_PROTOCOL_UNSUPPORTED },
+    { D_FTP_REPLY_NOT_LOGGED_IN, D_FTP_ERROR_LOGIN_DENIED },
+    { D_FTP_REPLY_NEED_ACCOUNT_TO_STORE, D_FTP_ERROR_ACCOUNT_REQUIRED },
+    { D_FTP_REPLY_PAGE_TYPE_UNKNOWN, D_FTP_ERROR_PAGE_TYPE_UNKNOWN },
+    { D_FTP_REPLY_NAME_NOT_ALLOWED, D_FTP_ERROR_NAME_NOT_ALLOWED },
+    { D_FTP_REPLY_SECURITY_RESOURCE, D_FTP_ERROR_SECURITY },
+    { D_FTP_REPLY_PROTECTION_DENIED, D_FTP_ERROR_SECURITY },
+    { D_FTP_REPLY_POLICY_DENIED, D_FTP_ERROR_SECURITY },
+    { D_FTP_REPLY_SECURITY_CHECK_FAILED, D_FTP_ERROR_SECURITY },
+    { D_FTP_REPLY_PROT_UNSUPPORTED, D_FTP_ERROR_SECURITY },
+    { D_FTP_REPLY_COMMAND_PROT_UNSUPPORTED, D_FTP_ERROR_SECURITY }
 };
 
 //==============================================================================
@@ -97,131 +231,23 @@ d_ftp_reply_category_of(
 
 /*
 d_ftp_reply_text
-  The texts follow RFC 959 4.2.2 and RFC 2228 wording where those give one.
+  The texts follow RFC 959 4.2.2 and RFC 2228 wording where those give one;
+the table is short enough that a scan beats any index.
 */
 const char*
 d_ftp_reply_text(
     unsigned _code
 )
 {
-    switch (_code)
+    const size_t count = sizeof(REPLY_TEXTS) / sizeof(REPLY_TEXTS[0]);
+
+    // the code's row, if it has one
+    for (size_t index = 0u; index < count; index++)
     {
-        case D_FTP_REPLY_RESTART_MARKER:
-            return "Restart marker reply.";
-        case D_FTP_REPLY_SERVICE_READY_IN:
-            return "Service ready in a few minutes.";
-        case D_FTP_REPLY_TRANSFER_STARTING:
-            return "Data connection already open; transfer starting.";
-        case D_FTP_REPLY_OPENING_DATA:
-            return "File status okay; about to open data connection.";
-        case D_FTP_REPLY_COMMAND_OK:
-            return "Command okay.";
-        case D_FTP_REPLY_SUPERFLUOUS:
-            return "Command not implemented, superfluous at this site.";
-        case D_FTP_REPLY_SYSTEM_STATUS:
-            return "System status.";
-        case D_FTP_REPLY_DIRECTORY_STATUS:
-            return "Directory status.";
-        case D_FTP_REPLY_FILE_STATUS:
-            return "File status.";
-        case D_FTP_REPLY_HELP:
-            return "Help message.";
-        case D_FTP_REPLY_SYSTEM_TYPE:
-            return "System type.";
-        case D_FTP_REPLY_SERVICE_READY:
-            return "Service ready for new user.";
-        case D_FTP_REPLY_CLOSING_CONTROL:
-            return "Service closing control connection.";
-        case D_FTP_REPLY_DATA_OPEN:
-            return "Data connection open; no transfer in progress.";
-        case D_FTP_REPLY_CLOSING_DATA:
-            return "Closing data connection.";
-        case D_FTP_REPLY_PASSIVE:
-            return "Entering Passive Mode.";
-        case D_FTP_REPLY_LONG_PASSIVE:
-            return "Entering Long Passive Mode.";
-        case D_FTP_REPLY_EXTENDED_PASSIVE:
-            return "Entering Extended Passive Mode.";
-        case D_FTP_REPLY_LOGGED_IN:
-            return "User logged in, proceed.";
-        case D_FTP_REPLY_SECURITY_LOGGED_IN:
-            return "User logged in, authorized by security data exchange.";
-        case D_FTP_REPLY_SECURITY_ACCEPTED:
-            return "Security data exchange complete.";
-        case D_FTP_REPLY_SECURITY_DATA_DONE:
-            return "Security data exchange completed successfully.";
-        case D_FTP_REPLY_FILE_ACTION_OK:
-            return "Requested file action okay, completed.";
-        case D_FTP_REPLY_PATHNAME:
-            return "Pathname created.";
-        case D_FTP_REPLY_NEED_PASSWORD:
-            return "User name okay, need password.";
-        case D_FTP_REPLY_NEED_ACCOUNT:
-            return "Need account for login.";
-        case D_FTP_REPLY_SECURITY_MECHANISM_OK:
-            return "Security mechanism accepted; send security data.";
-        case D_FTP_REPLY_SECURITY_DATA_MORE:
-            return "Security data acceptable; more is required.";
-        case D_FTP_REPLY_NEED_PASSWORD_CHALLENGE:
-            return "User name okay, need password; challenge follows.";
-        case D_FTP_REPLY_FILE_ACTION_PENDING:
-            return "Requested file action pending further information.";
-        case D_FTP_REPLY_SERVICE_UNAVAILABLE:
-            return "Service not available, closing control connection.";
-        case D_FTP_REPLY_CANNOT_OPEN_DATA:
-            return "Can't open data connection.";
-        case D_FTP_REPLY_TRANSFER_ABORTED:
-            return "Connection closed; transfer aborted.";
-        case D_FTP_REPLY_SECURITY_RESOURCE:
-            return "Need some unavailable resource to process security.";
-        case D_FTP_REPLY_FILE_BUSY:
-            return "Requested file action not taken; file unavailable.";
-        case D_FTP_REPLY_LOCAL_ERROR:
-            return "Requested action aborted: local error in processing.";
-        case D_FTP_REPLY_INSUFFICIENT_STORAGE:
-            return "Requested action not taken; insufficient storage.";
-        case D_FTP_REPLY_SYNTAX_ERROR:
-            return "Syntax error, command unrecognized.";
-        case D_FTP_REPLY_ARGUMENT_ERROR:
-            return "Syntax error in parameters or arguments.";
-        case D_FTP_REPLY_NOT_IMPLEMENTED:
-            return "Command not implemented.";
-        case D_FTP_REPLY_BAD_SEQUENCE:
-            return "Bad sequence of commands.";
-        case D_FTP_REPLY_PARAMETER_UNSUPPORTED:
-            return "Command not implemented for that parameter.";
-        case D_FTP_REPLY_PROTOCOL_UNSUPPORTED:
-            return "Network protocol not supported.";
-        case D_FTP_REPLY_NOT_LOGGED_IN:
-            return "Not logged in.";
-        case D_FTP_REPLY_NEED_ACCOUNT_TO_STORE:
-            return "Need account for storing files.";
-        case D_FTP_REPLY_PROTECTION_DENIED:
-            return "Command protection level denied for policy reasons.";
-        case D_FTP_REPLY_POLICY_DENIED:
-            return "Request denied for policy reasons.";
-        case D_FTP_REPLY_SECURITY_CHECK_FAILED:
-            return "Failed security check.";
-        case D_FTP_REPLY_PROT_UNSUPPORTED:
-            return "Requested PROT level not supported by mechanism.";
-        case D_FTP_REPLY_COMMAND_PROT_UNSUPPORTED:
-            return "Command protection level not supported.";
-        case D_FTP_REPLY_FILE_UNAVAILABLE:
-            return "Requested action not taken; file unavailable.";
-        case D_FTP_REPLY_PAGE_TYPE_UNKNOWN:
-            return "Requested action aborted: page type unknown.";
-        case D_FTP_REPLY_STORAGE_EXCEEDED:
-            return "Requested file action aborted: storage exceeded.";
-        case D_FTP_REPLY_NAME_NOT_ALLOWED:
-            return "Requested action not taken; file name not allowed.";
-        case D_FTP_REPLY_INTEGRITY_PROTECTED:
-            return "Integrity protected reply.";
-        case D_FTP_REPLY_PRIVATE_PROTECTED:
-            return "Confidentiality and integrity protected reply.";
-        case D_FTP_REPLY_CONFIDENTIAL_PROTECTED:
-            return "Confidentiality protected reply.";
-        default:
-            break;
+        if (REPLY_TEXTS[index].code == _code)
+        {
+            return REPLY_TEXTS[index].text;
+        }
     }
 
     return NULL;
@@ -530,6 +556,69 @@ d_ftp_reply_parser_reset(
 }
 
 /*
+d_ftp_internal_reply_step
+  File-local: takes one byte. Telnet command sequences, CR, and NUL vanish,
+being line control, never text; LF ends the line; every other byte joins
+it. Returns what the byte ended: MORE when it ended nothing, or a line
+short of the last.
+*/
+D_STATIC enum d_ftp_internal_line
+d_ftp_internal_reply_step(
+    struct d_ftp_reply_parser* _parser,
+    unsigned char              _byte
+)
+{
+    // Telnet command sequences, CR, and NUL are not reply text
+    if ( (!d_ftp_internal_telnet_accept(&_parser->telnet,
+                                        _byte)) ||
+         (_byte == '\r')                        ||
+         (_byte == '\0') )
+    {
+        return D_FTP_INTERNAL_LINE_MORE;
+    }
+
+    // every other byte but LF joins the line
+    if (_byte != '\n')
+    {
+        d_ftp_internal_reply_take(_parser,
+                                  (char)_byte);
+
+        return D_FTP_INTERNAL_LINE_MORE;
+    }
+
+    return d_ftp_internal_reply_end_line(_parser);
+}
+
+/*
+d_ftp_internal_reply_deliver
+  File-local: hands a completed reply over and readies the parser for the
+next. The reserved last byte of the storage always has room for the
+terminator.
+*/
+D_STATIC void
+d_ftp_internal_reply_deliver(
+    struct d_ftp_reply_parser* _parser,
+    struct d_ftp_reply*        _out
+)
+{
+    // the terminator, where there is storage at all
+    if (_parser->capacity > 0u)
+    {
+        _parser->storage[_parser->length] = '\0';
+    }
+
+    _out->code        = _parser->code;
+    _out->line_count  = _parser->line_count;
+    _out->text.data   = _parser->storage;
+    _out->text.length = _parser->length;
+    _out->truncated   = _parser->truncated;
+
+    d_ftp_internal_reply_clear(_parser);
+
+    return;
+}
+
+/*
 d_ftp_reply_parser_feed
   Each byte passes the Telnet filter, then either ends a line (LF), vanishes
 (CR and NUL are line control, never text), or joins the line. Stopping right
@@ -562,40 +651,12 @@ d_ftp_reply_parser_feed(
         return D_FTP_STATUS_FAILED;
     }
 
-    size_t index = 0;
-
     // consume until a reply completes or the input runs out
-    while (index < _length)
+    for (size_t index = 0u; index < _length; )
     {
-        const unsigned char byte = (unsigned char)_data[index];
-
-        index++;
-
-        // Telnet command sequences are not reply text
-        if (!d_ftp_internal_telnet_accept(&_parser->telnet,
-                                          byte))
-        {
-            continue;
-        }
-
-        // CR and NUL are line control, never text
-        if ( (byte == '\r') ||
-             (byte == '\0') )
-        {
-            continue;
-        }
-
-        // every other byte but LF joins the line
-        if (byte != '\n')
-        {
-            d_ftp_internal_reply_take(_parser,
-                                      (char)byte);
-
-            continue;
-        }
-
         const enum d_ftp_internal_line line =
-            d_ftp_internal_reply_end_line(_parser);
+            d_ftp_internal_reply_step(_parser,
+                                      (unsigned char)_data[index++]);
 
         // a line that cannot belong to a reply poisons the stream
         if (line == D_FTP_INTERNAL_LINE_BAD)
@@ -609,26 +670,15 @@ d_ftp_reply_parser_feed(
         // the closing line hands the reply over
         if (line == D_FTP_INTERNAL_LINE_LAST)
         {
-            // the reserved last byte always has room for the terminator
-            if (_parser->capacity > 0u)
-            {
-                _parser->storage[_parser->length] = '\0';
-            }
-
-            _out->code        = _parser->code;
-            _out->line_count  = _parser->line_count;
-            _out->text.data   = _parser->storage;
-            _out->text.length = _parser->length;
-            _out->truncated   = _parser->truncated;
-            *_out_used        = index;
-
-            d_ftp_internal_reply_clear(_parser);
+            d_ftp_internal_reply_deliver(_parser,
+                                         _out);
+            *_out_used = index;
 
             return D_FTP_STATUS_COMPLETE;
         }
     }
 
-    *_out_used = index;
+    *_out_used = _length;
 
     return D_FTP_STATUS_PENDING;
 }
@@ -695,10 +745,48 @@ d_ftp_internal_append_line(
 }
 
 /*
+d_ftp_internal_reply_lead
+  File-local: writes the lead of one formatted line into `_lead`, four
+bytes, and returns its length: the code and a hyphen opening the first line
+of several, the code and a space opening the last, a single space before a
+middle line that begins with a digit -- which could otherwise pass for a
+closing line -- and nothing before any other.
+*/
+D_STATIC size_t
+d_ftp_internal_reply_lead(
+    unsigned _code,
+    bool     _first,
+    bool     _last,
+    bool     _digit,
+    char*    _lead
+)
+{
+    _lead[0] = (char)('0' + (int)(_code / 100u));
+    _lead[1] = (char)('0' + (int)((_code / 10u) % 10u));
+    _lead[2] = (char)('0' + (int)(_code % 10u));
+    _lead[3] = (_last) ? ' ' : '-';
+
+    // the code opens the first and the last line
+    if ( (_first) ||
+         (_last) )
+    {
+        return 4u;
+    }
+
+    // a middle line must never look like a closing line
+    if (_digit)
+    {
+        _lead[0] = ' ';
+
+        return 1u;
+    }
+
+    return 0u;
+}
+
+/*
 d_ftp_reply_format
-  Splits the text at every CR, LF, or CR LF and gives each piece its lead:
-the code and a hyphen on the first line of several, the code and a space on
-the last, and a single space on any middle line that begins with a digit.
+  Splits the text at every CR, LF, or CR LF and gives each piece its lead.
 Since only the last line ever carries "ddd ", no text can end the reply
 early or forge a second one.
 */
@@ -716,69 +804,37 @@ d_ftp_reply_format(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const char* const standard  = d_ftp_reply_text(_code);
-    const char* const text      = (_text)    ? _text
-                                : (standard) ? standard
-                                             : "";
-    const size_t      length    = strlen(text);
-    const size_t      mark      = _out->length;
-    const char        digits[3] =
-    {
-        (char)('0' + (int)(_code / 100u)),
-        (char)('0' + (int)((_code / 10u) % 10u)),
-        (char)('0' + (int)(_code % 10u))
-    };
-    size_t            position  = 0;
-    bool              first     = true;
+    const char* const standard = d_ftp_reply_text(_code);
+    const char* const text     = (_text)    ? _text
+                               : (standard) ? standard
+                                            : "";
+    const size_t      length   = strlen(text);
+    const size_t      mark     = _out->length;
 
     // one reply line per line of text; empty text is one empty line
-    while (true)
+    for (size_t position = 0u; ; )
     {
-        size_t end = position;
-
-        // the line runs to the next CR or LF
-        while ( (end < length)       &&
-                (text[end] != '\r')  &&
-                (text[end] != '\n') )
-        {
-            end++;
-        }
-
-        const size_t next    = d_ftp_internal_after_break(text,
-                                                          length,
-                                                          end);
-        const bool   last    = (next >= length);
-        char         lead[4] =
-        {
-            digits[0],
-            digits[1],
-            digits[2],
-            (char)((last) ? ' ' : '-')
-        };
-        size_t       lead_length = 0;
-
-        // the code opens the first and the last line
-        if ( (first) ||
-             (last) )
-        {
-            lead_length = 4u;
-        }
-        else if ( (end > position) &&
-                  (d_ftp_internal_is_digit(text[position])) )
-        {
-            // a middle line must never look like a closing line
-            lead[0]     = ' ';
-            lead_length = 1u;
-        }
-
-        const bool fits = d_ftp_internal_append_line(_out,
-                                                     lead,
-                                                     lead_length,
-                                                     text + position,
-                                                     end - position);
+        const size_t end         = position + strcspn(text + position,
+                                                      "\r\n");
+        const size_t next        = d_ftp_internal_after_break(text,
+                                                              length,
+                                                              end);
+        char         lead[4]     = { 0 };
+        const size_t lead_length =
+            d_ftp_internal_reply_lead(_code,
+                                      (mark == _out->length),
+                                      (next >= length),
+                                      ( (end > position) &&
+                                        (d_ftp_internal_is_digit(
+                                             text[position])) ),
+                                      lead);
 
         // a line that does not fit abandons the whole reply
-        if (!fits)
+        if (!d_ftp_internal_append_line(_out,
+                                        lead,
+                                        lead_length,
+                                        text + position,
+                                        end - position))
         {
             d_ftp_internal_rollback(_out,
                                     mark);
@@ -787,16 +843,13 @@ d_ftp_reply_format(
         }
 
         // the last line ends the reply
-        if (last)
+        if (next >= length)
         {
-            break;
+            return D_FTP_OK;
         }
 
         position = next;
-        first    = false;
     }
-
-    return D_FTP_OK;
 }
 
 /*
@@ -810,6 +863,8 @@ d_ftp_error_from_reply(
 )
 {
     const enum d_ftp_reply_class reply_class = d_ftp_reply_class_of(_code);
+    const size_t                 count       =
+        sizeof(REPLY_ERRORS) / sizeof(REPLY_ERRORS[0]);
 
     // not a reply code at all
     if (reply_class == D_FTP_REPLY_CLASS_INVALID)
@@ -832,50 +887,12 @@ d_ftp_error_from_reply(
     }
 
     // the negative codes with a meaning of their own
-    switch (_code)
+    for (size_t index = 0u; index < count; index++)
     {
-        case D_FTP_REPLY_SERVICE_UNAVAILABLE:
-            return D_FTP_ERROR_SERVICE_UNAVAILABLE;
-        case D_FTP_REPLY_CANNOT_OPEN_DATA:
-            return D_FTP_ERROR_DATA_CONNECTION;
-        case D_FTP_REPLY_TRANSFER_ABORTED:
-            return D_FTP_ERROR_TRANSFER_ABORTED;
-        case D_FTP_REPLY_FILE_BUSY:
-        case D_FTP_REPLY_FILE_UNAVAILABLE:
-            return D_FTP_ERROR_FILE_UNAVAILABLE;
-        case D_FTP_REPLY_LOCAL_ERROR:
-            return D_FTP_ERROR_LOCAL_ERROR;
-        case D_FTP_REPLY_INSUFFICIENT_STORAGE:
-        case D_FTP_REPLY_STORAGE_EXCEEDED:
-            return D_FTP_ERROR_INSUFFICIENT_STORAGE;
-        case D_FTP_REPLY_SYNTAX_ERROR:
-            return D_FTP_ERROR_COMMAND_UNRECOGNIZED;
-        case D_FTP_REPLY_ARGUMENT_ERROR:
-            return D_FTP_ERROR_SYNTAX;
-        case D_FTP_REPLY_NOT_IMPLEMENTED:
-        case D_FTP_REPLY_PARAMETER_UNSUPPORTED:
-            return D_FTP_ERROR_NOT_IMPLEMENTED;
-        case D_FTP_REPLY_BAD_SEQUENCE:
-            return D_FTP_ERROR_BAD_SEQUENCE;
-        case D_FTP_REPLY_PROTOCOL_UNSUPPORTED:
-            return D_FTP_ERROR_PROTOCOL_UNSUPPORTED;
-        case D_FTP_REPLY_NOT_LOGGED_IN:
-            return D_FTP_ERROR_LOGIN_DENIED;
-        case D_FTP_REPLY_NEED_ACCOUNT_TO_STORE:
-            return D_FTP_ERROR_ACCOUNT_REQUIRED;
-        case D_FTP_REPLY_PAGE_TYPE_UNKNOWN:
-            return D_FTP_ERROR_PAGE_TYPE_UNKNOWN;
-        case D_FTP_REPLY_NAME_NOT_ALLOWED:
-            return D_FTP_ERROR_NAME_NOT_ALLOWED;
-        case D_FTP_REPLY_SECURITY_RESOURCE:
-        case D_FTP_REPLY_PROTECTION_DENIED:
-        case D_FTP_REPLY_POLICY_DENIED:
-        case D_FTP_REPLY_SECURITY_CHECK_FAILED:
-        case D_FTP_REPLY_PROT_UNSUPPORTED:
-        case D_FTP_REPLY_COMMAND_PROT_UNSUPPORTED:
-            return D_FTP_ERROR_SECURITY;
-        default:
-            break;
+        if (REPLY_ERRORS[index].code == _code)
+        {
+            return REPLY_ERRORS[index].error;
+        }
     }
 
     return D_FTP_ERROR_REJECTED;

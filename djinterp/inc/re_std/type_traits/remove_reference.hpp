@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                       remove_reference.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         remove_reference.hpp
 *
 * remove_reference trait header:
 *   Removes one level of reference (lvalue or rvalue) from a type. CV-
@@ -14,22 +14,24 @@
 *   - C++98/03: only the lvalue reference specialization. References to
 *     rvalues did not exist in the language.
 *   - C++11+:   adds the rvalue reference specialization, gated on
-*     D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
+*     RE_STD_LANG_HAS_RVALUE_REFERENCES.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/remove_reference.hpp
+* path:      /inc/re_std/type_traits/remove_reference.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_REFERENCE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_REFERENCE_ 1
+#ifndef RE_STD_TYPE_TRAITS_REMOVE_REFERENCE_HPP
+#define RE_STD_TYPE_TRAITS_REMOVE_REFERENCE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -38,48 +40,48 @@ NS_RESTD
 
 // remove_reference
 //   trait: passthrough (primary template).
-template<typename _Type>
+template<typename Type>
 struct remove_reference
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-// remove_reference<_Type&>
+// remove_reference<Type&>
 //   trait: specialization stripping lvalue reference.
-template<typename _Type>
-struct remove_reference<_Type&>
+template<typename Type>
+struct remove_reference<Type&>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
-    // remove_reference<_Type&&>
+    // remove_reference<Type&&>
     //   trait: specialization stripping rvalue reference.
-    template<typename _Type>
-    struct remove_reference<_Type&&>
+    template<typename Type>
+    struct remove_reference<Type&&>
     {
-        typedef _Type type;
+        typedef Type type;
     };
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 
 // =============================================================================
 // II.  REMOVE_REFERENCE_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // remove_reference_t
-    //   alias: convenience alias for remove_reference<_Type>::type.
-    template<typename _Type>
-    using remove_reference_t = typename remove_reference<_Type>::type;
+    //   alias: convenience alias for remove_reference<Type>::type.
+    template<typename Type>
+    using remove_reference_t = typename remove_reference<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_REFERENCE_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_REMOVE_REFERENCE_HPP

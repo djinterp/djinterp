@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                   tuple_compare_three_way.hpp
+/*******************************************************************************
+* djinterp [re_std]                                  tuple_compare_three_way.hpp
 *
 * tuple operator<=> header:
 *   Adds the C++20 three-way comparison operator to re_std::tuple.
@@ -13,7 +13,7 @@
 *       -> partial_ordering::equivalent
 *       (common category clamps to partial because of the double)
 *
-*   ARITY MISMATCH: the constraint sizeof...(_A) == sizeof...(_B)
+*   ARITY MISMATCH: the constraint sizeof...(A) == sizeof...(B)
 * on the template restricts the overload to matching arities;
 * a different-arity comparison won't find this overload and will
 * fail to compile (clearer error than a template-instantiation
@@ -34,29 +34,30 @@
 * element-wise via a custom routine.
 *
 *   PORTABILITY:
-*   Entire file gated on D_ENV_LANG_IS_CPP20_OR_HIGHER. On C++11-17
+*   Entire file gated on RE_STD_LANG_IS_CPP20_OR_HIGHER. On C++11-17
 * the classic six comparison operators from tuple_compare.hpp
 * remain the only comparison surface.
 *
 *
-* path:      /inc/djinterp/re_std/tuple/tuple_compare_three_way.hpp
+* path:      /inc/re_std/tuple/tuple_compare_three_way.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_THREE_WAY_
-#define DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_THREE_WAY_ 1
+#ifndef RE_STD_TUPLE_TUPLE_COMPARE_THREE_WAY_HPP
+#define RE_STD_TUPLE_TUPLE_COMPARE_THREE_WAY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
 // std
 #include <cstddef>
-// djinterp
+// re_std
 #include "./tuple.hpp"
 #include "./tuple_get.hpp"
 #include "../compare/strong_ordering.hpp"
@@ -64,53 +65,55 @@
 #include "../utility/declval.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   INTERNAL: RECURSIVE THREE-WAY HELPER
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // tuple_3way_impl
-    //   helper: recursive lexicographic three-way comparison.
+    //   function: recursive lexicographic three-way comparison.
     // Walks indices 0..N-1. At each index, computes the per-element
-    // <=> (cast to the precomputed common result _ResultT). Returns
+    // <=> (cast to the precomputed common result ResultT). Returns
     // the first non-equal result, else returns the identity after
     // the last index.
     //
     //   Note: the identity is always equivalent to strong_ordering::
-    // equal cast to _ResultT. For empty tuples (_N == 0) the
+    // equal cast to ResultT. For empty tuples (N == 0) the
     // function returns identity immediately.
-    template<std::size_t _I,
-             std::size_t _N,
-             typename    _ResultT,
-             typename    _TT,
-             typename    _UU>
-    constexpr _ResultT
+    template<std::size_t I,
+             std::size_t N,
+             typename    ResultT,
+             typename    TT,
+             typename    UU>
+    constexpr ResultT
     tuple_3way_impl(
-        const _TT&    _t,
-        const _UU&    _u,
-        _ResultT      _identity
+        const TT&    _t,
+        const UU&    _u,
+        ResultT      _identity
     )
     {
-        if constexpr (_I == _N)
+        if constexpr (I == N)
         {
             return _identity;
         }
         else
         {
-            _ResultT _c = static_cast<_ResultT>(get<_I>(_t) <=> get<_I>(_u));
+            ResultT _c = static_cast<ResultT>(get<I>(_t) <=> get<I>(_u));
             if (_c != 0)
             {
                 return _c;
             }
-            return tuple_3way_impl<_I + 1, _N, _ResultT>(_t, _u, _identity);
+            return tuple_3way_impl<I + 1, N, ResultT>(_t, _u, _identity);
         }
     }
 
-NS_END  // internal
+}  // internal
 
 
 // =============================================================================
@@ -123,30 +126,30 @@ NS_END  // internal
 // element-wise <=> results. Requires-clause restricts the overload
 // to matching arities so different-arity comparisons fail with a
 // clear "no matching operator" error.
-template<typename... _A,
-         typename... _B>
-    requires (sizeof...(_A) == sizeof...(_B))
+template<typename... A,
+         typename... B>
+    requires (sizeof...(A) == sizeof...(B))
 constexpr common_comparison_category_t<
-              decltype(re_std::declval<const _A&>() <=> re_std::declval<const _B&>())...>
+              decltype(re_std::declval<const A&>() <=> re_std::declval<const B&>())...>
 operator<=>(
-    const tuple<_A...>& _lhs,
-    const tuple<_B...>& _rhs
+    const tuple<A...>& _lhs,
+    const tuple<B...>& _rhs
 )
 {
     typedef common_comparison_category_t<
-                decltype(re_std::declval<const _A&>() <=> re_std::declval<const _B&>())...
+                decltype(re_std::declval<const A&>() <=> re_std::declval<const B&>())...
             > _R;
-    return internal::tuple_3way_impl<0, sizeof...(_A), _R>(
+    return internal::tuple_3way_impl<0, sizeof...(A), _R>(
         _lhs,
         _rhs,
         static_cast<_R>(strong_ordering::equal));
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_THREE_WAY_
+#endif  // RE_STD_TUPLE_TUPLE_COMPARE_THREE_WAY_HPP

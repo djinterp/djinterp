@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             enable_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              enable_view.hpp
 *
 * enable_view customization point header:
 *   Provides the customization-point variable template that classifies a
@@ -9,44 +9,53 @@
 * independently of any base-class relationship.
 *
 *   PORTABILITY:
-*   - C++14+: real variable template (D_RE_STD_HAS_ENABLE_VIEW_VAR == 1).
+*   - C++14+: real variable template (RE_STD_HAS_ENABLE_VIEW_VAR == 1).
 *   - C++98/03/11: trait-struct fallback. enable_view<T>::value is the
 *     equivalent boolean. The trait works on any conforming compiler.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/enable_view.hpp
+* path:      /inc/re_std/ranges/enable_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_ENABLE_VIEW_
-#define DJINTERP_RE_STD_RANGES_ENABLE_VIEW_ 1
+#ifndef RE_STD_RANGES_ENABLE_VIEW_HPP
+#define RE_STD_RANGES_ENABLE_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// re_std
 #include "../type_traits/type_traits.hpp"
 #include "./view_base.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0.   DETECTION MACRO
 // ===========================================================================
 
-// D_RE_STD_HAS_ENABLE_VIEW_VAR
+// RE_STD_HAS_ENABLE_VIEW_VAR
 //   constant: 1 when enable_view is exposed as a constexpr bool
 // variable template. 0 when only the trait-struct form is available.
-#ifndef D_RE_STD_HAS_ENABLE_VIEW_VAR
-    #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-        #define D_RE_STD_HAS_ENABLE_VIEW_VAR  1
+#ifndef RE_STD_HAS_ENABLE_VIEW_VAR
+    #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+        #define RE_STD_HAS_ENABLE_VIEW_VAR  1
     #else
-        #define D_RE_STD_HAS_ENABLE_VIEW_VAR  0
+        #define RE_STD_HAS_ENABLE_VIEW_VAR  0
     #endif
 #endif
 
 
-NS_INTERNAL
+namespace internal
+{
 
 
 // ===========================================================================
@@ -55,12 +64,12 @@ NS_INTERNAL
 
 // enable_view_base
 //   trait: SFINAE-friendly base-class test. value is true when
-// _Type publicly and unambiguously derives from view_base.
+// Type publicly and unambiguously derives from view_base.
 // note: implemented via the classic conversion-overload idiom so it
 // works on C++98/03 without compiler intrinsics. cv-qualifiers on
-// _Type are stripped via remove_cv to match the C++20 semantics
+// Type are stripped via remove_cv to match the C++20 semantics
 // (the variable template specialisation drops cv).
-template<typename _Type>
+template<typename Type>
 class enable_view_base
 {
 private:
@@ -72,11 +81,11 @@ private:
 
 public:
     static const bool value =
-        (sizeof(test(static_cast<_Type*>(0))) == sizeof(yes_type));
+        (sizeof(test(static_cast<Type*>(0))) == sizeof(yes_type));
 };
 
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -84,16 +93,16 @@ NS_END  // internal
 // ===========================================================================
 
 // enable_view (trait)
-//   trait: true when _Type is a view. Defaults to inheritance from
+//   trait: true when Type is a view. Defaults to inheritance from
 // view_base. Users may fully specialise this trait to opt their own
 // types in or out without touching the inheritance hierarchy.
 // note: the trait form is always present and is the back-port path
 // for C++98/03/11 where variable templates are unavailable.
-template<typename _Type>
+template<typename Type>
 struct enable_view
     : integral_constant<bool,
                         internal::enable_view_base<
-                            typename remove_cv<_Type>::type
+                            typename remove_cv<Type>::type
                         >::value>
 {};
 
@@ -102,20 +111,22 @@ struct enable_view
 // III. ENABLE_VIEW_V (variable template, C++14+)
 // ===========================================================================
 
-#if D_RE_STD_HAS_ENABLE_VIEW_VAR
+#if RE_STD_HAS_ENABLE_VIEW_VAR
 
 // enable_view_v
 //   variable: convenience constexpr accessor. Matches the C++20
 // std::ranges::enable_view variable-template form (which in C++20 is
 // itself the customisation point; the trait struct is re_std-specific
 // for back-portability).
-template<typename _Type>
-D_CONSTEXPR bool enable_view_v = enable_view<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool enable_view_v = enable_view<Type>::value;
 
-#endif  // D_RE_STD_HAS_ENABLE_VIEW_VAR
-
-
-NS_END  // re_std
+#endif  // RE_STD_HAS_ENABLE_VIEW_VAR
 
 
-#endif  // DJINTERP_RE_STD_RANGES_ENABLE_VIEW_
+}  // re_std
+
+#endif  // floor, for now
+
+
+#endif  // RE_STD_RANGES_ENABLE_VIEW_HPP

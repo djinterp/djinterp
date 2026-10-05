@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            test_packaging.hpp
+/*******************************************************************************
+* djinterp [test]                                             test_packaging.hpp
 *
 *   The one place DTest's packaging KNOBS meet the framework's packaging
 * VOCABULARY, and the one path a run's documents take to a sink.
@@ -35,26 +35,39 @@
 * naming policy); self-suppresses below it, as document_bundle does.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    ENUM BRIDGE               (to_pack_mode / to_codec_id / to_format_id)
-* II.   to_output_config          (knobs -> the packaging decision)
-* III.  emit_report               (bundle a run's documents and write them)
-*
-*
 * path:      /inc/djinterp/test/output/test_packaging.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_PACKAGING_
-#define DJINTERP_TEST_PACKAGING_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    ENUM BRIDGE               (to_pack_mode / to_codec_id / to_format_id)
+      ---------------------------------------------------------------------
+
+II.   to_output_config          (knobs -> the packaging decision)
+      -----------------------------------------------------------
+
+III.  emit_report               (bundle a run's documents and write them)
+      -------------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_TEST_OUTPUT_TEST_PACKAGING_HPP
+#define DJINTERP_TEST_OUTPUT_TEST_PACKAGING_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <string>
 #include <vector>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../../core/util/output/output_packaging.hpp"
                                             // pack_mode, output_config, sinks,
                                             // codec_id / format_id, suffixes
@@ -274,5 +287,7 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_PACKAGING_
+
+#endif  // DJINTERP_TEST_OUTPUT_TEST_PACKAGING_HPP

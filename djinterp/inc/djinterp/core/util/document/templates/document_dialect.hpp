@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                        document_dialect.hpp
+/*******************************************************************************
+* djinterp [core]                                           document_dialect.hpp
 *
 *   The join between the format SELECTOR and the dialect set: given a
 * `document_format`, hand back the document_renderer that realises it, together
@@ -35,20 +35,33 @@
 * it owns the renderer.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    document_dialect                (the owning wrapper)
-* II.   make_document_dialect           (the factory)
-* III.  render_to_string                (render any template in any dialect)
-*
-*
 * path:      /inc/djinterp/core/util/document/templates/document_dialect.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_DOCUMENT_DIALECT_
-#define DJINTERP_UTIL_DOCUMENT_DIALECT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    document_dialect                (the owning wrapper)
+      ----------------------------------------------------
+
+II.   make_document_dialect           (the factory)
+      ---------------------------------------------
+
+III.  render_to_string                (render any template in any dialect)
+      --------------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_DIALECT_HPP
+#define DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_DIALECT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -57,7 +70,7 @@
 #include <string>
 #include <utility>
 // djinterp
-#include "../../../djinterp.hpp"                // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../../../djinterp.hpp"                // NS_*, D_NODISCARD, D_NOEXCEPT
 #include "../document_format.hpp"               // document_format, format_is_*
 #include "./document_renderer.hpp"              // document_renderer,
                                                 // plain_document_renderer
@@ -197,14 +210,14 @@ NS_INTERNAL
 // clear() while the concrete type is still known.  The captured pointer stays
 // valid across a move of the owning unique_ptr, since the renderer is on the
 // heap and never relocates.
-template<typename _Renderer>
+template<typename Renderer>
 D_NODISCARD inline document_dialect
 bind_dialect_helper(
     document_format _format
 )
 {
-    std::unique_ptr<_Renderer> _owned(new _Renderer());
-    _Renderer*                 _raw = _owned.get();
+    std::unique_ptr<Renderer> _owned(new Renderer());
+    Renderer*                 _raw = _owned.get();
 
     return document_dialect(
         std::unique_ptr<document_renderer>(_owned.release()),
@@ -273,7 +286,7 @@ make_document_dialect(
 // render_to_string
 //   function: render any document template in any served dialect, as a
 // COMPLETE document -- the generalisation of each template's own to_string(),
-// which is hard-wired to the plain renderer.  _Template is anything with
+// which is hard-wired to the plain renderer.  Template is anything with
 // `render(document_renderer&) const` (title_page, document_table, a caller's
 // own).  Yields an empty string for an unserved format, so a caller that does
 // not care to branch simply gets nothing rather than undefined behaviour.
@@ -283,11 +296,11 @@ make_document_dialect(
 // shell and an XML one its declaration and root.  A caller streaming SEVERAL
 // templates into one document drives the dialect directly instead, calling
 // begin_document / end_document once around the set.
-template<typename _Template>
+template<typename Template>
 D_NODISCARD inline std::string
 render_to_string(
     document_format       _format,
-    const _Template&      _template,
+    const Template&      _template,
     const doc_attributes& _frame = doc_attributes()
 )
 {
@@ -311,5 +324,6 @@ render_to_string(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_DOCUMENT_DIALECT_
+#endif  // DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_DIALECT_HPP

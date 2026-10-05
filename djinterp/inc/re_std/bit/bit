@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [re_std]                                                         bit
+/*******************************************************************************
+* djinterp [re_std]                                                          bit
 *
 * <bit> umbrella header:
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/re_std/bit/. Mirrors the standard <bit> convenience header
+* /inc/re_std/bit/. Mirrors the standard <bit> convenience header
 * and adds no symbols of its own.
 *
 *   THE CONSTRAINT IS THE SUBTLE PART:
@@ -17,26 +17,40 @@
 *   byteswap is the exception: it takes any integral type, signed and
 * character types included.
 *
-*   TABLE OF CONTENTS
-*   =================
-*   I.    BYTE ORDER
-*   II.   BIT_CAST
-*   III.  COUNTING
-*   IV.   POWER-OF-TWO QUERIES
-*   V.    ROTATION
-*   VI.   BYTESWAP
 *
-*
-* path:      /inc/djinterp/re_std/bit/bit
+* path:      /inc/re_std/bit/bit
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_
-#define DJINTERP_RE_STD_BIT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    BYTE ORDER
+      ----------
 
-// djinterp
-#include "../../core/djinterp.hpp"
+II.   BIT_CAST
+      --------
+
+III.  COUNTING
+      --------
+
+IV.   POWER-OF-TWO QUERIES
+      --------------------
+
+V.    ROTATION
+      --------
+
+VI.   BYTESWAP
+      --------
+*/
+
+#ifndef RE_STD_BIT_BIT
+#define RE_STD_BIT_BIT 1
+
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // =============================================================================
@@ -89,4 +103,4 @@
 #include "./byteswap.hpp"
 
 
-#endif  // DJINTERP_RE_STD_BIT_
+#endif  // RE_STD_BIT_BIT

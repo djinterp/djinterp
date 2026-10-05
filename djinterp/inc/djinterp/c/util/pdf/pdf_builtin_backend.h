@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                       pdf_builtin_backend.h
+/*******************************************************************************
+* djinterp [c]                                             pdf_builtin_backend.h
 *
 * Serialization primitives for the built-in PDF writer.
 *   Escaping, number formatting, colour operators, date stamps and object
@@ -42,18 +42,22 @@
 * class is built out of, which need no dispatch at all.
 *
 *
-* path:      \inc\djinterp\c\util\pdf\pdf_builtin_backend.h
+* path:      /inc/djinterp/c/util/pdf/pdf_builtin_backend.h
 * link(s):   ch-pdf.tex
-* author(s): TBA                                            created: 2026.08.09
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.09
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_UTIL_PDF_BUILTIN_BACKEND_
-#define DJINTERP_C_UTIL_PDF_BUILTIN_BACKEND_ 1
+#ifndef DJINTERP_C_UTIL_PDF_PDF_BUILTIN_BACKEND_H
+#define DJINTERP_C_UTIL_PDF_PDF_BUILTIN_BACKEND_H 1
 
+// std
 #include <stddef.h>
-#include <stdint.h>
+// djinterp
 #include "../../djinterp.h"
 #include "./pdf_primitives.h"
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // int32_t, int64_t
 
 
 D_EXTERN_C_BEGIN
@@ -120,4 +124,4 @@ D_STATIC_ASSERT(D_PDF_ESCAPE_WORST_CASE == 4,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_UTIL_PDF_BUILTIN_BACKEND_
+#endif  // DJINTERP_C_UTIL_PDF_PDF_BUILTIN_BACKEND_H

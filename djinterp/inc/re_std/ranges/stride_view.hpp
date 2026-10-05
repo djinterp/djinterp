@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                            stride_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              stride_view.hpp
 *
 * stride_view header:
 *   Provides the C++23 stride adaptor. stride_view<V> yields every
@@ -26,17 +26,19 @@
 *   re_std::views::stride(n)    — bound form for pipe syntax.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/stride_view.hpp
+* path:      /inc/re_std/ranges/stride_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_STRIDE_VIEW_
-#define DJINTERP_RE_STD_RANGES_STRIDE_VIEW_ 1
+#ifndef RE_STD_RANGES_STRIDE_VIEW_HPP
+#define RE_STD_RANGES_STRIDE_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -47,28 +49,29 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   STRIDE_VIEW
 // ===========================================================================
 
-// stride_view<_View>
-//   class: every Nth element of _View. The N value is set at
+// stride_view<View>
+//   class: every Nth element of View. The N value is set at
 // construction; N must be at least 1.
-template<typename _View>
-class stride_view : public view_interface<stride_view<_View> >
+template<typename View>
+class stride_view : public view_interface<stride_view<View> >
 {
 public:
-    typedef _View                                       base_view;
+    typedef View                                       base_view;
     typedef typename iterator_traits<
-                          iterator_t<_View>
+                          iterator_t<View>
                       >::difference_type                difference_type;
 
 
 private:
-    _View            m_base;
+    View            m_base;
     difference_type  m_step;
 
 
@@ -92,10 +95,10 @@ public:
         // Retained as a single seam should a future re_std version
         // need to clamp again (e.g. for spec compliance on a
         // contiguous-only underlying).
-        template<typename _Cat>
+        template<typename Cat>
         struct _bidi_clamp
         {
-            typedef _Cat type;
+            typedef Cat type;
         };
 
 
@@ -105,34 +108,34 @@ public:
         // when the underlying is RA (see _bidi_clamp).
         typedef typename _bidi_clamp<
                               typename iterator_traits<
-                                            iterator_t<_View>
+                                            iterator_t<View>
                                         >::iterator_category
                           >::type                               iterator_category;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::value_type                         value_type;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type                    difference_type;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::reference                          reference;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::pointer                            pointer;
 
 
     private:
-        iterator_t<_View>           m_it;
-        sentinel_t<_View>           m_end;
+        iterator_t<View>           m_it;
+        sentinel_t<View>           m_end;
         difference_type             m_step;
 
         // m_missing
-        //   field: the number of positions short of a full stride
+        //   variable: the number of positions short of a full stride
         // the last ++ fell when it hit the underlying end. Zero
         // for every non-end iterator. When non-zero, operator--
         // retreats by (step - missing) to land on the actual last
@@ -150,7 +153,7 @@ public:
 
     public:
         // default ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_it(),
               m_end(),
@@ -159,10 +162,10 @@ public:
         {}
 
         // value ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator(
-            iterator_t<_View>  _it,
-            sentinel_t<_View>  _end,
+            iterator_t<View>  _it,
+            sentinel_t<View>  _end,
             difference_type    _step
         )
             : m_it(_it),
@@ -172,14 +175,14 @@ public:
         {}
 
 
-        D_CONSTEXPR iterator_t<_View>
+        RE_STD_CONSTEXPR iterator_t<View>
         base() const
         {
             return m_it;
         }
 
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return *m_it;
@@ -220,7 +223,7 @@ public:
         // this retreats the shorter distance needed to land on the
         // last stride boundary that ++ actually yielded.
         //
-        //   Compiles only when iterator_t<_View> supports operator--
+        //   Compiles only when iterator_t<View> supports operator--
         // (i.e. the underlying is bidirectional or stronger).
         iterator&
         operator--()
@@ -245,7 +248,7 @@ public:
 
 
         // R29 — random-access ops.
-        //   Compile only when iterator_t<_View> supports operator+=,
+        //   Compile only when iterator_t<View> supports operator+=,
         // operator-, operator<, etc. SFINAE-lazy via template
         // instantiation — these member templates instantiate only
         // when used by the caller.
@@ -293,7 +296,7 @@ public:
             return *this += (-_n);
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR_CPP14 iterator
         operator+(
             difference_type _n
         ) const
@@ -303,7 +306,7 @@ public:
             return tmp;
         }
 
-        friend D_CONSTEXPR iterator
+        friend RE_STD_CONSTEXPR iterator
         operator+(
             difference_type     _n,
             iterator            _it
@@ -312,7 +315,7 @@ public:
             return _it + _n;
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR_CPP14 iterator
         operator-(
             difference_type _n
         ) const
@@ -326,7 +329,7 @@ public:
         //   function: stride distance between two iterators.
         // Uses (it_pos + missing) ideal positions to handle the
         // end-with-missing case correctly.
-        D_CONSTEXPR difference_type
+        RE_STD_CONSTEXPR difference_type
         operator-(
             iterator const& _rhs
         ) const
@@ -334,7 +337,7 @@ public:
             return ((m_it - _rhs.m_it) + (m_missing - _rhs.m_missing)) / m_step;
         }
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator[](
             difference_type _n
         ) const
@@ -344,25 +347,25 @@ public:
 
 
         // ordering — by ideal stride position.
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<(iterator const& _rhs) const
         {
             return (m_it - _rhs.m_it) + (m_missing - _rhs.m_missing) < 0;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<=(iterator const& _rhs) const
         {
             return !(_rhs < *this);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>(iterator const& _rhs) const
         {
             return _rhs < *this;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>=(iterator const& _rhs) const
         {
             return !(*this < _rhs);
@@ -370,7 +373,7 @@ public:
 
 
         // == / !=
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -378,7 +381,7 @@ public:
             return (m_it == _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -395,31 +398,31 @@ public:
     class sentinel
     {
     private:
-        sentinel_t<_View>  m_end;
+        sentinel_t<View>  m_end;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         sentinel()
             : m_end()
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         sentinel(
-            sentinel_t<_View>  _e
+            sentinel_t<View>  _e
         )
             : m_end(_e)
         {}
 
 
-        D_CONSTEXPR sentinel_t<_View>
+        RE_STD_CONSTEXPR sentinel_t<View>
         base() const
         {
             return m_end;
         }
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             iterator const&  _it,
             sentinel const&  _s
@@ -428,7 +431,7 @@ public:
             return (_it.base() == _s.m_end);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             iterator const&  _it,
             sentinel const&  _s
@@ -437,7 +440,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             sentinel const&  _s,
             iterator const&  _it
@@ -446,7 +449,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             sentinel const&  _s,
             iterator const&  _it
@@ -459,7 +462,7 @@ public:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     stride_view()
         : m_base(),
           m_step(1)
@@ -468,17 +471,17 @@ public:
     // value ctor
     //   function: _step must be positive. Negative or zero steps
     // are undefined behaviour.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     stride_view(
-        _View            _base,
+        View            _base,
         difference_type  _step
     )
-        : m_base(static_cast<_View&&>(_base)),
+        : m_base(static_cast<View&&>(_base)),
           m_step(_step)
     {}
 
 
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
@@ -486,22 +489,22 @@ public:
 
     // stride
     //   function: returns the step value. Non-standard accessor.
-    D_CONSTEXPR difference_type
+    RE_STD_CONSTEXPR difference_type
     stride() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_step;
     }
 
 
     // begin / end
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     begin()
     {
         return iterator(re_std::begin(m_base), re_std::end(m_base), m_step);
     }
 
-    D_CONSTEXPR sentinel
+    RE_STD_CONSTEXPR sentinel
     end()
     {
         return sentinel(re_std::end(m_base));
@@ -511,7 +514,7 @@ public:
     // size
     //   function: ceil(size(base) / step). Only well-formed when
     // the underlying view is sized.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR_CPP14
     auto
     size() const
         -> decltype(re_std::size(m_base))
@@ -528,44 +531,45 @@ public:
 // II.  STRIDE_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
-
-template<typename _N>
-struct stride_closure : range_adaptor_closure<stride_closure<_N> >
+namespace internal
 {
-    _N step;
 
-    D_CONSTEXPR
+template<typename N>
+struct stride_closure : range_adaptor_closure<stride_closure<N> >
+{
+    N step;
+
+    RE_STD_CONSTEXPR
     stride_closure()
         : step()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     stride_closure(
-        _N _n
+        N _n
     )
         : step(_n)
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    stride_view<typename internal::all_dispatch<_R>::type>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    stride_view<typename internal::all_dispatch<R>::type>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
+        typedef typename internal::all_dispatch<R>::type view_type;
         typedef typename iterator_traits<
-                              iterator_t<typename remove_reference<_R>::type>
+                              iterator_t<typename remove_reference<R>::type>
                           >::difference_type             diff_type;
         return stride_view<view_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             static_cast<diff_type>(step)
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -575,42 +579,42 @@ NS_END  // internal
 namespace views
 {
     // views::stride(_r, _n)  [direct form]
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    stride_view<typename internal::all_dispatch<_R>::type>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    stride_view<typename internal::all_dispatch<R>::type>
     stride(
-        _R&&                                                            _r,
+        R&&                                                            _r,
         typename iterator_traits<
-                     iterator_t<typename remove_reference<_R>::type>
+                     iterator_t<typename remove_reference<R>::type>
                  >::difference_type                                     _n
     )
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
+        typedef typename internal::all_dispatch<R>::type view_type;
         return stride_view<view_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             _n
         );
     }
 
     // views::stride(_n)  [bound form]
-    template<typename _N>
-    D_CONSTEXPR_INLINE
-    internal::stride_closure<typename decay<_N>::type>
+    template<typename N>
+    RE_STD_CONSTEXPR_INLINE
+    internal::stride_closure<typename decay<N>::type>
     stride(
-        _N&& _n
+        N&& _n
     )
     {
-        return internal::stride_closure<typename decay<_N>::type>(
-            static_cast<_N&&>(_n)
+        return internal::stride_closure<typename decay<N>::type>(
+            static_cast<N&&>(_n)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_STRIDE_VIEW_
+#endif  // RE_STD_RANGES_STRIDE_VIEW_HPP

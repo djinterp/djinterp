@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                   nothrow.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  nothrow.hpp
 *
 * nothrow tag + constant header:
 *   re_std::nothrow_t (tag type) and re_std::nothrow (constant) are
@@ -12,19 +12,23 @@
 *   Both have been in <new> since C++98. No back-port needed.
 *
 *
-* path:      /inc/djinterp/re_std/new/nothrow.hpp
+* path:      /inc/re_std/new/nothrow.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NOTHROW_
-#define DJINTERP_RE_STD_NOTHROW_ 1
+#ifndef RE_STD_NEW_NOTHROW_HPP
+#define RE_STD_NEW_NOTHROW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// std
 #include <new>
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -35,7 +39,7 @@ using std::nothrow_t;
 using std::nothrow;
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_NOTHROW_
+#endif  // RE_STD_NEW_NOTHROW_HPP

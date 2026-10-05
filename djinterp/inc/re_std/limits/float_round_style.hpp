@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                           float_round_style.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        float_round_style.hpp
 *
 * the float_round_style rounding-mode enumeration:
 *   the plain (non-scoped) enumeration naming a floating-point type's rounding
@@ -7,18 +7,20 @@
 *   class, matching std) so it works unchanged on C++98. C++98 baseline.
 *
 *
-* path:      /inc/djinterp/re_std/limits/float_round_style.hpp
+* path:      /inc/re_std/limits/float_round_style.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_LIMITS_FLOAT_ROUND_STYLE_
-#define DJINTERP_RE_STD_LIMITS_FLOAT_ROUND_STYLE_ 1
+#ifndef RE_STD_LIMITS_FLOAT_ROUND_STYLE_HPP
+#define RE_STD_LIMITS_FLOAT_ROUND_STYLE_HPP 1
 
-// djinterp
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-NS_RESTD
+namespace re_std
+{
 
     // float_round_style
     //   enum: floating-point rounding mode (numeric_limits<T>::round_style).
@@ -31,6 +33,6 @@ NS_RESTD
         round_toward_neg_infinity = 3
     };
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // DJINTERP_RE_STD_LIMITS_FLOAT_ROUND_STYLE_
+#endif  // RE_STD_LIMITS_FLOAT_ROUND_STYLE_HPP

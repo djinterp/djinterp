@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                        partial_sort_copy.hpp
 *
 * partial_sort_copy algorithm header:
@@ -29,23 +29,25 @@
 *   those land.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/partial_sort_copy.hpp
+* path:      /inc/re_std/algorithm/partial_sort_copy.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_COPY_
-#define DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_COPY_ 1
+#ifndef RE_STD_ALGORITHM_PARTIAL_SORT_COPY_HPP
+#define RE_STD_ALGORITHM_PARTIAL_SORT_COPY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -53,23 +55,23 @@ NS_RESTD
 // ===========================================================================
 
 // _partial_sort_copy_sift_down_
-//   max-heap sift-down. Same shape as the sort.hpp / partial_sort.hpp
+//   function: max-heap sift-down. Same shape as the sort.hpp / partial_sort.hpp
 // helpers; duplicated to keep this file independent.
-template<typename _RandomIt,
-         typename _Distance,
-         typename _Compare>
+template<typename RandomIt,
+         typename Distance,
+         typename Compare>
 void
 _partial_sort_copy_sift_down_(
-    _RandomIt _first,
-    _Distance _start,
-    _Distance _length,
-    _Compare  _comp
+    RandomIt _first,
+    Distance _start,
+    Distance _length,
+    Compare  _comp
 )
 {
-    _Distance _parent = _start;
+    Distance _parent = _start;
     while (true)
     {
-        _Distance _child = static_cast<_Distance>(2 * _parent + 1);
+        Distance _child = static_cast<Distance>(2 * _parent + 1);
         if (_child >= _length)
         {
             break;
@@ -96,19 +98,19 @@ _partial_sort_copy_sift_down_(
 // partial_sort_copy (comparator)
 //   function: copies the smallest min(N, M) input elements into the
 // output in sorted order. Returns one past the last element written.
-template<typename _InputIt,
-         typename _RandomIt,
-         typename _Compare>
-_RandomIt
+template<typename InputIt,
+         typename RandomIt,
+         typename Compare>
+RandomIt
 partial_sort_copy(
-    _InputIt  _first,
-    _InputIt  _last,
-    _RandomIt _d_first,
-    _RandomIt _d_last,
-    _Compare  _comp
+    InputIt  _first,
+    InputIt  _last,
+    RandomIt _d_first,
+    RandomIt _d_last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     if (_d_first == _d_last)
     {
@@ -121,7 +123,7 @@ partial_sort_copy(
     }
 
     // 1. copy up to M elements into the output
-    _RandomIt _out = _d_first;
+    RandomIt _out = _d_first;
     while ( (_first != _last) &&
             (_out   != _d_last) )
     {
@@ -162,23 +164,23 @@ partial_sort_copy(
 
 // partial_sort_copy (default operator<)
 //   function: as above with re_std::less<value_type>().
-template<typename _InputIt,
-         typename _RandomIt>
-_RandomIt
+template<typename InputIt,
+         typename RandomIt>
+RandomIt
 partial_sort_copy(
-    _InputIt  _first,
-    _InputIt  _last,
-    _RandomIt _d_first,
-    _RandomIt _d_last
+    InputIt  _first,
+    InputIt  _last,
+    RandomIt _d_first,
+    RandomIt _d_last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
     return partial_sort_copy(_first, _last, _d_first, _d_last,
                              re_std::less<_Value>());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_COPY_
+#endif  // RE_STD_ALGORITHM_PARTIAL_SORT_COPY_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                               sequential_container.hpp
+/*******************************************************************************
+* djinterp [core]                                       sequential_container.hpp
 *
 * CRTP base for sequential (order-preserving) containers.
 *   A sequential container is any container for which element order is
@@ -26,27 +26,43 @@
 *   Derived classes implement the storage and expose begin()/end().
 * This base never allocates or owns data.
 *
-* TABLE OF CONTENTS
-* =================
-* I.      Sequential Container Traits
-* II.     sequential_base (CRTP)
-* III.    Free-Function Order Algorithms
-*
 *
 * path:      /inc/djinterp/core/container/sequential_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_SEQUENTIAL_
-#define DJINTERP_CONTAINER_SEQUENTIAL_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    Sequential Container Traits
+      ---------------------------
 
+II.   sequential_base (CRTP)
+      ----------------------
+
+III.  Free-Function Order Algorithms
+      ------------------------------
+*/
+
+#ifndef DJINTERP_CONTAINER_SEQUENTIAL_CONTAINER_HPP
+#define DJINTERP_CONTAINER_SEQUENTIAL_CONTAINER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
 #include <utility>
-#include "../djinterp.hpp"
+// djinterp
+#include "../../djinterp.hpp"
 #include "./traits/container_traits.hpp"
 #include "./iterator/iterator_traits.hpp"
 
@@ -59,34 +75,30 @@ NS_DJINTERP
 // ===========================================================================
 
 // is_sequential_container
-//   type trait: true if the container preserves insertion
-// order.  Structurally: iterable + NOT unordered
-// associative (no hasher/key_equal) + NOT flagged as
-// unordered.
-//
-// This is broader than is_sequence_container (which
-// requires front/insert/erase per the STL named
-// requirement).  A forward_list is sequential but not
-// always a full SequenceContainer.
+//   type trait: true if the container preserves insertion order. Structurally:
+// iterable + NOT unordered associative (no hasher/key_equal) + NOT flagged as
+// unordered. This is broader than is_sequence_container (which requires
+// front/insert/erase per the STL named requirement). A forward_list is
+// sequential but not always a full SequenceContainer.
 NS_INTERNAL
 
-    template<typename _Container,
+    template<typename Container,
              typename = void>
     struct has_hasher_check : std::false_type
     {};
 
-    template<typename _Container>
-    struct has_hasher_check<_Container,
-        std::void_t<typename _Container::hasher>>
+    template<typename Container>
+    struct has_hasher_check<Container,
+        std::void_t<typename Container::hasher>>
         : std::true_type
     {};
 
 NS_END  // internal
 
-template<typename _Type>
+template<typename Type>
 struct is_sequential_container
 {
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
     static constexpr bool value =
         ( is_iterable_container_v<clean_type>     &&
@@ -95,9 +107,9 @@ struct is_sequential_container
 };
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_sequential_container_v =
-    is_sequential_container<_Type>::value;
+    is_sequential_container<Type>::value;
 
 #endif
 // DSequentialKind
@@ -125,22 +137,22 @@ enum class DSequentialKind
 
 NS_INTERNAL
 
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_c_str_check : std::false_type
     {};
 
-    template<typename _Type>
-    struct has_c_str_check<_Type,
+    template<typename Type>
+    struct has_c_str_check<Type,
         std::void_t<decltype(
-            std::declval<const _Type&>().c_str())>>
+            std::declval<const Type&>().c_str())>>
         : std::true_type
     {};
 
-    template<typename _Type>
+    template<typename Type>
     struct sequential_kind_helper
     {
-        using clean_type = clean_t<_Type>;
+        using clean_type = clean_t<Type>;
 
         static constexpr DSequentialKind value =
             // string-like (has c_str())
@@ -162,8 +174,7 @@ NS_INTERNAL
                 !is_bidirectional_iterable_v<clean_type> )
                 ? DSequentialKind::forward_list_like
 
-            // random-access but not contiguous
-            // (deque pattern)
+            // random-access but not contiguous (deque pattern)
             : ( is_random_access_iterable_v<clean_type> &&
                 !has_data_accessor_v<clean_type> )
                 ? DSequentialKind::deque_like
@@ -173,15 +184,15 @@ NS_INTERNAL
 
 NS_END  // internal
 
-template<typename _Type>
+template<typename Type>
 struct sequential_kind
 {
     static constexpr DSequentialKind value =
-        internal::sequential_kind_helper<_Type>::value;
+        internal::sequential_kind_helper<Type>::value;
 };
 
-template<typename _Type>
-inline constexpr DSequentialKind sequential_kind_v = sequential_kind<_Type>::value;
+template<typename Type>
+inline constexpr DSequentialKind sequential_kind_v = sequential_kind<Type>::value;
 
 
 // ===========================================================================
@@ -193,9 +204,9 @@ inline constexpr DSequentialKind sequential_kind_v = sequential_kind<_Type>::val
 //   - size()
 // Optional for full functionality:
 //   - operator[] (for positional access)
-//   - push_ / insert (for mutable operations)
+//   - push_back / insert (for mutable operations)
 
-template<typename _Derived>
+template<typename Derived>
 class sequential_base
 {
 protected:
@@ -203,14 +214,14 @@ protected:
     ~sequential_base() = default;
 
 private:
-    _Derived& self()
+    Derived& self()
     {
-        return static_cast<_Derived&>(*this);
+        return static_cast<Derived&>(*this);
     }
 
-    const _Derived& self() const
+    const Derived& self() const
     {
-        return static_cast<const _Derived&>(*this);
+        return static_cast<const Derived&>(*this);
     }
 
 public:
@@ -218,14 +229,14 @@ public:
 
     auto front() const
         -> decltype(*std::begin(
-               std::declval<const _Derived&>()))
+               std::declval<const Derived&>()))
     {
         return *std::begin(self());
     }
 
     auto back() const
         -> decltype(*std::begin(
-               std::declval<const _Derived&>()))
+               std::declval<const Derived&>()))
     {
         auto it = std::end(self());
         --it;
@@ -255,8 +266,8 @@ public:
     }
 
     // is_sorted (custom comparator)
-    template<typename _Compare>
-    bool is_sorted(_Compare _cmp) const
+    template<typename Compare>
+    bool is_sorted(Compare _cmp) const
     {
         return std::is_sorted(
             std::begin(self()),
@@ -265,8 +276,7 @@ public:
     }
 
     // is_palindrome
-    //   true if the sequence reads the same forwards and
-    // backwards.
+    //   true if the sequence reads the same forwards and backwards.
     bool is_palindrome() const
     {
         auto fwd = std::begin(self());
@@ -299,8 +309,8 @@ public:
         return true;
     }
 
-    // --- mutating order operations ---
-    // These modify the derived container in-place.
+    // --- mutating order operations --- These modify the derived container
+    // in-place.
 
     // reverse
     void reverse()
@@ -340,11 +350,10 @@ public:
     }
 
     // shift_left
-    //   shifts elements left by _n, filling vacated
-    // positions with _fill.
-    template<typename _Value>
+    //   shifts elements left by _n, filling vacated positions with _fill.
+    template<typename Value>
     void shift_left(std::size_t _n,
-                    const _Value& _fill)
+                    const Value& _fill)
     {
         std::size_t sz = self().size();
 
@@ -375,11 +384,10 @@ public:
     }
 
     // shift_right
-    //   shifts elements right by _n, filling vacated
-    // positions with _fill.
-    template<typename _Value>
+    //   shifts elements right by _n, filling vacated positions with _fill.
+    template<typename Value>
     void shift_right(std::size_t _n,
-                     const _Value& _fill)
+                     const Value& _fill)
     {
         std::size_t sz = self().size();
 
@@ -421,15 +429,15 @@ public:
 
 // starts_with
 //   function: true if _container begins with _prefix.
-template<typename _Container,
-         typename _Prefix>
+template<typename Container,
+         typename Prefix>
 inline typename std::enable_if<
-    is_sequential_container_v<_Container> &&
-    is_sequential_container_v<_Prefix>,
+    is_sequential_container_v<Container> &&
+    is_sequential_container_v<Prefix>,
     bool
 >::type
-starts_with(const _Container& _container,
-            const _Prefix&    _prefix)
+starts_with(const Container& _container,
+            const Prefix&    _prefix)
 {
     auto c_it  = std::begin(_container);
     auto c_end = std::end(_container);
@@ -448,17 +456,17 @@ starts_with(const _Container& _container,
 }
 
 // ends_with
-//   function: true if _container ends with _suffix.
-// Requires bidirectional iteration.
-template<typename _Container,
-         typename _Suffix>
+//   function: true if _container ends with _suffix. Requires bidirectional
+// iteration.
+template<typename Container,
+         typename Suffix>
 inline typename std::enable_if<
-    is_sequential_container_v<_Container> &&
-    is_sequential_container_v<_Suffix>,
+    is_sequential_container_v<Container> &&
+    is_sequential_container_v<Suffix>,
     bool
 >::type
-ends_with(const _Container& _container,
-          const _Suffix&    _suffix)
+ends_with(const Container& _container,
+          const Suffix&    _suffix)
 {
     auto c_sz = _container.size();
     auto s_sz = _suffix.size();
@@ -486,17 +494,17 @@ ends_with(const _Container& _container,
 }
 
 // contains_subsequence
-//   function: true if _sub appears as a contiguous
-// subsequence within _container.
-template<typename _Container,
-         typename _Sub>
+//   function: true if _sub appears as a contiguous subsequence within
+// _container.
+template<typename Container,
+         typename Sub>
 inline typename std::enable_if<
-    is_sequential_container_v<_Container> &&
-    is_sequential_container_v<_Sub>,
+    is_sequential_container_v<Container> &&
+    is_sequential_container_v<Sub>,
     bool
 >::type
-contains_subsequence(const _Container& _container,
-                     const _Sub&       _sub)
+contains_subsequence(const Container& _container,
+                     const Sub&       _sub)
 {
     return (std::search(
         std::begin(_container),
@@ -508,5 +516,6 @@ contains_subsequence(const _Container& _container,
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_SEQUENTIAL_
+#endif  // DJINTERP_CONTAINER_SEQUENTIAL_CONTAINER_HPP

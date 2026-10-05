@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                    dinterp.h
+/*******************************************************************************
+* djinterp [djinterp]                                                  dinterp.h
 *
 *   Tree-walking interpreter for the syntax tree in dparse.h.
 *     Fields are split lazily: a record is not divided until a field or NF is
@@ -12,9 +12,9 @@
 *
 * path:      /inc/djinterp/tools/dawk/dinterp.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -51,6 +51,25 @@ TABLE OF CONTENTS
 // d_awk_interp
 //   struct: one interpreter over one parsed program.  Layout is private.
 struct d_awk_interp;
+
+// D_AWK_CALL_DEPTH_DEFAULT
+//   constant: the default cap on nested user-function calls.  A deterministic
+// limit: the same program fails at the same depth everywhere.
+#define D_AWK_CALL_DEPTH_DEFAULT 512u
+
+// D_AWK_STACK_BUDGET_DEFAULT
+//   constant: the default stack budget in bytes.  The call count cannot bound
+// the stack on its own -- a call costs from under 1 KB to nearly 4 KB of C
+// stack depending on how deeply its body nests expressions -- so the running
+// interpreter measures its own stack use against this.  The default leaves
+// headroom under the platform's default main-thread stack: 1 MB on Windows,
+// 8 MB on the others.  An embedder on a smaller thread must set it lower.
+#if defined(_WIN32)
+    #define D_AWK_STACK_BUDGET_DEFAULT 786432u
+#else
+    #define D_AWK_STACK_BUDGET_DEFAULT 6291456u
+#endif
+
 struct d_awk_source;
 
 
@@ -77,6 +96,9 @@ bool                 d_awk_interp_set_environ(struct d_awk_interp* _interp,
 
 bool                 d_awk_interp_set_source(struct d_awk_interp* _interp,
                                              struct d_awk_source* _source);
+bool                 d_awk_interp_set_limits(struct d_awk_interp* _interp,
+                                             size_t               _call_depth,
+                                             size_t               _stack_budget);
 
 // 2.3    Execution
 //------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                     sorted_container.hpp
+/*******************************************************************************
+* djinterp [core]                                           sorted_container.hpp
 *
 *   The SORTEDNESS axis (the spec, Sortedness), layered on the Order axis.
 * Sortedness presupposes positions: a container is SORTED with respect to a
@@ -13,20 +13,25 @@
 *
 *   At the type level the axis reads:
 *     non_container    - not an (iterable) container;
-*     unordered        - unordered, no comparator: positional sortedness N/A, no
+*     unordered - unordered, no comparator: positional sortedness N/A, no
 *                        monotone enumeration (a hash-ordered set / map);
-*     monotone         - unordered but comparator-equipped: sorted-by-construction
-*                        enumeration (an ordered set / map / multiset / multimap);
-*     order_dependent  - ordered: sortedness is a property of the INSTANCE, not of
-*                        the type (a plain sequence may or may not be sorted); and
+*     monotone - unordered but comparator-equipped: sorted-by-construction
+*                        enumeration (an ordered set / map / multiset /
+*                      multimap);
+*     order_dependent - ordered: sortedness is a property of the INSTANCE, not
+*   of
+*                        the type (a plain sequence may or may not be sorted);
+*                      and
 *     sorted           - ordered AND guaranteed in comparator order - a closed
 *                        interval (arithmetic, monotone by construction) or a
 *                        sequence that asserts a sorted invariant (opt-in).
 *
-*   For an order_dependent container the property is checkable at runtime, which
+*   For an order_dependent container the property is checkable at runtime,
+* which
 * is what is_sorted_range performs; for a monotone or sorted type, enumeration
 * yields comparator order with no check needed.  A comparator is detected as a
-* key_compare alias; a sorted sequence opts in through a static `sorted_invariant`
+* key_compare alias; a sorted sequence opts in through a static
+* `sorted_invariant`
 * constant; and interval bounds mark the arithmetic sorted case.
 *
 *   PORTABILITY:
@@ -35,11 +40,18 @@
 *
 * path:      /inc/djinterp/core/container/sorted_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_SORTED_
-#define DJINTERP_CONTAINER_SORTED_ 1
+#ifndef DJINTERP_CONTAINER_SORTED_CONTAINER_HPP
+#define DJINTERP_CONTAINER_SORTED_CONTAINER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <algorithm>
@@ -48,7 +60,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"              // clean_t, NS_*, feature macros
+#include "../../djinterp.hpp"              // clean_t, NS_*, feature macros
 #include "../meta/trait_detect.hpp"     // D_TYPE_TRAIT_* detection macros, D_VOID_T
 #include "./traits/sorted_container_traits.hpp"  // sortedness classifiers (canonical home)
 
@@ -59,13 +71,15 @@ NS_DJINTERP
 // ===========================================================================
 // I.   Sortedness classifiers
 // ===========================================================================
-//   The sortedness signals (has_key_compare / interval-bounds / sorted_invariant
+//   The sortedness signals (has_key_compare / interval-bounds /
+// sorted_invariant
 // helpers), the sortedness enum + sortedness_of, and the type-level predicates
 // is_sorted_container / is_unsorted_container / is_monotone_container /
 // admits_sorted_enumeration are owned by sorted_container_traits.hpp (included
-// above) and re-exported through it.  This file provides only the instance-level
+// above) and re-exported through it. This file provides only the instance-level
 // check (section IV) that the traits header defers here.  Earlier revisions
-// carried a verbatim copy of the classifiers; the duplicates were removed to end
+// carried a verbatim copy of the classifiers; the duplicates were removed to
+// end
 // the one-definition-rule conflict.
 
 
@@ -76,15 +90,15 @@ NS_DJINTERP
 // is_sorted_range
 //   function: for an ORDERED container - whose sortedness is a property of the
 // instance - reports whether THIS container's elements are in non-descending
-// order along their positions.  (For a monotone or sorted type no check is
+// order along their positions. (For a monotone or sorted type no check is
 // needed; enumeration is already in comparator order.)
-template<typename _Container>
+template<typename Container>
 typename std::enable_if<
-    is_ordered_container<_Container>::value,
+    is_ordered_container<Container>::value,
     bool
 >::type
 is_sorted_range(
-    const _Container& _container
+    const Container& _container
 )
 {
     return std::is_sorted(std::begin(_container), std::end(_container));
@@ -92,15 +106,15 @@ is_sorted_range(
 
 // is_sorted_range (custom comparator)
 //   function: as above, against a supplied comparator.
-template<typename _Container,
-         typename _Compare>
+template<typename Container,
+         typename Compare>
 typename std::enable_if<
-    is_ordered_container<_Container>::value,
+    is_ordered_container<Container>::value,
     bool
 >::type
 is_sorted_range(
-    const _Container& _container,
-    _Compare          _cmp
+    const Container& _container,
+    Compare           _cmp
 )
 {
     return std::is_sorted(std::begin(_container), std::end(_container), _cmp);
@@ -116,5 +130,6 @@ is_sorted_range(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_SORTED_
+#endif  // DJINTERP_CONTAINER_SORTED_CONTAINER_HPP

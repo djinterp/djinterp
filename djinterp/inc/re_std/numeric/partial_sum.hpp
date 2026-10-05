@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                      partial_sum.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              partial_sum.hpp
 *
 * partial_sum(_first, _last, _d_first [, _op]) writes the running fold
 * (default: operator+) of [_first, _last) into _d_first:
@@ -15,29 +15,21 @@
 *   iterator to one past the last destination element written.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/partial_sum.hpp
+* path:      /inc/re_std/numeric/partial_sum.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_PARTIAL_SUM_
-#define DJINTERP_RE_STD_NUMERIC_PARTIAL_SUM_ 1
+#ifndef RE_STD_NUMERIC_PARTIAL_SUM_HPP
+#define RE_STD_NUMERIC_PARTIAL_SUM_HPP 1
 
-#include "djinterp.hpp"
-
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "re_std/iterator/iterator_traits.hpp"
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     #include "re_std/utility/move.hpp"
-#endif
-
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
 #endif
 
 
@@ -45,22 +37,22 @@ namespace re_std
 {
 
 // Default-op overload (operator+).
-template<typename _InputIt, typename _OutputIt>
-D_CONSTEXPR_CPP14 _OutputIt partial_sum
+template<typename InputIt, typename OutputIt>
+RE_STD_CONSTEXPR_CPP14 OutputIt partial_sum
 (
-    _InputIt   _first,
-    _InputIt   _last,
-    _OutputIt  _d_first
+    InputIt   _first,
+    InputIt   _last,
+    OutputIt  _d_first
 )
 {
     if (_first == _last) return _d_first;
 
-    typename iterator_traits<_InputIt>::value_type _acc = *_first;
+    typename iterator_traits<InputIt>::value_type _acc = *_first;
     *_d_first = _acc;
 
     for (++_first, (void)++_d_first; _first != _last; ++_first, (void)++_d_first)
     {
-        #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #if RE_STD_LANG_IS_CPP11_OR_HIGHER
             _acc = re_std::move(_acc) + *_first;
         #else
             _acc = _acc + *_first;
@@ -71,23 +63,23 @@ D_CONSTEXPR_CPP14 _OutputIt partial_sum
 }
 
 // Custom-op overload.
-template<typename _InputIt, typename _OutputIt, typename _BinOp>
-D_CONSTEXPR_CPP14 _OutputIt partial_sum
+template<typename InputIt, typename OutputIt, typename BinOp>
+RE_STD_CONSTEXPR_CPP14 OutputIt partial_sum
 (
-    _InputIt   _first,
-    _InputIt   _last,
-    _OutputIt  _d_first,
-    _BinOp     _op
+    InputIt   _first,
+    InputIt   _last,
+    OutputIt  _d_first,
+    BinOp     _op
 )
 {
     if (_first == _last) return _d_first;
 
-    typename iterator_traits<_InputIt>::value_type _acc = *_first;
+    typename iterator_traits<InputIt>::value_type _acc = *_first;
     *_d_first = _acc;
 
     for (++_first, (void)++_d_first; _first != _last; ++_first, (void)++_d_first)
     {
-        #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #if RE_STD_LANG_IS_CPP11_OR_HIGHER
             _acc = _op(re_std::move(_acc), *_first);
         #else
             _acc = _op(_acc, *_first);
@@ -98,6 +90,5 @@ D_CONSTEXPR_CPP14 _OutputIt partial_sum
 }
 
 
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_NUMERIC_PARTIAL_SUM_
+}  // re_std
+#endif  // RE_STD_NUMERIC_PARTIAL_SUM_HPP

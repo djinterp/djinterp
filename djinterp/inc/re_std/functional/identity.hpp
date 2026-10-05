@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                     identity.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 identity.hpp
 *
+* identity class header:
 * function object: perfect-forwarding passthrough.
 *   Yields its argument unchanged. Used as the default projection in
 * <ranges> and as a building block for other adaptors. Standard surface
@@ -9,24 +10,26 @@
 * provided so it composes with set/map's heterogeneous-lookup machinery.
 *
 *
-* path:      /inc/djinterp/re_std/functional/identity.hpp
+* path:      /inc/re_std/functional/identity.hpp
 * link(s):   TBA
-* author(s): re_std                                      date: 2026.05.07
-***********************************************************************/
+* author(s): re_std                                          created: 2026.05.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_IDENTITY_
-#define DJINTERP_RE_STD_FUNCTIONAL_IDENTITY_ 1
+#ifndef RE_STD_FUNCTIONAL_IDENTITY_HPP
+#define RE_STD_FUNCTIONAL_IDENTITY_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
     #include "re_std/utility/forward.hpp"
 #endif
 
 namespace re_std
 {
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 // identity
 //   class: passthrough callable. operator() forwards its argument.
@@ -34,21 +37,20 @@ struct identity
 {
     typedef int is_transparent;
 
-    template<typename _Type>
-    D_CONSTEXPR _Type&&
+    template<typename Type>
+    RE_STD_CONSTEXPR Type&&
     operator()(
-        _Type&& _v
+        Type&& _v
     ) const
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
         noexcept
 #endif
     {
-        return re_std::forward<_Type>(_v);
+        return re_std::forward<Type>(_v);
     }
 };
 
-#endif // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
-} // namespace re_std
-
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_IDENTITY_
+}  // re_std
+#endif  // RE_STD_FUNCTIONAL_IDENTITY_HPP

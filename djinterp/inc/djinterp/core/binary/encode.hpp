@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                              encode.hpp
+/*******************************************************************************
+* djinterp [core]                                                     encode.hpp
 *
 *   The foundational half of the SERIALIZATION externalisation axis on the WRITE
 * side: the ENCODER.  The formal model (containers.tex, Serialization) casts a
@@ -50,24 +50,33 @@
 * with the language as elsewhere.
 *
 *
-* path:      /inc/djinterp/core/container/serial/encode.hpp
+* path:      /inc/djinterp/core/binary/encode.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_ENCODE_
-#define DJINTERP_ENCODE_ 1
+#ifndef DJINTERP_BINARY_ENCODE_HPP
+#define DJINTERP_BINARY_ENCODE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"            // clean_t, NS_*, feature macros
-#include "../../meta/trait_detect.hpp"  // D_VOID_T, D_TYPE_TRAIT_VALUE_BOOL
+#include "../../djinterp.hpp"            // NS_*, feature macros
+#include "../meta/type_utility.hpp"      // clean_t
+#include "../meta/trait_detect.hpp"   // D_VOID_T, D_TYPE_TRAIT_VALUE_BOOL
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint32_t, uint64_t
 
 
 NS_DJINTERP
@@ -90,7 +99,7 @@ using byte_string = std::vector<byte>;
 //   type: the width-fixed unsigned integer a container encoder writes as its
 // leading size (element count).  Exposed here since the count is itself encoded
 // as a leaf; container_encode.hpp writes one before a container's components.
-using encode_length_type = std::uint64_t;
+using encode_length_type = re_std::uint64_t;
 
 
 // ===========================================================================
@@ -98,17 +107,17 @@ using encode_length_type = std::uint64_t;
 // ===========================================================================
 
 // has_push_back_byte
-//   trait: true iff `_Sink` accepts a byte through `push_back` - the sole
+//   trait: true iff `Sink` accepts a byte through `push_back` - the sole
 // requirement this module places on a sink.  `byte_string` satisfies it, as does
 // any growable byte buffer.
-template<typename _Sink,
+template<typename Sink,
          typename = void>
 struct has_push_back_byte : std::false_type
 {};
 
-template<typename _Sink>
-struct has_push_back_byte<_Sink,
-    D_VOID_T<decltype(std::declval<_Sink&>().push_back(std::declval<byte>()))>>
+template<typename Sink>
+struct has_push_back_byte<Sink,
+    D_VOID_T<decltype(std::declval<Sink&>().push_back(std::declval<byte>()))>>
     : std::true_type
 {};
 
@@ -120,21 +129,21 @@ D_TYPE_TRAIT_VALUE_BOOL(has_push_back_byte)
 // ===========================================================================
 
 // has_member_encode_into
-//   trait: true iff a value of `_Type` can write itself into a `_Sink` through a
+//   trait: true iff a value of `Type` can write itself into a `Sink` through a
 // member `encode_into(sink)` - the extension point by which a non-built-in leaf
 // supplies its own enc_tau.  A member so found takes precedence over every
 // built-in leaf writer below.
-template<typename _Type,
-         typename _Sink,
+template<typename Type,
+         typename Sink,
          typename = void>
 struct has_member_encode_into : std::false_type
 {};
 
-template<typename _Type,
-         typename _Sink>
-struct has_member_encode_into<_Type, _Sink,
-    D_VOID_T<decltype(std::declval<const clean_t<_Type>&>().encode_into(
-        std::declval<_Sink&>()))>>
+template<typename Type,
+         typename Sink>
+struct has_member_encode_into<Type, Sink,
+    D_VOID_T<decltype(std::declval<const clean_t<Type>&>().encode_into(
+        std::declval<Sink&>()))>>
     : std::true_type
 {};
 
@@ -149,10 +158,10 @@ NS_INTERNAL
     //   helper: append the low `_width` bytes of `_value` to `_sink` in
     // BIG-ENDIAN order (most-significant first).  The fixed byte order is what
     // makes the field boundary recoverable and the stream host-independent.
-    template<typename _Sink>
+    template<typename Sink>
     void
     put_uint_be(
-        _Sink&              _sink,
+        Sink&              _sink,
         encode_length_type  _value,
         std::size_t         _width
     )
@@ -174,20 +183,20 @@ NS_INTERNAL
     // its unsigned pattern.  static_cast to the same-width unsigned type is the
     // two's-complement bit pattern, reversed exactly on decode; only `sizeof`
     // bytes are emitted, so the widening to encode_length_type loses nothing.
-    template<typename _Sink,
-             typename _Integral>
+    template<typename Sink,
+             typename Integral>
     void
     encode_integral_leaf(
-        _Sink&    _sink,
-        _Integral _value
+        Sink&    _sink,
+        Integral _value
     )
     {
-        using unsigned_type = typename std::make_unsigned<_Integral>::type;
+        using unsigned_type = typename std::make_unsigned<Integral>::type;
 
         put_uint_be(_sink,
                     static_cast<encode_length_type>(
                         static_cast<unsigned_type>(_value)),
-                    sizeof(_Integral));
+                    sizeof(Integral));
 
         return;
     }
@@ -196,25 +205,25 @@ NS_INTERNAL
     //   helper: write a 4- or 8-byte floating value through its same-width
     // unsigned BIT PATTERN (obtained by std::memcpy, the well-defined type-pun),
     // then big-endian.  The pattern is reproduced exactly on decode.
-    template<typename _Sink,
-             typename _Float>
+    template<typename Sink,
+             typename Float>
     void
     encode_floating_leaf(
-        _Sink& _sink,
-        _Float _value
+        Sink& _sink,
+        Float _value
     )
     {
         // 4-byte -> uint32 pattern, 8-byte -> uint64 pattern; the enclosing
         // overload admits only these two widths.
-        if (sizeof(_Float) == 4)
+        if (sizeof(Float) == 4)
         {
-            std::uint32_t _bits = 0;
+            re_std::uint32_t _bits = 0;
             std::memcpy(&_bits, &_value, 4);
             put_uint_be(_sink, static_cast<encode_length_type>(_bits), 4);
         }
         else
         {
-            std::uint64_t _bits = 0;
+            re_std::uint64_t _bits = 0;
             std::memcpy(&_bits, &_value, 8);
             put_uint_be(_sink, static_cast<encode_length_type>(_bits), 8);
         }
@@ -235,13 +244,13 @@ NS_END  // internal
 
 // encode_into (member surface)
 //   function: a value carrying its own `encode_into(sink)` writes itself.
-template<typename _Sink,
-         typename _Type,
+template<typename Sink,
+         typename Type,
          typename std::enable_if<
-             has_member_encode_into<clean_t<_Type>, _Sink>::value,
+             has_member_encode_into<clean_t<Type>, Sink>::value,
              int>::type = 0>
 void
-encode_into(_Sink& _sink, const _Type& _value)
+encode_into(Sink& _sink, const Type& _value)
 {
     _value.encode_into(_sink);
 
@@ -250,14 +259,14 @@ encode_into(_Sink& _sink, const _Type& _value)
 
 // encode_into (bool)
 //   function: a boolean is one byte, 0 or 1.
-template<typename _Sink,
-         typename _Type,
+template<typename Sink,
+         typename Type,
          typename std::enable_if<
-             ( std::is_same<clean_t<_Type>, bool>::value &&
-               !has_member_encode_into<clean_t<_Type>, _Sink>::value ),
+             ( std::is_same<clean_t<Type>, bool>::value &&
+               !has_member_encode_into<clean_t<Type>, Sink>::value ),
              int>::type = 0>
 void
-encode_into(_Sink& _sink, const _Type& _value)
+encode_into(Sink& _sink, const Type& _value)
 {
     _sink.push_back(_value ? static_cast<byte>(1) : static_cast<byte>(0));
 
@@ -268,18 +277,18 @@ encode_into(_Sink& _sink, const _Type& _value)
 //   function: an integral leaf at its natural width, big-endian, through its
 // unsigned pattern.  The character types (char, wchar_t, char16_t, ...) are
 // integral and travel this path.
-template<typename _Sink,
-         typename _Type,
+template<typename Sink,
+         typename Type,
          typename std::enable_if<
-             ( std::is_integral<clean_t<_Type>>::value    &&
-               !std::is_same<clean_t<_Type>, bool>::value &&
-               ( sizeof(clean_t<_Type>) <= 8 )            &&
-               !has_member_encode_into<clean_t<_Type>, _Sink>::value ),
+             ( std::is_integral<clean_t<Type>>::value    &&
+               !std::is_same<clean_t<Type>, bool>::value &&
+               ( sizeof(clean_t<Type>) <= 8 )            &&
+               !has_member_encode_into<clean_t<Type>, Sink>::value ),
              int>::type = 0>
 void
-encode_into(_Sink& _sink, const _Type& _value)
+encode_into(Sink& _sink, const Type& _value)
 {
-    internal::encode_integral_leaf(_sink, static_cast<clean_t<_Type>>(_value));
+    internal::encode_integral_leaf(_sink, static_cast<clean_t<Type>>(_value));
 
     return;
 }
@@ -287,17 +296,17 @@ encode_into(_Sink& _sink, const _Type& _value)
 // encode_into (enum)
 //   function: an enumeration through its underlying integral type, so a scoped
 // or unscoped enum encodes exactly as the integer it names.
-template<typename _Sink,
-         typename _Type,
+template<typename Sink,
+         typename Type,
          typename std::enable_if<
-             ( std::is_enum<clean_t<_Type>>::value &&
-               !has_member_encode_into<clean_t<_Type>, _Sink>::value ),
+             ( std::is_enum<clean_t<Type>>::value &&
+               !has_member_encode_into<clean_t<Type>, Sink>::value ),
              int>::type = 0>
 void
-encode_into(_Sink& _sink, const _Type& _value)
+encode_into(Sink& _sink, const Type& _value)
 {
     using underlying_type =
-        typename std::underlying_type<clean_t<_Type>>::type;
+        typename std::underlying_type<clean_t<Type>>::type;
 
     internal::encode_integral_leaf(_sink,
         static_cast<underlying_type>(_value));
@@ -310,18 +319,18 @@ encode_into(_Sink& _sink, const _Type& _value)
 // big-endian.  A wider floating type (a 10-/12-/16-byte long double) has no
 // fixed same-width unsigned target and so is not a built-in leaf; a user may
 // give it a member `encode_into`.
-template<typename _Sink,
-         typename _Type,
+template<typename Sink,
+         typename Type,
          typename std::enable_if<
-             ( std::is_floating_point<clean_t<_Type>>::value          &&
-               ( sizeof(clean_t<_Type>) == 4 ||
-                 sizeof(clean_t<_Type>) == 8 )                        &&
-               !has_member_encode_into<clean_t<_Type>, _Sink>::value ),
+             ( std::is_floating_point<clean_t<Type>>::value          &&
+               ( sizeof(clean_t<Type>) == 4 ||
+                 sizeof(clean_t<Type>) == 8 )                        &&
+               !has_member_encode_into<clean_t<Type>, Sink>::value ),
              int>::type = 0>
 void
-encode_into(_Sink& _sink, const _Type& _value)
+encode_into(Sink& _sink, const Type& _value)
 {
-    internal::encode_floating_leaf(_sink, static_cast<clean_t<_Type>>(_value));
+    internal::encode_floating_leaf(_sink, static_cast<clean_t<Type>>(_value));
 
     return;
 }
@@ -334,9 +343,9 @@ encode_into(_Sink& _sink, const _Type& _value)
 // encode
 //   function: the leaf encoder as the model's total map enc_tau : tau -> B* -
 // allocates a fresh `byte_string`, writes `_value` into it, and returns it.
-template<typename _Type>
+template<typename Type>
 byte_string
-encode(const _Type& _value)
+encode(const Type& _value)
 {
     byte_string _out;
     encode_into(_out, _value);
@@ -352,40 +361,40 @@ encode(const _Type& _value)
 NS_INTERNAL
 
     // encode_builtin_leaf_ok
-    //   helper: whether `_Type` is a built-in leaf of a fixed encodable width.
+    //   helper: whether `Type` is a built-in leaf of a fixed encodable width.
     // Gated on arithmetic-or-enum so `sizeof` is only ever applied to an object
     // type - a non-object leaf (in particular void, the "no element" type of a
     // non-container) selects the primary and reports false without a sizeof.
-    template<typename _Type,
-             bool = ( std::is_integral<_Type>::value
-                   || std::is_floating_point<_Type>::value
-                   || std::is_enum<_Type>::value )>
+    template<typename Type,
+             bool = ( std::is_integral<Type>::value
+                   || std::is_floating_point<Type>::value
+                   || std::is_enum<Type>::value )>
     struct encode_builtin_leaf_ok : std::false_type
     {};
 
-    template<typename _Type>
-    struct encode_builtin_leaf_ok<_Type, true>
+    template<typename Type>
+    struct encode_builtin_leaf_ok<Type, true>
         : std::integral_constant<bool,
-              ( std::is_enum<_Type>::value
-             || std::is_same<_Type, bool>::value
-             || ( std::is_integral<_Type>::value
-               && ( sizeof(_Type) <= 8 ) )
-             || ( std::is_floating_point<_Type>::value
-               && ( sizeof(_Type) == 4 || sizeof(_Type) == 8 ) ) )>
+              ( std::is_enum<Type>::value
+             || std::is_same<Type, bool>::value
+             || ( std::is_integral<Type>::value
+               && ( sizeof(Type) <= 8 ) )
+             || ( std::is_floating_point<Type>::value
+               && ( sizeof(Type) == 4 || sizeof(Type) == 8 ) ) )>
     {};
 
 NS_END  // internal
 
 // is_leaf_encodable
-//   trait: true iff `_Type` has a leaf enc_tau in this header - a member
+//   trait: true iff `Type` has a leaf enc_tau in this header - a member
 // `encode_into`, or one of the built-in leaf families (bool, an <=8-byte
 // integral, an enum, or a 4-/8-byte floating type).  The sink is taken as the
 // default `byte_string` for the member probe.
-template<typename _Type>
+template<typename Type>
 struct is_leaf_encodable
     : std::integral_constant<bool,
-          ( has_member_encode_into<clean_t<_Type>, byte_string>::value
-         || internal::encode_builtin_leaf_ok<clean_t<_Type>>::value )>
+          ( has_member_encode_into<clean_t<Type>, byte_string>::value
+         || internal::encode_builtin_leaf_ok<clean_t<Type>>::value )>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_leaf_encodable)
@@ -393,5 +402,7 @@ D_TYPE_TRAIT_VALUE_BOOL(is_leaf_encodable)
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_ENCODE_
+
+#endif  // DJINTERP_BINARY_ENCODE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [util]                                                    timer.hpp
+/*******************************************************************************
+* djinterp [core]                                                      timer.hpp
 *
 * djinterp timer header:
 *   This header provides a nestable timer with configurable clock and duration
@@ -16,22 +16,29 @@
 * namespace macros. Requires C++17 or later.
 *
 *
-* path:      /inc/djinterp/util/timer/timer.hpp
+* path:      /inc/djinterp/core/util/timer/timer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_TIMER_
-#define DJINTERP_UTILITY_TIMER_ 1
+#ifndef DJINTERP_UTIL_TIMER_TIMER_HPP
+#define DJINTERP_UTIL_TIMER_TIMER_HPP 1
 
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
 #include <chrono>
 #include <vector>
-#include "../../djinterp.hpp"
+// djinterp
+#include "../../../djinterp.hpp"
 
 
 NS_DJINTERP
-NS_UTIL
-
 
 // =========================================================================
 // timer
@@ -43,24 +50,24 @@ NS_UTIL
 // set and the accumulated time meets or exceeds it, the timer is
 // considered expired.
 //
-//   Template parameter `_Clock` must satisfy the Clock named
-// requirement. `_Duration` must be a std::chrono::duration
+//   Template parameter `Clock` must satisfy the Clock named
+// requirement. `Duration` must be a std::chrono::duration
 // specialization.
 // =========================================================================
-template<typename _Clock    = std::chrono::steady_clock,
-         typename _Duration = typename _Clock::duration>
+template<typename Clock     = std::chrono::steady_clock,
+         typename Duration = typename Clock::duration>
 class timer
 {
 private:
-    using self_type      = timer<_Clock, _Duration>;
+    using self_type      = timer<Clock, Duration>;
     using children_type  = std::vector<self_type>;
     using observed_type  = std::vector<self_type*>;
-    using time_point     = std::chrono::time_point<_Clock, _Duration>;
+    using time_point     = std::chrono::time_point<Clock, Duration>;
 
 public:
-    using clock_type    = _Clock;
-    using duration_type = _Duration;
-    using rep_type      = typename _Duration::rep;
+    using clock_type    = Clock;
+    using duration_type = Duration;
+    using rep_type      = typename Duration::rep;
     using size_type     = std::size_t;
 
     // -----------------------------------------------------------------
@@ -69,9 +76,9 @@ public:
 
     // timer()
     //   constructor: default-constructs a timer with no maximum limit.
-    timer() noexcept
-        : m_accumulated(_Duration::zero()),
-          m_max(_Duration::zero()),
+    timer() D_NOEXCEPT
+        : m_accumulated(Duration::zero()),
+          m_max(Duration::zero()),
           m_start_point(),
           m_running(false),
           m_has_max(false),
@@ -85,9 +92,9 @@ public:
     // the timer is considered expired once accumulated time reaches
     // or exceeds `_max`.
     explicit timer(
-            _Duration _max
-        ) noexcept
-        : m_accumulated(_Duration::zero()),
+        Duration _max
+    ) D_NOEXCEPT
+        : m_accumulated(Duration::zero()),
           m_max(_max),
           m_start_point(),
           m_running(false),
@@ -104,7 +111,7 @@ public:
     // start
     //   starts or resumes the timer. has no effect if already running
     // or if the timer is expired.
-    void start() noexcept
+    void start() D_NOEXCEPT
     {
         if ( (m_running) ||
              (expired()) )
@@ -112,7 +119,7 @@ public:
             return;
         }
 
-        m_start_point = _Clock::now();
+        m_start_point = Clock::now();
         m_running     = true;
 
         return;
@@ -121,15 +128,15 @@ public:
     // stop
     //   stops the timer and accumulates elapsed time since the last
     // start. has no effect if not running.
-    void stop() noexcept
+    void stop() D_NOEXCEPT
     {
         if (!m_running)
         {
             return;
         }
 
-        m_accumulated += std::chrono::duration_cast<_Duration>(
-                             _Clock::now() - m_start_point);
+        m_accumulated += std::chrono::duration_cast<Duration>(
+                             Clock::now() - m_start_point);
         m_running      = false;
 
         return;
@@ -138,10 +145,10 @@ public:
     // reset
     //   stops the timer (if running) and clears all accumulated time.
     // does not affect children or observed timers.
-    void reset() noexcept
+    void reset() D_NOEXCEPT
     {
         m_running     = false;
-        m_accumulated = _Duration::zero();
+        m_accumulated = Duration::zero();
 
         return;
     }
@@ -149,7 +156,7 @@ public:
     // reset_all
     //   resets this timer and all owned children recursively.
     // observed timers are not reset.
-    void reset_all() noexcept
+    void reset_all() D_NOEXCEPT
     {
         reset();
 
@@ -168,13 +175,13 @@ public:
     // elapsed
     //   returns the total accumulated duration. if the timer is
     // currently running, includes time since the last start.
-    _Duration elapsed() const noexcept
+    Duration elapsed() const D_NOEXCEPT
     {
         if (m_running)
         {
             return m_accumulated
-                   + std::chrono::duration_cast<_Duration>(
-                         _Clock::now() - m_start_point);
+                   + std::chrono::duration_cast<Duration>(
+                         Clock::now() - m_start_point);
         }
 
         return m_accumulated;
@@ -182,21 +189,21 @@ public:
 
     // max
     //   returns the maximum duration limit, or zero if no limit is set.
-    _Duration max() const noexcept
+    Duration max() const D_NOEXCEPT
     {
         return m_max;
     }
 
     // has_max
     //   returns true if a maximum duration limit has been set.
-    bool has_max() const noexcept
+    bool has_max() const D_NOEXCEPT
     {
         return m_has_max;
     }
 
     // running
     //   returns true if the timer is currently running.
-    bool running() const noexcept
+    bool running() const D_NOEXCEPT
     {
         return m_running;
     }
@@ -204,7 +211,7 @@ public:
     // expired
     //   returns true if a maximum limit is set and the accumulated
     // time meets or exceeds it.
-    bool expired() const noexcept
+    bool expired() const D_NOEXCEPT
     {
         if (!m_has_max)
         {
@@ -217,18 +224,18 @@ public:
     // remaining
     //   returns the time remaining before expiry, or zero if no
     // limit is set or the timer is already expired.
-    _Duration remaining() const noexcept
+    Duration remaining() const D_NOEXCEPT
     {
         if (!m_has_max)
         {
-            return _Duration::zero();
+            return Duration::zero();
         }
 
         auto rem = m_max - elapsed();
 
-        if (rem < _Duration::zero())
+        if (rem < Duration::zero())
         {
-            return _Duration::zero();
+            return Duration::zero();
         }
 
         return rem;
@@ -252,8 +259,8 @@ public:
     //   constructs and appends an owned child timer with a maximum
     // duration limit. returns a reference to the newly added child.
     self_type& add_child(
-            _Duration _max
-        )
+        Duration _max
+    )
     {
         m_children.emplace_back(_max);
 
@@ -263,8 +270,8 @@ public:
     // child
     //   returns a reference to the owned child at `_index`.
     self_type& child(
-            size_type _index
-        )
+        size_type _index
+    )
     {
         return m_children[_index];
     }
@@ -272,15 +279,15 @@ public:
     // child (const)
     //   returns a const reference to the owned child at `_index`.
     const self_type& child(
-            size_type _index
-        ) const
+        size_type _index
+    ) const
     {
         return m_children[_index];
     }
 
     // child_count
     //   returns the number of owned children.
-    size_type child_count() const noexcept
+    size_type child_count() const D_NOEXCEPT
     {
         return m_children.size();
     }
@@ -294,8 +301,8 @@ public:
     // the caller is responsible for ensuring the observed timer
     // outlives this timer.
     void observe(
-            self_type& _target
-        ) noexcept
+        self_type& _target
+    ) D_NOEXCEPT
     {
         m_observed.push_back(&_target);
 
@@ -306,8 +313,8 @@ public:
     //   returns a pointer to the observed timer at `_index`,
     // or nullptr if out of range.
     self_type* observed(
-            size_type _index
-        ) const noexcept
+        size_type _index
+    ) const D_NOEXCEPT
     {
         if (_index >= m_observed.size())
         {
@@ -319,14 +326,14 @@ public:
 
     // observed_count
     //   returns the number of observed (non-owning) children.
-    size_type observed_count() const noexcept
+    size_type observed_count() const D_NOEXCEPT
     {
         return m_observed.size();
     }
 
 private:
-    _Duration     m_accumulated;
-    _Duration     m_max;
+    Duration      m_accumulated;
+    Duration      m_max;
     time_point    m_start_point;
     bool          m_running;
     bool          m_has_max;
@@ -335,8 +342,8 @@ private:
 };
 
 
-NS_END  // util
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTILITY_TIMER_
+#endif  // DJINTERP_UTIL_TIMER_TIMER_HPP

@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [tuple]                                       tuple_uses_allocator.hpp
+/*******************************************************************************
+* djinterp [re_std]                                     tuple_uses_allocator.hpp
 *
+* tuple_uses_allocator support header:
 *   uses_allocator<tuple<Ts...>, Alloc> specialisation.
 *
 *   UNCONDITIONALLY TRUE, and that is std's rule rather than an approximation.
@@ -20,31 +21,36 @@
 * because it is additive and because the trait answering correctly is what lets
 * generic allocator-aware code compile against re_std::tuple at all.
 *
-* path:      /inc/djinterp/re_std/tuple/tuple_uses_allocator.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/tuple/tuple_uses_allocator.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_USES_ALLOCATOR_
-#define DJINTERP_RE_STD_TUPLE_USES_ALLOCATOR_ 1
+#ifndef RE_STD_TUPLE_TUPLE_USES_ALLOCATOR_HPP
+#define RE_STD_TUPLE_TUPLE_USES_ALLOCATOR_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../memory/uses_allocator.hpp"
 #include "./tuple.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
-// uses_allocator<tuple<_Types...>, _Alloc>
+// uses_allocator<tuple<Types...>, Alloc>
 //   trait: tuple is always allocator-aware.
-template<typename... _Types, typename _Alloc>
-struct uses_allocator<tuple<_Types...>, _Alloc> : true_type
+template<typename... Types, typename Alloc>
+struct uses_allocator<tuple<Types...>, Alloc> : true_type
 {};
 
-NS_END
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TUPLE_USES_ALLOCATOR_
+#endif  // RE_STD_TUPLE_TUPLE_USES_ALLOCATOR_HPP

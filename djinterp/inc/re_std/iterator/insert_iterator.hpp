@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                  insert_iterator.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          insert_iterator.hpp
 *
 * output-iterator adaptor that inserts at a tracked position via
 * container.insert(iter, value). Unlike back/front_inserter, this
@@ -18,19 +18,22 @@
 * internal state is non-trivial.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/insert_iterator.hpp
+* path:      /inc/re_std/iterator/insert_iterator.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_INSERT_ITERATOR_
-#define DJINTERP_RE_STD_ITERATOR_INSERT_ITERATOR_ 1
+#ifndef RE_STD_ITERATOR_INSERT_ITERATOR_HPP
+#define RE_STD_ITERATOR_INSERT_ITERATOR_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
 
     #include "re_std/iterator/output_iterator_tag.hpp"
@@ -40,7 +43,7 @@
 namespace re_std
 {
 
-template<typename _Container>
+template<typename Container>
 class insert_iterator
 {
 public:
@@ -49,19 +52,19 @@ public:
     typedef void                                difference_type;
     typedef void                                pointer;
     typedef void                                reference;
-    typedef _Container                          container_type;
+    typedef Container                          container_type;
 
 protected:
-    _Container*                                 container;
-    typename _Container::iterator               iter;
+    Container*                                 container;
+    typename Container::iterator               iter;
 
 public:
-    insert_iterator(_Container& _c,
-                    typename _Container::iterator _i)
+    insert_iterator(Container& _c,
+                    typename Container::iterator _i)
         : container(&_c), iter(_i) {}
 
     insert_iterator&
-    operator=(const typename _Container::value_type& _value)
+    operator=(const typename Container::value_type& _value)
     {
         // The standard says: iter = container->insert(iter, value);
         // followed by ++iter. The simpler form is to assign to
@@ -72,7 +75,7 @@ public:
     }
 
     insert_iterator&
-    operator=(typename _Container::value_type&& _value)
+    operator=(typename Container::value_type&& _value)
     {
         iter = container->insert(iter, re_std::move(_value));
         ++iter;
@@ -87,16 +90,15 @@ public:
 
 // ---- inserter factory ----
 
-template<typename _Container>
-insert_iterator<_Container>
-inserter(_Container& _c, typename _Container::iterator _i)
+template<typename Container>
+insert_iterator<Container>
+inserter(Container& _c, typename Container::iterator _i)
 {
-    return insert_iterator<_Container>(_c, _i);
+    return insert_iterator<Container>(_c, _i);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_INSERT_ITERATOR_
+#endif  // RE_STD_ITERATOR_INSERT_ITERATOR_HPP

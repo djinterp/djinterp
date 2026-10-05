@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                          new
+/*******************************************************************************
+* djinterp [re_std]                                                 new_umbrella
 *
 * new umbrella header:
 *   Convenience header that #includes every granular module under
@@ -35,22 +35,23 @@
 * should `#include <new>` directly.
 *
 *
-* path:      /inc/djinterp/re_std/new
+* path:      /inc/re_std/new/new_umbrella
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NEW_UMBRELLA_
-#define DJINTERP_RE_STD_NEW_UMBRELLA_ 1
+#ifndef RE_STD_NEW_NEW_UMBRELLA
+#define RE_STD_NEW_NEW_UMBRELLA 1
 
-#include "./new/bad_alloc.hpp"
-#include "./new/bad_array_new_length.hpp"
-#include "./new/nothrow.hpp"
-#include "./new/new_handler.hpp"
-#include "./new/align_val_t.hpp"
-#include "./new/launder.hpp"
-#include "./new/hardware_interference_size.hpp"
-#include "./new/destroying_delete.hpp"
+#include "./bad_alloc.hpp"
+#include "./bad_array_new_length.hpp"
+#include "./nothrow.hpp"
+#include "./new_handler.hpp"
+#include "./align_val_t.hpp"
+#include "./launder.hpp"
+#include "./hardware_interference_size.hpp"
+#include "./destroying_delete.hpp"
 
 
-#endif  // DJINTERP_RE_STD_NEW_UMBRELLA_
+#endif  // RE_STD_NEW_NEW_UMBRELLA

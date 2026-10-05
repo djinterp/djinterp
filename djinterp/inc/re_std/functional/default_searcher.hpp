@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [functional]                                       default_searcher.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         default_searcher.hpp
 *
+* default_searcher class header:
 *   default_searcher - the naive substring search, packaged as a searcher
 * object for use with re_std::search(first, last, searcher).
 *
@@ -22,56 +23,67 @@
 *   COMPLEXITY: O(n*m) worst case, and that is by design - the constant factor
 * is tiny and no memory is allocated.
 *
-* path:      /inc/djinterp/re_std/functional/default_searcher.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/functional/default_searcher.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_DEFAULT_SEARCHER_
-#define DJINTERP_RE_STD_FUNCTIONAL_DEFAULT_SEARCHER_ 1
+#ifndef RE_STD_FUNCTIONAL_DEFAULT_SEARCHER_HPP
+#define RE_STD_FUNCTIONAL_DEFAULT_SEARCHER_HPP 1
 
-#include "../../core/djinterp.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// re_std
 #include "../type_traits/type_traits.hpp"
 #include "../utility/pair.hpp"
 #include "./equal_to.hpp"
 
-NS_RESTD
+
+namespace re_std
+{
 
 // default_searcher
 //   class: binds a pattern and searches for it naively.
-template<typename _ForwardIt, typename _BinaryPred = equal_to<> >
+template<typename ForwardIt, typename BinaryPred = equal_to<> >
 class default_searcher
 {
-    _ForwardIt  m_first;
-    _ForwardIt  m_last;
-    _BinaryPred m_pred;
+    ForwardIt  m_first;
+    ForwardIt  m_last;
+    BinaryPred m_pred;
 
 public:
-    D_CONSTEXPR default_searcher(_ForwardIt pat_first,
-                                 _ForwardIt pat_last,
-                                 _BinaryPred pred = _BinaryPred())
+    RE_STD_CONSTEXPR default_searcher(ForwardIt pat_first,
+                                 ForwardIt pat_last,
+                                 BinaryPred pred = BinaryPred())
         : m_first(pat_first), m_last(pat_last), m_pred(pred)
     {}
 
     //   Returns [begin, end) of the first match, or [last, last) when there
     // is none.  Note an EMPTY pattern matches at first, returning
     // [first, first) - std specifies that and callers rely on it.
-    template<typename _ForwardIt2>
-    D_CONSTEXPR_CPP14 pair<_ForwardIt2, _ForwardIt2>
-    operator()(_ForwardIt2 first, _ForwardIt2 last) const
+    template<typename ForwardIt2>
+    RE_STD_CONSTEXPR_CPP14 pair<ForwardIt2, ForwardIt2>
+    operator()(ForwardIt2 first, ForwardIt2 last) const
     {
         for (;; ++first)
         {
-            _ForwardIt2 hay = first;
-            _ForwardIt  pat = m_first;
+            ForwardIt2 hay = first;
+            ForwardIt  pat = m_first;
             for (;; ++hay, ++pat)
             {
                 if (pat == m_last)
                 {
-                    return pair<_ForwardIt2, _ForwardIt2>(first, hay);
+                    return pair<ForwardIt2, ForwardIt2>(first, hay);
                 }
                 if (hay == last)
                 {
-                    return pair<_ForwardIt2, _ForwardIt2>(last, last);
+                    return pair<ForwardIt2, ForwardIt2>(last, last);
                 }
                 if (!m_pred(*hay, *pat))
                 {
@@ -82,6 +94,9 @@ public:
     }
 };
 
-NS_END
+}
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_DEFAULT_SEARCHER_
+#endif  // floor, for now
+
+
+#endif  // RE_STD_FUNCTIONAL_DEFAULT_SEARCHER_HPP

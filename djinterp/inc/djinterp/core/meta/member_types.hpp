@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                              member_types.hpp
+/*******************************************************************************
+* djinterp [core]                                               member_types.hpp
 *
 *   The framework's shared nested-TYPEDEF detectors - the concrete "does _Type
 * expose a `::X` typedef?" traits that recur across more than one subsystem -
@@ -25,16 +25,23 @@
 *
 * path:      /inc/djinterp/core/meta/member_types.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_META_MEMBER_TYPES_
-#define DJINTERP_META_MEMBER_TYPES_ 1
+#ifndef DJINTERP_META_MEMBER_TYPES_HPP
+#define DJINTERP_META_MEMBER_TYPES_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./trait_detect.hpp"   // D_TYPE_TRAIT_HAS_TYPE, _MEMBER_TYPE_OR
 
 
@@ -112,22 +119,22 @@ NS_INTERNAL
     // detector value.  Primary template (member absent): yields the fallback.
     //   Retained for callers that compose a detector and an extracted type by
     // hand; the D_TYPE_TRAIT_MEMBER_TYPE_OR macro is the usual front door.
-    template<bool     _Present,
-             typename _Extracted,
-             typename _Fallback>
+    template<bool     Present,
+             typename Extracted,
+             typename Fallback>
     struct pick_member_type
     {
-        using type = _Fallback;
+        using type = Fallback;
     };
 
     // pick_member_type (present)
     //   trait: yields the extracted member type when the detector reported
     // presence.
-    template<typename _Extracted,
-             typename _Fallback>
-    struct pick_member_type<true, _Extracted, _Fallback>
+    template<typename Extracted,
+             typename Fallback>
+    struct pick_member_type<true, Extracted, Fallback>
     {
-        using type = _Extracted;
+        using type = Extracted;
     };
 
 NS_END  // internal
@@ -135,5 +142,7 @@ NS_END  // internal
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_META_MEMBER_TYPES_
+
+#endif  // DJINTERP_META_MEMBER_TYPES_HPP

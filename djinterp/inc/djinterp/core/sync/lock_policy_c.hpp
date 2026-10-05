@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [sync]                                lock_policy_c.hpp
+/*******************************************************************************
+* djinterp [core]                                              lock_policy_c.hpp
 *
 * C-backed lock policies for the thread-safe framework.
 *   Provides lock policies that use platform C APIs (pthreads on POSIX,
 * CRITICAL_SECTION / SRWLOCK on Windows) instead of C++ standard library
-* mutexes.  Useful when:
+* mutexes. Useful when:
 *   - Targeting C++98/03 (no <mutex>)
 *   - Interoperating with C code that uses the same mutexes
 *   - Requiring recursive or spin-lock semantics not offered by
@@ -24,29 +24,55 @@
 *
 * path:      /inc/djinterp/core/sync/lock_policy_c.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_THREADSAFE_LOCK_POLICY_C_
-#define DJINTERP_THREADSAFE_LOCK_POLICY_C_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    PLATFORM EXCLUSIVE MUTEX
+      ------------------------
+
+II.   C-BACKED RAII GUARDS
+      --------------------
+
+III.  C-BACKED LOCK POLICY STRUCTS
+      ----------------------------
+
+IV.   SPINLOCK POLICY (C++11+)
+      ------------------------
+*/
+
+#ifndef DJINTERP_SYNC_LOCK_POLICY_C_HPP
+#define DJINTERP_SYNC_LOCK_POLICY_C_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #ifndef __cplusplus
     #error "lock_policy_c.hpp can only be used in C++ compilation mode"
 #endif
 
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./lock_policy.hpp"
+#include "./sync_common.hpp"
 
 // --- platform includes ---
 #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
     #ifndef WIN32_LEAN_AND_MEAN
         #define WIN32_LEAN_AND_MEAN
     #endif
+    // windows
     #include <windows.h>
 #elif defined(_POSIX_VERSION) ||                                              \
       defined(__unix__)       ||                                              \
       defined(__APPLE__)
+    // windows
     #include <pthread.h>
     #define D_HAS_PTHREADS 1
 #else
@@ -54,6 +80,7 @@
 #endif
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>
 #endif
 
@@ -61,10 +88,7 @@
 NS_DJINTERP
 
 
-// =========================================================================
-// I.   PLATFORM EXCLUSIVE MUTEX
-// =========================================================================
-
+// I.    Platform exclusive mutex
 #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
 
 // c_mutex_win32
@@ -281,17 +305,14 @@ private:
 #endif  // platform
 
 
-// =========================================================================
-// II.  C-BACKED RAII GUARDS
-// =========================================================================
-
+// II.   C-backed raii guards
 // c_lock_guard
 //   class: RAII exclusive guard for C-backed mutexes.
-template<typename _Mutex>
+template<typename Mutex>
 class c_lock_guard
 {
 public:
-    explicit c_lock_guard(_Mutex& _m)
+    explicit c_lock_guard(Mutex& _m)
         : m_mutex(_m)
     {
         m_mutex.lock();
@@ -306,17 +327,17 @@ public:
     c_lock_guard& operator=(const c_lock_guard&) D_DELETE;
 
 private:
-    _Mutex& m_mutex;
+    Mutex& m_mutex;
 };
 
 // c_shared_guard
 //   class: RAII shared (reader) guard for C-backed
 // read-write locks.
-template<typename _RWLock>
+template<typename RWLock>
 class c_shared_guard
 {
 public:
-    explicit c_shared_guard(_RWLock& _m)
+    explicit c_shared_guard(RWLock& _m)
         : m_rwlock(_m)
     {
         m_rwlock.lock_shared();
@@ -331,14 +352,11 @@ public:
     c_shared_guard& operator=(const c_shared_guard&) D_DELETE;
 
 private:
-    _RWLock& m_rwlock;
+    RWLock& m_rwlock;
 };
 
 
-// =========================================================================
-// III. C-BACKED LOCK POLICY STRUCTS
-// =========================================================================
-
+// III.  C-backed lock policy structs
 #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
 
 // c_exclusive
@@ -354,7 +372,7 @@ struct c_exclusive
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr thread_safety_level level =
+    static constexpr thread_safety_level::value level =
         thread_safety_level::exclusive;
 #endif
 };
@@ -372,7 +390,7 @@ struct c_shared
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr thread_safety_level level =
+    static constexpr thread_safety_level::value level =
         thread_safety_level::shared;
 #endif
 };
@@ -392,7 +410,7 @@ struct c_recursive
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr thread_safety_level level =
+    static constexpr thread_safety_level::value level =
         thread_safety_level::exclusive;
 #endif
 };
@@ -412,7 +430,7 @@ struct c_exclusive
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr thread_safety_level level =
+    static constexpr thread_safety_level::value level =
         thread_safety_level::exclusive;
 #endif
 };
@@ -430,7 +448,7 @@ struct c_shared
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr thread_safety_level level =
+    static constexpr thread_safety_level::value level =
         thread_safety_level::shared;
 #endif
 };
@@ -448,7 +466,7 @@ struct c_recursive
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr thread_safety_level level =
+    static constexpr thread_safety_level::value level =
         thread_safety_level::exclusive;
 #endif
 };
@@ -456,10 +474,7 @@ struct c_recursive
 #endif  // platform
 
 
-// =========================================================================
-// IV.  SPINLOCK POLICY (C++11+)
-// =========================================================================
-
+// IV.   Spinlock policy (C++11+)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // spinlock_mutex
@@ -468,7 +483,7 @@ struct c_recursive
 // switching overhead exceeds the expected wait time.
 //
 // WARNING: spinlocks are NOT fair and can cause
-// priority inversion.  Do not use for long-held locks.
+// priority inversion. Do not use for long-held locks.
 class spinlock_mutex
 {
 public:
@@ -481,24 +496,19 @@ public:
 
     void lock() noexcept
     {
+        //   The wait is sync_common.hpp's backoff: it opens
+        // with the same platform pause hint this loop used to
+        // spell out inline, then lengthens the spin and finally
+        // yields the core. The escalation matters here - a
+        // spinlock that ONLY pauses can livelock on an
+        // oversubscribed core, since the thread holding the
+        // flag may be the one waiting for a timeslice.
+        backoff bo;
+
         while (m_flag.test_and_set(
             std::memory_order_acquire))
         {
-            // spin - platform pause hint
-        #if defined(__x86_64__) || defined(_M_X64) || \
-            defined(__i386__)   || defined(_M_IX86)
-            #if defined(_MSC_VER)
-                _mm_pause();
-            #else
-                __builtin_ia32_pause();
-            #endif
-        #elif defined(__aarch64__) || defined(_M_ARM64)
-            #if defined(_MSC_VER)
-                __yield();
-            #else
-                __asm__ volatile("yield");
-            #endif
-        #endif
+            bo.pause();
         }
     }
 
@@ -529,7 +539,7 @@ struct c_spinlock
     static constexpr bool is_shared     = false;
     static constexpr bool is_timed      = false;
 
-    static constexpr thread_safety_level level =
+    static constexpr thread_safety_level::value level =
         thread_safety_level::exclusive;
 };
 
@@ -538,5 +548,7 @@ struct c_spinlock
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_THREADSAFE_LOCK_POLICY_C_
+
+#endif  // DJINTERP_SYNC_LOCK_POLICY_C_HPP

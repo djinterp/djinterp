@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                      expected
+/*******************************************************************************
+* djinterp [re_std]                                            expected_umbrella
 *
 * expected umbrella header:
 *   Convenience header that #includes every granular module under
@@ -23,21 +23,22 @@
 * members (all C++11 features).
 *
 *
-* path:      /inc/djinterp/re_std/expected
+* path:      /inc/re_std/expected/expected_umbrella
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXPECTED_UMBRELLA_
-#define DJINTERP_RE_STD_EXPECTED_UMBRELLA_ 1
+#ifndef RE_STD_EXPECTED_EXPECTED_UMBRELLA
+#define RE_STD_EXPECTED_EXPECTED_UMBRELLA 1
 
-#include "./expected/unexpect.hpp"
-#include "./expected/bad_expected_access.hpp"
-#include "./expected/unexpected.hpp"
-#include "./expected/unexpected_compare.hpp"
-#include "./expected/expected.hpp"
-#include "./expected/expected_compare.hpp"
-#include "./expected/expected_swap.hpp"
+#include "./unexpect.hpp"
+#include "./bad_expected_access.hpp"
+#include "./unexpected.hpp"
+#include "./unexpected_compare.hpp"
+#include "./expected.hpp"
+#include "./expected_compare.hpp"
+#include "./expected_swap.hpp"
 
 
-#endif  // DJINTERP_RE_STD_EXPECTED_UMBRELLA_
+#endif  // RE_STD_EXPECTED_EXPECTED_UMBRELLA

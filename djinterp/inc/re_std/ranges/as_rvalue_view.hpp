@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         as_rvalue_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           as_rvalue_view.hpp
 *
 * as_rvalue_view header:
 *   Provides the C++23 rvalue-projection adaptor. as_rvalue_view<V>
@@ -26,17 +26,19 @@
 *       vec | views::as_rvalue  // pipe
 *
 *
-* path:      /inc/djinterp/re_std/ranges/as_rvalue_view.hpp
+* path:      /inc/re_std/ranges/as_rvalue_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_AS_RVALUE_VIEW_
-#define DJINTERP_RE_STD_RANGES_AS_RVALUE_VIEW_ 1
+#ifndef RE_STD_RANGES_AS_RVALUE_VIEW_HPP
+#define RE_STD_RANGES_AS_RVALUE_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -49,31 +51,32 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   AS_RVALUE_VIEW
 // ===========================================================================
 
-// as_rvalue_view<_View>
-//   class: lazy rvalue-projection of _View. Dereferencing an
+// as_rvalue_view<View>
+//   class: lazy rvalue-projection of View. Dereferencing an
 // iterator yields an rvalue reference to the underlying element,
 // suitable for use as a move source.
-template<typename _View>
-class as_rvalue_view : public view_interface<as_rvalue_view<_View> >
+template<typename View>
+class as_rvalue_view : public view_interface<as_rvalue_view<View> >
 {
 public:
-    typedef _View   base_view;
+    typedef View   base_view;
 
 
 private:
-    _View  m_base;
+    View  m_base;
 
 
     // ---- compute the rvalue reference type ----
     typedef typename iterator_traits<
-                          iterator_t<_View>
+                          iterator_t<View>
                       >::reference                       underlying_reference;
 
     // rvalue_ref_t
@@ -83,7 +86,7 @@ private:
     // iter_move via ADL on the iterator type and gives us a single
     // point of truth for the rvalue projection (the same one used
     // by ranges-aware algorithms).
-    typedef iter_rvalue_reference_t<iterator_t<_View> >  rvalue_ref_t;
+    typedef iter_rvalue_reference_t<iterator_t<View> >  rvalue_ref_t;
 
 
 public:
@@ -92,21 +95,21 @@ public:
     // =======================================================
 
     // iterator
-    //   class: wraps iterator_t<_View>. operator* applies static_cast
+    //   class: wraps iterator_t<View>. operator* applies static_cast
     // to rvalue_ref_t on the underlying dereference.
     class iterator
     {
     public:
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::iterator_category   iterator_category;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::value_type          value_type;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type     difference_type;
 
         typedef rvalue_ref_t                     reference;
@@ -115,24 +118,24 @@ public:
 
 
     private:
-        iterator_t<_View>  m_it;
+        iterator_t<View>  m_it;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_it()
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         iterator(
-            iterator_t<_View>  _it
+            iterator_t<View>  _it
         )
             : m_it(_it)
         {}
 
 
-        D_CONSTEXPR iterator_t<_View>
+        RE_STD_CONSTEXPR iterator_t<View>
         base() const
         {
             return m_it;
@@ -142,7 +145,7 @@ public:
         // operator*
         //   function: routes through re_std::iter_move so user
         // customisations are picked up via ADL.
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return re_std::iter_move(m_it);
@@ -150,14 +153,14 @@ public:
 
 
         // operator++ (pre / post)
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator++()
         {
             ++m_it;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator++(int)
         {
             iterator tmp = *this;
@@ -167,14 +170,14 @@ public:
 
 
         // operator-- (pre / post) — bidirectional+, SFINAE-lazy
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator--()
         {
             --m_it;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator--(int)
         {
             iterator tmp = *this;
@@ -184,7 +187,7 @@ public:
 
 
         // random-access ops — SFINAE-lazy
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator+=(
             difference_type _n
         )
@@ -193,7 +196,7 @@ public:
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator-=(
             difference_type _n
         )
@@ -202,7 +205,7 @@ public:
             return *this;
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR iterator
         operator+(
             difference_type _n
         ) const
@@ -210,7 +213,7 @@ public:
             return iterator(m_it + _n);
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR iterator
         operator-(
             difference_type _n
         ) const
@@ -218,7 +221,7 @@ public:
             return iterator(m_it - _n);
         }
 
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         auto
         operator-(
             iterator const& _rhs
@@ -228,7 +231,7 @@ public:
             return (m_it - _rhs.m_it);
         }
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator[](
             difference_type _n
         ) const
@@ -238,7 +241,7 @@ public:
 
 
         // comparisons (delegate to underlying iterator)
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -246,7 +249,7 @@ public:
             return (m_it == _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -254,7 +257,7 @@ public:
             return (m_it != _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<(
             iterator const& _rhs
         ) const
@@ -262,7 +265,7 @@ public:
             return (m_it < _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<=(
             iterator const& _rhs
         ) const
@@ -270,7 +273,7 @@ public:
             return (m_it <= _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>(
             iterator const& _rhs
         ) const
@@ -278,7 +281,7 @@ public:
             return (m_it > _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>=(
             iterator const& _rhs
         ) const
@@ -295,31 +298,31 @@ public:
     class sentinel
     {
     private:
-        sentinel_t<_View>  m_end;
+        sentinel_t<View>  m_end;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         sentinel()
             : m_end()
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         sentinel(
-            sentinel_t<_View>  _e
+            sentinel_t<View>  _e
         )
             : m_end(_e)
         {}
 
 
-        D_CONSTEXPR sentinel_t<_View>
+        RE_STD_CONSTEXPR sentinel_t<View>
         base() const
         {
             return m_end;
         }
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             iterator const&  _it,
             sentinel const&  _s
@@ -328,7 +331,7 @@ public:
             return (_it.base() == _s.m_end);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             iterator const&  _it,
             sentinel const&  _s
@@ -337,7 +340,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             sentinel const&  _s,
             iterator const&  _it
@@ -346,7 +349,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             sentinel const&  _s,
             iterator const&  _it
@@ -359,22 +362,22 @@ public:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     as_rvalue_view()
         : m_base()
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     as_rvalue_view(
-        _View  _base
+        View  _base
     )
-        : m_base(static_cast<_View&&>(_base))
+        : m_base(static_cast<View&&>(_base))
     {}
 
 
     // base
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
@@ -382,13 +385,13 @@ public:
 
 
     // begin / end
-    D_CONSTEXPR_CPP14 iterator
+    RE_STD_CONSTEXPR_CPP14 iterator
     begin()
     {
         return iterator(re_std::begin(m_base));
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     begin() const
         -> iterator
@@ -396,13 +399,13 @@ public:
         return iterator(re_std::begin(m_base));
     }
 
-    D_CONSTEXPR_CPP14 sentinel
+    RE_STD_CONSTEXPR_CPP14 sentinel
     end()
     {
         return sentinel(re_std::end(m_base));
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     end() const
         -> sentinel
@@ -412,7 +415,7 @@ public:
 
 
     // size — forwards to base when sized.
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     size()
         -> decltype(re_std::size(m_base))
@@ -420,7 +423,7 @@ public:
         return re_std::size(m_base);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     size() const
         -> decltype(re_std::size(m_base))
@@ -435,11 +438,11 @@ public:
 // ===========================================================================
 
 // enable_borrowed_range<as_rvalue_view<V>>
-//   trait: borrowed iff the underlying _View is itself borrowed.
+//   trait: borrowed iff the underlying View is itself borrowed.
 // The iterator carries no extra state.
-template<typename _View>
-struct enable_borrowed_range<as_rvalue_view<_View> >
-    : enable_borrowed_range<_View>
+template<typename View>
+struct enable_borrowed_range<as_rvalue_view<View> >
+    : enable_borrowed_range<View>
 {};
 
 
@@ -455,32 +458,32 @@ namespace views
     // returns one).
     struct as_rvalue_fn : range_adaptor_closure<as_rvalue_fn>
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
-        as_rvalue_view<typename internal::all_dispatch<_R>::type>
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
+        as_rvalue_view<typename internal::all_dispatch<R>::type>
         operator()(
-            _R&&  _r
+            R&&  _r
         ) const
         {
-            typedef typename internal::all_dispatch<_R>::type  view_type;
+            typedef typename internal::all_dispatch<R>::type  view_type;
             return as_rvalue_view<view_type>(
-                internal::all_dispatch<_R>::call(static_cast<_R&&>(_r))
+                internal::all_dispatch<R>::call(static_cast<R&&>(_r))
             );
         }
     };
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    inline D_CONSTEXPR as_rvalue_fn as_rvalue = as_rvalue_fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+    inline RE_STD_CONSTEXPR as_rvalue_fn as_rvalue = as_rvalue_fn();
 #else
-    static D_CONSTEXPR as_rvalue_fn as_rvalue = as_rvalue_fn();
+    static RE_STD_CONSTEXPR as_rvalue_fn as_rvalue = as_rvalue_fn();
 #endif
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_AS_RVALUE_VIEW_
+#endif  // RE_STD_RANGES_AS_RVALUE_VIEW_HPP

@@ -1,4 +1,15 @@
-#include "./selection_sort.h"
+/*******************************************************************************
+* djinterp [c]                                                  selection_sort.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/util/sort/selection_sort.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.20
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/util/sort/selection_sort.h"
 
 
 /*

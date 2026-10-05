@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                        drop_while_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          drop_while_view.hpp
 *
 * drop_while_view header:
 *   Provides the C++20 predicate-suffix adaptor. drop_while_view<V, Pred>
@@ -20,17 +20,19 @@
 *   re_std::views::drop_while(r, pred).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/drop_while_view.hpp
+* path:      /inc/re_std/ranges/drop_while_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_DROP_WHILE_VIEW_
-#define DJINTERP_RE_STD_RANGES_DROP_WHILE_VIEW_ 1
+#ifndef RE_STD_RANGES_DROP_WHILE_VIEW_HPP
+#define RE_STD_RANGES_DROP_WHILE_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./view_interface.hpp"
@@ -41,30 +43,31 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   DROP_WHILE_VIEW
 // ===========================================================================
 
-// drop_while_view<_View, _Pred>
-//   class: skips elements at the front of _View as long as _Pred
+// drop_while_view<View, Pred>
+//   class: skips elements at the front of View as long as Pred
 // returns true; the first false-result element is the new begin().
-template<typename _View,
-         typename _Pred>
-class drop_while_view : public view_interface<drop_while_view<_View, _Pred> >
+template<typename View,
+         typename Pred>
+class drop_while_view : public view_interface<drop_while_view<View, Pred> >
 {
 public:
-    typedef _View   base_view;
-    typedef _Pred   predicate_type;
+    typedef View   base_view;
+    typedef Pred   predicate_type;
 
 
 private:
-    _View                           m_base;
-    internal::movable_box<_Pred>    m_pred;
+    View                           m_base;
+    internal::movable_box<Pred>    m_pred;
     mutable bool                m_cache_init;
-    mutable iterator_t<_View>   m_cache;
+    mutable iterator_t<View>   m_cache;
 
 
     // find_first_false
@@ -77,8 +80,8 @@ private:
         {
             return;
         }
-        iterator_t<_View> it = re_std::begin(m_base);
-        sentinel_t<_View> e  = re_std::end(m_base);
+        iterator_t<View> it = re_std::begin(m_base);
+        sentinel_t<View> e  = re_std::end(m_base);
         while (it != e && (*m_pred)(*it))
         {
             ++it;
@@ -90,7 +93,7 @@ private:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     drop_while_view()
         : m_base(),
           m_pred(),
@@ -99,29 +102,29 @@ public:
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     drop_while_view(
-        _View  _base,
-        _Pred  _pred
+        View  _base,
+        Pred  _pred
     )
-        : m_base(static_cast<_View&&>(_base)),
-          m_pred(static_cast<_Pred&&>(_pred)),
+        : m_base(static_cast<View&&>(_base)),
+          m_pred(static_cast<Pred&&>(_pred)),
           m_cache_init(false),
           m_cache()
     {}
 
 
     // base
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
     }
 
     // pred
-    D_CONSTEXPR _Pred const&
+    RE_STD_CONSTEXPR Pred const&
     pred() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return *m_pred;
     }
@@ -131,7 +134,7 @@ public:
     //   function: lazy-cached. The first call scans forward for the
     // first failing element; subsequent calls return the cached
     // result.
-    iterator_t<_View>
+    iterator_t<View>
     begin() const
     {
         find_first_false();
@@ -141,7 +144,7 @@ public:
 
     // end
     //   function: forwarded directly from the underlying view.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     end() const
         -> decltype(re_std::end(m_base))
@@ -155,41 +158,42 @@ public:
 // II.  DROP_WHILE_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
-
-template<typename _Pred>
-struct drop_while_closure : range_adaptor_closure<drop_while_closure<_Pred> >
+namespace internal
 {
-    _Pred pred;
 
-    D_CONSTEXPR
+template<typename Pred>
+struct drop_while_closure : range_adaptor_closure<drop_while_closure<Pred> >
+{
+    Pred pred;
+
+    RE_STD_CONSTEXPR
     drop_while_closure()
         : pred()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     drop_while_closure(
-        _Pred _p
+        Pred _p
     )
-        : pred(static_cast<_Pred&&>(_p))
+        : pred(static_cast<Pred&&>(_p))
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    drop_while_view<typename internal::all_dispatch<_R>::type, _Pred>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    drop_while_view<typename internal::all_dispatch<R>::type, Pred>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
-        return drop_while_view<view_type, _Pred>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+        typedef typename internal::all_dispatch<R>::type view_type;
+        return drop_while_view<view_type, Pred>(
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             pred
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -199,43 +203,43 @@ NS_END  // internal
 namespace views
 {
     // views::drop_while(_r, _pred)  [direct form]
-    template<typename _R,
-             typename _Pred>
-    D_CONSTEXPR_INLINE
-    drop_while_view<typename internal::all_dispatch<_R>::type,
-                    typename decay<_Pred>::type>
+    template<typename R,
+             typename Pred>
+    RE_STD_CONSTEXPR_INLINE
+    drop_while_view<typename internal::all_dispatch<R>::type,
+                    typename decay<Pred>::type>
     drop_while(
-        _R&&    _r,
-        _Pred&& _pred
+        R&&    _r,
+        Pred&& _pred
     )
     {
-        typedef typename internal::all_dispatch<_R>::type  view_type;
-        typedef typename decay<_Pred>::type                pred_type;
+        typedef typename internal::all_dispatch<R>::type  view_type;
+        typedef typename decay<Pred>::type                pred_type;
         return drop_while_view<view_type, pred_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
-            static_cast<_Pred&&>(_pred)
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
+            static_cast<Pred&&>(_pred)
         );
     }
 
     // views::drop_while(_pred)  [bound form]
-    template<typename _Pred>
-    D_CONSTEXPR_INLINE
-    internal::drop_while_closure<typename decay<_Pred>::type>
+    template<typename Pred>
+    RE_STD_CONSTEXPR_INLINE
+    internal::drop_while_closure<typename decay<Pred>::type>
     drop_while(
-        _Pred&& _pred
+        Pred&& _pred
     )
     {
-        return internal::drop_while_closure<typename decay<_Pred>::type>(
-            static_cast<_Pred&&>(_pred)
+        return internal::drop_while_closure<typename decay<Pred>::type>(
+            static_cast<Pred&&>(_pred)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_DROP_WHILE_VIEW_
+#endif  // RE_STD_RANGES_DROP_WHILE_VIEW_HPP

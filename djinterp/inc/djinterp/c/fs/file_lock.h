@@ -34,6 +34,14 @@ TABLE OF CONTENTS
 // djinterp
 #include "./file_common.h"                    // fs foundation, D_LOCK_*
 #include "../../config/c/fs/cfg_file_lock.h"  // module configuration
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's floor
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
 
 
 D_EXTERN_C_BEGIN
@@ -83,5 +91,7 @@ int d_file_lock_stream(FILE* _stream,
 
 D_EXTERN_C_END
 
+
+#endif  // defined(INT64_MAX)
 
 #endif  // DJINTERP_C_FS_FILE_LOCK_H

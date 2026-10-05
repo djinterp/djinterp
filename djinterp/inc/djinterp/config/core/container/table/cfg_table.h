@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [config]                                                 cfg_table.h
+/*******************************************************************************
+* djinterp [config]                                                  cfg_table.h
 *
 *   Build-time configuration for the table DSL subframework -- the two
 * declaration front ends (table_builder, table_parser), the model they meet at,
@@ -41,53 +41,56 @@
 *                 -> D_INTERNAL_TABLE_CONCEPTS, D_INTERNAL_TABLE_STATIC_ASSERTS
 *   requires: cfg_common.h (D_CFG_IS_ON / D_CFG_NORM, D_CFG_TESTING, user pickup)
 *
-* path:      /config/core/container/table/cfg_table.h
+*
+* path:      /inc/djinterp/config/core/container/table/cfg_table.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
+*                                                            revised: 2026.09.30
+*******************************************************************************/
 
-#ifndef DJINTERP_CFG_TABLE_
-#define DJINTERP_CFG_TABLE_ 1
+#ifndef DJINTERP_CONFIG_CORE_CONTAINER_TABLE_CFG_TABLE_H
+#define DJINTERP_CONFIG_CORE_CONTAINER_TABLE_CFG_TABLE_H 1
 
 /*
 TABLE OF CONTENTS
 =================
 0.    TABLE DSL CONFIGURATION
       -----------------------
-      1.  Master Switch
-          a.  D_CFG_TABLE_ALL
-      2.  Layer Gates
-          a.  D_CFG_TABLE_BUILDER      (the type DSL)
-          b.  D_CFG_TABLE_RENDER       (the compose leg)
-          c.  D_CFG_TABLE_PARSER       (the text DSL)
-          d.  D_CFG_TABLE_TEMPLATE     (placeholders + interpolation)
-          e.  D_CFG_TABLE_CONCEPTS     (the C++20 concept faces)
-          f.  D_CFG_TABLE_STATIC_ASSERTS (the conformance assertions)
-      3.  Policy Grade Vocabulary  (the small enums the knobs take)
-      4.  Policy Defaults
-          a.  D_CFG_TABLE_DEFAULT_CELL_COUNT
-          b.  D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT
-          c.  D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE
-          d.  D_CFG_TABLE_DEFAULT_SHAPE
-          e.  D_CFG_TABLE_DEFAULT_HEADER
-          f.  D_CFG_TABLE_DEFAULT_DOMAIN
-          g.  D_CFG_TABLE_DEFAULT_TRIM
-          h.  D_CFG_TABLE_DEFAULT_PIPE
-          i.  D_CFG_TABLE_DEFAULT_ANCHOR
-      5.  Dialect Characters
-          a.  D_CFG_TABLE_DELIMITER, D_CFG_TABLE_PAD,
-              D_CFG_TABLE_SEPARATOR_FILL
-          b.  D_CFG_TABLE_ELLIPSIS, D_CFG_TABLE_ITERATION_SIGIL
-      6.  Configuration Validation
-      7.  Effective (Derived) Values
-          a.  D_INTERNAL_TABLE_<LAYER>            (the effective gates)
-          b.  D_INTERNAL_TABLE_DEFAULT_<CATEGORY> (the enumerator to paste)
-          c.  D_INTERNAL_TABLE_<CHARACTER>        (the dialect)
+      1.    Master Switch
+      a. D_CFG_TABLE_ALL
+      2.    Layer Gates
+      a. D_CFG_TABLE_BUILDER      (the type DSL)
+      b. D_CFG_TABLE_RENDER       (the compose leg)
+      c.    D_CFG_TABLE_PARSER       (the text DSL)
+            d. D_CFG_TABLE_TEMPLATE     (placeholders + interpolation)
+            e. D_CFG_TABLE_CONCEPTS     (the C++20 concept faces)
+            f. D_CFG_TABLE_STATIC_ASSERTS (the conformance assertions)
+            3.    Policy Grade Vocabulary  (the small enums the knobs take)
+            4.    Policy Defaults
+            a. D_CFG_TABLE_DEFAULT_CELL_COUNT
+            b. D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT
+      c.    D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE
+            d. D_CFG_TABLE_DEFAULT_SHAPE
+            e. D_CFG_TABLE_DEFAULT_HEADER
+            f. D_CFG_TABLE_DEFAULT_DOMAIN
+            g. D_CFG_TABLE_DEFAULT_TRIM
+            h. D_CFG_TABLE_DEFAULT_PIPE
+      i.    D_CFG_TABLE_DEFAULT_ANCHOR
+            5.    Dialect Characters
+            a. D_CFG_TABLE_DELIMITER, D_CFG_TABLE_PAD,
+
+      D_CFG_TABLE_SEPARATOR_FILL
+            b. D_CFG_TABLE_ELLIPSIS, D_CFG_TABLE_ITERATION_SIGIL
+            6.    Configuration Validation
+            7.    Effective (Derived) Values
+            a. D_INTERNAL_TABLE_<LAYER>            (the effective gates)
+            b. D_INTERNAL_TABLE_DEFAULT_<CATEGORY> (the enumerator to paste)
+      c.    D_INTERNAL_TABLE_<CHARACTER>        (the dialect)
 */
 
+// djinterp
 // (0) root first: helpers, user overrides, testing flag / preset.
 #include "../../../cfg_common.h"
-
 // (0b) the environment this config's cascade detects from.  Layer 4 of the
 // resolution cascade is "environment-detected", and the concepts gate (0.7a) is
 // exactly that -- so the detection is pulled in HERE and resolved once, rather
@@ -97,8 +100,8 @@ TABLE OF CONTENTS
 //   env_cpp_features.h -> D_ENV_CPP_FEATURE_LANG_CONCEPTS  (standalone)
 // This mirrors djinterp.h's own order, which loads env before its qualifier
 // config for the same reason.
-#include "../../../../core/env/env.h"
-#include "../../../../core/env/cpp/env_cpp_features.h"
+#include "../../../../env/env.h"
+#include "../../../../env/cpp/env_cpp_features.h"
 
 
 // ================================================================
@@ -272,10 +275,18 @@ TABLE OF CONTENTS
 #   define D_CFG_TABLE_DEFAULT_CELL_COUNT       D_CFG_TABLE_STRICTNESS_EXACT
 #endif
 
+#if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_CELL_COUNT)
+    #error "D_CFG_TABLE_DEFAULT_CELL_COUNT must name one of its values; a misspelled name would read as 0"
+#endif
+
 // D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT
 //   brief: how strictly a multi-cell placeholder's run must fill its span.
 #ifndef D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT
 #   define D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT  D_CFG_TABLE_STRICTNESS_EXACT
+#endif
+
+#if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT)
+    #error "D_CFG_TABLE_DEFAULT_PLACEHOLDER_FIT must name one of its values; a misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE
@@ -284,16 +295,28 @@ TABLE OF CONTENTS
 #   define D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE D_CFG_TABLE_TYPE_REQUIRE
 #endif
 
+#if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE)
+    #error "D_CFG_TABLE_DEFAULT_TYPE_CONFORMANCE must name one of its values; a misspelled name would read as 0"
+#endif
+
 // D_CFG_TABLE_DEFAULT_SHAPE
 //   brief: which domain shapes a declaration admits.
 #ifndef D_CFG_TABLE_DEFAULT_SHAPE
 #   define D_CFG_TABLE_DEFAULT_SHAPE            D_CFG_TABLE_SHAPE_RECTANGULAR
 #endif
 
+#if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_SHAPE)
+    #error "D_CFG_TABLE_DEFAULT_SHAPE must name one of its values; a misspelled name would read as 0"
+#endif
+
 // D_CFG_TABLE_DEFAULT_HEADER
 //   brief: whether a separator is required to open a header block.
 #ifndef D_CFG_TABLE_DEFAULT_HEADER
 #   define D_CFG_TABLE_DEFAULT_HEADER           D_CFG_TABLE_HEADER_OPTIONAL_SEP
+#endif
+
+#if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_HEADER)
+    #error "D_CFG_TABLE_DEFAULT_HEADER must name one of its values; a misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_DOMAIN
@@ -303,10 +326,18 @@ TABLE OF CONTENTS
 #   define D_CFG_TABLE_DEFAULT_DOMAIN           D_CFG_TABLE_DOMAIN_IGNORE
 #endif
 
+#if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_DOMAIN)
+    #error "D_CFG_TABLE_DEFAULT_DOMAIN must name one of its values; a misspelled name would read as 0"
+#endif
+
 // D_CFG_TABLE_DEFAULT_TRIM
 //   brief: whether cell text is trimmed.
 #ifndef D_CFG_TABLE_DEFAULT_TRIM
 #   define D_CFG_TABLE_DEFAULT_TRIM             D_CFG_TABLE_TRIM_TRIM
+#endif
+
+#if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_TRIM)
+    #error "D_CFG_TABLE_DEFAULT_TRIM must name one of its values; a misspelled name would read as 0"
 #endif
 
 // D_CFG_TABLE_DEFAULT_PIPE
@@ -315,10 +346,18 @@ TABLE OF CONTENTS
 #   define D_CFG_TABLE_DEFAULT_PIPE             D_CFG_TABLE_PIPE_REQUIRE_BORDERS
 #endif
 
+#if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_PIPE)
+    #error "D_CFG_TABLE_DEFAULT_PIPE must name one of its values; a misspelled name would read as 0"
+#endif
+
 // D_CFG_TABLE_DEFAULT_ANCHOR
 //   brief: which position names a merged cell.  The formal default.
 #ifndef D_CFG_TABLE_DEFAULT_ANCHOR
 #   define D_CFG_TABLE_DEFAULT_ANCHOR           D_CFG_TABLE_ANCHOR_LEX_LEAST
+#endif
+
+#if !D_CFG_IS_INT_LITERAL(D_CFG_TABLE_DEFAULT_ANCHOR)
+    #error "D_CFG_TABLE_DEFAULT_ANCHOR must name one of its values; a misspelled name would read as 0"
 #endif
 
 
@@ -574,4 +613,4 @@ TABLE OF CONTENTS
 #define D_INTERNAL_TABLE_ITERATION_SIGIL    D_CFG_TABLE_ITERATION_SIGIL
 
 
-#endif  // DJINTERP_CFG_TABLE_
+#endif  // DJINTERP_CONFIG_CORE_CONTAINER_TABLE_CFG_TABLE_H

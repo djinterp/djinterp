@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                 add_cv.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                   add_cv.hpp
 *
 * add_cv trait header:
 *   Adds top-level const and volatile qualifiers to a type. Composition
@@ -10,21 +10,23 @@
 *     add_cv<int&>::type           -> int&                  (refs ignore cv)
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/add_cv.hpp
+* path:      /inc/re_std/type_traits/add_cv.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ADD_CV_
-#define DJINTERP_RE_STD_TYPE_TRAITS_ADD_CV_ 1
+#ifndef RE_STD_TYPE_TRAITS_ADD_CV_HPP
+#define RE_STD_TYPE_TRAITS_ADD_CV_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./add_const.hpp"
 #include "./add_volatile.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -32,12 +34,12 @@ NS_RESTD
 // =============================================================================
 
 // add_cv
-//   trait: yields _Type with both top-level const and volatile added.
-template<typename _Type>
+//   trait: yields Type with both top-level const and volatile added.
+template<typename Type>
 struct add_cv
 {
     typedef typename add_const<
-                typename add_volatile<_Type>::type
+                typename add_volatile<Type>::type
             >::type type;
 };
 
@@ -46,17 +48,17 @@ struct add_cv
 // II.  ADD_CV_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // add_cv_t
-    //   alias: convenience alias for add_cv<_Type>::type.
-    template<typename _Type>
-    using add_cv_t = typename add_cv<_Type>::type;
+    //   alias: convenience alias for add_cv<Type>::type.
+    template<typename Type>
+    using add_cv_t = typename add_cv<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ADD_CV_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_ADD_CV_HPP

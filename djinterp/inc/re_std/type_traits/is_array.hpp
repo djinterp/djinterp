@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               is_array.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 is_array.hpp
 *
 * is_array trait header:
 *   Detects whether a type is a C-style array, bounded or unbounded.
@@ -16,23 +16,26 @@
 * an array type yields an array of const elements.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_array.hpp
+* path:      /inc/re_std/type_traits/is_array.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_ARRAY_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_ARRAY_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_ARRAY_HPP
+#define RE_STD_TYPE_TRAITS_IS_ARRAY_HPP 1
 
-// 
+// std
+//
 #include <cstddef>
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -41,21 +44,21 @@ NS_RESTD
 
 // is_array
 //   trait: false (primary template).
-template<typename _Type>
+template<typename Type>
 struct is_array : false_type
 {};
 
-// is_array<_Type[]>
+// is_array<Type[]>
 //   trait: true for unbounded arrays.
-template<typename _Type>
-struct is_array<_Type[]> : true_type
+template<typename Type>
+struct is_array<Type[]> : true_type
 {};
 
-// is_array<_Type[_N]>
+// is_array<Type[N]>
 //   trait: true for bounded arrays.
-template<typename _Type,
-         std::size_t _N>
-struct is_array<_Type[_N]> : true_type
+template<typename Type,
+         std::size_t N>
+struct is_array<Type[N]> : true_type
 {};
 
 
@@ -63,17 +66,17 @@ struct is_array<_Type[_N]> : true_type
 // II.  IS_ARRAY_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_array_v
-    //   variable: convenience for is_array<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_array_v = is_array<_Type>::value;
+    //   variable: convenience for is_array<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_array_v = is_array<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_ARRAY_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_ARRAY_HPP

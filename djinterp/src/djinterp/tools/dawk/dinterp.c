@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                    dinterp.c
+/*******************************************************************************
+* djinterp [djinterp]                                                  dinterp.c
 *
 *   Definitions for the non-inline declarations in dinterp.h.
 *     Two flags carry the lazy field discipline. `fields_valid` says the record
@@ -14,14 +14,15 @@
 *
 * path:      /src/djinterp/tools/dawk/dinterp.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dinterp.h"  // corresponding header
 #include "../../../../inc/djinterp/tools/dawk/dsource.h"  // d_awk_source
 // std
 #include <math.h>     // sin, cos, atan2, exp, log, sqrt, floor, fmod
 #include <stdio.h>    // FILE, fopen, fgetc, printf, snprintf
+#include <stdint.h>   // uintptr_t, UINTPTR_MAX
 #include <stdlib.h>   // malloc, free, rand, srand
 #include <string.h>   // memcpy, memcmp, strcmp, strlen
 // djinterp
@@ -134,6 +135,11 @@ struct d_awk_interp
 
     // host record source; NULL keeps POSIX RS splitting
     struct d_awk_source*  source;
+
+    // call limits: a count, and the stack actually consumed
+    size_t                call_depth_limit;
+    size_t                stack_budget;
+    uintptr_t             stack_base;
 
     // streams the program opened by name
     struct d_internal_stream* streams;
@@ -2451,10 +2457,31 @@ d_internal_call(
     }
 
     // a runaway recursion is reported rather than exhausting the stack
-    if (_in->frame_count >= 512u)
+    if (_in->frame_count >= _in->call_depth_limit)
     {
-        return d_internal_fail(_in, "function call nesting too deep");
+        return d_internal_fail(_in, "function call nesting too deep "
+                                    "(setting interp.call-depth)");
     }
+
+#ifdef UINTPTR_MAX
+    // The count alone does not bound the stack: measure it.  The distance
+    // from the marker set when the run began is how much stack this run has
+    // consumed, whichever way the stack grows.
+    {
+        volatile char   marker = 0;
+        const uintptr_t here   = (uintptr_t)&marker;
+        const uintptr_t used   = (here < _in->stack_base)
+                               ? (_in->stack_base - here)
+                               : (here - _in->stack_base);
+
+        if ((_in->stack_base != 0) && (used > _in->stack_budget))
+        {
+            return d_internal_fail(_in, "function call nesting would exhaust "
+                                        "the stack (setting "
+                                        "interp.stack-budget)");
+        }
+    }
+#endif
 
     // grow the frame stack when it is full
     if (_in->frame_count == _in->frame_capacity)
@@ -4541,8 +4568,10 @@ d_awk_interp_new(
         return NULL;
     }
 
-    interp->program = _program;
-    interp->globals = d_awk_array_new();
+    interp->program          = _program;
+    interp->call_depth_limit = D_AWK_CALL_DEPTH_DEFAULT;
+    interp->stack_budget     = D_AWK_STACK_BUDGET_DEFAULT;
+    interp->globals          = d_awk_array_new();
 
     // abandon the allocation when the globals could not be held
     if (!interp->globals)
@@ -4792,6 +4821,38 @@ d_awk_interp_add_input(
 
 
 /*
+d_awk_interp_set_limits
+  Sets the call limits.  Zero for either means "keep the current value", so
+a host can change one without knowing the other.
+*/
+bool
+d_awk_interp_set_limits(
+    struct d_awk_interp* _interp,
+    size_t               _call_depth,
+    size_t               _stack_budget
+)
+{
+    // parameter validation first
+    if (!_interp)
+    {
+        return false;
+    }
+
+    if (_call_depth > 0)
+    {
+        _interp->call_depth_limit = _call_depth;
+    }
+
+    if (_stack_budget > 0)
+    {
+        _interp->stack_budget = _stack_budget;
+    }
+
+    return true;
+}
+
+
+/*
 d_awk_interp_set_source
   Installs a record source in place of RS splitting.  The descriptor is
 borrowed, not copied, so it must outlive the interpreter; its `release` is
@@ -4915,6 +4976,13 @@ d_awk_interp_run(
     {
         return 2;
     }
+
+#ifdef UINTPTR_MAX
+    // every call this run makes is measured from here
+    volatile char marker = 0;
+
+    _interp->stack_base = (uintptr_t)&marker;
+#endif
 
     for (size_t at = 0; at < _interp->program->rule_count; ++at)
     {

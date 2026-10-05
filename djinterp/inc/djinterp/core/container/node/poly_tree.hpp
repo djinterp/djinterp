@@ -1,26 +1,33 @@
-/******************************************************************************
-* djinterp [container]                                          poly_tree.hpp
+/*******************************************************************************
+* djinterp [core]                                                  poly_tree.hpp
 *
 * Polymorphic Arena Tree:
 * A high-performance, variant-based tree container. It stores mixed node
 * topologies in a contiguous arena, avoiding heap fragmentation and virtual
 * dispatch overhead.
 *
-* 
+*
 * path:      /inc/djinterp/core/container/node/poly_tree.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_POLY_TREE_
-#define DJINTERP_CONTAINER_POLY_TREE_ 1
+#ifndef DJINTERP_CONTAINER_NODE_POLY_TREE_HPP
+#define DJINTERP_CONTAINER_NODE_POLY_TREE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <vector>
-#include <variant>
 #include <utility>
+#include <variant>
+#include <vector>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "node_common.hpp"
 #include "node_iterator.hpp"
 
@@ -34,13 +41,13 @@ NS_DJINTERP
     // poly_tree
     //   class: a generic container that manages a contiguous memory arena of
     //   variant nodes. Allows O(1) insertion and trait-driven iteration.
-    template<typename _ValueType,
-             typename... _NodeTypes>
+    template<typename ValueType,
+             typename... NodeTypes>
     class poly_tree
     {
     public:
-        using value_type   = _ValueType;
-        using node_variant = std::variant<_NodeTypes...>;
+        using value_type   = ValueType;
+        using node_variant = std::variant<NodeTypes...>;
         using arena_type   = std::vector<node_variant>;
         using size_type    = typename arena_type::size_type;
         using index_type   = size_type;
@@ -120,14 +127,15 @@ NS_DJINTERP
         // -----------------------------------------------------------------
 
         // emplace_node
-        //   method: constructs a node directly in the arena and returns its ID.
-        template<typename _ConcreteNode,
-                 typename... _Args>
-        D_CONSTEXPR index_type emplace_node(_Args&&... _args)
+        //   method: constructs a node directly in the arena and returns its
+        // ID.
+        template<typename ConcreteNode,
+                 typename... Args>
+        D_CONSTEXPR index_type emplace_node(Args&&... _args)
         {
             index_type id = m_arena.size();
-            m_arena.emplace_back(std::in_place_type<_ConcreteNode>,
-                                 std::forward<_Args>(_args)...);
+            m_arena.emplace_back(std::in_place_type<ConcreteNode>,
+                                 std::forward<Args>(_args)...);
 
             if (m_root_id == npos)
             {
@@ -296,4 +304,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
-#endif  // DJINTERP_CONTAINER_POLY_TREE_
+#endif  // floor, for now
+
+#endif  // DJINTERP_CONTAINER_NODE_POLY_TREE_HPP

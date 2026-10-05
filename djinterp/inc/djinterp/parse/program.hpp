@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                                  program.hpp
+* djinterp [parse]                                                   program.hpp
 *
 *   The C++ face of the instruction stream declared in program.h.
 *   `instr` is an ALIAS, not a derived type.  That is deliberate: a program is
@@ -18,11 +18,12 @@
 * operands are all immediates and branch targets can therefore have its program
 * built at compile time and its pool left empty.
 *
+*
 * path:      /inc/djinterp/parse/program.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -44,20 +45,28 @@ TABLE OF CONTENTS
     3.  Layout guarantees
 */
 
-#ifndef DJINTERP_PARSE_PROGRAM_HPP_
-#define DJINTERP_PARSE_PROGRAM_HPP_ 1
+#ifndef DJINTERP_PARSE_PROGRAM_HPP
+#define DJINTERP_PARSE_PROGRAM_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>              // std::size_t
-#include <cstdint>              // std::int32_t, std::uint16_t, std::uint32_t
-#include <type_traits>          // std::is_standard_layout, std::is_trivial
+#include <cstddef>           // std::size_t
+#include <type_traits>       // std::is_standard_layout, std::is_trivial
 // djinterp
-#include "../djinterp.hpp"      // framework root
-#include "./charset.hpp"        // parse::charset, and NS_PARSE
-#include "./diagnostic.hpp"     // parse::diagnostics
-#include "./machine.hpp"        // parse::op_set
-#include "./pool.hpp"           // parse::pool
-#include "./program.h"          // the C IR this layer faces
+#include "../djinterp.hpp"   // framework root
+#include "./charset.hpp"     // parse::charset, and NS_PARSE
+#include "./diagnostic.hpp"  // parse::diagnostics
+#include "./machine.hpp"     // parse::op_set
+#include "./pool.hpp"        // parse::pool
+#include "./c/program.h"     // the C IR this layer faces
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t, int32_t,
+                                             // uint16_t, uint32_t, ...
 
 
 NS_DJINTERP
@@ -82,7 +91,7 @@ using instr = ::d_parse_instr;
 // operand
 //   enum: what an operand of a given opcode means.  A scoped enum over the C
 // kinds, with the same underlying width.
-enum class operand : std::uint8_t
+enum class operand : re_std::uint8_t
 {
     none    = D_PARSE_OPERAND_NONE,
     imm     = D_PARSE_OPERAND_IMM,
@@ -108,8 +117,8 @@ shape(
     operand _b = operand::none
 ) noexcept
 {
-    return op_shape{ static_cast<std::uint8_t>(_a),
-                     static_cast<std::uint8_t>(_b) };
+    return op_shape{ static_cast<re_std::uint8_t>(_a),
+                     static_cast<re_std::uint8_t>(_b) };
 }
 
 
@@ -122,11 +131,11 @@ shape(
 constexpr instr
 make_instr(
     int          _op,
-    std::int32_t _a = D_PARSE_NO_OPERAND,
-    std::int32_t _b = D_PARSE_NO_OPERAND
+    re_std::int32_t _a = D_PARSE_NO_OPERAND,
+    re_std::int32_t _b = D_PARSE_NO_OPERAND
 ) noexcept
 {
-    return instr{ static_cast<std::uint16_t>(_op), 0u, _a, _b };
+    return instr{ static_cast<re_std::uint16_t>(_op), 0u, _a, _b };
 }
 
 
@@ -151,7 +160,7 @@ public:
     // program
     //   constructor: an empty program over one opcode space, owning nothing.
     explicit program(
-        std::uint16_t _family = 0u
+        re_std::uint16_t _family = 0u
     ) noexcept
     {
         d_parse_program_init(this, _family, nullptr, 0u);
@@ -162,9 +171,9 @@ public:
     // pool is left empty; bind one through strings() if the family's operands
     // need it.
     program(
-        std::uint16_t _family,
+        re_std::uint16_t _family,
         instr*        _code,
-        std::uint32_t _capacity
+        re_std::uint32_t _capacity
     ) noexcept
     {
         d_parse_program_init(this, _family, _code, _capacity);
@@ -216,10 +225,10 @@ public:
     // and owns, pool included, which then grows on demand.
     D_NODISCARD bool
     reserve(
-        std::uint32_t _capacity = 0u
+        re_std::uint32_t _capacity = 0u
     ) noexcept
     {
-        const std::uint16_t space = family;
+        const re_std::uint16_t space = family;
 
         d_parse_program_release(this);
 
@@ -230,11 +239,11 @@ public:
     // emit
     //   function: appends one instruction and returns where it landed, or -1.
     // The returned counter is what a forward branch is patched at later.
-    std::int32_t
+    re_std::int32_t
     emit(
         int          _op,
-        std::int32_t _a = D_PARSE_NO_OPERAND,
-        std::int32_t _b = D_PARSE_NO_OPERAND
+        re_std::int32_t _a = D_PARSE_NO_OPERAND,
+        re_std::int32_t _b = D_PARSE_NO_OPERAND
     ) noexcept
     {
         return d_parse_program_emit(this, _op, _a, _b);
@@ -245,9 +254,9 @@ public:
     // Pass D_PARSE_KEEP for an operand that should not change.
     D_NODISCARD bool
     patch(
-        std::int32_t _pc,
-        std::int32_t _a,
-        std::int32_t _b = D_PARSE_KEEP
+        re_std::int32_t _pc,
+        re_std::int32_t _a,
+        re_std::int32_t _b = D_PARSE_KEEP
     ) noexcept
     {
         return (d_parse_program_patch(this, _pc, _a, _b) == 0);
@@ -255,7 +264,7 @@ public:
 
     // intern
     //   function: interns a character class and returns the operand index.
-    std::uint32_t
+    re_std::uint32_t
     intern(
         const d_parse_charset& _set
     ) noexcept
@@ -265,7 +274,7 @@ public:
 
     // intern
     //   function: interns a name and returns the operand index.
-    std::uint32_t
+    re_std::uint32_t
     intern(
         const char* _name
     ) noexcept
@@ -277,7 +286,7 @@ public:
     //   accessor: the instruction at a counter, or null.
     const instr*
     at(
-        std::int32_t _pc
+        re_std::int32_t _pc
     ) const noexcept
     {
         return d_parse_program_at(this, _pc);
@@ -287,7 +296,7 @@ public:
     //   accessor: an interned class by operand index, or null.
     const d_parse_charset*
     set_at(
-        std::uint32_t _index
+        re_std::uint32_t _index
     ) const noexcept
     {
         return d_parse_program_charset(this, _index);
@@ -297,7 +306,7 @@ public:
     //   accessor: an interned name by operand index, or "".  Never null.
     const char*
     name_at(
-        std::uint32_t _index
+        re_std::uint32_t _index
     ) const noexcept
     {
         return d_parse_program_name(this, _index);
@@ -311,7 +320,7 @@ public:
     verify(
         const d_parse_op_set&     _ops,
         const op_shape*           _shapes,
-        std::uint32_t             _shapes_n,
+        re_std::uint32_t             _shapes_n,
         d_parse_diag_sink*        _diag = nullptr
     ) noexcept
     {
@@ -324,7 +333,7 @@ public:
 
     // verified
     //   accessor: whether verify has passed since the last edit.
-    constexpr bool
+    D_CONSTEXPR_CPP14 bool
     verified() const noexcept
     {
         return ((flags & D_PARSE_PROGRAM_VERIFIED) != 0u);
@@ -334,7 +343,7 @@ public:
     //   accessor: a 64-bit key over the whole artifact -- family, entry,
     // instructions, and pool.  Stable across a rebuild and across verification,
     // which is what makes it usable as a cache key.
-    std::uint64_t
+    re_std::uint64_t
     digest() const noexcept
     {
         return d_parse_program_hash(this);
@@ -370,7 +379,7 @@ public:
 
     // size
     //   accessor: how many instructions the program holds.
-    constexpr std::uint32_t
+    D_CONSTEXPR_CPP14 re_std::uint32_t
     size() const noexcept
     {
         return count;
@@ -378,7 +387,7 @@ public:
 
     // empty
     //   accessor: whether the program holds any instruction.
-    constexpr bool
+    D_CONSTEXPR_CPP14 bool
     empty() const noexcept
     {
         return (count == 0u);
@@ -386,7 +395,7 @@ public:
 
     // space
     //   accessor: which private opcode space this program is written in.
-    constexpr std::uint16_t
+    D_CONSTEXPR_CPP14 re_std::uint16_t
     space() const noexcept
     {
         return family;
@@ -394,7 +403,7 @@ public:
 
     // begin
     //   accessor: a pointer to the first instruction.
-    constexpr const_iterator
+    D_CONSTEXPR_CPP14 const_iterator
     begin() const noexcept
     {
         return code;
@@ -402,7 +411,7 @@ public:
 
     // end
     //   accessor: a pointer one past the last instruction.
-    constexpr const_iterator
+    D_CONSTEXPR_CPP14 const_iterator
     end() const noexcept
     {
         return (code != nullptr) ? (code + count) : nullptr;
@@ -410,7 +419,7 @@ public:
 
     // strings
     //   accessor: the operand pool, for a caller interning directly.
-    constexpr d_parse_pool&
+    D_CONSTEXPR_CPP14 d_parse_pool&
     strings() noexcept
     {
         return pool;
@@ -425,30 +434,30 @@ public:
 //   class: a program carrying its own instruction array and pool, for a stage
 // that must not allocate -- a program whose size is known, or one built on a
 // target with no allocator at all.
-template<std::uint32_t _Capacity,
-         std::uint32_t _PoolBytes   = 256u,
-         std::uint32_t _PoolEntries = 16u>
+template<re_std::uint32_t Capacity,
+         re_std::uint32_t PoolBytes    = 256u,
+         re_std::uint32_t PoolEntries = 16u>
 class fixed_program : public program
 {
 public:
     // fixed_program
     //   constructor: binds the embedded storage as this program's.
     explicit fixed_program(
-        std::uint16_t _family = 0u
+        re_std::uint16_t _family = 0u
     ) noexcept
     {
-        d_parse_program_init(this, _family, m_code, _Capacity);
+        d_parse_program_init(this, _family, m_code, Capacity);
         d_parse_pool_init(&this->pool,
                           m_bytes,
-                          _PoolBytes,
+                          PoolBytes,
                           m_entries,
-                          _PoolEntries);
+                          PoolEntries);
     }
 
 private:
-    instr              m_code[_Capacity];
-    char               m_bytes[_PoolBytes];
-    d_parse_pool_entry m_entries[_PoolEntries];
+    instr              m_code[Capacity];
+    char               m_bytes[PoolBytes];
+    d_parse_pool_entry m_entries[PoolEntries];
 };
 
 
@@ -484,5 +493,7 @@ static_assert(std::is_standard_layout<program>::value,
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_PROGRAM_HPP_
+
+#endif  // DJINTERP_PARSE_PROGRAM_HPP

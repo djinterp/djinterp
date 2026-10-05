@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                                list.hpp
+/*******************************************************************************
+* djinterp [core]                                                       list.hpp
 *
 * Abstract foundation for all list-like containers:
 *   A "list" in the djinterp framework is an ordered linear sequence of
@@ -33,22 +33,35 @@
 * concrete list type because their signatures depend on the iterator
 * type, which in turn depends on the node type.
 *
-* TABLE OF CONTENTS
-* =================
-*   I.   list_base CRTP class
-*   II.  Free functions: equal, lexicographical_compare
 *
 *   PORTABILITY:
 *   C++11 baseline.
 *
-* 
+*
 * path:      /inc/djinterp/core/container/list/list.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_LIST_
-#define DJINTERP_CONTAINER_LIST_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    list_base CRTP class
+      --------------------
+
+II.   Free functions: equal, lexicographical_compare
+      ----------------------------------------------
+*/
+
+#ifndef DJINTERP_CONTAINER_LIST_LIST_HPP
+#define DJINTERP_CONTAINER_LIST_LIST_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <algorithm>
@@ -57,7 +70,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "../sequential_container.hpp"
 
 
@@ -68,37 +81,37 @@ NS_DJINTERP
 // ===========================================================================
 
 // list_base
-//   class: CRTP base supplying list-specific algorithms expressible
-// over begin() / end().  Inherits sequential_base<_Derived>, so the
-// generic sequential algorithms (rotate, reverse, is_palindrome,
-// shift, ...) are also available on every derived type.
+//   class: CRTP base supplying list-specific algorithms expressible over
+// begin() / end(). Inherits sequential_base<Derived>, so the generic
+// sequential algorithms (rotate, reverse, is_palindrome, shift, ...) are also
+// available on every derived type.
 //
 //   The derived class must expose:
 //     - begin() / end()
 //     - size()
-//     - front() / back()    (inherited if begin/end are present)
+//     - front() / back() (inherited if begin/end are present)
 //
-//   All algorithms here mutate via iterator-pair operations, so they
-// work on any list whose iterators model the appropriate category.
-template<typename _Derived>
+//   All algorithms here mutate via iterator-pair operations, so they work on
+// any list whose iterators model the appropriate category.
+template<typename Derived>
 class list_base
-    : public sequential_base<_Derived>
+    : public sequential_base<Derived>
 {
 protected:
     list_base()  = default;
     ~list_base() = default;
 
 private:
-    _Derived&
+    Derived&
     self() noexcept
     {
-        return static_cast<_Derived&>(*this);
+        return static_cast<Derived&>(*this);
     }
 
-    const _Derived&
+    const Derived&
     self() const noexcept
     {
-        return static_cast<const _Derived&>(*this);
+        return static_cast<const Derived&>(*this);
     }
 
 public:
@@ -137,10 +150,10 @@ public:
         }
     }
 
-    template<typename _Predicate>
+    template<typename Predicate>
     void
     unique(
-        _Predicate _eq)
+        Predicate _eq)
     {
         if (self().size() < 2u)
         {
@@ -171,10 +184,10 @@ public:
     // remove — erase all elements equal to _value
     // -----------------------------------------------------------------
 
-    template<typename _Value>
+    template<typename Value>
     void
     remove(
-        const _Value& _value)
+        const Value& _value)
     {
         auto it   = std::begin(self());
         auto stop = std::end(self());
@@ -196,10 +209,10 @@ public:
     // remove_if — erase all elements matching _predicate
     // -----------------------------------------------------------------
 
-    template<typename _Predicate>
+    template<typename Predicate>
     void
     remove_if(
-        _Predicate _predicate)
+        Predicate _predicate)
     {
         auto it   = std::begin(self());
         auto stop = std::end(self());
@@ -230,18 +243,17 @@ public:
     void
     sort()
     {
-        // Default implementation: derived classes are expected to
-        // override with a node-rewiring merge sort when their
-        // iterators are not random-access.  This default body is
-        // intentionally a no-op so that linkage succeeds for forward
-        // iterators; it is only reached if the derived class did not
-        // override.
+        // Default implementation: derived classes are expected to override
+        // with a node-rewiring merge sort when their iterators are not
+        // random-access. This default body is intentionally a no-op so that
+        // linkage succeeds for forward iterators; it is only reached if the
+        // derived class did not override.
     }
 
-    template<typename _Compare>
+    template<typename Compare>
     void
     sort(
-        _Compare /*_cmp*/)
+        Compare /*_cmp*/)
     {
         // see comment on the no-arg overload above
     }
@@ -266,14 +278,14 @@ public:
 // ADL on derived list types.
 
 // list_equal
-//   function: returns true when two list-like containers have
-// equal contents element-by-element.
-template<typename _LhsList,
-         typename _RhsList>
+//   function: returns true when two list-like containers have equal contents
+// element-by-element.
+template<typename LhsList,
+         typename RhsList>
 inline bool
 list_equal(
-    const _LhsList& _lhs,
-    const _RhsList& _rhs
+    const LhsList& _lhs,
+    const RhsList& _rhs
 )
 {
     if (_lhs.size() != _rhs.size())
@@ -297,15 +309,15 @@ list_equal(
 }
 
 // list_lexicographical_compare
-//   function: returns true when _lhs is lexicographically less than
-// _rhs.  Mirrors std::lexicographical_compare but works on list
-// types whose iterators may be only forward-iterable.
-template<typename _LhsList,
-         typename _RhsList>
+//   function: returns true when _lhs is lexicographically less than _rhs.
+// Mirrors std::lexicographical_compare but works on list types whose iterators
+// may be only forward-iterable.
+template<typename LhsList,
+         typename RhsList>
 inline bool
 list_lexicographical_compare(
-    const _LhsList& _lhs,
-    const _RhsList& _rhs
+    const LhsList& _lhs,
+    const RhsList& _rhs
 )
 {
     auto a    = std::begin(_lhs);
@@ -333,5 +345,6 @@ list_lexicographical_compare(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_LIST_
+#endif  // DJINTERP_CONTAINER_LIST_LIST_HPP

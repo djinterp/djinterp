@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [expression]                                     expression_render.hpp
+/*******************************************************************************
+* djinterp [parse]                                         expression_render.hpp
 *
 *   Turning an expression back into text, correctly parenthesized.  Rendering
 * is a fold: each sub-term becomes a string together with the precedence of
@@ -20,7 +20,7 @@
 * a symbolic one (`-`, `!`) is not.
 *
 *   WHAT THE CALLER SUPPLIES.  Atoms are language data, so their rendering is
-* a function _Atom -> std::string the caller passes (a numeric format, a
+* a function Atom -> std::string the caller passes (a numeric format, a
 * variable-name lookup).  The signature must map operator ids to
 * operator_descriptor (rendering needs the precedence / fixity / spelling);
 * an operator absent from the signature prints in the functional form with a
@@ -34,8 +34,9 @@
 *
 * path:      /inc/djinterp/parse/expression/expression_render.hpp
 * link(s):   ch-synthesis.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -47,8 +48,14 @@ II.   RENDER                               (expression -> std::string)
       ----------------------------------------------------------------
 */
 
-#ifndef DJINTERP_EXPRESSION_EXPRESSION_RENDER_
-#define DJINTERP_EXPRESSION_EXPRESSION_RENDER_ 1
+#ifndef DJINTERP_PARSE_EXPRESSION_EXPRESSION_RENDER_HPP
+#define DJINTERP_PARSE_EXPRESSION_EXPRESSION_RENDER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -229,31 +236,31 @@ NS_END  // internal
 // Atom -> std::string renders the leaves.  The rendering is one fold: a leaf
 // becomes its atom's text; an application lays its operator out per fixity,
 // wrapping each child that the precedence rule requires.
-template<typename _OpId,
-         typename _Atom,
-         typename _Signature,
-         typename _AtomRenderer>
+template<typename OpId,
+         typename Atom,
+         typename Signature,
+         typename AtomRenderer>
 D_NODISCARD
 std::string
 render
 (
-    const expression<_OpId, _Atom>& _expression,
-    const _Signature&               _signature,
-    _AtomRenderer                   _atom_renderer
+    const expression<OpId, Atom>& _expression,
+    const Signature&               _signature,
+    AtomRenderer                    _atom_renderer
 )
 {
     internal::render_carrier _result =
         evaluate<internal::render_carrier>(
             _expression,
             // on_leaf -- the atom's own text, atomic
-            [_atom_renderer](const _Atom& _atom) -> internal::render_carrier
+            [_atom_renderer](const Atom& _atom) -> internal::render_carrier
             {
                 return internal::render_carrier(
                     _atom_renderer(_atom), 0, true);
             },
             // on_apply -- lay the operator out around its rendered children
             [&_signature]
-            (const _OpId&                                   _op,
+            (const OpId&                                   _op,
              const std::vector<internal::render_carrier>&    _children)
                 -> internal::render_carrier
             {
@@ -329,5 +336,7 @@ render
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EXPRESSION_EXPRESSION_RENDER_
+
+#endif  // DJINTERP_PARSE_EXPRESSION_EXPRESSION_RENDER_HPP

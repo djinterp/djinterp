@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                     visit.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                    visit.hpp
 *
 * single-variant visit header:
 *   Invokes a visitor with the variant's active alternative as its
@@ -35,18 +35,21 @@
 *   - visit<R> (C++20 explicit return type)
 *
 *
-* path:      /inc/djinterp/re_std/variant/visit.hpp
+* path:      /inc/re_std/variant/visit.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VISIT_
-#define DJINTERP_RE_STD_VISIT_ 1
+#ifndef RE_STD_VARIANT_VISIT_HPP
+#define RE_STD_VARIANT_VISIT_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>
 #include <utility>          // std::declval
 
@@ -55,23 +58,25 @@
 #include "./bad_variant_access.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
     // ---- visit_result<Visitor, V> ----
     // Deduce the visitor's return type from its invocation on the
     // FIRST alternative of V. All alternatives must agree.
-    template<typename _Visitor, typename _Variant>
+    template<typename Visitor, typename Variant>
     struct visit_result;
 
-    template<typename _Visitor, typename... _Types>
-    struct visit_result<_Visitor, variant<_Types...> >
+    template<typename Visitor, typename... Types>
+    struct visit_result<Visitor, variant<Types...> >
     {
-        typedef decltype(std::declval<_Visitor>()(
+        typedef decltype(std::declval<Visitor>()(
                             std::declval<
-                                typename va_type_at<0, _Types...>::type&
+                                typename va_type_at<0, Types...>::type&
                             >()
                         )) type;
     };
@@ -79,23 +84,23 @@ NS_INTERNAL
 
     // ---- visit_at_impl ----
     // Recursive dispatch. Works for non-void AND void return via
-    // static_cast<_Ret>(expr) — `static_cast<void>(any-expr)` is
+    // static_cast<Ret>(expr) — `static_cast<void>(any-expr)` is
     // well-formed for any expression. So a single template handles
     // both paths.
 
-    template<std::size_t _I, std::size_t _N>
+    template<std::size_t I, std::size_t N>
     struct visit_at_impl
     {
-        template<typename _Ret, typename _Visitor, typename _Variant>
-        static _Ret apply(_Visitor&& _vis, _Variant& _v)
+        template<typename Ret, typename Visitor, typename Variant>
+        static Ret apply(Visitor&& _vis, Variant& _v)
         {
-            if (_v.index() == _I)
+            if (_v.index() == I)
             {
-                return static_cast<_Ret>(
-                    static_cast<_Visitor&&>(_vis)(get<_I>(_v)));
+                return static_cast<Ret>(
+                    static_cast<Visitor&&>(_vis)(get<I>(_v)));
             }
-            return visit_at_impl<_I + 1, _N>::template apply<_Ret>(
-                static_cast<_Visitor&&>(_vis), _v);
+            return visit_at_impl<I + 1, N>::template apply<Ret>(
+                static_cast<Visitor&&>(_vis), _v);
         }
     };
 
@@ -103,82 +108,82 @@ NS_INTERNAL
     // valueless variant — the public visit guards against that,
     // so this branch is dead in well-formed callers. Defensive
     // throw covers the dead path on builds with exceptions.
-    template<std::size_t _N>
-    struct visit_at_impl<_N, _N>
+    template<std::size_t N>
+    struct visit_at_impl<N, N>
     {
-        template<typename _Ret, typename _Visitor, typename _Variant>
-        static _Ret apply(_Visitor&&, _Variant&)
+        template<typename Ret, typename Visitor, typename Variant>
+        static Ret apply(Visitor&&, Variant&)
         {
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
             throw bad_variant_access();
 #else
             // Exceptions disabled: dead path. Return a value-initialised
-            // _Ret — UB if Ret isn't default-constructible. Documented
+            // Ret — UB if Ret isn't default-constructible. Documented
             // limitation for -fno-exceptions builds.
-            return _Ret();
+            return Ret();
 #endif
         }
     };
 
     // void-return terminator specialisation — no return value to
     // construct. Without this, the generic terminator would try to
-    // `return _Ret()` which is `return void()` — well-formed in
+    // `return Ret()` which is `return void()` — well-formed in
     // expression context but ill-formed as a return-statement value.
     // Provide an explicit specialisation.
     // (The recursive branch is fine for void: static_cast<void>(...)
     // and `return static_cast<void>(call)` both work because a void
     // expression can appear in a return statement of a void function.)
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
 // I.   VISIT — non-void return path
 // ===========================================================================
 
-template<typename _Visitor,
-         typename... _Types>
-typename internal::visit_result<_Visitor, variant<_Types...> >::type
+template<typename Visitor,
+         typename... Types>
+typename internal::visit_result<Visitor, variant<Types...> >::type
 visit(
-    _Visitor&&              _vis,
-    variant<_Types...>&     _v
+    Visitor&&              _vis,
+    variant<Types...>&     _v
 )
 {
-    typedef typename internal::visit_result<_Visitor, variant<_Types...> >::type _Ret;
+    typedef typename internal::visit_result<Visitor, variant<Types...> >::type Ret;
     if (_v.valueless_by_exception())
     {
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
         throw bad_variant_access();
 #endif
     }
-    return internal::visit_at_impl<0, sizeof...(_Types)>::template apply<_Ret>(
-        static_cast<_Visitor&&>(_vis), _v);
+    return internal::visit_at_impl<0, sizeof...(Types)>::template apply<Ret>(
+        static_cast<Visitor&&>(_vis), _v);
 }
 
-template<typename _Visitor,
-         typename... _Types>
-typename internal::visit_result<_Visitor, variant<_Types...> >::type
+template<typename Visitor,
+         typename... Types>
+typename internal::visit_result<Visitor, variant<Types...> >::type
 visit(
-    _Visitor&&                   _vis,
-    variant<_Types...> const&    _v
+    Visitor&&                   _vis,
+    variant<Types...> const&    _v
 )
 {
-    typedef typename internal::visit_result<_Visitor, variant<_Types...> >::type _Ret;
+    typedef typename internal::visit_result<Visitor, variant<Types...> >::type Ret;
     if (_v.valueless_by_exception())
     {
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
         throw bad_variant_access();
 #endif
     }
-    return internal::visit_at_impl<0, sizeof...(_Types)>::template apply<_Ret>(
-        static_cast<_Visitor&&>(_vis), _v);
+    return internal::visit_at_impl<0, sizeof...(Types)>::template apply<Ret>(
+        static_cast<Visitor&&>(_vis), _v);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_VISIT_
+#endif  // RE_STD_VARIANT_VISIT_HPP

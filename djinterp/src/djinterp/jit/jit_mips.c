@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                    jit_mips.c
+/*******************************************************************************
+* djinterp [jit]                                                      jit_mips.c
 *
 * djinterp MIPS (MIPS32 / MIPS64) JIT encoder -- implementation (jit_mips.h).
 *   Emitters assemble each instruction from its opcode/funct fields via three
@@ -8,13 +8,14 @@
 * scaled by 4), invoked by the label facility in jit.h. Callers add the delay
 * slot after every branch and jump; nothing is inserted here.
 *
-* path:      /inc/djinterp/jit/jit_mips.c
+*
+* path:      /src/djinterp/jit/jit_mips.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit_mips.h"
+#include "../../../inc/djinterp/jit/jit_mips.h"
 
 
 // ===========================================================================

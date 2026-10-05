@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                    round.hpp
 *
 * chrono::round for durations and time_points:
@@ -32,21 +32,22 @@
 * internal helpers, since the natural body wants local variables.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/round.hpp
+* path:      /inc/re_std/chrono/round.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_ROUND_
-#define DJINTERP_RE_STD_CHRONO_ROUND_ 1
+#ifndef RE_STD_CHRONO_ROUND_HPP
+#define RE_STD_CHRONO_ROUND_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "./duration_arithmetic.hpp"
 #include "./duration_compare.hpp"
@@ -56,17 +57,19 @@
 #include "../type_traits/enable_if.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
-NS_INTERNAL
+namespace internal
+{
 
     // round_tie
     //   function: resolve an exact tie toward the EVEN tick count.
-    template<typename _To>
-    D_CONSTEXPR _To round_tie(const _To& _lower, const _To& _upper)
+    template<typename To>
+    RE_STD_CONSTEXPR To round_tie(const To& _lower, const To& _upper)
     {
         return ((_lower.count() & 1) == 0) ? _lower : _upper;
     }
@@ -74,12 +77,12 @@ NS_INTERNAL
     // round_pick
     //   function: choose the nearer neighbour, deferring an exact tie to
     // round_tie.
-    template<typename _To,
-             typename _Diff>
-    D_CONSTEXPR _To round_pick(const _To&   _lower,
-                               const _To&   _upper,
-                               const _Diff& _below,
-                               const _Diff& _above)
+    template<typename To,
+             typename Diff>
+    RE_STD_CONSTEXPR To round_pick(const To&   _lower,
+                               const To&   _upper,
+                               const Diff& _below,
+                               const Diff& _above)
     {
         return (_below == _above) ? round_tie(_lower, _upper)
                                   : ((_below < _above) ? _lower : _upper);
@@ -88,57 +91,57 @@ NS_INTERNAL
     // round_from_floor
     //   function: given the lower neighbour, measure both distances and
     // pick. Split out so floor is evaluated once.
-    template<typename _To,
-             typename _Rep,
-             typename _Period>
-    D_CONSTEXPR _To round_from_floor(const _To&                     _lower,
-                                     const duration<_Rep, _Period>& _d)
+    template<typename To,
+             typename Rep,
+             typename Period>
+    RE_STD_CONSTEXPR To round_from_floor(const To&                     _lower,
+                                     const duration<Rep, Period>& _d)
     {
         return round_pick(_lower,
-                          _To(_lower.count() + 1),
+                          To(_lower.count() + 1),
                           _d - _lower,
-                          _To(_lower.count() + 1) - _d);
+                          To(_lower.count() + 1) - _d);
     }
 
-NS_END  // internal
+}  // internal
 
     // round
     //   function: coarsen a duration to the nearest tick, ties to even.
     // Excluded for floating-point target representations.
-    template<typename _To,
-             typename _Rep,
-             typename _Period>
-    D_CONSTEXPR
+    template<typename To,
+             typename Rep,
+             typename Period>
+    RE_STD_CONSTEXPR
     typename enable_if<
-        internal::is_duration<_To>::value &&
-        !treat_as_floating_point<typename _To::rep>::value,
-        _To>::type
-    round(const duration<_Rep, _Period>& _d)
+        internal::is_duration<To>::value &&
+        !treat_as_floating_point<typename To::rep>::value,
+        To>::type
+    round(const duration<Rep, Period>& _d)
     {
-        return internal::round_from_floor(floor<_To>(_d), _d);
+        return internal::round_from_floor(floor<To>(_d), _d);
     }
 
     // round
     //   function: coarsen a time_point to the nearest tick, ties to even.
-    template<typename _To,
-             typename _Clock,
-             typename _Duration>
-    D_CONSTEXPR
+    template<typename To,
+             typename Clock,
+             typename Duration>
+    RE_STD_CONSTEXPR
     typename enable_if<
-        internal::is_duration<_To>::value &&
-        !treat_as_floating_point<typename _To::rep>::value,
-        time_point<_Clock, _To> >::type
-    round(const time_point<_Clock, _Duration>& _t)
+        internal::is_duration<To>::value &&
+        !treat_as_floating_point<typename To::rep>::value,
+        time_point<Clock, To> >::type
+    round(const time_point<Clock, Duration>& _t)
     {
-        return time_point<_Clock, _To>(round<_To>(_t.time_since_epoch()));
+        return time_point<Clock, To>(round<To>(_t.time_since_epoch()));
     }
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_ROUND_
+#endif  // RE_STD_CHRONO_ROUND_HPP

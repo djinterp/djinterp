@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                             color_common.h
+/*******************************************************************************
+* djinterp [c]                                                    color_common.h
 *
 *   Common foundation for the djinterp color module, shared verbatim by the
 * C library and the C++ layer. Defines the language-portable qualifier
@@ -15,20 +15,23 @@
 *
 * path:      /inc/djinterp/c/util/color/color_common.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    PORTABILITY LAYER
-      ------------------
+      -----------------
       i.    D_COLOR_NS_OPEN / D_COLOR_NS_CLOSE   (namespace bridge)
       ii.   D_COLOR_FN                           (constexpr-capable kernel)
       iii.  D_COLOR_FN_RT                        (runtime-only kernel)
       iv.   D_COLOR_LITERAL                      (aggregate construction)
+
 II.   SHARED CONSTANTS
-      -----------------
+      ----------------
+
 III.  SCALAR HELPERS
       --------------
       i.    d_color_max3
@@ -39,8 +42,8 @@ III.  SCALAR HELPERS
       vi.   d_color_fabsf
 */
 
-#ifndef  DJINTERP_C_COLOR_COMMON_
-#define  DJINTERP_C_COLOR_COMMON_ 1
+#ifndef DJINTERP_C_UTIL_COLOR_COLOR_COMMON_H
+#define DJINTERP_C_UTIL_COLOR_COLOR_COMMON_H 1
 
 // djinterp
 #include "../../djinterp.h"
@@ -52,7 +55,7 @@ III.  SCALAR HELPERS
 * color-math routine is written one time using these, and resolves to the
 * right qualifier set in each language:
 *
-*     D_COLOR_FN     -> constexpr inline   (C++)   /  inline   (C)
+*     D_COLOR_FN     -> constexpr inline   (C++14) /  inline   (C, C++98/11)
 *     D_COLOR_FN_RT  -> inline             (C++)   /  inline   (C)
 *
 * D_COLOR_FN marks math that is valid in a constant expression (pure
@@ -69,16 +72,20 @@ III.  SCALAR HELPERS
 */
 
 #ifdef __cplusplus
-    #include "../../../core/djinterp.hpp"
+    #include "../../../djinterp.hpp"
 
     #define D_COLOR_NS_OPEN         NS_DJINTERP
     #define D_COLOR_NS_CLOSE        NS_END
 
-    #define D_COLOR_FN              D_CONSTEXPR_INLINE
+    // the kernels' bodies are statements, not one return: constexpr from
+    // C++14 (relaxed constexpr), plain inline below
+    #define D_COLOR_FN              D_CONSTEXPR_CPP14 D_INLINE
     #define D_COLOR_FN_RT           D_INLINE
 
+    #if D_ENV_PP_HAS_VARIADIC_MACROS
     // aggregate construction: T{ ... }
     #define D_COLOR_LITERAL(T, ...) T{ __VA_ARGS__ }
+    #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 #else
     #include "../../djinterp.h"
     #include <math.h>
@@ -106,8 +113,10 @@ III.  SCALAR HELPERS
         #define D_COLOR_FN_RT       inline
     #endif
 
+    #if D_ENV_PP_HAS_VARIADIC_MACROS
     // aggregate construction: (struct T){ ... }  (C99 compound literal)
     #define D_COLOR_LITERAL(T, ...) (struct T){ __VA_ARGS__ }
+    #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 #endif
 
 
@@ -260,14 +269,22 @@ Parameter(s):
 Return:
   The remainder of _x / _y with the sign of _x.
 */
+D_LONG_LONG_DIAG_PUSH
 D_COLOR_FN float
 d_color_fmodf(
     float _x,
     float _y
 )
 {
+#if D_ENV_HAS_LONG_LONG
     return _x - (float)( (long long)(_x / _y) ) * _y;
+#else
+    // ISO strict C++98 has no `long long`; `long` holds every quotient the
+    // color kernels produce, which is the domain this function promises
+    return _x - (float)( (long)(_x / _y) ) * _y;
+#endif
 }
+D_LONG_LONG_DIAG_POP
 
 /*
 d_color_fabsf
@@ -290,4 +307,4 @@ d_color_fabsf(
 D_COLOR_NS_CLOSE
 
 
-#endif  // DJINTERP_C_COLOR_COMMON_ */
+#endif  // DJINTERP_C_UTIL_COLOR_COLOR_COMMON_H

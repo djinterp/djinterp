@@ -1,8 +1,8 @@
-/***********************************************************************
-* re_std                                                        hash.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                     hash.hpp
 *
 * class: customisation point for hashing values.
-*   Provides the primary `re_std::hash<_Type>` template plus
+*   Provides the primary `re_std::hash<Type>` template plus
 * specialisations for every scalar-like type the standard requires:
 * every arithmetic type, every pointer type, and `nullptr_t`.
 *
@@ -19,18 +19,20 @@
 * hash so equal-comparing values hash equally.
 *
 *
-* path:      /inc/djinterp/re_std/functional/hash.hpp
+* path:      /inc/re_std/functional/hash.hpp
 * link(s):   TBA
-* author(s): re_std                                      date: 2026.05.07
-***********************************************************************/
+* author(s): re_std                                          created: 2026.05.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_HASH_
-#define DJINTERP_RE_STD_FUNCTIONAL_HASH_ 1
+#ifndef RE_STD_FUNCTIONAL_HASH_HPP
+#define RE_STD_FUNCTIONAL_HASH_HPP 1
 
-#include "djinterp.hpp"
-
+// std
 #include <cstddef>   // size_t, nullptr_t (gated below)
 #include <cstring>   // memcpy for fp hashing
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 namespace re_std
 {
@@ -38,19 +40,20 @@ namespace re_std
 // hash
 //   class: primary template -- left empty (no operator()), so attempts
 // to hash an unsupported key type are ill-formed at instantiation.
-template<typename _Type>
+template<typename Type>
 struct hash
 {};
 
-NS_INTERNAL
+namespace internal
+{
 
     // hash_integer_cast
     //   function: identity-cast hash for integers. Branchless and
     // trivially constexpr.
-    template<typename _Type>
-    D_CONSTEXPR std::size_t
+    template<typename Type>
+    RE_STD_CONSTEXPR std::size_t
     hash_integer_cast(
-        _Type _v
+        Type _v
     )
     {
         return static_cast<std::size_t>(_v);
@@ -60,32 +63,32 @@ NS_INTERNAL
     //   function: bytewise hash for floating-point values. Normalises
     // -0.0 to +0.0 so that equal values hash equally. Not constexpr
     // (memcpy is not constexpr until C++20).
-    template<typename _Type>
+    template<typename Type>
     inline std::size_t
     hash_floating(
-        _Type _v
+        Type _v
     )
     {
         // normalise signed zero
-        if (_v == static_cast<_Type>(0))
+        if (_v == static_cast<Type>(0))
         {
             return 0;
         }
 
         std::size_t _result;
 
-        if (sizeof(_Type) <= sizeof(std::size_t))
+        if (sizeof(Type) <= sizeof(std::size_t))
         {
             _result = 0;
-            std::memcpy(&_result, &_v, sizeof(_Type));
+            std::memcpy(&_result, &_v, sizeof(Type));
         }
         else
         {
             // fold high bits into low for wide fp (e.g. long double)
-            unsigned char _bytes[sizeof(_Type)];
-            std::memcpy(_bytes, &_v, sizeof(_Type));
+            unsigned char _bytes[sizeof(Type)];
+            std::memcpy(_bytes, &_v, sizeof(Type));
             _result = 0;
-            for (std::size_t _i = 0; _i < sizeof(_Type); ++_i)
+            for (std::size_t _i = 0; _i < sizeof(Type); ++_i)
             {
                 _result = (_result * 131u) + _bytes[_i];
             }
@@ -94,17 +97,17 @@ NS_INTERNAL
         return _result;
     }
 
-NS_END  // internal
+}  // internal
 
 // =============================================================================
 // integer specialisations
 // =============================================================================
 
-#define D_RE_STD_HASH_INTEGER_SPEC(T)                                          \
+#define RE_STD_HASH_INTEGER_SPEC(T)                                          \
     template<>                                                                \
     struct hash< T >                                                          \
     {                                                                         \
-        D_CONSTEXPR std::size_t                                               \
+        RE_STD_CONSTEXPR std::size_t                                               \
         operator()(                                                           \
             T _v                                                              \
         ) const                                                               \
@@ -113,36 +116,36 @@ NS_END  // internal
         }                                                                     \
     }
 
-D_RE_STD_HASH_INTEGER_SPEC(bool);
-D_RE_STD_HASH_INTEGER_SPEC(char);
-D_RE_STD_HASH_INTEGER_SPEC(signed char);
-D_RE_STD_HASH_INTEGER_SPEC(unsigned char);
-D_RE_STD_HASH_INTEGER_SPEC(wchar_t);
-D_RE_STD_HASH_INTEGER_SPEC(short);
-D_RE_STD_HASH_INTEGER_SPEC(unsigned short);
-D_RE_STD_HASH_INTEGER_SPEC(int);
-D_RE_STD_HASH_INTEGER_SPEC(unsigned int);
-D_RE_STD_HASH_INTEGER_SPEC(long);
-D_RE_STD_HASH_INTEGER_SPEC(unsigned long);
+RE_STD_HASH_INTEGER_SPEC(bool);
+RE_STD_HASH_INTEGER_SPEC(char);
+RE_STD_HASH_INTEGER_SPEC(signed char);
+RE_STD_HASH_INTEGER_SPEC(unsigned char);
+RE_STD_HASH_INTEGER_SPEC(wchar_t);
+RE_STD_HASH_INTEGER_SPEC(short);
+RE_STD_HASH_INTEGER_SPEC(unsigned short);
+RE_STD_HASH_INTEGER_SPEC(int);
+RE_STD_HASH_INTEGER_SPEC(unsigned int);
+RE_STD_HASH_INTEGER_SPEC(long);
+RE_STD_HASH_INTEGER_SPEC(unsigned long);
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-D_RE_STD_HASH_INTEGER_SPEC(long long);
-D_RE_STD_HASH_INTEGER_SPEC(unsigned long long);
-D_RE_STD_HASH_INTEGER_SPEC(char16_t);
-D_RE_STD_HASH_INTEGER_SPEC(char32_t);
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+RE_STD_HASH_INTEGER_SPEC(long long);
+RE_STD_HASH_INTEGER_SPEC(unsigned long long);
+RE_STD_HASH_INTEGER_SPEC(char16_t);
+RE_STD_HASH_INTEGER_SPEC(char32_t);
 #endif
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
-D_RE_STD_HASH_INTEGER_SPEC(char8_t);
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
+RE_STD_HASH_INTEGER_SPEC(char8_t);
 #endif
 
-#undef D_RE_STD_HASH_INTEGER_SPEC
+#undef RE_STD_HASH_INTEGER_SPEC
 
 // =============================================================================
 // floating-point specialisations
 // =============================================================================
 
-#define D_RE_STD_HASH_FLOAT_SPEC(T)                                            \
+#define RE_STD_HASH_FLOAT_SPEC(T)                                            \
     template<>                                                                \
     struct hash< T >                                                          \
     {                                                                         \
@@ -155,11 +158,11 @@ D_RE_STD_HASH_INTEGER_SPEC(char8_t);
         }                                                                     \
     }
 
-D_RE_STD_HASH_FLOAT_SPEC(float);
-D_RE_STD_HASH_FLOAT_SPEC(double);
-D_RE_STD_HASH_FLOAT_SPEC(long double);
+RE_STD_HASH_FLOAT_SPEC(float);
+RE_STD_HASH_FLOAT_SPEC(double);
+RE_STD_HASH_FLOAT_SPEC(long double);
 
-#undef D_RE_STD_HASH_FLOAT_SPEC
+#undef RE_STD_HASH_FLOAT_SPEC
 
 // =============================================================================
 // pointer specialisation
@@ -168,12 +171,12 @@ D_RE_STD_HASH_FLOAT_SPEC(long double);
 // hash<T*>
 //   class: hashes any object or function pointer. Non-constexpr because
 // `reinterpret_cast` is non-constexpr at every standard tier.
-template<typename _Type>
-struct hash<_Type*>
+template<typename Type>
+struct hash<Type*>
 {
     std::size_t
     operator()(
-        _Type* _p
+        Type* _p
     ) const
     {
         return reinterpret_cast<std::size_t>(_p);
@@ -184,18 +187,18 @@ struct hash<_Type*>
 // nullptr_t specialisation (C++11+)
 // =============================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // hash<nullptr_t>
 //   class: nullptr_t has only one value; hash is constant zero.
 template<>
 struct hash<std::nullptr_t>
 {
-    D_CONSTEXPR std::size_t
+    RE_STD_CONSTEXPR std::size_t
     operator()(
         std::nullptr_t
     ) const
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
         noexcept
 #endif
     {
@@ -203,8 +206,7 @@ struct hash<std::nullptr_t>
     }
 };
 
-#endif // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-} // namespace re_std
-
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_HASH_
+}  // re_std
+#endif  // RE_STD_FUNCTIONAL_HASH_HPP

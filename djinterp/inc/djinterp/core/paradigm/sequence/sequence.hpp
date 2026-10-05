@@ -1,18 +1,16 @@
-/******************************************************************************
-* djinterp [container]                                            sequence.hpp
+/*******************************************************************************
+* djinterp [core]                                                   sequence.hpp
 *
 * Ordered linear element sequence:
 *   A sequence is the simplest composite type in the container
 * framework: a contiguous, ordered collection of elements of a
-* single type.  It is the backbone of path operations — a path
+* single type.  It is the backbone of path operations - a path
 * is just a sequence of components where consecutive elements
 * have a parent-child relationship.
-*
 *   Sequences are type-agnostic: string paths, integer keys,
 * node indices, bit patterns, and arbitrary payloads are all
 * expressible as sequence<T>.  The only requirement on T is
 * copyability.
-*
 * Contents:
 *   - sequence              ordered, contiguous collection of T
 *   - make_sequence         factory functions
@@ -20,33 +18,39 @@
 * Usage:
 *   // string path components
 *   sequence<component_view> sp = {cv("src"), cv("main.cpp")};
-*
 *   // radix tree keys
 *   sequence<uint8_t> rp = {0x01, 0x0A, 0xFF};
-*
 *   // node index chain
 *   sequence<node_id> np = {0, 3, 7, 12};
-*
 *   // variadic construction (compile-time type-checked)
 *   auto s = sequence<int>(1, 2, 3, 4, 5);
 *
 *
 * path:      /inc/djinterp/core/paradigm/sequence/sequence.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.04.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.10
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARADIGM_SEQUENCE_
-#define DJINTERP_PARADIGM_SEQUENCE_ 1
+#ifndef DJINTERP_PARADIGM_SEQUENCE_SEQUENCE_HPP
+#define DJINTERP_PARADIGM_SEQUENCE_SEQUENCE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <initializer_list>
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"  // conjunction
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // fixed-width integers
 
 
 NS_DJINTERP
@@ -58,30 +62,30 @@ NS_DJINTERP
 
 // sequence
 //   class: an ordered, contiguous collection of elements of
-// type _Type.  Provides value semantics with move support.
+// type Type.  Provides value semantics with move support.
 //
 //   A sequence represents the abstract concept of a linear
 // ordering of elements.  In the path context, consecutive
-// elements are interpreted as parent→child relationships.
+// elements are interpreted as parent->child relationships.
 // Outside the path context, a sequence is simply an ordered
 // collection.
 //
-//   The type parameter _Type must be copy-constructible.
-// Equality comparison of sequences requires _Type to support
+//   The type parameter Type must be copy-constructible.
+// Equality comparison of sequences requires Type to support
 // operator==.
-template<typename _Type>
+template<typename Type>
 class sequence
 {
 public:
-    using value_type      = _Type;
+    using value_type      = Type;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
-    using reference       = _Type&;
-    using const_reference = const _Type&;
-    using pointer         = _Type*;
-    using const_pointer   = const _Type*;
-    using iterator        = typename std::vector<_Type>::iterator;
-    using const_iterator  = typename std::vector<_Type>::const_iterator;
+    using reference       = Type&;
+    using const_reference = const Type&;
+    using pointer         = Type*;
+    using const_pointer   = const Type*;
+    using iterator        = typename std::vector<Type>::iterator;
+    using const_iterator  = typename std::vector<Type>::const_iterator;
 
     // --------------------------------------------------------
     //  construction
@@ -90,74 +94,73 @@ public:
     // sequence (default)
     //   constructs an empty sequence.
     sequence()
-        {}
+    {}
 
     // sequence (variadic)
     //   constructs a sequence from a list of elements.
-    // All arguments must be the element type _Type.  SFINAE
+    // All arguments must be the element type Type.  SFINAE
     // prevents this overload from matching pointer+count or
     // iterator pair calls.
-    template<typename... _Args,
-             typename = std::enable_if_t<
-                 (sizeof...(_Args) > 0) &&
-                 (std::is_same<_Args, _Type>::value && ...)>>
+    template<typename... Args,
+             typename = typename std::enable_if<(sizeof...(Args) > 0) &&
+                                         conjunction<std::is_same<Args, Type>...>::value>::type>
     explicit sequence(
-            _Args... _args
-        )
-            : m_data{_args...}
-        {}
+        Args... _args
+    )
+        : m_data{_args...}
+    {}
 
     // sequence (initializer_list)
     //   constructs a sequence from a brace-enclosed list.
     sequence(
-            std::initializer_list<_Type> _init
-        )
-            : m_data(_init)
-        {}
+        std::initializer_list<Type> _init
+    )
+        : m_data(_init)
+    {}
 
     // sequence (iterator pair)
     //   constructs a sequence from a range [_begin, _end).
-    template<typename _Iter>
+    template<typename Iterator>
     sequence(
-            _Iter _begin,
-            _Iter _end
-        )
-            : m_data(_begin, _end)
-        {}
+        Iterator _begin,
+        Iterator _end
+    )
+        : m_data(_begin, _end)
+    {}
 
     // sequence (pointer + count)
     //   constructs a sequence from a contiguous array.
     sequence(
-            const _Type* _data,
-            size_type    _count
-        )
-            : m_data(_data, _data + _count)
-        {}
+        const Type* _data,
+        size_type    _count
+    )
+        : m_data(_data, _data + _count)
+    {}
 
     // sequence (vector move)
     //   constructs a sequence by taking ownership of a vector.
     explicit sequence(
-            std::vector<_Type>&& _vec
-        )
-            : m_data(static_cast<std::vector<_Type>&&>(_vec))
-        {}
+        std::vector<Type>&& _vec
+    )
+        : m_data(static_cast<std::vector<Type>&&>(_vec))
+    {}
 
     // sequence (vector copy)
     //   constructs a sequence by copying a vector.
     explicit sequence(
-            const std::vector<_Type>& _vec
-        )
-            : m_data(_vec)
-        {}
+        const std::vector<Type>& _vec
+    )
+        : m_data(_vec)
+    {}
 
     // sequence (count + value fill)
     //   constructs a sequence with _count copies of _value.
     sequence(
-            size_type _count,
-            const _Type& _value
-        )
-            : m_data(_count, _value)
-        {}
+        size_type _count,
+        const Type& _value
+    )
+        : m_data(_count, _value)
+    {}
 
     // --------------------------------------------------------
     //  element access
@@ -166,8 +169,7 @@ public:
     // operator[]
     //   returns a reference to the element at _index.
     reference
-    operator[]
-    (
+    operator[](
         size_type _index
     )
     {
@@ -177,8 +179,7 @@ public:
     // operator[] (const)
     //   returns a const reference to the element at _index.
     const_reference
-    operator[]
-    (
+    operator[](
         size_type _index
     ) const
     {
@@ -312,9 +313,8 @@ public:
     // push_back
     //   appends an element to the end.
     void
-    push_back
-    (
-        const _Type& _value
+    push_back(
+        const Type& _value
     )
     {
         m_data.push_back(_value);
@@ -325,13 +325,12 @@ public:
     // push_back (move)
     //   appends an element by move to the end.
     void
-    push_back
-    (
-        _Type&& _value
+    push_back(
+        Type&& _value
     )
     {
         m_data.push_back(
-            static_cast<_Type&&>(_value));
+            static_cast<Type&&>(_value));
 
         return;
     }
@@ -339,8 +338,7 @@ public:
     // append
     //   appends another sequence to the end.
     void
-    append
-    (
+    append(
         const sequence& _other
     )
     {
@@ -365,8 +363,7 @@ public:
     // reserve
     //   pre-allocates storage for _count elements.
     void
-    reserve
-    (
+    reserve(
         size_type _count
     )
     {
@@ -378,8 +375,7 @@ public:
     // resize
     //   resizes the sequence to _count elements.
     void
-    resize
-    (
+    resize(
         size_type _count
     )
     {
@@ -395,8 +391,7 @@ public:
     // sub
     //   returns a new sequence from [_offset, _offset+_count).
     sequence
-    sub
-    (
+    sub(
         size_type _offset,
         size_type _count
     ) const
@@ -409,8 +404,7 @@ public:
     // head
     //   returns the first _count elements.
     sequence
-    head
-    (
+    head(
         size_type _count
     ) const
     {
@@ -420,8 +414,7 @@ public:
     // tail
     //   returns the last _count elements.
     sequence
-    tail
-    (
+    tail(
         size_type _count
     ) const
     {
@@ -436,8 +429,7 @@ public:
     //   returns true if both sequences have the same size and
     // all elements compare equal.
     friend bool
-    operator==
-    (
+    operator==(
         const sequence& _a,
         const sequence& _b
     )
@@ -462,8 +454,7 @@ public:
     // operator!=
     //   returns true if the sequences differ.
     friend bool
-    operator!=
-    (
+    operator!=(
         const sequence& _a,
         const sequence& _b
     )
@@ -477,7 +468,7 @@ public:
 
     // vec
     //   returns a const reference to the underlying vector.
-    const std::vector<_Type>&
+    const std::vector<Type>&
     vec() const
     {
         return m_data;
@@ -486,14 +477,14 @@ public:
     // release
     //   moves the underlying vector out, leaving the sequence
     // empty.
-    std::vector<_Type>
+    std::vector<Type>
     release()
     {
-        return static_cast<std::vector<_Type>&&>(m_data);
+        return static_cast<std::vector<Type>&&>(m_data);
     }
 
 private:
-    std::vector<_Type> m_data;
+    std::vector<Type> m_data;
 };
 
 
@@ -503,45 +494,44 @@ private:
 
 // make_sequence (variadic)
 //   factory: creates a sequence from a list of elements.
-template<typename _Type,
-         typename... _Args>
-sequence<_Type>
-make_sequence
-(
-    _Args... _args
+template<typename    Type,
+         typename... Args>
+sequence<Type>
+make_sequence(
+    Args... _args
 )
 {
-    return sequence<_Type>(_args...);
+    return sequence<Type>(_args...);
 }
 
 // make_sequence (pointer + count)
 //   factory: creates a sequence from a contiguous array.
-template<typename _Type>
-sequence<_Type>
-make_sequence
-(
-    const _Type* _data,
+template<typename Type>
+sequence<Type>
+make_sequence(
+    const Type* _data,
     std::size_t  _count
 )
 {
-    return sequence<_Type>(_data, _count);
+    return sequence<Type>(_data, _count);
 }
 
 // make_sequence (C array)
 //   factory: creates a sequence from a C array.
-template<typename _Type,
-         std::size_t _N>
-sequence<_Type>
-make_sequence
-(
-    const _Type (&_arr)[_N]
+template<typename    Type,
+         std::size_t N>
+sequence<Type>
+make_sequence(
+    const Type (&_arr)[N]
 )
 {
-    return sequence<_Type>(_arr, _N);
+    return sequence<Type>(_arr, N);
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARADIGM_SEQUENCE_
+
+#endif  // DJINTERP_PARADIGM_SEQUENCE_SEQUENCE_HPP

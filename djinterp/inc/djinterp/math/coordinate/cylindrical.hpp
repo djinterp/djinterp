@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                          cylindrical.hpp
+/*******************************************************************************
+* djinterp [math]                                                cylindrical.hpp
 *
 * Compile-time 3D cylindrical coordinate system (ρ, φ, z).
 *   Provides the cylindrical coordinate system type, point representation,
@@ -37,20 +37,24 @@
 *   - scale_factors(point), jacobian(point)
 *   - to_cartesian(point), from_cartesian(point)
 *
+*
 * path:      /inc/djinterp/math/coordinate/cylindrical.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.02.06
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CYLINDRICAL_
-#define DJINTERP_MATH_CYLINDRICAL_ 1
+#ifndef DJINTERP_MATH_COORDINATE_CYLINDRICAL_HPP
+#define DJINTERP_MATH_COORDINATE_CYLINDRICAL_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <type_traits>
-#include "../djinterp.hpp"
+// djinterp
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -393,4 +397,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_CYLINDRICAL_
+#endif  // DJINTERP_MATH_COORDINATE_CYLINDRICAL_HPP

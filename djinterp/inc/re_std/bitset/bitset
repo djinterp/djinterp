@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                                      bitset
+/*******************************************************************************
+* djinterp [re_std]                                                       bitset
 *
 * <bitset> umbrella header:
-*   Aggregates the granular headers under /inc/djinterp/re_std/bitset/.
+*   Aggregates the granular headers under /inc/re_std/bitset/.
 *
 *   SCOPE NOTE -- READ THIS BEFORE USING IT:
 *   Three parts of std::bitset are ABSENT because their dependencies have
@@ -13,18 +13,19 @@
 * worse than a missing one.
 *
 *
-* path:      /inc/djinterp/re_std/bitset/bitset
+* path:      /inc/re_std/bitset/bitset
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BITSET_
-#define DJINTERP_RE_STD_BITSET_ 1
+#ifndef RE_STD_BITSET_BITSET
+#define RE_STD_BITSET_BITSET 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 #include "./bitset.hpp"
 #include "./bitset_hash.hpp"
 
-#endif  // DJINTERP_RE_STD_BITSET_
+#endif  // RE_STD_BITSET_BITSET

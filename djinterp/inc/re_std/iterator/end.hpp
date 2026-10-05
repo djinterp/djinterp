@@ -1,56 +1,57 @@
-/***********************************************************************
-* re_std                                                               end.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                      end.hpp
 *
+* end function header:
 * free-function end(container) — see begin.hpp for design notes.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/end.hpp
+* path:      /inc/re_std/iterator/end.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_END_
-#define DJINTERP_RE_STD_ITERATOR_END_ 1
+#ifndef RE_STD_ITERATOR_END_HPP
+#define RE_STD_ITERATOR_END_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-    #include <cstddef>
-    #include <initializer_list>
+    // std
+    #include <cstddef>                      // size_t
+    // re_std
+    #include "../initializer_list/end.hpp"  // end(initializer_list<E>)
 
 
 namespace re_std
 {
 
-template<typename _C>
-D_CONSTEXPR auto end(_C& _c) -> decltype(_c.end())
+template<typename C>
+RE_STD_CONSTEXPR auto end(C& _c) -> decltype(_c.end())
 {
     return _c.end();
 }
 
-template<typename _C>
-D_CONSTEXPR auto end(const _C& _c) -> decltype(_c.end())
+template<typename C>
+RE_STD_CONSTEXPR auto end(const C& _c) -> decltype(_c.end())
 {
     return _c.end();
 }
 
-template<typename _T, std::size_t _N>
-D_CONSTEXPR _T* end(_T (&_arr)[_N]) D_NOEXCEPT
+template<typename T, std::size_t N>
+RE_STD_CONSTEXPR T* end(T (&_arr)[N]) RE_STD_NOEXCEPT
 {
-    return _arr + _N;
+    return _arr + N;
 }
 
-template<typename _E>
-D_CONSTEXPR const _E* end(std::initializer_list<_E> _il) D_NOEXCEPT
-{
-    return _il.end();
-}
+// initializer_list: defined once, in initializer_list/end.hpp, where std
+// declares it (<initializer_list>), and included above.
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_END_
+#endif  // RE_STD_ITERATOR_END_HPP

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                 compare_three_way_result.hpp
 *
 * compare_three_way_result trait header:
@@ -18,7 +18,7 @@
 * On C++11-17, the trait is intentionally ill-formed-when-used:
 * there is no <=> expression to take the decltype of. Code that
 * needs the trait on lower tiers must guard with
-* D_ENV_LANG_IS_CPP20_OR_HIGHER.
+* RE_STD_LANG_IS_CPP20_OR_HIGHER.
 *
 *   The detection uses the void_t / SFINAE-partial-spec idiom:
 * the unconstrained primary has no `type`; the void_t-anchored
@@ -32,86 +32,89 @@
 * reference are preserved.
 *
 *
-* path:      /inc/djinterp/re_std/compare/compare_three_way_result.hpp
+* path:      /inc/re_std/compare/compare_three_way_result.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_RESULT_
-#define DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_RESULT_ 1
+#ifndef RE_STD_COMPARE_COMPARE_THREE_WAY_RESULT_HPP
+#define RE_STD_COMPARE_COMPARE_THREE_WAY_RESULT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+// re_std
 #include "../type_traits/void_t.hpp"
 #include "../type_traits/remove_reference.hpp"
 #include "../utility/declval.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   COMPARE_THREE_WAY_RESULT
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // ctwr_impl
     //   trait: implementation hook. The primary is unconstrained
     // (no `type` member). The partial spec, gated below on C++20+,
     // supplies `type` only when (a <=> b) is well-formed.
-    template<typename _T, typename _U, typename = void>
+    template<typename T, typename U, typename = void>
     struct ctwr_impl
     {};
 
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
         // On C++20+: detect well-formedness of `a <=> b` where a and b
         // are const lvalues of T and U.
-        template<typename _T, typename _U>
-        struct ctwr_impl<_T, _U,
-                         typename void_t<
+        template<typename T, typename U>
+        struct ctwr_impl<T, U,
+                         void_t<
                              decltype(
                                  re_std::declval<
-                                     const typename remove_reference<_T>::type&
+                                     const typename remove_reference<T>::type&
                                  >()
                                  <=>
                                  re_std::declval<
-                                     const typename remove_reference<_U>::type&
+                                     const typename remove_reference<U>::type&
                                  >()
                              )
-                         >::type>
+                         >>
         {
             typedef decltype(
                         re_std::declval<
-                            const typename remove_reference<_T>::type&
+                            const typename remove_reference<T>::type&
                         >()
                         <=>
                         re_std::declval<
-                            const typename remove_reference<_U>::type&
+                            const typename remove_reference<U>::type&
                         >()
                     ) type;
         };
 
-    #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-NS_END  // internal
+}  // internal
 
 
 // compare_three_way_result
 //   trait: thin facade over internal::ctwr_impl. The default for
-// _U is _T per the standard (single-arg form picks the homogeneous
+// U is T per the standard (single-arg form picks the homogeneous
 // comparison).
-template<typename _T,
-         typename _U = _T>
+template<typename T,
+         typename U = T>
 struct compare_three_way_result
-    : internal::ctwr_impl<_T, _U>
+    : internal::ctwr_impl<T, U>
 {};
 
 
@@ -119,20 +122,20 @@ struct compare_three_way_result
 // II.  COMPARE_THREE_WAY_RESULT_T (C++14+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
-    template<typename _T,
-             typename _U = _T>
+    template<typename T,
+             typename U = T>
     using compare_three_way_result_t
-        = typename compare_three_way_result<_T, _U>::type;
+        = typename compare_three_way_result<T, U>::type;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_RESULT_
+#endif  // RE_STD_COMPARE_COMPARE_THREE_WAY_RESULT_HPP

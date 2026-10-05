@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                            linalg_common.hpp
+/*******************************************************************************
+* djinterp [math]                                              linalg_common.hpp
 *
 * Foundation of the linear-algebra subframework.
 *   Single place for the things every linalg header needs: the nested
@@ -24,17 +24,19 @@
 * a))`). The free functions are thin and delegate to the members; the two
 * spellings always compute the same thing.
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/linalg_common.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.22
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_COMMON_
-#define DJINTERP_MATH_LINALG_COMMON_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_LINALG_COMMON_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_LINALG_COMMON_HPP 1
 
 // std
-#include <cstddef>
 #include <array>
+#include <cstddef>
 #include <type_traits>
 #include <utility>
 // djinterp
@@ -305,4 +307,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_COMMON_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_LINALG_COMMON_HPP

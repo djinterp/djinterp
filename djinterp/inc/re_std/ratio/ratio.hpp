@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                    ratio.hpp
 *
 * ratio class header:
@@ -40,71 +40,76 @@
 * with C++11 and there is nothing below it to reach.
 *
 *
-* path:      /inc/djinterp/re_std/ratio/ratio.hpp
+* path:      /inc/re_std/ratio/ratio.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RATIO_RATIO_
-#define DJINTERP_RE_STD_RATIO_RATIO_ 1
+#ifndef RE_STD_RATIO_RATIO_HPP
+#define RE_STD_RATIO_RATIO_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstdint>
 #include <climits>
 
+// re_std
+#include "../cstdint/cstdint.hpp"  // intmax_t, INTMAX_MIN, INTMAX_MAX
 
-NS_RESTD
+
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   INTERNAL: SIGN, ABS, GCD
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // ratio_sign
     //   trait: -1, 0 or +1. Used to move a negative denominator's sign
     // onto the numerator during normalisation.
-    template<std::intmax_t _V>
+    template<intmax_t V>
     struct ratio_sign
     {
-        static const std::intmax_t value = (_V < 0) ? -1 : ((_V > 0) ? 1 : 0);
+        static const intmax_t value = (V < 0) ? -1 : ((V > 0) ? 1 : 0);
     };
 
     // ratio_abs
     //   trait: magnitude. Safe here only because ratio.hpp static_asserts
     // that neither parameter is the most-negative intmax_t, whose
     // negation is not representable.
-    template<std::intmax_t _V>
+    template<intmax_t V>
     struct ratio_abs
     {
-        static const std::intmax_t value = (_V < 0) ? -_V : _V;
+        static const intmax_t value = (V < 0) ? -V : V;
     };
 
     // ratio_gcd
     //   trait: Euclid on the type system. Operands must be non-negative.
     // gcd(x, 0) is x, which gives gcd(0, d) == d and makes ratio<0, D>
     // normalise to 0/1 rather than dividing by zero.
-    template<std::intmax_t _A,
-             std::intmax_t _B>
+    template<intmax_t A,
+             intmax_t B>
     struct ratio_gcd
     {
-        static const std::intmax_t value = ratio_gcd<_B, _A % _B>::value;
+        static const intmax_t value = ratio_gcd<B, A % B>::value;
     };
 
-    template<std::intmax_t _A>
-    struct ratio_gcd<_A, 0>
+    template<intmax_t A>
+    struct ratio_gcd<A, 0>
     {
-        static const std::intmax_t value = _A;
+        static const intmax_t value = A;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -112,35 +117,35 @@ NS_END  // internal
 // ===========================================================================
 
 // ratio
-//   class: the reduced rational _Num/_Den. num and den are the reduced
+//   class: the reduced rational Num/Den. num and den are the reduced
 // form with den > 0; `type` names that reduced ratio, so ratio<2,4>::type
 // is ratio<1,2>.
-template<std::intmax_t _Num,
-         std::intmax_t _Den = 1>
+template<intmax_t Num,
+         intmax_t Den = 1>
 class ratio
 {
 private:
-    static const std::intmax_t _s_gcd =
-        internal::ratio_gcd< internal::ratio_abs<_Num>::value,
-                             internal::ratio_abs<_Den>::value >::value;
+    static const intmax_t _s_gcd =
+        internal::ratio_gcd< internal::ratio_abs<Num>::value,
+                             internal::ratio_abs<Den>::value >::value;
 
 public:
     // A zero denominator is not a run-time error to be diagnosed later;
     // it is a malformed type, so it is rejected at definition.
-    static_assert(_Den != 0,
+    static_assert(Den != 0,
         "re_std::ratio: denominator may not be zero");
 
     // The most-negative intmax_t has no representable negation, so it
     // cannot be normalised. Rejecting it here is what lets ratio_abs and
     // the sign flip in ratio_subtract stay honest everywhere else.
-    static_assert(_Num != INTMAX_MIN && _Den != INTMAX_MIN,
+    static_assert(Num != INTMAX_MIN && Den != INTMAX_MIN,
         "re_std::ratio: numerator and denominator must be negatable");
 
-    static const std::intmax_t num =
-        _Num * internal::ratio_sign<_Den>::value / _s_gcd;
+    static const intmax_t num =
+        Num * internal::ratio_sign<Den>::value / _s_gcd;
 
-    static const std::intmax_t den =
-        internal::ratio_abs<_Den>::value / _s_gcd;
+    static const intmax_t den =
+        internal::ratio_abs<Den>::value / _s_gcd;
 
     typedef ratio<num, den> type;
 };
@@ -151,21 +156,21 @@ public:
 // one, and duration/time_point in <chrono> will do exactly that. From
 // C++17 the in-class initialiser is itself the definition and repeating
 // it is deprecated, so the definitions are gated.
-#if !D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if !RE_STD_LANG_IS_CPP17_OR_HIGHER
 
-    template<std::intmax_t _Num, std::intmax_t _Den>
-    const std::intmax_t ratio<_Num, _Den>::num;
+    template<intmax_t Num, intmax_t Den>
+    const intmax_t ratio<Num, Den>::num;
 
-    template<std::intmax_t _Num, std::intmax_t _Den>
-    const std::intmax_t ratio<_Num, _Den>::den;
+    template<intmax_t Num, intmax_t Den>
+    const intmax_t ratio<Num, Den>::den;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RATIO_RATIO_
+#endif  // RE_STD_RATIO_RATIO_HPP

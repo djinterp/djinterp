@@ -1,8 +1,8 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                       chrono
 *
 * <chrono> umbrella header:
-*   Aggregates the granular headers under /inc/djinterp/re_std/chrono/.
+*   Aggregates the granular headers under /inc/re_std/chrono/.
 * Mirrors the standard <chrono> convenience header and adds no symbols of
 * its own.
 *
@@ -58,16 +58,17 @@
 * source, where implementations otherwise differ.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/chrono
+* path:      /inc/re_std/chrono/chrono
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_
-#define DJINTERP_RE_STD_CHRONO_ 1
+#ifndef RE_STD_CHRONO_CHRONO
+#define RE_STD_CHRONO_CHRONO 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // -- duration ---------------------------------------------------------------
@@ -107,4 +108,4 @@
 #include "./chrono_literals.hpp"
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_
+#endif  // RE_STD_CHRONO_CHRONO

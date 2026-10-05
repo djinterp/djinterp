@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                            cbegin.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                   cbegin.hpp
 *
 * cbegin(c) — explicit const-iteration access. Conceptually:
 *
@@ -11,18 +11,20 @@
 * added in std C++14.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/cbegin.hpp
+* path:      /inc/re_std/iterator/cbegin.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_CBEGIN_
-#define DJINTERP_RE_STD_ITERATOR_CBEGIN_ 1
+#ifndef RE_STD_ITERATOR_CBEGIN_HPP
+#define RE_STD_ITERATOR_CBEGIN_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/iterator/begin.hpp"
 
@@ -30,15 +32,14 @@
 namespace re_std
 {
 
-template<typename _C>
-D_CONSTEXPR auto cbegin(const _C& _c) -> decltype(re_std::begin(_c))
+template<typename C>
+RE_STD_CONSTEXPR auto cbegin(const C& _c) -> decltype(re_std::begin(_c))
 {
     return re_std::begin(_c);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_CBEGIN_
+#endif  // RE_STD_ITERATOR_CBEGIN_HPP

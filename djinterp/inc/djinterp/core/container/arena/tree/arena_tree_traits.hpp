@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                 arena_tree_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                          arena_tree_traits.hpp
 *
 * Arena Tree SFINAE detection traits:
 *   This header provides compile-time structural traits specific to
@@ -30,17 +30,26 @@
 *   - arena_tree_class<T>          aggregate classification struct
 *
 *
-* path:      /inc/container/arena/arena_tree_traits.hpp
+* path:      /inc/djinterp/core/container/arena/tree/arena_tree_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_ARENA_TREE_TRAITS_
-#define DJINTERP_ARENA_TREE_TRAITS_ 1
+#ifndef DJINTERP_CONTAINER_ARENA_TREE_ARENA_TREE_TRAITS_HPP
+#define DJINTERP_CONTAINER_ARENA_TREE_ARENA_TREE_TRAITS_HPP 1
 
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <cstddef>
 #include <type_traits>
-#include "../../../djinterp.hpp"
+// djinterp
+#include "../../../../djinterp.hpp"
 #include "../arena.hpp"
 #include "../arena_traits.hpp"
 
@@ -48,226 +57,241 @@
 NS_DJINTERP
 
 
-// =============================================================================
+// ===========================================================================
 // I.   Root Method Detection
-// =============================================================================
+// ===========================================================================
 
 // has_root_method
 //   trait: detects a root() method returning node_id.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_root_method : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct has_root_method<_Type,
-    void_t<decltype(std::declval<const _Type&>().root())>>
+// has_root_method<Type, void_t<decltype(std::declval<const
+// Type&>().root())>>
+//   trait: the `void_t<decltype(std::declval<const Type&>().root())>` case;
+// it reports true.
+template<typename Type>
+struct has_root_method<Type,
+    void_t<decltype(std::declval<const Type&>().root())>>
     : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_root_method_v =
-        has_root_method<_Type>::value;
+        has_root_method<Type>::value;
 #endif
 
 // has_has_root_method
 //   trait: detects has_root() returning bool.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_has_root_method : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct has_has_root_method<_Type,
-    void_t<decltype(std::declval<const _Type&>().has_root())>>
+// has_has_root_method<Type, void_t<decltype(std::declval<const
+// Type&>().has_root())>>
+//   trait: the `void_t<decltype(std::declval<const Type&>().has_root())>`
+// case; it reports true.
+template<typename Type>
+struct has_has_root_method<Type,
+    void_t<decltype(std::declval<const Type&>().has_root())>>
     : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_has_root_method_v =
-        has_has_root_method<_Type>::value;
+        has_has_root_method<Type>::value;
 #endif
 
 // has_is_root_method
 //   trait: detects is_root(node_id) returning bool.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_is_root_method : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct has_is_root_method<_Type,
+// has_is_root_method<Type, void_t<decltype( std::declval<const
+// Type&>().is_root( std::declval<node_id>()))>>
+//   trait: the `void_t<decltype( std::declval<const Type&>().is_root(
+// std::declval<node_id>()))>` case; it reports true.
+template<typename Type>
+struct has_is_root_method<Type,
     void_t<decltype(
-        std::declval<const _Type&>().is_root(
+        std::declval<const Type&>().is_root(
             std::declval<node_id>()))>>
     : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_is_root_method_v =
-        has_is_root_method<_Type>::value;
+        has_is_root_method<Type>::value;
 #endif
 
 // has_set_root_method
 //   trait: detects set_root(node_id).
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_set_root_method : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct has_set_root_method<_Type,
+// has_set_root_method<Type, void_t<decltype( std::declval<Type&>().set_root(
+// std::declval<node_id>()))>>
+//   trait: the `void_t<decltype( std::declval<Type&>().set_root(
+// std::declval<node_id>()))>` case; it reports true.
+template<typename Type>
+struct has_set_root_method<Type,
     void_t<decltype(
-        std::declval<_Type&>().set_root(
+        std::declval<Type&>().set_root(
             std::declval<node_id>()))>>
     : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_set_root_method_v =
-        has_set_root_method<_Type>::value;
+        has_set_root_method<Type>::value;
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Tree Mutation Detection
-// =============================================================================
+// ===========================================================================
 
 // has_create_root_method
 //   trait: detects create_root(Payload).
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_create_root_method : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct has_create_root_method<_Type,
+// has_create_root_method<Type, void_t<decltype(
+// std::declval<Type&>().create_root( std::declval<typename clean_t<Type>
+//   trait: the `void_t<decltype( std::declval<Type&>().create_root(
+// std::declval<typename clean_t<Type` case; it reports true.
+template<typename Type>
+struct has_create_root_method<Type,
     void_t<decltype(
-        std::declval<_Type&>().create_root(
-            std::declval<typename _Type::payload_type>()))>>
+        std::declval<Type&>().create_root(
+            std::declval<typename clean_t<Type>::payload_type>()))>>
     : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_create_root_method_v =
-        has_create_root_method<_Type>::value;
+        has_create_root_method<Type>::value;
 #endif
 
 // has_add_child_method
 //   trait: detects add_child(node_id, Payload).
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_add_child_method : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct has_add_child_method<_Type,
+// has_add_child_method<Type, void_t<decltype(
+// std::declval<Type&>().add_child( std::declval<node_id>(),
+// std::declval<typename clean_t<Type>
+//   trait: the `void_t<decltype( std::declval<Type&>().add_child(
+// std::declval<node_id>(), std::declval<typename clean_t<Type` case; it
+// reports true.
+template<typename Type>
+struct has_add_child_method<Type,
     void_t<decltype(
-        std::declval<_Type&>().add_child(
+        std::declval<Type&>().add_child(
             std::declval<node_id>(),
-            std::declval<typename _Type::payload_type>()))>>
+            std::declval<typename clean_t<Type>::payload_type>()))>>
     : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_add_child_method_v =
-        has_add_child_method<_Type>::value;
+        has_add_child_method<Type>::value;
 #endif
 
 // has_remove_subtree_method
 //   trait: detects remove_subtree(node_id).
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_remove_subtree_method : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct has_remove_subtree_method<_Type,
+// has_remove_subtree_method<Type, void_t<decltype(
+// std::declval<Type&>().remove_subtree( std::declval<node_id>()))>>
+//   trait: the `void_t<decltype( std::declval<Type&>().remove_subtree(
+// std::declval<node_id>()))>` case; it reports true.
+template<typename Type>
+struct has_remove_subtree_method<Type,
     void_t<decltype(
-        std::declval<_Type&>().remove_subtree(
+        std::declval<Type&>().remove_subtree(
             std::declval<node_id>()))>>
     : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_remove_subtree_method_v =
-        has_remove_subtree_method<_Type>::value;
+        has_remove_subtree_method<Type>::value;
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // III. Arena Tree Identity
-// =============================================================================
+// ===========================================================================
 
 // is_arena_tree
-//   trait: detects whether _Type satisfies the arena tree
-// protocol — an arena with root ownership.
-template<typename _Type>
+//   trait: detects whether Type satisfies the arena tree protocol - an arena
+// with root ownership.
+template<typename Type>
 struct is_arena_tree
 {
     static D_CONSTEXPR bool value =
-        ( is_arena<_Type>::value           &&
-          has_root_method<_Type>::value     &&
-          has_has_root_method<_Type>::value );
+        ( is_arena<Type>::value           &&
+          has_root_method<Type>::value     &&
+          has_has_root_method<Type>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_arena_tree_v =
-        is_arena_tree<_Type>::value;
+        is_arena_tree<Type>::value;
 #endif
 
 // is_rooted_arena
 //   trait: alias for is_arena_tree.
-template<typename _Type>
-struct is_rooted_arena : is_arena_tree<_Type>
-{
-};
+template<typename Type>
+struct is_rooted_arena : is_arena_tree<Type>
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_rooted_arena_v =
-        is_rooted_arena<_Type>::value;
+        is_rooted_arena<Type>::value;
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Navigation Classification
-// =============================================================================
+// ===========================================================================
 // These traits inspect the link policy of an arena to
 // determine navigational capabilities.
 
 NS_INTERNAL
 
     // safe_link_policy
-    //   helper: extracts link_policy from _Type, or
-    // produces a zero-link policy if not available.
-    template<typename _Type,
+    //   helper: extracts link_policy from Type, or produces a zero-link
+    // policy if not available.
+    template<typename Type,
              typename = void>
     struct safe_link_policy
     {
-        // stub policy — all flags false
+        // stub policy - all flags false
         struct type
         {
             static D_CONSTEXPR unsigned flags      = 0;
@@ -282,43 +306,46 @@ NS_INTERNAL
         };
     };
 
-    template<typename _Type>
-    struct safe_link_policy<_Type,
-        void_t<typename _Type::link_policy>>
+    // safe_link_policy<Type, void_t<typename clean_t<Type>
+    //   trait: the `void_t<typename clean_t<Type` case; it maps to `typename
+    // clean_t<Type>::link_policy`.
+    template<typename Type>
+    struct safe_link_policy<Type,
+        void_t<typename clean_t<Type>::link_policy>>
     {
-        using type = typename _Type::link_policy;
+        using type = typename clean_t<Type>::link_policy;
     };
 
-    template<typename _Type>
+    template<typename Type>
     using safe_link_policy_t =
-        typename safe_link_policy<_Type>::type;
+        typename safe_link_policy<Type>::type;
 
 NS_END  // internal
 
 // is_parent_navigable
-//   trait: true if the arena supports child-to-root
-// traversal (has parent link).
-template<typename _Type>
+//   trait: true if the arena supports child-to-root traversal (has parent
+// link).
+template<typename Type>
 struct is_parent_navigable
 {
-    using policy = internal::safe_link_policy_t<_Type>;
+    using policy = internal::safe_link_policy_t<Type>;
 
     static D_CONSTEXPR bool value = policy::has_parent;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_parent_navigable_v =
-        is_parent_navigable<_Type>::value;
+        is_parent_navigable<Type>::value;
 #endif
 
 // is_sibling_navigable
-//   trait: true if the arena supports bidirectional
-// sibling traversal (next + prev).
-template<typename _Type>
+//   trait: true if the arena supports bidirectional sibling traversal (next +
+// prev).
+template<typename Type>
 struct is_sibling_navigable
 {
-    using policy = internal::safe_link_policy_t<_Type>;
+    using policy = internal::safe_link_policy_t<Type>;
 
     static D_CONSTEXPR bool value =
         ( policy::has_next_sibling &&
@@ -326,19 +353,18 @@ struct is_sibling_navigable
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_sibling_navigable_v =
-        is_sibling_navigable<_Type>::value;
+        is_sibling_navigable<Type>::value;
 #endif
 
 // is_fully_navigable
-//   trait: true if all five n-ary navigational links
-// are present (first_child, last_child, next_sibling,
-// prev_sibling, parent).
-template<typename _Type>
+//   trait: true if all five n-ary navigational links are present (first_child,
+// last_child, next_sibling, prev_sibling, parent).
+template<typename Type>
 struct is_fully_navigable
 {
-    using policy = internal::safe_link_policy_t<_Type>;
+    using policy = internal::safe_link_policy_t<Type>;
 
     static D_CONSTEXPR bool value =
         ( policy::has_first_child  &&
@@ -349,35 +375,34 @@ struct is_fully_navigable
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_fully_navigable_v =
-        is_fully_navigable<_Type>::value;
+        is_fully_navigable<Type>::value;
 #endif
 
 // is_binary_arena
 //   trait: true if the arena uses a binary link layout.
-template<typename _Type>
+template<typename Type>
 struct is_binary_arena
 {
-    using policy = internal::safe_link_policy_t<_Type>;
+    using policy = internal::safe_link_policy_t<Type>;
 
     static D_CONSTEXPR bool value =
         ( policy::has_left && policy::has_right );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_binary_arena_v =
-        is_binary_arena<_Type>::value;
+        is_binary_arena<Type>::value;
 #endif
 
 // is_nary_arena
-//   trait: true if the arena uses an n-ary (LCRS-family)
-// link layout.
-template<typename _Type>
+//   trait: true if the arena uses an n-ary (LCRS-family) link layout.
+template<typename Type>
 struct is_nary_arena
 {
-    using policy = internal::safe_link_policy_t<_Type>;
+    using policy = internal::safe_link_policy_t<Type>;
 
     static D_CONSTEXPR bool value =
         ( policy::has_first_child &&
@@ -385,58 +410,58 @@ struct is_nary_arena
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_nary_arena_v =
-        is_nary_arena<_Type>::value;
+        is_nary_arena<Type>::value;
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // V.   Combined Classification
-// =============================================================================
+// ===========================================================================
 
 // arena_tree_class
 //   struct: comprehensive classification of an arena tree.
-template<typename _Type>
+template<typename Type>
 struct arena_tree_class
 {
-    using policy = internal::safe_link_policy_t<_Type>;
+    using policy = internal::safe_link_policy_t<Type>;
 
     // -----------------------------------------------------------------
     // Identity
     // -----------------------------------------------------------------
     static D_CONSTEXPR bool is_arena_type =
-        is_arena<_Type>::value;
+        is_arena<Type>::value;
     static D_CONSTEXPR bool is_tree =
-        is_arena_tree<_Type>::value;
+        is_arena_tree<Type>::value;
 
     // -----------------------------------------------------------------
     // Topology
     // -----------------------------------------------------------------
     static D_CONSTEXPR bool is_binary =
-        is_binary_arena<_Type>::value;
+        is_binary_arena<Type>::value;
     static D_CONSTEXPR bool is_nary =
-        is_nary_arena<_Type>::value;
+        is_nary_arena<Type>::value;
 
     // -----------------------------------------------------------------
     // Navigation
     // -----------------------------------------------------------------
     static D_CONSTEXPR bool parent_navigable =
-        is_parent_navigable<_Type>::value;
+        is_parent_navigable<Type>::value;
     static D_CONSTEXPR bool sibling_navigable =
-        is_sibling_navigable<_Type>::value;
+        is_sibling_navigable<Type>::value;
     static D_CONSTEXPR bool fully_navigable =
-        is_fully_navigable<_Type>::value;
+        is_fully_navigable<Type>::value;
 
     // -----------------------------------------------------------------
     // Operations
     // -----------------------------------------------------------------
     static D_CONSTEXPR bool has_create_root =
-        has_create_root_method<_Type>::value;
+        has_create_root_method<Type>::value;
     static D_CONSTEXPR bool has_add_child =
-        has_add_child_method<_Type>::value;
+        has_add_child_method<Type>::value;
     static D_CONSTEXPR bool has_remove_subtree =
-        has_remove_subtree_method<_Type>::value;
+        has_remove_subtree_method<Type>::value;
 
     // -----------------------------------------------------------------
     // Complexity Guarantees
@@ -460,5 +485,6 @@ struct arena_tree_class
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_ARENA_TREE_TRAITS_
+#endif  // DJINTERP_CONTAINER_ARENA_TREE_ARENA_TREE_TRAITS_HPP

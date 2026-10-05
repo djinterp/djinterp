@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                     jit_x86.c
+/*******************************************************************************
+* djinterp [jit]                                                       jit_x86.c
 *
 * djinterp x86 (32-bit) JIT encoder -- implementation (jit_x86.h).
 *   A general ModR/M + SIB + displacement encoder drives every operand-taking
@@ -8,13 +8,14 @@
 * Branch emitters record their rel32 with the shared label facility in jit.h.
 * Encodings were cross-checked against `as --32` / objdump.
 *
-* path:      /inc/djinterp/jit/jit_x86.c
+*
+* path:      /src/djinterp/jit/jit_x86.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit_x86.h"
+#include "../../../inc/djinterp/jit/jit_x86.h"
 
 
 // ===========================================================================

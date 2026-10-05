@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                 hardware_interference_size.hpp
+/*******************************************************************************
+* djinterp [re_std]                               hardware_interference_size.hpp
 *
 * hardware_destructive_interference_size /
 * hardware_constructive_interference_size header:
@@ -31,80 +31,84 @@
 *   predefined (GCC 12+), use them. Otherwise apply heuristic.
 *
 *   USER OVERRIDES:
-*     Predefine D_RE_STD_HARDWARE_DESTRUCTIVE_SIZE and/or
-*   D_RE_STD_HARDWARE_CONSTRUCTIVE_SIZE before #include to force.
+*     Predefine RE_STD_HARDWARE_DESTRUCTIVE_SIZE and/or
+*   RE_STD_HARDWARE_CONSTRUCTIVE_SIZE before #include to force.
 *
 *   CONSTEXPR:
 *   Constexpr from C++11 (these are integral constant expressions).
 * std waited for C++17. RE_STD AHEAD OF STD.
 *
 *
-* path:      /inc/djinterp/re_std/new/hardware_interference_size.hpp
+* path:      /inc/re_std/new/hardware_interference_size.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_HARDWARE_INTERFERENCE_SIZE_
-#define DJINTERP_RE_STD_HARDWARE_INTERFERENCE_SIZE_ 1
+#ifndef RE_STD_NEW_HARDWARE_INTERFERENCE_SIZE_HPP
+#define RE_STD_NEW_HARDWARE_INTERFERENCE_SIZE_HPP 1
 
+// std
 #include <cstddef>
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   PLATFORM HEURISTIC
 // ===========================================================================
 
-#ifndef D_RE_STD_HARDWARE_DESTRUCTIVE_SIZE
+#ifndef RE_STD_HARDWARE_DESTRUCTIVE_SIZE
     #if defined(__GCC_DESTRUCTIVE_SIZE)
-        #define D_RE_STD_HARDWARE_DESTRUCTIVE_SIZE   __GCC_DESTRUCTIVE_SIZE
+        #define RE_STD_HARDWARE_DESTRUCTIVE_SIZE   __GCC_DESTRUCTIVE_SIZE
     #elif defined(__APPLE__) && (defined(__aarch64__) || defined(__arm64__))
         // Apple Silicon performance cores use 128-byte cache lines.
-        #define D_RE_STD_HARDWARE_DESTRUCTIVE_SIZE   128
+        #define RE_STD_HARDWARE_DESTRUCTIVE_SIZE   128
     #else
         // x86, x86_64, generic ARM, others.
-        #define D_RE_STD_HARDWARE_DESTRUCTIVE_SIZE   64
+        #define RE_STD_HARDWARE_DESTRUCTIVE_SIZE   64
     #endif
 #endif
 
-#ifndef D_RE_STD_HARDWARE_CONSTRUCTIVE_SIZE
+#ifndef RE_STD_HARDWARE_CONSTRUCTIVE_SIZE
     #if defined(__GCC_CONSTRUCTIVE_SIZE)
-        #define D_RE_STD_HARDWARE_CONSTRUCTIVE_SIZE  __GCC_CONSTRUCTIVE_SIZE
+        #define RE_STD_HARDWARE_CONSTRUCTIVE_SIZE  __GCC_CONSTRUCTIVE_SIZE
     #else
-        #define D_RE_STD_HARDWARE_CONSTRUCTIVE_SIZE  64
+        #define RE_STD_HARDWARE_CONSTRUCTIVE_SIZE  64
     #endif
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   HARDWARE_DESTRUCTIVE_INTERFERENCE_SIZE
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-D_CONSTEXPR std::size_t hardware_destructive_interference_size =
-    D_RE_STD_HARDWARE_DESTRUCTIVE_SIZE;
+RE_STD_CONSTEXPR std::size_t hardware_destructive_interference_size =
+    RE_STD_HARDWARE_DESTRUCTIVE_SIZE;
 
-D_CONSTEXPR std::size_t hardware_constructive_interference_size =
-    D_RE_STD_HARDWARE_CONSTRUCTIVE_SIZE;
+RE_STD_CONSTEXPR std::size_t hardware_constructive_interference_size =
+    RE_STD_HARDWARE_CONSTRUCTIVE_SIZE;
 
 #else
 
 // C++98 — `static const` integral has the same compile-time-constant
 // behaviour as C++11+ `constexpr` for integral types.
 static const std::size_t hardware_destructive_interference_size =
-    D_RE_STD_HARDWARE_DESTRUCTIVE_SIZE;
+    RE_STD_HARDWARE_DESTRUCTIVE_SIZE;
 
 static const std::size_t hardware_constructive_interference_size =
-    D_RE_STD_HARDWARE_CONSTRUCTIVE_SIZE;
+    RE_STD_HARDWARE_CONSTRUCTIVE_SIZE;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_HARDWARE_INTERFERENCE_SIZE_
+#endif  // RE_STD_NEW_HARDWARE_INTERFERENCE_SIZE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [option]                                            option_diff.hpp
+/*******************************************************************************
+* djinterp [core]                                                option_diff.hpp
 *
 *   Diff and merge utilities for option_set<>, expressible in BOTH of the
 * two shapes option_set itself dispatches over (see option_set.hpp):
@@ -35,34 +35,49 @@
 *
 * path:      /inc/djinterp/core/option/option_diff.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.12
+*                                                            revised: 2026.09.30
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-PART A - COMPILE-TIME (traits over option_set<opt...>)
-  A.I.    key-list set operations      (added / removed / common)
-  A.II.   key-level diff traits        (option_set_added_keys, ...)
-  A.III.  value-level diff traits      (changed / unchanged, extractor-param)
-  A.IV.   diff summary                 (diff_count, sets_equal)
-  A.V.    merge bridge                 (merge_mode -> policy, diff_merge_t)
 
-PART B - RUNTIME (functions over the option_set_map surface)
-  B.I.    key-level diff               (keys_in, added, removed, common)
-  B.II.   value-level diff             (changed, unchanged, diff_count, equal)
-  B.III.  merge                        (merge_mode + option_merge)
+      PART A - COMPILE-TIME (traits over option_set<opt...>)
+
+      A.I.    key-list set operations      (added / removed / common)
+
+      A.II.   key-level diff traits        (option_set_added_keys, ...)
+
+      A.III.  value-level diff traits      (changed / unchanged, extractor-param)
+
+      A.IV.   diff summary                 (diff_count, sets_equal)
+
+      A.V.    merge bridge                 (merge_mode -> policy, diff_merge_t)
+
+      PART B - RUNTIME (functions over the option_set_map surface)
+
+      B.I.    key-level diff               (keys_in, added, removed, common)
+
+      B.II.   value-level diff             (changed, unchanged, diff_count, equal)
+
+      B.III.  merge                        (merge_mode + option_merge)
 */
 
-#ifndef DJINTERP_OPTION_DIFF_
-#define DJINTERP_OPTION_DIFF_ 1
+#ifndef DJINTERP_OPTION_OPTION_DIFF_HPP
+#define DJINTERP_OPTION_OPTION_DIFF_HPP 1
+
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./option.hpp"
 #include "./option_set.hpp"            // option_set<> + queries (contains, find, is_option_set)
 #include "./option_set_compare.hpp"    // key_list, keys, congruity, extractors
@@ -88,67 +103,67 @@ NS_INTERNAL
 
     // key_list_append
     //   helper: append one NTTP key to a key_list<...>.
-    template<typename _List,
-             auto     _Key>
+    template<typename List,
+             auto     Key>
     struct key_list_append;
 
-    template<auto... _Ks,
-             auto    _Key>
-    struct key_list_append<key_list<_Ks...>, _Key>
+    template<auto... Ks,
+             auto    Key>
+    struct key_list_append<key_list<Ks...>, Key>
     {
-        using type = key_list<_Ks..., _Key>;
+        using type = key_list<Ks..., Key>;
     };
 
     // key_list_filter_present
-    //   helper: walk _Source keys, keep those whose presence in _Other
-    // equals _Want.  With _Want == true  this yields the intersection of
-    // _Source with _Other; with _Want == false it yields _Source minus
-    // _Other.  _Other is an option_set queried via option_set_contains_v.
-    template<typename _Other,
-             bool     _Want,
-             typename _Acc,
-             auto...  _SourceKeys>
+    //   helper: walk Source keys, keep those whose presence in Other
+    // equals Want.  With Want == true  this yields the intersection of
+    // Source with Other; with Want == false it yields Source minus
+    // Other.  Other is an option_set queried via option_set_contains_v.
+    template<typename Other,
+             bool     Want,
+             typename Acc,
+             auto...  SourceKeys>
     struct key_list_filter_present
     {
-        using type = _Acc;
+        using type = Acc;
     };
 
-    template<typename _Other,
-             bool     _Want,
-             typename _Acc,
-             auto     _Head,
-             auto...  _Tail>
-    struct key_list_filter_present<_Other, _Want, _Acc, _Head, _Tail...>
+    template<typename Other,
+             bool     Want,
+             typename Acc,
+             auto     Head,
+             auto...  Tail>
+    struct key_list_filter_present<Other, Want, Acc, Head, Tail...>
     {
     private:
         static D_CONSTEXPR bool keep =
-            (option_set_contains_v<_Other, _Head> == _Want);
+            (option_set_contains_v<Other, Head> == Want);
 
         using next_acc = std::conditional_t<
             keep,
-            typename key_list_append<_Acc, _Head>::type,
-            _Acc>;
+            typename key_list_append<Acc, Head>::type,
+            Acc>;
 
     public:
         using type = typename key_list_filter_present<
-            _Other, _Want, next_acc, _Tail...>::type;
+            Other, Want, next_acc, Tail...>::type;
     };
 
 
     // key_list_filter_dispatch
     //   helper: unpack a key_list<...> source into key_list_filter_present.
-    template<typename _SourceList,
-             typename _Other,
-             bool     _Want>
+    template<typename SourceList,
+             typename Other,
+             bool     Want>
     struct key_list_filter_dispatch;
 
-    template<auto... _SourceKeys,
-             typename _Other,
-             bool     _Want>
-    struct key_list_filter_dispatch<key_list<_SourceKeys...>, _Other, _Want>
+    template<auto... SourceKeys,
+             typename Other,
+             bool     Want>
+    struct key_list_filter_dispatch<key_list<SourceKeys...>, Other, Want>
     {
         using type = typename key_list_filter_present<
-            _Other, _Want, key_list<>, _SourceKeys...>::type;
+            Other, Want, key_list<>, SourceKeys...>::type;
     };
 
 NS_END  // internal
@@ -159,52 +174,52 @@ NS_END  // internal
 // ===========================================================================
 
 // option_set_added_keys
-//   trait: key_list<...> of keys present in _Derived but not in _Base.
+//   trait: key_list<...> of keys present in Derived but not in Base.
 // Type-level analog of PART B's option_added_keys.
-template<typename _Base,
-         typename _Derived>
+template<typename Base,
+         typename Derived>
 struct option_set_added_keys
 {
     using type = typename internal::key_list_filter_dispatch<
-        option_set_keys_t<_Derived>, _Base, false>::type;
+        option_set_keys_t<Derived>, Base, false>::type;
 };
 
-template<typename _Base,
-         typename _Derived>
+template<typename Base,
+         typename Derived>
 using option_set_added_keys_t =
-    typename option_set_added_keys<_Base, _Derived>::type;
+    typename option_set_added_keys<Base, Derived>::type;
 
 
 // option_set_removed_keys
-//   trait: key_list<...> of keys present in _Base but not in _Derived.
-template<typename _Base,
-         typename _Derived>
+//   trait: key_list<...> of keys present in Base but not in Derived.
+template<typename Base,
+         typename Derived>
 struct option_set_removed_keys
 {
     using type = typename internal::key_list_filter_dispatch<
-        option_set_keys_t<_Base>, _Derived, false>::type;
+        option_set_keys_t<Base>, Derived, false>::type;
 };
 
-template<typename _Base,
-         typename _Derived>
+template<typename Base,
+         typename Derived>
 using option_set_removed_keys_t =
-    typename option_set_removed_keys<_Base, _Derived>::type;
+    typename option_set_removed_keys<Base, Derived>::type;
 
 
 // option_set_common_keys
-//   trait: key_list<...> of keys present in BOTH _A and _B (drawn from
-// _A's order).
-template<typename _A,
-         typename _B>
+//   trait: key_list<...> of keys present in BOTH A and B (drawn from
+// A's order).
+template<typename A,
+         typename B>
 struct option_set_common_keys
 {
     using type = typename internal::key_list_filter_dispatch<
-        option_set_keys_t<_A>, _B, true>::type;
+        option_set_keys_t<A>, B, true>::type;
 };
 
-template<typename _A,
-         typename _B>
-using option_set_common_keys_t = typename option_set_common_keys<_A, _B>::type;
+template<typename A,
+         typename B>
+using option_set_common_keys_t = typename option_set_common_keys<A, B>::type;
 
 
 // ===========================================================================
@@ -212,125 +227,125 @@ using option_set_common_keys_t = typename option_set_common_keys<_A, _B>::type;
 // ===========================================================================
 //
 //   "Value" here is whatever a unary extractor pulls from each option's
-// arg pack - extract_actual (default), extract_default, or extract_effective
-// from option_set_compare.hpp, or any user extractor yielding the
+// arg pack.  No extractor ships (option_set_compare.hpp retired actual<>,
+// default_ and effective with the actual<> carrier); any user extractor yielding the
 // {value_absent | value_present<V>} carrier interface.  Comparison reuses
 // internal::carrier_eq.
 
 NS_INTERNAL
 
     // kl_filter_changed
-    //   helper: walk _A's COMMON keys, keep each per whether the
-    // extracted carriers in _A and _B differ (_WantChanged == true) or
-    // match (_WantChanged == false).  Only keys present in both sets are
+    //   helper: walk A's COMMON keys, keep each per whether the
+    // extracted carriers in A and B differ (WantChanged == true) or
+    // match (WantChanged == false).  Only keys present in both sets are
     // considered; key-only differences are the domain of added/removed.
-    template<typename                 _A,
-             typename                 _B,
-             template<typename> typename _Extract,
-             bool                     _WantChanged,
-             typename                 _Acc,
-             auto...                  _CommonKeys>
+    template<typename                 A,
+             typename                 B,
+             template<typename> typename Extract,
+             bool                     WantChanged,
+             typename                 Acc,
+             auto...                  CommonKeys>
     struct kl_filter_changed
     {
-        using type = _Acc;
+        using type = Acc;
     };
 
-    template<typename                 _A,
-             typename                 _B,
-             template<typename> typename _Extract,
-             bool                     _WantChanged,
-             typename                 _Acc,
-             auto                     _Head,
-             auto...                  _Tail>
-    struct kl_filter_changed<_A, _B, _Extract, _WantChanged,
-                             _Acc, _Head, _Tail...>
+    template<typename                 A,
+             typename                 B,
+             template<typename> typename Extract,
+             bool                     WantChanged,
+             typename                 Acc,
+             auto                     Head,
+             auto...                  Tail>
+    struct kl_filter_changed<A, B, Extract, WantChanged,
+                             Acc, Head, Tail...>
     {
     private:
         using a_carrier =
-            typename _Extract<option_set_find_t<_A, _Head>>::type;
+            typename Extract<option_set_find_t<A, Head>>::type;
         using b_carrier =
-            typename _Extract<option_set_find_t<_B, _Head>>::type;
+            typename Extract<option_set_find_t<B, Head>>::type;
 
         static D_CONSTEXPR bool equal =
             carrier_eq<a_carrier, b_carrier>::value;
 
-        // changed == !equal; keep when (changed == _WantChanged).
-        static D_CONSTEXPR bool keep = ((!equal) == _WantChanged);
+        // changed == !equal; keep when (changed == WantChanged).
+        static D_CONSTEXPR bool keep = ((!equal) == WantChanged);
 
         using next_acc = std::conditional_t<
             keep,
-            typename key_list_append<_Acc, _Head>::type,
-            _Acc>;
+            typename key_list_append<Acc, Head>::type,
+            Acc>;
 
     public:
         using type = typename kl_filter_changed<
-            _A, _B, _Extract, _WantChanged, next_acc, _Tail...>::type;
+            A, B, Extract, WantChanged, next_acc, Tail...>::type;
     };
 
 
     // kl_changed_dispatch
     //   helper: unpack the common-key list into kl_filter_changed.
-    template<typename                 _A,
-             typename                 _B,
-             template<typename> typename _Extract,
-             bool                     _WantChanged,
-             typename                 _CommonList>
+    template<typename                 A,
+             typename                 B,
+             template<typename> typename Extract,
+             bool                     WantChanged,
+             typename                 CommonList>
     struct kl_changed_dispatch;
 
-    template<typename                 _A,
-             typename                 _B,
-             template<typename> typename _Extract,
-             bool                     _WantChanged,
-             auto...                  _CommonKeys>
-    struct kl_changed_dispatch<_A, _B, _Extract, _WantChanged,
-                               key_list<_CommonKeys...>>
+    template<typename                 A,
+             typename                 B,
+             template<typename> typename Extract,
+             bool                     WantChanged,
+             auto...                  CommonKeys>
+    struct kl_changed_dispatch<A, B, Extract, WantChanged,
+                               key_list<CommonKeys...>>
     {
         using type = typename kl_filter_changed<
-            _A, _B, _Extract, _WantChanged, key_list<>, _CommonKeys...>::type;
+            A, B, Extract, WantChanged, key_list<>, CommonKeys...>::type;
     };
 
 NS_END  // internal
 
 
 // option_set_changed_keys
-//   trait: key_list<...> of keys present in BOTH _Base and _Derived
-// whose extracted value differs.  Extractor-parameterized; defaults to
-// extract_actual.
-template<typename                 _Base,
-         typename                 _Derived,
-         template<typename> typename _Extract = extract_actual>
+//   trait: key_list<...> of keys present in BOTH Base and Derived
+// whose extracted value differs.  Extractor-parameterized: the caller
+// supplies the extractor, as for option_set_value_eq.
+template<typename                 Base,
+         typename                 Derived,
+         template<typename> typename Extract>
 struct option_set_changed_keys
 {
     using type = typename internal::kl_changed_dispatch<
-        _Base, _Derived, _Extract, true,
-        option_set_common_keys_t<_Base, _Derived>>::type;
+        Base, Derived, Extract, true,
+        option_set_common_keys_t<Base, Derived>>::type;
 };
 
-template<typename                 _Base,
-         typename                 _Derived,
-         template<typename> typename _Extract = extract_actual>
+template<typename                 Base,
+         typename                 Derived,
+         template<typename> typename Extract>
 using option_set_changed_keys_t =
-    typename option_set_changed_keys<_Base, _Derived, _Extract>::type;
+    typename option_set_changed_keys<Base, Derived, Extract>::type;
 
 
 // option_set_unchanged_keys
 //   trait: key_list<...> of keys present in both sets whose extracted
 // value is identical.
-template<typename                 _Base,
-         typename                 _Derived,
-         template<typename> typename _Extract = extract_actual>
+template<typename                 Base,
+         typename                 Derived,
+         template<typename> typename Extract>
 struct option_set_unchanged_keys
 {
     using type = typename internal::kl_changed_dispatch<
-        _Base, _Derived, _Extract, false,
-        option_set_common_keys_t<_Base, _Derived>>::type;
+        Base, Derived, Extract, false,
+        option_set_common_keys_t<Base, Derived>>::type;
 };
 
-template<typename                 _Base,
-         typename                 _Derived,
-         template<typename> typename _Extract = extract_actual>
+template<typename                 Base,
+         typename                 Derived,
+         template<typename> typename Extract>
 using option_set_unchanged_keys_t =
-    typename option_set_unchanged_keys<_Base, _Derived, _Extract>::type;
+    typename option_set_unchanged_keys<Base, Derived, Extract>::type;
 
 
 // ===========================================================================
@@ -338,45 +353,45 @@ using option_set_unchanged_keys_t =
 // ===========================================================================
 
 // option_set_diff_count
-//   trait: number of keys that differ between _Base and _Derived under
-// _Extract: changed (common keys with differing values) + added + removed.
+//   trait: number of keys that differ between Base and Derived under
+// Extract: changed (common keys with differing values) + added + removed.
 // Mirrors PART B's option_diff_count.
-template<typename                 _Base,
-         typename                 _Derived,
-         template<typename> typename _Extract = extract_actual>
+template<typename                 Base,
+         typename                 Derived,
+         template<typename> typename Extract>
 struct option_set_diff_count
 {
     static D_CONSTEXPR std::size_t value =
-        ( option_set_changed_keys_t<_Base, _Derived, _Extract>::size +
-          option_set_added_keys_t<_Base, _Derived>::size            +
-          option_set_removed_keys_t<_Base, _Derived>::size );
+        ( option_set_changed_keys_t<Base, Derived, Extract>::size +
+          option_set_added_keys_t<Base, Derived>::size            +
+          option_set_removed_keys_t<Base, Derived>::size );
 };
 
-template<typename                 _Base,
-         typename                 _Derived,
-         template<typename> typename _Extract = extract_actual>
-D_CONSTEXPR_VAR std::size_t option_set_diff_count_v =
-    option_set_diff_count<_Base, _Derived, _Extract>::value;
+template<typename                 Base,
+         typename                 Derived,
+         template<typename> typename Extract>
+D_CONSTEXPR std::size_t option_set_diff_count_v =
+    option_set_diff_count<Base, Derived, Extract>::value;
 
 
 // option_set_value_equal
-//   trait: true iff _Base and _Derived have an empty diff under _Extract
+//   trait: true iff Base and Derived have an empty diff under Extract
 // (same keys, same extracted values everywhere).  This is the diff-side
 // spelling of option_set_value_eq (option_set_compare.hpp); kept here so
 // "are these two diffs empty" reads naturally next to the count.
-template<typename                 _Base,
-         typename                 _Derived,
-         template<typename> typename _Extract = extract_actual>
+template<typename                 Base,
+         typename                 Derived,
+         template<typename> typename Extract>
 struct option_set_value_equal
     : std::integral_constant<bool,
-        (option_set_diff_count<_Base, _Derived, _Extract>::value == 0)>
+        (option_set_diff_count<Base, Derived, Extract>::value == 0)>
 {};
 
-template<typename                 _Base,
-         typename                 _Derived,
-         template<typename> typename _Extract = extract_actual>
-D_CONSTEXPR_VAR bool option_set_value_equal_v =
-    option_set_value_equal<_Base, _Derived, _Extract>::value;
+template<typename                 Base,
+         typename                 Derived,
+         template<typename> typename Extract>
+D_CONSTEXPR bool option_set_value_equal_v =
+    option_set_value_equal<Base, Derived, Extract>::value;
 
 
 // ===========================================================================
@@ -413,7 +428,7 @@ NS_INTERNAL
     //     add_new_only/keep_existing -> override_keep      (base wins)
     // In every case delta-only keys are added (extension is allowed),
     // matching the runtime option_merge, which always inserts new keys.
-    template<merge_mode _Mode>
+    template<merge_mode Mode>
     struct merge_mode_policy
     {
         using type = override_replace;
@@ -435,7 +450,7 @@ NS_END  // internal
 
 
 // diff_merge_t
-//   trait: merge _Derived into _Base at the type level under a runtime-
+//   trait: merge Derived into Base at the type level under a runtime-
 // style merge_mode, yielding a new option_set.  Sugar over
 // option_set_override_t with the mode mapped to a policy.  For full
 // control (value_only_delta, strict, arg_union_delta, ...) call
@@ -444,12 +459,12 @@ NS_END  // internal
 // Usage:
 //   using merged = diff_merge_t<base_set, delta_set>;  // overwrite
 //   using added  = diff_merge_t<base_set, delta_set, merge_mode::add_new_only>;
-template<typename   _Base,
-         typename   _Derived,
-         merge_mode _Mode = merge_mode::overwrite>
-using diff_merge_t = option_set_override_t<_Base,
-                                           _Derived,
-                           typename internal::merge_mode_policy<_Mode>::type>;
+template<typename   Base,
+         typename   Derived,
+         merge_mode Mode = merge_mode::overwrite>
+using diff_merge_t = option_set_override_t<Base,
+                                           Derived,
+                           typename internal::merge_mode_policy<Mode>::type>;
 
 
 // ###########################################################################
@@ -476,13 +491,13 @@ using diff_merge_t = option_set_override_t<_Base,
 //   _set: the option set/map to enumerate.
 // Return:
 //   a std::vector<key_type> of every key in _set, in iteration order.
-template<typename _Set>
-std::vector<typename _Set::key_type>
+template<typename Set>
+std::vector<typename Set::key_type>
 option_keys_in(
-    const _Set& _set
+    const Set& _set
 )
 {
-    typedef typename _Set::key_type key_type;
+    typedef typename Set::key_type key_type;
 
     std::vector<key_type> result;
 
@@ -504,15 +519,15 @@ option_keys_in(
 //   _derived: the set compared against the baseline.
 // Return:
 //   a std::vector<key_type> of the added keys.
-template<typename _SetA,
-         typename _SetB>
-std::vector<typename _SetA::key_type>
+template<typename SetA,
+         typename SetB>
+std::vector<typename SetA::key_type>
 option_added_keys(
-    const _SetA& _base,
-    const _SetB& _derived
+    const SetA& _base,
+    const SetB& _derived
 )
 {
-    typedef typename _SetA::key_type key_type;
+    typedef typename SetA::key_type key_type;
 
     std::vector<key_type> result;
 
@@ -538,15 +553,15 @@ option_added_keys(
 //   _derived: the set compared against the baseline.
 // Return:
 //   a std::vector<key_type> of the removed keys.
-template<typename _SetA,
-         typename _SetB>
-std::vector<typename _SetA::key_type>
+template<typename SetA,
+         typename SetB>
+std::vector<typename SetA::key_type>
 option_removed_keys(
-    const _SetA& _base,
-    const _SetB& _derived
+    const SetA& _base,
+    const SetB& _derived
 )
 {
-    typedef typename _SetA::key_type key_type;
+    typedef typename SetA::key_type key_type;
 
     std::vector<key_type> result;
 
@@ -571,15 +586,15 @@ option_removed_keys(
 //   _b: the second set.
 // Return:
 //   a std::vector<key_type> of the shared keys.
-template<typename _SetA,
-         typename _SetB>
-std::vector<typename _SetA::key_type>
+template<typename SetA,
+         typename SetB>
+std::vector<typename SetA::key_type>
 option_common_keys(
-    const _SetA& _a,
-    const _SetB& _b
+    const SetA& _a,
+    const SetB& _b
 )
 {
-    typedef typename _SetA::key_type key_type;
+    typedef typename SetA::key_type key_type;
 
     std::vector<key_type> result;
 
@@ -609,15 +624,15 @@ option_common_keys(
 //   _derived: the set compared against the baseline.
 // Return:
 //   a std::vector<key_type> of the common keys whose values differ.
-template<typename _SetA,
-         typename _SetB>
-std::vector<typename _SetA::key_type>
+template<typename SetA,
+         typename SetB>
+std::vector<typename SetA::key_type>
 option_changed_keys(
-    const _SetA& _base,
-    const _SetB& _derived
+    const SetA& _base,
+    const SetB& _derived
 )
 {
-    typedef typename _SetA::key_type key_type;
+    typedef typename SetA::key_type key_type;
 
     std::vector<key_type> result;
 
@@ -647,15 +662,15 @@ option_changed_keys(
 //   _derived: the set compared against the baseline.
 // Return:
 //   a std::vector<key_type> of the common keys whose values match.
-template<typename _SetA,
-         typename _SetB>
-std::vector<typename _SetA::key_type>
+template<typename SetA,
+         typename SetB>
+std::vector<typename SetA::key_type>
 option_unchanged_keys(
-    const _SetA& _base,
-    const _SetB& _derived
+    const SetA& _base,
+    const SetB& _derived
 )
 {
-    typedef typename _SetA::key_type key_type;
+    typedef typename SetA::key_type key_type;
 
     std::vector<key_type> result;
 
@@ -685,12 +700,12 @@ option_unchanged_keys(
 //   _derived: the set compared against the baseline.
 // Return:
 //   the count of differing keys as a std::size_t.
-template<typename _SetA,
-         typename _SetB>
+template<typename SetA,
+         typename SetB>
 std::size_t
 option_diff_count(
-    const _SetA& _base,
-    const _SetB& _derived
+    const SetA& _base,
+    const SetB& _derived
 )
 {
     std::size_t count;
@@ -735,12 +750,12 @@ option_diff_count(
 //   _b: the second set.
 // Return:
 //   true iff the diff count between _a and _b is zero; false otherwise.
-template<typename _SetA,
-         typename _SetB>
+template<typename SetA,
+         typename SetB>
 bool
 option_sets_equal(
-    const _SetA& _a,
-    const _SetB& _b
+    const SetA& _a,
+    const SetB& _b
 )
 {
     return (option_diff_count(_a, _b) == 0);
@@ -763,12 +778,12 @@ option_sets_equal(
 //   _mode:   the conflict-resolution strategy (default overwrite).
 // Return:
 //   the number of entries inserted or modified as a std::size_t.
-template<typename _Target,
-         typename _Source>
+template<typename Target,
+         typename Source>
 std::size_t
 option_merge(
-    _Target&         _target,
-    const _Source&   _source,
+    Target&         _target,
+    const Source&   _source,
     merge_mode       _mode = merge_mode::overwrite
 )
 {
@@ -803,5 +818,6 @@ option_merge(
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_DIFF_
+#endif  // DJINTERP_OPTION_OPTION_DIFF_HPP

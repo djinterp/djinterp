@@ -1,7 +1,20 @@
-#include "./merge_sort.h"
+/*******************************************************************************
+* djinterp [c]                                                      merge_sort.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/util/sort/merge_sort.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.10.03
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/util/sort/merge_sort.h"
 
 // std
 #include <string.h>
+// re_std
+#include "../../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
 
 
 /*

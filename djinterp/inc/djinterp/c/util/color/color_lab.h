@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                                color_lab.h
+/*******************************************************************************
+* djinterp [c]                                                       color_lab.h
 *
 *   CIE XYZ and CIE L*a*b* shared kernel for the djinterp color module. XYZ
 * is the device-independent hub through which L*a*b* conversions route, so
@@ -13,8 +13,9 @@
 *
 * path:      /inc/djinterp/c/util/color/color_lab.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -23,24 +24,35 @@ I.    POD TYPES
       ---------
       a. d_color_xyz
       b. d_color_lab
+
 II.   CONSTRUCTION
       ------------
       a. d_color_xyz_make
       b. d_color_lab_make
+
 III.  D65 WHITE POINT
       ---------------
+
 IV.   LAB TRANSFER HELPERS
-      -------------------
+      --------------------
       a. d_color_lab_f
       b. d_color_lab_f_inv
+
 V.    VALIDATION & CLAMPING
       ---------------------
       a. d_color_xyz_is_valid / d_color_lab_is_valid
       b. d_color_xyz_clamp / d_color_lab_clamp
 */
 
-#ifndef  DJINTERP_C_COLOR_LAB_
-#define  DJINTERP_C_COLOR_LAB_ 1
+#ifndef DJINTERP_C_UTIL_COLOR_COLOR_LAB_H
+#define DJINTERP_C_UTIL_COLOR_COLOR_LAB_H 1
+
+// FLOOR, FOR NOW: its C++ face is empty below C++11, rather than an
+// error (README rule 5). The owner's ruling: compile at every level first;
+// port to C++98 only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if ( (!D_ENV_LANG_USING_CPP) ||                                         \
+      (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
 
 // std
 #include <math.h>
@@ -271,5 +283,7 @@ d_color_lab_clamp(
 
 D_COLOR_NS_CLOSE
 
+#endif  // floor, for now
 
-#endif  /*  DJINTERP_C_COLOR_LAB_ */
+
+#endif  // DJINTERP_C_UTIL_COLOR_COLOR_LAB_H

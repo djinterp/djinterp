@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [re_std]                                            owning_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              owning_view.hpp
 *
 * owning_view header:
 *   Provides the C++20 ownership-wrapping range adaptor. owning_view<R>
-* holds a moved-in _Range by value and forwards begin / end / size /
+* holds a moved-in Range by value and forwards begin / end / size /
 * empty / data to it, presenting a view over a range whose storage it
 * owns. Used by views::all when the source range is a movable rvalue
 * non-view.
@@ -13,25 +13,27 @@
 *     qualified member functions, available C++11+.
 *   - Move-only by design — the copy ctor and copy assignment
 *     operator are deleted. The C++20 contract makes copyability
-*     conditional on whether _Range is copyable; re_std takes the
+*     conditional on whether Range is copyable; re_std takes the
 *     conservative deletion to avoid surprising silent copies of
 *     potentially expensive ranges.
 *   - enable_borrowed_range<owning_view<R>> inherits from
 *     enable_borrowed_range<R>: owning_view is borrowed only when
-*     the underlying _Range is itself a borrowed_range.
+*     the underlying Range is itself a borrowed_range.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/owning_view.hpp
+* path:      /inc/re_std/ranges/owning_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_OWNING_VIEW_
-#define DJINTERP_RE_STD_RANGES_OWNING_VIEW_ 1
+#ifndef RE_STD_RANGES_OWNING_VIEW_HPP
+#define RE_STD_RANGES_OWNING_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../iterator/begin.hpp"
 #include "../iterator/end.hpp"
@@ -42,27 +44,28 @@
 #include "./enable_borrowed_range.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   OWNING_VIEW
 // ===========================================================================
 
-// owning_view<_Range>
-//   class: view that owns the underlying _Range by value. Moved-in
+// owning_view<Range>
+//   class: view that owns the underlying Range by value. Moved-in
 // at construction. Move-only.
-template<typename _Range>
-class owning_view : public view_interface<owning_view<_Range> >
+template<typename Range>
+class owning_view : public view_interface<owning_view<Range> >
 {
 private:
-    _Range m_range;
+    Range m_range;
 
 
 public:
     // default ctor
-    //   function: requires _Range to be default-constructible.
-    D_CONSTEXPR
+    //   function: requires Range to be default-constructible.
+    RE_STD_CONSTEXPR
     owning_view()
         : m_range()
     {}
@@ -71,11 +74,11 @@ public:
     //   function: takes ownership of _r by moving it in. There is
     // no lvalue overload — owning_view is the destination for
     // ranges that need ownership transferred.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     owning_view(
-        _Range&& _r
+        Range&& _r
     )
-        : m_range(static_cast<_Range&&>(_r))
+        : m_range(static_cast<Range&&>(_r))
     {}
 
     // move ctor / move assign
@@ -91,17 +94,17 @@ public:
     // base (mutable lvalue)
     //   function: returns a reference to the held range. ref-
     // qualified to provide accurate value categories.
-    D_CONSTEXPR_CPP14 _Range&
+    RE_STD_CONSTEXPR_CPP14 Range&
     base() &
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_range;
     }
 
     // base (const lvalue)
-    D_CONSTEXPR _Range const&
+    RE_STD_CONSTEXPR Range const&
     base() const&
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_range;
     }
@@ -109,25 +112,25 @@ public:
     // base (rvalue)
     //   function: returns an rvalue reference suitable for moving
     // the underlying range out of an expiring owning_view.
-    D_CONSTEXPR_CPP14 _Range&&
+    RE_STD_CONSTEXPR_CPP14 Range&&
     base() &&
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
-        return static_cast<_Range&&>(m_range);
+        return static_cast<Range&&>(m_range);
     }
 
     // base (const rvalue) — kept for completeness; rarely useful.
-    D_CONSTEXPR _Range const&&
+    RE_STD_CONSTEXPR Range const&&
     base() const&&
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
-        return static_cast<_Range const&&>(m_range);
+        return static_cast<Range const&&>(m_range);
     }
 
 
     // begin / end — forward to the underlying range. Both lvalue
     // and const-lvalue overloads provided.
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     begin()
         -> decltype(re_std::begin(m_range))
@@ -135,7 +138,7 @@ public:
         return re_std::begin(m_range);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     begin() const
         -> decltype(re_std::begin(m_range))
@@ -143,7 +146,7 @@ public:
         return re_std::begin(m_range);
     }
 
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     end()
         -> decltype(re_std::end(m_range))
@@ -151,7 +154,7 @@ public:
         return re_std::end(m_range);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     end() const
         -> decltype(re_std::end(m_range))
@@ -161,7 +164,7 @@ public:
 
 
     // empty / size / data — forward; SFINAE on the underlying.
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     empty()
         -> decltype(re_std::empty(m_range))
@@ -169,7 +172,7 @@ public:
         return re_std::empty(m_range);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     empty() const
         -> decltype(re_std::empty(m_range))
@@ -177,7 +180,7 @@ public:
         return re_std::empty(m_range);
     }
 
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     size()
         -> decltype(re_std::size(m_range))
@@ -185,7 +188,7 @@ public:
         return re_std::size(m_range);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     size() const
         -> decltype(re_std::size(m_range))
@@ -193,7 +196,7 @@ public:
         return re_std::size(m_range);
     }
 
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     data()
         -> decltype(re_std::data(m_range))
@@ -201,7 +204,7 @@ public:
         return re_std::data(m_range);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     data() const
         -> decltype(re_std::data(m_range))
@@ -215,23 +218,23 @@ public:
 // II.  ENABLE_BORROWED_RANGE OPT-IN
 // ===========================================================================
 
-// enable_borrowed_range<owning_view<_Range>>
-//   trait: borrowed iff the underlying _Range is itself borrowed.
+// enable_borrowed_range<owning_view<Range>>
+//   trait: borrowed iff the underlying Range is itself borrowed.
 // This is the correct conditional opt-in — most owning_view
 // instances are NOT borrowed (they own their storage), but when the
-// underlying _Range happens to be borrowed (e.g. a subrange of
+// underlying Range happens to be borrowed (e.g. a subrange of
 // pointers into separately-owned storage), the owning_view inherits
 // that property.
-template<typename _Range>
-struct enable_borrowed_range<owning_view<_Range> >
-    : enable_borrowed_range<_Range>
+template<typename Range>
+struct enable_borrowed_range<owning_view<Range> >
+    : enable_borrowed_range<Range>
 {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_OWNING_VIEW_
+#endif  // RE_STD_RANGES_OWNING_VIEW_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [text]                                            text_template.hpp
+/*******************************************************************************
+* djinterp [core]                                              text_template.hpp
 *
 *   Convenient, high-performance string interpolation.  `text_template` binds a
 * `parser` (parser.hpp), which scans a format string with `{key}` placeholders
@@ -34,23 +34,31 @@
 *
 *   Requires C++17 (std::string_view); self-suppresses below it.
 *
+*
 * path:      /inc/djinterp/core/text/text_template.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.14
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.14
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEXT_TEMPLATE_
-#define DJINTERP_TEXT_TEMPLATE_ 1
+#ifndef DJINTERP_TEXT_TEXT_TEMPLATE_HPP
+#define DJINTERP_TEXT_TEXT_TEMPLATE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
+#include <initializer_list>
 #include <string>
 #include <string_view>
-#include <vector>
 #include <utility>
-#include <initializer_list>
+#include <vector>
 // djinterp
-#include "../djinterp.hpp"                 // NS_*, D_NODISCARD, language gates
+#include "../../djinterp.hpp"                 // NS_*, D_NODISCARD, language gates
 
 
 // std::string_view is the spine of the source contract; below C++17 this
@@ -83,13 +91,13 @@ NS_INTERNAL
 //   Lenient and never throws: an unmatched `{` with no following `}` is emitted
 // literally, a lone `}` is literal, and the first `}` closes a placeholder (no
 // nesting).
-template<typename _Type = char>
+template<typename Type = char>
 class placeholder_parser
 {
 public:
-    using char_type   = _Type;
-    using string_type = std::basic_string<_Type>;
-    using view_type   = std::basic_string_view<_Type>;
+    using char_type   = Type;
+    using string_type = std::basic_string<Type>;
+    using view_type   = std::basic_string_view<Type>;
     using size_type   = std::size_t;
 
     // segment
@@ -139,7 +147,7 @@ public:
     }
 
     explicit placeholder_parser(
-        const _Type* _format
+        const Type* _format
     )
         : m_format(_format ? string_type(_format) : string_type()),
           m_segments()
@@ -240,15 +248,15 @@ private:
     // is_space -- ASCII whitespace test for key trimming.
     static bool
     is_space(
-        _Type _c
+        Type _c
     )
     {
-        return ( _c == static_cast<_Type>(' ')  ||
-                 _c == static_cast<_Type>('\t') ||
-                 _c == static_cast<_Type>('\n') ||
-                 _c == static_cast<_Type>('\r') ||
-                 _c == static_cast<_Type>('\f') ||
-                 _c == static_cast<_Type>('\v') );
+        return ( _c == static_cast<Type>(' ')  ||
+                 _c == static_cast<Type>('\t') ||
+                 _c == static_cast<Type>('\n') ||
+                 _c == static_cast<Type>('\r') ||
+                 _c == static_cast<Type>('\f') ||
+                 _c == static_cast<Type>('\v') );
     }
 
     // push_literal -- record a literal segment for [_from, _to), if non-empty.
@@ -270,17 +278,17 @@ private:
     void
     scan()
     {
-        const _Type     k_open  = static_cast<_Type>('{');
-        const _Type     k_close = static_cast<_Type>('}');
+        const Type      k_open  = static_cast<Type>('{');
+        const Type      k_close = static_cast<Type>('}');
         const size_type n       = m_format.size();
-        const _Type*    p       = m_format.data();
+        const Type*    p       = m_format.data();
 
         size_type i         = 0;
         size_type lit_start = 0;
 
         while (i < n)
         {
-            const _Type c = p[i];
+            const Type c = p[i];
 
             if (c == k_open)
             {
@@ -370,20 +378,20 @@ NS_END  // internal
 
 // text_template
 //   class: a format string with `{key}` placeholders, parsed once (by a bound
-// `parser`) into a segment list and rendered many times.  `_Type` is the
+// `parser`) into a segment list and rendered many times.  `Type` is the
 // character type (e.g. char, wchar_t).  Convenient (render against inline
 // bindings or any lookup) and high-performance (no per-render parsing;
 // offset-based, zero-copy segments; a single output allocation, or none with
 // render_to).
-template<typename _Type = char>
+template<typename Type = char>
 class text_template
 {
 public:
-    using char_type   = _Type;
-    using string_type = std::basic_string<_Type>;
-    using view_type   = std::basic_string_view<_Type>;
+    using char_type   = Type;
+    using string_type = std::basic_string<Type>;
+    using view_type   = std::basic_string_view<Type>;
     using size_type   = std::size_t;
-    using parser_type = internal::placeholder_parser<_Type>;
+    using parser_type = internal::placeholder_parser<Type>;
 
     // empty template
     text_template() = default;
@@ -404,7 +412,7 @@ public:
 
     // build from a C string
     explicit text_template(
-        const _Type* _format
+        const Type* _format
     )
         : m_parser(_format)
     {}
@@ -412,11 +420,11 @@ public:
     // render_to -- append the interpolation of `_lookup` into `_out` (no result
     // allocation).  `_lookup` is callable (view_type) -> (convertible to
     // view_type); the threaded output buffer is the caller's to size.
-    template<typename _Lookup>
+    template<typename Lookup>
     void
     render_to(
         string_type& _out,
-        _Lookup&&    _lookup
+        Lookup&&    _lookup
     ) const
     {
         for (const auto& _seg : m_parser.segments())
@@ -454,16 +462,16 @@ public:
 
     // render -- the interpolation of `_lookup` as a freshly allocated string;
     // reserves a capacity estimate up front.
-    template<typename _Lookup>
+    template<typename Lookup>
     D_NODISCARD string_type
     render(
-        _Lookup&& _lookup
+        Lookup&& _lookup
     ) const
     {
         string_type _out;
         _out.reserve(m_parser.literal_size()
                      + (m_parser.key_count() * k_value_reserve));
-        render_to(_out, static_cast<_Lookup&&>(_lookup));
+        render_to(_out, static_cast<Lookup&&>(_lookup));
 
         return _out;
     }
@@ -478,13 +486,13 @@ public:
     }
 
     // operator() -- render as a value (the functor face of a text_template)
-    template<typename _Lookup>
+    template<typename Lookup>
     D_NODISCARD string_type
     operator()(
-        _Lookup&& _lookup
+        Lookup&& _lookup
     ) const
     {
-        return render(static_cast<_Lookup&&>(_lookup));
+        return render(static_cast<Lookup&&>(_lookup));
     }
 
     D_NODISCARD string_type
@@ -572,5 +580,6 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEXT_TEMPLATE_
+#endif  // DJINTERP_TEXT_TEXT_TEMPLATE_HPP

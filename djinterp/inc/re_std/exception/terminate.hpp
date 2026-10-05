@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                    terminate.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                terminate.hpp
 *
 * the terminate facility:
 *   terminate_handler, terminate(), set_terminate(), get_terminate().
@@ -15,18 +15,21 @@
 *     terminate() invoking the slot (default: abort()).
 *
 *
-* path:      /inc/djinterp/re_std/exception/terminate.hpp
+* path:      /inc/re_std/exception/terminate.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXCEPTION_TERMINATE_
-#define DJINTERP_RE_STD_EXCEPTION_TERMINATE_ 1
+#ifndef RE_STD_EXCEPTION_TERMINATE_HPP
+#define RE_STD_EXCEPTION_TERMINATE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
 
+    // std
     #include <exception>
 
 namespace re_std
@@ -40,7 +43,7 @@ namespace re_std
     //   function: using-declaration from std::terminate. [[noreturn]].
     using std::terminate;
 
-    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
         // set_terminate
         //   function: using-declaration from std::set_terminate.
@@ -64,12 +67,11 @@ namespace internal
             return s_handler;
         }
 
-} // namespace internal
-
+}  // internal
         // set_terminate
         //   function: records the handler in the shadow slot, then
         //   delegates to std::set_terminate. Returns the previous handler.
-        inline terminate_handler set_terminate(terminate_handler _h) D_NOEXCEPT
+        inline terminate_handler set_terminate(terminate_handler _h) RE_STD_NOEXCEPT
         {
             internal::terminate_shadow() = _h;
             return std::set_terminate(_h);
@@ -79,17 +81,17 @@ namespace internal
         //   function: back-port returning the shadowed handler (the value
         //   last passed to re_std::set_terminate). RE_STD AHEAD OF STD:
         //   surfaced on C++98, where std::get_terminate does not exist.
-        inline terminate_handler get_terminate() D_NOEXCEPT
+        inline terminate_handler get_terminate() RE_STD_NOEXCEPT
         {
             return internal::terminate_shadow();
         }
 
-    #endif // D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #endif // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-} // namespace re_std
-
+}  // re_std
 #else // freestanding: reimplement the facility over a local handler slot
 
+    // std
     #include <cstdlib> // abort
 
 namespace re_std
@@ -115,11 +117,10 @@ namespace internal
         return s_handler;
     }
 
-} // namespace internal
-
+}  // internal
     // set_terminate
     //   function: installs a handler, returns the previous one.
-    inline terminate_handler set_terminate(terminate_handler _h) D_NOEXCEPT
+    inline terminate_handler set_terminate(terminate_handler _h) RE_STD_NOEXCEPT
     {
         terminate_handler prev = internal::terminate_shadow();
         internal::terminate_shadow() = (_h != 0) ? _h : &internal::default_terminate;
@@ -128,14 +129,14 @@ namespace internal
 
     // get_terminate
     //   function: returns the currently installed handler.
-    inline terminate_handler get_terminate() D_NOEXCEPT
+    inline terminate_handler get_terminate() RE_STD_NOEXCEPT
     {
         return internal::terminate_shadow();
     }
 
     // terminate
     //   function: invokes the current handler; aborts if it returns.
-    inline void terminate() D_NOEXCEPT
+    inline void terminate() RE_STD_NOEXCEPT
     {
         terminate_handler h = internal::terminate_shadow();
         if (h != 0)
@@ -145,8 +146,7 @@ namespace internal
         abort();
     }
 
-} // namespace re_std
+}  // re_std
+#endif // RE_STD_HAS_EXCEPTIONS
 
-#endif // D_ENV_CPP98_HAS_EXCEPTION
-
-#endif  // DJINTERP_RE_STD_EXCEPTION_TERMINATE_
+#endif  // RE_STD_EXCEPTION_TERMINATE_HPP

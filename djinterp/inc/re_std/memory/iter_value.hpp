@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                      iter_value.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               iter_value.hpp
 *
 * minimal iterator-value-type helper for use inside <memory>:
 *   internal::iter_value<It>::type yields the value_type associated with
@@ -18,15 +18,17 @@
 * std::iterator_traits<const T*>::value_type, which is T (not const T).
 *
 *
-* path:      /inc/djinterp/re_std/memory/iter_value.hpp
+* path:      /inc/re_std/memory/iter_value.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_INTERNAL_ITER_VALUE_
-#define DJINTERP_RE_STD_MEMORY_INTERNAL_ITER_VALUE_ 1
+#ifndef RE_STD_MEMORY_ITER_VALUE_HPP
+#define RE_STD_MEMORY_ITER_VALUE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 namespace re_std
@@ -35,27 +37,26 @@ namespace internal
 {
 
 // Primary: assume It is a class iterator with a value_type typedef.
-template<typename _It>
+template<typename It>
 struct iter_value
 {
-    typedef typename _It::value_type type;
+    typedef typename It::value_type type;
 };
 
 // Raw pointer specialisations.
-template<typename _T>
-struct iter_value<_T*>
+template<typename T>
+struct iter_value<T*>
 {
-    typedef _T type;
+    typedef T type;
 };
 
-template<typename _T>
-struct iter_value<const _T*>
+template<typename T>
+struct iter_value<const T*>
 {
-    typedef _T type;
+    typedef T type;
 };
 
 
-}  // namespace internal
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_MEMORY_INTERNAL_ITER_VALUE_
+}  // internal
+}  // re_std
+#endif  // RE_STD_MEMORY_ITER_VALUE_HPP

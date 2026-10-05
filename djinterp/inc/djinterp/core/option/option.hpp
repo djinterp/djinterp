@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [option]                                                 option.hpp
+/*******************************************************************************
+* djinterp [core]                                                     option.hpp
 *
 *   The core option<> type, its detection trait, and the C++20 concept
 * analogs - everything that speaks about a SINGLE option<>, in one header.
 *
-*     option<_Key, _Args...>
+*     option<Key, Args...>
 *
 *   The key is a value (NTTP); everything after it is an "arg" type that is
 * context-less by default - option<> itself imposes no meaning on what an
@@ -32,27 +32,64 @@
 *
 * path:      /inc/djinterp/core/option/option.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    arg_not_found / arg_npos            (reserved arg-search sentinels)
+      -------------------------------------------------------------------
+
 II.   option                              (core type)
+      -----------------------------------------------
+
 III.  is_option                           (option<> specialization detection)
+      -----------------------------------------------------------------------
+
 IV.   Option / UnaryOption / ArgsOption   (C++20 concept analogs)
+      -----------------------------------------------------------
 */
 
-#ifndef DJINTERP_OPTION_
-#define DJINTERP_OPTION_ 1
+#ifndef DJINTERP_OPTION_OPTION_HPP
+#define DJINTERP_OPTION_OPTION_HPP 1
+
+
+//   THE MODULE FLOOR.
+//
+//   C++17 rather than the framework floor of C++11, and it is not a
+// preference. option<> is declared `template<auto Key, typename... Args>`
+// (below, four times) and a deduced non-type template parameter is a C++17
+// feature. There is no C++11 or C++14 spelling of this type to fall back to,
+// so the floor is stated rather than worked around -- per D1, a fallback here
+// would be a second implementation nobody compiles. Below C++17 the header
+// degrades rather than errors (the owner's ruling of 2026.09.30): it
+// compiles to nothing, like every header of the family, each of which
+// gates itself the same way.
+//
+//   The C++20 concept analogs further down are an ADDITION on top of this
+// floor, gated on D_ENV_LANG_IS_CPP20_OR_HIGHER, which is D1 working as
+// intended: a higher tier adds capability, it does not change behaviour.
+//
+//   This is the option subframework's root -- option_set, option_diff,
+// option_compose, option_factory, option_generator, option_override,
+// option_set_compare, option_builder and optionator all reach it before any
+// C++17 construct of their own, so stating it here covers the family.
+
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 
 // std
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // clean_t
 
 
 NS_DJINTERP
@@ -73,7 +110,7 @@ struct arg_not_found
 // arg_npos
 //   value: reserved sentinel index for an arg-search miss.  Mirrors
 // std::string::npos in spirit.
-inline constexpr std::size_t arg_npos = static_cast<std::size_t>(-1);
+D_CONSTEXPR_INLINE_VAR std::size_t arg_npos = static_cast<std::size_t>(-1);
 
 
 // ===========================================================================
@@ -89,37 +126,37 @@ inline constexpr std::size_t arg_npos = static_cast<std::size_t>(-1);
 //   option<window_opt::title>
 //   option<window_opt::title, value<"Untitled">>
 //   option<window_opt::title, value<"Untitled">, verifier<&fn>>
-template<auto        _Key,
-         typename... _Args>
+template<auto        Key,
+         typename... Args>
 struct option;
 
 // unary form
-template<auto _Key>
-struct option<_Key>
+template<auto Key>
+struct option<Key>
 {
-    using key_type = decltype(_Key);
+    using key_type = decltype(Key);
 
-    static constexpr key_type    key       = _Key;
+    static constexpr key_type    key       = Key;
     static constexpr bool        has_args  = false;
     static constexpr std::size_t arg_count = 0;
 };
 
 // args form (1+ args)
-//   Written as <_Key, _First, _Rest...> so it is strictly more
-// specialized than the primary template.  <_Key, _Args...> would be
+//   Written as <Key, First, Rest...> so it is strictly more
+// specialized than the primary template.  <Key, Args...> would be
 // identical to the primary's signature and rejected by the compiler
 // as a non-specialization.
-template<auto        _Key,
-         typename    _First,
-         typename... _Rest>
-struct option<_Key, _First, _Rest...>
+template<auto        Key,
+         typename    First,
+         typename... Rest>
+struct option<Key, First, Rest...>
 {
-    using key_type  = decltype(_Key);
-    using args_type = std::tuple<_First, _Rest...>;
+    using key_type  = decltype(Key);
+    using args_type = std::tuple<First, Rest...>;
 
-    static constexpr key_type    key       = _Key;
+    static constexpr key_type    key       = Key;
     static constexpr bool        has_args  = true;
-    static constexpr std::size_t arg_count = (sizeof...(_Rest) + 1);
+    static constexpr std::size_t arg_count = (sizeof...(Rest) + 1);
 };
 
 
@@ -128,21 +165,21 @@ struct option<_Key, _First, _Rest...>
 // ===========================================================================
 
 // is_option
-//   trait: true iff _Type is some option<_Key, _Args...>
+//   trait: true iff Type is some option<Key, Args...>
 // specialization.  Catches both the unary form (option<K>)
 // and the args form (option<K, A, B, ...>) via a single
-// _Args... pack that may be empty.
-template<typename _Type>
+// Args... pack that may be empty.
+template<typename Type>
 struct is_option : std::false_type
 {};
 
-template<auto        _Key,
-         typename... _Args>
-struct is_option<option<_Key, _Args...>> : std::true_type
+template<auto        Key,
+         typename... Args>
+struct is_option<option<Key, Args...>> : std::true_type
 {};
 
-template<typename _Type>
-D_CONSTEXPR_VAR bool is_option_v = is_option<clean_t<_Type>>::value;
+template<typename Type>
+D_CONSTEXPR bool is_option_v = is_option<clean_t<Type>>::value;
 
 
 // ===========================================================================
@@ -160,37 +197,37 @@ D_CONSTEXPR_VAR bool is_option_v = is_option<clean_t<_Type>>::value;
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 // Option
-//   concept: satisfied iff _Type is some option<...> specialization.
-// Parallels is_option_v<_Type>.
-template<typename _Type>
-concept Option = is_option_v<_Type>;
+//   concept: satisfied iff Type is some option<...> specialization.
+// Parallels is_option_v<Type>.
+template<typename Type>
+concept Option = is_option_v<Type>;
 
 
 // UnaryOption
-//   concept: satisfied iff _Type is a unary option - option<K> with no
+//   concept: satisfied iff Type is a unary option - option<K> with no
 // args.  Composite over Option + ::has_args == false.  A SHAPE
 // classifier only ("this option carries no extra storage"); carries no
 // semantic about the option's role.
-template<typename _Type>
+template<typename Type>
 concept UnaryOption =
-    Option<_Type> &&
+    Option<Type> &&
     requires
     {
-        requires (_Type::has_args == false);
+        requires (Type::has_args == false);
     };
 
 
 // ArgsOption
-//   concept: satisfied iff _Type is an option with at least one arg.
+//   concept: satisfied iff Type is an option with at least one arg.
 // Complementary to UnaryOption.  Reports only that there ARE args, not
 // anything about their shape.
-template<typename _Type>
+template<typename Type>
 concept ArgsOption =
-    Option<_Type> &&
+    Option<Type> &&
     requires
     {
-        requires (_Type::has_args == true);
-        typename _Type::args_type;
+        requires (Type::has_args == true);
+        typename Type::args_type;
     };
 
 #endif  // C++20 concepts available
@@ -198,5 +235,6 @@ concept ArgsOption =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_
+#endif  // DJINTERP_OPTION_OPTION_HPP

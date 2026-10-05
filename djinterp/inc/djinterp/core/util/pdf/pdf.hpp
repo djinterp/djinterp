@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                                      pdf.hpp
+/*******************************************************************************
+* djinterp [core]                                                        pdf.hpp
 *
 * djinterp foundational PDF header:
 *   This header provides the library-agnostic core of the djinterp PDF
@@ -46,28 +46,56 @@
 * D_CONSTEXPR) and operating-system detection (creation-date timestamp).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    UNITS & GEOMETRY
-* II.   PAGE SIZES
-* III.  COLOR
-* IV.   FONTS
-* V.    TEXT & PAINT OPTIONS
-* VI.   CAPABILITIES
-* VII.  BACKEND PROTOCOL
-* VIII. INTERNAL: SERIALIZATION PRIMITIVES
-* IX.   BUILT-IN BACKEND
-* X.    DOCUMENT FACADE
-*
-*
 * path:      /inc/djinterp/core/util/pdf/pdf.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_PDF_
-#define DJINTERP_UTIL_PDF_
+/*
+TABLE OF CONTENTS
+=================
+I.    UNITS & GEOMETRY
+      ----------------
 
+II.   PAGE SIZES
+      ----------
+
+III.  COLOR
+      -----
+
+IV.   FONTS
+      -----
+
+V.    TEXT & PAINT OPTIONS
+      --------------------
+
+VI.   CAPABILITIES
+      ------------
+
+VII.  BACKEND PROTOCOL
+      ----------------
+
+VIII. INTERNAL: SERIALIZATION PRIMITIVES
+      ----------------------------------
+
+IX.   BUILT-IN BACKEND
+      ----------------
+
+X.    DOCUMENT FACADE
+      ---------------
+*/
+
+#ifndef DJINTERP_UTIL_PDF_PDF_HPP
+#define DJINTERP_UTIL_PDF_PDF_HPP
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
 // The PDF module is split into four layered submodules:
 //   pdf_primitives.hpp       - geometry, page sizes, color, fonts, options, raster
 //   pdf_backend.hpp          - capabilities + the abstract backend protocol
@@ -77,5 +105,6 @@
 // unchanged); include a submodule directly to pull in only what you need.
 #include "./pdf_document.hpp"  // transitively includes the entire chain
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_PDF_
+#endif  // DJINTERP_UTIL_PDF_PDF_HPP

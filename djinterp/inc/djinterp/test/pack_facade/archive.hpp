@@ -1,12 +1,12 @@
-/******************************************************************************
-* djinterp [test]                                     pack_facade/archive.hpp
+/*******************************************************************************
+* djinterp [test]                                                    archive.hpp
 *
-* Instrumented drop-in for core/util/archive.hpp, used by the test_pack suite:
-*   The archive-side companion to pack_facade/compress.hpp.  It shadows the
-* production archive facade when a test build defines DTEST_PACK_USE_FACADE_DOUBLE
-* and puts this directory on the include path ahead of the real tree.  It reuses
-* the production include guard (DJINTERP_ARCHIVE_), claimed at the top before any
-* nested include, so a stray include of the real header collapses to a no-op.
+* Instrumented drop-in for core/util/archive/archive.hpp, used by the test_pack suite:
+*   The archive-side companion to pack_facade/compress.hpp. It stands in for
+* the production archive facade when a test build defines
+* DTEST_PACK_USE_FACADE_DOUBLE: core/util/archive/archive.hpp then includes
+* this double in place of itself (the owner's ruling of 2026.10.02), so a unit
+* never holds both. This header keeps its own path-derived include guard.
 *
 *   It reproduces exactly the surface test_pack.hpp consumes -- entry,
 * entry_list, the formats:: tags, try_archive<>, and format_is_writable<> -- but
@@ -34,23 +34,26 @@
 * pulled in, so the double compiles in every language mode env.h reports
 * (C++98 onward); the entry count is rendered through std::ostringstream.
 *
-* path:      /tests/djinterp/test/pack_facade/archive.hpp
+*
+* path:      /inc/djinterp/test/pack_facade/archive.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.20
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_ARCHIVE_
-#define DJINTERP_ARCHIVE_ 1
+#ifndef DJINTERP_TEST_PACK_FACADE_ARCHIVE_HPP
+#define DJINTERP_TEST_PACK_FACADE_ARCHIVE_HPP 1
 
 // std
 #include <cstddef>
 #include <sstream>
 #include <string>
 #include <vector>
+// djinterp
 // djinterp  -- angle-bracket paths so the double is location-independent; the
 // sibling compress double is reached by basename (it sits next to this file).
-#include <djinterp/core/djinterp.hpp>              // NS_*, D_INLINE
-#include <djinterp/core/util/archive_options.hpp>  // archive_options
+#include <djinterp/djinterp.hpp>              // NS_*, D_INLINE
+#include <djinterp/core/util/archive/archive_options.hpp>  // archive_options
 #include "compress.hpp"                            // byte_blob, status, tags
 
 
@@ -174,7 +177,7 @@ NS_INTERNAL
     // expect ("tar_gz", "sevenzip"), NOT the production format_traits::name()
     // spellings ("tar.gz", "7z").  The primary is undefined so an unknown tag is
     // a compile error.
-    template<typename _Format>
+    template<typename Format>
     struct format_label;
 
     template<> struct format_label<formats::zip>      { static const char* name() { return "zip";      } };
@@ -192,11 +195,11 @@ NS_END  // internal
 // =============================================================================
 
 // fmt_stat
-//   function: the mutable status slot for format _Format, status_ok by default.
-// try_archive<_Format> and format_is_writable<_Format> both read it, and a test
+//   function: the mutable status slot for format Format, status_ok by default.
+// try_archive<Format> and format_is_writable<Format> both read it, and a test
 // writes it to force a format's outcome.  Each format type owns exactly one slot
 // for the life of the program.
-template<typename _Format>
+template<typename Format>
 status&
 fmt_stat()
 {
@@ -232,8 +235,8 @@ reset_format_hooks()
 //   function: RECORDS an archive request instead of building it.  On a
 // status_ok slot it writes "A|<tag>|<count>|<first entry name>" into _out;
 // otherwise it empties _out.  The container knob-set is accepted but not part of
-// the recorded surface.  Returns fmt_stat<_Format>() and never throws.
-template<typename _Format>
+// the recorded surface.  Returns fmt_stat<Format>() and never throws.
+template<typename Format>
 status
 try_archive(
     const entry_list&       _items,
@@ -248,7 +251,7 @@ try_archive(
     // warning without naming it in the trace
     (void)_opt;
 
-    s = fmt_stat<_Format>();
+    s = fmt_stat<Format>();
 
     // a failed format records nothing and leaves _out empty
     if (s != status_ok)
@@ -259,7 +262,7 @@ try_archive(
     }
 
     rec << "A|"
-        << internal::format_label<_Format>::name()
+        << internal::format_label<Format>::name()
         << "|" << _items.size()
         << "|" << ( _items.empty() ? std::string() : _items[0].name );
     _out = rec.str();
@@ -270,11 +273,11 @@ try_archive(
 // format_is_writable
 //   function: reports a format writable exactly when its status slot is
 // status_ok, so the availability routers are exercised through the same hook.
-template<typename _Format>
+template<typename Format>
 bool
 format_is_writable()
 {
-    return (fmt_stat<_Format>() == status_ok);
+    return (fmt_stat<Format>() == status_ok);
 }
 
 
@@ -461,4 +464,4 @@ NS_END  // internal
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_ARCHIVE_
+#endif  // DJINTERP_TEST_PACK_FACADE_ARCHIVE_HPP

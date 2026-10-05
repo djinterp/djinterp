@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                              iota_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                iota_view.hpp
 *
 * iota_view header:
 *   Provides the C++20 arithmetic-sequence view. iota_view<W, W>
@@ -35,18 +35,21 @@
 * is documented in coverage_data.py and not enforced here.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/iota_view.hpp
+* path:      /inc/re_std/ranges/iota_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_IOTA_VIEW_
-#define DJINTERP_RE_STD_RANGES_IOTA_VIEW_ 1
+#ifndef RE_STD_RANGES_IOTA_VIEW_HPP
+#define RE_STD_RANGES_IOTA_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>  // ptrdiff_t
 
 #include "../iterator/iterator_traits.hpp"
@@ -55,19 +58,20 @@
 #include "./unreachable_sentinel_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   IOTA_VIEW
 // ===========================================================================
 
-// iota_view<_W, _Bound>
-//   class: half-open interval [start, bound) over _W. Only the
-// common form (_Bound == _W) is supplied here.
-template<typename _W,
-         typename _Bound = _W>
-class iota_view : public view_interface<iota_view<_W, _Bound> >
+// iota_view<W, Bound>
+//   class: half-open interval [start, bound) over W. Only the
+// common form (Bound == W) is supplied here.
+template<typename W,
+         typename Bound = W>
+class iota_view : public view_interface<iota_view<W, Bound> >
 {
 public:
     // ===========================================================
@@ -75,41 +79,41 @@ public:
     // ===========================================================
 
     // iterator
-    //   class: counts _W via operator++ / --. random-access by
-    // default — the underlying _W is assumed to support +, -, <
+    //   class: counts W via operator++ / --. random-access by
+    // default — the underlying W is assumed to support +, -, <
     // arithmetic.
     class iterator
     {
     public:
         typedef random_access_iterator_tag  iterator_category;
-        typedef _W                          value_type;
+        typedef W                          value_type;
         typedef std::ptrdiff_t              difference_type;
-        typedef _W const*                   pointer;
-        typedef _W                          reference;
+        typedef W const*                   pointer;
+        typedef W                          reference;
 
     private:
-        _W m_value;
+        W m_value;
 
 
     public:
         // default ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_value()
         {}
 
         // value ctor
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         iterator(
-            _W _v
+            W _v
         )
             : m_value(_v)
         {}
 
 
         // operator* — yields a copy of the current value (proxy
-        // reference; iota_view's reference type is _W, not _W&).
-        D_CONSTEXPR _W
+        // reference; iota_view's reference type is W, not W&).
+        RE_STD_CONSTEXPR W
         operator*() const
         {
             return m_value;
@@ -117,14 +121,14 @@ public:
 
 
         // operator++ (pre / post)
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator++()
         {
             ++m_value;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator++(int)
         {
             iterator tmp = *this;
@@ -133,14 +137,14 @@ public:
         }
 
         // operator-- (pre / post)
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator--()
         {
             --m_value;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator--(int)
         {
             iterator tmp = *this;
@@ -149,34 +153,34 @@ public:
         }
 
         // operator+= / -= (random-access)
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator+=(
             difference_type _n
         )
         {
-            m_value = static_cast<_W>(m_value + static_cast<_W>(_n));
+            m_value = static_cast<W>(m_value + static_cast<W>(_n));
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator-=(
             difference_type _n
         )
         {
-            m_value = static_cast<_W>(m_value - static_cast<_W>(_n));
+            m_value = static_cast<W>(m_value - static_cast<W>(_n));
             return *this;
         }
 
         // operator+ (iter, n) / (n, iter)
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_INLINE iterator
         operator+(
             difference_type _n
         ) const
         {
-            return iterator(static_cast<_W>(m_value + static_cast<_W>(_n)));
+            return iterator(static_cast<W>(m_value + static_cast<W>(_n)));
         }
 
-        friend D_CONSTEXPR_INLINE iterator
+        friend RE_STD_CONSTEXPR_INLINE iterator
         operator+(
             difference_type _n,
             iterator        _it
@@ -186,16 +190,16 @@ public:
         }
 
         // operator- (iter, n)
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_INLINE iterator
         operator-(
             difference_type _n
         ) const
         {
-            return iterator(static_cast<_W>(m_value - static_cast<_W>(_n)));
+            return iterator(static_cast<W>(m_value - static_cast<W>(_n)));
         }
 
         // operator- (iter, iter)  --  distance
-        D_CONSTEXPR_INLINE difference_type
+        RE_STD_CONSTEXPR_INLINE difference_type
         operator-(
             iterator const& _rhs
         ) const
@@ -205,16 +209,16 @@ public:
         }
 
         // operator[]
-        D_CONSTEXPR _W
+        RE_STD_CONSTEXPR W
         operator[](
             difference_type _n
         ) const
         {
-            return static_cast<_W>(m_value + static_cast<_W>(_n));
+            return static_cast<W>(m_value + static_cast<W>(_n));
         }
 
         // comparisons (==, !=, <, <=, >, >=)
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -222,7 +226,7 @@ public:
             return m_value == _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -230,7 +234,7 @@ public:
             return m_value != _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<(
             iterator const& _rhs
         ) const
@@ -238,7 +242,7 @@ public:
             return m_value < _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<=(
             iterator const& _rhs
         ) const
@@ -246,7 +250,7 @@ public:
             return m_value <= _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>(
             iterator const& _rhs
         ) const
@@ -254,7 +258,7 @@ public:
             return m_value > _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>=(
             iterator const& _rhs
         ) const
@@ -265,23 +269,23 @@ public:
 
 
 private:
-    _W      m_start;
-    _Bound  m_bound;
+    W      m_start;
+    Bound  m_bound;
 
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     iota_view()
         : m_start(),
           m_bound()
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     iota_view(
-        _W      _start,
-        _Bound  _bound
+        W      _start,
+        Bound  _bound
     )
         : m_start(_start),
           m_bound(_bound)
@@ -289,44 +293,44 @@ public:
 
 
     // begin / end
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     begin() const
     {
         return iterator(m_start);
     }
 
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     end() const
     {
-        return iterator(static_cast<_W>(m_bound));
+        return iterator(static_cast<W>(m_bound));
     }
 
     // size
     //   function: bound - start as a std::size_t. Defined when the
-    // arithmetic is well-formed on _W.
-    D_CONSTEXPR std::size_t
+    // arithmetic is well-formed on W.
+    RE_STD_CONSTEXPR std::size_t
     size() const
     {
         return static_cast<std::size_t>(
-            static_cast<_W>(m_bound) - m_start
+            static_cast<W>(m_bound) - m_start
         );
     }
 
     // empty
     //   function: start == bound. Shadows view_interface::empty.
-    D_CONSTEXPR bool
+    RE_STD_CONSTEXPR bool
     empty() const
     {
-        return (m_start == static_cast<_W>(m_bound));
+        return (m_start == static_cast<W>(m_bound));
     }
 };
 
 
 // ===========================================================================
-// II.  IOTA_VIEW<_W, unreachable_sentinel_t>  (unbounded specialisation)
+// II.  IOTA_VIEW<W, unreachable_sentinel_t>  (unbounded specialisation)
 // ===========================================================================
 
-// iota_view<_W, unreachable_sentinel_t>
+// iota_view<W, unreachable_sentinel_t>
 //   class: unbounded arithmetic-sequence view. Counts from _start
 // upward without an upper bound; end() returns
 // unreachable_sentinel_t which never compares equal to the iterator.
@@ -334,9 +338,9 @@ public:
 // note: shares the iterator class structure of the primary template
 // for consistency, defined inline here to keep file-per-symbol
 // granularity (no shared internal helper file).
-template<typename _W>
-class iota_view<_W, unreachable_sentinel_t>
-    : public view_interface<iota_view<_W, unreachable_sentinel_t> >
+template<typename W>
+class iota_view<W, unreachable_sentinel_t>
+    : public view_interface<iota_view<W, unreachable_sentinel_t> >
 {
 public:
     // iterator
@@ -345,43 +349,43 @@ public:
     {
     public:
         typedef random_access_iterator_tag  iterator_category;
-        typedef _W                          value_type;
+        typedef W                          value_type;
         typedef std::ptrdiff_t              difference_type;
-        typedef _W const*                   pointer;
-        typedef _W                          reference;
+        typedef W const*                   pointer;
+        typedef W                          reference;
 
     private:
-        _W m_value;
+        W m_value;
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_value()
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         iterator(
-            _W _v
+            W _v
         )
             : m_value(_v)
         {}
 
 
-        D_CONSTEXPR _W
+        RE_STD_CONSTEXPR W
         operator*() const
         {
             return m_value;
         }
 
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator++()
         {
             ++m_value;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator++(int)
         {
             iterator tmp = *this;
@@ -389,14 +393,14 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator--()
         {
             --m_value;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator--(int)
         {
             iterator tmp = *this;
@@ -404,33 +408,33 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator+=(
             difference_type _n
         )
         {
-            m_value = static_cast<_W>(m_value + static_cast<_W>(_n));
+            m_value = static_cast<W>(m_value + static_cast<W>(_n));
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator-=(
             difference_type _n
         )
         {
-            m_value = static_cast<_W>(m_value - static_cast<_W>(_n));
+            m_value = static_cast<W>(m_value - static_cast<W>(_n));
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_INLINE iterator
         operator+(
             difference_type _n
         ) const
         {
-            return iterator(static_cast<_W>(m_value + static_cast<_W>(_n)));
+            return iterator(static_cast<W>(m_value + static_cast<W>(_n)));
         }
 
-        friend D_CONSTEXPR_INLINE iterator
+        friend RE_STD_CONSTEXPR_INLINE iterator
         operator+(
             difference_type _n,
             iterator        _it
@@ -439,15 +443,15 @@ public:
             return _it + _n;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_INLINE iterator
         operator-(
             difference_type _n
         ) const
         {
-            return iterator(static_cast<_W>(m_value - static_cast<_W>(_n)));
+            return iterator(static_cast<W>(m_value - static_cast<W>(_n)));
         }
 
-        D_CONSTEXPR_INLINE difference_type
+        RE_STD_CONSTEXPR_INLINE difference_type
         operator-(
             iterator const& _rhs
         ) const
@@ -456,15 +460,15 @@ public:
                  - static_cast<difference_type>(_rhs.m_value);
         }
 
-        D_CONSTEXPR _W
+        RE_STD_CONSTEXPR W
         operator[](
             difference_type _n
         ) const
         {
-            return static_cast<_W>(m_value + static_cast<_W>(_n));
+            return static_cast<W>(m_value + static_cast<W>(_n));
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -472,7 +476,7 @@ public:
             return m_value == _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -480,7 +484,7 @@ public:
             return m_value != _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<(
             iterator const& _rhs
         ) const
@@ -488,7 +492,7 @@ public:
             return m_value < _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<=(
             iterator const& _rhs
         ) const
@@ -496,7 +500,7 @@ public:
             return m_value <= _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>(
             iterator const& _rhs
         ) const
@@ -504,7 +508,7 @@ public:
             return m_value > _rhs.m_value;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>=(
             iterator const& _rhs
         ) const
@@ -515,26 +519,26 @@ public:
 
 
 private:
-    _W m_start;
+    W m_start;
 
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     iota_view()
         : m_start()
     {}
 
     // value ctor (single argument: start; no bound).
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     iota_view(
-        _W _start
+        W _start
     )
         : m_start(_start)
     {}
 
 
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     begin() const
     {
         return iterator(m_start);
@@ -544,15 +548,15 @@ public:
     //   function: returns the never-equal sentinel. The view is
     // infinite — pair it with take_view, take_while_view, or
     // similar to obtain a finite range.
-    D_CONSTEXPR unreachable_sentinel_t
+    RE_STD_CONSTEXPR unreachable_sentinel_t
     end() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return unreachable_sentinel_t();
     }
 
     // size and empty are deliberately omitted — the view has no
-    // finite size and is never empty (provided _W is incrementable).
+    // finite size and is never empty (provided W is incrementable).
 };
 
 
@@ -563,9 +567,9 @@ public:
 // enable_borrowed_range<iota_view<W, B>>
 //   trait: iota_view's iterators hold their position by value, so
 // they remain valid past the iota_view's destruction.
-template<typename _W,
-         typename _Bound>
-struct enable_borrowed_range<iota_view<_W, _Bound> >
+template<typename W,
+         typename Bound>
+struct enable_borrowed_range<iota_view<W, Bound> >
     : true_type
 {};
 
@@ -577,39 +581,39 @@ struct enable_borrowed_range<iota_view<_W, _Bound> >
 namespace views
 {
     // views::iota(_start, _bound)
-    //   function: returns iota_view<_W, _W> over [_start, _bound).
-    template<typename _W>
-    D_CONSTEXPR_INLINE
-    iota_view<_W, _W>
+    //   function: returns iota_view<W, W> over [_start, _bound).
+    template<typename W>
+    RE_STD_CONSTEXPR_INLINE
+    iota_view<W, W>
     iota(
-        _W _start,
-        _W _bound
+        W _start,
+        W _bound
     )
     {
-        return iota_view<_W, _W>(_start, _bound);
+        return iota_view<W, W>(_start, _bound);
     }
 
     // views::iota(_start)
-    //   function: returns the unbounded iota_view<_W, unreachable_sentinel_t>
+    //   function: returns the unbounded iota_view<W, unreachable_sentinel_t>
     // starting at _start. The result is an infinite view; pair with
     // views::take, views::take_while, or similar to terminate
     // iteration.
-    template<typename _W>
-    D_CONSTEXPR_INLINE
-    iota_view<_W, unreachable_sentinel_t>
+    template<typename W>
+    RE_STD_CONSTEXPR_INLINE
+    iota_view<W, unreachable_sentinel_t>
     iota(
-        _W _start
+        W _start
     )
     {
-        return iota_view<_W, unreachable_sentinel_t>(_start);
+        return iota_view<W, unreachable_sentinel_t>(_start);
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_IOTA_VIEW_
+#endif  // RE_STD_RANGES_IOTA_VIEW_HPP

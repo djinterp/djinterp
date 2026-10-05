@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                ptrdiff_t.hpp
 *
 * ptrdiff_t typedef (identity-preserving re-export):
@@ -9,30 +9,31 @@
 * rest of the toolchain without a conversion.
 *
 *
-* path:      /inc/djinterp/re_std/cstddef/ptrdiff_t.hpp
+* path:      /inc/re_std/cstddef/ptrdiff_t.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDDEF_PTRDIFF_T_
-#define DJINTERP_RE_STD_CSTDDEF_PTRDIFF_T_ 1
-
-// djinterp
-#include "../../core/djinterp.hpp"
+#ifndef RE_STD_CSTDDEF_PTRDIFF_T_HPP
+#define RE_STD_CSTDDEF_PTRDIFF_T_HPP 1
 
 // std
 //   permitted: fundamental types only.
 #include <cstddef>
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
     // ptrdiff_t
     //   typedef: identity-preserving re-export of std::ptrdiff_t. The signed
     // result type of subtracting two pointers into the same array.
     using ::std::ptrdiff_t;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_CSTDDEF_PTRDIFF_T_
+#endif  // RE_STD_CSTDDEF_PTRDIFF_T_HPP

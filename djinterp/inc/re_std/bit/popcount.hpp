@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 popcount.hpp
 *
 * popcount header:
@@ -11,25 +11,27 @@
 *   C++20 in std, back-ported to C++11 and constexpr from C++11.
 *
 *
-* path:      /inc/djinterp/re_std/bit/popcount.hpp
+* path:      /inc/re_std/bit/popcount.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_POPCOUNT_
-#define DJINTERP_RE_STD_BIT_POPCOUNT_ 1
+#ifndef RE_STD_BIT_POPCOUNT_HPP
+#define RE_STD_BIT_POPCOUNT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./bit_internal.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -38,20 +40,20 @@ NS_RESTD
 
 // popcount
 //   function: population count.
-template<typename _T>
-D_CONSTEXPR typename internal::bit_enable<_T, int>::type
+template<typename T>
+RE_STD_CONSTEXPR typename internal::bit_enable<T, int>::type
 popcount(
-    _T _v
-) D_NOEXCEPT
+    T _v
+) RE_STD_NOEXCEPT
 {
-    return internal::bit_popcount_rec<_T>(_v, 0);
+    return internal::bit_popcount_rec<T>(_v, 0);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BIT_POPCOUNT_
+#endif  // RE_STD_BIT_POPCOUNT_HPP

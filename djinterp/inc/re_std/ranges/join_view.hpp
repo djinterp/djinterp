@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                              join_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                join_view.hpp
 *
 * join_view header:
 *   Provides the C++20 range-of-ranges flattening adaptor. join_view<V>
@@ -35,17 +35,19 @@
 *   re_std::views::join(r).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/join_view.hpp
+* path:      /inc/re_std/ranges/join_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_JOIN_VIEW_
-#define DJINTERP_RE_STD_RANGES_JOIN_VIEW_ 1
+#ifndef RE_STD_RANGES_JOIN_VIEW_HPP
+#define RE_STD_RANGES_JOIN_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -58,31 +60,32 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   JOIN_VIEW
 // ===========================================================================
 
-// join_view<_View>
-//   class: flattens a range-of-ranges _View by one level. _View's
+// join_view<View>
+//   class: flattens a range-of-ranges View by one level. View's
 // reference type must be an lvalue reference (see banner).
-template<typename _View>
-class join_view : public view_interface<join_view<_View> >
+template<typename View>
+class join_view : public view_interface<join_view<View> >
 {
 public:
-    typedef _View   base_view;
+    typedef View   base_view;
 
 
 private:
     // ---- inner-range plumbing ----
     typedef typename remove_reference<
-                          range_reference_t<_View>
+                          range_reference_t<View>
                       >::type                              inner_range;
 
     typedef typename iterator_traits<
-                          iterator_t<_View>
+                          iterator_t<View>
                       >::reference                         outer_reference;
 
 
@@ -99,10 +102,10 @@ private:
                       >::type                              is_ref_inner_t;
 
 
-    _View                                                  m_base;
+    View                                                  m_base;
 
     // m_inner_cache
-    //   field: mutable cache for prvalue inner ranges. Unused (left
+    //   variable: mutable cache for prvalue inner ranges. Unused (left
     // empty) for the reference-inner case. Mutable so that const
     // iterators (via const join_view* back-pointer) can populate it.
     mutable internal::non_propagating_cache<inner_range>   m_inner_cache;
@@ -129,16 +132,16 @@ public:
         // join_view requires both outer AND inner to be bidirectional
         // AND outer to be a common_range (so iterator_t<V> can step
         // back from end).
-        template<typename _Cat>
+        template<typename Cat>
         struct _bidi_clamp
         {
-            typedef _Cat type;
+            typedef Cat type;
         };
 
     public:
         typedef typename _bidi_clamp<
                               typename iterator_traits<
-                                            iterator_t<_View>
+                                            iterator_t<View>
                                         >::iterator_category
                           >::type                               iterator_category;
 
@@ -160,7 +163,7 @@ public:
 
 
     private:
-        iterator_t<_View>           m_outer;
+        iterator_t<View>           m_outer;
         iterator_t<inner_range>     m_inner;
         join_view const*            m_parent;
 
@@ -220,7 +223,7 @@ public:
         void
         satisfy()
         {
-            sentinel_t<_View> outer_end = re_std::end(m_parent->m_base);
+            sentinel_t<View> outer_end = re_std::end(m_parent->m_base);
             while (m_outer != outer_end)
             {
                 _materialize_inner(is_ref_inner_t());
@@ -237,11 +240,11 @@ public:
 
     public:
         // default ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_outer(),
               m_inner(),
-              m_parent(D_NULLPTR)
+              m_parent(RE_STD_NULLPTR)
         {}
 
         // value ctor (begin)
@@ -260,7 +263,7 @@ public:
 
 
         // operator*
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return *m_inner;
@@ -295,7 +298,7 @@ public:
 
 
         // _back_up_to_non_empty
-        //   helper: steps m_outer backward (one position at a time)
+        //   function: steps m_outer backward (one position at a time)
         // until it lands on an outer whose inner range is non-empty.
         // For each step, re-materialises the prvalue cache (if
         // applicable). On exit, m_inner is positioned at the last
@@ -340,14 +343,14 @@ public:
         //     element.
         // (c) m_inner is past begin: just --m_inner.
         //
-        //   Compiles only when iterator_t<_View>, iterator_t<inner_range>
+        //   Compiles only when iterator_t<View>, iterator_t<inner_range>
         // both support operator-- AND V is a common_range (so the
         // past-end m_outer can be decremented). Undefined if invoked
         // at the join_view's first element.
         iterator&
         operator--()
         {
-            sentinel_t<_View> outer_end = re_std::end(m_parent->m_base);
+            sentinel_t<View> outer_end = re_std::end(m_parent->m_base);
 
             // Case (a): past-end. Back up.
             if (m_outer == outer_end)
@@ -379,13 +382,13 @@ public:
 
 
         // outer_base / inner_base — diagnostic accessors.
-        D_CONSTEXPR iterator_t<_View>
+        RE_STD_CONSTEXPR iterator_t<View>
         outer_base() const
         {
             return m_outer;
         }
 
-        D_CONSTEXPR iterator_t<inner_range>
+        RE_STD_CONSTEXPR iterator_t<inner_range>
         inner_base() const
         {
             return m_inner;
@@ -396,18 +399,18 @@ public:
         //   function: equal iff both outer iterators match AND
         // either (a) outer is at end (inner is then irrelevant),
         // or (b) both inner iterators match.
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
         {
             return (m_outer == _rhs.m_outer)
-                && ( (m_parent == D_NULLPTR)
+                && ( (m_parent == RE_STD_NULLPTR)
                   || (m_outer == re_std::end(m_parent->m_base))
                   || (m_inner == _rhs.m_inner) );
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -433,31 +436,31 @@ public:
     class sentinel
     {
     private:
-        sentinel_t<_View>  m_outer_end;
+        sentinel_t<View>  m_outer_end;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         sentinel()
             : m_outer_end()
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         sentinel(
-            sentinel_t<_View>  _e
+            sentinel_t<View>  _e
         )
             : m_outer_end(_e)
         {}
 
 
-        D_CONSTEXPR sentinel_t<_View>
+        RE_STD_CONSTEXPR sentinel_t<View>
         base() const
         {
             return m_outer_end;
         }
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             iterator const&  _it,
             sentinel const&  _s
@@ -466,7 +469,7 @@ public:
             return (_it.outer_base() == _s.m_outer_end);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             iterator const&  _it,
             sentinel const&  _s
@@ -475,7 +478,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             sentinel const&  _s,
             iterator const&  _it
@@ -484,7 +487,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             sentinel const&  _s,
             iterator const&  _it
@@ -497,22 +500,22 @@ public:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     join_view()
         : m_base()
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     join_view(
-        _View  _base
+        View  _base
     )
-        : m_base(static_cast<_View&&>(_base))
+        : m_base(static_cast<View&&>(_base))
     {}
 
 
     // base
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
@@ -538,13 +541,13 @@ public:
 
     // end
     //   function: sentinel at the outer end.
-    D_CONSTEXPR_CPP14 sentinel
+    RE_STD_CONSTEXPR_CPP14 sentinel
     end()
     {
         return sentinel(re_std::end(m_base));
     }
 
-    D_CONSTEXPR sentinel
+    RE_STD_CONSTEXPR sentinel
     end() const
     {
         return sentinel(re_std::end(m_base));
@@ -563,32 +566,32 @@ namespace views
     // range_adaptor_closure base.
     struct join_fn : range_adaptor_closure<join_fn>
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
-        join_view<typename internal::all_dispatch<_R>::type>
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
+        join_view<typename internal::all_dispatch<R>::type>
         operator()(
-            _R&&  _r
+            R&&  _r
         ) const
         {
-            typedef typename internal::all_dispatch<_R>::type  view_type;
+            typedef typename internal::all_dispatch<R>::type  view_type;
             return join_view<view_type>(
-                internal::all_dispatch<_R>::call(static_cast<_R&&>(_r))
+                internal::all_dispatch<R>::call(static_cast<R&&>(_r))
             );
         }
     };
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    inline D_CONSTEXPR join_fn join = join_fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+    inline RE_STD_CONSTEXPR join_fn join = join_fn();
 #else
-    static D_CONSTEXPR join_fn join = join_fn();
+    static RE_STD_CONSTEXPR join_fn join = join_fn();
 #endif
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_JOIN_VIEW_
+#endif  // RE_STD_RANGES_JOIN_VIEW_HPP

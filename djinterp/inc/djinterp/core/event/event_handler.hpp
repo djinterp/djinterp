@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [event]                                                 handler.hpp
+/*******************************************************************************
+* djinterp [core]                                              event_handler.hpp
 *
 * The handler -- a step with a verdict:
 *   A handler is the single primitive of the event layer: given the (ambient)
@@ -28,7 +28,7 @@
 *
 * COMPONENTS:
 *   djinterp::handler_id                       - opaque handler handle
-*   djinterp::handler_traits<_Callable,_Event> - compatibility introspection
+*   djinterp::handler_traits<Callable,Event> - compatibility introspection
 *   djinterp::skip_t / djinterp::skip()        - the monoid unit
 *   djinterp::seq(h1, h2)                       - handler sequencing
 *   djinterp::is_handler / handler_for ...      (C++20 concepts)
@@ -47,37 +47,33 @@
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26
 *
-* 
-* path:      /inc/djinterp/core/event/handler.hpp
+*
+* path:      /inc/djinterp/core/event/event_handler.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.11
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_EVENT_HANDLER_PRIMITIVE_
-#define DJINTERP_EVENT_HANDLER_PRIMITIVE_ 1
+#ifndef DJINTERP_EVENT_EVENT_HANDLER_HPP
+#define DJINTERP_EVENT_EVENT_HANDLER_HPP 1
 
-// require the C++ framework header
-//#ifndef DJINTERP_
-//    #error "handler.hpp requires djinterp.h to be included first"
-//#endif
-//
-//#ifndef __cplusplus
-//    #error "handler.hpp can only be used in C++ compilation mode"
-//#endif
-//
-//#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-//    #error "handler.hpp requires C++11 or higher"
-//#endif
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // clean_t
 #include "./event_common.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 
 
 NS_DJINTERP
@@ -93,7 +89,7 @@ NS_DJINTERP
 // word). The value 0 is reserved as an invalid/null sentinel.
 struct handler_id
 {
-    std::uint64_t value;
+    re_std::uint64_t value;
 
     bool operator==(const handler_id& _other) const
     {
@@ -134,15 +130,15 @@ NS_INTERNAL
     //   function: invokes a void-returning handler and reports the unit
     // verdict pass. This is the adapter that lets a plain void(payload...)
     // callable serve as an always-pass handler.
-    template<typename _H,
-             typename... _A>
+    template<typename H,
+             typename... A>
     typename std::enable_if<
-        std::is_void<decltype(std::declval<_H&>()(std::declval<_A>()...))>::value,
+        std::is_void<decltype(std::declval<H&>()(std::declval<A>()...))>::value,
         verdict>::type
-    invoke_normalized(_H&     _h,
-                      _A&&... _a)
+    invoke_normalized(H&     _h,
+                      A&&... _a)
     {
-        _h(std::forward<_A>(_a)...);
+        _h(std::forward<A>(_a)...);
 
         return verdict::pass;
     }
@@ -150,31 +146,31 @@ NS_INTERNAL
     // invoke_normalized (verdict-returning overload)
     //   function: invokes a verdict-returning handler and forwards its
     // verdict unchanged.
-    template<typename _H,
-             typename... _A>
+    template<typename H,
+             typename... A>
     typename std::enable_if<
         !std::is_void<
-            decltype(std::declval<_H&>()(std::declval<_A>()...))
+            decltype(std::declval<H&>()(std::declval<A>()...))
         >::value,
         verdict>::type
-    invoke_normalized(_H&     _h,
-                      _A&&... _a)
+    invoke_normalized(H&     _h,
+                      A&&... _a)
     {
-        return _h(std::forward<_A>(_a)...);
+        return _h(std::forward<A>(_a)...);
     }
 
     // apply_handler
     //   function: unpacks a payload tuple and invokes the handler with its
     // elements, normalizing the result to a verdict. Used by the registry's
     // type-erased dispatch closure.
-    template<typename _H,
-             typename _Tuple,
-             std::size_t... _I>
-    verdict apply_handler(_H&             _h,
-                          _Tuple&         _payload,
-                          index_sequence<_I...>)
+    template<typename H,
+             typename Tuple,
+             std::size_t... I>
+    verdict apply_handler(H&             _h,
+                          Tuple&         _payload,
+                          index_sequence<I...>)
     {
-        return invoke_normalized(_h, std::get<_I>(_payload)...);
+        return invoke_normalized(_h, std::get<I>(_payload)...);
     }
 
 NS_END  // internal
@@ -187,12 +183,12 @@ NS_END  // internal
 NS_INTERNAL
 
     // handler_invoke_result
-    //   trait: detects whether _Callable is invocable with the payload's
+    //   trait: detects whether Callable is invocable with the payload's
     // value domains and, if so, extracts the result type.
     // primary template: not invocable (SFINAE failure case).
-    template<typename _Void,
-             typename _Callable,
-             typename _Payload>
+    template<typename Void,
+             typename Callable,
+             typename Payload>
     struct handler_invoke_result
     {
         using type = void;
@@ -201,27 +197,27 @@ NS_INTERNAL
 
     // handler_invoke_result (success specialization)
     //   trait: well-formed when the callable accepts the payload elements.
-    template<typename _Callable,
-             typename... _Args>
+    template<typename Callable,
+             typename... Args>
     struct handler_invoke_result<
         decltype(static_cast<void>(
-            std::declval<_Callable&>()(std::declval<_Args>()...)
+            std::declval<Callable&>()(std::declval<Args>()...)
         )),
-        _Callable,
-        std::tuple<_Args...>>
+        Callable,
+        std::tuple<Args...>>
     {
         using type = decltype(
-            std::declval<_Callable&>()(std::declval<_Args>()...));
+            std::declval<Callable&>()(std::declval<Args>()...));
         static constexpr bool value = true;
     };
 
     // handler_nothrow_helper
-    //   trait: detects whether invoking _Callable with the payload's value
+    //   trait: detects whether invoking Callable with the payload's value
     // domains is noexcept.
     // primary template: not noexcept (SFINAE failure or throwing).
-    template<typename _Void,
-             typename _Callable,
-             typename _Payload>
+    template<typename Void,
+             typename Callable,
+             typename Payload>
     struct handler_nothrow_helper
     {
         static constexpr bool value = false;
@@ -229,15 +225,15 @@ NS_INTERNAL
 
     // handler_nothrow_helper (success specialization)
     //   trait: evaluates noexcept for the payload invocation.
-    template<typename _Callable,
-             typename... _Args>
+    template<typename Callable,
+             typename... Args>
     struct handler_nothrow_helper<
         typename std::enable_if<
             noexcept(
-                std::declval<_Callable&>()(std::declval<_Args>()...))
+                std::declval<Callable&>()(std::declval<Args>()...))
         >::type,
-        _Callable,
-        std::tuple<_Args...>>
+        Callable,
+        std::tuple<Args...>>
     {
         static constexpr bool value = true;
     };
@@ -254,24 +250,24 @@ NS_END  // internal
 // handler of a given event type. A compatible handler is invocable with the
 // event's payload value domains and returns either void (always-pass) or a
 // verdict.
-// requires: _Event must satisfy event_traits requirements.
+// requires: Event must satisfy event_traits requirements.
 //
 // provides:
-//   is_invocable     - true if _Callable(payload...) is well-formed
+//   is_invocable     - true if Callable(payload...) is well-formed
 //   is_compatible    - is_invocable and the result is void or verdict
 //   is_nothrow       - true if the invocation is noexcept
 //   expected_arity   - number of payload value domains of the event
 //   return_type      - the callable's return type (void if not invocable)
 //   returns_void     - true if the callable returns void (always-pass)
 //   returns_verdict  - true if the callable returns a verdict
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 struct handler_traits
 {
 private:
-    using event_t    = event_traits<clean_t<_Event>>;
+    using event_t    = event_traits<clean_t<Event>>;
     using payload_t  = typename event_t::payload_type;
-    using callable_t = clean_t<_Callable>;
+    using callable_t = clean_t<Callable>;
     using invoke_t   =
         internal::handler_invoke_result<void, callable_t, payload_t>;
 
@@ -281,7 +277,7 @@ public:
     static constexpr std::size_t expected_arity = event_t::arity;
 
     // is_invocable
-    //   constant: true if _Callable can be invoked with the payload's
+    //   constant: true if Callable can be invoked with the payload's
     // value domains.
     static constexpr bool is_invocable = invoke_t::value;
 
@@ -302,7 +298,7 @@ public:
         std::is_same<return_type, verdict>::value;
 
     // is_compatible
-    //   constant: true if _Callable is invocable with the payload and its
+    //   constant: true if Callable is invocable with the payload and its
     // result is interpretable as a verdict (void or verdict).
     static constexpr bool is_compatible =
         ( is_invocable &&
@@ -331,11 +327,11 @@ public:
 // removing skip -- the algebraic reason masking a handler is well-defined.
 struct skip_t
 {
-    template<typename... _Args>
-    verdict operator()(_Args&&...) const
+    template<typename... Args>
+    verdict operator()(Args&&...) const
     {
         return verdict::pass;
-    };
+    }
 };
 
 // skip
@@ -353,15 +349,15 @@ NS_INTERNAL
     // otherwise the second runs and its verdict is returned. Arguments are
     // passed as lvalues to both stages (never moved) so the shared payload
     // survives the first invocation.
-    template<typename _H1,
-             typename _H2>
+    template<typename H1,
+             typename H2>
     struct seq_handler
     {
-        _H1 first;
-        _H2 second;
+        H1 first;
+        H2 second;
 
-        template<typename... _Args>
-        verdict operator()(_Args&&... _args)
+        template<typename... Args>
+        verdict operator()(Args&&... _args)
         {
             verdict v = invoke_normalized(first, _args...);
 
@@ -372,7 +368,7 @@ NS_INTERNAL
             }
 
             return invoke_normalized(second, _args...);
-        };
+        }
     };
 
 NS_END  // internal
@@ -381,15 +377,15 @@ NS_END  // internal
 //   function: sequences two handlers into one (h1 ; h2), realizing the
 // monoid operation. With skip as unit and consume as left zero, repeated
 // seq folds a whole handler word into a single handler.
-template<typename _H1,
-         typename _H2>
-internal::seq_handler<clean_t<_H1>, clean_t<_H2>>
-seq(_H1&& _h1,
-    _H2&& _h2)
+template<typename H1,
+         typename H2>
+internal::seq_handler<clean_t<H1>, clean_t<H2>>
+seq(H1&& _h1,
+    H2&& _h2)
 {
-    return internal::seq_handler<clean_t<_H1>, clean_t<_H2>>{
-        clean_t<_H1>(std::forward<_H1>(_h1)),
-        clean_t<_H2>(std::forward<_H2>(_h2))};
+    return internal::seq_handler<clean_t<H1>, clean_t<H2>>{
+        clean_t<H1>(std::forward<H1>(_h1)),
+        clean_t<H2>(std::forward<H2>(_h2))};
 }
 
 
@@ -404,117 +400,119 @@ seq(_H1&& _h1,
 // is_handler
 //   concept: constrains callables that can serve as a handler for a given
 // event type (invocable with the payload, returning void or verdict).
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept is_handler =
-    is_event<clean_t<_Event>> &&
-    handler_traits<clean_t<_Callable>, clean_t<_Event>>::is_compatible;
+    is_event<clean_t<Event>> &&
+    handler_traits<clean_t<Callable>, clean_t<Event>>::is_compatible;
 
 // is_nothrow_handler
 //   concept: constrains noexcept-compatible handlers for an event type.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept is_nothrow_handler =
-    is_handler<_Callable, _Event> &&
-    handler_traits<clean_t<_Callable>, clean_t<_Event>>::is_nothrow;
+    is_handler<Callable, Event> &&
+    handler_traits<clean_t<Callable>, clean_t<Event>>::is_nothrow;
 
 // handler_for
 //   concept: readable spelling of is_handler.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept handler_for =
-    is_handler<_Callable, _Event>;
+    is_handler<Callable, Event>;
 
 // nothrow_handler_for
 //   concept: readable spelling of is_nothrow_handler.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept nothrow_handler_for =
-    is_nothrow_handler<_Callable, _Event>;
+    is_nothrow_handler<Callable, Event>;
 
 // throwing_handler_for
 //   concept: constrains compatible handlers whose invocation is not
 // statically known to be noexcept.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept throwing_handler_for =
-    handler_for<_Callable, _Event> &&
-    !handler_traits<clean_t<_Callable>, clean_t<_Event>>::is_nothrow;
+    handler_for<Callable, Event> &&
+    !handler_traits<clean_t<Callable>, clean_t<Event>>::is_nothrow;
 
 
 // ---- return-type handler concepts ----
 
 // void_handler_for
 //   concept: constrains handlers returning void (always-pass handlers).
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept void_handler_for =
-    handler_for<_Callable, _Event> &&
-    handler_traits<clean_t<_Callable>, clean_t<_Event>>::returns_void;
+    handler_for<Callable, Event> &&
+    handler_traits<clean_t<Callable>, clean_t<Event>>::returns_void;
 
 // verdict_handler_for
 //   concept: constrains handlers returning an explicit verdict.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept verdict_handler_for =
-    handler_for<_Callable, _Event> &&
-    handler_traits<clean_t<_Callable>, clean_t<_Event>>::returns_verdict;
+    handler_for<Callable, Event> &&
+    handler_traits<clean_t<Callable>, clean_t<Event>>::returns_verdict;
 
 
 // ---- event-arity handler concepts ----
 
 // handler_for_event_of_arity
-//   concept: constrains handlers for an event carrying exactly _Arity
+//   concept: constrains handlers for an event carrying exactly Arity
 // payload value domains.
-template<typename _Callable,
-         typename _Event,
-         std::size_t _Arity>
+template<typename Callable,
+         typename Event,
+         std::size_t Arity>
 concept handler_for_event_of_arity =
-    handler_for<_Callable, _Event> &&
-    (handler_traits<clean_t<_Callable>, clean_t<_Event>>::expected_arity ==
-     _Arity);
+    handler_for<Callable, Event> &&
+    (handler_traits<clean_t<Callable>, clean_t<Event>>::expected_arity ==
+     Arity);
 
 // nullary_handler_for
 //   concept: constrains handlers for empty events.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept nullary_handler_for =
-    handler_for_event_of_arity<_Callable, _Event, 0>;
+    handler_for_event_of_arity<Callable, Event, 0>;
 
 // unary_handler_for
 //   concept: constrains handlers for unary events.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept unary_handler_for =
-    handler_for_event_of_arity<_Callable, _Event, 1>;
+    handler_for_event_of_arity<Callable, Event, 1>;
 
 // binary_handler_for
 //   concept: constrains handlers for binary events.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept binary_handler_for =
-    handler_for_event_of_arity<_Callable, _Event, 2>;
+    handler_for_event_of_arity<Callable, Event, 2>;
 
 // ternary_handler_for
 //   concept: constrains handlers for ternary events.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept ternary_handler_for =
-    handler_for_event_of_arity<_Callable, _Event, 3>;
+    handler_for_event_of_arity<Callable, Event, 3>;
 
 // variadic_handler_for
 //   concept: constrains handlers for events carrying four or more payload
 // value domains.
-template<typename _Callable,
-         typename _Event>
+template<typename Callable,
+         typename Event>
 concept variadic_handler_for =
-    handler_for<_Callable, _Event> &&
-    (handler_traits<clean_t<_Callable>, clean_t<_Event>>::expected_arity > 3);
+    handler_for<Callable, Event> &&
+    (handler_traits<clean_t<Callable>, clean_t<Event>>::expected_arity > 3);
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EVENT_HANDLER_PRIMITIVE_
+
+#endif  // DJINTERP_EVENT_EVENT_HANDLER_HPP

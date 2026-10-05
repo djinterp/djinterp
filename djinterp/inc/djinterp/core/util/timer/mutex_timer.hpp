@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [util]                                              mutex_timer.hpp
+/*******************************************************************************
+* djinterp [core]                                                mutex_timer.hpp
 *
 * Lock-policy-based thread-safe timer.
-*   Wraps the base `timer<_Clock, _Duration>` with a configurable lock
+*   Wraps the base `timer<Clock, Duration>` with a configurable lock
 * policy from the threadsafe module.  Every public operation
 * acquires either a read lock (accessors) or a write lock (mutations)
 * through the policy's RAII guards.
@@ -26,64 +26,72 @@
 *   Requires C++17 or later.
 *
 *
-* path:      /inc/djinterp/util/timer/mutex_timer.hpp
+* path:      /inc/djinterp/core/util/timer/mutex_timer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_MUTEX_TIMER_
-#define DJINTERP_UTILITY_MUTEX_TIMER_ 1
+#ifndef DJINTERP_UTIL_TIMER_MUTEX_TIMER_HPP
+#define DJINTERP_UTIL_TIMER_MUTEX_TIMER_HPP 1
 
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// std
 #include <chrono>
 #include <vector>
-#include "../../djinterp.hpp"
+// djinterp
+#include "../../../djinterp.hpp"
 #include "../../sync/lock_policy.hpp"
 #include "../../sync/lock_guard.hpp"
 #include "./timer.hpp"
 
 
 NS_DJINTERP
-NS_UTIL
 
 
 // =========================================================================
 // mutex_timer
 //   class: a thread-safe nestable timer with configurable lock policy.
 //
-//   Wraps `timer<_Clock, _Duration>` by composition.  Read operations
+//   Wraps `timer<Clock, Duration>` by composition.  Read operations
 // acquire a shared lock (when the policy supports it); write operations
 // acquire an exclusive lock.  Children are mutex_timers with the same
 // clock, duration, and policy, each with their own mutex.
 //
-//   Template parameter `_Clock` must satisfy the Clock named requirement.
-//   Template parameter `_Duration` must be a std::chrono::duration.
-//   Template parameter `_Policy` must be a lock policy struct.
+//   Template parameter `Clock` must satisfy the Clock named requirement.
+//   Template parameter `Duration` must be a std::chrono::duration.
+//   Template parameter `Policy` must be a lock policy struct.
 // =========================================================================
-template<typename _Clock    = std::chrono::steady_clock,
-         typename _Duration = typename _Clock::duration,
-         typename _Policy   = threadsafe::default_lock_policy>
+template<typename Clock     = std::chrono::steady_clock,
+         typename Duration = typename Clock::duration,
+         typename Policy    = default_lock_policy>
 class mutex_timer
 {
 private:
-    using self_type      = mutex_timer<_Clock, _Duration, _Policy>;
-    using base_type      = timer<_Clock, _Duration>;
+    using self_type      = mutex_timer<Clock, Duration, Policy>;
+    using base_type      = timer<Clock, Duration>;
     using children_type  = std::vector<self_type>;
     using observed_type  = std::vector<self_type*>;
-    using read_guard     = threadsafe::scoped_read_lock<_Policy>;
-    using write_guard    = threadsafe::scoped_write_lock<_Policy>;
+    using read_guard     = scoped_read_lock<Policy>;
+    using write_guard    = scoped_write_lock<Policy>;
 
 public:
-    using clock_type       = _Clock;
-    using duration_type    = _Duration;
-    using rep_type         = typename _Duration::rep;
+    using clock_type       = Clock;
+    using duration_type    = Duration;
+    using rep_type         = typename Duration::rep;
     using size_type        = std::size_t;
-    using lock_policy_type = _Policy;
-    using mutex_type       = typename _Policy::mutex_type;
+    using lock_policy_type = Policy;
+    using mutex_type       = typename Policy::mutex_type;
 
     // --- policy descriptors ---
-    static constexpr bool is_threadsafe = _Policy::is_threadsafe;
-    static constexpr bool is_shared     = _Policy::is_shared;
-    static constexpr bool is_timed      = _Policy::is_timed;
+    static constexpr bool is_threadsafe = Policy::is_threadsafe;
+    static constexpr bool is_shared     = Policy::is_shared;
+    static constexpr bool is_timed      = Policy::is_timed;
 
     // -----------------------------------------------------------------
     // constructors
@@ -104,7 +112,7 @@ public:
     // the timer is considered expired once accumulated time reaches
     // or exceeds `_max`.
     explicit mutex_timer(
-            _Duration _max
+            Duration _max
         )
         : m_timer(_max),
           m_children(),
@@ -186,7 +194,7 @@ public:
     // could not be acquired, if already running, or if expired.
     bool try_start()
     {
-        threadsafe::scoped_try_lock<_Policy> guard(m_mutex);
+        scoped_try_lock<Policy> guard(m_mutex);
 
         if (!guard.owns_lock())
         {
@@ -209,7 +217,7 @@ public:
     // could not be acquired or if the timer is not running.
     bool try_stop()
     {
-        threadsafe::scoped_try_lock<_Policy> guard(m_mutex);
+        scoped_try_lock<Policy> guard(m_mutex);
 
         if (!guard.owns_lock())
         {
@@ -233,7 +241,7 @@ public:
     // elapsed
     //   returns the total accumulated duration. if the timer is
     // currently running, includes time since the last start.
-    _Duration elapsed() const
+    Duration elapsed() const
     {
         read_guard guard(m_mutex);
 
@@ -242,7 +250,7 @@ public:
 
     // max
     //   returns the maximum duration limit, or zero if no limit is set.
-    _Duration max() const
+    Duration max() const
     {
         read_guard guard(m_mutex);
 
@@ -280,7 +288,7 @@ public:
     // remaining
     //   returns the time remaining before expiry, or zero if no
     // limit is set or the timer is already expired.
-    _Duration remaining() const
+    Duration remaining() const
     {
         read_guard guard(m_mutex);
 
@@ -311,7 +319,7 @@ public:
     //   constructs and appends an owned child timer with a maximum
     // duration limit. returns a reference to the newly added child.
     self_type& add_child(
-            _Duration _max
+            Duration _max
         )
     {
         write_guard guard(m_mutex);
@@ -419,8 +427,8 @@ private:
 };
 
 
-NS_END  // util
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTILITY_MUTEX_TIMER_
+#endif  // DJINTERP_UTIL_TIMER_MUTEX_TIMER_HPP

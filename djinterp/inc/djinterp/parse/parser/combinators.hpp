@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                       parser/combinators.hpp
+/*******************************************************************************
+* djinterp [parse]                                               combinators.hpp
 *
 * Higher-level combinators — each a concrete CRTP class.
 *   The named combinators here are the workhorses of a typical
@@ -57,11 +57,18 @@
 *
 * path:      /inc/djinterp/parse/parser/combinators.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_PARSER_COMBINATORS_
-#define DJINTERP_PARSE_PARSER_COMBINATORS_ 1
+#ifndef DJINTERP_PARSE_PARSER_COMBINATORS_HPP
+#define DJINTERP_PARSE_PARSER_COMBINATORS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -72,6 +79,7 @@
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../../core/meta/type_utility.hpp"  // clean_t
 #include "../../core/functional/maybe.hpp"
 #include "../parse.hpp"
 #include "./parser.hpp"
@@ -93,23 +101,23 @@ NS_INTERNAL
 
     // child_input
     //   trait: input_type of a child parser.
-    template<typename _P>
+    template<typename P>
     using child_input =
-        typename clean_t<_P>::input_type;
+        typename clean_t<P>::input_type;
 
     // child_result
     //   trait: result_type of a child parser.
-    template<typename _P>
+    template<typename P>
     using child_result =
-        typename clean_t<_P>::result_type;
+        typename clean_t<P>::result_type;
 
     // call_result_of
     //   trait: the decayed return type of f(arg).
-    template<typename _F,
-             typename _Arg>
+    template<typename F,
+             typename Arg>
     using call_result_of =
         typename std::decay<decltype(
-            std::declval<_F>()(std::declval<_Arg>()))>::type;
+            std::declval<F>()(std::declval<Arg>()))>::type;
 
 NS_END  // internal
 
@@ -122,26 +130,26 @@ NS_END  // internal
 //   class: applies a pure function to the result of an inner parser.
 // Equivalent to the Functor map; named locally so it composes
 // statically.
-template<typename _P,
-         typename _F>
+template<typename P,
+         typename F>
 class map_parser
-    : public parser_expr<map_parser<_P, _F>>
+    : public parser_expr<map_parser<P, F>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
     using result_type  =
-        internal::call_result_of<_F, internal::child_result<_P>>;
+        internal::call_result_of<F, internal::child_result<P>>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     map_parser(
-        _P _p,
-        _F _f
+        P _p,
+        F _f
     )
-        : m_p(static_cast<_P&&>(_p)),
-          m_f(static_cast<_F&&>(_f))
+        : m_p(static_cast<P&&>(_p)),
+          m_f(static_cast<F&&>(_f))
     {}
 
     output_type
@@ -149,7 +157,7 @@ public:
         state_type& _state
     ) const
     {
-        parse_result<internal::child_result<_P>> r = m_p.parse(_state);
+        parse_result<internal::child_result<P>> r = m_p.parse(_state);
 
         if (!r.ok())
         {
@@ -160,27 +168,27 @@ public:
     }
 
 private:
-    _P m_p;
-    _F m_f;
+    P m_p;
+    F m_f;
 };
 
 // map
 //   factory: applies _f to whatever _p produces.
-template<typename _P,
-         typename _F>
+template<typename P,
+         typename F>
 D_NODISCARD
-map_parser<_P, _F>
+map_parser<P, F>
 map(
-    _P _p,
-    _F _f
+    P _p,
+    F _f
 )
 {
-    static_assert(is_parser<_P>::value,
-                  "map: _P must be a parser expression");
+    static_assert(is_parser<P>::value,
+                  "map: P must be a parser expression");
 
-    return map_parser<_P, _F>(
-        static_cast<_P&&>(_p),
-        static_cast<_F&&>(_f));
+    return map_parser<P, F>(
+        static_cast<P&&>(_p),
+        static_cast<F&&>(_f));
 }
 
 
@@ -193,16 +201,16 @@ map(
 // value to obtain a second parser; runs that parser at the state
 // _p left behind.  The result_type is whatever _f's returned
 // parser produces.
-template<typename _P,
-         typename _F>
+template<typename P,
+         typename F>
 class bind_parser
-    : public parser_expr<bind_parser<_P, _F>>
+    : public parser_expr<bind_parser<P, F>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
     using next_parser_type =
-        internal::call_result_of<_F, internal::child_result<_P>>;
+        internal::call_result_of<F, internal::child_result<P>>;
     using result_type  =
         typename next_parser_type::result_type;
     using value_type   = result_type;
@@ -210,11 +218,11 @@ public:
     using output_type  = parse_result<result_type>;
 
     bind_parser(
-        _P _p,
-        _F _f
+        P _p,
+        F _f
     )
-        : m_p(static_cast<_P&&>(_p)),
-          m_f(static_cast<_F&&>(_f))
+        : m_p(static_cast<P&&>(_p)),
+          m_f(static_cast<F&&>(_f))
     {}
 
     output_type
@@ -222,7 +230,7 @@ public:
         state_type& _state
     ) const
     {
-        parse_result<internal::child_result<_P>> r = m_p.parse(_state);
+        parse_result<internal::child_result<P>> r = m_p.parse(_state);
 
         if (!r.ok())
         {
@@ -235,27 +243,27 @@ public:
     }
 
 private:
-    _P m_p;
-    _F m_f;
+    P m_p;
+    F m_f;
 };
 
 // bind
 //   factory: monadic bind on parser expressions.
-template<typename _P,
-         typename _F>
+template<typename P,
+         typename F>
 D_NODISCARD
-bind_parser<_P, _F>
+bind_parser<P, F>
 bind(
-    _P _p,
-    _F _f
+    P _p,
+    F _f
 )
 {
-    static_assert(is_parser<_P>::value,
-                  "bind: _P must be a parser expression");
+    static_assert(is_parser<P>::value,
+                  "bind: P must be a parser expression");
 
-    return bind_parser<_P, _F>(
-        static_cast<_P&&>(_p),
-        static_cast<_F&&>(_f));
+    return bind_parser<P, F>(
+        static_cast<P&&>(_p),
+        static_cast<F&&>(_f));
 }
 
 
@@ -267,32 +275,32 @@ bind(
 //   class: run _p then _q; both must succeed; return the pair.  The
 // basic concatenation at the parser layer — the operational dual of
 // the grammar's × product.
-template<typename _P,
-         typename _Q>
+template<typename P,
+         typename Q>
 class seq_parser
-    : public parser_expr<seq_parser<_P, _Q>>
+    : public parser_expr<seq_parser<P, Q>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
     using result_type  = std::pair<
-        internal::child_result<_P>,
-        internal::child_result<_Q>>;
+        internal::child_result<P>,
+        internal::child_result<Q>>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     static_assert(
-        std::is_same<internal::child_input<_P>,
-                     internal::child_input<_Q>>::value,
+        std::is_same<internal::child_input<P>,
+                     internal::child_input<Q>>::value,
         "seq_parser: branches must share input_type");
 
     seq_parser(
-        _P _p,
-        _Q _q
+        P _p,
+        Q _q
     )
-        : m_p(static_cast<_P&&>(_p)),
-          m_q(static_cast<_Q&&>(_q))
+        : m_p(static_cast<P&&>(_p)),
+          m_q(static_cast<Q&&>(_q))
     {}
 
     output_type
@@ -300,14 +308,14 @@ public:
         state_type& _state
     ) const
     {
-        parse_result<internal::child_result<_P>> r1 = m_p.parse(_state);
+        parse_result<internal::child_result<P>> r1 = m_p.parse(_state);
 
         if (!r1.ok())
         {
             return output_type(r1.error());
         }
 
-        parse_result<internal::child_result<_Q>> r2 = m_q.parse(_state);
+        parse_result<internal::child_result<Q>> r2 = m_q.parse(_state);
 
         if (!r2.ok())
         {
@@ -319,57 +327,57 @@ public:
     }
 
 private:
-    _P m_p;
-    _Q m_q;
+    P m_p;
+    Q m_q;
 };
 
 // seq
 //   factory: pair-returning sequencing of two parsers.
-template<typename _P,
-         typename _Q>
+template<typename P,
+         typename Q>
 D_NODISCARD
-seq_parser<_P, _Q>
+seq_parser<P, Q>
 seq(
-    _P _p,
-    _Q _q
+    P _p,
+    Q _q
 )
 {
-    static_assert(is_parser<_P>::value && is_parser<_Q>::value,
+    static_assert(is_parser<P>::value && is_parser<Q>::value,
                   "seq: both arguments must be parser expressions");
 
-    return seq_parser<_P, _Q>(
-        static_cast<_P&&>(_p),
-        static_cast<_Q&&>(_q));
+    return seq_parser<P, Q>(
+        static_cast<P&&>(_p),
+        static_cast<Q&&>(_q));
 }
 
 
 // seq_l_parser
 //   class: run _p then _q; both must succeed; return _p's result
 // (keep left).
-template<typename _P,
-         typename _Q>
+template<typename P,
+         typename Q>
 class seq_l_parser
-    : public parser_expr<seq_l_parser<_P, _Q>>
+    : public parser_expr<seq_l_parser<P, Q>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using result_type  = internal::child_result<_P>;
+    using result_type  = internal::child_result<P>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     static_assert(
-        std::is_same<internal::child_input<_P>,
-                     internal::child_input<_Q>>::value,
+        std::is_same<internal::child_input<P>,
+                     internal::child_input<Q>>::value,
         "seq_l_parser: branches must share input_type");
 
     seq_l_parser(
-        _P _p,
-        _Q _q
+        P _p,
+        Q _q
     )
-        : m_p(static_cast<_P&&>(_p)),
-          m_q(static_cast<_Q&&>(_q))
+        : m_p(static_cast<P&&>(_p)),
+          m_q(static_cast<Q&&>(_q))
     {}
 
     output_type
@@ -384,7 +392,7 @@ public:
             return r1;
         }
 
-        parse_result<internal::child_result<_Q>> r2 = m_q.parse(_state);
+        parse_result<internal::child_result<Q>> r2 = m_q.parse(_state);
 
         if (!r2.ok())
         {
@@ -395,57 +403,57 @@ public:
     }
 
 private:
-    _P m_p;
-    _Q m_q;
+    P m_p;
+    Q m_q;
 };
 
 // seq_l
 //   factory: keep-left sequencing.
-template<typename _P,
-         typename _Q>
+template<typename P,
+         typename Q>
 D_NODISCARD
-seq_l_parser<_P, _Q>
+seq_l_parser<P, Q>
 seq_l(
-    _P _p,
-    _Q _q
+    P _p,
+    Q _q
 )
 {
-    static_assert(is_parser<_P>::value && is_parser<_Q>::value,
+    static_assert(is_parser<P>::value && is_parser<Q>::value,
                   "seq_l: both arguments must be parser expressions");
 
-    return seq_l_parser<_P, _Q>(
-        static_cast<_P&&>(_p),
-        static_cast<_Q&&>(_q));
+    return seq_l_parser<P, Q>(
+        static_cast<P&&>(_p),
+        static_cast<Q&&>(_q));
 }
 
 
 // seq_r_parser
 //   class: run _p then _q; both must succeed; return _q's result
 // (keep right).
-template<typename _P,
-         typename _Q>
+template<typename P,
+         typename Q>
 class seq_r_parser
-    : public parser_expr<seq_r_parser<_P, _Q>>
+    : public parser_expr<seq_r_parser<P, Q>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using result_type  = internal::child_result<_Q>;
+    using result_type  = internal::child_result<Q>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     static_assert(
-        std::is_same<internal::child_input<_P>,
-                     internal::child_input<_Q>>::value,
+        std::is_same<internal::child_input<P>,
+                     internal::child_input<Q>>::value,
         "seq_r_parser: branches must share input_type");
 
     seq_r_parser(
-        _P _p,
-        _Q _q
+        P _p,
+        Q _q
     )
-        : m_p(static_cast<_P&&>(_p)),
-          m_q(static_cast<_Q&&>(_q))
+        : m_p(static_cast<P&&>(_p)),
+          m_q(static_cast<Q&&>(_q))
     {}
 
     output_type
@@ -453,7 +461,7 @@ public:
         state_type& _state
     ) const
     {
-        parse_result<internal::child_result<_P>> r1 = m_p.parse(_state);
+        parse_result<internal::child_result<P>> r1 = m_p.parse(_state);
 
         if (!r1.ok())
         {
@@ -464,44 +472,44 @@ public:
     }
 
 private:
-    _P m_p;
-    _Q m_q;
+    P m_p;
+    Q m_q;
 };
 
 // seq_r
 //   factory: keep-right sequencing.
-template<typename _P,
-         typename _Q>
+template<typename P,
+         typename Q>
 D_NODISCARD
-seq_r_parser<_P, _Q>
+seq_r_parser<P, Q>
 seq_r(
-    _P _p,
-    _Q _q
+    P _p,
+    Q _q
 )
 {
-    static_assert(is_parser<_P>::value && is_parser<_Q>::value,
+    static_assert(is_parser<P>::value && is_parser<Q>::value,
                   "seq_r: both arguments must be parser expressions");
 
-    return seq_r_parser<_P, _Q>(
-        static_cast<_P&&>(_p),
-        static_cast<_Q&&>(_q));
+    return seq_r_parser<P, Q>(
+        static_cast<P&&>(_p),
+        static_cast<Q&&>(_q));
 }
 
 
 // ap_parser
-//   class: applicative apply.  _Pf is a parser producing a callable;
-// _Pa is a parser producing that callable's argument.  Runs in
+//   class: applicative apply.  Pf is a parser producing a callable;
+// Pa is a parser producing that callable's argument.  Runs in
 // sequence, applies, threads the residual.
-template<typename _Pf,
-         typename _Pa>
+template<typename Pf,
+         typename Pa>
 class ap_parser
-    : public parser_expr<ap_parser<_Pf, _Pa>>
+    : public parser_expr<ap_parser<Pf, Pa>>
 {
 public:
-    using input_type   = internal::child_input<_Pf>;
+    using input_type   = internal::child_input<Pf>;
     using element_type = input_type;
-    using fn_type      = internal::child_result<_Pf>;
-    using arg_type     = internal::child_result<_Pa>;
+    using fn_type      = internal::child_result<Pf>;
+    using arg_type     = internal::child_result<Pa>;
     using result_type  =
         internal::call_result_of<fn_type, arg_type>;
     using value_type   = result_type;
@@ -509,16 +517,16 @@ public:
     using output_type  = parse_result<result_type>;
 
     static_assert(
-        std::is_same<internal::child_input<_Pf>,
-                     internal::child_input<_Pa>>::value,
+        std::is_same<internal::child_input<Pf>,
+                     internal::child_input<Pa>>::value,
         "ap_parser: branches must share input_type");
 
     ap_parser(
-        _Pf _pf,
-        _Pa _pa
+        Pf _pf,
+        Pa _pa
     )
-        : m_pf(static_cast<_Pf&&>(_pf)),
-          m_pa(static_cast<_Pa&&>(_pa))
+        : m_pf(static_cast<Pf&&>(_pf)),
+          m_pa(static_cast<Pa&&>(_pa))
     {}
 
     output_type
@@ -544,27 +552,27 @@ public:
     }
 
 private:
-    _Pf m_pf;
-    _Pa m_pa;
+    Pf m_pf;
+    Pa m_pa;
 };
 
 // ap
 //   factory: applicative apply.
-template<typename _Pf,
-         typename _Pa>
+template<typename Pf,
+         typename Pa>
 D_NODISCARD
-ap_parser<_Pf, _Pa>
+ap_parser<Pf, Pa>
 ap(
-    _Pf _pf,
-    _Pa _pa
+    Pf _pf,
+    Pa _pa
 )
 {
-    static_assert(is_parser<_Pf>::value && is_parser<_Pa>::value,
+    static_assert(is_parser<Pf>::value && is_parser<Pa>::value,
                   "ap: both arguments must be parser expressions");
 
-    return ap_parser<_Pf, _Pa>(
-        static_cast<_Pf&&>(_pf),
-        static_cast<_Pa&&>(_pa));
+    return ap_parser<Pf, Pa>(
+        static_cast<Pf&&>(_pf),
+        static_cast<Pa&&>(_pa));
 }
 
 
@@ -576,34 +584,34 @@ ap(
 //   class: PEG ordered choice.  Run _p; on success commit; on
 // failure restore the input offset and run _q.  Left-biased and
 // leftmost-wins, exactly as ch-parsing prescribes.
-template<typename _P,
-         typename _Q>
+template<typename P,
+         typename Q>
 class alt_parser
-    : public parser_expr<alt_parser<_P, _Q>>
+    : public parser_expr<alt_parser<P, Q>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using result_type  = internal::child_result<_P>;
+    using result_type  = internal::child_result<P>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     static_assert(
-        std::is_same<internal::child_input<_P>,
-                     internal::child_input<_Q>>::value,
+        std::is_same<internal::child_input<P>,
+                     internal::child_input<Q>>::value,
         "alt_parser: branches must share input_type");
     static_assert(
-        std::is_same<internal::child_result<_P>,
-                     internal::child_result<_Q>>::value,
+        std::is_same<internal::child_result<P>,
+                     internal::child_result<Q>>::value,
         "alt_parser: branches must share result_type");
 
     alt_parser(
-        _P _p,
-        _Q _q
+        P _p,
+        Q _q
     )
-        : m_p(static_cast<_P&&>(_p)),
-          m_q(static_cast<_Q&&>(_q))
+        : m_p(static_cast<P&&>(_p)),
+          m_q(static_cast<Q&&>(_q))
     {}
 
     output_type
@@ -626,28 +634,28 @@ public:
     }
 
 private:
-    _P m_p;
-    _Q m_q;
+    P m_p;
+    Q m_q;
 };
 
 // or_
 //   factory: PEG ordered choice between two parsers.  Trailing
 // underscore avoids the C++ alternative-token keyword `or`.
-template<typename _P,
-         typename _Q>
+template<typename P,
+         typename Q>
 D_NODISCARD
-alt_parser<_P, _Q>
+alt_parser<P, Q>
 or_(
-    _P _p,
-    _Q _q
+    P _p,
+    Q _q
 )
 {
-    static_assert(is_parser<_P>::value && is_parser<_Q>::value,
+    static_assert(is_parser<P>::value && is_parser<Q>::value,
                   "or_: both arguments must be parser expressions");
 
-    return alt_parser<_P, _Q>(
-        static_cast<_P&&>(_p),
-        static_cast<_Q&&>(_q));
+    return alt_parser<P, Q>(
+        static_cast<P&&>(_p),
+        static_cast<Q&&>(_q));
 }
 
 
@@ -659,23 +667,23 @@ or_(
 //   class: zero or more applications of an inner parser, collected
 // into a vector.  Never fails.  Stops on the first failing iteration
 // (offset restored before stopping) or on a zero-width match.
-template<typename _P>
+template<typename P>
 class many_parser
-    : public parser_expr<many_parser<_P>>
+    : public parser_expr<many_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
+    using inner_result = internal::child_result<P>;
     using result_type  = std::vector<inner_result>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     explicit many_parser(
-        _P _p
+        P _p
     )
-        : m_p(static_cast<_P&&>(_p))
+        : m_p(static_cast<P&&>(_p))
     {}
 
     output_type
@@ -714,45 +722,45 @@ public:
     }
 
 private:
-    _P m_p;
+    P m_p;
 };
 
 // many
 //   factory: zero or more applications, collected into a vector.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-many_parser<_P>
+many_parser<P>
 many(
-    _P _p
+    P _p
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "many: argument must be a parser expression");
 
-    return many_parser<_P>(static_cast<_P&&>(_p));
+    return many_parser<P>(static_cast<P&&>(_p));
 }
 
 
 // many1_parser
 //   class: one or more applications.  Fails iff the first iteration
 // fails.
-template<typename _P>
+template<typename P>
 class many1_parser
-    : public parser_expr<many1_parser<_P>>
+    : public parser_expr<many1_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
+    using inner_result = internal::child_result<P>;
     using result_type  = std::vector<inner_result>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     explicit many1_parser(
-        _P _p
+        P _p
     )
-        : m_p(static_cast<_P&&>(_p))
+        : m_p(static_cast<P&&>(_p))
     {}
 
     output_type
@@ -797,44 +805,44 @@ public:
     }
 
 private:
-    _P m_p;
+    P m_p;
 };
 
 // many1
 //   factory: one or more applications.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-many1_parser<_P>
+many1_parser<P>
 many1(
-    _P _p
+    P _p
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "many1: argument must be a parser expression");
 
-    return many1_parser<_P>(static_cast<_P&&>(_p));
+    return many1_parser<P>(static_cast<P&&>(_p));
 }
 
 
 // skip_many_parser
 //   class: zero or more applications, results discarded.
-template<typename _P>
+template<typename P>
 class skip_many_parser
-    : public parser_expr<skip_many_parser<_P>>
+    : public parser_expr<skip_many_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
+    using inner_result = internal::child_result<P>;
     using result_type  = bool;
     using value_type   = bool;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<bool>;
 
     explicit skip_many_parser(
-        _P _p
+        P _p
     )
-        : m_p(static_cast<_P&&>(_p))
+        : m_p(static_cast<P&&>(_p))
     {}
 
     output_type
@@ -866,44 +874,44 @@ public:
     }
 
 private:
-    _P m_p;
+    P m_p;
 };
 
 // skip_many
 //   factory: zero or more, results discarded.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-skip_many_parser<_P>
+skip_many_parser<P>
 skip_many(
-    _P _p
+    P _p
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "skip_many: argument must be a parser expression");
 
-    return skip_many_parser<_P>(static_cast<_P&&>(_p));
+    return skip_many_parser<P>(static_cast<P&&>(_p));
 }
 
 
 // skip_many1_parser
 //   class: one or more applications, results discarded.
-template<typename _P>
+template<typename P>
 class skip_many1_parser
-    : public parser_expr<skip_many1_parser<_P>>
+    : public parser_expr<skip_many1_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
+    using inner_result = internal::child_result<P>;
     using result_type  = bool;
     using value_type   = bool;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<bool>;
 
     explicit skip_many1_parser(
-        _P _p
+        P _p
     )
-        : m_p(static_cast<_P&&>(_p))
+        : m_p(static_cast<P&&>(_p))
     {}
 
     output_type
@@ -942,35 +950,35 @@ public:
     }
 
 private:
-    _P m_p;
+    P m_p;
 };
 
 // skip_many1
 //   factory: one or more, results discarded.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-skip_many1_parser<_P>
+skip_many1_parser<P>
 skip_many1(
-    _P _p
+    P _p
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "skip_many1: argument must be a parser expression");
 
-    return skip_many1_parser<_P>(static_cast<_P&&>(_p));
+    return skip_many1_parser<P>(static_cast<P&&>(_p));
 }
 
 
 // count_parser
 //   class: exactly _n applications; fails on any iteration failure.
-template<typename _P>
+template<typename P>
 class count_parser
-    : public parser_expr<count_parser<_P>>
+    : public parser_expr<count_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
+    using inner_result = internal::child_result<P>;
     using result_type  = std::vector<inner_result>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
@@ -978,10 +986,10 @@ public:
 
     count_parser(
         std::size_t _n,
-        _P          _p
+        P           _p
     )
         : m_n(_n),
-          m_p(static_cast<_P&&>(_p))
+          m_p(static_cast<P&&>(_p))
     {}
 
     output_type
@@ -1011,23 +1019,23 @@ public:
 
 private:
     std::size_t m_n;
-    _P          m_p;
+    P           m_p;
 };
 
 // count
 //   factory: exactly _n applications.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-count_parser<_P>
+count_parser<P>
 count(
     std::size_t _n,
-    _P          _p
+    P           _p
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "count: argument must be a parser expression");
 
-    return count_parser<_P>(_n, static_cast<_P&&>(_p));
+    return count_parser<P>(_n, static_cast<P&&>(_p));
 }
 
 
@@ -1038,23 +1046,23 @@ count(
 // optional_parser
 //   class: zero or one application of an inner parser; result is a
 // maybe.  Never fails.
-template<typename _P>
+template<typename P>
 class optional_parser
-    : public parser_expr<optional_parser<_P>>
+    : public parser_expr<optional_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
+    using inner_result = internal::child_result<P>;
     using result_type  = functional::maybe<inner_result>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     explicit optional_parser(
-        _P _p
+        P _p
     )
-        : m_p(static_cast<_P&&>(_p))
+        : m_p(static_cast<P&&>(_p))
     {}
 
     output_type
@@ -1077,54 +1085,54 @@ public:
     }
 
 private:
-    _P m_p;
+    P m_p;
 };
 
 // optional
 //   factory: zero or one application; returns a maybe.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-optional_parser<_P>
+optional_parser<P>
 optional(
-    _P _p
+    P _p
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "optional: argument must be a parser expression");
 
-    return optional_parser<_P>(static_cast<_P&&>(_p));
+    return optional_parser<P>(static_cast<P&&>(_p));
 }
 
 
 // sep_by1_parser
 //   class: one or more applications of _p separated by _sep, i.e.
 // p (sep p)*.  Returns the collected values.
-template<typename _P,
-         typename _Sep>
+template<typename P,
+         typename Sep>
 class sep_by1_parser
-    : public parser_expr<sep_by1_parser<_P, _Sep>>
+    : public parser_expr<sep_by1_parser<P, Sep>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
-    using sep_result   = internal::child_result<_Sep>;
+    using inner_result = internal::child_result<P>;
+    using sep_result   = internal::child_result<Sep>;
     using result_type  = std::vector<inner_result>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     static_assert(
-        std::is_same<internal::child_input<_P>,
-                     internal::child_input<_Sep>>::value,
+        std::is_same<internal::child_input<P>,
+                     internal::child_input<Sep>>::value,
         "sep_by1_parser: branches must share input_type");
 
     sep_by1_parser(
-        _P   _p,
-        _Sep _sep
+        P    _p,
+        Sep _sep
     )
-        : m_p  (static_cast<_P&&>(_p)),
-          m_sep(static_cast<_Sep&&>(_sep))
+        : m_p  (static_cast<P&&>(_p)),
+          m_sep(static_cast<Sep&&>(_sep))
     {}
 
     output_type
@@ -1173,59 +1181,59 @@ public:
     }
 
 private:
-    _P   m_p;
-    _Sep m_sep;
+    P    m_p;
+    Sep m_sep;
 };
 
 // sep_by1
 //   factory: one or more _p separated by _sep.
-template<typename _P,
-         typename _Sep>
+template<typename P,
+         typename Sep>
 D_NODISCARD
-sep_by1_parser<_P, _Sep>
+sep_by1_parser<P, Sep>
 sep_by1(
-    _P   _p,
-    _Sep _sep
+    P    _p,
+    Sep _sep
 )
 {
-    static_assert(is_parser<_P>::value && is_parser<_Sep>::value,
+    static_assert(is_parser<P>::value && is_parser<Sep>::value,
                   "sep_by1: both arguments must be parser expressions");
 
-    return sep_by1_parser<_P, _Sep>(
-        static_cast<_P&&>(_p),
-        static_cast<_Sep&&>(_sep));
+    return sep_by1_parser<P, Sep>(
+        static_cast<P&&>(_p),
+        static_cast<Sep&&>(_sep));
 }
 
 
 // sep_by_parser
 //   class: zero or more _p separated by _sep.  Always succeeds;
 // empty input yields an empty vector.
-template<typename _P,
-         typename _Sep>
+template<typename P,
+         typename Sep>
 class sep_by_parser
-    : public parser_expr<sep_by_parser<_P, _Sep>>
+    : public parser_expr<sep_by_parser<P, Sep>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
-    using sep_result   = internal::child_result<_Sep>;
+    using inner_result = internal::child_result<P>;
+    using sep_result   = internal::child_result<Sep>;
     using result_type  = std::vector<inner_result>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     static_assert(
-        std::is_same<internal::child_input<_P>,
-                     internal::child_input<_Sep>>::value,
+        std::is_same<internal::child_input<P>,
+                     internal::child_input<Sep>>::value,
         "sep_by_parser: branches must share input_type");
 
     sep_by_parser(
-        _P   _p,
-        _Sep _sep
+        P    _p,
+        Sep _sep
     )
-        : m_inner(static_cast<_P&&>(_p),
-                  static_cast<_Sep&&>(_sep))
+        : m_inner(static_cast<P&&>(_p),
+                  static_cast<Sep&&>(_sep))
     {}
 
     output_type
@@ -1248,58 +1256,58 @@ public:
     }
 
 private:
-    sep_by1_parser<_P, _Sep> m_inner;
+    sep_by1_parser<P, Sep> m_inner;
 };
 
 // sep_by
 //   factory: zero or more _p separated by _sep.
-template<typename _P,
-         typename _Sep>
+template<typename P,
+         typename Sep>
 D_NODISCARD
-sep_by_parser<_P, _Sep>
+sep_by_parser<P, Sep>
 sep_by(
-    _P   _p,
-    _Sep _sep
+    P    _p,
+    Sep _sep
 )
 {
-    static_assert(is_parser<_P>::value && is_parser<_Sep>::value,
+    static_assert(is_parser<P>::value && is_parser<Sep>::value,
                   "sep_by: both arguments must be parser expressions");
 
-    return sep_by_parser<_P, _Sep>(
-        static_cast<_P&&>(_p),
-        static_cast<_Sep&&>(_sep));
+    return sep_by_parser<P, Sep>(
+        static_cast<P&&>(_p),
+        static_cast<Sep&&>(_sep));
 }
 
 
 // end_by_parser
 //   class: zero or more applications of _p followed by _sep:
 // (p sep)*.  Each element is required to have a trailing sep.
-template<typename _P,
-         typename _Sep>
+template<typename P,
+         typename Sep>
 class end_by_parser
-    : public parser_expr<end_by_parser<_P, _Sep>>
+    : public parser_expr<end_by_parser<P, Sep>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
+    using inner_result = internal::child_result<P>;
     using result_type  = std::vector<inner_result>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     static_assert(
-        std::is_same<internal::child_input<_P>,
-                     internal::child_input<_Sep>>::value,
+        std::is_same<internal::child_input<P>,
+                     internal::child_input<Sep>>::value,
         "end_by_parser: branches must share input_type");
 
     end_by_parser(
-        _P   _p,
-        _Sep _sep
+        P    _p,
+        Sep _sep
     )
-        : m_inner(seq_l_parser<_P, _Sep>(
-              static_cast<_P&&>(_p),
-              static_cast<_Sep&&>(_sep)))
+        : m_inner(seq_l_parser<P, Sep>(
+              static_cast<P&&>(_p),
+              static_cast<Sep&&>(_sep)))
     {}
 
     output_type
@@ -1311,61 +1319,61 @@ public:
     }
 
 private:
-    many_parser<seq_l_parser<_P, _Sep>> m_inner;
+    many_parser<seq_l_parser<P, Sep>> m_inner;
 };
 
 // end_by
 //   factory: (p sep)*.
-template<typename _P,
-         typename _Sep>
+template<typename P,
+         typename Sep>
 D_NODISCARD
-end_by_parser<_P, _Sep>
+end_by_parser<P, Sep>
 end_by(
-    _P   _p,
-    _Sep _sep
+    P    _p,
+    Sep _sep
 )
 {
-    static_assert(is_parser<_P>::value && is_parser<_Sep>::value,
+    static_assert(is_parser<P>::value && is_parser<Sep>::value,
                   "end_by: both arguments must be parser expressions");
 
-    return end_by_parser<_P, _Sep>(
-        static_cast<_P&&>(_p),
-        static_cast<_Sep&&>(_sep));
+    return end_by_parser<P, Sep>(
+        static_cast<P&&>(_p),
+        static_cast<Sep&&>(_sep));
 }
 
 
 // between_parser
 //   class: open _p close — succeeds iff all three succeed; returns
 // _p's result.  The bracketing combinator.
-template<typename _Open,
-         typename _P,
-         typename _Close>
+template<typename Open,
+         typename P,
+         typename Close>
 class between_parser
-    : public parser_expr<between_parser<_Open, _P, _Close>>
+    : public parser_expr<between_parser<Open, P, Close>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using result_type  = internal::child_result<_P>;
+    using result_type  = internal::child_result<P>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     static_assert(
-        std::is_same<internal::child_input<_Open>,
-                     internal::child_input<_P>>::value     &&
-        std::is_same<internal::child_input<_P>,
-                     internal::child_input<_Close>>::value,
+        std::is_same<internal::child_input<Open>,
+                     internal::child_input<P>>::value     &&
+        std::is_same<internal::child_input<P>,
+                     internal::child_input<Close>>::value,
         "between_parser: branches must share input_type");
 
     between_parser(
-        _Open  _open,
-        _P     _p,
-        _Close _close
+        Open   _open,
+        P      _p,
+        Close _close
     )
-        : m_open (static_cast<_Open&&>(_open)),
-          m_p    (static_cast<_P&&>(_p)),
-          m_close(static_cast<_Close&&>(_close))
+        : m_open (static_cast<Open&&>(_open)),
+          m_p    (static_cast<P&&>(_p)),
+          m_close(static_cast<Close&&>(_close))
     {}
 
     output_type
@@ -1373,7 +1381,7 @@ public:
         state_type& _state
     ) const
     {
-        parse_result<internal::child_result<_Open>>
+        parse_result<internal::child_result<Open>>
             ro = m_open.parse(_state);
 
         if (!ro.ok())
@@ -1388,7 +1396,7 @@ public:
             return r;
         }
 
-        parse_result<internal::child_result<_Close>>
+        parse_result<internal::child_result<Close>>
             rc = m_close.parse(_state);
 
         if (!rc.ok())
@@ -1400,34 +1408,34 @@ public:
     }
 
 private:
-    _Open  m_open;
-    _P     m_p;
-    _Close m_close;
+    Open   m_open;
+    P      m_p;
+    Close m_close;
 };
 
 // between
 //   factory: open _p close, keeping _p's result.
-template<typename _Open,
-         typename _P,
-         typename _Close>
+template<typename Open,
+         typename P,
+         typename Close>
 D_NODISCARD
-between_parser<_Open, _P, _Close>
+between_parser<Open, P, Close>
 between(
-    _Open  _open,
-    _P     _p,
-    _Close _close
+    Open   _open,
+    P      _p,
+    Close _close
 )
 {
     static_assert(
-        ( is_parser<_Open>::value  &&
-          is_parser<_P>::value     &&
-          is_parser<_Close>::value ),
+        ( is_parser<Open>::value  &&
+          is_parser<P>::value     &&
+          is_parser<Close>::value ),
         "between: all three arguments must be parser expressions");
 
-    return between_parser<_Open, _P, _Close>(
-        static_cast<_Open&&>(_open),
-        static_cast<_P&&>(_p),
-        static_cast<_Close&&>(_close));
+    return between_parser<Open, P, Close>(
+        static_cast<Open&&>(_open),
+        static_cast<P&&>(_p),
+        static_cast<Close&&>(_close));
 }
 
 
@@ -1438,22 +1446,22 @@ between(
 // look_ahead_parser
 //   class: runs _p, restores the input offset (success or failure),
 // returns _p's result.  The peek combinator.
-template<typename _P>
+template<typename P>
 class look_ahead_parser
-    : public parser_expr<look_ahead_parser<_P>>
+    : public parser_expr<look_ahead_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using result_type  = internal::child_result<_P>;
+    using result_type  = internal::child_result<P>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     explicit look_ahead_parser(
-        _P _p
+        P _p
     )
-        : m_p(static_cast<_P&&>(_p))
+        : m_p(static_cast<P&&>(_p))
     {}
 
     output_type
@@ -1471,45 +1479,45 @@ public:
     }
 
 private:
-    _P m_p;
+    P m_p;
 };
 
 // look_ahead
 //   factory: peek — run, then restore.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-look_ahead_parser<_P>
+look_ahead_parser<P>
 look_ahead(
-    _P _p
+    P _p
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "look_ahead: argument must be a parser expression");
 
-    return look_ahead_parser<_P>(static_cast<_P&&>(_p));
+    return look_ahead_parser<P>(static_cast<P&&>(_p));
 }
 
 
 // not_followed_by_parser
 //   class: succeeds with `true` iff _p would fail at the current
 // offset; never consumes input.  PEG's negative look-ahead.
-template<typename _P>
+template<typename P>
 class not_followed_by_parser
-    : public parser_expr<not_followed_by_parser<_P>>
+    : public parser_expr<not_followed_by_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using inner_result = internal::child_result<_P>;
+    using inner_result = internal::child_result<P>;
     using result_type  = bool;
     using value_type   = bool;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<bool>;
 
     explicit not_followed_by_parser(
-        _P _p
+        P _p
     )
-        : m_p(static_cast<_P&&>(_p))
+        : m_p(static_cast<P&&>(_p))
     {}
 
     output_type
@@ -1535,22 +1543,22 @@ public:
     }
 
 private:
-    _P m_p;
+    P m_p;
 };
 
 // not_followed_by
 //   factory: PEG negative look-ahead.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-not_followed_by_parser<_P>
+not_followed_by_parser<P>
 not_followed_by(
-    _P _p
+    P _p
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "not_followed_by: argument must be a parser expression");
 
-    return not_followed_by_parser<_P>(static_cast<_P&&>(_p));
+    return not_followed_by_parser<P>(static_cast<P&&>(_p));
 }
 
 
@@ -1558,22 +1566,22 @@ not_followed_by(
 //   class: runs _p; on failure restores the input offset.  Ordered
 // choice already does this between branches; try_parser is the named
 // no-op for documenting intent where backtracking is structural.
-template<typename _P>
+template<typename P>
 class try_parser
-    : public parser_expr<try_parser<_P>>
+    : public parser_expr<try_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using result_type  = internal::child_result<_P>;
+    using result_type  = internal::child_result<P>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     explicit try_parser(
-        _P _p
+        P _p
     )
-        : m_p(static_cast<_P&&>(_p))
+        : m_p(static_cast<P&&>(_p))
     {}
 
     output_type
@@ -1594,23 +1602,23 @@ public:
     }
 
 private:
-    _P m_p;
+    P m_p;
 };
 
 // try_
 //   factory: backtracking wrap.  Trailing underscore avoids the
 // C++ `try` keyword.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-try_parser<_P>
+try_parser<P>
 try_(
-    _P _p
+    P _p
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "try_: argument must be a parser expression");
 
-    return try_parser<_P>(static_cast<_P&&>(_p));
+    return try_parser<P>(static_cast<P&&>(_p));
 }
 
 
@@ -1622,23 +1630,23 @@ try_(
 //   class: replaces the error message on failure; passes through on
 // success.  Used at grammar rule boundaries so diagnostics reflect
 // the rule that failed rather than its deepest atomic mismatch.
-template<typename _P>
+template<typename P>
 class label_parser
-    : public parser_expr<label_parser<_P>>
+    : public parser_expr<label_parser<P>>
 {
 public:
-    using input_type   = internal::child_input<_P>;
+    using input_type   = internal::child_input<P>;
     using element_type = input_type;
-    using result_type  = internal::child_result<_P>;
+    using result_type  = internal::child_result<P>;
     using value_type   = result_type;
     using state_type   = parse_state<input_type>;
     using output_type  = parse_result<result_type>;
 
     label_parser(
-        _P                 _p,
+        P                  _p,
         const std::string& _message
     )
-        : m_p      (static_cast<_P&&>(_p)),
+        : m_p      (static_cast<P&&>(_p)),
           m_message(_message)
     {}
 
@@ -1663,29 +1671,31 @@ public:
     }
 
 private:
-    _P          m_p;
+    P           m_p;
     std::string m_message;
 };
 
 // label
 //   factory: relabels the failure message of an inner parser.
-template<typename _P>
+template<typename P>
 D_NODISCARD
-label_parser<_P>
+label_parser<P>
 label(
-    _P                 _p,
+    P                  _p,
     const std::string& _message
 )
 {
-    static_assert(is_parser<_P>::value,
+    static_assert(is_parser<P>::value,
                   "label: argument must be a parser expression");
 
-    return label_parser<_P>(static_cast<_P&&>(_p), _message);
+    return label_parser<P>(static_cast<P&&>(_p), _message);
 }
 
 
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_PARSER_COMBINATORS_
+
+#endif  // DJINTERP_PARSE_PARSER_COMBINATORS_HPP

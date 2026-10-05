@@ -34,14 +34,14 @@
 * path:      /inc/djinterp/net/server.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.09.29
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_SERVER_HPP
 #define DJINTERP_NET_SERVER_HPP 1
 
 // djinterp
-#include "./http.hpp"
+#include "./http/http.hpp"
 #include "./server.hpp"
 
 

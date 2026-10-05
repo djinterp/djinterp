@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                             document_table.hpp
+/*******************************************************************************
+* djinterp [core]                                             document_table.hpp
 *
 *   A dialect-agnostic TABLE for documents.  document_table is a pure content
 * model -- columns (each a header plus alignment / width / style hints) and rows
@@ -27,25 +27,38 @@
 *   C++11 baseline (matches document_renderer).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    document_column              (a column: header + alignment / width / style)
-* II.   document_table (class)
-*       a. construction / configuration
-*       b. columns
-*       c. rows
-*       d. queries
-*       e. render / to_string
-* III.  make_document_table          (factory)
-*
-*
 * path:      /inc/djinterp/core/util/document/templates/document_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_DOCUMENT_TABLE_
-#define DJINTERP_UTIL_DOCUMENT_TABLE_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    document_column              (a column: header + alignment / width / style)
+      ---------------------------------------------------------------------------
+
+II.   document_table (class)
+      ----------------------
+      a. construction / configuration
+      b. columns
+      c.    rows
+            d. queries
+            e. render / to_string
+
+III.  make_document_table          (factory)
+      --------------------------------------
+*/
+
+#ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_TABLE_HPP
+#define DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_TABLE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -54,7 +67,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT
 #include "./document_attributes.hpp"    // doc_attributes, doc_attr_*, text_alignment
 #include "./document_renderer.hpp"      // document_renderer, plain_document_renderer
 
@@ -458,5 +471,6 @@ make_document_table(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_DOCUMENT_TABLE_
+#endif  // DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_TABLE_HPP

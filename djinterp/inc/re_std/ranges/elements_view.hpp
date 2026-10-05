@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [ranges]                                              elements_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            elements_view.hpp
 *
+* elements_view view header:
 *   elements_view<V, N> - projects each tuple-like element onto its N'th
 * member.  keys_view and values_view are the N=0 and N=1 spellings.
 *
@@ -22,37 +23,45 @@
 *
 *   INTERFACE ASSUMPTIONS: see ADAPTOR_ASSUMPTIONS.txt in this directory.
 *
-* path:      /inc/djinterp/re_std/ranges/elements_view.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/ranges/elements_view.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_ELEMENTS_VIEW_
-#define DJINTERP_RE_STD_RANGES_ELEMENTS_VIEW_ 1
+#ifndef RE_STD_RANGES_ELEMENTS_VIEW_HPP
+#define RE_STD_RANGES_ELEMENTS_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../tuple/tuple.hpp"
+#include "../tuple/tuple_get.hpp"
 #include "../utility/utility.hpp"
-#include "../iterator/iterator_tags.hpp"
-#include "./range_traits.hpp"
-#include "./range_access.hpp"
 #include "./view_interface.hpp"
+#include "../iterator/input_iterator_tag.hpp"
+#include "./ranges_access.hpp"
+#include "./iterator_t.hpp"
+#include "./sentinel_t.hpp"
 
-NS_RESTD
-D_NAMESPACE(ranges)
+namespace re_std
+{
+namespace ranges
+{
 
 // elements_view
 //   class: projects each element onto its N'th tuple member.
-template<typename _View, size_t _Index>
-class elements_view : public view_interface<elements_view<_View, _Index> >
+template<typename View, size_t Index>
+class elements_view : public view_interface<elements_view<View, Index> >
 {
-    typedef iterator_t<_View> _BaseIter;
-    typedef sentinel_t<_View> _BaseSent;
+    typedef iterator_t<View> _BaseIter;
+    typedef sentinel_t<View> _BaseSent;
 
-    _View m_base;
+    View m_base;
 
 public:
     class sentinel
@@ -71,7 +80,7 @@ public:
     public:
         //   Derived, not named: get<0> of a pair<const K,V>& is const K&
         // while get<1> is V&, so no single spelling covers both.
-        typedef decltype(re_std::get<_Index>(*declval<_BaseIter&>())) reference;
+        typedef decltype(re_std::get<Index>(*declval<_BaseIter&>())) reference;
         typedef typename remove_cv<
             typename remove_reference<reference>::type>::type value_type;
         typedef ptrdiff_t          difference_type;
@@ -83,7 +92,7 @@ public:
 
         const _BaseIter& base() const { return m_it; }
 
-        reference operator*() const { return re_std::get<_Index>(*m_it); }
+        reference operator*() const { return re_std::get<Index>(*m_it); }
 
         iterator& operator++() { ++m_it; return *this; }
         iterator  operator++(int) { iterator t = *this; ++(*this); return t; }
@@ -103,19 +112,19 @@ public:
     };
 
     elements_view() : m_base() {}
-    explicit elements_view(_View base) : m_base(static_cast<_View&&>(base)) {}
+    explicit elements_view(View base) : m_base(static_cast<View&&>(base)) {}
 
     iterator begin() { return iterator(ranges::begin(m_base)); }
     sentinel end()   { return sentinel(ranges::end(m_base)); }
 };
 
 //   keys_view / values_view are spellings, not separate types.
-template<typename _View> struct keys_view_of   { typedef elements_view<_View, 0> type; };
-template<typename _View> struct values_view_of { typedef elements_view<_View, 1> type; };
+template<typename View> struct keys_view_of   { typedef elements_view<View, 0> type; };
+template<typename View> struct values_view_of { typedef elements_view<View, 1> type; };
 
-NS_END  // ranges
-NS_END
+}  // ranges
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_RANGES_ELEMENTS_VIEW_
+#endif  // RE_STD_RANGES_ELEMENTS_VIEW_HPP

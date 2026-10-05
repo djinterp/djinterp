@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               result_of.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                result_of.hpp
 *
 * result_of trait:
 *   The function-call-syntax variant of invoke_result. result_of<F(Args...)>
@@ -33,55 +33,57 @@
 *   invoke_result.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/result_of.hpp
+* path:      /inc/re_std/type_traits/result_of.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_RESULT_OF_
-#define DJINTERP_RE_STD_TYPE_TRAITS_RESULT_OF_ 1
+#ifndef RE_STD_TYPE_TRAITS_RESULT_OF_HPP
+#define RE_STD_TYPE_TRAITS_RESULT_OF_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./invoke_result.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
     // result_of
     //   trait: primary template -- intentionally undefined. Only the
     //          partial specialization for function types is provided.
     //          Passing a non-function-type yields no `type` member.
-    template<typename _T>
+    template<typename T>
     struct result_of;
 
-    // result_of<_F(_Args...)>
+    // result_of<F(Args...)>
     //   trait: specialization for function types. Inherits from
     //          invoke_result, so `type` is the return type of
     //          INVOKE(F, Args...) when well-formed, and absent otherwise.
-    template<typename _F,
-             typename... _Args>
-    struct result_of<_F(_Args...)>
-        : invoke_result<_F, _Args...>
+    template<typename F,
+             typename... Args>
+    struct result_of<F(Args...)>
+        : invoke_result<F, Args...>
     {};
 
 
     // result_of_t (C++14+)
-    #if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-        template<typename _T>
-        using result_of_t = typename result_of<_T>::type;
+    #if RE_STD_LANG_HAS_ALIAS_TEMPLATES
+        template<typename T>
+        using result_of_t = typename result_of<T>::type;
     #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_RESULT_OF_
+#endif  // RE_STD_TYPE_TRAITS_RESULT_OF_HPP

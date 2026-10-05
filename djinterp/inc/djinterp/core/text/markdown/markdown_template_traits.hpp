@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [markdown]                              markdown_template_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                   markdown_template_traits.hpp
 *
 *   Structural SFINAE detection traits for Markdown block /
 * inline / document / backend types. Mirrors the
@@ -36,30 +36,60 @@
 *     type aliases `block_type`, `inline_type`, `document_type`.
 *
 *
-* path:      /inc/djinterp/core/util/markdown/markdown_template_traits.hpp
+* path:      /inc/djinterp/core/text/markdown/markdown_template_traits.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    KIND ACCESSOR DETECTION (BLOCK / INLINE)
+      ----------------------------------------
+
 II.   TEXT & RAW CONTENT ACCESSORS
+      ----------------------------
+
 III.  LINK / IMAGE ACCESSORS
+      ----------------------
+
 IV.   CODE BLOCK ACCESSORS
+      --------------------
+
 V.    HEADING / LIST / TABLE ACCESSORS
+      --------------------------------
+
 VI.   CHILDREN / INLINES ACCESSORS
+      ----------------------------
+
 VII.  RENDER METHOD DETECTION
+      -----------------------
+
 VIII. DOCUMENT FLAVOR DETECTION
+      -------------------------
+
 IX.   COMPOSITE CLASSIFIERS
+      ---------------------
+
 X.    CLASSIFICATION STRUCTS
+      ----------------------
+
 XI.   BACKEND COMPLETENESS
+      --------------------
+
 XII.  VARIABLE TEMPLATES
+      ------------------
 */
 
-#ifndef DJINTERP_MARKDOWN_TEMPLATE_TRAITS_
-#define DJINTERP_MARKDOWN_TEMPLATE_TRAITS_ 1
+#ifndef DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_TRAITS_HPP
+#define DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_TRAITS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -80,76 +110,76 @@ namespace markdown {
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_block_kind_method
-//   trait: true if `_Type` exposes `block_kind()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `block_kind()` const.
+template<typename Type, typename = void>
 struct has_block_kind_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_block_kind_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().block_kind())
+template<typename Type>
+struct has_block_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().block_kind())
 >> : std::true_type
 {};
 
 
 // has_get_block_kind_method
-//   trait: true if `_Type` exposes `get_block_kind()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `get_block_kind()` const.
+template<typename Type, typename = void>
 struct has_get_block_kind_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_get_block_kind_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_block_kind())
+template<typename Type>
+struct has_get_block_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_block_kind())
 >> : std::true_type
 {};
 
 
 // has_block_kind_access
 //   trait: true if either form is available.
-template<typename _Type>
+template<typename Type>
 struct has_block_kind_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_block_kind_method<_Type>::value ||
-          has_get_block_kind_method<_Type>::value );
+        ( has_block_kind_method<Type>::value ||
+          has_get_block_kind_method<Type>::value );
 };
 
 
 // has_inline_kind_method
-//   trait: true if `_Type` exposes `inline_kind()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `inline_kind()` const.
+template<typename Type, typename = void>
 struct has_inline_kind_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_inline_kind_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().inline_kind())
+template<typename Type>
+struct has_inline_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().inline_kind())
 >> : std::true_type
 {};
 
 
 // has_get_inline_kind_method
-//   trait: true if `_Type` exposes `get_inline_kind()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `get_inline_kind()` const.
+template<typename Type, typename = void>
 struct has_get_inline_kind_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_get_inline_kind_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_inline_kind())
+template<typename Type>
+struct has_get_inline_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_inline_kind())
 >> : std::true_type
 {};
 
 
 // has_inline_kind_access
 //   trait: true if either form is available.
-template<typename _Type>
+template<typename Type>
 struct has_inline_kind_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_inline_kind_method<_Type>::value ||
-          has_get_inline_kind_method<_Type>::value );
+        ( has_inline_kind_method<Type>::value ||
+          has_get_inline_kind_method<Type>::value );
 };
 
 
@@ -158,51 +188,51 @@ struct has_inline_kind_access
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_text_method
-//   trait: true if `_Type` exposes `text()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `text()` const.
+template<typename Type, typename = void>
 struct has_text_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_text_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().text())
+template<typename Type>
+struct has_text_method<Type, void_t<
+    decltype(std::declval<const Type&>().text())
 >> : std::true_type
 {};
 
 
 // has_get_text_method
-//   trait: true if `_Type` exposes `get_text()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `get_text()` const.
+template<typename Type, typename = void>
 struct has_get_text_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_get_text_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_text())
+template<typename Type>
+struct has_get_text_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_text())
 >> : std::true_type
 {};
 
 
 // has_text_access
 //   trait: true if either form is available.
-template<typename _Type>
+template<typename Type>
 struct has_text_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_text_method<_Type>::value ||
-          has_get_text_method<_Type>::value );
+        ( has_text_method<Type>::value ||
+          has_get_text_method<Type>::value );
 };
 
 
 // has_set_text_method
-//   trait: true if `_Type` exposes `set_text(string)`.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `set_text(string)`.
+template<typename Type, typename = void>
 struct has_set_text_method : std::false_type
 {};
 
-template<typename _Type>
-struct has_set_text_method<_Type, void_t<
-    decltype(std::declval<_Type&>().set_text(std::declval<const std::string&>()))
+template<typename Type>
+struct has_set_text_method<Type, void_t<
+    decltype(std::declval<Type&>().set_text(std::declval<const std::string&>()))
 >> : std::true_type
 {};
 
@@ -212,72 +242,72 @@ struct has_set_text_method<_Type, void_t<
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_url_method / has_get_url_method / has_url_access
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_url_method : std::false_type {};
-template<typename _Type>
-struct has_url_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().url())
+template<typename Type>
+struct has_url_method<Type, void_t<
+    decltype(std::declval<const Type&>().url())
 >> : std::true_type {};
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_get_url_method : std::false_type {};
-template<typename _Type>
-struct has_get_url_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_url())
+template<typename Type>
+struct has_get_url_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_url())
 >> : std::true_type {};
 
-template<typename _Type>
+template<typename Type>
 struct has_url_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_url_method<_Type>::value || has_get_url_method<_Type>::value );
+        ( has_url_method<Type>::value || has_get_url_method<Type>::value );
 };
 
 
 // has_title_method / has_get_title_method / has_title_access
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_title_method : std::false_type {};
-template<typename _Type>
-struct has_title_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().title())
+template<typename Type>
+struct has_title_method<Type, void_t<
+    decltype(std::declval<const Type&>().title())
 >> : std::true_type {};
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_get_title_method : std::false_type {};
-template<typename _Type>
-struct has_get_title_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_title())
+template<typename Type>
+struct has_get_title_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_title())
 >> : std::true_type {};
 
-template<typename _Type>
+template<typename Type>
 struct has_title_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_title_method<_Type>::value || has_get_title_method<_Type>::value );
+        ( has_title_method<Type>::value || has_get_title_method<Type>::value );
 };
 
 
 // has_alt_text_method / has_get_alt_text_method / has_alt_text_access
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_alt_text_method : std::false_type {};
-template<typename _Type>
-struct has_alt_text_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().alt_text())
+template<typename Type>
+struct has_alt_text_method<Type, void_t<
+    decltype(std::declval<const Type&>().alt_text())
 >> : std::true_type {};
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_get_alt_text_method : std::false_type {};
-template<typename _Type>
-struct has_get_alt_text_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_alt_text())
+template<typename Type>
+struct has_get_alt_text_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_alt_text())
 >> : std::true_type {};
 
-template<typename _Type>
+template<typename Type>
 struct has_alt_text_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_alt_text_method<_Type>::value ||
-          has_get_alt_text_method<_Type>::value );
+        ( has_alt_text_method<Type>::value ||
+          has_get_alt_text_method<Type>::value );
 };
 
 
@@ -286,38 +316,38 @@ struct has_alt_text_access
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_language_method / has_get_language_method / has_language_access
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_language_method : std::false_type {};
-template<typename _Type>
-struct has_language_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().language())
+template<typename Type>
+struct has_language_method<Type, void_t<
+    decltype(std::declval<const Type&>().language())
 >> : std::true_type {};
 
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_get_language_method : std::false_type {};
-template<typename _Type>
-struct has_get_language_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_language())
+template<typename Type>
+struct has_get_language_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_language())
 >> : std::true_type {};
 
-template<typename _Type>
+template<typename Type>
 struct has_language_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_language_method<_Type>::value ||
-          has_get_language_method<_Type>::value );
+        ( has_language_method<Type>::value ||
+          has_get_language_method<Type>::value );
 };
 
 
 // has_info_string_method
-//   trait: true if `_Type` exposes `info_string()` const --
+//   trait: true if `Type` exposes `info_string()` const --
 // the full info string after the opening fence (which may
 // contain language plus additional metadata).
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_info_string_method : std::false_type {};
-template<typename _Type>
-struct has_info_string_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().info_string())
+template<typename Type>
+struct has_info_string_method<Type, void_t<
+    decltype(std::declval<const Type&>().info_string())
 >> : std::true_type {};
 
 
@@ -326,73 +356,73 @@ struct has_info_string_method<_Type, void_t<
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_heading_level_method
-//   trait: true if `_Type` exposes `heading_level()` const
+//   trait: true if `Type` exposes `heading_level()` const
 // returning an integer 1..6.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_heading_level_method : std::false_type {};
-template<typename _Type>
-struct has_heading_level_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().heading_level())
+template<typename Type>
+struct has_heading_level_method<Type, void_t<
+    decltype(std::declval<const Type&>().heading_level())
 >> : std::true_type {};
 
 
 // has_get_heading_level_method
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_get_heading_level_method : std::false_type {};
-template<typename _Type>
-struct has_get_heading_level_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_heading_level())
+template<typename Type>
+struct has_get_heading_level_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_heading_level())
 >> : std::true_type {};
 
 
 // has_heading_level_access
-template<typename _Type>
+template<typename Type>
 struct has_heading_level_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_heading_level_method<_Type>::value ||
-          has_get_heading_level_method<_Type>::value );
+        ( has_heading_level_method<Type>::value ||
+          has_get_heading_level_method<Type>::value );
 };
 
 
 // has_list_ordered_method
-//   trait: true if `_Type` exposes `is_ordered()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `is_ordered()` const.
+template<typename Type, typename = void>
 struct has_list_ordered_method : std::false_type {};
-template<typename _Type>
-struct has_list_ordered_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().is_ordered())
+template<typename Type>
+struct has_list_ordered_method<Type, void_t<
+    decltype(std::declval<const Type&>().is_ordered())
 >> : std::true_type {};
 
 
 // has_list_start_method
-//   trait: true if `_Type` exposes `list_start()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `list_start()` const.
+template<typename Type, typename = void>
 struct has_list_start_method : std::false_type {};
-template<typename _Type>
-struct has_list_start_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().list_start())
+template<typename Type>
+struct has_list_start_method<Type, void_t<
+    decltype(std::declval<const Type&>().list_start())
 >> : std::true_type {};
 
 
 // has_task_checked_method
-//   trait: true if `_Type` exposes `is_checked()` const for
+//   trait: true if `Type` exposes `is_checked()` const for
 // task list items.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_task_checked_method : std::false_type {};
-template<typename _Type>
-struct has_task_checked_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().is_checked())
+template<typename Type>
+struct has_task_checked_method<Type, void_t<
+    decltype(std::declval<const Type&>().is_checked())
 >> : std::true_type {};
 
 
 // has_table_alignment_method
-//   trait: true if `_Type` exposes `column_alignments()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `column_alignments()` const.
+template<typename Type, typename = void>
 struct has_table_alignment_method : std::false_type {};
-template<typename _Type>
-struct has_table_alignment_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().column_alignments())
+template<typename Type>
+struct has_table_alignment_method<Type, void_t<
+    decltype(std::declval<const Type&>().column_alignments())
 >> : std::true_type {};
 
 
@@ -401,65 +431,65 @@ struct has_table_alignment_method<_Type, void_t<
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_children_method
-//   trait: true if `_Type` exposes `children()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `children()` const.
+template<typename Type, typename = void>
 struct has_children_method : std::false_type {};
-template<typename _Type>
-struct has_children_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().children())
+template<typename Type>
+struct has_children_method<Type, void_t<
+    decltype(std::declval<const Type&>().children())
 >> : std::true_type {};
 
 
 // has_get_children_method
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_get_children_method : std::false_type {};
-template<typename _Type>
-struct has_get_children_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_children())
+template<typename Type>
+struct has_get_children_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_children())
 >> : std::true_type {};
 
 
 // has_children_access
-template<typename _Type>
+template<typename Type>
 struct has_children_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_children_method<_Type>::value ||
-          has_get_children_method<_Type>::value );
+        ( has_children_method<Type>::value ||
+          has_get_children_method<Type>::value );
 };
 
 
 // has_child_count_method
-//   trait: true if `_Type` exposes `child_count()` const.
-template<typename _Type, typename = void>
+//   trait: true if `Type` exposes `child_count()` const.
+template<typename Type, typename = void>
 struct has_child_count_method : std::false_type {};
-template<typename _Type>
-struct has_child_count_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().child_count())
+template<typename Type>
+struct has_child_count_method<Type, void_t<
+    decltype(std::declval<const Type&>().child_count())
 >> : std::true_type {};
 
 
 // has_inlines_method
-//   trait: true if `_Type` exposes `inlines()` const --
+//   trait: true if `Type` exposes `inlines()` const --
 // inline-holder blocks (paragraphs, headings, table cells)
 // expose this in addition to or instead of `children()`.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_inlines_method : std::false_type {};
-template<typename _Type>
-struct has_inlines_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().inlines())
+template<typename Type>
+struct has_inlines_method<Type, void_t<
+    decltype(std::declval<const Type&>().inlines())
 >> : std::true_type {};
 
 
 // has_blocks_method
-//   trait: true if `_Type` exposes `blocks()` const --
+//   trait: true if `Type` exposes `blocks()` const --
 // block-holder containers (document, blockquote, list_item)
 // expose this in addition to or instead of `children()`.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_blocks_method : std::false_type {};
-template<typename _Type>
-struct has_blocks_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().blocks())
+template<typename Type>
+struct has_blocks_method<Type, void_t<
+    decltype(std::declval<const Type&>().blocks())
 >> : std::true_type {};
 
 
@@ -468,58 +498,58 @@ struct has_blocks_method<_Type, void_t<
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_render_to_markdown_method
-//   trait: true if `_Type` exposes
+//   trait: true if `Type` exposes
 // `render_to_markdown(std::ostream&)` const.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_render_to_markdown_method : std::false_type {};
-template<typename _Type>
-struct has_render_to_markdown_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().render_to_markdown(
+template<typename Type>
+struct has_render_to_markdown_method<Type, void_t<
+    decltype(std::declval<const Type&>().render_to_markdown(
         std::declval<std::ostream&>()))
 >> : std::true_type {};
 
 
 // has_render_to_html_method
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_render_to_html_method : std::false_type {};
-template<typename _Type>
-struct has_render_to_html_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().render_to_html(
+template<typename Type>
+struct has_render_to_html_method<Type, void_t<
+    decltype(std::declval<const Type&>().render_to_html(
         std::declval<std::ostream&>()))
 >> : std::true_type {};
 
 
 // has_render_to_xml_method
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_render_to_xml_method : std::false_type {};
-template<typename _Type>
-struct has_render_to_xml_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().render_to_xml(
+template<typename Type>
+struct has_render_to_xml_method<Type, void_t<
+    decltype(std::declval<const Type&>().render_to_xml(
         std::declval<std::ostream&>()))
 >> : std::true_type {};
 
 
 // has_render_to_plaintext_method
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_render_to_plaintext_method : std::false_type {};
-template<typename _Type>
-struct has_render_to_plaintext_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().render_to_plaintext(
+template<typename Type>
+struct has_render_to_plaintext_method<Type, void_t<
+    decltype(std::declval<const Type&>().render_to_plaintext(
         std::declval<std::ostream&>()))
 >> : std::true_type {};
 
 
 // has_any_render_method
-//   trait: true if `_Type` exposes at least one of the
+//   trait: true if `Type` exposes at least one of the
 // supported render targets.
-template<typename _Type>
+template<typename Type>
 struct has_any_render_method
 {
     D_STATIC_CONSTEXPR bool value = (
-           has_render_to_markdown_method<_Type>::value
-        || has_render_to_html_method<_Type>::value
-        || has_render_to_xml_method<_Type>::value
-        || has_render_to_plaintext_method<_Type>::value
+           has_render_to_markdown_method<Type>::value
+        || has_render_to_html_method<Type>::value
+        || has_render_to_xml_method<Type>::value
+        || has_render_to_plaintext_method<Type>::value
     );
 };
 
@@ -529,32 +559,32 @@ struct has_any_render_method
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_flavor_method
-//   trait: true if `_Type` exposes `flavor()` const returning
+//   trait: true if `Type` exposes `flavor()` const returning
 // a `markdown_flavor` enum value.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_flavor_method : std::false_type {};
-template<typename _Type>
-struct has_flavor_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().flavor())
+template<typename Type>
+struct has_flavor_method<Type, void_t<
+    decltype(std::declval<const Type&>().flavor())
 >> : std::true_type {};
 
 
 // has_get_flavor_method
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_get_flavor_method : std::false_type {};
-template<typename _Type>
-struct has_get_flavor_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().get_flavor())
+template<typename Type>
+struct has_get_flavor_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_flavor())
 >> : std::true_type {};
 
 
 // has_flavor_access
-template<typename _Type>
+template<typename Type>
 struct has_flavor_access
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_flavor_method<_Type>::value ||
-          has_get_flavor_method<_Type>::value );
+        ( has_flavor_method<Type>::value ||
+          has_get_flavor_method<Type>::value );
 };
 
 
@@ -563,76 +593,76 @@ struct has_flavor_access
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_markdown_block
-//   trait: true if `_Type` satisfies the markdown block
+//   trait: true if `Type` satisfies the markdown block
 // protocol -- block kind accessor plus children access.
-template<typename _Type>
+template<typename Type>
 struct is_markdown_block
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_block_kind_access<_Type>::value &&
-          ( has_children_access<_Type>::value ||
-            has_inlines_method<_Type>::value  ||
-            has_blocks_method<_Type>::value   ||
-            has_text_access<_Type>::value ) );
+        ( has_block_kind_access<Type>::value &&
+          ( has_children_access<Type>::value ||
+            has_inlines_method<Type>::value  ||
+            has_blocks_method<Type>::value   ||
+            has_text_access<Type>::value ) );
 };
 
 
 // is_markdown_block_loose
 //   trait: looser variant -- block-kind accessor alone is
 // enough to be considered a candidate.
-template<typename _Type>
+template<typename Type>
 struct is_markdown_block_loose
 {
     D_STATIC_CONSTEXPR bool value =
-        has_block_kind_access<_Type>::value;
+        has_block_kind_access<Type>::value;
 };
 
 
 // is_markdown_inline
-//   trait: true if `_Type` satisfies the markdown inline
+//   trait: true if `Type` satisfies the markdown inline
 // protocol -- inline kind accessor plus text-or-children.
-template<typename _Type>
+template<typename Type>
 struct is_markdown_inline
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_inline_kind_access<_Type>::value &&
-          ( has_text_access<_Type>::value     ||
-            has_children_access<_Type>::value ||
-            has_url_access<_Type>::value ) );
+        ( has_inline_kind_access<Type>::value &&
+          ( has_text_access<Type>::value     ||
+            has_children_access<Type>::value ||
+            has_url_access<Type>::value ) );
 };
 
 
 // is_markdown_inline_loose
 //   trait: looser variant -- inline-kind accessor alone.
-template<typename _Type>
+template<typename Type>
 struct is_markdown_inline_loose
 {
     D_STATIC_CONSTEXPR bool value =
-        has_inline_kind_access<_Type>::value;
+        has_inline_kind_access<Type>::value;
 };
 
 
 // is_markdown_document
-//   trait: true if `_Type` satisfies the markdown document
+//   trait: true if `Type` satisfies the markdown document
 // protocol -- a flavor accessor and at least one render method.
-template<typename _Type>
+template<typename Type>
 struct is_markdown_document
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_flavor_access<_Type>::value &&
-          has_any_render_method<_Type>::value );
+        ( has_flavor_access<Type>::value &&
+          has_any_render_method<Type>::value );
 };
 
 
 // is_markdown_document_loose
 //   trait: looser variant -- flavor accessor OR any render
 // method qualifies.
-template<typename _Type>
+template<typename Type>
 struct is_markdown_document_loose
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_flavor_access<_Type>::value ||
-          has_any_render_method<_Type>::value );
+        ( has_flavor_access<Type>::value ||
+          has_any_render_method<Type>::value );
 };
 
 
@@ -642,79 +672,79 @@ struct is_markdown_document_loose
 
 // markdown_block_class
 //   struct: comprehensive classification of a block-shaped type.
-template<typename _Type>
+template<typename Type>
 struct markdown_block_class
 {
     D_STATIC_CONSTEXPR bool is_block            =
-        is_markdown_block<_Type>::value;
+        is_markdown_block<Type>::value;
     D_STATIC_CONSTEXPR bool has_kind            =
-        has_block_kind_access<_Type>::value;
+        has_block_kind_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_text            =
-        has_text_access<_Type>::value;
+        has_text_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_children        =
-        has_children_access<_Type>::value;
+        has_children_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_inlines         =
-        has_inlines_method<_Type>::value;
+        has_inlines_method<Type>::value;
     D_STATIC_CONSTEXPR bool has_blocks          =
-        has_blocks_method<_Type>::value;
+        has_blocks_method<Type>::value;
     D_STATIC_CONSTEXPR bool has_heading_level   =
-        has_heading_level_access<_Type>::value;
+        has_heading_level_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_language        =
-        has_language_access<_Type>::value;
+        has_language_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_list_ordered    =
-        has_list_ordered_method<_Type>::value;
+        has_list_ordered_method<Type>::value;
     D_STATIC_CONSTEXPR bool has_list_start      =
-        has_list_start_method<_Type>::value;
+        has_list_start_method<Type>::value;
     D_STATIC_CONSTEXPR bool has_task_checked    =
-        has_task_checked_method<_Type>::value;
+        has_task_checked_method<Type>::value;
     D_STATIC_CONSTEXPR bool has_table_alignment =
-        has_table_alignment_method<_Type>::value;
+        has_table_alignment_method<Type>::value;
 };
 
 
 // markdown_inline_class
 //   struct: comprehensive classification of an inline-shaped
 // type.
-template<typename _Type>
+template<typename Type>
 struct markdown_inline_class
 {
     D_STATIC_CONSTEXPR bool is_inline           =
-        is_markdown_inline<_Type>::value;
+        is_markdown_inline<Type>::value;
     D_STATIC_CONSTEXPR bool has_kind            =
-        has_inline_kind_access<_Type>::value;
+        has_inline_kind_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_text            =
-        has_text_access<_Type>::value;
+        has_text_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_url             =
-        has_url_access<_Type>::value;
+        has_url_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_title           =
-        has_title_access<_Type>::value;
+        has_title_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_alt_text        =
-        has_alt_text_access<_Type>::value;
+        has_alt_text_access<Type>::value;
     D_STATIC_CONSTEXPR bool has_children        =
-        has_children_access<_Type>::value;
+        has_children_access<Type>::value;
 };
 
 
 // markdown_document_class
 //   struct: comprehensive classification of a document-shaped
 // type.
-template<typename _Type>
+template<typename Type>
 struct markdown_document_class
 {
     D_STATIC_CONSTEXPR bool is_doc              =
-        is_markdown_document<_Type>::value;
+        is_markdown_document<Type>::value;
     D_STATIC_CONSTEXPR bool has_flavor          =
-        has_flavor_access<_Type>::value;
+        has_flavor_access<Type>::value;
     D_STATIC_CONSTEXPR bool renders_markdown    =
-        has_render_to_markdown_method<_Type>::value;
+        has_render_to_markdown_method<Type>::value;
     D_STATIC_CONSTEXPR bool renders_html        =
-        has_render_to_html_method<_Type>::value;
+        has_render_to_html_method<Type>::value;
     D_STATIC_CONSTEXPR bool renders_xml         =
-        has_render_to_xml_method<_Type>::value;
+        has_render_to_xml_method<Type>::value;
     D_STATIC_CONSTEXPR bool renders_plaintext   =
-        has_render_to_plaintext_method<_Type>::value;
+        has_render_to_plaintext_method<Type>::value;
     D_STATIC_CONSTEXPR bool has_blocks          =
-        has_blocks_method<_Type>::value;
+        has_blocks_method<Type>::value;
 };
 
 
@@ -723,59 +753,59 @@ struct markdown_document_class
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_block_type_alias
-//   trait: true if `_Type` exposes a nested `block_type`
+//   trait: true if `Type` exposes a nested `block_type`
 // alias naming the concrete block storage class.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_block_type_alias : std::false_type {};
-template<typename _Type>
-struct has_block_type_alias<_Type, void_t<
-    typename _Type::block_type
+template<typename Type>
+struct has_block_type_alias<Type, void_t<
+    typename clean_t<Type>::block_type
 >> : std::true_type {};
 
 
 // has_inline_type_alias
-//   trait: true if `_Type` exposes a nested `inline_type`
+//   trait: true if `Type` exposes a nested `inline_type`
 // alias.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_inline_type_alias : std::false_type {};
-template<typename _Type>
-struct has_inline_type_alias<_Type, void_t<
-    typename _Type::inline_type
+template<typename Type>
+struct has_inline_type_alias<Type, void_t<
+    typename clean_t<Type>::inline_type
 >> : std::true_type {};
 
 
 // has_document_type_alias
-//   trait: true if `_Type` exposes a nested `document_type`
+//   trait: true if `Type` exposes a nested `document_type`
 // alias.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_document_type_alias : std::false_type {};
-template<typename _Type>
-struct has_document_type_alias<_Type, void_t<
-    typename _Type::document_type
+template<typename Type>
+struct has_document_type_alias<Type, void_t<
+    typename clean_t<Type>::document_type
 >> : std::true_type {};
 
 
 // has_make_markdown_document_method
-//   trait: true if `_Type` exposes a static factory
+//   trait: true if `Type` exposes a static factory
 // `make_markdown_document()` returning a `document_type`.
-template<typename _Type, typename = void>
+template<typename Type, typename = void>
 struct has_make_markdown_document_method : std::false_type {};
-template<typename _Type>
-struct has_make_markdown_document_method<_Type, void_t<
-    decltype(_Type::make_markdown_document())
+template<typename Type>
+struct has_make_markdown_document_method<Type, void_t<
+    decltype(clean_t<Type>::make_markdown_document())
 >> : std::true_type {};
 
 
 // is_markdown_backend_complete
-//   trait: true if `_Type` exposes the full markdown backend
+//   trait: true if `Type` exposes the full markdown backend
 // protocol -- every nested type alias.
-template<typename _Type>
+template<typename Type>
 struct is_markdown_backend_complete
 {
     D_STATIC_CONSTEXPR bool value =
-        ( has_block_type_alias<_Type>::value    &&
-          has_inline_type_alias<_Type>::value   &&
-          has_document_type_alias<_Type>::value );
+        ( has_block_type_alias<Type>::value    &&
+          has_inline_type_alias<Type>::value   &&
+          has_document_type_alias<Type>::value );
 };
 
 
@@ -785,57 +815,57 @@ struct is_markdown_backend_complete
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_block_kind_access_v =
-        has_block_kind_access<_Type>::value;
+        has_block_kind_access<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_inline_kind_access_v =
-        has_inline_kind_access<_Type>::value;
+        has_inline_kind_access<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_text_access_v =
-        has_text_access<_Type>::value;
+        has_text_access<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_url_access_v =
-        has_url_access<_Type>::value;
+        has_url_access<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_heading_level_access_v =
-        has_heading_level_access<_Type>::value;
+        has_heading_level_access<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool has_any_render_method_v =
-        has_any_render_method<_Type>::value;
+        has_any_render_method<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_markdown_block_v =
-        is_markdown_block<_Type>::value;
+        is_markdown_block<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_markdown_block_loose_v =
-        is_markdown_block_loose<_Type>::value;
+        is_markdown_block_loose<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_markdown_inline_v =
-        is_markdown_inline<_Type>::value;
+        is_markdown_inline<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_markdown_inline_loose_v =
-        is_markdown_inline_loose<_Type>::value;
+        is_markdown_inline_loose<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_markdown_document_v =
-        is_markdown_document<_Type>::value;
+        is_markdown_document<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_markdown_document_loose_v =
-        is_markdown_document_loose<_Type>::value;
+        is_markdown_document_loose<Type>::value;
 
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_markdown_backend_complete_v =
-        is_markdown_backend_complete<_Type>::value;
+        is_markdown_backend_complete<Type>::value;
 
 #endif  // variable templates
 
@@ -843,5 +873,6 @@ struct is_markdown_backend_complete
 }   // namespace markdown
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_MARKDOWN_TEMPLATE_TRAITS_
+#endif  // DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_TRAITS_HPP

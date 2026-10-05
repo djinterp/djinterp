@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [functional]                                          extractor.hpp
+/*******************************************************************************
+* djinterp [core]                                                  extractor.hpp
 *
 * First-class extractors / projections (C++).
-*   An extractor is a callable of signature `_Target(const _Source&)` that
+*   An extractor is a callable of signature `Target(const Source&)` that
 * reads ("projects") some feature out of a value. Comparators, accumulators,
 * and views all consume key functions; this module elevates those key
 * functions to first-class values with their own combinators: composition,
@@ -58,64 +58,80 @@
 *
 * path:      /inc/djinterp/core/functional/extractor.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    INTERNAL EXTRACTOR HELPER CLASSES
-      1.  identity_helper                       (return source unchanged)
-      2.  constant_helper                       (return stored value)
-      3.  function_helper                       (wrap arbitrary callable)
-      4.  member_helper                         (pointer-to-data-member)
-      5.  index_helper                          (std::get<_N>)
-      6.  composed_helper                       (e2(e1(x)))
-      7.  fanout2_helper                        (tuple of two outputs)
-      8.  fanout3_helper                        (tuple of three outputs)
-      9.  mapped_helper                         (post-transform output)
-      10. filtered_helper                       (predicate gate -> maybe)
-      11. guarded_helper                        (source-side guard -> maybe)
-      12. defaulted_helper                      (replace nothing with default)
-      13. try_helper                            (catch -> maybe)
-      14. then_extract_adapter                  (pipeline RHS)
-      15. mapped_adapter                        (pipeline RHS)
-      16. filtered_adapter                      (pipeline RHS)
+      ---------------------------------
+      1.    identity_helper                       (return source unchanged)
+      2.    constant_helper                       (return stored value)
+      3.    function_helper                       (wrap arbitrary callable)
+      4.    member_helper                         (pointer-to-data-member)
+      5.    index_helper                          (std::get<N>)
+      6.    composed_helper                       (e2(e1(x)))
+      7.    fanout2_helper                        (tuple of two outputs)
+      8.    fanout3_helper                        (tuple of three outputs)
+      9.    mapped_helper                         (post-transform output)
+      10.   filtered_helper                       (predicate gate -> maybe)
+      11.   guarded_helper                        (source-side guard -> maybe)
+      12.   defaulted_helper                      (replace nothing with default)
+      13.   try_helper                            (catch -> maybe)
+      14.   then_extract_adapter                  (pipeline RHS)
+      15.   mapped_adapter                        (pipeline RHS)
+      16.   filtered_adapter                      (pipeline RHS)
+
 II.   FACTORIES (namespace extractors)
-      1.  identity<_Source>()
-      2.  constant(value)
-      3.  from_function(fn)
-      4.  from_member(memptr)
-      5.  from_index<_N>()
-      6.  then_extract(inner, outer)            (also single-arg adapter form)
-      7.  fanout(e1, e2) / fanout(e1, e2, e3)
-      8.  mapped(e, fn)                         (also single-arg adapter form)
-      9.  filtered(e, p)                        (also single-arg adapter form)
-      10. guarded(e, guard_on_source)
-      11. defaulted(maybe_extractor, default)
-      12. try_extract(e)
+      --------------------------------
+      1.    make_identity<Source>()
+      2.    constant(value)
+      3.    from_function(fn)
+      4.    from_member(memptr)
+      5.    from_index<N>()
+      6.    then_extract(inner, outer)            (also single-arg adapter form)
+      7.    fanout(e1, e2) / fanout(e1, e2, e3)
+      8.    mapped(e, fn)                         (also single-arg adapter form)
+      9.    filtered(e, p)                        (also single-arg adapter form)
+      10.   guarded(e, guard_on_source)
+      11.   defaulted(maybe_extractor, default)
+      12.   try_extract(e)
+
 III.  PIPELINE OPERATORS
-      1.  operator|(extractor, then_extract_adapter)
-      2.  operator|(extractor, mapped_adapter)
-      3.  operator|(extractor, filtered_adapter)
+      ------------------
+      1.    operator|(extractor, then_extract_adapter)
+      2.    operator|(extractor, mapped_adapter)
+      3.    operator|(extractor, filtered_adapter)
+
 IV.   CONTAINER DRIVERS  (runtime-only)
-      1.  extract_all(e, container)             -> vector<_Target>
-      2.  extract_first(e, container)           -> maybe<_Target>
-      3.  extract_unique(e, container)          -> vector<_Target>
-      4.  extract_into_map(key_e, value_e, c)   -> map<_Key, _Value>
-      5.  group_by_extractor(e, container)      -> map<_Key, vector<_Source>>
+      ---------------------------------
+      1.    extract_all(e, container)             -> vector<Target>
+      2.    extract_first(e, container)           -> maybe<Target>
+      3.    extract_unique(e, container)          -> vector<Target>
+      4.    extract_into_map(key_e, value_e, c)   -> map<Key, Value>
+      5.    group_by_extractor(e, container)      -> map<Key, vector<Source>>
+
 V.    STRUCTURAL TRAITS & CONCEPTS
-      1.  is_extractor<_Fn, _Source>            (unary, non-void result)
-      2.  extractor_result_t<_Fn, _Source>      (decayed result type)
-      3.  is_maybe<_Type>                        (is a maybe<T> specialization)
-      4.  is_maybe_extractor<_Fn, _Source>      (extractor yielding maybe<T>)
-      5.  *_v aliases  (C++14)                   (variable-template shorthands)
-      6.  extractor_c / maybe_extractor_c (C++20) (concept parallels)
+      ----------------------------
+      1.    is_extractor<Fn, Source>            (unary, non-void result)
+      2.    extractor_result_t<Fn, Source>      (decayed result type)
+      3.    is_maybe<Type>                        (is a maybe<T> specialization)
+      4.    is_maybe_extractor<Fn, Source>      (extractor yielding maybe<T>)
+      5.    *_v aliases  (C++14)                   (variable-template shorthands)
+      6.    extractor_c / maybe_extractor_c (C++20) (concept parallels)
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_EXTRACTOR_
-#define DJINTERP_FUNCTIONAL_EXTRACTOR_ 1
+#ifndef DJINTERP_FUNCTIONAL_EXTRACTOR_HPP
+#define DJINTERP_FUNCTIONAL_EXTRACTOR_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -126,8 +142,8 @@ V.    STRUCTURAL TRAITS & CONCEPTS
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
-#include "./functional_traits.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // clean
 #include "./maybe.hpp"
 
 
@@ -138,7 +154,7 @@ NS_DJINTERP
 // unqualified references throughout this header resolve to them directly.
 
 
-//   DUAL DOMAIN.  An extractor is a pure projection _Target(const _Source&),
+//   DUAL DOMAIN.  An extractor is a pure projection Target(const Source&),
 // and every primitive helper here is D_CONSTEXPR, so an extractor built from
 // constexpr callables folds during constant evaluation just as it runs at run
 // time - over ordinary values, and over carrier leaves (val_t / type_t) when
@@ -160,12 +176,12 @@ NS_INTERNAL
     // Useful as a slot in higher-order constructions where one
     // of the projections must be the source itself (e.g. building
     // a (source, key) tuple via fanout).
-    template<typename _Source>
+    template<typename Source>
     struct identity_helper
     {
         D_CONSTEXPR
-        const _Source& operator()(
-            const _Source& _value
+        const Source& operator()(
+            const Source& _value
         ) const
         {
             return _value;
@@ -177,29 +193,29 @@ NS_INTERNAL
     //   helper: extractor that ignores its source and returns a
     // stored value. The source type is irrelevant; the helper is
     // invocable with any argument.
-    template<typename _Target>
+    template<typename Target>
     class constant_helper
     {
     public:
-        template<typename _TargetFwd>
+        template<typename TargetFwd>
         explicit D_CONSTEXPR
         constant_helper(
-            _TargetFwd&& _value
+            TargetFwd&& _value
         )
-            : m_value(std::forward<_TargetFwd>(_value))
+            : m_value(std::forward<TargetFwd>(_value))
         {}
 
-        template<typename _Source>
+        template<typename Source>
         D_CONSTEXPR
-        const _Target& operator()(
-            const _Source&
+        const Target& operator()(
+            const Source&
         ) const
         {
             return m_value;
         }
 
     private:
-        _Target m_value;
+        Target m_value;
     };
 
 
@@ -208,159 +224,159 @@ NS_INTERNAL
     // Provided so every extractor factory yields the same helper-
     // style structure; useful when a user has an extractor-shaped
     // lambda and wants to chain it with the combinators below.
-    template<typename _Fn>
+    template<typename Fn>
     class function_helper
     {
     public:
-        template<typename _FnFwd>
+        template<typename FnFwd>
         explicit D_CONSTEXPR
         function_helper(
-            _FnFwd&& _fn
+            FnFwd&& _fn
         )
-            : m_fn(std::forward<_FnFwd>(_fn))
+            : m_fn(std::forward<FnFwd>(_fn))
         {}
 
-        template<typename _Source>
+        template<typename Source>
         D_CONSTEXPR
         auto operator()(
-            const _Source& _value
+            const Source& _value
         ) const
-            -> decltype(std::declval<const _Fn&>()(_value))
+            -> decltype(std::declval<const Fn&>()(_value))
         {
             return m_fn(_value);
         }
 
     private:
-        _Fn m_fn;
+        Fn m_fn;
     };
 
 
     // member_helper
-    //   helper: callable that reads a data-member of _Class via
+    //   helper: callable that reads a data-member of Class via
     // a stored pointer-to-member. Equivalent in effect to the
     // comparator module's member_accessor; kept distinct because
     // the two callers want different invocability shapes (binary
     // for comparator, unary for extractor).
-    template<typename _Class,
-             typename _Member>
+    template<typename Class,
+             typename Member>
     class member_helper
     {
     public:
         explicit D_CONSTEXPR
         member_helper(
-            _Member _Class::* _ptr
+            Member Class::* _ptr
         )
             : m_ptr(_ptr)
         {}
 
         D_CONSTEXPR
-        const _Member& operator()(
-            const _Class& _obj
+        const Member& operator()(
+            const Class& _obj
         ) const
         {
             return _obj.*m_ptr;
         }
 
     private:
-        _Member _Class::* m_ptr;
+        Member Class::* m_ptr;
     };
 
 
     // index_helper
-    //   helper: extractor that returns std::get<_N>(source).
+    //   helper: extractor that returns std::get<N>(source).
     // Works on std::tuple, std::pair, and std::array. Bounds
     // checking is delegated to std::get; out-of-range indices
     // produce ordinary compile-time errors.
-    template<std::size_t _N>
+    template<std::size_t N>
     struct index_helper
     {
-        template<typename _Source>
+        template<typename Source>
         D_CONSTEXPR
         auto operator()(
-            const _Source& _value
+            const Source& _value
         ) const
-            -> decltype(std::get<_N>(_value))
+            -> decltype(std::get<N>(_value))
         {
-            return std::get<_N>(_value);
+            return std::get<N>(_value);
         }
     };
 
 
     // composed_helper
-    //   helper: applies _Inner first, then feeds the result into
-    // _Outer.  composed_helper(e1, e2)(x) = e2(e1(x)).
-    template<typename _Inner,
-             typename _Outer>
+    //   helper: applies Inner first, then feeds the result into
+    // Outer.  composed_helper(e1, e2)(x) = e2(e1(x)).
+    template<typename Inner,
+             typename Outer>
     class composed_helper
     {
     public:
-        template<typename _InnerFwd,
-                 typename _OuterFwd>
+        template<typename InnerFwd,
+                 typename OuterFwd>
         D_CONSTEXPR
         composed_helper(
-            _InnerFwd&& _inner,
-            _OuterFwd&& _outer
+            InnerFwd&& _inner,
+            OuterFwd&& _outer
         )
-            : m_inner(std::forward<_InnerFwd>(_inner)),
-              m_outer(std::forward<_OuterFwd>(_outer))
+            : m_inner(std::forward<InnerFwd>(_inner)),
+              m_outer(std::forward<OuterFwd>(_outer))
         {}
 
-        template<typename _Source>
+        template<typename Source>
         D_CONSTEXPR
         auto operator()(
-            const _Source& _value
+            const Source& _value
         ) const
             -> decltype(
-                std::declval<const _Outer&>()(
-                    std::declval<const _Inner&>()(_value)))
+                std::declval<const Outer&>()(
+                    std::declval<const Inner&>()(_value)))
         {
             return m_outer(m_inner(_value));
         }
 
     private:
-        _Inner m_inner;
-        _Outer m_outer;
+        Inner m_inner;
+        Outer m_outer;
     };
 
 
     // fanout2_helper
     //   helper: applies two extractors to the same source and
     // returns std::tuple<T1, T2>.
-    template<typename _Extractor1,
-             typename _Extractor2>
+    template<typename Extractor1,
+             typename Extractor2>
     class fanout2_helper
     {
     public:
-        template<typename _E1Fwd,
-                 typename _E2Fwd>
+        template<typename E1Fwd,
+                 typename E2Fwd>
         D_CONSTEXPR
         fanout2_helper(
-            _E1Fwd&& _e1,
-            _E2Fwd&& _e2
+            E1Fwd&& _e1,
+            E2Fwd&& _e2
         )
-            : m_e1(std::forward<_E1Fwd>(_e1)),
-              m_e2(std::forward<_E2Fwd>(_e2))
+            : m_e1(std::forward<E1Fwd>(_e1)),
+              m_e2(std::forward<E2Fwd>(_e2))
         {}
 
-        template<typename _Source>
+        template<typename Source>
         D_CONSTEXPR
         auto operator()(
-            const _Source& _value
+            const Source& _value
         ) const
             -> std::tuple<
                    typename std::decay<
-                       decltype(std::declval<const _Extractor1&>()(_value))
+                       decltype(std::declval<const Extractor1&>()(_value))
                    >::type,
                    typename std::decay<
-                       decltype(std::declval<const _Extractor2&>()(_value))
+                       decltype(std::declval<const Extractor2&>()(_value))
                    >::type>
         {
             return std::make_tuple(m_e1(_value), m_e2(_value));
         }
 
     private:
-        _Extractor1 m_e1;
-        _Extractor2 m_e2;
+        Extractor1 m_e1;
+        Extractor2 m_e2;
     };
 
 
@@ -370,40 +386,40 @@ NS_INTERNAL
     // accordingly. We provide explicit 2- and 3-arg shapes so that
     // the common cases don't pay the metaprogramming cost of a
     // fully variadic implementation.
-    template<typename _Extractor1,
-             typename _Extractor2,
-             typename _Extractor3>
+    template<typename Extractor1,
+             typename Extractor2,
+             typename Extractor3>
     class fanout3_helper
     {
     public:
-        template<typename _E1Fwd,
-                 typename _E2Fwd,
-                 typename _E3Fwd>
+        template<typename E1Fwd,
+                 typename E2Fwd,
+                 typename E3Fwd>
         D_CONSTEXPR
         fanout3_helper(
-            _E1Fwd&& _e1,
-            _E2Fwd&& _e2,
-            _E3Fwd&& _e3
+            E1Fwd&& _e1,
+            E2Fwd&& _e2,
+            E3Fwd&& _e3
         )
-            : m_e1(std::forward<_E1Fwd>(_e1)),
-              m_e2(std::forward<_E2Fwd>(_e2)),
-              m_e3(std::forward<_E3Fwd>(_e3))
+            : m_e1(std::forward<E1Fwd>(_e1)),
+              m_e2(std::forward<E2Fwd>(_e2)),
+              m_e3(std::forward<E3Fwd>(_e3))
         {}
 
-        template<typename _Source>
+        template<typename Source>
         D_CONSTEXPR
         auto operator()(
-            const _Source& _value
+            const Source& _value
         ) const
             -> std::tuple<
                    typename std::decay<
-                       decltype(std::declval<const _Extractor1&>()(_value))
+                       decltype(std::declval<const Extractor1&>()(_value))
                    >::type,
                    typename std::decay<
-                       decltype(std::declval<const _Extractor2&>()(_value))
+                       decltype(std::declval<const Extractor2&>()(_value))
                    >::type,
                    typename std::decay<
-                       decltype(std::declval<const _Extractor3&>()(_value))
+                       decltype(std::declval<const Extractor3&>()(_value))
                    >::type>
         {
             return std::make_tuple(m_e1(_value),
@@ -412,49 +428,49 @@ NS_INTERNAL
         }
 
     private:
-        _Extractor1 m_e1;
-        _Extractor2 m_e2;
-        _Extractor3 m_e3;
+        Extractor1 m_e1;
+        Extractor2 m_e2;
+        Extractor3 m_e3;
     };
 
 
     // mapped_helper
-    //   helper: applies _MapFn to the extractor's output. The
+    //   helper: applies MapFn to the extractor's output. The
     // operational semantics are identical to composed_helper; the
     // two are kept separate so that pipeline syntax `e | mapped(f)`
     // reads naturally when the second stage is a plain
     // transformation function rather than another full extractor.
-    template<typename _Extractor,
-             typename _MapFn>
+    template<typename Extractor,
+             typename MapFn>
     class mapped_helper
     {
     public:
-        template<typename _EFwd,
-                 typename _FFwd>
+        template<typename EFwd,
+                 typename FFwd>
         D_CONSTEXPR
         mapped_helper(
-            _EFwd&& _e,
-            _FFwd&& _fn
+            EFwd&& _e,
+            FFwd&& _fn
         )
-            : m_e(std::forward<_EFwd>(_e)),
-              m_fn(std::forward<_FFwd>(_fn))
+            : m_e(std::forward<EFwd>(_e)),
+              m_fn(std::forward<FFwd>(_fn))
         {}
 
-        template<typename _Source>
+        template<typename Source>
         D_CONSTEXPR auto
         operator()(
-            const _Source& _value
+            const Source& _value
         ) const
             -> decltype(
-                std::declval<const _MapFn&>()(
-                    std::declval<const _Extractor&>()(_value)))
+                std::declval<const MapFn&>()(
+                    std::declval<const Extractor&>()(_value)))
         {
             return m_fn(m_e(_value));
         }
 
     private:
-        _Extractor m_e;
-        _MapFn     m_fn;
+        Extractor m_e;
+        MapFn      m_fn;
     };
 
 
@@ -464,28 +480,28 @@ NS_INTERNAL
     // The result type is maybe<inner-output>.  The predicate
     // tests the EXTRACTED value, not the source; use
     // guarded_helper for source-side gating.
-    template<typename _Extractor,
-             typename _Predicate>
+    template<typename Extractor,
+             typename Predicate>
     class filtered_helper
     {
     public:
-        template<typename _EFwd,
-                 typename _PFwd>
+        template<typename EFwd,
+                 typename PFwd>
         D_CONSTEXPR filtered_helper(
-            _EFwd&& _e,
-            _PFwd&& _pred
+            EFwd&& _e,
+            PFwd&& _pred
         )
-            : m_e(std::forward<_EFwd>(_e)),
-              m_pred(std::forward<_PFwd>(_pred))
+            : m_e(std::forward<EFwd>(_e)),
+              m_pred(std::forward<PFwd>(_pred))
         {}
 
-        template<typename _Source>
+        template<typename Source>
         D_CONSTEXPR
         auto operator()(
-            const _Source& _value
+            const Source& _value
         ) const
             -> maybe<typename std::decay<
-                   decltype(std::declval<const _Extractor&>()(_value))
+                   decltype(std::declval<const Extractor&>()(_value))
                >::type>
         {
             using extracted_t = typename std::decay<
@@ -497,39 +513,39 @@ NS_INTERNAL
         }
 
     private:
-        _Extractor m_e;
-        _Predicate m_pred;
+        Extractor m_e;
+        Predicate m_pred;
     };
 
 
     // guarded_helper
-    //   helper: applies _Guard to the SOURCE; on true, returns
+    //   helper: applies Guard to the SOURCE; on true, returns
     // just(extractor(source)); on false, returns nothing. Use
     // this when the guard is cheaper than the extractor or when
     // the extractor is only valid for sources passing the guard
     // (e.g. null-pointer checks before pointer dereference).
-    template<typename _Extractor,
-             typename _Guard>
+    template<typename Extractor,
+             typename Guard>
     class guarded_helper
     {
     public:
-        template<typename _EFwd,
-                 typename _GFwd>
+        template<typename EFwd,
+                 typename GFwd>
         D_CONSTEXPR guarded_helper(
-            _EFwd&& _e,
-            _GFwd&& _guard
+            EFwd&& _e,
+            GFwd&& _guard
         )
-            : m_e(std::forward<_EFwd>(_e)),
-              m_guard(std::forward<_GFwd>(_guard))
+            : m_e(std::forward<EFwd>(_e)),
+              m_guard(std::forward<GFwd>(_guard))
         {}
 
-        template<typename _Source>
-        D_CONSTEXPR auto 
+        template<typename Source>
+        D_CONSTEXPR auto
         operator()(
-            const _Source& _value
+            const Source& _value
         ) const
             -> maybe<typename std::decay<
-                   decltype(std::declval<const _Extractor&>()(_value))
+                   decltype(std::declval<const Extractor&>()(_value))
                >::type>
         {
             using extracted_t = typename std::decay<
@@ -541,8 +557,8 @@ NS_INTERNAL
         }
 
     private:
-        _Extractor m_e;
-        _Guard     m_guard;
+        Extractor m_e;
+        Guard      m_guard;
     };
 
 
@@ -551,34 +567,34 @@ NS_INTERNAL
     // extractor by substituting a stored default whenever the
     // inner returns nothing. The inner MUST return a maybe<T> --
     // this is the dual of filtered/guarded/try_extract.
-    template<typename _Extractor,
-             typename _Default>
+    template<typename Extractor,
+             typename Default>
     class defaulted_helper
     {
     public:
-        template<typename _EFwd,
-                 typename _DFwd>
+        template<typename EFwd,
+                 typename DFwd>
         D_CONSTEXPR
         defaulted_helper(
-            _EFwd&& _e,
-            _DFwd&& _default
+            EFwd&& _e,
+            DFwd&& _default
         )
-            : m_e(std::forward<_EFwd>(_e)),
-              m_default(std::forward<_DFwd>(_default))
+            : m_e(std::forward<EFwd>(_e)),
+              m_default(std::forward<DFwd>(_default))
         {}
 
-        template<typename _Source>
+        template<typename Source>
         D_CONSTEXPR
-        _Default operator()(
-            const _Source& _value
+        Default operator()(
+            const Source& _value
         ) const
         {
             return m_e(_value).value_or(m_default);
         }
 
     private:
-        _Extractor m_e;
-        _Default   m_default;
+        Extractor m_e;
+        Default    m_default;
     };
 
 
@@ -588,24 +604,24 @@ NS_INTERNAL
     // nothing() on any exception. NOT constexpr because try/catch
     // is forbidden in constant evaluation pre-C++26; everything
     // else in this header remains usable in constexpr contexts.
-    template<typename _Extractor>
+    template<typename Extractor>
     class try_helper
     {
     public:
-        template<typename _EFwd>
+        template<typename EFwd>
         explicit
         try_helper(
-            _EFwd&& _e
+            EFwd&& _e
         )
-            : m_e(std::forward<_EFwd>(_e))
+            : m_e(std::forward<EFwd>(_e))
         {}
 
-        template<typename _Source>
+        template<typename Source>
         auto operator()(
-            const _Source& _value
+            const Source& _value
         ) const
             -> maybe<typename std::decay<
-                   decltype(std::declval<const _Extractor&>()(_value))
+                   decltype(std::declval<const Extractor&>()(_value))
                >::type>
         {
             using extracted_t = typename std::decay<
@@ -622,7 +638,7 @@ NS_INTERNAL
         }
 
     private:
-        _Extractor m_e;
+        Extractor m_e;
     };
 
 
@@ -634,95 +650,95 @@ NS_INTERNAL
     //   helper: pipeline RHS that holds the outer extractor;
     // operator| composes (inner | then_extract_adapter(outer))
     // into a composed_helper.
-    template<typename _Outer>
+    template<typename Outer>
     class then_extract_adapter
     {
     public:
-        template<typename _OuterFwd>
+        template<typename OuterFwd>
         explicit D_CONSTEXPR
         then_extract_adapter(
-            _OuterFwd&& _outer
+            OuterFwd&& _outer
         )
-            : m_outer(std::forward<_OuterFwd>(_outer))
+            : m_outer(std::forward<OuterFwd>(_outer))
         {}
 
-        template<typename _Inner>
+        template<typename Inner>
         D_CONSTEXPR
-        composed_helper<typename std::decay<_Inner>::type, _Outer>
+        composed_helper<typename std::decay<Inner>::type, Outer>
         apply(
-            _Inner&& _inner
+            Inner&& _inner
         ) const
         {
             return composed_helper<
-                typename std::decay<_Inner>::type, _Outer>(
-                    std::forward<_Inner>(_inner), m_outer);
+                typename std::decay<Inner>::type, Outer>(
+                    std::forward<Inner>(_inner), m_outer);
         }
 
     private:
-        _Outer m_outer;
+        Outer m_outer;
     };
 
 
     // mapped_adapter
     //   helper: pipeline RHS for `e | mapped(f)`.
-    template<typename _MapFn>
+    template<typename MapFn>
     class mapped_adapter
     {
     public:
-        template<typename _FFwd>
+        template<typename FFwd>
         explicit D_CONSTEXPR
         mapped_adapter(
-            _FFwd&& _fn
+            FFwd&& _fn
         )
-            : m_fn(std::forward<_FFwd>(_fn))
+            : m_fn(std::forward<FFwd>(_fn))
         {}
 
-        template<typename _Extractor>
+        template<typename Extractor>
         D_CONSTEXPR
-        mapped_helper<typename std::decay<_Extractor>::type, _MapFn>
+        mapped_helper<typename std::decay<Extractor>::type, MapFn>
         apply(
-            _Extractor&& _e
+            Extractor&& _e
         ) const
         {
             return mapped_helper<
-                typename std::decay<_Extractor>::type, _MapFn>(
-                    std::forward<_Extractor>(_e), m_fn);
+                typename std::decay<Extractor>::type, MapFn>(
+                    std::forward<Extractor>(_e), m_fn);
         }
 
     private:
-        _MapFn m_fn;
+        MapFn m_fn;
     };
 
 
     // filtered_adapter
     //   helper: pipeline RHS for `e | filtered(p)`. Yields a
     // filtered_helper that returns maybe<T>.
-    template<typename _Predicate>
+    template<typename Predicate>
     class filtered_adapter
     {
     public:
-        template<typename _PFwd>
+        template<typename PFwd>
         explicit D_CONSTEXPR
         filtered_adapter(
-            _PFwd&& _pred
+            PFwd&& _pred
         )
-            : m_pred(std::forward<_PFwd>(_pred))
+            : m_pred(std::forward<PFwd>(_pred))
         {}
 
-        template<typename _Extractor>
+        template<typename Extractor>
         D_CONSTEXPR
-        filtered_helper<typename std::decay<_Extractor>::type, _Predicate>
+        filtered_helper<typename std::decay<Extractor>::type, Predicate>
         apply(
-            _Extractor&& _e
+            Extractor&& _e
         ) const
         {
             return filtered_helper<
-                typename std::decay<_Extractor>::type, _Predicate>(
-                    std::forward<_Extractor>(_e), m_pred);
+                typename std::decay<Extractor>::type, Predicate>(
+                    std::forward<Extractor>(_e), m_pred);
         }
 
     private:
-        _Predicate m_pred;
+        Predicate m_pred;
     };
 
 NS_END  // internal
@@ -732,16 +748,16 @@ NS_END  // internal
 ///             II.   FACTORIES                                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// identity
+// make_identity
 //   function: returns an extractor that yields its source
 // unchanged. The dual of constant. Useful as a no-op slot in
-// higher-order constructions (e.g. fanout(identity<T>(), e)
+// higher-order constructions (e.g. fanout(make_identity<T>(), e)
 // for "the source itself plus a derived feature").
-template<typename _Source>
-D_NODISCARD D_CONSTEXPR internal::identity_helper<_Source>
-identity()
+template<typename Source>
+D_NODISCARD D_CONSTEXPR internal::identity_helper<Source>
+make_identity()
 {
-    return internal::identity_helper<_Source>{};
+    return internal::identity_helper<Source>{};
 }
 
 
@@ -750,13 +766,13 @@ identity()
 // and always yields the supplied value. The source type is
 // erased; the same constant extractor can be applied to any
 // input.
-template<typename _Target>
-D_NODISCARD D_CONSTEXPR internal::constant_helper<typename std::decay<_Target>::type>
+template<typename Target>
+D_NODISCARD D_CONSTEXPR internal::constant_helper<typename std::decay<Target>::type>
 constant(
-    _Target&& _value
+    Target&& _value
 )
 {
-    return internal::constant_helper<typename std::decay<_Target>::type>(std::forward<_Target>(_value));
+    return internal::constant_helper<typename std::decay<Target>::type>(std::forward<Target>(_value));
 }
 
 
@@ -765,13 +781,13 @@ constant(
 // extractor so that it participates in the pipeline operators
 // and combinators below. The callable is stored by value
 // (decayed), preserving constexpr-ability.
-template<typename _Fn>
-D_NODISCARD D_CONSTEXPR internal::function_helper<typename std::decay<_Fn>::type>
+template<typename Fn>
+D_NODISCARD D_CONSTEXPR internal::function_helper<typename std::decay<Fn>::type>
 from_function(
-    _Fn&& _fn
+    Fn&& _fn
 )
 {
-    return internal::function_helper<typename std::decay<_Fn>::type>(std::forward<_Fn>(_fn));
+    return internal::function_helper<typename std::decay<Fn>::type>(std::forward<Fn>(_fn));
 }
 
 
@@ -780,28 +796,28 @@ from_function(
 // pointer-to-data-member from any object of the owning class.
 //
 //   Example: extractors::from_member(&person::age)
-template<typename _Class,
-            typename _Member>
-D_NODISCARD D_CONSTEXPR internal::member_helper<_Class, _Member>
+template<typename Class,
+            typename Member>
+D_NODISCARD D_CONSTEXPR internal::member_helper<Class, Member>
 from_member(
-    _Member _Class::* _member_ptr
+    Member Class::* _member_ptr
 )
 {
-    return internal::member_helper<_Class, _Member>(_member_ptr);
+    return internal::member_helper<Class, Member>(_member_ptr);
 }
 
 
 // from_index
-//   function: returns an extractor that reads the _N-th
+//   function: returns an extractor that reads the N-th
 // element of a std::tuple / std::pair / std::array via
-// std::get<_N>. Index is supplied as a non-type template
+// std::get<N>. Index is supplied as a non-type template
 // parameter so the result type can be computed at compile
 // time.
-template<std::size_t _N>
-D_NODISCARD D_CONSTEXPR internal::index_helper<_N>
+template<std::size_t N>
+D_NODISCARD D_CONSTEXPR internal::index_helper<N>
 from_index()
 {
-    return internal::index_helper<_N>{};
+    return internal::index_helper<N>{};
 }
 
 
@@ -811,20 +827,20 @@ from_index()
 // to mapped, but the name reads more naturally when both
 // stages are first-class extractors rather than a post-
 // transformation function.
-template<typename _Inner,
-            typename _Outer>
-D_NODISCARD D_CONSTEXPR internal::composed_helper<typename std::decay<_Inner>::type,
-                            typename std::decay<_Outer>::type>
+template<typename Inner,
+            typename Outer>
+D_NODISCARD D_CONSTEXPR internal::composed_helper<typename std::decay<Inner>::type,
+                            typename std::decay<Outer>::type>
 then_extract(
-    _Inner&& _inner,
-    _Outer&& _outer
+    Inner&& _inner,
+    Outer&& _outer
 )
 {
     return internal::composed_helper<
-        typename std::decay<_Inner>::type,
-        typename std::decay<_Outer>::type>(
-            std::forward<_Inner>(_inner),
-            std::forward<_Outer>(_outer));
+        typename std::decay<Inner>::type,
+        typename std::decay<Outer>::type>(
+            std::forward<Inner>(_inner),
+            std::forward<Outer>(_outer));
 }
 
 
@@ -832,35 +848,35 @@ then_extract(
 //   function: builds a pipeline adapter so that
 // `inner | then_extract(outer)` composes the two. Overload
 // resolution picks this form when no inner is supplied.
-template<typename _Outer>
-D_NODISCARD D_CONSTEXPR internal::then_extract_adapter<typename std::decay<_Outer>::type>
+template<typename Outer>
+D_NODISCARD D_CONSTEXPR internal::then_extract_adapter<typename std::decay<Outer>::type>
 then_extract(
-    _Outer&& _outer
+    Outer&& _outer
 )
 {
     return internal::then_extract_adapter<
-        typename std::decay<_Outer>::type>(
-            std::forward<_Outer>(_outer));
+        typename std::decay<Outer>::type>(
+            std::forward<Outer>(_outer));
 }
 
 
 // fanout (binary)
 //   function: builds an extractor that applies two extractors
 // to the same source and yields a std::tuple<T1, T2>.
-template<typename _E1,
-            typename _E2>
-D_NODISCARD D_CONSTEXPR internal::fanout2_helper<typename std::decay<_E1>::type,
-                            typename std::decay<_E2>::type>
+template<typename E1,
+            typename E2>
+D_NODISCARD D_CONSTEXPR internal::fanout2_helper<typename std::decay<E1>::type,
+                            typename std::decay<E2>::type>
 fanout(
-    _E1&& _e1,
-    _E2&& _e2
+    E1&& _e1,
+    E2&& _e2
 )
 {
     return internal::fanout2_helper<
-        typename std::decay<_E1>::type,
-        typename std::decay<_E2>::type>(
-            std::forward<_E1>(_e1),
-            std::forward<_E2>(_e2));
+        typename std::decay<E1>::type,
+        typename std::decay<E2>::type>(
+            std::forward<E1>(_e1),
+            std::forward<E2>(_e2));
 }
 
 
@@ -868,25 +884,25 @@ fanout(
 //   function: three-way fan-out yielding
 // std::tuple<T1, T2, T3>. Wider arities can be assembled by
 // nesting; the tuples will nest accordingly.
-template<typename _E1,
-            typename _E2,
-            typename _E3>
-D_NODISCARD D_CONSTEXPR internal::fanout3_helper<typename std::decay<_E1>::type,
-                            typename std::decay<_E2>::type,
-                            typename std::decay<_E3>::type>
+template<typename E1,
+            typename E2,
+            typename E3>
+D_NODISCARD D_CONSTEXPR internal::fanout3_helper<typename std::decay<E1>::type,
+                            typename std::decay<E2>::type,
+                            typename std::decay<E3>::type>
 fanout(
-    _E1&& _e1,
-    _E2&& _e2,
-    _E3&& _e3
+    E1&& _e1,
+    E2&& _e2,
+    E3&& _e3
 )
 {
     return internal::fanout3_helper<
-        typename std::decay<_E1>::type,
-        typename std::decay<_E2>::type,
-        typename std::decay<_E3>::type>(
-            std::forward<_E1>(_e1),
-            std::forward<_E2>(_e2),
-            std::forward<_E3>(_e3));
+        typename std::decay<E1>::type,
+        typename std::decay<E2>::type,
+        typename std::decay<E3>::type>(
+            std::forward<E1>(_e1),
+            std::forward<E2>(_e2),
+            std::forward<E3>(_e3));
 }
 
 
@@ -896,34 +912,34 @@ fanout(
 // is stylistic. `mapped` reads better when the second stage
 // is a plain lambda; `then_extract` reads better when both
 // stages are first-class extractors.
-template<typename _Extractor,
-            typename _Fn>
-D_NODISCARD D_CONSTEXPR internal::mapped_helper<typename std::decay<_Extractor>::type,
-                        typename std::decay<_Fn>::type>
+template<typename Extractor,
+            typename Fn>
+D_NODISCARD D_CONSTEXPR internal::mapped_helper<typename std::decay<Extractor>::type,
+                        typename std::decay<Fn>::type>
 mapped(
-    _Extractor&& _e,
-    _Fn&&        _fn
+    Extractor&& _e,
+    Fn&&        _fn
 )
 {
     return internal::mapped_helper<
-        typename std::decay<_Extractor>::type,
-        typename std::decay<_Fn>::type>(
-            std::forward<_Extractor>(_e),
-            std::forward<_Fn>(_fn));
+        typename std::decay<Extractor>::type,
+        typename std::decay<Fn>::type>(
+            std::forward<Extractor>(_e),
+            std::forward<Fn>(_fn));
 }
 
 
 // mapped (single-arg, adapter form)
 //   function: pipeline form for `e | mapped(f)`.
-template<typename _Fn>
-D_NODISCARD D_CONSTEXPR internal::mapped_adapter<typename std::decay<_Fn>::type>
+template<typename Fn>
+D_NODISCARD D_CONSTEXPR internal::mapped_adapter<typename std::decay<Fn>::type>
 mapped(
-    _Fn&& _fn
+    Fn&& _fn
 )
 {
     return internal::mapped_adapter<
-        typename std::decay<_Fn>::type>(
-            std::forward<_Fn>(_fn));
+        typename std::decay<Fn>::type>(
+            std::forward<Fn>(_fn));
 }
 
 
@@ -932,34 +948,34 @@ mapped(
 // gated by a predicate on the extracted value. The returned
 // extractor produces maybe<T>; nothing is returned when the
 // predicate is false.
-template<typename _Extractor,
-            typename _Predicate>
-D_NODISCARD D_CONSTEXPR internal::filtered_helper<typename std::decay<_Extractor>::type,
-                            typename std::decay<_Predicate>::type>
+template<typename Extractor,
+            typename Predicate>
+D_NODISCARD D_CONSTEXPR internal::filtered_helper<typename std::decay<Extractor>::type,
+                            typename std::decay<Predicate>::type>
 filtered(
-    _Extractor&& _e,
-    _Predicate&& _pred
+    Extractor&& _e,
+    Predicate&& _pred
 )
 {
     return internal::filtered_helper<
-        typename std::decay<_Extractor>::type,
-        typename std::decay<_Predicate>::type>(
-            std::forward<_Extractor>(_e),
-            std::forward<_Predicate>(_pred));
+        typename std::decay<Extractor>::type,
+        typename std::decay<Predicate>::type>(
+            std::forward<Extractor>(_e),
+            std::forward<Predicate>(_pred));
 }
 
 
 // filtered (single-arg, adapter form)
 //   function: pipeline form for `e | filtered(p)`.
-template<typename _Predicate>
-D_NODISCARD D_CONSTEXPR internal::filtered_adapter<typename std::decay<_Predicate>::type>
+template<typename Predicate>
+D_NODISCARD D_CONSTEXPR internal::filtered_adapter<typename std::decay<Predicate>::type>
 filtered(
-    _Predicate&& _pred
+    Predicate&& _pred
 )
 {
     return internal::filtered_adapter<
-        typename std::decay<_Predicate>::type>(
-            std::forward<_Predicate>(_pred));
+        typename std::decay<Predicate>::type>(
+            std::forward<Predicate>(_pred));
 }
 
 
@@ -968,20 +984,20 @@ filtered(
 // the SOURCE before extraction rather than against the
 // extracted value. Useful when the extractor itself is only
 // safe to invoke on sources passing the guard.
-template<typename _Extractor,
-            typename _Guard>
-D_NODISCARD D_CONSTEXPR internal::guarded_helper<typename std::decay<_Extractor>::type,
-                            typename std::decay<_Guard>::type>
+template<typename Extractor,
+            typename Guard>
+D_NODISCARD D_CONSTEXPR internal::guarded_helper<typename std::decay<Extractor>::type,
+                            typename std::decay<Guard>::type>
 guarded(
-    _Extractor&& _e,
-    _Guard&&     _guard
+    Extractor&& _e,
+    Guard&&     _guard
 )
 {
     return internal::guarded_helper<
-        typename std::decay<_Extractor>::type,
-        typename std::decay<_Guard>::type>(
-            std::forward<_Extractor>(_e),
-            std::forward<_Guard>(_guard));
+        typename std::decay<Extractor>::type,
+        typename std::decay<Guard>::type>(
+            std::forward<Extractor>(_e),
+            std::forward<Guard>(_guard));
 }
 
 
@@ -989,20 +1005,20 @@ guarded(
 //   function: converts a maybe-returning extractor into a
 // total extractor by substituting a stored default whenever
 // the inner returns nothing. Inverse of filtered/guarded.
-template<typename _Extractor,
-            typename _Default>
-D_NODISCARD D_CONSTEXPR internal::defaulted_helper<typename std::decay<_Extractor>::type,
-                            typename std::decay<_Default>::type>
+template<typename Extractor,
+            typename Default>
+D_NODISCARD D_CONSTEXPR internal::defaulted_helper<typename std::decay<Extractor>::type,
+                            typename std::decay<Default>::type>
 defaulted(
-    _Extractor&& _e,
-    _Default&&   _default
+    Extractor&& _e,
+    Default&&   _default
 )
 {
     return internal::defaulted_helper<
-        typename std::decay<_Extractor>::type,
-        typename std::decay<_Default>::type>(
-            std::forward<_Extractor>(_e),
-            std::forward<_Default>(_default));
+        typename std::decay<Extractor>::type,
+        typename std::decay<Default>::type>(
+            std::forward<Extractor>(_e),
+            std::forward<Default>(_default));
 }
 
 
@@ -1011,16 +1027,16 @@ defaulted(
 // during extraction is captured as nothing. Not D_CONSTEXPR
 // because exception handling is forbidden in constant
 // evaluation pre-C++26.
-template<typename _Extractor>
+template<typename Extractor>
 D_NODISCARD
-internal::try_helper<typename std::decay<_Extractor>::type>
+internal::try_helper<typename std::decay<Extractor>::type>
 try_extract(
-    _Extractor&& _e
+    Extractor&& _e
 )
 {
     return internal::try_helper<
-        typename std::decay<_Extractor>::type>(
-            std::forward<_Extractor>(_e));
+        typename std::decay<Extractor>::type>(
+            std::forward<Extractor>(_e));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1034,47 +1050,47 @@ try_extract(
 // operator| (extractor | then_extract_adapter)
 //   function: pipeline composition. Yields a composed_helper
 // equivalent to then_extract(inner, outer).
-template<typename _Inner,
-         typename _Outer>
+template<typename Inner,
+         typename Outer>
 D_NODISCARD D_CONSTEXPR auto
 operator|(
-    _Inner&&                                _inner,
-    internal::then_extract_adapter<_Outer>  _adapter
+    Inner&&                                _inner,
+    internal::then_extract_adapter<Outer>  _adapter
 )
-    -> decltype(_adapter.apply(std::forward<_Inner>(_inner)))
+    -> decltype(_adapter.apply(std::forward<Inner>(_inner)))
 {
-    return _adapter.apply(std::forward<_Inner>(_inner));
+    return _adapter.apply(std::forward<Inner>(_inner));
 }
 
 
 // operator| (extractor | mapped_adapter)
 //   function: pipeline composition. Yields a mapped_helper.
-template<typename _Extractor,
-         typename _MapFn>
+template<typename Extractor,
+         typename MapFn>
 D_NODISCARD D_CONSTEXPR auto
 operator|(
-    _Extractor&&                        _e,
-    internal::mapped_adapter<_MapFn>    _adapter
+    Extractor&&                        _e,
+    internal::mapped_adapter<MapFn>    _adapter
 )
-    -> decltype(_adapter.apply(std::forward<_Extractor>(_e)))
+    -> decltype(_adapter.apply(std::forward<Extractor>(_e)))
 {
-    return _adapter.apply(std::forward<_Extractor>(_e));
+    return _adapter.apply(std::forward<Extractor>(_e));
 }
 
 
 // operator| (extractor | filtered_adapter)
 //   function: pipeline composition. Yields a filtered_helper
 // which returns maybe<T>.
-template<typename _Extractor,
-         typename _Predicate>
+template<typename Extractor,
+         typename Predicate>
 D_NODISCARD D_CONSTEXPR auto
 operator|(
-    _Extractor&&                            _e,
-    internal::filtered_adapter<_Predicate>  _adapter
+    Extractor&&                            _e,
+    internal::filtered_adapter<Predicate>  _adapter
 )
-    -> decltype(_adapter.apply(std::forward<_Extractor>(_e)))
+    -> decltype(_adapter.apply(std::forward<Extractor>(_e)))
 {
-    return _adapter.apply(std::forward<_Extractor>(_e));
+    return _adapter.apply(std::forward<Extractor>(_e));
 }
 
 
@@ -1091,12 +1107,12 @@ operator|(
 //   function: applies _e to every element of _container and
 // collects the extracted values into a std::vector in container
 // order.
-template<typename _Extractor,
-         typename _Container>
+template<typename Extractor,
+         typename Container>
 D_NODISCARD auto
 extract_all(
-    const _Extractor& _e,
-    const _Container& _container
+    const Extractor& _e,
+    const Container& _container
 )
     -> std::vector<typename std::decay<
            decltype(_e(*std::begin(_container)))
@@ -1119,12 +1135,12 @@ extract_all(
 // extract_first
 //   function: returns just(_e(first-element)) if _container has
 // at least one element; otherwise nothing.
-template<typename _Extractor,
-         typename _Container>
+template<typename Extractor,
+         typename Container>
 D_NODISCARD auto
 extract_first(
-    const _Extractor& _e,
-    const _Container& _container
+    const Extractor& _e,
+    const Container& _container
 )
     -> maybe<typename std::decay<
            decltype(_e(*std::begin(_container)))
@@ -1149,12 +1165,12 @@ extract_first(
 // distinct extracted values in first-seen order. Comparison
 // uses operator==; for large containers, prefer
 // extract_into_map / group_by_extractor.
-template<typename _Extractor,
-         typename _Container>
+template<typename Extractor,
+         typename Container>
 D_NODISCARD auto
 extract_unique(
-    const _Extractor& _e,
-    const _Container& _container
+    const Extractor& _e,
+    const Container& _container
 )
     -> std::vector<typename std::decay<
            decltype(_e(*std::begin(_container)))
@@ -1191,16 +1207,16 @@ extract_unique(
 
 // extract_into_map
 //   function: applies _key_e and _value_e to each source element
-// and builds a std::map<_Key, _Value>. Later duplicates overwrite
+// and builds a std::map<Key, Value>. Later duplicates overwrite
 // earlier entries.
-template<typename _KeyExtractor,
-         typename _ValueExtractor,
-         typename _Container>
+template<typename KeyExtractor,
+         typename ValueExtractor,
+         typename Container>
 D_NODISCARD auto
 extract_into_map(
-    const _KeyExtractor&    _key_e,
-    const _ValueExtractor&  _value_e,
-    const _Container&       _container
+    const KeyExtractor&    _key_e,
+    const ValueExtractor&  _value_e,
+    const Container&       _container
 )
     -> std::map<typename std::decay<
                     decltype(_key_e(*std::begin(_container)))
@@ -1228,14 +1244,14 @@ extract_into_map(
 // group_by_extractor
 //   function: applies _e to each source element and groups the
 // sources into buckets keyed by the extracted value. Returns
-// std::map<_Key, std::vector<_Source>> with bucket order
+// std::map<Key, std::vector<Source>> with bucket order
 // preserved within each value.
-template<typename _Extractor,
-         typename _Container>
-D_NODISCARD auto 
+template<typename Extractor,
+         typename Container>
+D_NODISCARD auto
 group_by_extractor(
-    const _Extractor& _e,
-    const _Container& _container
+    const Extractor& _e,
+    const Container& _container
 )
     -> std::map<typename std::decay<
                     decltype(_e(*std::begin(_container)))
@@ -1262,9 +1278,9 @@ group_by_extractor(
 ///             V.    STRUCTURAL TRAITS & CONCEPTS                          ///
 ///////////////////////////////////////////////////////////////////////////////
 //   Compile-time structural detection for the shape this module produces and
-// consumes. An extractor is a unary callable _Target(const _Source&) reading
+// consumes. An extractor is a unary callable Target(const Source&) reading
 // a feature out of a source; the partial forms (filtered / guarded /
-// try_extract) yield maybe<_Target>. These traits answer "is this type
+// try_extract) yield maybe<Target>. These traits answer "is this type
 // callable in the extractor shape over the given source?" without requiring
 // the callable to advertise any nested typedefs, so they recognise raw
 // lambdas and std functors as readily as this module's own helpers.
@@ -1285,36 +1301,25 @@ NS_INTERNAL
 
 
     // extract_result_detector
-    //   helper: yields the raw result type of invoking _Fn as a const lvalue
-    // on a const _Source& (reference / cv preserved), or no_result when that
+    //   helper: yields the raw result type of invoking Fn as a const lvalue
+    // on a const Source& (reference / cv preserved), or no_result when that
     // call is ill-formed.
-    template<typename _Fn,
-             typename _Source>
+    template<typename Fn,
+             typename Source>
     struct extract_result_detector
     {
     private:
-        template<typename _F>
+        template<typename F>
         static auto test(int) -> decltype(
-            std::declval<const _F&>()(std::declval<const _Source&>()));
+            std::declval<const F&>()(std::declval<const Source&>()));
 
         template<typename>
         static no_result test(...);
 
     public:
-        typedef decltype(test<_Fn>(0)) raw_type;
+        typedef decltype(test<Fn>(0)) raw_type;
     };
 
-
-    // strip
-    //   helper: removes reference and cv-qualifiers so the traits below may
-    // be queried on references and const types alike, and so result types
-    // are reported in decayed form.
-    template<typename _Type>
-    struct strip
-    {
-        typedef typename std::remove_cv<
-                    typename std::remove_reference<_Type>::type>::type type;
-    };
 
 
     // (is_maybe detection is provided by maybe.hpp's djinterp::is_maybe, which
@@ -1325,30 +1330,31 @@ NS_END  // internal
 
 
 // extractor_result_t
-//   alias: the decayed result of applying _Fn to a const _Source&. Yields
-// internal::no_result when _Fn is not callable on _Source (query is_extractor
+//   alias: the decayed result of applying Fn to a const Source&. Yields
+// internal::no_result when Fn is not callable on Source (query is_extractor
 // first if that case is possible).
-template<typename _Fn,
-         typename _Source>
-using extractor_result_t = typename internal::strip<
+template<typename Fn,
+         typename Source>
+using extractor_result_t = typename clean<
     typename internal::extract_result_detector<
-        typename internal::strip<_Fn>::type, _Source>::raw_type>::type;
+        typename clean<Fn>::type, Source>::raw_type>::type;
 
 
 // is_extractor
-//   trait: true when _Fn is callable as (const _Source&) with a non-void
-// result, i.e. it models the extractor contract _Target(const _Source&).
-// Every factory (identity, constant, from_function, from_member, from_index)
+//   trait: true when Fn is callable as (const Source&) with a non-void
+// result, i.e. it models the extractor contract Target(const Source&).
+// Every factory (make_identity, constant, from_function, from_member,
+// from_index)
 // and every combinator (then_extract, fanout, mapped, filtered, guarded,
 // defaulted, try_extract) yields a type that models is_extractor over its
 // source.
-template<typename _Fn,
-         typename _Source>
+template<typename Fn,
+         typename Source>
 struct is_extractor
 {
 private:
     typedef typename internal::extract_result_detector<
-        typename internal::strip<_Fn>::type, _Source>::raw_type raw_t;
+        typename clean<Fn>::type, Source>::raw_type raw_t;
 
 public:
     static D_CONSTEXPR bool value =
@@ -1358,24 +1364,24 @@ public:
 
 
 // is_maybe
-//   trait: reused from maybe.hpp (djinterp::is_maybe) - true when _Type is a
-// maybe<_T> specialization after cv/ref are stripped.  This header includes
+//   trait: reused from maybe.hpp (djinterp::is_maybe) - true when Type is a
+// maybe<T> specialization after cv/ref are stripped.  This header includes
 // maybe.hpp, so the trait is taken from there rather than redefined (reuse,
 // not recreate); is_maybe_extractor and the is_maybe_v shorthand below resolve
 // to that one definition.
 
 
 // is_maybe_extractor
-//   trait: true when _Fn is an extractor over _Source whose result is a
-// maybe<_T>. The partial / safe extractors (filtered, guarded, try_extract)
+//   trait: true when Fn is an extractor over Source whose result is a
+// maybe<T>. The partial / safe extractors (filtered, guarded, try_extract)
 // model this; the total extractors do not.
-template<typename _Fn,
-         typename _Source>
+template<typename Fn,
+         typename Source>
 struct is_maybe_extractor
 {
     static D_CONSTEXPR bool value =
-        ( is_extractor<_Fn, _Source>::value &&
-          is_maybe<extractor_result_t<_Fn, _Source> >::value );
+        ( is_extractor<Fn, Source>::value &&
+          is_maybe<extractor_result_t<Fn, Source> >::value );
 };
 
 
@@ -1386,21 +1392,21 @@ struct is_maybe_extractor
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 // is_extractor_v
-//   constant: shorthand for is_extractor<_Fn, _Source>::value.
-template<typename _Fn,
-         typename _Source>
-static D_CONSTEXPR bool is_extractor_v = is_extractor<_Fn, _Source>::value;
+//   constant: shorthand for is_extractor<Fn, Source>::value.
+template<typename Fn,
+         typename Source>
+static D_CONSTEXPR bool is_extractor_v = is_extractor<Fn, Source>::value;
 
 // is_maybe_v
 //   constant: reused from maybe.hpp (djinterp::is_maybe_v); not redefined here
 // (reuse, not recreate), consistent with is_maybe above.
 
 // is_maybe_extractor_v
-//   constant: shorthand for is_maybe_extractor<_Fn, _Source>::value.
-template<typename _Fn,
-         typename _Source>
+//   constant: shorthand for is_maybe_extractor<Fn, Source>::value.
+template<typename Fn,
+         typename Source>
 static D_CONSTEXPR bool is_maybe_extractor_v =
-    is_maybe_extractor<_Fn, _Source>::value;
+    is_maybe_extractor<Fn, Source>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -1409,31 +1415,33 @@ static D_CONSTEXPR bool is_maybe_extractor_v =
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 // extractor_c
-//   concept: satisfied when _Fn is an extractor over _Source — callable as
-// (const _Source&) with a non-void result. Concept parallel of is_extractor,
+//   concept: satisfied when Fn is an extractor over Source — callable as
+// (const Source&) with a non-void result. Concept parallel of is_extractor,
 // following the _c naming used in concepts.hpp.
-template<typename _Fn,
-         typename _Source>
+template<typename Fn,
+         typename Source>
 concept extractor_c =
-    requires(const _Fn& _fn, const _Source& _src)
+    requires(const Fn& _fn, const Source& _src)
     {
         _fn(_src);
     }
-    && ( !std::is_void_v<extractor_result_t<_Fn, _Source> > );
+    && ( !std::is_void<extractor_result_t<Fn, Source> >::value );
 
 // maybe_extractor_c
-//   concept: satisfied when _Fn is an extractor over _Source whose result is
-// a maybe<_T>. Concept parallel of is_maybe_extractor.
-template<typename _Fn,
-         typename _Source>
+//   concept: satisfied when Fn is an extractor over Source whose result is
+// a maybe<T>. Concept parallel of is_maybe_extractor.
+template<typename Fn,
+         typename Source>
 concept maybe_extractor_c =
-    extractor_c<_Fn, _Source>
-    && is_maybe<extractor_result_t<_Fn, _Source> >::value;
+    extractor_c<Fn, Source>
+    && is_maybe<extractor_result_t<Fn, Source> >::value;
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_EXTRACTOR_
+
+#endif  // DJINTERP_FUNCTIONAL_EXTRACTOR_HPP

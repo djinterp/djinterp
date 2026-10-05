@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                              merge_sort.h
+/*******************************************************************************
+* djinterp [c]                                                      merge_sort.h
 *
 *   Merge sort: the sequential driver.
 * Stable, comparison-based, O(n log n) in every case -- no input defeats it,
@@ -43,13 +43,14 @@
 * other algorithm here offers.  The price is the buffer.
 *
 *
-* path:      /djinterp/c/util/sort/merge_sort.h
+* path:      /inc/djinterp/c/util/sort/merge_sort.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_MERGE_
-#define DJINTERP_UTILITY_SORT_MERGE_ 1
+#ifndef DJINTERP_C_UTIL_SORT_MERGE_SORT_H
+#define DJINTERP_C_UTIL_SORT_MERGE_SORT_H 1
 
 // std
 #include <stddef.h>
@@ -77,4 +78,4 @@ enum d_sort_status d_merge_sort(void*                           _base,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_UTILITY_SORT_MERGE_
+#endif  // DJINTERP_C_UTIL_SORT_MERGE_SORT_H

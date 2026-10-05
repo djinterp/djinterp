@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                            conjunction.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              conjunction.hpp
 *
 * conjunction trait header:
 *   Variadic logical AND over type traits. Inherits from the first trait
@@ -18,26 +18,28 @@
 * corresponding feature macros.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/conjunction.hpp
+* path:      /inc/re_std/type_traits/conjunction.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_CONJUNCTION_
-#define DJINTERP_RE_STD_TYPE_TRAITS_CONJUNCTION_ 1
+#ifndef RE_STD_TYPE_TRAITS_CONJUNCTION_HPP
+#define RE_STD_TYPE_TRAITS_CONJUNCTION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./conditional.hpp"
 #include "./true_type.hpp"
 
 
 // gate: variadic + alias templates
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES &&                               \
-      D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES &&                               \
+      RE_STD_LANG_HAS_VARIADIC_TEMPLATES )
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -46,28 +48,28 @@ NS_RESTD
 
 // conjunction
 //   trait: empty pack -> true_type.
-template<typename... _Bn>
+template<typename... Bn>
 struct conjunction : true_type
 {};
 
-// conjunction<_B1>
-//   trait: single-trait base case -- inherit from _B1.
-template<typename _B1>
-struct conjunction<_B1> : _B1
+// conjunction<B1>
+//   trait: single-trait base case -- inherit from B1.
+template<typename B1>
+struct conjunction<B1> : B1
 {};
 
-// conjunction<_B1, _Bn...>
-//   trait: recursive case -- if _B1 is false, inherit from it
+// conjunction<B1, Bn...>
+//   trait: recursive case -- if B1 is false, inherit from it
 // (short-circuit); otherwise recurse into the tail. Substitution into
-// the tail is suppressed when _B1 is false because conditional selects
-// _B1 directly.
-template<typename    _B1,
-         typename... _Bn>
-struct conjunction<_B1, _Bn...>
+// the tail is suppressed when B1 is false because conditional selects
+// B1 directly.
+template<typename    B1,
+         typename... Bn>
+struct conjunction<B1, Bn...>
     : conditional<
-          static_cast<bool>(_B1::value),
-          conjunction<_Bn...>,
-          _B1
+          static_cast<bool>(B1::value),
+          conjunction<Bn...>,
+          B1
       >::type
 {};
 
@@ -76,20 +78,20 @@ struct conjunction<_B1, _Bn...>
 // II.  CONJUNCTION_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // conjunction_v
-    //   variable: convenience for conjunction<_Bn...>::value.
-    template<typename... _Bn>
-    D_CONSTEXPR bool conjunction_v = conjunction<_Bn...>::value;
+    //   variable: convenience for conjunction<Bn...>::value.
+    template<typename... Bn>
+    RE_STD_CONSTEXPR bool conjunction_v = conjunction<Bn...>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates && variadic templates
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_CONJUNCTION_
+#endif  // RE_STD_TYPE_TRAITS_CONJUNCTION_HPP

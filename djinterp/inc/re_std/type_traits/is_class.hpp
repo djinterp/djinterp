@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                               is_class.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 is_class.hpp
 *
 * is_class trait header:
-*   Yields true_type if _Type is a class type (struct or non-union
+*   Yields true_type if Type is a class type (struct or non-union
 * class), false_type otherwise. Implemented via the `__is_class`
 * compiler builtin where available.
 *
@@ -19,89 +19,91 @@
 * convention used by is_enum.
 *
 *   DETECTION MACRO:
-*   D_RE_STD_HAS_IS_CLASS is defined to 1 when the intrinsic is present,
+*   RE_STD_HAS_IS_CLASS is defined to 1 when the intrinsic is present,
 * 0 otherwise. Predefinable: users may #define it before inclusion to
 * override autodetection.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_class.hpp
+* path:      /inc/re_std/type_traits/is_class.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_CLASS_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_CLASS_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_CLASS_HPP
+#define RE_STD_TYPE_TRAITS_IS_CLASS_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
 // =============================================================================
-// 0.   D_RE_STD_HAS_IS_CLASS  (intrinsic detection)
+// 0.   RE_STD_HAS_IS_CLASS  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RE_STD_HAS_IS_CLASS
+#ifndef RE_STD_HAS_IS_CLASS
     #if defined(__has_builtin)
         #if __has_builtin(__is_class)
-            #define D_RE_STD_HAS_IS_CLASS    1
+            #define RE_STD_HAS_IS_CLASS    1
         #else
-            #define D_RE_STD_HAS_IS_CLASS    0
+            #define RE_STD_HAS_IS_CLASS    0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
-            defined(D_ENV_COMPILER_CLANG) ||                                  \
-            defined(D_ENV_COMPILER_MSVC)  ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
-        #define D_RE_STD_HAS_IS_CLASS        1
+    #elif ( defined(RE_STD_COMPILER_GCC)   ||                                  \
+            defined(RE_STD_COMPILER_CLANG) ||                                  \
+            defined(RE_STD_COMPILER_MSVC)  ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
+        #define RE_STD_HAS_IS_CLASS        1
     #else
-        #define D_RE_STD_HAS_IS_CLASS        0
+        #define RE_STD_HAS_IS_CLASS        0
     #endif
-#endif  // D_RE_STD_HAS_IS_CLASS
+#endif  // RE_STD_HAS_IS_CLASS
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_CLASS
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_CLASS
+#if RE_STD_HAS_IS_CLASS
 
     // is_class
-    //   trait: true if _Type is a class or struct (not union).
-    template<typename _Type>
-    struct is_class : integral_constant<bool, __is_class(_Type)>
+    //   trait: true if Type is a class or struct (not union).
+    template<typename Type>
+    struct is_class : integral_constant<bool, __is_class(Type)>
     {};
 
 #else
 
     // is_class
     //   trait: degraded fallback (always false) when intrinsic is absent.
-    template<typename _Type>
+    template<typename Type>
     struct is_class : false_type
     {};
 
-#endif  // D_RE_STD_HAS_IS_CLASS
+#endif  // RE_STD_HAS_IS_CLASS
 
 
 // =============================================================================
 // II.  IS_CLASS_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_class_v
-    //   variable: convenience for is_class<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_class_v = is_class<_Type>::value;
+    //   variable: convenience for is_class<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_class_v = is_class<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_CLASS_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_CLASS_HPP

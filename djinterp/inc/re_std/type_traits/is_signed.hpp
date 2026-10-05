@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                              is_signed.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                is_signed.hpp
 *
 * is_signed trait header:
 *   Detects whether a type, ignoring cv-qualifiers, is a signed
@@ -18,16 +18,17 @@
 *     is_signed<int*>::value           -> false
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_signed.hpp
+* path:      /inc/re_std/type_traits/is_signed.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_SIGNED_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_SIGNED_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_SIGNED_HPP
+#define RE_STD_TYPE_TRAITS_IS_SIGNED_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
@@ -36,44 +37,46 @@
 #include "./remove_cv.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_SIGNED
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_signed_helper
     //   trait: false for non-arithmetic types (primary template).
-    template<typename _Type,
-             bool      _IsArithmetic>
+    template<typename Type,
+             bool      IsArithmetic>
     struct is_signed_helper : false_type
     {};
 
-    // is_signed_helper<_Type, true>
+    // is_signed_helper<Type, true>
     //   trait: arithmetic types - test via comparison.
     // Floating-point: comparison is true (e.g. -1.0 < 0.0).
     // Signed integral: comparison is true.
     // Unsigned integral: -1 wraps to max value, comparison is false.
     // bool: -1 -> true (1), 0 -> false (0); 1 < 0 is false.
-    template<typename _Type>
-    struct is_signed_helper<_Type, true>
+    template<typename Type>
+    struct is_signed_helper<Type, true>
         : integral_constant<bool,
-            ( static_cast<_Type>(-1) < static_cast<_Type>(0) )>
+            ( static_cast<Type>(-1) < static_cast<Type>(0) )>
     {};
 
-NS_END  // internal
+}  // internal
 
 // is_signed
-//   trait: true if _Type (cv-stripped) is a signed arithmetic type.
-template<typename _Type>
+//   trait: true if Type (cv-stripped) is a signed arithmetic type.
+template<typename Type>
 struct is_signed
     : internal::is_signed_helper<
-          typename remove_cv<_Type>::type,
-          ( is_integral<_Type>::value ||
-            is_floating_point<_Type>::value )>
+          typename remove_cv<Type>::type,
+          ( is_integral<Type>::value ||
+            is_floating_point<Type>::value )>
 {};
 
 
@@ -81,17 +84,17 @@ struct is_signed
 // II.  IS_SIGNED_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_signed_v
-    //   variable: convenience for is_signed<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_signed_v = is_signed<_Type>::value;
+    //   variable: convenience for is_signed<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_signed_v = is_signed<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_SIGNED_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_SIGNED_HPP

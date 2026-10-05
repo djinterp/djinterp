@@ -1,4 +1,15 @@
-#include "..\..\..\..\inc\c\container\registry\registry.h"
+/*******************************************************************************
+* djinterp [c]                                                        registry.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/container/registry/registry.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.29
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/container/registry/registry.h"
 
 
 /******************************************************************************
@@ -77,7 +88,7 @@ d_registry_keycmp_nocase
         return 1;
     }
 
-    while (*(_a) && 
+    while (*(_a) &&
            *(_b) )
     {
         ca = (unsigned char)*_a++;
@@ -146,8 +157,8 @@ d_registry_lookup_entry_cmp_for_reg
   registry's flags.
 
 Parameter(s):
-  _registry: the registry whose flags determine comparison mode; may be
-             NULL (defaults to case-sensitive).
+  _registry: the registry whose flags determine comparison mode; may be NULL
+             (defaults to case-sensitive).
   _a:        first lookup entry.
   _b:        second lookup entry.
 Return:
@@ -189,7 +200,7 @@ d_registry_find_lookup_entry
     fn_comparator comparator = NULL;
 
     if ( (!_registry)         ||
-         (!_key)              || 
+         (!_key)              ||
          (!_registry->lookup) ||
          (!_registry->lookup_count) )
     {
@@ -217,8 +228,7 @@ d_registry_ensure_row_capacity
   growth factor.
 
 Parameter(s):
-  registry: the registry whose row array to grow; may be NULL.
-  _needed:  the minimum required capacity.
+  _needed: the minimum required capacity.
 Return:
   A boolean value corresponding to either:
   - true, if capacity was already sufficient or growth succeeded, or
@@ -228,7 +238,7 @@ D_STATIC bool
 d_registry_ensure_row_capacity
 (
     struct d_registry* registry,
-    size_t             _needed
+    size_t _needed
 )
 {
     void*  new_rows;
@@ -364,8 +374,7 @@ d_registry_lookup_entry_is_canonical
   string matches the key stored in the actual row) as opposed to an alias.
 
 Parameter(s):
-  registry: the registry containing the rows; may be NULL.
-  _e:       the lookup entry to check; may be NULL.
+  _e: the lookup entry to check; may be NULL.
 Return:
   true if the entry's key matches the row's key (under the registry's
   comparison mode), false otherwise.
@@ -373,7 +382,7 @@ Return:
 D_STATIC bool
 d_registry_lookup_entry_is_canonical
 (
-    const struct d_registry*              registry,
+    const struct d_registry* registry,
     const struct d_registry_lookup_entry* _e
 )
 {
@@ -563,8 +572,8 @@ d_registry_new_from_array
   The lookup table is automatically rebuilt and sorted after population.
 
 Parameter(s):
-  _rows:     pointer to the first element of a contiguous array of user-
-             defined row structures. Must not be NULL.
+  _rows:     pointer to the first element of a contiguous array of user- defined
+             row structures. Must not be NULL.
   _row_size: the size in bytes of each row structure.
   _count:    the number of rows in the array.
 Return:
@@ -581,7 +590,7 @@ d_registry_new_from_array
 {
     struct d_registry* new_registry;
 
-    if ( (!_rows) || 
+    if ( (!_rows) ||
          (_row_size == 0) )
     {
         return NULL;
@@ -597,7 +606,7 @@ d_registry_new_from_array
     if (_count > 0)
     {
         memcpy(new_registry->rows,
-               _rows, 
+               _rows,
                (_count * _row_size) );
 
         new_registry->count = _count;
@@ -624,7 +633,7 @@ Parameter(s):
 Return:
   Negative if _a < _b, 0 if equal, positive if _a > _b.
 */
-D_INLINE int
+int
 d_registry_lookup_compare
 (
     const void* _a,
@@ -650,7 +659,7 @@ Parameter(s):
 Return:
   Negative if _a < _b, 0 if equal, positive if _a > _b (ignoring case).
 */
-D_INLINE int
+int
 d_registry_lookup_compare_nocase
 (
     const void* _a,
@@ -683,7 +692,7 @@ d_registry_sort_lookup
 )
 {
     if ( (!_registry)         ||
-         (!_registry->lookup) || 
+         (!_registry->lookup) ||
          (_registry->lookup_count <= 1) )
     {
         return;
@@ -776,7 +785,7 @@ d_registry_get
 {
     struct d_registry_lookup_entry* e;
 
-    if ( (!_registry) || 
+    if ( (!_registry) ||
          (!_key) )
     {
         return NULL;
@@ -828,7 +837,7 @@ d_registry_add
     size_t      insert_at;
     size_t      i;
 
-    if ( (!_registry) || 
+    if ( (!_registry) ||
          (!_row) )
     {
         return false;
@@ -1663,8 +1672,8 @@ d_registry_iterator_filtered
 
 Parameter(s):
   _registry: the registry to iterate over; may be NULL.
-  _filter:   predicate function that must return true for a row to be
-             yielded; may be NULL (equivalent to no filter).
+  _filter:   predicate function that must return true for a row to be yielded;
+             may be NULL (equivalent to no filter).
   _context:  opaque context pointer passed to _filter; may be NULL.
 Return:
   A d_registry_iterator value with the filter and context stored.
@@ -1843,8 +1852,8 @@ d_registry_foreach_if
 
 Parameter(s):
   _registry:  the registry to iterate; may be NULL.
-  _predicate: filter function; rows that return false are skipped. May
-              be NULL to visit all rows.
+  _predicate: filter function; rows that return false are skipped. May be NULL
+              to visit all rows.
   _pred_ctx:  opaque context for the predicate; may be NULL.
   _visitor:   callback invoked for each matching row; may be NULL.
   _visit_ctx: opaque context for the visitor; may be NULL.
@@ -2125,7 +2134,7 @@ d_registry_get_all_keys
         *_out_count = 0;
     }
 
-    if ( (!_registry) || 
+    if ( (!_registry) ||
          (_registry->lookup_count == 0) )
     {
         return NULL;
@@ -2143,7 +2152,7 @@ d_registry_get_all_keys
         out[i] = _registry->lookup[i].key;
     }
 
-    if (_out_count) 
+    if (_out_count)
     {
         *(_out_count) = _registry->lookup_count;
     }

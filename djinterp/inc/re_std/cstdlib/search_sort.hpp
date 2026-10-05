@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              search_sort.hpp
 *
 * qsort and bsearch (re-exports):
@@ -26,25 +26,27 @@
 * if the comparator is inconsistent.
 *
 *
-* path:      /inc/djinterp/re_std/cstdlib/search_sort.hpp
+* path:      /inc/re_std/cstdlib/search_sort.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDLIB_SEARCH_SORT_
-#define DJINTERP_RE_STD_CSTDLIB_SEARCH_SORT_ 1
+#ifndef RE_STD_CSTDLIB_SEARCH_SORT_HPP
+#define RE_STD_CSTDLIB_SEARCH_SORT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstdlib>
 
 
-NS_RESTD
+namespace re_std
+{
 
     // qsort
     //   function: sort a contiguous block through a type-erased
@@ -57,10 +59,10 @@ NS_RESTD
     // unspecified.
     using ::std::bsearch;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CSTDLIB_SEARCH_SORT_
+#endif  // RE_STD_CSTDLIB_SEARCH_SORT_HPP

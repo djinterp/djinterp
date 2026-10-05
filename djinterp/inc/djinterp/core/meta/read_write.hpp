@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                           read_write.hpp
+/*******************************************************************************
+* djinterp [core]                                                 read_write.hpp
 *
 *   The READ_WRITE access-capability tag: a handle that grants BOTH observation
 * and modification.  It is the top of the small access lattice
@@ -22,13 +22,14 @@
 *   C++11 baseline.
 *
 *
-* path:      /inc/djinterp/core/container/access/read_write.hpp
+* path:      /inc/djinterp/core/meta/read_write.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_READ_WRITE_
-#define DJINTERP_READ_WRITE_ 1
+#ifndef DJINTERP_META_READ_WRITE_HPP
+#define DJINTERP_META_READ_WRITE_HPP 1
 
 // djinterp
 #include "../../djinterp.hpp"   // NS_*
@@ -41,17 +42,17 @@ NS_DJINTERP
 //   tag: the access capability granting observation AND modification.
 struct read_write
 {
-    static constexpr bool can_read  = true;
-    static constexpr bool can_write = true;
+    static D_CONSTEXPR_VAR bool can_read  = true;
+    static D_CONSTEXPR_VAR bool can_write = true;
 
     // name
     //   function: the capability's stable spelling (a function, not a data
     // member, so taking the name never requires an out-of-line definition).
-    static constexpr const char* name() noexcept { return "read_write"; }
+    static D_CONSTEXPR const char* name() D_NOEXCEPT { return "read_write"; }
 };
 
 
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_READ_WRITE_
+#endif  // DJINTERP_META_READ_WRITE_HPP

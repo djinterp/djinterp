@@ -1,5 +1,19 @@
-/* re_std  source_location  umbrella — include for the <source_location> surface. */
-#ifndef DJINTERP_RE_STD_SOURCE_LOCATION_
-#define DJINTERP_RE_STD_SOURCE_LOCATION_ 1
-#include "re_std/source_location/source_location.hpp"
-#endif  // DJINTERP_RE_STD_SOURCE_LOCATION_
+/*******************************************************************************
+* djinterp [re_std]                                              source_location
+*
+* source_location umbrella header:
+*   Aggregates the <source_location> surface. Include this to pull in
+* every re_std::source_location module; include the granular header
+* directly to narrow the compile-time dependency.
+*
+*
+* path:      /inc/re_std/source_location/source_location
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
+
+#ifndef RE_STD_SOURCE_LOCATION_SOURCE_LOCATION
+#define RE_STD_SOURCE_LOCATION_SOURCE_LOCATION 1
+#include "./source_location.hpp"
+#endif  // RE_STD_SOURCE_LOCATION_SOURCE_LOCATION

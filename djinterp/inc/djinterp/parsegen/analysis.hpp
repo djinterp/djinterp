@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parsegen]                                              analysis.hpp
+* djinterp [parsegen]                                               analysis.hpp
 *
 *   The C++ face of grammar analysis declared in analysis.h.
 *   `facts` derives from d_parsegen_facts, adds no data member, and is asserted
@@ -12,22 +12,31 @@
 * single symbol -- and it answers it INCLUDING the nullability check that a
 * caller working from first sets alone would forget.
 *
+*
 * path:      /inc/djinterp/parsegen/analysis.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSEGEN_ANALYSIS_HPP_
-#define DJINTERP_PARSEGEN_ANALYSIS_HPP_ 1
+#ifndef DJINTERP_PARSEGEN_ANALYSIS_HPP
+#define DJINTERP_PARSEGEN_ANALYSIS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstdint>                      // std::int32_t, std::uint32_t
-#include <type_traits>                  // std::is_standard_layout
+#include <type_traits>           // std::is_standard_layout
 // djinterp
-#include "../parse/charset.hpp"         // parse::charset
-#include "./analysis.h"                 // the C analysis this layer faces
-#include "./grammar.hpp"                // parsegen::grammar, NS_PARSEGEN
+#include "../parse/charset.hpp"  // parse::charset
+#include "./c/analysis.h"        // the C analysis this layer faces
+#include "./grammar.hpp"         // parsegen::grammar, NS_PARSEGEN
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t, uint32_t,
+                                             // uint8_t
 
 
 NS_DJINTERP
@@ -132,7 +141,7 @@ public:
 
     // complete
     //   accessor: whether analysis settled and found nothing fatal.
-    constexpr bool
+    D_CONSTEXPR_CPP14 bool
     complete() const noexcept
     {
         return ((flags & D_PARSEGEN_FACTS_COMPLETE) != 0u);
@@ -151,7 +160,7 @@ public:
     //   accessor: whether an expression can match the empty input.
     bool
     nullable(
-        std::int32_t _node
+        re_std::int32_t _node
     ) const noexcept
     {
         return (d_parsegen_nullable(this, _node) != 0);
@@ -162,7 +171,7 @@ public:
     // over-approximation, so it can rule an alternative out but never in.
     const d_parse_charset*
     first(
-        std::int32_t _node
+        re_std::int32_t _node
     ) const noexcept
     {
         return d_parsegen_first(this, _node);
@@ -172,7 +181,7 @@ public:
     //   accessor: everything derived about one expression, or null.
     const node_facts*
     of_node(
-        std::int32_t _node
+        re_std::int32_t _node
     ) const noexcept
     {
         return d_parsegen_node_facts_at(this, _node);
@@ -182,7 +191,7 @@ public:
     //   accessor: everything derived about one rule, or null.
     const rule_facts*
     of_rule(
-        std::int32_t _rule
+        re_std::int32_t _rule
     ) const noexcept
     {
         return d_parsegen_rule_facts_at(this, _rule);
@@ -193,7 +202,7 @@ public:
     // A fact, not a verdict: which families mind is a registry question.
     bool
     left_recursive(
-        std::int32_t _rule
+        re_std::int32_t _rule
     ) const noexcept
     {
         return (d_parsegen_left_recursive(this, _rule) != 0);
@@ -204,7 +213,7 @@ public:
     // start symbol.
     bool
     reachable(
-        std::int32_t _rule
+        re_std::int32_t _rule
     ) const noexcept
     {
         const rule_facts* const found = of_rule(_rule);
@@ -217,7 +226,7 @@ public:
     //   accessor: whether a rule can match anything at all.
     bool
     productive(
-        std::int32_t _rule
+        re_std::int32_t _rule
     ) const noexcept
     {
         const rule_facts* const found = of_rule(_rule);
@@ -234,8 +243,8 @@ public:
     bool
     disjoint(
         const d_parsegen_grammar& _grammar,
-        std::int32_t              _choice,
-        std::int32_t*             _conflict = nullptr
+        re_std::int32_t              _choice,
+        re_std::int32_t*             _conflict = nullptr
     ) const noexcept
     {
         return (d_parsegen_choice_disjoint(&_grammar,
@@ -250,7 +259,7 @@ public:
     D_NODISCARD bool
     head_set(
         const d_parsegen_grammar& _grammar,
-        std::int32_t              _choice,
+        re_std::int32_t              _choice,
         d_parse_charset&          _out
     ) const noexcept
     {
@@ -266,8 +275,8 @@ public:
 //   class: a fact collection carrying its own storage and its own scratch, for
 // a build with no allocator.  The scratch sizes are the ones analysis needs:
 // two words and a byte per rule, and one index per node.
-template<std::uint32_t _Nodes,
-         std::uint32_t _Rules>
+template<re_std::uint32_t Nodes,
+         re_std::uint32_t Rules>
 class fixed_facts : public facts
 {
 public:
@@ -277,20 +286,20 @@ public:
     {
         d_parsegen_facts_init(this,
                               m_nodes,
-                              _Nodes,
+                              Nodes,
                               m_rules,
-                              _Rules,
+                              Rules,
                               m_work,
                               m_mark,
                               m_stack);
     }
 
 private:
-    node_facts    m_nodes[_Nodes];
-    rule_facts    m_rules[_Rules];
-    std::uint32_t m_work[_Rules * 2u];
-    std::uint8_t  m_mark[_Rules];
-    std::int32_t  m_stack[_Nodes];
+    node_facts    m_nodes[Nodes];
+    rule_facts    m_rules[Rules];
+    re_std::uint32_t m_work[Rules * 2u];
+    re_std::uint8_t  m_mark[Rules];
+    re_std::int32_t  m_stack[Nodes];
 };
 
 
@@ -308,5 +317,7 @@ static_assert(std::is_trivial<node_facts>::value,
 NS_END  // parsegen
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSEGEN_ANALYSIS_HPP_
+
+#endif  // DJINTERP_PARSEGEN_ANALYSIS_HPP

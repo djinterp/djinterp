@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                        document_attributes.hpp
+/*******************************************************************************
+* djinterp [core]                                        document_attributes.hpp
 *
 *   The hint bag every document-template node carries.  A document template
 * (a table, a title page, a table of contents) is DIALECT-AGNOSTIC: it names
@@ -37,27 +37,41 @@
 *
 * path:      /inc/djinterp/core/util/document/templates/document_attributes.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    doc_attributes                 (the hint bag: a container_metadata alias)
+      -------------------------------------------------------------------------
+
 II.   Standard hint keys             (the shared key vocabulary)
+      ----------------------------------------------------------
+
 III.  Alignment interchange          (text_alignment <-> string)
+      ----------------------------------------------------------
+
 IV.   Accessors                      (attr_has / attr_or / attr_flag / attr_align)
+      ----------------------------------------------------------------------------
 */
 
-#ifndef DJINTERP_UTIL_DOCUMENT_ATTRIBUTES_
-#define DJINTERP_UTIL_DOCUMENT_ATTRIBUTES_ 1
+#ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_ATTRIBUTES_HPP
+#define DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_ATTRIBUTES_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <string>
 #include <utility>
 // djinterp
-#include "../../../djinterp.hpp"                       // NS_*, gates
+#include "../../../../djinterp.hpp"                       // NS_*, gates
 #include "../../../text/text_align.hpp"                // text_alignment
 #include "../../../container/container_metadata.hpp"   // container_metadata
 
@@ -306,5 +320,6 @@ attr_align(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_DOCUMENT_ATTRIBUTES_
+#endif  // DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_ATTRIBUTES_HPP

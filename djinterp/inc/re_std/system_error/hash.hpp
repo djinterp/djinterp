@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                        hash.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                     hash.hpp
 *
 * re_std::hash specialisations for error_code / error_condition:
 *   the functional module defers hash<error_code> and
@@ -13,28 +13,30 @@
 *   and re_std's pointer-hash specialisation).
 *
 *
-* path:      /inc/djinterp/re_std/system_error/hash.hpp
+* path:      /inc/re_std/system_error/hash.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_HASH_
-#define DJINTERP_RE_STD_SYSTEM_ERROR_HASH_ 1
+#ifndef RE_STD_SYSTEM_ERROR_HASH_HPP
+#define RE_STD_SYSTEM_ERROR_HASH_HPP 1
 
-// djinterp
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <system_error>
 #include <cstddef>                  // size_t
+#include <system_error>
 // re_std
 #include "../functional/hash.hpp"   // re_std::hash primary template
 #include "error_code.hpp"
 #include "error_condition.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
     // hash<error_code>
     //   struct: specialisation of re_std::hash for error_code (std: C++11).
@@ -44,7 +46,7 @@ NS_RESTD
         std::size_t
         operator()(
             const error_code& _code
-        ) const D_NOEXCEPT
+        ) const RE_STD_NOEXCEPT
         {
             std::size_t value_hash = static_cast<std::size_t>(
                 static_cast<unsigned int>(_code.value()));
@@ -66,7 +68,7 @@ NS_RESTD
         std::size_t
         operator()(
             const error_condition& _cond
-        ) const D_NOEXCEPT
+        ) const RE_STD_NOEXCEPT
         {
             std::size_t value_hash = static_cast<std::size_t>(
                 static_cast<unsigned int>(_cond.value()));
@@ -79,8 +81,8 @@ NS_RESTD
         }
     };
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_HASH_
+#endif  // RE_STD_SYSTEM_ERROR_HASH_HPP

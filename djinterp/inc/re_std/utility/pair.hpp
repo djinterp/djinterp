@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                         pair.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                     pair.hpp
 *
 * heterogeneous two-value aggregate:
 *   Provides re_std::pair<T1, T2>, the canonical heterogeneous pair.
@@ -30,28 +30,31 @@
 *   piecewise_construct: not provided (depends on tuple).
 *
 *
-* path:      /inc/djinterp/re_std/utility/pair.hpp
+* path:      /inc/re_std/utility/pair.hpp
 * link(s):   TBA
-* author(s): re_std team                                date: 2026.04.30
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_PAIR_
-#define DJINTERP_RE_STD_UTILITY_PAIR_ 1
+#ifndef RE_STD_UTILITY_PAIR_HPP
+#define RE_STD_UTILITY_PAIR_HPP 1
 
-#include "djinterp.hpp"
-#include "../utility/swap.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
+#include "swap.hpp"
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-    #include "../utility/move.hpp"
-    #include "../utility/forward.hpp"
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
+    #include "move.hpp"
+    #include "forward.hpp"
     #include "../type_traits/is_nothrow_move_assignable.hpp"
 #endif
 
-#if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#if RE_STD_LANG_HAS_VARIADIC_TEMPLATES
     #include "../type_traits/is_nothrow_move_constructible.hpp"
 #endif
 
-NS_RESTD
+namespace re_std
+{
 
 // =============================================================================
 // PAIR
@@ -59,89 +62,89 @@ NS_RESTD
 
 // pair
 //   class: heterogeneous two-value aggregate.
-template<typename _T1, typename _T2>
+template<typename T1, typename T2>
 struct pair
 {
     // -----------------------------------------------------------------
     //  member typedefs
     // -----------------------------------------------------------------
 
-    typedef _T1 first_type;
-    typedef _T2 second_type;
+    typedef T1 first_type;
+    typedef T2 second_type;
 
     // -----------------------------------------------------------------
     //  data members (public, by std convention)
     // -----------------------------------------------------------------
 
-    _T1 first;
-    _T2 second;
+    T1 first;
+    T2 second;
 
     // -----------------------------------------------------------------
     //  constructors
     // -----------------------------------------------------------------
 
     // pair()
-    //   ctor: value-initializes first and second.
-    D_CONSTEXPR pair()
+    //   function: value-initializes first and second.
+    RE_STD_CONSTEXPR pair()
         : first(),
           second()
     {}
 
     // pair(const T1&, const T2&)
-    //   ctor: copies from explicit values.
-    D_CONSTEXPR pair(const _T1& _x,
-                     const _T2& _y)
+    //   function: copies from explicit values.
+    RE_STD_CONSTEXPR pair(const T1& _x,
+                     const T2& _y)
         : first(_x),
           second(_y)
     {}
 
     // pair(const pair<U1,U2>&)
-    //   ctor: implicit conversion from a compatible pair.
-    template<typename _U1, typename _U2>
-    D_CONSTEXPR pair(const pair<_U1, _U2>& _other)
+    //   function: implicit conversion from a compatible pair.
+    template<typename U1, typename U2>
+    RE_STD_CONSTEXPR pair(const pair<U1, U2>& _other)
         : first(_other.first),
           second(_other.second)
     {}
 
     // copy ctor -- left implicit (compiler-generated, member-wise).
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
     // pair(U1&&, U2&&)
-    //   ctor: perfect-forwarding from arbitrary argument pair.
-    template<typename _U1, typename _U2>
-    D_CONSTEXPR pair(_U1&& _x,
-                     _U2&& _y)
-        : first(re_std::forward<_U1>(_x)),
-          second(re_std::forward<_U2>(_y))
+    //   function: perfect-forwarding from arbitrary argument pair.
+    template<typename U1, typename U2>
+    RE_STD_CONSTEXPR pair(U1&& _x,
+                     U2&& _y)
+        : first(re_std::forward<U1>(_x)),
+          second(re_std::forward<U2>(_y))
     {}
 
-  #if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+  #if RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
     // pair(pair&&)
-    //   ctor: move ctor with conditional noexcept.
+    //   function: move ctor with conditional noexcept.
     //
-    //   Members are forwarded as _T1&& / _T2&& rather than passed through
+    //   Members are forwarded as T1&& / T2&& rather than passed through
     // re_std::move. For an ordinary object type the two are identical, but
-    // when _T1 is a REFERENCE type -- pair<int&, int>, which make_pair
+    // when T1 is a REFERENCE type -- pair<int&, int>, which make_pair
     // produces from a reference_wrapper argument -- move() yields int&&,
     // and an int&& cannot initialise the int& member. Reference collapsing
-    // makes _T1&& collapse back to int&, so this spelling handles both
+    // makes T1&& collapse back to int&, so this spelling handles both
     // cases. (C++17 hid the bug behind guaranteed copy elision; C++11 and
     // C++14 still run this constructor.)
-    D_CONSTEXPR pair(pair&& _other) noexcept(
-        is_nothrow_move_constructible<_T1>::value &&
-        is_nothrow_move_constructible<_T2>::value)
-        : first(static_cast<_T1&&>(_other.first)),
-          second(static_cast<_T2&&>(_other.second))
+    RE_STD_CONSTEXPR pair(pair&& _other) noexcept(
+        is_nothrow_move_constructible<T1>::value &&
+        is_nothrow_move_constructible<T2>::value)
+        : first(static_cast<T1&&>(_other.first)),
+          second(static_cast<T2&&>(_other.second))
     {}
 
     // pair(pair<U1,U2>&&)
-    //   ctor: converting move ctor with conditional noexcept.
-    template<typename _U1, typename _U2>
-    D_CONSTEXPR pair(pair<_U1, _U2>&& _other) noexcept(
-        is_nothrow_move_constructible<_T1>::value &&
-        is_nothrow_move_constructible<_T2>::value)
+    //   function: converting move ctor with conditional noexcept.
+    template<typename U1, typename U2>
+    RE_STD_CONSTEXPR pair(pair<U1, U2>&& _other) noexcept(
+        is_nothrow_move_constructible<T1>::value &&
+        is_nothrow_move_constructible<T2>::value)
         : first(re_std::move(_other.first)),
           second(re_std::move(_other.second))
     {}
@@ -149,22 +152,22 @@ struct pair
   #else  // rvalue refs without variadic templates -- no nothrow-ctor trait
 
     // pair(pair&&)
-    //   ctor: move ctor (no noexcept -- is_nothrow_move_constructible
+    //   function: move ctor (no noexcept -- is_nothrow_move_constructible
     //   unavailable without variadic templates).
-    D_CONSTEXPR pair(pair&& _other)
+    RE_STD_CONSTEXPR pair(pair&& _other)
         : first(re_std::move(_other.first)),
           second(re_std::move(_other.second))
     {}
 
     // pair(pair<U1,U2>&&)
-    //   ctor: converting move ctor (no noexcept).
-    template<typename _U1, typename _U2>
-    D_CONSTEXPR pair(pair<_U1, _U2>&& _other)
+    //   function: converting move ctor (no noexcept).
+    template<typename U1, typename U2>
+    RE_STD_CONSTEXPR pair(pair<U1, U2>&& _other)
         : first(re_std::move(_other.first)),
           second(re_std::move(_other.second))
     {}
 
-  #endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+  #endif  // RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
 #endif  // rvalue references
 
@@ -173,7 +176,7 @@ struct pair
     // -----------------------------------------------------------------
 
     // operator=(const pair&)
-    //   assign: member-wise copy.
+    //   function: member-wise copy.
     pair& operator=(const pair& _other)
     {
         first = _other.first;
@@ -182,22 +185,22 @@ struct pair
     }
 
     // operator=(const pair<U1,U2>&)
-    //   assign: member-wise copy from compatible pair.
-    template<typename _U1, typename _U2>
-    pair& operator=(const pair<_U1, _U2>& _other)
+    //   function: member-wise copy from compatible pair.
+    template<typename U1, typename U2>
+    pair& operator=(const pair<U1, U2>& _other)
     {
         first = _other.first;
         second = _other.second;
         return *this;
     }
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
     // operator=(pair&&)
-    //   assign: member-wise move with conditional noexcept.
+    //   function: member-wise move with conditional noexcept.
     pair& operator=(pair&& _other) noexcept(
-        is_nothrow_move_assignable<_T1>::value &&
-        is_nothrow_move_assignable<_T2>::value)
+        is_nothrow_move_assignable<T1>::value &&
+        is_nothrow_move_assignable<T2>::value)
     {
         first = re_std::move(_other.first);
         second = re_std::move(_other.second);
@@ -205,11 +208,11 @@ struct pair
     }
 
     // operator=(pair<U1,U2>&&)
-    //   assign: member-wise move from compatible pair (conditional noexcept).
-    template<typename _U1, typename _U2>
-    pair& operator=(pair<_U1, _U2>&& _other) noexcept(
-        is_nothrow_move_assignable<_T1>::value &&
-        is_nothrow_move_assignable<_T2>::value)
+    //   function: member-wise move from compatible pair (conditional noexcept).
+    template<typename U1, typename U2>
+    pair& operator=(pair<U1, U2>&& _other) noexcept(
+        is_nothrow_move_assignable<T1>::value &&
+        is_nothrow_move_assignable<T2>::value)
     {
         first = re_std::move(_other.first);
         second = re_std::move(_other.second);
@@ -242,18 +245,18 @@ struct pair
 
 // operator==
 //   function: equal iff both members are equal.
-template<typename _T1, typename _T2>
-D_CONSTEXPR bool operator==(const pair<_T1, _T2>& _lhs,
-                            const pair<_T1, _T2>& _rhs)
+template<typename T1, typename T2>
+RE_STD_CONSTEXPR bool operator==(const pair<T1, T2>& _lhs,
+                            const pair<T1, T2>& _rhs)
 {
     return _lhs.first == _rhs.first && _lhs.second == _rhs.second;
 }
 
 // operator!=
 //   function: negation of operator==.
-template<typename _T1, typename _T2>
-D_CONSTEXPR bool operator!=(const pair<_T1, _T2>& _lhs,
-                            const pair<_T1, _T2>& _rhs)
+template<typename T1, typename T2>
+RE_STD_CONSTEXPR bool operator!=(const pair<T1, T2>& _lhs,
+                            const pair<T1, T2>& _rhs)
 {
     return !(_lhs == _rhs);
 }
@@ -262,9 +265,9 @@ D_CONSTEXPR bool operator!=(const pair<_T1, _T2>& _lhs,
 //   function: lexicographic less-than. Equivalent to comparing
 //   (first, second) as a 2-tuple. Implemented in terms of operator<
 //   only, so it works for types that supply only operator<.
-template<typename _T1, typename _T2>
-D_CONSTEXPR bool operator<(const pair<_T1, _T2>& _lhs,
-                           const pair<_T1, _T2>& _rhs)
+template<typename T1, typename T2>
+RE_STD_CONSTEXPR bool operator<(const pair<T1, T2>& _lhs,
+                           const pair<T1, T2>& _rhs)
 {
     return _lhs.first < _rhs.first
         || (!(_rhs.first < _lhs.first) && _lhs.second < _rhs.second);
@@ -272,27 +275,27 @@ D_CONSTEXPR bool operator<(const pair<_T1, _T2>& _lhs,
 
 // operator<=
 //   function: !(rhs < lhs).
-template<typename _T1, typename _T2>
-D_CONSTEXPR bool operator<=(const pair<_T1, _T2>& _lhs,
-                            const pair<_T1, _T2>& _rhs)
+template<typename T1, typename T2>
+RE_STD_CONSTEXPR bool operator<=(const pair<T1, T2>& _lhs,
+                            const pair<T1, T2>& _rhs)
 {
     return !(_rhs < _lhs);
 }
 
 // operator>
 //   function: rhs < lhs.
-template<typename _T1, typename _T2>
-D_CONSTEXPR bool operator>(const pair<_T1, _T2>& _lhs,
-                           const pair<_T1, _T2>& _rhs)
+template<typename T1, typename T2>
+RE_STD_CONSTEXPR bool operator>(const pair<T1, T2>& _lhs,
+                           const pair<T1, T2>& _rhs)
 {
     return _rhs < _lhs;
 }
 
 // operator>=
 //   function: !(lhs < rhs).
-template<typename _T1, typename _T2>
-D_CONSTEXPR bool operator>=(const pair<_T1, _T2>& _lhs,
-                            const pair<_T1, _T2>& _rhs)
+template<typename T1, typename T2>
+RE_STD_CONSTEXPR bool operator>=(const pair<T1, T2>& _lhs,
+                            const pair<T1, T2>& _rhs)
 {
     return !(_lhs < _rhs);
 }
@@ -303,14 +306,14 @@ D_CONSTEXPR bool operator>=(const pair<_T1, _T2>& _lhs,
 
 // swap (pair overload)
 //   function: ADL-friendly swap. Delegates to the member swap.
-template<typename _T1, typename _T2>
-void swap(pair<_T1, _T2>& _lhs,
-          pair<_T1, _T2>& _rhs)
+template<typename T1, typename T2>
+void swap(pair<T1, T2>& _lhs,
+          pair<T1, T2>& _rhs)
 {
     _lhs.swap(_rhs);
     return;
 }
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // DJINTERP_RE_STD_UTILITY_PAIR_
+#endif  // RE_STD_UTILITY_PAIR_HPP

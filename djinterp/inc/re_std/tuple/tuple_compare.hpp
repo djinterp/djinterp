@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           tuple_compare.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            tuple_compare.hpp
 *
 * tuple comparison operators header:
 *   Provides ==, !=, <, <=, >, >= for re_std::tuple. Comparison is
@@ -20,100 +20,103 @@
 * std::get of std::tuple, instead using re_std's own.
 *
 *
-* path:      /inc/djinterp/re_std/tuple/tuple_compare.hpp
+* path:      /inc/re_std/tuple/tuple_compare.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_
-#define DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_ 1
+#ifndef RE_STD_TUPLE_TUPLE_COMPARE_HPP
+#define RE_STD_TUPLE_TUPLE_COMPARE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
 
 
 // std
 #include <cstddef>
-// djinterp
+// re_std
 #include "./tuple.hpp"
 #include "./tuple_get.hpp"      // re_std::get<I>(tuple)
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   EQUALITY (==, !=)
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // tuple_eq_impl
-    //   helper: recursive lexicographic equality. Index parameter
+    //   trait: recursive lexicographic equality. Index parameter
     // walks from 0 to N. Generic case compares head and recurses.
-    template<std::size_t _I,
-             std::size_t _N>
+    template<std::size_t I,
+             std::size_t N>
     struct tuple_eq_impl
     {
-        template<typename _A,
-                 typename _B>
-        D_STATIC D_CONSTEXPR bool
+        template<typename A,
+                 typename B>
+        static RE_STD_CONSTEXPR bool
         eq(
-            const _A& _a,
-            const _B& _b
+            const A& _a,
+            const B& _b
         )
         {
-            return ( get<_I>(_a) == get<_I>(_b) ) &&
-                   tuple_eq_impl<_I + 1, _N>::eq(_a, _b);
+            return ( get<I>(_a) == get<I>(_b) ) &&
+                   tuple_eq_impl<I + 1, N>::eq(_a, _b);
         }
     };
 
-    template<std::size_t _N>
-    struct tuple_eq_impl<_N, _N>
+    template<std::size_t N>
+    struct tuple_eq_impl<N, N>
     {
-        template<typename _A,
-                 typename _B>
-        D_STATIC D_CONSTEXPR bool
+        template<typename A,
+                 typename B>
+        static RE_STD_CONSTEXPR bool
         eq(
-            const _A&,
-            const _B&
+            const A&,
+            const B&
         )
         {
             return true;
         }
     };
 
-NS_END  // internal
+}  // internal
 
 
 // operator==
 //   function: lexicographic equality of two equal-arity tuples.
-template<typename... _A,
-         typename... _B>
-D_CONSTEXPR
+template<typename... A,
+         typename... B>
+RE_STD_CONSTEXPR
 bool
 operator==(
-    const tuple<_A...>& _lhs,
-    const tuple<_B...>& _rhs
+    const tuple<A...>& _lhs,
+    const tuple<B...>& _rhs
 )
 {
-    static_assert(sizeof...(_A) == sizeof...(_B),
+    static_assert(sizeof...(A) == sizeof...(B),
                   "tuple operator==: arity mismatch");
-    return internal::tuple_eq_impl<0, sizeof...(_A)>::eq(_lhs, _rhs);
+    return internal::tuple_eq_impl<0, sizeof...(A)>::eq(_lhs, _rhs);
 }
 
 // operator!=
-template<typename... _A,
-         typename... _B>
-D_CONSTEXPR
+template<typename... A,
+         typename... B>
+RE_STD_CONSTEXPR
 bool
 operator!=(
-    const tuple<_A...>& _lhs,
-    const tuple<_B...>& _rhs
+    const tuple<A...>& _lhs,
+    const tuple<B...>& _rhs
 )
 {
     return !(_lhs == _rhs);
@@ -124,111 +127,112 @@ operator!=(
 // II.  ORDERING (<, <=, >, >=)
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // tuple_lt_impl
-    //   helper: recursive lexicographic less-than. At each step:
+    //   trait: recursive lexicographic less-than. At each step:
     //   - if a < b at this element: true
     //   - else if b < a at this element: false
     //   - else recurse on tail
-    template<std::size_t _I,
-             std::size_t _N>
+    template<std::size_t I,
+             std::size_t N>
     struct tuple_lt_impl
     {
-        template<typename _A,
-                 typename _B>
-        D_STATIC D_CONSTEXPR bool
+        template<typename A,
+                 typename B>
+        static RE_STD_CONSTEXPR bool
         lt(
-            const _A& _a,
-            const _B& _b
+            const A& _a,
+            const B& _b
         )
         {
-            return ( get<_I>(_a) < get<_I>(_b) )
+            return ( get<I>(_a) < get<I>(_b) )
                 ? true
-                : ( get<_I>(_b) < get<_I>(_a) )
+                : ( get<I>(_b) < get<I>(_a) )
                     ? false
-                    : tuple_lt_impl<_I + 1, _N>::lt(_a, _b);
+                    : tuple_lt_impl<I + 1, N>::lt(_a, _b);
         }
     };
 
-    template<std::size_t _N>
-    struct tuple_lt_impl<_N, _N>
+    template<std::size_t N>
+    struct tuple_lt_impl<N, N>
     {
-        template<typename _A,
-                 typename _B>
-        D_STATIC D_CONSTEXPR bool
+        template<typename A,
+                 typename B>
+        static RE_STD_CONSTEXPR bool
         lt(
-            const _A&,
-            const _B&
+            const A&,
+            const B&
         )
         {
             return false;
         }
     };
 
-NS_END  // internal
+}  // internal
 
 
 // operator<
 //   function: lexicographic less-than.
-template<typename... _A,
-         typename... _B>
-D_CONSTEXPR
+template<typename... A,
+         typename... B>
+RE_STD_CONSTEXPR
 bool
 operator<(
-    const tuple<_A...>& _lhs,
-    const tuple<_B...>& _rhs
+    const tuple<A...>& _lhs,
+    const tuple<B...>& _rhs
 )
 {
-    static_assert(sizeof...(_A) == sizeof...(_B),
+    static_assert(sizeof...(A) == sizeof...(B),
                   "tuple operator<: arity mismatch");
-    return internal::tuple_lt_impl<0, sizeof...(_A)>::lt(_lhs, _rhs);
+    return internal::tuple_lt_impl<0, sizeof...(A)>::lt(_lhs, _rhs);
 }
 
 // operator<=
-template<typename... _A,
-         typename... _B>
-D_CONSTEXPR
+template<typename... A,
+         typename... B>
+RE_STD_CONSTEXPR
 bool
 operator<=(
-    const tuple<_A...>& _lhs,
-    const tuple<_B...>& _rhs
+    const tuple<A...>& _lhs,
+    const tuple<B...>& _rhs
 )
 {
     return !(_rhs < _lhs);
 }
 
 // operator>
-template<typename... _A,
-         typename... _B>
-D_CONSTEXPR
+template<typename... A,
+         typename... B>
+RE_STD_CONSTEXPR
 bool
 operator>(
-    const tuple<_A...>& _lhs,
-    const tuple<_B...>& _rhs
+    const tuple<A...>& _lhs,
+    const tuple<B...>& _rhs
 )
 {
     return _rhs < _lhs;
 }
 
 // operator>=
-template<typename... _A,
-         typename... _B>
-D_CONSTEXPR
+template<typename... A,
+         typename... B>
+RE_STD_CONSTEXPR
 bool
 operator>=(
-    const tuple<_A...>& _lhs,
-    const tuple<_B...>& _rhs
+    const tuple<A...>& _lhs,
+    const tuple<B...>& _rhs
 )
 {
     return !(_lhs < _rhs);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_
+#endif  // RE_STD_TUPLE_TUPLE_COMPARE_HPP

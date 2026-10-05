@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                          partition_point.hpp
 *
 * partition_point algorithm header:
@@ -15,16 +15,17 @@
 *     random access, O(N) on forward.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/partition_point.hpp
+* path:      /inc/re_std/algorithm/partition_point.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_PARTITION_POINT_
-#define DJINTERP_RE_STD_ALGORITHM_PARTITION_POINT_ 1
+#ifndef RE_STD_ALGORITHM_PARTITION_POINT_HPP
+#define RE_STD_ALGORITHM_PARTITION_POINT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../iterator/iterator_traits.hpp"
 #include "../iterator/advance.hpp"
@@ -35,16 +36,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -54,22 +48,22 @@ NS_RESTD
 // partition_point
 //   function: returns the first iterator it in [_first, _last) for
 // which _pred(*it) is false. Range must be partitioned w.r.t. _pred.
-template<typename _ForwardIt,
-         typename _Pred>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt,
+         typename Pred>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 partition_point(
-    _ForwardIt _first,
-    _ForwardIt _last,
-    _Pred      _pred
+    ForwardIt _first,
+    ForwardIt _last,
+    Pred      _pred
 )
 {
-    typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
+    typedef typename iterator_traits<ForwardIt>::difference_type _Diff;
 
     _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
-        _ForwardIt _mid  = _first;
+        ForwardIt _mid  = _first;
         re_std::advance(_mid, _half);
         if (_pred(*_mid))
         {
@@ -86,7 +80,7 @@ partition_point(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_PARTITION_POINT_
+#endif  // RE_STD_ALGORITHM_PARTITION_POINT_HPP

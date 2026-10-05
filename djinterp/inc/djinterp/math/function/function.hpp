@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                function.hpp
+/*******************************************************************************
+* djinterp [math]                                                   function.hpp
 *
 * Named functions, higher-order forms, and the fluent builder.
 *   This header sits on top of expression.hpp (the value-holding expression
@@ -31,23 +31,26 @@
 *     Vector-valued:  static constexpr bool is_vector_valued  = true;  output_dimension
 *     Named function: static constexpr bool is_math_function  = true;
 *
+*
 * path:      /inc/djinterp/math/function/function.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.02.06
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_FUNCTION_
-#define DJINTERP_MATH_FUNCTION_ 1
+#ifndef DJINTERP_MATH_FUNCTION_FUNCTION_HPP
+#define DJINTERP_MATH_FUNCTION_FUNCTION_HPP 1
 
-#include <cstddef>
+// std
 #include <array>
+#include <cstddef>
 #include <tuple>
-#include <utility>
 #include <type_traits>
-
-#include "../djinterp.hpp"
-#include "./expression.hpp"
-#include "./coordinate.hpp"
+#include <utility>
+// djinterp
+#include "../../djinterp.hpp"
+#include "../expression.hpp"
+#include "../coordinate/coordinate.hpp"
 
 
 NS_DJINTERP
@@ -904,4 +907,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_FUNCTION_
+#endif  // DJINTERP_MATH_FUNCTION_FUNCTION_HPP

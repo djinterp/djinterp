@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              equal_range.hpp
 *
 * equal_range algorithm header:
@@ -18,16 +18,17 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/equal_range.hpp
+* path:      /inc/re_std/algorithm/equal_range.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_EQUAL_RANGE_
-#define DJINTERP_RE_STD_ALGORITHM_EQUAL_RANGE_ 1
+#ifndef RE_STD_ALGORITHM_EQUAL_RANGE_HPP
+#define RE_STD_ALGORITHM_EQUAL_RANGE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./lower_bound.hpp"
 #include "./upper_bound.hpp"
@@ -41,16 +42,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -60,22 +54,22 @@ NS_RESTD
 // equal_range
 //   function: returns pair(lo, hi) bounding the contiguous block of
 // elements equivalent to _value. lo == lower_bound; hi == upper_bound.
-template<typename _ForwardIt,
-         typename _Type>
-D_CONSTEXPR_CPP14 pair<_ForwardIt, _ForwardIt>
+template<typename ForwardIt,
+         typename Type>
+RE_STD_CONSTEXPR_CPP14 pair<ForwardIt, ForwardIt>
 equal_range(
-    _ForwardIt   _first,
-    _ForwardIt   _last,
-    const _Type& _value
+    ForwardIt   _first,
+    ForwardIt   _last,
+    const Type& _value
 )
 {
-    typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
+    typedef typename iterator_traits<ForwardIt>::difference_type _Diff;
 
     _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
-        _ForwardIt _mid  = _first;
+        ForwardIt _mid  = _first;
         re_std::advance(_mid, _half);
 
         if (*_mid < _value)
@@ -91,21 +85,21 @@ equal_range(
         else
         {
             // *_mid equivalent to _value; pivot to two bounded scans
-            _ForwardIt _left_end = _first;
+            ForwardIt _left_end = _first;
             re_std::advance(_left_end, _half);
-            _ForwardIt _lo = re_std::lower_bound(_first, _left_end, _value);
+            ForwardIt _lo = re_std::lower_bound(_first, _left_end, _value);
 
-            _ForwardIt _right_begin = _mid;
+            ForwardIt _right_begin = _mid;
             ++_right_begin;
-            _ForwardIt _right_end = _first;
+            ForwardIt _right_end = _first;
             re_std::advance(_right_end, _len);
-            _ForwardIt _hi = re_std::upper_bound(_right_begin, _right_end,
+            ForwardIt _hi = re_std::upper_bound(_right_begin, _right_end,
                                                 _value);
 
-            return pair<_ForwardIt, _ForwardIt>(_lo, _hi);
+            return pair<ForwardIt, ForwardIt>(_lo, _hi);
         }
     }
-    return pair<_ForwardIt, _ForwardIt>(_first, _first);
+    return pair<ForwardIt, ForwardIt>(_first, _first);
 }
 
 
@@ -115,24 +109,24 @@ equal_range(
 
 // equal_range (comparator)
 //   function: as above but comparison is via _comp.
-template<typename _ForwardIt,
-         typename _Type,
-         typename _Compare>
-D_CONSTEXPR_CPP14 pair<_ForwardIt, _ForwardIt>
+template<typename ForwardIt,
+         typename Type,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 pair<ForwardIt, ForwardIt>
 equal_range(
-    _ForwardIt   _first,
-    _ForwardIt   _last,
-    const _Type& _value,
-    _Compare     _comp
+    ForwardIt   _first,
+    ForwardIt   _last,
+    const Type& _value,
+    Compare     _comp
 )
 {
-    typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
+    typedef typename iterator_traits<ForwardIt>::difference_type _Diff;
 
     _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
-        _ForwardIt _mid  = _first;
+        ForwardIt _mid  = _first;
         re_std::advance(_mid, _half);
 
         if (_comp(*_mid, _value))
@@ -147,26 +141,26 @@ equal_range(
         }
         else
         {
-            _ForwardIt _left_end = _first;
+            ForwardIt _left_end = _first;
             re_std::advance(_left_end, _half);
-            _ForwardIt _lo = re_std::lower_bound(_first, _left_end,
+            ForwardIt _lo = re_std::lower_bound(_first, _left_end,
                                                 _value, _comp);
 
-            _ForwardIt _right_begin = _mid;
+            ForwardIt _right_begin = _mid;
             ++_right_begin;
-            _ForwardIt _right_end = _first;
+            ForwardIt _right_end = _first;
             re_std::advance(_right_end, _len);
-            _ForwardIt _hi = re_std::upper_bound(_right_begin, _right_end,
+            ForwardIt _hi = re_std::upper_bound(_right_begin, _right_end,
                                                 _value, _comp);
 
-            return pair<_ForwardIt, _ForwardIt>(_lo, _hi);
+            return pair<ForwardIt, ForwardIt>(_lo, _hi);
         }
     }
-    return pair<_ForwardIt, _ForwardIt>(_first, _first);
+    return pair<ForwardIt, ForwardIt>(_first, _first);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_EQUAL_RANGE_
+#endif  // RE_STD_ALGORITHM_EQUAL_RANGE_HPP

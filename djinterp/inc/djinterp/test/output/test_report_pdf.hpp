@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                            test_report_pdf.hpp
 *
 *   The PDF entry points for a finished report -- the drop-in replacement for
@@ -31,24 +31,36 @@
 *   C++11 baseline (the renderer's floor).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    report_pdf_palette          (the verdict styles + stripe, as defaults)
-* II.   render_report_pdf_bytes_table (the entry point the runner calls)
-*
-*
 * path:      /inc/djinterp/test/output/test_report_pdf.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_REPORT_PDF_
-#define DJINTERP_TEST_REPORT_PDF_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    report_pdf_palette          (the verdict styles + stripe, as defaults)
+      ----------------------------------------------------------------------
+
+II.   render_report_pdf_bytes_table (the entry point the runner calls)
+      ----------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_TEST_OUTPUT_TEST_REPORT_PDF_HPP
+#define DJINTERP_TEST_OUTPUT_TEST_REPORT_PDF_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but core/text/font.hpp, which it
+// reaches, needs C++17. The owner's ruling: compile at every level first; port
+// down only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <string>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../../core/util/pdf/pdf_canvas_document_renderer.hpp"
                                             // pdf_canvas_document_renderer
 #include "./test_report_document.hpp"       // render_report_document
@@ -150,5 +162,7 @@ render_report_pdf_bytes(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_REPORT_PDF_
+
+#endif  // DJINTERP_TEST_OUTPUT_TEST_REPORT_PDF_HPP

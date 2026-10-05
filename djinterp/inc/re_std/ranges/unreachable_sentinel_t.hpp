@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                   unreachable_sentinel_t.hpp
 *
 * unreachable_sentinel_t header:
@@ -17,20 +17,23 @@
 *     static constexpr instance on C++11/14.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/unreachable_sentinel_t.hpp
+* path:      /inc/re_std/ranges/unreachable_sentinel_t.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_UNREACHABLE_SENTINEL_T_
-#define DJINTERP_RE_STD_RANGES_UNREACHABLE_SENTINEL_T_ 1
+#ifndef RE_STD_RANGES_UNREACHABLE_SENTINEL_T_HPP
+#define RE_STD_RANGES_UNREACHABLE_SENTINEL_T_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -43,47 +46,47 @@ NS_RESTD
 struct unreachable_sentinel_t
 {
     // iterator == unreachable: always false
-    template<typename _Iter>
-    friend D_CONSTEXPR bool
+    template<typename Iter>
+    friend RE_STD_CONSTEXPR bool
     operator==(
         unreachable_sentinel_t const&,
-        _Iter const&
+        Iter const&
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return false;
     }
 
-    template<typename _Iter>
-    friend D_CONSTEXPR bool
+    template<typename Iter>
+    friend RE_STD_CONSTEXPR bool
     operator==(
-        _Iter const&,
+        Iter const&,
         unreachable_sentinel_t const&
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return false;
     }
 
     // iterator != unreachable: always true
-    template<typename _Iter>
-    friend D_CONSTEXPR bool
+    template<typename Iter>
+    friend RE_STD_CONSTEXPR bool
     operator!=(
         unreachable_sentinel_t const&,
-        _Iter const&
+        Iter const&
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return true;
     }
 
-    template<typename _Iter>
-    friend D_CONSTEXPR bool
+    template<typename Iter>
+    friend RE_STD_CONSTEXPR bool
     operator!=(
-        _Iter const&,
+        Iter const&,
         unreachable_sentinel_t const&
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return true;
     }
@@ -94,12 +97,12 @@ struct unreachable_sentinel_t
 // II.  UNREACHABLE_SENTINEL (convenience constant)
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
 // unreachable_sentinel
 //   constant: inline constexpr instance. Matches the C++20
 // std::unreachable_sentinel convenience variable.
-inline D_CONSTEXPR unreachable_sentinel_t unreachable_sentinel = unreachable_sentinel_t();
+inline RE_STD_CONSTEXPR unreachable_sentinel_t unreachable_sentinel = unreachable_sentinel_t();
 
 #else
 
@@ -110,15 +113,15 @@ inline D_CONSTEXPR unreachable_sentinel_t unreachable_sentinel = unreachable_sen
 // translation units. Address-taking yields a different pointer per
 // TU; equality semantics (the only meaningful operation) are
 // unaffected.
-static D_CONSTEXPR unreachable_sentinel_t unreachable_sentinel = unreachable_sentinel_t();
+static RE_STD_CONSTEXPR unreachable_sentinel_t unreachable_sentinel = unreachable_sentinel_t();
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_UNREACHABLE_SENTINEL_T_
+#endif  // RE_STD_RANGES_UNREACHABLE_SENTINEL_T_HPP

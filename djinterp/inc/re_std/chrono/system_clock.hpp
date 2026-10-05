@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                             system_clock.hpp
 *
 * the system_clock class:
@@ -26,7 +26,7 @@
 *
 *   Tier 3 is the honest floor. On a pre-C++17 non-POSIX platform there
 * is no portable sub-second source, so now() returns whole seconds. It is
-* still a correct system_clock -- just a coarse one. D_RE_STD_CLOCK_SOURCE
+* still a correct system_clock -- just a coarse one. RE_STD_CLOCK_SOURCE
 * reports which tier compiled in, so a program that needs better can
 * detect the situation rather than discover it in its measurements.
 *
@@ -44,24 +44,25 @@
 * precision reduction no wall-clock source delivers anyway.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/system_clock.hpp
+* path:      /inc/re_std/chrono/system_clock.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_SYSTEM_CLOCK_
-#define DJINTERP_RE_STD_CHRONO_SYSTEM_CLOCK_ 1
+#ifndef RE_STD_CHRONO_SYSTEM_CLOCK_HPP
+#define RE_STD_CHRONO_SYSTEM_CLOCK_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <ctime>
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "./duration_arithmetic.hpp"
 #include "./duration_cast.hpp"
@@ -72,34 +73,35 @@
 #include "../cstdint/cstdint.hpp"
 
 
-// D_RE_STD_HAS_POSIX_CLOCK_GETTIME
+// RE_STD_HAS_POSIX_CLOCK_GETTIME
 //   constant: 1 if ::clock_gettime and CLOCK_REALTIME are available.
-#ifndef D_RE_STD_HAS_POSIX_CLOCK_GETTIME
+#ifndef RE_STD_HAS_POSIX_CLOCK_GETTIME
     #if ( defined(__unix__) || defined(__linux__) || defined(__APPLE__) ||    \
           defined(__QNX__)  || defined(_POSIX_VERSION) )
-        #define D_RE_STD_HAS_POSIX_CLOCK_GETTIME  1
+        #define RE_STD_HAS_POSIX_CLOCK_GETTIME  1
     #else
-        #define D_RE_STD_HAS_POSIX_CLOCK_GETTIME  0
+        #define RE_STD_HAS_POSIX_CLOCK_GETTIME  0
     #endif
 #endif
 
-#if D_RE_STD_HAS_POSIX_CLOCK_GETTIME
+#if RE_STD_HAS_POSIX_CLOCK_GETTIME
     // POSIX declares clock_gettime in <time.h>, at global scope. <ctime>
     // is only required to put the C++98 subset in std::, so the POSIX
     // header is included directly for this one call.
+    // std
     #include <time.h>
 #endif
 
-// D_RE_STD_CLOCK_SOURCE
+// RE_STD_CLOCK_SOURCE
 //   constant: which time source compiled in. 3 = POSIX clock_gettime,
 // 2 = C++17 timespec_get, 1 = std::time (one-second resolution).
-#ifndef D_RE_STD_CLOCK_SOURCE
-    #if D_RE_STD_HAS_POSIX_CLOCK_GETTIME
-        #define D_RE_STD_CLOCK_SOURCE  3
-    #elif D_ENV_LANG_IS_CPP17_OR_HIGHER
-        #define D_RE_STD_CLOCK_SOURCE  2
+#ifndef RE_STD_CLOCK_SOURCE
+    #if RE_STD_HAS_POSIX_CLOCK_GETTIME
+        #define RE_STD_CLOCK_SOURCE  3
+    #elif RE_STD_LANG_IS_CPP17_OR_HIGHER
+        #define RE_STD_CLOCK_SOURCE  2
     #else
-        #define D_RE_STD_CLOCK_SOURCE  1
+        #define RE_STD_CLOCK_SOURCE  1
     #endif
 #endif
 
@@ -109,22 +111,23 @@
 // forcing 3 where clock_gettime is not declared. Rather than let that
 // become a compile error inside now(), an unsupportable choice is
 // DEMOTED to the best tier that does work. Degrade or omit, never error.
-#if D_RE_STD_CLOCK_SOURCE == 3 && !D_RE_STD_HAS_POSIX_CLOCK_GETTIME
-    #undef D_RE_STD_CLOCK_SOURCE
-    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-        #define D_RE_STD_CLOCK_SOURCE  2
+#if RE_STD_CLOCK_SOURCE == 3 && !RE_STD_HAS_POSIX_CLOCK_GETTIME
+    #undef RE_STD_CLOCK_SOURCE
+    #if RE_STD_LANG_IS_CPP17_OR_HIGHER
+        #define RE_STD_CLOCK_SOURCE  2
     #else
-        #define D_RE_STD_CLOCK_SOURCE  1
+        #define RE_STD_CLOCK_SOURCE  1
     #endif
 #endif
 
-#if D_RE_STD_CLOCK_SOURCE == 2 && !D_ENV_LANG_IS_CPP17_OR_HIGHER
-    #undef D_RE_STD_CLOCK_SOURCE
-    #define D_RE_STD_CLOCK_SOURCE  1
+#if RE_STD_CLOCK_SOURCE == 2 && !RE_STD_LANG_IS_CPP17_OR_HIGHER
+    #undef RE_STD_CLOCK_SOURCE
+    #define RE_STD_CLOCK_SOURCE  1
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
@@ -138,40 +141,40 @@ namespace chrono
         // rep / period / duration / time_point
         //   typedef: the clock's fixed precision. Microseconds; see the
         // header comment for why not nanoseconds.
-        typedef std::int_least64_t              rep;
+        typedef int_least64_t                   rep;
         typedef micro                           period;
         typedef chrono::duration<rep, period>   duration;
         typedef chrono::time_point<system_clock> time_point;
 
         // is_steady
         //   constant: false. This clock can jump, in either direction.
-        static D_CONSTEXPR const bool is_steady = false;
+        static RE_STD_CONSTEXPR const bool is_steady = false;
 
         // now
         //   function: the current wall-clock time. Resolution depends on
-        // which source compiled in -- see D_RE_STD_CLOCK_SOURCE.
-        static time_point now() D_NOEXCEPT
+        // which source compiled in -- see RE_STD_CLOCK_SOURCE.
+        static time_point now() RE_STD_NOEXCEPT
         {
-#if D_RE_STD_CLOCK_SOURCE == 3
+#if RE_STD_CLOCK_SOURCE == 3
 
             ::timespec _ts;
             if (::clock_gettime(CLOCK_REALTIME, &_ts) != 0)
             {
                 // A failing CLOCK_REALTIME means the platform lied about
                 // supporting it. Fall back rather than return garbage.
-                return from_time_t(::std::time(D_NULLPTR));
+                return from_time_t(::std::time(RE_STD_NULLPTR));
             }
             return time_point(
                 duration_cast<duration>(
                     seconds(static_cast<rep>(_ts.tv_sec)) +
                     nanoseconds(static_cast<rep>(_ts.tv_nsec))));
 
-#elif D_RE_STD_CLOCK_SOURCE == 2
+#elif RE_STD_CLOCK_SOURCE == 2
 
             ::std::timespec _ts;
             if (::std::timespec_get(&_ts, TIME_UTC) != TIME_UTC)
             {
-                return from_time_t(::std::time(D_NULLPTR));
+                return from_time_t(::std::time(RE_STD_NULLPTR));
             }
             return time_point(
                 duration_cast<duration>(
@@ -181,7 +184,7 @@ namespace chrono
 #else
 
             // One-second resolution. Correct, just coarse.
-            return from_time_t(::std::time(D_NULLPTR));
+            return from_time_t(::std::time(RE_STD_NULLPTR));
 
 #endif
         }
@@ -189,7 +192,7 @@ namespace chrono
         // to_time_t
         //   function: convert to a C time_t, truncating to whole seconds
         // toward the epoch. Exact because the epochs agree.
-        static ::std::time_t to_time_t(const time_point& _t) D_NOEXCEPT
+        static ::std::time_t to_time_t(const time_point& _t) RE_STD_NOEXCEPT
         {
             return static_cast< ::std::time_t >(
                 duration_cast<seconds>(_t.time_since_epoch()).count());
@@ -198,7 +201,7 @@ namespace chrono
         // from_time_t
         //   function: convert from a C time_t. Exact; time_t carries no
         // sub-second part to lose.
-        static time_point from_time_t(::std::time_t _t) D_NOEXCEPT
+        static time_point from_time_t(::std::time_t _t) RE_STD_NOEXCEPT
         {
             return time_point(
                 duration_cast<duration>(
@@ -209,7 +212,7 @@ namespace chrono
     // Out-of-class definition. Before C++17 an odr-used static const
     // member still needs one; from C++17 the in-class initialiser is the
     // definition and repeating it is deprecated. Same gate as ratio's.
-#if !D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if !RE_STD_LANG_IS_CPP17_OR_HIGHER
     const bool system_clock::is_steady;
 #endif
 
@@ -218,9 +221,9 @@ namespace chrono
     // precision, back-ported. sys_days is the type the calendar interface
     // is built on, so the names are established here even though the
     // calendar itself is not yet implemented.
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-    template<typename _Duration>
-    using sys_time = time_point<system_clock, _Duration>;
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
+    template<typename Duration>
+    using sys_time = time_point<system_clock, Duration>;
 #endif
 
     typedef time_point<system_clock, seconds>   sys_seconds;
@@ -228,10 +231,10 @@ namespace chrono
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_SYSTEM_CLOCK_
+#endif  // RE_STD_CHRONO_SYSTEM_CLOCK_HPP

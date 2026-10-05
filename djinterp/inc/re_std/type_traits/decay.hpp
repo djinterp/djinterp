@@ -1,11 +1,11 @@
-/******************************************************************************
-* djinterp [re_std]                                                  decay.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                    decay.hpp
 *
 * decay trait header:
 *   Applies the type transformations that occur when an lvalue is passed
 * by value: array-to-pointer, function-to-pointer, and removal of
 * references and cv-qualifiers. Per [meta.trans.other]:
-*   1. let U be remove_reference<_Type>::type;
+*   1. let U be remove_reference<Type>::type;
 *   2. if is_array<U>: yield remove_extent<U>::type*;
 *   3. else if is_function<U>: yield add_pointer<U>::type;
 *   4. else: yield remove_cv<U>::type.
@@ -19,16 +19,17 @@
 *     decay<void(&)(int)>::type    -> void(*)(int)
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/decay.hpp
+* path:      /inc/re_std/type_traits/decay.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_DECAY_
-#define DJINTERP_RE_STD_TYPE_TRAITS_DECAY_ 1
+#ifndef RE_STD_TYPE_TRAITS_DECAY_HPP
+#define RE_STD_TYPE_TRAITS_DECAY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./conditional.hpp"
 #include "./is_array.hpp"
 #include "./is_function.hpp"
@@ -38,57 +39,59 @@
 #include "./add_pointer.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   DECAY
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // decay_array_or_function
-    //   helper: handles the array / function / value-type cases on an
+    //   trait: handles the array / function / value-type cases on an
     // already-unreferenced type.
-    template<typename _U,
-             bool     _IsArray,
-             bool     _IsFunction>
+    template<typename U,
+             bool     IsArray,
+             bool     IsFunction>
     struct decay_select
     {
         // value type: strip cv.
-        typedef typename remove_cv<_U>::type type;
+        typedef typename remove_cv<U>::type type;
     };
 
-    template<typename _U>
-    struct decay_select<_U, true, false>
+    template<typename U>
+    struct decay_select<U, true, false>
     {
         // array: pointer to element.
-        typedef typename remove_extent<_U>::type* type;
+        typedef typename remove_extent<U>::type* type;
     };
 
-    template<typename _U>
-    struct decay_select<_U, false, true>
+    template<typename U>
+    struct decay_select<U, false, true>
     {
         // function: add pointer.
-        typedef typename add_pointer<_U>::type type;
+        typedef typename add_pointer<U>::type type;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // decay
-//   trait: applies argument-type-decay rules to _Type.
-template<typename _Type>
+//   trait: applies argument-type-decay rules to Type.
+template<typename Type>
 struct decay
 {
 private:
-    typedef typename remove_reference<_Type>::type _U;
+    typedef typename remove_reference<Type>::type U;
 
 public:
     typedef typename internal::decay_select<
-                _U,
-                is_array<_U>::value,
-                is_function<_U>::value
+                U,
+                is_array<U>::value,
+                is_function<U>::value
             >::type type;
 };
 
@@ -97,17 +100,17 @@ public:
 // II.  DECAY_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // decay_t
-    //   alias: convenience alias for decay<_Type>::type.
-    template<typename _Type>
-    using decay_t = typename decay<_Type>::type;
+    //   alias: convenience alias for decay<Type>::type.
+    template<typename Type>
+    using decay_t = typename decay<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_DECAY_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_DECAY_HPP

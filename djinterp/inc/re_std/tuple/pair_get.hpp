@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 pair_get.hpp
 *
 * pair get<> overloads:
@@ -17,8 +17,8 @@
 *
 *   TYPE-BASED (C++14+):
 *     get<T>(p)        -> reference to the (unique) element of type T.
-*   Ill-formed when _T1 == _T2 (the element is not unique) — caught by
-*   enable_if on is_same<_T1, _T2>::value == false.
+*   Ill-formed when T1 == T2 (the element is not unique) — caught by
+*   enable_if on is_same<T1, T2>::value == false.
 *
 *   PORTABILITY:
 *   Requires C++11+ for index-based form (pair itself is C++98+ but
@@ -28,33 +28,35 @@
 * its .first / .second members.
 *
 *
-* path:      /inc/djinterp/re_std/tuple/pair_get.hpp
+* path:      /inc/re_std/tuple/pair_get.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_PAIR_GET_
-#define DJINTERP_RE_STD_UTILITY_PAIR_GET_ 1
+#ifndef RE_STD_TUPLE_PAIR_GET_HPP
+#define RE_STD_TUPLE_PAIR_GET_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // gate: rvalue-ref forms below need C++11+. The whole header guards
 // on rvalue-refs; pair pre-existed in C++98 but the get<I>(p&&) forms
 // returning T&& are inherently C++11+.
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 
 // std
 #include <cstddef>
-// djinterp
+// re_std
 #include "../utility/pair.hpp"
 #include "../type_traits/enable_if.hpp"
 #include "../type_traits/is_same.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -62,36 +64,37 @@ NS_RESTD
 // =============================================================================
 // The index-based form uses ordinary function overloading on the
 // non-type template parameter via tag-dispatch through internal
-// helpers. The dispatch picks first vs. second based on _I.
+// helpers. The dispatch picks first vs. second based on I.
 
-NS_INTERNAL
+namespace internal
+{
 
     // pair_get_helper
-    //   helper: tag-dispatched accessor for pair. Specialised on
-    // _I in {0, 1}; out-of-range _I has no specialisation and is
+    //   trait: tag-dispatched accessor for pair. Specialised on
+    // I in {0, 1}; out-of-range I has no specialisation and is
     // SFINAE-rejected at the call site.
-    template<std::size_t _I>
+    template<std::size_t I>
     struct pair_get_helper;
 
     template<>
     struct pair_get_helper<0>
     {
-        template<typename _T1, typename _T2>
-        D_STATIC D_CONSTEXPR
-        _T1&
+        template<typename T1, typename T2>
+        static RE_STD_CONSTEXPR
+        T1&
         lref(
-            pair<_T1, _T2>& _p
-        ) D_NOEXCEPT
+            pair<T1, T2>& _p
+        ) RE_STD_NOEXCEPT
         {
             return _p.first;
         }
 
-        template<typename _T1, typename _T2>
-        D_STATIC D_CONSTEXPR
-        const _T1&
+        template<typename T1, typename T2>
+        static RE_STD_CONSTEXPR
+        const T1&
         clref(
-            const pair<_T1, _T2>& _p
-        ) D_NOEXCEPT
+            const pair<T1, T2>& _p
+        ) RE_STD_NOEXCEPT
         {
             return _p.first;
         }
@@ -100,22 +103,22 @@ NS_INTERNAL
     template<>
     struct pair_get_helper<1>
     {
-        template<typename _T1, typename _T2>
-        D_STATIC D_CONSTEXPR
-        _T2&
+        template<typename T1, typename T2>
+        static RE_STD_CONSTEXPR
+        T2&
         lref(
-            pair<_T1, _T2>& _p
-        ) D_NOEXCEPT
+            pair<T1, T2>& _p
+        ) RE_STD_NOEXCEPT
         {
             return _p.second;
         }
 
-        template<typename _T1, typename _T2>
-        D_STATIC D_CONSTEXPR
-        const _T2&
+        template<typename T1, typename T2>
+        static RE_STD_CONSTEXPR
+        const T2&
         clref(
-            const pair<_T1, _T2>& _p
-        ) D_NOEXCEPT
+            const pair<T1, T2>& _p
+        ) RE_STD_NOEXCEPT
         {
             return _p.second;
         }
@@ -123,233 +126,233 @@ NS_INTERNAL
 
 
     // pair_element_for_index
-    //   trait: element type at index _I (0 or 1). Mirrors the
+    //   trait: element type at index I (0 or 1). Mirrors the
     // tuple_element<I, pair<T1,T2>> specialisation in
     // pair_tuple_element.hpp but is a small internal trait to avoid
     // a hard #include dependency on tuple_element here (get can be
     // used independently of tuple_element).
-    template<std::size_t _I,
-             typename    _T1,
-             typename    _T2>
+    template<std::size_t I,
+             typename    T1,
+             typename    T2>
     struct pair_element_for_index;
 
-    template<typename _T1, typename _T2>
-    struct pair_element_for_index<0, _T1, _T2>
+    template<typename T1, typename T2>
+    struct pair_element_for_index<0, T1, T2>
     {
-        typedef _T1 type;
+        typedef T1 type;
     };
 
-    template<typename _T1, typename _T2>
-    struct pair_element_for_index<1, _T1, _T2>
+    template<typename T1, typename T2>
+    struct pair_element_for_index<1, T1, T2>
     {
-        typedef _T2 type;
+        typedef T2 type;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // get<I>(pair&)
 //   function: yields lvalue reference to the I-th element.
-template<std::size_t _I,
-         typename    _T1,
-         typename    _T2>
-D_CONSTEXPR
-typename internal::pair_element_for_index<_I, _T1, _T2>::type&
+template<std::size_t I,
+         typename    T1,
+         typename    T2>
+RE_STD_CONSTEXPR
+typename internal::pair_element_for_index<I, T1, T2>::type&
 get(
-    pair<_T1, _T2>& _p
-) D_NOEXCEPT
+    pair<T1, T2>& _p
+) RE_STD_NOEXCEPT
 {
-    return internal::pair_get_helper<_I>::lref(_p);
+    return internal::pair_get_helper<I>::lref(_p);
 }
 
 // get<I>(const pair&)
-template<std::size_t _I,
-         typename    _T1,
-         typename    _T2>
-D_CONSTEXPR
-const typename internal::pair_element_for_index<_I, _T1, _T2>::type&
+template<std::size_t I,
+         typename    T1,
+         typename    T2>
+RE_STD_CONSTEXPR
+const typename internal::pair_element_for_index<I, T1, T2>::type&
 get(
-    const pair<_T1, _T2>& _p
-) D_NOEXCEPT
+    const pair<T1, T2>& _p
+) RE_STD_NOEXCEPT
 {
-    return internal::pair_get_helper<_I>::clref(_p);
+    return internal::pair_get_helper<I>::clref(_p);
 }
 
 // get<I>(pair&&)
-template<std::size_t _I,
-         typename    _T1,
-         typename    _T2>
-D_CONSTEXPR
-typename internal::pair_element_for_index<_I, _T1, _T2>::type&&
+template<std::size_t I,
+         typename    T1,
+         typename    T2>
+RE_STD_CONSTEXPR
+typename internal::pair_element_for_index<I, T1, T2>::type&&
 get(
-    pair<_T1, _T2>&& _p
-) D_NOEXCEPT
+    pair<T1, T2>&& _p
+) RE_STD_NOEXCEPT
 {
-    typedef typename internal::pair_element_for_index<_I, _T1, _T2>::type _E;
-    return static_cast<_E&&>(internal::pair_get_helper<_I>::lref(_p));
+    typedef typename internal::pair_element_for_index<I, T1, T2>::type _E;
+    return static_cast<_E&&>(internal::pair_get_helper<I>::lref(_p));
 }
 
 // get<I>(const pair&&)
-template<std::size_t _I,
-         typename    _T1,
-         typename    _T2>
-D_CONSTEXPR
-const typename internal::pair_element_for_index<_I, _T1, _T2>::type&&
+template<std::size_t I,
+         typename    T1,
+         typename    T2>
+RE_STD_CONSTEXPR
+const typename internal::pair_element_for_index<I, T1, T2>::type&&
 get(
-    const pair<_T1, _T2>&& _p
-) D_NOEXCEPT
+    const pair<T1, T2>&& _p
+) RE_STD_NOEXCEPT
 {
-    typedef typename internal::pair_element_for_index<_I, _T1, _T2>::type _E;
-    return static_cast<const _E&&>(internal::pair_get_helper<_I>::clref(_p));
+    typedef typename internal::pair_element_for_index<I, T1, T2>::type _E;
+    return static_cast<const _E&&>(internal::pair_get_helper<I>::clref(_p));
 }
 
 
 // =============================================================================
 // II.  GET BY TYPE  (C++14+)
 // =============================================================================
-// SFINAE-rejected when _T1 == _T2 (the requested type is not unique).
+// SFINAE-rejected when T1 == T2 (the requested type is not unique).
 // For each value category, two overloads dispatch on which member
-// matches _T.
+// matches T.
 
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+#if RE_STD_LANG_IS_CPP14_OR_HIGHER
 
 
-// get<T>(pair&) — _T matches _T1
-template<typename _T,
-         typename _T1,
-         typename _T2>
-D_CONSTEXPR
+// get<T>(pair&) — T matches T1
+template<typename T,
+         typename T1,
+         typename T2>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_same<_T, _T1>::value && !is_same<_T1, _T2>::value,
-    _T&
+    is_same<T, T1>::value && !is_same<T1, T2>::value,
+    T&
 >::type
 get(
-    pair<_T1, _T2>& _p
-) D_NOEXCEPT
+    pair<T1, T2>& _p
+) RE_STD_NOEXCEPT
 {
     return _p.first;
 }
 
-// get<T>(pair&) — _T matches _T2
-template<typename _T,
-         typename _T1,
-         typename _T2>
-D_CONSTEXPR
+// get<T>(pair&) — T matches T2
+template<typename T,
+         typename T1,
+         typename T2>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_same<_T, _T2>::value && !is_same<_T1, _T2>::value,
-    _T&
+    is_same<T, T2>::value && !is_same<T1, T2>::value,
+    T&
 >::type
 get(
-    pair<_T1, _T2>& _p
-) D_NOEXCEPT
+    pair<T1, T2>& _p
+) RE_STD_NOEXCEPT
 {
     return _p.second;
 }
 
-// get<T>(const pair&) — _T matches _T1
-template<typename _T,
-         typename _T1,
-         typename _T2>
-D_CONSTEXPR
+// get<T>(const pair&) — T matches T1
+template<typename T,
+         typename T1,
+         typename T2>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_same<_T, _T1>::value && !is_same<_T1, _T2>::value,
-    const _T&
+    is_same<T, T1>::value && !is_same<T1, T2>::value,
+    const T&
 >::type
 get(
-    const pair<_T1, _T2>& _p
-) D_NOEXCEPT
+    const pair<T1, T2>& _p
+) RE_STD_NOEXCEPT
 {
     return _p.first;
 }
 
-// get<T>(const pair&) — _T matches _T2
-template<typename _T,
-         typename _T1,
-         typename _T2>
-D_CONSTEXPR
+// get<T>(const pair&) — T matches T2
+template<typename T,
+         typename T1,
+         typename T2>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_same<_T, _T2>::value && !is_same<_T1, _T2>::value,
-    const _T&
+    is_same<T, T2>::value && !is_same<T1, T2>::value,
+    const T&
 >::type
 get(
-    const pair<_T1, _T2>& _p
-) D_NOEXCEPT
+    const pair<T1, T2>& _p
+) RE_STD_NOEXCEPT
 {
     return _p.second;
 }
 
-// get<T>(pair&&) — _T matches _T1
-template<typename _T,
-         typename _T1,
-         typename _T2>
-D_CONSTEXPR
+// get<T>(pair&&) — T matches T1
+template<typename T,
+         typename T1,
+         typename T2>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_same<_T, _T1>::value && !is_same<_T1, _T2>::value,
-    _T&&
+    is_same<T, T1>::value && !is_same<T1, T2>::value,
+    T&&
 >::type
 get(
-    pair<_T1, _T2>&& _p
-) D_NOEXCEPT
+    pair<T1, T2>&& _p
+) RE_STD_NOEXCEPT
 {
-    return static_cast<_T&&>(_p.first);
+    return static_cast<T&&>(_p.first);
 }
 
-// get<T>(pair&&) — _T matches _T2
-template<typename _T,
-         typename _T1,
-         typename _T2>
-D_CONSTEXPR
+// get<T>(pair&&) — T matches T2
+template<typename T,
+         typename T1,
+         typename T2>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_same<_T, _T2>::value && !is_same<_T1, _T2>::value,
-    _T&&
+    is_same<T, T2>::value && !is_same<T1, T2>::value,
+    T&&
 >::type
 get(
-    pair<_T1, _T2>&& _p
-) D_NOEXCEPT
+    pair<T1, T2>&& _p
+) RE_STD_NOEXCEPT
 {
-    return static_cast<_T&&>(_p.second);
+    return static_cast<T&&>(_p.second);
 }
 
-// get<T>(const pair&&) — _T matches _T1
-template<typename _T,
-         typename _T1,
-         typename _T2>
-D_CONSTEXPR
+// get<T>(const pair&&) — T matches T1
+template<typename T,
+         typename T1,
+         typename T2>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_same<_T, _T1>::value && !is_same<_T1, _T2>::value,
-    const _T&&
+    is_same<T, T1>::value && !is_same<T1, T2>::value,
+    const T&&
 >::type
 get(
-    const pair<_T1, _T2>&& _p
-) D_NOEXCEPT
+    const pair<T1, T2>&& _p
+) RE_STD_NOEXCEPT
 {
-    return static_cast<const _T&&>(_p.first);
+    return static_cast<const T&&>(_p.first);
 }
 
-// get<T>(const pair&&) — _T matches _T2
-template<typename _T,
-         typename _T1,
-         typename _T2>
-D_CONSTEXPR
+// get<T>(const pair&&) — T matches T2
+template<typename T,
+         typename T1,
+         typename T2>
+RE_STD_CONSTEXPR
 typename enable_if<
-    is_same<_T, _T2>::value && !is_same<_T1, _T2>::value,
-    const _T&&
+    is_same<T, T2>::value && !is_same<T1, T2>::value,
+    const T&&
 >::type
 get(
-    const pair<_T1, _T2>&& _p
-) D_NOEXCEPT
+    const pair<T1, T2>&& _p
+) RE_STD_NOEXCEPT
 {
-    return static_cast<const _T&&>(_p.second);
+    return static_cast<const T&&>(_p.second);
 }
 
 
-#endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP14_OR_HIGHER
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 
-#endif  // DJINTERP_RE_STD_UTILITY_PAIR_GET_
+#endif  // RE_STD_TUPLE_PAIR_GET_HPP

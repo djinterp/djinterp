@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [sync]                                                  condvar.hpp
+/*******************************************************************************
+* djinterp [core]                                                    condvar.hpp
 *
 * Portable condition variable, call-once, and concurrency query utilities
 * for the thread-safe module.
@@ -20,33 +20,50 @@
 *
 * path:      /inc/djinterp/core/sync/condvar.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_THREADSAFE_CONDVAR_
-#define DJINTERP_THREADSAFE_CONDVAR_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    THREAD YIELD
+      ------------
 
-//#ifndef DJINTERP_ENVIRONMENT_
-//    #error "condvar.hpp requires env.h to be included first"
-//#endif
-//
-//#ifndef __cplusplus
-//    #error "condvar.hpp can only be used in C++ compilation mode"
-//#endif
+II.   HARDWARE CONCURRENCY
+      --------------------
 
+III.  PORTABLE ONCE (C++11+)
+      ----------------------
 
-// djinterp
-#include "../djinterp.hpp"
-#include "./lock_policy.hpp"
+IV.   PORTABLE CONDVAR (C++11+)
+      -------------------------
+*/
 
+#ifndef DJINTERP_SYNC_CONDVAR_HPP
+#define DJINTERP_SYNC_CONDVAR_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+//
+// djinterp
+#include "../../djinterp.hpp"
+#include "./lock_policy.hpp"
+#include "./sync_common.hpp"
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
+    #include <chrono>
     #include <condition_variable>
     #include <mutex>
     #include <thread>
-    #include <chrono>
 #endif
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    // std
     #include <stop_token>
 #endif
 
@@ -55,10 +72,12 @@
     #ifndef WIN32_LEAN_AND_MEAN
         #define WIN32_LEAN_AND_MEAN
     #endif
+    // windows
     #include <windows.h>
 #elif defined(_POSIX_VERSION) ||                                              \
       defined(__unix__)       ||                                              \
       defined(__APPLE__)
+    // windows
     #include <unistd.h>
     #include <sched.h>
 #endif
@@ -66,13 +85,11 @@
 
 NS_DJINTERP
 
-// =========================================================================
-// I.   THREAD YIELD
-// =========================================================================
-// Portable yield hint.  Used by spinloops and backoff
+// I.    Thread yield
+// Portable yield hint. Used by spinloops and backoff
 // strategies when spinning is no longer productive.
 
-inline void 
+inline void
 d_thread_yield()
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -87,9 +104,7 @@ d_thread_yield()
 }
 
 
-// =========================================================================
-// II.  HARDWARE CONCURRENCY
-// =========================================================================
+// II.   Hardware concurrency
 // Returns the number of hardware threads available.
 // Returns 0 if the value cannot be determined (the
 // standard allows this).
@@ -101,9 +116,11 @@ inline unsigned hardware_concurrency()
 #elif D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
     SYSTEM_INFO si;
     GetSystemInfo(&si);
+
     return static_cast<unsigned>(si.dwNumberOfProcessors);
 #elif defined(_SC_NPROCESSORS_ONLN)
     long n = sysconf(_SC_NPROCESSORS_ONLN);
+
     return (n > 0) ? static_cast<unsigned>(n) : 0;
 #else
     return 0;
@@ -111,9 +128,7 @@ inline unsigned hardware_concurrency()
 }
 
 
-// =========================================================================
-// III. PORTABLE ONCE (C++11+)
-// =========================================================================
+// III.  Portable once (C++11+)
 // Wrapper around std::call_once / std::once_flag for
 // thread-safe one-shot initialization.
 
@@ -125,23 +140,29 @@ inline unsigned hardware_concurrency()
 class portable_once
 {
 public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(portable_once)
+
     portable_once() = default;
 
-    portable_once(const portable_once&)            = delete;
-    portable_once& operator=(const portable_once&) = delete;
 
     // call
     //   invokes _fn exactly once, regardless of how many
     // threads call this concurrently.
-    template<typename _Fn,
-             typename... _Args>
-    void call(_Fn&& _fn,
-              _Args&&... _args)
+    template<typename Fn,
+             typename... Args>
+    void call(Fn&& _fn,
+              Args&&... _args)
     {
         std::call_once(
             m_flag,
-            std::forward<_Fn>(_fn),
-            std::forward<_Args>(_args)...);
+            std::forward<Fn>(_fn),
+            std::forward<Args>(_args)...);
     }
 
 private:
@@ -151,12 +172,10 @@ private:
 #endif  // C++11
 
 
-// =========================================================================
-// IV.  PORTABLE CONDVAR (C++11+)
-// =========================================================================
-// Policy-aware condition variable.  When the policy uses
+// IV.   Portable condvar (C++11+)
+// Policy-aware condition variable. When the policy uses
 // std::mutex or compatible, this wraps
-// std::condition_variable.  For shared_mutex policies
+// std::condition_variable. For shared_mutex policies
 // or non-standard mutexes, it uses
 // std::condition_variable_any.
 //
@@ -173,7 +192,7 @@ NS_INTERNAL
 
     // primary: use condition_variable_any (safe for any
     // mutex)
-    template<typename _MutexType,
+    template<typename MutexType,
              typename = void>
     struct condvar_selector
     {
@@ -194,41 +213,41 @@ NS_INTERNAL
         void notify_one() noexcept {}
         void notify_all() noexcept {}
 
-        template<typename _Lock>
-        void wait(_Lock& /*unused*/) {}
+        template<typename Lock>
+        void wait(Lock& /*unused*/) {}
 
-        template<typename _Lock,
-                 typename _Predicate>
-        void wait(_Lock& /*unused*/,
-                  _Predicate   _predicate)
+        template<typename Lock,
+                 typename Predicate>
+        void wait(Lock& /*unused*/,
+                  Predicate   _predicate)
         {
             // single-threaded: if pred is false, it will
             // never become true (no other threads), so
-            // this is a programming error.  In debug
+            // this is a programming error. In debug
             // builds, assert.
             (void)_predicate;
         }
 
-        template<typename _Lock,
-                 typename _Rep,
-                 typename _Period>
+        template<typename Lock,
+                 typename Rep,
+                 typename Period>
         std::cv_status wait_for(
-            _Lock& /*unused*/,
-            const std::chrono::duration<_Rep, _Period>&
+            Lock& /*unused*/,
+            const std::chrono::duration<Rep, Period>&
                 /*unused*/)
         {
             return std::cv_status::no_timeout;
         }
 
-        template<typename _Lock,
-                 typename _Rep,
-                 typename _Period,
-                 typename _Predicate>
+        template<typename Lock,
+                 typename Rep,
+                 typename Period,
+                 typename Predicate>
         bool wait_for(
-            _Lock& /*unused*/,
-            const std::chrono::duration<_Rep, _Period>&
+            Lock& /*unused*/,
+            const std::chrono::duration<Rep, Period>&
                 /*unused*/,
-            _Predicate _predicate)
+            Predicate _predicate)
         {
             return _predicate();
         }
@@ -244,21 +263,27 @@ NS_END  // internal
 
 
 // portable_condvar
-//   class: policy-aware condition variable.  Selects the
+//   class: policy-aware condition variable. Selects the
 // most efficient condvar implementation for the policy's
 // mutex type.
-template<typename _Policy>
+template<typename Policy>
 class portable_condvar
 {
 public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(portable_condvar)
+
     using condvar_type =
         typename internal::condvar_selector<
-            typename _Policy::mutex_type>::type;
+            typename Policy::mutex_type>::type;
 
     portable_condvar() = default;
 
-    portable_condvar(const portable_condvar&)            = delete;
-    portable_condvar& operator=(const portable_condvar&) = delete;
 
     // --- notify ---
 
@@ -274,42 +299,42 @@ public:
 
     // --- wait (with lock) ---
 
-    template<typename _Lock>
-    void wait(_Lock& _lock)
+    template<typename Lock>
+    void wait(Lock& _lock)
     {
         m_cv.wait(_lock);
     }
 
-    template<typename _Lock,
-             typename _Predicate>
-    void wait(_Lock& _lock,
-              _Predicate  _predicate)
+    template<typename Lock,
+             typename Predicate>
+    void wait(Lock& _lock,
+              Predicate  _predicate)
     {
         m_cv.wait(_lock, _predicate);
     }
 
     // --- wait_for (timed) ---
 
-    template<typename _Lock,
-             typename _Rep,
-             typename _Period>
+    template<typename Lock,
+             typename Rep,
+             typename Period>
     std::cv_status wait_for(
-        _Lock& _lock,
-        const std::chrono::duration<_Rep, _Period>&
+        Lock& _lock,
+        const std::chrono::duration<Rep, Period>&
             _duration)
     {
         return m_cv.wait_for(_lock, _duration);
     }
 
-    template<typename _Lock,
-             typename _Rep,
-             typename _Period,
-             typename _Predicate>
+    template<typename Lock,
+             typename Rep,
+             typename Period,
+             typename Predicate>
     bool wait_for(
-        _Lock& _lock,
-        const std::chrono::duration<_Rep, _Period>&
+        Lock& _lock,
+        const std::chrono::duration<Rep, Period>&
             _duration,
-        _Predicate  _predicate)
+        Predicate  _predicate)
     {
         return m_cv.wait_for(
             _lock, _duration, _predicate);
@@ -317,12 +342,12 @@ public:
 
     // --- wait_until (timed) ---
 
-    template<typename _Lock,
-             typename _Clock,
-             typename _Duration>
+    template<typename Lock,
+             typename Clock,
+             typename Duration>
     std::cv_status wait_until(
-        _Lock& _lock,
-        const std::chrono::time_point<_Clock, _Duration>&
+        Lock& _lock,
+        const std::chrono::time_point<Clock, Duration>&
             _abs_time)
     {
         return m_cv.wait_until(_lock, _abs_time);
@@ -332,14 +357,15 @@ public:
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-    template<typename _Lock,
-             typename _Predicate>
+    template<typename Lock,
+             typename Predicate>
     bool wait(
-        _Lock&           _lock,
+        Lock&           _lock,
         std::stop_token  _stoken,
-        _Predicate            _predicate)
+        Predicate            _predicate)
     {
         m_cv.wait(_lock, _stoken, _predicate);
+
         return _predicate();
     }
 
@@ -366,5 +392,7 @@ private:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_THREADSAFE_CONDVAR_
+
+#endif  // DJINTERP_SYNC_CONDVAR_HPP

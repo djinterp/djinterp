@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                              pdf_canvas.hpp
+/*******************************************************************************
+* djinterp [core]                                                 pdf_canvas.hpp
 *
 * djinterp high-level PDF writer:
 *   A cursor-based document writer layered over the agnostic pdf_document
@@ -47,28 +47,43 @@
 * dependency in this header or its foundation.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    DOCUMENT STYLE
-* II.   TABLE OPTIONS
-* III.  PDF CANVAS
-*       a. construction / lifecycle
-*       b. cursor & page queries
-*       c. flow: paragraph / heading / line / list
-*       d. text box
-*       e. graphics: rule / vspace / page break
-*       f. table
-*       g. finish
-* IV.   CONVENIENCE FACTORIES
-*
-*
 * path:      /inc/djinterp/core/util/pdf/pdf_canvas.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_PDF_CANVAS_
-#define DJINTERP_UTIL_PDF_CANVAS_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    DOCUMENT STYLE
+      --------------
+
+II.   TABLE OPTIONS
+      -------------
+
+III.  PDF CANVAS
+      ----------
+      a. construction / lifecycle
+      b. cursor & page queries
+      c.    flow: paragraph / heading / line / list
+            d. text box
+            e. graphics: rule / vspace / page break
+            f. table
+            g. finish
+
+IV.   CONVENIENCE FACTORIES
+      ---------------------
+*/
+
+#ifndef DJINTERP_UTIL_PDF_PDF_CANVAS_HPP
+#define DJINTERP_UTIL_PDF_PDF_CANVAS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -77,7 +92,7 @@
 #include <string>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "./pdf.hpp"
 #include "./pdf_metrics.hpp"
 
@@ -1217,5 +1232,6 @@ make_canvas(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_PDF_CANVAS_
+#endif  // DJINTERP_UTIL_PDF_PDF_CANVAS_HPP

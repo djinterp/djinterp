@@ -1,9 +1,9 @@
-/***********************************************************************
-* re_std                                                     addressof.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                addressof.hpp
 *
 * obtain a true pointer to an object, bypassing operator& overloads:
-*   re_std::addressof(_x) returns the address of _x as a _Type*, ignoring
-* any user-defined operator& on _Type. Three implementation tiers, picked
+*   re_std::addressof(_x) returns the address of _x as a Type*, ignoring
+* any user-defined operator& on Type. Three implementation tiers, picked
 * by capability detection:
 *
 *   1. C++17+ with __builtin_addressof: constexpr, single-statement.
@@ -13,46 +13,48 @@
 *   3. C++98/03:                        same body as tier 2; lacks the
 *                                       deleted rvalue overload.
 *
-* The deleted rvalue overload (`addressof(const _Type&&) = delete`) is
+* The deleted rvalue overload (`addressof(const Type&&) = delete`) is
 * present only on C++11+. On C++98/03 there are no rvalue references to
 * delete, so the misuse is impossible to express in the first place.
 *
 *
-* path:      /inc/djinterp/re_std/memory/addressof.hpp
+* path:      /inc/re_std/memory/addressof.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.01
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.01
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_ADDRESSOF_
-#define DJINTERP_RE_STD_MEMORY_ADDRESSOF_ 1
+#ifndef RE_STD_MEMORY_ADDRESSOF_HPP
+#define RE_STD_MEMORY_ADDRESSOF_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // =============================================================================
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RE_STD_HAS_BUILTIN_ADDRESSOF
+// RE_STD_HAS_BUILTIN_ADDRESSOF
 //   constant: 1 if __builtin_addressof is available. Required for the
 //   constexpr path; the reinterpret_cast fallback is never constexpr
 //   because it crosses the implicitly-volatile boundary.
-#ifndef D_RE_STD_HAS_BUILTIN_ADDRESSOF
+#ifndef RE_STD_HAS_BUILTIN_ADDRESSOF
     #if defined(__has_builtin)
         #if __has_builtin(__builtin_addressof)
-            #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  1
+            #define RE_STD_HAS_BUILTIN_ADDRESSOF  1
         #else
-            #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  0
+            #define RE_STD_HAS_BUILTIN_ADDRESSOF  0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC) &&                                    \
-            D_ENV_COMPILER_VERSION_AT_LEAST(7, 0, 0) )
-        #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  1
-    #elif ( defined(D_ENV_COMPILER_MSVC) &&                                   \
-            D_ENV_COMPILER_VERSION_AT_LEAST(19, 0, 0) )
+    #elif ( defined(RE_STD_COMPILER_GCC) &&                                    \
+            RE_STD_COMPILER_VERSION_AT_LEAST(7, 0, 0) )
+        #define RE_STD_HAS_BUILTIN_ADDRESSOF  1
+    #elif ( defined(RE_STD_COMPILER_MSVC) &&                                   \
+            RE_STD_COMPILER_VERSION_AT_LEAST(19, 0, 0) )
         // MSVC 2015+ (_MSC_VER 1900+) supplies it under the same name.
-        #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  1
+        #define RE_STD_HAS_BUILTIN_ADDRESSOF  1
     #else
-        #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  0
+        #define RE_STD_HAS_BUILTIN_ADDRESSOF  0
     #endif
 #endif
 
@@ -64,27 +66,27 @@ namespace re_std
 // addressof
 // =============================================================================
 
-#if D_RE_STD_HAS_BUILTIN_ADDRESSOF
+#if RE_STD_HAS_BUILTIN_ADDRESSOF
 
     // addressof
     //   function: returns the actual address of _v, ignoring any
-    //             operator& overload on _Type. constexpr.
-    template<typename _Type>
-    D_CONSTEXPR _Type* addressof(_Type& _v) D_NOEXCEPT
+    //             operator& overload on Type. constexpr.
+    template<typename Type>
+    RE_STD_CONSTEXPR Type* addressof(Type& _v) RE_STD_NOEXCEPT
     {
         return __builtin_addressof(_v);
     }
 
-#else  // !D_RE_STD_HAS_BUILTIN_ADDRESSOF
+#else  // !RE_STD_HAS_BUILTIN_ADDRESSOF
 
     // addressof
     //   function: portable fallback. Casts through char& to defeat any
-    //             user operator&, then back to _Type*. Not constexpr
+    //             user operator&, then back to Type*. Not constexpr
     //             (the reinterpret_cast forbids it).
-    template<typename _Type>
-    _Type* addressof(_Type& _v) D_NOEXCEPT
+    template<typename Type>
+    Type* addressof(Type& _v) RE_STD_NOEXCEPT
     {
-        return reinterpret_cast<_Type*>
+        return reinterpret_cast<Type*>
         (
             &const_cast<char&>
             (
@@ -93,23 +95,22 @@ namespace re_std
         );
     }
 
-#endif  // D_RE_STD_HAS_BUILTIN_ADDRESSOF
+#endif  // RE_STD_HAS_BUILTIN_ADDRESSOF
 
 
 // =============================================================================
 // addressof  -  rvalue overload deletion
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
-    // addressof(const _Type&&)
+    // addressof(const Type&&)
     //   function: deleted. Catches addressof(temporary) at compile time.
-    template<typename _Type>
-    const _Type* addressof(const _Type&&) = delete;
+    template<typename Type>
+    const Type* addressof(const Type&&) = delete;
 
 #endif
 
 
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_MEMORY_ADDRESSOF_
+}  // re_std
+#endif  // RE_STD_MEMORY_ADDRESSOF_HPP

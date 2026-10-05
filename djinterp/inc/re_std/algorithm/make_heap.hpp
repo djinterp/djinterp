@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                make_heap.hpp
 *
 * make_heap algorithm header:
@@ -14,16 +14,17 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/make_heap.hpp
+* path:      /inc/re_std/algorithm/make_heap.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_MAKE_HEAP_
-#define DJINTERP_RE_STD_ALGORITHM_MAKE_HEAP_ 1
+#ifndef RE_STD_ALGORITHM_MAKE_HEAP_HPP
+#define RE_STD_ALGORITHM_MAKE_HEAP_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -34,16 +35,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -51,24 +45,24 @@ NS_RESTD
 // ===========================================================================
 
 // _make_heap_sift_down_
-//   sifts the element at index _start downward through the prefix
+//   function: sifts the element at index _start downward through the prefix
 // [_first, _first + _length) until the heap property holds at and
 // below _start.
-template<typename _RandomIt,
-         typename _Distance,
-         typename _Compare>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt,
+         typename Distance,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 void
 _make_heap_sift_down_(
-    _RandomIt _first,
-    _Distance _start,
-    _Distance _length,
-    _Compare  _comp
+    RandomIt _first,
+    Distance _start,
+    Distance _length,
+    Compare  _comp
 )
 {
-    _Distance _parent = _start;
+    Distance _parent = _start;
     while (true)
     {
-        _Distance _child = static_cast<_Distance>(2 * _parent + 1);
+        Distance _child = static_cast<Distance>(2 * _parent + 1);
         if (_child >= _length)
         {
             break;
@@ -96,16 +90,16 @@ _make_heap_sift_down_(
 //   function: rearranges [_first, _last) into a max-heap per _comp.
 // Builds bottom-up by sifting every non-leaf node down in reverse
 // index order — O(N) total work.
-template<typename _RandomIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 void
 make_heap(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _length = _last - _first;
     if (_length < 2)
@@ -116,7 +110,7 @@ make_heap(
     // last non-leaf is at index (length / 2) - 1
     for (_Diff _i = _length / 2 - 1; _i >= 0; --_i)
     {
-        _make_heap_sift_down_<_RandomIt, _Diff, _Compare>(
+        _make_heap_sift_down_<RandomIt, _Diff, Compare>(
             _first, _i, _length, _comp);
     }
 }
@@ -124,19 +118,19 @@ make_heap(
 
 // make_heap (default operator<)
 //   function: as above with re_std::less<value_type>().
-template<typename _RandomIt>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt>
+RE_STD_CONSTEXPR_CPP14 void
 make_heap(
-    _RandomIt _first,
-    _RandomIt _last
+    RandomIt _first,
+    RandomIt _last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
     make_heap(_first, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_MAKE_HEAP_
+#endif  // RE_STD_ALGORITHM_MAKE_HEAP_HPP

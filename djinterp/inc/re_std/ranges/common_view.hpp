@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [ranges]                                                common_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              common_view.hpp
 *
+* common_view view header:
 *   common_view - presents a range whose sentinel type differs from its
 * iterator type as one where they match.
 *
@@ -22,47 +23,54 @@
 *
 *   INTERFACE ASSUMPTIONS: see ADAPTOR_ASSUMPTIONS.txt in this directory.
 *
-* path:      /inc/djinterp/re_std/ranges/common_view.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/ranges/common_view.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_COMMON_VIEW_
-#define DJINTERP_RE_STD_RANGES_COMMON_VIEW_ 1
+#ifndef RE_STD_RANGES_COMMON_VIEW_HPP
+#define RE_STD_RANGES_COMMON_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/common_iterator.hpp"
-#include "./range_traits.hpp"
-#include "./range_access.hpp"
 #include "./view_interface.hpp"
+#include "./ranges_access.hpp"
+#include "./iterator_t.hpp"
+#include "./sentinel_t.hpp"
 
-NS_RESTD
-D_NAMESPACE(ranges)
+namespace re_std
+{
+namespace ranges
+{
 
 // common_view
 //   class: a view whose begin() and end() have the same type.
-template<typename _View>
-class common_view : public view_interface<common_view<_View> >
+template<typename View>
+class common_view : public view_interface<common_view<View> >
 {
-    _View m_base;
+    View m_base;
 
 public:
-    typedef common_iterator<iterator_t<_View>, sentinel_t<_View> > iterator;
+    typedef common_iterator<iterator_t<View>, sentinel_t<View> > iterator;
 
     common_view() : m_base() {}
-    explicit common_view(_View base) : m_base(static_cast<_View&&>(base)) {}
+    explicit common_view(View base) : m_base(static_cast<View&&>(base)) {}
 
     //   Both ends are the SAME type - that is the entire point.
     iterator begin() { return iterator(ranges::begin(m_base)); }
     iterator end()   { return iterator(ranges::end(m_base)); }
 };
 
-NS_END  // ranges
-NS_END
+}  // ranges
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_RANGES_COMMON_VIEW_
+#endif  // RE_STD_RANGES_COMMON_VIEW_HPP

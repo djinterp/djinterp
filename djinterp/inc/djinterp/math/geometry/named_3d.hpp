@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                  named_3d.hpp
+/*******************************************************************************
+* djinterp [math]                                                   named_3d.hpp
 *
 * Named 3D solids with closed-form measurements.
 *   Each type here is a shorthand for a specific 3D configuration whose
@@ -33,21 +33,25 @@
 *   Cartesian +z direction. For other orientations, rotate the user's
 *   coordinate system or construct the solid via shape_from_surfaces.
 *
+*
 * path:      /inc/djinterp/math/geometry/named_3d.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_NAMED_3D_
-#define DJINTERP_MATH_GEOMETRY_NAMED_3D_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_NAMED_3D_HPP
+#define DJINTERP_MATH_GEOMETRY_NAMED_3D_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <type_traits>
+// djinterp
 #include "../../djinterp.hpp"
-#include "../coordinate.hpp"
+#include "../coordinate/coordinate.hpp"
 #include "./geometry_common.hpp"
 
 
@@ -1858,4 +1862,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_NAMED_3D_
+#endif  // DJINTERP_MATH_GEOMETRY_NAMED_3D_HPP

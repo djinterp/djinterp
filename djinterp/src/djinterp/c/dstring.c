@@ -9,7 +9,7 @@
 * path:      /src/djinterp/c/dstring.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.09.22
+*                                                            revised: 2026.09.29
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dstring.h"  // corresponding header
 // std
@@ -22,9 +22,9 @@
 #include <stdlib.h>                             // malloc, realloc, free
 #include <string.h>                             // strlen, strstr, memmove, ...
 // djinterp
-#include "../../../inc/djinterp/c/djinterp.h"   // framework root
-#include "../../../inc/djinterp/c/dmemory.h"    // d_memcpy, d_memset
-#include "../../../inc/djinterp/c/string_fn.h"  // d_str* primitives
+#include "../../../inc/djinterp/c/djinterp.h"        // framework root
+#include "../../../inc/djinterp/c/memory/dmemory.h"  // d_memcpy, d_memset
+#include "../../../inc/djinterp/c/string_fn.h"       // d_str* primitives
 
 
 // internal helpers

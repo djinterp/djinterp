@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   remove.hpp
 *
 * remove algorithm header:
@@ -11,25 +11,26 @@
 *   - std::remove is C++98. C++11 strengthened the kept-element transfer
 *     from copy assignment to move assignment. re_std honours the same
 *     evolution: copy on C++98/03, move on C++11+ (gated on
-*     D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES).
+*     RE_STD_LANG_HAS_RVALUE_REFERENCES).
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Implementation forwards through find for the skip-prefix scan, so
 *     this header includes find.hpp.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/remove.hpp
+* path:      /inc/re_std/algorithm/remove.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_REMOVE_
-#define DJINTERP_RE_STD_ALGORITHM_REMOVE_ 1
+#ifndef RE_STD_ALGORITHM_REMOVE_HPP
+#define RE_STD_ALGORITHM_REMOVE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./find.hpp"
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
     #include "../utility/move.hpp"
 #endif
 
@@ -38,16 +39,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -60,13 +54,13 @@ NS_RESTD
 // order. The unspecified tail [returned, _last) must be erased by the
 // caller if a true size reduction is desired (the "erase-remove"
 // idiom).
-template<typename _ForwardIt,
-         typename _Type>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt,
+         typename Type>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 remove(
-    _ForwardIt   _first,
-    _ForwardIt   _last,
-    const _Type& _value
+    ForwardIt   _first,
+    ForwardIt   _last,
+    const Type& _value
 )
 {
     // skip the matchless prefix
@@ -78,14 +72,14 @@ remove(
 
     // _first now points at the first removable element; pull subsequent
     // non-matching elements forward over it
-    _ForwardIt _it = _first;
+    ForwardIt _it = _first;
     ++_it;
 
     for (; _it != _last; ++_it)
     {
         if (!(*_it == _value))
         {
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
             *_first = re_std::move(*_it);
 #else
             *_first = *_it;
@@ -98,7 +92,7 @@ remove(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_REMOVE_
+#endif  // RE_STD_ALGORITHM_REMOVE_HPP

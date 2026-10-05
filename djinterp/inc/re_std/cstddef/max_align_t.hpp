@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             max_align_t.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              max_align_t.hpp
 *
 * max_align_t typedef:
 *   A POD type whose alignment requirement is at least as strict as every
@@ -26,40 +26,43 @@
 *   C++11 FLOOR: the type does not exist in C++98.
 *
 *
-* path:      /inc/djinterp/re_std/cstddef/max_align_t.hpp
+* path:      /inc/re_std/cstddef/max_align_t.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDDEF_MAX_ALIGN_T_
-#define DJINTERP_RE_STD_CSTDDEF_MAX_ALIGN_T_ 1
+#ifndef RE_STD_CSTDDEF_MAX_ALIGN_T_HPP
+#define RE_STD_CSTDDEF_MAX_ALIGN_T_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 //   permitted: fundamental types only.
+// std
 #include <cstddef>
 
 
-// D_RE_STD_HAS_STD_MAX_ALIGN_T
+// RE_STD_HAS_STD_MAX_ALIGN_T
 //   constant: 1 if std::max_align_t is declared by <cstddef>.
-#ifndef D_RE_STD_HAS_STD_MAX_ALIGN_T
-    #if ( defined(D_ENV_COMPILER_GCC) &&                                      \
-          !D_ENV_COMPILER_VERSION_AT_LEAST(4, 9, 0) )
-        #define D_RE_STD_HAS_STD_MAX_ALIGN_T  0
+#ifndef RE_STD_HAS_STD_MAX_ALIGN_T
+    #if ( defined(RE_STD_COMPILER_GCC) &&                                      \
+          !RE_STD_COMPILER_VERSION_AT_LEAST(4, 9, 0) )
+        #define RE_STD_HAS_STD_MAX_ALIGN_T  0
     #else
-        #define D_RE_STD_HAS_STD_MAX_ALIGN_T  1
+        #define RE_STD_HAS_STD_MAX_ALIGN_T  1
     #endif
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
-#if D_RE_STD_HAS_STD_MAX_ALIGN_T
+#if RE_STD_HAS_STD_MAX_ALIGN_T
 
     // max_align_t
     //   typedef: identity-preserving re-export of std::max_align_t.
@@ -67,7 +70,8 @@ NS_RESTD
 
 #else
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // max_align_union
         //   union: stand-in for a missing std::max_align_t. Every member is
@@ -82,7 +86,7 @@ NS_RESTD
             void (*m_pf)();
         };
 
-    NS_END  // internal
+    }  // internal
 
     // max_align_t
     //   typedef: degraded stand-in used where <cstddef> declares no
@@ -90,12 +94,12 @@ NS_RESTD
     // implementation's own type and identity is not preserved.
     typedef internal::max_align_union max_align_t;
 
-#endif  // D_RE_STD_HAS_STD_MAX_ALIGN_T
+#endif  // RE_STD_HAS_STD_MAX_ALIGN_T
 
-NS_END  // re_std
-
-
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_CSTDDEF_MAX_ALIGN_T_
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+#endif  // RE_STD_CSTDDEF_MAX_ALIGN_T_HPP

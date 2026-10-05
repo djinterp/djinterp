@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                               expression.hpp
+/*******************************************************************************
+* djinterp [math]                                                 expression.hpp
 *
 * Unified compile-time / runtime mathematical expression core.
 *   Expression nodes hold their operands and literals BY VALUE and every
@@ -27,20 +27,22 @@
 *   - Transcendentals evaluate via a constexpr math kernel at compile time and
 *     via <cmath> at runtime (std::is_constant_evaluated dispatch).
 *
+*
 * path:      /inc/djinterp/math/expression.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                                created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_EXPRESSION_
-#define DJINTERP_MATH_EXPRESSION_ 1
+#ifndef DJINTERP_MATH_EXPRESSION_HPP
+#define DJINTERP_MATH_EXPRESSION_HPP 1
 
 // std
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <tuple>
-#include <utility>
 #include <type_traits>
+#include <utility>
 // djinterp
 #include "../djinterp.hpp"
 
@@ -670,4 +672,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_EXPRESSION_
+#endif  // DJINTERP_MATH_EXPRESSION_HPP

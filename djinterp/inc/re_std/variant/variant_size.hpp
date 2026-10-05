@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               variant_size.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             variant_size.hpp
 *
 * variant_size trait header:
 *   variant_size<V> yields the number of alternatives in V as a
@@ -10,27 +10,31 @@
 *   Cv-qualified specialisations forward to the unqualified primary.
 *
 *
-* path:      /inc/djinterp/re_std/variant/variant_size.hpp
+* path:      /inc/re_std/variant/variant_size.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_SIZE_
-#define DJINTERP_RE_STD_VARIANT_SIZE_ 1
+#ifndef RE_STD_VARIANT_VARIANT_SIZE_HPP
+#define RE_STD_VARIANT_VARIANT_SIZE_HPP 1
 
+// std
 #include <cstddef>
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "../type_traits/integral_constant.hpp"
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // Forward-declare variant so variant_size can specialise on it
 // without including the (much larger) variant.hpp.
-template<typename... _Types> class variant;
+template<typename... Types> class variant;
 
 
 // ===========================================================================
@@ -41,7 +45,7 @@ template<typename... _Types> class variant;
 // supported cases (variant and its cv-qualified forms). Missing
 // specialisations produce a compile error at instantiation —
 // matches std.
-template<typename _V>
+template<typename V>
 struct variant_size;
 
 
@@ -49,9 +53,9 @@ struct variant_size;
 // II.  SPECIALISATION FOR VARIANT
 // ===========================================================================
 
-template<typename... _Types>
-struct variant_size<variant<_Types...> >
-    : re_std::integral_constant<std::size_t, sizeof...(_Types)>
+template<typename... Types>
+struct variant_size<variant<Types...> >
+    : re_std::integral_constant<std::size_t, sizeof...(Types)>
 {};
 
 
@@ -59,19 +63,19 @@ struct variant_size<variant<_Types...> >
 // III. CV-QUALIFIED PASSTHROUGH (LWG-style)
 // ===========================================================================
 
-template<typename _V>
-struct variant_size<_V const>
-    : re_std::integral_constant<std::size_t, variant_size<_V>::value>
+template<typename V>
+struct variant_size<V const>
+    : re_std::integral_constant<std::size_t, variant_size<V>::value>
 {};
 
-template<typename _V>
-struct variant_size<_V volatile>
-    : re_std::integral_constant<std::size_t, variant_size<_V>::value>
+template<typename V>
+struct variant_size<V volatile>
+    : re_std::integral_constant<std::size_t, variant_size<V>::value>
 {};
 
-template<typename _V>
-struct variant_size<_V const volatile>
-    : re_std::integral_constant<std::size_t, variant_size<_V>::value>
+template<typename V>
+struct variant_size<V const volatile>
+    : re_std::integral_constant<std::size_t, variant_size<V>::value>
 {};
 
 
@@ -79,18 +83,18 @@ struct variant_size<_V const volatile>
 // IV.  VARIANT_SIZE_V (C++14+)
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _V>
-D_CONSTEXPR std::size_t variant_size_v = variant_size<_V>::value;
+template<typename V>
+RE_STD_CONSTEXPR std::size_t variant_size_v = variant_size<V>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_VARIANT_SIZE_
+#endif  // RE_STD_VARIANT_VARIANT_SIZE_HPP

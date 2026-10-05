@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                         concurrency_strategy_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                concurrency_strategy_traits.hpp
 *
 * Concurrency-strategy classification traits.
 *   Orthogonal companion to threadsafe_container_traits.hpp.  Where the
@@ -56,38 +56,60 @@
 *   threadsafe.hpp                   - strategy primitives (cow_state,
 *                                      rcu_protected, hazard_domain)
 *
+*            concurrency_strategy_traits.hpp
 *
-* path:      /inc/djinterp/core/container/sync/concurrency_strategy_traits.hpp
+*
+* path:      /inc/djinterp/core/container/traits/concurrency_strategy_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.26
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.26
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.      strategy enum and tag types
-II.     tag-alias detection
-III.    structural detection helpers
-IV.     per-strategy predicates
-IV.b    vacuous concurrency and the sequential complement
-V.      strategy deduction
-VI.     monograph concurrency signature (progress / arity / iteration / reclamation)
-VII.    combined classification
+I.    strategy enum and tag types
+      ---------------------------
+
+II.   tag-alias detection
+      -------------------
+
+III.  structural detection helpers
+      ----------------------------
+
+IV.   per-strategy predicates
+      -----------------------
+
+      IV.b    vacuous concurrency and the sequential complement
+
+V.    strategy deduction
+      ------------------
+
+VI.   monograph concurrency signature (progress / arity / iteration / reclamation)
+      ----------------------------------------------------------------------------
+
+VII.  combined classification
+      -----------------------
 */
 
-#ifndef DJINTERP_CONTAINER_CONCURRENCY_STRATEGY_TRAITS_
-#define DJINTERP_CONTAINER_CONCURRENCY_STRATEGY_TRAITS_ 1
+#ifndef DJINTERP_CONTAINER_TRAITS_CONCURRENCY_STRATEGY_TRAITS_HPP
+#define DJINTERP_CONTAINER_TRAITS_CONCURRENCY_STRATEGY_TRAITS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../../sync/concurrency_strategy_tags.hpp"
-#include "../traits/container_traits.hpp"
-#include "../traits/threadsafe_container_traits.hpp"
+#include "container_traits.hpp"
+#include "threadsafe_container_traits.hpp"
 
 
 NS_DJINTERP
@@ -99,9 +121,9 @@ NS_DJINTERP
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // concurrency_strategy
-//   enum: classifies the synchronization strategy.
-// Orthogonal to thread_safety_level - the two axes
-// combine to fully describe a container's concurrency.
+//   enum: classifies the synchronization strategy. Orthogonal to
+// thread_safety_level - the two axes combine to fully describe a container's
+// concurrency.
 enum class concurrency_strategy
 {
     none    = 0,
@@ -112,6 +134,28 @@ enum class concurrency_strategy
     hazard  = 5,
     hybrid  = 6
 };
+
+// concurrency_strategy_name
+//   function: a stable spelling, for diagnostics and agent-facing summaries.
+// ADDED. Every other axis enum in the framework carries one -- capacity_bound,
+// storage_duration, memory_discipline, ordering_kind, sortedness,
+// multiplicity_kind, structure_kind, iteration_mode, mutability, merge_kind,
+// filter_stage, conversion_tier. Concurrency was the only axis a summary could
+// not print, so an audit of every axis had to fall back to an integer for this
+// one.
+constexpr const char*
+concurrency_strategy_name(concurrency_strategy _s) noexcept
+{
+    return ( _s == concurrency_strategy::none       ? "none"
+           : _s == concurrency_strategy::locked     ? "locked"
+           : _s == concurrency_strategy::cow        ? "cow"
+           : _s == concurrency_strategy::rcu        ? "rcu"
+           : _s == concurrency_strategy::atomic     ? "atomic"
+           : _s == concurrency_strategy::hazard     ? "hazard"
+           :                                          "hybrid" );
+}
+
+
 
 #else
 
@@ -131,8 +175,8 @@ struct concurrency_strategy
 
 // C++98: expose the enumerators through the ordinary-namespace name too, so
 // `concurrency_strategy::locked` (tag lookup) and a `concurrency_strategy`
-// typed variable both spell the same thing.  (The C++11 branch needs no such
-// alias: the scoped enum already IS the type of that name.)
+// typed variable both spell the same thing. (The C++11 branch needs no such
+//   alias: the scoped enum already IS the type of that name.)
 typedef concurrency_strategy::value_type concurrency_strategy_value;
 
 #endif  // C++11
@@ -142,11 +186,10 @@ typedef concurrency_strategy::value_type concurrency_strategy_value;
 // `concurrency_strategy_tag` to declare their strategy.
 //
 //   The seven tag struct definitions live in
-// /sync/concurrency_strategy_tags.hpp so that the foundation
-// primitives in /sync (atomic, cow, rcu, hazard_pointer)
-// and the container base in /container can self-tag
-// without taking a transitive dependency on this trait
-// header.  They are visible here unchanged through the
+// /sync/concurrency_strategy_tags.hpp so that the foundation primitives in
+// /sync (atomic, cow, rcu, hazard_pointer) and the container base in
+// /container can self-tag without taking a transitive dependency on this trait
+// header. They are visible here unchanged through the
 // concurrency_strategy_tags.hpp include above.
 
 
@@ -155,23 +198,26 @@ typedef concurrency_strategy::value_type concurrency_strategy_value;
 // =============================================================================
 
 // has_concurrency_strategy_tag
-//   type trait: true if the container exposes a
-// concurrency_strategy_tag alias.
+//   type trait: true if the container exposes a concurrency_strategy_tag
+// alias.
 D_TYPE_TRAIT_DETECTED(has_concurrency_strategy_tag,
-                  typename _Type::concurrency_strategy_tag)
+                  typename Type::concurrency_strategy_tag)
 
 
 NS_INTERNAL
 
     // tag_to_strategy
     //   helper: maps a tag type to its concurrency_strategy value.
-    template<typename _Tag>
+    template<typename Tag>
     struct tag_to_strategy
     {
         static constexpr concurrency_strategy value =
             concurrency_strategy::none;
     };
 
+    // tag_to_strategy<locked_strategy_tag>
+    //   trait: the `locked_strategy_tag` case; it reports
+    // `concurrency_strategy::locked`.
     template<>
     struct tag_to_strategy<locked_strategy_tag>
     {
@@ -179,6 +225,9 @@ NS_INTERNAL
             concurrency_strategy::locked;
     };
 
+    // tag_to_strategy<cow_strategy_tag>
+    //   trait: the `cow_strategy_tag` case; it reports
+    // `concurrency_strategy::cow`.
     template<>
     struct tag_to_strategy<cow_strategy_tag>
     {
@@ -186,6 +235,9 @@ NS_INTERNAL
             concurrency_strategy::cow;
     };
 
+    // tag_to_strategy<rcu_strategy_tag>
+    //   trait: the `rcu_strategy_tag` case; it reports
+    // `concurrency_strategy::rcu`.
     template<>
     struct tag_to_strategy<rcu_strategy_tag>
     {
@@ -193,6 +245,9 @@ NS_INTERNAL
             concurrency_strategy::rcu;
     };
 
+    // tag_to_strategy<atomic_strategy_tag>
+    //   trait: the `atomic_strategy_tag` case; it reports
+    // `concurrency_strategy::atomic`.
     template<>
     struct tag_to_strategy<atomic_strategy_tag>
     {
@@ -215,33 +270,36 @@ NS_INTERNAL
     };
 
     // safe_strategy_tag
-    //   helper: yields _Type::concurrency_strategy_tag if
-    // the alias exists, otherwise none_strategy_tag.  The
-    // SFINAE indirection is required because `&&` short-
+    //   helper: yields Type::concurrency_strategy_tag if the alias exists,
+    // otherwise none_strategy_tag. The SFINAE indirection is required because
+    // `&&` short-
     // circuits value evaluation but NOT type instantiation
-    // - a bare `typename _Type::concurrency_strategy_tag`
-    // hard-fails for types that lack the alias, regardless
-    // of any preceding has_*_v<> guard in the same
-    // expression.  Using this helper makes the tag lookup
-    // always well-formed; types without the alias yield
-    // none_strategy_tag, which never matches any real
-    // strategy tag in the per-predicate is_same<> checks.
-    template<typename _Type,
-             bool = has_concurrency_strategy_tag_v<_Type>>
+    // - a bare `typename Type::concurrency_strategy_tag` hard-fails for types
+    // that lack the alias, regardless of any preceding has_*_v<> guard in the
+    // same expression. Using this helper makes the tag lookup always
+    // well-formed; types without the alias
+    // yield
+    // none_strategy_tag, which never matches any real strategy tag in the
+    // per-predicate is_same<> checks.
+    template<typename Type,
+             bool = has_concurrency_strategy_tag_v<Type>>
     struct safe_strategy_tag
     {
         using type = none_strategy_tag;
     };
 
-    template<typename _Type>
-    struct safe_strategy_tag<_Type, true>
+    // safe_strategy_tag<Type, true>
+    //   helper: the case where `has_concurrency_strategy_tag_v<Type` is true;
+    // it maps to `typename Type::concurrency_strategy_tag`.
+    template<typename Type>
+    struct safe_strategy_tag<Type, true>
     {
-        using type = typename _Type::concurrency_strategy_tag;
+        using type = typename Type::concurrency_strategy_tag;
     };
 
-    template<typename _Type>
+    template<typename Type>
     using safe_strategy_tag_t =
-        typename safe_strategy_tag<_Type>::type;
+        typename safe_strategy_tag<Type>::type;
 
 NS_END  // internal
 
@@ -255,49 +313,49 @@ NS_END  // internal
 
 // --- locked: container has a lock policy + read_lock() ---
 D_TYPE_TRAIT_DETECTED(has_read_lock_method,
-                  decltype(std::declval<const _Type&>().read_lock()))
+                  decltype(std::declval<const Type&>().read_lock()))
 
 D_TYPE_TRAIT_DETECTED(has_write_lock_method,
-                  decltype(std::declval<_Type&>().write_lock()))
+                  decltype(std::declval<Type&>().write_lock()))
 
 
 // --- cow: container has a snapshot() returning a copy-handle ---
 D_TYPE_TRAIT_DETECTED(has_snapshot_method,
-                  decltype(std::declval<const _Type&>().snapshot()))
+                  decltype(std::declval<const Type&>().snapshot()))
 
 D_TYPE_TRAIT_DETECTED(has_cow_state_type,
-                  typename _Type::cow_state_type)
+                  typename Type::cow_state_type)
 
 
 // --- rcu: container has rcu_read() / rcu_protected member ---
 D_TYPE_TRAIT_DETECTED(has_rcu_protected_type,
-                  typename _Type::rcu_protected_type)
+                  typename Type::rcu_protected_type)
 
 D_TYPE_TRAIT_DETECTED(has_epoch_type,
-                  typename _Type::epoch_counter_type)
+                  typename Type::epoch_counter_type)
 
 
 // --- atomic: value_type is std::atomic<U>, or has load(i, order) ---
 NS_INTERNAL
 
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct value_is_atomic_check : std::false_type
     {};
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    // NOTE: uses djinterp's portable `void_t` (from meta/type_traits.hpp),
-    // NOT std::void_t - the latter is C++17 and would break this C++11-guarded
+    //   NOTE: uses djinterp's portable `void_t` (from meta/type_traits.hpp), NOT
+    //   std::void_t - the latter is C++17 and would break this C++11-guarded
     // branch on C++11/14 toolchains.
-    template<typename _Type>
-    struct value_is_atomic_check<_Type,
-        void_t<typename _Type::value_type>>
+    template<typename Type>
+    struct value_is_atomic_check<Type,
+        void_t<typename Type::value_type>>
     {
-        // strip cvref, then probe for the std::atomic<U>
-        // interface: a load(memory_order) member that
-        // returns something convertible from the atomic.
-        template<typename _U>
+        // strip cvref, then probe for the std::atomic<U> interface: a
+        // load(memory_order) member that returns something convertible from
+        // the atomic.
+        template<typename U>
         static auto test(int)
-            -> decltype(std::declval<_U&>().load(
+            -> decltype(std::declval<U&>().load(
                             std::memory_order_seq_cst),
                         std::true_type{});
 
@@ -305,7 +363,7 @@ NS_INTERNAL
         static std::false_type test(...);
 
         static constexpr bool value =
-            decltype(test<typename _Type::value_type>(0))::value;
+            decltype(test<typename Type::value_type>(0))::value;
     };
 #endif
 
@@ -313,14 +371,14 @@ NS_END  // internal
 
 
 D_TYPE_TRAIT_DETECTED(has_atomic_load_at,
-    decltype(std::declval<const _Type&>().load(
+    decltype(std::declval<const Type&>().load(
         std::declval<std::size_t>())))
 
 
 // --- hazard: container has a hazard_domain member type ---
 
 D_TYPE_TRAIT_DETECTED(has_hazard_domain_type,
-    typename _Type::hazard_domain_type)
+    typename Type::hazard_domain_type)
 
 
 // =============================================================================
@@ -328,23 +386,21 @@ D_TYPE_TRAIT_DETECTED(has_hazard_domain_type,
 // =============================================================================
 
 // is_locked_container
-//   type trait: true if the container uses mutex/rwlock
-// synchronization under a lock policy.
+//   type trait: true if the container uses mutex/rwlock synchronization under
+// a lock policy.
 //
-//   Detection precedence: when the type declares a
-// `concurrency_strategy_tag` alias the tag is authoritative
-// and structural detection is ignored; otherwise the
-// structural fallback (lock policy + read_lock/write_lock
-// methods) is consulted.  This mirrors the same rule used
-// by `concurrency_strategy_helper` below and prevents
-// incidental structural matches (e.g. a locked container
-// that also exposes `snapshot()`) from being misclassified
-// as a different strategy.
-template<typename _Type>
+//   Detection precedence: when the type declares a `concurrency_strategy_tag`
+// alias the tag is authoritative and structural detection is ignored;
+// otherwise the structural fallback (lock policy + read_lock/write_lock
+// methods) is consulted. This mirrors the same rule used by
+// `concurrency_strategy_helper` below and prevents incidental structural
+// matches (e.g. a locked container that also exposes `snapshot()`) from being
+// misclassified as a different strategy.
+template<typename Type>
 struct is_locked_container
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     static constexpr bool tag_present =
@@ -366,40 +422,39 @@ private:
             has_write_lock_method_v<clean_type> ) );
 
 public:
-    // tag wins when present; structural detection only
-    // fires for tag-less types.
+    // tag wins when present; structural detection only fires for tag-less
+    // types.
     static constexpr bool value =
         ( tag_present ? by_tag : by_structure );
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_locked_container_v =
-    is_locked_container<_Type>::value;
+    is_locked_container<Type>::value;
 
 
 // is_mutex_container
-//   alias: synonym for is_locked_container.  "mutex"
-// reads more naturally at some call sites; "locked" reads
-// more naturally at others.  Both spellings are first-class.
-template<typename _Type>
-using is_mutex_container = is_locked_container<_Type>;
+//   alias: synonym for is_locked_container. "mutex" reads more naturally at
+// some call sites; "locked" reads more naturally at others. Both spellings are
+// first-class.
+template<typename Type>
+using is_mutex_container = is_locked_container<Type>;
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_mutex_container_v =
-    is_locked_container_v<_Type>;
+    is_locked_container_v<Type>;
 
 
 // is_cow_container
 //   type trait: true if the container uses copy-on-write.
-//   Detection precedence matches `is_locked_container`:
-// the strategy tag (when declared) is authoritative,
-// otherwise structural detection (cow_state alias or a
-// `snapshot()` method) is used.
-template<typename _Type>
+//   Detection precedence matches `is_locked_container`: the strategy tag (when
+// declared) is authoritative, otherwise structural detection (cow_state alias
+// or a `snapshot()` method) is used.
+template<typename Type>
 struct is_cow_container
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     static constexpr bool tag_present =
@@ -424,21 +479,20 @@ public:
         ( tag_present ? by_tag : by_structure );
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_cow_container_v =
-    is_cow_container<_Type>::value;
+    is_cow_container<Type>::value;
 
 
 // is_rcu_container
-//   type trait: true if the container uses RCU /
-// epoch-based reclamation.
-//   Detection precedence matches `is_locked_container`:
-// the strategy tag (when declared) is authoritative.
-template<typename _Type>
+//   type trait: true if the container uses RCU / epoch-based reclamation.
+//   Detection precedence matches `is_locked_container`: the strategy tag (when
+// declared) is authoritative.
+template<typename Type>
 struct is_rcu_container
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     static constexpr bool tag_present =
@@ -463,21 +517,21 @@ public:
         ( tag_present ? by_tag : by_structure );
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_rcu_container_v =
-    is_rcu_container<_Type>::value;
+    is_rcu_container<Type>::value;
 
 
 // is_atomic_container
-//   type trait: true if the container's elements are
-// individually atomic (lock-free element access).
-//   Detection precedence matches `is_locked_container`:
-// the strategy tag (when declared) is authoritative.
-template<typename _Type>
+//   type trait: true if the container's elements are individually atomic
+// (lock-free element access).
+//   Detection precedence matches `is_locked_container`: the strategy tag (when
+// declared) is authoritative.
+template<typename Type>
 struct is_atomic_container
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     static constexpr bool tag_present =
@@ -503,21 +557,20 @@ public:
         ( tag_present ? by_tag : by_structure );
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_atomic_container_v =
-    is_atomic_container<_Type>::value;
+    is_atomic_container<Type>::value;
 
 
 // is_hazard_container
-//   type trait: true if the container uses hazard pointer
-// reclamation.
-//   Detection precedence matches `is_locked_container`:
-// the strategy tag (when declared) is authoritative.
-template<typename _Type>
+//   type trait: true if the container uses hazard pointer reclamation.
+//   Detection precedence matches `is_locked_container`: the strategy tag (when
+// declared) is authoritative.
+template<typename Type>
 struct is_hazard_container
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     static constexpr bool tag_present =
@@ -541,9 +594,9 @@ public:
         ( tag_present ? by_tag : by_structure );
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_hazard_container_v =
-    is_hazard_container<_Type>::value;
+    is_hazard_container<Type>::value;
 
 
 // =============================================================================
@@ -558,82 +611,82 @@ inline constexpr bool is_hazard_container_v =
 // under a single agent.
 
 // is_vacuously_concurrent
-//   type trait: true if _Type is concurrent for the trivial reason -
-// it is immutable, so there is no mutation to order (monograph: "the
-// immutable case is trivial").  Carries no synchronization machinery.
-template<typename _Type>
+//   type trait: true if Type is concurrent for the trivial reason - it is
+// immutable, so there is no mutation to order (monograph: "the immutable case
+// is trivial"). Carries no synchronization machinery.
+template<typename Type>
 struct is_vacuously_concurrent
 {
     static constexpr bool value =
-        is_immutable_container_v<clean_t<_Type>>;
+        is_immutable_container_v<clean_t<Type>>;
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_vacuously_concurrent_v =
-    is_vacuously_concurrent<_Type>::value;
+    is_vacuously_concurrent<Type>::value;
 
 
 // is_concurrent_container
-//   type trait: true if the container is concurrent in the monograph's
-// sense - either it carries a synchronization strategy (a witness for
-// linearizability under mutation) OR it is immutable (concurrent
-// vacuously).  This is the trait's alignment with the formal definition:
-// concurrency is NOT the same as "has a lock".
-template<typename _Type>
+//   type trait: true if the container is concurrent in the monograph's sense -
+// either it carries a synchronization strategy (a witness for linearizability
+// under mutation) OR it is immutable (concurrent vacuously). This is the
+// trait's alignment with the formal definition: concurrency is NOT the same as
+// "has a lock".
+template<typename Type>
 struct is_concurrent_container
 {
     static constexpr bool value =
-        ( is_locked_container_v<_Type>       ||
-          is_cow_container_v<_Type>          ||
-          is_rcu_container_v<_Type>          ||
-          is_atomic_container_v<_Type>       ||
-          is_hazard_container_v<_Type>       ||
-          is_vacuously_concurrent_v<_Type> );
+        ( is_locked_container_v<Type>       ||
+          is_cow_container_v<Type>          ||
+          is_rcu_container_v<Type>          ||
+          is_atomic_container_v<Type>       ||
+          is_hazard_container_v<Type>       ||
+          is_vacuously_concurrent_v<Type> );
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_concurrent_container_v =
-    is_concurrent_container<_Type>::value;
+    is_concurrent_container<Type>::value;
 
 
 // is_synchronized_container
 //   type trait: true if the container carries an ACTIVE synchronization
-// strategy (locked / cow / rcu / atomic / hazard).  This is the narrower
+// strategy (locked / cow / rcu / atomic / hazard). This is the narrower
 // question "does it run machinery to stay linearizable under mutation?",
 // distinct from is_concurrent_container, which also admits the immutable
 // (machinery-free) case.
-template<typename _Type>
+template<typename Type>
 struct is_synchronized_container
 {
     static constexpr bool value =
-        ( is_locked_container_v<_Type>  ||
-          is_cow_container_v<_Type>     ||
-          is_rcu_container_v<_Type>     ||
-          is_atomic_container_v<_Type>  ||
-          is_hazard_container_v<_Type> );
+        ( is_locked_container_v<Type>  ||
+          is_cow_container_v<Type>     ||
+          is_rcu_container_v<Type>     ||
+          is_atomic_container_v<Type>  ||
+          is_hazard_container_v<Type> );
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_synchronized_container_v =
-    is_synchronized_container<_Type>::value;
+    is_synchronized_container<Type>::value;
 
 
-// is_sequential_container
+// is_unsynchronized_container
 //   type trait: true if the container is NON-concurrent - the tacit
-// single-agent default of the preceding chapters.  A container is
-// sequential exactly when it is neither synchronized nor immutable.
-//   (Note: "sequential" here is the monograph's concurrency-axis term for
-// "not safe under overlap"; it is unrelated to sequence/ordered shape.)
-template<typename _Type>
-struct is_sequential_container
+// single-agent default of the preceding chapters. A container is sequential
+// exactly when it is neither synchronized nor immutable.
+//   (Note: "sequential" here is the monograph's concurrency-axis term for "not
+// safe under overlap"; it is unrelated to sequence/ordered shape.)
+template<typename Type>
+struct is_unsynchronized_container
 {
     static constexpr bool value =
-        !is_concurrent_container_v<_Type>;
+        !is_concurrent_container_v<Type>;
 };
 
-template<typename _Type>
-inline constexpr bool is_sequential_container_v =
-    is_sequential_container<_Type>::value;
+template<typename Type>
+inline constexpr bool is_unsynchronized_container_v =
+    is_unsynchronized_container<Type>::value;
 
 
 // =============================================================================
@@ -644,10 +697,10 @@ inline constexpr bool is_sequential_container_v =
 
 NS_INTERNAL
 
-    template<typename _Type>
+    template<typename Type>
     struct concurrency_strategy_helper
     {
-        using clean_type = clean_t<_Type>;
+        using clean_type = clean_t<Type>;
 
         // count of strategy hits - used to detect hybrid
         static constexpr int hit_count =
@@ -683,18 +736,17 @@ NS_END  // internal
 
 
 // concurrency_strategy_of
-//   type trait: deduces the concurrency_strategy value
-// for a container.
-template<typename _Type>
+//   type trait: deduces the concurrency_strategy value for a container.
+template<typename Type>
 struct concurrency_strategy_of
 {
     static constexpr concurrency_strategy value =
-        internal::concurrency_strategy_helper<_Type>::value;
+        internal::concurrency_strategy_helper<Type>::value;
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr concurrency_strategy concurrency_strategy_of_v =
-    concurrency_strategy_of<_Type>::value;
+    concurrency_strategy_of<Type>::value;
 
 #endif  // C++11
 
@@ -720,17 +772,16 @@ inline constexpr concurrency_strategy concurrency_strategy_of_v =
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // concurrency_signature
-//   struct: the monograph tuple for a realisation.  Progress is split into
-// READ and WRITE grades because several strategies differ across the two
-// (e.g. copy-on-write and RCU are wait-free for readers while serializing
-// writers).
+//   struct: the monograph tuple for a realisation. Progress is split into READ
+// and WRITE grades because several strategies differ across the two (e.g.
+// copy-on-write and RCU are wait-free for readers while serializing writers).
 struct concurrency_signature
 {
-    concurrency_progress   read_progress;
-    concurrency_progress   write_progress;
-    concurrency_arity      arity;
-    iteration_consistency  iteration;
-    reclamation_obligation reclamation;
+    concurrency_progress::value   read_progress;
+    concurrency_progress::value   write_progress;
+    concurrency_arity::value      arity;
+    iteration_consistency::value  iteration;
+    reclamation_obligation::value reclamation;
 };
 
 
@@ -738,12 +789,12 @@ NS_INTERNAL
 
     // concurrency_signature_for
     //   helper: the signature carried by each strategy, taken from the
-    // monograph's strategy table.  Primary template covers `none` and any
+    // monograph's strategy table. Primary template covers `none` and any
     // future value (the sequential, non-concurrent default).
-    template<concurrency_strategy _S>
+    template<concurrency_strategy S>
     struct concurrency_signature_for
     {
-        // none: the single-agent default.  (An immutable container is
+        // none: the single-agent default. (An immutable container is
         // concurrent vacuously - wait-free / mwmr / snapshot / none - but
         // that is a property of the VALUE, tested by is_vacuously_concurrent,
         // not of this strategy classification.)
@@ -756,11 +807,16 @@ NS_INTERNAL
         };
     };
 
-    // locked: one lock per operation.  Blocking; MWMR at the interface but
+    // locked: one lock per operation. Blocking; MWMR at the interface but
     // serial in execution (a reader-writer policy grants concurrent reads -
-    // see supports_concurrent_reads).  A traversal under the lock sees a
-    // frozen value (snapshot).  Reclamation is individual: freeing happens
-    // under the lock, so no agent can hold a stale reference.
+    // see supports_concurrent_reads). A traversal under the lock sees a frozen
+    // value (snapshot). Reclamation is individual: freeing happens under the
+    // lock, so no agent can hold a stale reference.
+    // concurrency_signature_for<concurrency_strategy::locked>
+    //   trait: the `concurrency_strategy::locked` case; it reports `{
+    // concurrency_progress::blocking,
+    // concurrency_arity::mwmr, iteration_consistency::snapshot,
+    // reclamation_obligation::individual }`.
     template<>
     struct concurrency_signature_for<concurrency_strategy::locked>
     {
@@ -773,11 +829,11 @@ NS_INTERNAL
         };
     };
 
-    // cow: writers publish a new immutable version by a single atomic swing
-    // of the root; readers dereference once and then read an immutable body.
-    // Wait-free reads; writers lock-free (CAS on root) or serialized.  A
-    // reader's version never changes under it (snapshot by construction).
-    // Old versions are freed once no reader holds them (reference count on
+    // cow: writers publish a new immutable version by a single atomic swing of
+    // the root; readers dereference once and then read an immutable body.
+    // Wait-free reads; writers lock-free (CAS on root) or serialized. A
+    // reader's version never changes under it (snapshot by construction). Old
+    // versions are freed once no reader holds them (reference count on
     // versions).
     template<>
     struct concurrency_signature_for<concurrency_strategy::cow>
@@ -793,8 +849,8 @@ NS_INTERNAL
 
     // rcu: readers run in a synchronization-free critical section (a single
     // dereference); writers, serialized among themselves, publish with a
-    // release and defer reclamation to a grace period.  Wait-free reads;
-    // writers serialized (blocking).  Weakly-consistent unless a reader
+    // release and defer reclamation to a grace period. Wait-free reads;
+    // writers serialized (blocking). Weakly-consistent unless a reader
     // snapshots.
     template<>
     struct concurrency_signature_for<concurrency_strategy::rcu>
@@ -809,8 +865,8 @@ NS_INTERNAL
     };
 
     // atomic: lock-free per-element std::atomic<T> over inline storage.
-    // Lock-free reads and writes, MWMR, weakly-consistent traversal.  Cells
-    // are inline (not separately allocated node cells), so there is no
+    // Lock-free reads and writes, MWMR, weakly-consistent traversal. Cells are
+    // inline (not separately allocated node cells), so there is no
     // deferred-reclamation obligation.
     template<>
     struct concurrency_signature_for<concurrency_strategy::atomic>
@@ -826,7 +882,7 @@ NS_INTERNAL
 
     // hazard: lock-free pointer chasing where each reader publishes a hazard
     // and validates before dereferencing; a reclaimer frees an unlinked node
-    // only when no hazard slot names it.  Lock-free, MWMR, weakly-consistent;
+    // only when no hazard slot names it. Lock-free, MWMR, weakly-consistent;
     // reclamation by hazard scan (bounded un-reclaimed memory per agent).
     template<>
     struct concurrency_signature_for<concurrency_strategy::hazard>
@@ -840,8 +896,8 @@ NS_INTERNAL
         };
     };
 
-    // hybrid: two or more strategies combined (e.g. locked metadata over a
-    // cow payload).  No single signature is exact; the conservative meet is
+    // hybrid: two or more strategies combined (e.g. locked metadata over a cow
+    // payload). No single signature is exact; the conservative meet is
     // reported - blocking, MWMR, weakly-consistent, individual - and callers
     // that need precision should inspect the component strategies.
     template<>
@@ -862,67 +918,67 @@ NS_END  // internal
 // concurrency_signature_of
 //   type trait: the monograph signature (progress / arity / iteration /
 // reclamation) a container carries, deduced from its strategy.
-template<typename _Type>
+template<typename Type>
 struct concurrency_signature_of
 {
     static constexpr concurrency_signature value =
         internal::concurrency_signature_for<
-            concurrency_strategy_of_v<_Type>>::value;
+            concurrency_strategy_of_v<Type>>::value;
 };
 
-template<typename _Type>
+template<typename Type>
 inline constexpr concurrency_signature concurrency_signature_of_v =
-    concurrency_signature_of<_Type>::value;
+    concurrency_signature_of<Type>::value;
 
 
 // --- convenience projections of the signature -------------------------------
 
 // read_progress_of / write_progress_of
-//   trait: the per-side progress grade of _Type's realisation.
-template<typename _Type>
-inline constexpr concurrency_progress read_progress_of_v =
-    concurrency_signature_of<_Type>::value.read_progress;
+//   trait: the per-side progress grade of Type's realisation.
+template<typename Type>
+inline constexpr concurrency_progress::value read_progress_of_v =
+    concurrency_signature_of<Type>::value.read_progress;
 
-template<typename _Type>
-inline constexpr concurrency_progress write_progress_of_v =
-    concurrency_signature_of<_Type>::value.write_progress;
+template<typename Type>
+inline constexpr concurrency_progress::value write_progress_of_v =
+    concurrency_signature_of<Type>::value.write_progress;
 
 // concurrency_arity_of
-//   trait: the interface arity (SWMR / MWMR) of _Type's realisation.
-template<typename _Type>
-inline constexpr concurrency_arity concurrency_arity_of_v =
-    concurrency_signature_of<_Type>::value.arity;
+//   trait: the interface arity (SWMR / MWMR) of Type's realisation.
+template<typename Type>
+inline constexpr concurrency_arity::value concurrency_arity_of_v =
+    concurrency_signature_of<Type>::value.arity;
 
 // iteration_consistency_of
-//   trait: the overlap-semantics of a concurrent traversal of _Type.
-template<typename _Type>
-inline constexpr iteration_consistency iteration_consistency_of_v =
-    concurrency_signature_of<_Type>::value.iteration;
+//   trait: the overlap-semantics of a concurrent traversal of Type.
+template<typename Type>
+inline constexpr iteration_consistency::value iteration_consistency_of_v =
+    concurrency_signature_of<Type>::value.iteration;
 
 // reclamation_obligation_of
-//   trait: the safe-reclamation discipline _Type owes.
-template<typename _Type>
-inline constexpr reclamation_obligation reclamation_obligation_of_v =
-    concurrency_signature_of<_Type>::value.reclamation;
+//   trait: the safe-reclamation discipline Type owes.
+template<typename Type>
+inline constexpr reclamation_obligation::value reclamation_obligation_of_v =
+    concurrency_signature_of<Type>::value.reclamation;
 
 // is_lock_free_container / is_wait_free_reader_container
-//   trait: progress-grade shorthands.  A container is "lock-free" here when
+//   trait: progress-grade shorthands. A container is "lock-free" here when
 // BOTH sides are at least lock-free; "wait-free reader" when reads are
 // wait-free (the property COW and RCU buy).
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_lock_free_container_v =
-    ( read_progress_of_v<_Type>  >= concurrency_progress::lock_free &&
-      write_progress_of_v<_Type> >= concurrency_progress::lock_free );
+    ( read_progress_of_v<Type>  >= concurrency_progress::lock_free &&
+      write_progress_of_v<Type> >= concurrency_progress::lock_free );
 
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_wait_free_reader_container_v =
-    ( read_progress_of_v<_Type> == concurrency_progress::wait_free );
+    ( read_progress_of_v<Type> == concurrency_progress::wait_free );
 
 // offers_snapshot_iteration_v
 //   trait: true if a concurrent traversal sees one frozen value.
-template<typename _Type>
+template<typename Type>
 inline constexpr bool offers_snapshot_iteration_v =
-    ( iteration_consistency_of_v<_Type> == iteration_consistency::snapshot );
+    ( iteration_consistency_of_v<Type> == iteration_consistency::snapshot );
 
 #endif  // C++11
 
@@ -932,50 +988,50 @@ inline constexpr bool offers_snapshot_iteration_v =
 // =============================================================================
 
 // container_concurrency_class
-//   struct: complete concurrency classification.  Combines
-// strategy (this file) with safety level (threadsafe
-// container traits) and the monograph signature.  All
-// members are static constexpr.
-template<typename _Type>
+//   struct: complete concurrency classification. Combines strategy (this file)
+// with safety level (threadsafe container traits) and the monograph signature.
+// All members are static constexpr.
+template<typename Type>
 struct container_concurrency_class
 {
     // strategy
-    static constexpr bool is_locked = is_locked_container_v<_Type>;
-    static constexpr bool is_cow    = is_cow_container_v<_Type>;
-    static constexpr bool is_rcu    = is_rcu_container_v<_Type>;
-    static constexpr bool is_atomic = is_atomic_container_v<_Type>;
-    static constexpr bool is_hazard = is_hazard_container_v<_Type>;
+    static constexpr bool is_locked = is_locked_container_v<Type>;
+    static constexpr bool is_cow    = is_cow_container_v<Type>;
+    static constexpr bool is_rcu    = is_rcu_container_v<Type>;
+    static constexpr bool is_atomic = is_atomic_container_v<Type>;
+    static constexpr bool is_hazard = is_hazard_container_v<Type>;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     static constexpr concurrency_strategy strategy =
-        concurrency_strategy_of_v<_Type>;
+        concurrency_strategy_of_v<Type>;
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
     // level (forwarded from threadsafe traits)
-    static constexpr thread_safety_level level = container_thread_safety_level_v<_Type>;
+    static constexpr thread_safety_level::value level =
+        container_thread_safety_level_v<Type>;
 
     // aggregate concurrency (monograph axis)
-    static constexpr bool is_concurrent = is_concurrent_container_v<_Type>;
-    static constexpr bool is_synchronized = is_synchronized_container_v<_Type>;
+    static constexpr bool is_concurrent = is_concurrent_container_v<Type>;
+    static constexpr bool is_synchronized = is_synchronized_container_v<Type>;
     static constexpr bool is_vacuously_concurrent =
-        is_vacuously_concurrent_v<_Type>;
-    static constexpr bool is_sequential = is_sequential_container_v<_Type>;
+        is_vacuously_concurrent_v<Type>;
+    static constexpr bool is_sequential = is_unsynchronized_container_v<Type>;
     static constexpr bool concurrent_reads =
-        supports_concurrent_reads_v<_Type>;
+        supports_concurrent_reads_v<Type>;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // monograph signature (progress / arity / iteration / reclamation)
-    static constexpr concurrency_signature  signature =
-        concurrency_signature_of_v<_Type>;
-    static constexpr concurrency_progress   read_progress =
+    static constexpr concurrency_signature         signature =
+        concurrency_signature_of_v<Type>;
+    static constexpr concurrency_progress::value   read_progress =
         signature.read_progress;
-    static constexpr concurrency_progress   write_progress =
+    static constexpr concurrency_progress::value   write_progress =
         signature.write_progress;
-    static constexpr concurrency_arity      arity =
+    static constexpr concurrency_arity::value      arity =
         signature.arity;
-    static constexpr iteration_consistency  iteration =
+    static constexpr iteration_consistency::value  iteration =
         signature.iteration;
-    static constexpr reclamation_obligation reclamation =
+    static constexpr reclamation_obligation::value reclamation =
         signature.reclamation;
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 };
@@ -983,5 +1039,6 @@ struct container_concurrency_class
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_CONCURRENCY_STRATEGY_TRAITS_
+#endif  // DJINTERP_CONTAINER_TRAITS_CONCURRENCY_STRATEGY_TRAITS_HPP

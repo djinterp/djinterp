@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                                   parse.hpp
+/*******************************************************************************
+* djinterp [parse]                                                     parse.hpp
 *
 * Common primitives of the parsing subframework.
 *   Per the formal definition in ch-parsing.tex, a parser is a function
@@ -43,31 +43,31 @@
 *
 * path:      /inc/djinterp/parse/parse.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.01.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.11
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_
-#define DJINTERP_PARSE_ 1
+#ifndef DJINTERP_PARSE_PARSE_HPP
+#define DJINTERP_PARSE_PARSE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
 #include <type_traits>
 #include <utility>
 // djinterp
 #include "../djinterp.hpp"
+#include "../core/meta/type_utility.hpp"  // void_t
+#include "./substrate.hpp"  // NS_PARSE
 #include "../core/functional/result.hpp"
-
-
-// D_KEYWORD_PARSE
-//   keyword: resolves to `parse`.  Marks a unit of code as part of the
-// parsing subsystem.
-#define D_KEYWORD_PARSE             parse
-
-// NS_PARSE
-//   namespace: the parse subsystem namespace.
-#define NS_PARSE                    D_NAMESPACE(D_KEYWORD_PARSE)
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t
 
 
 NS_DJINTERP
@@ -81,28 +81,28 @@ NS_PARSE
 // parseable
 //   trait: associates a minor (token) type with a major (parsed
 // aggregate) type for a given parseable domain.
-template<typename _Minor,
-         typename _Major>
+template<typename Minor,
+         typename Major>
 struct parseable
 {
-    using minor = _Minor;
-    using major = _Major;
+    using minor = Minor;
+    using major = Major;
 };
 
 // is_parseable
 //   trait: primary template — not parseable by default.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct is_parseable : std::false_type
 {};
 
 // is_parseable (SFINAE specialisation)
-//   trait: true when _Type exposes nested minor and major aliases.
-template<typename _Type>
+//   trait: true when Type exposes nested minor and major aliases.
+template<typename Type>
 struct is_parseable<
-    _Type,
-    void_t<typename _Type::minor,
-           typename _Type::major>
+    Type,
+    void_t<typename Type::minor,
+           typename Type::major>
 > : std::true_type
 {};
 
@@ -126,7 +126,7 @@ struct is_parseable<char*, void> : std::true_type
 
 // parse_traits
 //   trait: primary template — maps a parseable type to its minor/major pair.
-template<typename _Type>
+template<typename Type>
 struct parse_traits;
 
 // parse_traits<std::string>
@@ -154,7 +154,7 @@ struct parse_traits<char*> : parseable<char, char*>
 
 // parse_status
 //   typedef: classifies the outcome of a parse operation.
-typedef std::int32_t parse_status;
+typedef re_std::int32_t parse_status;
 
 // DParseStatus*
 //   constants: standard parse status codes.  Derived parsers may
@@ -269,8 +269,8 @@ operator!=(
 
 // parse_result
 //   class: the outcome of a fallible parse — a value of type
-// _ValueType (success) or a parse_error (failure).  A refinement of
-// functional::result<_ValueType, parse_error>: it IS a result and
+// ValueType (success) or a parse_error (failure).  A refinement of
+// functional::result<ValueType, parse_error>: it IS a result and
 // inherits the whole monadic surface (map, and_then, or_else,
 // match, value_or, operator|, plus the functor / monad protocol
 // specialisations defined in result.hpp).  This is the C++ shape
@@ -292,19 +292,19 @@ operator!=(
 //   The inherited result<>::ok() returning maybe<T> is shadowed
 // here by the boolean predicate the parse vocabulary wants; the
 // inherited form is reachable via functional::to_maybe on the base.
-template<typename _ValueType>
+template<typename ValueType>
 class parse_result
-    : public functional::result<_ValueType, parse_error>
+    : public functional::result<ValueType, parse_error>
 {
 private:
-    using base_type = functional::result<_ValueType, parse_error>;
+    using base_type = functional::result<ValueType, parse_error>;
 
 public:
-    using value_type = _ValueType;
+    using value_type = ValueType;
     using error_type = parse_error;
 
     parse_result(
-        const _ValueType& _value
+        const ValueType& _value
     )
         : base_type(
               functional::internal::ok_tag(
@@ -313,12 +313,12 @@ public:
     {}
 
     parse_result(
-        _ValueType&& _value
+        ValueType&& _value
     )
         : base_type(
               functional::internal::ok_tag(
                   functional::internal::ok_tag::construct_tag()),
-              static_cast<_ValueType&&>(_value))
+              static_cast<ValueType&&>(_value))
     {}
 
     parse_result(
@@ -365,13 +365,13 @@ public:
     //   method: returns a reference to the contained value.
     //   Precondition: ok() == true.
     D_NODISCARD
-    const _ValueType& value() const
+    const ValueType& value() const
     {
         return base_type::value();
     }
 
     D_NODISCARD
-    _ValueType& value()
+    ValueType& value()
     {
         return base_type::value();
     }
@@ -390,7 +390,7 @@ public:
     D_NODISCARD
     static parse_result
     make_ok(
-        const _ValueType& _value
+        const ValueType& _value
     )
     {
         return parse_result(_value);
@@ -429,7 +429,7 @@ public:
 // parse_state
 //   struct: the surface stream Σ* the parser consumes.  Tracks the
 // position and remaining extent of a parse over an input of element
-// type _ElementType.  Threaded by reference through the parser
+// type ElementType.  Threaded by reference through the parser
 // function as the operational counterpart of the formal residual:
 // a successful parse advances `offset`; Alternative's `alt`
 // combinator saves and restores `offset` so failures don't leak
@@ -437,12 +437,12 @@ public:
 //
 //   Agnostic to the nature of the data — character streams, byte
 // buffers, token sequences all instantiate it.
-template<typename _ElementType>
+template<typename ElementType>
 struct parse_state
 {
-    using element_type = _ElementType;
+    using element_type = ElementType;
 
-    const _ElementType* data;
+    const ElementType* data;
     std::size_t         length;
     std::size_t         offset;
 
@@ -453,7 +453,7 @@ struct parse_state
     {}
 
     parse_state(
-        const _ElementType* _data,
+        const ElementType* _data,
         std::size_t         _length,
         std::size_t         _offset = 0
     )
@@ -483,7 +483,7 @@ struct parse_state
     // current
     //   method: a pointer to the current element, or null at end.
     D_NODISCARD
-    const _ElementType* current() const
+    const ElementType* current() const
     {
         return at_end()
                     ? nullptr
@@ -493,7 +493,7 @@ struct parse_state
     // advance
     //   method: moves the offset forward by _count elements, clamped
     // to the end of the input.
-    void 
+    void
     advance(
         std::size_t _count = 1
     )
@@ -509,9 +509,156 @@ struct parse_state
     }
 };
 
+// text_parse_state
+//   struct: the parse state over characters that the text parsers (the
+// CSS parser among them) thread: parse_state<char>, plus the character
+// conveniences they use and a line and column, kept current as
+// advance_tracking moves the cursor (counted from where the state began).
+struct text_parse_state : parse_state<char>
+{
+    std::size_t line;    // 1-based line of the cursor
+    std::size_t column;  // 1-based column of the cursor
+
+    text_parse_state()
+        : parse_state<char>(),
+          line(1),
+          column(1)
+    {}
+
+    text_parse_state(
+        const char* _data,
+        std::size_t _length,
+        std::size_t _offset = 0
+    )
+        : parse_state<char>(_data, _length, _offset),
+          line(1),
+          column(1)
+    {}
+
+    // peek
+    //   accessor: the character at the cursor, or '\0' at the end.
+    D_NODISCARD char
+    peek() const
+    {
+        return (offset < length) ? data[offset] : '\0';
+    }
+
+    // peek_at
+    //   accessor: the character _ahead places past the cursor, or '\0'
+    // past the end.
+    D_NODISCARD char
+    peek_at(
+        std::size_t _ahead
+    ) const
+    {
+        return ((offset + _ahead) < length) ? data[offset + _ahead] : '\0';
+    }
+
+    // advance_tracking
+    //   mutator: moves the cursor _count characters, stopping at the end,
+    // and keeps line and column current: a line feed starts a new line.
+    void
+    advance_tracking(
+        std::size_t _count
+    )
+    {
+        // one character at a time, so each line feed is seen
+        for (std::size_t i = 0; (i < _count) && (offset < length); ++i)
+        {
+            // a line feed moves to the start of the next line
+            if (data[offset] == '\n')
+            {
+                ++line;
+                column = 1;
+            }
+            else
+            {
+                ++column;
+            }
+
+            ++offset;
+        }
+
+        return;
+    }
+};
+
+// text_parser_base
+//   class: the CRTP base of the text parsers (the CSS parsers among them).
+// Derived supplies do_parse(text_parse_state&); the base gives it parse()
+// over a state, over a pointer and a length, and over a std::string. The
+// return types name Self, which defaults to Derived, so that do_parse is
+// looked up only when parse() is used: as Derived's base, Derived is
+// still incomplete here.
+template<typename Derived>
+class text_parser_base
+{
+public:
+    // parse (state)
+    //   method: runs the parser on _state, advancing it.
+    template<typename Self = Derived>
+    auto
+    parse(
+        text_parse_state& _state
+    ) -> decltype(std::declval<Self&>().do_parse(_state))
+    {
+        return static_cast<Derived&>(*this).do_parse(_state);
+    }
+
+    // parse (text)
+    //   method: runs the parser on _length characters from _data.
+    template<typename Self = Derived>
+    auto
+    parse(
+        const char* _data,
+        std::size_t _length
+    ) -> decltype(std::declval<Self&>().do_parse(
+                      std::declval<text_parse_state&>()))
+    {
+        text_parse_state state(_data, _length);
+
+        return static_cast<Derived&>(*this).do_parse(state);
+    }
+
+    // parse (string)
+    //   method: runs the parser on the whole of _text.
+    template<typename Self = Derived>
+    auto
+    parse(
+        const std::string& _text
+    ) -> decltype(std::declval<Self&>().do_parse(
+                      std::declval<text_parse_state&>()))
+    {
+        return this->template parse<Self>(_text.data(),
+                                          _text.size());
+    }
+};
+
+// char_predicate_is_whitespace
+//   predicate: whether a character is ASCII whitespace -- space, tab,
+// line feed, carriage return, vertical tab or form feed -- in the form
+// the text parsers take predicates: a type with a static test().
+struct char_predicate_is_whitespace
+{
+    static D_CONSTEXPR bool
+    test(
+        char _c
+    ) D_NOEXCEPT
+    {
+        return ( (_c == ' ')  ||
+                 (_c == '\t') ||
+                 (_c == '\n') ||
+                 (_c == '\r') ||
+                 (_c == '\v') ||
+                 (_c == '\f') );
+    }
+};
+
 
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_
+
+#endif  // DJINTERP_PARSE_PARSE_HPP

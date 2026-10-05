@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                               markdown_document_renderer.hpp
+/*******************************************************************************
+* djinterp [core]                                 markdown_document_renderer.hpp
 *
 *   The Markdown realisation of document_renderer, completing the string half of
 * the dialect set (plain / markdown / xml / html).  A heading becomes a `##`
@@ -39,18 +39,27 @@
 * unlike the markup renderer, no escape-policy dependency either.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    markdown_document_renderer   (the renderer)
-*
-*
 * path:      /inc/djinterp/core/util/document/templates/markdown_document_renderer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_DOCUMENT_MARKDOWN_RENDERER_
-#define DJINTERP_UTIL_DOCUMENT_MARKDOWN_RENDERER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    markdown_document_renderer   (the renderer)
+      -------------------------------------------
+*/
+
+#ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_MARKDOWN_DOCUMENT_RENDERER_HPP
+#define DJINTERP_UTIL_DOCUMENT_TEMPLATES_MARKDOWN_DOCUMENT_RENDERER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -58,7 +67,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"      // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../../../djinterp.hpp"      // NS_*, D_NODISCARD, D_NOEXCEPT
 #include "./document_attributes.hpp"  // doc_attributes, attr_*, text_alignment
 #include "./document_renderer.hpp"    // document_renderer, D_OVERRIDE
 
@@ -654,5 +663,6 @@ private:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_DOCUMENT_MARKDOWN_RENDERER_
+#endif  // DJINTERP_UTIL_DOCUMENT_TEMPLATES_MARKDOWN_DOCUMENT_RENDERER_HPP

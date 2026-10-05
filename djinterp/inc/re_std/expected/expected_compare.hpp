@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                         expected_compare.hpp
 *
 * expected comparison header:
@@ -15,32 +15,26 @@
 * compiler-synthesised version).
 *
 *
-* path:      /inc/djinterp/re_std/expected/expected_compare.hpp
+* path:      /inc/re_std/expected/expected_compare.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXPECTED_COMPARE_
-#define DJINTERP_RE_STD_EXPECTED_COMPARE_ 1
+#ifndef RE_STD_EXPECTED_EXPECTED_COMPARE_HPP
+#define RE_STD_EXPECTED_EXPECTED_COMPARE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "./expected.hpp"
 #include "./unexpected.hpp"
 
 
-#ifndef D_CONSTEXPR_CPP20
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        #define D_CONSTEXPR_CPP20   constexpr
-    #else
-        #define D_CONSTEXPR_CPP20
-    #endif
-#endif
-
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -52,12 +46,12 @@ NS_RESTD
 //   - both have errors and the errors compare equal.
 // Cross-type comparison (different T/U or E/G) is permitted iff the
 // relevant cross-type op== exists.
-template<typename _T1, typename _E1,
-         typename _T2, typename _E2>
-D_CONSTEXPR_CPP20 bool
+template<typename T1, typename E1,
+         typename T2, typename E2>
+RE_STD_CONSTEXPR_CPP20 bool
 operator==(
-    expected<_T1, _E1> const& _lhs,
-    expected<_T2, _E2> const& _rhs
+    expected<T1, E1> const& _lhs,
+    expected<T2, E2> const& _rhs
 )
 {
     return ( _lhs.has_value() == _rhs.has_value() )
@@ -67,12 +61,12 @@ operator==(
 }
 
 // expected<void, E1> vs expected<void, E2>
-template<typename _E1,
-         typename _E2>
-D_CONSTEXPR_CPP20 bool
+template<typename E1,
+         typename E2>
+RE_STD_CONSTEXPR_CPP20 bool
 operator==(
-    expected<void, _E1> const& _lhs,
-    expected<void, _E2> const& _rhs
+    expected<void, E1> const& _lhs,
+    expected<void, E2> const& _rhs
 )
 {
     return ( _lhs.has_value() == _rhs.has_value() )
@@ -88,13 +82,13 @@ operator==(
 
 // An expected compares equal to a bare value iff it has a value
 // and that value compares equal to the bare one.
-template<typename _T,
-         typename _E,
-         typename _U>
-D_CONSTEXPR_CPP20 bool
+template<typename T,
+         typename E,
+         typename U>
+RE_STD_CONSTEXPR_CPP20 bool
 operator==(
-    expected<_T, _E> const& _lhs,
-    _U const&                _rhs
+    expected<T, E> const& _lhs,
+    U const&                _rhs
 )
 {
     return _lhs.has_value() && (*_lhs == _rhs);
@@ -107,25 +101,25 @@ operator==(
 
 // An expected compares equal to an unexpected iff it does not have
 // a value and the errors compare equal.
-template<typename _T,
-         typename _E,
-         typename _G>
-D_CONSTEXPR_CPP20 bool
+template<typename T,
+         typename E,
+         typename G>
+RE_STD_CONSTEXPR_CPP20 bool
 operator==(
-    expected<_T, _E> const&    _lhs,
-    unexpected<_G> const&      _rhs
+    expected<T, E> const&    _lhs,
+    unexpected<G> const&      _rhs
 )
 {
     return !_lhs.has_value() && (_lhs.error() == _rhs.error());
 }
 
 // expected<void, E> vs unexpected<G>
-template<typename _E,
-         typename _G>
-D_CONSTEXPR_CPP20 bool
+template<typename E,
+         typename G>
+RE_STD_CONSTEXPR_CPP20 bool
 operator==(
-    expected<void, _E> const&  _lhs,
-    unexpected<_G> const&      _rhs
+    expected<void, E> const&  _lhs,
+    unexpected<G> const&      _rhs
 )
 {
     return !_lhs.has_value() && (_lhs.error() == _rhs.error());
@@ -138,60 +132,60 @@ operator==(
 // C++20 synthesises these from op==; we provide them explicitly on
 // earlier tiers and skip on C++20+ to avoid ambiguity.
 
-#if !D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if !RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-template<typename _T1, typename _E1,
-         typename _T2, typename _E2>
-D_CONSTEXPR_CPP20 bool
+template<typename T1, typename E1,
+         typename T2, typename E2>
+RE_STD_CONSTEXPR_CPP20 bool
 operator!=(
-    expected<_T1, _E1> const& _lhs,
-    expected<_T2, _E2> const& _rhs
+    expected<T1, E1> const& _lhs,
+    expected<T2, E2> const& _rhs
 )
 {
     return !(_lhs == _rhs);
 }
 
-template<typename _E1,
-         typename _E2>
-D_CONSTEXPR_CPP20 bool
+template<typename E1,
+         typename E2>
+RE_STD_CONSTEXPR_CPP20 bool
 operator!=(
-    expected<void, _E1> const& _lhs,
-    expected<void, _E2> const& _rhs
+    expected<void, E1> const& _lhs,
+    expected<void, E2> const& _rhs
 )
 {
     return !(_lhs == _rhs);
 }
 
-template<typename _T,
-         typename _E,
-         typename _U>
-D_CONSTEXPR_CPP20 bool
+template<typename T,
+         typename E,
+         typename U>
+RE_STD_CONSTEXPR_CPP20 bool
 operator!=(
-    expected<_T, _E> const& _lhs,
-    _U const&                _rhs
+    expected<T, E> const& _lhs,
+    U const&                _rhs
 )
 {
     return !(_lhs == _rhs);
 }
 
-template<typename _T,
-         typename _E,
-         typename _G>
-D_CONSTEXPR_CPP20 bool
+template<typename T,
+         typename E,
+         typename G>
+RE_STD_CONSTEXPR_CPP20 bool
 operator!=(
-    expected<_T, _E> const&    _lhs,
-    unexpected<_G> const&      _rhs
+    expected<T, E> const&    _lhs,
+    unexpected<G> const&      _rhs
 )
 {
     return !(_lhs == _rhs);
 }
 
-template<typename _E,
-         typename _G>
-D_CONSTEXPR_CPP20 bool
+template<typename E,
+         typename G>
+RE_STD_CONSTEXPR_CPP20 bool
 operator!=(
-    expected<void, _E> const&  _lhs,
-    unexpected<_G> const&      _rhs
+    expected<void, E> const&  _lhs,
+    unexpected<G> const&      _rhs
 )
 {
     return !(_lhs == _rhs);
@@ -200,10 +194,10 @@ operator!=(
 #endif  // !C++20
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_EXPECTED_COMPARE_
+#endif  // RE_STD_EXPECTED_EXPECTED_COMPARE_HPP

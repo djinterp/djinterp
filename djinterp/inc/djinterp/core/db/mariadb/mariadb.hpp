@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                              mariadb.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                                    mariadb.hpp
+*
 * djinterp MariaDB connection module:
 *   This header provides the MariaDB-specific connection implementation
 * and associated data type infrastructure for the djinterp database
@@ -54,17 +54,27 @@
 * (trailing sections), folded in from mariadb_traits.hpp and the matching *_concepts.hpp;
 * detection now lives with the connection. Concepts gated on concept support.
 *
+*
 * path:      /inc/djinterp/core/db/mariadb/mariadb.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_MARIADB_
-#define DJINTERP_DATABASE_MARIADB_
+#ifndef DJINTERP_DB_MARIADB_MARIADB_HPP
+#define DJINTERP_DB_MARIADB_MARIADB_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t,
+                                                   // uint32_t, int64_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
-#include "../database_traits.hpp"
+#include "../../meta/type_utility.hpp"  // clean_t
 #include "../../../env/db/mariadb/env_mariadb.h"
 #include "../database.hpp"
 #include "../mysql/mysql_common.hpp"
@@ -86,7 +96,7 @@ NS_DJINTERP
 // mysql_field_type
 //   enumeration: native MySQL/MariaDB wire protocol field type constants.
 // values correspond 1:1 with the MYSQL_TYPE_* macros from mysql_com.h.
-enum class mysql_field_type : std::uint16_t
+enum class mysql_field_type : re_std::uint16_t
 {
     // integer types
     type_tiny         = 0x01,   // TINYINT           (1 byte)
@@ -152,7 +162,7 @@ enum class mysql_field_type : std::uint16_t
 // mariadb_field_type
 //   enumeration: MariaDB-specific data type extensions that do not
 // exist in the Oracle MySQL type system.
-enum class mariadb_field_type : std::uint16_t
+enum class mariadb_field_type : re_std::uint16_t
 {
     // INET6: native IPv6 address type (16 bytes, binary).
     // sent over the wire as MYSQL_TYPE_STRING with a length of 16
@@ -814,26 +824,26 @@ struct mariadb_version_info
 {
 #if D_ENV_MARIADB_DETECTED
     static constexpr bool          detected = true;
-    static constexpr std::uint32_t id       = D_ENV_MARIADB_VERSION_ID;
-    static constexpr std::uint16_t major    = D_ENV_MARIADB_VERSION_MAJOR;
-    static constexpr std::uint16_t minor    = D_ENV_MARIADB_VERSION_MINOR;
-    static constexpr std::uint16_t patch    = D_ENV_MARIADB_VERSION_PATCH;
+    static constexpr re_std::uint32_t id       = D_ENV_MARIADB_VERSION_ID;
+    static constexpr re_std::uint16_t major    = D_ENV_MARIADB_VERSION_MAJOR;
+    static constexpr re_std::uint16_t minor    = D_ENV_MARIADB_VERSION_MINOR;
+    static constexpr re_std::uint16_t patch    = D_ENV_MARIADB_VERSION_PATCH;
     static constexpr const char*   string   = D_ENV_MARIADB_VERSION_STRING;
 #else
     static constexpr bool          detected = false;
-    static constexpr std::uint32_t id       = 0;
-    static constexpr std::uint16_t major    = 0;
-    static constexpr std::uint16_t minor    = 0;
-    static constexpr std::uint16_t patch    = 0;
+    static constexpr re_std::uint32_t id       = 0;
+    static constexpr re_std::uint16_t major    = 0;
+    static constexpr re_std::uint16_t minor    = 0;
+    static constexpr re_std::uint16_t patch    = 0;
     static constexpr const char*   string   = "not detected";
 #endif
 
     // at_least
     //   function: returns true if the detected MariaDB version is at
     // least (major, minor, patch).
-    static constexpr bool at_least(std::uint16_t _major,
-                                   std::uint16_t _minor,
-                                   std::uint16_t _patch) noexcept
+    static constexpr bool at_least(re_std::uint16_t _major,
+                                   re_std::uint16_t _minor,
+                                   re_std::uint16_t _patch) noexcept
     {
         return id >= (_major * 10000u + _minor * 100u + _patch);
     }
@@ -894,7 +904,7 @@ struct mariadb_connect_config
 //   conn.connect(config);
 //   auto rs = conn.execute_query("SELECT 1");
 class mariadb_connection
-    : public mysql_common_connection<mariadb_connection, 
+    : public mysql_common_connection<mariadb_connection,
                                      database_type::mariadb>
 {
 public:
@@ -1073,7 +1083,7 @@ public:
     auto        execute_query_helper(const std::string& _query)
                     -> std::unique_ptr<
                         result_set<struct mariadb_result_set_helper>>;
-    std::int64_t execute_update_helper(const std::string& _query);
+    re_std::int64_t execute_update_helper(const std::string& _query);
     bool        execute_helper(const std::string& _query);
 
     auto        prepare_helper(const std::string& _query)
@@ -1083,9 +1093,9 @@ public:
     std::string   get_server_version_helper() const;
     std::string   get_last_error_helper() const;
     int           get_last_error_code_helper() const;
-                  
-    std::int64_t  get_last_insert_id_helper() const;
-    std::int64_t  get_affected_rows_helper() const;
+
+    re_std::int64_t  get_last_insert_id_helper() const;
+    re_std::int64_t  get_affected_rows_helper() const;
 
     // MySQL-family common _helper methods
     void          set_charset_helper(const std::string& _charset);
@@ -1175,9 +1185,9 @@ struct mariadb_statement_helper;
 // 10.2.4. Resets the connection to a clean state (clears session
 // variables, temporary tables, prepared statements) without
 // re-authenticating.
-template<typename _Type>
+template<typename Type>
 using mariadb_reset_connection_t =
-    decltype(std::declval<_Type&>().reset_connection());
+    decltype(std::declval<Type&>().reset_connection());
 
 // -------------------------------------------------------------------------
 // B.  non-blocking / async API
@@ -1186,17 +1196,17 @@ using mariadb_reset_connection_t =
 // mariadb_connect_async_start_t
 //   detector: connect_async_start() method.
 // wraps mysql_real_connect_start() from the MariaDB non-blocking API.
-template<typename _Type>
+template<typename Type>
 using mariadb_connect_async_start_t =
-    decltype(std::declval<_Type&>().connect_async_start());
+    decltype(std::declval<Type&>().connect_async_start());
 
 // mariadb_connect_async_cont_t
 //   detector: connect_async_cont(int) method.
 // wraps mysql_real_connect_cont() for continuing the non-blocking
 // connection handshake.
-template<typename _Type>
+template<typename Type>
 using mariadb_connect_async_cont_t =
-    decltype(std::declval<_Type&>().connect_async_cont(
+    decltype(std::declval<Type&>().connect_async_cont(
         std::declval<int>()));
 
 // -------------------------------------------------------------------------
@@ -1205,16 +1215,16 @@ using mariadb_connect_async_cont_t =
 
 // mariadb_table_exists_t
 //   detector: table_exists(const std::string&) const method.
-template<typename _Type>
+template<typename Type>
 using mariadb_table_exists_t =
-    decltype(std::declval<const _Type&>().table_exists(
+    decltype(std::declval<const Type&>().table_exists(
         std::declval<const std::string&>()));
 
 // mariadb_get_table_names_t
 //   detector: get_table_names() const method.
-template<typename _Type>
+template<typename Type>
 using mariadb_get_table_names_t =
-    decltype(std::declval<const _Type&>().get_table_names());
+    decltype(std::declval<const Type&>().get_table_names());
 
 
 // ===========================================================================
@@ -1227,65 +1237,65 @@ using mariadb_get_table_names_t =
 // mysql_common_traits.hpp and available in the mysql_common namespace.
 
 // has_mariadb_reset
-//   trait: checks if type _Type supports connection reset.
-template<typename _Type>
+//   trait: checks if type Type supports connection reset.
+template<typename Type>
 struct has_mariadb_reset
-    : is_detected<mariadb_reset_connection_t, clean_t<_Type>>
+    : is_detected<mariadb_reset_connection_t, clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_mariadb_reset_v =
-        has_mariadb_reset<clean_t<_Type>>::value;
+        has_mariadb_reset<clean_t<Type>>::value;
 #endif
 
 // has_mariadb_async
-//   trait: checks if type _Type supports the non-blocking API
+//   trait: checks if type Type supports the non-blocking API
 // (connect_async_start + connect_async_cont).
-template<typename _Type>
+template<typename Type>
 struct has_mariadb_async : djinterp::conjunction<
-    is_detected<mariadb_connect_async_start_t, clean_t<_Type>>,
-    is_detected<mariadb_connect_async_cont_t, clean_t<_Type>>>
+    is_detected<mariadb_connect_async_start_t, clean_t<Type>>,
+    is_detected<mariadb_connect_async_cont_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_mariadb_async_v =
-        has_mariadb_async<clean_t<_Type>>::value;
+        has_mariadb_async<clean_t<Type>>::value;
 #endif
 
 // has_mariadb_schema_query
-//   trait: checks if type _Type supports schema introspection
+//   trait: checks if type Type supports schema introspection
 // (table_exists + get_table_names).
-template<typename _Type>
+template<typename Type>
 struct has_mariadb_schema_query : djinterp::conjunction<
-    is_detected<mariadb_table_exists_t, clean_t<_Type>>,
-    is_detected<mariadb_get_table_names_t, clean_t<_Type>>>
+    is_detected<mariadb_table_exists_t, clean_t<Type>>,
+    is_detected<mariadb_get_table_names_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_mariadb_schema_query_v =
-        has_mariadb_schema_query<clean_t<_Type>>::value;
+        has_mariadb_schema_query<clean_t<Type>>::value;
 #endif
 
 // is_mariadb_connection
-//   trait: compound trait verifying type _Type implements a MariaDB
+//   trait: compound trait verifying type Type implements a MariaDB
 // connection interface. This extends is_mysql_connection (from the
 // mysql_common namespace) with MariaDB-specific capabilities.
 // A type satisfies this if it is a valid MySQL-family connection
 // AND has schema query support (which all Mariadb_connection
 // instances provide).
-template<typename _Type>
+template<typename Type>
 struct is_mariadb_connection : djinterp::conjunction<
-    is_mysql_connection<clean_t<_Type>>,
-    has_mariadb_schema_query<clean_t<_Type>>>
+    is_mysql_connection<clean_t<Type>>,
+    has_mariadb_schema_query<clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_mariadb_connection_v =
-        is_mariadb_connection<clean_t<_Type>>::value;
+        is_mariadb_connection<clean_t<Type>>::value;
 #endif
 
 
@@ -1303,68 +1313,68 @@ struct is_mariadb_connection : djinterp::conjunction<
 // -------------------------------------------------------------------------
 
 // mariadb_can_reset_connection
-//   tagless trait: true if _Type has reset_connection().
-template<typename _Type,
+//   tagless trait: true if Type has reset_connection().
+template<typename Type,
          typename = void>
 constexpr bool mariadb_can_reset_connection = false;
 
-template<typename _Type>
-constexpr bool mariadb_can_reset_connection<_Type,
-    std::void_t<mariadb_reset_connection_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mariadb_can_reset_connection<Type,
+    std::void_t<mariadb_reset_connection_t<Type>>> = true;
 
 // mariadb_can_async_connect
-//   tagless trait: true if _Type has connect_async_start().
-template<typename _Type,
+//   tagless trait: true if Type has connect_async_start().
+template<typename Type,
          typename = void>
 constexpr bool mariadb_can_async_connect = false;
 
-template<typename _Type>
-constexpr bool mariadb_can_async_connect<_Type,
-    std::void_t<mariadb_connect_async_start_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mariadb_can_async_connect<Type,
+    std::void_t<mariadb_connect_async_start_t<Type>>> = true;
 
 // mariadb_can_query_schema
-//   tagless trait: true if _Type has table_exists().
-template<typename _Type,
+//   tagless trait: true if Type has table_exists().
+template<typename Type,
          typename = void>
 constexpr bool mariadb_can_query_schema = false;
 
-template<typename _Type>
-constexpr bool mariadb_can_query_schema<_Type,
-    std::void_t<mariadb_table_exists_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mariadb_can_query_schema<Type,
+    std::void_t<mariadb_table_exists_t<Type>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
 // -------------------------------------------------------------------------
 
 // mariadb_does_async
-//   tagless trait: true if _Type supports the full non-blocking API.
-template<typename _Type,
+//   tagless trait: true if Type supports the full non-blocking API.
+template<typename Type,
          typename = void>
 constexpr bool mariadb_does_async = false;
 
-template<typename _Type>
-constexpr bool mariadb_does_async<_Type, std::void_t<
-    mariadb_connect_async_start_t<_Type>,
-    mariadb_connect_async_cont_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mariadb_does_async<Type, std::void_t<
+    mariadb_connect_async_start_t<Type>,
+    mariadb_connect_async_cont_t<Type>>> = true;
 
 // mariadb_does_schema_query
-//   tagless trait: true if _Type supports full schema introspection.
-template<typename _Type,
+//   tagless trait: true if Type supports full schema introspection.
+template<typename Type,
          typename = void>
 constexpr bool mariadb_does_schema_query = false;
 
-template<typename _Type>
-constexpr bool mariadb_does_schema_query<_Type, std::void_t<
-    mariadb_table_exists_t<_Type>,
-    mariadb_get_table_names_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mariadb_does_schema_query<Type, std::void_t<
+    mariadb_table_exists_t<Type>,
+    mariadb_get_table_names_t<Type>>> = true;
 
 // mariadb_is_full_connection
-//   tagless trait: true if _Type satisfies the complete MariaDB
+//   tagless trait: true if Type satisfies the complete MariaDB
 // connection interface (full MySQL-family connection + schema query).
-template<typename _Type>
+template<typename Type>
 constexpr bool mariadb_is_full_connection =
-    ( mysql_is_full_connection<clean_t<_Type>>  &&
-      mariadb_can_query_schema<clean_t<_Type>> );
+    ( mysql_is_full_connection<clean_t<Type>>  &&
+      mariadb_can_query_schema<clean_t<Type>> );
 
 
 // ===========================================================================
@@ -1373,27 +1383,27 @@ constexpr bool mariadb_is_full_connection =
 
 // enable_if_mariadb_connection
 //   type: SFINAE helper for MariaDB connection constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_mariadb_connection =
-    typename std::enable_if<is_mariadb_connection<clean_t<_Type>>::value>::type;
+    typename std::enable_if<is_mariadb_connection<clean_t<Type>>::value>::type;
 
 // enable_if_has_mariadb_reset
 //   type: SFINAE helper for MariaDB reset_connection constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mariadb_reset =
-    typename std::enable_if<has_mariadb_reset<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_mariadb_reset<clean_t<Type>>::value>::type;
 
 // enable_if_has_mariadb_async
 //   type: SFINAE helper for MariaDB async API constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mariadb_async =
-    typename std::enable_if<has_mariadb_async<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_mariadb_async<clean_t<Type>>::value>::type;
 
 // enable_if_has_mariadb_schema_query
 //   type: SFINAE helper for MariaDB schema query constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mariadb_schema_query =
-    typename std::enable_if<has_mariadb_schema_query<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_mariadb_schema_query<clean_t<Type>>::value>::type;
 
 
 // ===========================================================================
@@ -1416,36 +1426,36 @@ using enable_if_has_mariadb_schema_query =
 // Mariadb_connection
 //   concept: constrains types implementing the MariaDB connection
 // interface.
-template<typename _Type>
+template<typename Type>
 concept Mariadb_connection =
-    is_mariadb_connection<clean_t<_Type>>::value;
+    is_mariadb_connection<clean_t<Type>>::value;
 
 // non_mariadb_connection
 //   concept: constrains types that do not implement the MariaDB
 // connection interface.
-template<typename _Type>
+template<typename Type>
 concept non_mariadb_connection =
-    !Mariadb_connection<_Type>;
+    !Mariadb_connection<Type>;
 
 // mariadb_schema_connection
 //   concept: constrains MariaDB connections supporting schema
 // introspection.
-template<typename _Type>
+template<typename Type>
 concept mariadb_schema_connection =
-    has_mariadb_schema_query<clean_t<_Type>>::value;
+    has_mariadb_schema_query<clean_t<Type>>::value;
 
 // mariadb_resettable_connection
 //   concept: constrains MariaDB connections supporting connection reset.
-template<typename _Type>
+template<typename Type>
 concept mariadb_resettable_connection =
-    has_mariadb_reset<clean_t<_Type>>::value;
+    has_mariadb_reset<clean_t<Type>>::value;
 
 // mariadb_async_connection
 //   concept: constrains MariaDB connections supporting the non-blocking
 // connection API.
-template<typename _Type>
+template<typename Type>
 concept mariadb_async_connection =
-    has_mariadb_async<clean_t<_Type>>::value;
+    has_mariadb_async<clean_t<Type>>::value;
 
 
 // -------------------------------------------------------------------------
@@ -1454,33 +1464,33 @@ concept mariadb_async_connection =
 
 // mariadb_reset_connection_capable
 //   concept: constrains types exposing reset_connection().
-template<typename _Type>
+template<typename Type>
 concept mariadb_reset_connection_capable =
-    mariadb_can_reset_connection<clean_t<_Type>>;
+    mariadb_can_reset_connection<clean_t<Type>>;
 
 // mariadb_async_connect_startable
 //   concept: constrains types exposing connect_async_start().
-template<typename _Type>
+template<typename Type>
 concept mariadb_async_connect_startable =
-    mariadb_can_async_connect<clean_t<_Type>>;
+    mariadb_can_async_connect<clean_t<Type>>;
 
 // mariadb_async_connect_continuable
 //   concept: constrains types exposing connect_async_cont(status).
-template<typename _Type>
+template<typename Type>
 concept mariadb_async_connect_continuable =
-    is_detected<mariadb_connect_async_cont_t, clean_t<_Type>>::value;
+    is_detected<mariadb_connect_async_cont_t, clean_t<Type>>::value;
 
 // mariadb_table_exists_query
 //   concept: constrains types exposing table_exists(name).
-template<typename _Type>
+template<typename Type>
 concept mariadb_table_exists_query =
-    mariadb_can_query_schema<clean_t<_Type>>;
+    mariadb_can_query_schema<clean_t<Type>>;
 
 // mariadb_table_names_query
 //   concept: constrains types exposing get_table_names().
-template<typename _Type>
+template<typename Type>
 concept mariadb_table_names_query =
-    is_detected<mariadb_get_table_names_t, clean_t<_Type>>::value;
+    is_detected<mariadb_get_table_names_t, clean_t<Type>>::value;
 
 
 // -------------------------------------------------------------------------
@@ -1490,23 +1500,23 @@ concept mariadb_table_names_query =
 // mariadb_async_handshakeable
 //   concept: constrains types satisfying the full tagless async handshake
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept mariadb_async_handshakeable =
-    mariadb_does_async<clean_t<_Type>>;
+    mariadb_does_async<clean_t<Type>>;
 
 // mariadb_schema_queryable
 //   concept: constrains types satisfying the full tagless schema-query
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept mariadb_schema_queryable =
-    mariadb_does_schema_query<clean_t<_Type>>;
+    mariadb_does_schema_query<clean_t<Type>>;
 
 // mariadb_full_connection
 //   concept: constrains types satisfying the complete tagless MariaDB
 // connection capability set.
-template<typename _Type>
+template<typename Type>
 concept mariadb_full_connection =
-    mariadb_is_full_connection<clean_t<_Type>>;
+    mariadb_is_full_connection<clean_t<Type>>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -1514,5 +1524,6 @@ concept mariadb_full_connection =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_MARIADB_
+#endif  // DJINTERP_DB_MARIADB_MARIADB_HPP

@@ -1,14 +1,14 @@
-/***********************************************************************
-* re_std                                               allocate_shared.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          allocate_shared.hpp
 *
 * allocator-aware single-allocation factory for shared_ptr.
 *
 * overloads provided:
-*   allocate_shared<_T>(alloc, _args...)
-*   allocate_shared<_T[]>(alloc, _n)              value-init
-*   allocate_shared<_T[]>(alloc, _n, _u)          copy-init from _u
-*   allocate_shared<_T[_N]>(alloc)                bounded, value-init
-*   allocate_shared<_T[_N]>(alloc, _u)            bounded, copy-init
+*   allocate_shared<T>(alloc, _args...)
+*   allocate_shared<T[]>(alloc, _n)              value-init
+*   allocate_shared<T[]>(alloc, _n, _u)          copy-init from _u
+*   allocate_shared<T[_N]>(alloc)                bounded, value-init
+*   allocate_shared<T[_N]>(alloc, _u)            bounded, copy-init
 *
 * the array forms rebind the allocator to unsigned char and allocate
 * a single byte block large enough to hold the cb plus n elements,
@@ -18,26 +18,29 @@
 * see allocate_shared_for_overwrite.hpp for the default-init variants.
 *
 *
-* path:      /inc/djinterp/re_std/memory/allocate_shared.hpp
+* path:      /inc/re_std/memory/allocate_shared.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_
-#define DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_ 1
+#ifndef RE_STD_MEMORY_ALLOCATE_SHARED_HPP
+#define RE_STD_MEMORY_ALLOCATE_SHARED_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
     #include <new>
 
     #include "re_std/memory/shared_ptr.hpp"
     #include "re_std/memory/allocator_traits.hpp"
     #include "re_std/memory/sp_control_block.hpp"
-    #include "re_std/memory/make_shared.hpp"           // for array_extent
+    #include "re_std/memory/make_shared.hpp"                    // for array_extent
     #include "re_std/type_traits/enable_if.hpp"
     #include "re_std/type_traits/is_array.hpp"
     #include "re_std/type_traits/is_bounded_array.hpp"
@@ -50,29 +53,29 @@ namespace re_std
 {
 
 // ---------------------------------------------------------------------
-// allocate_shared<_T>(alloc, _args...)  -  non-array form
+// allocate_shared<T>(alloc, _args...)  -  non-array form
 // ---------------------------------------------------------------------
-template<typename _T, typename _Alloc, typename... _Args>
+template<typename T, typename Alloc, typename... Args>
 typename enable_if
 <
-    !is_array<_T>::value,
-    shared_ptr<_T>
+    !is_array<T>::value,
+    shared_ptr<T>
 >::type
-allocate_shared(const _Alloc& _alloc, _Args&&... _args)
+allocate_shared(const Alloc& _alloc, Args&&... _args)
 {
-    typedef internal::sp_cb_alloc_inplace<_T, _Alloc>     cb_t;
-    typedef typename allocator_traits<_Alloc>
+    typedef internal::sp_cb_alloc_inplace<T, Alloc>     cb_t;
+    typedef typename allocator_traits<Alloc>
         ::template rebind_alloc<cb_t>                     alloc_cb_t;
     typedef allocator_traits<alloc_cb_t>                  cb_traits;
 
     alloc_cb_t _a_cb(_alloc);
     cb_t* _cb = cb_traits::allocate(_a_cb, 1);
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             cb_traits::construct(_a_cb, _cb, _alloc,
-                                 re_std::forward<_Args>(_args)...);
+                                 re_std::forward<Args>(_args)...);
         }
         catch (...)
         {
@@ -81,10 +84,10 @@ allocate_shared(const _Alloc& _alloc, _Args&&... _args)
         }
     #else
         cb_traits::construct(_a_cb, _cb, _alloc,
-                             re_std::forward<_Args>(_args)...);
+                             re_std::forward<Args>(_args)...);
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_cb->get(), _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_cb->get(), _cb);
 }
 
 
@@ -97,19 +100,19 @@ allocate_shared(const _Alloc& _alloc, _Args&&... _args)
 // readable.
 
 // ---------------------------------------------------------------------
-// allocate_shared<_T[]>(alloc, _n)  -  unbounded, value-init
+// allocate_shared<T[]>(alloc, _n)  -  unbounded, value-init
 // ---------------------------------------------------------------------
-template<typename _T, typename _Alloc>
+template<typename T, typename Alloc>
 typename enable_if
 <
-    is_unbounded_array<_T>::value,
-    shared_ptr<_T>
+    is_unbounded_array<T>::value,
+    shared_ptr<T>
 >::type
-allocate_shared(const _Alloc& _alloc, std::size_t _n)
+allocate_shared(const Alloc& _alloc, std::size_t _n)
 {
-    typedef typename remove_extent<_T>::type                       _U;
-    typedef internal::sp_cb_alloc_inplace_array<_U, _Alloc>        cb_t;
-    typedef typename allocator_traits<_Alloc>
+    typedef typename remove_extent<T>::type                       _U;
+    typedef internal::sp_cb_alloc_inplace_array<_U, Alloc>        cb_t;
+    typedef typename allocator_traits<Alloc>
         ::template rebind_alloc<unsigned char>                     byte_alloc_t;
     typedef allocator_traits<byte_alloc_t>                         byte_traits;
 
@@ -121,7 +124,7 @@ allocate_shared(const _Alloc& _alloc, std::size_t _n)
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_alloc, _n);
@@ -143,25 +146,25 @@ allocate_shared(const _Alloc& _alloc, std::size_t _n)
             ::new (static_cast<void*>(_arr + _i)) _U();
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
 // ---------------------------------------------------------------------
-// allocate_shared<_T[]>(alloc, _n, _u)  -  unbounded, copy-init
+// allocate_shared<T[]>(alloc, _n, _u)  -  unbounded, copy-init
 // ---------------------------------------------------------------------
-template<typename _T, typename _Alloc>
+template<typename T, typename Alloc>
 typename enable_if
 <
-    is_unbounded_array<_T>::value,
-    shared_ptr<_T>
+    is_unbounded_array<T>::value,
+    shared_ptr<T>
 >::type
-allocate_shared(const _Alloc& _alloc, std::size_t _n,
-                const typename remove_extent<_T>::type& _u)
+allocate_shared(const Alloc& _alloc, std::size_t _n,
+                const typename remove_extent<T>::type& _u)
 {
-    typedef typename remove_extent<_T>::type                       _U;
-    typedef internal::sp_cb_alloc_inplace_array<_U, _Alloc>        cb_t;
-    typedef typename allocator_traits<_Alloc>
+    typedef typename remove_extent<T>::type                       _U;
+    typedef internal::sp_cb_alloc_inplace_array<_U, Alloc>        cb_t;
+    typedef typename allocator_traits<Alloc>
         ::template rebind_alloc<unsigned char>                     byte_alloc_t;
     typedef allocator_traits<byte_alloc_t>                         byte_traits;
 
@@ -173,7 +176,7 @@ allocate_shared(const _Alloc& _alloc, std::size_t _n,
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_alloc, _n);
@@ -195,28 +198,28 @@ allocate_shared(const _Alloc& _alloc, std::size_t _n,
             ::new (static_cast<void*>(_arr + _i)) _U(_u);
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
 // ---------------------------------------------------------------------
-// allocate_shared<_T[_N]>(alloc)  -  bounded, value-init
+// allocate_shared<T[_N]>(alloc)  -  bounded, value-init
 // ---------------------------------------------------------------------
-template<typename _T, typename _Alloc>
+template<typename T, typename Alloc>
 typename enable_if
 <
-    is_bounded_array<_T>::value,
-    shared_ptr<_T>
+    is_bounded_array<T>::value,
+    shared_ptr<T>
 >::type
-allocate_shared(const _Alloc& _alloc)
+allocate_shared(const Alloc& _alloc)
 {
-    typedef typename remove_extent<_T>::type                       _U;
-    typedef internal::sp_cb_alloc_inplace_array<_U, _Alloc>        cb_t;
-    typedef typename allocator_traits<_Alloc>
+    typedef typename remove_extent<T>::type                       _U;
+    typedef internal::sp_cb_alloc_inplace_array<_U, Alloc>        cb_t;
+    typedef typename allocator_traits<Alloc>
         ::template rebind_alloc<unsigned char>                     byte_alloc_t;
     typedef allocator_traits<byte_alloc_t>                         byte_traits;
 
-    const std::size_t _n     = internal::array_extent<_T>::value;
+    const std::size_t _n     = internal::array_extent<T>::value;
     byte_alloc_t      _ba(_alloc);
     const std::size_t _bytes = cb_t::total_bytes(_n);
     unsigned char*    _mem = byte_traits::allocate(_ba, _bytes);
@@ -225,7 +228,7 @@ allocate_shared(const _Alloc& _alloc)
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_alloc, _n);
@@ -247,29 +250,29 @@ allocate_shared(const _Alloc& _alloc)
             ::new (static_cast<void*>(_arr + _i)) _U();
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
 // ---------------------------------------------------------------------
-// allocate_shared<_T[_N]>(alloc, _u)  -  bounded, copy-init
+// allocate_shared<T[_N]>(alloc, _u)  -  bounded, copy-init
 // ---------------------------------------------------------------------
-template<typename _T, typename _Alloc>
+template<typename T, typename Alloc>
 typename enable_if
 <
-    is_bounded_array<_T>::value,
-    shared_ptr<_T>
+    is_bounded_array<T>::value,
+    shared_ptr<T>
 >::type
-allocate_shared(const _Alloc& _alloc,
-                const typename remove_extent<_T>::type& _u)
+allocate_shared(const Alloc& _alloc,
+                const typename remove_extent<T>::type& _u)
 {
-    typedef typename remove_extent<_T>::type                       _U;
-    typedef internal::sp_cb_alloc_inplace_array<_U, _Alloc>        cb_t;
-    typedef typename allocator_traits<_Alloc>
+    typedef typename remove_extent<T>::type                       _U;
+    typedef internal::sp_cb_alloc_inplace_array<_U, Alloc>        cb_t;
+    typedef typename allocator_traits<Alloc>
         ::template rebind_alloc<unsigned char>                     byte_alloc_t;
     typedef allocator_traits<byte_alloc_t>                         byte_traits;
 
-    const std::size_t _n     = internal::array_extent<_T>::value;
+    const std::size_t _n     = internal::array_extent<T>::value;
     byte_alloc_t      _ba(_alloc);
     const std::size_t _bytes = cb_t::total_bytes(_n);
     unsigned char*    _mem = byte_traits::allocate(_ba, _bytes);
@@ -278,7 +281,7 @@ allocate_shared(const _Alloc& _alloc,
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_alloc, _n);
@@ -300,12 +303,11 @@ allocate_shared(const _Alloc& _alloc,
             ::new (static_cast<void*>(_arr + _i)) _U(_u);
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_
+#endif  // RE_STD_MEMORY_ALLOCATE_SHARED_HPP

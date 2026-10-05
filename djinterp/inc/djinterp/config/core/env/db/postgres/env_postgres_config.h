@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [config][db]                                  env_postgres_config.h
+/*******************************************************************************
+* djinterp [config][db]                                    env_postgres_config.h
 *
 * Per-module configuration for env_postgresql.h. Owns all
 * D_CFG_ENV_POSTGRESQL_* defaults plus D_CFG_ENV_PG_CUSTOM and the

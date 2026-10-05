@@ -1,6 +1,5 @@
-
-/******************************************************************************
-* djinterp [container]                                      nary_tree_node.hpp
+/*******************************************************************************
+* djinterp [core]                                             nary_tree_node.hpp
 *
 * N-ary tree node:
 *   LCRS-based n-ary tree node carrying parent, first_child,
@@ -9,12 +8,12 @@
 * insert_before - the full set of operations advertised by the
 * framework's `o1_*_nary_tree` concepts.
 *
-*   Built on `linked_node<_Type, 5, nary_tree_node<_Type>*>`: the
+*   Built on `linked_node<Type, 5, nary_tree_node<Type>*>`: the
 * fixed-slot link array, constructors, and `data()` / `null_link()`
 * utilities are reused from linked_node, while this header layers
 * named link accessors and structural queries on top.
 *
-*   The link type is fixed to `nary_tree_node<_Type>*` rather than
+*   The link type is fixed to `nary_tree_node<Type>*` rather than
 * the linked_node default of `self*`.  Doing so causes resolve_self_t
 * to leave the type alone, so `link_type` resolves to the actual
 * derived class and callers never need a downcast to navigate.  The
@@ -23,7 +22,7 @@
 * their own headers when needed, mirroring the same layout.
 *
 * TEMPLATE PARAMETERS:
-*   _Type - user-facing payload type.
+*   Type - user-facing payload type.
 *
 * SLOT ASSIGNMENTS (stable across the framework):
 *   0 - parent
@@ -47,19 +46,26 @@
 *     prev_sibling_slot()         mutable slot references for the
 *                                 tree's link helpers
 *
-* 
+*
 * path:      /inc/djinterp/core/container/tree/nary/nary_tree_node.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_NARY_TREE_NODE_
-#define DJINTERP_CONTAINER_NARY_TREE_NODE_ 1
+#ifndef DJINTERP_CONTAINER_TREE_NARY_NARY_TREE_NODE_HPP
+#define DJINTERP_CONTAINER_TREE_NARY_NARY_TREE_NODE_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <cstddef>
 // djinterp
-#include "../../../djinterp.hpp"
+#include "../../../../djinterp.hpp"
 #include "../../node/linked_node.hpp"
 
 
@@ -67,16 +73,21 @@ NS_DJINTERP
 
     // forward declaration so the base specialisation can name the
     // derived class as its link type
-    template<typename _Type>
+    template<typename Type>
     class nary_tree_node;
 
-    // forward declaration of nary_tree to friend it for slot
-    // access; the four template parameters mirror nary_tree.hpp's
-    // signature
-    template<typename _ValueType,
-             typename _Allocator,
-             typename _LockPolicy,
-             typename _OwnershipPolicy>
+    // forward declaration of nary_tree to friend it for slot access; the
+    // template parameters mirror nary_tree.hpp's signature -- THREE POSITIONAL
+    // POLICIES AND A TRAILING OPTION PACK. The pack is what carries the
+    // framework's per-axis options (container_options.hpp) into the container,
+    // and it
+    // must appear here or the friendship below will not match the class it
+    // names and every link helper loses slot access.
+    template<typename    ValueType,
+             typename    Allocator,
+             typename    LockPolicy,
+             typename    OwnershipPolicy,
+             typename... Options>
     class nary_tree;
 
 
@@ -84,8 +95,8 @@ NS_DJINTERP
 
         // nary_link_index
         //   enum: stable slot indices for the LCRS topology.
-        // Names match the public link accessors and are used
-        // throughout nary_tree's link helpers.
+        // Names match the public link accessors and are used throughout
+        // nary_tree's link helpers.
         enum nary_link_index : std::size_t
         {
             nary_link_parent       = 0,
@@ -105,25 +116,26 @@ NS_DJINTERP
     // =========================================================================
 
     // nary_tree_node
-    //   class: LCRS n-ary tree node built on linked_node<T, 5>.
-    // Storage and constructors are reused from the base; this
-    // wrapper adds typed, const-correct link accessors and the
-    // structural queries the trait system probes for.
-    template<typename _Type>
+    //   class: LCRS n-ary tree node built on linked_node<T, 5>. Storage and
+    // constructors are reused from the base; this wrapper adds typed,
+    // const-correct link accessors and the structural queries the trait system
+    // probes for.
+    template<typename Type>
     class nary_tree_node
-        : private linked_node<_Type,
+        : private linked_node<Type,
                               internal::nary_link_count,
-                              nary_tree_node<_Type>*>
+                              nary_tree_node<Type>*>
     {
     private:
-        using base = linked_node<_Type,
+        using base = linked_node<Type,
                                  internal::nary_link_count,
-                                 nary_tree_node<_Type>*>;
+                                 nary_tree_node<Type>*>;
 
-        // tree is friended so its link helpers can write the
-        // mutable slot references without leaking those into the
-        // public API
-        template<typename, typename, typename, typename>
+        // tree is friended so its link helpers can write the mutable slot
+        // references without leaking those into the public API. The trailing
+        // pack matches nary_tree's option parameters; without it this names a
+        // DIFFERENT template and befriends nothing.
+        template<typename, typename, typename, typename, typename...>
         friend class nary_tree;
 
     public:
@@ -144,8 +156,8 @@ NS_DJINTERP
         // constructors / destructor / assignment
         // -----------------------------------------------------------------
 
-        // forward all of linked_node's constructors (default,
-        // value-copy, value-move, value+edges)
+        // forward all of linked_node's constructors (default, value-copy,
+        // value-move, value+edges)
         using base::base;
 
         // copy and move are deleted at the node level - the tree
@@ -171,8 +183,7 @@ NS_DJINTERP
         // -----------------------------------------------------------------
 
         // parent
-        //   returns the parent link, or null if this node is a
-        // root.
+        //   returns the parent link, or null if this node is a root.
         D_CONSTEXPR link_type
         parent() noexcept
         {
@@ -186,8 +197,7 @@ NS_DJINTERP
         }
 
         // first_child
-        //   returns the leftmost child link, or null if this node
-        // is a leaf.
+        //   returns the leftmost child link, or null if this node is a leaf.
         D_CONSTEXPR link_type
         first_child() noexcept
         {
@@ -203,9 +213,8 @@ NS_DJINTERP
         }
 
         // last_child
-        //   returns the rightmost child link.  Maintained eagerly
-        // by nary_tree's link helpers so that O(1) append is
-        // available.
+        //   returns the rightmost child link. Maintained eagerly by
+        // nary_tree's link helpers so that O(1) append is available.
         D_CONSTEXPR link_type
         last_child() noexcept
         {
@@ -221,8 +230,8 @@ NS_DJINTERP
         }
 
         // next_sibling
-        //   returns the immediate right sibling, or null at the
-        // tail of the sibling chain.
+        //   returns the immediate right sibling, or null at the tail of the
+        // sibling chain.
         D_CONSTEXPR link_type
         next_sibling() noexcept
         {
@@ -238,8 +247,8 @@ NS_DJINTERP
         }
 
         // prev_sibling
-        //   returns the immediate left sibling, or null at the
-        // head of the sibling chain.
+        //   returns the immediate left sibling, or null at the head of the
+        // sibling chain.
         D_CONSTEXPR link_type
         prev_sibling() noexcept
         {
@@ -276,9 +285,9 @@ NS_DJINTERP
         }
 
         // child_count
-        //   counts direct children by walking the sibling chain
-        // from first_child.  O(child_count); for amortised O(1)
-        // counts a derived class can cache the value externally.
+        //   counts direct children by walking the sibling chain from
+        // first_child. O(child_count); for amortised O(1) counts a derived
+        // class can cache the value externally.
         D_CONSTEXPR size_type
         child_count() const noexcept
         {
@@ -350,5 +359,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_NARY_TREE_NODE_
+#endif  // DJINTERP_CONTAINER_TREE_NARY_NARY_TREE_NODE_HPP

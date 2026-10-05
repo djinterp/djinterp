@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [re_std]                                                   typeinfo
+/*******************************************************************************
+* djinterp [re_std]                                                     typeinfo
 *
 * typeinfo umbrella header:
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/re_std/typeinfo/. Mirrors the standard <typeinfo> header.
+* /inc/re_std/typeinfo/. Mirrors the standard <typeinfo> header.
 * The whole module is a strategic re-export: type_info, bad_cast, and
 * bad_typeid are compiler-and-runtime-provided RTTI types that cannot be
 * reimplemented portably, so re_std surfaces the std types in-namespace
@@ -11,30 +11,37 @@
 * symbols of its own.
 *
 *   PORTABILITY:
-*   Every symbol is C++98 baseline, gated on D_ENV_CPP98_HAS_TYPEINFO
+*   Every symbol is C++98 baseline, gated on RE_STD_HAS_RTTI
 * (RTTI availability). On a -fno-rtti build the module expands to
 * nothing. type_info::hash_code() (C++11) and the C++23 constant-
 * evaluation support for type_info comparisons ride along from the std
 * type with no re_std involvement.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    type_info
-* II.   bad_cast
-* III.  bad_typeid
-*
-*
-* path:      /inc/djinterp/re_std/typeinfo/typeinfo
+* path:      /inc/re_std/typeinfo/typeinfo
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPEINFO_
-#define DJINTERP_RE_STD_TYPEINFO_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    type_info
+      ---------
 
-// djinterp
-#include "../../core/djinterp.hpp"
+II.   bad_cast
+      --------
+
+III.  bad_typeid
+      ----------
+*/
+
+#ifndef RE_STD_TYPEINFO_TYPEINFO
+#define RE_STD_TYPEINFO_TYPEINFO 1
+
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // =============================================================================
@@ -58,4 +65,4 @@
 #include "./bad_typeid.hpp"
 
 
-#endif  // DJINTERP_RE_STD_TYPEINFO_
+#endif  // RE_STD_TYPEINFO_TYPEINFO

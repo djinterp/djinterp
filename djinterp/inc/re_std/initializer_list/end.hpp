@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                         end.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                      end.hpp
 *
 * non-member end for initializer_list:
 *   returns a pointer one past the last element of an initializer_list.
@@ -9,37 +9,39 @@
 *   every tier.
 *
 *
-* path:      /inc/djinterp/re_std/initializer_list/end.hpp
+* path:      /inc/re_std/initializer_list/end.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_INITIALIZER_LIST_END_
-#define DJINTERP_RE_STD_INITIALIZER_LIST_END_ 1
+#ifndef RE_STD_INITIALIZER_LIST_END_HPP
+#define RE_STD_INITIALIZER_LIST_END_HPP 1
 
-// djinterp
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "initializer_list.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
     // end
     //   function: pointer one past the last element of an initializer_list.
-    template<typename _Type>
-    D_CONSTEXPR const _Type*
+    template<typename Type>
+    RE_STD_CONSTEXPR const Type*
     end(
-        initializer_list<_Type> _il
-    ) D_NOEXCEPT
+        initializer_list<Type> _il
+    ) RE_STD_NOEXCEPT
     {
         return _il.end();
     }
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_INITIALIZER_LIST_END_
+#endif  // RE_STD_INITIALIZER_LIST_END_HPP

@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [ios]                                                     ios_base.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 ios_base.hpp
 *
+* ios_base class header:
 *   ios_base - the non-template base of every stream: format flags, stream
 * state, and the open-mode and seek-direction enumerations.
 *
@@ -40,20 +41,27 @@
 *   STD IS C++98; re_std IS C++98.
 *
 *
-* path:      /inc/djinterp/re_std/ios/ios_base.hpp
+* path:      /inc/re_std/ios/ios_base.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_IOS_IOS_BASE_
-#define DJINTERP_RE_STD_IOS_IOS_BASE_ 1
+#ifndef RE_STD_IOS_IOS_BASE_HPP
+#define RE_STD_IOS_IOS_BASE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
-#include "../../core/djinterp.hpp"
 #include "../type_traits/type_traits.hpp"
 #include "./stream_types.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // ios_base
 //   class: format state and the stream-wide enumerations.
@@ -191,5 +199,9 @@ private:
     streamsize m_width;
 };
 
-NS_END  // re_std
-#endif  // DJINTERP_RE_STD_IOS_IOS_BASE_
+}  // re_std
+
+#endif  // floor, for now
+
+
+#endif  // RE_STD_IOS_IOS_BASE_HPP

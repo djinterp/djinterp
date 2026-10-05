@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              environment.hpp
 *
 * getenv and system (re-exports):
@@ -13,7 +13,7 @@
 *
 *   system IS A SECURITY BOUNDARY:
 *   The argument is handed to a command interpreter, so any part of it
-* built from untrusted input is a shell injection. `system(D_NULLPTR)`
+* built from untrusted input is a shell injection. `system(RE_STD_NULLPTR)`
 * is the one safe call -- it merely reports whether an interpreter is
 * available. There is no portable escaping routine, which is why re_std
 * offers none: a helper that looked like it made the call safe would be
@@ -25,25 +25,27 @@
 * under a re_std:: name would promise portability that does not exist.
 *
 *
-* path:      /inc/djinterp/re_std/cstdlib/environment.hpp
+* path:      /inc/re_std/cstdlib/environment.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDLIB_ENVIRONMENT_
-#define DJINTERP_RE_STD_CSTDLIB_ENVIRONMENT_ 1
+#ifndef RE_STD_CSTDLIB_ENVIRONMENT_HPP
+#define RE_STD_CSTDLIB_ENVIRONMENT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstdlib>
 
 
-NS_RESTD
+namespace re_std
+{
 
     // getenv
     //   function: look up an environment variable, or null if unset. The
@@ -55,10 +57,10 @@ NS_RESTD
     // build the argument from untrusted input.
     using ::std::system;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CSTDLIB_ENVIRONMENT_
+#endif  // RE_STD_CSTDLIB_ENVIRONMENT_HPP

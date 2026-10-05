@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                 bad_alloc.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                bad_alloc.hpp
 *
 * bad_alloc re-export header:
 *   re_std::bad_alloc is a using-alias for std::bad_alloc — the
@@ -17,19 +17,23 @@
 * xalloc in pre-standard libraries). No back-port needed.
 *
 *
-* path:      /inc/djinterp/re_std/new/bad_alloc.hpp
+* path:      /inc/re_std/new/bad_alloc.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BAD_ALLOC_
-#define DJINTERP_RE_STD_BAD_ALLOC_ 1
+#ifndef RE_STD_NEW_BAD_ALLOC_HPP
+#define RE_STD_NEW_BAD_ALLOC_HPP 1
 
-#include "../../core/djinterp.hpp"
+// std
 #include <new>
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -43,7 +47,7 @@ NS_RESTD
 using std::bad_alloc;
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_BAD_ALLOC_
+#endif  // RE_STD_NEW_BAD_ALLOC_HPP

@@ -1,62 +1,88 @@
-/******************************************************************************
-* djinterp [container]                                   constrained_table.hpp
+/*******************************************************************************
+* djinterp [core]                                          constrained_table.hpp
 *
-*   constrained_table -- the BAG-LEVEL conjunction overlay over a table backing
+*   constrained_table -- the BAG-LEVEL conjunction overlay over a table
+* backing
 * (Overlays: containers as restriction bundles).  It bundles the two bag-level
 * restrictions of the vocabulary, both blind to order and construction:
 *
-*     capacity  gamma_kappa (bag-level)   at most kappa rows: |c| is capped, and
-*                                          an insertion past the cap is refused,
-*                                          not admitted (the overlay is preserved,
+*     capacity gamma_kappa (bag-level) at most kappa rows: |c| is capped, and
+*                                          an insertion past the cap is
+*                                        refused,
+*                                          not admitted (the overlay is
+*                                        preserved,
 *                                          not merely tested).
-*     domain    delta_I (bag-level)        every cell lies in a closed interval
-*                                          [lo, hi]: a value outside the domain is
-*                                          refused.  The domain is optional -- a
-*                                          constrained_table may carry only the
+*     domain delta_I (bag-level) every cell lies in a closed interval
+*                                          [lo, hi]: a value outside the
+*                                        domain is
+*                                          refused. The domain is optional --
+*                                        a
+*                                          constrained_table may carry only
+*                                        the
 *                                          capacity restriction.
 *
 *   The bundle is {gamma_kappa} or {gamma_kappa, delta_I}, and adding delta_I
-* strictly strengthens it (a smaller extension) exactly when some value would lie
+* strictly strengthens it (a smaller extension) exactly when some value would
+* lie
 * outside I.  Both being bag-level, the overlay is order-blind: it observes a
 * container only through its bag of cells and treats permutations alike.
 *
-*   PRESERVATION.  push_row admits a row only when it keeps the container within
-* the cap AND (when a domain is set) every cell lies in the interval; otherwise it
+*   PRESERVATION. push_row admits a row only when it keeps the container
+* within
+* the cap AND (when a domain is set) every cell lies in the interval;
+* otherwise it
 * refuses -- throwing, or, in the try_ form, reporting failure.  Removal is
-* unconstrained (dropping rows keeps both restrictions), and neither ceiling nor
-* domain is ever silently broken.  This is the shape of a BOUNDED source under an
+* unconstrained (dropping rows keeps both restrictions), and neither ceiling
+* nor
+* domain is ever silently broken. This is the shape of a BOUNDED source under
+* an
 * operation that must respect the ceiling.
 *
-*   CLASSIFICATION.  A fixed cap with no growth accessor makes the framework read
-* the container as BOUNDED (capacity present, no reserve).  Cf. a fixed-capacity
-* unique buffer {mu_1^E, gamma_kappa} or an interval set {mu_1^E, delta_I}: those
+*   CLASSIFICATION. A fixed cap with no growth accessor makes the framework
+* read
+* the container as BOUNDED (capacity present, no reserve). Cf. a
+* fixed-capacity
+* unique buffer {mu_1^E, gamma_kappa} or an interval set {mu_1^E, delta_I}:
+* those
 * add a multiplicity/order restriction on top of these same bag-level bounds.
 *
 *   PORTABILITY:
 *   C++17 (inherits the table backing and the options surface).  The domain
-* restriction requires _Type to be ordered (operator<).
+* restriction requires Type to be ordered (operator<).
 *
 *
 * path:      /inc/djinterp/core/container/table/constrained_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    is_constrained_table (detection trait)
+      --------------------------------------
+
 II.   constrained_table (class)
-      1. member types and overlay / axis markers
-      2. construction
-      3. read surface (delegated, const)
-      4. restriction queries (capacity / domain)
-      5. structural mutation (restriction-preserving)
+      -------------------------
+      1.    member types and overlay / axis markers
+      2.    construction
+      3.    read surface (delegated, const)
+      4.    restriction queries (capacity / domain)
+      5.    structural mutation (restriction-preserving)
+
 III.  make_constrained_table
+      ----------------------
 */
 
-#ifndef DJINTERP_CONTAINER_CONSTRAINED_TABLE_
-#define DJINTERP_CONTAINER_CONSTRAINED_TABLE_ 1
+#ifndef DJINTERP_CONTAINER_TABLE_CONSTRAINED_TABLE_HPP
+#define DJINTERP_CONTAINER_TABLE_CONSTRAINED_TABLE_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -64,7 +90,7 @@ III.  make_constrained_table
 #include <stdexcept>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
+#include "../../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
 #include "./table.hpp"                             // table backing (+ hierarchical tag)
 #include "../container_options.hpp"                // axis enums, options base
 
@@ -77,41 +103,41 @@ NS_DJINTERP
 // ===========================================================================
 
 // constrained_table (fwd)
-template<typename    _Type,
-         std::size_t _MaxRows,
-         typename    _SizeType,
-         typename    _DifferenceType,
-         typename... _Options>
+template<typename    Type,
+         std::size_t MaxRows,
+         typename    SizeType,
+         typename    DifferenceType,
+         typename... Options>
 class constrained_table;
 
 // is_constrained_table
-//   trait: true when _Type (after stripping cv/ref) is a specialization of
+//   trait: true when Type (after stripping cv/ref) is a specialization of
 // constrained_table.
 NS_INTERNAL
 
-    template<typename _Type>
+    template<typename Type>
     struct is_constrained_table_impl : std::false_type
     {};
 
-    template<typename    _T,
-             std::size_t _M,
-             typename    _S,
-             typename    _D,
-             typename... _O>
-    struct is_constrained_table_impl<constrained_table<_T, _M, _S, _D, _O...>>
+    template<typename    T,
+             std::size_t M,
+             typename    S,
+             typename    D,
+             typename... O>
+    struct is_constrained_table_impl<constrained_table<T, M, S, D, O...>>
         : std::true_type
     {};
 
 NS_END  // internal
 
-template<typename _Type>
-struct is_constrained_table : internal::is_constrained_table_impl<clean_t<_Type>>
+template<typename Type>
+struct is_constrained_table : internal::is_constrained_table_impl<clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_constrained_table_v =
-    is_constrained_table<_Type>::value;
+    is_constrained_table<Type>::value;
 #endif
 
 
@@ -120,42 +146,42 @@ inline constexpr bool is_constrained_table_v =
 // ===========================================================================
 
 // constrained_table
-//   class: a table capped at _MaxRows rows and, optionally, with cells confined
-// to a closed interval.  Wraps a `table` backing, delegates the read surface,
-// and admits rows only when they keep both restrictions.
-template<typename    _Type,
-         std::size_t _MaxRows,
-         typename    _SizeType       = std::size_t,
-         typename    _DifferenceType = std::ptrdiff_t,
-         typename... _Options>
+//   class: a table capped at MaxRows rows and, optionally, with cells
+// confined to a closed interval. Wraps a `table` backing, delegates the read
+// surface, and admits rows only when they keep both restrictions.
+template<typename    Type,
+         std::size_t MaxRows,
+         typename    SizeType        = std::size_t,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename... Options>
 class constrained_table
-    : public options_container_base<_Options...>
+    : public options_container_base<Options...>
 {
 private:
-    using backing_type = table<_Type, _DifferenceType, _SizeType>;
+    using backing_type = table<Type, DifferenceType, SizeType>;
 
 public:
     // --- 1. member types and overlay / axis markers ---
 
-    using value_type       = _Type;
-    using cell_type        = _Type;
-    using size_type        = _SizeType;
-    using difference_type  = _DifferenceType;
-    using reference        = const _Type&;   // cells read-only; growth is checked
-    using const_reference  = const _Type&;
-    using pointer          = const _Type*;
-    using const_pointer    = const _Type*;
+    using value_type       = Type;
+    using cell_type        = Type;
+    using size_type        = SizeType;
+    using difference_type  = DifferenceType;
+    using reference        = const Type&;   // cells read-only; growth is checked
+    using const_reference  = const Type&;
+    using pointer          = const Type*;
+    using const_pointer    = const Type*;
 
     using const_iterator     = typename backing_type::const_iterator;
     using const_row_type     = typename backing_type::const_row_type;
     using const_row_iterator = typename backing_type::const_row_iterator;
 
-    using element_type       = _Type;
+    using element_type       = Type;
     using structure_category = hierarchical;
 
     // overlay markers (the restriction bundle this container wears).
     static constexpr bool      bounded_overlay = true;                       // gamma_kappa
-    static constexpr size_type max_row_capacity = static_cast<size_type>(_MaxRows);
+    static constexpr size_type max_row_capacity = static_cast<size_type>(MaxRows);
 
     // axis positions.
     static constexpr container_lifetime      lifetime      =
@@ -187,8 +213,8 @@ public:
 
     // capacity and domain: {gamma_kappa, delta_I} with I = [_lo, _hi].
     constrained_table(
-        const _Type& _lo,
-        const _Type& _hi
+        const Type& _lo,
+        const Type& _hi
     )
         : m_base(),
           m_has_domain(true),
@@ -321,19 +347,19 @@ public:
         return m_has_domain;
     }
 
-    D_NODISCARD const _Type& domain_low() const noexcept
+    D_NODISCARD const Type& domain_low() const noexcept
     {
         return m_lo;
     }
 
-    D_NODISCARD const _Type& domain_high() const noexcept
+    D_NODISCARD const Type& domain_high() const noexcept
     {
         return m_hi;
     }
 
     // in_domain -- whether _value lies in the closed interval [lo, hi] (always
     // true when no domain is set).
-    D_NODISCARD bool in_domain(const _Type& _value) const
+    D_NODISCARD bool in_domain(const Type& _value) const
     {
         // no domain restriction admits every value
         if (!m_has_domain)
@@ -351,7 +377,7 @@ public:
     // try_push_row -- append _row iff it keeps the bundle: the cap is not yet
     // reached AND (when a domain is set) every cell lies in the interval.
     // Returns whether the row was admitted; never breaks a restriction.
-    D_NODISCARD bool try_push_row(std::initializer_list<_Type> _row)
+    D_NODISCARD bool try_push_row(std::initializer_list<Type> _row)
     {
         // gamma_kappa: refuse once the ceiling is reached
         if (full())
@@ -362,7 +388,7 @@ public:
         // delta_I: refuse a row carrying any out-of-domain cell
         if (m_has_domain)
         {
-            for (const _Type& cell : _row)
+            for (const Type& cell : _row)
             {
                 if (!in_domain(cell))
                 {
@@ -378,7 +404,7 @@ public:
 
     // push_row -- append _row, throwing when a restriction would be broken
     // (std::length_error past the cap, std::out_of_range outside the domain).
-    void push_row(std::initializer_list<_Type> _row)
+    void push_row(std::initializer_list<Type> _row)
     {
         // gamma_kappa
         if (full())
@@ -390,7 +416,7 @@ public:
         // delta_I
         if (m_has_domain)
         {
-            for (const _Type& cell : _row)
+            for (const Type& cell : _row)
             {
                 if (!in_domain(cell))
                 {
@@ -405,7 +431,8 @@ public:
         return;
     }
 
-    // erase_row -- remove the row at index _r (removal keeps both restrictions).
+    // erase_row -- remove the row at index _r (removal keeps both
+    // restrictions).
     void erase_row(size_type _r)
     {
         m_base.erase_row(_r);
@@ -432,8 +459,8 @@ public:
 private:
     backing_type m_base;        // the row store, held within the cap
     bool         m_has_domain;  // whether delta_I is active
-    _Type        m_lo;          // domain lower bound (inclusive)
-    _Type        m_hi;          // domain upper bound (inclusive)
+    Type         m_lo;          // domain lower bound (inclusive)
+    Type         m_hi;          // domain upper bound (inclusive)
 };
 
 
@@ -442,30 +469,31 @@ private:
 // ===========================================================================
 
 // make_constrained_table
-//   function: a capacity-only constrained_table<_Type, _MaxRows>.
-template<std::size_t _MaxRows,
-         typename    _Type>
-D_NODISCARD constrained_table<_Type, _MaxRows>
+//   function: a capacity-only constrained_table<Type, MaxRows>.
+template<std::size_t MaxRows,
+         typename    Type>
+D_NODISCARD constrained_table<Type, MaxRows>
 make_constrained_table()
 {
-    return constrained_table<_Type, _MaxRows>();
+    return constrained_table<Type, MaxRows>();
 }
 
 // make_domain_table
-//   function: a constrained_table<_Type, _MaxRows> with domain [_lo, _hi].
-template<std::size_t _MaxRows,
-         typename    _Type>
-D_NODISCARD constrained_table<_Type, _MaxRows>
+//   function: a constrained_table<Type, MaxRows> with domain [_lo, _hi].
+template<std::size_t MaxRows,
+         typename    Type>
+D_NODISCARD constrained_table<Type, MaxRows>
 make_domain_table(
-    const _Type& _lo,
-    const _Type& _hi)
+    const Type& _lo,
+    const Type& _hi)
 {
-    return constrained_table<_Type, _MaxRows>(_lo, _hi);
+    return constrained_table<Type, MaxRows>(_lo, _hi);
 }
 
 
 // ---------------------------------------------------------------------------
-// axis / overlay conformance -- a fixed cap with no growth accessor must read as
+// axis / overlay conformance -- a fixed cap with no growth accessor must read
+// as
 // BOUNDED (representative instantiation).
 // ---------------------------------------------------------------------------
 namespace table_axis_conformance
@@ -483,5 +511,6 @@ namespace table_axis_conformance
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_CONSTRAINED_TABLE_
+#endif  // DJINTERP_CONTAINER_TABLE_CONSTRAINED_TABLE_HPP

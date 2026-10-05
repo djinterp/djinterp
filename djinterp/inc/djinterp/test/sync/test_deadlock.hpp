@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                           test_deadlock.hpp
+/*******************************************************************************
+* djinterp [test]                                              test_deadlock.hpp
 *
 *   Deadlock detection and timeout watchdog primitives for the DTest
 * multithreading harness.  Provides two complementary mechanisms:
@@ -35,41 +35,61 @@
 * stubs (single-threaded; watchdog never fires; tracker is a no-op).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    DEADLOCK REPORT
-* II.   DEADLOCK WATCHDOG
-* III.  LOCK ORDER TRACKER
-* IV.   SCOPED WATCHDOG (RAII)
-* V.    FACTORY HELPERS
-*
-*
 * path:      /inc/djinterp/test/sync/test_deadlock.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_DEADLOCK_
-#define DJINTERP_TEST_DEADLOCK_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    DEADLOCK REPORT
+      ---------------
+
+II.   DEADLOCK WATCHDOG
+      -----------------
+
+III.  LOCK ORDER TRACKER
+      ------------------
+
+IV.   SCOPED WATCHDOG (RAII)
+      ----------------------
+
+V.    FACTORY HELPERS
+      ---------------
+*/
+
+#ifndef DJINTERP_TEST_SYNC_TEST_DEADLOCK_HPP
+#define DJINTERP_TEST_SYNC_TEST_DEADLOCK_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
-
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // fixed-width integers
 // djinterp core first: defines the D_ENV_LANG_* gates the std block needs
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>
     #include <chrono>
     #include <condition_variable>
     #include <functional>
+    #include <memory>
     #include <mutex>
     #include <thread>
     #include <utility>
     #include <vector>
 #else
+    // std
     #include <vector>
 #endif
 #include "../../core/sync/atomic.hpp"
@@ -259,11 +279,11 @@ public:
     //   sets the watchdog deadline.  Must be called before
     // arm() - changes after arming are ignored until the
     // next arm cycle.
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_timeout(
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     )
     {
         m_timeout = std::chrono::duration_cast<duration_type>(
@@ -946,11 +966,11 @@ private:
 class scoped_deadlock_watchdog
 {
 public:
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     scoped_deadlock_watchdog(
         deadlock_watchdog&                          _wd,
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     )
         : m_wd(_wd)
     {
@@ -982,20 +1002,22 @@ private:
 
 // make_deadlock_watchdog
 //   function: convenience constructor for a configured
-// deadlock_watchdog.  Returns a watchdog with the given
-// timeout and description set; not yet armed.
-template<typename _Rep,
-         typename _Period>
-D_INLINE deadlock_watchdog
+// deadlock_watchdog, with the given timeout and description set; not
+// yet armed.  It returns an owning pointer: a watchdog owns a thread, a
+// mutex and a condition variable, so it can be neither copied nor moved,
+// and a factory returning one by value could never compile.
+template<typename Rep,
+         typename Period>
+D_INLINE std::unique_ptr<deadlock_watchdog>
 make_deadlock_watchdog(
-    const std::chrono::duration<_Rep, _Period>& _timeout,
+    const std::chrono::duration<Rep, Period>& _timeout,
     std::string                                  _description = std::string()
 )
 {
-    deadlock_watchdog wd;
+    std::unique_ptr<deadlock_watchdog> wd(new deadlock_watchdog());
 
-    wd.set_timeout(_timeout);
-    wd.set_description(std::move(_description));
+    wd->set_timeout(_timeout);
+    wd->set_description(std::move(_description));
 
     return wd;
 }
@@ -1108,5 +1130,7 @@ private:
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_DEADLOCK_
+
+#endif  // DJINTERP_TEST_SYNC_TEST_DEADLOCK_HPP

@@ -1,0 +1,831 @@
+/*******************************************************************************
+* djinterp [test]                                                          dtest
+*
+*   dTest -- for those who DETEST unit testing.
+*
+*   Unified include for the DTest testing framework. Including this single
+* file brings in the complete test framework with all subsystems:
+*
+*     assert         - assertion primitives (eq, neq, lt, gt, null, etc.)
+*     test_common    - shared types, enums, and symbols
+*     test_cvar      - registry-based configuration and metadata schema
+*     test_options   - hierarchical flag system and configuration presets
+*     test_stats     - aggregate statistics tracking and counter macros
+*     test           - core test structure with variadic child composition
+*     test_block     - test block grouping with shared lifecycle hooks
+*     test_module    - logical test module with result tracking
+*     test_tree      - generic tree node for test hierarchy
+*     test_session   - top-level session runner with output formatting
+*     test_handler   - event-driven orchestrator with DSL support
+*     test_cli       - command-line option parsing
+*     test_printer   - formatted output and report generation
+*
+*   Hierarchy (outermost to innermost):
+*     session -> module -> block -> test -> assertion / test_fn
+*
+*
+* path:      /inc/djinterp/test/c/dtest
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.09
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+#ifndef DJINTERP_TEST_C_DTEST_H
+#define DJINTERP_TEST_C_DTEST_H 1
+
+
+/******************************************************************************
+ * VERSION
+ *****************************************************************************/
+
+// D_TEST_VERSION_MAJOR
+//   constant: major version number for the DTest framework.
+#define D_TEST_VERSION_MAJOR    1
+
+// D_TEST_VERSION_MINOR
+//   constant: minor version number for the DTest framework.
+#define D_TEST_VERSION_MINOR    0
+
+// D_TEST_VERSION_PATCH
+//   constant: patch version number for the DTest framework.
+#define D_TEST_VERSION_PATCH    0
+
+// D_TEST_VERSION_STRING
+//   constant: human-readable version string.
+#define D_TEST_VERSION_STRING   "1.0.0"
+
+// D_TEST_FRAMEWORK_NAME
+//   constant: canonical name of the testing framework.
+#define D_TEST_FRAMEWORK_NAME   "DTest"
+
+
+/******************************************************************************
+ * CORE DEPENDENCIES
+ *****************************************************************************/
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "../../c/djinterp.h"
+#include "../../c/dmemory.h"
+#include "../../c/string_fn.h"
+#include "test_common.h"
+#include "test_cvar.h"
+#include "test_options.h"
+#include "test_stats.h"
+#include "default/assert.h"
+#include "default/test.h"
+#include "default/test_block.h"
+#include "test_tree.h"
+#include "default/test_module.h"
+#include "test_session.h"
+#include "test_handler.h"
+#include "test_cli.h"
+#include "test_printer.h"
+
+
+/******************************************************************************
+ * D_TEST_TYPE WRAPPER MACROS
+ *
+ *   Convenience macros for wrapping concrete framework types into the
+ * discriminated union d_test_type. Each has a _CONFIG variant that
+ * accepts an optional d_test_options pointer, and a plain variant
+ * that defaults to NULL.
+ *****************************************************************************/
+
+// D_TEST_TYPE_CONFIG
+//   macro: creates a d_test_type with the given discriminator, config, and
+// payload pointer. Allocates on the heap.
+#define D_TEST_TYPE_CONFIG(_type, _test_config_ptr, _field, _value)          \
+    d_test_type_new_with_config((_type), (_value), (_test_config_ptr))
+
+// D_TEST_TYPE
+//   macro: creates a d_test_type with no configuration (NULL config).
+#define D_TEST_TYPE(_type, _field, _value)                                   \
+    D_TEST_TYPE_CONFIG(_type, NULL, _field, _value)
+
+// D_TEST_TYPE_FROM_ASSERT_CONFIG
+//   macro: wraps a d_assert pointer with config.
+#define D_TEST_TYPE_FROM_ASSERT_CONFIG(_assertion_ptr, _test_config_ptr)     \
+    D_TEST_TYPE_CONFIG(D_TEST_TYPE_ASSERT,                                   \
+                       _test_config_ptr,                                     \
+                       D_KEYWORD_TEST_ASSERTION,                             \
+                       _assertion_ptr)
+
+// D_TEST_TYPE_FROM_ASSERT
+//   macro: wraps a d_assert pointer with no config.
+#define D_TEST_TYPE_FROM_ASSERT(_assertion_ptr)                              \
+    D_TEST_TYPE_FROM_ASSERT_CONFIG(_assertion_ptr, NULL)
+
+// D_TEST_TYPE_FROM_TEST_FN_CONFIG
+//   macro: wraps a d_test_fn pointer with config.
+#define D_TEST_TYPE_FROM_TEST_FN_CONFIG(_test_fn_ptr,                        \
+                                        _test_config_ptr)                    \
+    D_TEST_TYPE_CONFIG(D_TEST_TYPE_TEST_FN,                                  \
+                       _test_config_ptr,                                     \
+                       D_KEYWORD_TEST_TEST_FN,                               \
+                       _test_fn_ptr)
+
+// D_TEST_TYPE_FROM_TEST_FN
+//   macro: wraps a d_test_fn pointer with no config.
+#define D_TEST_TYPE_FROM_TEST_FN(_test_fn_ptr)                               \
+    D_TEST_TYPE_FROM_TEST_FN_CONFIG(_test_fn_ptr, NULL)
+
+// D_TEST_TYPE_FROM_TEST_CONFIG
+//   macro: wraps a d_test pointer with config.
+#define D_TEST_TYPE_FROM_TEST_CONFIG(_test_ptr,                              \
+                                     _test_config_ptr)                       \
+    D_TEST_TYPE_CONFIG(D_TEST_TYPE_TEST,                                     \
+                       _test_config_ptr,                                     \
+                       D_KEYWORD_TEST_TEST,                                  \
+                       _test_ptr)
+
+// D_TEST_TYPE_FROM_TEST
+//   macro: wraps a d_test pointer with no config.
+#define D_TEST_TYPE_FROM_TEST(_test_ptr)                                     \
+    D_TEST_TYPE_FROM_TEST_CONFIG(_test_ptr, NULL)
+
+// D_TEST_TYPE_FROM_TEST_BLOCK_CONFIG
+//   macro: wraps a d_test_block pointer with config.
+#define D_TEST_TYPE_FROM_TEST_BLOCK_CONFIG(_test_block_ptr,                  \
+                                           _test_config_ptr)                 \
+    D_TEST_TYPE_CONFIG(D_TEST_TYPE_TEST_BLOCK,                               \
+                       _test_config_ptr,                                     \
+                       D_KEYWORD_TEST_BLOCK,                                 \
+                       _test_block_ptr)
+
+// D_TEST_TYPE_FROM_TEST_BLOCK
+//   macro: wraps a d_test_block pointer with no config.
+#define D_TEST_TYPE_FROM_TEST_BLOCK(_test_block_ptr)                         \
+    D_TEST_TYPE_FROM_TEST_BLOCK_CONFIG(_test_block_ptr, NULL)
+
+// D_TEST_TYPE_FROM_TEST_MODULE_CONFIG
+//   macro: wraps a d_test_module pointer with config.
+#define D_TEST_TYPE_FROM_TEST_MODULE_CONFIG(_test_module_ptr,                \
+                                            _test_config_ptr)                \
+    D_TEST_TYPE_CONFIG(D_TEST_TYPE_MODULE,                                   \
+                       _test_config_ptr,                                     \
+                       D_KEYWORD_TEST_MODULE,                                \
+                       _test_module_ptr)
+
+// D_TEST_TYPE_FROM_TEST_MODULE
+//   macro: wraps a d_test_module pointer with no config.
+#define D_TEST_TYPE_FROM_TEST_MODULE(_test_module_ptr)                        \
+    D_TEST_TYPE_FROM_TEST_MODULE_CONFIG(_test_module_ptr, NULL)
+
+
+/******************************************************************************
+ * TRACKED ASSERTION MACROS
+ *
+ *   Each macro creates an assertion, records it in the handler's statistics,
+ * and frees it. The handler accumulates pass/fail counts automatically.
+ *****************************************************************************/
+
+// D_ASSERT_TRACK
+//   macro: assert a boolean condition and record result in handler.
+#define D_ASSERT_TRACK(handler, condition, msg_true, msg_false)              \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_new((condition), (msg_true), (msg_false));              \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_EQ_TRACK
+//   macro: assert equality and record in handler.
+#define D_ASSERT_EQ_TRACK(handler, a, b, cmp, msg_true, msg_false)          \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_eq((a), (b), (cmp), (msg_true), (msg_false));          \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_NEQ_TRACK
+//   macro: assert inequality and record in handler.
+#define D_ASSERT_NEQ_TRACK(handler, a, b, cmp, msg_true, msg_false)         \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_neq((a), (b), (cmp), (msg_true), (msg_false));         \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_LT_TRACK
+//   macro: assert less-than and record in handler.
+#define D_ASSERT_LT_TRACK(handler, a, b, cmp, msg_true, msg_false)          \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_lt((a), (b), (cmp), (msg_true), (msg_false));          \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_LT_EQ_TRACK
+//   macro: assert less-than-or-equal and record in handler.
+#define D_ASSERT_LT_EQ_TRACK(handler, a, b, cmp, msg_true, msg_false)       \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_lt_eq((a), (b), (cmp), (msg_true), (msg_false));       \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_GT_TRACK
+//   macro: assert greater-than and record in handler.
+#define D_ASSERT_GT_TRACK(handler, a, b, cmp, msg_true, msg_false)          \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_gt((a), (b), (cmp), (msg_true), (msg_false));          \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_GT_EQ_TRACK
+//   macro: assert greater-than-or-equal and record in handler.
+#define D_ASSERT_GT_EQ_TRACK(handler, a, b, cmp, msg_true, msg_false)       \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_gt_eq((a), (b), (cmp), (msg_true), (msg_false));       \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_STR_EQ_TRACK
+//   macro: assert string equality and record in handler.
+#define D_ASSERT_STR_EQ_TRACK(handler, s1, len1, s2, len2,                  \
+                              msg_true, msg_false)                           \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_str_eq((s1), (len1), (s2), (len2),                     \
+                            (msg_true), (msg_false));                        \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_STR_NEQ_TRACK
+//   macro: assert string inequality and record in handler.
+#define D_ASSERT_STR_NEQ_TRACK(handler, s1, len1, s2, len2,                 \
+                               msg_true, msg_false)                          \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_str_neq((s1), (len1), (s2), (len2),                    \
+                             (msg_true), (msg_false));                       \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_NULL_TRACK
+//   macro: assert NULL and record in handler.
+#define D_ASSERT_NULL_TRACK(handler, ptr, msg_true, msg_false)              \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_null((ptr), (msg_true), (msg_false));                  \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_NONNULL_TRACK
+//   macro: assert non-NULL and record in handler.
+#define D_ASSERT_NONNULL_TRACK(handler, ptr, msg_true, msg_false)           \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_nonnull((ptr), (msg_true), (msg_false));               \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_ARRAY_VALID_TRACK
+//   macro: assert array validity and record in handler.
+#define D_ASSERT_ARRAY_VALID_TRACK(handler, arr, size,                      \
+                                   msg_true, msg_false)                      \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_array_is_valid((const void**)(arr), (size),             \
+                                   (msg_true), (msg_false));                 \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_ARRAYS_EQ_TRACK
+//   macro: assert array equality and record in handler.
+#define D_ASSERT_ARRAYS_EQ_TRACK(handler, arr1, arr2, arr_size,             \
+                                 elem_size, cmp,                             \
+                                 msg_true, msg_false)                        \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a =                                                \
+            d_assert_arrays_eq((arr1), (arr2), (arr_size), (elem_size),     \
+                               (cmp), (msg_true), (msg_false));              \
+                                                                             \
+        d_test_handler_record_assertion((handler), _a);                      \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+
+/******************************************************************************
+ * AUTO-MESSAGE TRACKED ASSERTION MACROS
+ *
+ *   Combines auto-generated pass/fail messages (from D_ASSERTION_*) with
+ * handler tracking (from D_ASSERT_*_TRACK). The expression text becomes
+ * the message.
+ *****************************************************************************/
+
+// D_ASSERT_TRUE_T
+//   macro: assert true with auto-messages and handler tracking.
+#define D_ASSERT_TRUE_T(handler, condition)                                  \
+    D_ASSERT_TRACK((handler), (condition),                                   \
+                   "PASS: " D_STRINGIFY(condition),                          \
+                   "FAIL: " D_STRINGIFY(condition))
+
+// D_ASSERT_FALSE_T
+//   macro: assert false with auto-messages and handler tracking.
+#define D_ASSERT_FALSE_T(handler, condition)                                 \
+    D_ASSERT_TRACK((handler), !(condition),                                  \
+                   "PASS: !" D_STRINGIFY(condition),                         \
+                   "FAIL: !" D_STRINGIFY(condition))
+
+// D_ASSERT_EQ_T
+//   macro: assert equality with auto-messages and handler tracking.
+#define D_ASSERT_EQ_T(handler, a, b, cmp)                                   \
+    D_ASSERT_EQ_TRACK((handler), (a), (b), (cmp),                           \
+                      "PASS: " D_STRINGIFY(a) " == " D_STRINGIFY(b),        \
+                      "FAIL: " D_STRINGIFY(a) " == " D_STRINGIFY(b))
+
+// D_ASSERT_NEQ_T
+//   macro: assert inequality with auto-messages and handler tracking.
+#define D_ASSERT_NEQ_T(handler, a, b, cmp)                                  \
+    D_ASSERT_NEQ_TRACK((handler), (a), (b), (cmp),                          \
+                       "PASS: " D_STRINGIFY(a) " != " D_STRINGIFY(b),       \
+                       "FAIL: " D_STRINGIFY(a) " != " D_STRINGIFY(b))
+
+// D_ASSERT_LT_T
+//   macro: assert less-than with auto-messages and handler tracking.
+#define D_ASSERT_LT_T(handler, a, b, cmp)                                   \
+    D_ASSERT_LT_TRACK((handler), (a), (b), (cmp),                           \
+                      "PASS: " D_STRINGIFY(a) " < " D_STRINGIFY(b),         \
+                      "FAIL: " D_STRINGIFY(a) " < " D_STRINGIFY(b))
+
+// D_ASSERT_GT_T
+//   macro: assert greater-than with auto-messages and handler tracking.
+#define D_ASSERT_GT_T(handler, a, b, cmp)                                   \
+    D_ASSERT_GT_TRACK((handler), (a), (b), (cmp),                           \
+                      "PASS: " D_STRINGIFY(a) " > " D_STRINGIFY(b),         \
+                      "FAIL: " D_STRINGIFY(a) " > " D_STRINGIFY(b))
+
+// D_ASSERT_NULL_T
+//   macro: assert NULL with auto-messages and handler tracking.
+#define D_ASSERT_NULL_T(handler, ptr)                                        \
+    D_ASSERT_NULL_TRACK((handler), (ptr),                                    \
+                        "PASS: " D_STRINGIFY(ptr) " == NULL",               \
+                        "FAIL: " D_STRINGIFY(ptr) " == NULL")
+
+// D_ASSERT_NONNULL_T
+//   macro: assert non-NULL with auto-messages and handler tracking.
+#define D_ASSERT_NONNULL_T(handler, ptr)                                     \
+    D_ASSERT_NONNULL_TRACK((handler), (ptr),                                 \
+                           "PASS: " D_STRINGIFY(ptr) " != NULL",            \
+                           "FAIL: " D_STRINGIFY(ptr) " != NULL")
+
+
+/******************************************************************************
+ * ASSERT-AND-RETURN MACROS
+ *
+ *   Evaluate an assertion, update a cumulative result variable, free the
+ * assertion, and optionally return early on failure. Designed for use
+ * inside D_TEST_BEGIN / D_TEST_END blocks.
+ *****************************************************************************/
+
+// D_ASSERT_CHECK_FREE
+//   macro: evaluates a d_assert, returns its result, and frees it.
+// Usage: if (D_ASSERT_CHECK_FREE(d_assert_new(...))) { ... }
+#define D_ASSERT_CHECK_FREE(_assertion)                                      \
+    d_internal_assert_check_free_impl(_assertion)
+
+// d_internal_assert_check_free_impl
+//   function (inline): extracts result from assertion, frees it, returns
+// the result. Avoids double-evaluation in the macro.
+static inline bool
+d_internal_assert_check_free_impl(struct d_assert* _assertion)
+{
+    bool _r;
+
+    if (!_assertion)
+    {
+        return false;
+    }
+
+    _r = _assertion->result;
+    d_assert_free(_assertion);
+
+    return _r;
+}
+
+// D_ASSERT_REQUIRE
+//   macro: evaluates an assertion; if it fails, frees and returns false
+// immediately. For use inside D_TEST_BEGIN / D_TEST_END.
+#define D_ASSERT_REQUIRE(_assertion)                                         \
+    do                                                                       \
+    {                                                                        \
+        struct d_assert* _a = (_assertion);                                  \
+                                                                             \
+        if ( (!_a) || (!_a->result) )                                        \
+        {                                                                    \
+            d_assert_free(_a);                                               \
+                                                                             \
+            return false;                                                    \
+        }                                                                    \
+                                                                             \
+        d_assert_free(_a);                                                   \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_REQUIRE_NONNULL
+//   macro: asserts a pointer is non-NULL; returns false on failure.
+// Shorthand for the common precondition check pattern.
+#define D_ASSERT_REQUIRE_NONNULL(_ptr)                                       \
+    D_ASSERT_REQUIRE(                                                        \
+        d_assert_nonnull((_ptr),                                             \
+                         "PASS: " D_STRINGIFY(_ptr) " != NULL",             \
+                         "FAIL: " D_STRINGIFY(_ptr) " != NULL"))
+
+
+/******************************************************************************
+ * BATCH ASSERTION MACROS
+ *
+ *   Declare a local assertion list, add assertions to it, then finalize
+ * with a combined pass/fail result. All assertions are freed at the end.
+ *****************************************************************************/
+
+// D_ASSERT_BATCH_MAX
+//   constant: maximum number of assertions in a batch.
+#define D_ASSERT_BATCH_MAX 64
+
+// D_ASSERT_BATCH_BEGIN
+//   macro: opens a batch assertion scope with local tracking variables.
+#define D_ASSERT_BATCH_BEGIN()                                               \
+    struct d_assert* _batch_assertions[D_ASSERT_BATCH_MAX];                  \
+    size_t           _batch_count  = 0;                                      \
+    bool             _batch_result = true;
+
+// D_ASSERT_BATCH_ADD
+//   macro: adds an assertion to the current batch, updating the overall
+// result.
+#define D_ASSERT_BATCH_ADD(_assertion)                                       \
+    do                                                                       \
+    {                                                                        \
+        if (_batch_count < D_ASSERT_BATCH_MAX)                               \
+        {                                                                    \
+            struct d_assert* _ba = (_assertion);                             \
+                                                                             \
+            _batch_assertions[_batch_count++] = _ba;                         \
+                                                                             \
+            if ( (!_ba) || (!_ba->result) )                                   \
+            {                                                                \
+                _batch_result = false;                                        \
+            }                                                                \
+        }                                                                    \
+    }                                                                        \
+    while(0)
+
+// D_ASSERT_BATCH_END
+//   macro: frees all batch assertions and evaluates to the combined result.
+// Usage: return D_ASSERT_BATCH_END();
+#define D_ASSERT_BATCH_END()                                                 \
+    d_internal_assert_batch_end_impl(_batch_assertions,                      \
+                                     _batch_count,                           \
+                                     _batch_result)
+
+// d_internal_assert_batch_end_impl
+//   function (inline): frees all assertions and returns cumulative result.
+static inline bool
+d_internal_assert_batch_end_impl(struct d_assert** _assertions,
+                                 size_t            _count,
+                                 bool              _result)
+{
+    size_t i;
+
+    for (i = 0; i < _count; i++)
+    {
+        d_assert_free(_assertions[i]);
+    }
+
+    return _result;
+}
+
+
+/******************************************************************************
+ * EVENT SHORTHAND MACROS
+ *
+ *   Aliases that pair specific DTestEvent values with the handler's emit
+ * and listener registration functions.
+ *****************************************************************************/
+
+// event firing
+#define D_TEST_FIRE_SETUP(handler, ctx)                                      \
+    D_TEST_FIRE_EVENT((handler), D_TEST_EVENT_SETUP, (ctx))
+
+#define D_TEST_FIRE_START(handler, ctx)                                      \
+    D_TEST_FIRE_EVENT((handler), D_TEST_EVENT_START, (ctx))
+
+#define D_TEST_FIRE_SUCCESS(handler, ctx)                                    \
+    D_TEST_FIRE_EVENT((handler), D_TEST_EVENT_SUCCESS, (ctx))
+
+#define D_TEST_FIRE_FAILURE(handler, ctx)                                    \
+    D_TEST_FIRE_EVENT((handler), D_TEST_EVENT_FAILURE, (ctx))
+
+#define D_TEST_FIRE_END(handler, ctx)                                        \
+    D_TEST_FIRE_EVENT((handler), D_TEST_EVENT_END, (ctx))
+
+#define D_TEST_FIRE_TEARDOWN(handler, ctx)                                   \
+    D_TEST_FIRE_EVENT((handler), D_TEST_EVENT_TEAR_DOWN, (ctx))
+
+// typed listener registration
+#define D_TEST_ADD_SETUP_LISTENER(handler, cb)                               \
+    D_TEST_ADD_LISTENER((handler), D_TEST_EVENT_SETUP, (cb))
+
+#define D_TEST_ADD_START_LISTENER(handler, cb)                               \
+    D_TEST_ADD_LISTENER((handler), D_TEST_EVENT_START, (cb))
+
+#define D_TEST_ADD_SUCCESS_LISTENER(handler, cb)                             \
+    D_TEST_ADD_LISTENER((handler), D_TEST_EVENT_SUCCESS, (cb))
+
+#define D_TEST_ADD_FAILURE_LISTENER(handler, cb)                             \
+    D_TEST_ADD_LISTENER((handler), D_TEST_EVENT_FAILURE, (cb))
+
+#define D_TEST_ADD_END_LISTENER(handler, cb)                                 \
+    D_TEST_ADD_LISTENER((handler), D_TEST_EVENT_END, (cb))
+
+#define D_TEST_ADD_TEARDOWN_LISTENER(handler, cb)                            \
+    D_TEST_ADD_LISTENER((handler), D_TEST_EVENT_TEAR_DOWN, (cb))
+
+// D_TEST_ADD_LISTENER_DISABLED
+//   macro: registers a listener in the disabled state.
+#define D_TEST_ADD_LISTENER_DISABLED(handler, event_id, cb)                  \
+    d_test_handler_register_listener((handler), (event_id), (cb), false)
+
+// combined register-and-fire
+#define D_TEST_ADD_AND_FIRE(handler, event_id, cb, ctx)                      \
+    do                                                                       \
+    {                                                                        \
+        D_TEST_ADD_LISTENER((handler), (event_id), (cb));                    \
+        D_TEST_FIRE_EVENT((handler), (event_id), (ctx));                     \
+    }                                                                        \
+    while(0)
+
+#define D_TEST_ADD_SETUP_AND_FIRE(handler, cb, ctx)                          \
+    D_TEST_ADD_AND_FIRE((handler), D_TEST_EVENT_SETUP, (cb), (ctx))
+
+#define D_TEST_ADD_START_AND_FIRE(handler, cb, ctx)                          \
+    D_TEST_ADD_AND_FIRE((handler), D_TEST_EVENT_START, (cb), (ctx))
+
+
+/******************************************************************************
+ * SESSION CONVENIENCE MACROS
+ *
+ *   One-shot macros for common session workflows: create, run, report,
+ * clean up.
+ *****************************************************************************/
+
+// D_TEST_SESSION_RUN_AND_REPORT
+//   macro: runs a session, writes its summary, and evaluates to whether
+// all tests passed. Suitable for returning from main.
+#define D_TEST_SESSION_RUN_AND_REPORT(_session)                              \
+    d_internal_session_run_and_report_impl(_session)
+
+// d_internal_session_run_and_report_impl
+//   function (inline): runs the session, writes summary, returns pass/fail.
+static inline bool
+d_internal_session_run_and_report_impl(struct d_test_session* _session)
+{
+    if (!_session)
+    {
+        return false;
+    }
+
+    d_test_session_run(_session);
+    d_test_session_write_summary(_session);
+
+    return d_test_session_all_passed(_session);
+}
+
+// D_TEST_SESSION_MAIN
+//   macro: one-shot session execution suitable for a main() return value.
+// Creates the session, runs it, writes a summary, extracts the exit code,
+// and frees the session.
+//
+// Usage:
+//   int main(void)
+//   {
+//       return D_TEST_SESSION_MAIN(
+//           D_TEST_SESSION(module1, module2, module3)
+//       );
+//   }
+#define D_TEST_SESSION_MAIN(_session_expr)                                   \
+    d_internal_session_main_impl(_session_expr)
+
+// d_internal_session_main_impl
+//   function (inline): full lifecycle for a session as a main() body.
+static inline int
+d_internal_session_main_impl(struct d_test_session* _session)
+{
+    int exit_code;
+
+    if (!_session)
+    {
+        fprintf(stderr, "[DTest] Failed to create test session.\n");
+
+        return 1;
+    }
+
+    d_test_session_run(_session);
+    d_test_session_write_summary(_session);
+    exit_code = d_test_session_exit_code(_session);
+    d_test_session_free(_session);
+
+    return exit_code;
+}
+
+// D_TEST_HANDLER_RUN_AND_REPORT
+//   macro: runs all children in a module through a handler, prints results,
+// and evaluates to the handler's pass rate being 100%.
+#define D_TEST_HANDLER_RUN_AND_REPORT(_handler, _module, _label)             \
+    d_internal_handler_run_and_report_impl((_handler), (_module), (_label))
+
+// d_internal_handler_run_and_report_impl
+//   function (inline): runs module, prints results, returns success.
+static inline bool
+d_internal_handler_run_and_report_impl(struct d_test_handler* _handler,
+                                       struct d_test_module*  _module,
+                                       const char*            _label)
+{
+    bool result;
+
+    if ( (!_handler) || (!_module) )
+    {
+        return false;
+    }
+
+    result = d_test_handler_run_module(_handler, _module, NULL);
+    d_test_handler_print_results(_handler, _label);
+
+    return result;
+}
+
+
+/******************************************************************************
+ * STANDALONE RUNNER CONVENIENCE MACROS
+ *****************************************************************************/
+
+// D_STANDALONE_MAIN
+//   macro: one-shot standalone runner execution suitable for main().
+// Initializes runner, optionally parses CLI args, executes, cleans up,
+// and evaluates to the exit code.
+//
+// Usage:
+//   int main(int argc, char* argv[])
+//   {
+//       return D_STANDALONE_MAIN("My Suite", "Testing all the things",
+//                                argc, argv,
+//                                D_STANDALONE_MODULE("mod1", "desc",
+//                                                    my_mod1_fn),
+//                                D_STANDALONE_MODULE("mod2", "desc",
+//                                                    my_mod2_fn));
+//   }
+#define D_STANDALONE_MODULE(_name, _desc, _fn)                               \
+    { (_name), (_desc), (_fn), NULL, 0, NULL }
+
+#define D_STANDALONE_MODULE_COUNTER(_name, _desc, _fn)                       \
+    { (_name), (_desc), NULL, (_fn), 0, NULL }
+
+#define D_STANDALONE_MODULE_NOTES(_name, _desc, _fn, _nc, _notes)            \
+    { (_name), (_desc), (_fn), NULL, (_nc), (_notes) }
+
+
+/******************************************************************************
+ * USAGE EXAMPLES
+ *****************************************************************************/
+
+/*
+// ============================================================
+// example 1: session-based testing (recommended)
+// ============================================================
+//
+// int main(void)
+// {
+//     return D_TEST_SESSION_MAIN(
+//         D_TEST_SESSION(
+//             D_TEST_MODULE(
+//                 (.name = "string_fn", .priority = 1),
+//                 D_TEST(
+//                     D_ASSERTION_TRUE(d_strequals("abc", 3, "abc", 3)),
+//                     D_ASSERTION_NULL(NULL),
+//                     D_TEST_FN(my_string_tests)
+//                 ),
+//                 D_TEST(
+//                     D_ASSERTION_EQ(42, 42, NULL)
+//                 )
+//             ),
+//             D_TEST_MODULE(
+//                 (.name = "dmemory"),
+//                 D_TEST_BLOCK(
+//                     D_TEST(
+//                         D_ASSERTION_NONNULL(malloc(1))
+//                     )
+//                 )
+//             )
+//         )
+//     );
+// }
+//
+// ============================================================
+// example 2: handler-based testing
+// ============================================================
+//
+// int main(void)
+// {
+//     struct d_test_handler* handler = D_TEST_HANDLER_VERBOSE();
+//     struct d_test_module*  mod     = d_test_module_new(NULL, 0);
+//
+//     D_ASSERT_TRUE_T(handler, 1 + 1 == 2);
+//     D_ASSERT_NULL_T(handler, NULL);
+//     D_ASSERT_EQ_T(handler, 10, 10, NULL);
+//
+//     d_test_handler_print_results(handler, "Quick Tests");
+//     d_test_handler_free(handler);
+//
+//     return 0;
+// }
+//
+// ============================================================
+// example 3: batch assertions in a test function
+// ============================================================
+//
+// D_TEST_BEGIN(test_my_feature)
+//     D_ASSERT_BATCH_BEGIN();
+//     D_ASSERT_BATCH_ADD(D_ASSERTION_TRUE(ptr != NULL));
+//     D_ASSERT_BATCH_ADD(D_ASSERTION_EQ(ptr->size, 10, NULL));
+//     D_ASSERT_BATCH_ADD(D_ASSERTION_NONNULL(ptr->data));
+//     return D_ASSERT_BATCH_END();
+// D_TEST_END
+//
+// ============================================================
+// example 4: quick-test with D_TEST_CHECK
+// ============================================================
+//
+// D_TEST_BEGIN(test_arithmetic)
+//     D_TEST_CHECK(d_assert_eq(
+//         (const void*)(intptr_t)4,
+//         (const void*)(intptr_t)(2 + 2),
+//         NULL,
+//         "2 + 2 == 4",
+//         "2 + 2 != 4"));
+//     D_TEST_CHECK(d_assert_true(
+//         10 > 5,
+//         "10 > 5",
+//         "10 <= 5"));
+// D_TEST_END
+*/
+
+
+
+#endif  // DJINTERP_TEST_C_DTEST_H

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [expression]                                      expression_parse.hpp
+/*******************************************************************************
+* djinterp [parse]                                          expression_parse.hpp
 *
 *   The inverse of the renderer: text (already lexed into tokens) into an
 * expression term, with operator precedence resolved from the very same
@@ -35,8 +35,9 @@
 *
 * path:      /inc/djinterp/parse/expression/expression_parse.hpp
 * link(s):   ch-parsing.tex, ch-synthesis.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -51,8 +52,14 @@ III.  PARSE ENTRY                          (parse_expression)
       -------------------------------------------------------
 */
 
-#ifndef DJINTERP_EXPRESSION_EXPRESSION_PARSE_
-#define DJINTERP_EXPRESSION_EXPRESSION_PARSE_ 1
+#ifndef DJINTERP_PARSE_EXPRESSION_EXPRESSION_PARSE_HPP
+#define DJINTERP_PARSE_EXPRESSION_EXPRESSION_PARSE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -62,7 +69,7 @@ III.  PARSE ENTRY                          (parse_expression)
 // djinterp
 #include "./expression.hpp"
 #include "../../core/functional/maybe.hpp"
-#include "../../parse/parser/parser.hpp"
+#include "../parser/parser.hpp"
 
 
 NS_DJINTERP
@@ -79,56 +86,56 @@ NS_DJINTERP
 // reads a leaf; op_of : Token -> maybe<OpId> names an operator; is_open /
 // is_close : Token -> bool are the grouping brackets.  The recognizers are
 // held by value; the signature by reference, so it must outlive the parse.
-template<typename _OpId,
-         typename _Atom,
-         typename _Signature,
-         typename _AtomOf,
-         typename _OpOf,
-         typename _IsOpen,
-         typename _IsClose>
+template<typename OpId,
+         typename Atom,
+         typename Signature,
+         typename AtomOf,
+         typename OpOf,
+         typename IsOpen,
+         typename IsClose>
 struct expression_grammar
 {
-    using op_id_type = _OpId;
-    using atom_type  = _Atom;
+    using op_id_type = OpId;
+    using atom_type  = Atom;
 
-    const _Signature& signature;
-    _AtomOf           atom_of;
-    _OpOf             op_of;
-    _IsOpen           is_open;
-    _IsClose          is_close;
+    const Signature& signature;
+    AtomOf            atom_of;
+    OpOf              op_of;
+    IsOpen            is_open;
+    IsClose           is_close;
 };
 
 // make_expression_grammar
 //   function: assembles an expression_grammar, deducing the hook types.  The
 // operator id and atom types are named explicitly (they cannot be recovered
 // until a token is in hand), the rest follow from the arguments.
-template<typename _OpId,
-         typename _Atom,
-         typename _Signature,
-         typename _AtomOf,
-         typename _OpOf,
-         typename _IsOpen,
-         typename _IsClose>
+template<typename OpId,
+         typename Atom,
+         typename Signature,
+         typename AtomOf,
+         typename OpOf,
+         typename IsOpen,
+         typename IsClose>
 D_NODISCARD
-expression_grammar<_OpId, _Atom, _Signature,
-                   typename std::decay<_AtomOf>::type,
-                   typename std::decay<_OpOf>::type,
-                   typename std::decay<_IsOpen>::type,
-                   typename std::decay<_IsClose>::type>
+expression_grammar<OpId, Atom, Signature,
+                   typename std::decay<AtomOf>::type,
+                   typename std::decay<OpOf>::type,
+                   typename std::decay<IsOpen>::type,
+                   typename std::decay<IsClose>::type>
 make_expression_grammar
 (
-    const _Signature& _signature,
-    _AtomOf           _atom_of,
-    _OpOf             _op_of,
-    _IsOpen           _is_open,
-    _IsClose          _is_close
+    const Signature& _signature,
+    AtomOf            _atom_of,
+    OpOf              _op_of,
+    IsOpen            _is_open,
+    IsClose           _is_close
 )
 {
-    return expression_grammar<_OpId, _Atom, _Signature,
-        typename std::decay<_AtomOf>::type,
-        typename std::decay<_OpOf>::type,
-        typename std::decay<_IsOpen>::type,
-        typename std::decay<_IsClose>::type>{
+    return expression_grammar<OpId, Atom, Signature,
+        typename std::decay<AtomOf>::type,
+        typename std::decay<OpOf>::type,
+        typename std::decay<IsOpen>::type,
+        typename std::decay<IsClose>::type>{
             _signature, _atom_of, _op_of, _is_open, _is_close };
 }
 
@@ -146,36 +153,36 @@ NS_INTERNAL
 
     // expr_error
     //   helper: a failed parse_result carrying a parse_error.
-    template<typename _Result>
+    template<typename Result>
     D_NODISCARD
-    parse::parse_result<_Result>
+    parse::parse_result<Result>
     expr_error(
         parse::parse_status _status,
         std::size_t         _offset,
         const std::string&  _message
     )
     {
-        return parse::parse_result<_Result>(
+        return parse::parse_result<Result>(
             parse::parse_error(_status, _offset, _message));
     }
 
 
     // -- forward declarations -----------------------------------------------
 
-    template<typename _Token,
-             typename _Grammar>
+    template<typename Token,
+             typename Grammar>
     D_NODISCARD
-    parse::parse_result<expression<typename _Grammar::op_id_type,
-                                   typename _Grammar::atom_type> >
-    parse_nud(parse::parse_state<_Token>& _state, const _Grammar& _grammar);
+    parse::parse_result<expression<typename Grammar::op_id_type,
+                                   typename Grammar::atom_type> >
+    parse_nud(parse::parse_state<Token>& _state, const Grammar& _grammar);
 
-    template<typename _Token,
-             typename _Grammar>
+    template<typename Token,
+             typename Grammar>
     D_NODISCARD
-    parse::parse_result<expression<typename _Grammar::op_id_type,
-                                   typename _Grammar::atom_type> >
-    parse_climb(parse::parse_state<_Token>& _state,
-                const _Grammar&             _grammar,
+    parse::parse_result<expression<typename Grammar::op_id_type,
+                                   typename Grammar::atom_type> >
+    parse_climb(parse::parse_state<Token>& _state,
+                const Grammar&             _grammar,
                 int                         _min_precedence);
 
 
@@ -185,19 +192,19 @@ NS_INTERNAL
     //   function: parses a form that begins an expression -- an atom (a
     // leaf), a prefix operator applied to an operand, or a parenthesized
     // sub-expression.
-    template<typename _Token,
-             typename _Grammar>
+    template<typename Token,
+             typename Grammar>
     D_NODISCARD
-    parse::parse_result<expression<typename _Grammar::op_id_type,
-                                   typename _Grammar::atom_type> >
+    parse::parse_result<expression<typename Grammar::op_id_type,
+                                   typename Grammar::atom_type> >
     parse_nud
     (
-        parse::parse_state<_Token>& _state,
-        const _Grammar&             _grammar
+        parse::parse_state<Token>& _state,
+        const Grammar&             _grammar
     )
     {
-        using op_id_t  = typename _Grammar::op_id_type;
-        using atom_t   = typename _Grammar::atom_type;
+        using op_id_t  = typename Grammar::op_id_type;
+        using atom_t   = typename Grammar::atom_type;
         using expr_t   = expression<op_id_t, atom_t>;
         using result_t = parse::parse_result<expr_t>;
 
@@ -209,7 +216,7 @@ NS_INTERNAL
                 "expected an expression");
         }
 
-        const _Token& _token = *_state.current();
+        const Token& _token = *_state.current();
 
         // an atom -- a leaf
         maybe<atom_t> _atom = _grammar.atom_of(_token);
@@ -226,7 +233,7 @@ NS_INTERNAL
         {
             _state.advance();
 
-            result_t _inner = parse_climb<_Token, _Grammar>(_state, _grammar, 0);
+            result_t _inner = parse_climb<Token, Grammar>(_state, _grammar, 0);
 
             if (!_inner.ok())
             {
@@ -258,7 +265,7 @@ NS_INTERNAL
             {
                 _state.advance();
 
-                result_t _operand = parse_climb<_Token, _Grammar>(
+                result_t _operand = parse_climb<Token, Grammar>(
                     _state, _grammar, _descriptor->precedence);
 
                 if (!_operand.ok())
@@ -284,24 +291,24 @@ NS_INTERNAL
     //   function: parses one operand, then folds in each following operator
     // whose precedence is at least _min_precedence -- infix operators taking
     // a right operand, postfix operators wrapping the accumulated left.
-    template<typename _Token,
-             typename _Grammar>
+    template<typename Token,
+             typename Grammar>
     D_NODISCARD
-    parse::parse_result<expression<typename _Grammar::op_id_type,
-                                   typename _Grammar::atom_type> >
+    parse::parse_result<expression<typename Grammar::op_id_type,
+                                   typename Grammar::atom_type> >
     parse_climb
     (
-        parse::parse_state<_Token>& _state,
-        const _Grammar&             _grammar,
+        parse::parse_state<Token>& _state,
+        const Grammar&             _grammar,
         int                         _min_precedence
     )
     {
-        using op_id_t  = typename _Grammar::op_id_type;
-        using atom_t   = typename _Grammar::atom_type;
+        using op_id_t  = typename Grammar::op_id_type;
+        using atom_t   = typename Grammar::atom_type;
         using expr_t   = expression<op_id_t, atom_t>;
         using result_t = parse::parse_result<expr_t>;
 
-        result_t _left_result = parse_nud<_Token, _Grammar>(_state, _grammar);
+        result_t _left_result = parse_nud<Token, Grammar>(_state, _grammar);
 
         if (!_left_result.ok())
         {
@@ -349,7 +356,7 @@ NS_INTERNAL
                 const int _right_min = _descriptor->precedence +
                     ((_descriptor->assoc == DAssocLeft) ? 1 : 0);
 
-                result_t _right_result = parse_climb<_Token, _Grammar>(
+                result_t _right_result = parse_climb<Token, Grammar>(
                     _state, _grammar, _right_min);
 
                 if (!_right_result.ok())
@@ -396,22 +403,22 @@ NS_END  // internal
 // parse_expression (over a cursor)
 //   function: parses a whole expression from a parse_state, requiring the
 // token sequence to be fully consumed.  Trailing tokens are an error.
-template<typename _Token,
-         typename _Grammar>
+template<typename Token,
+         typename Grammar>
 D_NODISCARD
-parse::parse_result<expression<typename _Grammar::op_id_type,
-                               typename _Grammar::atom_type> >
+parse::parse_result<expression<typename Grammar::op_id_type,
+                               typename Grammar::atom_type> >
 parse_expression
 (
-    parse::parse_state<_Token>& _state,
-    const _Grammar&             _grammar
+    parse::parse_state<Token>& _state,
+    const Grammar&             _grammar
 )
 {
-    using expr_t   = expression<typename _Grammar::op_id_type,
-                                typename _Grammar::atom_type>;
+    using expr_t   = expression<typename Grammar::op_id_type,
+                                typename Grammar::atom_type>;
     using result_t = parse::parse_result<expr_t>;
 
-    result_t _result = internal::parse_climb<_Token, _Grammar>(
+    result_t _result = internal::parse_climb<Token, Grammar>(
         _state, _grammar, 0);
 
     if (!_result.ok())
@@ -434,24 +441,26 @@ parse_expression
 // parse_expression (over a token sequence)
 //   function: parses a whole expression from a token vector -- seeds a
 // cursor over it and defers to the cursor form.
-template<typename _Token,
-         typename _Grammar>
+template<typename Token,
+         typename Grammar>
 D_NODISCARD
-parse::parse_result<expression<typename _Grammar::op_id_type,
-                               typename _Grammar::atom_type> >
+parse::parse_result<expression<typename Grammar::op_id_type,
+                               typename Grammar::atom_type> >
 parse_expression
 (
-    const std::vector<_Token>& _tokens,
-    const _Grammar&            _grammar
+    const std::vector<Token>& _tokens,
+    const Grammar&            _grammar
 )
 {
-    parse::parse_state<_Token> _state(_tokens.data(), _tokens.size());
+    parse::parse_state<Token> _state(_tokens.data(), _tokens.size());
 
-    return parse_expression<_Token, _Grammar>(_state, _grammar);
+    return parse_expression<Token, Grammar>(_state, _grammar);
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EXPRESSION_EXPRESSION_PARSE_
+
+#endif  // DJINTERP_PARSE_EXPRESSION_EXPRESSION_PARSE_HPP

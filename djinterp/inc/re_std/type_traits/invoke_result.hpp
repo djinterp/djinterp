@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           invoke_result.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            invoke_result.hpp
 *
 * invoke_result trait + INVOKE dispatcher machinery:
 *   Yields `type` as the return type of INVOKE(F, Args...) when the call is
@@ -68,19 +68,20 @@
 * void_t, integral_constant.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/invoke_result.hpp
+* path:      /inc/re_std/type_traits/invoke_result.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_INVOKE_RESULT_
-#define DJINTERP_RE_STD_TYPE_TRAITS_INVOKE_RESULT_ 1
+#ifndef RE_STD_TYPE_TRAITS_INVOKE_RESULT_HPP
+#define RE_STD_TYPE_TRAITS_INVOKE_RESULT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./true_type.hpp"
@@ -102,43 +103,45 @@
 #include "../utility/declval.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // member_class
         //   trait: extracts the class type from a pointer-to-member type.
         //          Yields `void` for non-member-pointer types so that the
         //          downstream is_base_of / is_same checks cleanly evaluate
         //          to false rather than ill-forming.
-        template<typename _T>
+        template<typename T>
         struct member_class
         {
             typedef void type;
         };
 
-        // member_class<_M _C::*>
+        // member_class<M C::*>
         //   trait: specialization matching any pointer-to-member of class
-        //          _C (whether data or function member).
-        template<typename _M,
-                 typename _C>
-        struct member_class<_M _C::*>
+        //          C (whether data or function member).
+        template<typename M,
+                 typename C>
+        struct member_class<M C::*>
         {
-            typedef _C type;
+            typedef C type;
         };
 
         // is_base_or_same
-        //   trait: true_type if _Sub is _Base or derived from _Base;
+        //   trait: true_type if Sub is Base or derived from Base;
         //          false_type otherwise. Wrapper to keep the enable_if
         //          expressions in the dispatcher readable.
-        template<typename _Base,
-                 typename _Sub>
+        template<typename Base,
+                 typename Sub>
         struct is_base_or_same
             : integral_constant<
                   bool,
-                  (    is_same<_Base, _Sub>::value
-                    || is_base_of<_Base, _Sub>::value ) >
+                  (    is_same<Base, Sub>::value
+                    || is_base_of<Base, Sub>::value ) >
         {};
 
         // invoker
@@ -157,21 +160,21 @@ NS_RESTD
 
             // form 1: (t1.*f)(args...)
             //   pmf, t1 is an object reference (or derived).
-            template<typename _Pmf,
-                     typename _T1,
-                     typename... _Args>
-            static auto do_invoke(_Pmf f, _T1&& t1, _Args&&... args)
+            template<typename Pmf,
+                     typename T1,
+                     typename... Args>
+            static auto do_invoke(Pmf f, T1&& t1, Args&&... args)
                 noexcept( noexcept(
-                    ( static_cast<_T1&&>(t1) .* f )
-                    ( static_cast<_Args&&>(args)... ) ) )
+                    ( static_cast<T1&&>(t1) .* f )
+                    ( static_cast<Args&&>(args)... ) ) )
                 -> typename enable_if<
-                       (    is_member_function_pointer<_Pmf>::value
+                       (    is_member_function_pointer<Pmf>::value
                          && is_base_or_same<
-                                typename member_class<_Pmf>::type,
-                                typename decay<_T1>::type >::value ),
+                                typename member_class<Pmf>::type,
+                                typename decay<T1>::type >::value ),
                        decltype(
-                           ( static_cast<_T1&&>(t1) .* f )
-                           ( static_cast<_Args&&>(args)... ) ) >::type;
+                           ( static_cast<T1&&>(t1) .* f )
+                           ( static_cast<Args&&>(args)... ) ) >::type;
 
             // form 1b: (t1.get().*f)(args...)
             //   pmf, t1 is a reference_wrapper. Constrained ONLY on
@@ -179,98 +182,98 @@ NS_RESTD
             //   relate to the pmf's class, because a reference_wrapper of
             //   an unrelated type simply makes .get().*f ill-formed and
             //   SFINAEs this overload away on its own.
-            template<typename _Pmf,
-                     typename _T1,
-                     typename... _Args>
-            static auto do_invoke(_Pmf f, _T1&& t1, _Args&&... args)
+            template<typename Pmf,
+                     typename T1,
+                     typename... Args>
+            static auto do_invoke(Pmf f, T1&& t1, Args&&... args)
                 noexcept( noexcept(
                     ( t1.get() .* f )
-                    ( static_cast<_Args&&>(args)... ) ) )
+                    ( static_cast<Args&&>(args)... ) ) )
                 -> typename enable_if<
-                       (    is_member_function_pointer<_Pmf>::value
+                       (    is_member_function_pointer<Pmf>::value
                          && is_reference_wrapper<
-                                typename decay<_T1>::type >::value ),
+                                typename decay<T1>::type >::value ),
                        decltype(
                            ( t1.get() .* f )
-                           ( static_cast<_Args&&>(args)... ) ) >::type;
+                           ( static_cast<Args&&>(args)... ) ) >::type;
 
             // form 2: ((*t1).*f)(args...)
             //   pmf, t1 is pointer-like (smart pointer, raw pointer).
-            template<typename _Pmf,
-                     typename _T1,
-                     typename... _Args>
-            static auto do_invoke(_Pmf f, _T1&& t1, _Args&&... args)
+            template<typename Pmf,
+                     typename T1,
+                     typename... Args>
+            static auto do_invoke(Pmf f, T1&& t1, Args&&... args)
                 noexcept( noexcept(
-                    ( ( *static_cast<_T1&&>(t1) ) .* f )
-                    ( static_cast<_Args&&>(args)... ) ) )
+                    ( ( *static_cast<T1&&>(t1) ) .* f )
+                    ( static_cast<Args&&>(args)... ) ) )
                 -> typename enable_if<
-                       (    is_member_function_pointer<_Pmf>::value
+                       (    is_member_function_pointer<Pmf>::value
                          && !is_base_or_same<
-                                typename member_class<_Pmf>::type,
-                                typename decay<_T1>::type >::value
+                                typename member_class<Pmf>::type,
+                                typename decay<T1>::type >::value
                          && !is_reference_wrapper<
-                                typename decay<_T1>::type >::value ),
+                                typename decay<T1>::type >::value ),
                        decltype(
-                           ( ( *static_cast<_T1&&>(t1) ) .* f )
-                           ( static_cast<_Args&&>(args)... ) ) >::type;
+                           ( ( *static_cast<T1&&>(t1) ) .* f )
+                           ( static_cast<Args&&>(args)... ) ) >::type;
 
             // form 3: t1.*f
             //   pmd, t1 is an object reference (or derived).
-            template<typename _Pmd,
-                     typename _T1>
-            static auto do_invoke(_Pmd f, _T1&& t1)
+            template<typename Pmd,
+                     typename T1>
+            static auto do_invoke(Pmd f, T1&& t1)
                 noexcept( noexcept(
-                    static_cast<_T1&&>(t1) .* f ) )
+                    static_cast<T1&&>(t1) .* f ) )
                 -> typename enable_if<
-                       (    is_member_object_pointer<_Pmd>::value
+                       (    is_member_object_pointer<Pmd>::value
                          && is_base_or_same<
-                                typename member_class<_Pmd>::type,
-                                typename decay<_T1>::type >::value ),
-                       decltype( static_cast<_T1&&>(t1) .* f ) >::type;
+                                typename member_class<Pmd>::type,
+                                typename decay<T1>::type >::value ),
+                       decltype( static_cast<T1&&>(t1) .* f ) >::type;
 
             // form 3b: t1.get().*f
             //   pmd, t1 is a reference_wrapper.
-            template<typename _Pmd,
-                     typename _T1>
-            static auto do_invoke(_Pmd f, _T1&& t1)
+            template<typename Pmd,
+                     typename T1>
+            static auto do_invoke(Pmd f, T1&& t1)
                 noexcept( noexcept( t1.get() .* f ) )
                 -> typename enable_if<
-                       (    is_member_object_pointer<_Pmd>::value
+                       (    is_member_object_pointer<Pmd>::value
                          && is_reference_wrapper<
-                                typename decay<_T1>::type >::value ),
+                                typename decay<T1>::type >::value ),
                        decltype( t1.get() .* f ) >::type;
 
             // form 4: (*t1).*f
             //   pmd, t1 is pointer-like.
-            template<typename _Pmd,
-                     typename _T1>
-            static auto do_invoke(_Pmd f, _T1&& t1)
+            template<typename Pmd,
+                     typename T1>
+            static auto do_invoke(Pmd f, T1&& t1)
                 noexcept( noexcept(
-                    ( *static_cast<_T1&&>(t1) ) .* f ) )
+                    ( *static_cast<T1&&>(t1) ) .* f ) )
                 -> typename enable_if<
-                       (    is_member_object_pointer<_Pmd>::value
+                       (    is_member_object_pointer<Pmd>::value
                          && !is_base_or_same<
-                                typename member_class<_Pmd>::type,
-                                typename decay<_T1>::type >::value
+                                typename member_class<Pmd>::type,
+                                typename decay<T1>::type >::value
                          && !is_reference_wrapper<
-                                typename decay<_T1>::type >::value ),
-                       decltype( ( *static_cast<_T1&&>(t1) ) .* f )
+                                typename decay<T1>::type >::value ),
+                       decltype( ( *static_cast<T1&&>(t1) ) .* f )
                        >::type;
 
             // form 5: f(args...)
             //   plain call -- function pointer, function reference,
             //   functor, lambda. F is forwarded to preserve cv/ref.
-            template<typename _F,
-                     typename... _Args>
-            static auto do_invoke(_F&& f, _Args&&... args)
+            template<typename F,
+                     typename... Args>
+            static auto do_invoke(F&& f, Args&&... args)
                 noexcept( noexcept(
-                    static_cast<_F&&>(f)
-                    ( static_cast<_Args&&>(args)... ) ) )
+                    static_cast<F&&>(f)
+                    ( static_cast<Args&&>(args)... ) ) )
                 -> typename enable_if<
-                       !is_member_pointer<typename decay<_F>::type>::value,
+                       !is_member_pointer<typename decay<F>::type>::value,
                        decltype(
-                           static_cast<_F&&>(f)
-                           ( static_cast<_Args&&>(args)... ) ) >::type;
+                           static_cast<F&&>(f)
+                           ( static_cast<Args&&>(args)... ) ) >::type;
 
         };
 
@@ -278,54 +281,54 @@ NS_RESTD
         //   trait: SFINAE-friendly result-type computation. Primary template
         //          has no `type` member; the partial specialization defines
         //          `type` only when the INVOKE expression is well-formed.
-        //          The leading `_Void` parameter is the void_t hook that
+        //          The leading `Void` parameter is the void_t hook that
         //          drives the SFINAE selection.
-        template<typename _Void,
-                 typename _F,
-                 typename... _Args>
+        template<typename Void,
+                 typename F,
+                 typename... Args>
         struct invoke_result_impl
         {};
 
-        // invoke_result_impl<void, _F, _Args...>
+        // invoke_result_impl<void, F, Args...>
         //   trait: specialization; selected when the INVOKE expression
         //          is well-formed (void_t collapses to void).
-        template<typename _F,
-                 typename... _Args>
+        template<typename F,
+                 typename... Args>
         struct invoke_result_impl<
             re_std::void_t<decltype(
-                invoker::do_invoke( re_std::declval<_F>(),
-                                    re_std::declval<_Args>()... ) )>,
-            _F, _Args...>
+                invoker::do_invoke( re_std::declval<F>(),
+                                    re_std::declval<Args>()... ) )>,
+            F, Args...>
         {
             typedef decltype(
-                invoker::do_invoke( re_std::declval<_F>(),
-                                    re_std::declval<_Args>()... ) ) type;
+                invoker::do_invoke( re_std::declval<F>(),
+                                    re_std::declval<Args>()... ) ) type;
         };
 
-    NS_END  // internal
+    }  // internal
 
 
     // invoke_result
     //   trait: yields `type` as the return type of INVOKE(F, Args...)
     //          when well-formed; has no `type` member otherwise.
-    template<typename _F,
-             typename... _Args>
+    template<typename F,
+             typename... Args>
     struct invoke_result
-        : internal::invoke_result_impl<void, _F, _Args...>
+        : internal::invoke_result_impl<void, F, Args...>
     {};
 
 
     // invoke_result_t (C++14+)
-    #if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-        template<typename _F,
-                 typename... _Args>
-        using invoke_result_t = typename invoke_result<_F, _Args...>::type;
+    #if RE_STD_LANG_HAS_ALIAS_TEMPLATES
+        template<typename F,
+                 typename... Args>
+        using invoke_result_t = typename invoke_result<F, Args...>::type;
     #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_INVOKE_RESULT_
+#endif  // RE_STD_TYPE_TRAITS_INVOKE_RESULT_HPP

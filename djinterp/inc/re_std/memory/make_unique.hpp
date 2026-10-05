@@ -1,11 +1,11 @@
-/***********************************************************************
-* re_std                                                    make_unique.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              make_unique.hpp
 *
 * factory functions for unique_ptr:
-*   make_unique<_T>(_args...)       single _T,         value-initialized
-*   make_unique<_T[]>(_n)           dynamic array,     value-initialized
-*   make_unique_for_overwrite<_T>()    single _T,      default-init (C++20+)
-*   make_unique_for_overwrite<_T[]>(_n) array,         default-init (C++20+)
+*   make_unique<T>(_args...)       single T,         value-initialized
+*   make_unique<T[]>(_n)           dynamic array,     value-initialized
+*   make_unique_for_overwrite<T>()    single T,      default-init (C++20+)
+*   make_unique_for_overwrite<T[]>(_n) array,         default-init (C++20+)
 *
 * the bounded-array form (e.g. make_unique<int[5]>) is intentionally
 * not provided. With both the non-array overload (1) and the
@@ -19,19 +19,22 @@
 *   to C++11+.
 *
 *
-* path:      /inc/djinterp/re_std/memory/make_unique.hpp
+* path:      /inc/re_std/memory/make_unique.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_MAKE_UNIQUE_
-#define DJINTERP_RE_STD_MEMORY_MAKE_UNIQUE_ 1
+#ifndef RE_STD_MEMORY_MAKE_UNIQUE_HPP
+#define RE_STD_MEMORY_MAKE_UNIQUE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>  // size_t
 
     #include "re_std/memory/unique_ptr.hpp"
@@ -49,18 +52,18 @@ namespace re_std
 // make_unique  -  non-array form (value-initialised)
 // =============================================================================
 
-// make_unique<_T>(_args...)
-//   function: build a unique_ptr<_T> by forwarding _args to _T's ctor.
-//   _T must NOT be an array type — array forms have their own overload.
-template<typename _T, typename... _Args>
+// make_unique<T>(_args...)
+//   function: build a unique_ptr<T> by forwarding _args to T's ctor.
+//   T must NOT be an array type — array forms have their own overload.
+template<typename T, typename... Args>
 typename enable_if
 <
-    !is_array<_T>::value,
-    unique_ptr<_T>
+    !is_array<T>::value,
+    unique_ptr<T>
 >::type
-make_unique(_Args&&... _args)
+make_unique(Args&&... _args)
 {
-    return unique_ptr<_T>(new _T(re_std::forward<_Args>(_args)...));
+    return unique_ptr<T>(new T(re_std::forward<Args>(_args)...));
 }
 
 
@@ -68,21 +71,21 @@ make_unique(_Args&&... _args)
 // make_unique  -  unbounded-array form (value-initialised)
 // =============================================================================
 
-// make_unique<_T[]>(_n)
+// make_unique<T[]>(_n)
 //   function: allocate an array of _n elements with value-init
 //             (parenthesised new).
-//   _T must be an unbounded array type (e.g. int[]); the bounded-array
+//   T must be an unbounded array type (e.g. int[]); the bounded-array
 //   form (e.g. int[5]) has no overload.
-template<typename _T>
+template<typename T>
 typename enable_if
 <
-    is_unbounded_array<_T>::value,
-    unique_ptr<_T>
+    is_unbounded_array<T>::value,
+    unique_ptr<T>
 >::type
 make_unique(std::size_t _n)
 {
-    typedef typename remove_extent<_T>::type _U;
-    return unique_ptr<_T>(new _U[_n]());
+    typedef typename remove_extent<T>::type _U;
+    return unique_ptr<T>(new _U[_n]());
 }
 
 
@@ -97,40 +100,39 @@ make_unique(std::size_t _n)
 //
 // std added this in C++20. re_std back-ports to C++11+.
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER  // (already true here, kept for clarity)
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER  // (already true here, kept for clarity)
 
-    // make_unique_for_overwrite<_T>()
-    //   function: single _T, default-initialised.
-    template<typename _T>
+    // make_unique_for_overwrite<T>()
+    //   function: single T, default-initialised.
+    template<typename T>
     typename enable_if
     <
-        !is_array<_T>::value,
-        unique_ptr<_T>
+        !is_array<T>::value,
+        unique_ptr<T>
     >::type
     make_unique_for_overwrite()
     {
-        return unique_ptr<_T>(new _T);
+        return unique_ptr<T>(new T);
     }
 
-    // make_unique_for_overwrite<_T[]>(_n)
+    // make_unique_for_overwrite<T[]>(_n)
     //   function: array of _n elements, default-initialised.
-    template<typename _T>
+    template<typename T>
     typename enable_if
     <
-        is_unbounded_array<_T>::value,
-        unique_ptr<_T>
+        is_unbounded_array<T>::value,
+        unique_ptr<T>
     >::type
     make_unique_for_overwrite(std::size_t _n)
     {
-        typedef typename remove_extent<_T>::type _U;
-        return unique_ptr<_T>(new _U[_n]);
+        typedef typename remove_extent<T>::type _U;
+        return unique_ptr<T>(new _U[_n]);
     }
 
 #endif
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_MAKE_UNIQUE_
+#endif  // RE_STD_MEMORY_MAKE_UNIQUE_HPP

@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                         uncaught_exceptions.hpp
+/*******************************************************************************
+* djinterp [re_std]                                      uncaught_exceptions.hpp
 *
 * in-flight-exception queries:
 *   uncaught_exception() (singular, C++98; deprecated C++17; removed
@@ -24,25 +24,28 @@
 *     would surface -Wdeprecated-declarations at the call site).
 *
 *
-* path:      /inc/djinterp/re_std/exception/uncaught_exceptions.hpp
+* path:      /inc/re_std/exception/uncaught_exceptions.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXCEPTION_UNCAUGHT_EXCEPTIONS_
-#define DJINTERP_RE_STD_EXCEPTION_UNCAUGHT_EXCEPTIONS_ 1
+#ifndef RE_STD_EXCEPTION_UNCAUGHT_EXCEPTIONS_HPP
+#define RE_STD_EXCEPTION_UNCAUGHT_EXCEPTIONS_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
 
+    // std
     #include <exception>
 
 namespace re_std
 {
 
     // ---- uncaught_exceptions (plural) -----------------------------------
-    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
         // uncaught_exceptions
         //   function: using-declaration from std::uncaught_exceptions.
@@ -55,22 +58,22 @@ namespace re_std
         //   Correct for "is any exception in flight?"; cannot recover
         //   nested unwinding depth pre-C++17. RE_STD AHEAD OF STD: the
         //   spelling is surfaced before std's C++17.
-        inline int uncaught_exceptions() D_NOEXCEPT
+        inline int uncaught_exceptions() RE_STD_NOEXCEPT
         {
             return std::uncaught_exception() ? 1 : 0;
         }
 
-    #endif // D_ENV_LANG_IS_CPP17_OR_HIGHER
+    #endif // RE_STD_LANG_IS_CPP17_OR_HIGHER
 
     // ---- uncaught_exception (singular) ----------------------------------
-    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
         // uncaught_exception
         //   function: shim over the plural form. Used from C++17 onward so
         //   re_std never routes through std::uncaught_exception (deprecated
         //   in C++17, removed in C++20); also keeps the spelling alive for
         //   pre-C++20 source compatibility.
-        inline bool uncaught_exception() D_NOEXCEPT
+        inline bool uncaught_exception() RE_STD_NOEXCEPT
         {
             return uncaught_exceptions() > 0;
         }
@@ -81,30 +84,28 @@ namespace re_std
         //   function: using-declaration from std::uncaught_exception.
         using std::uncaught_exception;
 
-    #endif // D_ENV_LANG_IS_CPP17_OR_HIGHER
+    #endif // RE_STD_LANG_IS_CPP17_OR_HIGHER
 
-} // namespace re_std
-
+}  // re_std
 #else // freestanding: no exception machinery to query
 
 namespace re_std
 {
     // uncaught_exceptions
     //   function: degraded — no in-flight tracking available.
-    inline int uncaught_exceptions() D_NOEXCEPT
+    inline int uncaught_exceptions() RE_STD_NOEXCEPT
     {
         return 0;
     }
 
     // uncaught_exception
     //   function: degraded — always reports "none in flight".
-    inline bool uncaught_exception() D_NOEXCEPT
+    inline bool uncaught_exception() RE_STD_NOEXCEPT
     {
         return false;
     }
 
-} // namespace re_std
+}  // re_std
+#endif // RE_STD_HAS_EXCEPTIONS
 
-#endif // D_ENV_CPP98_HAS_EXCEPTION
-
-#endif  // DJINTERP_RE_STD_EXCEPTION_UNCAUGHT_EXCEPTIONS_
+#endif  // RE_STD_EXCEPTION_UNCAUGHT_EXCEPTIONS_HPP

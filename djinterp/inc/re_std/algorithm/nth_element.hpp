@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              nth_element.hpp
 *
 * nth_element algorithm header:
@@ -35,39 +35,41 @@
 *   share them.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/nth_element.hpp
+* path:      /inc/re_std/algorithm/nth_element.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_NTH_ELEMENT_
-#define DJINTERP_RE_STD_ALGORITHM_NTH_ELEMENT_ 1
+#ifndef RE_STD_ALGORITHM_NTH_ELEMENT_HPP
+#define RE_STD_ALGORITHM_NTH_ELEMENT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
     #include "../utility/move.hpp"
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0.   INTERNAL HELPERS
 // ===========================================================================
 
-template<typename _Distance>
-inline _Distance
+template<typename Distance>
+inline Distance
 _nth_log2_floor_(
-    _Distance _n
+    Distance _n
 )
 {
-    _Distance _r = 0;
+    Distance _r = 0;
     while (_n >= 2)
     {
         ++_r;
@@ -77,14 +79,14 @@ _nth_log2_floor_(
 }
 
 
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 _nth_median_of_3_(
-    _RandomIt _a,
-    _RandomIt _b,
-    _RandomIt _c,
-    _Compare  _comp
+    RandomIt _a,
+    RandomIt _b,
+    RandomIt _c,
+    Compare  _comp
 )
 {
     if (_comp(*_b, *_a))
@@ -103,26 +105,26 @@ _nth_median_of_3_(
 
 
 // Lomuto partition with median-of-3. Mirrors sort.hpp's variant.
-template<typename _RandomIt,
-         typename _Compare>
-_RandomIt
+template<typename RandomIt,
+         typename Compare>
+RandomIt
 _nth_partition_(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff     _len = _last - _first;
-    _RandomIt _mid = _first + (_len / 2);
-    _RandomIt _hi  = _last - 1;
+    RandomIt _mid = _first + (_len / 2);
+    RandomIt _hi  = _last - 1;
 
     _nth_median_of_3_(_first, _mid, _hi, _comp);
     iter_swap(_mid, _hi);
 
-    _RandomIt _i = _first;
-    for (_RandomIt _j = _first; _j != _hi; ++_j)
+    RandomIt _i = _first;
+    for (RandomIt _j = _first; _j != _hi; ++_j)
     {
         if (_comp(*_j, *_hi))
         {
@@ -135,42 +137,42 @@ _nth_partition_(
 }
 
 
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 _nth_insertion_(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
 
     if (_first == _last)
     {
         return;
     }
 
-    _RandomIt _i = _first;
+    RandomIt _i = _first;
     ++_i;
     for (; _i != _last; ++_i)
     {
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
         _Value _value = re_std::move(*_i);
 #else
         _Value _value = *_i;
 #endif
 
-        _RandomIt _j = _i;
+        RandomIt _j = _i;
         while (_j != _first)
         {
-            _RandomIt _prev = _j;
+            RandomIt _prev = _j;
             --_prev;
             if (!_comp(_value, *_prev))
             {
                 break;
             }
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
             *_j = re_std::move(*_prev);
 #else
             *_j = *_prev;
@@ -178,7 +180,7 @@ _nth_insertion_(
             _j = _prev;
         }
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
         *_j = re_std::move(_value);
 #else
         *_j = _value;
@@ -192,21 +194,21 @@ _nth_insertion_(
 // element appears. After the scan, *_nth holds the (nth - first + 1)-
 // smallest element. Total O((last - first) * log(nth - first + 1)),
 // strictly within O(N log N).
-template<typename _RandomIt,
-         typename _Distance,
-         typename _Compare>
+template<typename RandomIt,
+         typename Distance,
+         typename Compare>
 void
 _nth_sift_down_(
-    _RandomIt _first,
-    _Distance _start,
-    _Distance _length,
-    _Compare  _comp
+    RandomIt _first,
+    Distance _start,
+    Distance _length,
+    Compare  _comp
 )
 {
-    _Distance _parent = _start;
+    Distance _parent = _start;
     while (true)
     {
-        _Distance _child = static_cast<_Distance>(2 * _parent + 1);
+        Distance _child = static_cast<Distance>(2 * _parent + 1);
         if (_child >= _length)
         {
             break;
@@ -226,17 +228,17 @@ _nth_sift_down_(
 }
 
 
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 _nth_heap_select_(
-    _RandomIt _first,
-    _RandomIt _nth,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _nth,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _heap_size = (_nth - _first) + 1;
     if (_heap_size <= 0)
@@ -251,7 +253,7 @@ _nth_heap_select_(
     }
 
     // stream the rest: anything smaller than the heap's max evicts it
-    for (_RandomIt _it = _first + _heap_size; _it != _last; ++_it)
+    for (RandomIt _it = _first + _heap_size; _it != _last; ++_it)
     {
         if (_comp(*_it, *_first))
         {
@@ -271,16 +273,16 @@ _nth_heap_select_(
 // 1.   INTROSELECT DRIVER
 // ===========================================================================
 
-template<typename _RandomIt,
-         typename _Compare,
-         typename _Distance>
+template<typename RandomIt,
+         typename Compare,
+         typename Distance>
 void
 _nth_introselect_(
-    _RandomIt _first,
-    _RandomIt _nth,
-    _RandomIt _last,
-    _Distance _depth_limit,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _nth,
+    RandomIt _last,
+    Distance _depth_limit,
+    Compare  _comp
 )
 {
     enum { _NTH_SMALL_THRESHOLD_ = 16 };
@@ -294,7 +296,7 @@ _nth_introselect_(
         }
         --_depth_limit;
 
-        _RandomIt _cut = _nth_partition_(_first, _last, _comp);
+        RandomIt _cut = _nth_partition_(_first, _last, _comp);
 
         if (_cut == _nth)
         {
@@ -322,17 +324,17 @@ _nth_introselect_(
 //   function: positions *_nth as if [_first, _last) had been sorted,
 // with [_first, _nth) all <= *_nth and (_nth, _last) all >= *_nth per
 // _comp.
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 nth_element(
-    _RandomIt _first,
-    _RandomIt _nth,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _nth,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     if ( (_first == _last) ||
          (_nth   == _last) )
@@ -349,20 +351,20 @@ nth_element(
 
 // nth_element (default operator<)
 //   function: as above with re_std::less<value_type>().
-template<typename _RandomIt>
+template<typename RandomIt>
 void
 nth_element(
-    _RandomIt _first,
-    _RandomIt _nth,
-    _RandomIt _last
+    RandomIt _first,
+    RandomIt _nth,
+    RandomIt _last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
     nth_element(_first, _nth, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_NTH_ELEMENT_
+#endif  // RE_STD_ALGORITHM_NTH_ELEMENT_HPP

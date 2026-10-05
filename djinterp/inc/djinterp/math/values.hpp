@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                   values.hpp
+/*******************************************************************************
+* djinterp [math]                                                     values.hpp
 *
 * Compile-time sampling of an expression.
 *   Evaluates a value-holding expression (expression.hpp) at a sequence of
@@ -10,13 +10,15 @@
 *   sample<Count>(e, start, step)  - e at start, start+step, ... (Count points)
 *   sample_over<Interval>(e)       - e at an interval's sample points
 *
+*
 * path:      /inc/djinterp/math/values.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.04
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.04
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_VALUES_
-#define DJINTERP_MATH_VALUES_ 1
+#ifndef DJINTERP_MATH_VALUES_HPP
+#define DJINTERP_MATH_VALUES_HPP 1
 
 // std
 #include <array>
@@ -25,7 +27,7 @@
 // djinterp
 #include "../djinterp.hpp"
 #include "./expression.hpp"
-#include "./interval.hpp"
+#include "interval/interval.hpp"
 
 
 NS_DJINTERP
@@ -91,4 +93,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_VALUES_
+#endif  // DJINTERP_MATH_VALUES_HPP

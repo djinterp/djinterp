@@ -1,9 +1,10 @@
-/******************************************************************************
-* re_std [type_traits]                    reference_converts_from_temporary.hpp
+/*******************************************************************************
+* djinterp [re_std]                        reference_converts_from_temporary.hpp
 *
+* reference_converts_from_temporary trait header:
 *   dangling-reference detection (copy-initialization form):
-*   `reference_converts_from_temporary<_Ref, _Source>` reports whether, in
-* `_Ref r = e;` where e is an expression of type _Source, r would be bound to a
+*   `reference_converts_from_temporary<Ref, Source>` reports whether, in
+* `Ref r = e;` where e is an expression of type Source, r would be bound to a
 * TEMPORARY that dies at the end of the full-expression.  Sibling of
 * reference_constructs_from_temporary; the only difference is that the
 * reference is COPY-initialized here rather than direct-initialized.
@@ -31,7 +32,7 @@
 * degraded `false` would silently report "no dangling reference" on a compiler
 * that cannot tell, disarming the check.  When the builtin is missing the trait
 * is NOT DECLARED - test
-* D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY before naming it.  See
+* RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY before naming it.  See
 * reference_constructs_from_temporary.hpp for the full argument, including why
 * Clang's older __reference_binds_to_temporary is deliberately NOT used as a
 * fallback (P2255R2 records it as a partial implementation that misses the
@@ -39,23 +40,30 @@
 *
 *   THE PRVALUE GOTCHA APPLIES HERE TOO:
 *     reference_converts_from_temporary<const int&, int>::value == true
-* because a non-reference _Source denotes a prvalue.  Pass `int&` to ask about
+* because a non-reference Source denotes a prvalue.  Pass `int&` to ask about
 * binding to an lvalue.
 *
 *   PRECONDITION:
 *   As reference_constructs_from_temporary - completeness of
-* remove_reference<_Ref>::type and remove_reference<_Source>::type in the
+* remove_reference<Ref>::type and remove_reference<Source>::type in the
 * rvalue-reference and const-lvalue-reference cases.  Mirrors std.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/
+* path:      /inc/re_std/type_traits/reference_converts_from_temporary.hpp
 *                                      reference_converts_from_temporary.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_
-#define DJINTERP_RE_STD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_ 1
+#ifndef RE_STD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_HPP
+#define RE_STD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./type_traits.hpp"    // integral_constant
@@ -65,7 +73,7 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
+// RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
 //   constant: 1 if the __reference_converts_from_temporary builtin is
 // available.  When 0, re_std::reference_converts_from_temporary DOES NOT EXIST.
 //
@@ -74,47 +82,51 @@
 // symbol, and Clang has already demonstrated that P2255R2's two builtins can
 // diverge in behaviour (LLVM issue #114344).  Only a GCC floor is asserted
 // behind __has_builtin, for the same reason as the sibling.
-#ifndef D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
+#ifndef RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
     #if defined(__has_builtin)
         #if __has_builtin(__reference_converts_from_temporary)
-            #define D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  1
+            #define RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  1
         #endif
     #endif
 
-    #ifndef D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
-        #if ( defined(D_ENV_COMPILER_GCC) &&                                  \
-              D_ENV_COMPILER_VERSION_AT_LEAST(13, 0, 0) )
-            #define D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  1
+    #ifndef RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
+        #if ( defined(RE_STD_COMPILER_GCC) &&                                  \
+              RE_STD_COMPILER_VERSION_AT_LEAST(13, 0, 0) )
+            #define RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  1
         #else
-            #define D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  0
+            #define RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  0
         #endif
-    #endif  // D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY (fallback)
-#endif  // D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY (outer guard)
+    #endif  // RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY (fallback)
+#endif  // RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY (outer guard)
 
 
-#if D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
+#if RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
 
-NS_RESTD
+namespace re_std
+{
 
 // reference_converts_from_temporary
-//   trait: true if `_Ref r = e;` binds r to a temporary, where e has type
-// _Source (a prvalue when _Source is not a reference type).
-template<typename _Ref,
-         typename _Source>
+//   trait: true if `Ref r = e;` binds r to a temporary, where e has type
+// Source (a prvalue when Source is not a reference type).
+template<typename Ref,
+         typename Source>
 struct reference_converts_from_temporary
     : integral_constant<bool,
-          __reference_converts_from_temporary(_Ref, _Source)>
+          __reference_converts_from_temporary(Ref, Source)>
 {};
 
 // reference_converts_from_temporary_v (C++14+)
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Ref,
-             typename _Source>
-    D_CONSTEXPR bool reference_converts_from_temporary_v
-        = reference_converts_from_temporary<_Ref, _Source>::value;
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+    template<typename Ref,
+             typename Source>
+    RE_STD_CONSTEXPR bool reference_converts_from_temporary_v
+        = reference_converts_from_temporary<Ref, Source>::value;
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-NS_END  // re_std
-#endif  // D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
+}  // re_std
+#endif  // RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_
+#endif  // floor, for now
+
+
+#endif  // RE_STD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_HPP

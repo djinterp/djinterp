@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                   is_standard_layout.hpp
+/*******************************************************************************
+* djinterp [re_std]                                       is_standard_layout.hpp
 *
 * is_standard_layout trait header:
 *   is_standard_layout<T>::value is true iff T has a layout a C compiler
@@ -17,56 +17,58 @@
 *   C++11 baseline. The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_standard_layout.hpp
+* path:      /inc/re_std/type_traits/is_standard_layout.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_STANDARD_LAYOUT_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_STANDARD_LAYOUT_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_STANDARD_LAYOUT_HPP
+#define RE_STD_TYPE_TRAITS_IS_STANDARD_LAYOUT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
 // =============================================================================
-// 0.   D_RE_STD_HAS_IS_STANDARD_LAYOUT  (intrinsic detection)
+// 0.   RE_STD_HAS_IS_STANDARD_LAYOUT  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RE_STD_HAS_IS_STANDARD_LAYOUT
+#ifndef RE_STD_HAS_IS_STANDARD_LAYOUT
     #if defined(__has_builtin)
         #if __has_builtin(__is_standard_layout)
-            #define D_RE_STD_HAS_IS_STANDARD_LAYOUT  1
+            #define RE_STD_HAS_IS_STANDARD_LAYOUT  1
         #else
-            #define D_RE_STD_HAS_IS_STANDARD_LAYOUT  0
+            #define RE_STD_HAS_IS_STANDARD_LAYOUT  0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
-            defined(D_ENV_COMPILER_CLANG) ||                                  \
-            defined(D_ENV_COMPILER_MSVC)  ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
-        #define D_RE_STD_HAS_IS_STANDARD_LAYOUT      1
+    #elif ( defined(RE_STD_COMPILER_GCC)   ||                                  \
+            defined(RE_STD_COMPILER_CLANG) ||                                  \
+            defined(RE_STD_COMPILER_MSVC)  ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
+        #define RE_STD_HAS_IS_STANDARD_LAYOUT      1
     #else
-        #define D_RE_STD_HAS_IS_STANDARD_LAYOUT      0
+        #define RE_STD_HAS_IS_STANDARD_LAYOUT      0
     #endif
-#endif  // D_RE_STD_HAS_IS_STANDARD_LAYOUT
+#endif  // RE_STD_HAS_IS_STANDARD_LAYOUT
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_STANDARD_LAYOUT
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_STANDARD_LAYOUT
+#if RE_STD_HAS_IS_STANDARD_LAYOUT
 
 // is_standard_layout
 //   trait: intrinsic-backed -- layout is compatible with the equivalent C struct.
-template<typename _Type>
-struct is_standard_layout : integral_constant<bool, __is_standard_layout(_Type)>
+template<typename Type>
+struct is_standard_layout : integral_constant<bool, __is_standard_layout(Type)>
 {};
 
 #else
@@ -75,26 +77,26 @@ struct is_standard_layout : integral_constant<bool, __is_standard_layout(_Type)>
 //   trait: degraded fallback (always false) when the intrinsic is absent.
 // False is conservative: callers fall back to member-by-member handling
 // rather than treating the type as C-compatible.
-template<typename _Type>
+template<typename Type>
 struct is_standard_layout : false_type
 {};
 
-#endif  // D_RE_STD_HAS_IS_STANDARD_LAYOUT
+#endif  // RE_STD_HAS_IS_STANDARD_LAYOUT
 
 
 // =============================================================================
 // II.  IS_STANDARD_LAYOUT_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool is_standard_layout_v = is_standard_layout<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool is_standard_layout_v = is_standard_layout<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_STANDARD_LAYOUT_
+#endif  // RE_STD_TYPE_TRAITS_IS_STANDARD_LAYOUT_HPP

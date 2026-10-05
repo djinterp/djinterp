@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                             adjacent_difference.hpp
+/*******************************************************************************
+* djinterp [re_std]                                      adjacent_difference.hpp
 *
+* adjacent_difference algorithm header:
 * adjacent_difference(_first, _last, _d_first [, _op]) writes the
 * sequence
 *   d[0] = src[0]
@@ -13,29 +14,21 @@
 * return value: iterator past the last destination written.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/adjacent_difference.hpp
+* path:      /inc/re_std/numeric/adjacent_difference.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_ADJACENT_DIFFERENCE_
-#define DJINTERP_RE_STD_NUMERIC_ADJACENT_DIFFERENCE_ 1
+#ifndef RE_STD_NUMERIC_ADJACENT_DIFFERENCE_HPP
+#define RE_STD_NUMERIC_ADJACENT_DIFFERENCE_HPP 1
 
-#include "djinterp.hpp"
-
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "re_std/iterator/iterator_traits.hpp"
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     #include "re_std/utility/move.hpp"
-#endif
-
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
 #endif
 
 
@@ -43,17 +36,17 @@ namespace re_std
 {
 
 // Default-op overload (operator-).
-template<typename _InputIt, typename _OutputIt>
-D_CONSTEXPR_CPP14 _OutputIt adjacent_difference
+template<typename InputIt, typename OutputIt>
+RE_STD_CONSTEXPR_CPP14 OutputIt adjacent_difference
 (
-    _InputIt   _first,
-    _InputIt   _last,
-    _OutputIt  _d_first
+    InputIt   _first,
+    InputIt   _last,
+    OutputIt  _d_first
 )
 {
     if (_first == _last) return _d_first;
 
-    typedef typename iterator_traits<_InputIt>::value_type _T;
+    typedef typename iterator_traits<InputIt>::value_type _T;
 
     _T _prev = *_first;
     *_d_first = _prev;
@@ -62,7 +55,7 @@ D_CONSTEXPR_CPP14 _OutputIt adjacent_difference
     {
         _T _cur = *_first;
         // *d = cur - prev
-        #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #if RE_STD_LANG_IS_CPP11_OR_HIGHER
             *_d_first = _cur - re_std::move(_prev);
             _prev = re_std::move(_cur);
         #else
@@ -74,18 +67,18 @@ D_CONSTEXPR_CPP14 _OutputIt adjacent_difference
 }
 
 // Custom-op overload.
-template<typename _InputIt, typename _OutputIt, typename _BinOp>
-D_CONSTEXPR_CPP14 _OutputIt adjacent_difference
+template<typename InputIt, typename OutputIt, typename BinOp>
+RE_STD_CONSTEXPR_CPP14 OutputIt adjacent_difference
 (
-    _InputIt   _first,
-    _InputIt   _last,
-    _OutputIt  _d_first,
-    _BinOp     _op
+    InputIt   _first,
+    InputIt   _last,
+    OutputIt  _d_first,
+    BinOp     _op
 )
 {
     if (_first == _last) return _d_first;
 
-    typedef typename iterator_traits<_InputIt>::value_type _T;
+    typedef typename iterator_traits<InputIt>::value_type _T;
 
     _T _prev = *_first;
     *_d_first = _prev;
@@ -93,7 +86,7 @@ D_CONSTEXPR_CPP14 _OutputIt adjacent_difference
     for (++_first, (void)++_d_first; _first != _last; ++_first, (void)++_d_first)
     {
         _T _cur = *_first;
-        #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #if RE_STD_LANG_IS_CPP11_OR_HIGHER
             *_d_first = _op(_cur, re_std::move(_prev));
             _prev = re_std::move(_cur);
         #else
@@ -105,6 +98,5 @@ D_CONSTEXPR_CPP14 _OutputIt adjacent_difference
 }
 
 
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_NUMERIC_ADJACENT_DIFFERENCE_
+}  // re_std
+#endif  // RE_STD_NUMERIC_ADJACENT_DIFFERENCE_HPP

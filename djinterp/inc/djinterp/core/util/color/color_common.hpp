@@ -1,216 +1,144 @@
-/******************************************************************************
-* djinterp [color]                                             color_common.hpp
+/*******************************************************************************
+* djinterp [core]                                               color_common.hpp
 *
-*   C++ ergonomic foundation for the djinterp color module. Layered on top
-* of color_common.h, it adds the channel type alias, generic clamp/compare
-* helpers, the color-model tag hierarchy, and the is_color_model detection
-* trait used by the conversion layer and the polymorphic color type.
+*   VALIDATION SHIM - not the production color subframework.
 *
-*   All color-space math itself lives in the shared C kernels (the .h
-* headers); this header only provides the type-level scaffolding that the
-* C++ wrapper types and conversion dispatch are built from.
+*   A self-contained stand-in for the real color foundation, provided so the
+* report / PDF stack (test_report_runner -> test_report -> test_render_pdf ->
+* pdf -> color) can be COMPILED and exercised WITHOUT the few-dozen real color
+* headers + their C kernels in the tree.  It reproduces exactly the surface the
+* PDF layer consumes across the whole closure and nothing more: the channel
+* scalar, the model-tag hierarchy, and the is_color_model detection trait.  The
+* real subframework layers each wrapper on a C kernel (color_common.h, ...) and
+* routes a D_COLOR_* macro layer; NONE of that is reachable from the PDF stack
+* (verified: no D_COLOR_* token appears outside the color headers themselves),
+* so the shim needs none of it and is pure C++.
+*
+*   Drop this directory in at inc/djinterp/core/util/color/ for a color-free
+* build of the report/PDF layer; the real headers supersede it in a full tree.
+*
+*   Surface consumed by the PDF stack (font.hpp, pdf_primitives.hpp):
+*     channel_t, rgb{r,g,b}, rgba{r,g,b,a}, cmyk{c,m,y,k},
+*     color_cast<To>(from)  (identity + cmyk->rgb are the live paths),
+*     is_color_model<T>::value.
 *
 *
-* path:      /inc/djinterp/util/color/color_common.hpp
+* path:      /inc/djinterp/core/util/color/color_common.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-/*
-TABLE OF CONTENTS
-=================
-I.    SHARED TYPES & UTILITIES
-      -------------------------
-      i.    channel_t
-      ii.   clamp_channel
-      iii.  approx_equal
+#ifndef DJINTERP_UTIL_COLOR_COLOR_COMMON_HPP
+#define DJINTERP_UTIL_COLOR_COLOR_COMMON_HPP 1
 
-II.   COLOR MODEL TAGS
-      -----------------
-      a. color_model_tag
-      b. rgb_tag
-      c. cmyk_tag
-      d. hsl_tag
-      e. hsv_tag
-      f. ycbcr_tag
-      g. cie_xyz_tag
-      h. cie_lab_tag
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-III.  COLOR MODEL DETECTION
-      ----------------------
-      i.    has_model_tag_helper (internal)
-      ii.   is_color_model
-            a. is_color_model_v
-*/
+// std
+#include <type_traits>
+// djinterp
+#include "../../../djinterp.hpp"   // NS_*, D_CONSTEXPR*, D_INLINE, feature gates
 
-#ifndef DJINTERP_COLOR_COMMON_HPP_
-#define DJINTERP_COLOR_COMMON_HPP_ 1
-
-#include "../../djinterp.hpp"
-#include "./color_common.h"
-
-
-///////////////////////////////////////////////////////////////////////////////
-///                I.   SHARED TYPES & UTILITIES                            ///
-///////////////////////////////////////////////////////////////////////////////
 
 NS_DJINTERP
 
 
-// ================================================================
-//  channel_t
-// ================================================================
-
 // channel_t
-//   type: underlying floating-point type for all color channel
-// values. Unified on `float` to share the C kernel's POD layout
-// at zero cost; define D_COLOR_CHANNEL_TYPE before inclusion to
-// override.
+//   the scalar every model stores.  Overridable, exactly as the real header,
+// by defining D_COLOR_CHANNEL_TYPE before inclusion.
 #ifndef D_COLOR_CHANNEL_TYPE
-    using channel_t = float;
-#else
-    using channel_t = D_COLOR_CHANNEL_TYPE;
+#  define D_COLOR_CHANNEL_TYPE float
 #endif
+using channel_t = D_COLOR_CHANNEL_TYPE;
 
 
-// ================================================================
-//  clamp_channel
-// ================================================================
-
-// clamp_channel
-//   function: constrains a channel value to the closed
-// interval [_min, _max]. Fully constexpr-portable.
-template<typename _Type>
-D_CONSTEXPR_INLINE _Type
+// clamp_channel / approx_equal
+//   the two generic scalar helpers the real foundation exposes.  Single-return
+// so they stay constant-expression-safe down to C++11.
+template <typename Type>
+D_CONSTEXPR_INLINE Type
 clamp_channel(
-    _Type _value,
-    _Type _min,
-    _Type _max
+    Type _v,
+    Type _lo,
+    Type _hi
 )
 {
-    return (_value < _min) ? _min
-         : (_value > _max) ? _max
-         :                   _value;
+    return _v < _lo ? _lo : (_hi < _v ? _hi : _v);
 }
 
-
-// ================================================================
-//  approx_equal
-// ================================================================
-
-// approx_equal
-//   function: approximate floating-point equality within a
-// specified epsilon. Used for channel comparisons where exact
-// equality is inappropriate.
-template<typename _Type>
+template <typename Type>
 D_CONSTEXPR_INLINE bool
 approx_equal(
-    _Type _a,
-    _Type _b,
-    _Type _epsilon
+    Type _a,
+    Type _b,
+    Type _eps
 )
 {
-    _Type diff = (_a > _b) ? (_a - _b) : (_b - _a);
-
-    return (diff <= _epsilon);
+    return (_a < _b ? _b - _a : _a - _b) <= _eps;
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                   II.   COLOR MODEL TAGS                                ///
-///////////////////////////////////////////////////////////////////////////////
+// ---- model-tag hierarchy ----------------------------------------------------
+// Empty base + one tag per model; a wrapper advertises membership of the
+// conversion graph by exposing a nested model_tag.
+struct color_model_tag {};
 
-// color_model_tag
-//   struct: empty base tag for all color model tag types.
-// Serves as the root of the tag hierarchy for dispatch and
-// detection.
-struct color_model_tag
-{};
+struct rgb_tag     : color_model_tag {};
+struct cmyk_tag    : color_model_tag {};
+struct hsl_tag     : color_model_tag {};
+struct hsv_tag     : color_model_tag {};
+struct ycbcr_tag   : color_model_tag {};
+struct cie_xyz_tag : color_model_tag {};
+struct cie_lab_tag : color_model_tag {};
 
-// rgb_tag
-//   struct: tag type identifying the RGB color model.
-struct rgb_tag : color_model_tag
-{};
-
-// cmyk_tag
-//   struct: tag type identifying the CMYK color model.
-struct cmyk_tag : color_model_tag
-{};
-
-// hsl_tag
-//   struct: tag type identifying the HSL color model.
-struct hsl_tag : color_model_tag
-{};
-
-// hsv_tag
-//   struct: tag type identifying the HSV color model.
-struct hsv_tag : color_model_tag
-{};
-
-// ycbcr_tag
-//   struct: tag type identifying the YCbCr color model.
-struct ycbcr_tag : color_model_tag
-{};
-
-// cie_xyz_tag
-//   struct: tag type identifying the CIE 1931 XYZ color model.
-struct cie_xyz_tag : color_model_tag
-{};
-
-// cie_lab_tag
-//   struct: tag type identifying the CIE L*a*b* color model.
-struct cie_lab_tag : color_model_tag
-{};
-
-
-///////////////////////////////////////////////////////////////////////////////
-///                III.   COLOR MODEL DETECTION                             ///
-///////////////////////////////////////////////////////////////////////////////
-
-// is_color_model
-//   trait: detects whether _Type is a color model type by
-// checking for a nested `model_tag` alias.
 
 NS_INTERNAL
 
+    // color_detail_void
+    //   a C++11-clean void_t: maps any well-formed type list to void so a
+    // partial specialization can probe for a nested member.
+    template <typename /*...*/>
+    struct color_detail_void { typedef void type; };
+
     // has_model_tag_helper
-    //   trait: SFINAE helper; primary template (failure case).
-    template<typename _Type,
-             typename = void>
-    struct has_model_tag_helper
-    {
-        D_STATIC_CONSTEXPR bool value = false;
-    };
+    //   true iff Type names a nested ::model_tag.  Underpins is_color_model.
+    template <typename Type, typename = void>
+    struct has_model_tag_helper { static const bool value = false; };
 
-    // has_model_tag_helper (specialization)
-    //   trait: success case when _Type::model_tag exists.
-    template<typename _Type>
-    struct has_model_tag_helper<_Type,
-                                void_t<typename _Type::model_tag>>
-    {
-        D_STATIC_CONSTEXPR bool value = true;
-    };
+    template <typename Type>
+    struct has_model_tag_helper<
+        Type,
+        typename color_detail_void<typename Type::model_tag>::type>
+    { static const bool value = true; };
 
-NS_END  // internal
+NS_END   // internal
+
 
 // is_color_model
-//   trait: true if _Type has a nested model_tag type.
-template<typename _Type>
+//   a model participates in the conversion graph; transport types (rgba,
+// rgba_premul) deliberately do not.  cv/ref are stripped first.
+template <typename Type>
 struct is_color_model
-{
-    D_STATIC_CONSTEXPR bool value =
-        internal::has_model_tag_helper<clean_t<_Type>>::value;
-};
+    : std::integral_constant<
+          bool,
+          internal::has_model_tag_helper<
+              typename std::remove_cv<
+                  typename std::remove_reference<Type>::type>::type>::value>
+{};
 
-// is_color_model_v
-//   constant: convenience accessor for
-// is_color_model<_Type>::value.
-template<typename _Type>
-D_STATIC_CONSTEXPR bool is_color_model_v =
-    is_color_model<_Type>::value;
-
-
-NS_END  // djinterp
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+// C++14+ variable-template shorthand (gated, matching the real header).
+template <typename Type>
+D_CONSTEXPR bool is_color_model_v = is_color_model<Type>::value;
+#endif
 
 
-#endif  // DJINTERP_COLOR_COMMON_HPP_
+NS_END   // djinterp
+
+#endif  // floor, for now
+
+#endif // DJINTERP_UTIL_COLOR_COLOR_COMMON_HPP

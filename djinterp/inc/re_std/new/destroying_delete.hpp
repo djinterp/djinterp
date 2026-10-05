@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         destroying_delete.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        destroying_delete.hpp
 *
 * destroying_delete_t tag header:
 *   C++20 destroying_delete_t is a tag type used to mark class-scope
@@ -26,30 +26,35 @@
 *            ctor for the named instance pattern; constexpr is C++11.
 *
 *
-* path:      /inc/djinterp/re_std/new/destroying_delete.hpp
+* path:      /inc/re_std/new/destroying_delete.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_DESTROYING_DELETE_
-#define DJINTERP_RE_STD_DESTROYING_DELETE_ 1
+#ifndef RE_STD_NEW_DESTROYING_DELETE_HPP
+#define RE_STD_NEW_DESTROYING_DELETE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
+
+// std
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
+    #include <new>  // std::destroying_delete_t, std::destroying_delete
+#endif
 
 // gate: requires C++11 minimum for the constexpr-instance pattern.
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_RESTD
-
-
+namespace re_std
+{
 // ===========================================================================
 // I.   DESTROYING_DELETE_T
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#include <new>
 using std::destroying_delete_t;
 using std::destroying_delete;
 
@@ -63,33 +68,34 @@ struct destroying_delete_t
     explicit constexpr destroying_delete_t() {}
 };
 
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+#if RE_STD_LANG_HAS_INLINE_VARIABLES
 inline constexpr destroying_delete_t destroying_delete{};
 #else
 // Pre-C++17: holder-template pattern. Same trick used for
 // re_std::unexpect and re_std::in_place.
 namespace internal
 {
-    template<typename _Dummy>
+
+    template<typename Dummy>
     struct destroying_delete_holder
     {
         static const destroying_delete_t value;
     };
-    template<typename _Dummy>
-    const destroying_delete_t destroying_delete_holder<_Dummy>::value
+    template<typename Dummy>
+    const destroying_delete_t destroying_delete_holder<Dummy>::value
         = destroying_delete_t();
 }
 static const destroying_delete_t& destroying_delete
     = internal::destroying_delete_holder<void>::value;
 #endif
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_DESTROYING_DELETE_
+#endif  // RE_STD_NEW_DESTROYING_DELETE_HPP

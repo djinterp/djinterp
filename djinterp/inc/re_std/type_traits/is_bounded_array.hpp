@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                         is_bounded_array.hpp
 *
 * is_bounded_array trait header:
@@ -10,23 +10,26 @@
 *   C++11 baseline.  The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_bounded_array.hpp
+* path:      /inc/re_std/type_traits/is_bounded_array.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_BOUNDED_ARRAY_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_BOUNDED_ARRAY_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_BOUNDED_ARRAY_HPP
+#define RE_STD_TYPE_TRAITS_IS_BOUNDED_ARRAY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// std
+#include <cstddef>
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
-#include <cstddef>
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -35,15 +38,15 @@ NS_RESTD
 
 // is_bounded_array
 //   trait: false (primary template).
-template<typename _Type>
+template<typename Type>
 struct is_bounded_array : false_type
 {};
 
-// is_bounded_array<_Type[_N]>
+// is_bounded_array<Type[N]>
 //   trait: true for an array of known bound.
-template<typename _Type,
-         std::size_t _N>
-struct is_bounded_array<_Type[_N]> : true_type
+template<typename Type,
+         std::size_t N>
+struct is_bounded_array<Type[N]> : true_type
 {};
 
 
@@ -51,15 +54,15 @@ struct is_bounded_array<_Type[_N]> : true_type
 // II.  IS_BOUNDED_ARRAY_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool is_bounded_array_v = is_bounded_array<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool is_bounded_array_v = is_bounded_array<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_BOUNDED_ARRAY_
+#endif  // RE_STD_TYPE_TRAITS_IS_BOUNDED_ARRAY_HPP

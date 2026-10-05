@@ -1,7 +1,8 @@
-/******************************************************************************
-* re_std [concepts]                                       unsigned_integral.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        unsigned_integral.hpp
 *
-*   _Type is an unsigned integral type.
+* unsigned_integral concept header:
+*   Type is an unsigned integral type.
 *
 *   Defined as integral-and-not-signed rather than integral-and-is_unsigned so
 * that it is exactly the complement of signed_integral over the integral types.
@@ -13,36 +14,38 @@
 * re_std's intrinsic-backed traits there is nothing to detect and nothing to
 * back-port.  Below C++20 this header is EMPTY rather than degraded: a concept
 * that does not exist cannot give a wrong answer, and naming one is an
-* immediate, localised compile error.  Test D_ENV_LANG_IS_CPP20_OR_HIGHER, or
+* immediate, localised compile error.  Test RE_STD_LANG_IS_CPP20_OR_HIGHER, or
 * use the trait-shaped equivalents in re_std::type_traits, which reach C++98.
 *
 *
-* path:      /inc/djinterp/re_std/concepts/unsigned_integral.hpp
+* path:      /inc/re_std/concepts/unsigned_integral.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CONCEPTS_UNSIGNED_INTEGRAL_
-#define DJINTERP_RE_STD_CONCEPTS_UNSIGNED_INTEGRAL_ 1
+#ifndef RE_STD_CONCEPTS_UNSIGNED_INTEGRAL_HPP
+#define RE_STD_CONCEPTS_UNSIGNED_INTEGRAL_HPP 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 // re_std
 #include "../type_traits/type_traits.hpp"
-#include "../concepts/integral.hpp"
-#include "../concepts/signed_integral.hpp"
+#include "integral.hpp"
+#include "signed_integral.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // unsigned_integral
-//   concept: _Type is integral and not signed.
-template<typename _Type>
-concept unsigned_integral = integral<_Type> && !signed_integral<_Type>;
+//   concept: Type is integral and not signed.
+template<typename Type>
+concept unsigned_integral = integral<Type> && !signed_integral<Type>;
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_CONCEPTS_UNSIGNED_INTEGRAL_
+#endif  // RE_STD_CONCEPTS_UNSIGNED_INTEGRAL_HPP

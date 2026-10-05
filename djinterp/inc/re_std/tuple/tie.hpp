@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                      tie.hpp
 *
 * tie factory header:
@@ -20,27 +20,29 @@
 *   Requires variadic templates and rvalue references (C++11+).
 *
 *
-* path:      /inc/djinterp/re_std/tuple/tie.hpp
+* path:      /inc/re_std/tuple/tie.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_TIE_
-#define DJINTERP_RE_STD_TUPLE_TIE_ 1
+#ifndef RE_STD_TUPLE_TIE_HPP
+#define RE_STD_TUPLE_TIE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
+
+
+// re_std
 #include "./tuple.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -48,23 +50,23 @@ NS_RESTD
 // =============================================================================
 
 // tie
-//   function: creates a tuple<_Types&...> binding lvalue references
+//   function: creates a tuple<Types&...> binding lvalue references
 // to its arguments. Constexpr on C++14+.
-template<typename... _Types>
-D_CONSTEXPR
-tuple<_Types&...>
+template<typename... Types>
+RE_STD_CONSTEXPR
+tuple<Types&...>
 tie(
-    _Types&... _args
-) D_NOEXCEPT
+    Types&... _args
+) RE_STD_NOEXCEPT
 {
-    return tuple<_Types&...>(_args...);
+    return tuple<Types&...>(_args...);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_TIE_
+#endif  // RE_STD_TUPLE_TIE_HPP

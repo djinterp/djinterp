@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           reverse_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             reverse_view.hpp
 *
 * reverse_view header:
 *   Provides the C++20 reversal adaptor. reverse_view<V> presents
@@ -28,17 +28,19 @@
 *   re_std::views::reverse(r).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/reverse_view.hpp
+* path:      /inc/re_std/ranges/reverse_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_REVERSE_VIEW_
-#define DJINTERP_RE_STD_RANGES_REVERSE_VIEW_ 1
+#ifndef RE_STD_RANGES_REVERSE_VIEW_HPP
+#define RE_STD_RANGES_REVERSE_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../iterator/reverse_iterator.hpp"
 #include "./view_interface.hpp"
@@ -48,47 +50,48 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   REVERSE_VIEW
 // ===========================================================================
 
-// reverse_view<_View>
-//   class: presents _View in reverse order via reverse_iterator.
-// Requires _View to be a bidirectional common_range.
-template<typename _View>
-class reverse_view : public view_interface<reverse_view<_View> >
+// reverse_view<View>
+//   class: presents View in reverse order via reverse_iterator.
+// Requires View to be a bidirectional common_range.
+template<typename View>
+class reverse_view : public view_interface<reverse_view<View> >
 {
 public:
-    typedef _View                                       base_view;
-    typedef reverse_iterator<iterator_t<_View> >        iterator;
+    typedef View                                       base_view;
+    typedef reverse_iterator<iterator_t<View> >        iterator;
     typedef iterator                                    sentinel;
 
 
 private:
-    _View  m_base;
+    View  m_base;
 
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     reverse_view()
         : m_base()
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     reverse_view(
-        _View  _base
+        View  _base
     )
-        : m_base(static_cast<_View&&>(_base))
+        : m_base(static_cast<View&&>(_base))
     {}
 
 
     // base
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
@@ -97,14 +100,14 @@ public:
 
     // begin
     //   function: reverse_iterator(end(base)). Requires base to be
-    // a common_range so end returns an iterator_t<_View>.
-    D_CONSTEXPR_CPP14 iterator
+    // a common_range so end returns an iterator_t<View>.
+    RE_STD_CONSTEXPR_CPP14 iterator
     begin()
     {
         return iterator(re_std::end(m_base));
     }
 
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     begin() const
     {
         return iterator(re_std::end(m_base));
@@ -113,13 +116,13 @@ public:
 
     // end
     //   function: reverse_iterator(begin(base)).
-    D_CONSTEXPR_CPP14 iterator
+    RE_STD_CONSTEXPR_CPP14 iterator
     end()
     {
         return iterator(re_std::begin(m_base));
     }
 
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     end() const
     {
         return iterator(re_std::begin(m_base));
@@ -128,7 +131,7 @@ public:
 
     // size
     //   function: forwards to the underlying view when sized.
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     size()
         -> decltype(re_std::size(m_base))
@@ -136,7 +139,7 @@ public:
         return re_std::size(m_base);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     size() const
         -> decltype(re_std::size(m_base))
@@ -151,12 +154,12 @@ public:
 // ===========================================================================
 
 // enable_borrowed_range<reverse_view<V>>
-//   trait: borrowed iff the underlying _View is itself borrowed.
+//   trait: borrowed iff the underlying View is itself borrowed.
 // The reverse_iterators wrap V's underlying iterators, so their
 // validity exactly tracks V's.
-template<typename _View>
-struct enable_borrowed_range<reverse_view<_View> >
-    : enable_borrowed_range<_View>
+template<typename View>
+struct enable_borrowed_range<reverse_view<View> >
+    : enable_borrowed_range<View>
 {};
 
 
@@ -171,32 +174,32 @@ namespace views
     // range_adaptor_closure base.
     struct reverse_fn : range_adaptor_closure<reverse_fn>
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
-        reverse_view<typename internal::all_dispatch<_R>::type>
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
+        reverse_view<typename internal::all_dispatch<R>::type>
         operator()(
-            _R&&  _r
+            R&&  _r
         ) const
         {
-            typedef typename internal::all_dispatch<_R>::type  view_type;
+            typedef typename internal::all_dispatch<R>::type  view_type;
             return reverse_view<view_type>(
-                internal::all_dispatch<_R>::call(static_cast<_R&&>(_r))
+                internal::all_dispatch<R>::call(static_cast<R&&>(_r))
             );
         }
     };
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    inline D_CONSTEXPR reverse_fn reverse = reverse_fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+    inline RE_STD_CONSTEXPR reverse_fn reverse = reverse_fn();
 #else
-    static D_CONSTEXPR reverse_fn reverse = reverse_fn();
+    static RE_STD_CONSTEXPR reverse_fn reverse = reverse_fn();
 #endif
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_REVERSE_VIEW_
+#endif  // RE_STD_RANGES_REVERSE_VIEW_HPP

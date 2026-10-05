@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                              test_timer.hpp
+/*******************************************************************************
+* djinterp [test]                                                 test_timer.hpp
 *
 *   A nestable timer for test instrumentation with optional event dispatch.
 * Wraps util::timer for elapsed-time tracking, adds owning and non-owning
@@ -30,11 +30,18 @@
 *
 * path:      /inc/djinterp/test/test_timer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.08
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_TIMER_
-#define DJINTERP_TEST_TIMER_ 1
+#ifndef DJINTERP_TEST_TEST_TIMER_HPP
+#define DJINTERP_TEST_TEST_TIMER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <chrono>
@@ -42,7 +49,7 @@
 #include <tuple>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "../core/util/timer/timer.hpp"
 #include "../core/event/event_dispatcher.hpp"
 
@@ -55,7 +62,7 @@ NS_TEST
 //   class: a nestable timer for test instrumentation with
 // optional event dispatch.
 //
-//   Wraps util::timer<_Clock, _Duration> for core time tracking.
+//   Wraps util::timer<Clock, Duration> for core time tracking.
 // Fires events through an optional event_dispatcher pointer on
 // start, stop, expiry, and reset.
 //
@@ -78,20 +85,20 @@ NS_TEST
 //       [](test_timer<>::rep_type ns) { ... });
 //   t.start();
 //   t.stop();  // fires on_stop with elapsed count
-template<typename _Clock    = std::chrono::steady_clock,
-         typename _Duration = typename _Clock::duration>
+template<typename Clock     = std::chrono::steady_clock,
+         typename Duration = typename Clock::duration>
 class test_timer
 {
 private:
-    using self_type     = test_timer<_Clock, _Duration>;
-    using base_type     = timer<_Clock, _Duration>;
+    using self_type     = test_timer<Clock, Duration>;
+    using base_type     = timer<Clock, Duration>;
     using children_type = std::vector<self_type>;
     using observed_type = std::vector<self_type*>;
 
 public:
-    using clock_type    = _Clock;
-    using duration_type = _Duration;
-    using rep_type      = typename _Duration::rep;
+    using clock_type    = Clock;
+    using duration_type = Duration;
+    using rep_type      = typename Duration::rep;
     using size_type     = std::size_t;
 
     // -----------------------------------------------------------------
@@ -105,9 +112,9 @@ public:
     {
         using args_type = std::tuple<>;
 
-        static const char* name() 
-        { 
-            return "test_timer::on_start"; 
+        static const char* name()
+        {
+            return "test_timer::on_start";
         }
     };
 
@@ -118,8 +125,8 @@ public:
     {
         using args_type = std::tuple<rep_type>;
 
-        static const char* name() 
-        { 
+        static const char* name()
+        {
             return "test_timer::on_stop";
         }
     };
@@ -131,9 +138,9 @@ public:
     {
         using args_type = std::tuple<>;
 
-        static const char* name() 
-        { 
-            return "test_timer::on_expire"; 
+        static const char* name()
+        {
+            return "test_timer::on_expire";
         }
     };
 
@@ -144,9 +151,9 @@ public:
     {
         using args_type = std::tuple<rep_type>;
 
-        static const char* name() 
-        { 
-            return "test_timer::on_reset"; 
+        static const char* name()
+        {
+            return "test_timer::on_reset";
         }
     };
 
@@ -164,7 +171,7 @@ public:
 
     // from max duration and optional handler
     explicit test_timer(
-        _Duration      _max,
+        Duration       _max,
         event_dispatcher* _handler = nullptr
     )
         : m_timer(_max),
@@ -277,7 +284,7 @@ public:
     // elapsed
     //   returns the total accumulated duration.  If the timer is
     // currently running, includes time since the last start.
-    _Duration elapsed() const
+    Duration elapsed() const
     {
         return m_timer.elapsed();
     }
@@ -285,7 +292,7 @@ public:
     // max
     //   returns the maximum duration limit, or zero if no limit
     // is set.
-    _Duration max() const
+    Duration max() const
     {
         return m_timer.max();
     }
@@ -315,7 +322,7 @@ public:
     // remaining
     //   returns the time remaining before expiry, or zero if
     // no limit is set or the timer is already expired.
-    _Duration remaining() const
+    Duration remaining() const
     {
         return m_timer.remaining();
     }
@@ -342,7 +349,7 @@ public:
     // event_dispatcher.
     self_type&
     add_child(
-        _Duration _max
+        Duration _max
     )
     {
         m_children.emplace_back(_max, m_handler);
@@ -452,16 +459,16 @@ private:
     // emit
     //   fires an event through the attached handler if one is
     // present.  No-op when m_handler is nullptr.
-    template<typename _Event,
-             typename... _Args>
+    template<typename Event,
+             typename... Args>
     void
     emit(
-        _Args... _args
+        Args... _args
     )
     {
         if (m_handler)
         {
-            m_handler->fire<_Event>(_args...);
+            m_handler->fire<Event>(_args...);
         }
 
         return;
@@ -481,5 +488,7 @@ private:
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_TIMER_
+
+#endif  // DJINTERP_TEST_TEST_TIMER_HPP

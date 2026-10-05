@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [re_std]                                                       tuple
+/*******************************************************************************
+* djinterp [re_std]                                                        tuple
 *
 * tuple umbrella header (extension-less, mirrors std's <tuple>):
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/re_std/tuple/.
+* /inc/re_std/tuple/.
 *
 *   GRANULARITY:
 *   Every public symbol lives in its own .hpp file under this directory.
@@ -14,29 +14,48 @@
 * references (C++11+). On C++98/03, this header expands to nothing.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    HELPER TRAITS
-* II.   TUPLE CLASS
-* III.  ELEMENT ACCESS
-* IV.   FACTORY FUNCTIONS
-* V.    CONCATENATION
-* VI.   APPLY / MAKE_FROM_TUPLE  (C++17 surface)
-* VII.  COMPARISON OPERATORS
-* VIII. SWAP
-* IX.   IGNORE OBJECT
-*
-*
-* path:      /inc/djinterp/re_std/tuple/tuple
+* path:      /inc/re_std/tuple/tuple
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_UMBRELLA_
-#define DJINTERP_RE_STD_TUPLE_UMBRELLA_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    HELPER TRAITS
+      -------------
 
-// djinterp
-#include "../../core/djinterp.hpp"
+II.   TUPLE CLASS
+      -----------
+
+III.  ELEMENT ACCESS
+      --------------
+
+IV.   FACTORY FUNCTIONS
+      -----------------
+
+V.    CONCATENATION
+      -------------
+
+VI.   APPLY / MAKE_FROM_TUPLE  (C++17 surface)
+      ----------------------------------------
+
+VII.  COMPARISON OPERATORS
+      --------------------
+
+VIII. SWAP
+      ----
+
+IX.   IGNORE OBJECT
+      -------------
+*/
+
+#ifndef RE_STD_TUPLE_TUPLE
+#define RE_STD_TUPLE_TUPLE 1
+
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // =============================================================================
@@ -107,4 +126,4 @@
 #include "./ignore.hpp"
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_UMBRELLA_
+#endif  // RE_STD_TUPLE_TUPLE

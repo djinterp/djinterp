@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [ranges]                                             adjacent_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            adjacent_view.hpp
 *
+* adjacent_view view header:
 *   adjacent_view<V, N> - every window of N consecutive elements of ONE range.
 * adjacent_transform_view applies a callable to each window.
 *
@@ -24,74 +25,85 @@
 *   STD IS C++23; re_std IS C++11.
 *   INTERFACE ASSUMPTIONS: see ADAPTOR_ASSUMPTIONS.txt in this directory.
 *
-* path:      /inc/djinterp/re_std/ranges/adjacent_view.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/ranges/adjacent_view.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_ADJACENT_VIEW_
-#define DJINTERP_RE_STD_RANGES_ADJACENT_VIEW_ 1
+#ifndef RE_STD_RANGES_ADJACENT_VIEW_HPP
+#define RE_STD_RANGES_ADJACENT_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
+#include "../utility/make_integer_sequence.hpp"
 #include "../tuple/tuple.hpp"
+#include "../tuple/tuple_get.hpp"
 #include "../functional/invoke.hpp"
-#include "../iterator/iterator_tags.hpp"
-#include "./range_traits.hpp"
-#include "./range_access.hpp"
 #include "./view_interface.hpp"
+#include "../iterator/input_iterator_tag.hpp"
+#include "./ranges_access.hpp"
+#include "./iterator_t.hpp"
+#include "./range_reference_t.hpp"
+#include "./sentinel_t.hpp"
 
-NS_RESTD
-D_NAMESPACE(ranges)
+namespace re_std
+{
+namespace ranges
+{
 
-NS_INTERNAL
+namespace internal
+{
 
     // repeat_tuple
-    //   trait: tuple<_Type, _Type, ...> with _Count members.  Needed because
+    //   trait: tuple<Type, Type, ...> with Count members.  Needed because
     // adjacent's window is N copies of ONE reference type, which no pack
     // expansion over the view list can produce.
-    template<typename _Type, size_t _Count, typename... _Acc>
-    struct repeat_tuple : repeat_tuple<_Type, _Count - 1, _Type, _Acc...> {};
+    template<typename Type, size_t Count, typename... Acc>
+    struct repeat_tuple : repeat_tuple<Type, Count - 1, Type, Acc...> {};
 
-    template<typename _Type, typename... _Acc>
-    struct repeat_tuple<_Type, 0, _Acc...>
-    { typedef tuple<_Acc...> type; };
+    template<typename Type, typename... Acc>
+    struct repeat_tuple<Type, 0, Acc...>
+    { typedef tuple<Acc...> type; };
 
     // adjacent_result
-    //   trait: the type of f applied to _Count copies of _Ref.  Needed
+    //   trait: the type of f applied to Count copies of Ref.  Needed
     // because the window is N repeats of ONE type, and there is no pack to
     // expand - the same reason repeat_tuple exists, but yielding a call
     // result rather than a tuple.
-    template<typename _Func, typename _Ref, size_t _Count, typename... _Acc>
+    template<typename Func, typename Ref, size_t Count, typename... Acc>
     struct adjacent_result
-        : adjacent_result<_Func, _Ref, _Count - 1, _Ref, _Acc...> {};
+        : adjacent_result<Func, Ref, Count - 1, Ref, Acc...> {};
 
-    template<typename _Func, typename _Ref, typename... _Acc>
-    struct adjacent_result<_Func, _Ref, 0, _Acc...>
+    template<typename Func, typename Ref, typename... Acc>
+    struct adjacent_result<Func, Ref, 0, Acc...>
     {
-        typedef decltype(re_std::invoke(declval<const _Func&>(),
-                                        declval<_Acc>()...)) type;
+        typedef decltype(re_std::invoke(declval<const Func&>(),
+                                        declval<Acc>()...)) type;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // adjacent_view
 //   class: sliding windows of N consecutive elements.
-template<typename _View, size_t _Count>
-class adjacent_view : public view_interface<adjacent_view<_View, _Count> >
+template<typename View, size_t Count>
+class adjacent_view : public view_interface<adjacent_view<View, Count> >
 {
-    typedef iterator_t<_View> _BaseIter;
-    typedef sentinel_t<_View> _BaseSent;
+    typedef iterator_t<View> _BaseIter;
+    typedef sentinel_t<View> _BaseSent;
 
-    _View m_base;
+    View m_base;
 
 public:
     typedef typename internal::repeat_tuple<
-        range_reference_t<_View>, _Count>::type window_type;
+        range_reference_t<View>, Count>::type window_type;
 
     class sentinel
     {
@@ -104,12 +116,12 @@ public:
 
     class iterator
     {
-        _BaseIter m_its[_Count];
+        _BaseIter m_its[Count];
         bool      m_valid;
 
-        template<size_t... _I>
-        window_type deref(index_sequence<_I...>) const
-        { return window_type(*m_its[_I]...); }
+        template<size_t... I>
+        window_type deref(index_sequence<I...>) const
+        { return window_type(*m_its[I]...); }
 
     public:
         typedef window_type        reference;
@@ -129,7 +141,7 @@ public:
             // store. If the range runs out first the window can never be
             // formed and the iterator is born equal to the sentinel.
             _BaseIter it = first;
-            for (size_t i = 0; i < _Count; ++i)
+            for (size_t i = 0; i < Count; ++i)
             {
                 if (it == last) { m_valid = false; break; }
                 m_its[i] = it;
@@ -140,14 +152,14 @@ public:
         bool valid() const { return m_valid; }
 
         //   The TRAILING edge decides exhaustion.
-        const _BaseIter& last_iter() const { return m_its[_Count - 1]; }
+        const _BaseIter& last_iter() const { return m_its[Count - 1]; }
 
         reference operator*() const
-        { return deref(make_index_sequence<_Count>()); }
+        { return deref(make_index_sequence<Count>()); }
 
         iterator& operator++()
         {
-            for (size_t i = 0; i < _Count; ++i) { ++m_its[i]; }
+            for (size_t i = 0; i < Count; ++i) { ++m_its[i]; }
             return *this;
         }
         iterator operator++(int) { iterator t = *this; ++(*this); return t; }
@@ -157,9 +169,9 @@ public:
         friend bool operator!=(const iterator& a, const iterator& b)
         { return !(a.m_its[0] == b.m_its[0]); }
         friend bool operator==(const iterator& a, const sentinel& s)
-        { return !a.m_valid || a.m_its[_Count - 1] == s.base(); }
+        { return !a.m_valid || a.m_its[Count - 1] == s.base(); }
         friend bool operator==(const sentinel& s, const iterator& a)
-        { return !a.m_valid || a.m_its[_Count - 1] == s.base(); }
+        { return !a.m_valid || a.m_its[Count - 1] == s.base(); }
         friend bool operator!=(const iterator& a, const sentinel& s)
         { return !(a == s); }
         friend bool operator!=(const sentinel& s, const iterator& a)
@@ -167,7 +179,7 @@ public:
     };
 
     adjacent_view() : m_base() {}
-    explicit adjacent_view(_View base) : m_base(static_cast<_View&&>(base)) {}
+    explicit adjacent_view(View base) : m_base(static_cast<View&&>(base)) {}
 
     iterator begin() { return iterator(ranges::begin(m_base), ranges::end(m_base)); }
     sentinel end()   { return sentinel(ranges::end(m_base)); }
@@ -176,13 +188,13 @@ public:
 
 // adjacent_transform_view
 //   class: f applied to each window, as zip_transform is to zip.
-template<typename _View, typename _Func, size_t _Count>
+template<typename View, typename Func, size_t Count>
 class adjacent_transform_view
-    : public view_interface<adjacent_transform_view<_View, _Func, _Count> >
+    : public view_interface<adjacent_transform_view<View, Func, Count> >
 {
-    typedef adjacent_view<_View, _Count> _Adjacent;
+    typedef adjacent_view<View, Count> _Adjacent;
 
-    _Func     m_func;
+    Func     m_func;
     _Adjacent m_adjacent;
 
 public:
@@ -190,7 +202,7 @@ public:
 
     class iterator
     {
-        const _Func*                    m_func;
+        const Func*                    m_func;
         typename _Adjacent::iterator    m_it;
 
     public:
@@ -198,14 +210,14 @@ public:
         // naming call() here would make the typedef refer to the class being
         // defined.
         typedef typename internal::adjacent_result<
-            _Func, range_reference_t<_View>, _Count>::type reference;
+            Func, range_reference_t<View>, Count>::type reference;
 
     private:
-        template<size_t... _I>
-        reference call(index_sequence<_I...>) const
+        template<size_t... I>
+        reference call(index_sequence<I...>) const
         {
             typename _Adjacent::window_type w = *m_it;
-            return re_std::invoke(*m_func, re_std::get<_I>(w)...);
+            return re_std::invoke(*m_func, re_std::get<I>(w)...);
         }
 
     public:
@@ -216,10 +228,10 @@ public:
         typedef input_iterator_tag iterator_category;
 
         iterator() : m_func(0), m_it() {}
-        iterator(const _Func& f, const typename _Adjacent::iterator& it)
+        iterator(const Func& f, const typename _Adjacent::iterator& it)
             : m_func(&f), m_it(it) {}
 
-        reference operator*() const { return call(make_index_sequence<_Count>()); }
+        reference operator*() const { return call(make_index_sequence<Count>()); }
 
         iterator& operator++() { ++m_it; return *this; }
         iterator  operator++(int) { iterator t = *this; ++(*this); return t; }
@@ -239,17 +251,17 @@ public:
     };
 
     adjacent_transform_view() : m_func(), m_adjacent() {}
-    adjacent_transform_view(_View base, _Func f)
-        : m_func(static_cast<_Func&&>(f)),
-          m_adjacent(static_cast<_View&&>(base)) {}
+    adjacent_transform_view(View base, Func f)
+        : m_func(static_cast<Func&&>(f)),
+          m_adjacent(static_cast<View&&>(base)) {}
 
     iterator begin() { return iterator(m_func, m_adjacent.begin()); }
     sentinel end()   { return m_adjacent.end(); }
 };
 
-NS_END  // ranges
-NS_END
+}  // ranges
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_RANGES_ADJACENT_VIEW_
+#endif  // RE_STD_RANGES_ADJACENT_VIEW_HPP

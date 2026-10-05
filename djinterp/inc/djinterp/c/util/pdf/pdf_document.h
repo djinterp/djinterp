@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                              pdf_document.h
+/*******************************************************************************
+* djinterp [c]                                                    pdf_document.h
 *
 * The backend protocol and the document facade.
 *   A backend is whatever writes bytes; the facade is the agnostic drawing API
@@ -43,19 +43,23 @@
 * it. A caller includes the submodule it needs.
 *
 *
-* path:      \inc\djinterp\c\util\pdf\pdf_document.h
+* path:      /inc/djinterp/c/util/pdf/pdf_document.h
 * link(s):   ch-pdf.tex
-* author(s): TBA                                            created: 2026.08.09
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.09
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_UTIL_PDF_DOCUMENT_
-#define DJINTERP_C_UTIL_PDF_DOCUMENT_ 1
+#ifndef DJINTERP_C_UTIL_PDF_PDF_DOCUMENT_H
+#define DJINTERP_C_UTIL_PDF_PDF_DOCUMENT_H 1
 
+// std
 #include <stddef.h>
-#include <stdint.h>
+// djinterp
 #include "../../djinterp.h"
 #include "./pdf_primitives.h"
 #include "./pdf_backend.h"
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // int32_t
 
 
 D_EXTERN_C_BEGIN
@@ -198,4 +202,4 @@ D_STATIC_ASSERT(offsetof(struct d_pdf_backend, size) == 0,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_UTIL_PDF_DOCUMENT_
+#endif  // DJINTERP_C_UTIL_PDF_PDF_DOCUMENT_H

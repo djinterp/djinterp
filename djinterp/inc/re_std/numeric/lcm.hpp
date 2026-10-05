@@ -1,9 +1,10 @@
-/***********************************************************************
-* re_std                                                              lcm.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                      lcm.hpp
 *
+* lcm algorithm header:
 * lcm(_a, _b) returns the least common multiple of |_a| and |_b|.
 *
-* return type: common_type<_M, _N>::type. Always non-negative.
+* return type: common_type<M, N>::type. Always non-negative.
 *
 * identity:  lcm(0, k) == 0  for any k (including k = 0).
 *
@@ -12,48 +13,42 @@
 * representable in the common type — std requires the same.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/lcm.hpp
+* path:      /inc/re_std/numeric/lcm.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_LCM_
-#define DJINTERP_RE_STD_NUMERIC_LCM_ 1
+#ifndef RE_STD_NUMERIC_LCM_HPP
+#define RE_STD_NUMERIC_LCM_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <type_traits>
 
     #include "re_std/numeric/gcd.hpp"
 
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
-
-
 namespace re_std
 {
 
-template<typename _M, typename _N>
-D_CONSTEXPR_CPP14 typename std::common_type<_M, _N>::type
-lcm(_M _a, _N _b) D_NOEXCEPT
+template<typename M, typename N>
+RE_STD_CONSTEXPR_CPP14 typename std::common_type<M, N>::type
+lcm(M _a, N _b) RE_STD_NOEXCEPT
 {
-    static_assert(std::is_integral<_M>::value && std::is_integral<_N>::value,
+    static_assert(std::is_integral<M>::value && std::is_integral<N>::value,
                   "re_std::lcm requires integer arguments");
-    static_assert(!std::is_same<typename std::remove_cv<_M>::type, bool>::value,
+    static_assert(!std::is_same<typename std::remove_cv<M>::type, bool>::value,
                   "re_std::lcm does not accept bool");
-    static_assert(!std::is_same<typename std::remove_cv<_N>::type, bool>::value,
+    static_assert(!std::is_same<typename std::remove_cv<N>::type, bool>::value,
                   "re_std::lcm does not accept bool");
 
-    typedef typename std::common_type<_M, _N>::type _R;
+    typedef typename std::common_type<M, N>::type _R;
     typedef typename std::make_unsigned<_R>::type   _UR;
 
     if (_a == 0 || _b == 0) return 0;
@@ -65,8 +60,7 @@ lcm(_M _a, _N _b) D_NOEXCEPT
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_NUMERIC_LCM_
+#endif  // RE_STD_NUMERIC_LCM_HPP

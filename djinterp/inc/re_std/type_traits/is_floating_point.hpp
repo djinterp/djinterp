@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                      is_floating_point.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        is_floating_point.hpp
 *
 * is_floating_point trait header:
 *   Detects whether a type, ignoring cv-qualifiers, is one of the
@@ -16,33 +16,36 @@
 * when the host compiler supports them.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_floating_point.hpp
+* path:      /inc/re_std/type_traits/is_floating_point.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_FLOATING_POINT_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_FLOATING_POINT_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_FLOATING_POINT_HPP
+#define RE_STD_TYPE_TRAITS_IS_FLOATING_POINT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./remove_cv.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_FLOATING_POINT
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_floating_point_base
     //   trait: false (primary template).
-    template<typename _Type>
+    template<typename Type>
     struct is_floating_point_base : false_type
     {};
 
@@ -50,13 +53,13 @@ NS_INTERNAL
     template<> struct is_floating_point_base<double>      : true_type {};
     template<> struct is_floating_point_base<long double> : true_type {};
 
-NS_END  // internal
+}  // internal
 
 // is_floating_point
-//   trait: true if _Type is a standard floating-point type (cv-stripped).
-template<typename _Type>
+//   trait: true if Type is a standard floating-point type (cv-stripped).
+template<typename Type>
 struct is_floating_point
-    : internal::is_floating_point_base<typename remove_cv<_Type>::type>
+    : internal::is_floating_point_base<typename remove_cv<Type>::type>
 {};
 
 
@@ -64,17 +67,17 @@ struct is_floating_point
 // II.  IS_FLOATING_POINT_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_floating_point_v
-    //   variable: convenience for is_floating_point<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_floating_point_v = is_floating_point<_Type>::value;
+    //   variable: convenience for is_floating_point<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_floating_point_v = is_floating_point<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_FLOATING_POINT_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_FLOATING_POINT_HPP

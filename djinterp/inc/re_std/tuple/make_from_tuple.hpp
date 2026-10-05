@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                         make_from_tuple.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          make_from_tuple.hpp
 *
 * make_from_tuple function header:
-*   Constructs an object of type _T using the elements of a tuple-like
+*   Constructs an object of type T using the elements of a tuple-like
 * object as constructor arguments. C++17 standard library function,
 * shimmed to C++11+.
 *
@@ -14,100 +14,103 @@
 *   Requires variadic templates and rvalue references (C++11+).
 *
 *
-* path:      /inc/djinterp/re_std/tuple/make_from_tuple.hpp
+* path:      /inc/re_std/tuple/make_from_tuple.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_MAKE_FROM_TUPLE_
-#define DJINTERP_RE_STD_TUPLE_MAKE_FROM_TUPLE_ 1
+#ifndef RE_STD_TUPLE_MAKE_FROM_TUPLE_HPP
+#define RE_STD_TUPLE_MAKE_FROM_TUPLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
 
 
 // std
 #include <cstddef>
-// djinterp
+// re_std
 #include "./tuple.hpp"
 #include "./tuple_size.hpp"
 #include "./tuple_get.hpp"
 #include "../type_traits/remove_reference.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   MAKE_FROM_TUPLE
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // mft_index_seq + mft_make_index_seq
-    //   helpers: local index_seq machinery (parallels apply.hpp's).
+    //   trait: local index_seq machinery (parallels apply.hpp's).
 
-    template<std::size_t... _Is>
+    template<std::size_t... Is>
     struct mft_index_seq {};
 
-    template<std::size_t _N,
-             std::size_t... _Is>
+    template<std::size_t N,
+             std::size_t... Is>
     struct mft_make_index_seq
-        : mft_make_index_seq<_N - 1, _N - 1, _Is...>
+        : mft_make_index_seq<N - 1, N - 1, Is...>
     {};
 
-    template<std::size_t... _Is>
-    struct mft_make_index_seq<0, _Is...>
+    template<std::size_t... Is>
+    struct mft_make_index_seq<0, Is...>
     {
-        typedef mft_index_seq<_Is...> type;
+        typedef mft_index_seq<Is...> type;
     };
 
 
     // make_from_tuple_impl
-    //   helper: expands the index pack, calling _T's ctor with
+    //   function: expands the index pack, calling T's ctor with
     // get<I>(_t)... .
-    template<typename       _T,
-             typename       _Tup,
-             std::size_t... _Is>
-    D_CONSTEXPR
-    _T
+    template<typename       T,
+             typename       Tup,
+             std::size_t... Is>
+    RE_STD_CONSTEXPR
+    T
     make_from_tuple_impl(
-        _Tup&&  _t,
-        mft_index_seq<_Is...>
+        Tup&&  _t,
+        mft_index_seq<Is...>
     )
     {
-        return _T(get<_Is>(static_cast<_Tup&&>(_t))...);
+        return T(get<Is>(static_cast<Tup&&>(_t))...);
     }
 
-NS_END  // internal
+}  // internal
 
 
 // make_from_tuple<T>
-//   function: constructs a _T using the elements of _t as ctor args.
-template<typename _T,
-         typename _Tup>
-D_CONSTEXPR
-_T
+//   function: constructs a T using the elements of _t as ctor args.
+template<typename T,
+         typename Tup>
+RE_STD_CONSTEXPR
+T
 make_from_tuple(
-    _Tup&& _t
+    Tup&& _t
 )
 {
-    return internal::make_from_tuple_impl<_T>(
-        static_cast<_Tup&&>(_t),
+    return internal::make_from_tuple_impl<T>(
+        static_cast<Tup&&>(_t),
         typename internal::mft_make_index_seq<
-            tuple_size<typename remove_reference<_Tup>::type>::value
+            tuple_size<typename remove_reference<Tup>::type>::value
         >::type());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_MAKE_FROM_TUPLE_
+#endif  // RE_STD_TUPLE_MAKE_FROM_TUPLE_HPP

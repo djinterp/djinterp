@@ -1,5 +1,7 @@
-/******************************************************************************
-* djinterp                                       constexpr_iterator_concepts.hpp
+/*******************************************************************************
+* djinterp [core]                                constexpr_iterator_concepts.hpp
+*
+* djinterp constexpr_iterator_concepts.hpp
 *
 * Compile-time iterability concepts.
 *   C++20 concepts layered on top of the constexpr_iterator trait
@@ -19,29 +21,48 @@
 *   The whole header is a no-op when concepts are unavailable.
 * On C++17 and earlier, callers should constrain templates with
 * the underlying SFINAE traits directly (e.g. via std::enable_if
-* on is_constexpr_iterable<_Type>::value).
-*
-* TABLE OF CONTENTS
-* =================
-* I.    Feature Gate
-* II.   Method-Level Concepts
-* III.  Type-Alias Concept
-* IV.   Aggregate Concept
+* on is_constexpr_iterable<Type>::value).
 *
 *
-* path:      /inc/djinterp/container/iterator/constexpr_iterator_concepts.hpp
+*            constexpr_iterator_concepts.hpp
+*
+*
+* path:      /inc/djinterp/core/container/concepts/constexpr_iterator_concepts.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONSTEXPR_ITERATOR_CONCEPTS_
-#define DJINTERP_CONSTEXPR_ITERATOR_CONCEPTS_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    Feature Gate
+      ------------
+
+II.   Method-Level Concepts
+      ---------------------
+
+III.  Type-Alias Concept
+      ------------------
+
+IV.   Aggregate Concept
+      -----------------
+*/
+
+#ifndef DJINTERP_CONTAINER_CONCEPTS_CONSTEXPR_ITERATOR_CONCEPTS_HPP
+#define DJINTERP_CONTAINER_CONCEPTS_CONSTEXPR_ITERATOR_CONCEPTS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <type_traits>
 // djinterp
-#include "../core/djinterp.hpp"
-#include "./constexpr_iterator_traits.hpp"
+#include "../../../djinterp.hpp"
+#include "../iterator/constexpr_iterator_traits.hpp"
 
 
 // ===========================================================================
@@ -62,18 +83,16 @@ NS_CONCEPTS
 // ===========================================================================
 
 // ConstexprBeginCapable
-//   concept: constrains types exposing a constexpr_begin()
-// const member.
-template<typename _Type>
+//   concept: constrains types exposing a constexpr_begin() const member.
+template<typename Type>
 concept ConstexprBeginCapable =
-    has_constexpr_begin_method_v<clean_t<_Type>>;
+    has_constexpr_begin_method_v<clean_t<Type>>;
 
 // ConstexprEndCapable
-//   concept: constrains types exposing a constexpr_end()
-// const member.
-template<typename _Type>
+//   concept: constrains types exposing a constexpr_end() const member.
+template<typename Type>
 concept ConstexprEndCapable =
-    has_constexpr_end_method_v<clean_t<_Type>>;
+    has_constexpr_end_method_v<clean_t<Type>>;
 
 
 // ===========================================================================
@@ -81,11 +100,11 @@ concept ConstexprEndCapable =
 // ===========================================================================
 
 // ConstexprIterAlias
-//   concept: constrains types declaring a nested
-// `constexpr_iterator` type alias.
-template<typename _Type>
+//   concept: constrains types declaring a nested `constexpr_iterator` type
+// alias.
+template<typename Type>
 concept ConstexprIterAlias =
-    has_constexpr_iterator_alias_v<clean_t<_Type>>;
+    has_constexpr_iterator_alias_v<clean_t<Type>>;
 
 
 // ===========================================================================
@@ -93,19 +112,18 @@ concept ConstexprIterAlias =
 // ===========================================================================
 
 // ConstexprIterable
-//   concept: the umbrella concept.  A type is
-// constexpr-iterable when it is iterable AND supports
-// compile-time iteration (per is_constexpr_iterable).
-template<typename _Type>
+//   concept: the umbrella concept. A type is constexpr-iterable when it is
+// iterable AND supports compile-time iteration (per is_constexpr_iterable).
+template<typename Type>
 concept ConstexprIterable =
-    is_constexpr_iterable_v<clean_t<_Type>>;
+    is_constexpr_iterable_v<clean_t<Type>>;
 
 // HasConstexprIterationConcept
-//   concept: constrains types that expose any compile-time
-// iteration entry point (alias OR begin/end pair).
-template<typename _Type>
+//   concept: constrains types that expose any compile-time iteration entry
+// point (alias OR begin/end pair).
+template<typename Type>
 concept HasConstexprIterationConcept =
-    has_constexpr_iteration_v<clean_t<_Type>>;
+    has_constexpr_iteration_v<clean_t<Type>>;
 
 
 NS_END  // concepts
@@ -114,5 +132,6 @@ NS_END  // djinterp
 
 #endif  // C++20 + concepts
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONSTEXPR_ITERATOR_CONCEPTS_
+#endif  // DJINTERP_CONTAINER_CONCEPTS_CONSTEXPR_ITERATOR_CONCEPTS_HPP

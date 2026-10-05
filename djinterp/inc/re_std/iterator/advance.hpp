@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                           advance.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  advance.hpp
 *
+* advance function header:
 * advance(_it, _n) moves _it forward (or backward, if _n is negative
 * and the iterator is bidirectional or stronger) by _n steps.
 *
@@ -16,19 +17,21 @@
 *   for these. We don't enforce this at compile time.
 *
 * added in std C++98; constexpr in C++17. re_std back-ports the
-* constexpr to all tiers via the D_CONSTEXPR macro.
+* constexpr to C++14 via RE_STD_CONSTEXPR_CPP14: these are void functions with
+* loops, which C++11's constexpr rules cannot hold.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/advance.hpp
+* path:      /inc/re_std/iterator/advance.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_ADVANCE_
-#define DJINTERP_RE_STD_ITERATOR_ADVANCE_ 1
+#ifndef RE_STD_ITERATOR_ADVANCE_HPP
+#define RE_STD_ITERATOR_ADVANCE_HPP 1
 
-#include "djinterp.hpp"
-
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "re_std/iterator/iterator_traits.hpp"
 #include "re_std/iterator/input_iterator_tag.hpp"
 #include "re_std/iterator/bidirectional_iterator_tag.hpp"
@@ -48,22 +51,22 @@ namespace internal
     //   * bidirectional accepts bidirectional and weaker.
     //   * input is the catch-all.
 
-    template<typename _It, typename _Distance>
-    D_CONSTEXPR void advance_impl
+    template<typename It, typename Distance>
+    RE_STD_CONSTEXPR_CPP14 void advance_impl
     (
-        _It&        _it,
-        _Distance   _n,
+        It&        _it,
+        Distance   _n,
         random_access_iterator_tag
     )
     {
         _it += _n;
     }
 
-    template<typename _It, typename _Distance>
-    D_CONSTEXPR void advance_impl
+    template<typename It, typename Distance>
+    RE_STD_CONSTEXPR_CPP14 void advance_impl
     (
-        _It&        _it,
-        _Distance   _n,
+        It&        _it,
+        Distance   _n,
         bidirectional_iterator_tag
     )
     {
@@ -77,11 +80,11 @@ namespace internal
         }
     }
 
-    template<typename _It, typename _Distance>
-    D_CONSTEXPR void advance_impl
+    template<typename It, typename Distance>
+    RE_STD_CONSTEXPR_CPP14 void advance_impl
     (
-        _It&        _it,
-        _Distance   _n,
+        It&        _it,
+        Distance   _n,
         input_iterator_tag
     )
     {
@@ -90,21 +93,18 @@ namespace internal
         for (; _n > 0; --_n) ++_it;
     }
 
-}  // namespace internal
-
-
-template<typename _It, typename _Distance>
-D_CONSTEXPR void advance(_It& _it, _Distance _n)
+}  // internal
+template<typename It, typename Distance>
+RE_STD_CONSTEXPR_CPP14 void advance(It& _it, Distance _n)
 {
     internal::advance_impl
     (
         _it,
-        typename iterator_traits<_It>::difference_type(_n),
-        typename iterator_traits<_It>::iterator_category()
+        typename iterator_traits<It>::difference_type(_n),
+        typename iterator_traits<It>::iterator_category()
     );
 }
 
 
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_ITERATOR_ADVANCE_
+}  // re_std
+#endif  // RE_STD_ITERATOR_ADVANCE_HPP

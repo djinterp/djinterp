@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            test_defaults.hpp
+/*******************************************************************************
+* djinterp [test]                                              test_defaults.hpp
 *
 *   Default test framework configuration: the six built-in test kinds, the
 * framework's default kind set, the node factories that stamp per-node
@@ -15,7 +15,7 @@
 * concrete vocabulary they resolve against.
 *
 *   KINDS, NOT A REGISTRY:
-*   The old test_type<_Container> registry (and its test_type.hpp) is retired.
+*   The old test_type<Container> registry (and its test_type.hpp) is retired.
 * Kinds now live as a flat range of test_kind records (test_kind.hpp); the
 * resolved-query free functions (rank_of / is_leaf / can_be_child_of / ...)
 * read that range directly.  default_test_kinds() returns the six-record set,
@@ -70,43 +70,81 @@
 * constexpr support.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    TEST METADATA TYPE (tag lists)
-* II.   TEST METADATA HELPERS
-* III.  BUILT-IN KIND CONSTANTS
-* IV.   DEFAULT KIND SET
-* V.    NODE METADATA HELPERS
-* VI.   CONVENIENCE OBJECT FACTORIES (stamp name + descriptor)
-* VII.  ENRICHED-TREE AUTHORING (module_spec -> six-kind test_tree)
-* VIII. TEST-RECORDING HELPERS
-* IX.   NUMBERED-LEAF NODE TEMPLATE
-* X.    VALUE-TAGGED EVENT TAGS
-* XI.   DEFAULT TEST HANDLER (THRESHOLD-FILTERED)
-* XII.  STATUS LABEL                (status_word)
-* XIII. TREE VIEW                   (describe_tree, tree_summary)
-* XIV.  REPORT VIEW                 (drive_report)
-* XV.   ENTRY POINTS                (run_module, run_suite)
-*
-*
 * path:      /inc/djinterp/test/test_defaults.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.26
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.26
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_DEFAULTS_
-#define DJINTERP_TEST_DEFAULTS_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    TEST METADATA TYPE (tag lists)
+      ------------------------------
+
+II.   TEST METADATA HELPERS
+      ---------------------
+
+III.  BUILT-IN KIND CONSTANTS
+      -----------------------
+
+IV.   DEFAULT KIND SET
+      ----------------
+
+V.    NODE METADATA HELPERS
+      ---------------------
+
+VI.   CONVENIENCE OBJECT FACTORIES (stamp name + descriptor)
+      ------------------------------------------------------
+
+VII.  ENRICHED-TREE AUTHORING (module_spec -> six-kind test_tree)
+      -----------------------------------------------------------
+
+VIII. TEST-RECORDING HELPERS
+      ----------------------
+
+IX.   NUMBERED-LEAF NODE TEMPLATE
+      ---------------------------
+
+X.    VALUE-TAGGED EVENT TAGS
+      -----------------------
+
+XI.   DEFAULT TEST HANDLER (THRESHOLD-FILTERED)
+      -----------------------------------------
+
+XII.  STATUS LABEL                (status_word)
+      -----------------------------------------
+
+XIII. TREE VIEW                   (describe_tree, tree_summary)
+      ---------------------------------------------------------
+
+XIV.  REPORT VIEW                 (drive_report)
+      ------------------------------------------
+
+XV.   ENTRY POINTS                (run_module, run_suite)
+      ---------------------------------------------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_DEFAULTS_HPP
+#define DJINTERP_TEST_TEST_DEFAULTS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but
+// core/container/tree/nary/nary_tree.hpp, which it reaches, needs C++17
+// (lowered from C++20 by round 3's lane 2). The owner's ruling: compile at
+// every level first; port down only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <string>
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "./test_common.hpp"
 #include "./test_event.hpp"
 #include "./test_handler.hpp"
@@ -117,6 +155,9 @@
 #include "./test_kind.hpp"       // test_kind record + kind-set + resolved queries
 #include "./test_tree.hpp"       // rank-checked forest (supersedes retired test_type.hpp)
 #include "./output/test_report_runner.hpp"  // report_builder - the report / PDF view the
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::int8_t, int16_t,
+                                             // int32_t, int64_t, ...
                                      //   run_module / run_suite bridge drives
                                      //   (formerly reached via test_spec_runner.hpp)
 
@@ -784,10 +825,10 @@ status_for(
 // test_handler::record.  One source of truth for the "did this
 // assertion pass?" signal -- both the printed leaf and the counter
 // tally come from the same expression.
-template<typename _Handler>
+template<typename Handler>
 inline void
 record_assertion(
-    _Handler&   _handler,
+    Handler&   _handler,
     bool        _ok,
     const char* _name,
     const char* _msg_pass = nullptr,
@@ -803,10 +844,10 @@ record_assertion(
 // pending).  Appends a basic_test stamped with the requested
 // status to the handler's internal sink and forwards to the
 // handler's counter.
-template<typename _Handler>
+template<typename Handler>
 inline void
 record_status(
-    _Handler&   _handler,
+    Handler&   _handler,
     test_status _status,
     const char* _name)
 {
@@ -862,14 +903,14 @@ struct unit_test_tally
 // "Total Unit Tests / Total Assertions" split: each assertion
 // is a leaf row, the wrapper adds a single roll-up leaf per
 // unit test.
-template<typename _Handler,
-         typename _Fn>
+template<typename Handler,
+         typename Fn>
 inline void
 run_unit_test(
-    _Handler&        _handler,
+    Handler&        _handler,
     unit_test_tally& _tally,
     const char*      _name,
-    _Fn&&            _body)
+    Fn&&            _body)
 {
     const std::size_t fails_before  = _handler.failed();
     const std::size_t errors_before = _handler.errors();
@@ -1018,19 +1059,19 @@ D_STATIC const char* const D_TEST_FMT_PROGRESS_SECTION_END =
 
 // on_test_event_8
 //   value-tagged event.  Payload: (value, name, message).
-D_EVENT(on_test_event_8,  std::int8_t,  const char*, const char*);
+D_EVENT(on_test_event_8,  re_std::int8_t,  const char*, const char*);
 
 // on_test_event_16
 //   value-tagged event.  Payload: (value, name, message).
-D_EVENT(on_test_event_16, std::int16_t, const char*, const char*);
+D_EVENT(on_test_event_16, re_std::int16_t, const char*, const char*);
 
 // on_test_event_32
 //   value-tagged event.  Payload: (value, name, message).
-D_EVENT(on_test_event_32, std::int32_t, const char*, const char*);
+D_EVENT(on_test_event_32, re_std::int32_t, const char*, const char*);
 
 // on_test_event_64
 //   value-tagged event.  Payload: (value, name, message).
-D_EVENT(on_test_event_64, std::int64_t, const char*, const char*);
+D_EVENT(on_test_event_64, re_std::int64_t, const char*, const char*);
 
 
 
@@ -1083,7 +1124,7 @@ public:
     //   the integer type used for threshold comparisons.
     // Wide enough to losslessly accept any value-tagged
     // payload's value.
-    using threshold_type = std::int64_t;
+    using threshold_type = re_std::int64_t;
 
     // -----------------------------------------------------------------
     //  construction
@@ -1148,7 +1189,7 @@ public:
     {
         // INT64_MIN is the most-negative representable int64_t.
         // We avoid <limits> here so this header stays light;
-        // <cstdint> is already included for std::int64_t.
+        // <cstdint> is already included for re_std::int64_t.
         return static_cast<threshold_type>(INT64_MIN);
     }
 
@@ -1297,7 +1338,7 @@ private:
         // 8-bit
         m_printer_listener_ids.push_back(
             events().bind<on_test_event_8>(
-                [_printer, this](std::int8_t _value,
+                [_printer, this](re_std::int8_t _value,
                                  const char* _name,
                                  const char* _message) D_NOEXCEPT
                 {
@@ -1313,7 +1354,7 @@ private:
         // 16-bit
         m_printer_listener_ids.push_back(
             events().bind<on_test_event_16>(
-                [_printer, this](std::int16_t _value,
+                [_printer, this](re_std::int16_t _value,
                                  const char*  _name,
                                  const char*  _message) D_NOEXCEPT
                 {
@@ -1329,7 +1370,7 @@ private:
         // 32-bit
         m_printer_listener_ids.push_back(
             events().bind<on_test_event_32>(
-                [_printer, this](std::int32_t _value,
+                [_printer, this](re_std::int32_t _value,
                                  const char*  _name,
                                  const char*  _message) D_NOEXCEPT
                 {
@@ -1345,7 +1386,7 @@ private:
         // 64-bit
         m_printer_listener_ids.push_back(
             events().bind<on_test_event_64>(
-                [_printer, this](std::int64_t _value,
+                [_printer, this](re_std::int64_t _value,
                                  const char*  _name,
                                  const char*  _message) D_NOEXCEPT
                 {
@@ -1446,7 +1487,7 @@ describe_tree(const enriched_tree& _tree)
 
         const test_type_id  id   = node.type_id();
         const char*         kind = name_of(_tree.kinds(), id);
-        const std::uint16_t rank = rank_of(_tree.kinds(), id);
+        const re_std::uint16_t rank = rank_of(_tree.kinds(), id);
 
         // indent by rank: suite(5) -> 0, ..., test_fn(1) -> 8, assert(0) -> 10.
         const int indent = (5 - static_cast<int>(rank)) * 2;
@@ -1946,5 +1987,7 @@ run_suite(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_DEFAULTS_
+
+#endif  // DJINTERP_TEST_TEST_DEFAULTS_HPP

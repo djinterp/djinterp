@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                                 document.hpp
+/*******************************************************************************
+* djinterp [core]                                                   document.hpp
 *
 *   A fluent facade over the build side (`document_writer`) and the print
 * side (`document_printer`): one object you build a tree into and then
@@ -7,7 +7,7 @@
 * only -- it runs once, before the serialisation loop -- so it costs nothing
 * per element.
 *   ONE FAÇADE, BOTH EXPRESSIBILITIES:
-*   `document<_Policy>` is generic over the policy, so the SAME façade serves
+*   `document<Policy>` is generic over the policy, so the SAME façade serves
 * both selection modes:
 *     compile-time   using xml_document  = document<xml_print_policy>;
 *                    using html_document = document<html_print_policy>;
@@ -21,32 +21,39 @@
 *   Requires C++17 (the writer and printer layers it composes are C++17);
 * self-suppresses below it.
 *
-* 
+*
 * path:      /inc/djinterp/core/util/document/document.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.06.18
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    DOCUMENT FACADE
       ---------------
-      a. document<_Policy>
+      a. document<Policy>
       b. xml_document
 */
 
-#ifndef DJINTERP_UTIL_DOCUMENT_
-#define DJINTERP_UTIL_DOCUMENT_ 1
+#ifndef DJINTERP_UTIL_DOCUMENT_DOCUMENT_HPP
+#define DJINTERP_UTIL_DOCUMENT_DOCUMENT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <ostream>
 #include <fstream>
+#include <ostream>
 #include <string>
 // djinterp
-#include "../../djinterp.hpp"
-#include "./document_writer.hpp"   // document_writer, cursor
+#include "../../../djinterp.hpp"
 #include "../../text/printer.hpp"           // document_printer, render, policies
+#include "./document_writer.hpp"   // document_writer, cursor
 
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -67,12 +74,12 @@ NS_DJINTERP
 // `document<some_concrete_policy>` is a compile-time choice and
 // `document<boxed_print_policy>` (constructed with a runtime policy value) is
 // a runtime choice.
-template<typename _Policy = xml_print_policy>
+template<typename Policy = xml_print_policy>
 class document
 {
 public:
     // document ()
-    //   constructor: default -- available when `_Policy` is default-
+    //   constructor: default -- available when `Policy` is default-
     // constructible (the compile-time / concrete-policy case).
     document() = default;
 
@@ -80,9 +87,9 @@ public:
     //   constructor: supply the policy value. Required for a boxed/runtime
     // policy, which has no default.
     explicit document(
-        _Policy _policy
+        Policy _policy
     )
-        : m_policy(static_cast<_Policy&&>(_policy))
+        : m_policy(static_cast<Policy&&>(_policy))
     {}
 
     // -- build ---------------------------------------------------------------
@@ -149,7 +156,7 @@ public:
         std::ostream& _stream
     ) const
     {
-        document_printer<stream_sink, _Policy> _printer(
+        document_printer<stream_sink, Policy> _printer(
             stream_sink(_stream), m_options, m_policy);
         _printer.print(m_writer.document());
 
@@ -163,7 +170,7 @@ public:
     ) const
     {
         std::ofstream _file(_path, std::ios::out | std::ios::binary);
-        document_printer<stream_sink, _Policy> _printer(
+        document_printer<stream_sink, Policy> _printer(
             stream_sink(_file), m_options, m_policy);
         _printer.print(m_writer.document());
 
@@ -187,7 +194,7 @@ public:
 private:
     document_writer m_writer;
     print_options   m_options;
-    _Policy         m_policy;
+    Policy          m_policy;
 };
 
 
@@ -201,5 +208,6 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_DOCUMENT_
+#endif  // DJINTERP_UTIL_DOCUMENT_DOCUMENT_HPP

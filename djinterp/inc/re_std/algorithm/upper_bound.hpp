@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              upper_bound.hpp
 *
 * upper_bound algorithm header:
@@ -16,16 +16,17 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/upper_bound.hpp
+* path:      /inc/re_std/algorithm/upper_bound.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_UPPER_BOUND_
-#define DJINTERP_RE_STD_ALGORITHM_UPPER_BOUND_ 1
+#ifndef RE_STD_ALGORITHM_UPPER_BOUND_HPP
+#define RE_STD_ALGORITHM_UPPER_BOUND_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../iterator/iterator_traits.hpp"
 #include "../iterator/advance.hpp"
@@ -36,16 +37,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -56,22 +50,22 @@ NS_RESTD
 //   function: returns the first iterator in [_first, _last) at which
 // *iter is strictly greater than _value (per operator<). Returns _last
 // if no element is greater.
-template<typename _ForwardIt,
-         typename _Type>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt,
+         typename Type>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 upper_bound(
-    _ForwardIt   _first,
-    _ForwardIt   _last,
-    const _Type& _value
+    ForwardIt   _first,
+    ForwardIt   _last,
+    const Type& _value
 )
 {
-    typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
+    typedef typename iterator_traits<ForwardIt>::difference_type _Diff;
 
     _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
-        _ForwardIt _mid  = _first;
+        ForwardIt _mid  = _first;
         re_std::advance(_mid, _half);
         if (_value < *_mid)
         {
@@ -94,24 +88,24 @@ upper_bound(
 
 // upper_bound (comparator)
 //   function: as above but comparison is via _comp(_value, *iter).
-template<typename _ForwardIt,
-         typename _Type,
-         typename _Compare>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt,
+         typename Type,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 upper_bound(
-    _ForwardIt   _first,
-    _ForwardIt   _last,
-    const _Type& _value,
-    _Compare     _comp
+    ForwardIt   _first,
+    ForwardIt   _last,
+    const Type& _value,
+    Compare     _comp
 )
 {
-    typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
+    typedef typename iterator_traits<ForwardIt>::difference_type _Diff;
 
     _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
-        _ForwardIt _mid  = _first;
+        ForwardIt _mid  = _first;
         re_std::advance(_mid, _half);
         if (_comp(_value, *_mid))
         {
@@ -128,7 +122,7 @@ upper_bound(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_UPPER_BOUND_
+#endif  // RE_STD_ALGORITHM_UPPER_BOUND_HPP

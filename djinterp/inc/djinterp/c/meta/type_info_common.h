@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                           type_info_common.h
+/*******************************************************************************
+* djinterp [c]                                                type_info_common.h
 *
 *  Common type-information definitions shared by both the C and C++ modules.
 *  Contains the base bit layout (bits 0-23), X-macro tables, constant IDs,
@@ -31,17 +31,28 @@
 *
 * path:      /inc/djinterp/c/meta/type_info_common.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.12.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.06
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_TYPE_INFO_COMMON_
-#define DJINTERP_C_TYPE_INFO_COMMON_ 1
+#ifndef DJINTERP_C_META_TYPE_INFO_COMMON_H
+#define DJINTERP_C_META_TYPE_INFO_COMMON_H 1
 
 // std
 #include <stddef.h>
-#include <stdint.h>
 // djinterp
 #include "../../env/env.h"
+#include "../djinterp.h"  // D_LONG_LONG_DIAG_PUSH / _POP
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint8_t, uint16_t, uint32_t,
+                                              // uint64_t, UINT32_MAX,
+                                              // UINT64_MAX, SIZE_MAX
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
 
 // in C++ `_Bool` is not a keyword; alias it to `bool` so that the
 // X-macro table and size lookup compile in both languages.
@@ -277,7 +288,10 @@ typedef uint64_t d_type_info64;
  *============================================================================*/
 
 // d_type_prim_sizes
-//   constant: byte sizes indexed by primitive ID.
+//   constant: byte sizes indexed by primitive ID. LLONG and ULLONG are 0, as
+// VOID is, where `long long` does not exist (ISO strict C++98); their IDs stay
+// reserved, so every other entry keeps its index.
+D_LONG_LONG_DIAG_PUSH
 static const uint8_t d_type_prim_sizes[D_TYPE_PRIM_COUNT] =
 {
     0,                          // VOID
@@ -291,12 +305,18 @@ static const uint8_t d_type_prim_sizes[D_TYPE_PRIM_COUNT] =
     sizeof(unsigned int),       // UINT
     sizeof(long),               // LONG
     sizeof(unsigned long),      // ULONG
+#if D_ENV_HAS_LONG_LONG
     sizeof(long long),          // LLONG
     sizeof(unsigned long long), // ULLONG
+#else
+    0,                          // LLONG: no `long long` in this build
+    0,                          // ULLONG
+#endif  // D_ENV_HAS_LONG_LONG
     sizeof(float),              // FLOAT
     sizeof(double),             // DOUBLE
     sizeof(long double)         // LDOUBLE
 };
+D_LONG_LONG_DIAG_POP
 
 // D_TYPE_PRIM_SIGNED_MASK
 //   macro: bitmask with one bit per primitive ID; bit N is set when
@@ -614,17 +634,25 @@ static const uint8_t d_type_prim_sizes[D_TYPE_PRIM_COUNT] =
 #define D_TYPE_INFO_STRING_ARRAY         D_TYPE_MAKE_PTR(D_TYPE_INFO_CONST_CHAR, 2)
 #define D_TYPE_INFO_STRING_PTR_ARRAY     D_TYPE_SET_EXT(D_TYPE_SET_ARRAY(D_TYPE_MAKE_PTR(D_TYPE_INFO_CONST_CHAR, 1)))
 
-// size_t — resolved to the correct width at compile time
-#if defined(SIZE_MAX) && defined(UINT64_MAX) && (SIZE_MAX == UINT64_MAX)
-    #define D_TYPE_INFO_SIZE_T           D_TYPE_INFO_UINT64
-    #define D_TYPE_INFO_SIZE_T_PTR       D_TYPE_INFO_UINT64_PTR
-    #define D_TYPE_INFO_SIZE_T_ARRAY     D_TYPE_INFO_UINT64_ARRAY
-    #define D_TYPE_INFO_SIZE_T_PTR_ARRAY D_TYPE_INFO_UINT64_PTR_ARRAY
-#elif defined(SIZE_MAX) && defined(UINT32_MAX) && (SIZE_MAX == UINT32_MAX)
+// size_t — resolved to the correct width at compile time. The 32-bit case
+// is asked first, and the 64-bit one as "wider than 32 bits", so no branch a
+// target takes reads a literal wider than its size_t: on a 32-bit target
+// UINT64_MAX is a `long long` literal, which C++98 rejects even in an #if.
+#if ( (defined(SIZE_MAX))   &&                                                \
+      (defined(UINT32_MAX)) &&                                                \
+      (SIZE_MAX == UINT32_MAX) )
     #define D_TYPE_INFO_SIZE_T           D_TYPE_INFO_UINT32
     #define D_TYPE_INFO_SIZE_T_PTR       D_TYPE_INFO_UINT32_PTR
     #define D_TYPE_INFO_SIZE_T_ARRAY     D_TYPE_INFO_UINT32_ARRAY
     #define D_TYPE_INFO_SIZE_T_PTR_ARRAY D_TYPE_INFO_UINT32_PTR_ARRAY
+#elif ( (defined(SIZE_MAX))   &&                                              \
+        (defined(UINT32_MAX)) &&                                              \
+        (defined(UINT64_MAX)) &&                                              \
+        (SIZE_MAX > UINT32_MAX) )
+    #define D_TYPE_INFO_SIZE_T           D_TYPE_INFO_UINT64
+    #define D_TYPE_INFO_SIZE_T_PTR       D_TYPE_INFO_UINT64_PTR
+    #define D_TYPE_INFO_SIZE_T_ARRAY     D_TYPE_INFO_UINT64_ARRAY
+    #define D_TYPE_INFO_SIZE_T_PTR_ARRAY D_TYPE_INFO_UINT64_PTR_ARRAY
 #else
     // fallback: treat as uintptr_t-ish
     #define D_TYPE_INFO_SIZE_T           D_TYPE_INFO_UINT64
@@ -846,4 +874,6 @@ struct d_type_func_ext
 }
 
 
-#endif  // DJINTERP_C_TYPE_INFO_COMMON_
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_C_META_TYPE_INFO_COMMON_H

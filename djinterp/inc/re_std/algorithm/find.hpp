@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                     find.hpp
 *
 * find algorithm header:
@@ -10,31 +10,26 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/find.hpp
+* path:      /inc/re_std/algorithm/find.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_FIND_
-#define DJINTERP_RE_STD_ALGORITHM_FIND_ 1
+#ifndef RE_STD_ALGORITHM_FIND_HPP
+#define RE_STD_ALGORITHM_FIND_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -44,13 +39,13 @@ NS_RESTD
 // find
 //   function: returns the first iterator it in [_first, _last) such
 // that *it == _value, or _last on no-match.
-template<typename _InputIt,
-         typename _Type>
-D_CONSTEXPR_CPP14 _InputIt
+template<typename InputIt,
+         typename Type>
+RE_STD_CONSTEXPR_CPP14 InputIt
 find(
-    _InputIt     _first,
-    _InputIt     _last,
-    const _Type& _value
+    InputIt     _first,
+    InputIt     _last,
+    const Type& _value
 )
 {
     for (; _first != _last; ++_first)
@@ -65,7 +60,7 @@ find(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_FIND_
+#endif  // RE_STD_ALGORITHM_FIND_HPP

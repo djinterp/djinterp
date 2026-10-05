@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                transform.hpp
+/*******************************************************************************
+* djinterp [math]                                                  transform.hpp
 *
 * Transformation builders and homogeneous coordinates for the linear-algebra
 * subframework.
@@ -44,17 +44,19 @@
 *     linalg vector, so a transform built here applies to geometry points
 *     without any coupling between the two subframeworks' headers.
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/transform.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.22
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_TRANSFORM_
-#define DJINTERP_MATH_LINALG_TRANSFORM_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_TRANSFORM_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_TRANSFORM_HPP 1
 
 // std
-#include <cstddef>
 #include <array>
+#include <cstddef>
 #include <type_traits>
 #include <utility>
 // djinterp
@@ -491,4 +493,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_TRANSFORM_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_TRANSFORM_HPP

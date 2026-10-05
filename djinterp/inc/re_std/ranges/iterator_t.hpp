@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             iterator_t.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               iterator_t.hpp
 *
 * iterator_t alias template header:
 *   Yields the iterator type of a range: the return type of begin()
@@ -12,24 +12,27 @@
 * <iterator/iterator_traits.hpp> and write iterator_traits<R::iterator>.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/iterator_t.hpp
+* path:      /inc/re_std/ranges/iterator_t.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_ITERATOR_T_
-#define DJINTERP_RE_STD_RANGES_ITERATOR_T_ 1
+#ifndef RE_STD_RANGES_ITERATOR_T_HPP
+#define RE_STD_RANGES_ITERATOR_T_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES && \
-      D_ENV_LANG_IS_CPP11_OR_HIGHER )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES && \
+      RE_STD_LANG_IS_CPP11_OR_HIGHER )
 
 #include "../utility/declval.hpp"
 #include "../iterator/begin.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -37,19 +40,19 @@ NS_RESTD
 // ===========================================================================
 
 // iterator_t
-//   alias: the iterator type of _Range, deduced as the return type
-// of re_std::begin on an lvalue of _Range. Matches C++20
+//   alias: the iterator type of Range, deduced as the return type
+// of re_std::begin on an lvalue of Range. Matches C++20
 // std::ranges::iterator_t.
-// note: takes the begin of an lvalue (declval<_Range&>()) rather
+// note: takes the begin of an lvalue (declval<Range&>()) rather
 // than an rvalue, exactly as the standard prescribes.
-template<typename _Range>
-using iterator_t = decltype(re_std::begin(declval<_Range&>()));
+template<typename Range>
+using iterator_t = decltype(re_std::begin(declval<Range&>()));
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RE_STD_RANGES_ITERATOR_T_
+#endif  // RE_STD_RANGES_ITERATOR_T_HPP

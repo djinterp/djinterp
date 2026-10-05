@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [text]                                             html_dialect.hpp
+/*******************************************************************************
+* djinterp [core]                                               html_dialect.hpp
 *
 *   Compile-time policy template that captures an HTML / XHTML
 * dialect via a single enum-parameterized template. Properties of the
@@ -18,7 +18,7 @@
 *
 *   FOR XHTML VARIANTS:
 *   The dialect exposes an `underlying_xml_dialect_t` type alias
-* pointing at an `xml_dialect<_Flag>` instantiation -- specifically
+* pointing at an `xml_dialect<Flag>` instantiation -- specifically
 * `xml_dialect<xml_dialect_flag::xhtml_compatible>` -- so XHTML
 * emission can defer to the XML dialect for namespace handling,
 * declaration emission, and canonicalization rules. For pure HTML
@@ -33,32 +33,47 @@
 *   Third parties wanting a custom dialect can either use
 * `html_version::custom` (and intercept it in the helpers), OR
 * define their own struct exposing the same `D_STATIC_CONSTEXPR`
-* surface and pass it wherever an `html_dialect<_Flag>` would be
-* accepted. The trait `is_html_dialect<_Type>` recognizes both
+* surface and pass it wherever an `html_dialect<Flag>` would be
+* accepted. The trait `is_html_dialect<Type>` recognizes both
 * forms.
 *
 *
 * path:      /inc/djinterp/core/text/html/html_dialect.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.09
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    INTERNAL CLASSIFICATION HELPERS
+      -------------------------------
+
 II.   INTERNAL VALIDATION HELPERS
-III.  html_dialect<_Flag>
+      ---------------------------
+
+III.  html_dialect<Flag>
+      -------------------
+
 IV.   CONVENIENCE ALIASES
+      -------------------
+
 V.    DIALECT DETECTION TRAITS
+      ------------------------
 */
 
-#ifndef DJINTERP_HTML_DIALECT_
-#define DJINTERP_HTML_DIALECT_ 1
+#ifndef DJINTERP_TEXT_HTML_HTML_DIALECT_HPP
+#define DJINTERP_TEXT_HTML_HTML_DIALECT_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <type_traits>
 // djinterp
 #include "../../../djinterp.hpp"
@@ -274,7 +289,7 @@ namespace html {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III.   html_dialect<_Flag>                               ///
+///                III.   html_dialect<Flag>                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // html_dialect
@@ -283,40 +298,40 @@ namespace html {
 // instantiating this template for a specific flag produces a
 // type whose properties fold to constants at compile time.
 // Use the convenience aliases below for the common dialects.
-template<html_version    _Flag>
+template<html_version    Flag>
 struct html_dialect
 {
     /// identity
 
     // flag
     //   constant: the dialect flag this instantiation represents.
-    D_STATIC_CONSTEXPR html_version flag = _Flag;
+    D_STATIC_CONSTEXPR html_version flag = Flag;
 
     // is_xhtml
     //   constant: true if this is an XHTML variant (xhtml1_*,
     // xhtml5).
-    D_STATIC_CONSTEXPR bool is_xhtml = is_xhtml_version(_Flag);
+    D_STATIC_CONSTEXPR bool is_xhtml = is_xhtml_version(Flag);
 
     // is_html5_family
     //   constant: true for html5 and xhtml5.
     D_STATIC_CONSTEXPR bool is_html5_family =
-        ::djinterp::internal::is_html5_family_helper(_Flag);
+        ::djinterp::internal::is_html5_family_helper(Flag);
 
     // is_html4_family
     //   constant: true for any of the HTML4 / XHTML1 variants.
     D_STATIC_CONSTEXPR bool is_html4_family =
-        ::djinterp::internal::is_html4_family_helper(_Flag);
+        ::djinterp::internal::is_html4_family_helper(Flag);
 
     // is_strict
     //   constant: true for the strict variants of HTML4 / XHTML1
     // and for HTML5 / XHTML5 (which have no transitional form).
     D_STATIC_CONSTEXPR bool is_strict =
-        ::djinterp::internal::is_html_strict_family_helper(_Flag);
+        ::djinterp::internal::is_html_strict_family_helper(Flag);
 
     // is_frameset
     //   constant: true for the frameset variants of HTML4 / XHTML1.
     D_STATIC_CONSTEXPR bool is_frameset =
-        ::djinterp::internal::is_html_frameset_family_helper(_Flag);
+        ::djinterp::internal::is_html_frameset_family_helper(Flag);
 
 
     /// XML coupling (for XHTML variants)
@@ -327,7 +342,7 @@ struct html_dialect
     // `xml_dialect<xml_dialect_flag::unspecified>` and is not
     // meaningful -- callers should gate use on `is_xhtml`.
     using underlying_xml_dialect_t = xml_dialect<
-        is_xhtml_version(_Flag)
+        is_xhtml_version(Flag)
             ? xml_dialect_flag::xhtml_compatible
             : xml_dialect_flag::unspecified
     >;
@@ -339,21 +354,21 @@ struct html_dialect
     //   constant: whether void elements are emitted as `<br/>`
     // (XHTML) or `<br>` (HTML).
     D_STATIC_CONSTEXPR bool self_close_void_elements =
-        is_xhtml_version(_Flag);
+        is_xhtml_version(Flag);
 
     // require_lowercase_tags
     //   constant: whether tag names must be emitted in lowercase.
     // XHTML requires this; HTML is case-insensitive but lowercase
     // is the convention.
     D_STATIC_CONSTEXPR bool require_lowercase_tags =
-        is_xhtml_version(_Flag);
+        is_xhtml_version(Flag);
 
     // require_quoted_attrs
     //   constant: whether attribute values must be quoted. XHTML
     // requires this; HTML allows unquoted values for many
     // attributes but quoting is always safe.
     D_STATIC_CONSTEXPR bool require_quoted_attrs =
-        is_xhtml_version(_Flag);
+        is_xhtml_version(Flag);
 
     // attr_quote_char
     //   constant: the quote character used for attribute values.
@@ -364,7 +379,7 @@ struct html_dialect
     // where the spec allows it (`<li>`, `<p>`, `<tr>`, etc.).
     // HTML allows this; XHTML does not.
     D_STATIC_CONSTEXPR bool allow_unclosed_optional = (
-        ! is_xhtml_version(_Flag)
+        ! is_xhtml_version(Flag)
     );
 
     // allow_boolean_attribute_shorthand
@@ -372,7 +387,7 @@ struct html_dialect
     // `<input disabled>` (HTML) vs `<input disabled="disabled" />`
     // (XHTML).
     D_STATIC_CONSTEXPR bool allow_boolean_attribute_shorthand = (
-        ! is_xhtml_version(_Flag)
+        ! is_xhtml_version(Flag)
     );
 
     // emit_xml_declaration
@@ -381,9 +396,9 @@ struct html_dialect
     // when not served as text/html; XHTML5 (polyglot) typically
     // omits it.
     D_STATIC_CONSTEXPR bool emit_xml_declaration = (
-           (_Flag == html_version::xhtml1_strict)
-        || (_Flag == html_version::xhtml1_transitional)
-        || (_Flag == html_version::xhtml1_frameset)
+           (Flag == html_version::xhtml1_strict)
+        || (Flag == html_version::xhtml1_transitional)
+        || (Flag == html_version::xhtml1_frameset)
     );
 
 
@@ -409,10 +424,10 @@ struct html_dialect
     // elsewhere. Modelled here for adapter layers that extend
     // the kind enum to cover them.
     D_STATIC_CONSTEXPR bool legacy_presentational_allowed = (
-           (_Flag == html_version::html4_transitional)
-        || (_Flag == html_version::html4_frameset)
-        || (_Flag == html_version::xhtml1_transitional)
-        || (_Flag == html_version::xhtml1_frameset)
+           (Flag == html_version::html4_transitional)
+        || (Flag == html_version::html4_frameset)
+        || (Flag == html_version::xhtml1_transitional)
+        || (Flag == html_version::xhtml1_frameset)
     );
 
 
@@ -425,7 +440,7 @@ struct html_dialect
     static D_CONSTEXPR const char*
     doctype_string()
     {
-        return html_doctype_string(_Flag);
+        return html_doctype_string(Flag);
     }
 
 
@@ -440,7 +455,7 @@ struct html_dialect
     )
     {
         return ::djinterp::internal::
-            html_dialect_is_valid_element_kind_helper(_Flag, _kind);
+            html_dialect_is_valid_element_kind_helper(Flag, _kind);
     }
 
     // is_void_element
@@ -452,7 +467,7 @@ struct html_dialect
     )
     {
         return ::djinterp::internal::
-            html_dialect_is_void_element_in_helper(_Flag, _kind);
+            html_dialect_is_void_element_in_helper(Flag, _kind);
     }
 };
 
@@ -480,9 +495,9 @@ using html_dialect_xhtml5              = html_dialect<html_version::xhtml5>;
 NS_INTERNAL
 
     // has_html_dialect_flag_helper
-    //   trait: SFINAE detector for `_Type::flag` of type
+    //   trait: SFINAE detector for `Type::flag` of type
     // `html_version`. Primary template (failure case).
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_html_dialect_flag_helper
     {
@@ -490,14 +505,14 @@ NS_INTERNAL
     };
 
     // has_html_dialect_flag_helper (specialization)
-    //   trait: success case when `_Type::flag` exists and is of
+    //   trait: success case when `Type::flag` exists and is of
     // type `html_version`.
-    template<typename _Type>
+    template<typename Type>
     struct has_html_dialect_flag_helper<
-        _Type,
+        Type,
         typename std::enable_if<
             std::is_same<
-                clean_t<decltype(_Type::flag)>,
+                clean_t<decltype(Type::flag)>,
                 ::djinterp::html::html_version
             >::value
         >::type
@@ -511,31 +526,32 @@ namespace html {
 
 
 // is_html_dialect
-//   trait: true if `_Type` exposes the HTML dialect surface --
+//   trait: true if `Type` exposes the HTML dialect surface --
 // specifically a `flag` member of type `html_version`. Detects
-// both `html_dialect<_Flag>` instantiations and third-party
+// both `html_dialect<Flag>` instantiations and third-party
 // policy structs that follow the same convention.
-template<typename    _Type>
+template<typename    Type>
 struct is_html_dialect
 {
     D_STATIC_CONSTEXPR bool value =
         ::djinterp::internal::has_html_dialect_flag_helper<
-            clean_t<_Type>
+            clean_t<Type>
         >::value;
 };
 
 
 // is_html_dialect_v
-//   constant: convenience accessor for is_html_dialect<_Type>::value.
+//   constant: convenience accessor for is_html_dialect<Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_STATIC_CONSTEXPR bool is_html_dialect_v =
-        is_html_dialect<_Type>::value;
+        is_html_dialect<Type>::value;
 #endif
 
 
 }   // namespace html
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_HTML_DIALECT_
+#endif  // DJINTERP_TEXT_HTML_HTML_DIALECT_HPP

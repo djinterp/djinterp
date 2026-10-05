@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                  enable_borrowed_range.hpp
+/*******************************************************************************
+* djinterp [re_std]                                    enable_borrowed_range.hpp
 *
 * enable_borrowed_range customization point header:
 *   Provides the customisation-point variable template that classifies a
@@ -9,40 +9,48 @@
 * The default for every type is false; users opt their own types in.
 *
 *   PORTABILITY:
-*   - C++14+: real variable template (D_RE_STD_HAS_ENABLE_BORROWED_VAR == 1).
+*   - C++14+: real variable template (RE_STD_HAS_ENABLE_BORROWED_VAR == 1).
 *   - C++98/03/11: trait-struct fallback. enable_borrowed_range<T>::value
 *     is the equivalent boolean. The trait works on any conforming
 *     compiler.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/enable_borrowed_range.hpp
+* path:      /inc/re_std/ranges/enable_borrowed_range.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_ENABLE_BORROWED_RANGE_
-#define DJINTERP_RE_STD_RANGES_ENABLE_BORROWED_RANGE_ 1
+#ifndef RE_STD_RANGES_ENABLE_BORROWED_RANGE_HPP
+#define RE_STD_RANGES_ENABLE_BORROWED_RANGE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// re_std
 #include "../type_traits/type_traits.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0.   DETECTION MACRO
 // ===========================================================================
 
-// D_RE_STD_HAS_ENABLE_BORROWED_VAR
+// RE_STD_HAS_ENABLE_BORROWED_VAR
 //   constant: 1 when enable_borrowed_range is exposed as a constexpr
 // bool variable template. 0 when only the trait-struct form is
 // available.
-#ifndef D_RE_STD_HAS_ENABLE_BORROWED_VAR
-    #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-        #define D_RE_STD_HAS_ENABLE_BORROWED_VAR  1
+#ifndef RE_STD_HAS_ENABLE_BORROWED_VAR
+    #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+        #define RE_STD_HAS_ENABLE_BORROWED_VAR  1
     #else
-        #define D_RE_STD_HAS_ENABLE_BORROWED_VAR  0
+        #define RE_STD_HAS_ENABLE_BORROWED_VAR  0
     #endif
 #endif
 
@@ -59,7 +67,7 @@ NS_RESTD
 // only span, string_view, subrange, ref_view, iota_view, and a
 // handful of other library types specialise it to true. Re_std
 // matches this — the primary always reports false.
-template<typename _Type>
+template<typename Type>
 struct enable_borrowed_range
     : false_type
 {};
@@ -69,7 +77,7 @@ struct enable_borrowed_range
 // II.  ENABLE_BORROWED_RANGE_V (variable template, C++14+)
 // ===========================================================================
 
-#if D_RE_STD_HAS_ENABLE_BORROWED_VAR
+#if RE_STD_HAS_ENABLE_BORROWED_VAR
 
 // enable_borrowed_range_v
 //   variable: convenience constexpr accessor. Matches the C++20
@@ -86,14 +94,16 @@ struct enable_borrowed_range
 //
 // On C++98/03/11, specialise the enable_borrowed_range trait struct
 // instead.
-template<typename _Type>
-D_CONSTEXPR bool enable_borrowed_range_v =
-    enable_borrowed_range<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool enable_borrowed_range_v =
+    enable_borrowed_range<Type>::value;
 
-#endif  // D_RE_STD_HAS_ENABLE_BORROWED_VAR
-
-
-NS_END  // re_std
+#endif  // RE_STD_HAS_ENABLE_BORROWED_VAR
 
 
-#endif  // DJINTERP_RE_STD_RANGES_ENABLE_BORROWED_RANGE_
+}  // re_std
+
+#endif  // floor, for now
+
+
+#endif  // RE_STD_RANGES_ENABLE_BORROWED_RANGE_HPP

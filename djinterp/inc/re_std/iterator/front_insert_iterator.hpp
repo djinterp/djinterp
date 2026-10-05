@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                            front_insert_iterator.hpp
+/*******************************************************************************
+* djinterp [re_std]                                    front_insert_iterator.hpp
 *
+* front_insert_iterator class header:
 * mirror of back_insert_iterator, but calls push_front instead of
 * push_back. Useful for any container that supports push_front
 * (deque, list, forward_list).
@@ -16,19 +17,22 @@
 *     // dst is now { 3, 2, 1 }
 *
 *
-* path:      /inc/djinterp/re_std/iterator/front_insert_iterator.hpp
+* path:      /inc/re_std/iterator/front_insert_iterator.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_FRONT_INSERT_ITERATOR_
-#define DJINTERP_RE_STD_ITERATOR_FRONT_INSERT_ITERATOR_ 1
+#ifndef RE_STD_ITERATOR_FRONT_INSERT_ITERATOR_HPP
+#define RE_STD_ITERATOR_FRONT_INSERT_ITERATOR_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
 
     #include "re_std/iterator/output_iterator_tag.hpp"
@@ -38,7 +42,7 @@
 namespace re_std
 {
 
-template<typename _Container>
+template<typename Container>
 class front_insert_iterator
 {
 public:
@@ -47,24 +51,24 @@ public:
     typedef void                        difference_type;
     typedef void                        pointer;
     typedef void                        reference;
-    typedef _Container                  container_type;
+    typedef Container                  container_type;
 
 protected:
-    _Container* container;
+    Container* container;
 
 public:
-    explicit front_insert_iterator(_Container& _c) D_NOEXCEPT
+    explicit front_insert_iterator(Container& _c) RE_STD_NOEXCEPT
         : container(&_c) {}
 
     front_insert_iterator&
-    operator=(const typename _Container::value_type& _value)
+    operator=(const typename Container::value_type& _value)
     {
         container->push_front(_value);
         return *this;
     }
 
     front_insert_iterator&
-    operator=(typename _Container::value_type&& _value)
+    operator=(typename Container::value_type&& _value)
     {
         container->push_front(re_std::move(_value));
         return *this;
@@ -78,15 +82,14 @@ public:
 
 // ---- front_inserter factory ----
 
-template<typename _Container>
-front_insert_iterator<_Container> front_inserter(_Container& _c)
+template<typename Container>
+front_insert_iterator<Container> front_inserter(Container& _c)
 {
-    return front_insert_iterator<_Container>(_c);
+    return front_insert_iterator<Container>(_c);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_FRONT_INSERT_ITERATOR_
+#endif  // RE_STD_ITERATOR_FRONT_INSERT_ITERATOR_HPP

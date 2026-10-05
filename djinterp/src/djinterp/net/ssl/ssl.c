@@ -12,13 +12,13 @@
 * path:      /src/djinterp/net/ssl/ssl.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.29
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssl/ssl.h"  // corresponding header
 // std
 #include <string.h>  // memchr, memcmp, memcpy, memmove, memset, strlen
 // djinterp
-#include "../../../../inc/djinterp/env/net/env_ssl.h"  // D_ENV_SSL_CA_FILES
+#include "../../../../inc/djinterp/env/net/ssl/env_ssl.h"  // D_ENV_SSL_CA_FILES
 
 
 //==============================================================================

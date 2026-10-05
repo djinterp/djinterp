@@ -1,25 +1,27 @@
-/******************************************************************************
-* djinterp [re_std]                                              true_type.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                true_type.hpp
 *
 * true_type typedef header:
 *   Provides the true_type typedef as integral_constant<bool, true>. Used
 * as a base class for boolean traits that report true.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/true_type.hpp
+* path:      /inc/re_std/type_traits/true_type.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_TRUE_TYPE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_TRUE_TYPE_ 1
+#ifndef RE_STD_TYPE_TRAITS_TRUE_TYPE_HPP
+#define RE_STD_TYPE_TRAITS_TRUE_TYPE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -32,7 +34,7 @@ NS_RESTD
 typedef integral_constant<bool, true> true_type;
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_TRUE_TYPE_
+#endif  // RE_STD_TYPE_TRAITS_TRUE_TYPE_HPP

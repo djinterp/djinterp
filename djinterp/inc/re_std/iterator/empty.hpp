@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                             empty.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                    empty.hpp
 *
+* empty function header:
 * empty(c) returns true iff the container is empty. For containers
 * with a member empty(), forwards. For raw arrays, always false (a
 * zero-extent array is ill-formed in standard C++). For
@@ -9,19 +10,22 @@
 * added in std C++17.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/empty.hpp
+* path:      /inc/re_std/iterator/empty.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_EMPTY_
-#define DJINTERP_RE_STD_ITERATOR_EMPTY_ 1
+#ifndef RE_STD_ITERATOR_EMPTY_HPP
+#define RE_STD_ITERATOR_EMPTY_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
     #include <initializer_list>
 
@@ -29,28 +33,27 @@
 namespace re_std
 {
 
-template<typename _C>
-D_CONSTEXPR auto empty(const _C& _c) -> decltype(_c.empty())
+template<typename C>
+RE_STD_CONSTEXPR auto empty(const C& _c) -> decltype(_c.empty())
 {
     return _c.empty();
 }
 
 // Raw arrays are never empty (zero-extent is ill-formed).
-template<typename _T, std::size_t _N>
-D_CONSTEXPR bool empty(const _T (&)[_N]) D_NOEXCEPT
+template<typename T, std::size_t N>
+RE_STD_CONSTEXPR bool empty(const T (&)[N]) RE_STD_NOEXCEPT
 {
     return false;
 }
 
-template<typename _E>
-D_CONSTEXPR bool empty(std::initializer_list<_E> _il) D_NOEXCEPT
+template<typename E>
+RE_STD_CONSTEXPR bool empty(std::initializer_list<E> _il) RE_STD_NOEXCEPT
 {
     return _il.size() == 0;
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_EMPTY_
+#endif  // RE_STD_ITERATOR_EMPTY_HPP

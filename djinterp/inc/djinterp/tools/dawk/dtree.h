@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                        dtree.h
+* djinterp [djinterp]                                                    dtree.h
 *
 * Filesystem tree record source:
 *   Declares the one entry point that fills a d_awk_source with a walk over a
@@ -7,6 +7,7 @@
 * the file's path.
 *   POSIX directory reading lives behind this seam, so the conforming core
 * never links it.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dtree.h
 * link(s):   TBA

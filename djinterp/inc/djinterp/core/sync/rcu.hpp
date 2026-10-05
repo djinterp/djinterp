@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [sync]                                          rcu.hpp
+/*******************************************************************************
+* djinterp [core]                                                        rcu.hpp
 *
 * Read-Copy-Update (RCU) and epoch-based reclamation primitives.
 *   Provides building blocks for lock-free containers that use read-side
@@ -7,10 +7,10 @@
 *
 * RCU PROTOCOL:
 *   Readers:  enter a critical section (record the current epoch), read
-*             shared data freely, exit the critical section.  No locks,
+*             shared data freely, exit the critical section. No locks,
 *             no atomics on the fast path beyond the epoch load/store.
 *   Writers:  copy the shared data, modify the copy, atomically swap the
-*             pointer, advance the epoch, retire the old copy.  The old
+*             pointer, advance the epoch, retire the old copy. The old
 *             copy is reclaimed only after all readers from the previous
 *             epoch have exited.
 *
@@ -34,15 +34,38 @@
 *
 * path:      /inc/djinterp/core/sync/rcu.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_THREADSAFE_RCU_
-#define DJINTERP_THREADSAFE_RCU_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    STANDARD LIBRARY DELEGATION (C++23)
+      -----------------------------------
 
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "rcu.hpp requires env.h to be included first"
-#endif
+II.   EPOCH COUNTER
+      -------------
+
+III.  EPOCH GUARD
+      -----------
+
+IV.   EPOCH REGISTRY
+      --------------
+
+V.    DEFERRED RECLAIMER
+      ------------------
+
+VI.   RCU PROTECTED VALUE
+      -------------------
+*/
+
+#ifndef DJINTERP_SYNC_RCU_HPP
+#define DJINTERP_SYNC_RCU_HPP 1
+
+// env.h first: the language checks below and the gates after them read
+// its D_ENV_* results (it used to be a precondition, an #error if absent)
+#include "../../env/env.h"  // D_ENV_LANG_*, D_ENV_CPP_FEATURE_*
 
 #ifndef __cplusplus
     #error "rcu.hpp can only be used in C++ compilation mode"
@@ -51,6 +74,7 @@
 // C++23 standard RCU
 #if D_ENV_LANG_IS_CPP23_OR_HIGHER
     #if __has_include(<rcu>)
+        // std
         #include <rcu>
         #ifndef D_HAS_STD_RCU
             #define D_HAS_STD_RCU 1
@@ -72,27 +96,27 @@
 // std
 #include <atomic>
 #include <cstddef>
-#include <cstdint>
-#include <vector>
 #include <functional>
 #include <new>
+#include <vector>
 // djinterp
 #include "./atomic.hpp"
 #include "./concurrency_strategy_tags.hpp"
+#include "./sync_common.hpp"
+#include "./reclamation_common.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 
 
 NS_DJINTERP
 
-// =========================================================================
-// I.   STANDARD LIBRARY DELEGATION (C++23)
-// =========================================================================
-
+// I.    Standard library delegation (C++23)
 #if D_HAS_STD_RCU
 
     using rcu_domain = std::rcu_default_domain;
 
-    template<typename _Type>
-    void rcu_retire(_Type* _ptr)
+    template<typename Type>
+    void rcu_retire(Type* _ptr)
     {
         std::rcu_retire(_ptr);
     }
@@ -100,57 +124,75 @@ NS_DJINTERP
 #endif  // D_HAS_STD_RCU
 
 
-// =========================================================================
-// II.  EPOCH COUNTER
-// =========================================================================
-// Global epoch tracker.  Writers call advance() to move
+// II.   Epoch counter
+// Global epoch tracker. Writers call advance() to move
 // to a new epoch after completing a modification.
 // Readers snapshot the current epoch to mark the start
 // of their critical section.
+//
+//   The counter itself is atomic_version (./atomic.hpp):
+// a monotonic atomic uint64 whose bump() returns the
+// PREVIOUS value, which is exactly advance()'s contract.
+// This class keeps the epoch vocabulary - current(),
+// advance(), and the `inactive` sentinel, none of which
+// belong on a general-purpose version stamp - and lets
+// atomic_version carry the atomic plumbing that was
+// otherwise spelled out twice in the module.
+//
+//   nonmovable (./sync_common.hpp) states the ownership
+// contract that was previously hand-written as a pair of
+// deleted copy operations. It is stricter on purpose:
+// the registry hands out references INTO the counter, so
+// relocating one would strand them.  (The atomic_version
+// member is itself immovable, so the traits are unchanged
+// either way - the base makes the intent explicit rather
+// than leaving it as a side effect.)
 
 class epoch_counter
 {
 public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(epoch_counter)
+
     // sentinel: a thread not in a critical section
     // stores this value in its local epoch slot.
-    static constexpr std::uint64_t inactive =
+    static constexpr re_std::uint64_t inactive =
         UINT64_MAX;
 
     epoch_counter() noexcept
         : m_global_epoch(0)
     {}
 
-    epoch_counter(const epoch_counter&)            = delete;
-    epoch_counter& operator=(const epoch_counter&) = delete;
-
     // current
     //   returns the current global epoch.
-    std::uint64_t current() const noexcept
+    re_std::uint64_t current() const noexcept
     {
         return m_global_epoch.load(
             std::memory_order_acquire);
     }
 
     // advance
-    //   moves to the next epoch.  Called by writers
-    // after completing a modification.  Returns the
+    //   moves to the next epoch. Called by writers
+    // after completing a modification. Returns the
     // previous epoch.
-    std::uint64_t advance() noexcept
+    re_std::uint64_t advance() noexcept
     {
-        return m_global_epoch.fetch_add(
-            1, std::memory_order_acq_rel);
+        return m_global_epoch.bump();
     }
 
 private:
-    std::atomic<std::uint64_t> m_global_epoch;
+    atomic_version m_global_epoch;
 };
 
 
-// =========================================================================
-// III. EPOCH GUARD
-// =========================================================================
+// III.  Epoch guard
 // RAII critical section marker for epoch-based
-// reclamation.  The reader records the current epoch
+// reclamation. The reader records the current epoch
 // on construction and resets to inactive on destruction.
 //
 // The local epoch slot is passed by reference so that
@@ -160,9 +202,17 @@ private:
 class epoch_guard
 {
 public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(epoch_guard)
+
     explicit epoch_guard(
-        const epoch_counter&        _counter,
-        std::atomic<std::uint64_t>& _local_epoch)
+        const epoch_counter&           _counter,
+        std::atomic<re_std::uint64_t>& _local_epoch)
         noexcept
         : m_local(_local_epoch)
     {
@@ -178,18 +228,14 @@ public:
             std::memory_order_release);
     }
 
-    epoch_guard(const epoch_guard&)            = delete;
-    epoch_guard& operator=(const epoch_guard&) = delete;
 
 private:
-    std::atomic<std::uint64_t>& m_local;
+    std::atomic<re_std::uint64_t>& m_local;
 };
 
 
-// =========================================================================
-// IV.  EPOCH REGISTRY
-// =========================================================================
-// Tracks per-thread local epoch values.  Each thread
+// IV.   Epoch registry
+// Tracks per-thread local epoch values. Each thread
 // that participates in RCU reads registers a slot.
 // The writer scans all slots to determine the minimum
 // active epoch - any retired node from an epoch strictly
@@ -200,10 +246,18 @@ private:
 class epoch_registry
 {
 public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(epoch_registry)
+
     struct slot
     {
-        std::atomic<std::uint64_t> local_epoch;
-        std::atomic<bool>          active;
+        std::atomic<re_std::uint64_t> local_epoch;
+        std::atomic<bool>             active;
 
         slot() noexcept
             : local_epoch(epoch_counter::inactive)
@@ -225,16 +279,14 @@ public:
         delete[] m_slots;
     }
 
-    epoch_registry(const epoch_registry&)            = delete;
-    epoch_registry& operator=(const epoch_registry&) = delete;
 
     // --- slot management ---
 
     // register_thread
-    //   claims a slot for the calling thread.  Returns
+    //   claims a slot for the calling thread. Returns
     // a pointer to the slot's local_epoch atomic, or
     // nullptr if all slots are in use.
-    std::atomic<std::uint64_t>*
+    std::atomic<re_std::uint64_t>*
     register_thread() noexcept
     {
         if (!m_slots)
@@ -266,9 +318,10 @@ public:
     // unregister_thread
     //   releases a slot back to the pool.
     void unregister_thread(
-        std::atomic<std::uint64_t>* _slot) noexcept
+        std::atomic<re_std::uint64_t>* _slot) noexcept
     {
-        if (!_slot || !m_slots)
+        if ( (!_slot) ||
+             (!m_slots) )
         {
             return;
         }
@@ -296,13 +349,13 @@ public:
 
     // min_active_epoch
     //   returns the minimum epoch among all active
-    // reader slots.  Retired nodes from epochs strictly
+    // reader slots. Retired nodes from epochs strictly
     // less than this value are safe to reclaim.
     // Returns epoch_counter::inactive if no readers
     // are active (all retired nodes are safe).
-    std::uint64_t min_active_epoch() const noexcept
+    re_std::uint64_t min_active_epoch() const noexcept
     {
-        std::uint64_t min_epoch =
+        re_std::uint64_t min_epoch =
             epoch_counter::inactive;
 
         if (!m_slots)
@@ -316,7 +369,7 @@ public:
             if (m_slots[i].active.load(
                     std::memory_order_acquire))
             {
-                std::uint64_t e =
+                re_std::uint64_t e =
                     m_slots[i].local_epoch.load(
                         std::memory_order_acquire);
 
@@ -343,30 +396,47 @@ private:
 };
 
 
-// =========================================================================
-// V.   DEFERRED RECLAIMER
-// =========================================================================
+// V.    Deferred reclaimer
 // Combines epoch_counter + epoch_registry + retired list
-// into a single reclamation engine.  Writers retire nodes
+// into a single reclamation engine. Writers retire nodes
 // through this object; it handles epoch tracking and
 // reclamation automatically.
+//
+//   The retired list itself is reclaim_list<Type>
+// (./reclamation_common.hpp) - the shared engine that
+// hazard_pointer.hpp also rides. The two schemes only
+// ever differed in the RULE for calling a node safe, so
+// this class contributes exactly that rule (a node is
+// reclaimable once its retire epoch lies strictly below
+// the oldest epoch any reader still occupies) and keeps
+// the RCU vocabulary around it.
+//
+//   ON THE SCAN THRESHOLD: reclaim_list reports when a
+// scan looks worthwhile via should_scan(), but never
+// scans itself - only the owner holds the predicate. So
+// the automatic scan on retire lives here, exactly as it
+// did before; the engine merely counts. The threshold is
+// still max_threads * 2.
 
-template<typename _Type>
+template<typename Type>
 class deferred_reclaimer
 {
 public:
-    using deleter_fn = std::function<void(_Type*)>;
+    // non-copyable, non-movable: readers hold pointers INTO the
+    // registry this object owns. Macro rather than the base, so
+    // the empty base of a nested member can still collapse.
+    D_NONMOVABLE(deferred_reclaimer)
+
+    using deleter_fn =
+        typename reclaim_list<Type>::deleter_fn;
 
     explicit deferred_reclaimer(
         std::size_t _max_threads = 64)
         : m_registry(_max_threads)
-        , m_scan_threshold(_max_threads * 2)
-    {}
-
-    deferred_reclaimer(
-        const deferred_reclaimer&)            = delete;
-    deferred_reclaimer& operator=(
-        const deferred_reclaimer&)            = delete;
+    {
+        m_retired.set_scan_threshold(
+            _max_threads * 2);
+    }
 
     // --- reader API ---
 
@@ -374,7 +444,7 @@ public:
     //   registers the calling thread (if not already)
     // and returns a pointer to its local epoch slot.
     // The caller should use epoch_guard with this slot.
-    std::atomic<std::uint64_t>*
+    std::atomic<re_std::uint64_t>*
     register_reader() noexcept
     {
         return m_registry.register_thread();
@@ -383,7 +453,7 @@ public:
     // unregister_reader
     //   releases the calling thread's epoch slot.
     void unregister_reader(
-        std::atomic<std::uint64_t>* _slot) noexcept
+        std::atomic<re_std::uint64_t>* _slot) noexcept
     {
         m_registry.unregister_thread(_slot);
     }
@@ -399,19 +469,16 @@ public:
     // --- writer API ---
 
     // retire
-    //   retires _ptr for deferred deletion.  Advances
+    //   retires _ptr for deferred deletion. Advances
     // the epoch and triggers a scan if the retired
     // count exceeds the threshold.
-    void retire(_Type* _ptr)
+    void retire(Type* _ptr)
     {
-        std::uint64_t e = m_epoch.advance();
+        const re_std::uint64_t e = m_epoch.advance();
 
-        m_retired.push_back(
-            { _ptr,
-              [](_Type* p) { delete p; },
-              e });
+        m_retired.retire(_ptr, e);
 
-        if (m_retired.size() >= m_scan_threshold)
+        if (m_retired.should_scan())
         {
             scan();
         }
@@ -419,17 +486,14 @@ public:
 
     // retire (custom deleter)
     void retire(
-        _Type*        _ptr,
-        deleter_fn _deleter)
+        Type*        _ptr,
+        deleter_fn    _deleter)
     {
-        std::uint64_t e = m_epoch.advance();
+        const re_std::uint64_t e = m_epoch.advance();
 
-        m_retired.push_back(
-            { _ptr,
-              std::move(_deleter),
-              e });
+        m_retired.retire(_ptr, std::move(_deleter), e);
 
-        if (m_retired.size() >= m_scan_threshold)
+        if (m_retired.should_scan())
         {
             scan();
         }
@@ -441,84 +505,49 @@ public:
     // Returns the number of nodes reclaimed.
     std::size_t scan()
     {
-        std::uint64_t safe =
+        const re_std::uint64_t safe =
             m_registry.min_active_epoch();
 
-        std::size_t reclaimed = 0;
-        std::size_t wr = 0;
-
-        for (std::size_t rd = 0;
-             rd < m_retired.size(); ++rd)
-        {
-            if (m_retired[rd].retire_epoch < safe)
+        return m_retired.reclaim_if(
+            [safe](
+                const typename reclaim_list<Type>::entry&
+                    _entry)
             {
-                m_retired[rd].deleter(
-                    m_retired[rd].ptr);
-                ++reclaimed;
-            }
-            else
-            {
-                if (wr != rd)
-                {
-                    m_retired[wr] =
-                        std::move(m_retired[rd]);
-                }
-
-                ++wr;
-            }
-        }
-
-        m_retired.resize(wr);
-
-        return reclaimed;
+                return (_entry.tag < safe);
+            });
     }
 
     // force_reclaim
     //   reclaims ALL retired nodes regardless of active
-    // readers.  ONLY safe to call during shutdown when
+    // readers. ONLY safe to call during shutdown when
     // no readers are active.
     void force_reclaim()
     {
-        for (auto& e : m_retired)
-        {
-            e.deleter(e.ptr);
-        }
-
-        m_retired.clear();
+        m_retired.force_reclaim();
     }
 
     // --- queries ---
 
     std::size_t pending() const noexcept
     {
-        return m_retired.size();
+        return m_retired.pending();
     }
 
-    std::uint64_t current_epoch() const noexcept
+    re_std::uint64_t current_epoch() const noexcept
     {
         return m_epoch.current();
     }
 
 private:
-    struct retired_entry
-    {
-        _Type*           ptr;
-        deleter_fn    deleter;
-        std::uint64_t retire_epoch;
-    };
-
-    epoch_counter                m_epoch;
-    epoch_registry               m_registry;
-    std::vector<retired_entry>   m_retired;
-    std::size_t                  m_scan_threshold;
+    epoch_counter       m_epoch;
+    epoch_registry      m_registry;
+    reclaim_list<Type> m_retired;
 };
 
 
-// =========================================================================
-// VI.  RCU PROTECTED VALUE
-// =========================================================================
+// VI.   Rcu protected value
 // Complete RCU-protected value with read / update /
-// snapshot operations.  The canonical RCU pattern:
+// snapshot operations. The canonical RCU pattern:
 //
 //   rcu_protected<Config> cfg(initial_config);
 //
@@ -535,16 +564,24 @@ private:
 
 #if !D_HAS_STD_RCU
 
-template<typename _Type>
+template<typename Type>
 class rcu_protected
 {
 public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(rcu_protected)
+
     // --- type aliases ---
 
     // rcu_protected_type
     //   alias: self-marker so that
     // `has_rcu_protected_type<rcu_protected<T>>`
-    // reports true.  Containers built on rcu_protected
+    // reports true. Containers built on rcu_protected
     // typically forward this alias to identify themselves
     // as RCU-strategy.
     using rcu_protected_type = rcu_protected;
@@ -558,14 +595,14 @@ public:
     // --- reader token ---
 
     // rcu_read_guard
-    //   RAII token returned by read_lock().  Holds
+    //   RAII token returned by read_lock(). Holds
     // the calling thread in the current epoch.
     class rcu_read_guard
     {
     public:
         rcu_read_guard(
-            const epoch_counter&        _counter,
-            std::atomic<std::uint64_t>& _slot)
+            const epoch_counter&           _counter,
+            std::atomic<re_std::uint64_t>& _slot)
             noexcept
             : m_guard(_counter, _slot)
         {}
@@ -581,21 +618,21 @@ public:
 
     // --- constructors ---
 
-    explicit rcu_protected(const _Type& _initial)
+    explicit rcu_protected(const Type& _initial)
         : m_reclaimer(64)
     {
-        _Type* p = new _Type(_initial);
-        m_data.store(p, std::memory_order_release);
+        Type* p = new Type(_initial);
+        m_data.store(p);
 
         m_reader_slot =
             m_reclaimer.register_reader();
     }
 
-    explicit rcu_protected(_Type&& _initial)
+    explicit rcu_protected(Type&& _initial)
         : m_reclaimer(64)
     {
-        _Type* p = new _Type(std::move(_initial));
-        m_data.store(p, std::memory_order_release);
+        Type* p = new Type(std::move(_initial));
+        m_data.store(p);
 
         m_reader_slot =
             m_reclaimer.register_reader();
@@ -604,8 +641,7 @@ public:
     ~rcu_protected()
     {
         // reclaim the current value
-        _Type* p = m_data.load(
-            std::memory_order_acquire);
+        Type* p = m_data.load();
 
         delete p;
 
@@ -619,14 +655,11 @@ public:
         }
     }
 
-    rcu_protected(const rcu_protected&)            = delete;
-    rcu_protected& operator=(
-        const rcu_protected&)                      = delete;
 
     // --- reader API ---
 
     // read_lock
-    //   enters a read-side critical section.  The
+    //   enters a read-side critical section. The
     // returned guard must be kept alive for the
     // duration of the read.
     rcu_read_guard read_lock()
@@ -639,55 +672,50 @@ public:
     // read
     //   returns a const reference to the current value.
     // MUST be called while holding a rcu_read_guard.
-    const _Type& read(
+    const Type& read(
         const rcu_read_guard& /*guard*/) const noexcept
     {
-        return *m_data.load(
-            std::memory_order_acquire);
+        return *m_data.load();
     }
 
     // --- writer API ---
 
     // update
     //   atomically replaces the current value with a
-    // copy of _new_value.  The old value is retired
+    // copy of _new_value. The old value is retired
     // for deferred reclamation.
-    void update(const _Type& _new_value)
+    void update(const Type& _new_value)
     {
-        _Type* fresh = new _Type(_new_value);
-        _Type* old   = m_data.exchange(
-            fresh, std::memory_order_acq_rel);
+        Type* fresh = new Type(_new_value);
+        Type* old   = m_data.publish(fresh);
 
         m_reclaimer.retire(old);
     }
 
     // update (move)
-    void update(_Type&& _new_value)
+    void update(Type&& _new_value)
     {
-        _Type* fresh = new _Type(std::move(_new_value));
-        _Type* old   = m_data.exchange(
-            fresh, std::memory_order_acq_rel);
+        Type* fresh = new Type(std::move(_new_value));
+        Type* old   = m_data.publish(fresh);
 
         m_reclaimer.retire(old);
     }
 
     // modify
     //   reads the current value, applies _fn to a copy,
-    // and publishes the modified copy.  NOT atomic with
+    // and publishes the modified copy. NOT atomic with
     // respect to concurrent writers - use external
     // synchronization if multiple writers are possible.
-    template<typename _Fn>
-    void modify(_Fn&& _fn)
+    template<typename Fn>
+    void modify(Fn&& _fn)
     {
-        const _Type* current = m_data.load(
-            std::memory_order_acquire);
+        const Type* current = m_data.load();
 
-        _Type* fresh = new _Type(*current);
+        Type* fresh = new Type(*current);
 
-        std::forward<_Fn>(_fn)(*fresh);
+        std::forward<Fn>(_fn)(*fresh);
 
-        _Type* old = m_data.exchange(
-            fresh, std::memory_order_acq_rel);
+        Type* old = m_data.publish(fresh);
 
         m_reclaimer.retire(old);
     }
@@ -699,15 +727,15 @@ public:
         return m_reclaimer.pending();
     }
 
-    std::uint64_t current_epoch() const noexcept
+    re_std::uint64_t current_epoch() const noexcept
     {
         return m_reclaimer.current_epoch();
     }
 
 private:
-    std::atomic<_Type*>                 m_data;
-    deferred_reclaimer<_Type>           m_reclaimer;
-    std::atomic<std::uint64_t>*      m_reader_slot;
+    published_ptr<Type>                m_data;
+    deferred_reclaimer<Type>           m_reclaimer;
+    std::atomic<re_std::uint64_t>*      m_reader_slot;
 };
 
 #endif  // !D_HAS_STD_RCU
@@ -718,4 +746,4 @@ NS_END  // djinterp
 #endif  // C++11
 
 
-#endif  // DJINTERP_THREADSAFE_RCU_
+#endif  // DJINTERP_SYNC_RCU_HPP

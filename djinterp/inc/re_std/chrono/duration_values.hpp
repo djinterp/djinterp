@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                          duration_values.hpp
 *
 * the duration_values trait:
@@ -12,7 +12,7 @@
 *   First, min() here means the LOWEST value, not the smallest positive
 * one. numeric_limits<double>::min() is a tiny positive number; a
 * duration's min() must be the most negative representable duration, so
-* this trait routes through numeric_limits<_Rep>::lowest() instead. Using
+* this trait routes through numeric_limits<Rep>::lowest() instead. Using
 * min() would silently make every floating-point duration's lower bound
 * positive -- a bug that survives every integral test.
 *
@@ -26,25 +26,27 @@
 * unusual identity that distinction is real.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/duration_values.hpp
+* path:      /inc/re_std/chrono/duration_values.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_DURATION_VALUES_
-#define DJINTERP_RE_STD_CHRONO_DURATION_VALUES_ 1
+#ifndef RE_STD_CHRONO_DURATION_VALUES_HPP
+#define RE_STD_CHRONO_DURATION_VALUES_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "../limits/numeric_limits.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
@@ -52,38 +54,38 @@ namespace chrono
     // duration_values
     //   trait: the zero, lowest and highest values of a duration
     // representation. Specialise for a user-defined rep.
-    template<typename _Rep>
+    template<typename Rep>
     struct duration_values
     {
         // zero
         //   function: the additive identity, Rep(0).
-        static D_CONSTEXPR _Rep zero() D_NOEXCEPT
+        static RE_STD_CONSTEXPR Rep zero() RE_STD_NOEXCEPT
         {
-            return _Rep(0);
+            return Rep(0);
         }
 
         // min
         //   function: the LOWEST representable value -- lowest(), not
         // min(). See the header comment.
-        static D_CONSTEXPR _Rep min() D_NOEXCEPT
+        static RE_STD_CONSTEXPR Rep min() RE_STD_NOEXCEPT
         {
-            return numeric_limits<_Rep>::lowest();
+            return numeric_limits<Rep>::lowest();
         }
 
         // max
         //   function: the highest representable value.
-        static D_CONSTEXPR _Rep max() D_NOEXCEPT
+        static RE_STD_CONSTEXPR Rep max() RE_STD_NOEXCEPT
         {
-            return numeric_limits<_Rep>::max();
+            return numeric_limits<Rep>::max();
         }
     };
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_DURATION_VALUES_
+#endif  // RE_STD_CHRONO_DURATION_VALUES_HPP
