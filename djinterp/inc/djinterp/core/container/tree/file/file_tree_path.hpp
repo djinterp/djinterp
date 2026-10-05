@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [fs]                                          file_tree_path.hpp
+/*******************************************************************************
+* djinterp [core]                                             file_tree_path.hpp
 *
 * Path operations for file_tree:
 *   This header provides the concrete instantiation of the tree_path
@@ -24,68 +24,68 @@
 *
 *   file_tree_path ftp(ft);
 *
-*   node_id n = ftp.resolve("src/core/main.cpp");
+*   file_node_id n = ftp.resolve("src/core/main.cpp");
 *   std::string p = ftp.build(n);
 *   std::string rel = ftp.relative_string(a, b);
-*   node_id ancestor = ftp.lca(a, b);
+*   file_node_id ancestor = ftp.lca(a, b);
 *
 *
-* path:      /inc/cpp/fs/file_tree_path.hpp
+* path:      /inc/djinterp/core/container/tree/file/file_tree_path.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.03.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_FS_FILE_TREE_PATH_
-#define DJINTERP_FS_FILE_TREE_PATH_ 1
+#ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_PATH_HPP
+#define DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_PATH_HPP 1
 
+// FLOOR, FOR NOW: below C++20 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+
+// std
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>
-
-#include "../../../djinterp.hpp"
-#include "../core/path.hpp"
-#include "../../arena/arena.hpp"
+// djinterp
+#include "../../../../djinterp.hpp"
+#include "../../../paradigm/path/path.hpp"
 #include "../../container_path.hpp"
-#include "../tree_path.hpp"
 #include "./file_tree.hpp"
 
 
 NS_DJINTERP
-NS_FS
+
+// NOTE. This header used to open NS_FS. There IS NO NS_FS -- nothing in the
+// framework defines that macro. Flat djinterp, like everything else in fs.
 
 
-// bring in path utilities.
-using djinterp::path::path_separator;
-using djinterp::path::path_is_separator;
-using djinterp::path::path_normalize;
-using djinterp::path::path_extension;
-using djinterp::path::path_stem;
-using djinterp::path::path_filename;
-using djinterp::path::path_parent;
-using djinterp::path::path_is_absolute;
-using djinterp::path::path_common_prefix;
-using djinterp::path::path_relative_to;
-using djinterp::path::path_to_posix;
-using djinterp::path::path_to_windows;
-using djinterp::path::path_depth;
+// DEPENDENCIES.
+//   path.hpp and container_path.hpp both open plain NS_DJINTERP -- there is no
+// djinterp::path and no djinterp::container namespace holding them. The
+// twenty-eight using-declarations that stood here named nothing, and this
+// header could not compile. Being in djinterp ourselves, the names are already
+// in scope. What we lean on: path.hpp path_separator, path_is_separator,
+// path_normalize, path_extension, path_stem, path_filename, path_parent,
+// path_is_absolute, path_relative_to, path_to_posix, path_to_windows,
+// path_meet (was path_common_prefix -- a meet is what it computes; the old
+// spelling still resolves), path_level (was path_depth -- it counts UPWARD,
+// which is the level; depth is a node's height) container_path.hpp
+// component_view,
+// path_address, container_path_resolve, container_path_collect,
+// container_path_build, container_path_level, container_path_lca,
+// container_path_relative, container_path_relative_string,
+// container_path_ancestors, container_path_ancestor_chain,
+// container_path_is_ancestor arena.hpp file_node_id, null_file_node, arena (these ARE
+// nested, in djinterp::container, and are imported below)
 
-using djinterp::container::node_id;
-using djinterp::container::null_node;
-using djinterp::container::arena;
-using djinterp::container::component_view;
-using djinterp::container::path_address;
-using djinterp::container::container_path_resolve;
-using djinterp::container::container_path_collect;
-using djinterp::container::container_path_build;
-using djinterp::container::container_path_depth;
-using djinterp::container::container_path_lca;
-using djinterp::container::container_path_relative;
-using djinterp::container::container_path_relative_string;
-using djinterp::container::container_path_ancestors;
-using djinterp::container::container_path_ancestor_chain;
-using djinterp::container::container_path_is_ancestor;
+// file_node_id / null_file_node / file_node come from file_tree_common.hpp now. The
+// arena is GONE -- nodes live in a djinterp pool and a file_node_id is a POINTER,
+// not an index -- so there is no arena<file_entry> to name and nothing to
+// import from djinterp::container.
 
 
 // ================================================================
@@ -93,16 +93,19 @@ using djinterp::container::container_path_is_ancestor;
 // ================================================================
 
 // file_tree_path_policy
-//   class: a concrete container_path policy for file_tree's
-// arena.  Reads element names directly from the file_tree's
-// string pool via a bound pointer stored as an instance member.
-// Returns component_view values for efficient zero-copy
-// comparison during path resolution.
+//   class: a concrete container_path policy for file_tree's arena. Reads
+// element names directly from the file_tree's string pool via a bound pointer
+// stored as an instance member. Returns component_view values for efficient
+// zero-copy comparison during path resolution. TEMPLATED ON THE TREE. The
+// policy's "container" used to be the arena; there
+// is no arena now, and a file_node_id dereferences directly, so the container is
+// the TREE and the link accessors just follow pointers.
+template<typename Tree>
 class file_tree_path_policy
 {
 public:
-    using container_type = arena<file_entry>;
-    using index_type     = node_id;
+    using container_type = Tree;
+    using index_type     = file_node_id;
     using component_type = component_view;
 
     // --------------------------------------------------------
@@ -126,7 +129,7 @@ public:
     index_type
     null_index() const
     {
-        return null_node;
+        return null_file_node;
     }
 
     // is_null
@@ -137,7 +140,7 @@ public:
         index_type _id
     ) const
     {
-        return (_id == null_node);
+        return (_id == null_file_node);
     }
 
     // parent
@@ -149,7 +152,7 @@ public:
         index_type            _id
     ) const
     {
-        return _arena[_id].parent;
+        return _id->parent;
     }
 
     // first_child
@@ -161,7 +164,7 @@ public:
         index_type            _id
     ) const
     {
-        return _arena[_id].first_child;
+        return _id->first_child;
     }
 
     // next_sibling
@@ -173,12 +176,12 @@ public:
         index_type            _id
     ) const
     {
-        return _arena[_id].next_sibling;
+        return _id->next_sibling;
     }
 
     // component
-    //   returns a component_view of the element at _id from
-    // the bound string pool.
+    //   returns a component_view of the element at _id from the bound string
+    // pool.
     component_type
     component
     (
@@ -186,7 +189,7 @@ public:
         index_type            _id
     ) const
     {
-        const file_entry& e = _arena[_id].data;
+        const file_entry& e = _id->data;
 
         return component_view{
             m_names->data() + e.name_offset,
@@ -204,14 +207,21 @@ private:
 // ================================================================
 
 // file_tree_path
-//   class: provides path operations over a file_tree.
-// Wraps the container_path free functions with the file_tree-
-// specific policy, constructed once and passed through all
-// operations.
+//   class: provides path operations over a file_tree. Wraps the container_path
+// free functions with the file_tree- specific policy, constructed once and
+// passed through all operations.
+//   TEMPLATED ON THE TREE. It used to say `const file_tree&` -- but file_tree
+// is a template ALIAS (file_tree.hpp maps an operating_system onto a scanner
+// policy), and naming an alias template with no argument list is ill-formed.
+// Every one of these three sites was a hard error; the header simply was never
+// instantiated, and a header that is never instantiated is never checked.
+// Templating on the tree also means an option-carrying tree works unchanged.
+template<typename Tree = file_tree_default>
 class file_tree_path
 {
 public:
-    using policy_type    = file_tree_path_policy;
+    using tree_type      = Tree;
+    using policy_type    = file_tree_path_policy<Tree>;
     using component_type = component_view;
 
     // --------------------------------------------------------
@@ -221,7 +231,7 @@ public:
     // file_tree_path
     //   constructs a path helper bound to _tree.
     explicit file_tree_path(
-            const file_tree& _tree
+            const tree_type& _tree
         )
             : m_tree(_tree),
               m_policy(_tree.name_pool())
@@ -232,24 +242,23 @@ public:
     // --------------------------------------------------------
 
     // resolve
-    //   walks a path string from _root through the tree.
-    // Both '/' and '\\' are accepted as separators.
-    // Returns null_node if any component is not found.
-    node_id
+    //   walks a path string from _root through the tree. Both '/' and '\\' are
+    // accepted as separators. Returns null_file_node if any component is not found.
+    file_node_id
     resolve
     (
         const char* _path,
-        node_id     _root = 0
+        file_node_id     _root = 0
     ) const
     {
         if (m_tree.empty())
         {
-            return null_node;
+            return null_file_node;
         }
 
         return container_path_resolve(
             m_policy,
-            m_tree.nodes(),
+            m_tree,
             _root,
             _path,
             std::strlen(_path));
@@ -257,27 +266,27 @@ public:
 
     // resolve (std::string overload)
     //   function: resolves a path given as std::string.
-    node_id
+    file_node_id
     resolve
     (
         const std::string& _path,
-        node_id            _root = 0
+        file_node_id            _root = 0
     ) const
     {
         return resolve(_path.c_str(), _root);
     }
 
     // resolve_many
-    //   resolves multiple paths and returns the results.
-    // Each entry is null_node if not found.
-    std::vector<node_id>
+    //   resolves multiple paths and returns the results. Each entry is
+    // null_file_node if not found.
+    std::vector<file_node_id>
     resolve_many
     (
         const std::vector<std::string>& _paths,
-        node_id                         _root = 0
+        file_node_id                         _root = 0
     ) const
     {
-        std::vector<node_id> result;
+        std::vector<file_node_id> result;
         result.reserve(_paths.size());
 
         // resolve each path individually.
@@ -299,12 +308,12 @@ public:
     std::vector<component_type>
     collect
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
         return container_path_collect(
             m_policy,
-            m_tree.nodes(),
+            m_tree,
             _id);
     }
 
@@ -318,13 +327,13 @@ public:
     std::string
     build
     (
-        node_id _id,
+        file_node_id _id,
         char    _sep = '/'
     ) const
     {
         return container_path_build(
             m_policy,
-            m_tree.nodes(),
+            m_tree,
             _id,
             _sep);
     }
@@ -334,7 +343,7 @@ public:
     std::string
     build_normalized
     (
-        node_id _id,
+        file_node_id _id,
         char    _sep = '/'
     ) const
     {
@@ -347,7 +356,7 @@ public:
     std::string
     build_posix
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
         return build(_id, '/');
@@ -358,7 +367,7 @@ public:
     std::string
     build_windows
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
         return build(_id, '\\');
@@ -369,7 +378,7 @@ public:
     std::string
     build_platform
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
         return build(_id, path_separator);
@@ -377,21 +386,51 @@ public:
 
 
     // --------------------------------------------------------
-    //  depth
+    //  level
     // --------------------------------------------------------
 
+    // level
+    //   the LEVEL (lambda) of _id: parent links up to the root, which sits at
+    // level 0. This is the length of _id's ADDRESS. It was spelled `depth`,
+    // but the spec reserves DEPTH for a node's HEIGHT -- the distance DOWN to
+    // its deepest leaf -- and the two are different numbers on the same node.
+    // depth() below is kept, and delegates, so no caller breaks.
+    std::size_t
+    level
+    (
+        file_node_id _id
+    ) const
+    {
+        return container_path_level(
+            m_policy,
+            m_tree,
+            _id);
+    }
+
     // depth
-    //   returns the depth of _id (root = 0).
+    //   the retained spelling of level(). It counts parent links UPWARD, which
+    // is the level; prefer level(), and see height() for what the spec means
+    // by depth. Kept so existing callers continue to compile.
     std::size_t
     depth
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
-        return container_path_depth(
-            m_policy,
-            m_tree.nodes(),
-            _id);
+        return level(_id);
+    }
+
+    // height
+    //   the HEIGHT of _id: the longest descent BELOW it. This is what the spec
+    // calls the node's DEPTH, and the facade had no way to ask for it -- the
+    // one measure it named was the other one.
+    std::size_t
+    height
+    (
+        file_node_id _id
+    ) const
+    {
+        return m_tree.height(_id);
     }
 
 
@@ -401,29 +440,29 @@ public:
 
     // ancestors
     //   returns all ancestors of _id (parent first, root last).
-    std::vector<node_id>
+    std::vector<file_node_id>
     ancestors
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
         return container_path_ancestors(
             m_policy,
-            m_tree.nodes(),
+            m_tree,
             _id);
     }
 
     // ancestor_chain
     //   returns the full chain from root to _id (root first).
-    std::vector<node_id>
+    std::vector<file_node_id>
     ancestor_chain
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
         return container_path_ancestor_chain(
             m_policy,
-            m_tree.nodes(),
+            m_tree,
             _id);
     }
 
@@ -434,16 +473,16 @@ public:
 
     // lca
     //   computes the lowest common ancestor of _a and _b.
-    node_id
+    file_node_id
     lca
     (
-        node_id _a,
-        node_id _b
+        file_node_id _a,
+        file_node_id _b
     ) const
     {
         return container_path_lca(
             m_policy,
-            m_tree.nodes(),
+            m_tree,
             _a,
             _b);
     }
@@ -454,36 +493,34 @@ public:
     // --------------------------------------------------------
 
     // relative
-    //   computes the relative path from _from to _to as a
-    // path_address.
+    //   computes the relative path from _from to _to as a path_address.
     path_address<component_type>
     relative
     (
-        node_id _from,
-        node_id _to
+        file_node_id _from,
+        file_node_id _to
     ) const
     {
         return container_path_relative(
             m_policy,
-            m_tree.nodes(),
+            m_tree,
             _from,
             _to);
     }
 
     // relative_string
-    //   computes the relative path as a string with ".."
-    // segments.
+    //   computes the relative path as a string with ".." segments.
     std::string
     relative_string
     (
-        node_id _from,
-        node_id _to,
+        file_node_id _from,
+        file_node_id _to,
         char    _sep = '/'
     ) const
     {
         return container_path_relative_string(
             m_policy,
-            m_tree.nodes(),
+            m_tree,
             _from,
             _to,
             _sep);
@@ -499,13 +536,13 @@ public:
     bool
     is_ancestor
     (
-        node_id _ancestor,
-        node_id _descendant
+        file_node_id _ancestor,
+        file_node_id _descendant
     ) const
     {
         return container_path_is_ancestor(
             m_policy,
-            m_tree.nodes(),
+            m_tree,
             _ancestor,
             _descendant);
     }
@@ -515,8 +552,8 @@ public:
     bool
     is_descendant
     (
-        node_id _descendant,
-        node_id _ancestor
+        file_node_id _descendant,
+        file_node_id _ancestor
     ) const
     {
         return is_ancestor(_ancestor, _descendant);
@@ -528,12 +565,12 @@ public:
     // --------------------------------------------------------
 
     // all_paths
-    //   returns the full path of every node in the tree (BFS
-    // order from _root).
+    //   returns the full path of every node in the tree (BFS order from
+    // _root).
     std::vector<std::string>
     all_paths
     (
-        node_id _root = 0,
+        file_node_id _root = 0,
         char    _sep  = '/'
     ) const
     {
@@ -545,7 +582,7 @@ public:
         }
 
         m_tree.visit_breadth_first(_root,
-            [&](node_id _id, std::size_t)
+            [&](file_node_id _id, std::size_t)
             {
                 result.push_back(build(_id, _sep));
             });
@@ -558,19 +595,18 @@ public:
     std::string
     extension
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
         return path_extension(m_tree.name_str(_id));
     }
 
     // stem
-    //   returns the stem (filename without extension) of the
-    // node at _id.
+    //   returns the stem (filename without extension) of the node at _id.
     std::string
     stem
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
         return path_stem(m_tree.name_str(_id));
@@ -581,14 +617,14 @@ public:
     std::string
     common_ancestor_path
     (
-        node_id _a,
-        node_id _b,
+        file_node_id _a,
+        file_node_id _b,
         char    _sep = '/'
     ) const
     {
-        node_id ancestor = lca(_a, _b);
+        file_node_id ancestor = lca(_a, _b);
 
-        if (ancestor == null_node)
+        if (ancestor == null_file_node)
         {
             return std::string();
         }
@@ -598,14 +634,14 @@ public:
 
     // nodes_at_depth
     //   returns all node_ids at a specific depth from _root.
-    std::vector<node_id>
+    std::vector<file_node_id>
     nodes_at_depth
     (
         std::size_t _depth,
-        node_id     _root = 0
+        file_node_id     _root = 0
     ) const
     {
-        std::vector<node_id> result;
+        std::vector<file_node_id> result;
 
         if (m_tree.empty())
         {
@@ -613,7 +649,7 @@ public:
         }
 
         m_tree.visit_breadth_first(_root,
-            [&](node_id _id, std::size_t _d)
+            [&](file_node_id _id, std::size_t _d)
             {
                 if (_d == _depth)
                 {
@@ -626,25 +662,25 @@ public:
 
     // siblings
     //   returns all siblings of _id (excluding _id itself).
-    std::vector<node_id>
+    std::vector<file_node_id>
     siblings
     (
-        node_id _id
+        file_node_id _id
     ) const
     {
-        std::vector<node_id> result;
+        std::vector<file_node_id> result;
 
-        node_id par = m_tree[_id].parent;
+        file_node_id par = m_tree[_id].parent;
 
-        if (par == null_node)
+        if (par == null_file_node)
         {
             return result;
         }
 
-        node_id c = m_tree[par].first_child;
+        file_node_id c = m_tree[par].first_child;
 
         // walk the sibling chain, collecting all except _id.
-        while (c != null_node)
+        while (c != null_file_node)
         {
             if (c != _id)
             {
@@ -664,7 +700,7 @@ public:
 
     // tree
     //   returns a reference to the underlying file_tree.
-    const file_tree&
+    const tree_type&
     tree() const
     {
         return m_tree;
@@ -680,13 +716,27 @@ public:
 
 
 private:
-    const file_tree& m_tree;
+    const tree_type& m_tree;
     policy_type      m_policy;
 };
 
 
-NS_END  // fs
+// make_file_tree_path
+//   factory: deduces the tree type. Class-template argument deduction only
+// arrived in C++17, so pre-C++17 callers need this to avoid spelling the
+// backend out.
+template<typename Tree>
+file_tree_path<Tree>
+make_file_tree_path(
+    const Tree& _tree
+)
+{
+    return file_tree_path<Tree>(_tree);
+}
+
+
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FS_FILE_TREE_PATH_
+#endif  // DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_PATH_HPP

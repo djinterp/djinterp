@@ -1,20 +1,23 @@
-/***********************************************************************
-* re_std                                                     equal_to.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 equal_to.hpp
 *
+* equal_to class header:
 * function object: equality test (==).
 *
 *
-* path:      /inc/djinterp/re_std/functional/equal_to.hpp
+* path:      /inc/re_std/functional/equal_to.hpp
 * link(s):   TBA
-* author(s): re_std                                      date: 2026.05.07
-***********************************************************************/
+* author(s): re_std                                          created: 2026.05.07
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_EQUAL_TO_
-#define DJINTERP_RE_STD_FUNCTIONAL_EQUAL_TO_ 1
+#ifndef RE_STD_FUNCTIONAL_EQUAL_TO_HPP
+#define RE_STD_FUNCTIONAL_EQUAL_TO_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
     #include "re_std/utility/forward.hpp"
 #endif
 
@@ -23,53 +26,53 @@ namespace re_std
 
 // equal_to
 //   class: function object performing equality test (==).
-template<typename _Type
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+template<typename Type
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
                      = void
 #endif
         >
 struct equal_to
 {
-#if !D_ENV_LANG_IS_CPP20_OR_HIGHER
-    typedef _Type first_argument_type;
-    typedef _Type second_argument_type;
+#if !RE_STD_LANG_IS_CPP20_OR_HIGHER
+    typedef Type first_argument_type;
+    typedef Type second_argument_type;
     typedef bool  result_type;
 #endif
 
-    D_CONSTEXPR bool
+    RE_STD_CONSTEXPR bool
     operator()(
-        const _Type& _x,
-        const _Type& _y
+        const Type& _x,
+        const Type& _y
     ) const
     {
         return _x == _y;
     }
 };
 
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // equal_to<void>
-//   class: transparent specialization; deduces operand types and
+//   class: transparent specialization, from C++11 (std's is C++14;
+// it needs only decltype and forwarding); deduces operand types and
 // forwards them through the operation.
 template<>
 struct equal_to<void>
 {
     typedef int is_transparent;
 
-    template<typename _T,
-             typename _U>
-    D_CONSTEXPR auto
+    template<typename T,
+             typename U>
+    RE_STD_CONSTEXPR auto
     operator()(
-        _T&& _x,
-        _U&& _y
-    ) const -> decltype(re_std::forward<_T>(_x) == re_std::forward<_U>(_y))
+        T&& _x,
+        U&& _y
+    ) const -> decltype(re_std::forward<T>(_x) == re_std::forward<U>(_y))
     {
-        return re_std::forward<_T>(_x) == re_std::forward<_U>(_y);
+        return re_std::forward<T>(_x) == re_std::forward<U>(_y);
     }
 };
 
-#endif // D_ENV_LANG_IS_CPP14_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-} // namespace re_std
-
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_EQUAL_TO_
+}  // re_std
+#endif  // RE_STD_FUNCTIONAL_EQUAL_TO_HPP

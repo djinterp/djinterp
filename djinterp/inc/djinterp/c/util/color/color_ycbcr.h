@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                              color_ycbcr.h
+/*******************************************************************************
+* djinterp [c]                                                     color_ycbcr.h
 *
 *   YCbCr shared kernel for the djinterp color module. Defines the YCbCr POD
 * (full-range ITU-R BT.601) and its construction, validation, and clamping.
@@ -8,20 +8,35 @@
 *
 * path:      /inc/djinterp/c/util/color/color_ycbcr.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    d_color_ycbcr          (POD)
+      ----------------------------
+
 II.   d_color_ycbcr_make
+      ------------------
+
 III.  d_color_ycbcr_is_valid
+      ----------------------
+
 IV.   d_color_ycbcr_clamp
+      -------------------
 */
 
-#ifndef  DJINTERP_C_COLOR_YCBCR_
-#define  DJINTERP_C_COLOR_YCBCR_ 1
+#ifndef DJINTERP_C_UTIL_COLOR_COLOR_YCBCR_H
+#define DJINTERP_C_UTIL_COLOR_COLOR_YCBCR_H 1
+
+// FLOOR, FOR NOW: its C++ face is empty below C++11, rather than an
+// error (README rule 5). The owner's ruling: compile at every level first;
+// port to C++98 only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if ( (!D_ENV_LANG_USING_CPP) ||                                         \
+      (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
 
 // djinterp
 #include "../../djinterp.h"
@@ -104,5 +119,7 @@ d_color_ycbcr_clamp(
 
 D_COLOR_NS_CLOSE
 
+#endif  // floor, for now
 
-#endif  /*  DJINTERP_C_COLOR_YCBCR_ */
+
+#endif  // DJINTERP_C_UTIL_COLOR_COLOR_YCBCR_H

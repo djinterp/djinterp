@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                            expected_swap.hpp
 *
 * expected swap specialization header:
@@ -10,32 +10,26 @@
 *   constexpr from C++20 (matches std).
 *
 *
-* path:      /inc/djinterp/re_std/expected/expected_swap.hpp
+* path:      /inc/re_std/expected/expected_swap.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXPECTED_SWAP_
-#define DJINTERP_RE_STD_EXPECTED_SWAP_ 1
+#ifndef RE_STD_EXPECTED_EXPECTED_SWAP_HPP
+#define RE_STD_EXPECTED_EXPECTED_SWAP_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "./expected.hpp"
 #include "./unexpected.hpp"
 
 
-#ifndef D_CONSTEXPR_CPP20
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        #define D_CONSTEXPR_CPP20   constexpr
-    #else
-        #define D_CONSTEXPR_CPP20
-    #endif
-#endif
-
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -43,12 +37,12 @@ NS_RESTD
 // ===========================================================================
 
 // swap (expected<T, E>)
-template<typename _T,
-         typename _E>
-D_CONSTEXPR_CPP20 void
+template<typename T,
+         typename E>
+RE_STD_CONSTEXPR_CPP20 void
 swap(
-    expected<_T, _E>& _lhs,
-    expected<_T, _E>& _rhs
+    expected<T, E>& _lhs,
+    expected<T, E>& _rhs
 )
 {
     _lhs.swap(_rhs);
@@ -57,11 +51,11 @@ swap(
 }
 
 // swap (expected<void, E>)
-template<typename _E>
-D_CONSTEXPR_CPP20 void
+template<typename E>
+RE_STD_CONSTEXPR_CPP20 void
 swap(
-    expected<void, _E>& _lhs,
-    expected<void, _E>& _rhs
+    expected<void, E>& _lhs,
+    expected<void, E>& _rhs
 )
 {
     _lhs.swap(_rhs);
@@ -75,12 +69,12 @@ swap(
 // ===========================================================================
 
 // swap (unexpected<E>)
-template<typename _E>
-D_CONSTEXPR_CPP20 void
+template<typename E>
+RE_STD_CONSTEXPR_CPP20 void
 swap(
-    unexpected<_E>& _lhs,
-    unexpected<_E>& _rhs
-) D_NOEXCEPT
+    unexpected<E>& _lhs,
+    unexpected<E>& _rhs
+) RE_STD_NOEXCEPT
 {
     _lhs.swap(_rhs);
 
@@ -88,10 +82,10 @@ swap(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_EXPECTED_SWAP_
+#endif  // RE_STD_EXPECTED_EXPECTED_SWAP_HPP

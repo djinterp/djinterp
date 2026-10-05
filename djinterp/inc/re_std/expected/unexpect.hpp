@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 unexpect.hpp
 *
 * unexpect tag header:
@@ -18,31 +18,32 @@
 * ctor and a single named instance. Works on every tier.
 *
 *
-* path:      /inc/djinterp/re_std/expected/unexpect.hpp
+* path:      /inc/re_std/expected/unexpect.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UNEXPECT_
-#define DJINTERP_RE_STD_UNEXPECT_ 1
+#ifndef RE_STD_EXPECTED_UNEXPECT_HPP
+#define RE_STD_EXPECTED_UNEXPECT_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 // gate: the entire <expected> module is C++11+. unexpect_t is the
 // tag for expected's error-construction overload; it has no
 // meaningful use without expected, so we gate consistently.
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_RESTD
-
-
+namespace re_std
+{
 // ===========================================================================
 // I.   UNEXPECT_T
 // ===========================================================================
 
 // unexpect_t
-//   tag: passed to expected's in-place error constructor to select
+//   type: passed to expected's in-place error constructor to select
 // the unexpected-construction overload.
 struct unexpect_t
 {
@@ -50,7 +51,7 @@ struct unexpect_t
     // from {} in contexts where a default-constructible parameter is
     // also valid (matches std::in_place_t's defensive design). constexpr
     // so the type is a literal, eligible for inline constexpr instance.
-    D_CONSTEXPR explicit unexpect_t() {}
+    RE_STD_CONSTEXPR explicit unexpect_t() {}
 };
 
 
@@ -67,30 +68,31 @@ struct unexpect_t
 // project's linkage convention emits (typically one TU defines it).
 // For now: extern declaration only, definition expected in a paired
 // .cpp file or via the inline-variable path below.
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-inline D_CONSTEXPR unexpect_t unexpect{};
+#if RE_STD_LANG_HAS_INLINE_VARIABLES
+inline RE_STD_CONSTEXPR unexpect_t unexpect{};
 #else
 // Pre-C++17: provide as a static-const-instance shim. Header-only;
 // safe under ODR because unexpect_t is empty and the address-of is
 // rarely taken.
 namespace internal
 {
-    template<typename _Dummy>
+
+    template<typename Dummy>
     struct unexpect_holder
     {
         static const unexpect_t value;
     };
-    template<typename _Dummy>
-    const unexpect_t unexpect_holder<_Dummy>::value = unexpect_t();
+    template<typename Dummy>
+    const unexpect_t unexpect_holder<Dummy>::value = unexpect_t();
 }
 static const unexpect_t& unexpect = internal::unexpect_holder<void>::value;
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_UNEXPECT_
+#endif  // RE_STD_EXPECTED_UNEXPECT_HPP

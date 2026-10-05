@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   random.hpp
 *
 * rand and srand (re-exports):
@@ -23,25 +23,27 @@
 * this header makes it available exactly as <cstdlib> does.
 *
 *
-* path:      /inc/djinterp/re_std/cstdlib/random.hpp
+* path:      /inc/re_std/cstdlib/random.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDLIB_RANDOM_
-#define DJINTERP_RE_STD_CSTDLIB_RANDOM_ 1
+#ifndef RE_STD_CSTDLIB_RANDOM_HPP
+#define RE_STD_CSTDLIB_RANDOM_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstdlib>
 
 
-NS_RESTD
+namespace re_std
+{
 
     // rand
     //   function: next value in the runtime's pseudo-random sequence,
@@ -53,10 +55,10 @@ NS_RESTD
     // sequence within one runtime, but not across runtimes.
     using ::std::srand;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CSTDLIB_RANDOM_
+#endif  // RE_STD_CSTDLIB_RANDOM_HPP

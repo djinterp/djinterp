@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                            binary_search.hpp
 *
 * binary_search algorithm header:
@@ -13,16 +13,17 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/binary_search.hpp
+* path:      /inc/re_std/algorithm/binary_search.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_BINARY_SEARCH_
-#define DJINTERP_RE_STD_ALGORITHM_BINARY_SEARCH_ 1
+#ifndef RE_STD_ALGORITHM_BINARY_SEARCH_HPP
+#define RE_STD_ALGORITHM_BINARY_SEARCH_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./lower_bound.hpp"
 
@@ -31,16 +32,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -51,13 +45,13 @@ NS_RESTD
 //   function: returns true if some element of [_first, _last) is
 // equivalent to _value per operator< (i.e., neither x < _value nor
 // _value < x).
-template<typename _ForwardIt,
-         typename _Type>
-D_CONSTEXPR_CPP14 bool
+template<typename ForwardIt,
+         typename Type>
+RE_STD_CONSTEXPR_CPP14 bool
 binary_search(
-    _ForwardIt   _first,
-    _ForwardIt   _last,
-    const _Type& _value
+    ForwardIt   _first,
+    ForwardIt   _last,
+    const Type& _value
 )
 {
     _first = re_std::lower_bound(_first, _last, _value);
@@ -71,15 +65,15 @@ binary_search(
 
 // binary_search (comparator)
 //   function: as above but comparison is via _comp.
-template<typename _ForwardIt,
-         typename _Type,
-         typename _Compare>
-D_CONSTEXPR_CPP14 bool
+template<typename ForwardIt,
+         typename Type,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 bool
 binary_search(
-    _ForwardIt   _first,
-    _ForwardIt   _last,
-    const _Type& _value,
-    _Compare     _comp
+    ForwardIt   _first,
+    ForwardIt   _last,
+    const Type& _value,
+    Compare     _comp
 )
 {
     _first = re_std::lower_bound(_first, _last, _value, _comp);
@@ -87,7 +81,7 @@ binary_search(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_BINARY_SEARCH_
+#endif  // RE_STD_ALGORITHM_BINARY_SEARCH_HPP

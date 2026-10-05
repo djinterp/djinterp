@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [option]                                             optionator.hpp
+/*******************************************************************************
+* djinterp [core]                                                 optionator.hpp
 *
 *   The bridge between the options subframework and the functional
 * dataflow subframework: an option-configured, operator|-pluggable
@@ -16,7 +16,7 @@
 *   THE FUNCTOR MODULE STAYS UNTOUCHED.
 *   optionator imposes no meaning on option args and knows nothing about
 * any specific functor.  A stage becomes option-configurable purely by a
-* `configures<_Tag>` adapter (Pattern C) - which may live in a SEPARATE
+* `configures<Tag>` adapter (Pattern C) - which may live in a SEPARATE
 * adapter header (see optionator_adapters.hpp).  The functor module the
 * stage wraps therefore never imports the options machinery and is never
 * edited: all option->parameter binding lives in the adapter.
@@ -44,23 +44,42 @@
 *
 * path:      /inc/djinterp/core/option/optionator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.18
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    configures                  (Pattern-C adapter trait + detection)
+      -----------------------------------------------------------------
+
 II.   pending_stage + stage       (operator|-pluggable stage descriptor)
+      ------------------------------------------------------------------
+
 III.  terminals                   (into / collect / configured terminal)
+      ------------------------------------------------------------------
+
 IV.   pipeline internals          (identity_xform, driver, normalize_options)
+      -----------------------------------------------------------------------
+
 V.    optionator + option_chain   (unsourced head + sourced pipeline)
+      ---------------------------------------------------------------
+
 VI.   operator| wiring            (stage application + terminal application)
+      ----------------------------------------------------------------------
+
 VII.  traits & concepts           (is_optionator / is_option_chain / ...)
+      -------------------------------------------------------------------
 */
 
-#ifndef DJINTERP_OPTION_OPTIONATOR_
-#define DJINTERP_OPTION_OPTIONATOR_ 1
+#ifndef DJINTERP_OPTION_OPTIONATOR_HPP
+#define DJINTERP_OPTION_OPTIONATOR_HPP 1
+
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -69,7 +88,8 @@ VII.  traits & concepts           (is_optionator / is_option_chain / ...)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // clean_t
 #include "./option_set.hpp"             // option_set<> + queries
 #include "./option_compose.hpp"         // compose_options_t (inline-options front door)
 #include "../functional/producer.hpp"   // producer<>, producer_step, is_producer
@@ -98,10 +118,10 @@ NS_DJINTERP
 //
 //   A specialization must provide a single member template:
 //
-//       template<typename _Options, typename... _Args>
-//       static D_CONSTEXPR auto apply(_Args&&... _args);
+//       template<typename Options, typename... Args>
+//       static D_CONSTEXPR auto apply(Args&&... _args);
 //
-// reading whatever it needs from the carried option_set _Options at COMPILE
+// reading whatever it needs from the carried option_set Options at COMPILE
 // TIME (e.g. via option_set_find_t + the extractors in
 // option_set_compare.hpp) and returning either a producer<> (a SOURCE
 // stage) or a transducer (a TRANSFORM stage).  _args are the runtime
@@ -109,23 +129,23 @@ NS_DJINTERP
 //
 //   The specialization may live in a dedicated adapter header so the
 // functor module the stage wraps is never touched.
-template<typename _Tag>
+template<typename Tag>
 struct configures;
 
 
 NS_INTERNAL
 
     // is_complete_helper
-    //   helper: detects whether _Type is a complete type.  Used only to
+    //   helper: detects whether Type is a complete type.  Used only to
     // turn "no configures<> adapter for this tag" into a friendly
     // diagnostic; not a load-bearing trait.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct is_complete_helper : std::false_type
     {};
 
-    template<typename _Type>
-    struct is_complete_helper<_Type, decltype(void(sizeof(_Type)))>
+    template<typename Type>
+    struct is_complete_helper<Type, decltype(void(sizeof(Type)))>
         : std::true_type
     {};
 
@@ -142,10 +162,10 @@ NS_END  // internal
 
 
 // is_configurable_stage
-//   trait: true iff a configures<_Tag> adapter has been defined.
-template<typename _Tag>
+//   trait: true iff a configures<Tag> adapter has been defined.
+template<typename Tag>
 struct is_configurable_stage
-    : internal::is_complete_helper<configures<_Tag>>
+    : internal::is_complete_helper<configures<Tag>>
 {};
 
 
@@ -159,64 +179,64 @@ NS_INTERNAL
     //   helper: an UNCONFIGURED stage descriptor.  Carries the stage tag
     // and the call-site arguments by value; it acquires its configuration
     // only when piped into an optionator, at which point operator| reads
-    // the optionator's option_set and calls configures<_Tag>::apply.
-    template<typename    _Tag,
-             typename... _Args>
+    // the optionator's option_set and calls configures<Tag>::apply.
+    template<typename    Tag,
+             typename... Args>
     class pending_stage
     {
     public:
-        using tag_type = _Tag;
+        using tag_type = Tag;
 
         explicit D_CONSTEXPR pending_stage(
-            _Args... _args
+            Args... _args
         )
             : m_args(std::move(_args)...)
         {}
 
         // build
-        //   configure this stage against the option_set _Options and
+        //   configure this stage against the option_set Options and
         // materialize it (a producer<> or a transducer).
-        template<typename _Options>
+        template<typename Options>
         D_CONSTEXPR auto
         build() const
         {
-            return build_impl<_Options>(std::index_sequence_for<_Args...>{});
+            return build_impl<Options>(std::index_sequence_for<Args...>{});
         }
 
     private:
-        template<typename       _Options,
-                 std::size_t... _I>
+        template<typename       Options,
+                 std::size_t... I>
         D_CONSTEXPR auto
         build_impl(
-            std::index_sequence<_I...>
+            std::index_sequence<I...>
         ) const
         {
-            return configures<_Tag>::template apply<_Options>(
-                std::get<_I>(m_args)...);
+            return configures<Tag>::template apply<Options>(
+                std::get<I>(m_args)...);
         }
 
-        std::tuple<_Args...> m_args;
+        std::tuple<Args...> m_args;
     };
 
 NS_END  // internal
 
 
 // stage
-//   function: build an unconfigured stage descriptor for _Tag, capturing
+//   function: build an unconfigured stage descriptor for Tag, capturing
 // _args by value.  The generic, zero-boilerplate surface; a per-functor
 // surface function (e.g. `render::source(...)`) is just a thin wrapper
 // over this living in the adapter header.
-template<typename    _Tag,
-         typename... _Args>
+template<typename    Tag,
+         typename... Args>
 D_NODISCARD
 D_CONSTEXPR
-internal::pending_stage<_Tag, typename std::decay<_Args>::type...>
+internal::pending_stage<Tag, typename std::decay<Args>::type...>
 stage(
-    _Args&&... _args
+    Args&&... _args
 )
 {
-    return internal::pending_stage<_Tag, typename std::decay<_Args>::type...>(
-        std::forward<_Args>(_args)...);
+    return internal::pending_stage<Tag, typename std::decay<Args>::type...>(
+        std::forward<Args>(_args)...);
 }
 
 
@@ -229,31 +249,31 @@ NS_INTERNAL
     // into_terminal
     //   helper: terminal descriptor carrying a sink, produced by into().
     // Applied by operator|(option_chain, into_terminal).
-    template<typename _Sink>
+    template<typename Sink>
     class into_terminal
     {
     public:
         explicit into_terminal(
-            _Sink _sink
+            Sink _sink
         )
             : m_sink(std::move(_sink))
         {}
 
-        const _Sink& sink() const D_NOEXCEPT { return m_sink; }
-        _Sink&       sink()       D_NOEXCEPT { return m_sink; }
+        const Sink& sink() const D_NOEXCEPT { return m_sink; }
+        Sink&       sink()       D_NOEXCEPT { return m_sink; }
 
     private:
-        _Sink m_sink;
+        Sink m_sink;
     };
 
 
     // collect_terminal
     //   helper: terminal descriptor requesting a drain to
-    // std::vector<_Out>, produced by collect<_Out>().
-    template<typename _Out>
+    // std::vector<Out>, produced by collect<Out>().
+    template<typename Out>
     struct collect_terminal
     {
-        using value_type = _Out;
+        using value_type = Out;
     };
 
 
@@ -262,48 +282,48 @@ NS_INTERNAL
     // sink counterpart of pending_stage.  Carries a terminal tag and the
     // call-site arguments by value; it acquires its consumer only when piped
     // onto an option_chain, at which point operator| reads the carried option_set
-    // and calls configures<_Tag>::apply.  For a terminal that adapter returns
+    // and calls configures<Tag>::apply.  For a terminal that adapter returns
     // a CONSUMER (a callable of shape void(const A&)) rather than a producer or
     // a transducer, and the assembled pipeline is then driven into it.  This is
     // what lets a sink derive itself from the environment - the report's
     // destinations, document type, and per-node routing all read from the same
     // option_set the rest of the pipeline draws on.
-    template<typename    _Tag,
-             typename... _Args>
+    template<typename    Tag,
+             typename... Args>
     class pending_terminal
     {
     public:
-        using tag_type = _Tag;
+        using tag_type = Tag;
 
         explicit D_CONSTEXPR pending_terminal(
-            _Args... _args
+            Args... _args
         )
             : m_args(std::move(_args)...)
         {}
 
         // build
-        //   configure this terminal against the option_set _Options and
+        //   configure this terminal against the option_set Options and
         // materialize its consumer.
-        template<typename _Options>
+        template<typename Options>
         D_CONSTEXPR auto
         build() const
         {
-            return build_impl<_Options>(std::index_sequence_for<_Args...>{});
+            return build_impl<Options>(std::index_sequence_for<Args...>{});
         }
 
     private:
-        template<typename       _Options,
-                 std::size_t... _I>
+        template<typename       Options,
+                 std::size_t... I>
         D_CONSTEXPR auto
         build_impl(
-            std::index_sequence<_I...>
+            std::index_sequence<I...>
         ) const
         {
-            return configures<_Tag>::template apply<_Options>(
-                std::get<_I>(m_args)...);
+            return configures<Tag>::template apply<Options>(
+                std::get<I>(m_args)...);
         }
 
-        std::tuple<_Args...> m_args;
+        std::tuple<Args...> m_args;
     };
 
 NS_END  // internal
@@ -313,45 +333,45 @@ NS_END  // internal
 //   function: terminal that drives the configured pipeline into a consumer
 // sink - any callable of shape void(const A&), including the factories in
 // namespace consumers.
-template<typename _Sink>
-D_NODISCARD internal::into_terminal<typename std::decay<_Sink>::type>
+template<typename Sink>
+D_NODISCARD internal::into_terminal<typename std::decay<Sink>::type>
 into(
-    _Sink&& _sink
+    Sink&& _sink
 )
 {
-    return internal::into_terminal<typename std::decay<_Sink>::type>(
-        std::forward<_Sink>(_sink));
+    return internal::into_terminal<typename std::decay<Sink>::type>(
+        std::forward<Sink>(_sink));
 }
 
 
 // collect
 //   function: terminal that drains the configured pipeline into a
-// std::vector<_Out>, where _Out is the element type the final stage emits.
-template<typename _Out>
-D_NODISCARD D_CONSTEXPR internal::collect_terminal<_Out>
+// std::vector<Out>, where Out is the element type the final stage emits.
+template<typename Out>
+D_NODISCARD D_CONSTEXPR internal::collect_terminal<Out>
 collect()
 {
-    return internal::collect_terminal<_Out>{};
+    return internal::collect_terminal<Out>{};
 }
 
 
 // terminal
 //   function: build an unconfigured, option-configured terminal descriptor for
-// _Tag, capturing _args by value.  The sink counterpart of stage(): where
+// Tag, capturing _args by value.  The sink counterpart of stage(): where
 // into()/collect() name a concrete sink, terminal() names a tag whose
 // configures<> adapter READS the optionator's option_set to construct the
 // consumer.  A per-functor surface (e.g. a report emitter) is a thin wrapper
 // over this living in the adapter header, exactly as a source surface wraps
 // stage().
-template<typename    _Tag,
-         typename... _Args>
-D_NODISCARD D_CONSTEXPR internal::pending_terminal<_Tag, typename std::decay<_Args>::type...>
+template<typename    Tag,
+         typename... Args>
+D_NODISCARD D_CONSTEXPR internal::pending_terminal<Tag, typename std::decay<Args>::type...>
 terminal(
-    _Args&&... _args
+    Args&&... _args
 )
 {
-    return internal::pending_terminal<_Tag, typename std::decay<_Args>::type...>(
-        std::forward<_Args>(_args)...);
+    return internal::pending_terminal<Tag, typename std::decay<Args>::type...>(
+        std::forward<Args>(_args)...);
 }
 
 
@@ -368,10 +388,10 @@ NS_INTERNAL
     // no trivial pass survives into the composed chain.
     struct identity_xform : transducer_base<identity_xform>
     {
-        template<typename _Reducer>
-        D_CONSTEXPR _Reducer
+        template<typename Reducer>
+        D_CONSTEXPR Reducer
         operator()(
-            _Reducer _downstream
+            Reducer _downstream
         ) const
         {
             return _downstream;
@@ -387,14 +407,14 @@ NS_INTERNAL
     // correctly into a sink typed to the FINAL element type rather than to
     // the producer's value_type.  _producer is taken by value, so the
     // chain's stored source is left intact (the pipeline is re-runnable).
-    template<typename _Producer,
-             typename _Xform,
-             typename _Consumer>
+    template<typename Producer,
+             typename Xform,
+             typename Consumer>
     void
     drive_into_consumer(
-        _Producer     _producer,
-        const _Xform& _xform,
-        _Consumer&    _consumer
+        Producer      _producer,
+        const Xform& _xform,
+        Consumer&    _consumer
     )
     {
         auto downstream = [&_consumer](auto&       _state,
@@ -438,16 +458,16 @@ NS_INTERNAL
     // (option<>/defopt<>, sub-sets, or none) is folded into one set via
     // the compose layer, so optionator<my_set> and
     // optionator<defopt<...>, ...> share one canonical environment type.
-    template<typename... _Options>
+    template<typename... Options>
     struct normalize_options
     {
-        using type = compose_options_t<_Options...>;
+        using type = compose_options_t<Options...>;
     };
 
-    template<typename... _Os>
-    struct normalize_options<option_set<_Os...>>
+    template<typename... Os>
+    struct normalize_options<option_set<Os...>>
     {
-        using type = option_set<_Os...>;
+        using type = option_set<Os...>;
     };
 
 NS_END  // internal
@@ -464,7 +484,7 @@ NS_END  // internal
 // pipeline (option_chain); pipe further TRANSFORM stages to extend it; finish
 // with into() / collect().
 //
-//   _Options may be a single option_set or a pack of surfaces (option<> /
+//   Options may be a single option_set or a pack of surfaces (option<> /
 // defopt<>); either way it is normalized to one canonical set, exposed as
 // ::options_t.
 //
@@ -473,13 +493,13 @@ NS_END  // internal
 //       | render::source(text)
 //       | render::clean()
 //       | into(sink);
-template<typename... _Options>
+template<typename... Options>
 struct optionator
 {
     // options_t
     //   type: the canonical option_set this optionator carries (its
     // compile-time environment).
-    using options_t = typename internal::normalize_options<_Options...>::type;
+    using options_t = typename internal::normalize_options<Options...>::type;
 };
 
 
@@ -488,22 +508,22 @@ NS_INTERNAL
     // option_chain
     //   helper: a SOURCED option-configured pipeline.  Holds the source
     // producer and the accumulated transducer by value (fully inlinable);
-    // _Set is the carried option_set, threaded unchanged across every
+    // Set is the carried option_set, threaded unchanged across every
     // extension.  Built by operator|(optionator, source-stage), extended
     // by operator|(option_chain, transform-stage), run by into() / collect().
-    template<typename _Set,
-             typename _Producer,
-             typename _Xform>
+    template<typename Set,
+             typename Producer,
+             typename Xform>
     class option_chain
     {
     public:
-        using options_t     = _Set;
-        using producer_t = _Producer;
-        using xform_t    = _Xform;
+        using options_t     = Set;
+        using producer_t = Producer;
+        using xform_t    = Xform;
 
         option_chain(
-            _Producer _producer,
-            _Xform    _xform
+            Producer _producer,
+            Xform     _xform
         )
             : m_producer(std::move(_producer)),
               m_xform(std::move(_xform))
@@ -513,16 +533,16 @@ NS_INTERNAL
         //   extend the chain with an already-configured transducer _stage,
         // returning the new option_chain type.  The identity_xform seed is
         // special-cased away so the first real transform composes alone.
-        template<typename _Stage>
+        template<typename Stage>
         D_NODISCARD D_CONSTEXPR auto
         through(
-            _Stage _stage
+            Stage _stage
         ) const
         {
-            if constexpr (std::is_same<_Xform, identity_xform>::value)
+            if constexpr (std::is_same<Xform, identity_xform>::value)
             {
                 // first transform: replace the identity seed outright
-                return option_chain<_Set, _Producer, _Stage>(
+                return option_chain<Set, Producer, Stage>(
                     m_producer,
                     std::move(_stage));
             }
@@ -536,7 +556,7 @@ NS_INTERNAL
                 // is_transducer decays cv-ref so the const member binds.
                 auto composed = (m_xform | std::move(_stage));
 
-                return option_chain<_Set, _Producer, decltype(composed)>(
+                return option_chain<Set, Producer, decltype(composed)>(
                     m_producer,
                     std::move(composed));
             }
@@ -544,10 +564,10 @@ NS_INTERNAL
 
         // into
         //   drive the pipeline into a consumer sink (void(const A&)).
-        template<typename _Sink>
+        template<typename Sink>
         void
         into(
-            _Sink _sink
+            Sink _sink
         ) const
         {
             drive_into_consumer(m_producer, m_xform, _sink);
@@ -556,16 +576,16 @@ NS_INTERNAL
         }
 
         // collect
-        //   drain the pipeline into a std::vector<_Out>, where _Out is the
+        //   drain the pipeline into a std::vector<Out>, where Out is the
         // element type the final stage emits.
-        template<typename _Out>
+        template<typename Out>
         D_NODISCARD
-        std::vector<_Out>
+        std::vector<Out>
         collect() const
         {
-            std::vector<_Out> result;
+            std::vector<Out> result;
 
-            auto sink = [&result](const _Out& _value)
+            auto sink = [&result](const Out& _value)
             {
                 result.push_back(_value);
 
@@ -577,12 +597,12 @@ NS_INTERNAL
             return result;
         }
 
-        const _Producer& source()     const D_NOEXCEPT { return m_producer; }
-        const _Xform&    transducer() const D_NOEXCEPT { return m_xform; }
+        const Producer& source()     const D_NOEXCEPT { return m_producer; }
+        const Xform&    transducer() const D_NOEXCEPT { return m_xform; }
 
     private:
-        _Producer m_producer;
-        _Xform    m_xform;
+        Producer m_producer;
+        Xform     m_xform;
     };
 
 NS_END  // internal
@@ -600,19 +620,19 @@ NS_END  // internal
 //   seed the pipeline: configure the piped stage against the optionator's
 // option_set and require it to be a SOURCE (producer<>).  Yields a sourced
 // option_chain whose transducer is the identity seed.
-template<typename    _Tag,
-         typename... _Args,
-         typename... _Options>
+template<typename    Tag,
+         typename... Args,
+         typename... Options>
 D_NODISCARD
 auto operator|
 (
-    const optionator<_Options...>&,
-    const internal::pending_stage<_Tag, _Args...>& _stage
+    const optionator<Options...>&,
+    const internal::pending_stage<Tag, Args...>& _stage
 )
 {
-    using set_t = typename optionator<_Options...>::options_t;
+    using set_t = typename optionator<Options...>::options_t;
 
-    static_assert(is_configurable_stage<_Tag>::value,
+    static_assert(is_configurable_stage<Tag>::value,
         "optionator: no configures<> adapter for this stage tag.  Define "
         "a configures<> specialization (typically in an adapter header) "
         "describing how the stage reads its option_set.");
@@ -636,22 +656,22 @@ auto operator|
 //   extend a sourced pipeline: configure the piped stage against the
 // carried option_set and compose it.  It must be a TRANSFORM (a
 // transducer); a second source, or anything else, is a named hard error.
-template<typename    _Tag,
-         typename... _Args,
-         typename    _Set,
-         typename    _Producer,
-         typename    _Xform>
+template<typename    Tag,
+         typename... Args,
+         typename    Set,
+         typename    Producer,
+         typename    Xform>
 D_NODISCARD
 auto operator|
 (
-    const internal::option_chain<_Set, _Producer, _Xform>& _chain,
-    const internal::pending_stage<_Tag, _Args...>&      _stage
+    const internal::option_chain<Set, Producer, Xform>& _chain,
+    const internal::pending_stage<Tag, Args...>&      _stage
 )
 {
-    static_assert(is_configurable_stage<_Tag>::value,
+    static_assert(is_configurable_stage<Tag>::value,
         "optionator: no configures<> adapter for this stage tag.");
 
-    auto produced = _stage.template build<_Set>();
+    auto produced = _stage.template build<Set>();
 
     if constexpr (is_transducer<decltype(produced)>::value)
     {
@@ -659,13 +679,13 @@ auto operator|
     }
     else if constexpr (is_producer<decltype(produced)>::value)
     {
-        static_assert(internal::always_false<_Tag>::value,
+        static_assert(internal::always_false<Tag>::value,
             "optionator: a source has already been seeded; only transform "
             "stages (transducers) may follow it.");
     }
     else
     {
-        static_assert(internal::always_false<_Tag>::value,
+        static_assert(internal::always_false<Tag>::value,
             "optionator: a configures<>::apply must return either a "
             "producer<> (a source) or a transducer (a transform).");
     }
@@ -674,14 +694,14 @@ auto operator|
 
 // operator| (option_chain | into-terminal)
 //   run the assembled pipeline, forwarding every survivor to the sink.
-template<typename _Set,
-         typename _Producer,
-         typename _Xform,
-         typename _Sink>
+template<typename Set,
+         typename Producer,
+         typename Xform,
+         typename Sink>
 void operator|
 (
-    const internal::option_chain<_Set, _Producer, _Xform>& _chain,
-    const internal::into_terminal<_Sink>&               _terminal
+    const internal::option_chain<Set, Producer, Xform>& _chain,
+    const internal::into_terminal<Sink>&               _terminal
 )
 {
     _chain.into(_terminal.sink());
@@ -696,23 +716,23 @@ void operator|
 // sink is supplied concretely, here it is BUILT from the environment, so the
 // whole pipeline - source, transforms, and sink - is driven by the single
 // option_set the optionator carries.
-template<typename    _Tag,
-         typename... _Args,
-         typename    _Set,
-         typename    _Producer,
-         typename    _Xform>
+template<typename    Tag,
+         typename... Args,
+         typename    Set,
+         typename    Producer,
+         typename    Xform>
 void operator|
 (
-    const internal::option_chain<_Set, _Producer, _Xform>&  _chain,
-    const internal::pending_terminal<_Tag, _Args...>&    _terminal
+    const internal::option_chain<Set, Producer, Xform>&  _chain,
+    const internal::pending_terminal<Tag, Args...>&    _terminal
 )
 {
-    static_assert(is_configurable_stage<_Tag>::value,
+    static_assert(is_configurable_stage<Tag>::value,
         "optionator: no configures<> adapter for this terminal tag.  Define a "
         "configures<> specialization whose apply() returns a consumer "
         "(void(const A&)) built from the option_set.");
 
-    auto sink = _terminal.template build<_Set>();
+    auto sink = _terminal.template build<Set>();
 
     _chain.into(sink);
 
@@ -722,18 +742,18 @@ void operator|
 
 // operator| (option_chain | collect-terminal)
 //   run the assembled pipeline, draining survivors into a std::vector.
-template<typename _Set,
-         typename _Producer,
-         typename _Xform,
-         typename _Out>
+template<typename Set,
+         typename Producer,
+         typename Xform,
+         typename Out>
 D_NODISCARD
-std::vector<_Out> operator|
+std::vector<Out> operator|
 (
-    const internal::option_chain<_Set, _Producer, _Xform>& _chain,
-    const internal::collect_terminal<_Out>&
+    const internal::option_chain<Set, Producer, Xform>& _chain,
+    const internal::collect_terminal<Out>&
 )
 {
-    return _chain.template collect<_Out>();
+    return _chain.template collect<Out>();
 }
 
 
@@ -742,52 +762,52 @@ std::vector<_Out> operator|
 // ===========================================================================
 
 // is_optionator
-//   trait: true iff _Type is an (unsourced) optionator<...> head.
-template<typename _Type>
+//   trait: true iff Type is an (unsourced) optionator<...> head.
+template<typename Type>
 struct is_optionator : std::false_type
 {};
 
-template<typename... _Options>
-struct is_optionator<optionator<_Options...>> : std::true_type
+template<typename... Options>
+struct is_optionator<optionator<Options...>> : std::true_type
 {};
 
-template<typename _Type>
-D_CONSTEXPR_VAR bool is_optionator_v =
-    is_optionator<clean_t<_Type>>::value;
+template<typename Type>
+D_CONSTEXPR bool is_optionator_v =
+    is_optionator<clean_t<Type>>::value;
 
 
 // is_option_chain
-//   trait: true iff _Type is a sourced option_chain pipeline.
-template<typename _Type>
+//   trait: true iff Type is a sourced option_chain pipeline.
+template<typename Type>
 struct is_option_chain : std::false_type
 {};
 
-template<typename _Set,
-         typename _Producer,
-         typename _Xform>
-struct is_option_chain<internal::option_chain<_Set, _Producer, _Xform>>
+template<typename Set,
+         typename Producer,
+         typename Xform>
+struct is_option_chain<internal::option_chain<Set, Producer, Xform>>
     : std::true_type
 {};
 
-template<typename _Type>
-D_CONSTEXPR_VAR bool is_option_chain_v = is_option_chain<clean_t<_Type>>::value;
+template<typename Type>
+D_CONSTEXPR bool is_option_chain_v = is_option_chain<clean_t<Type>>::value;
 
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
     // optionator_c
     //   concept: satisfied by an unsourced optionator<...> head.
-    template<typename _Type>
-    concept Optionator = is_optionator_v<_Type>;
+    template<typename Type>
+    concept Optionator = is_optionator_v<Type>;
 
     // opt_chain_c
     //   concept: satisfied by a sourced option_chain pipeline.
-    template<typename _Type>
-    concept OptionChain = is_option_chain_v<_Type>;
+    template<typename Type>
+    concept OptionChain = is_option_chain_v<Type>;
 
     // configurable_stage_c
-    //   concept: satisfied iff a configures<_Tag> adapter exists for _Tag.
-    template<typename _Tag>
-    concept ConfigurableStage = is_configurable_stage<_Tag>::value;
+    //   concept: satisfied iff a configures<Tag> adapter exists for Tag.
+    template<typename Tag>
+    concept ConfigurableStage = is_configurable_stage<Tag>::value;
 
 #endif  // C++20 concepts available
 
@@ -797,5 +817,6 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_OPTIONATOR_
+#endif  // DJINTERP_OPTION_OPTIONATOR_HPP

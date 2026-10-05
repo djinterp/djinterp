@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                          table_base.hpp
+/*******************************************************************************
+* djinterp [core]                                                 table_base.hpp
 *
 *   Shared support for the rank-2 table containers of Part II (static_table,
 * fixed_table, table).  A table is a container whose positions are addressed
@@ -12,30 +12,37 @@
 * Sortedness assigns a table.
 *
 *   THREE PIECES:
-*   1. basic_row_view / basic_column_view -- the subtable and projection of the
+*   1. basic_row_view / basic_column_view -- the subtable and projection of
+* the
 *      formal definition.  A row is the rank-1 subtable T[r]; a column is the
-*      projection T[*,c] (strided).  Each is a non-owning window, const when its
+*      projection T[*,c] (strided). Each is a non-owning window, const when
+*    its
 *      cell parameter is const-qualified.
-*   2. row_cursor / column_cursor -- proxy iterators that sweep rows and columns;
+*   2. row_cursor / column_cursor -- proxy iterators that sweep rows and
+* columns;
 *      dereferencing yields a view by value (a cursor, not a handle onto a
 *      stored reference).
-*   3. table_base<_Derived, ...> -- a CRTP mixin supplying every read-only
+*   3. table_base<Derived, ...> -- a CRTP mixin supplying every read-only
 *      operation a rank-2 table has, written once against a contiguous cell
 *      buffer.  The derived container supplies exactly three hooks -- data(),
 *      rows(), cols() -- and inherits rank/shape/size, checked and unchecked
-*      cell access, row (subtable) and column (projection) access, and the cell
+*      cell access, row (subtable) and column (projection) access, and the
+*    cell
 *      and row const-iteration surfaces.  The base never owns or allocates.
 *
 *   AXES CARRIED HERE (shared by all three tables):
 *   Beyond the read-only cell/subtable/projection surface, this base supplies
 * the shared face of several Part I axes: Structure (element_type, node_type,
-* the hierarchical structure_category tag, and depth = rank -- a rank-k table is
+* the hierarchical structure_category tag, and depth = rank -- a rank-k table
+* is
 * the uniformly-nested F_1[..F_k[tau]..]), Iterability (the cell, row, and
-* column cursors), Multiplicity (count, the per-class occurrence count #_E under
+* column cursors), Multiplicity (count, the per-class occurrence count #_E
+* under
 * identity equivalence), and Sortedness (is_sorted / is_row_sorted, the
 * checkable "sits in comparator order" predicates).  Boundedness and the
 * structural side of Sortedness (sort_rows) differ per concrete table and live
-* there.  The three axes that separate the concrete tables -- Lifetime, Storage,
+* there. The three axes that separate the concrete tables -- Lifetime,
+* Storage,
 * Mutability (Part I, in order) -- also live in the derived classes; this base
 * is the material they share.
 *
@@ -45,22 +52,32 @@
 *
 * path:      /inc/djinterp/core/container/table/table_base.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    Internal Views and Cursors
-      1. basic_row_view        (rank-1 subtable T[r])
-      2. column_cursor         (strided iterator over a column)
-      3. basic_column_view     (projection T[*,c])
-      4. row_cursor            (iterator over rows)
+      --------------------------
+      1.    basic_row_view        (rank-1 subtable T[r])
+      2.    column_cursor         (strided iterator over a column)
+      3.    basic_column_view     (projection T[*,c])
+      4.    row_cursor            (iterator over rows)
+
 II.   table_base (CRTP read-only rank-2 surface)
+      ------------------------------------------
 */
 
-#ifndef DJINTERP_CONTAINER_TABLE_BASE_
-#define DJINTERP_CONTAINER_TABLE_BASE_ 1
+#ifndef DJINTERP_CONTAINER_TABLE_TABLE_BASE_HPP
+#define DJINTERP_CONTAINER_TABLE_TABLE_BASE_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -69,10 +86,10 @@ II.   table_base (CRTP read-only rank-2 surface)
 #include <stdexcept>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"   // NS_*, D_CONSTEXPR, D_NODISCARD, clean_t
+#include "../../../djinterp.hpp"   // NS_*, D_CONSTEXPR, D_NODISCARD, clean_t
 // djinterp - axis detection traits (the classifiers the tables answer to)
 #include "../traits/iterable_container_traits.hpp"       // Iterability
-#include "../traits/iterator_category_traits.hpp"        // iterator-category (needed below)
+#include "../iterator/iterator_category_traits.hpp"        // iterator-category (needed below)
 #include "../traits/bounded_container_traits.hpp"        // Boundedness
 #include "../traits/container_multiplicity_traits.hpp"   // Multiplicity
 #include "../traits/ordered_container_traits.hpp"        // Ordering  (needs iterator-category)
@@ -80,13 +97,14 @@ II.   table_base (CRTP read-only rank-2 surface)
 #include "../traits/flat_container_traits.hpp"           // Structure  (flat/hierarchical + tags)
 // NOTE: the composite axes Filterability (container_filter_traits.hpp) and
 // Transformability (container_transform_traits.hpp) are DETECTION-ONLY and are
-// deliberately NOT pulled in here.  They are derived (read + build) and, in the
-// current framework, (a) both define internal::has_value_type_helper unguarded,
-// so the two cannot share a translation unit, and (b) the filter cluster's
-// constexpr chain requires C++17.  The umbrella container_traits.hpp likewise
-// includes neither.  The tables' filter/transform CLASSIFICATION is documented
-// per axis below and verified out-of-band against those classifiers; the
-// OPERATIONS (map / map_inplace / filter_rows / select_rows) are unaffected.
+// deliberately NOT pulled in here. They are derived (read + build) and, in the
+// current framework, (a) both define internal::has_value_type_helper
+// unguarded, so the two cannot share a translation unit, and (b) the filter
+// cluster's constexpr chain requires C++17. The umbrella container_traits.hpp
+// likewise includes neither. The tables' filter/transform CLASSIFICATION is
+// documented per axis below and verified out-of-band against those
+// classifiers; the OPERATIONS (map / map_inplace / filter_rows / select_rows)
+// are unaffected.
 
 
 NS_DJINTERP
@@ -100,18 +118,18 @@ NS_INTERNAL
 
     // basic_row_view
     //   class: a non-owning window onto one row of a row-major table -- the
-    // rank-1 subtable T[r].  _Cell is `const _Type` for a read-only row and
-    // `_Type` for a writable one; every member follows that qualification.
-    template<typename _Cell>
+    // rank-1 subtable T[r]. Cell is `const Type` for a read-only row and
+    // `Type` for a writable one; every member follows that qualification.
+    template<typename Cell>
     class basic_row_view
     {
     public:
-        using value_type      = typename std::remove_const<_Cell>::type;
+        using value_type      = typename std::remove_const<Cell>::type;
         using size_type       = std::size_t;
         using difference_type = std::ptrdiff_t;
-        using pointer         = _Cell*;
-        using reference       = _Cell&;
-        using iterator        = _Cell*;
+        using pointer         = Cell*;
+        using reference       = Cell&;
+        using iterator        = Cell*;
         using const_iterator  = const value_type*;
 
         // default: an empty row (null window).
@@ -151,7 +169,7 @@ NS_INTERNAL
         }
 
         // checked cell access; throws std::out_of_range past the row width.
-        D_NODISCARD D_CONSTEXPR reference at(size_type _c) const
+        D_NODISCARD D_CONSTEXPR_CPP14 reference at(size_type _c) const
         {
             // reject a column index outside this row
             if (_c >= m_size)
@@ -190,16 +208,16 @@ NS_INTERNAL
 
     // column_cursor
     //   class: a strided random-access iterator stepping down one column of a
-    // row-major table; the stride is the table's column count.  Backs the
+    // row-major table; the stride is the table's column count. Backs the
     // column projection T[*,c].
-    template<typename _Cell>
+    template<typename Cell>
     class column_cursor
     {
     public:
-        using value_type        = typename std::remove_const<_Cell>::type;
+        using value_type        = typename std::remove_const<Cell>::type;
         using difference_type   = std::ptrdiff_t;
-        using pointer           = _Cell*;
-        using reference         = _Cell&;
+        using pointer           = Cell*;
+        using reference         = Cell&;
         using iterator_category = std::random_access_iterator_tag;
 
         D_CONSTEXPR column_cursor() D_NOEXCEPT
@@ -358,17 +376,17 @@ NS_INTERNAL
 
     // basic_column_view
     //   class: a non-owning strided window onto one column -- the projection
-    // T[*,c] = (v_{r,c})_r.  Read-only when _Cell is const-qualified.
-    template<typename _Cell>
+    // T[*,c] = (v_{r,c})_r. Read-only when Cell is const-qualified.
+    template<typename Cell>
     class basic_column_view
     {
     public:
-        using value_type      = typename std::remove_const<_Cell>::type;
+        using value_type      = typename std::remove_const<Cell>::type;
         using size_type       = std::size_t;
         using difference_type = std::ptrdiff_t;
-        using pointer         = _Cell*;
-        using reference       = _Cell&;
-        using iterator        = column_cursor<_Cell>;
+        using pointer         = Cell*;
+        using reference       = Cell&;
+        using iterator        = column_cursor<Cell>;
 
         D_CONSTEXPR basic_column_view() D_NOEXCEPT
             : m_data(nullptr),
@@ -404,7 +422,7 @@ NS_INTERNAL
         }
 
         // checked cell access; throws std::out_of_range past the column height.
-        D_NODISCARD D_CONSTEXPR reference at(size_type _r) const
+        D_NODISCARD D_CONSTEXPR_CPP14 reference at(size_type _r) const
         {
             // reject a row index outside this column
             if (_r >= m_count)
@@ -436,12 +454,12 @@ NS_INTERNAL
     // row_arrow
     //   type: arrow-operator proxy for row_cursor, holding the dereferenced
     // row view so `->` can return a pointer to it.
-    template<typename _RowView>
+    template<typename RowView>
     struct row_arrow
     {
-        _RowView row;
+        RowView row;
 
-        D_CONSTEXPR const _RowView* operator->() const D_NOEXCEPT
+        D_CONSTEXPR const RowView* operator->() const D_NOEXCEPT
         {
             return &row;
         }
@@ -451,14 +469,14 @@ NS_INTERNAL
     //   class: a random-access iterator over the rows of a row-major table.
     // Dereferencing yields a basic_row_view by value (a proxy iterator: its
     // reference is a view, not a handle onto a stored row object).
-    template<typename _Cell>
+    template<typename Cell>
     class row_cursor
     {
     public:
-        using value_type        = basic_row_view<_Cell>;
+        using value_type        = basic_row_view<Cell>;
         using difference_type   = std::ptrdiff_t;
-        using reference         = basic_row_view<_Cell>;
-        using pointer           = row_arrow<basic_row_view<_Cell>>;
+        using reference         = basic_row_view<Cell>;
+        using pointer           = row_arrow<basic_row_view<Cell>>;
         using iterator_category = std::random_access_iterator_tag;
 
         D_CONSTEXPR row_cursor() D_NOEXCEPT
@@ -468,7 +486,7 @@ NS_INTERNAL
         {}
 
         D_CONSTEXPR row_cursor(
-            _Cell*          _base,
+            Cell*          _base,
             difference_type _row,
             std::size_t     _cols
         ) D_NOEXCEPT
@@ -494,14 +512,14 @@ NS_INTERNAL
                              m_cols);
         }
 
-        D_CONSTEXPR row_cursor& operator++() D_NOEXCEPT
+        D_CONSTEXPR_CPP14 row_cursor& operator++() D_NOEXCEPT
         {
             ++m_row;
 
             return *this;
         }
 
-        D_CONSTEXPR row_cursor operator++(int) D_NOEXCEPT
+        D_CONSTEXPR_CPP14 row_cursor operator++(int) D_NOEXCEPT
         {
             row_cursor tmp = *this;
             ++m_row;
@@ -509,14 +527,14 @@ NS_INTERNAL
             return tmp;
         }
 
-        D_CONSTEXPR row_cursor& operator--() D_NOEXCEPT
+        D_CONSTEXPR_CPP14 row_cursor& operator--() D_NOEXCEPT
         {
             --m_row;
 
             return *this;
         }
 
-        D_CONSTEXPR row_cursor operator--(int) D_NOEXCEPT
+        D_CONSTEXPR_CPP14 row_cursor operator--(int) D_NOEXCEPT
         {
             row_cursor tmp = *this;
             --m_row;
@@ -524,14 +542,14 @@ NS_INTERNAL
             return tmp;
         }
 
-        D_CONSTEXPR row_cursor& operator+=(difference_type _n) D_NOEXCEPT
+        D_CONSTEXPR_CPP14 row_cursor& operator+=(difference_type _n) D_NOEXCEPT
         {
             m_row += _n;
 
             return *this;
         }
 
-        D_CONSTEXPR row_cursor& operator-=(difference_type _n) D_NOEXCEPT
+        D_CONSTEXPR_CPP14 row_cursor& operator-=(difference_type _n) D_NOEXCEPT
         {
             m_row -= _n;
 
@@ -616,7 +634,7 @@ NS_INTERNAL
         }
 
     private:
-        _Cell*          m_base;
+        Cell*          m_base;
         difference_type m_row;
         std::size_t     m_cols;
     };
@@ -632,33 +650,33 @@ NS_END  // internal
 //   class: CRTP mixin supplying the read-only surface every rank-2
 // cell-homogeneous table shares -- rank and shape, checked and unchecked cell
 // access, row (subtable) and column (projection) access, and the cell and row
-// const-iteration surfaces.  It reads the derived container through three
+// const-iteration surfaces. It reads the derived container through three
 // hooks it must expose publicly:
-//     const_pointer data() const;   // contiguous, row-major cell buffer
-//     size_type     rows() const;   // m_1 + 1
-//     size_type     cols() const;   // m_2 + 1
-// The base stores nothing and allocates nothing.
-template<typename _Derived,
-         typename _Type,
-         typename _SizeType,
-         typename _DifferenceType>
+//     const_pointer data() const; // contiguous, row-major cell buffer
+//     size_type rows() const; // m_1 + 1
+//     size_type cols() const; // m_2 + 1 The base stores nothing and allocates
+// nothing.
+template<typename Derived,
+         typename Type,
+         typename SizeType,
+         typename DifferenceType>
 class table_base
 {
 public:
     // --- member types (the container value function, in STL vocabulary) ---
 
-    using value_type       = _Type;
-    using cell_type        = _Type;   // formal name for the element at an index
-    using size_type        = _SizeType;
-    using difference_type  = _DifferenceType;
-    using reference        = _Type&;
-    using const_reference  = const _Type&;
-    using pointer          = _Type*;
-    using const_pointer    = const _Type*;
+    using value_type       = Type;
+    using cell_type        = Type;   // formal name for the element at an index
+    using size_type        = SizeType;
+    using difference_type  = DifferenceType;
+    using reference        = Type&;
+    using const_reference  = const Type&;
+    using pointer          = Type*;
+    using const_pointer    = const Type*;
 
     // index_type
-    //   struct: a multi-index into a rank-2 table -- the coordinate pair
-    // (row, column) that addresses one cell.
+    //   struct: a multi-index into a rank-2 table -- the coordinate pair (row,
+    // column) that addresses one cell.
     struct index_type
     {
         size_type row;
@@ -666,16 +684,16 @@ public:
     };
 
     // contiguous, row-major cell iteration.
-    using const_iterator         = const _Type*;
+    using const_iterator         = const Type*;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     // the rank-1 subtable T[r] and the projection T[*,c], read-only.
-    using const_row_type         = internal::basic_row_view<const _Type>;
-    using const_column_type      = internal::basic_column_view<const _Type>;
-    using const_row_iterator     = internal::row_cursor<const _Type>;
+    using const_row_type         = internal::basic_row_view<const Type>;
+    using const_column_type      = internal::basic_column_view<const Type>;
+    using const_row_iterator     = internal::row_cursor<const Type>;
 
     // rank
-    //   value: the table's fixed dimension k.  This is the row-and-column
+    //   value: the table's fixed dimension k. This is the row-and-column
     // table, so k = 2.
     static constexpr size_type rank = static_cast<size_type>(2);
 
@@ -683,27 +701,30 @@ public:
 
     // element_type
     //   the leaf/base type tau carried at each cell -- an atomic type, not a
-    // container.  The cell-homogeneous table carries this single element type.
-    using element_type = _Type;
+    // container. The cell-homogeneous table carries this single element type.
+    using element_type = Type;
 
     // node_type
-    //   the F[T] node summand -- a component that is itself a sub-container.  For
-    // this rank-2 table the node at the outer level is a row (F_2[tau]); a row
-    // view is container-shaped (value_type + size()), so it is the formal node.
+    //   the F[T] node summand -- a component that is itself a sub-container.
+    // For this rank-2 table the node at the outer level is a row (F_2[tau]); a
+    // row view is container-shaped (value_type + size()), so it is the formal
+    // node.
     using node_type = const_row_type;
 
     // structure_category
-    //   the opt-in structural tag asserting hierarchy.  A table stores its cells
-    // in a flat row-major buffer, so the value_type chain does not reveal the
-    // nesting; this tag asserts the type-level uniform nesting the chain hides,
-    // which the framework's structure classifier then reads as authoritative.
+    //   the opt-in structural tag asserting hierarchy. A table stores its
+    // cells in a flat row-major buffer, so the value_type chain does not
+    // reveal the nesting; this tag asserts the type-level uniform nesting the
+    // chain hides, which the framework's structure classifier then reads as
+    // authoritative.
     using structure_category = hierarchical;
 
     // depth
     //   the uniform-nesting depth d = rank: leaves sit at level d, each
-    // coordinate is one level, and d is fixed by the type -- a static quantity,
-    // not a per-value height.  (The value_type-chain heuristic under-counts this,
-    // seeing only the flat cell buffer; the true type-level depth is the rank.)
+    // coordinate is one level, and d is fixed by the type -- a static
+    // quantity, not a per-value height. (The value_type-chain heuristic
+    // under-counts this, seeing only the flat cell buffer; the true type-level
+    // depth is the rank.)
     static constexpr size_type depth = rank;
 
 protected:
@@ -712,9 +733,9 @@ protected:
     ~table_base() = default;
 
 private:
-    D_CONSTEXPR const _Derived& self() const D_NOEXCEPT
+    D_CONSTEXPR const Derived& self() const D_NOEXCEPT
     {
-        return static_cast<const _Derived&>(*this);
+        return static_cast<const Derived&>(*this);
     }
 
 public:
@@ -752,7 +773,7 @@ public:
     }
 
     // contains
-    //   true when (_r, _c) is a valid index of I_T.  For a rectangular table
+    //   true when (_r, _c) is a valid index of I_T. For a rectangular table
     // this is exactly the conjunction of the two range checks.
     D_NODISCARD D_CONSTEXPR bool contains(
         size_type _r,
@@ -776,7 +797,7 @@ public:
 
     // at -- checked cell value; throws std::out_of_range off the domain, since
     // an out-of-domain index is undefined, not blank.
-    D_NODISCARD D_CONSTEXPR const_reference at(
+    D_NODISCARD D_CONSTEXPR_CPP14 const_reference at(
         size_type _r,
         size_type _c
     ) const
@@ -792,8 +813,8 @@ public:
 
     // --- subtable and projection ---
 
-    // row / operator[] -- the rank-1 subtable T[r], a read-only window onto one
-    // row.  operator[] spells the prefix-bracketing T[r] of the definition.
+    // row / operator[] -- the rank-1 subtable T[r], a read-only window onto
+    // one row. operator[] spells the prefix-bracketing T[r] of the definition.
     D_NODISCARD D_CONSTEXPR const_row_type row(size_type _r) const
     {
         return const_row_type(self().data() + (_r * self().cols()),
@@ -806,7 +827,7 @@ public:
     }
 
     // checked subtable access; throws std::out_of_range past the last row.
-    D_NODISCARD D_CONSTEXPR const_row_type row_at(size_type _r) const
+    D_NODISCARD D_CONSTEXPR_CPP14 const_row_type row_at(size_type _r) const
     {
         // reject a row index outside the table
         if (_r >= self().rows())
@@ -827,7 +848,7 @@ public:
             static_cast<difference_type>(self().cols()));
     }
 
-    D_NODISCARD D_CONSTEXPR const_column_type column_at(size_type _c) const
+    D_NODISCARD D_CONSTEXPR_CPP14 const_column_type column_at(size_type _c) const
     {
         // reject a column index outside the table
         if (_c >= self().cols())
@@ -899,10 +920,10 @@ public:
 
     // count
     //   the per-class occurrence count #_E(c, _value) under the identity
-    // equivalence: how many cells hold a value equal to _value.  A table caps
+    // equivalence: how many cells hold a value equal to _value. A table caps
     // this at nothing (m = infinity) -- equal values may recur at any indices,
     // since a cell is identified by its position, not its value.
-    D_NODISCARD D_CONSTEXPR size_type count(const value_type& _value) const
+    D_NODISCARD D_CONSTEXPR_CPP14 size_type count(const value_type& _value) const
     {
         const size_type n = size();
         size_type       k = 0;
@@ -924,11 +945,11 @@ public:
     // is_sorted (comparator)
     //   true iff the cells, visited in row-major (lexicographic multi-index)
     // order, are non-decreasing under _cmp -- the adjacent-pair test that a
-    // transitive comparator's sortedness reduces to.  A table is ordered but not
-    // sorted in itself; this reports whether a given instance happens to sit in
-    // comparator order (the checkable face of the sorted overlay).
-    template<typename _Compare>
-    D_NODISCARD D_CONSTEXPR bool is_sorted(_Compare _cmp) const
+    // transitive comparator's sortedness reduces to. A table is ordered but
+    // not sorted in itself; this reports whether a given instance happens to
+    // sit in comparator order (the checkable face of the sorted overlay).
+    template<typename Compare>
+    D_NODISCARD D_CONSTEXPR_CPP14 bool is_sorted(Compare _cmp) const
     {
         const size_type n = size();
 
@@ -955,8 +976,8 @@ public:
     //   true iff consecutive rows are non-decreasing under a row comparator
     // _cmp(const_row_type a, const_row_type b) -- the row-dimension reading of
     // sortedness (relational ORDER BY as a checkable property).
-    template<typename _RowCompare>
-    D_NODISCARD D_CONSTEXPR bool is_row_sorted(_RowCompare _cmp) const
+    template<typename RowCompare>
+    D_NODISCARD D_CONSTEXPR_CPP14 bool is_row_sorted(RowCompare _cmp) const
     {
         const size_type r = self().rows();
 
@@ -976,10 +997,10 @@ public:
 
     // content_equals
     //   true when two tables have the same shape and equal cells at every
-    // index.  A table's identity is positional: cell (_r,_c) of one is compared
+    // index. A table's identity is positional: cell (_r,_c) of one is compared
     // to cell (_r,_c) of the other.
-    template<typename _Other>
-    D_NODISCARD D_CONSTEXPR bool content_equals(const _Other& _rhs) const
+    template<typename Other>
+    D_NODISCARD D_CONSTEXPR_CPP14 bool content_equals(const Other& _rhs) const
     {
         // differing shapes cannot hold equal contents
         if ( (row_count()    != _rhs.row_count()) ||
@@ -1006,5 +1027,6 @@ public:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_TABLE_BASE_
+#endif  // DJINTERP_CONTAINER_TABLE_TABLE_BASE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [fs]                                                  cfg_filesys.h
+/*******************************************************************************
+* djinterp [config]                                                cfg_filesys.h
 *
 * Filesystem backend configuration:
 *   This header is the single control surface for which file_tree scan
@@ -54,19 +54,17 @@
 *   D_CFG_FILESYS_* inputs and let this header derive them.
 *
 *
-* path:      /inc/cpp/fs/cfg_filesys.h
+* path:      /inc/djinterp/config/core/container/tree/file/cfg_filesys.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.03.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
+*                                                            revised: 2026.09.29
+*******************************************************************************/
 
-#ifndef DJINTERP_FS_CFG_FILESYS_
-#define DJINTERP_FS_CFG_FILESYS_ 1
+#ifndef DJINTERP_CONFIG_CORE_CONTAINER_TREE_FILE_CFG_FILESYS_H
+#define DJINTERP_CONFIG_CORE_CONTAINER_TREE_FILE_CFG_FILESYS_H 1
 
-// env.h must be visible: this header keys off D_ENV_OS_ID and the
-// D_ENV_IS_OS_* / D_ENV_OS_FLAG_* surface for native detection.
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "cfg_filesys.h requires env.h (D_ENV_OS_ID) to be included first"
-#endif
+// djinterp
+#include "../../../../../env/env.h"  // D_ENV_OS_ID, D_ENV_IS_OS_*
 
 
 // ============================================================================
@@ -305,4 +303,4 @@
       ( D_FILESYS_ENABLE_WINDOWS && !D_FILESYS_NATIVE_WINDOWS ) )
 
 
-#endif  // DJINTERP_FS_CFG_FILESYS_
+#endif  // DJINTERP_CONFIG_CORE_CONTAINER_TREE_FILE_CFG_FILESYS_H

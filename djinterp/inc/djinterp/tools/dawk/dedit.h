@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                        dedit.h
+* djinterp [djinterp]                                                    dedit.h
 *
 * Line editing:
 *   Reads one line of a file by number, and replaces one line of a file in
@@ -10,6 +10,7 @@
 * more than one line, or needs two edits ordered against each other, does not
 * belong here -- it belongs in the edit-collection engine that replaces this
 * file once more than one extension produces repairs.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dedit.h
 * link(s):   TBA
@@ -44,6 +45,11 @@ bool   d_edit_read_line(const char* _path,
 bool   d_edit_rewrite_line(const char* _path,
                            uint32_t    _line,
                            const char* _replacement);
+bool   d_edit_delete_line(const char* _path,
+                          uint32_t    _line);
+bool   d_edit_insert_line(const char* _path,
+                          uint32_t    _line,
+                          const char* _text);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DEDIT_H

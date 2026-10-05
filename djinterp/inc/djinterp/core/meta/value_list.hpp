@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                               value_list.hpp
+/*******************************************************************************
+* djinterp [core]                                                 value_list.hpp
 *
 * value_list - the NTTP sequence (value-domain counterpart of the type list):
 *   dtuple.hpp treats std::tuple<typename...> as the framework's compile-time
@@ -44,20 +44,29 @@
 * (core/functional/reduce.hpp, a later task) builds on for its value_list
 * overload; it lives here so value_list is self-contained.
 *
+*
 * path:      /inc/djinterp/core/meta/value_list.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_META_VALUE_LIST_
-#define DJINTERP_META_VALUE_LIST_ 1
+#ifndef DJINTERP_META_VALUE_LIST_HPP
+#define DJINTERP_META_VALUE_LIST_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "./type_utility.hpp"  // clean_t
 #include "./trait_detect.hpp"   // D_TYPE_TRAIT_VALUE_BOOL
 #include "./carrier.hpp"        // val_t / val (value carriers)
 
@@ -80,7 +89,7 @@ NS_DJINTERP
 // value-domain counterpart to the std::tuple type sequence used by dtuple.hpp.
 // Empty (no storage): the values live in the type, so an instance is an empty
 // object passed by value into the constexpr free-function ops below.
-template<auto... _Values>
+template<auto... Values>
 struct value_list
 {
     // size
@@ -88,7 +97,7 @@ struct value_list
     static constexpr std::size_t
     size() noexcept
     {
-        return sizeof...(_Values);
+        return sizeof...(Values);
     }
 };
 
@@ -105,24 +114,24 @@ NS_INTERNAL
     // is_value_list_raw
     //   trait: primary template (failure case); cv-ref is already stripped by
     // the public face below.
-    template<typename _Type>
+    template<typename Type>
     struct is_value_list_raw : std::false_type
     {};
 
     // is_value_list_raw (success case)
     //   trait: succeeds for a value_list<...> specialization.
-    template<auto... _Values>
-    struct is_value_list_raw<value_list<_Values...>> : std::true_type
+    template<auto... Values>
+    struct is_value_list_raw<value_list<Values...>> : std::true_type
     {};
 
 NS_END  // internal
 
 // is_value_list
-//   trait: detects whether _Type is a value_list (after cv-ref stripping).
+//   trait: detects whether Type is a value_list (after cv-ref stripping).
 // Specialization-based, so detection is exact.
-template<typename _Type>
+template<typename Type>
 struct is_value_list
-    : internal::is_value_list_raw<clean_t<_Type>>
+    : internal::is_value_list_raw<clean_t<Type>>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_value_list)
@@ -135,21 +144,21 @@ D_TYPE_TRAIT_VALUE_BOOL(is_value_list)
 // value_list_size
 //   trait: the element count of a value_list as an integral_constant - the
 // value-domain analog of std::tuple_size.
-template<typename _List>
+template<typename List>
 struct value_list_size;
 
 // value_list_size<value_list<...>>
-//   trait: the populated specialization yielding sizeof...(_Values).
-template<auto... _Values>
-struct value_list_size<value_list<_Values...>>
-    : std::integral_constant<std::size_t, sizeof...(_Values)>
+//   trait: the populated specialization yielding sizeof...(Values).
+template<auto... Values>
+struct value_list_size<value_list<Values...>>
+    : std::integral_constant<std::size_t, sizeof...(Values)>
 {};
 
 // value_list_size_v
-//   value: convenience alias for value_list_size<_List>::value.
-template<typename _List>
+//   value: convenience alias for value_list_size<List>::value.
+template<typename List>
 inline constexpr std::size_t value_list_size_v =
-    value_list_size<_List>::value;
+    value_list_size<List>::value;
 
 
 // ===========================================================================
@@ -161,66 +170,66 @@ NS_INTERNAL
     // value_list_at_helper
     //   trait: primary template; peels one head per index step (mirrors
     // pack_element over an NTTP pack).
-    template<std::size_t _Index,
-             auto         _Head,
-             auto...      _Tail>
+    template<std::size_t Index,
+             auto         Head,
+             auto...      Tail>
     struct value_list_at_helper
     {
         static constexpr auto value =
-            value_list_at_helper<_Index - 1, _Tail...>::value;
+            value_list_at_helper<Index - 1, Tail...>::value;
     };
 
     // value_list_at_helper<0, ...>
     //   trait: base case - index 0 yields the current head.
-    template<auto    _Head,
-             auto... _Tail>
-    struct value_list_at_helper<0, _Head, _Tail...>
+    template<auto    Head,
+             auto... Tail>
+    struct value_list_at_helper<0, Head, Tail...>
     {
-        static constexpr auto value = _Head;
+        static constexpr auto value = Head;
     };
 
 NS_END  // internal
 
 // value_list_at
-//   trait: the _Index-th value of a value_list (0-based), exposed as `::value`.
-// Out-of-range _Index is a hard error guarded by a static_assert, mirroring
+//   trait: the Index-th value of a value_list (0-based), exposed as `::value`.
+// Out-of-range Index is a hard error guarded by a static_assert, mirroring
 // tuple_type_at.
-template<std::size_t _Index,
-         typename     _List>
+template<std::size_t Index,
+         typename     List>
 struct value_list_at;
 
-// value_list_at<_Index, value_list<...>>
+// value_list_at<Index, value_list<...>>
 //   trait: the populated specialization with bounds checking.
-template<std::size_t _Index,
-         auto...      _Values>
-struct value_list_at<_Index, value_list<_Values...>>
+template<std::size_t Index,
+         auto...      Values>
+struct value_list_at<Index, value_list<Values...>>
 {
 private:
-    static_assert((_Index < sizeof...(_Values)),
-                  "Non-type parameter `_Index` is out of range for the "
+    static_assert((Index < sizeof...(Values)),
+                  "Non-type parameter `Index` is out of range for the "
                   "value_list.");
 
 public:
     static constexpr auto value =
-        internal::value_list_at_helper<_Index, _Values...>::value;
+        internal::value_list_at_helper<Index, Values...>::value;
 };
 
 // value_list_at_v
-//   value: convenience alias for value_list_at<_Index, _List>::value.
-template<std::size_t _Index,
-         typename     _List>
+//   value: convenience alias for value_list_at<Index, List>::value.
+template<std::size_t Index,
+         typename     List>
 inline constexpr auto value_list_at_v =
-    value_list_at<_Index, _List>::value;
+    value_list_at<Index, List>::value;
 
 // at
-//   function: the _Index-th element of a value_list instance, returned as a
+//   function: the Index-th element of a value_list instance, returned as a
 // value carrier (val_t) so it slots straight back into the carrier pipeline.
-template<std::size_t _Index,
-         auto...      _Values>
+template<std::size_t Index,
+         auto...      Values>
 constexpr auto
-at(value_list<_Values...>)
+at(value_list<Values...>)
 {
-    return val<value_list_at_v<_Index, value_list<_Values...>>>;
+    return val<value_list_at_v<Index, value_list<Values...>>>;
 }
 
 
@@ -229,22 +238,22 @@ at(value_list<_Values...>)
 // ===========================================================================
 
 // append
-//   function: the list with _Value appended at the end (the §10.3 collect
+//   function: the list with Value appended at the end (the §10.3 collect
 // step).  The new element is supplied as a value carrier.
-template<auto... _Values,
-         auto    _Value>
-constexpr value_list<_Values..., _Value>
-append(value_list<_Values...>, val_t<_Value>)
+template<auto... Values,
+         auto    Value>
+constexpr value_list<Values..., Value>
+append(value_list<Values...>, val_t<Value>)
 {
     return {};
 }
 
 // prepend
-//   function: the list with _Value inserted at the front.
-template<auto    _Value,
-         auto... _Values>
-constexpr value_list<_Value, _Values...>
-prepend(val_t<_Value>, value_list<_Values...>)
+//   function: the list with Value inserted at the front.
+template<auto    Value,
+         auto... Values>
+constexpr value_list<Value, Values...>
+prepend(val_t<Value>, value_list<Values...>)
 {
     return {};
 }
@@ -259,19 +268,19 @@ concat()
 
 // concat
 //   function: a single list concatenates to itself (identity).
-template<auto... _Values>
-constexpr value_list<_Values...>
-concat(value_list<_Values...> _list)
+template<auto... Values>
+constexpr value_list<Values...>
+concat(value_list<Values...> _list)
 {
     return _list;
 }
 
 // concat
 //   function: concatenation of exactly two lists (the base case).
-template<auto... _As,
-         auto... _Bs>
-constexpr value_list<_As..., _Bs...>
-concat(value_list<_As...>, value_list<_Bs...>)
+template<auto... As,
+         auto... Bs>
+constexpr value_list<As..., Bs...>
+concat(value_list<As...>, value_list<Bs...>)
 {
     return {};
 }
@@ -279,12 +288,12 @@ concat(value_list<_As...>, value_list<_Bs...>)
 // concat
 //   function: concatenation of three or more lists; folds pairwise from the
 // left.  The >=3 arity keeps it disjoint from the two-list base case above.
-template<typename    _First,
-         typename    _Second,
-         typename    _Third,
-         typename... _Rest>
+template<typename    First,
+         typename    Second,
+         typename    Third,
+         typename... Rest>
 constexpr auto
-concat(_First _first, _Second _second, _Third _third, _Rest... _rest)
+concat(First _first, Second _second, Third _third, Rest... _rest)
 {
     return concat(concat(_first, _second), _third, _rest...);
 }
@@ -296,18 +305,18 @@ concat(_First _first, _Second _second, _Third _third, _Rest... _rest)
 
 // transform
 //   function: applies a unary value-domain operation to every element,
-// returning a new value_list.  `_Op` is a carrier-callable leaf - invoking it
+// returning a new value_list.  `Op` is a carrier-callable leaf - invoking it
 // on a value carrier yields a value carrier (val_t<V> -> val_t<f(V)>), the same
-// leaf shape compose and the transducer spine use.  Only _Op's result type is
+// leaf shape compose and the transducer spine use.  Only Op's result type is
 // needed, so the op is taken unnamed and probed in an unevaluated context; the
 // value-domain analog of dtuple's tuple_apply_all.
-template<auto... _Values,
-         typename _Op>
+template<auto... Values,
+         typename Op>
 constexpr auto
-transform(value_list<_Values...>, _Op)
+transform(value_list<Values...>, Op)
 {
     return value_list<
-        decltype(std::declval<_Op&>()(val<_Values>))::value...
+        decltype(std::declval<Op&>()(val<Values>))::value...
     >{};
 }
 
@@ -320,26 +329,26 @@ NS_INTERNAL
 
     // value_list_fold_impl
     //   function: base case - an empty list folds to the accumulator.
-    template<typename _Acc,
-             typename _Op>
-    constexpr _Acc
-    value_list_fold_impl(_Acc _acc, _Op, value_list<>)
+    template<typename Acc,
+             typename Op>
+    constexpr Acc
+    value_list_fold_impl(Acc _acc, Op, value_list<>)
     {
         return _acc;
     }
 
     // value_list_fold_impl (recursive)
     //   function: fold the head into the accumulator, recurse on the tail.
-    template<typename _Acc,
-             typename _Op,
-             auto     _Head,
-             auto...  _Tail>
+    template<typename Acc,
+             typename Op,
+             auto     Head,
+             auto...  Tail>
     constexpr auto
-    value_list_fold_impl(_Acc _acc, _Op _op, value_list<_Head, _Tail...>)
+    value_list_fold_impl(Acc _acc, Op _op, value_list<Head, Tail...>)
     {
-        return value_list_fold_impl(_op(_acc, val<_Head>),
+        return value_list_fold_impl(_op(_acc, val<Head>),
                                     _op,
-                                    value_list<_Tail...>{});
+                                    value_list<Tail...>{});
     }
 
 NS_END  // internal
@@ -349,11 +358,11 @@ NS_END  // internal
 // reducer (acc, val_t<V>) -> acc and `_seed` is the initial accumulator (any
 // object, typically a carrier or another value_list).  This is the value-domain
 // driver reduce_ct (core/functional/reduce.hpp) builds on.
-template<auto... _Values,
-         typename _Acc,
-         typename _Op>
+template<auto... Values,
+         typename Acc,
+         typename Op>
 constexpr auto
-fold(value_list<_Values...> _list, _Acc _seed, _Op _op)
+fold(value_list<Values...> _list, Acc _seed, Op _op)
 {
     return internal::value_list_fold_impl(_seed, _op, _list);
 }
@@ -369,8 +378,8 @@ fold(value_list<_Values...> _list, _Acc _seed, _Op _op)
     //   concept: satisfied by any value_list specialization.  PascalCase
     // per the project's concept naming convention, paralleling
     // is_value_list_v.
-    template<typename _Type>
-    concept ValueList = is_value_list<_Type>::value;
+    template<typename Type>
+    concept ValueList = is_value_list<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -380,5 +389,7 @@ fold(value_list<_Values...> _list, _Acc _seed, _Op _op)
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_META_VALUE_LIST_
+
+#endif  // DJINTERP_META_VALUE_LIST_HPP

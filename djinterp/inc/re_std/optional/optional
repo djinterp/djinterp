@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                     optional
 *
 * <optional> umbrella header:
@@ -24,18 +24,19 @@
 *   Mirrors std::<optional> from C++17. re_std provides on C++11+.
 *
 *
-* path:      /inc/djinterp/re_std/optional
+* path:      /inc/re_std/optional/optional
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_OPTIONAL_
-#define DJINTERP_RE_STD_OPTIONAL_ 1
+#ifndef RE_STD_OPTIONAL_OPTIONAL
+#define RE_STD_OPTIONAL_OPTIONAL 1
 
-#include "./optional/nullopt.hpp"
-#include "./optional/bad_optional_access.hpp"
-#include "./optional/optional.hpp"
-#include "./optional/make_optional.hpp"
-#include "./optional/optional_swap.hpp"
+#include "./nullopt.hpp"
+#include "./bad_optional_access.hpp"
+#include "./optional.hpp"
+#include "./make_optional.hpp"
+#include "./optional_swap.hpp"
 
-#endif  // DJINTERP_RE_STD_OPTIONAL_
+#endif  // RE_STD_OPTIONAL_OPTIONAL

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                              bad_typeid.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               bad_typeid.hpp
 *
 * bad_typeid exception header:
 *   Surfaces re_std::bad_typeid as a using-declaration for
@@ -11,30 +11,33 @@
 * catch (const re_std::bad_typeid&) and vice versa.
 *
 *   PORTABILITY:
-*   Gated on D_ENV_CPP98_HAS_TYPEINFO. C++98 baseline; nothing to
+*   Gated on RE_STD_HAS_RTTI. C++98 baseline; nothing to
 * back-port (std::bad_typeid has existed since C++98).
 *
 *
-* path:      /inc/djinterp/re_std/typeinfo/bad_typeid.hpp
+* path:      /inc/re_std/typeinfo/bad_typeid.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPEINFO_BAD_TYPEID_
-#define DJINTERP_RE_STD_TYPEINFO_BAD_TYPEID_ 1
+#ifndef RE_STD_TYPEINFO_BAD_TYPEID_HPP
+#define RE_STD_TYPEINFO_BAD_TYPEID_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if RE_STD_HAS_RTTI
 
 
 // std (runtime-provided RTTI types)
+// std
 #include <typeinfo>
 
 
-NS_RESTD
+namespace re_std
+{
 
 // bad_typeid
 //   class: re-export of std::bad_typeid (derives from std::exception).
@@ -42,10 +45,10 @@ NS_RESTD
 // polymorphic type; what() returns an implementation-defined message.
 using ::std::bad_typeid;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_CPP98_HAS_TYPEINFO
+#endif  // RE_STD_HAS_RTTI
 
 
-#endif  // DJINTERP_RE_STD_TYPEINFO_BAD_TYPEID_
+#endif  // RE_STD_TYPEINFO_BAD_TYPEID_HPP

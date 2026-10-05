@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                          pipeline.hpp
+/*******************************************************************************
+* djinterp [core]                                                   pipeline.hpp
 *
 * Template function pipeline for chaining operations (C++).
 *   Provides a fully typed, SFINAE-constrained pipeline that holds
@@ -23,13 +23,21 @@
 *       .map(extract_value)
 *       .fold(0, std::plus<int>{});
 *
+*
 * path:      /inc/djinterp/core/functional/pipeline.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_PIPELINE_
-#define DJINTERP_FUNCTIONAL_PIPELINE_ 1
+#ifndef DJINTERP_FUNCTIONAL_PIPELINE_HPP
+#define DJINTERP_FUNCTIONAL_PIPELINE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <algorithm>
@@ -40,8 +48,8 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
-#include "./functional_traits.hpp"
+#include "../../djinterp.hpp"
+#include "./functional_common.hpp"  // callable_result_t
 
 
 NS_DJINTERP
@@ -50,11 +58,11 @@ NS_DJINTERP
 //   DUAL DOMAIN (boundary).  pipeline holds intermediate results and runs its
 // map / filter / fold / take / ... stages over them: that materialization is a
 // runtime act.  COMPOSITION lifts - the pipeline object and its chained stages
-// are constexpr-constructible, so the chain's type is fixed during translation -
-// while the traversal that produces values runs later.  pipeline is the
+// are constexpr-constructible, so the chain's type is fixed during translation
+// - while the traversal that produces values runs later. pipeline is the
 // value-domain RUNTIME face of a staged dataflow; its COMPILE-TIME counterpart
 // is the transducer chain folding reduce_ct / a value_list (see transducer.hpp,
-// reduce.hpp, producer.hpp).  Stage callables are constrained through
+// reduce.hpp, producer.hpp). Stage callables are constrained through
 // functional_traits (is_callable / callable_result_t / is_predicate).
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,17 +74,17 @@ NS_DJINTERP
 // Holds a vector of intermediate results. Each operation produces a new
 // pipeline with the transformed data. If an error occurs at any stage,
 // subsequent operations are no-ops and the error is propagated.
-template<typename _Type>
+template<typename Type>
 class function_pipeline
 {
 private:
-    std::vector<_Type> m_data;
+    std::vector<Type> m_data;
     bool               m_has_error;
     int                m_error_code;
 
     // private constructor for internal use
     explicit function_pipeline(
-        std::vector<_Type>&& _data,
+        std::vector<Type>&& _data,
         bool                 _has_error  = false,
         int                  _error_code = 0
     )
@@ -100,55 +108,55 @@ public:
 
     // from (container)
     //   static: creates a pipeline by copying elements from a container.
-    template<typename _Container,
+    template<typename Container,
              typename = typename std::enable_if<
                  std::is_convertible<
                      typename std::decay<decltype(*std::begin(
-                         std::declval<const _Container&>()))>::type,
-                     _Type>::value
+                         std::declval<const Container&>()))>::type,
+                     Type>::value
              >::type>
-    static function_pipeline from(const _Container& _input)
+    static function_pipeline from(const Container& _input)
     {
         return function_pipeline(
-            std::vector<_Type>(std::begin(_input), std::end(_input)));
+            std::vector<Type>(std::begin(_input), std::end(_input)));
     }
 
     // from (move)
     //   static: creates a pipeline by moving a vector.
-    static function_pipeline from(std::vector<_Type>&& _data)
+    static function_pipeline from(std::vector<Type>&& _data)
     {
         return function_pipeline(std::move(_data));
     }
 
     // from (initializer list)
     //   static: creates a pipeline from an initializer list.
-    static function_pipeline from(std::initializer_list<_Type> _init)
+    static function_pipeline from(std::initializer_list<Type> _init)
     {
-        return function_pipeline(std::vector<_Type>(_init));
+        return function_pipeline(std::vector<Type>(_init));
     }
 
     // from (raw array)
     //   static: creates a pipeline from a C-style array.
-    static function_pipeline from(const _Type* _data, std::size_t _count)
+    static function_pipeline from(const Type* _data, std::size_t _count)
     {
-        return function_pipeline(std::vector<_Type>(_data, _data + _count));
+        return function_pipeline(std::vector<Type>(_data, _data + _count));
     }
 
     // of (variadic)
     //   static: creates a pipeline from variadic arguments.
-    template<typename... _Args,
+    template<typename... Args,
              typename = typename std::enable_if<
-                 (sizeof...(_Args) > 0)
+                 (sizeof...(Args) > 0)
              >::type>
-    static function_pipeline of(_Args&&... _args)
+    static function_pipeline of(Args&&... _args)
     {
-        std::vector<_Type> data;
+        std::vector<Type> data;
 
-        data.reserve(sizeof...(_Args));
+        data.reserve(sizeof...(Args));
 
         // fold expression emulation for C++11
         int dummy[] = { (data.push_back(
-            std::forward<_Args>(_args)), 0)... };
+            std::forward<Args>(_args)), 0)... };
         (void)dummy;
 
         return function_pipeline(std::move(data));
@@ -158,7 +166,7 @@ public:
     //   static: creates an error pipeline.
     static function_pipeline error(int _code = -1)
     {
-        return function_pipeline(std::vector<_Type>(), true, _code);
+        return function_pipeline(std::vector<Type>(), true, _code);
     }
 
 
@@ -169,53 +177,53 @@ public:
     // map
     //   method: applies a transformer to each element, producing a pipeline
     // of the result type.
-    template<typename _Fn,
-             typename _ResultType = callable_result_t<_Fn, const _Type&>,
+    template<typename Fn,
+             typename ResultType = callable_result_t<Fn, const Type&>,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _Type&>::value
+                 is_callable<Fn, const Type&>::value
              >::type>
-    D_NODISCARD D_CONSTEXPR function_pipeline<_ResultType>
+    D_NODISCARD D_CONSTEXPR_CPP14 function_pipeline<ResultType>
     map(
-        _Fn&& _fn
+        Fn&& _fn
     ) const
     {
         if (m_has_error)
         {
-            return function_pipeline<_ResultType>::error(m_error_code);
+            return function_pipeline<ResultType>::error(m_error_code);
         }
 
-        std::vector<_ResultType> result;
+        std::vector<ResultType> result;
 
         result.reserve(m_data.size());
 
         for (const auto& element : m_data)
         {
-            result.push_back(std::forward<_Fn>(_fn)(element));
+            result.push_back(std::forward<Fn>(_fn)(element));
         }
 
-        return function_pipeline<_ResultType>::from(std::move(result));
+        return function_pipeline<ResultType>::from(std::move(result));
     }
 
     // filter
     //   method: keeps only elements satisfying the predicate.
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    function_pipeline filter(_Pred&& _pred) const
+    D_CONSTEXPR_CPP14
+    function_pipeline filter(Pred&& _pred) const
     {
         if (m_has_error)
         {
             return function_pipeline::error(m_error_code);
         }
 
-        std::vector<_Type> result;
+        std::vector<Type> result;
 
         for (const auto& element : m_data)
         {
-            if (std::forward<_Pred>(_pred)(element))
+            if (std::forward<Pred>(_pred)(element))
             {
                 result.push_back(element);
             }
@@ -226,15 +234,15 @@ public:
 
     // filter_not
     //   method: keeps elements that fail the predicate.
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
     D_NODISCARD
     D_CONSTEXPR
-    function_pipeline filter_not(_Pred&& _pred) const
+    function_pipeline filter_not(Pred&& _pred) const
     {
-        return filter([&_pred](const _Type& _e)
+        return filter([&_pred](const Type& _e)
         {
             return !_pred(_e);
         });
@@ -242,15 +250,15 @@ public:
 
     // fold
     //   method: folds all elements into a single accumulated value.
-    template<typename _Acc,
-             typename _Fn,
+    template<typename Acc,
+             typename Fn,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _Acc&, const _Type&>::value
+                 is_callable<Fn, const Acc&, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    _Acc
-    fold(_Acc _init, _Fn&& _fn) const
+    D_CONSTEXPR_CPP14
+    Acc
+    fold(Acc _init, Fn&& _fn) const
     {
         if (m_has_error)
         {
@@ -259,8 +267,8 @@ public:
 
         for (const auto& element : m_data)
         {
-            _init = std::forward<_Fn>(_fn)(
-                static_cast<const _Acc&>(_init), element);
+            _init = std::forward<Fn>(_fn)(
+                static_cast<const Acc&>(_init), element);
         }
 
         return _init;
@@ -269,17 +277,17 @@ public:
     // for_each
     //   method: applies a consumer to each element and returns the
     // same pipeline (for continued chaining).
-    template<typename _Fn,
+    template<typename Fn,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _Type&>::value
+                 is_callable<Fn, const Type&>::value
              >::type>
-    const function_pipeline& for_each(_Fn&& _fn) const
+    const function_pipeline& for_each(Fn&& _fn) const
     {
         if (!m_has_error)
         {
             for (const auto& element : m_data)
             {
-                std::forward<_Fn>(_fn)(element);
+                std::forward<Fn>(_fn)(element);
             }
         }
 
@@ -289,7 +297,7 @@ public:
     // take
     //   method: keeps only the first _n elements.
     D_NODISCARD
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     function_pipeline take(std::size_t _n) const
     {
         if (m_has_error)
@@ -299,16 +307,16 @@ public:
 
         std::size_t actual = (_n < m_data.size()) ? _n : m_data.size();
 
-        return function_pipeline(std::vector<_Type>(
+        return function_pipeline(std::vector<Type>(
             m_data.begin(),
             m_data.begin() + static_cast<typename
-                std::vector<_Type>::difference_type>(actual)));
+                std::vector<Type>::difference_type>(actual)));
     }
 
     // take_last
     //   method: keeps only the last _n elements.
     D_NODISCARD
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     function_pipeline take_last(std::size_t _n) const
     {
         if (m_has_error)
@@ -318,36 +326,36 @@ public:
 
         if (_n >= m_data.size())
         {
-            return function_pipeline(std::vector<_Type>(m_data));
+            return function_pipeline(std::vector<Type>(m_data));
         }
 
-        return function_pipeline(std::vector<_Type>(
+        return function_pipeline(std::vector<Type>(
             m_data.begin() + static_cast<typename
-                std::vector<_Type>::difference_type>(
+                std::vector<Type>::difference_type>(
                     m_data.size() - _n),
             m_data.end()));
     }
 
     // take_while
     //   method: takes elements while the predicate is true.
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    function_pipeline take_while(_Pred&& _pred) const
+    D_CONSTEXPR_CPP14
+    function_pipeline take_while(Pred&& _pred) const
     {
         if (m_has_error)
         {
             return function_pipeline::error(m_error_code);
         }
 
-        std::vector<_Type> result;
+        std::vector<Type> result;
 
         for (const auto& element : m_data)
         {
-            if (!std::forward<_Pred>(_pred)(element))
+            if (!std::forward<Pred>(_pred)(element))
             {
                 break;
             }
@@ -361,7 +369,7 @@ public:
     // skip
     //   method: removes the first _n elements.
     D_NODISCARD
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     function_pipeline skip(std::size_t _n) const
     {
         if (m_has_error)
@@ -371,36 +379,36 @@ public:
 
         if (_n >= m_data.size())
         {
-            return function_pipeline(std::vector<_Type>());
+            return function_pipeline(std::vector<Type>());
         }
 
-        return function_pipeline(std::vector<_Type>(
+        return function_pipeline(std::vector<Type>(
             m_data.begin() + static_cast<typename
-                std::vector<_Type>::difference_type>(_n),
+                std::vector<Type>::difference_type>(_n),
             m_data.end()));
     }
 
     // skip_while
     //   method: skips elements while the predicate is true.
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    function_pipeline skip_while(_Pred&& _pred) const
+    D_CONSTEXPR_CPP14
+    function_pipeline skip_while(Pred&& _pred) const
     {
         if (m_has_error)
         {
             return function_pipeline::error(m_error_code);
         }
 
-        std::vector<_Type> result;
+        std::vector<Type> result;
         bool               skipping = true;
 
         for (const auto& element : m_data)
         {
-            if (skipping && std::forward<_Pred>(_pred)(element))
+            if (skipping && std::forward<Pred>(_pred)(element))
             {
                 continue;
             }
@@ -415,7 +423,7 @@ public:
     // slice
     //   method: takes elements in range [start, end) with given step.
     D_NODISCARD
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     function_pipeline slice(std::size_t _start,
                      std::size_t _end,
                      std::size_t _step = 1) const
@@ -425,7 +433,7 @@ public:
             return function_pipeline::error(m_has_error ? m_error_code : -1);
         }
 
-        std::vector<_Type> result;
+        std::vector<Type> result;
         std::size_t        limit = (_end < m_data.size())
                                  ? _end : m_data.size();
 
@@ -440,7 +448,7 @@ public:
     // distinct
     //   method: removes duplicate elements using operator==.
     D_NODISCARD
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     function_pipeline distinct() const
     {
         if (m_has_error)
@@ -448,7 +456,7 @@ public:
             return function_pipeline::error(m_error_code);
         }
 
-        std::vector<_Type> result;
+        std::vector<Type> result;
 
         for (const auto& element : m_data)
         {
@@ -474,20 +482,20 @@ public:
 
     // distinct (with comparator)
     //   method: removes duplicate elements using a custom equality function.
-    template<typename _Eq,
+    template<typename Eq,
              typename = typename std::enable_if<
-                 is_callable<_Eq, const _Type&, const _Type&>::value
+                 is_callable<Eq, const Type&, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    function_pipeline distinct(_Eq&& _eq) const
+    D_CONSTEXPR_CPP14
+    function_pipeline distinct(Eq&& _eq) const
     {
         if (m_has_error)
         {
             return function_pipeline::error(m_error_code);
         }
 
-        std::vector<_Type> result;
+        std::vector<Type> result;
 
         for (const auto& element : m_data)
         {
@@ -495,7 +503,7 @@ public:
 
             for (const auto& existing : result)
             {
-                if (std::forward<_Eq>(_eq)(element, existing))
+                if (std::forward<Eq>(_eq)(element, existing))
                 {
                     found = true;
                     break;
@@ -514,7 +522,7 @@ public:
     // reversed
     //   method: returns a pipeline with elements in reverse order.
     D_NODISCARD
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     function_pipeline reversed() const
     {
         if (m_has_error)
@@ -522,30 +530,30 @@ public:
             return function_pipeline::error(m_error_code);
         }
 
-        std::vector<_Type> result(m_data.rbegin(), m_data.rend());
+        std::vector<Type> result(m_data.rbegin(), m_data.rend());
 
         return function_pipeline(std::move(result));
     }
 
     // sorted
     //   method: returns a pipeline sorted by the given comparator.
-    template<typename _Compare,
+    template<typename Compare,
              typename = typename std::enable_if<
-                 is_callable<_Compare, const _Type&, const _Type&>::value
+                 is_callable<Compare, const Type&, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    function_pipeline sorted(_Compare&& _cmp) const
+    D_CONSTEXPR_CPP14
+    function_pipeline sorted(Compare&& _cmp) const
     {
         if (m_has_error)
         {
             return function_pipeline::error(m_error_code);
         }
 
-        std::vector<_Type> result(m_data);
+        std::vector<Type> result(m_data);
 
         std::sort(result.begin(), result.end(),
-                  std::forward<_Compare>(_cmp));
+                  std::forward<Compare>(_cmp));
 
         return function_pipeline(std::move(result));
     }
@@ -556,7 +564,7 @@ public:
     D_CONSTEXPR
     function_pipeline sorted() const
     {
-        return sorted([](const _Type& _a, const _Type& _b)
+        return sorted([](const Type& _a, const Type& _b)
         {
             return _a < _b;
         });
@@ -564,29 +572,29 @@ public:
 
     // flat_map
     //   method: maps each element to a container, then flattens.
-    template<typename _Fn,
-             typename _InnerContainer = callable_result_t<_Fn, const _Type&>,
-             typename _ResultType = typename std::decay<
+    template<typename Fn,
+             typename InnerContainer = callable_result_t<Fn, const Type&>,
+             typename ResultType = typename std::decay<
                  decltype(*std::begin(
-                     std::declval<const _InnerContainer&>()))>::type,
+                     std::declval<const InnerContainer&>()))>::type,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _Type&>::value
+                 is_callable<Fn, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    function_pipeline<_ResultType>
-    flat_map(_Fn&& _fn) const
+    D_CONSTEXPR_CPP14
+    function_pipeline<ResultType>
+    flat_map(Fn&& _fn) const
     {
         if (m_has_error)
         {
-            return function_pipeline<_ResultType>::error(m_error_code);
+            return function_pipeline<ResultType>::error(m_error_code);
         }
 
-        std::vector<_ResultType> result;
+        std::vector<ResultType> result;
 
         for (const auto& element : m_data)
         {
-            auto inner = std::forward<_Fn>(_fn)(element);
+            auto inner = std::forward<Fn>(_fn)(element);
 
             for (const auto& inner_element : inner)
             {
@@ -594,19 +602,19 @@ public:
             }
         }
 
-        return function_pipeline<_ResultType>::from(std::move(result));
+        return function_pipeline<ResultType>::from(std::move(result));
     }
 
     // partition_pipe
     //   method: returns a pair of pipelines: (passing, failing).
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     std::pair<function_pipeline, function_pipeline>
-    partition_pipe(_Pred&& _pred) const
+    partition_pipe(Pred&& _pred) const
     {
         if (m_has_error)
         {
@@ -615,12 +623,12 @@ public:
                 function_pipeline::error(m_error_code));
         }
 
-        std::vector<_Type> pass;
-        std::vector<_Type> fail;
+        std::vector<Type> pass;
+        std::vector<Type> fail;
 
         for (const auto& element : m_data)
         {
-            if (std::forward<_Pred>(_pred)(element))
+            if (std::forward<Pred>(_pred)(element))
             {
                 pass.push_back(element);
             }
@@ -637,23 +645,23 @@ public:
 
     // group_by
     //   method: groups elements by a key function.
-    template<typename _KeyFn,
-             typename _KeyType = callable_result_t<_KeyFn, const _Type&>,
+    template<typename KeyFn,
+             typename KeyType = callable_result_t<KeyFn, const Type&>,
              typename = typename std::enable_if<
-                 is_callable<_KeyFn, const _Type&>::value
+                 is_callable<KeyFn, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    std::map<_KeyType, std::vector<_Type>>
-    group_by(_KeyFn&& _key_fn) const
+    D_CONSTEXPR_CPP14
+    std::map<KeyType, std::vector<Type>>
+    group_by(KeyFn&& _key_fn) const
     {
-        std::map<_KeyType, std::vector<_Type>> result;
+        std::map<KeyType, std::vector<Type>> result;
 
         if (!m_has_error)
         {
             for (const auto& element : m_data)
             {
-                result[std::forward<_KeyFn>(_key_fn)(element)]
+                result[std::forward<KeyFn>(_key_fn)(element)]
                     .push_back(element);
             }
         }
@@ -663,25 +671,25 @@ public:
 
     // zip_with (pipeline)
     //   method: combines with another pipeline using a binary function.
-    template<typename _Other,
-             typename _Fn,
-             typename _ResultType = callable_result_t<
-                 _Fn, const _Type&, const _Other&>,
+    template<typename Other,
+             typename Fn,
+             typename ResultType = callable_result_t<
+                 Fn, const Type&, const Other&>,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _Type&, const _Other&>::value
+                 is_callable<Fn, const Type&, const Other&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    function_pipeline<_ResultType>
-    zip_with(const function_pipeline<_Other>& _other, _Fn&& _fn) const
+    D_CONSTEXPR_CPP14
+    function_pipeline<ResultType>
+    zip_with(const function_pipeline<Other>& _other, Fn&& _fn) const
     {
         if (m_has_error || _other.has_error())
         {
-            return function_pipeline<_ResultType>::error(
+            return function_pipeline<ResultType>::error(
                 m_has_error ? m_error_code : _other.error_code());
         }
 
-        std::vector<_ResultType> result;
+        std::vector<ResultType> result;
         const auto&              other_data = _other.data();
         std::size_t limit = (m_data.size() < other_data.size())
                           ? m_data.size() : other_data.size();
@@ -690,11 +698,11 @@ public:
 
         for (std::size_t i = 0; i < limit; ++i)
         {
-            result.push_back(std::forward<_Fn>(_fn)(
+            result.push_back(std::forward<Fn>(_fn)(
                 m_data[i], other_data[i]));
         }
 
-        return function_pipeline<_ResultType>::from(std::move(result));
+        return function_pipeline<ResultType>::from(std::move(result));
     }
 
 
@@ -710,7 +718,7 @@ public:
     // (fixed 2026-05-27)
     D_NODISCARD
     D_CONSTEXPR
-    std::vector<_Type> to_vector() const &
+    std::vector<Type> to_vector() const &
     {
         return m_data;
     }
@@ -718,8 +726,8 @@ public:
     // to_vector (move)
     //   method: moves the pipeline data out.
     D_NODISCARD
-    D_CONSTEXPR
-    std::vector<_Type> to_vector() &&
+    D_CONSTEXPR_CPP14
+    std::vector<Type> to_vector() &&
     {
         return std::move(m_data);
     }
@@ -727,21 +735,21 @@ public:
     // reduce
     //   method: reduces elements using a binary operation. Requires
     // non-empty pipeline.
-    template<typename _Fn,
+    template<typename Fn,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _Type&, const _Type&>::value
+                 is_callable<Fn, const Type&, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    _Type
-    reduce(_Fn&& _fn) const
+    D_CONSTEXPR_CPP14
+    Type
+    reduce(Fn&& _fn) const
     {
-        _Type acc = m_data[0];
+        Type acc = m_data[0];
 
         for (std::size_t i = 1; i < m_data.size(); ++i)
         {
-            acc = std::forward<_Fn>(_fn)(
-                static_cast<const _Type&>(acc), m_data[i]);
+            acc = std::forward<Fn>(_fn)(
+                static_cast<const Type&>(acc), m_data[i]);
         }
 
         return acc;
@@ -749,19 +757,19 @@ public:
 
     // any
     //   method: returns true if any element satisfies the predicate.
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    bool any(_Pred&& _pred) const
+    D_CONSTEXPR_CPP14
+    bool any(Pred&& _pred) const
     {
         if (m_has_error) { return false; }
 
         for (const auto& element : m_data)
         {
-            if (std::forward<_Pred>(_pred)(element))
+            if (std::forward<Pred>(_pred)(element))
             {
                 return true;
             }
@@ -772,19 +780,19 @@ public:
 
     // all
     //   method: returns true if all elements satisfy the predicate.
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    bool all(_Pred&& _pred) const
+    D_CONSTEXPR_CPP14
+    bool all(Pred&& _pred) const
     {
         if (m_has_error) { return false; }
 
         for (const auto& element : m_data)
         {
-            if (!std::forward<_Pred>(_pred)(element))
+            if (!std::forward<Pred>(_pred)(element))
             {
                 return false;
             }
@@ -795,26 +803,26 @@ public:
 
     // none
     //   method: returns true if no element satisfies the predicate.
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
     D_NODISCARD
     D_CONSTEXPR
-    bool none(_Pred&& _pred) const
+    bool none(Pred&& _pred) const
     {
-        return !any(std::forward<_Pred>(_pred));
+        return !any(std::forward<Pred>(_pred));
     }
 
     // count
     //   method: returns the number of elements satisfying the predicate.
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _Type&>::value
+                 is_predicate<Pred, const Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR
-    std::size_t count(_Pred&& _pred) const
+    D_CONSTEXPR_CPP14
+    std::size_t count(Pred&& _pred) const
     {
         if (m_has_error) { return 0; }
 
@@ -822,7 +830,7 @@ public:
 
         for (const auto& element : m_data)
         {
-            if (std::forward<_Pred>(_pred)(element))
+            if (std::forward<Pred>(_pred)(element))
             {
                 ++n;
             }
@@ -854,17 +862,17 @@ public:
 
     D_NODISCARD
     D_CONSTEXPR
-    const std::vector<_Type>& data() const { return m_data; }
+    const std::vector<Type>& data() const { return m_data; }
 
     D_NODISCARD
     D_CONSTEXPR
-    const _Type& operator[](std::size_t _idx) const { return m_data[_idx]; }
+    const Type& operator[](std::size_t _idx) const { return m_data[_idx]; }
 
     // begin/end for range-for support
-    typename std::vector<_Type>::const_iterator begin() const
+    typename std::vector<Type>::const_iterator begin() const
     { return m_data.begin(); }
 
-    typename std::vector<_Type>::const_iterator end() const
+    typename std::vector<Type>::const_iterator end() const
     { return m_data.end(); }
 };
 
@@ -875,27 +883,27 @@ public:
 
 // pipeline_from (free function)
 //   function: creates a pipeline from a container.
-template<typename _Container,
-         typename _ValueType = typename std::decay<
-             decltype(*std::begin(std::declval<const _Container&>()))>::type>
-D_NODISCARD function_pipeline<_ValueType>
+template<typename Container,
+         typename ValueType = typename std::decay<
+             decltype(*std::begin(std::declval<const Container&>()))>::type>
+D_NODISCARD function_pipeline<ValueType>
 pipeline_from(
-    const _Container& _input
+    const Container& _input
 )
 {
-    return function_pipeline<_ValueType>::from(_input);
+    return function_pipeline<ValueType>::from(_input);
 }
 
 // pipeline_from (raw array)
 //   function: creates a pipeline from a C-style array.
-template<typename _Type>
-D_NODISCARD function_pipeline<_Type>
+template<typename Type>
+D_NODISCARD function_pipeline<Type>
 pipeline_from(
-    const _Type* _data,
+    const Type* _data,
     std::size_t  _count
 )
 {
-    return function_pipeline<_Type>::from(_data, _count);
+    return function_pipeline<Type>::from(_data, _count);
 }
 
 
@@ -906,7 +914,7 @@ pipeline_from(
 // what element type it carries, and whether a callable is a valid mapper /
 // predicate for a pipeline over a given element type. The mapper / predicate
 // traits are expressed in terms of the shared is_callable / is_predicate
-// detectors (const _Type& is exactly how the pipeline's own methods invoke
+// detectors (const Type& is exactly how the pipeline's own methods invoke
 // their callables). Each predicate reduces to a `static constexpr bool
 // value`; pipeline_value_type yields a `::type`. The C++20 concepts close the
 // section.
@@ -914,134 +922,136 @@ pipeline_from(
 NS_INTERNAL
 
     // is_pipeline_helper
-    //   helper: primary is std::false_type; the function_pipeline<_T>
+    //   helper: primary is std::false_type; the function_pipeline<T>
     // partial specialization lifts it to std::true_type. Kept internal so
     // the public is_pipeline can decay its argument before matching.
-    template<typename _Type>
+    template<typename Type>
     struct is_pipeline_helper
         : std::false_type
-(};
+{};
 
-    template<typename _T>
-    struct is_pipeline_helper<function_pipeline<_T>>
+    template<typename T>
+    struct is_pipeline_helper<function_pipeline<T>>
         : std::true_type
-(};
+{};
 
     // pipeline_decompose_helper
     //   helper: primary exposes no members (soft failure for non-pipeline
-    // types); the function_pipeline<_T> specialization exposes the element
+    // types); the function_pipeline<T> specialization exposes the element
     // type. function_pipeline does not publish a value_type alias, so the
     // type is recovered here by decomposition.
-    template<typename _Type>
+    template<typename Type>
     struct pipeline_decompose_helper
-(};
+{};
 
-    template<typename _T>
-    struct pipeline_decompose_helper<function_pipeline<_T>>
+    template<typename T>
+    struct pipeline_decompose_helper<function_pipeline<T>>
     {
-        using value_type = _T;
+        using value_type = T;
     };
 
 NS_END  // internal
 
 
 // is_pipeline
-//   trait: true if _Type is a function_pipeline<_U> specialization, after
+//   trait: true if Type is a function_pipeline<U> specialization, after
 // stripping cv-qualifiers and references. False for every other type.
-template<typename _Type>
+template<typename Type>
 struct is_pipeline
-    : internal::is_pipeline_helper<typename std::decay<_Type>::type>::type
+    : internal::is_pipeline_helper<typename std::decay<Type>::type>::type
 {
 };
 
 
 // pipeline_value_type
-//   trait: the element type _T of a function_pipeline<_T>. SFINAE-friendly:
-// has a `::type` only when _Pipeline is (a cv/ref-qualified) pipeline.
-template<typename _Pipeline>
+//   trait: the element type T of a function_pipeline<T>. SFINAE-friendly:
+// has a `::type` only when Pipeline is (a cv/ref-qualified) pipeline.
+template<typename Pipeline>
 struct pipeline_value_type
 {
     using type = typename internal::pipeline_decompose_helper<
-        typename std::decay<_Pipeline>::type>::value_type;
+        typename std::decay<Pipeline>::type>::value_type;
 };
 
 // pipeline_value_type_t
-//   alias: shorthand for pipeline_value_type<_Pipeline>::type.
-template<typename _Pipeline>
-using pipeline_value_type_t = typename pipeline_value_type<_Pipeline>::type;
+//   alias: shorthand for pipeline_value_type<Pipeline>::type.
+template<typename Pipeline>
+using pipeline_value_type_t = typename pipeline_value_type<Pipeline>::type;
 
 
 // is_pipeline_mapper
-//   trait: true if _Fn is callable as _Fn(const _Type&) -- the value-side
+//   trait: true if Fn is callable as Fn(const Type&) -- the value-side
 // shape accepted by pipeline::map, flat_map, group_by, and for_each. The
 // return type is unconstrained.
-template<typename _Fn,
-         typename _Type>
+template<typename Fn,
+         typename Type>
 struct is_pipeline_mapper
-    : is_callable<_Fn, const _Type&>
+    : is_callable<Fn, const Type&>
 {
 };
 
 
 // is_pipeline_predicate
-//   trait: true if _Pred is callable as _Pred(const _Type&) with a
+//   trait: true if Pred is callable as Pred(const Type&) with a
 // bool-convertible result -- the shape accepted by pipeline::filter,
 // take_while, skip_while, any, all, none, count, and partition_pipe.
-template<typename _Pred,
-         typename _Type>
+template<typename Pred,
+         typename Type>
 struct is_pipeline_predicate
-    : is_predicate<_Pred, const _Type&>
+    : is_predicate<Pred, const Type&>
 {
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // is_pipeline_v
-//   variable: shorthand for is_pipeline<_Type>::value. Available only when
+//   variable: shorthand for is_pipeline<Type>::value. Available only when
 // variable templates are supported (C++14+).
-template<typename _Type>
-static constexpr bool is_pipeline_v = is_pipeline<_Type>::value;
+template<typename Type>
+static constexpr bool is_pipeline_v = is_pipeline<Type>::value;
 
 // is_pipeline_mapper_v
-//   variable: shorthand for is_pipeline_mapper<_Fn, _Type>::value.
-template<typename _Fn,
-         typename _Type>
+//   variable: shorthand for is_pipeline_mapper<Fn, Type>::value.
+template<typename Fn,
+         typename Type>
 static constexpr bool is_pipeline_mapper_v =
-    is_pipeline_mapper<_Fn, _Type>::value;
+    is_pipeline_mapper<Fn, Type>::value;
 
 // is_pipeline_predicate_v
-//   variable: shorthand for is_pipeline_predicate<_Pred, _Type>::value.
-template<typename _Pred,
-         typename _Type>
+//   variable: shorthand for is_pipeline_predicate<Pred, Type>::value.
+template<typename Pred,
+         typename Type>
 static constexpr bool is_pipeline_predicate_v =
-    is_pipeline_predicate<_Pred, _Type>::value;
+    is_pipeline_predicate<Pred, Type>::value;
 #endif
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 // pipeline_type
-//   concept: satisfied by any function_pipeline<_U> specialization (cv-ref
+//   concept: satisfied by any function_pipeline<U> specialization (cv-ref
 // stripped). The C++20 parallel of is_pipeline.
-template<typename _Type>
-concept pipeline_type = is_pipeline<_Type>::value;
+template<typename Type>
+concept pipeline_type = is_pipeline<Type>::value;
 
 // pipeline_mapper_for
-//   concept: satisfied when _Fn is a valid mapper over _Type. The C++20
+//   concept: satisfied when Fn is a valid mapper over Type. The C++20
 // parallel of is_pipeline_mapper.
-template<typename _Fn,
-         typename _Type>
-concept pipeline_mapper_for = is_pipeline_mapper<_Fn, _Type>::value;
+template<typename Fn,
+         typename Type>
+concept pipeline_mapper_for = is_pipeline_mapper<Fn, Type>::value;
 
 // pipeline_predicate_for
-//   concept: satisfied when _Pred is a valid predicate over _Type. The
+//   concept: satisfied when Pred is a valid predicate over Type. The
 // C++20 parallel of is_pipeline_predicate.
-template<typename _Pred,
-         typename _Type>
-concept pipeline_predicate_for = is_pipeline_predicate<_Pred, _Type>::value;
+template<typename Pred,
+         typename Type>
+concept pipeline_predicate_for = is_pipeline_predicate<Pred, Type>::value;
 #endif
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_PIPELINE_
+
+#endif  // DJINTERP_FUNCTIONAL_PIPELINE_HPP

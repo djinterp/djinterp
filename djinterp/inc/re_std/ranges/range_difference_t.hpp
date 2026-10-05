@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                    range_difference_t.hpp
+/*******************************************************************************
+* djinterp [re_std]                                       range_difference_t.hpp
 *
 * range_difference_t alias template header:
 *   Yields the difference type of a range — the signed integer type
@@ -10,24 +10,27 @@
 *   Requires alias templates. Available C++11+ only.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/range_difference_t.hpp
+* path:      /inc/re_std/ranges/range_difference_t.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_RANGE_DIFFERENCE_T_
-#define DJINTERP_RE_STD_RANGES_RANGE_DIFFERENCE_T_ 1
+#ifndef RE_STD_RANGES_RANGE_DIFFERENCE_T_HPP
+#define RE_STD_RANGES_RANGE_DIFFERENCE_T_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES && \
-      D_ENV_LANG_IS_CPP11_OR_HIGHER )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES && \
+      RE_STD_LANG_IS_CPP11_OR_HIGHER )
 
 #include "../iterator/iterator_traits.hpp"
 #include "./iterator_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -35,21 +38,21 @@ NS_RESTD
 // ===========================================================================
 
 // range_difference_t
-//   alias: the signed integer difference type of _Range.
-// Equivalent to iterator_traits<iterator_t<_Range>>::difference_type.
+//   alias: the signed integer difference type of Range.
+// Equivalent to iterator_traits<iterator_t<Range>>::difference_type.
 // note: in C++20 std this is iter_difference_t<iterator_t<R>>; the
 // route through iterator_traits is equivalent because re_std's
 // iterator_traits primary mirrors the std primary (cf.
 // SYMBOLS_ITERATOR notes on iterator_traits).
-template<typename _Range>
+template<typename Range>
 using range_difference_t =
-    typename iterator_traits<iterator_t<_Range> >::difference_type;
+    typename iterator_traits<iterator_t<Range> >::difference_type;
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RE_STD_RANGES_RANGE_DIFFERENCE_T_
+#endif  // RE_STD_RANGES_RANGE_DIFFERENCE_T_HPP

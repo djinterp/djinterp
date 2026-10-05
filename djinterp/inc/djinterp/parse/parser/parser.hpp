@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                            parser/parser.hpp
+/*******************************************************************************
+* djinterp [parse]                                                    parser.hpp
 *
 * The parser carrier: a parsing function P A, presented as a CRTP expression.
 *   Per ch-parsing.tex the parser carrier is fixed as
@@ -10,7 +10,7 @@
 * further invention: Functor, Applicative, Alternative (left-biased PEG
 * ordered choice), and Monad.
 *
-*   STATIC PRESENTATION.  parser_expr<_Derived> is a CRTP base.  Every
+*   STATIC PRESENTATION.  parser_expr<Derived> is a CRTP base.  Every
 * parser — every leaf (succeed, any, literal, satisfy, eof, ...) and
 * every combinator (alt, seq, many, optional, sep_by, ...) — inherits
 * from parser_expr<itself> and supplies a parse_impl(state&) member.
@@ -33,7 +33,7 @@
 * combinators) are reached through the handle.
 *
 * CONTENTS
-*   I.    parser_expr<_Derived>           CRTP base
+*   I.    parser_expr<Derived>           CRTP base
 *   II.   is_parser  /  parser concept    structural and concept surface
 *   III.  parser_input_type /             SFINAE-safe member-type
 *         parser_result_type              extractors
@@ -50,11 +50,18 @@
 *
 * path:      /inc/djinterp/parse/parser/parser.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_PARSER_
-#define DJINTERP_PARSE_PARSER_ 1
+#ifndef DJINTERP_PARSE_PARSER_PARSER_HPP
+#define DJINTERP_PARSE_PARSER_PARSER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -63,6 +70,7 @@
 #include <utility>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../../core/meta/type_utility.hpp"  // clean_t
 #include "../../core/meta/member_traits.hpp"
 #include "../../core/functional/functor.hpp"
 #include "../../core/functional/applicative.hpp"
@@ -76,19 +84,19 @@ NS_PARSE
 
 
 // ================================================================
-//  I.   parser_expr<_Derived>
+//  I.   parser_expr<Derived>
 // ================================================================
 
 // parser_expr
 //   class: CRTP base for every parser.  A conforming derived type
-// _Derived must supply
+// Derived must supply
 //
 //     using input_type   = ...                       (Σ element)
 //     using result_type  = ...                       (A produced)
 //     output_type parse_impl(state_type&) const      (the function)
 //
 // where output_type defaults to parse_result<result_type> and
-// state_type to parse_state<input_type> unless _Derived overrides
+// state_type to parse_state<input_type> unless Derived overrides
 // either alias.  The CRTP base exposes parse() and operator() that
 // forward to parse_impl via static_cast — no virtual dispatch, full
 // inlinability through the entire composition tree.
@@ -97,51 +105,55 @@ NS_PARSE
 // same call; both names are kept so call sites can read either as
 // the formal notation does (f(s)) or as the parser literature does
 // (p.parse(s)).
-template<typename _Derived>
+template<typename Derived>
 class parser_expr
 {
 public:
-    using derived_type = _Derived;
+    using derived_type = Derived;
 
     // derived
     //   method: static_cast-down to the concrete parser.  Used by
     // combinators that need to read members the base doesn't see.
     D_NODISCARD
-    const _Derived&
+    const Derived&
     derived() const D_NOEXCEPT
     {
-        return static_cast<const _Derived&>(*this);
+        return static_cast<const Derived&>(*this);
     }
 
     D_NODISCARD
-    _Derived&
+    Derived&
     derived() D_NOEXCEPT
     {
-        return static_cast<_Derived&>(*this);
+        return static_cast<Derived&>(*this);
     }
 
     // parse
     //   method: runs the parser against _state, returning the
-    // derived's output.  Delegated to _Derived::parse_impl via the
-    // CRTP downcast.
-    template<typename _State>
+    // derived's output.  Delegated to Derived::parse_impl via the
+    // CRTP downcast.  The return type names Self, which defaults to
+    // Derived, so that parse_impl is looked up only when parse is used:
+    // here, as the base of Derived, Derived is still incomplete.
+    template<typename State,
+             typename Self = Derived>
     D_NODISCARD
     auto parse(
-        _State& _state
+        State& _state
     ) const
-    -> decltype(std::declval<const _Derived&>().parse_impl(_state))
+    -> decltype(std::declval<const Self&>().parse_impl(_state))
     {
         return derived().parse_impl(_state);
     }
 
     // operator()
     //   method: alias for parse().  The parser IS a function.
-    template<typename _State>
+    template<typename State,
+             typename Self = Derived>
     D_NODISCARD
     auto operator()(
-        _State& _state
+        State& _state
     ) const
-    -> decltype(std::declval<const _Derived&>().parse_impl(_state))
+    -> decltype(std::declval<const Self&>().parse_impl(_state))
     {
         return derived().parse_impl(_state);
     }
@@ -161,21 +173,21 @@ protected:
 // ================================================================
 
 // is_parser
-//   trait: structural check.  A type _T is a parser iff it derives
-// from parser_expr<_T> (CRTP) — that contract requires _T to expose
+//   trait: structural check.  A type T is a parser iff it derives
+// from parser_expr<T> (CRTP) — that contract requires T to expose
 // input_type, result_type, and parse_impl as a side condition of
 // the inheritance, since the base's parse() instantiation reads
 // them.
-template<typename _T>
+template<typename T>
 struct is_parser
     : std::is_base_of<
-          parser_expr<typename std::decay<_T>::type>,
-          typename std::decay<_T>::type>
+          parser_expr<typename std::decay<T>::type>,
+          typename std::decay<T>::type>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    static constexpr bool is_parser_v = is_parser<_T>::value;
+    template<typename T>
+    static constexpr bool is_parser_v = is_parser<T>::value;
 #endif
 
 
@@ -183,25 +195,25 @@ struct is_parser
 
     // parser_concept
     //   concept: structurally conforming parser.
-    template<typename _T>
-    concept parser_concept = is_parser<_T>::value;
+    template<typename T>
+    concept parser_concept = is_parser<T>::value;
 
     // text_parser_concept
     //   concept: a parser whose input_type is char.
-    template<typename _T>
+    template<typename T>
     concept text_parser_concept =
-        ( parser_concept<_T> &&
+        ( parser_concept<T> &&
           std::is_same<
-              typename std::decay<_T>::type::input_type,
+              typename std::decay<T>::type::input_type,
               char>::value );
 
     // binary_parser_concept
     //   concept: a parser whose input_type is unsigned char.
-    template<typename _T>
+    template<typename T>
     concept binary_parser_concept =
-        ( parser_concept<_T> &&
+        ( parser_concept<T> &&
           std::is_same<
-              typename std::decay<_T>::type::input_type,
+              typename std::decay<T>::type::input_type,
               unsigned char>::value );
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -229,40 +241,40 @@ NS_INTERNAL
 
     // is_text_parser_helper
     //   trait: primary template (failure case).
-    template<typename _T,
-             bool     _IsParser = is_parser<_T>::value,
+    template<typename T,
+             bool     IsParser = is_parser<T>::value,
              typename           = void>
     struct is_text_parser_helper : std::false_type
     {};
 
     // is_text_parser_helper (success case)
     //   trait: a parser whose input_type is char.
-    template<typename _T>
+    template<typename T>
     struct is_text_parser_helper<
-        _T,
+        T,
         true,
         typename std::enable_if<
-            std::is_same<typename clean_t<_T>::input_type,
+            std::is_same<typename clean_t<T>::input_type,
                          char>::value>::type
     > : std::true_type
     {};
 
     // is_binary_parser_helper
     //   trait: primary template (failure case).
-    template<typename _T,
-             bool     _IsParser = is_parser<_T>::value,
+    template<typename T,
+             bool     IsParser = is_parser<T>::value,
              typename           = void>
     struct is_binary_parser_helper : std::false_type
     {};
 
     // is_binary_parser_helper (success case)
     //   trait: a parser whose input_type is unsigned char.
-    template<typename _T>
+    template<typename T>
     struct is_binary_parser_helper<
-        _T,
+        T,
         true,
         typename std::enable_if<
-            std::is_same<typename clean_t<_T>::input_type,
+            std::is_same<typename clean_t<T>::input_type,
                          unsigned char>::value>::type
     > : std::true_type
     {};
@@ -271,25 +283,25 @@ NS_END  // internal
 
 // is_text_parser
 //   trait: a structurally conforming parser whose input_type is char.
-template<typename _T>
-struct is_text_parser : internal::is_text_parser_helper<_T>
+template<typename T>
+struct is_text_parser : internal::is_text_parser_helper<T>
 {};
 
 // is_binary_parser
 //   trait: a structurally conforming parser whose input_type is
 // unsigned char.
-template<typename _T>
-struct is_binary_parser : internal::is_binary_parser_helper<_T>
+template<typename T>
+struct is_binary_parser : internal::is_binary_parser_helper<T>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
+    template<typename T>
     static constexpr bool is_text_parser_v =
-        is_text_parser<_T>::value;
+        is_text_parser<T>::value;
 
-    template<typename _T>
+    template<typename T>
     static constexpr bool is_binary_parser_v =
-        is_binary_parser<_T>::value;
+        is_binary_parser<T>::value;
 #endif
 
 
@@ -301,26 +313,26 @@ NS_INTERNAL
 
     // parsers_compatible_helper
     //   trait: primary template (failure case).
-    template<typename _A,
-             typename _B,
-             bool     _BothParsers = ( is_parser<_A>::value &&
-                                       is_parser<_B>::value ),
+    template<typename A,
+             typename B,
+             bool     BothParsers = ( is_parser<A>::value &&
+                                       is_parser<B>::value ),
              typename = void>
     struct parsers_compatible_helper : std::false_type
     {};
 
     // parsers_compatible_helper (success case)
     //   trait: both are parsers sharing input_type.
-    template<typename _A,
-             typename _B>
+    template<typename A,
+             typename B>
     struct parsers_compatible_helper<
-        _A,
-        _B,
+        A,
+        B,
         true,
         typename std::enable_if<
             std::is_same<
-                typename clean_t<_A>::input_type,
-                typename clean_t<_B>::input_type>::value>::type
+                typename clean_t<A>::input_type,
+                typename clean_t<B>::input_type>::value>::type
     > : std::true_type
     {};
 
@@ -328,17 +340,17 @@ NS_END  // internal
 
 // parsers_compatible
 //   trait: two parsers share input_type and are therefore composable.
-template<typename _A,
-         typename _B>
+template<typename A,
+         typename B>
 struct parsers_compatible
-    : internal::parsers_compatible_helper<_A, _B>
+    : internal::parsers_compatible_helper<A, B>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _A,
-             typename _B>
+    template<typename A,
+             typename B>
     static constexpr bool parsers_compatible_v =
-        parsers_compatible<_A, _B>::value;
+        parsers_compatible<A, B>::value;
 #endif
 
 
@@ -362,19 +374,19 @@ struct parsers_compatible
 // guard excludes `parser` itself so copy/move take their respective
 // special members.
 //
-//   _Result   A   — the value produced on success.
-//   _Element  Σ   — the surface stream element type; char by default.
-template<typename _Result,
-         typename _Element = char>
-class parser : public parser_expr<parser<_Result, _Element>>
+//   Result    A   — the value produced on success.
+//   Element   Σ   — the surface stream element type; char by default.
+template<typename Result,
+         typename Element = char>
+class parser : public parser_expr<parser<Result, Element>>
 {
 public:
-    using input_type    = _Element;
-    using element_type  = _Element;
-    using result_type   = _Result;
-    using value_type    = _Result;
-    using state_type    = parse_state<_Element>;
-    using output_type   = parse_result<_Result>;
+    using input_type    = Element;
+    using element_type  = Element;
+    using result_type   = Result;
+    using value_type    = Result;
+    using state_type    = parse_state<Element>;
+    using output_type   = parse_result<Result>;
     using function_type =
         std::function<output_type(state_type&)>;
 
@@ -386,17 +398,17 @@ public:
     //   constructor: wraps a callable — including any parser_expr —
     // into the type-erasing handle.  SFINAE excludes `parser` itself
     // so the copy and move constructors aren't shadowed.
-    template<typename _Fn,
+    template<typename Fn,
              typename = typename std::enable_if<
                  ( !std::is_same<
-                       typename std::decay<_Fn>::type,
+                       typename std::decay<Fn>::type,
                        parser>::value )                       &&
                  ( std::is_constructible<
-                       function_type, _Fn>::value )>::type>
+                       function_type, Fn>::value )>::type>
     parser(
-        _Fn _fn
+        Fn _fn
     )
-        : m_fn(static_cast<_Fn&&>(_fn))
+        : m_fn(static_cast<Fn&&>(_fn))
     {}
 
     parser(const parser&) = default;
@@ -470,28 +482,28 @@ NS_END  // parse
 // parser, threads its result through f, and runs the resulting
 // parser at the advanced state.  An error from the first short-
 // circuits.
-template<typename _Result,
-         typename _Element>
-struct monad_traits<parse::parser<_Result, _Element>>
+template<typename Result,
+         typename Element>
+struct monad_traits<parse::parser<Result, Element>>
 {
     using is_specialized = std::true_type;
-    using value_type     = _Result;
+    using value_type     = Result;
 
-    template<typename _U>
-    using rebind = parse::parser<_U, _Element>;
+    template<typename U>
+    using rebind = parse::parser<U, Element>;
 
     // unit
     //   lifts a value into the parser monad.
     static
-    parse::parser<_Result, _Element>
+    parse::parser<Result, Element>
     unit(
-        _Result _value
+        Result _value
     )
     {
-        using state_type  = parse::parse_state<_Element>;
-        using output_type = parse::parse_result<_Result>;
+        using state_type  = parse::parse_state<Element>;
+        using output_type = parse::parse_result<Result>;
 
-        return parse::parser<_Result, _Element>(
+        return parse::parser<Result, Element>(
             [_value](state_type& /*_state*/) -> output_type
             {
                 return output_type(_value);
@@ -502,26 +514,26 @@ struct monad_traits<parse::parser<_Result, _Element>>
     //   monadic bind.  Runs _p; on success, applies _f to the
     // produced value (which must yield a parser) and runs that at
     // the state _p left behind; on failure, propagates the error.
-    template<typename _Function>
+    template<typename Function>
     static
     auto bind(
-        const parse::parser<_Result, _Element>& _p,
-        _Function                               _f
+        const parse::parser<Result, Element>& _p,
+        Function                                _f
     )
     -> typename std::decay<decltype(
-        _f(std::declval<const _Result&>()))>::type
+        _f(std::declval<const Result&>()))>::type
     {
         using next_parser_t =
             typename std::decay<decltype(
-                _f(std::declval<const _Result&>()))>::type;
+                _f(std::declval<const Result&>()))>::type;
         using next_result_t = typename next_parser_t::result_type;
-        using state_type    = parse::parse_state<_Element>;
+        using state_type    = parse::parse_state<Element>;
         using output_type   = parse::parse_result<next_result_t>;
 
         return next_parser_t(
             [_p, _f](state_type& _state) -> output_type
             {
-                parse::parse_result<_Result> r = _p.parse(_state);
+                parse::parse_result<Result> r = _p.parse(_state);
 
                 if (!r.ok())
                 {
@@ -540,55 +552,55 @@ struct monad_traits<parse::parser<_Result, _Element>>
 // unit; ap runs the function-producing parser, then the value-
 // producing parser, and applies the former to the latter — both run
 // in sequence, threading the residual via the state.
-template<typename _Result,
-         typename _Element>
-struct applicative_traits<parse::parser<_Result, _Element>>
+template<typename Result,
+         typename Element>
+struct applicative_traits<parse::parser<Result, Element>>
 {
     using is_specialized = std::true_type;
-    using value_type     = _Result;
+    using value_type     = Result;
 
-    template<typename _U>
-    using rebind = parse::parser<_U, _Element>;
+    template<typename U>
+    using rebind = parse::parser<U, Element>;
 
     // pure
     //   lifts a value into the parser applicative.  Equivalent to
     // monad_traits::unit.
     static
-    parse::parser<_Result, _Element>
+    parse::parser<Result, Element>
     pure(
-        _Result _value
+        Result _value
     )
     {
         return monad_traits<
-                   parse::parser<_Result, _Element>
-               >::unit(static_cast<_Result&&>(_value));
+                   parse::parser<Result, Element>
+               >::unit(static_cast<Result&&>(_value));
     }
 
     // ap
     //   applicative apply.  Runs the function-parser, then the
     // value-parser, and combines them.  Either failure short-
     // circuits to the error.
-    template<typename _Pf>
+    template<typename Pf>
     static
     auto ap(
-        const _Pf&                              _pf,
-        const parse::parser<_Result, _Element>& _pa
+        const Pf&                              _pf,
+        const parse::parser<Result, Element>& _pa
     )
     -> parse::parser<
            typename std::decay<decltype(
-               std::declval<typename _Pf::result_type>()(
-                   std::declval<_Result>()))>::type,
-           _Element>
+               std::declval<typename Pf::result_type>()(
+                   std::declval<Result>()))>::type,
+           Element>
     {
-        using fn_type     = typename _Pf::result_type;
+        using fn_type     = typename Pf::result_type;
         using out_type    =
             typename std::decay<decltype(
                 std::declval<fn_type>()(
-                    std::declval<_Result>()))>::type;
-        using state_type  = parse::parse_state<_Element>;
+                    std::declval<Result>()))>::type;
+        using state_type  = parse::parse_state<Element>;
         using output_type = parse::parse_result<out_type>;
 
-        return parse::parser<out_type, _Element>(
+        return parse::parser<out_type, Element>(
             [_pf, _pa](state_type& _state) -> output_type
             {
                 parse::parse_result<fn_type> rf = _pf.parse(_state);
@@ -598,7 +610,7 @@ struct applicative_traits<parse::parser<_Result, _Element>>
                     return output_type(rf.error());
                 }
 
-                parse::parse_result<_Result> ra = _pa.parse(_state);
+                parse::parse_result<Result> ra = _pa.parse(_state);
 
                 if (!ra.ok())
                 {
@@ -616,23 +628,23 @@ struct applicative_traits<parse::parser<_Result, _Element>>
 // choice(p, q) is PEG ordered choice — try p first, commit on
 // success, otherwise restore the offset and try q.  Left-biased and
 // leftmost-wins, exactly as ch-parsing prescribes.
-template<typename _Result,
-         typename _Element>
-struct alternative_traits<parse::parser<_Result, _Element>>
+template<typename Result,
+         typename Element>
+struct alternative_traits<parse::parser<Result, Element>>
 {
     using is_specialized = std::true_type;
-    using value_type     = _Result;
+    using value_type     = Result;
 
     // empty
     //   the failure / identity for choice.
     static
-    parse::parser<_Result, _Element>
+    parse::parser<Result, Element>
     empty()
     {
-        using state_type  = parse::parse_state<_Element>;
-        using output_type = parse::parse_result<_Result>;
+        using state_type  = parse::parse_state<Element>;
+        using output_type = parse::parse_result<Result>;
 
-        return parse::parser<_Result, _Element>(
+        return parse::parser<Result, Element>(
             [](state_type& _state) -> output_type
             {
                 return output_type::make_error(
@@ -646,16 +658,16 @@ struct alternative_traits<parse::parser<_Result, _Element>>
     //   PEG ordered choice — try _a, restore the offset and try _b
     // on failure.
     static
-    parse::parser<_Result, _Element>
+    parse::parser<Result, Element>
     choice(
-        const parse::parser<_Result, _Element>& _a,
-        const parse::parser<_Result, _Element>& _b
+        const parse::parser<Result, Element>& _a,
+        const parse::parser<Result, Element>& _b
     )
     {
-        using state_type  = parse::parse_state<_Element>;
-        using output_type = parse::parse_result<_Result>;
+        using state_type  = parse::parse_state<Element>;
+        using output_type = parse::parse_result<Result>;
 
-        return parse::parser<_Result, _Element>(
+        return parse::parser<Result, Element>(
             [_a, _b](state_type& _state) -> output_type
             {
                 std::size_t saved = _state.offset;
@@ -678,5 +690,7 @@ struct alternative_traits<parse::parser<_Result, _Element>>
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_PARSER_
+
+#endif  // DJINTERP_PARSE_PARSER_PARSER_HPP

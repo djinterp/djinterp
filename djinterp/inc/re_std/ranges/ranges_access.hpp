@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         ranges_access.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            ranges_access.hpp
 *
 * ranges access CPO header:
 *   Provides the C++20 ranges::begin / end / cbegin / cend / rbegin /
@@ -37,18 +37,21 @@
 *     static-constexpr instances (same pattern as iter_move in R22).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/ranges_access.hpp
+* path:      /inc/re_std/ranges/ranges_access.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_RANGES_ACCESS_
-#define DJINTERP_RE_STD_RANGES_RANGES_ACCESS_ 1
+#ifndef RE_STD_RANGES_RANGES_ACCESS_HPP
+#define RE_STD_RANGES_RANGES_ACCESS_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>  // std::size_t, std::ptrdiff_t
 
 #include "../type_traits/type_traits.hpp"
@@ -57,9 +60,8 @@
 #include "../iterator/basic_const_iterator.hpp"
 
 
-NS_RESTD
-
-
+namespace re_std
+{
 namespace ranges
 {
 
@@ -70,8 +72,9 @@ namespace ranges
 
 namespace internal
 {
-    template<int _N>
-    struct priority : priority<_N - 1>
+
+    template<int N>
+    struct priority : priority<N - 1>
     {};
 
     template<>
@@ -92,61 +95,61 @@ namespace _begin_fn
                             // CPO itself (which lives in an outer
                             // namespace).
 
-    // priority<3>: array specialisation. Returns _T*.
-    template<typename _T, std::size_t _N>
-    D_CONSTEXPR_INLINE _T*
+    // priority<3>: array specialisation. Returns T*.
+    template<typename T, std::size_t N>
+    RE_STD_CONSTEXPR_INLINE T*
     _impl(
-        _T (&_arr)[_N],
+        T (&_arr)[N],
         internal::priority<3>
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return _arr + 0;
     }
 
     // priority<2>: member function.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<2>
     )
-        -> decltype(static_cast<_R&&>(_r).begin())
+        -> decltype(static_cast<R&&>(_r).begin())
     {
-        return static_cast<_R&&>(_r).begin();
+        return static_cast<R&&>(_r).begin();
     }
 
     // priority<1>: ADL free function.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<1>
     )
-        -> decltype(begin(static_cast<_R&&>(_r)))
+        -> decltype(begin(static_cast<R&&>(_r)))
     {
-        return begin(static_cast<_R&&>(_r));
+        return begin(static_cast<R&&>(_r));
     }
 
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
-            -> decltype(_impl(static_cast<_R&&>(_r), internal::priority<3>()))
+        operator()(R&& _r) const
+            -> decltype(_impl(static_cast<R&&>(_r), internal::priority<3>()))
         {
-            return _impl(static_cast<_R&&>(_r), internal::priority<3>());
+            return _impl(static_cast<R&&>(_r), internal::priority<3>());
         }
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _begin_fn::fn begin = _begin_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _begin_fn::fn begin = _begin_fn::fn();
 #else
-static D_CONSTEXPR _begin_fn::fn begin = _begin_fn::fn();
+static RE_STD_CONSTEXPR _begin_fn::fn begin = _begin_fn::fn();
 #endif
 
 
@@ -159,60 +162,60 @@ namespace _end_fn
     void end() = delete;
 
     // priority<3>: array.
-    template<typename _T, std::size_t _N>
-    D_CONSTEXPR_INLINE _T*
+    template<typename T, std::size_t N>
+    RE_STD_CONSTEXPR_INLINE T*
     _impl(
-        _T (&_arr)[_N],
+        T (&_arr)[N],
         internal::priority<3>
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
-        return _arr + _N;
+        return _arr + N;
     }
 
     // priority<2>: member function.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<2>
     )
-        -> decltype(static_cast<_R&&>(_r).end())
+        -> decltype(static_cast<R&&>(_r).end())
     {
-        return static_cast<_R&&>(_r).end();
+        return static_cast<R&&>(_r).end();
     }
 
     // priority<1>: ADL.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<1>
     )
-        -> decltype(end(static_cast<_R&&>(_r)))
+        -> decltype(end(static_cast<R&&>(_r)))
     {
-        return end(static_cast<_R&&>(_r));
+        return end(static_cast<R&&>(_r));
     }
 
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
-            -> decltype(_impl(static_cast<_R&&>(_r), internal::priority<3>()))
+        operator()(R&& _r) const
+            -> decltype(_impl(static_cast<R&&>(_r), internal::priority<3>()))
         {
-            return _impl(static_cast<_R&&>(_r), internal::priority<3>());
+            return _impl(static_cast<R&&>(_r), internal::priority<3>());
         }
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _end_fn::fn end = _end_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _end_fn::fn end = _end_fn::fn();
 #else
-static D_CONSTEXPR _end_fn::fn end = _end_fn::fn();
+static RE_STD_CONSTEXPR _end_fn::fn end = _end_fn::fn();
 #endif
 
 
@@ -225,49 +228,49 @@ namespace _size_fn
     void size() = delete;
 
     // priority<3>: array.
-    template<typename _T, std::size_t _N>
-    D_CONSTEXPR_INLINE std::size_t
+    template<typename T, std::size_t N>
+    RE_STD_CONSTEXPR_INLINE std::size_t
     _impl(
-        _T (&)[_N],
+        T (&)[N],
         internal::priority<3>
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
-        return _N;
+        return N;
     }
 
     // priority<2>: member function.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<2>
     )
-        -> decltype(static_cast<_R&&>(_r).size())
+        -> decltype(static_cast<R&&>(_r).size())
     {
-        return static_cast<_R&&>(_r).size();
+        return static_cast<R&&>(_r).size();
     }
 
     // priority<1>: ADL.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<1>
     )
-        -> decltype(size(static_cast<_R&&>(_r)))
+        -> decltype(size(static_cast<R&&>(_r)))
     {
-        return size(static_cast<_R&&>(_r));
+        return size(static_cast<R&&>(_r));
     }
 
     // priority<0>: derived from end - begin (random-access common range).
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<0>
     )
         -> decltype(ranges::end(_r) - ranges::begin(_r))
@@ -277,21 +280,21 @@ namespace _size_fn
 
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
-            -> decltype(_impl(static_cast<_R&&>(_r), internal::priority<3>()))
+        operator()(R&& _r) const
+            -> decltype(_impl(static_cast<R&&>(_r), internal::priority<3>()))
         {
-            return _impl(static_cast<_R&&>(_r), internal::priority<3>());
+            return _impl(static_cast<R&&>(_r), internal::priority<3>());
         }
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _size_fn::fn size = _size_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _size_fn::fn size = _size_fn::fn();
 #else
-static D_CONSTEXPR _size_fn::fn size = _size_fn::fn();
+static RE_STD_CONSTEXPR _size_fn::fn size = _size_fn::fn();
 #endif
 
 
@@ -303,10 +306,10 @@ namespace _ssize_fn
 {
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
+        operator()(R&& _r) const
             -> typename make_signed<
                             typename decay<decltype(ranges::size(_r))>::type
                         >::type
@@ -319,10 +322,10 @@ namespace _ssize_fn
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _ssize_fn::fn ssize = _ssize_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _ssize_fn::fn ssize = _ssize_fn::fn();
 #else
-static D_CONSTEXPR _ssize_fn::fn ssize = _ssize_fn::fn();
+static RE_STD_CONSTEXPR _ssize_fn::fn ssize = _ssize_fn::fn();
 #endif
 
 
@@ -333,24 +336,24 @@ static D_CONSTEXPR _ssize_fn::fn ssize = _ssize_fn::fn();
 namespace _empty_fn
 {
     // priority<3>: member function r.empty().
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<3>
     )
-        -> decltype(static_cast<bool>(static_cast<_R&&>(_r).empty()))
+        -> decltype(static_cast<bool>(static_cast<R&&>(_r).empty()))
     {
-        return static_cast<bool>(static_cast<_R&&>(_r).empty());
+        return static_cast<bool>(static_cast<R&&>(_r).empty());
     }
 
     // priority<2>: ranges::size(r) == 0.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<2>
     )
         -> decltype(ranges::size(_r) == 0)
@@ -360,11 +363,11 @@ namespace _empty_fn
 
     // priority<1>: ranges::begin(r) == ranges::end(r). For common
     // ranges (where begin and end share a type).
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<1>
     )
         -> decltype(static_cast<bool>(ranges::begin(_r) == ranges::end(_r)))
@@ -374,21 +377,21 @@ namespace _empty_fn
 
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
-            -> decltype(_impl(static_cast<_R&&>(_r), internal::priority<3>()))
+        operator()(R&& _r) const
+            -> decltype(_impl(static_cast<R&&>(_r), internal::priority<3>()))
         {
-            return _impl(static_cast<_R&&>(_r), internal::priority<3>());
+            return _impl(static_cast<R&&>(_r), internal::priority<3>());
         }
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _empty_fn::fn empty = _empty_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _empty_fn::fn empty = _empty_fn::fn();
 #else
-static D_CONSTEXPR _empty_fn::fn empty = _empty_fn::fn();
+static RE_STD_CONSTEXPR _empty_fn::fn empty = _empty_fn::fn();
 #endif
 
 
@@ -399,38 +402,38 @@ static D_CONSTEXPR _empty_fn::fn empty = _empty_fn::fn();
 namespace _data_fn
 {
     // priority<3>: array.
-    template<typename _T, std::size_t _N>
-    D_CONSTEXPR_INLINE _T*
+    template<typename T, std::size_t N>
+    RE_STD_CONSTEXPR_INLINE T*
     _impl(
-        _T (&_arr)[_N],
+        T (&_arr)[N],
         internal::priority<3>
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return _arr + 0;
     }
 
     // priority<2>: member function r.data().
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<2>
     )
-        -> decltype(static_cast<_R&&>(_r).data())
+        -> decltype(static_cast<R&&>(_r).data())
     {
-        return static_cast<_R&&>(_r).data();
+        return static_cast<R&&>(_r).data();
     }
 
     // priority<1>: address of *begin (contiguous range fallback).
     // Strictly speaking C++20 uses to_address; for re_std this works
     // when begin yields a pointer or pointer-like iterator.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<1>
     )
         -> decltype(&(*ranges::begin(_r)))
@@ -440,21 +443,21 @@ namespace _data_fn
 
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
-            -> decltype(_impl(static_cast<_R&&>(_r), internal::priority<3>()))
+        operator()(R&& _r) const
+            -> decltype(_impl(static_cast<R&&>(_r), internal::priority<3>()))
         {
-            return _impl(static_cast<_R&&>(_r), internal::priority<3>());
+            return _impl(static_cast<R&&>(_r), internal::priority<3>());
         }
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _data_fn::fn data = _data_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _data_fn::fn data = _data_fn::fn();
 #else
-static D_CONSTEXPR _data_fn::fn data = _data_fn::fn();
+static RE_STD_CONSTEXPR _data_fn::fn data = _data_fn::fn();
 #endif
 
 
@@ -466,10 +469,10 @@ namespace _cbegin_fn
 {
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
+        operator()(R&& _r) const
             -> basic_const_iterator<
                   typename decay<decltype(ranges::begin(_r))>::type
                >
@@ -482,10 +485,10 @@ namespace _cbegin_fn
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _cbegin_fn::fn cbegin = _cbegin_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _cbegin_fn::fn cbegin = _cbegin_fn::fn();
 #else
-static D_CONSTEXPR _cbegin_fn::fn cbegin = _cbegin_fn::fn();
+static RE_STD_CONSTEXPR _cbegin_fn::fn cbegin = _cbegin_fn::fn();
 #endif
 
 
@@ -497,11 +500,11 @@ namespace _cend_fn
     // (R22) handles the asymmetric compare.
 
     // priority<2>: same type as begin → wrap in basic_const_iterator.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<2>
     )
         -> typename enable_if<
@@ -521,11 +524,11 @@ namespace _cend_fn
     }
 
     // priority<1>: non-common → pass sentinel through.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<1>
     )
         -> typename enable_if<
@@ -541,21 +544,21 @@ namespace _cend_fn
 
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
-            -> decltype(_impl(static_cast<_R&&>(_r), internal::priority<2>()))
+        operator()(R&& _r) const
+            -> decltype(_impl(static_cast<R&&>(_r), internal::priority<2>()))
         {
-            return _impl(static_cast<_R&&>(_r), internal::priority<2>());
+            return _impl(static_cast<R&&>(_r), internal::priority<2>());
         }
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _cend_fn::fn cend = _cend_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _cend_fn::fn cend = _cend_fn::fn();
 #else
-static D_CONSTEXPR _cend_fn::fn cend = _cend_fn::fn();
+static RE_STD_CONSTEXPR _cend_fn::fn cend = _cend_fn::fn();
 #endif
 
 
@@ -568,38 +571,38 @@ namespace _rbegin_fn
     void rbegin() = delete;
 
     // priority<3>: member function.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<3>
     )
-        -> decltype(static_cast<_R&&>(_r).rbegin())
+        -> decltype(static_cast<R&&>(_r).rbegin())
     {
-        return static_cast<_R&&>(_r).rbegin();
+        return static_cast<R&&>(_r).rbegin();
     }
 
     // priority<2>: ADL.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<2>
     )
-        -> decltype(rbegin(static_cast<_R&&>(_r)))
+        -> decltype(rbegin(static_cast<R&&>(_r)))
     {
-        return rbegin(static_cast<_R&&>(_r));
+        return rbegin(static_cast<R&&>(_r));
     }
 
     // priority<1>: make_reverse_iterator(ranges::end(r)).
     // Requires the underlying to be a common bidirectional range.
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<1>
     )
         -> reverse_iterator<typename decay<decltype(ranges::end(_r))>::type>
@@ -612,21 +615,21 @@ namespace _rbegin_fn
 
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
-            -> decltype(_impl(static_cast<_R&&>(_r), internal::priority<3>()))
+        operator()(R&& _r) const
+            -> decltype(_impl(static_cast<R&&>(_r), internal::priority<3>()))
         {
-            return _impl(static_cast<_R&&>(_r), internal::priority<3>());
+            return _impl(static_cast<R&&>(_r), internal::priority<3>());
         }
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _rbegin_fn::fn rbegin = _rbegin_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _rbegin_fn::fn rbegin = _rbegin_fn::fn();
 #else
-static D_CONSTEXPR _rbegin_fn::fn rbegin = _rbegin_fn::fn();
+static RE_STD_CONSTEXPR _rbegin_fn::fn rbegin = _rbegin_fn::fn();
 #endif
 
 
@@ -634,35 +637,35 @@ namespace _rend_fn
 {
     void rend() = delete;
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<3>
     )
-        -> decltype(static_cast<_R&&>(_r).rend())
+        -> decltype(static_cast<R&&>(_r).rend())
     {
-        return static_cast<_R&&>(_r).rend();
+        return static_cast<R&&>(_r).rend();
     }
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<2>
     )
-        -> decltype(rend(static_cast<_R&&>(_r)))
+        -> decltype(rend(static_cast<R&&>(_r)))
     {
-        return rend(static_cast<_R&&>(_r));
+        return rend(static_cast<R&&>(_r));
     }
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
     auto
     _impl(
-        _R&&             _r,
+        R&&             _r,
         internal::priority<1>
     )
         -> reverse_iterator<typename decay<decltype(ranges::begin(_r))>::type>
@@ -675,21 +678,21 @@ namespace _rend_fn
 
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
-            -> decltype(_impl(static_cast<_R&&>(_r), internal::priority<3>()))
+        operator()(R&& _r) const
+            -> decltype(_impl(static_cast<R&&>(_r), internal::priority<3>()))
         {
-            return _impl(static_cast<_R&&>(_r), internal::priority<3>());
+            return _impl(static_cast<R&&>(_r), internal::priority<3>());
         }
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _rend_fn::fn rend = _rend_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _rend_fn::fn rend = _rend_fn::fn();
 #else
-static D_CONSTEXPR _rend_fn::fn rend = _rend_fn::fn();
+static RE_STD_CONSTEXPR _rend_fn::fn rend = _rend_fn::fn();
 #endif
 
 
@@ -701,10 +704,10 @@ namespace _crbegin_fn
 {
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
+        operator()(R&& _r) const
             -> basic_const_iterator<
                    typename decay<decltype(ranges::rbegin(_r))>::type
                >
@@ -717,10 +720,10 @@ namespace _crbegin_fn
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _crbegin_fn::fn crbegin = _crbegin_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _crbegin_fn::fn crbegin = _crbegin_fn::fn();
 #else
-static D_CONSTEXPR _crbegin_fn::fn crbegin = _crbegin_fn::fn();
+static RE_STD_CONSTEXPR _crbegin_fn::fn crbegin = _crbegin_fn::fn();
 #endif
 
 
@@ -728,10 +731,10 @@ namespace _crend_fn
 {
     struct fn
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
+        operator()(R&& _r) const
             -> basic_const_iterator<
                    typename decay<decltype(ranges::rend(_r))>::type
                >
@@ -744,10 +747,10 @@ namespace _crend_fn
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _crend_fn::fn crend = _crend_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _crend_fn::fn crend = _crend_fn::fn();
 #else
-static D_CONSTEXPR _crend_fn::fn crend = _crend_fn::fn();
+static RE_STD_CONSTEXPR _crend_fn::fn crend = _crend_fn::fn();
 #endif
 
 
@@ -756,10 +759,10 @@ namespace _cdata_fn
     struct fn
     {
         // ranges::cdata(r) yields a pointer-to-const-element.
-        template<typename _R>
-        D_CONSTEXPR_INLINE
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
         auto
-        operator()(_R&& _r) const
+        operator()(R&& _r) const
             -> typename add_pointer<
                    typename add_const<
                        typename remove_pointer<
@@ -780,20 +783,20 @@ namespace _cdata_fn
     };
 }
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-inline D_CONSTEXPR _cdata_fn::fn cdata = _cdata_fn::fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+inline RE_STD_CONSTEXPR _cdata_fn::fn cdata = _cdata_fn::fn();
 #else
-static D_CONSTEXPR _cdata_fn::fn cdata = _cdata_fn::fn();
+static RE_STD_CONSTEXPR _cdata_fn::fn cdata = _cdata_fn::fn();
 #endif
 
 
 }  // namespace ranges
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_RANGES_ACCESS_
+#endif  // RE_STD_RANGES_RANGES_ACCESS_HPP

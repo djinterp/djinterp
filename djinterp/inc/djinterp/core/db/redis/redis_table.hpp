@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                          redis_table.hpp
+/*******************************************************************************
+* djinterp [core]                                                redis_table.hpp
 *
 * djinterp Redis table module:
 *   A hash-backed "logical table" abstraction over Redis. Redis is a
@@ -27,7 +27,7 @@
 * concepts where finer-grained behaviour is needed.
 *
 *   LAYER DIAGRAM:
-*     redis_table<_Config>
+*     redis_table<Config>
 *       — STANDALONE; no SQL inheritance —
 *       wraps redis_connection
 *
@@ -37,16 +37,21 @@
 *
 * path:      /inc/djinterp/core/db/redis/redis_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.27
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_REDIS_TABLE_
-#define DJINTERP_DATABASE_REDIS_TABLE_
+#ifndef DJINTERP_DB_REDIS_REDIS_TABLE_HPP
+#define DJINTERP_DB_REDIS_REDIS_TABLE_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <chrono>
 #include <cstddef>
-#include <cstdint>
 #include <map>
 #include <optional>
 #include <stdexcept>
@@ -57,6 +62,8 @@
 #include "../../../djinterp.hpp"
 #include "../database.hpp"
 #include "./redis.hpp"
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 
 NS_DJINTERP
@@ -113,20 +120,20 @@ NS_DJINTERP
     //   <prefix>:_index     SET       set of all row IDs (optional)
     //
     // Template parameters:
-    //   _Config: optional compile-time configuration tag (defaults to
+    //   Config: optional compile-time configuration tag (defaults to
     //            `void`); reserved for downstream specialisations.
-    template<typename _Config = void>
+    template<typename Config = void>
     class redis_table
     {
     private:
-        using config_type = _Config;
+        using config_type = Config;
 
     public:
         using size_type       = std::size_t;
         using value_type      = value;
         using row_type        = std::map<std::string, std::string>;
         using connection_type = redis_connection;
-        using self_type       = redis_table<_Config>;
+        using self_type       = redis_table<Config>;
 
         using type_support    = redis_type_support;
         using feature_support = redis_feature_support;
@@ -487,7 +494,7 @@ NS_DJINTERP
                                _suffix_pattern);
 
             std::vector<std::string> result;
-            std::int64_t             cursor = 0;
+            re_std::int64_t             cursor = 0;
 
             do
             {
@@ -717,5 +724,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_REDIS_TABLE_
+#endif  // DJINTERP_DB_REDIS_REDIS_TABLE_HPP

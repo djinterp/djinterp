@@ -1,21 +1,24 @@
-/******************************************************************************
-* djinterp [functional]                                            predicate.h
+/*******************************************************************************
+* djinterp [c]                                                       predicate.h
 *
 * Predicate combinator types and operations for the functional module.
 *   Provides structs and functions for combining predicates with logical AND,
 * OR, and NOT operations. Each combinator stores fn_predicate function pointers
 * with nullable context fields.
 *
-* 
-* path:      /inc/functional/predicate.h
+*
+* path:      /inc/djinterp/c/functional/predicate.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.09
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_C_FUNCTIONAL_PREDICATE_
-#define DJINTERP_C_FUNCTIONAL_PREDICATE_ 1
+#ifndef DJINTERP_C_FUNCTIONAL_PREDICATE_H
+#define DJINTERP_C_FUNCTIONAL_PREDICATE_H 1
 
+// std
 #include <stdlib.h>
+// djinterp
 #include "../djinterp.h"
 #include "./functional_common.h"
 
@@ -101,7 +104,7 @@ struct d_predicate_not
                                 (context) } )
 
 // D_PREDICATE_AND_SIMPLE
-//   macro: creates an AND combinator from two plain `fn_predicate` (no 
+//   macro: creates an AND combinator from two plain `fn_predicate` (no
 // context).
 #define D_PREDICATE_AND_SIMPLE(predicate1,                                  \
                                predicate2)                                  \
@@ -111,7 +114,7 @@ struct d_predicate_not
                                 NULL } )
 
 // D_PREDICATE_OR_SIMPLE
-//   macro: creates an OR combinator from two plain `fn_predicate` (no 
+//   macro: creates an OR combinator from two plain `fn_predicate` (no
 // context).
 #define D_PREDICATE_OR_SIMPLE(predicate1,                                   \
                               predicate2)                                   \
@@ -121,7 +124,7 @@ struct d_predicate_not
                                NULL } )
 
 // D_PREDICATE_XOR_SIMPLE
-//   macro: creates an XOR combinator from two plain `fn_predicate` (no 
+//   macro: creates an XOR combinator from two plain `fn_predicate` (no
 // context).
 #define D_PREDICATE_XOR_SIMPLE(predicate1,                                  \
                                predicate2)                                  \
@@ -148,4 +151,4 @@ bool d_predicate_xor_eval(const struct d_predicate_xor* _combo, const void* _ele
 bool d_predicate_not_eval(const struct d_predicate_not* _combo, const void* _element);
 
 
-#endif  // DJINTERP_C_FUNCTIONAL_PREDICATE_
+#endif  // DJINTERP_C_FUNCTIONAL_PREDICATE_H

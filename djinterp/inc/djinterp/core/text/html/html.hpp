@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [text]                                                     html.hpp
+/*******************************************************************************
+* djinterp [core]                                                       html.hpp
 *
 *   Foundational HTML module for the djinterp framework. Layered on top
 * of the XML module: HTML elements ARE XML nodes plus HTML semantics.
@@ -9,13 +9,22 @@
 * classification) is added via methods and free functions only --
 * never via additional state.
 *
+*   CONSOLIDATION:
+*   The HTML detection traits (formerly `html_template_traits.hpp`) and
+* the C++20 concept wrappers (formerly `html_template_concepts.hpp`) now
+* live in this header directly, mirroring the XML module. `html.hpp` is a
+* standalone foundation -- it does NOT pull in the templated element /
+* document types; `html_template.hpp` is a separate module that includes
+* this header. A single `#include "html.hpp"` brings in the shared types,
+* the trait system, and the concepts together.
+*
 *   ZERO OVERHEAD:
-*   - `html_element<_Backend>` adds NO members beyond `xml_node`.
+*   - `html_element<Backend>` adds NO members beyond `xml_node`.
 *   - All tag / attribute / category lookups are `D_CONSTEXPR` and
 *     compile down to switch tables or simple comparisons.
 *   - Tag-name strings live in `html::tags` as string-literal pointers
 *     (no allocation, no dynamic init).
-*   - The element-kind enum is `std::uint8_t`-backed.
+*   - The element-kind enum is `re_std::uint8_t`-backed.
 *
 *   LIBRARY AGNOSTICISM:
 *   This header pulls in nothing beyond the XML module and the standard
@@ -26,30 +35,90 @@
 *
 * path:      /inc/djinterp/core/text/html/html.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    SHARED TYPES & CONSTANTS
+      ------------------------
+
 II.   HTML VERSION & DOCTYPE
+      ----------------------
+
 III.  ELEMENT KIND ENUM
+      -----------------
+
 IV.   ATTRIBUTE KIND ENUM
+      -------------------
+
 V.    ELEMENT CATEGORY CLASSIFICATION
+      -------------------------------
+
 VI.   TAG-NAME / ATTR-NAME NAMESPACES
+      -------------------------------
+
 VII.  KIND <-> NAME MAPPING
+      ---------------------
+
 VIII. BACKEND TAG DISPATCH
+      --------------------
+
 IX.   BACKEND DETECTION
-X.    SUB-MODULE INCLUDES
+      -----------------
+
+X.    HTML KIND ACCESSOR DETECTION
+      ----------------------------
+
+XI.   CLASS LIST DETECTION
+      --------------------
+
+XII.  DOCTYPE & VERSION DETECTION
+      ---------------------------
+
+XIII. HEAD / BODY ACCESSOR DETECTION
+      ------------------------------
+
+XIV.  HTML ELEMENT CLASSIFICATION
+      ---------------------------
+
+XV.   HTML DOCUMENT CLASSIFICATION
+      ----------------------------
+
+XVI.  BACKEND COMPLETENESS DETECTION
+      ------------------------------
+
+XVII. VARIABLE TEMPLATES
+      ------------------
+
+XVIII. CONCEPTS (C++20)
+      ----------------
 */
 
-#ifndef DJINTERP_HTML_
-#define DJINTERP_HTML_ 1
+#ifndef DJINTERP_TEXT_HTML_HTML_HPP
+#define DJINTERP_TEXT_HTML_HTML_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
+#include <string>
+#include <type_traits>
+// djinterp
+#include "../../../env/cpp/env_cpp_features.h"  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+// std
+#  include <concepts>
+#endif
 // djinterp
 #include "../../../djinterp.hpp"
 #include "../xml/xml.hpp"
@@ -61,13 +130,7 @@ X.    SUB-MODULE INCLUDES
 
 NS_DJINTERP
 
-// NOTE: djinterp.hpp does not (yet) define NS_HTML. Using a plain
-// namespace declaration here; add `#define NS_HTML D_NAMESPACE(html)`
-// alongside the other NS_* macros in djinterp.hpp if the macro idiom
-// is preferred. The closing `}` at the bottom of this header pairs
-// with the open below.
 namespace html {
-
 
 // D_HTML_DEFAULT_INDENT
 //   constant: default whitespace string used per indentation level
@@ -92,7 +155,7 @@ namespace html {
 //   enum: identifies the document's target HTML / XHTML version.
 // Drives DOCTYPE emission and self-closing-tag formatting (`<br>`
 // for HTML5 / HTML4 vs `<br/>` for XHTML).
-enum class html_version : std::uint8_t
+enum class html_version : re_std::uint8_t
 {
     html5,
     html4_strict,
@@ -168,10 +231,10 @@ is_xhtml_version(
 
 // html_element_kind
 //   enum: discriminator for every standard HTML5 element. Backed
-// by `std::uint8_t` to keep storage minimal. The `unknown` value
+// by `re_std::uint8_t` to keep storage minimal. The `unknown` value
 // is used for elements not in this list (custom elements, web
 // components, deprecated tags).
-enum class html_element_kind : std::uint8_t
+enum class html_element_kind : re_std::uint8_t
 {
     // root / metadata
     html_root, head, title, base, link_, meta, style, script, noscript,
@@ -224,7 +287,7 @@ enum class html_element_kind : std::uint8_t
 //   enum: discriminator for the most common HTML attributes.
 // The list covers the global attributes plus the attributes most
 // frequently inspected by templating and DOM-walking code.
-enum class html_attribute_kind : std::uint8_t
+enum class html_attribute_kind : re_std::uint8_t
 {
     // global
     id, class_, style, title, lang, dir, hidden, tabindex, accesskey,
@@ -1127,7 +1190,7 @@ struct html_htmlcxx_backend_tag : html_backend_tag
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_html_backend
-//   trait: detects whether _Type is an HTML backend type by
+//   trait: detects whether Type is an HTML backend type by
 // checking for a nested `html_backend_tag` alias.
 
 }   // namespace html
@@ -1136,7 +1199,7 @@ NS_INTERNAL
 
     // has_html_backend_tag_helper
     //   trait: SFINAE helper; primary template (failure case).
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_html_backend_tag_helper
     {
@@ -1144,11 +1207,11 @@ NS_INTERNAL
     };
 
     // has_html_backend_tag_helper (specialization)
-    //   trait: success case when _Type::html_backend_tag exists.
-    template<typename _Type>
+    //   trait: success case when Type::html_backend_tag exists.
+    template<typename Type>
     struct has_html_backend_tag_helper<
-        _Type,
-        void_t<typename _Type::html_backend_tag>
+        Type,
+        void_t<typename Type::html_backend_tag>
     >
     {
         D_STATIC_CONSTEXPR bool value = true;
@@ -1159,35 +1222,742 @@ NS_END  // internal
 namespace html {
 
 // is_html_backend
-//   trait: true if _Type has a nested html_backend_tag type.
-template<typename _Type>
+//   trait: true if Type has a nested html_backend_tag type.
+template<typename Type>
 struct is_html_backend
 {
     D_STATIC_CONSTEXPR bool value =
-        internal::has_html_backend_tag_helper<clean_t<_Type>>::value;
+        internal::has_html_backend_tag_helper<clean_t<Type>>::value;
 };
 
 // is_html_backend_v
 //   constant: convenience accessor for
-// is_html_backend<_Type>::value.
+// is_html_backend<Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_STATIC_CONSTEXPR bool is_html_backend_v =
-        is_html_backend<_Type>::value;
+        is_html_backend<Type>::value;
 #endif
 
 
+///////////////////////////////////////////////////////////////////////////////
+///                X.   HTML KIND ACCESSOR DETECTION                        ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_html_kind_method
+//   trait: true if Type exposes an `html_kind()` const method
+// returning an `html_element_kind` discriminator. This is the
+// HTML-specific analogue of XML's `has_kind_method` and is what
+// lets generic code branch on element kind without reading the
+// tag-name string.
+template<typename Type,
+         typename = void>
+struct has_html_kind_method : std::false_type
+{};
+
+template<typename Type>
+struct has_html_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().html_kind())
+>> : std::true_type
+{};
+
+
+// has_get_html_kind_method
+//   trait: true if Type exposes `get_html_kind()` (getter-form).
+template<typename Type,
+         typename = void>
+struct has_get_html_kind_method : std::false_type
+{};
+
+template<typename Type>
+struct has_get_html_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_html_kind())
+>> : std::true_type
+{};
+
+
+// has_html_kind_access
+//   trait: true if Type exposes html_kind in either form.
+template<typename Type>
+struct has_html_kind_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_html_kind_method<Type>::value ||
+          has_get_html_kind_method<Type>::value );
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XI.   CLASS LIST DETECTION                               ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_class_list_method
+//   trait: true if Type exposes `class_list()` const returning
+// an iterable of class-name strings.
+template<typename Type,
+         typename = void>
+struct has_class_list_method : std::false_type
+{};
+
+template<typename Type>
+struct has_class_list_method<Type, void_t<
+    decltype(std::declval<const Type&>().class_list())
+>> : std::true_type
+{};
+
+
+// has_add_class_method
+//   trait: true if Type exposes `add_class(const std::string&)`.
+template<typename Type,
+         typename = void>
+struct has_add_class_method : std::false_type
+{};
+
+template<typename Type>
+struct has_add_class_method<Type, void_t<
+    decltype(std::declval<Type&>().add_class(
+        std::declval<const std::string&>()))
+>> : std::true_type
+{};
+
+
+// has_remove_class_method
+//   trait: true if Type exposes `remove_class(const std::string&)`.
+template<typename Type,
+         typename = void>
+struct has_remove_class_method : std::false_type
+{};
+
+template<typename Type>
+struct has_remove_class_method<Type, void_t<
+    decltype(std::declval<Type&>().remove_class(
+        std::declval<const std::string&>()))
+>> : std::true_type
+{};
+
+
+// has_has_class_method
+//   trait: true if Type exposes `has_class(const std::string&)`
+// returning a boolean.
+template<typename Type,
+         typename = void>
+struct has_has_class_method : std::false_type
+{};
+
+template<typename Type>
+struct has_has_class_method<Type, void_t<
+    decltype(std::declval<const Type&>().has_class(
+        std::declval<const std::string&>()))
+>> : std::true_type
+{};
+
+
+// has_id_method
+//   trait: true if Type exposes `get_id()` const returning a
+// string-convertible id value. Both `id()` and `get_id()` forms
+// detected.
+template<typename Type,
+         typename = void>
+struct has_id_method : std::false_type
+{};
+
+template<typename Type>
+struct has_id_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_id())
+>> : std::true_type
+{};
+
+
+// has_set_id_method
+//   trait: true if Type exposes `set_id(const std::string&)`.
+template<typename Type,
+         typename = void>
+struct has_set_id_method : std::false_type
+{};
+
+template<typename Type>
+struct has_set_id_method<Type, void_t<
+    decltype(std::declval<Type&>().set_id(
+        std::declval<const std::string&>()))
+>> : std::true_type
+{};
+
+
+// has_class_support
+//   trait: true if Type exposes the full class-list interface
+// (has_class + add_class + remove_class).
+template<typename Type>
+struct has_class_support
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_has_class_method<Type>::value    &&
+          has_add_class_method<Type>::value    &&
+          has_remove_class_method<Type>::value );
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XII.   DOCTYPE & VERSION DETECTION                       ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_doctype_method
+//   trait: true if Type exposes `doctype()` const returning a
+// string-convertible DOCTYPE declaration.
+template<typename Type,
+         typename = void>
+struct has_doctype_method : std::false_type
+{};
+
+template<typename Type>
+struct has_doctype_method<Type, void_t<
+    decltype(std::declval<const Type&>().doctype())
+>> : std::true_type
+{};
+
+
+// has_get_doctype_method
+//   trait: true if Type exposes `get_doctype()` const.
+template<typename Type,
+         typename = void>
+struct has_get_doctype_method : std::false_type
+{};
+
+template<typename Type>
+struct has_get_doctype_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_doctype())
+>> : std::true_type
+{};
+
+
+// has_doctype_access
+//   trait: true if Type exposes a doctype accessor in either form.
+template<typename Type>
+struct has_doctype_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_doctype_method<Type>::value ||
+          has_get_doctype_method<Type>::value );
+};
+
+
+// has_set_doctype_method
+//   trait: true if Type exposes `set_doctype(const std::string&)`.
+template<typename Type,
+         typename = void>
+struct has_set_doctype_method : std::false_type
+{};
+
+template<typename Type>
+struct has_set_doctype_method<Type, void_t<
+    decltype(std::declval<Type&>().set_doctype(
+        std::declval<const std::string&>()))
+>> : std::true_type
+{};
+
+
+// has_html_version_method
+//   trait: true if Type exposes `html_version()` const returning
+// an `html_version` enum value.
+template<typename Type,
+         typename = void>
+struct has_html_version_method : std::false_type
+{};
+
+template<typename Type>
+struct has_html_version_method<Type, void_t<
+    decltype(std::declval<const Type&>().html_version())
+>> : std::true_type
+{};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XIII.   HEAD / BODY ACCESSOR DETECTION                   ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_head_element_method
+//   trait: true if Type exposes `head_element()` const returning
+// a node-shaped facade for the `<head>` element.
+template<typename Type,
+         typename = void>
+struct has_head_element_method : std::false_type
+{};
+
+template<typename Type>
+struct has_head_element_method<Type, void_t<
+    decltype(std::declval<const Type&>().head_element())
+>> : std::true_type
+{};
+
+
+// has_body_element_method
+//   trait: true if Type exposes `body_element()` const returning
+// a node-shaped facade for the `<body>` element.
+template<typename Type,
+         typename = void>
+struct has_body_element_method : std::false_type
+{};
+
+template<typename Type>
+struct has_body_element_method<Type, void_t<
+    decltype(std::declval<const Type&>().body_element())
+>> : std::true_type
+{};
+
+
+// has_title_method
+//   trait: true if Type exposes `title()` const returning the
+// document title as a string.
+template<typename Type,
+         typename = void>
+struct has_title_method : std::false_type
+{};
+
+template<typename Type>
+struct has_title_method<Type, void_t<
+    decltype(std::declval<const Type&>().title())
+>> : std::true_type
+{};
+
+
+// has_set_title_method
+//   trait: true if Type exposes `set_title(const std::string&)`.
+template<typename Type,
+         typename = void>
+struct has_set_title_method : std::false_type
+{};
+
+template<typename Type>
+struct has_set_title_method<Type, void_t<
+    decltype(std::declval<Type&>().set_title(
+        std::declval<const std::string&>()))
+>> : std::true_type
+{};
+
+
+// has_html_dom_shortcuts
+//   trait: true if Type exposes head_element + body_element.
+template<typename Type>
+struct has_html_dom_shortcuts
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_head_element_method<Type>::value &&
+          has_body_element_method<Type>::value );
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XIV.   HTML ELEMENT CLASSIFICATION                       ///
+///////////////////////////////////////////////////////////////////////////////
+
+// is_html_element
+//   trait: true if Type satisfies the XML element protocol AND
+// exposes an HTML kind discriminator. The minimum bar is the XML
+// element protocol (the type behaves like a tag-attribute-text
+// node); the HTML kind accessor is what marks the type as
+// HTML-aware. Library backends without an `html_kind()` method
+// can still be treated as HTML by wrapping them in `html_element`
+// (which derives from xml_node and adds the accessor).
+template<typename Type>
+struct is_html_element
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( is_xml_element<Type>::value &&
+          has_html_kind_access<Type>::value );
+};
+
+
+// is_html_element_loose
+//   trait: looser detection -- any XML element is treated as a
+// candidate HTML element. Used by adapter code that wants to wrap
+// raw XML/DOM types into HTML facades regardless of provenance.
+template<typename Type>
+struct is_html_element_loose
+{
+    D_STATIC_CONSTEXPR bool value =
+        is_xml_element<Type>::value;
+};
+
+
+// html_element_class
+//   struct: comprehensive classification of an HTML-element-shaped
+// type. Aggregates XML node classification with HTML extensions.
+template<typename Type>
+struct html_element_class
+{
+    // identity
+    D_STATIC_CONSTEXPR bool is_html_elem      =
+        is_html_element<Type>::value;
+    D_STATIC_CONSTEXPR bool is_xml_node       =
+        ::djinterp::is_xml_node<Type>::value;
+    D_STATIC_CONSTEXPR bool is_xml_element    =
+        ::djinterp::is_xml_element<Type>::value;
+
+    // HTML semantic accessors
+    D_STATIC_CONSTEXPR bool has_html_kind     =
+        has_html_kind_access<Type>::value;
+
+    // class list
+    D_STATIC_CONSTEXPR bool has_class_list    =
+        has_class_list_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_add_class     =
+        has_add_class_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_remove_class  =
+        has_remove_class_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_has_class     =
+        has_has_class_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_full_classes  =
+        has_class_support<Type>::value;
+
+    // id
+    D_STATIC_CONSTEXPR bool has_id            =
+        has_id_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_set_id        =
+        has_set_id_method<Type>::value;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XV.   HTML DOCUMENT CLASSIFICATION                       ///
+///////////////////////////////////////////////////////////////////////////////
+
+// is_html_document
+//   trait: true if Type satisfies the XML document protocol AND
+// exposes either a doctype accessor or HTML version accessor.
+template<typename Type>
+struct is_html_document
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( is_xml_document<Type>::value &&
+          ( has_doctype_access<Type>::value      ||
+            has_html_version_method<Type>::value ) );
+};
+
+
+// is_html_document_loose
+//   trait: looser detection -- any XML document is treated as a
+// candidate HTML document.
+template<typename Type>
+struct is_html_document_loose
+{
+    D_STATIC_CONSTEXPR bool value =
+        is_xml_document<Type>::value;
+};
+
+
+// html_document_class
+//   struct: comprehensive classification of an HTML-document-shaped
+// type. Aggregates XML document classification with HTML extensions.
+template<typename Type>
+struct html_document_class
+{
+    // identity
+    D_STATIC_CONSTEXPR bool is_html_doc       =
+        is_html_document<Type>::value;
+    D_STATIC_CONSTEXPR bool is_xml_doc        =
+        ::djinterp::is_xml_document<Type>::value;
+
+    // doctype
+    D_STATIC_CONSTEXPR bool has_doctype       =
+        has_doctype_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_set_doctype   =
+        has_set_doctype_method<Type>::value;
+
+    // version
+    D_STATIC_CONSTEXPR bool has_version       =
+        has_html_version_method<Type>::value;
+
+    // shortcuts
+    D_STATIC_CONSTEXPR bool has_head          =
+        has_head_element_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_body          =
+        has_body_element_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_dom_shortcuts =
+        has_html_dom_shortcuts<Type>::value;
+    D_STATIC_CONSTEXPR bool has_title         =
+        has_title_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_set_title     =
+        has_set_title_method<Type>::value;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XVI.   BACKEND COMPLETENESS DETECTION                    ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_html_element_type_alias
+//   trait: true if Type exposes a nested `element_type` or
+// `html_element_type` alias naming the concrete element class.
+template<typename Type,
+         typename = void>
+struct has_html_element_type_alias : std::false_type
+{};
+
+template<typename Type>
+struct has_html_element_type_alias<Type, void_t<
+    typename clean_t<Type>::element_type
+>> : std::true_type
+{};
+
+
+// has_html_document_type_alias
+//   trait: true if Type exposes a nested `document_type` alias.
+template<typename Type,
+         typename = void>
+struct has_html_document_type_alias : std::false_type
+{};
+
+template<typename Type>
+struct has_html_document_type_alias<Type, void_t<
+    typename clean_t<Type>::document_type
+>> : std::true_type
+{};
+
+
+// has_make_html_document_method
+//   trait: true if Type exposes a static factory
+// `make_html_document()` returning a document_type instance.
+template<typename Type,
+         typename = void>
+struct has_make_html_document_method : std::false_type
+{};
+
+template<typename Type>
+struct has_make_html_document_method<Type, void_t<
+    decltype(clean_t<Type>::make_html_document())
+>> : std::true_type
+{};
+
+
+// is_html_backend_complete
+//   trait: true if Type exposes the full HTML backend protocol
+// (every nested type alias plus the make_html_document factory).
+// Stronger than `is_html_backend` (which only checks for the
+// backend tag); used by code that needs to confidently
+// instantiate `html_element<Backend>` and
+// `html_document<Backend>`.
+template<typename Type>
+struct is_html_backend_complete
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_html_element_type_alias<Type>::value  &&
+          has_html_document_type_alias<Type>::value );
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XVII.   VARIABLE TEMPLATES                               ///
+///////////////////////////////////////////////////////////////////////////////
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+
+    template<typename Type>
+    D_CONSTEXPR bool has_html_kind_access_v =
+        has_html_kind_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_class_support_v =
+        has_class_support<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_doctype_access_v =
+        has_doctype_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_html_version_method_v =
+        has_html_version_method<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_html_dom_shortcuts_v =
+        has_html_dom_shortcuts<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_html_element_v =
+        is_html_element<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_html_element_loose_v =
+        is_html_element_loose<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_html_document_v =
+        is_html_document<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_html_document_loose_v =
+        is_html_document_loose<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_html_backend_complete_v =
+        is_html_backend_complete<Type>::value;
+
+#endif  // variable templates
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XVIII.   CONCEPTS (C++20)                                ///
+///////////////////////////////////////////////////////////////////////////////
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+// ---------------------------------------------------------------------
+//  html element concepts
+// ---------------------------------------------------------------------
+
+// html_element_type
+//   concept: satisfied by any type that satisfies the XML element
+// protocol AND exposes an html_kind discriminator (either
+// `html_kind()` or `get_html_kind()`).
+template<typename Type>
+concept html_element_type =
+       ( ::djinterp::xml_element_type<Type> )
+    && ( has_html_kind_access<Type>::value );
+
+
+// html_element_loose_type
+//   concept: looser variant; any type satisfying the XML element
+// protocol is treated as an HTML element candidate. Use when
+// adapting third-party DOM types into the HTML facades.
+template<typename Type>
+concept html_element_loose_type =
+       ( ::djinterp::xml_element_type<Type> );
+
+
+// ---------------------------------------------------------------------
+//  html document concepts
+// ---------------------------------------------------------------------
+
+// html_document_type
+//   concept: satisfied by any type that satisfies the XML document
+// protocol AND exposes either a doctype accessor or an HTML
+// version accessor.
+template<typename Type>
+concept html_document_type =
+       ( ::djinterp::xml_document_type<Type> )
+    && (    ( has_doctype_access<Type>::value )
+         || ( has_html_version_method<Type>::value ) );
+
+
+// html_document_loose_type
+//   concept: looser variant; any type satisfying the XML document
+// protocol is treated as an HTML document candidate.
+template<typename Type>
+concept html_document_loose_type =
+       ( ::djinterp::xml_document_type<Type> );
+
+
+// ---------------------------------------------------------------------
+//  capability concepts (class / id / doctype / dom shortcuts)
+// ---------------------------------------------------------------------
+
+// classed_html_element
+//   concept: HTML element that exposes the full class-list
+// interface (has_class + add_class + remove_class).
+template<typename Type>
+concept classed_html_element =
+       ( html_element_type<Type> )
+    && ( has_class_support<Type>::value );
+
+
+// identifiable_html_element
+//   concept: HTML element that exposes both id read and id write
+// accessors.
+template<typename Type>
+concept identifiable_html_element =
+       ( html_element_type<Type> )
+    && ( has_id_method<Type>::value )
+    && ( has_set_id_method<Type>::value );
+
+
+// doctype_aware_document
+//   concept: HTML document with a doctype accessor.
+template<typename Type>
+concept doctype_aware_document =
+       ( html_document_type<Type> )
+    && ( has_doctype_access<Type>::value );
+
+
+// versioned_html_document
+//   concept: HTML document with an html_version accessor.
+template<typename Type>
+concept versioned_html_document =
+       ( html_document_type<Type> )
+    && ( has_html_version_method<Type>::value );
+
+
+// dom_shortcut_document
+//   concept: HTML document with both head_element and body_element
+// accessors.
+template<typename Type>
+concept dom_shortcut_document =
+       ( html_document_type<Type> )
+    && ( has_html_dom_shortcuts<Type>::value );
+
+
+// titled_html_document
+//   concept: HTML document with title read+write accessors.
+template<typename Type>
+concept titled_html_document =
+       ( html_document_type<Type> )
+    && ( has_title_method<Type>::value )
+    && ( has_set_title_method<Type>::value );
+
+
+// ---------------------------------------------------------------------
+//  composite concepts
+// ---------------------------------------------------------------------
+
+// full_html_element
+//   concept: HTML element exposing every common HTML-side
+// accessor (kind + class-list + id read/write).
+template<typename Type>
+concept full_html_element =
+       ( html_element_type<Type> )
+    && ( classed_html_element<Type> )
+    && ( identifiable_html_element<Type> );
+
+
+// full_html_document
+//   concept: HTML document exposing every common HTML-side
+// accessor (doctype + version + head/body shortcuts + title).
+template<typename Type>
+concept full_html_document =
+       ( html_document_type<Type> )
+    && ( doctype_aware_document<Type> )
+    && ( versioned_html_document<Type> )
+    && ( dom_shortcut_document<Type> )
+    && ( titled_html_document<Type> );
+
+
+// ---------------------------------------------------------------------
+//  html backend concepts
+// ---------------------------------------------------------------------
+
+// html_backend_type
+//   concept: satisfied by any type tagged with `html_backend_tag`
+// (i.e. any type for which `is_html_backend<T>::value` is true).
+template<typename Type>
+concept html_backend_type =
+       ( is_html_backend<Type>::value );
+
+
+// complete_html_backend
+//   concept: an HTML backend that additionally exposes the full
+// nested-type-alias protocol AND a make_html_document factory.
+// Code that needs to instantiate `html_document<Backend>` from
+// scratch should constrain on this concept.
+template<typename Type>
+concept complete_html_backend =
+       ( html_backend_type<Type> )
+    && ( is_html_backend_complete<Type>::value )
+    && ( has_make_html_document_method<Type>::value );
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
 }   // namespace html
+
+
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-///////////////////////////////////////////////////////////////////////////////
-///                X.   SUB-MODULE INCLUDES                                 ///
-///////////////////////////////////////////////////////////////////////////////
-
-#include "./html_template_traits.hpp"
-#include "./html_template.hpp"
-#include "./html_template_concepts.hpp"
-
-
-#endif  // DJINTERP_HTML_
+#endif  // DJINTERP_TEXT_HTML_HTML_HPP

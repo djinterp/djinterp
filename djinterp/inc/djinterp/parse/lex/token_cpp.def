@@ -1,0 +1,112 @@
+/*******************************************************************************
+* djinterp [parse]                                                 token_cpp.def
+*
+* The token kinds C++ has and C does not.
+*   Four punctuators and thirty-nine keywords, which is the whole lexical
+* difference between the languages once the shared list is accounted for.  The
+* alternative tokens -- `and`, `bitor`, `not_eq` and the rest -- are absent on
+* purpose: they are further spellings of punctuators that already exist in
+* token_shared.def, so they belong in the operator table with a flag, not in
+* the enumeration as kinds of their own.  C reaches the same spellings through
+* macros in <iso646.h>, which the scanner never sees.
+*   The values begin at D_TOKEN_CPP_FIRST, disjoint from both the shared
+* range and the C-only range.
+*
+*
+* path:      /inc/djinterp/parse/lex/token_cpp.def
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+/*
+ENTRY MACROS
+============
+Same contract as token_shared.def, less the `_since_c` column.
+    D_TOKEN_CLASS(_name, _label)
+    D_TOKEN_PUNCT(_name, _spelling)
+    D_TOKEN_KEYWORD(_name, _spelling, _since_cpp)
+*/
+
+#ifndef D_TOKEN_CLASS
+#define D_TOKEN_CLASS(_name, _label)
+#define D_TOKEN_CLASS_UNDEF_ 1
+#endif
+
+#ifndef D_TOKEN_PUNCT
+#define D_TOKEN_PUNCT(_name, _spelling)
+#define D_TOKEN_PUNCT_UNDEF_ 1
+#endif
+
+#ifndef D_TOKEN_KEYWORD
+#define D_TOKEN_KEYWORD(_name, _spelling, _since_cpp)
+#define D_TOKEN_KEYWORD_UNDEF_ 1
+#endif
+
+
+//  classes --------------------------------------------------------------------
+D_TOKEN_CLASS(RAW_STRING,   "raw-string-literal")
+
+//  punctuators ----------------------------------------------------------------
+D_TOKEN_PUNCT(SCOPE,       "::")
+D_TOKEN_PUNCT(DOT_STAR,    ".*")
+D_TOKEN_PUNCT(ARROW_STAR,  "->*")
+D_TOKEN_PUNCT(COMPARE,     "<=>")
+
+//  keywords -------------------------------------------------------------------
+//                  name                    spelling              since C++
+D_TOKEN_KEYWORD(KW_ASM,                    "asm",                1998)
+D_TOKEN_KEYWORD(KW_CATCH,                  "catch",              1998)
+D_TOKEN_KEYWORD(KW_CHAR8_T,                "char8_t",            2020)
+D_TOKEN_KEYWORD(KW_CHAR16_T,               "char16_t",           2011)
+D_TOKEN_KEYWORD(KW_CHAR32_T,               "char32_t",           2011)
+D_TOKEN_KEYWORD(KW_CLASS,                  "class",              1998)
+D_TOKEN_KEYWORD(KW_CONCEPT,                "concept",            2020)
+D_TOKEN_KEYWORD(KW_CONSTEVAL,              "consteval",          2020)
+D_TOKEN_KEYWORD(KW_CONSTINIT,              "constinit",          2020)
+D_TOKEN_KEYWORD(KW_CONST_CAST,             "const_cast",         1998)
+D_TOKEN_KEYWORD(KW_CO_AWAIT,               "co_await",           2020)
+D_TOKEN_KEYWORD(KW_CO_RETURN,              "co_return",          2020)
+D_TOKEN_KEYWORD(KW_CO_YIELD,               "co_yield",           2020)
+D_TOKEN_KEYWORD(KW_DECLTYPE,               "decltype",           2011)
+D_TOKEN_KEYWORD(KW_DELETE,                 "delete",             1998)
+D_TOKEN_KEYWORD(KW_DYNAMIC_CAST,           "dynamic_cast",       1998)
+D_TOKEN_KEYWORD(KW_EXPLICIT,               "explicit",           1998)
+D_TOKEN_KEYWORD(KW_EXPORT,                 "export",             1998)
+D_TOKEN_KEYWORD(KW_FRIEND,                 "friend",             1998)
+D_TOKEN_KEYWORD(KW_MUTABLE,                "mutable",            1998)
+D_TOKEN_KEYWORD(KW_NAMESPACE,              "namespace",          1998)
+D_TOKEN_KEYWORD(KW_NEW,                    "new",                1998)
+D_TOKEN_KEYWORD(KW_NOEXCEPT,               "noexcept",           2011)
+D_TOKEN_KEYWORD(KW_OPERATOR,               "operator",           1998)
+D_TOKEN_KEYWORD(KW_PRIVATE,                "private",            1998)
+D_TOKEN_KEYWORD(KW_PROTECTED,              "protected",          1998)
+D_TOKEN_KEYWORD(KW_PUBLIC,                 "public",             1998)
+D_TOKEN_KEYWORD(KW_REINTERPRET_CAST,       "reinterpret_cast",   1998)
+D_TOKEN_KEYWORD(KW_REQUIRES,               "requires",           2020)
+D_TOKEN_KEYWORD(KW_STATIC_CAST,            "static_cast",        1998)
+D_TOKEN_KEYWORD(KW_TEMPLATE,               "template",           1998)
+D_TOKEN_KEYWORD(KW_THIS,                   "this",               1998)
+D_TOKEN_KEYWORD(KW_THROW,                  "throw",              1998)
+D_TOKEN_KEYWORD(KW_TRY,                    "try",                1998)
+D_TOKEN_KEYWORD(KW_TYPEID,                 "typeid",             1998)
+D_TOKEN_KEYWORD(KW_TYPENAME,               "typename",           1998)
+D_TOKEN_KEYWORD(KW_USING,                  "using",              1998)
+D_TOKEN_KEYWORD(KW_VIRTUAL,                "virtual",            1998)
+D_TOKEN_KEYWORD(KW_WCHAR_T,                "wchar_t",            1998)
+
+
+#ifdef D_TOKEN_CLASS_UNDEF_
+#undef D_TOKEN_CLASS
+#undef D_TOKEN_CLASS_UNDEF_
+#endif
+
+#ifdef D_TOKEN_PUNCT_UNDEF_
+#undef D_TOKEN_PUNCT
+#undef D_TOKEN_PUNCT_UNDEF_
+#endif
+
+#ifdef D_TOKEN_KEYWORD_UNDEF_
+#undef D_TOKEN_KEYWORD
+#undef D_TOKEN_KEYWORD_UNDEF_
+#endif

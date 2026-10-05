@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                      forward.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  forward.hpp
 *
 * perfect-forwarding cast utility:
 *   Provides re_std::forward, the canonical cast used in forwarding
@@ -14,27 +14,30 @@
 *
 *   Requires rvalue references (C++11+). On standards without rvalue
 * references, no symbol is defined; callers must gate their use of
-* re_std::forward on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
+* re_std::forward on RE_STD_LANG_HAS_RVALUE_REFERENCES.
 *
 *   marked constexpr on C++11+ (single-statement bodies).
 *
 *
-* path:      /inc/djinterp/re_std/utility/forward.hpp
+* path:      /inc/re_std/utility/forward.hpp
 * link(s):   TBA
-* author(s): re_std team                                date: 2026.04.30
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_FORWARD_
-#define DJINTERP_RE_STD_UTILITY_FORWARD_ 1
+#ifndef RE_STD_UTILITY_FORWARD_HPP
+#define RE_STD_UTILITY_FORWARD_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 #include "../type_traits/remove_reference.hpp"
 #include "../type_traits/is_lvalue_reference.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // =============================================================================
 // FORWARD
@@ -42,29 +45,29 @@ NS_RESTD
 
 // forward (lvalue overload)
 //   function: forwards an lvalue as either an lvalue or an rvalue,
-//   depending on the deduced template argument _Type.
-template<typename _Type>
-D_CONSTEXPR
-_Type&& forward(typename remove_reference<_Type>::type& _value) noexcept
+//   depending on the deduced template argument Type.
+template<typename Type>
+RE_STD_CONSTEXPR
+Type&& forward(typename remove_reference<Type>::type& _value) noexcept
 {
-    return static_cast<_Type&&>(_value);
+    return static_cast<Type&&>(_value);
 }
 
 // forward (rvalue overload)
-//   function: forwards an rvalue. static_asserts that _Type is not an
+//   function: forwards an rvalue. static_asserts that Type is not an
 //   lvalue reference -- forwarding an rvalue as an lvalue would yield
 //   a dangling reference.
-template<typename _Type>
-D_CONSTEXPR
-_Type&& forward(typename remove_reference<_Type>::type&& _value) noexcept
+template<typename Type>
+RE_STD_CONSTEXPR
+Type&& forward(typename remove_reference<Type>::type&& _value) noexcept
 {
-    static_assert(!is_lvalue_reference<_Type>::value,
+    static_assert(!is_lvalue_reference<Type>::value,
                   "re_std::forward: cannot forward an rvalue as an lvalue");
-    return static_cast<_Type&&>(_value);
+    return static_cast<Type&&>(_value);
 }
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
-#endif  // DJINTERP_RE_STD_UTILITY_FORWARD_
+#endif  // RE_STD_UTILITY_FORWARD_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                     dparse.c
+/*******************************************************************************
+* djinterp [djinterp]                                                   dparse.c
 *
 *   Definitions for the non-inline declarations in dparse.h.
 *     The precedence ladder is POSIX awk's, and two rungs of it are unusual.
@@ -13,9 +13,9 @@
 *
 * path:      /src/djinterp/tools/dawk/dparse.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dparse.h"  // corresponding header
 // std
 #include <stdio.h>    // snprintf

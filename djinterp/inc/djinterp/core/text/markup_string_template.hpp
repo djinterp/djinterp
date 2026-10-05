@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [util]                                       markup_string_template.hpp
+/*******************************************************************************
+* djinterp [core]                                     markup_string_template.hpp
 *
 *   Delimiter-agnostic string-templating engine for producing markup
 * (XML, HTML, or any other format) via variable interpolation,
@@ -17,7 +17,7 @@
 *
 *   The engine is the SHARED CORE for both `xml_string_template` and
 * `html_string_template`. Those types are thin facades layered on top
-* of `markup_string_template<_EscapePolicy>` -- they bind a specific
+* of `markup_string_template<EscapePolicy>` -- they bind a specific
 * escape policy and inherit the rest. The split exists because the
 * only meaningful difference between XML and HTML interpolation is
 * the entity reference for the apostrophe (`&apos;` for XML,
@@ -55,28 +55,45 @@
 * include this one (directly or via the facade headers) freely.
 *
 *
-* path:      /inc/djinterp/core/util/markup_string_template.hpp
+* path:      /inc/djinterp/core/text/markup_string_template.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.09
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    SYNTAX POLICY STRUCTS
+      ---------------------
+
 II.   ESCAPE POLICY STRUCTS
+      ---------------------
+
 III.  INTERNAL TOKEN TYPES & PARSE HELPERS
-IV.   markup_string_template_context<_EscapePolicy>
-V.    markup_string_template<_EscapePolicy>
+      ------------------------------------
+
+IV.   markup_string_template_context<EscapePolicy>
+      ---------------------------------------------
+
+V.    markup_string_template<EscapePolicy>
+      -------------------------------------
+
 VI.   FREE HELPERS / FACTORIES
+      ------------------------
 */
 
-#ifndef DJINTERP_MARKUP_STRING_TEMPLATE_
-#define DJINTERP_MARKUP_STRING_TEMPLATE_ 1
+#ifndef DJINTERP_TEXT_MARKUP_STRING_TEMPLATE_HPP
+#define DJINTERP_TEXT_MARKUP_STRING_TEMPLATE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -86,6 +103,8 @@ VI.   FREE HELPERS / FACTORIES
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t
 
 
 NS_DJINTERP
@@ -349,7 +368,7 @@ NS_INTERNAL
 
     // markup_string_template_token_kind
     //   enum: discriminator for parsed template tokens.
-    enum class markup_string_template_token_kind : std::uint8_t
+    enum class markup_string_template_token_kind : re_std::uint8_t
     {
         literal,            // plain text emitted verbatim
         variable_escaped,   // {name} -- escaped on output
@@ -420,7 +439,7 @@ NS_END  // internal
 
 
 // (forward declaration -- defined below)
-template<typename _EscapePolicy>
+template<typename EscapePolicy>
 class markup_string_template;
 
 
@@ -434,16 +453,16 @@ class markup_string_template;
 // Contexts are value types; create child contexts for nested
 // scopes (e.g. iterating over a list).
 //
-// Parameterised on `_EscapePolicy` because the partial map
+// Parameterised on `EscapePolicy` because the partial map
 // holds shared pointers to templates with that same policy --
 // templates with different escape policies are distinct types.
-template<typename _EscapePolicy>
+template<typename EscapePolicy>
 class markup_string_template_context
 {
 public:
     // template_t
     //   type: the template type the partial map holds.
-    using template_t    = markup_string_template<_EscapePolicy>;
+    using template_t    = markup_string_template<EscapePolicy>;
 
     // partial_ptr_t
     //   type: shared-ownership handle for a partial template.
@@ -688,7 +707,7 @@ private:
 // streams to an `std::ostream`) given a context of variable /
 // list bindings.
 //
-// Parameterised on `_EscapePolicy` -- the only behavioural
+// Parameterised on `EscapePolicy` -- the only behavioural
 // knob between formats. The bundled policies are
 // `xml_escape_policy`, `html_escape_policy`, and
 // `null_escape_policy`; user code can supply any struct with a
@@ -700,17 +719,17 @@ private:
 // at runtime. Heterogeneous templates (handlebars-style and
 // angle-style) can sit in the same container without type
 // erasure, provided they share the escape policy.
-template<typename _EscapePolicy>
+template<typename EscapePolicy>
 class markup_string_template
 {
 public:
     // escape_policy_t
     //   type: alias for the escape policy this template uses.
-    using escape_policy_t = _EscapePolicy;
+    using escape_policy_t = EscapePolicy;
 
     // context_t
     //   type: alias for the matching context type.
-    using context_t       = markup_string_template_context<_EscapePolicy>;
+    using context_t       = markup_string_template_context<EscapePolicy>;
 
     // partial_ptr_t
     //   type: shared-ownership handle for a partial template.
@@ -758,18 +777,18 @@ public:
     //   ctor: takes source text and a syntax policy struct.
     // The policy's `D_STATIC_CONSTEXPR const char*` constants
     // are copied into the instance's runtime delimiter strings.
-    template<typename _Syntax>
+    template<typename Syntax>
     markup_string_template(
         const std::string&  _source,
-        _Syntax             /*syntax_tag*/
+        Syntax              /*syntax_tag*/
     )
-    :   m_open_tag(_Syntax::open_tag),
-        m_close_tag(_Syntax::close_tag),
-        m_raw_marker(_Syntax::raw_marker),
-        m_partial_marker(_Syntax::partial_marker),
-        m_section_open_marker(_Syntax::section_open_marker),
-        m_section_close_marker(_Syntax::section_close_marker),
-        m_comment_marker(_Syntax::comment_marker),
+    :   m_open_tag(Syntax::open_tag),
+        m_close_tag(Syntax::close_tag),
+        m_raw_marker(Syntax::raw_marker),
+        m_partial_marker(Syntax::partial_marker),
+        m_section_open_marker(Syntax::section_open_marker),
+        m_section_close_marker(Syntax::section_close_marker),
+        m_comment_marker(Syntax::comment_marker),
         m_source(_source),
         m_partials(),
         m_tokens(),
@@ -1158,7 +1177,7 @@ private:
 
     // render_token_to
     //   function: dispatches a single token. Variable escaping
-    // is delegated to `_EscapePolicy::escape`.
+    // is delegated to `EscapePolicy::escape`.
     void
     render_token_to(
         std::ostream&                                       _out,
@@ -1179,7 +1198,7 @@ private:
             {
                 if (_ctx.has(_tok.text))
                 {
-                    _EscapePolicy::escape(_out, _ctx.get(_tok.text));
+                    EscapePolicy::escape(_out, _ctx.get(_tok.text));
                 }
                 break;
             }
@@ -1312,35 +1331,36 @@ private:
 // text and a syntax-policy tag in a single expression. The
 // escape policy must be supplied as the leading explicit
 // template argument.
-template<typename _EscapePolicy,
-         typename _Syntax>
-inline markup_string_template<_EscapePolicy>
+template<typename EscapePolicy,
+         typename Syntax>
+inline markup_string_template<EscapePolicy>
 make_markup_string_template(
     const std::string&  _source,
-    _Syntax             _syntax_tag = _Syntax()
+    Syntax              _syntax_tag = Syntax()
 )
 {
-    return markup_string_template<_EscapePolicy>(_source, _syntax_tag);
+    return markup_string_template<EscapePolicy>(_source, _syntax_tag);
 }
 
 
 // make_shared_markup_string_template
 //   function: factory that returns a shared_ptr-wrapped
 // template, ready to be registered as a partial.
-template<typename _EscapePolicy,
-         typename _Syntax>
-inline std::shared_ptr<markup_string_template<_EscapePolicy>>
+template<typename EscapePolicy,
+         typename Syntax>
+inline std::shared_ptr<markup_string_template<EscapePolicy>>
 make_shared_markup_string_template(
     const std::string&  _source,
-    _Syntax             _syntax_tag = _Syntax()
+    Syntax              _syntax_tag = Syntax()
 )
 {
-    return std::make_shared<markup_string_template<_EscapePolicy>>(
+    return std::make_shared<markup_string_template<EscapePolicy>>(
         _source, _syntax_tag);
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_MARKUP_STRING_TEMPLATE_
+#endif  // DJINTERP_TEXT_MARKUP_STRING_TEMPLATE_HPP

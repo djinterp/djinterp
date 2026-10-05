@@ -1,247 +1,185 @@
-/******************************************************************************
-* djinterp [color]                                                    color.hpp
+/*******************************************************************************
+* djinterp [core]                                                      color.hpp
 *
-*   Umbrella header for the djinterp color module (C++). Including this one
-* header brings in every color model wrapper, the conversion facade, the
-* shared C kernel, and the cross-model operations. It is the single entry
-* point most C++ users want.
+*   VALIDATION SHIM - not the production color subframework.  See
+* color_common.hpp for the rationale and scope.
 *
-*   Two forms of polymorphism are provided over the same kernel:
+*   The umbrella the PDF layer includes: pulls the foundation + rgb/rgba, adds
+* the cmyk model, and provides the compile-time conversion facade
+* (color_convert<To,From>::apply) with the color_cast<To>(from) convenience
+* the real header exposes.  Only the graph edges the PDF stack exercises are
+* defined - identity (any model to itself) and rgb<->cmyk; the primary
+* color_convert is intentionally left undefined so an unsupported pair fails to
+* compile rather than silently mis-converting.  pdf_color's model constructors
+* are not constexpr, so color_cast is a plain (runtime) inline.
 *
-*     - Compile-time: the color_cast / color_convert template dispatch (from
-*       color_convert.hpp) selects conversions statically with no runtime
-*       cost and constexpr support where the math allows.
-*
-*     - Runtime: the abstract `color` base with `color_value<Model>` lets
-*       heterogeneous colors be stored and manipulated behind one interface,
-*       each delegating to the same kernel via color_cast.
+*   NOT reproduced (unused by the PDF/report closure, verified): the other
+* native models (hsl/hsv/ycbcr/cie_*), the polymorphic color / make_color /
+* color_value surface, and all channel-algebra free functions.  Extend here if
+* a future consumer needs them.
 *
 *
-* path:      /inc/djinterp/util/color/color.hpp
+* path:      /inc/djinterp/core/util/color/color.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-/*
-TABLE OF CONTENTS
-=================
-I.    MODULE INCLUDES
+#ifndef DJINTERP_UTIL_COLOR_COLOR_HPP
+#define DJINTERP_UTIL_COLOR_COLOR_HPP 1
 
-II.   CROSS-MODEL OPERATIONS (free functions)
-      --------------------------------------
-      a. adjust_saturation
-      b. adjust_brightness
-      c. rotate_hue
-      d. delta_e (cie_lab, cie_lab)
-      e. delta_e (rgb, rgb)
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
-III.  RUNTIME POLYMORPHISM
-      --------------------
-      a. color                 (abstract base)
-      b. color_value<_Model>   (concrete holder)
-      c. make_color            (factory)
-*/
-
-#ifndef DJINTERP_COLOR_HPP_
-#define DJINTERP_COLOR_HPP_ 1
-
-
-///////////////////////////////////////////////////////////////////////////////
-///                     I.   MODULE INCLUDES                                ///
-///////////////////////////////////////////////////////////////////////////////
-
-#include "../../djinterp.hpp"
-
-#include "./color_common.hpp"
-#include "./color_rgb.hpp"
-#include "./color_cmyk.hpp"
-#include "./color_hsv.hpp"
-#include "./color_hsl.hpp"
-#include "./color_ycbcr.hpp"
-#include "./color_cie_lab.hpp"
-#include "./color_convert.hpp"
-
-#include "./color.h"
-
-#include <memory>
+// std
+#include <type_traits>
+// djinterp
+#include "./color_common.hpp"   // channel_t, tags, is_color_model
+#include "./color_rgb.hpp"      // rgb, rgba
 
 
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-///            II.   CROSS-MODEL OPERATIONS (free functions)                ///
-///////////////////////////////////////////////////////////////////////////////
-
-// adjust_saturation
-//   function: scales an rgb color's saturation in HSL space
-// (1.0 = unchanged, 0.0 = grayscale).
-D_CONSTEXPR_INLINE rgb
-adjust_saturation(
-    const rgb& _rgb,
-    channel_t  _amount
-)
+// cmyk
+//   subtractive device model; channels in [0,1].  Kept as its own device
+// space by pdf_color, with an rgb view derived through the hub.
+struct cmyk
 {
-    return d_color_rgb_adjust_saturation(_rgb, _amount);
-}
+    typedef cmyk_tag  model_tag;    // => is_color_model<cmyk>::value == true
+    typedef channel_t value_type;
 
-// adjust_brightness
-//   function: scales an rgb color's lightness in HSL space
-// (1.0 = unchanged, 0.0 = black).
-D_CONSTEXPR_INLINE rgb
-adjust_brightness(
-    const rgb& _rgb,
-    channel_t  _amount
-)
-{
-    return d_color_rgb_adjust_brightness(_rgb, _amount);
-}
+    channel_t c;
+    channel_t m;
+    channel_t y;
+    channel_t k;
 
-// rotate_hue
-//   function: rotates an rgb color's hue by signed degrees in HSL
-// space.
-D_CONSTEXPR_INLINE rgb
-rotate_hue(
-    const rgb& _rgb,
-    channel_t  _degrees
-)
-{
-    return d_color_rgb_rotate_hue(_rgb, _degrees);
-}
-
-// delta_e
-//   function: CIEDE2000 perceptual difference between two L*a*b*
-// colors (runtime).
-D_INLINE channel_t
-delta_e(
-    const cie_lab& _a,
-    const cie_lab& _b
-)
-{
-    return d_color_delta_e(_a, _b);
-}
-
-// delta_e
-//   function: CIEDE2000 perceptual difference between two rgb
-// colors, via L*a*b* (runtime).
-D_INLINE channel_t
-delta_e(
-    const rgb& _a,
-    const rgb& _b
-)
-{
-    return d_color_rgb_delta_e(_a, _b);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-///                  III.   RUNTIME POLYMORPHISM                            ///
-///////////////////////////////////////////////////////////////////////////////
-
-// color
-//   class: abstract base for type-erased colors. Concrete colors
-// of any model are handled uniformly through this interface; each
-// delegates to the shared kernel via color_cast.
-class color
-{
-public:
-    // ~color
-    //   destructor: virtual for safe polymorphic deletion.
-    virtual ~color() = default;
-
-    // to_rgb
-    //   query: convert the held color to linear RGB.
-    virtual rgb
-    to_rgb() const = 0;
-
-    // clone
-    //   factory: deep copy of the held color.
-    virtual std::unique_ptr<color>
-    clone() const = 0;
-
-    // to
-    //   query: convert the held color to any target model at
-    // runtime (routes through RGB).
-    template<typename _To>
-    _To
-    to() const
-    {
-        return color_cast<_To>(to_rgb());
-    }
-};
-
-// color_value
-//   class: concrete color holder parameterized on its model.
-// Stores one value of _Model and implements the runtime interface
-// by forwarding to the compile-time conversion facade.
-template<typename _Model>
-class color_value : public color
-{
-public:
-    using value_type = _Model;
-
-    // color_value (default)
-    //   constructor: default-constructed model value.
-    color_value() = default;
-
-    // color_value (parameterized)
-    //   constructor: from an existing model value.
-    explicit color_value(
-        const _Model& _value
-    )
-        : m_value(_value)
+    D_CONSTEXPR_INLINE cmyk()
+        : c(0), m(0), y(0), k(0)
     {}
 
-    // to_rgb
-    //   query: convert the held value to linear RGB.
-    rgb
-    to_rgb() const override
-    {
-        return color_cast<rgb>(m_value);
-    }
+    D_CONSTEXPR_INLINE cmyk(
+        channel_t _c,
+        channel_t _m,
+        channel_t _y,
+        channel_t _k
+    )
+        : c(_c), m(_m), y(_y), k(_k)
+    {}
 
-    // clone
-    //   factory: deep copy as a new color_value.
-    std::unique_ptr<color>
-    clone() const override
-    {
-        return std::unique_ptr<color>(new color_value<_Model>(m_value));
-    }
+    D_CONSTEXPR_INLINE bool
+    operator==(const cmyk& _o) const
+    { return c == _o.c && m == _o.m && y == _o.y && k == _o.k; }
 
-    // value (const)
-    //   accessor: the held model value.
-    const _Model&
-    value() const
-    {
-        return m_value;
-    }
-
-    // value
-    //   accessor: mutable held model value.
-    _Model&
-    value()
-    {
-        return m_value;
-    }
-
-private:
-    _Model m_value;
+    D_CONSTEXPR_INLINE bool
+    operator!=(const cmyk& _o) const
+    { return !(*this == _o); }
 };
 
-// make_color
-//   function: constructs a type-erased color from any model value,
-// deducing the model type.
-template<typename _Model>
-std::unique_ptr<color>
-make_color(
-    const _Model& _value
-)
+
+// ===========================================================================
+//  conversion facade  (RGB hub; identity + rgb<->cmyk)
+// ===========================================================================
+
+// color_convert<To, From>
+//   primary left UNDEFINED: only the specializations below are usable, so an
+// unsupported pair is a compile error rather than a wrong answer.
+template <typename To, typename From>
+struct color_convert;
+
+// identity  (any model -> itself)
+template <typename Type>
+struct color_convert<Type, Type>
 {
-    return std::unique_ptr<color>(new color_value<_Model>(_value));
+    static D_CONSTEXPR_INLINE Type
+    apply(const Type& _c)
+    { return _c; }
+};
+
+// cmyk -> rgb   (the live path: pdf_color's cmyk view fallback)
+template <>
+struct color_convert<rgb, cmyk>
+{
+    static D_CONSTEXPR_INLINE rgb
+    apply(const cmyk& _c)
+    {
+        return rgb(
+            static_cast<channel_t>((channel_t(1) - _c.c) * (channel_t(1) - _c.k)),
+            static_cast<channel_t>((channel_t(1) - _c.m) * (channel_t(1) - _c.k)),
+            static_cast<channel_t>((channel_t(1) - _c.y) * (channel_t(1) - _c.k)));
+    }
+};
+
+// rgb -> cmyk   (completeness; runtime - multi-statement)
+template <>
+struct color_convert<cmyk, rgb>
+{
+    static D_INLINE cmyk
+    apply(const rgb& _c)
+    {
+        const channel_t max_rg = _c.r < _c.g ? _c.g : _c.r;
+        const channel_t max_v  = max_rg < _c.b ? _c.b : max_rg;
+        const channel_t k      = channel_t(1) - max_v;
+        const channel_t denom  = channel_t(1) - k;
+
+        if (denom <= channel_t(0))
+        {
+            return cmyk(0, 0, 0, channel_t(1));
+        }
+
+        return cmyk(
+            (channel_t(1) - _c.r - k) / denom,
+            (channel_t(1) - _c.g - k) / denom,
+            (channel_t(1) - _c.b - k) / denom,
+            k);
+    }
+};
+
+
+NS_INTERNAL
+
+    // color_clean
+    //   strip cv/ref so color_cast can be called on references / const models.
+    template <typename Type>
+    struct color_clean
+    {
+        typedef typename std::remove_cv<
+            typename std::remove_reference<Type>::type>::type type;
+    };
+
+NS_END   // internal
+
+
+// color_cast<To>(from)
+//   the convenience the PDF layer calls (e.g. color_cast<rgb>(cmyk)).  Routes
+// through color_convert after normalizing cv/ref.  Runtime inline - see header
+// note; pdf_color's model constructors are not constexpr.
+template <typename To, typename From>
+D_NODISCARD D_INLINE To
+color_cast(const From& _from)
+{
+    return color_convert<
+               typename internal::color_clean<To>::type,
+               typename internal::color_clean<From>::type>::apply(_from);
 }
 
 
-NS_END  // djinterp
+// is_convertible_color
+//   both endpoints are conversion-graph models.  (Edge existence is a separate
+// question - only the specializations above are defined in this shim.)
+template <typename From, typename To>
+struct is_convertible_color
+    : std::integral_constant<
+          bool,
+          is_color_model<From>::value && is_color_model<To>::value>
+{};
 
 
-#endif  // DJINTERP_COLOR_HPP_
+NS_END   // djinterp
+
+#endif  // floor, for now
+
+#endif // DJINTERP_UTIL_COLOR_COLOR_HPP

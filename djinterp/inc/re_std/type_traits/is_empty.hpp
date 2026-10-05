@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 is_empty.hpp
 *
 * is_empty trait header:
@@ -9,56 +9,58 @@
 *   C++11 baseline.  The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_empty.hpp
+* path:      /inc/re_std/type_traits/is_empty.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_EMPTY_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_EMPTY_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_EMPTY_HPP
+#define RE_STD_TYPE_TRAITS_IS_EMPTY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
 // =============================================================================
-// 0.   D_RE_STD_HAS_IS_EMPTY  (intrinsic detection)
+// 0.   RE_STD_HAS_IS_EMPTY  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RE_STD_HAS_IS_EMPTY
+#ifndef RE_STD_HAS_IS_EMPTY
     #if defined(__has_builtin)
         #if __has_builtin(__is_empty)
-            #define D_RE_STD_HAS_IS_EMPTY  1
+            #define RE_STD_HAS_IS_EMPTY  1
         #else
-            #define D_RE_STD_HAS_IS_EMPTY  0
+            #define RE_STD_HAS_IS_EMPTY  0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
-            defined(D_ENV_COMPILER_CLANG) ||                                  \
-            defined(D_ENV_COMPILER_MSVC)  ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
-        #define D_RE_STD_HAS_IS_EMPTY      1
+    #elif ( defined(RE_STD_COMPILER_GCC)   ||                                  \
+            defined(RE_STD_COMPILER_CLANG) ||                                  \
+            defined(RE_STD_COMPILER_MSVC)  ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
+        #define RE_STD_HAS_IS_EMPTY      1
     #else
-        #define D_RE_STD_HAS_IS_EMPTY      0
+        #define RE_STD_HAS_IS_EMPTY      0
     #endif
-#endif  // D_RE_STD_HAS_IS_EMPTY
+#endif  // RE_STD_HAS_IS_EMPTY
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_EMPTY
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_EMPTY
+#if RE_STD_HAS_IS_EMPTY
 
 // is_empty
 //   trait: intrinsic-backed -- a class type occupying no storage of its own.
-template<typename _Type>
-struct is_empty : integral_constant<bool, __is_empty(_Type)>
+template<typename Type>
+struct is_empty : integral_constant<bool, __is_empty(Type)>
 {};
 
 #else
@@ -66,26 +68,26 @@ struct is_empty : integral_constant<bool, __is_empty(_Type)>
 // is_empty
 //   trait: degraded fallback (always false) when the intrinsic is absent;
 // this property is not observable at the library level.
-template<typename _Type>
+template<typename Type>
 struct is_empty : false_type
 {};
 
-#endif  // D_RE_STD_HAS_IS_EMPTY
+#endif  // RE_STD_HAS_IS_EMPTY
 
 
 // =============================================================================
 // II.  IS_EMPTY_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool is_empty_v = is_empty<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool is_empty_v = is_empty<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_EMPTY_
+#endif  // RE_STD_TYPE_TRAITS_IS_EMPTY_HPP

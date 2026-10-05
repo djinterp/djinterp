@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                push_heap.hpp
 *
 * push_heap algorithm header:
@@ -15,16 +15,17 @@
 *     pop_heap.hpp for the swap-vs-hole-walking trade-off.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/push_heap.hpp
+* path:      /inc/re_std/algorithm/push_heap.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_PUSH_HEAP_
-#define DJINTERP_RE_STD_ALGORITHM_PUSH_HEAP_ 1
+#ifndef RE_STD_ALGORITHM_PUSH_HEAP_HPP
+#define RE_STD_ALGORITHM_PUSH_HEAP_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -35,16 +36,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -52,23 +46,23 @@ NS_RESTD
 // ===========================================================================
 
 // _push_heap_sift_up_
-//   sifts the element at index _start in [_first, _first + _length)
+//   function: sifts the element at index _start in [_first, _first + _length)
 // upward, swapping with its parent while it compares greater than that
 // parent under _comp. The parent of index i is (i - 1) / 2.
-template<typename _RandomIt,
-         typename _Distance,
-         typename _Compare>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt,
+         typename Distance,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 void
 _push_heap_sift_up_(
-    _RandomIt _first,
-    _Distance _start,
-    _Compare  _comp
+    RandomIt _first,
+    Distance _start,
+    Compare  _comp
 )
 {
-    _Distance _hole = _start;
+    Distance _hole = _start;
     while (_hole > 0)
     {
-        _Distance _parent = static_cast<_Distance>((_hole - 1) / 2);
+        Distance _parent = static_cast<Distance>((_hole - 1) / 2);
         if (!_comp(*(_first + _parent), *(_first + _hole)))
         {
             break;
@@ -87,16 +81,16 @@ _push_heap_sift_up_(
 //   function: inserts *(_last - 1) into the max-heap that [_first,
 // _last - 1) is assumed to be. After return, [_first, _last) is a
 // valid heap. No-op if the input range has fewer than two elements.
-template<typename _RandomIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 void
 push_heap(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _length = _last - _first;
     if (_length < 2)
@@ -104,26 +98,26 @@ push_heap(
         return;
     }
 
-    _push_heap_sift_up_<_RandomIt, _Diff, _Compare>(
+    _push_heap_sift_up_<RandomIt, _Diff, Compare>(
         _first, _length - 1, _comp);
 }
 
 
 // push_heap (default operator<)
 //   function: as above with re_std::less<value_type>().
-template<typename _RandomIt>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt>
+RE_STD_CONSTEXPR_CPP14 void
 push_heap(
-    _RandomIt _first,
-    _RandomIt _last
+    RandomIt _first,
+    RandomIt _last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
     push_heap(_first, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_PUSH_HEAP_
+#endif  // RE_STD_ALGORITHM_PUSH_HEAP_HPP

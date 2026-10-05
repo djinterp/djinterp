@@ -1,33 +1,35 @@
-/******************************************************************************
-* djinterp [re_std]                                          bool_constant.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            bool_constant.hpp
 *
 * bool_constant alias header:
 *   Provides the bool_constant alias template as
-* integral_constant<bool, _Value>. Mirrors the C++17 std::bool_constant
+* integral_constant<bool, Value>. Mirrors the C++17 std::bool_constant
 * interface but is available on any compiler with alias templates.
 *
 *   PORTABILITY:
 *   Requires alias templates (C++11+). Not available on C++98/03;
-* use integral_constant<bool, _Value> directly instead.
+* use integral_constant<bool, Value> directly instead.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/bool_constant.hpp
+* path:      /inc/re_std/type_traits/bool_constant.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_BOOL_CONSTANT_
-#define DJINTERP_RE_STD_TYPE_TRAITS_BOOL_CONSTANT_ 1
+#ifndef RE_STD_TYPE_TRAITS_BOOL_CONSTANT_HPP
+#define RE_STD_TYPE_TRAITS_BOOL_CONSTANT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 
 // gate: requires alias templates
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -35,15 +37,15 @@ NS_RESTD
 // =============================================================================
 
 // bool_constant
-//   alias: integral_constant<bool, _Value> helper for boolean traits.
-template<bool _Value>
-using bool_constant = integral_constant<bool, _Value>;
+//   alias: integral_constant<bool, Value> helper for boolean traits.
+template<bool Value>
+using bool_constant = integral_constant<bool, Value>;
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_BOOL_CONSTANT_
+#endif  // RE_STD_TYPE_TRAITS_BOOL_CONSTANT_HPP

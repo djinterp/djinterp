@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                             source_location.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          source_location.hpp
 *
 * class source_location:
 *   A value type capturing a point in the source — file, function, line,
@@ -17,45 +17,48 @@
 * divergence in service of the back-port.
 *
 *   __builtin_COLUMN is newer (GCC 9+, Clang 9+); where it is unavailable
-* re_std reports column 0 (detected via D_RE_STD_HAS_BUILTIN_COLUMN). All
+* re_std reports column 0 (detected via RE_STD_HAS_BUILTIN_COLUMN). All
 * other fields are exact on every supported compiler. re_std::source_location
 * is re_std's OWN type (NOT a std re-export): no language construct emits a
 * source_location, so identity with std::source_location buys nothing, and
 * owning the type keeps behaviour identical across every tier.
 *
 *
-* path:      /inc/djinterp/re_std/source_location/source_location.hpp
+* path:      /inc/re_std/source_location/source_location.hpp
 * link(s):   TBA
-* author(s): re_std contributors                       date: 2026.06.05
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.05
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SOURCE_LOCATION_SOURCE_LOCATION_
-#define DJINTERP_RE_STD_SOURCE_LOCATION_SOURCE_LOCATION_ 1
+#ifndef RE_STD_SOURCE_LOCATION_SOURCE_LOCATION_HPP
+#define RE_STD_SOURCE_LOCATION_SOURCE_LOCATION_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#include <cstdint>  // uint_least32_t
+// re_std
+#include "../cstdint/cstdint.hpp"  // uint_least32_t
 
 // __builtin_COLUMN detection. The real core exposes this via its intrinsic
 // table; this mirrors the same decision.
 #if defined(__has_builtin)
 #  if __has_builtin(__builtin_COLUMN)
-#    define D_RE_STD_HAS_BUILTIN_COLUMN 1
+#    define RE_STD_HAS_BUILTIN_COLUMN 1
 #  else
-#    define D_RE_STD_HAS_BUILTIN_COLUMN 0
+#    define RE_STD_HAS_BUILTIN_COLUMN 0
 #  endif
 #elif defined(__GNUC__) && (__GNUC__ >= 9)
-#  define D_RE_STD_HAS_BUILTIN_COLUMN 1
+#  define RE_STD_HAS_BUILTIN_COLUMN 1
 #else
-#  define D_RE_STD_HAS_BUILTIN_COLUMN 0
+#  define RE_STD_HAS_BUILTIN_COLUMN 0
 #endif
 
-#if D_RE_STD_HAS_BUILTIN_COLUMN
-#  define D_RE_STD_SL_COLUMN_DEFAULT __builtin_COLUMN()
+#if RE_STD_HAS_BUILTIN_COLUMN
+#  define RE_STD_SL_COLUMN_DEFAULT __builtin_COLUMN()
 #else
-#  define D_RE_STD_SL_COLUMN_DEFAULT 0u
+#  define RE_STD_SL_COLUMN_DEFAULT 0u
 #endif
 
 namespace re_std
@@ -79,18 +82,18 @@ namespace re_std
         //   position (the canonical std technique). constexpr (not consteval)
         //   for portability to C++11.
         static constexpr source_location current(
-            const char* _file            = __builtin_FILE(),
-            const char* _function        = __builtin_FUNCTION(),
-            std::uint_least32_t _line     = __builtin_LINE(),
-            std::uint_least32_t _column   = D_RE_STD_SL_COLUMN_DEFAULT) noexcept
+            const char*    _file     = __builtin_FILE(),
+            const char*    _function = __builtin_FUNCTION(),
+            uint_least32_t _line     = __builtin_LINE(),
+            uint_least32_t _column   = RE_STD_SL_COLUMN_DEFAULT) noexcept
         {
             return source_location(_file, _function, _line, _column);
         }
 
-        constexpr std::uint_least32_t line() const noexcept
+        constexpr uint_least32_t line() const noexcept
         { return m_line; }
 
-        constexpr std::uint_least32_t column() const noexcept
+        constexpr uint_least32_t column() const noexcept
         { return m_column; }
 
         constexpr const char* file_name() const noexcept
@@ -104,20 +107,19 @@ namespace re_std
         // private field ctor used by current(); single-expression bodies keep
         // everything valid as C++11 constexpr.
         constexpr source_location(const char* _file, const char* _function,
-                                  std::uint_least32_t _line,
-                                  std::uint_least32_t _column) noexcept
+                                  uint_least32_t _line,
+                                  uint_least32_t _column) noexcept
             : m_file(_file), m_function(_function),
               m_line(_line), m_column(_column)
         {}
 
-        const char*         m_file;
-        const char*         m_function;
-        std::uint_least32_t m_line;
-        std::uint_least32_t m_column;
+        const char*    m_file;
+        const char*    m_function;
+        uint_least32_t m_line;
+        uint_least32_t m_column;
     };
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_SOURCE_LOCATION_SOURCE_LOCATION_
+#endif  // RE_STD_SOURCE_LOCATION_SOURCE_LOCATION_HPP

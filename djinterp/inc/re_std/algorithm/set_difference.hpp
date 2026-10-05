@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           set_difference.hpp
 *
 * set_difference algorithm header:
@@ -12,31 +12,26 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/set_difference.hpp
+* path:      /inc/re_std/algorithm/set_difference.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_SET_DIFFERENCE_
-#define DJINTERP_RE_STD_ALGORITHM_SET_DIFFERENCE_ 1
+#ifndef RE_STD_ALGORITHM_SET_DIFFERENCE_HPP
+#define RE_STD_ALGORITHM_SET_DIFFERENCE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -49,16 +44,16 @@ NS_RESTD
 // cancel pairwise; range2 elements smaller than range1's head are
 // skipped. Once range2 exhausts, any remaining range1 elements are
 // copied verbatim.
-template<typename _InputIt1,
-         typename _InputIt2,
-         typename _OutputIt>
-D_CONSTEXPR_CPP14 _OutputIt
+template<typename InputIt1,
+         typename InputIt2,
+         typename OutputIt>
+RE_STD_CONSTEXPR_CPP14 OutputIt
 set_difference(
-    _InputIt1 _first1,
-    _InputIt1 _last1,
-    _InputIt2 _first2,
-    _InputIt2 _last2,
-    _OutputIt _d_first
+    InputIt1 _first1,
+    InputIt1 _last1,
+    InputIt2 _first2,
+    InputIt2 _last2,
+    OutputIt _d_first
 )
 {
     while ( (_first1 != _last1) &&
@@ -97,18 +92,18 @@ set_difference(
 // II.  SET_DIFFERENCE (COMPARATOR)
 // ===========================================================================
 
-template<typename _InputIt1,
-         typename _InputIt2,
-         typename _OutputIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 _OutputIt
+template<typename InputIt1,
+         typename InputIt2,
+         typename OutputIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 OutputIt
 set_difference(
-    _InputIt1 _first1,
-    _InputIt1 _last1,
-    _InputIt2 _first2,
-    _InputIt2 _last2,
-    _OutputIt _d_first,
-    _Compare  _comp
+    InputIt1 _first1,
+    InputIt1 _last1,
+    InputIt2 _first2,
+    InputIt2 _last2,
+    OutputIt _d_first,
+    Compare  _comp
 )
 {
     while ( (_first1 != _last1) &&
@@ -141,7 +136,7 @@ set_difference(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_SET_DIFFERENCE_
+#endif  // RE_STD_ALGORITHM_SET_DIFFERENCE_HPP

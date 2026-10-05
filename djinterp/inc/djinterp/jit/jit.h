@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                         jit.h
+/*******************************************************************************
+* djinterp [jit]                                                           jit.h
 *
 * djinterp portable JIT core (executable-memory + code buffer):
 *   The architecture-independent half of the djinterp JIT. It turns the
@@ -20,20 +20,30 @@
 *   Requires:  djinterp.h (qualifier kit + scalar types) and env/jit/env_jit.h
 *              (backend, policy, and cache-coherency detection).
 *
+*
 * path:      /inc/djinterp/jit/jit.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_JIT_
-#define DJINTERP_JIT_ 1
+#ifndef DJINTERP_JIT_JIT_H
+#define DJINTERP_JIT_JIT_H 1
 
 // std
 #include <stddef.h>      // for size_t
-#include <stdint.h>      // for uint8_t / uint32_t / uint64_t
 // djinterp
 #include "../c/djinterp.h"
 #include "../env/jit/env_jit.h"
+// re_std
+#include "../../re_std/cstdint/dstdint.h"  // uint8_t, uint16_t, uint32_t,
+                                           // uint64_t
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
 
 
 // ===========================================================================
@@ -247,4 +257,6 @@ D_NODISCARD int d_jit_label_reference(d_jit_buffer* _buf, d_jit_label* _label,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_JIT_
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_JIT_JIT_H

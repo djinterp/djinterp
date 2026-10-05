@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              find_if_not.hpp
 *
 * find_if_not algorithm header:
@@ -12,31 +12,26 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/find_if_not.hpp
+* path:      /inc/re_std/algorithm/find_if_not.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_FIND_IF_NOT_
-#define DJINTERP_RE_STD_ALGORITHM_FIND_IF_NOT_ 1
+#ifndef RE_STD_ALGORITHM_FIND_IF_NOT_HPP
+#define RE_STD_ALGORITHM_FIND_IF_NOT_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -46,13 +41,13 @@ NS_RESTD
 // find_if_not
 //   function: returns the first iterator it in [_first, _last) such
 // that _pred(*it) is false, or _last on no-match.
-template<typename _InputIt,
-         typename _Pred>
-D_CONSTEXPR_CPP14 _InputIt
+template<typename InputIt,
+         typename Pred>
+RE_STD_CONSTEXPR_CPP14 InputIt
 find_if_not(
-    _InputIt _first,
-    _InputIt _last,
-    _Pred    _pred
+    InputIt _first,
+    InputIt _last,
+    Pred    _pred
 )
 {
     for (; _first != _last; ++_first)
@@ -67,7 +62,7 @@ find_if_not(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_FIND_IF_NOT_
+#endif  // RE_STD_ALGORITHM_FIND_IF_NOT_HPP

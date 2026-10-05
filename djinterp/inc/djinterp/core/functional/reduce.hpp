@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                            reduce.hpp
+/*******************************************************************************
+* djinterp [core]                                                     reduce.hpp
 *
 * The drivers - the iteration half of the step/driver split:
 *   The dual-domain design separates a pure step (a reducer (acc, x) -> acc,
@@ -37,13 +37,21 @@
 * a C++20 caller may layer the Reducer / Transducer concepts (structural_traits.hpp)
 * at the call site.
 *
+*
 * path:      /inc/djinterp/core/functional/reduce.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_REDUCE_
-#define DJINTERP_FUNCTIONAL_REDUCE_ 1
+#ifndef DJINTERP_FUNCTIONAL_REDUCE_HPP
+#define DJINTERP_FUNCTIONAL_REDUCE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -52,7 +60,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../meta/carrier.hpp"      // type_c / val (carriers)
 #include "../meta/value_list.hpp"   // value_list + fold (the NTTP driver)
 
@@ -74,11 +82,11 @@ NS_DJINTERP
 // it also folds at compile time over a constexpr range.  `_rf` is a reducer
 // (acc, *it) -> acc and `_acc` is the seed; the accumulator type is fixed
 // across the fold.
-template<typename _Rf,
-         typename _Acc,
-         typename _It>
-constexpr _Acc
-reduce_rt(_Rf _rf, _Acc _acc, _It _first, _It _last)
+template<typename Rf,
+         typename Acc,
+         typename It>
+D_CONSTEXPR_CPP14 Acc
+reduce_rt(Rf _rf, Acc _acc, It _first, It _last)
 {
     // pull each element through the reducer until the range is exhausted
     for (; _first != _last; ++_first)
@@ -92,11 +100,11 @@ reduce_rt(_Rf _rf, _Acc _acc, _It _first, _It _last)
 // reduce_rt
 //   function: left fold over an iterable (anything with begin()/end()).
 // Convenience wrapper around the iterator-range form above.
-template<typename _Rf,
-         typename _Acc,
-         typename _Iterable>
-constexpr _Acc
-reduce_rt(_Rf _rf, _Acc _acc, const _Iterable& _iterable)
+template<typename Rf,
+         typename Acc,
+         typename Iterable>
+D_CONSTEXPR_CPP14 Acc
+reduce_rt(Rf _rf, Acc _acc, const Iterable& _iterable)
 {
     using std::begin;
     using std::end;
@@ -121,11 +129,11 @@ reduce_rt(_Rf _rf, _Acc _acc, const _Iterable& _iterable)
 //   function: compile-time left fold over a value_list.  Delegates to
 // value_list's own fold - the value-domain recursion lives there - so this is
 // purely the unified entry point.  `_rf` is a reducer (acc, val_t<V>) -> acc.
-template<typename _Rf,
-         typename _Acc,
-         auto...  _Values>
+template<typename Rf,
+         typename Acc,
+         auto...  Values>
 constexpr auto
-reduce_ct(_Rf _rf, _Acc _acc, value_list<_Values...> _list)
+reduce_ct(Rf _rf, Acc _acc, value_list<Values...> _list)
 {
     return fold(_list, _acc, _rf);
 }
@@ -137,41 +145,41 @@ NS_INTERNAL
     // reduce_ct_tuple_impl
     //   trait: primary template (declared); specialized on the tuple's element
     // pack so the recursion walks element TYPES (no tuple value is built).
-    template<typename _Rf,
-             typename _Acc,
-             typename _Tuple>
+    template<typename Rf,
+             typename Acc,
+             typename Tuple>
     struct reduce_ct_tuple_impl;
 
     // reduce_ct_tuple_impl<..., std::tuple<>>
     //   trait: base case - the empty tuple folds to the accumulator.
-    template<typename _Rf,
-             typename _Acc>
-    struct reduce_ct_tuple_impl<_Rf, _Acc, std::tuple<>>
+    template<typename Rf,
+             typename Acc>
+    struct reduce_ct_tuple_impl<Rf, Acc, std::tuple<>>
     {
-        static constexpr _Acc
-        apply(_Rf, _Acc _acc)
+        static constexpr Acc
+        apply(Rf, Acc _acc)
         {
             return _acc;
         }
     };
 
-    // reduce_ct_tuple_impl<..., std::tuple<_T0, _Ts...>>
+    // reduce_ct_tuple_impl<..., std::tuple<T0, Ts...>>
     //   trait: recursive case - fold the head type (as a type_c carrier) into
     // the accumulator, recurse on the tail.
-    template<typename    _Rf,
-             typename    _Acc,
-             typename    _T0,
-             typename... _Ts>
-    struct reduce_ct_tuple_impl<_Rf, _Acc, std::tuple<_T0, _Ts...>>
+    template<typename    Rf,
+             typename    Acc,
+             typename    T0,
+             typename... Ts>
+    struct reduce_ct_tuple_impl<Rf, Acc, std::tuple<T0, Ts...>>
     {
         static constexpr auto
-        apply(_Rf _rf, _Acc _acc)
+        apply(Rf _rf, Acc _acc)
         {
             return reduce_ct_tuple_impl<
-                       _Rf,
-                       decltype(_rf(_acc, type_c<_T0>)),
-                       std::tuple<_Ts...>
-                   >::apply(_rf, _rf(_acc, type_c<_T0>));
+                       Rf,
+                       decltype(_rf(_acc, type_c<T0>)),
+                       std::tuple<Ts...>
+                   >::apply(_rf, _rf(_acc, type_c<T0>));
         }
     };
 
@@ -182,28 +190,28 @@ NS_END  // internal
 // type_c<std::tuple<Ts...>>.  Preferred type-domain entry: the sequence is a
 // type, so element types need not be default-constructible.  `_rf` is a reducer
 // (acc, type_c<T>) -> acc.
-template<typename    _Rf,
-         typename    _Acc,
-         typename... _Ts>
+template<typename    Rf,
+         typename    Acc,
+         typename... Ts>
 constexpr auto
-reduce_ct(_Rf _rf, _Acc _acc, type_t<std::tuple<_Ts...>>)
+reduce_ct(Rf _rf, Acc _acc, type_t<std::tuple<Ts...>>)
 {
-    return internal::reduce_ct_tuple_impl<_Rf, _Acc,
-                                          std::tuple<_Ts...>>::apply(_rf, _acc);
+    return internal::reduce_ct_tuple_impl<Rf, Acc,
+                                          std::tuple<Ts...>>::apply(_rf, _acc);
 }
 
 // reduce_ct
 //   function: convenience overload taking a std::tuple VALUE directly (the
 // §10.3 value-passing style).  Requires default-constructible element types;
 // otherwise prefer the type_c<std::tuple<...>> form above.
-template<typename    _Rf,
-         typename    _Acc,
-         typename... _Ts>
+template<typename    Rf,
+         typename    Acc,
+         typename... Ts>
 constexpr auto
-reduce_ct(_Rf _rf, _Acc _acc, std::tuple<_Ts...>)
+reduce_ct(Rf _rf, Acc _acc, std::tuple<Ts...>)
 {
-    return internal::reduce_ct_tuple_impl<_Rf, _Acc,
-                                          std::tuple<_Ts...>>::apply(_rf, _acc);
+    return internal::reduce_ct_tuple_impl<Rf, Acc,
+                                          std::tuple<Ts...>>::apply(_rf, _acc);
 }
 
 
@@ -212,5 +220,7 @@ reduce_ct(_Rf _rf, _Acc _acc, std::tuple<_Ts...>)
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_REDUCE_
+
+#endif  // DJINTERP_FUNCTIONAL_REDUCE_HPP

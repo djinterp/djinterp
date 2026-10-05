@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                          semigroup.hpp
+/*******************************************************************************
+* djinterp [core]                                                  semigroup.hpp
 *
 * Semigroup protocol and its associative combine (C++).
 *   A semigroup is a type T with one operation: an associative binary combine
@@ -27,34 +27,44 @@
 *   std::string s = mappend(std::string("foo"), std::string("bar"));  // "foobar"
 *
 *   // generic over any semigroup:
-*   template<typename _S>
-*   _S thrice(const _S& _x) { return mappend(_x, mappend(_x, _x)); }
+*   template<typename S>
+*   S thrice(const S& _x) { return mappend(_x, mappend(_x, _x)); }
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/semigroup.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    SEMIGROUP PROTOCOL
-      1.  semigroup_traits<T>                     (primary, undefined)
-      2.  is_semigroup<T>                         (detection trait)
+      ------------------
+      1.    semigroup_traits<T>                     (primary, undefined)
+      2.    is_semigroup<T>                         (detection trait)
+
 II.   GENERIC SEMIGROUP OPERATION
-      1.  mappend                                 (associative combine)
+      ---------------------------
+      1.    mappend                                 (associative combine)
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_SEMIGROUP_
-#define DJINTERP_FUNCTIONAL_SEMIGROUP_ 1
+#ifndef DJINTERP_FUNCTIONAL_SEMIGROUP_HPP
+#define DJINTERP_FUNCTIONAL_SEMIGROUP_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -76,8 +86,8 @@ NS_DJINTERP
 // the numeric newtypes in monoid.hpp) that key on a structural trait rather
 // than a concrete type. The primary is left undefined so a use on a
 // non-semigroup produces a clean resolution error.
-template<typename _Semigroup,
-         typename _Enable = void>
+template<typename Semigroup,
+         typename Enable = void>
 struct semigroup_traits;
 
 
@@ -87,51 +97,51 @@ NS_INTERNAL
     //   helper: SFINAE detector for whether semigroup_traits<T> is
     // specialized. Looks for the is_specialized marker that every
     // specialization provides.
-    template<typename _Type>
+    template<typename Type>
     struct is_semigroup_helper
     {
     private:
-        template<typename _T>
+        template<typename T>
         static auto test(int)
             -> decltype(
-                typename semigroup_traits<_T>::is_specialized{},
+                typename semigroup_traits<T>::is_specialized{},
                 std::true_type{});
 
         template<typename>
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 
 // is_semigroup
-//   trait: true if _Type has a specialization of semigroup_traits (after
+//   trait: true if Type has a specialization of semigroup_traits (after
 // cv-ref stripping). Used to SFINAE-constrain generic operations.
-template<typename _Type>
+template<typename Type>
 struct is_semigroup
-    : internal::is_semigroup_helper<typename std::decay<_Type>::type>::type
+    : internal::is_semigroup_helper<typename std::decay<Type>::type>::type
 {
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // is_semigroup_v
-//   value: convenience alias for is_semigroup<_Type>::value.
-template<typename _Type>
-static constexpr bool is_semigroup_v = is_semigroup<_Type>::value;
+//   value: convenience alias for is_semigroup<Type>::value.
+template<typename Type>
+static constexpr bool is_semigroup_v = is_semigroup<Type>::value;
 #endif
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // Semigroup
-    //   concept: satisfied when _Type is a specialized semigroup. The
+    //   concept: satisfied when Type is a specialized semigroup. The
     // PascalCase typeclass face, alongside Functor / Applicative / Foldable.
-    template<typename _Type>
-    concept Semigroup = is_semigroup<_Type>::value;
+    template<typename Type>
+    concept Semigroup = is_semigroup<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -151,23 +161,25 @@ static constexpr bool is_semigroup_v = is_semigroup<_Type>::value;
 // type. Dispatches to semigroup_traits<T>::combine.
 //
 //   Example: mappend(std::string("a"), std::string("b")) -> "ab"
-template<typename _Semigroup>
+template<typename Semigroup>
 D_NODISCARD
 D_CONSTEXPR
 auto mappend
 (
-    const _Semigroup& _a,
-    const _Semigroup& _b
+    const Semigroup& _a,
+    const Semigroup& _b
 )
--> decltype(semigroup_traits<typename std::decay<_Semigroup>::type>::combine(
+-> decltype(semigroup_traits<typename std::decay<Semigroup>::type>::combine(
        _a, _b))
 {
-    return semigroup_traits<typename std::decay<_Semigroup>::type>::combine(
+    return semigroup_traits<typename std::decay<Semigroup>::type>::combine(
         _a, _b);
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_SEMIGROUP_
+
+#endif  // DJINTERP_FUNCTIONAL_SEMIGROUP_HPP

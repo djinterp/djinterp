@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             tuple_cat.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                tuple_cat.hpp
 *
 * tuple_cat factory header:
 *   Concatenates any number of tuple-like objects into a single tuple
@@ -22,25 +22,26 @@
 *   Requires variadic templates and rvalue references (C++11+).
 *
 *
-* path:      /inc/djinterp/re_std/tuple/tuple_cat.hpp
+* path:      /inc/re_std/tuple/tuple_cat.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_CAT_
-#define DJINTERP_RE_STD_TUPLE_TUPLE_CAT_ 1
+#ifndef RE_STD_TUPLE_TUPLE_CAT_HPP
+#define RE_STD_TUPLE_TUPLE_CAT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
 
 
 // std
 #include <cstddef>
-// djinterp
+// re_std
 #include "./tuple.hpp"
 #include "../utility/integer_sequence.hpp"
 #include "../utility/make_integer_sequence.hpp"
@@ -51,7 +52,8 @@
 #include "../type_traits/remove_reference.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -65,58 +67,59 @@ NS_RESTD
 // and tuple_cat all instantiate the SAME specialisations instead of four
 // mutually incompatible copies.
 
-NS_INTERNAL
+namespace internal
+{
 
 
     // build_indexed_tuple
-    //   helper: given a tuple-like _T and an index pack, materialise
+    //   function: given a tuple-like _T and an index pack, materialise
     // a new tuple whose elements are get<I>(forwarded _T)... .
-    template<typename       _Tup,
-             std::size_t... _Is>
-    D_CONSTEXPR
-    tuple<typename tuple_element<_Is,
-              typename remove_reference<_Tup>::type>::type...>
+    template<typename       Tup,
+             std::size_t... Is>
+    RE_STD_CONSTEXPR
+    tuple<typename tuple_element<Is,
+              typename remove_reference<Tup>::type>::type...>
     build_indexed_tuple(
-        _Tup&&         _t,
-        re_std::index_sequence<_Is...>
+        Tup&&         _t,
+        re_std::index_sequence<Is...>
     )
     {
-        return tuple<typename tuple_element<_Is,
-                  typename remove_reference<_Tup>::type>::type...>(
-            get<_Is>(static_cast<_Tup&&>(_t))...);
+        return tuple<typename tuple_element<Is,
+                  typename remove_reference<Tup>::type>::type...>(
+            get<Is>(static_cast<Tup&&>(_t))...);
     }
 
 
     // tuple_cat_impl_2
-    //   helper: concatenates exactly two tuples. Builds two index
+    //   function: concatenates exactly two tuples. Builds two index
     // sequences -- one for each input -- and constructs a fresh
     // tuple from get<i>(a)... get<j>(b)... .
-    template<typename       _A,
-             typename       _B,
-             std::size_t... _IA,
-             std::size_t... _IB>
-    D_CONSTEXPR
+    template<typename       A,
+             typename       B,
+             std::size_t... IA,
+             std::size_t... IB>
+    RE_STD_CONSTEXPR
     tuple<
-        typename tuple_element<_IA,
-            typename remove_reference<_A>::type>::type...,
-        typename tuple_element<_IB,
-            typename remove_reference<_B>::type>::type...>
+        typename tuple_element<IA,
+            typename remove_reference<A>::type>::type...,
+        typename tuple_element<IB,
+            typename remove_reference<B>::type>::type...>
     tuple_cat_impl_2(
-        _A&&             _a,
-        _B&&             _b,
-        re_std::index_sequence<_IA...>,
-        re_std::index_sequence<_IB...>)
+        A&&             _a,
+        B&&             _b,
+        re_std::index_sequence<IA...>,
+        re_std::index_sequence<IB...>)
     {
         return tuple<
-            typename tuple_element<_IA,
-                typename remove_reference<_A>::type>::type...,
-            typename tuple_element<_IB,
-                typename remove_reference<_B>::type>::type...>(
-            get<_IA>(static_cast<_A&&>(_a))...,
-            get<_IB>(static_cast<_B&&>(_b))...);
+            typename tuple_element<IA,
+                typename remove_reference<A>::type>::type...,
+            typename tuple_element<IB,
+                typename remove_reference<B>::type>::type...>(
+            get<IA>(static_cast<A&&>(_a))...,
+            get<IB>(static_cast<B&&>(_b))...);
     }
 
-NS_END  // internal
+}  // internal
 
 
 // =============================================================================
@@ -125,9 +128,9 @@ NS_END  // internal
 
 // tuple_cat()
 //   function: zero-argument case yields an empty tuple.
-D_INLINE D_CONSTEXPR
+RE_STD_INLINE RE_STD_CONSTEXPR
 tuple<>
-tuple_cat() D_NOEXCEPT
+tuple_cat() RE_STD_NOEXCEPT
 {
     return tuple<>();
 }
@@ -135,55 +138,55 @@ tuple_cat() D_NOEXCEPT
 // tuple_cat(t)
 //   function: one-argument case: rebuild the input as a fresh tuple
 // (decaying the element types per the standard's behaviour).
-template<typename _A>
-D_CONSTEXPR
+template<typename A>
+RE_STD_CONSTEXPR
 auto
 tuple_cat(
-    _A&& _a
+    A&& _a
 )
     -> decltype(
         internal::build_indexed_tuple(
-            static_cast<_A&&>(_a),
+            static_cast<A&&>(_a),
             re_std::make_index_sequence<
-                tuple_size<typename remove_reference<_A>::type>::value
+                tuple_size<typename remove_reference<A>::type>::value
             >()))
 {
     return internal::build_indexed_tuple(
-        static_cast<_A&&>(_a),
+        static_cast<A&&>(_a),
         re_std::make_index_sequence<
-            tuple_size<typename remove_reference<_A>::type>::value
+            tuple_size<typename remove_reference<A>::type>::value
         >());
 }
 
 // tuple_cat(t, u)
 //   function: two-argument case: dispatch to tuple_cat_impl_2.
-template<typename _A,
-         typename _B>
-D_CONSTEXPR
+template<typename A,
+         typename B>
+RE_STD_CONSTEXPR
 auto
 tuple_cat(
-    _A&& _a,
-    _B&& _b
+    A&& _a,
+    B&& _b
 )
     -> decltype(
         internal::tuple_cat_impl_2(
-            static_cast<_A&&>(_a),
-            static_cast<_B&&>(_b),
+            static_cast<A&&>(_a),
+            static_cast<B&&>(_b),
             re_std::make_index_sequence<
-                tuple_size<typename remove_reference<_A>::type>::value
+                tuple_size<typename remove_reference<A>::type>::value
             >(),
             re_std::make_index_sequence<
-                tuple_size<typename remove_reference<_B>::type>::value
+                tuple_size<typename remove_reference<B>::type>::value
             >()))
 {
     return internal::tuple_cat_impl_2(
-        static_cast<_A&&>(_a),
-        static_cast<_B&&>(_b),
+        static_cast<A&&>(_a),
+        static_cast<B&&>(_b),
         re_std::make_index_sequence<
-            tuple_size<typename remove_reference<_A>::type>::value
+            tuple_size<typename remove_reference<A>::type>::value
         >(),
         re_std::make_index_sequence<
-            tuple_size<typename remove_reference<_B>::type>::value
+            tuple_size<typename remove_reference<B>::type>::value
         >());
 }
 
@@ -201,37 +204,37 @@ tuple_cat(
 // overload above. A structural fix rather than an enable_if, because
 // the trailing return type is what recurses -- an enable_if in the
 // return type would still have to name tuple_cat to compute it.
-template<typename    _A,
-         typename    _B,
-         typename    _C,
-         typename... _Rest>
-D_CONSTEXPR
+template<typename    A,
+         typename    B,
+         typename    C,
+         typename... Rest>
+RE_STD_CONSTEXPR
 auto
 tuple_cat(
-    _A&&        _a,
-    _B&&        _b,
-    _C&&        _c,
-    _Rest&&...  _rest
+    A&&        _a,
+    B&&        _b,
+    C&&        _c,
+    Rest&&...  _rest
 )
     -> decltype(
         tuple_cat(
-            tuple_cat(static_cast<_A&&>(_a),
-                      static_cast<_B&&>(_b)),
-            static_cast<_C&&>(_c),
-            static_cast<_Rest&&>(_rest)...))
+            tuple_cat(static_cast<A&&>(_a),
+                      static_cast<B&&>(_b)),
+            static_cast<C&&>(_c),
+            static_cast<Rest&&>(_rest)...))
 {
     return tuple_cat(
-        tuple_cat(static_cast<_A&&>(_a),
-                  static_cast<_B&&>(_b)),
-        static_cast<_C&&>(_c),
-        static_cast<_Rest&&>(_rest)...);
+        tuple_cat(static_cast<A&&>(_a),
+                  static_cast<B&&>(_b)),
+        static_cast<C&&>(_c),
+        static_cast<Rest&&>(_rest)...);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_CAT_
+#endif  // RE_STD_TUPLE_TUPLE_CAT_HPP

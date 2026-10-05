@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [paradigm]                                       pattern_occurrence.hpp
+/*******************************************************************************
+* djinterp [parse]                                        pattern_occurrence.hpp
 *
 * Functional occurrence unfold for searchable patterns:
 *   This header provides a reusable functional unfold over a searchable
@@ -22,7 +22,7 @@
 *
 *   The contract a pattern must satisfy is machine-checked rather than
 * described in a comment: occurrence_producer requires
-* has_find_method<_Pattern, std::string, match_result_type>, the structural
+* has_find_method<Pattern, std::string, match_result_type>, the structural
 * trait in functional/structural_traits.hpp.  A pattern that does not expose
 * bool find(const std::string&, std::size_t&, R&) fails to compile with a
 * clear message instead of deep in instantiation.
@@ -36,11 +36,18 @@
 *
 * path:      /inc/djinterp/parse/pattern_occurrence.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_PARADIGM_PATTERN_OCCURRENCE_
-#define DJINTERP_PARADIGM_PATTERN_OCCURRENCE_ 1
+#ifndef DJINTERP_PARSE_PATTERN_OCCURRENCE_HPP
+#define DJINTERP_PARSE_PATTERN_OCCURRENCE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -64,11 +71,11 @@ NS_DJINTERP
 // absolute byte offset at which it started, plus the pattern's own
 // capture result.  Position is a raw offset here (domain-agnostic);
 // the scanner layers human line/column on top via its locate().
-template<typename _MatchResult>
+template<typename MatchResult>
 struct positioned_match
 {
     std::size_t  offset;
-    _MatchResult captures;
+    MatchResult captures;
 
     positioned_match()
         : offset   (0),
@@ -76,7 +83,7 @@ struct positioned_match
     {}
 
     positioned_match(std::size_t          _offset,
-                     const _MatchResult&  _captures)
+                     const MatchResult&  _captures)
         : offset   (_offset),
           captures (_captures)
     {}
@@ -102,22 +109,22 @@ struct positioned_match
 // O(n) copy.
 //
 //   The pattern must satisfy
-// has_find_method<_Pattern, std::string, R> where R is the
+// has_find_method<Pattern, std::string, R> where R is the
 // pattern's match_result_type; this is asserted at construction.
-template<typename _Pattern>
+template<typename Pattern>
 class occurrence_producer
 {
 public:
-    using pattern_type = _Pattern;
+    using pattern_type = Pattern;
     using match_result_type =
-        typename _Pattern::match_result_type;
+        typename Pattern::match_result_type;
     using value_type =
         positioned_match<match_result_type>;
     using step_type =
         producer_step<value_type>;
 
     occurrence_producer(
-        const _Pattern&    _pattern,
+        const Pattern&    _pattern,
         const std::string& _buffer
     )
         : m_pattern (_pattern),
@@ -127,7 +134,7 @@ public:
     {
         static_assert(
             has_find_method<
-                _Pattern, std::string, match_result_type>::value,
+                Pattern, std::string, match_result_type>::value,
             "occurrence_producer requires a pattern exposing "
             "bool find(const std::string&, std::size_t&, "
             "match_result_type&).");
@@ -191,7 +198,7 @@ public:
     }
 
 private:
-    _Pattern           m_pattern;
+    Pattern            m_pattern;
     const std::string* m_buffer;
     std::size_t        m_cursor;
     bool               m_done;
@@ -205,15 +212,15 @@ private:
 // make_occurrence_producer
 //   function: builds an occurrence_producer binding _pattern to
 // _buffer (which must outlive the producer).
-template<typename _Pattern>
+template<typename Pattern>
 D_NODISCARD
-occurrence_producer<_Pattern>
+occurrence_producer<Pattern>
 make_occurrence_producer(
-    const _Pattern&    _pattern,
+    const Pattern&    _pattern,
     const std::string& _buffer
 )
 {
-    return occurrence_producer<_Pattern>(_pattern, _buffer);
+    return occurrence_producer<Pattern>(_pattern, _buffer);
 }
 
 
@@ -227,19 +234,19 @@ make_occurrence_producer(
 // drop-in replacement for run_secondary's accumulation: one call,
 // no per-iteration copies, and the unfold logic lives in the
 // reusable producer rather than inline in the scanner.
-template<typename _Pattern>
+template<typename Pattern>
 D_NODISCARD
-std::vector<positioned_match<typename _Pattern::match_result_type> >
+std::vector<positioned_match<typename Pattern::match_result_type> >
 collect_occurrences(
-    const _Pattern&    _pattern,
+    const Pattern&    _pattern,
     const std::string& _buffer
 )
 {
     using match_result_type =
-        typename _Pattern::match_result_type;
+        typename Pattern::match_result_type;
     using value_type = positioned_match<match_result_type>;
 
-    occurrence_producer<_Pattern> producer(_pattern, _buffer);
+    occurrence_producer<Pattern> producer(_pattern, _buffer);
 
     std::vector<value_type> out;
 
@@ -261,5 +268,7 @@ collect_occurrences(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARADIGM_PATTERN_OCCURRENCE_
+
+#endif  // DJINTERP_PARSE_PATTERN_OCCURRENCE_HPP

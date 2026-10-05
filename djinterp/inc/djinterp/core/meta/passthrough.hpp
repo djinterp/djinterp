@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                              passthrough.hpp
+/*******************************************************************************
+* djinterp [core]                                                passthrough.hpp
 *
 *   `passthrough_marker`: an inheritable empty base used as a structural
 * opt-in for any pipeline that supports "passthrough" semantics - a type
@@ -18,24 +18,47 @@
 *
 * path:      /inc/djinterp/core/meta/passthrough.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.27
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    passthrough_marker          (the inheritable empty base)
+      --------------------------------------------------------
+
 II.   is_passthrough              (trait + variable)
+      ----------------------------------------------
+
 III.  Passthrough                 (C++20 concept analog)
+      --------------------------------------------------
 */
 
-#ifndef DJINTERP_META_PASSTHROUGH_
-#define DJINTERP_META_PASSTHROUGH_ 1
+#ifndef DJINTERP_META_PASSTHROUGH_HPP
+#define DJINTERP_META_PASSTHROUGH_HPP 1
+
+
+// THE MODULE FLOOR is C++14, and below it this header is EMPTY rather than
+// an error (the brief's rule 5: a facility is absent from a level it
+// cannot express). env is included first, as the floor reads it; the
+// standard header below is C++11 and the body needs C++14.
+//
+//   C++14 rather than the framework floor of C++11, because is_passthrough_v
+// below is a variable TEMPLATE and variable templates are C++14. The trait
+// itself, is_passthrough<T>, is C++11 and would be usable at the framework
+// floor -- but this header ships both, so the header's floor is the higher of
+// the two. This module does not include option.hpp and so does not inherit
+// that subframework's C++17 floor.
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP14_OR_HIGHER
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+
 
 // std
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "./type_utility.hpp"  // clean_t
 
 
 NS_DJINTERP
@@ -60,23 +83,23 @@ struct passthrough_marker
 // ===========================================================================
 
 // is_passthrough
-//   trait: true iff _Type inherits from passthrough_marker
+//   trait: true iff Type inherits from passthrough_marker
 // (after cv-ref stripping).
 //
 //   The single-typename shape matches the unary trait template
 // expected by dtuple_wrap_partition's `_IsPassthrough` slot, so
 // this can be passed directly without an adapter:
 //     partition_wrap_except_t<W, N, is_passthrough, _Source...>
-template<typename _Type>
+template<typename Type>
 struct is_passthrough
     : std::is_base_of<
           passthrough_marker,
-          clean_t<_Type>
+          clean_t<Type>
       >
 {};
 
-template<typename _Type>
-D_CONSTEXPR_INLINE bool is_passthrough_v = is_passthrough<_Type>::value;
+template<typename Type>
+D_CONSTEXPR bool is_passthrough_v = is_passthrough<Type>::value;
 
 
 // ===========================================================================
@@ -86,16 +109,18 @@ D_CONSTEXPR_INLINE bool is_passthrough_v = is_passthrough<_Type>::value;
 #if defined(__cpp_concepts)
 
     // Passthrough
-    //   concept: satisfied iff _Type is a passthrough.
+    //   concept: satisfied iff Type is a passthrough.
     // Parallels is_passthrough_v, in Capital-letter form per
     // the project's concept naming convention.
-    template<typename _Type>
-    concept Passthrough = is_passthrough_v<_Type>;
+    template<typename Type>
+    concept Passthrough = is_passthrough_v<Type>;
 
 #endif
 
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
-#endif  // DJINTERP_META_PASSTHROUGH_
+
+#endif  // DJINTERP_META_PASSTHROUGH_HPP

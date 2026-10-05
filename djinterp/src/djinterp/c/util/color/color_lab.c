@@ -1,17 +1,18 @@
-/******************************************************************************
-* djinterp [utility]                                               color_lab.c
+/*******************************************************************************
+* djinterp [c]                                                       color_lab.c
 *
-*   External-definition unit for color_lab.h. The CIE XYZ and L*a*b* bodies 
-* live in the header as `inline`; this unit re-declares their prototypes so 
-* one out-of-line external definition of each is emitted for the compiled C 
-* library (no effect under D_COLOR_HEADER_ONLY). See color_common.c for the 
+*   External-definition unit for color_lab.h. The CIE XYZ and L*a*b* bodies
+* live in the header as `inline`; this unit re-declares their prototypes so
+* one out-of-line external definition of each is emitted for the compiled C
+* library (no effect under D_COLOR_HEADER_ONLY). See color_common.c for the
 * rationale.
 *
 *
-* path:      /inc/djinterp/c/util/color/color_lab.c
+* path:      /src/djinterp/c/util/color/color_lab.c
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 #include "../../../../../inc/djinterp/c/util/color/color_lab.h"
 
 

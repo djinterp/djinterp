@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                            span
+/*******************************************************************************
+* djinterp [re_std]                                                         span
 *
 * umbrella header for <span>:
 *   Pulls in every granular re_std::span module. Include this for the full
@@ -22,17 +22,18 @@
 *   basic_string_view; the two modules are independent.
 *
 *
-* path:      /inc/re_std/span
+* path:      /inc/re_std/span/span
 * link(s):   TBA
-* author(s): re_std contributors                       date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SPAN_
-#define DJINTERP_RE_STD_SPAN_ 1
+#ifndef RE_STD_SPAN_SPAN
+#define RE_STD_SPAN_SPAN 1
 
-#include "re_std/span/dynamic_extent.hpp"
-#include "re_std/span/span.hpp"
-#include "re_std/span/as_bytes.hpp"
-#include "re_std/span/as_writable_bytes.hpp"
+#include "./dynamic_extent.hpp"
+#include "./span.hpp"
+#include "./as_bytes.hpp"
+#include "./as_writable_bytes.hpp"
 
-#endif  // DJINTERP_RE_STD_SPAN_
+#endif  // RE_STD_SPAN_SPAN

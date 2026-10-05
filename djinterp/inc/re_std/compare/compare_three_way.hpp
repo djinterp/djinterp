@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         compare_three_way.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        compare_three_way.hpp
 *
 * compare_three_way function object header:
 *   Per [cmp.object]: a stateless function object whose call operator
@@ -15,28 +15,30 @@
 * the underlying operator<=> is available.
 *
 *   PORTABILITY:
-*   The entire class definition is gated on D_ENV_LANG_IS_CPP20_OR_HIGHER
+*   The entire class definition is gated on RE_STD_LANG_IS_CPP20_OR_HIGHER
 * — the call operator's body requires the operator<=> language
 * feature. On C++11-17 the symbol does not exist. Users on lower
 * tiers should guard with the same macro before referencing it.
 *
 *
-* path:      /inc/djinterp/re_std/compare/compare_three_way.hpp
+* path:      /inc/re_std/compare/compare_three_way.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_
-#define DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_ 1
+#ifndef RE_STD_COMPARE_COMPARE_THREE_WAY_HPP
+#define RE_STD_COMPARE_COMPARE_THREE_WAY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
+
+
+namespace re_std
+{
 
 
 // =============================================================================
@@ -51,17 +53,17 @@ NS_RESTD
 // three ordering categories, typically).
 struct compare_three_way
 {
-    template<typename _T,
-             typename _U>
+    template<typename T,
+             typename U>
     constexpr auto
     operator()(
-        _T&& _t,
-        _U&& _u
+        T&& _t,
+        U&& _u
     ) const
-        noexcept(noexcept(static_cast<_T&&>(_t) <=> static_cast<_U&&>(_u)))
-        -> decltype(static_cast<_T&&>(_t) <=> static_cast<_U&&>(_u))
+        noexcept(noexcept(static_cast<T&&>(_t) <=> static_cast<U&&>(_u)))
+        -> decltype(static_cast<T&&>(_t) <=> static_cast<U&&>(_u))
     {
-        return static_cast<_T&&>(_t) <=> static_cast<_U&&>(_u);
+        return static_cast<T&&>(_t) <=> static_cast<U&&>(_u);
     }
 
     // is_transparent — marker presence allows compare_three_way to
@@ -71,10 +73,10 @@ struct compare_three_way
 };
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_
+#endif  // RE_STD_COMPARE_COMPARE_THREE_WAY_HPP

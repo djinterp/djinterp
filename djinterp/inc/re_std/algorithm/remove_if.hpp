@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                remove_if.hpp
 *
 * remove_if algorithm header:
@@ -13,19 +13,20 @@
 *   - Forwards through find_if for the skip-prefix scan.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/remove_if.hpp
+* path:      /inc/re_std/algorithm/remove_if.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_REMOVE_IF_
-#define DJINTERP_RE_STD_ALGORITHM_REMOVE_IF_ 1
+#ifndef RE_STD_ALGORITHM_REMOVE_IF_HPP
+#define RE_STD_ALGORITHM_REMOVE_IF_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./find_if.hpp"
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
     #include "../utility/move.hpp"
 #endif
 
@@ -34,16 +35,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -54,13 +48,13 @@ NS_RESTD
 //   function: in-place compaction by predicate. Returns the iterator
 // one past the last kept element. Kept elements retain their relative
 // order; the tail [returned, _last) is in valid-but-unspecified state.
-template<typename _ForwardIt,
-         typename _Pred>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt,
+         typename Pred>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 remove_if(
-    _ForwardIt _first,
-    _ForwardIt _last,
-    _Pred      _pred
+    ForwardIt _first,
+    ForwardIt _last,
+    Pred      _pred
 )
 {
     // skip the matchless prefix
@@ -70,14 +64,14 @@ remove_if(
         return _first;
     }
 
-    _ForwardIt _it = _first;
+    ForwardIt _it = _first;
     ++_it;
 
     for (; _it != _last; ++_it)
     {
         if (!_pred(*_it))
         {
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
             *_first = re_std::move(*_it);
 #else
             *_first = *_it;
@@ -90,7 +84,7 @@ remove_if(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_REMOVE_IF_
+#endif  // RE_STD_ALGORITHM_REMOVE_IF_HPP

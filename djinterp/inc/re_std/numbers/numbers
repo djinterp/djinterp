@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                                     numbers
+/*******************************************************************************
+* djinterp [re_std]                                                      numbers
 *
 * <numbers> umbrella header:
-*   Aggregates the granular headers under /inc/djinterp/re_std/numbers/.
+*   Aggregates the granular headers under /inc/re_std/numbers/.
 * Mirrors the standard <numbers> convenience header and adds no symbols of
 * its own.
 *
@@ -14,17 +14,18 @@
 * and there is nothing here to narrow.
 *
 *
-* path:      /inc/djinterp/re_std/numbers/numbers
+* path:      /inc/re_std/numbers/numbers
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMBERS_
-#define DJINTERP_RE_STD_NUMBERS_ 1
+#ifndef RE_STD_NUMBERS_NUMBERS
+#define RE_STD_NUMBERS_NUMBERS 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 #include "./numbers.hpp"
 
-#endif  // DJINTERP_RE_STD_NUMBERS_
+#endif  // RE_STD_NUMBERS_NUMBERS

@@ -1,15 +1,15 @@
-/******************************************************************************
-* djinterp [sync]                                                   atomic.hpp
+/*******************************************************************************
+* djinterp [core]                                                     atomic.hpp
 *
 * Atomic utilities for the thread-safe framework.
 *   Provides semantic wrappers around std::atomic for common metadata
-* patterns (element counts, version stamps).  These types add no
+* patterns (element counts, version stamps). These types add no
 * overhead beyond the underlying atomic - they exist to clarify intent
 * and prevent mixing up unrelated atomic variables.
 *
 * TYPES:
 *   atomic_size       - atomic std::size_t for lock-free element counts
-*   atomic_version    - atomic std::uint64_t for version/generation stamps
+*   atomic_version    - atomic re_std::uint64_t for version/generation stamps
 *   atomic_flag_guard - RAII guard for std::atomic_flag (set on construct,
 *                       clear on destruct)
 *
@@ -21,42 +21,66 @@
 *
 * path:      /inc/djinterp/core/sync/atomic.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_THREADSAFE_ATOMIC_
-#define DJINTERP_THREADSAFE_ATOMIC_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    ATOMIC SIZE
+      -----------
 
-//#ifndef DJINTERP_ENVIRONMENT_
-//    #error "atomic.hpp requires env.h to be included first"
-//#endif
+II.   ATOMIC VERSION
+      --------------
 
-//#ifndef __cplusplus
-//    #error "atomic.hpp can only be used in C++ compilation mode"
-//#endif
+III.  ATOMIC FLAG GUARD
+      -----------------
 
-//#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+IV.   ATOMIC STAMPED POINTER (C++11+)
+      -------------------------------
+*/
 
+#ifndef DJINTERP_SYNC_ATOMIC_HPP
+#define DJINTERP_SYNC_ATOMIC_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+
+// std
 #include <atomic>
 #include <cstddef>
-#include <cstdint>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./concurrency_strategy_tags.hpp"
+#include "./sync_common.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t, uint64_t,
+                                                // uintptr_t
 
 
 NS_DJINTERP
 
-// =========================================================================
-// I.   ATOMIC SIZE
-// =========================================================================
-// Semantic wrapper for an atomic element count.  Provides
+// I.    Atomic size
+// Semantic wrapper for an atomic element count. Provides
 // the standard atomic interface plus convenience methods
 // for increment / decrement.
 
 class atomic_size
 {
 public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(atomic_size)
+
     // --- type aliases ---
 
     // value_type
@@ -68,7 +92,7 @@ public:
 
     // concurrency_strategy_tag
     //   alias: declares this type as lock-free atomic
-    // strategy.  Read by concurrency_strategy_traits.hpp
+    // strategy. Read by concurrency_strategy_traits.hpp
     // tag-alias fast path.
     using concurrency_strategy_tag = atomic_strategy_tag;
 
@@ -80,9 +104,6 @@ public:
         : m_value(_initial)
     {}
 
-    // non-copyable (atomics are non-copyable)
-    atomic_size(const atomic_size&)            = delete;
-    atomic_size& operator=(const atomic_size&) = delete;
 
     // --- load / store ---
 
@@ -198,16 +219,22 @@ private:
 };
 
 
-// =========================================================================
-// II.  ATOMIC VERSION
-// =========================================================================
+// II.   Atomic version
 // Semantic wrapper for an atomic version / generation
-// counter.  Used for optimistic concurrency control and
+// counter. Used for optimistic concurrency control and
 // ABA prevention.
 
 class atomic_version
 {
 public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(atomic_version)
+
     // --- type aliases ---
 
     // value_type
@@ -215,11 +242,11 @@ public:
     // Mirrors std::atomic<T>::value_type so that generic
     // code (including the test trait surface) can probe
     // store/CAS overloads via T::value_type.
-    using value_type = std::uint64_t;
+    using value_type = re_std::uint64_t;
 
     // concurrency_strategy_tag
     //   alias: declares this type as lock-free atomic
-    // strategy.  Read by concurrency_strategy_traits.hpp
+    // strategy. Read by concurrency_strategy_traits.hpp
     // tag-alias fast path.
     using concurrency_strategy_tag = atomic_strategy_tag;
 
@@ -227,16 +254,14 @@ public:
         : m_value(0)
     {}
 
-    explicit atomic_version(std::uint64_t _initial) noexcept
+    explicit atomic_version(re_std::uint64_t _initial) noexcept
         : m_value(_initial)
     {}
 
-    atomic_version(const atomic_version&)            = delete;
-    atomic_version& operator=(const atomic_version&) = delete;
 
     // --- load / store ---
 
-    std::uint64_t load(
+    re_std::uint64_t load(
         std::memory_order _order =
             std::memory_order_seq_cst) const noexcept
     {
@@ -244,7 +269,7 @@ public:
     }
 
     void store(
-        std::uint64_t     _v,
+        re_std::uint64_t  _v,
         std::memory_order _order =
             std::memory_order_seq_cst) noexcept
     {
@@ -253,8 +278,8 @@ public:
 
     // --- fetch operations ---
 
-    std::uint64_t fetch_add(
-        std::uint64_t     _n,
+    re_std::uint64_t fetch_add(
+        re_std::uint64_t  _n,
         std::memory_order _order =
             std::memory_order_seq_cst) noexcept
     {
@@ -265,11 +290,11 @@ public:
 
     // bump
     //   increments the version and returns the previous
-    // value.  The standard mutation sequence is:
+    // value. The standard mutation sequence is:
     //   uint64_t old = ver.bump();
     //   // ... perform mutation ...
     //   // readers comparing against old see a stale snapshot
-    std::uint64_t bump(
+    re_std::uint64_t bump(
         std::memory_order _order =
             std::memory_order_acq_rel) noexcept
     {
@@ -279,8 +304,8 @@ public:
     // --- CAS ---
 
     bool compare_exchange_weak(
-        std::uint64_t&    _expected,
-        std::uint64_t     _desired,
+        re_std::uint64_t& _expected,
+        re_std::uint64_t  _desired,
         std::memory_order _success =
             std::memory_order_acq_rel,
         std::memory_order _failure =
@@ -291,8 +316,8 @@ public:
     }
 
     bool compare_exchange_strong(
-        std::uint64_t&    _expected,
-        std::uint64_t     _desired,
+        re_std::uint64_t& _expected,
+        re_std::uint64_t  _desired,
         std::memory_order _success =
             std::memory_order_acq_rel,
         std::memory_order _failure =
@@ -304,7 +329,7 @@ public:
 
     // --- conversion ---
 
-    operator std::uint64_t() const noexcept
+    operator re_std::uint64_t() const noexcept
     {
         return m_value.load(
             std::memory_order_seq_cst);
@@ -315,7 +340,7 @@ public:
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
     void wait(
-        std::uint64_t     _old,
+        re_std::uint64_t  _old,
         std::memory_order _order =
             std::memory_order_seq_cst) const noexcept
     {
@@ -335,14 +360,12 @@ public:
 #endif  // C++20
 
 private:
-    std::atomic<std::uint64_t> m_value;
+    std::atomic<re_std::uint64_t> m_value;
 };
 
 
-// =========================================================================
-// III. ATOMIC FLAG GUARD
-// =========================================================================
-// RAII guard for std::atomic_flag.  Sets the flag on
+// III. Atomic flag guard
+// RAII guard for std::atomic_flag. Sets the flag on
 // construction (via test_and_set), clears on destruction.
 //
 // Primary use: one-shot initialization guards and
@@ -351,6 +374,14 @@ private:
 class atomic_flag_guard
 {
 public:
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(atomic_flag_guard)
+
     // construct: sets the flag.  was_set() reports whether
     // the flag was already set before this guard.
     explicit atomic_flag_guard(
@@ -366,12 +397,10 @@ public:
         m_flag.clear(std::memory_order_release);
     }
 
-    atomic_flag_guard(const atomic_flag_guard&)            = delete;
-    atomic_flag_guard& operator=(const atomic_flag_guard&) = delete;
 
     // was_set
     //   returns true if the flag was already set before
-    // this guard was constructed.  Use to detect
+    // this guard was constructed. Use to detect
     // re-entrancy or contention.
     bool was_set() const noexcept
     {
@@ -384,11 +413,9 @@ private:
 };
 
 
-// =========================================================================
-// IV.  ATOMIC STAMPED POINTER (C++11+)
-// =========================================================================
+// IV.   Atomic stamped pointer (C++11+)
 // Combines a pointer and a version stamp into a single
-// atomically-updated unit.  Used to solve the ABA problem
+// atomically-updated unit. Used to solve the ABA problem
 // in lock-free data structures.
 //
 // On 64-bit platforms, packs the stamp into the upper 16
@@ -396,30 +423,34 @@ private:
 // On 32-bit platforms, uses a 64-bit CAS with separate
 // fields.
 
-template<typename _Type>
+template<typename Type>
 class atomic_stamped_ptr
 {
 public:
-    using stamp_type = std::uint16_t;
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(atomic_stamped_ptr)
+
+    using stamp_type = re_std::uint16_t;
 
     atomic_stamped_ptr() noexcept
         : m_packed(0)
     {}
 
     explicit atomic_stamped_ptr(
-        _Type*        _ptr,
+        Type*        _ptr,
         stamp_type _stamp = 0) noexcept
         : m_packed(pack(_ptr, _stamp))
     {}
 
-    atomic_stamped_ptr(
-        const atomic_stamped_ptr&)            = delete;
-    atomic_stamped_ptr& operator=(
-        const atomic_stamped_ptr&)            = delete;
 
     // --- accessors ---
 
-    _Type* load_ptr(
+    Type* load_ptr(
         std::memory_order _order =
             std::memory_order_acquire) const noexcept
     {
@@ -436,7 +467,7 @@ public:
     // --- store ---
 
     void store(
-        _Type*               _ptr,
+        Type*               _ptr,
         stamp_type        _stamp,
         std::memory_order _order =
             std::memory_order_release) noexcept
@@ -447,18 +478,18 @@ public:
     // --- CAS ---
 
     bool compare_exchange_weak(
-        _Type*&              _expected_ptr,
+        Type*&              _expected_ptr,
         stamp_type&       _expected_stamp,
-        _Type*               _desired_ptr,
+        Type*               _desired_ptr,
         stamp_type        _desired_stamp,
         std::memory_order _success =
             std::memory_order_acq_rel,
         std::memory_order _failure =
             std::memory_order_acquire) noexcept
     {
-        std::uintptr_t expected =
+        re_std::uintptr_t expected =
             pack(_expected_ptr, _expected_stamp);
-        std::uintptr_t desired =
+        re_std::uintptr_t desired =
             pack(_desired_ptr, _desired_stamp);
 
         bool ok = m_packed.compare_exchange_weak(
@@ -474,47 +505,47 @@ public:
     }
 
 private:
-    static std::uintptr_t pack(
-        _Type*        _ptr,
+    static re_std::uintptr_t pack(
+        Type*        _ptr,
         stamp_type _stamp) noexcept
     {
-        std::uintptr_t raw =
-            reinterpret_cast<std::uintptr_t>(_ptr);
+        re_std::uintptr_t raw =
+            reinterpret_cast<re_std::uintptr_t>(_ptr);
 
         // upper 16 bits for stamp (48-bit VA assumption)
         return (raw & 0x0000FFFFFFFFFFFF) |
-               (static_cast<std::uintptr_t>(_stamp)
+               (static_cast<re_std::uintptr_t>(_stamp)
                    << 48);
     }
 
-    static _Type* unpack_ptr(
-        std::uintptr_t _packed) noexcept
+    static Type* unpack_ptr(
+        re_std::uintptr_t _packed) noexcept
     {
         // sign-extend from 48 bits for canonical form
-        std::uintptr_t raw = _packed & 0x0000FFFFFFFFFFFF;
+        re_std::uintptr_t raw = _packed & 0x0000FFFFFFFFFFFF;
 
-        if (raw & (static_cast<std::uintptr_t>(1) << 47))
+        if (raw & (static_cast<re_std::uintptr_t>(1) << 47))
         {
             raw |= 0xFFFF000000000000;
         }
 
-        return reinterpret_cast<_Type*>(raw);
+        return reinterpret_cast<Type*>(raw);
     }
 
     static stamp_type unpack_stamp(
-        std::uintptr_t _packed) noexcept
+        re_std::uintptr_t _packed) noexcept
     {
         return static_cast<stamp_type>(
             _packed >> 48);
     }
 
-    std::atomic<std::uintptr_t> m_packed;
+    std::atomic<re_std::uintptr_t> m_packed;
 };
 
 
 NS_END  // djinterp
 
-//#endif  // C++11
+#endif  // floor, for now
 
 
-#endif  // DJINTERP_THREADSAFE_ATOMIC_
+#endif  // DJINTERP_SYNC_ATOMIC_HPP

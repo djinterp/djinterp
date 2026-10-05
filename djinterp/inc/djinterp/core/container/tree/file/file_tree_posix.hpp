@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [fs]                                             file_tree_posix.hpp
+/*******************************************************************************
+* djinterp [core]                                            file_tree_posix.hpp
 *
 * POSIX file tree scanner (portable baseline):
 *   Defines posix_scanner, the portable directory-walk backend used by
@@ -19,15 +19,27 @@
 * POSIX.1-2008 host (Linux, the BSDs, macOS, Solaris, illumos).
 *
 *
-* path:      /inc/cpp/fs/file_tree_posix.hpp
+* path:      /inc/djinterp/core/container/tree/file/file_tree_posix.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.03.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_FS_FILE_TREE_POSIX_
-#define DJINTERP_FS_FILE_TREE_POSIX_ 1
+#ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_POSIX_HPP
+#define DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_POSIX_HPP 1
 
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
 #include "./file_tree_common.hpp"
+// re_std
+#include "../../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
+
+#if D_FILESYS_ENABLE_POSIX
 
 // POSIX headers
 #include <dirent.h>
@@ -39,7 +51,6 @@
 
 
 NS_DJINTERP
-NS_FS
 
 
 // ================================================================
@@ -47,10 +58,10 @@ NS_FS
 // ================================================================
 
 // posix_scanner
-//   policy: portable POSIX directory walk.  Uses a per-directory fd
-// plus fstatat for child metadata.  fstatat resolves names relative
-// to the open directory, so neither a full path string nor a kernel
-// path re-walk is needed per entry, and PATH_MAX is never a concern.
+//   policy: portable POSIX directory walk. Uses a per-directory fd plus
+// fstatat for child metadata. fstatat resolves names relative
+// to the open directory, so neither a full path string nor a kernel path
+// re-walk is needed per entry, and PATH_MAX is never a concern.
 struct posix_scanner
 {
     // classify
@@ -88,14 +99,14 @@ struct posix_scanner
     }
 
     // scan
-    //   recursively walks _dir_path, interning each child through
-    // _ctx and recursing into subdirectories.
-    template<typename _Ctx>
+    //   recursively walks _dir_path, interning each child through _ctx and
+    // recursing into subdirectories.
+    template<typename Ctx>
     static void
     scan(
-        _Ctx&              _ctx,
+        Ctx&              _ctx,
         const std::string& _dir_path,
-        node_id            _parent
+        file_node_id            _parent
     )
     {
         DIR* dir = ::opendir(_dir_path.c_str());
@@ -122,19 +133,19 @@ struct posix_scanner
 
             struct stat st;
 
-            // fstatat relative to the open directory fd; no full
-            // path build, no root-relative re-walk.
+            // fstatat relative to the open directory fd; no full path build,
+            // no root-relative re-walk.
             if (::fstatat(dfd, child_name, &st,
                           AT_SYMLINK_NOFOLLOW) != 0)
             {
                 continue;
             }
 
-            file_type     type = classify(st.st_mode);
-            std::uint64_t sz    =
-                static_cast<std::uint64_t>(st.st_size);
+            file_type        type = classify(st.st_mode);
+            re_std::uint64_t sz    =
+                static_cast<re_std::uint64_t>(st.st_size);
 
-            node_id id = _ctx.intern_child(
+            file_node_id id = _ctx.intern_child(
                 _parent, child_name, child_len, type, sz);
 
             if (type == file_type_directory)
@@ -150,8 +161,20 @@ struct posix_scanner
 };
 
 
-NS_END  // fs
 NS_END  // djinterp
 
+#else  // !D_FILESYS_ENABLE_POSIX
 
-#endif  // DJINTERP_FS_FILE_TREE_POSIX_
+// POSIX backend not enabled for this build. Without it this header declares
+// nothing, rather than stopping the build: a disabled backend is absent, and
+// naming its scanner fails at the point of use (see os_scanner in
+// file_tree.hpp). It is a foreign backend on the current target; set
+// D_CFG_FILESYS_ALLOW_POSIX (or D_CFG_FILESYS_ALLOW_POSIX_FAMILY, or
+// D_CFG_FILESYS_ALLOW_FOREIGN) to 1 before including file_tree.hpp to permit
+// it.
+
+#endif  // D_FILESYS_ENABLE_POSIX
+
+#endif  // floor, for now
+
+#endif  // DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_POSIX_HPP

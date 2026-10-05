@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                            adjacent_find.hpp
 *
 * adjacent_find algorithm header:
@@ -11,31 +11,26 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/adjacent_find.hpp
+* path:      /inc/re_std/algorithm/adjacent_find.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_ADJACENT_FIND_
-#define DJINTERP_RE_STD_ALGORITHM_ADJACENT_FIND_ 1
+#ifndef RE_STD_ALGORITHM_ADJACENT_FIND_HPP
+#define RE_STD_ALGORITHM_ADJACENT_FIND_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -46,11 +41,11 @@ NS_RESTD
 //   function: returns the first iterator it in [_first, _last) such
 // that *it == *(it + 1). Returns _last for empty or one-element ranges
 // and on no-match.
-template<typename _ForwardIt>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 adjacent_find(
-    _ForwardIt _first,
-    _ForwardIt _last
+    ForwardIt _first,
+    ForwardIt _last
 )
 {
     if (_first == _last)
@@ -58,7 +53,7 @@ adjacent_find(
         return _last;
     }
 
-    _ForwardIt _next = _first;
+    ForwardIt _next = _first;
     ++_next;
 
     for (; _next != _last; ++_first, (void)++_next)
@@ -80,13 +75,13 @@ adjacent_find(
 // adjacent_find (predicate)
 //   function: as above but adjacent equality is determined by the
 // user-supplied binary predicate _pred.
-template<typename _ForwardIt,
-         typename _BinaryPred>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt,
+         typename BinaryPred>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 adjacent_find(
-    _ForwardIt  _first,
-    _ForwardIt  _last,
-    _BinaryPred _pred
+    ForwardIt  _first,
+    ForwardIt  _last,
+    BinaryPred _pred
 )
 {
     if (_first == _last)
@@ -94,7 +89,7 @@ adjacent_find(
         return _last;
     }
 
-    _ForwardIt _next = _first;
+    ForwardIt _next = _first;
     ++_next;
 
     for (; _next != _last; ++_first, (void)++_next)
@@ -109,7 +104,7 @@ adjacent_find(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_ADJACENT_FIND_
+#endif  // RE_STD_ALGORITHM_ADJACENT_FIND_HPP

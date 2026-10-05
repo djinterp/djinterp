@@ -1,41 +1,61 @@
-/******************************************************************************
-* djinterp [container]                                hierarchical_iterator.hpp
+/*******************************************************************************
+* djinterp [core]                                      hierarchical_iterator.hpp
 *
-*   The foundational HIERARCHICAL iterator: a flattening traversal that unfolds
+*   The foundational HIERARCHICAL iterator: a flattening traversal that
+* unfolds
 * one level of nesting.  Where the flat iterator visits a container's own leaf
 * positions, this visits the leaves BENEATH a node summand - given a container
-* whose elements are themselves containers (the formal T = tau + F[T], with F[T]
-* the node summand, a container of components), it enumerates the leaves of every
-* inner range in turn, skipping empty ones.  Applied where the inner elements are
-* leaves it flattens a depth-2 structure to its elements; deeper nesting unfolds a
+* whose elements are themselves containers (the formal T = tau + F[T], with
+* F[T]
+* the node summand, a container of components), it enumerates the leaves of
+* every
+* inner range in turn, skipping empty ones. Applied where the inner elements
+* are
+* leaves it flattens a depth-2 structure to its elements; deeper nesting
+* unfolds a
 * level at a time.
 *
-*   It realises the iterability axes as the flat iterator does, within the limits
+*   It realises the iterability axes as the flat iterator does, within the
+* limits
 * nesting imposes (the spec, Iterability):
-*     STAGE.   Observation and comparison are D_CONSTEXPR.  Advancing must skip
-*              past exhausted and empty inner ranges - a loop - so the traversal is
-*              constexpr from C++14 (relaxed constexpr) and a runtime operation
-*              before that; there is no cheaper functional form, since locating the
+*     STAGE. Observation and comparison are D_CONSTEXPR. Advancing must skip
+*              past exhausted and empty inner ranges - a loop - so the
+*            traversal is
+*              constexpr from C++14 (relaxed constexpr) and a runtime
+*            operation
+*              before that; there is no cheaper functional form, since
+*            locating the
 *              next leaf is inherently a search.
-*     MODE.    Constness follows the outer iterator - a const outer iterator yields
+*     MODE. Constness follows the outer iterator - a const outer iterator
+*   yields
 *              const leaves - and may additionally be FORCED const by the type
-*              parameter, giving a read-only traversal over a mutable structure.
+*              parameter, giving a read-only traversal over a mutable
+*            structure.
 *
-*   The category is forward: a flattening admits neither random access nor a cheap
+*   The category is forward: a flattening admits neither random access nor a
+* cheap
 * step backward.
 *
 *   PORTABILITY:
-*   C++11 baseline.  Observation and comparison are constexpr throughout; traversal
+*   C++11 baseline. Observation and comparison are constexpr throughout;
+* traversal
 * and construction are constexpr from C++14.
 *
 *
 * path:      /inc/djinterp/core/container/iterator/hierarchical_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_HIERARCHICAL_ITERATOR_
-#define DJINTERP_CONTAINER_HIERARCHICAL_ITERATOR_ 1
+#ifndef DJINTERP_CONTAINER_ITERATOR_HIERARCHICAL_ITERATOR_HPP
+#define DJINTERP_CONTAINER_ITERATOR_HIERARCHICAL_ITERATOR_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -43,38 +63,26 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"   // D_CONSTEXPR, NS_*, feature macros
-
-
-// D_ITER_CONSTEXPR_MUT
-//   an operation that must loop (advancing past empty inner ranges, or settling a
-// freshly constructed iterator) is constexpr only from C++14 (relaxed constexpr).
-#ifndef D_ITER_CONSTEXPR_MUT
-    #if ( D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL >= 201304L )
-        #define D_ITER_CONSTEXPR_MUT  constexpr
-    #else
-        #define D_ITER_CONSTEXPR_MUT
-    #endif
-#endif
+#include "../../../djinterp.hpp"   // D_CONSTEXPR, NS_*, feature macros
 
 
 NS_DJINTERP
 
 
 // hierarchical_iterator
-//   class: a forward iterator flattening the leaves beneath an outer range whose
-// elements are inner ranges.  Parameterised on the outer iterator type and on a
-// force-const flag; the leaf constness is the outer iterator's, tightened by the
-// flag.
-template<typename _OuterIter,
-         bool     _Const = false>
+//   class: a forward iterator flattening the leaves beneath an outer range
+// whose elements are inner ranges. Parameterised on the outer iterator type
+// and on a force-const flag; the leaf constness is the outer iterator's,
+// tightened by the flag.
+template<typename OuterIter,
+         bool     Const = false>
 class hierarchical_iterator
 {
 private:
     // the inner range is what the outer iterator dereferences to; the inner
     // iterator traverses it, and its dereference is the leaf.
     using inner_iterator =
-        decltype(std::begin(*std::declval<_OuterIter&>()));
+        decltype(std::begin(*std::declval<OuterIter&>()));
     using leaf_natural_reference =
         decltype(*std::declval<inner_iterator&>());
     using leaf_value =
@@ -84,7 +92,7 @@ public:
     using value_type =
         typename std::remove_cv<leaf_value>::type;
     using reference =
-        typename std::conditional<_Const,
+        typename std::conditional<Const,
             const leaf_value&, leaf_natural_reference>::type;
     using pointer =
         typename std::remove_reference<reference>::type*;
@@ -103,10 +111,11 @@ public:
 
     // hierarchical_iterator (range)
     //   an iterator at the first leaf of [_outer, _outer_end), skipping any
-    // leading empty inner ranges.  (Constexpr from C++14 - it settles by looping.)
-    D_ITER_CONSTEXPR_MUT hierarchical_iterator(
-        _OuterIter _outer,
-        _OuterIter _outer_end
+    // leading empty inner ranges. (Constexpr from C++14 - it settles by
+    // looping.)
+    D_CONSTEXPR_CPP14 hierarchical_iterator(
+        OuterIter _outer,
+        OuterIter _outer_end
     )
         : m_outer(_outer), m_outer_end(_outer_end), m_inner()
     {
@@ -142,7 +151,7 @@ public:
 
     // operator++ (pre)
     //   advances to the next leaf, crossing inner-range boundaries as needed.
-    D_ITER_CONSTEXPR_MUT hierarchical_iterator& operator++()
+    D_CONSTEXPR_CPP14 hierarchical_iterator& operator++()
     {
         ++m_inner;
         settle();
@@ -151,7 +160,7 @@ public:
     }
 
     // operator++ (post)
-    D_ITER_CONSTEXPR_MUT hierarchical_iterator operator++(int)
+    D_CONSTEXPR_CPP14 hierarchical_iterator operator++(int)
     {
         hierarchical_iterator _tmp(*this);
         ++(*this);
@@ -183,7 +192,7 @@ private:
     // settle
     //   advances past exhausted / empty inner ranges until either a leaf is in
     // view or the outer range is spent.
-    D_ITER_CONSTEXPR_MUT void settle()
+    D_CONSTEXPR_CPP14 void settle()
     {
         while (    m_outer != m_outer_end
                 && m_inner == std::end(*m_outer) )
@@ -199,8 +208,8 @@ private:
         return;
     }
 
-    _OuterIter    m_outer;
-    _OuterIter    m_outer_end;
+    OuterIter     m_outer;
+    OuterIter     m_outer_end;
     inner_iterator m_inner;
 };
 
@@ -210,36 +219,36 @@ private:
 // ===========================================================================
 
 // hierarchical_view
-//   class: a lightweight range over the flattened leaves of a container of inner
-// ranges, so the traversal may drive a range-for.  Holds only iterators; it owns
-// nothing.  Constness of the leaves follows _Container's.
-template<typename _Container,
-         bool     _Const = false>
+//   class: a lightweight range over the flattened leaves of a container of
+// inner ranges, so the traversal may drive a range-for. Holds only iterators;
+// it owns nothing. Constness of the leaves follows Container's.
+template<typename Container,
+         bool     Const = false>
 class hierarchical_view
 {
 private:
     using outer_iterator =
-        decltype(std::begin(std::declval<_Container&>()));
+        decltype(std::begin(std::declval<Container&>()));
 
 public:
-    using iterator = hierarchical_iterator<outer_iterator, _Const>;
+    using iterator = hierarchical_iterator<outer_iterator, Const>;
 
     // hierarchical_view (container)
-    explicit hierarchical_view(_Container& _c)
+    explicit hierarchical_view(Container& _c)
         : m_begin(std::begin(_c)),
           m_end(std::end(_c))
     {}
 
     // begin
     //   an iterator at the first leaf.
-    D_ITER_CONSTEXPR_MUT iterator begin() const
+    D_CONSTEXPR_CPP14 iterator begin() const
     {
         return iterator(m_begin, m_end);
     }
 
     // end
     //   the past-the-end iterator.
-    D_ITER_CONSTEXPR_MUT iterator end() const
+    D_CONSTEXPR_CPP14 iterator end() const
     {
         return iterator(m_end, m_end);
     }
@@ -250,37 +259,39 @@ private:
 };
 
 // make_hierarchical_iterator
-//   factory: the flattening iterator at the first leaf of [_outer, _outer_end).
-template<typename _OuterIter>
-D_ITER_CONSTEXPR_MUT hierarchical_iterator<_OuterIter, false>
+//   factory: the flattening iterator at the first leaf of [_outer,
+// _outer_end).
+template<typename OuterIter>
+D_CONSTEXPR_CPP14 hierarchical_iterator<OuterIter, false>
 make_hierarchical_iterator(
-    _OuterIter _outer,
-    _OuterIter _outer_end
+    OuterIter _outer,
+    OuterIter _outer_end
 )
 {
-    return hierarchical_iterator<_OuterIter, false>(_outer, _outer_end);
+    return hierarchical_iterator<OuterIter, false>(_outer, _outer_end);
 }
 
 // make_hierarchical_view
 //   factory: a flattened range over _c.
-template<typename _Container>
-hierarchical_view<_Container, false>
-make_hierarchical_view(_Container& _c)
+template<typename Container>
+hierarchical_view<Container, false>
+make_hierarchical_view(Container& _c)
 {
-    return hierarchical_view<_Container, false>(_c);
+    return hierarchical_view<Container, false>(_c);
 }
 
 // make_const_hierarchical_view
 //   factory: a read-only flattened range over _c.
-template<typename _Container>
-hierarchical_view<_Container, true>
-make_const_hierarchical_view(_Container& _c)
+template<typename Container>
+hierarchical_view<Container, true>
+make_const_hierarchical_view(Container& _c)
 {
-    return hierarchical_view<_Container, true>(_c);
+    return hierarchical_view<Container, true>(_c);
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_HIERARCHICAL_ITERATOR_
+#endif  // DJINTERP_CONTAINER_ITERATOR_HIERARCHICAL_ITERATOR_HPP

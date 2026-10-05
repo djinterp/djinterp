@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                            throw_with_nested.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        throw_with_nested.hpp
 *
 * throw_with_nested:
 *   throws an object that, when the argument type allows, derives from
@@ -12,20 +12,23 @@
 * built on nested_exception / current_exception.
 *
 *
-* path:      /inc/djinterp/re_std/exception/throw_with_nested.hpp
+* path:      /inc/re_std/exception/throw_with_nested.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXCEPTION_THROW_WITH_NESTED_
-#define DJINTERP_RE_STD_EXCEPTION_THROW_WITH_NESTED_ 1
+#ifndef RE_STD_EXCEPTION_THROW_WITH_NESTED_HPP
+#define RE_STD_EXCEPTION_THROW_WITH_NESTED_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "nested_exception.hpp"
 
-#if ( D_ENV_LANG_IS_CPP11_OR_HIGHER && \
-      D_ENV_CPP98_HAS_EXCEPTION )
+#if ( RE_STD_LANG_IS_CPP11_OR_HIGHER && \
+      RE_STD_HAS_EXCEPTIONS )
 
+    // std
     #include <exception>
 
 namespace re_std
@@ -34,8 +37,7 @@ namespace re_std
     //   function: using-declaration from std::throw_with_nested.
     using std::throw_with_nested;
 
-} // namespace re_std
-
+}  // re_std
 #endif // C++11+ && <exception>
 
-#endif  // DJINTERP_RE_STD_EXCEPTION_THROW_WITH_NESTED_
+#endif  // RE_STD_EXCEPTION_THROW_WITH_NESTED_HPP

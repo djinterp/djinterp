@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [re_std]                                                       ratio
+/*******************************************************************************
+* djinterp [re_std]                                                        ratio
 *
 * <ratio> umbrella header:
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/re_std/ratio/. Mirrors the standard <ratio> convenience
+* /inc/re_std/ratio/. Mirrors the standard <ratio> convenience
 * header and adds no symbols of its own.
 *
 *   WHAT THIS MODULE IS FOR:
@@ -12,24 +12,34 @@
 * a ratio_divide resolved at compile time. Nothing here is meant to be
 * used at run time -- there is no ratio object to construct.
 *
-*   TABLE OF CONTENTS
-*   =================
-*   I.    THE CLASS
-*   II.   ARITHMETIC
-*   III.  COMPARISON
-*   IV.   SI PREFIX TYPEDEFS
 *
-*
-* path:      /inc/djinterp/re_std/ratio/ratio
+* path:      /inc/re_std/ratio/ratio
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RATIO_
-#define DJINTERP_RE_STD_RATIO_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    THE CLASS
+      ---------
 
-// djinterp
-#include "../../core/djinterp.hpp"
+II.   ARITHMETIC
+      ----------
+
+III.  COMPARISON
+      ----------
+
+IV.   SI PREFIX TYPEDEFS
+      ------------------
+*/
+
+#ifndef RE_STD_RATIO_RATIO
+#define RE_STD_RATIO_RATIO 1
+
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // =============================================================================
@@ -68,4 +78,4 @@
 #include "./ratio_typedefs.hpp"
 
 
-#endif  // DJINTERP_RE_STD_RATIO_
+#endif  // RE_STD_RATIO_RATIO

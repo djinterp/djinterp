@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [optional]                                          optional_hash.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            optional_hash.hpp
 *
+* optional_hash support header:
 *   hash<optional<T>> specialisation.
 *
 *   ENABLED ONLY WHEN hash<remove_const_t<T>> IS.
@@ -15,45 +16,50 @@
 * would collide every disengaged optional with the one holding a default-
 * constructed T.
 *
-* path:      /inc/djinterp/re_std/optional/optional_hash.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/optional/optional_hash.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_OPTIONAL_HASH_
-#define DJINTERP_RE_STD_OPTIONAL_HASH_ 1
+#ifndef RE_STD_OPTIONAL_OPTIONAL_HASH_HPP
+#define RE_STD_OPTIONAL_OPTIONAL_HASH_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../functional/hash.hpp"
 #include "./optional.hpp"
 
-NS_RESTD
-
-// hash<optional<_Type>>
-//   struct: hash support, enabled iff hash<_Type> is.
-template<typename _Type>
-struct hash<optional<_Type> >
+namespace re_std
 {
-    typedef optional<_Type> argument_type;
+
+// hash<optional<Type>>
+//   struct: hash support, enabled iff hash<Type> is.
+template<typename Type>
+struct hash<optional<Type> >
+{
+    typedef optional<Type> argument_type;
     typedef size_t          result_type;
 
     //   The disengaged sentinel. Any fixed value works; this one is simply
     // unlikely to be produced by hashing a small integer.
     static const size_t k_disengaged_hash = static_cast<size_t>(0x9E3779B9u);
 
-    size_t operator()(const optional<_Type>& value) const
+    size_t operator()(const optional<Type>& value) const
     {
         return value.has_value()
-                   ? hash<typename remove_const<_Type>::type>()(*value)
+                   ? hash<typename remove_const<Type>::type>()(*value)
                    : k_disengaged_hash;
     }
 };
 
-NS_END
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_OPTIONAL_HASH_
+#endif  // RE_STD_OPTIONAL_OPTIONAL_HASH_HPP

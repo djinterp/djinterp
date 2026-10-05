@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                           arango_table.hpp
+/*******************************************************************************
+* djinterp [core]                                               arango_table.hpp
 *
 * djinterp ArangoDB table module:
 *   ArangoDB-specific database_table subclass providing a tabular
@@ -26,8 +26,8 @@
 *   - return-new / return-old flags on commit-generated writes
 *
 *   LAYER DIAGRAM:
-*     arango_table<_Config>
-*       -> database_table<arango_connection, value, _Config>
+*     arango_table<Config>
+*       -> database_table<arango_connection, value, Config>
 *
 *   NOTE: this header forward-declares arango_connection. The concrete
 * class definition lives in arangodb.hpp. Include arangodb.hpp before
@@ -36,14 +36,22 @@
 *   PORTABILITY:
 *   Requires C++17 or later.
 *
-* 
+*
 * path:      /inc/djinterp/core/db/arangodb/arango_table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.23
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_ARANGO_TABLE_
-#define DJINTERP_DATABASE_ARANGO_TABLE_
+#ifndef DJINTERP_DB_ARANGODB_ARANGO_TABLE_HPP
+#define DJINTERP_DB_ARANGODB_ARANGO_TABLE_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
@@ -82,16 +90,16 @@ NS_DJINTERP
     //   class: ArangoDB-collection-backed database table. Supports
     // both document and edge collections, with AQL-backed refresh and
     // graph-aware edge handling.
-    template<typename _Config = void>
+    template<typename Config = void>
     class arango_table
         : public database_table<arango_connection,
                                 value,
-                                _Config>
+                                Config>
     {
     private:
         using base_type = database_table<arango_connection,
                                          value,
-                                         _Config>;
+                                         Config>;
 
     public:
         using typename base_type::size_type;
@@ -99,7 +107,7 @@ NS_DJINTERP
         using typename base_type::row_type;
         using typename base_type::connection_type;
         using typename base_type::schema_type;
-        using self_type = arango_table<_Config>;
+        using self_type = arango_table<Config>;
 
         using type_support    = arango_type_support;
         using feature_support = arango_feature_support;
@@ -357,7 +365,7 @@ NS_DJINTERP
         // document_count
         //   function: returns the total count of documents in the
         // backing collection (unfiltered).
-        std::int64_t document_count()
+        re_std::int64_t document_count()
         {
             this->validate_connected("document_count");
 
@@ -476,5 +484,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_ARANGO_TABLE_
+#endif  // DJINTERP_DB_ARANGODB_ARANGO_TABLE_HPP

@@ -1,12 +1,12 @@
-/******************************************************************************
-* djinterp [re_std]                                             make_signed.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              make_signed.hpp
 *
 * make_signed trait header:
-*   Yields the signed integral type corresponding to _Type. Per
+*   Yields the signed integral type corresponding to Type. Per
 * [meta.trans.sign]:
-*   - if _Type is a signed integer, _Type is yielded;
-*   - if _Type is an unsigned integer, the corresponding signed type;
-*   - if _Type is char or bool, the corresponding signed integer type
+*   - if Type is a signed integer, Type is yielded;
+*   - if Type is an unsigned integer, the corresponding signed type;
+*   - if Type is char or bool, the corresponding signed integer type
 *     of the same size;
 *   - cv-qualifiers on the input are preserved on the output.
 *
@@ -29,31 +29,34 @@
 * and is left to a future refinement.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/make_signed.hpp
+* path:      /inc/re_std/type_traits/make_signed.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_MAKE_SIGNED_
-#define DJINTERP_RE_STD_TYPE_TRAITS_MAKE_SIGNED_ 1
+#ifndef RE_STD_TYPE_TRAITS_MAKE_SIGNED_HPP
+#define RE_STD_TYPE_TRAITS_MAKE_SIGNED_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   MAKE_SIGNED
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // make_signed_unqualified
-    //   helper: maps the unqualified integral type. No primary template
+    //   trait: maps the unqualified integral type. No primary template
     // body, so non-integrals trigger SFINAE.
-    template<typename _Type>
+    template<typename Type>
     struct make_signed_unqualified;
 
     // already-signed integers: identity
@@ -90,7 +93,7 @@ NS_INTERNAL
     struct make_signed_unqualified<unsigned long>
     { typedef long type; };
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     template<>
     struct make_signed_unqualified<long long>
     { typedef long long type; };
@@ -105,7 +108,7 @@ NS_INTERNAL
     struct make_signed_unqualified<char>
     { typedef signed char type; };
 
-NS_END  // internal
+}  // internal
 
 
 // make_signed
@@ -114,29 +117,29 @@ NS_END  // internal
 // by explicit specialization on the trait itself rather than by a
 // remove_cv / add_cv composition (cleaner SFINAE, and avoids depending
 // on add_cv's full machinery).
-template<typename _Type>
+template<typename Type>
 struct make_signed
 {
-    typedef typename internal::make_signed_unqualified<_Type>::type type;
+    typedef typename internal::make_signed_unqualified<Type>::type type;
 };
 
-template<typename _Type>
-struct make_signed<const _Type>
+template<typename Type>
+struct make_signed<const Type>
 {
-    typedef const typename internal::make_signed_unqualified<_Type>::type type;
+    typedef const typename internal::make_signed_unqualified<Type>::type type;
 };
 
-template<typename _Type>
-struct make_signed<volatile _Type>
+template<typename Type>
+struct make_signed<volatile Type>
 {
-    typedef volatile typename internal::make_signed_unqualified<_Type>::type type;
+    typedef volatile typename internal::make_signed_unqualified<Type>::type type;
 };
 
-template<typename _Type>
-struct make_signed<const volatile _Type>
+template<typename Type>
+struct make_signed<const volatile Type>
 {
     typedef const volatile
-        typename internal::make_signed_unqualified<_Type>::type type;
+        typename internal::make_signed_unqualified<Type>::type type;
 };
 
 
@@ -144,17 +147,17 @@ struct make_signed<const volatile _Type>
 // II.  MAKE_SIGNED_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // make_signed_t
-    //   alias: convenience alias for make_signed<_Type>::type.
-    template<typename _Type>
-    using make_signed_t = typename make_signed<_Type>::type;
+    //   alias: convenience alias for make_signed<Type>::type.
+    template<typename Type>
+    using make_signed_t = typename make_signed<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_MAKE_SIGNED_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_MAKE_SIGNED_HPP

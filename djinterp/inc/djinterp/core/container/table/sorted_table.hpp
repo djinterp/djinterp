@@ -1,40 +1,50 @@
-/******************************************************************************
-* djinterp [container]                                        sorted_table.hpp
+/*******************************************************************************
+* djinterp [core]                                               sorted_table.hpp
 *
-*   sorted_table -- the first OVERLAY on the table backing (Overlays: containers
-* as restriction bundles).  An overlay is a bundle of restrictions a container is
-* held to, riding on any backing and preserved by every exposed operation.  This
+*   sorted_table -- the first OVERLAY on the table backing (Overlays:
+* containers
+* as restriction bundles). An overlay is a bundle of restrictions a container
+* is
+* held to, riding on any backing and preserved by every exposed operation.
+* This
 * one imposes, over a `table` of rows:
 *
 *     sorted  (sequence-level)  the rows are kept in non-decreasing order of a
-*                               designated KEY COLUMN under a cell comparator --
+*                               designated KEY COLUMN under a cell comparator
+*                             --
 *                               the restriction varsigma of the vocabulary.
 *
 *   and, optionally, a second restriction composing with it:
 *
 *     unique keys (static)      mu_1 on the key-equivalence E_key: each key
-*                               value occurs at most once, so a repeated key is
+*                               value occurs at most once, so a repeated key
+*                             is
 *                               an assignment, not a new row.  With this the
-*                               overlay is {varsigma, mu_1^{E_key}} -- the sorted
-*                               MAP on rows; without it, {varsigma} -- the sorted
+*                               overlay is {varsigma, mu_1^{E_key}} -- the
+*                             sorted
+*                               MAP on rows; without it, {varsigma} -- the
+*                             sorted
 *                               sequence of rows, keys free to repeat.
 *
 *   PRESERVATION.  Every mutator maintains the bundle: insert places (or, when
 * keys are unique, replaces) a row at its sorted position, and erase removes
 * without disturbing the order of the rest.  Direct cell mutation is therefore
-* NOT exposed -- overwriting a key cell could break varsigma -- so the surface is
+* NOT exposed -- overwriting a key cell could break varsigma -- so the surface
+* is
 * read-only cells plus order-preserving structural change, the discipline an
 * overlay demands.
 *
 *   BACKING INDEPENDENCE.  The overlay names no backing beyond delegating to a
 * `table`; its identity is the restriction set, not the store.  It reports the
-* sorted invariant through the framework's opt-in `sorted_invariant` marker, so
+* sorted invariant through the framework's opt-in `sorted_invariant` marker,
+* so
 * the Sortedness classifier reads it as `sorted` rather than the bare table's
-* `order_dependent` -- the axis note "a sorted table is the overlay" made real.
+* `order_dependent` -- the axis note "a sorted table is the overlay" made
+* real.
 *
 *   KEY / VALUE.  This overlay keys on a COLUMN of a cell-homogeneous table
 * (Key = the key cell's type = tau); the fully general keyed relational table,
-* whose value type is a heterogeneous Key x Val record (_RowType), is the eta
+* whose value type is a heterogeneous Key x Val record (RowType), is the eta
 * overlay layered on the tuple's dependent form, a planned sibling.
 *
 *   PORTABILITY:
@@ -43,24 +53,36 @@
 *
 * path:      /inc/djinterp/core/container/table/sorted_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    is_sorted_table (detection trait)
+      ---------------------------------
+
 II.   sorted_table (class)
-      1. member types and overlay / axis markers
-      2. construction
-      3. read surface (delegated, const)
-      4. key queries (binary search over the sorted order)
-      5. structural mutation (invariant-preserving)
+      --------------------
+      1.    member types and overlay / axis markers
+      2.    construction
+      3.    read surface (delegated, const)
+      4.    key queries (binary search over the sorted order)
+      5.    structural mutation (invariant-preserving)
+
 III.  make_sorted_table
+      -----------------
 */
 
-#ifndef DJINTERP_CONTAINER_SORTED_TABLE_
-#define DJINTERP_CONTAINER_SORTED_TABLE_ 1
+#ifndef DJINTERP_CONTAINER_TABLE_SORTED_TABLE_HPP
+#define DJINTERP_CONTAINER_TABLE_SORTED_TABLE_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -68,7 +90,7 @@ III.  make_sorted_table
 #include <initializer_list>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
+#include "../../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
 #include "./table.hpp"                             // table backing (+ hierarchical tag)
 #include "../container_options.hpp"                // axis enums, options base
 
@@ -81,44 +103,44 @@ NS_DJINTERP
 // ===========================================================================
 
 // sorted_table (fwd)
-template<typename    _Type,
-         std::size_t _KeyCol,
-         typename    _CellCompare,
-         bool        _UniqueKeys,
-         typename    _SizeType,
-         typename    _DifferenceType,
-         typename... _Options>
+template<typename    Type,
+         std::size_t KeyCol,
+         typename    CellCompare,
+         bool        UniqueKeys,
+         typename    SizeType,
+         typename    DifferenceType,
+         typename... Options>
 class sorted_table;
 
 // is_sorted_table
-//   trait: true when _Type (after stripping cv/ref) is a specialization of
+//   trait: true when Type (after stripping cv/ref) is a specialization of
 // sorted_table.
 NS_INTERNAL
 
-    template<typename _Type>
+    template<typename Type>
     struct is_sorted_table_impl : std::false_type
     {};
 
-    template<typename    _T,
-             std::size_t _K,
-             typename    _C,
-             bool        _U,
-             typename    _S,
-             typename    _D,
-             typename... _O>
-    struct is_sorted_table_impl<sorted_table<_T, _K, _C, _U, _S, _D, _O...>>
+    template<typename    T,
+             std::size_t K,
+             typename    C,
+             bool        U,
+             typename    S,
+             typename    D,
+             typename... O>
+    struct is_sorted_table_impl<sorted_table<T, K, C, U, S, D, O...>>
         : std::true_type
     {};
 
 NS_END  // internal
 
-template<typename _Type>
-struct is_sorted_table : internal::is_sorted_table_impl<clean_t<_Type>>
+template<typename Type>
+struct is_sorted_table : internal::is_sorted_table_impl<clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-template<typename _Type>
-inline constexpr bool is_sorted_table_v = is_sorted_table<_Type>::value;
+template<typename Type>
+inline constexpr bool is_sorted_table_v = is_sorted_table<Type>::value;
 #endif
 
 
@@ -127,41 +149,41 @@ inline constexpr bool is_sorted_table_v = is_sorted_table<_Type>::value;
 // ===========================================================================
 
 // sorted_table
-//   class: a table whose rows are held sorted by column _KeyCol under
-// _CellCompare, optionally with unique keys.  Wraps a `table` backing and
+//   class: a table whose rows are held sorted by column KeyCol under
+// CellCompare, optionally with unique keys. Wraps a `table` backing and
 // exposes a read-only cell surface plus order-preserving structural mutation.
-template<typename    _Type,
-         std::size_t _KeyCol         = 0,
-         typename    _CellCompare    = std::less<_Type>,
-         bool        _UniqueKeys     = false,
-         typename    _SizeType       = std::size_t,
-         typename    _DifferenceType = std::ptrdiff_t,
-         typename... _Options>
+template<typename    Type,
+         std::size_t KeyCol          = 0,
+         typename    CellCompare     = std::less<Type>,
+         bool        UniqueKeys      = false,
+         typename    SizeType        = std::size_t,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename... Options>
 class sorted_table
-    : public options_container_base<_Options...>
+    : public options_container_base<Options...>
 {
 private:
-    using backing_type = table<_Type, _DifferenceType, _SizeType>;
+    using backing_type = table<Type, DifferenceType, SizeType>;
 
 public:
     // --- 1. member types and overlay / axis markers ---
 
-    using value_type       = _Type;
-    using cell_type        = _Type;
-    using size_type        = _SizeType;
-    using difference_type  = _DifferenceType;
-    using reference        = const _Type&;   // cells are read-only under varsigma
-    using const_reference  = const _Type&;
-    using pointer          = const _Type*;
-    using const_pointer    = const _Type*;
-    using key_compare      = _CellCompare;
+    using value_type       = Type;
+    using cell_type        = Type;
+    using size_type        = SizeType;
+    using difference_type  = DifferenceType;
+    using reference        = const Type&;   // cells are read-only under varsigma
+    using const_reference  = const Type&;
+    using pointer          = const Type*;
+    using const_pointer    = const Type*;
+    using key_compare      = CellCompare;
 
     using const_iterator     = typename backing_type::const_iterator;
     using const_row_type     = typename backing_type::const_row_type;
     using const_row_iterator = typename backing_type::const_row_iterator;
 
     // element / structure vocabulary (delegated from the backing).
-    using element_type       = _Type;
+    using element_type       = Type;
     using structure_category = hierarchical;   // uniformly nested, like the backing
 
     // npos -- "no such row" sentinel for the key queries.
@@ -169,8 +191,8 @@ public:
 
     // overlay markers (the restriction bundle this container wears).
     static constexpr bool      sorted_invariant = true;         // varsigma
-    static constexpr bool      unique_keys      = _UniqueKeys;  // mu_1^{E_key}?
-    static constexpr size_type key_column       = static_cast<size_type>(_KeyCol);
+    static constexpr bool      unique_keys      = UniqueKeys;  // mu_1^{E_key}?
+    static constexpr size_type key_column       = static_cast<size_type>(KeyCol);
 
     // axis positions.
     static constexpr container_lifetime      lifetime      =
@@ -184,7 +206,7 @@ public:
     static constexpr container_iterability   iterability   =
         container_iterability::iterable;
     static constexpr container_multiplicity  multiplicity_grade =
-        _UniqueKeys ? container_multiplicity::unique
+        UniqueKeys ? container_multiplicity::unique
                     : container_multiplicity::multi;
     static constexpr container_structure     structure     =
         container_structure::hierarchical;
@@ -198,19 +220,19 @@ public:
           m_cmp()
     {}
 
-    explicit sorted_table(_CellCompare _cmp)
+    explicit sorted_table(CellCompare _cmp)
         : m_base(),
           m_cmp(_cmp)
     {}
 
     // nested rows: each is inserted at its sorted position, so any input order
     // yields the sorted invariant.
-    sorted_table(std::initializer_list<std::initializer_list<_Type>> _rows)
+    sorted_table(std::initializer_list<std::initializer_list<Type>> _rows)
         : m_base(),
           m_cmp()
     {
         // insert row by row; each insert restores varsigma
-        for (const std::initializer_list<_Type>& r : _rows)
+        for (const std::initializer_list<Type>& r : _rows)
         {
             insert(r);
         }
@@ -334,7 +356,7 @@ public:
     }
 
     // lower_bound -- index of the first row whose key is not less than _key.
-    D_NODISCARD size_type lower_bound(const _Type& _key) const
+    D_NODISCARD size_type lower_bound(const Type& _key) const
     {
         size_type lo = 0;
         size_type hi = m_base.rows();
@@ -358,7 +380,7 @@ public:
     }
 
     // upper_bound -- index of the first row whose key is greater than _key.
-    D_NODISCARD size_type upper_bound(const _Type& _key) const
+    D_NODISCARD size_type upper_bound(const Type& _key) const
     {
         size_type lo = 0;
         size_type hi = m_base.rows();
@@ -382,7 +404,7 @@ public:
     }
 
     // find -- index of a row whose key is equivalent to _key, or npos.
-    D_NODISCARD size_type find(const _Type& _key) const
+    D_NODISCARD size_type find(const Type& _key) const
     {
         const size_type pos = lower_bound(_key);
 
@@ -397,33 +419,33 @@ public:
     }
 
     // contains_key -- whether any row carries a key equivalent to _key.
-    D_NODISCARD bool contains_key(const _Type& _key) const
+    D_NODISCARD bool contains_key(const Type& _key) const
     {
         return (find(_key) != npos);
     }
 
     // count_key -- how many rows carry a key equivalent to _key (0 or 1 when
     // keys are unique).
-    D_NODISCARD size_type count_key(const _Type& _key) const
+    D_NODISCARD size_type count_key(const Type& _key) const
     {
         return (upper_bound(_key) - lower_bound(_key));
     }
 
     // --- 5. structural mutation (invariant-preserving) ---
 
-    // insert -- place _row at its sorted position.  When keys are unique and an
-    // equivalent key is present, the existing row is replaced (map assignment).
-    // Returns the index the row occupies.  varsigma (and, if set, mu_1^{E_key})
-    // is preserved.
-    size_type insert(std::initializer_list<_Type> _row)
+    // insert -- place _row at its sorted position. When keys are unique and an
+    // equivalent key is present, the existing row is replaced (map
+    // assignment). Returns the index the row occupies. varsigma (and, if set,
+    // mu_1^{E_key}) is preserved.
+    size_type insert(std::initializer_list<Type> _row)
     {
         // the key value governs placement; copy it before the buffer moves
-        const _Type key = *(_row.begin() + static_cast<std::ptrdiff_t>(_KeyCol));
+        const Type key = *(_row.begin() + static_cast<std::ptrdiff_t>(KeyCol));
 
         const size_type pos = lower_bound(key);
 
         // unique-key overlay: an equivalent key already present is overwritten
-        if ( _UniqueKeys &&
+        if ( UniqueKeys &&
              (pos < m_base.rows()) &&
              (!m_cmp(key, key_at(pos))) )
         {
@@ -446,9 +468,9 @@ public:
         return;
     }
 
-    // erase_key -- remove every row whose key is equivalent to _key; returns the
-    // number removed (0 or 1 when keys are unique).
-    size_type erase_key(const _Type& _key)
+    // erase_key -- remove every row whose key is equivalent to _key; returns
+    // the number removed (0 or 1 when keys are unique).
+    size_type erase_key(const Type& _key)
     {
         const size_type lo = lower_bound(_key);
         const size_type hi = upper_bound(_key);
@@ -473,7 +495,7 @@ public:
 
 private:
     backing_type m_base;   // the sorted row store (invariant: sorted by key_column)
-    _CellCompare m_cmp;    // the cell comparator applied to the key column
+    CellCompare m_cmp;    // the cell comparator applied to the key column
 };
 
 
@@ -482,14 +504,14 @@ private:
 // ===========================================================================
 
 // make_sorted_table
-//   function: build a sorted_table<_Type, _KeyCol> from nested rows, deducing
+//   function: build a sorted_table<Type, KeyCol> from nested rows, deducing
 // the cell type from the first cell of the first row.
-template<std::size_t _KeyCol = 0,
-         typename    _Type>
-D_NODISCARD sorted_table<_Type, _KeyCol>
-make_sorted_table(std::initializer_list<std::initializer_list<_Type>> _rows)
+template<std::size_t KeyCol = 0,
+         typename    Type>
+D_NODISCARD sorted_table<Type, KeyCol>
+make_sorted_table(std::initializer_list<std::initializer_list<Type>> _rows)
 {
-    return sorted_table<_Type, _KeyCol>(_rows);
+    return sorted_table<Type, KeyCol>(_rows);
 }
 
 
@@ -512,5 +534,6 @@ namespace table_axis_conformance
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_SORTED_TABLE_
+#endif  // DJINTERP_CONTAINER_TABLE_SORTED_TABLE_HPP

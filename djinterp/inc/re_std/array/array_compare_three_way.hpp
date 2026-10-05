@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [re_std]                                 array_compare_three_way.hpp
+/*******************************************************************************
+* djinterp [re_std]                                  array_compare_three_way.hpp
 *
 * array three-way comparison header:
 *   Provides operator<=> for re_std::array. C++20-only — the spaceship
 * operator is a language feature with no back-port. The result type
-* is the element-wise three-way comparison result of _Type with
+* is the element-wise three-way comparison result of Type with
 * itself (typically std::strong_ordering for arithmetic types).
 *
 *   IMPLEMENTATION:
@@ -14,7 +14,7 @@
 * the result type, matching re_std::tuple's three-way overload.
 *
 *   ELEMENT-TYPE REQUIREMENT:
-*   _Type must satisfy three_way_comparable — i.e. it must have its
+*   Type must satisfy three_way_comparable — i.e. it must have its
 * own operator<=>. The C++20 standard specifies a synth-three-way
 * fallback (compose <=> from < and == when <=> is absent); re_std
 * deliberately omits it here, matching the same back-port
@@ -27,39 +27,44 @@
 *     <compare>        - common_comparison_category_t, strong_ordering
 *
 *
-* path:      /inc/djinterp/re_std/array/array_compare_three_way.hpp
+* path:      /inc/re_std/array/array_compare_three_way.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ARRAY_COMPARE_THREE_WAY_
-#define DJINTERP_RE_STD_ARRAY_COMPARE_THREE_WAY_ 1
+#ifndef RE_STD_ARRAY_ARRAY_COMPARE_THREE_WAY_HPP
+#define RE_STD_ARRAY_ARRAY_COMPARE_THREE_WAY_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 // gate: C++20 spaceship operator is a language feature
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#include <cstddef>
+// std
 #include <compare>
+#include <cstddef>
 
 #include "./array.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
     // array_3way_result
     //   alias: element-wise three-way comparison result type for
     // two same-type, same-extent arrays. Equivalent to
-    // compare_three_way_result_t<_Type> for the homogeneous case.
-    template<typename _Type>
+    // compare_three_way_result_t<Type> for the homogeneous case.
+    template<typename Type>
     using array_3way_result = decltype(
-        std::declval<_Type const&>() <=> std::declval<_Type const&>());
+        std::declval<Type const&>() <=> std::declval<Type const&>());
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -70,18 +75,18 @@ NS_END  // internal
 //   function: lexicographic three-way comparison. Returns the
 // first non-equal element's <=> result; returns strong_ordering::
 // equal (cast to the common result type) when all elements compare
-// equal or _Size is 0.
-template<typename    _Type,
-         std::size_t _Size>
-constexpr internal::array_3way_result<_Type>
+// equal or Size is 0.
+template<typename    Type,
+         std::size_t Size>
+constexpr internal::array_3way_result<Type>
 operator<=>(
-    array<_Type, _Size> const& _lhs,
-    array<_Type, _Size> const& _rhs
+    array<Type, Size> const& _lhs,
+    array<Type, Size> const& _rhs
 )
 {
-    typedef internal::array_3way_result<_Type> _result_t;
+    typedef internal::array_3way_result<Type> _result_t;
 
-    for (std::size_t _i = 0; _i < _Size; ++_i)
+    for (std::size_t _i = 0; _i < Size; ++_i)
     {
         _result_t _cmp = _lhs[_i] <=> _rhs[_i];
         if (_cmp != 0)
@@ -94,10 +99,10 @@ operator<=>(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_ARRAY_COMPARE_THREE_WAY_
+#endif  // RE_STD_ARRAY_ARRAY_COMPARE_THREE_WAY_HPP

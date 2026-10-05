@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                    system_error
+/*******************************************************************************
+* djinterp [re_std]                                                 system_error
 *
 * umbrella header for the re_std system_error module:
 *   pulls in every granular module of <system_error>: the error_category
@@ -11,26 +11,27 @@
 *   header instead.
 *
 *
-* path:      /inc/re_std/system_error
+* path:      /inc/re_std/system_error/system_error
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_
-#define DJINTERP_RE_STD_SYSTEM_ERROR_ 1
+#ifndef RE_STD_SYSTEM_ERROR_SYSTEM_ERROR
+#define RE_STD_SYSTEM_ERROR_SYSTEM_ERROR 1
 
 // re_std :: system_error
-#include "system_error/error_category.hpp"
-#include "system_error/error_code.hpp"
-#include "system_error/error_condition.hpp"
-#include "system_error/system_error.hpp"
-#include "system_error/errc.hpp"
-#include "system_error/is_error_code_enum.hpp"
-#include "system_error/is_error_condition_enum.hpp"
-#include "system_error/make_error_code.hpp"
-#include "system_error/make_error_condition.hpp"
-#include "system_error/generic_category.hpp"
-#include "system_error/system_category.hpp"
-#include "system_error/hash.hpp"
+#include "./error_category.hpp"
+#include "./error_code.hpp"
+#include "./error_condition.hpp"
+#include "./system_error.hpp"
+#include "./errc.hpp"
+#include "./is_error_code_enum.hpp"
+#include "./is_error_condition_enum.hpp"
+#include "./make_error_code.hpp"
+#include "./make_error_condition.hpp"
+#include "./generic_category.hpp"
+#include "./system_category.hpp"
+#include "./hash.hpp"
 
-#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_
+#endif  // RE_STD_SYSTEM_ERROR_SYSTEM_ERROR

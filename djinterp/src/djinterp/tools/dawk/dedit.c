@@ -1,10 +1,11 @@
 /*******************************************************************************
-* djinterp [dawk]                                                        dedit.c
+* djinterp [djinterp]                                                    dedit.c
 *
 * Line editing:
 *   The whole of the write path.  A line's own terminator is reproduced, so a
 * repair never normalises line endings it was not asked about -- a fixer that
 * changes bytes no sheet declared has become a defect itself.
+*
 *
 * path:      /src/djinterp/tools/dawk/dedit.c
 * link(s):   TBA
@@ -186,4 +187,188 @@ d_edit_rewrite_line(
     free(source);
 
     return true;
+}
+
+
+/*
+d_edit_delete_line
+  Removes one line, terminator and all.  Every later line moves up by one, so
+a caller that edits by line number must re-measure afterwards -- which the
+fixpoint driver already does, since it applies one repair per file per pass
+and rebuilds the tree from disk on the next.
+*/
+bool
+d_edit_delete_line(
+    const char* _path,
+    uint32_t    _line
+)
+{
+    FILE* const handle = fopen(_path, "rb");
+
+    if ((!handle) || (_line == 0))
+    {
+        if (handle)
+        {
+            (void)fclose(handle);
+        }
+
+        return false;
+    }
+
+    (void)fseek(handle, 0, SEEK_END);
+
+    const long size = ftell(handle);
+
+    (void)fseek(handle, 0, SEEK_SET);
+
+    char* const source = malloc((size_t)size + 1u);
+
+    if (!source)
+    {
+        (void)fclose(handle);
+        return false;
+    }
+
+    const size_t read = fread(source, 1u, (size_t)size, handle);
+
+    (void)fclose(handle);
+
+    source[read] = '\0';
+
+    size_t   start = 0;
+    uint32_t at    = 1;
+
+    while ((at < _line) && (start < read))
+    {
+        while ((start < read) && (source[start] != '\n'))
+        {
+            ++start;
+        }
+
+        ++start;
+        ++at;
+    }
+
+    if ((at != _line) || (start >= read))
+    {
+        free(source);
+        return false;
+    }
+
+    size_t end = start;
+
+    while ((end < read) && (source[end] != '\n'))
+    {
+        ++end;
+    }
+
+    if (end < read)
+    {
+        ++end;      // the terminator goes with the line
+    }
+
+    FILE* const out = fopen(_path, "wb");
+
+    if (!out)
+    {
+        free(source);
+        return false;
+    }
+
+    (void)fwrite(source, 1u, start, out);
+    (void)fwrite(source + end, 1u, read - end, out);
+    (void)fclose(out);
+
+    free(source);
+
+    return true;
+}
+
+
+/*
+d_edit_insert_line
+  SCRATCH: dcheck.c calls this and neither archive defines it.  Inserts
+`_text` and a terminator before line `_line`; one past the last line appends.
+Mirrors d_edit_delete_line: read whole, splice, write whole.
+*/
+bool
+d_edit_insert_line(
+    const char* _path,
+    uint32_t    _line,
+    const char* _text
+)
+{
+    FILE* const handle = fopen(_path, "rb");
+
+    if ( (!handle) || (_line == 0) || (!_text) )
+    {
+        if (handle)
+        {
+            (void)fclose(handle);
+        }
+
+        return false;
+    }
+
+    (void)fseek(handle, 0, SEEK_END);
+
+    const long size = ftell(handle);
+
+    (void)fseek(handle, 0, SEEK_SET);
+
+    char* const source = malloc((size_t)size + 1u);
+
+    if (!source)
+    {
+        (void)fclose(handle);
+
+        return false;
+    }
+
+    const size_t read = fread(source, 1u, (size_t)size, handle);
+
+    (void)fclose(handle);
+
+    size_t   start = 0;
+    uint32_t at    = 1;
+
+    // find the first byte of line `_line`, or the end for an append
+    while ( (at < _line) && (start < read) )
+    {
+        while ( (start < read) && (source[start] != '\n') )
+        {
+            ++start;
+        }
+
+        ++start;
+        ++at;
+    }
+
+    if ( (at != _line) || (start > read) )
+    {
+        free(source);
+
+        return false;
+    }
+
+    FILE* const out = fopen(_path, "wb");
+
+    if (!out)
+    {
+        free(source);
+
+        return false;
+    }
+
+    const size_t length = strlen(_text);
+    bool         ok     = (fwrite(source, 1u, start, out) == start);
+
+    ok = ok && (fwrite(_text, 1u, length, out) == length);
+    ok = ok && (fputc('\n', out) != EOF);
+    ok = ok && (fwrite(source + start, 1u, read - start, out) == read - start);
+    ok = (fclose(out) == 0) && ok;
+
+    free(source);
+
+    return ok;
 }

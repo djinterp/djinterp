@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [container]                                     arena_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                               arena_traits.hpp
 *
 * Arena SFINAE detection traits:
 *   This header provides compile-time structural traits for detecting
 * and classifying arena types, arena nodes, link policies, and payload
-* validity.  Detection is purely structural — no tagging, no base-class
+* validity.  Detection is purely structural - no tagging, no base-class
 * checks.
 *
 * Traits provided:
@@ -34,431 +34,443 @@
 *   - arena_class<T>                aggregate classification struct
 *
 *
-* path:      /inc/container/arena/arena_traits.hpp
+* path:      /inc/djinterp/core/container/arena/arena_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.03.18
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.18
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_ARENA_TRAITS_
-#define DJINTERP_ARENA_TRAITS_ 1
+#ifndef DJINTERP_CONTAINER_ARENA_ARENA_TRAITS_HPP
+#define DJINTERP_CONTAINER_ARENA_ARENA_TRAITS_HPP 1
 
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <cstddef>
 #include <type_traits>
-#include "../../djinterp.hpp"
-#include "./arena.hpp"
+// djinterp
+#include "../../../djinterp.hpp"        // framework root
+#include "../../meta/trait_detect.hpp"  // D_VOID_T
+#include "./arena.hpp"                  // the arena types classified here
 
 
 NS_DJINTERP
 
-// =============================================================================
+// ===========================================================================
 // I.   Payload Validation
-// =============================================================================
+// ===========================================================================
 
 NS_INTERNAL
 
     // is_arena_payload_helper
     //   trait: primary template (failure case).
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct is_arena_payload_helper : std::false_type
-    {
-    };
+    {};;
 
     // is_arena_payload_helper (success case)
-    //   trait: succeeds when _Type is destructible and either
+    //   trait: succeeds when Type is destructible and either
     // move-constructible or copy-constructible.
-    template<typename _Type>
+    template<typename Type>
     struct is_arena_payload_helper<
-        _Type,
+        Type,
         typename std::enable_if<
-            ( std::is_destructible<_Type>::value &&
-              ( std::is_move_constructible<_Type>::value ||
-                std::is_copy_constructible<_Type>::value ) )
+            ( std::is_destructible<Type>::value &&
+              ( std::is_move_constructible<Type>::value ||
+                std::is_copy_constructible<Type>::value ) )
         >::type
     > : std::true_type
-    {
-    };
+    {};;
 
 NS_END  // internal
 
 // is_arena_payload
-//   trait: detects whether _Type satisfies the minimum
-// requirements for use as an arena payload.
-template<typename _Type>
+//   trait: detects whether Type satisfies the minimum requirements for use as
+// an arena payload.
+template<typename Type>
 struct is_arena_payload
-    : internal::is_arena_payload_helper<_Type>
-{
-};
+    : internal::is_arena_payload_helper<Type>
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_arena_payload_v =
-        is_arena_payload<_Type>::value;
+        is_arena_payload<Type>::value;
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Link Policy Detection
-// =============================================================================
+// ===========================================================================
 
 // is_link_policy
-//   trait: detects whether _Type exposes the link policy
-// interface (num_links, flags).
-template<typename _Type,
+//   trait: detects whether Type exposes the link policy interface (num_links,
+// flags).
+template<typename Type,
          typename = void>
 struct is_link_policy : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct is_link_policy<_Type,
+// is_link_policy specialization
+//   helper: the detected case -- selected when the type declares the static
+// members `num_links` and `flags`.
+template<typename Type>
+struct is_link_policy<Type,
     D_VOID_T<
-        decltype(_Type::num_links),
-        decltype(_Type::flags)
+        decltype(clean_t<Type>::num_links),
+        decltype(clean_t<Type>::flags)
     >> : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_link_policy_v =
-        is_link_policy<_Type>::value;
+        is_link_policy<Type>::value;
 #endif
 
 // has_link_flag
-//   trait: detects whether a link policy includes a
-// specific flag.  _Flag must be one of the tree_link
-// constants.
-template<typename _Policy,
-         unsigned _Flag,
+//   trait: detects whether a link policy includes a specific flag. Flag must
+// be one of the tree_link constants.
+template<typename Policy,
+         unsigned Flag,
          typename = void>
 struct has_link_flag : std::false_type
-{
-};
+{};
 
-template<typename _Policy,
-         unsigned _Flag>
-struct has_link_flag<_Policy, _Flag,
+// has_link_flag<Policy, Flag, typename std::enable_if< (
+// is_link_policy<Policy>
+//   trait: the `typename std::enable_if< ( is_link_policy<Policy` case; it
+// reports true.
+template<typename Policy,
+         unsigned Flag>
+struct has_link_flag<Policy, Flag,
     typename std::enable_if<
-        ( is_link_policy<_Policy>::value &&
-          ((_Policy::flags & _Flag) != 0) )
+        ( is_link_policy<Policy>::value &&
+          ((clean_t<Policy>::flags & Flag) != 0) )
     >::type
 > : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Policy,
-             unsigned _Flag>
+    template<typename Policy,
+             unsigned Flag>
     D_CONSTEXPR bool has_link_flag_v =
-        has_link_flag<_Policy, _Flag>::value;
+        has_link_flag<Policy, Flag>::value;
 #endif
 
 // link_policy_flags
 //   trait: extracts the raw flag bitmask from a policy.
 NS_INTERNAL
 
-    template<typename _Policy,
+    template<typename Policy,
              typename = void>
     struct link_policy_flags_helper
     {
         static D_CONSTEXPR unsigned value = 0;
     };
 
-    template<typename _Policy>
-    struct link_policy_flags_helper<_Policy,
-        D_VOID_T<decltype(_Policy::flags)>>
+    template<typename Policy>
+    struct link_policy_flags_helper<Policy,
+        D_VOID_T<decltype(clean_t<Policy>::flags)>>
     {
         static D_CONSTEXPR unsigned value =
-            _Policy::flags;
+            clean_t<Policy>::flags;
     };
 
 NS_END  // internal
 
-template<typename _Policy>
+template<typename Policy>
 struct link_policy_flags
 {
     static D_CONSTEXPR unsigned value =
-        internal::link_policy_flags_helper<_Policy>::value;
+        internal::link_policy_flags_helper<Policy>::value;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Policy>
+    template<typename Policy>
     D_CONSTEXPR unsigned link_policy_flags_v =
-        link_policy_flags<_Policy>::value;
+        link_policy_flags<Policy>::value;
 #endif
 
 // link_policy_num_links
 //   trait: extracts num_links from a policy.
 NS_INTERNAL
 
-    template<typename _Policy,
+    template<typename Policy,
              typename = void>
     struct link_policy_num_links_helper
     {
         static D_CONSTEXPR std::size_t value = 0;
     };
 
-    template<typename _Policy>
-    struct link_policy_num_links_helper<_Policy,
-        D_VOID_T<decltype(_Policy::num_links)>>
+    template<typename Policy>
+    struct link_policy_num_links_helper<Policy,
+        D_VOID_T<decltype(clean_t<Policy>::num_links)>>
     {
         static D_CONSTEXPR std::size_t value =
-            _Policy::num_links;
+            clean_t<Policy>::num_links;
     };
 
 NS_END  // internal
 
-template<typename _Policy>
+template<typename Policy>
 struct link_policy_num_links
 {
     static D_CONSTEXPR std::size_t value =
         internal::link_policy_num_links_helper<
-            _Policy>::value;
+            Policy>::value;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Policy>
+    template<typename Policy>
     D_CONSTEXPR std::size_t link_policy_num_links_v =
-        link_policy_num_links<_Policy>::value;
+        link_policy_num_links<Policy>::value;
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // III. Arena Node Detection
-// =============================================================================
+// ===========================================================================
 
 // is_arena_node
-//   trait: detects whether _Type is an arena_node-like
-// type (exposes payload_type, link_policy, num_links,
-// stable_id field, alive field).
-template<typename _Type,
+//   trait: detects whether Type is an arena_node-like type (exposes
+// payload_type, link_policy, num_links, stable_id field, alive field).
+template<typename Type,
          typename = void>
 struct is_arena_node : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct is_arena_node<_Type,
+// is_arena_node<Type, D_VOID_T< typename clean_t<Type>
+//   trait: the `D_VOID_T< typename clean_t<Type` case; it reports true.
+template<typename Type>
+struct is_arena_node<Type,
     D_VOID_T<
-        typename _Type::payload_type,
-        typename _Type::link_policy,
-        decltype(_Type::num_links),
-        decltype(std::declval<const _Type&>().stable_id),
-        decltype(std::declval<const _Type&>().alive)
+        typename clean_t<Type>::payload_type,
+        typename clean_t<Type>::link_policy,
+        decltype(clean_t<Type>::num_links),
+        decltype(std::declval<const Type&>().stable_id),
+        decltype(std::declval<const Type&>().alive)
     >> : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_CONSTEXPR bool is_arena_node_v =
-        is_arena_node<_Type>::value;
+        is_arena_node<Type>::value;
 #endif
 
 // arena_node_payload_type
-//   trait: SFINAE-safe extraction of payload_type from
-// an arena node.
+//   trait: SFINAE-safe extraction of payload_type from an arena node.
 NS_INTERNAL
 
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct arena_node_payload_type_helper
     {
         using type = void;
     };
 
-    template<typename _Type>
-    struct arena_node_payload_type_helper<_Type,
-        D_VOID_T<typename _Type::payload_type>>
+    template<typename Type>
+    struct arena_node_payload_type_helper<Type,
+        D_VOID_T<typename clean_t<Type>::payload_type>>
     {
-        using type = typename _Type::payload_type;
+        using type = typename clean_t<Type>::payload_type;
     };
 
 NS_END  // internal
 
-template<typename _Type>
+template<typename Type>
 struct arena_node_payload_type
-    : internal::arena_node_payload_type_helper<_Type>
-{
-};
+    : internal::arena_node_payload_type_helper<Type>
+{};
 
-template<typename _Type>
+// arena_node_payload_type_t
+//   type: the carrier of arena_node_payload_type -- its `::type`, for use
+// where a type rather than a value is wanted.
+template<typename Type>
 using arena_node_payload_type_t =
-    typename arena_node_payload_type<_Type>::type;
+    typename arena_node_payload_type<Type>::type;
 
 // arena_node_link_policy
-//   trait: SFINAE-safe extraction of link_policy from
-// an arena node.
+//   trait: SFINAE-safe extraction of link_policy from an arena node.
 NS_INTERNAL
 
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct arena_node_link_policy_helper
     {
         using type = void;
     };
 
-    template<typename _Type>
-    struct arena_node_link_policy_helper<_Type,
-        D_VOID_T<typename _Type::link_policy>>
+    template<typename Type>
+    struct arena_node_link_policy_helper<Type,
+        D_VOID_T<typename clean_t<Type>::link_policy>>
     {
-        using type = typename _Type::link_policy;
+        using type = typename clean_t<Type>::link_policy;
     };
 
 NS_END  // internal
 
-template<typename _Type>
+template<typename Type>
 struct arena_node_link_policy
-    : internal::arena_node_link_policy_helper<_Type>
-{
-};
+    : internal::arena_node_link_policy_helper<Type>
+{};
 
-template<typename _Type>
+// arena_node_link_policy_t
+//   type: the carrier of arena_node_link_policy -- its `::type`, for use where
+// a type rather than a value is wanted.
+template<typename Type>
 using arena_node_link_policy_t =
-    typename arena_node_link_policy<_Type>::type;
+    typename arena_node_link_policy<Type>::type;
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Arena Detection
-// =============================================================================
+// ===========================================================================
 
 // is_arena
-//   trait: detects whether _Type is an arena-like container
-// exposing payload_type, link_policy, and indexed access
-// via operator[](node_id).
-template<typename _Type,
+//   trait: detects whether Type is an arena-like container
+// exposing payload_type, link_policy, and indexed access via
+// operator[](node_id).
+template<typename Type,
          typename = void>
 struct is_arena : std::false_type
-{
-};
+{};
 
-template<typename _Type>
-struct is_arena<_Type,
+// is_arena<Type, D_VOID_T< typename clean_t<Type>
+//   trait: the `D_VOID_T< typename clean_t<Type` case; it reports true.
+template<typename Type>
+struct is_arena<Type,
     D_VOID_T<
-        typename _Type::payload_type,
-        typename _Type::link_policy,
-        decltype(std::declval<const _Type&>()[
+        typename clean_t<Type>::payload_type,
+        typename clean_t<Type>::link_policy,
+        decltype(std::declval<const Type&>()[
             std::declval<node_id>()])
     >> : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
-    D_CONSTEXPR bool is_arena_v = is_arena<_Type>::value;
+    template<typename Type>
+    D_CONSTEXPR bool is_arena_v = is_arena<Type>::value;
 #endif
 
 // arena_payload_type
-//   trait: SFINAE-safe extraction of payload_type from
-// an arena container.
+//   trait: SFINAE-safe extraction of payload_type from an arena container.
 NS_INTERNAL
 
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct arena_payload_type_helper
     {
         using type = void;
     };
 
-    template<typename _Type>
-    struct arena_payload_type_helper<_Type,
-        D_VOID_T<typename _Type::payload_type>>
+    template<typename Type>
+    struct arena_payload_type_helper<Type,
+        D_VOID_T<typename clean_t<Type>::payload_type>>
     {
-        using type = typename _Type::payload_type;
+        using type = typename clean_t<Type>::payload_type;
     };
 
 NS_END  // internal
 
-template<typename _Type>
+template<typename Type>
 struct arena_payload_type
-    : internal::arena_payload_type_helper<_Type>
-{
-};
+    : internal::arena_payload_type_helper<Type>
+{};
 
-template<typename _Type>
+// arena_payload_type_t
+//   type: the carrier of arena_payload_type -- its `::type`, for use where a
+// type rather than a value is wanted.
+template<typename Type>
 using arena_payload_type_t =
-    typename arena_payload_type<_Type>::type;
+    typename arena_payload_type<Type>::type;
 
 // arena_link_policy_type
-//   trait: SFINAE-safe extraction of link_policy from
-// an arena container.
+//   trait: SFINAE-safe extraction of link_policy from an arena container.
 NS_INTERNAL
 
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct arena_link_policy_type_helper
     {
         using type = void;
     };
 
-    template<typename _Type>
-    struct arena_link_policy_type_helper<_Type,
-        D_VOID_T<typename _Type::link_policy>>
+    template<typename Type>
+    struct arena_link_policy_type_helper<Type,
+        D_VOID_T<typename clean_t<Type>::link_policy>>
     {
-        using type = typename _Type::link_policy;
+        using type = typename clean_t<Type>::link_policy;
     };
 
 NS_END  // internal
 
-template<typename _Type>
+template<typename Type>
 struct arena_link_policy_type
-    : internal::arena_link_policy_type_helper<_Type>
-{
-};
+    : internal::arena_link_policy_type_helper<Type>
+{};
 
-template<typename _Type>
+// arena_link_policy_type_t
+//   type: the carrier of arena_link_policy_type -- its `::type`, for use where
+// a type rather than a value is wanted.
+template<typename Type>
 using arena_link_policy_type_t =
-    typename arena_link_policy_type<_Type>::type;
+    typename arena_link_policy_type<Type>::type;
 
 
-// =============================================================================
+// ===========================================================================
 // V.   Cross-Arena Referenceability
-// =============================================================================
+// ===========================================================================
 
 // arenas_cross_referenceable
-//   trait: two arenas can share stable_id cross-references
-// when both are valid arenas.  Payload types need not match.
-template<typename _A,
-         typename _B>
+//   trait: two arenas can share stable_id cross-references when both are valid
+// arenas. Payload types need not match.
+template<typename A,
+         typename B>
 struct arenas_cross_referenceable
 {
     static D_CONSTEXPR bool value =
-        ( is_arena<_A>::value &&
-          is_arena<_B>::value );
+        ( is_arena<A>::value &&
+          is_arena<B>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _A,
-             typename _B>
+    template<typename A,
+             typename B>
     D_CONSTEXPR bool arenas_cross_referenceable_v =
-        arenas_cross_referenceable<_A, _B>::value;
+        arenas_cross_referenceable<A, B>::value;
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  Combined Classification
-// =============================================================================
+// ===========================================================================
 
 // arena_class
 //   struct: aggregate classification of an arena type.
-template<typename _Type>
+template<typename Type>
 struct arena_class
 {
     // identity
     static D_CONSTEXPR bool is_arena_type =
-        is_arena<_Type>::value;
+        is_arena<Type>::value;
 
     // payload
     using payload_type =
-        arena_payload_type_t<_Type>;
+        arena_payload_type_t<Type>;
 
     static D_CONSTEXPR bool valid_payload =
         is_arena_payload<payload_type>::value;
 
     // link policy
     using policy_type =
-        arena_link_policy_type_t<_Type>;
+        arena_link_policy_type_t<Type>;
 
     static D_CONSTEXPR bool has_policy =
         is_link_policy<policy_type>::value;
@@ -502,5 +514,6 @@ struct arena_class
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_ARENA_TRAITS_
+#endif  // DJINTERP_CONTAINER_ARENA_ARENA_TRAITS_HPP

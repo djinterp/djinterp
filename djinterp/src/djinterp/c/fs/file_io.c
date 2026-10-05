@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/fs/file_io.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.03
 *******************************************************************************/
 //   enable POSIX features for fileno, pread, pwrite, posix_fadvise and
 // posix_fallocate. 200809L rather than 200112L because glibc gates pread and
@@ -28,13 +28,14 @@
 // std
 #include <errno.h>   // errno, EBADF, EFBIG, EINVAL, EIO, ENOSYS, ERANGE ...
 #include <stddef.h>  // NULL, size_t
-#include <stdint.h>  // SIZE_MAX, uint64_t
 #include <stdio.h>   // FILE, fread, fwrite, fflush, fseek, ftell, remove
 #include <string.h>  // memcpy, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*, d_internal_file_alloc
 #include "../../../../inc/djinterp/c/fs/file_open.h"    // d_file_open_stream, d_file_close_stream
 #include "../../../../inc/djinterp/config/c/fs/cfg_file_io.h"  // D_INTERNAL_FILE_READ_*, _WRITE_*
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint64_t, SIZE_MAX
 
 
 //==============================================================================

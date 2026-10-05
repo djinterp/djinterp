@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/env/c/env_vendor_attributes.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 /*
@@ -262,9 +262,13 @@ TABLE OF CONTENTS
 //     2. No-op fallback.
 #ifndef D_ALLOC_SIZE
     #if defined(D_INTERNAL_ENV_GCC_COMPAT)
+        #if D_ENV_PP_HAS_VARIADIC_MACROS
         #define D_ALLOC_SIZE(...) __attribute__((alloc_size(__VA_ARGS__)))
+        #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
     #else
+        #if D_ENV_PP_HAS_VARIADIC_MACROS
         #define D_ALLOC_SIZE(...)
+        #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
     #endif
 #endif  // D_ALLOC_SIZE
 
@@ -367,9 +371,13 @@ TABLE OF CONTENTS
 //     2. No-op fallback.
 #ifndef D_NONNULL
     #if defined(D_INTERNAL_ENV_GCC_COMPAT)
+        #if D_ENV_PP_HAS_VARIADIC_MACROS
         #define D_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
+        #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
     #else
+        #if D_ENV_PP_HAS_VARIADIC_MACROS
         #define D_NONNULL(...)
+        #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
     #endif
 #endif  // D_NONNULL
 

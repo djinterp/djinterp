@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                   mysql_common_table.hpp
+/*******************************************************************************
+* djinterp [core]                                         mysql_common_table.hpp
 *
 * djinterp MySQL-family common table module:
 *   Shared database_table subclass for the MySQL-compatible family (Oracle
@@ -17,23 +17,56 @@
 *
 *   LAYER DIAGRAM:
 *     mysql_table / mariadb_table  (vendor-specific)
-*       -> mysql_common_table<_Connection, _ValueType, _Config>
-*         -> database_table<_Connection, _ValueType, _Config>
+*       -> mysql_common_table<Connection, ValueType, Config>
+*         -> database_table<Connection, ValueType, Config>
+*
+*   DESIGN NOTE — NO VIRTUAL OVERRIDES (updated for the concrete base):
+*   The database_table base is now a CONCRETE, non-polymorphic template
+* ("templates everywhere, virtual nowhere") — no `virtual` members, no
+* override hooks — and every leaf is used through its own concrete type,
+* never through a database_table& / database_table*. This module was
+* rewritten to match:
+*     - it no longer overrides base methods. The base already emits
+*       dialect-correct SELECT / INSERT through quote_identifier(name,
+*       db_type) + dialect_format_limit_offset(db_type, ...), so the old
+*       backtick-quoting build_select_query override was redundant and has
+*       been removed (exactly as db2_table carries no such override);
+*     - the richer INFORMATION_SCHEMA introspection (fetch_schema), the
+*       existence probe (exists), and the MySQL upsert commit are now
+*       CONCRETE members that shadow the base for direct calls on the
+*       concrete leaf — no `override`, no `virtual`;
+*     - the destructor is non-virtual, matching the non-polymorphic base;
+*     - vendor JSON / UUID spelling differences (native JSON binary vs the
+*       MariaDB LONGTEXT alias; native UUID vs CHAR(36)) are resolved at
+*       COMPILE TIME from connection_type::type_support (has_json_type /
+*       has_uuid_type). field_type_to_sql therefore needs neither virtual
+*       dispatch nor a per-leaf override: the shared DDL picks the right
+*       vendor spelling from the connection template argument, the same way
+*       db2_table defers to db2_connection's type mapping. The two entry
+*       points mysql_table / mariadb_table used to override
+*       (field_type_to_sql, map_mysql_data_type) are consequently plain
+*       concrete helpers; vendor leaves add NEW concrete behaviour instead.
 *
 *   PORTABILITY:
 *   Requires C++17 or later. Does not include the MySQL C API header.
 *
-* 
+*
 * path:      /inc/djinterp/core/db/mysql/mysql_common_table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.20
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.20
+*                                                            revised: 2026.09.30
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_MYSQL_COMMON_TABLE_
-#define DJINTERP_DATABASE_MYSQL_COMMON_TABLE_
+#ifndef DJINTERP_DB_MYSQL_MYSQL_COMMON_TABLE_HPP
+#define DJINTERP_DB_MYSQL_MYSQL_COMMON_TABLE_HPP
 
-// mysql
-#include <mysql/mysql.h>
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
+#include <type_traits>
 // djinterp
 #include "../../../djinterp.hpp"
 #include "../database_table.hpp"
@@ -41,6 +74,35 @@
 
 
 NS_DJINTERP
+
+
+    // =========================================================================
+    // I.   MYSQL-FAMILY TYPE-SUPPORT PROBES
+    // =========================================================================
+
+    namespace internal
+    {
+        // mysql_ts_has_uuid_type
+        //   trait: reads TypeSupport::has_uuid_type when the member exists,
+        // and is false otherwise. Oracle MySQL's mysql_type_support does not
+        // declare has_uuid_type (it has no native UUID), whereas MariaDB's
+        // mariadb_type_support does; this probe lets the shared
+        // field_type_to_sql below branch uniformly without a per-vendor
+        // override. (Partial specialization must live at namespace scope, so
+        // it cannot be nested in the class template.)
+        template<typename TypeSupport, typename = void>
+        struct mysql_ts_has_uuid_type : std::false_type
+        {
+        };
+
+        template<typename TypeSupport>
+        struct mysql_ts_has_uuid_type<
+                TypeSupport,
+                std::void_t<decltype(TypeSupport::has_uuid_type)>>
+            : std::bool_constant<TypeSupport::has_uuid_type>
+        {
+        };
+    } // namespace internal
 
 
     // =========================================================================
@@ -79,18 +141,19 @@ NS_DJINTERP
     // =========================================================================
 
     // mysql_common_table
-    //   class template: shared MySQL-family table base. Provides
-    // MySQL-dialect overrides for the database_table virtual methods
-    // and adds DDL/ALTER operations common to both Oracle MySQL and
-    // MariaDB.
-    template<typename _Connection,
-             typename _ValueType = value,
-             typename _Config    = void>
+    //   class template: shared MySQL-family table base. Adds concrete
+    // MySQL-dialect introspection, DDL/ALTER, and upsert-commit on top of
+    // the concrete database_table base (no virtual dispatch); shared by
+    // both Oracle MySQL and MariaDB. Vendor JSON/UUID spelling is taken
+    // from connection_type::type_support at compile time.
+    template<typename Connection,
+             typename ValueType = value,
+             typename Config     = void>
     class mysql_common_table
-        : public database_table<_Connection, _ValueType, _Config>
+        : public database_table<Connection, ValueType, Config>
     {
     private:
-        using base_type = database_table<_Connection, _ValueType, _Config>;
+        using base_type = database_table<Connection, ValueType, Config>;
 
     public:
         using typename base_type::size_type;
@@ -98,7 +161,7 @@ NS_DJINTERP
         using typename base_type::row_type;
         using typename base_type::connection_type;
         using typename base_type::schema_type;
-        using self_type = mysql_common_table<_Connection, _ValueType, _Config>;
+        using self_type = mysql_common_table<Connection, ValueType, Config>;
 
 
         // =================================================================
@@ -116,7 +179,7 @@ NS_DJINTERP
         // mysql_common_table(connection, name)
         //   constructor: binds to a connection and table name.
         explicit mysql_common_table(
-                _Connection&       _conn,
+                Connection&       _conn,
                 std::string        _table_name,
                 table_kind         _kind = table_kind::base_table
             )
@@ -130,7 +193,7 @@ NS_DJINTERP
         // mysql_common_table(connection, schema)
         //   constructor: binds with an explicit schema.
         explicit mysql_common_table(
-                _Connection&  _conn,
+                Connection&  _conn,
                 table_schema  _schema,
                 table_kind    _kind = table_kind::base_table
             )
@@ -144,7 +207,7 @@ NS_DJINTERP
         // mysql_common_table(connection, schema, sync)
         //   constructor: binds with schema and sync policy.
         explicit mysql_common_table(
-                _Connection&       _conn,
+                Connection&       _conn,
                 table_schema       _schema,
                 table_kind         _kind,
                 const sync_config& _sync
@@ -157,7 +220,8 @@ NS_DJINTERP
         {
         }
 
-        virtual ~mysql_common_table() = default;
+        // non-virtual: the base is not a polymorphic type.
+        ~mysql_common_table() = default;
 
         // disable copying
         mysql_common_table(const mysql_common_table&)            = delete;
@@ -169,13 +233,15 @@ NS_DJINTERP
 
 
         // =================================================================
-        //  database operations (MySQL-dialect overrides)
+        //  database operations (MySQL-dialect, concrete)
         // =================================================================
 
         // fetch_schema
         //   function: retrieves column metadata from
         // INFORMATION_SCHEMA.COLUMNS.
-        void fetch_schema() override
+        // concrete: shadows the base zero-row probe with richer
+        // INFORMATION_SCHEMA introspection; call on the concrete leaf.
+        void fetch_schema()
         {
             this->validate_connected("fetch_schema");
 
@@ -250,7 +316,8 @@ NS_DJINTERP
 
         // exists
         //   function: checks table existence via INFORMATION_SCHEMA.
-        bool exists() const override
+        // concrete: shadows the base existence probe.
+        bool exists() const
         {
             this->validate_connected("exists");
 
@@ -272,6 +339,48 @@ NS_DJINTERP
             }
         }
 
+        // commit
+        //   function: concrete MySQL-family commit. Shadows the base
+        // full-replace commit and writes the local cache back inside a
+        // transaction, using INSERT ... ON DUPLICATE KEY UPDATE when the
+        // schema declares primary keys and a full DELETE + INSERT otherwise.
+        // (Called on the concrete leaf; mariadb_table shadows this again to
+        // fold in a Galera sync wait.)
+        void commit()
+        {
+            this->validate_connected("commit");
+            this->validate_mutable("commit");
+
+            if (!this->m_dirty)
+            {
+                return;
+            }
+
+            transaction<Connection> txn(*this->m_connection);
+
+            try
+            {
+                if (!this->m_schema.primary_key_columns.empty())
+                {
+                    commit_upsert();
+                }
+                else
+                {
+                    commit_replace();
+                }
+
+                txn.commit();
+                this->m_dirty = false;
+            }
+            catch (...)
+            {
+                txn.rollback();
+                throw;
+            }
+
+            return;
+        }
+
 
         // =================================================================
         //  DDL operations
@@ -280,7 +389,7 @@ NS_DJINTERP
         // create_table
         //   function: generates and executes a CREATE TABLE statement
         // from the current schema. Uses the configured storage engine.
-        virtual void create_table(bool _if_not_exists = true)
+        void create_table(bool _if_not_exists = true)
         {
             this->validate_connected("create_table");
 
@@ -359,7 +468,7 @@ NS_DJINTERP
 
         // drop_table
         //   function: generates and executes a DROP TABLE statement.
-        virtual void drop_table(bool _if_exists = true)
+        void drop_table(bool _if_exists = true)
         {
             this->validate_connected("drop_table");
 
@@ -379,7 +488,7 @@ NS_DJINTERP
 
         // truncate_table
         //   function: truncates all data from the table.
-        virtual void truncate_table()
+        void truncate_table()
         {
             this->validate_connected("truncate_table");
 
@@ -398,7 +507,7 @@ NS_DJINTERP
         // alter_add_column
         //   function: adds a column to the database table via ALTER
         // TABLE and updates the local schema.
-        virtual void alter_add_column(const column_info& _col_info)
+        void alter_add_column(const column_info& _col_info)
         {
             this->validate_connected("alter_add_column");
             this->validate_mutable("alter_add_column");
@@ -439,7 +548,7 @@ NS_DJINTERP
         // alter_drop_column
         //   function: drops a column from the database table via ALTER
         // TABLE and updates the local schema.
-        virtual void alter_drop_column(const std::string& _column_name)
+        void alter_drop_column(const std::string& _column_name)
         {
             this->validate_connected("alter_drop_column");
             this->validate_mutable("alter_drop_column");
@@ -459,7 +568,7 @@ NS_DJINTERP
         // alter_modify_column
         //   function: modifies a column definition via ALTER TABLE
         // MODIFY COLUMN.
-        virtual void alter_modify_column(const column_info& _col_info)
+        void alter_modify_column(const column_info& _col_info)
         {
             this->validate_connected("alter_modify_column");
             this->validate_mutable("alter_modify_column");
@@ -542,65 +651,54 @@ NS_DJINTERP
     protected:
 
         // =================================================================
-        //  protected overrides
+        //  protected helpers (concrete — not overrides)
         // =================================================================
 
-        // build_select_query
-        //   function: builds a MySQL-dialect SELECT statement with
-        // backtick-quoted identifiers.
-        std::string build_select_query() const override
-        {
-            std::string query =
-                "SELECT * FROM "
-                + backtick_quote(this->m_schema.table_name);
-
-            if (!this->m_where_clause.empty())
-            {
-                query += " WHERE " + this->m_where_clause;
-            }
-
-            if (!this->m_order_clause.empty())
-            {
-                query += " ORDER BY " + this->m_order_clause;
-            }
-
-            if (this->m_limit.has_value())
-            {
-                query += " LIMIT "
-                         + std::to_string(this->m_limit.value());
-            }
-
-            if (this->m_offset.has_value())
-            {
-                query += " OFFSET "
-                         + std::to_string(this->m_offset.value());
-            }
-
-            return query;
-        }
-
-        // commit_helper
-        //   function: writes the local cache back to the database.
-        // Uses INSERT ... ON DUPLICATE KEY UPDATE when primary keys
-        // are defined, otherwise full DELETE + INSERT replacement.
-        void commit_helper() override
-        {
-            if (!this->m_schema.primary_key_columns.empty())
-            {
-                commit_upsert();
-            }
-            else
-            {
-                commit_replace();
-            }
-
-            return;
-        }
+        // (build_select_query removed.) The concrete base already emits a
+        // dialect-correct SELECT: for the MySQL family quote_identifier(name,
+        // db_type) yields backtick quoting and dialect_format_limit_offset()
+        // yields LIMIT/OFFSET — identical to the old hand-rolled override —
+        // so base::refresh() is already MySQL-correct. mysql_table adds the
+        // optimizer-hint SELECT as its own concrete refresh() where wanted.
 
         // field_type_to_sql
-        //   function: maps a field_type to MySQL SQL type syntax.
-        // Virtual so vendor subclasses can override for extended types.
-        virtual const char* field_type_to_sql(field_type _type) const
+        //   function: maps a field_type to MySQL-family SQL type syntax.
+        // Concrete (not virtual): the two spellings that differ across the
+        // family — JSON (native binary on Oracle MySQL vs a LONGTEXT alias
+        // on MariaDB) and UUID (native on MariaDB 10.7+ vs CHAR(36)) — are
+        // selected at compile time from connection_type::type_support, so
+        // the shared DDL below produces the right vendor spelling without a
+        // per-leaf override.
+        const char* field_type_to_sql(field_type _type) const
+        {
+            // Use the template parameter directly: connection_type is only
+            // aliased in the dependent base, so an unqualified name would not
+            // be found by phase-1 lookup here.
+            using ts = typename Connection::type_support;
+
+            switch (_type)
+            {
+                case field_type::json:
+                    // native binary JSON (Oracle MySQL) vs LONGTEXT alias
+                    // (MariaDB) — chosen at compile time from type_support.
+                    return ts::has_json_type ? "JSON" : "LONGTEXT";
+                case field_type::uuid:
+                    // native UUID (MariaDB 10.7+) vs CHAR(36); has_uuid_type
+                    // is absent on Oracle MySQL, so probe it absent-safely.
+                    return internal::mysql_ts_has_uuid_type<ts>::value
+                               ? "UUID"
+                               : "CHAR(36)";
+                default:
+                    break;
+            }
+
+            return field_type_to_sql_common(_type);
+        }
+
+        // field_type_to_sql_common
+        //   function: the family-invariant part of the type mapping (every
+        // spelling that does not vary between Oracle MySQL and MariaDB).
+        static const char* field_type_to_sql_common(field_type _type)
         {
             switch (_type)
             {
@@ -616,9 +714,11 @@ NS_DJINTERP
                 case field_type::time:           return "TIME";
                 case field_type::datetime:       return "DATETIME";
                 case field_type::timestamp:      return "TIMESTAMP";
-                case field_type::json:           return "JSON";
                 case field_type::xml:            return "LONGTEXT";
-                case field_type::uuid:           return "CHAR(36)";
+                // json / uuid are family-variant and handled by the caller
+                // (field_type_to_sql) from connection_type::type_support.
+                case field_type::json:
+                case field_type::uuid:
                 case field_type::array:          return "JSON";
                 case field_type::custom:
                 default:                         return "BLOB";
@@ -627,8 +727,10 @@ NS_DJINTERP
 
         // map_mysql_data_type
         //   function: maps an INFORMATION_SCHEMA DATA_TYPE string to
-        // field_type. Virtual for vendor-specific type extensions.
-        virtual field_type map_mysql_data_type(
+        // field_type. Concrete (not virtual); the family variations are
+        // additive and handled by vendor leaves' own concrete introspection
+        // (e.g. mysql_table::detect_json_columns).
+        field_type map_mysql_data_type(
                 const std::string& _type_name
             ) const
         {
@@ -711,6 +813,19 @@ NS_DJINTERP
             if (_type_name == "json")
             {
                 return field_type::json;
+            }
+
+            // family-union names (MariaDB emits these; Oracle MySQL never
+            // does, so recognising them unconditionally in the shared base
+            // is safe and removes the need for a vendor-leaf override).
+            if (_type_name == "uuid")
+            {
+                return field_type::uuid;
+            }
+
+            if (_type_name == "inet6")
+            {
+                return field_type::string;
             }
 
             return field_type::custom;
@@ -871,5 +986,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_MYSQL_COMMON_TABLE_
+#endif  // DJINTERP_DB_MYSQL_MYSQL_COMMON_TABLE_HPP

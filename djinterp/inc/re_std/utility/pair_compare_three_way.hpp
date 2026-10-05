@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                    pair_compare_three_way.hpp
+/*******************************************************************************
+* djinterp [re_std]                                   pair_compare_three_way.hpp
 *
 * pair operator<=> header:
 *   Adds the C++20 three-way comparison operator to re_std::pair.
@@ -22,35 +22,37 @@
 * return.
 *
 *   PORTABILITY:
-*   Entire file gated on D_ENV_LANG_IS_CPP20_OR_HIGHER. On C++11-17
+*   Entire file gated on RE_STD_LANG_IS_CPP20_OR_HIGHER. On C++11-17
 * the existing classic six comparison operators on pair (shipped
 * as part of the original re_std::pair) remain the only comparison
 * surface.
 *
 *
-* path:      /inc/djinterp/re_std/utility/pair_compare_three_way.hpp
+* path:      /inc/re_std/utility/pair_compare_three_way.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_PAIR_COMPARE_THREE_WAY_
-#define DJINTERP_RE_STD_UTILITY_PAIR_COMPARE_THREE_WAY_ 1
+#ifndef RE_STD_UTILITY_PAIR_COMPARE_THREE_WAY_HPP
+#define RE_STD_UTILITY_PAIR_COMPARE_THREE_WAY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
+
+
+// re_std
 #include "./pair.hpp"
 #include "./declval.hpp"
 #include "../compare/strong_ordering.hpp"
 #include "../compare/common_comparison_category.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -61,21 +63,21 @@ NS_RESTD
 //   function: lexicographic three-way comparison of two pairs. The
 // return type is common_comparison_category of the first-element
 // and second-element <=> result types.
-template<typename _T1,
-         typename _T2,
-         typename _U1,
-         typename _U2>
+template<typename T1,
+         typename T2,
+         typename U1,
+         typename U2>
 constexpr common_comparison_category_t<
-              decltype(re_std::declval<const _T1&>() <=> re_std::declval<const _U1&>()),
-              decltype(re_std::declval<const _T2&>() <=> re_std::declval<const _U2&>())>
+              decltype(re_std::declval<const T1&>() <=> re_std::declval<const U1&>()),
+              decltype(re_std::declval<const T2&>() <=> re_std::declval<const U2&>())>
 operator<=>(
-    const pair<_T1, _T2>& _lhs,
-    const pair<_U1, _U2>& _rhs
+    const pair<T1, T2>& _lhs,
+    const pair<U1, U2>& _rhs
 )
 {
     typedef common_comparison_category_t<
-                decltype(re_std::declval<const _T1&>() <=> re_std::declval<const _U1&>()),
-                decltype(re_std::declval<const _T2&>() <=> re_std::declval<const _U2&>())
+                decltype(re_std::declval<const T1&>() <=> re_std::declval<const U1&>()),
+                decltype(re_std::declval<const T2&>() <=> re_std::declval<const U2&>())
             > _R;
     _R _r = static_cast<_R>(_lhs.first <=> _rhs.first);
     if (_r != 0)
@@ -86,10 +88,10 @@ operator<=>(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_UTILITY_PAIR_COMPARE_THREE_WAY_
+#endif  // RE_STD_UTILITY_PAIR_COMPARE_THREE_WAY_HPP

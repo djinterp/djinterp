@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [utility]                                     piecewise_construct.hpp
+/*******************************************************************************
+* djinterp [re_std]                                      piecewise_construct.hpp
 *
+* piecewise_construct support header:
 *   piecewise pair construction tag:
 *   `piecewise_construct_t` is the empty tag type, and `piecewise_construct`
 * its instance, that selects pair's constructor taking two tuples of
@@ -24,20 +25,28 @@
 * well-formed but an accidental `{}` will not silently convert.
 *
 *
-* path:      /inc/djinterp/re_std/utility/piecewise_construct.hpp
+* path:      /inc/re_std/utility/piecewise_construct.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_PIECEWISE_CONSTRUCT_
-#define DJINTERP_RE_STD_UTILITY_PIECEWISE_CONSTRUCT_ 1
+#ifndef RE_STD_UTILITY_PIECEWISE_CONSTRUCT_HPP
+#define RE_STD_UTILITY_PIECEWISE_CONSTRUCT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "../type_traits/type_traits.hpp"
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-NS_RESTD
+namespace re_std
+{
 
 // piecewise_construct_t
 //   struct: disambiguation tag for pair's piecewise constructor.
@@ -54,13 +63,16 @@ struct piecewise_construct_t
 // piecewise_construct
 //   constant: the piecewise_construct_t instance.
 //
-//   D_INLINE_VAR gives this external linkage exactly once on C++17+; below
-// that it is a namespace-scope constant, which is why it is D_CONSTEXPR
+//   RE_STD_INLINE_VAR gives this external linkage exactly once on C++17+; below
+// that it is a namespace-scope constant, which is why it is RE_STD_CONSTEXPR
 // rather than an inline variable everywhere.
-D_INLINE_VAR D_CONSTEXPR piecewise_construct_t piecewise_construct
+RE_STD_INLINE_VAR RE_STD_CONSTEXPR piecewise_construct_t piecewise_construct
     = piecewise_construct_t();
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_UTILITY_PIECEWISE_CONSTRUCT_
+#endif  // floor, for now
+
+
+#endif  // RE_STD_UTILITY_PIECEWISE_CONSTRUCT_HPP

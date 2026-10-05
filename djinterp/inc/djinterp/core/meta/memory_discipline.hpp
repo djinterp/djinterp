@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                        memory_discipline.hpp
+/*******************************************************************************
+* djinterp [core]                                          memory_discipline.hpp
 *
 *   The framework's foundational MEMORY-DISCIPLINE vocabulary - the answer to
 * "what kind of memory does a strategy use?": a general-purpose heap, a pool, an
@@ -66,17 +66,25 @@
 *
 * path:      /inc/djinterp/core/meta/memory_discipline.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_META_MEMORY_DISCIPLINE_
-#define DJINTERP_META_MEMORY_DISCIPLINE_ 1
+#ifndef DJINTERP_META_MEMORY_DISCIPLINE_HPP
+#define DJINTERP_META_MEMORY_DISCIPLINE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"      // clean_t, void_t, NS_*, D_ENV_* feature macros
+#include "../../djinterp.hpp"      // NS_*, D_ENV_* feature macros
+#include "./type_utility.hpp"      // clean_t
 #include "./trait_detect.hpp"   // D_VOID_T, D_TYPE_TRAIT_* detection macros
 #include "./storage.hpp"        // storage_duration, components (storage bridge)
 
@@ -93,13 +101,16 @@ NS_DJINTERP
 // The values are MUTUALLY EXCLUSIVE - a strategy is classified once - unlike
 // the storage and lifetime lattices, since a discipline is a single verdict on
 // the release pattern, not a set of independent facts.
-enum class memory_discipline
+struct memory_discipline
 {
-    unknown,        // not a recognisable strategy
-    none,           // allocates nothing: the container embeds its cells (inline / descriptive)
-    individual,     // per-object alloc & free, any order, NOT pointer-stable (general heap)
-    pooled,         // per-object alloc & free, POINTER-STABLE fixed slots (pool: individual refinement)
-    arena           // cohort reclaimed together; no per-object free (region / bump)
+    enum value
+    {
+        unknown,     // not a recognisable strategy
+        none,        // allocates nothing: the container embeds its cells (inline / descriptive)
+        individual,  // per-object alloc & free, any order, NOT pointer-stable (general heap)
+        pooled,      // per-object alloc & free, POINTER-STABLE fixed slots (pool: individual refinement)
+        arena        // cohort reclaimed together; no per-object free (region / bump)
+    };
 };
 
 
@@ -113,7 +124,7 @@ enum class memory_discipline
 // is_no_allocation_discipline
 //   function: true iff the strategy allocates nothing (descriptive / inline).
 constexpr bool
-is_no_allocation_discipline(memory_discipline _d) noexcept
+is_no_allocation_discipline(memory_discipline::value _d) noexcept
 {
     return ( _d == memory_discipline::none );
 }
@@ -121,7 +132,7 @@ is_no_allocation_discipline(memory_discipline _d) noexcept
 // is_individual_discipline
 //   function: true iff the discipline is the plain (NOT pointer-stable) heap.
 constexpr bool
-is_individual_discipline(memory_discipline _d) noexcept
+is_individual_discipline(memory_discipline::value _d) noexcept
 {
     return ( _d == memory_discipline::individual );
 }
@@ -129,7 +140,7 @@ is_individual_discipline(memory_discipline _d) noexcept
 // is_pooled_discipline
 //   function: true iff the discipline is a pointer-stable pool.
 constexpr bool
-is_pooled_discipline(memory_discipline _d) noexcept
+is_pooled_discipline(memory_discipline::value _d) noexcept
 {
     return ( _d == memory_discipline::pooled );
 }
@@ -137,7 +148,7 @@ is_pooled_discipline(memory_discipline _d) noexcept
 // is_arena_discipline
 //   function: true iff the discipline is an arena / region (cohort release).
 constexpr bool
-is_arena_discipline(memory_discipline _d) noexcept
+is_arena_discipline(memory_discipline::value _d) noexcept
 {
     return ( _d == memory_discipline::arena );
 }
@@ -145,7 +156,7 @@ is_arena_discipline(memory_discipline _d) noexcept
 // is_unknown_discipline
 //   function: true iff the discipline could not be determined.
 constexpr bool
-is_unknown_discipline(memory_discipline _d) noexcept
+is_unknown_discipline(memory_discipline::value _d) noexcept
 {
     return ( _d == memory_discipline::unknown );
 }
@@ -155,7 +166,7 @@ is_unknown_discipline(memory_discipline _d) noexcept
 // pooled.  Use this when "frees one object at a time" matters and pointer
 // stability does not.
 constexpr bool
-is_individual_family_discipline(memory_discipline _d) noexcept
+is_individual_family_discipline(memory_discipline::value _d) noexcept
 {
     return ( ( _d == memory_discipline::individual ) ||
              ( _d == memory_discipline::pooled ) );
@@ -165,7 +176,7 @@ is_individual_family_discipline(memory_discipline _d) noexcept
 //   function: true iff the discipline actually acquires storage at runtime -
 // individual, pooled, OR arena (i.e. everything but none / unknown).
 constexpr bool
-discipline_allocates(memory_discipline _d) noexcept
+discipline_allocates(memory_discipline::value _d) noexcept
 {
     return ( ( _d == memory_discipline::individual ) ||
              ( _d == memory_discipline::pooled )     ||
@@ -176,7 +187,7 @@ discipline_allocates(memory_discipline _d) noexcept
 //   function: a stable human-readable spelling, for diagnostics and agent-
 // facing summaries.
 constexpr const char*
-memory_discipline_name(memory_discipline _d) noexcept
+memory_discipline_name(memory_discipline::value _d) noexcept
 {
     return ( _d == memory_discipline::none       ? "none"
            : _d == memory_discipline::individual ? "individual"
@@ -192,9 +203,9 @@ memory_discipline_name(memory_discipline _d) noexcept
 
 // memory_discipline_constant
 //   type: an integral_constant specialized to a memory_discipline value.
-template<memory_discipline _Discipline>
+template<memory_discipline::value Discipline>
 using memory_discipline_constant =
-    std::integral_constant<memory_discipline, _Discipline>;
+    std::integral_constant<memory_discipline::value, Discipline>;
 
 // unknown_discipline / none_discipline / ...
 //   type: named carriers for the five values, for tag dispatch.
@@ -217,8 +228,8 @@ using arena_discipline      = memory_discipline_constant<memory_discipline::aren
 // forces none.  none -> static (inline, no allocator); individual / pooled ->
 // dynamic (an acquired region; static storage takes no allocator); arena ->
 // unknown (a bump may run over inline OR heap storage).
-constexpr storage_duration
-discipline_implies_siting(memory_discipline _d) noexcept
+constexpr storage_duration::value
+discipline_implies_siting(memory_discipline::value _d) noexcept
 {
     return ( _d == memory_discipline::none       ? storage_duration::static_storage
            : _d == memory_discipline::individual ? storage_duration::dynamic_storage
@@ -234,8 +245,8 @@ discipline_implies_siting(memory_discipline _d) noexcept
 // is the contradiction this catches.
 constexpr bool
 discipline_siting_consistent(
-    memory_discipline _d,
-    storage_duration  _s
+    memory_discipline::value _d,
+    storage_duration::value  _s
 ) noexcept
 {
     return ( ( discipline_implies_siting(_d) == storage_duration::unknown ) ||
@@ -263,13 +274,13 @@ D_TYPE_TRAIT_HAS_STATIC_MEMBER(has_strategy_kind_signal, strategy_storage_kind)
 // has_element_allocate_signal
 //   trait: detects an element-typed allocate(size_t) surface.
 D_TYPE_TRAIT_TRUE(has_element_allocate_signal,
-    decltype(std::declval<clean_t<_Type>&>().allocate(
+    decltype(std::declval<clean_t<Type>&>().allocate(
         std::declval<std::size_t>())))
 
 // has_byte_allocate_signal
 //   trait: detects a byte-typed allocate(size_t, size_t) surface (pmr-shaped).
 D_TYPE_TRAIT_TRUE(has_byte_allocate_signal,
-    decltype(std::declval<clean_t<_Type>&>().allocate(
+    decltype(std::declval<clean_t<Type>&>().allocate(
         std::declval<std::size_t>(),
         std::declval<std::size_t>())))
 
@@ -283,37 +294,37 @@ D_TYPE_TRAIT_HAS_STATIC_MEMBER(has_individual_release_constant_signal,
 NS_INTERNAL
 
     // read_pointer_stable
-    //   trait: yields clean_t<_Type>::pointer_stable, or the conservative
+    //   trait: yields clean_t<Type>::pointer_stable, or the conservative
     // default false when the constant is absent.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct read_pointer_stable
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Type>
-    struct read_pointer_stable<_Type,
-        D_VOID_T<decltype(clean_t<_Type>::pointer_stable)>>
+    template<typename Type>
+    struct read_pointer_stable<Type,
+        D_VOID_T<decltype(clean_t<Type>::pointer_stable)>>
     {
-        static constexpr bool value = clean_t<_Type>::pointer_stable;
+        static constexpr bool value = clean_t<Type>::pointer_stable;
     };
 
     // read_individual_release
-    //   trait: yields clean_t<_Type>::supports_individual_release, or the
+    //   trait: yields clean_t<Type>::supports_individual_release, or the
     // conservative default false (absent -> monotonic / arena) when absent.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct read_individual_release
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Type>
-    struct read_individual_release<_Type,
-        D_VOID_T<decltype(clean_t<_Type>::supports_individual_release)>>
+    template<typename Type>
+    struct read_individual_release<Type,
+        D_VOID_T<decltype(clean_t<Type>::supports_individual_release)>>
     {
-        static constexpr bool value = clean_t<_Type>::supports_individual_release;
+        static constexpr bool value = clean_t<Type>::supports_individual_release;
     };
 
 NS_END  // internal
@@ -330,14 +341,14 @@ NS_END  // internal
 // descriptive-only (none); otherwise the release pattern (individual-release,
 // pointer-stable) selects arena / pooled / individual.  Exposes the value plus
 // a memory_discipline_constant carrier as `::type`.
-template<typename _Type>
+template<typename Type>
 struct discipline_of
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
-    static constexpr memory_discipline value =
+    static constexpr memory_discipline::value value =
         ( !has_strategy_kind_signal<clean_type>::value )
               ? memory_discipline::unknown
       : ( !( has_element_allocate_signal<clean_type>::value ||
@@ -353,23 +364,27 @@ public:
 };
 
 // discipline_of_t
-//   type: convenience alias for discipline_of<_Type>::type (a carrier).
-template<typename _Type>
-using discipline_of_t = typename discipline_of<_Type>::type;
+//   type: convenience alias for discipline_of<Type>::type (a carrier).
+template<typename Type>
+using discipline_of_t = typename discipline_of<Type>::type;
 
 // discipline_of_v
 //   value: the `_v` companion (a memory_discipline, emitted by hand as it is
 // not a bool; same language degradation as the meta layer's enum-valued _v's).
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr memory_discipline discipline_of_v = discipline_of<_Type>::value;
+    template<typename Type>
+    inline constexpr memory_discipline::value discipline_of_v =
+        discipline_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
-    constexpr memory_discipline discipline_of_v = discipline_of<_Type>::value;
+    template<typename Type>
+    constexpr memory_discipline::value discipline_of_v =
+        discipline_of<Type>::value;
 #endif
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_META_MEMORY_DISCIPLINE_
+
+#endif  // DJINTERP_META_MEMORY_DISCIPLINE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             variant_get_if.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           variant_get_if.hpp
 *
 * variant get_if<I>/get_if<T> header:
 *   Non-throwing access: returns a pointer to the active alternative
@@ -14,55 +14,58 @@
 * dangling pointer).
 *
 *
-* path:      /inc/djinterp/re_std/variant/variant_get_if.hpp
+* path:      /inc/re_std/variant/variant_get_if.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_GET_IF_
-#define DJINTERP_RE_STD_VARIANT_GET_IF_ 1
+#ifndef RE_STD_VARIANT_VARIANT_GET_IF_HPP
+#define RE_STD_VARIANT_VARIANT_GET_IF_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include <cstddef>
 #include "./variant.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   GET_IF<I> — BY INDEX
 // ===========================================================================
 
-template<std::size_t _I,
-         typename... _Types>
-typename internal::va_type_at<_I, _Types...>::type*
+template<std::size_t I,
+         typename... Types>
+typename internal::va_type_at<I, Types...>::type*
 get_if(
-    variant<_Types...>* _v
-) D_NOEXCEPT
+    variant<Types...>* _v
+) RE_STD_NOEXCEPT
 {
-    if (!_v || _v->index() != _I)
+    if (!_v || _v->index() != I)
     {
-        return D_NULLPTR;
+        return RE_STD_NULLPTR;
     }
-    return &(_v->template _ref<_I>());
+    return &(_v->template _ref<I>());
 }
 
-template<std::size_t _I,
-         typename... _Types>
-typename internal::va_type_at<_I, _Types...>::type const*
+template<std::size_t I,
+         typename... Types>
+typename internal::va_type_at<I, Types...>::type const*
 get_if(
-    variant<_Types...> const* _v
-) D_NOEXCEPT
+    variant<Types...> const* _v
+) RE_STD_NOEXCEPT
 {
-    if (!_v || _v->index() != _I)
+    if (!_v || _v->index() != I)
     {
-        return D_NULLPTR;
+        return RE_STD_NULLPTR;
     }
-    return &(_v->template _ref<_I>());
+    return &(_v->template _ref<I>());
 }
 
 
@@ -70,31 +73,31 @@ get_if(
 // II.  GET_IF<T> — BY TYPE
 // ===========================================================================
 
-template<typename _T,
-         typename... _Types>
-_T*
+template<typename T,
+         typename... Types>
+T*
 get_if(
-    variant<_Types...>* _v
-) D_NOEXCEPT
+    variant<Types...>* _v
+) RE_STD_NOEXCEPT
 {
-    return get_if<internal::index_of<_T, _Types...>::value>(_v);
+    return get_if<internal::index_of<T, Types...>::value>(_v);
 }
 
-template<typename _T,
-         typename... _Types>
-_T const*
+template<typename T,
+         typename... Types>
+T const*
 get_if(
-    variant<_Types...> const* _v
-) D_NOEXCEPT
+    variant<Types...> const* _v
+) RE_STD_NOEXCEPT
 {
-    return get_if<internal::index_of<_T, _Types...>::value>(_v);
+    return get_if<internal::index_of<T, Types...>::value>(_v);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_VARIANT_GET_IF_
+#endif  // RE_STD_VARIANT_VARIANT_GET_IF_HPP

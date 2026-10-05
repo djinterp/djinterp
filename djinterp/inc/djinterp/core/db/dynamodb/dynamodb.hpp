@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                             dynamodb.hpp
+/*******************************************************************************
+* djinterp [core]                                                   dynamodb.hpp
 *
 * djinterp DynamoDB connection module:
 *   This header provides the Amazon DynamoDB-specific connection
@@ -55,17 +55,23 @@
 * (trailing sections), folded in from dynamodb_traits.hpp and the matching *_concepts.hpp;
 * detection now lives with the connection. Concepts gated on concept support.
 *
+*
 * path:      /inc/djinterp/core/db/dynamodb/dynamodb.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.28
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.28
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_DYNAMODB_
-#define DJINTERP_DATABASE_DYNAMODB_
+#ifndef DJINTERP_DB_DYNAMODB_DYNAMODB_HPP
+#define DJINTERP_DB_DYNAMODB_DYNAMODB_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <chrono>
-#include <cstdint>
 #include <map>
 #include <memory>
 #include <optional>
@@ -73,9 +79,12 @@
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"
+#include "../../meta/type_utility.hpp"  // clean_t, self
 #include "../../../env/db/dynamodb/env_dynamodb.h"
 #include "../database_connection.hpp"
-#include "../database_traits.hpp"
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t,
+                                                   // uint32_t, uint8_t
 
 
 NS_DJINTERP
@@ -92,7 +101,7 @@ NS_DJINTERP
 
 // dynamodb_attribute_type
 //   enumeration: DynamoDB attribute value descriptors.
-enum class dynamodb_attribute_type : std::uint16_t
+enum class dynamodb_attribute_type : re_std::uint16_t
 {
     // -----------------------------------------------------------------
     // none / missing
@@ -472,27 +481,27 @@ struct dynamodb_version_info
 #if D_ENV_DYNAMODB_DETECTED
     static constexpr bool          detected    = true;
     static constexpr const char*   api_version = D_ENV_DYNAMODB_API_VERSION;
-    static constexpr std::uint32_t sdk_id      = D_ENV_DYNAMODB_SDK_VERSION_ID;
-    static constexpr std::uint16_t sdk_major   = D_ENV_DYNAMODB_SDK_VERSION_MAJOR;
-    static constexpr std::uint16_t sdk_minor   = D_ENV_DYNAMODB_SDK_VERSION_MINOR;
-    static constexpr std::uint16_t sdk_patch   = D_ENV_DYNAMODB_SDK_VERSION_PATCH;
+    static constexpr re_std::uint32_t sdk_id      = D_ENV_DYNAMODB_SDK_VERSION_ID;
+    static constexpr re_std::uint16_t sdk_major   = D_ENV_DYNAMODB_SDK_VERSION_MAJOR;
+    static constexpr re_std::uint16_t sdk_minor   = D_ENV_DYNAMODB_SDK_VERSION_MINOR;
+    static constexpr re_std::uint16_t sdk_patch   = D_ENV_DYNAMODB_SDK_VERSION_PATCH;
     static constexpr const char*   sdk_string  = D_ENV_DYNAMODB_SDK_VERSION_STRING;
 #else
     static constexpr bool          detected    = false;
     static constexpr const char*   api_version = "not detected";
-    static constexpr std::uint32_t sdk_id      = 0;
-    static constexpr std::uint16_t sdk_major   = 0;
-    static constexpr std::uint16_t sdk_minor   = 0;
-    static constexpr std::uint16_t sdk_patch   = 0;
+    static constexpr re_std::uint32_t sdk_id      = 0;
+    static constexpr re_std::uint16_t sdk_major   = 0;
+    static constexpr re_std::uint16_t sdk_minor   = 0;
+    static constexpr re_std::uint16_t sdk_patch   = 0;
     static constexpr const char*   sdk_string  = "not detected";
 #endif
 
     // sdk_at_least
     //   function: returns true if the detected AWS SDK build is at
     // least (major, minor, patch).
-    static constexpr bool sdk_at_least(std::uint16_t _major,
-                                       std::uint16_t _minor,
-                                       std::uint16_t _patch) noexcept
+    static constexpr bool sdk_at_least(re_std::uint16_t _major,
+                                       re_std::uint16_t _minor,
+                                       re_std::uint16_t _patch) noexcept
     {
         return sdk_id >= (_major * 10000u + _minor * 100u + _patch);
     }
@@ -505,7 +514,7 @@ struct dynamodb_version_info
 
 // dynamodb_capacity_mode
 //   enumeration: table throughput billing mode.
-enum class dynamodb_capacity_mode : std::uint8_t
+enum class dynamodb_capacity_mode : re_std::uint8_t
 {
     provisioned = 0,    // fixed RCU / WCU
     on_demand   = 1     // pay-per-request
@@ -513,7 +522,7 @@ enum class dynamodb_capacity_mode : std::uint8_t
 
 // dynamodb_read_consistency
 //   enumeration: read consistency model for reads that support it.
-enum class dynamodb_read_consistency : std::uint8_t
+enum class dynamodb_read_consistency : re_std::uint8_t
 {
     eventual = 0,       // eventually consistent (default, cheaper)
     strong   = 1        // strongly consistent
@@ -521,7 +530,7 @@ enum class dynamodb_read_consistency : std::uint8_t
 
 // dynamodb_endpoint_mode
 //   enumeration: which endpoint the connection targets.
-enum class dynamodb_endpoint_mode : std::uint8_t
+enum class dynamodb_endpoint_mode : re_std::uint8_t
 {
     standard = 0,       // regional DynamoDB endpoint
     dax      = 1,       // DynamoDB Accelerator (DAX) cluster
@@ -530,7 +539,7 @@ enum class dynamodb_endpoint_mode : std::uint8_t
 
 // dynamodb_return_values
 //   enumeration: ReturnValues option controlling what a write returns.
-enum class dynamodb_return_values : std::uint8_t
+enum class dynamodb_return_values : re_std::uint8_t
 {
     none        = 0,    // NONE
     all_old     = 1,    // ALL_OLD
@@ -637,6 +646,16 @@ struct dynamodb_connect_config
 //                          {"name", value{std::string{"teer"}}} };
 //   conn.put_item("users", item);
 //   auto got = conn.get_item("users", {{"id", value{std::string{"42"}}}});
+// dynamodb_item
+//   type: one DynamoDB item, its attributes by name -- the row of the
+// key-value model, as the usage above builds it.
+using dynamodb_item = row;
+
+// dynamodb_key
+//   type: an item's primary key -- its partition key attribute and, for a
+// composite key, its sort key attribute -- by name.
+using dynamodb_key = row;
+
 class dynamodb_connection
     : public database_connection<dynamodb_connection,
                                  database_type::dynamodb>
@@ -1273,13 +1292,13 @@ public:
     // _impl methods (defined in dynamodb.cpp)
     // -----------------------------------------------------------------
 
-    void         connect_impl();
-    void         disconnect_impl();
-    bool         is_connected_impl() const;
-    bool         ping_impl() const;
-    std::string  get_server_version_impl() const;
-    std::string  get_last_error_impl() const;
-    int          get_last_error_code_impl() const;
+    void         connect_helper();
+    void         disconnect_helper();
+    bool         is_connected_helper() const;
+    bool         ping_helper() const;
+    std::string  get_server_version_helper() const;
+    std::string  get_last_error_helper() const;
+    int          get_last_error_code_helper() const;
 
     // item operations
     bool         put_item_impl(const std::string&  _table,
@@ -1503,27 +1522,27 @@ using dynamodb_key = std::map<std::string, value>;
 // dynamodb_put_item_t
 //   detector: put_item(table, item) method.
 // wraps PutItem — writes (or replaces) a single item.
-template<typename _Type>
+template<typename Type>
 using dynamodb_put_item_t =
-    decltype(std::declval<_Type&>().put_item(
+    decltype(std::declval<Type&>().put_item(
         std::declval<const std::string&>(),
         std::declval<const dynamodb_item&>()));
 
 // dynamodb_get_item_t
 //   detector: get_item(table, key) const method.
 // wraps GetItem — reads a single item by primary key.
-template<typename _Type>
+template<typename Type>
 using dynamodb_get_item_t =
-    decltype(std::declval<const _Type&>().get_item(
+    decltype(std::declval<const Type&>().get_item(
         std::declval<const std::string&>(),
         std::declval<const dynamodb_key&>()));
 
 // dynamodb_update_item_t
 //   detector: update_item(table, key, updates) method.
 // wraps UpdateItem — mutates attributes of an existing item.
-template<typename _Type>
+template<typename Type>
 using dynamodb_update_item_t =
-    decltype(std::declval<_Type&>().update_item(
+    decltype(std::declval<Type&>().update_item(
         std::declval<const std::string&>(),
         std::declval<const dynamodb_key&>(),
         std::declval<const dynamodb_item&>()));
@@ -1531,9 +1550,9 @@ using dynamodb_update_item_t =
 // dynamodb_delete_item_t
 //   detector: delete_item(table, key) method.
 // wraps DeleteItem — removes a single item by primary key.
-template<typename _Type>
+template<typename Type>
 using dynamodb_delete_item_t =
-    decltype(std::declval<_Type&>().delete_item(
+    decltype(std::declval<Type&>().delete_item(
         std::declval<const std::string&>(),
         std::declval<const dynamodb_key&>()));
 
@@ -1545,9 +1564,9 @@ using dynamodb_delete_item_t =
 // dynamodb_batch_get_item_t
 //   detector: batch_get_item(table, keys) const method.
 // wraps BatchGetItem — reads up to 100 items in one round-trip.
-template<typename _Type>
+template<typename Type>
 using dynamodb_batch_get_item_t =
-    decltype(std::declval<const _Type&>().batch_get_item(
+    decltype(std::declval<const Type&>().batch_get_item(
         std::declval<const std::string&>(),
         std::declval<const std::vector<dynamodb_key>&>()));
 
@@ -1555,9 +1574,9 @@ using dynamodb_batch_get_item_t =
 //   detector: batch_write_item(table, items) method.
 // wraps BatchWriteItem — writes/deletes up to 25 items in one
 // round-trip.
-template<typename _Type>
+template<typename Type>
 using dynamodb_batch_write_item_t =
-    decltype(std::declval<_Type&>().batch_write_item(
+    decltype(std::declval<Type&>().batch_write_item(
         std::declval<const std::string&>(),
         std::declval<const std::vector<dynamodb_item>&>()));
 
@@ -1570,18 +1589,18 @@ using dynamodb_batch_write_item_t =
 //   detector: query(table, key_condition) const method.
 // wraps Query — partition-key-bounded retrieval with an optional
 // sort-key condition expression.
-template<typename _Type>
+template<typename Type>
 using dynamodb_query_t =
-    decltype(std::declval<const _Type&>().query(
+    decltype(std::declval<const Type&>().query(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // dynamodb_scan_t
 //   detector: scan(table) const method.
 // wraps Scan — full-table sequential read (expensive; prefer query).
-template<typename _Type>
+template<typename Type>
 using dynamodb_scan_t =
-    decltype(std::declval<const _Type&>().scan(
+    decltype(std::declval<const Type&>().scan(
         std::declval<const std::string&>()));
 
 
@@ -1592,17 +1611,17 @@ using dynamodb_scan_t =
 // dynamodb_transact_write_items_t
 //   detector: transact_write_items(items) method.
 // wraps TransactWriteItems — all-or-nothing write of up to 100 items.
-template<typename _Type>
+template<typename Type>
 using dynamodb_transact_write_items_t =
-    decltype(std::declval<_Type&>().transact_write_items(
+    decltype(std::declval<Type&>().transact_write_items(
         std::declval<const std::vector<dynamodb_item>&>()));
 
 // dynamodb_transact_get_items_t
 //   detector: transact_get_items(keys) const method.
 // wraps TransactGetItems — consistent snapshot read of up to 100 items.
-template<typename _Type>
+template<typename Type>
 using dynamodb_transact_get_items_t =
-    decltype(std::declval<const _Type&>().transact_get_items(
+    decltype(std::declval<const Type&>().transact_get_items(
         std::declval<const std::vector<dynamodb_key>&>()));
 
 
@@ -1613,25 +1632,25 @@ using dynamodb_transact_get_items_t =
 // dynamodb_execute_statement_t
 //   detector: execute_statement(statement) method.
 // wraps ExecuteStatement — a single PartiQL statement.
-template<typename _Type>
+template<typename Type>
 using dynamodb_execute_statement_t =
-    decltype(std::declval<_Type&>().execute_statement(
+    decltype(std::declval<Type&>().execute_statement(
         std::declval<const std::string&>()));
 
 // dynamodb_batch_execute_statement_t
 //   detector: batch_execute_statement(statements) method.
 // wraps BatchExecuteStatement — multiple PartiQL statements.
-template<typename _Type>
+template<typename Type>
 using dynamodb_batch_execute_statement_t =
-    decltype(std::declval<_Type&>().batch_execute_statement(
+    decltype(std::declval<Type&>().batch_execute_statement(
         std::declval<const std::vector<std::string>&>()));
 
 // dynamodb_execute_transaction_t
 //   detector: execute_transaction(statements) method.
 // wraps ExecuteTransaction — transactional PartiQL statements.
-template<typename _Type>
+template<typename Type>
 using dynamodb_execute_transaction_t =
-    decltype(std::declval<_Type&>().execute_transaction(
+    decltype(std::declval<Type&>().execute_transaction(
         std::declval<const std::vector<std::string>&>()));
 
 
@@ -1642,9 +1661,9 @@ using dynamodb_execute_transaction_t =
 // dynamodb_put_item_conditional_t
 //   detector: put_item_conditional(table, item, condition) method.
 // wraps PutItem with a ConditionExpression.
-template<typename _Type>
+template<typename Type>
 using dynamodb_put_item_conditional_t =
-    decltype(std::declval<_Type&>().put_item_conditional(
+    decltype(std::declval<Type&>().put_item_conditional(
         std::declval<const std::string&>(),
         std::declval<const dynamodb_item&>(),
         std::declval<const std::string&>()));
@@ -1652,9 +1671,9 @@ using dynamodb_put_item_conditional_t =
 // dynamodb_delete_item_conditional_t
 //   detector: delete_item_conditional(table, key, condition) method.
 // wraps DeleteItem with a ConditionExpression.
-template<typename _Type>
+template<typename Type>
 using dynamodb_delete_item_conditional_t =
-    decltype(std::declval<_Type&>().delete_item_conditional(
+    decltype(std::declval<Type&>().delete_item_conditional(
         std::declval<const std::string&>(),
         std::declval<const dynamodb_key&>(),
         std::declval<const std::string&>()));
@@ -1668,9 +1687,9 @@ using dynamodb_delete_item_conditional_t =
 //   detector: create_table(table, partition_key, sort_key) method.
 // wraps CreateTable. An empty sort_key denotes a simple (partition-only)
 // key schema.
-template<typename _Type>
+template<typename Type>
 using dynamodb_create_table_t =
-    decltype(std::declval<_Type&>().create_table(
+    decltype(std::declval<Type&>().create_table(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
@@ -1678,34 +1697,34 @@ using dynamodb_create_table_t =
 // dynamodb_delete_table_t
 //   detector: delete_table(table) method.
 // wraps DeleteTable.
-template<typename _Type>
+template<typename Type>
 using dynamodb_delete_table_t =
-    decltype(std::declval<_Type&>().delete_table(
+    decltype(std::declval<Type&>().delete_table(
         std::declval<const std::string&>()));
 
 // dynamodb_describe_table_t
 //   detector: describe_table(table) const method.
 // wraps DescribeTable.
-template<typename _Type>
+template<typename Type>
 using dynamodb_describe_table_t =
-    decltype(std::declval<const _Type&>().describe_table(
+    decltype(std::declval<const Type&>().describe_table(
         std::declval<const std::string&>()));
 
 // dynamodb_update_table_t
 //   detector: update_table(table, spec) method.
 // wraps UpdateTable — throughput / billing / index changes.
-template<typename _Type>
+template<typename Type>
 using dynamodb_update_table_t =
-    decltype(std::declval<_Type&>().update_table(
+    decltype(std::declval<Type&>().update_table(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // dynamodb_list_tables_t
 //   detector: list_tables() const method.
 // wraps ListTables.
-template<typename _Type>
+template<typename Type>
 using dynamodb_list_tables_t =
-    decltype(std::declval<const _Type&>().list_tables());
+    decltype(std::declval<const Type&>().list_tables());
 
 
 // -------------------------------------------------------------------------
@@ -1715,9 +1734,9 @@ using dynamodb_list_tables_t =
 // dynamodb_create_gsi_t
 //   detector: create_global_secondary_index(table, index, partition_key)
 // method. wraps UpdateTable with a GSI create action.
-template<typename _Type>
+template<typename Type>
 using dynamodb_create_gsi_t =
-    decltype(std::declval<_Type&>().create_global_secondary_index(
+    decltype(std::declval<Type&>().create_global_secondary_index(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
@@ -1725,18 +1744,18 @@ using dynamodb_create_gsi_t =
 // dynamodb_delete_gsi_t
 //   detector: delete_global_secondary_index(table, index) method.
 // wraps UpdateTable with a GSI delete action.
-template<typename _Type>
+template<typename Type>
 using dynamodb_delete_gsi_t =
-    decltype(std::declval<_Type&>().delete_global_secondary_index(
+    decltype(std::declval<Type&>().delete_global_secondary_index(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // dynamodb_query_index_t
 //   detector: query_index(table, index, key_condition) const method.
 // wraps Query against a secondary index.
-template<typename _Type>
+template<typename Type>
 using dynamodb_query_index_t =
-    decltype(std::declval<const _Type&>().query_index(
+    decltype(std::declval<const Type&>().query_index(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
@@ -1749,34 +1768,34 @@ using dynamodb_query_index_t =
 // dynamodb_describe_stream_t
 //   detector: describe_stream(stream_arn) const method.
 // wraps DescribeStream.
-template<typename _Type>
+template<typename Type>
 using dynamodb_describe_stream_t =
-    decltype(std::declval<const _Type&>().describe_stream(
+    decltype(std::declval<const Type&>().describe_stream(
         std::declval<const std::string&>()));
 
 // dynamodb_get_shard_iterator_t
 //   detector: get_shard_iterator(stream_arn, shard_id) const method.
 // wraps GetShardIterator.
-template<typename _Type>
+template<typename Type>
 using dynamodb_get_shard_iterator_t =
-    decltype(std::declval<const _Type&>().get_shard_iterator(
+    decltype(std::declval<const Type&>().get_shard_iterator(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // dynamodb_get_records_t
 //   detector: get_records(shard_iterator) const method.
 // wraps GetRecords.
-template<typename _Type>
+template<typename Type>
 using dynamodb_get_records_t =
-    decltype(std::declval<const _Type&>().get_records(
+    decltype(std::declval<const Type&>().get_records(
         std::declval<const std::string&>()));
 
 // dynamodb_list_streams_t
 //   detector: list_streams(table) const method.
 // wraps ListStreams.
-template<typename _Type>
+template<typename Type>
 using dynamodb_list_streams_t =
-    decltype(std::declval<const _Type&>().list_streams(
+    decltype(std::declval<const Type&>().list_streams(
         std::declval<const std::string&>()));
 
 
@@ -1787,9 +1806,9 @@ using dynamodb_list_streams_t =
 // dynamodb_update_ttl_t
 //   detector: update_time_to_live(table, attribute, enabled) method.
 // wraps UpdateTimeToLive.
-template<typename _Type>
+template<typename Type>
 using dynamodb_update_ttl_t =
-    decltype(std::declval<_Type&>().update_time_to_live(
+    decltype(std::declval<Type&>().update_time_to_live(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<bool>()));
@@ -1797,9 +1816,9 @@ using dynamodb_update_ttl_t =
 // dynamodb_describe_ttl_t
 //   detector: describe_time_to_live(table) const method.
 // wraps DescribeTimeToLive.
-template<typename _Type>
+template<typename Type>
 using dynamodb_describe_ttl_t =
-    decltype(std::declval<const _Type&>().describe_time_to_live(
+    decltype(std::declval<const Type&>().describe_time_to_live(
         std::declval<const std::string&>()));
 
 
@@ -1810,27 +1829,27 @@ using dynamodb_describe_ttl_t =
 // dynamodb_create_backup_t
 //   detector: create_backup(table, backup_name) method.
 // wraps CreateBackup — on-demand backup.
-template<typename _Type>
+template<typename Type>
 using dynamodb_create_backup_t =
-    decltype(std::declval<_Type&>().create_backup(
+    decltype(std::declval<Type&>().create_backup(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // dynamodb_restore_from_backup_t
 //   detector: restore_table_from_backup(table, backup_arn) method.
 // wraps RestoreTableFromBackup.
-template<typename _Type>
+template<typename Type>
 using dynamodb_restore_from_backup_t =
-    decltype(std::declval<_Type&>().restore_table_from_backup(
+    decltype(std::declval<Type&>().restore_table_from_backup(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // dynamodb_describe_continuous_backups_t
 //   detector: describe_continuous_backups(table) const method.
 // wraps DescribeContinuousBackups — point-in-time recovery status.
-template<typename _Type>
+template<typename Type>
 using dynamodb_describe_continuous_backups_t =
-    decltype(std::declval<const _Type&>().describe_continuous_backups(
+    decltype(std::declval<const Type&>().describe_continuous_backups(
         std::declval<const std::string&>()));
 
 
@@ -1841,24 +1860,24 @@ using dynamodb_describe_continuous_backups_t =
 // dynamodb_describe_limits_t
 //   detector: describe_limits() const method.
 // wraps DescribeLimits — account/table capacity limits.
-template<typename _Type>
+template<typename Type>
 using dynamodb_describe_limits_t =
-    decltype(std::declval<const _Type&>().describe_limits());
+    decltype(std::declval<const Type&>().describe_limits());
 
 // dynamodb_describe_endpoints_t
 //   detector: describe_endpoints() const method.
 // wraps DescribeEndpoints — regional endpoint discovery.
-template<typename _Type>
+template<typename Type>
 using dynamodb_describe_endpoints_t =
-    decltype(std::declval<const _Type&>().describe_endpoints());
+    decltype(std::declval<const Type&>().describe_endpoints());
 
 // dynamodb_table_status_t
 //   detector: table_status(table) const method.
 // convenience accessor over DescribeTable returning the table state
 // (CREATING / ACTIVE / UPDATING / DELETING).
-template<typename _Type>
+template<typename Type>
 using dynamodb_table_status_t =
-    decltype(std::declval<const _Type&>().table_status(
+    decltype(std::declval<const Type&>().table_status(
         std::declval<const std::string&>()));
 
 
@@ -1869,26 +1888,26 @@ using dynamodb_table_status_t =
 // dynamodb_create_global_table_t
 //   detector: create_global_table(table, regions) method.
 // wraps CreateGlobalTable — multi-region replication.
-template<typename _Type>
+template<typename Type>
 using dynamodb_create_global_table_t =
-    decltype(std::declval<_Type&>().create_global_table(
+    decltype(std::declval<Type&>().create_global_table(
         std::declval<const std::string&>(),
         std::declval<const std::vector<std::string>&>()));
 
 // dynamodb_describe_global_table_t
 //   detector: describe_global_table(table) const method.
 // wraps DescribeGlobalTable.
-template<typename _Type>
+template<typename Type>
 using dynamodb_describe_global_table_t =
-    decltype(std::declval<const _Type&>().describe_global_table(
+    decltype(std::declval<const Type&>().describe_global_table(
         std::declval<const std::string&>()));
 
 // dynamodb_update_global_table_t
 //   detector: update_global_table(table, regions) method.
 // wraps UpdateGlobalTable — add/remove replica regions.
-template<typename _Type>
+template<typename Type>
 using dynamodb_update_global_table_t =
-    decltype(std::declval<_Type&>().update_global_table(
+    decltype(std::declval<Type&>().update_global_table(
         std::declval<const std::string&>(),
         std::declval<const std::vector<std::string>&>()));
 
@@ -1900,27 +1919,27 @@ using dynamodb_update_global_table_t =
 // dynamodb_tag_resource_t
 //   detector: tag_resource(arn, tags) method.
 // wraps TagResource.
-template<typename _Type>
+template<typename Type>
 using dynamodb_tag_resource_t =
-    decltype(std::declval<_Type&>().tag_resource(
+    decltype(std::declval<Type&>().tag_resource(
         std::declval<const std::string&>(),
         std::declval<const std::map<std::string, std::string>&>()));
 
 // dynamodb_untag_resource_t
 //   detector: untag_resource(arn, keys) method.
 // wraps UntagResource.
-template<typename _Type>
+template<typename Type>
 using dynamodb_untag_resource_t =
-    decltype(std::declval<_Type&>().untag_resource(
+    decltype(std::declval<Type&>().untag_resource(
         std::declval<const std::string&>(),
         std::declval<const std::vector<std::string>&>()));
 
 // dynamodb_list_tags_of_resource_t
 //   detector: list_tags_of_resource(arn) const method.
 // wraps ListTagsOfResource.
-template<typename _Type>
+template<typename Type>
 using dynamodb_list_tags_of_resource_t =
-    decltype(std::declval<const _Type&>().list_tags_of_resource(
+    decltype(std::declval<const Type&>().list_tags_of_resource(
         std::declval<const std::string&>()));
 
 
@@ -1929,260 +1948,260 @@ using dynamodb_list_tags_of_resource_t =
 // =============================================================================
 
 // has_dynamodb_item_ops
-//   trait: checks if type _Type supports core item operations
+//   trait: checks if type Type supports core item operations
 // (put_item + get_item + update_item + delete_item).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_item_ops : djinterp::conjunction<
-    is_detected<dynamodb_put_item_t, clean_t<_Type>>,
-    is_detected<dynamodb_get_item_t, clean_t<_Type>>,
-    is_detected<dynamodb_update_item_t, clean_t<_Type>>,
-    is_detected<dynamodb_delete_item_t, clean_t<_Type>>>
+    is_detected<dynamodb_put_item_t, clean_t<Type>>,
+    is_detected<dynamodb_get_item_t, clean_t<Type>>,
+    is_detected<dynamodb_update_item_t, clean_t<Type>>,
+    is_detected<dynamodb_delete_item_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_item_ops_v =
-        has_dynamodb_item_ops<clean_t<_Type>>::value;
+        has_dynamodb_item_ops<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_batch_ops
-//   trait: checks if type _Type supports batch operations
+//   trait: checks if type Type supports batch operations
 // (batch_get_item + batch_write_item).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_batch_ops : djinterp::conjunction<
-    is_detected<dynamodb_batch_get_item_t, clean_t<_Type>>,
-    is_detected<dynamodb_batch_write_item_t, clean_t<_Type>>>
+    is_detected<dynamodb_batch_get_item_t, clean_t<Type>>,
+    is_detected<dynamodb_batch_write_item_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_batch_ops_v =
-        has_dynamodb_batch_ops<clean_t<_Type>>::value;
+        has_dynamodb_batch_ops<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_query_scan
-//   trait: checks if type _Type supports query and scan
+//   trait: checks if type Type supports query and scan
 // (query + scan).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_query_scan : djinterp::conjunction<
-    is_detected<dynamodb_query_t, clean_t<_Type>>,
-    is_detected<dynamodb_scan_t, clean_t<_Type>>>
+    is_detected<dynamodb_query_t, clean_t<Type>>,
+    is_detected<dynamodb_scan_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_query_scan_v =
-        has_dynamodb_query_scan<clean_t<_Type>>::value;
+        has_dynamodb_query_scan<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_transactions
-//   trait: checks if type _Type supports transactions
+//   trait: checks if type Type supports transactions
 // (transact_write_items + transact_get_items).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_transactions : djinterp::conjunction<
-    is_detected<dynamodb_transact_write_items_t, clean_t<_Type>>,
-    is_detected<dynamodb_transact_get_items_t, clean_t<_Type>>>
+    is_detected<dynamodb_transact_write_items_t, clean_t<Type>>,
+    is_detected<dynamodb_transact_get_items_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_transactions_v =
-        has_dynamodb_transactions<clean_t<_Type>>::value;
+        has_dynamodb_transactions<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_partiql
-//   trait: checks if type _Type supports PartiQL
+//   trait: checks if type Type supports PartiQL
 // (execute_statement + batch_execute_statement + execute_transaction).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_partiql : djinterp::conjunction<
-    is_detected<dynamodb_execute_statement_t, clean_t<_Type>>,
-    is_detected<dynamodb_batch_execute_statement_t, clean_t<_Type>>,
-    is_detected<dynamodb_execute_transaction_t, clean_t<_Type>>>
+    is_detected<dynamodb_execute_statement_t, clean_t<Type>>,
+    is_detected<dynamodb_batch_execute_statement_t, clean_t<Type>>,
+    is_detected<dynamodb_execute_transaction_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_partiql_v =
-        has_dynamodb_partiql<clean_t<_Type>>::value;
+        has_dynamodb_partiql<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_conditional_writes
-//   trait: checks if type _Type supports conditional writes
+//   trait: checks if type Type supports conditional writes
 // (put_item_conditional + delete_item_conditional).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_conditional_writes : djinterp::conjunction<
-    is_detected<dynamodb_put_item_conditional_t, clean_t<_Type>>,
-    is_detected<dynamodb_delete_item_conditional_t, clean_t<_Type>>>
+    is_detected<dynamodb_put_item_conditional_t, clean_t<Type>>,
+    is_detected<dynamodb_delete_item_conditional_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_conditional_writes_v =
-        has_dynamodb_conditional_writes<clean_t<_Type>>::value;
+        has_dynamodb_conditional_writes<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_table_management
-//   trait: checks if type _Type supports table management
+//   trait: checks if type Type supports table management
 // (create_table + delete_table + describe_table + update_table +
 // list_tables).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_table_management : djinterp::conjunction<
-    is_detected<dynamodb_create_table_t, clean_t<_Type>>,
-    is_detected<dynamodb_delete_table_t, clean_t<_Type>>,
-    is_detected<dynamodb_describe_table_t, clean_t<_Type>>,
-    is_detected<dynamodb_update_table_t, clean_t<_Type>>,
-    is_detected<dynamodb_list_tables_t, clean_t<_Type>>>
+    is_detected<dynamodb_create_table_t, clean_t<Type>>,
+    is_detected<dynamodb_delete_table_t, clean_t<Type>>,
+    is_detected<dynamodb_describe_table_t, clean_t<Type>>,
+    is_detected<dynamodb_update_table_t, clean_t<Type>>,
+    is_detected<dynamodb_list_tables_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_table_management_v =
-        has_dynamodb_table_management<clean_t<_Type>>::value;
+        has_dynamodb_table_management<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_secondary_indexes
-//   trait: checks if type _Type supports secondary index operations
+//   trait: checks if type Type supports secondary index operations
 // (create_gsi + delete_gsi + query_index).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_secondary_indexes : djinterp::conjunction<
-    is_detected<dynamodb_create_gsi_t, clean_t<_Type>>,
-    is_detected<dynamodb_delete_gsi_t, clean_t<_Type>>,
-    is_detected<dynamodb_query_index_t, clean_t<_Type>>>
+    is_detected<dynamodb_create_gsi_t, clean_t<Type>>,
+    is_detected<dynamodb_delete_gsi_t, clean_t<Type>>,
+    is_detected<dynamodb_query_index_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_secondary_indexes_v =
-        has_dynamodb_secondary_indexes<clean_t<_Type>>::value;
+        has_dynamodb_secondary_indexes<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_streams
-//   trait: checks if type _Type supports DynamoDB Streams
+//   trait: checks if type Type supports DynamoDB Streams
 // (describe_stream + get_shard_iterator + get_records + list_streams).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_streams : djinterp::conjunction<
-    is_detected<dynamodb_describe_stream_t, clean_t<_Type>>,
-    is_detected<dynamodb_get_shard_iterator_t, clean_t<_Type>>,
-    is_detected<dynamodb_get_records_t, clean_t<_Type>>,
-    is_detected<dynamodb_list_streams_t, clean_t<_Type>>>
+    is_detected<dynamodb_describe_stream_t, clean_t<Type>>,
+    is_detected<dynamodb_get_shard_iterator_t, clean_t<Type>>,
+    is_detected<dynamodb_get_records_t, clean_t<Type>>,
+    is_detected<dynamodb_list_streams_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_streams_v =
-        has_dynamodb_streams<clean_t<_Type>>::value;
+        has_dynamodb_streams<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_ttl_management
-//   trait: checks if type _Type supports TTL management
+//   trait: checks if type Type supports TTL management
 // (update_time_to_live + describe_time_to_live).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_ttl_management : djinterp::conjunction<
-    is_detected<dynamodb_update_ttl_t, clean_t<_Type>>,
-    is_detected<dynamodb_describe_ttl_t, clean_t<_Type>>>
+    is_detected<dynamodb_update_ttl_t, clean_t<Type>>,
+    is_detected<dynamodb_describe_ttl_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_ttl_management_v =
-        has_dynamodb_ttl_management<clean_t<_Type>>::value;
+        has_dynamodb_ttl_management<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_backup
-//   trait: checks if type _Type supports backup / PITR operations
+//   trait: checks if type Type supports backup / PITR operations
 // (create_backup + restore_from_backup + describe_continuous_backups).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_backup : djinterp::conjunction<
-    is_detected<dynamodb_create_backup_t, clean_t<_Type>>,
-    is_detected<dynamodb_restore_from_backup_t, clean_t<_Type>>,
-    is_detected<dynamodb_describe_continuous_backups_t, clean_t<_Type>>>
+    is_detected<dynamodb_create_backup_t, clean_t<Type>>,
+    is_detected<dynamodb_restore_from_backup_t, clean_t<Type>>,
+    is_detected<dynamodb_describe_continuous_backups_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_backup_v =
-        has_dynamodb_backup<clean_t<_Type>>::value;
+        has_dynamodb_backup<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_diagnostics
-//   trait: checks if type _Type supports diagnostics
+//   trait: checks if type Type supports diagnostics
 // (describe_limits + describe_endpoints + table_status).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_diagnostics : djinterp::conjunction<
-    is_detected<dynamodb_describe_limits_t, clean_t<_Type>>,
-    is_detected<dynamodb_describe_endpoints_t, clean_t<_Type>>,
-    is_detected<dynamodb_table_status_t, clean_t<_Type>>>
+    is_detected<dynamodb_describe_limits_t, clean_t<Type>>,
+    is_detected<dynamodb_describe_endpoints_t, clean_t<Type>>,
+    is_detected<dynamodb_table_status_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_diagnostics_v =
-        has_dynamodb_diagnostics<clean_t<_Type>>::value;
+        has_dynamodb_diagnostics<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_global_tables
-//   trait: checks if type _Type supports global table operations
+//   trait: checks if type Type supports global table operations
 // (create_global_table + describe_global_table + update_global_table).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_global_tables : djinterp::conjunction<
-    is_detected<dynamodb_create_global_table_t, clean_t<_Type>>,
-    is_detected<dynamodb_describe_global_table_t, clean_t<_Type>>,
-    is_detected<dynamodb_update_global_table_t, clean_t<_Type>>>
+    is_detected<dynamodb_create_global_table_t, clean_t<Type>>,
+    is_detected<dynamodb_describe_global_table_t, clean_t<Type>>,
+    is_detected<dynamodb_update_global_table_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_global_tables_v =
-        has_dynamodb_global_tables<clean_t<_Type>>::value;
+        has_dynamodb_global_tables<clean_t<Type>>::value;
 #endif
 
 // has_dynamodb_tagging
-//   trait: checks if type _Type supports resource tagging
+//   trait: checks if type Type supports resource tagging
 // (tag_resource + untag_resource + list_tags_of_resource).
-template<typename _Type>
+template<typename Type>
 struct has_dynamodb_tagging : djinterp::conjunction<
-    is_detected<dynamodb_tag_resource_t, clean_t<_Type>>,
-    is_detected<dynamodb_untag_resource_t, clean_t<_Type>>,
-    is_detected<dynamodb_list_tags_of_resource_t, clean_t<_Type>>>
+    is_detected<dynamodb_tag_resource_t, clean_t<Type>>,
+    is_detected<dynamodb_untag_resource_t, clean_t<Type>>,
+    is_detected<dynamodb_list_tags_of_resource_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_dynamodb_tagging_v =
-        has_dynamodb_tagging<clean_t<_Type>>::value;
+        has_dynamodb_tagging<clean_t<Type>>::value;
 #endif
 
 // is_dynamodb_connection
-//   trait: compound trait verifying type _Type implements a DynamoDB
+//   trait: compound trait verifying type Type implements a DynamoDB
 // connection interface (item ops + query/scan + table management +
 // diagnostics).
-template<typename _Type>
+template<typename Type>
 struct is_dynamodb_connection : djinterp::conjunction<
-    has_dynamodb_item_ops<clean_t<_Type>>,
-    has_dynamodb_query_scan<clean_t<_Type>>,
-    has_dynamodb_table_management<clean_t<_Type>>,
-    has_dynamodb_diagnostics<clean_t<_Type>>>
+    has_dynamodb_item_ops<clean_t<Type>>,
+    has_dynamodb_query_scan<clean_t<Type>>,
+    has_dynamodb_table_management<clean_t<Type>>,
+    has_dynamodb_diagnostics<clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_dynamodb_connection_v =
-        is_dynamodb_connection<clean_t<_Type>>::value;
+        is_dynamodb_connection<clean_t<Type>>::value;
 #endif
 
 
@@ -2195,164 +2214,164 @@ struct is_dynamodb_connection : djinterp::conjunction<
 // -------------------------------------------------------------------------
 
 // dynamodb_can_put_item
-//   tagless trait: true if _Type has put_item().
-template<typename _Type,
+//   tagless trait: true if Type has put_item().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_put_item = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_put_item<_Type,
-    std::void_t<dynamodb_put_item_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_put_item<Type,
+    std::void_t<dynamodb_put_item_t<Type>>> = true;
 
 // dynamodb_can_get_item
-//   tagless trait: true if _Type has get_item().
-template<typename _Type,
+//   tagless trait: true if Type has get_item().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_get_item = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_get_item<_Type,
-    std::void_t<dynamodb_get_item_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_get_item<Type,
+    std::void_t<dynamodb_get_item_t<Type>>> = true;
 
 // dynamodb_can_update_item
-//   tagless trait: true if _Type has update_item().
-template<typename _Type,
+//   tagless trait: true if Type has update_item().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_update_item = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_update_item<_Type,
-    std::void_t<dynamodb_update_item_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_update_item<Type,
+    std::void_t<dynamodb_update_item_t<Type>>> = true;
 
 // dynamodb_can_delete_item
-//   tagless trait: true if _Type has delete_item().
-template<typename _Type,
+//   tagless trait: true if Type has delete_item().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_delete_item = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_delete_item<_Type,
-    std::void_t<dynamodb_delete_item_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_delete_item<Type,
+    std::void_t<dynamodb_delete_item_t<Type>>> = true;
 
 // dynamodb_can_batch_write
-//   tagless trait: true if _Type has batch_write_item().
-template<typename _Type,
+//   tagless trait: true if Type has batch_write_item().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_batch_write = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_batch_write<_Type,
-    std::void_t<dynamodb_batch_write_item_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_batch_write<Type,
+    std::void_t<dynamodb_batch_write_item_t<Type>>> = true;
 
 // dynamodb_can_query
-//   tagless trait: true if _Type has query().
-template<typename _Type,
+//   tagless trait: true if Type has query().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_query = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_query<_Type,
-    std::void_t<dynamodb_query_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_query<Type,
+    std::void_t<dynamodb_query_t<Type>>> = true;
 
 // dynamodb_can_scan
-//   tagless trait: true if _Type has scan().
-template<typename _Type,
+//   tagless trait: true if Type has scan().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_scan = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_scan<_Type,
-    std::void_t<dynamodb_scan_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_scan<Type,
+    std::void_t<dynamodb_scan_t<Type>>> = true;
 
 // dynamodb_can_transact_write
-//   tagless trait: true if _Type has transact_write_items().
-template<typename _Type,
+//   tagless trait: true if Type has transact_write_items().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_transact_write = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_transact_write<_Type,
-    std::void_t<dynamodb_transact_write_items_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_transact_write<Type,
+    std::void_t<dynamodb_transact_write_items_t<Type>>> = true;
 
 // dynamodb_can_execute_statement
-//   tagless trait: true if _Type has execute_statement().
-template<typename _Type,
+//   tagless trait: true if Type has execute_statement().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_execute_statement = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_execute_statement<_Type,
-    std::void_t<dynamodb_execute_statement_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_execute_statement<Type,
+    std::void_t<dynamodb_execute_statement_t<Type>>> = true;
 
 // dynamodb_can_put_conditional
-//   tagless trait: true if _Type has put_item_conditional().
-template<typename _Type,
+//   tagless trait: true if Type has put_item_conditional().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_put_conditional = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_put_conditional<_Type,
-    std::void_t<dynamodb_put_item_conditional_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_put_conditional<Type,
+    std::void_t<dynamodb_put_item_conditional_t<Type>>> = true;
 
 // dynamodb_can_create_table
-//   tagless trait: true if _Type has create_table().
-template<typename _Type,
+//   tagless trait: true if Type has create_table().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_create_table = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_create_table<_Type,
-    std::void_t<dynamodb_create_table_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_create_table<Type,
+    std::void_t<dynamodb_create_table_t<Type>>> = true;
 
 // dynamodb_can_query_index
-//   tagless trait: true if _Type has query_index().
-template<typename _Type,
+//   tagless trait: true if Type has query_index().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_query_index = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_query_index<_Type,
-    std::void_t<dynamodb_query_index_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_query_index<Type,
+    std::void_t<dynamodb_query_index_t<Type>>> = true;
 
 // dynamodb_can_get_records
-//   tagless trait: true if _Type has get_records().
-template<typename _Type,
+//   tagless trait: true if Type has get_records().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_get_records = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_get_records<_Type,
-    std::void_t<dynamodb_get_records_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_get_records<Type,
+    std::void_t<dynamodb_get_records_t<Type>>> = true;
 
 // dynamodb_can_update_ttl
-//   tagless trait: true if _Type has update_time_to_live().
-template<typename _Type,
+//   tagless trait: true if Type has update_time_to_live().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_update_ttl = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_update_ttl<_Type,
-    std::void_t<dynamodb_update_ttl_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_update_ttl<Type,
+    std::void_t<dynamodb_update_ttl_t<Type>>> = true;
 
 // dynamodb_can_create_backup
-//   tagless trait: true if _Type has create_backup().
-template<typename _Type,
+//   tagless trait: true if Type has create_backup().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_create_backup = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_create_backup<_Type,
-    std::void_t<dynamodb_create_backup_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_create_backup<Type,
+    std::void_t<dynamodb_create_backup_t<Type>>> = true;
 
 // dynamodb_can_create_global_table
-//   tagless trait: true if _Type has create_global_table().
-template<typename _Type,
+//   tagless trait: true if Type has create_global_table().
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_can_create_global_table = false;
 
-template<typename _Type>
-constexpr bool dynamodb_can_create_global_table<_Type,
-    std::void_t<dynamodb_create_global_table_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_can_create_global_table<Type,
+    std::void_t<dynamodb_create_global_table_t<Type>>> = true;
 
 
 // -------------------------------------------------------------------------
@@ -2360,190 +2379,190 @@ constexpr bool dynamodb_can_create_global_table<_Type,
 // -------------------------------------------------------------------------
 
 // dynamodb_does_item_ops
-//   tagless trait: true if _Type supports the full item-operation
+//   tagless trait: true if Type supports the full item-operation
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_item_ops = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_item_ops<_Type, std::void_t<
-    dynamodb_put_item_t<_Type>,
-    dynamodb_get_item_t<_Type>,
-    dynamodb_update_item_t<_Type>,
-    dynamodb_delete_item_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_item_ops<Type, std::void_t<
+    dynamodb_put_item_t<Type>,
+    dynamodb_get_item_t<Type>,
+    dynamodb_update_item_t<Type>,
+    dynamodb_delete_item_t<Type>>> = true;
 
 // dynamodb_does_batch_ops
-//   tagless trait: true if _Type supports the full batch-operation
+//   tagless trait: true if Type supports the full batch-operation
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_batch_ops = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_batch_ops<_Type, std::void_t<
-    dynamodb_batch_get_item_t<_Type>,
-    dynamodb_batch_write_item_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_batch_ops<Type, std::void_t<
+    dynamodb_batch_get_item_t<Type>,
+    dynamodb_batch_write_item_t<Type>>> = true;
 
 // dynamodb_does_query_scan
-//   tagless trait: true if _Type supports the full query/scan surface.
-template<typename _Type,
+//   tagless trait: true if Type supports the full query/scan surface.
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_query_scan = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_query_scan<_Type, std::void_t<
-    dynamodb_query_t<_Type>,
-    dynamodb_scan_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_query_scan<Type, std::void_t<
+    dynamodb_query_t<Type>,
+    dynamodb_scan_t<Type>>> = true;
 
 // dynamodb_does_transactions
-//   tagless trait: true if _Type supports the full transaction surface.
-template<typename _Type,
+//   tagless trait: true if Type supports the full transaction surface.
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_transactions = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_transactions<_Type, std::void_t<
-    dynamodb_transact_write_items_t<_Type>,
-    dynamodb_transact_get_items_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_transactions<Type, std::void_t<
+    dynamodb_transact_write_items_t<Type>,
+    dynamodb_transact_get_items_t<Type>>> = true;
 
 // dynamodb_does_partiql
-//   tagless trait: true if _Type supports the full PartiQL surface.
-template<typename _Type,
+//   tagless trait: true if Type supports the full PartiQL surface.
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_partiql = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_partiql<_Type, std::void_t<
-    dynamodb_execute_statement_t<_Type>,
-    dynamodb_batch_execute_statement_t<_Type>,
-    dynamodb_execute_transaction_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_partiql<Type, std::void_t<
+    dynamodb_execute_statement_t<Type>,
+    dynamodb_batch_execute_statement_t<Type>,
+    dynamodb_execute_transaction_t<Type>>> = true;
 
 // dynamodb_does_conditional_writes
-//   tagless trait: true if _Type supports the full conditional-write
+//   tagless trait: true if Type supports the full conditional-write
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_conditional_writes = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_conditional_writes<_Type, std::void_t<
-    dynamodb_put_item_conditional_t<_Type>,
-    dynamodb_delete_item_conditional_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_conditional_writes<Type, std::void_t<
+    dynamodb_put_item_conditional_t<Type>,
+    dynamodb_delete_item_conditional_t<Type>>> = true;
 
 // dynamodb_does_table_management
-//   tagless trait: true if _Type supports the full table-management
+//   tagless trait: true if Type supports the full table-management
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_table_management = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_table_management<_Type, std::void_t<
-    dynamodb_create_table_t<_Type>,
-    dynamodb_delete_table_t<_Type>,
-    dynamodb_describe_table_t<_Type>,
-    dynamodb_update_table_t<_Type>,
-    dynamodb_list_tables_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_table_management<Type, std::void_t<
+    dynamodb_create_table_t<Type>,
+    dynamodb_delete_table_t<Type>,
+    dynamodb_describe_table_t<Type>,
+    dynamodb_update_table_t<Type>,
+    dynamodb_list_tables_t<Type>>> = true;
 
 // dynamodb_does_secondary_indexes
-//   tagless trait: true if _Type supports the full secondary-index
+//   tagless trait: true if Type supports the full secondary-index
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_secondary_indexes = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_secondary_indexes<_Type, std::void_t<
-    dynamodb_create_gsi_t<_Type>,
-    dynamodb_delete_gsi_t<_Type>,
-    dynamodb_query_index_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_secondary_indexes<Type, std::void_t<
+    dynamodb_create_gsi_t<Type>,
+    dynamodb_delete_gsi_t<Type>,
+    dynamodb_query_index_t<Type>>> = true;
 
 // dynamodb_does_streams
-//   tagless trait: true if _Type supports the full Streams surface.
-template<typename _Type,
+//   tagless trait: true if Type supports the full Streams surface.
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_streams = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_streams<_Type, std::void_t<
-    dynamodb_describe_stream_t<_Type>,
-    dynamodb_get_shard_iterator_t<_Type>,
-    dynamodb_get_records_t<_Type>,
-    dynamodb_list_streams_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_streams<Type, std::void_t<
+    dynamodb_describe_stream_t<Type>,
+    dynamodb_get_shard_iterator_t<Type>,
+    dynamodb_get_records_t<Type>,
+    dynamodb_list_streams_t<Type>>> = true;
 
 // dynamodb_does_ttl_management
-//   tagless trait: true if _Type supports the full TTL-management
+//   tagless trait: true if Type supports the full TTL-management
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_ttl_management = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_ttl_management<_Type, std::void_t<
-    dynamodb_update_ttl_t<_Type>,
-    dynamodb_describe_ttl_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_ttl_management<Type, std::void_t<
+    dynamodb_update_ttl_t<Type>,
+    dynamodb_describe_ttl_t<Type>>> = true;
 
 // dynamodb_does_backup
-//   tagless trait: true if _Type supports the full backup/PITR surface.
-template<typename _Type,
+//   tagless trait: true if Type supports the full backup/PITR surface.
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_backup = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_backup<_Type, std::void_t<
-    dynamodb_create_backup_t<_Type>,
-    dynamodb_restore_from_backup_t<_Type>,
-    dynamodb_describe_continuous_backups_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_backup<Type, std::void_t<
+    dynamodb_create_backup_t<Type>,
+    dynamodb_restore_from_backup_t<Type>,
+    dynamodb_describe_continuous_backups_t<Type>>> = true;
 
 // dynamodb_does_diagnostics
-//   tagless trait: true if _Type supports the full diagnostics surface.
-template<typename _Type,
+//   tagless trait: true if Type supports the full diagnostics surface.
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_diagnostics = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_diagnostics<_Type, std::void_t<
-    dynamodb_describe_limits_t<_Type>,
-    dynamodb_describe_endpoints_t<_Type>,
-    dynamodb_table_status_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_diagnostics<Type, std::void_t<
+    dynamodb_describe_limits_t<Type>,
+    dynamodb_describe_endpoints_t<Type>,
+    dynamodb_table_status_t<Type>>> = true;
 
 // dynamodb_does_global_tables
-//   tagless trait: true if _Type supports the full global-table surface.
-template<typename _Type,
+//   tagless trait: true if Type supports the full global-table surface.
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_global_tables = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_global_tables<_Type, std::void_t<
-    dynamodb_create_global_table_t<_Type>,
-    dynamodb_describe_global_table_t<_Type>,
-    dynamodb_update_global_table_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_global_tables<Type, std::void_t<
+    dynamodb_create_global_table_t<Type>,
+    dynamodb_describe_global_table_t<Type>,
+    dynamodb_update_global_table_t<Type>>> = true;
 
 // dynamodb_does_tagging
-//   tagless trait: true if _Type supports the full resource-tagging
+//   tagless trait: true if Type supports the full resource-tagging
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool dynamodb_does_tagging = false;
 
-template<typename _Type>
-constexpr bool dynamodb_does_tagging<_Type, std::void_t<
-    dynamodb_tag_resource_t<_Type>,
-    dynamodb_untag_resource_t<_Type>,
-    dynamodb_list_tags_of_resource_t<_Type>>> = true;
+template<typename Type>
+constexpr bool dynamodb_does_tagging<Type, std::void_t<
+    dynamodb_tag_resource_t<Type>,
+    dynamodb_untag_resource_t<Type>,
+    dynamodb_list_tags_of_resource_t<Type>>> = true;
 
 // dynamodb_is_full_connection
-//   tagless trait: true if _Type satisfies the complete DynamoDB
+//   tagless trait: true if Type satisfies the complete DynamoDB
 // connection interface (item ops + query/scan + table management +
 // diagnostics + batch ops).
-template<typename _Type>
+template<typename Type>
 constexpr bool dynamodb_is_full_connection =
-    ( dynamodb_does_item_ops<clean_t<_Type>>         &&
-      dynamodb_does_query_scan<clean_t<_Type>>       &&
-      dynamodb_does_table_management<clean_t<_Type>> &&
-      dynamodb_does_diagnostics<clean_t<_Type>>      &&
-      dynamodb_does_batch_ops<clean_t<_Type>> );
+    ( dynamodb_does_item_ops<clean_t<Type>>         &&
+      dynamodb_does_query_scan<clean_t<Type>>       &&
+      dynamodb_does_table_management<clean_t<Type>> &&
+      dynamodb_does_diagnostics<clean_t<Type>>      &&
+      dynamodb_does_batch_ops<clean_t<Type>> );
 
 
 // =============================================================================
@@ -2552,33 +2571,33 @@ constexpr bool dynamodb_is_full_connection =
 
 // enable_if_dynamodb_connection
 //   type: SFINAE helper for DynamoDB connection constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_dynamodb_connection =
-    typename std::enable_if<is_dynamodb_connection<clean_t<_Type>>::value>::type;
+    typename std::enable_if<is_dynamodb_connection<clean_t<Type>>::value>::type;
 
 // enable_if_has_dynamodb_transactions
 //   type: SFINAE helper for DynamoDB transaction constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_dynamodb_transactions =
-    typename std::enable_if<has_dynamodb_transactions<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_dynamodb_transactions<clean_t<Type>>::value>::type;
 
 // enable_if_has_dynamodb_partiql
 //   type: SFINAE helper for DynamoDB PartiQL constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_dynamodb_partiql =
-    typename std::enable_if<has_dynamodb_partiql<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_dynamodb_partiql<clean_t<Type>>::value>::type;
 
 // enable_if_has_dynamodb_streams
 //   type: SFINAE helper for DynamoDB Streams constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_dynamodb_streams =
-    typename std::enable_if<has_dynamodb_streams<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_dynamodb_streams<clean_t<Type>>::value>::type;
 
 // enable_if_has_dynamodb_global_tables
 //   type: SFINAE helper for DynamoDB global table constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_dynamodb_global_tables =
-    typename std::enable_if<has_dynamodb_global_tables<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_dynamodb_global_tables<clean_t<Type>>::value>::type;
 
 
 // ===========================================================================
@@ -2600,115 +2619,115 @@ using enable_if_has_dynamodb_global_tables =
 //   concept: constrains types implementing the DynamoDB connection
 // interface. Suffixed with `_c` to avoid clashing with the
 // `dynamodb_connection` class type.
-template<typename _Type>
+template<typename Type>
 concept Dynamodb_connection =
-    is_dynamodb_connection<clean_t<_Type>>::value;
+    is_dynamodb_connection<clean_t<Type>>::value;
 
 // non_dynamodb_connection
 //   concept: constrains types that do not implement the DynamoDB
 // connection interface.
-template<typename _Type>
+template<typename Type>
 concept non_dynamodb_connection =
-    !Dynamodb_connection<_Type>;
+    !Dynamodb_connection<Type>;
 
 // dynamodb_item_ops_connection
 //   concept: constrains DynamoDB connections supporting core item
 // operations (PutItem / GetItem / UpdateItem / DeleteItem).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_item_ops_connection =
-    has_dynamodb_item_ops<clean_t<_Type>>::value;
+    has_dynamodb_item_ops<clean_t<Type>>::value;
 
 // dynamodb_batch_connection
 //   concept: constrains DynamoDB connections supporting batch
 // operations (BatchGetItem / BatchWriteItem).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_batch_connection =
-    has_dynamodb_batch_ops<clean_t<_Type>>::value;
+    has_dynamodb_batch_ops<clean_t<Type>>::value;
 
 // dynamodb_query_scan_connection
 //   concept: constrains DynamoDB connections supporting query and
 // scan (Query / Scan).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_query_scan_connection =
-    has_dynamodb_query_scan<clean_t<_Type>>::value;
+    has_dynamodb_query_scan<clean_t<Type>>::value;
 
 // dynamodb_transactional_connection
 //   concept: constrains DynamoDB connections supporting transactions
 // (TransactWriteItems / TransactGetItems).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_transactional_connection =
-    has_dynamodb_transactions<clean_t<_Type>>::value;
+    has_dynamodb_transactions<clean_t<Type>>::value;
 
 // dynamodb_partiql_connection
 //   concept: constrains DynamoDB connections supporting PartiQL
 // (ExecuteStatement / BatchExecuteStatement / ExecuteTransaction).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_partiql_connection =
-    has_dynamodb_partiql<clean_t<_Type>>::value;
+    has_dynamodb_partiql<clean_t<Type>>::value;
 
 // dynamodb_conditional_connection
 //   concept: constrains DynamoDB connections supporting conditional
 // writes (condition-expression PutItem / DeleteItem).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_conditional_connection =
-    has_dynamodb_conditional_writes<clean_t<_Type>>::value;
+    has_dynamodb_conditional_writes<clean_t<Type>>::value;
 
 // dynamodb_table_admin_connection
 //   concept: constrains DynamoDB connections supporting table
 // management (CreateTable / DeleteTable / DescribeTable / UpdateTable /
 // ListTables).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_table_admin_connection =
-    has_dynamodb_table_management<clean_t<_Type>>::value;
+    has_dynamodb_table_management<clean_t<Type>>::value;
 
 // dynamodb_indexable_connection
 //   concept: constrains DynamoDB connections supporting secondary
 // index operations.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_indexable_connection =
-    has_dynamodb_secondary_indexes<clean_t<_Type>>::value;
+    has_dynamodb_secondary_indexes<clean_t<Type>>::value;
 
 // dynamodb_stream_connection
 //   concept: constrains DynamoDB connections supporting DynamoDB
 // Streams.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_stream_connection =
-    has_dynamodb_streams<clean_t<_Type>>::value;
+    has_dynamodb_streams<clean_t<Type>>::value;
 
 // dynamodb_ttl_connection
 //   concept: constrains DynamoDB connections supporting TTL
 // management.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_ttl_connection =
-    has_dynamodb_ttl_management<clean_t<_Type>>::value;
+    has_dynamodb_ttl_management<clean_t<Type>>::value;
 
 // dynamodb_backup_connection
 //   concept: constrains DynamoDB connections supporting backup /
 // point-in-time recovery operations.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_backup_connection =
-    has_dynamodb_backup<clean_t<_Type>>::value;
+    has_dynamodb_backup<clean_t<Type>>::value;
 
 // dynamodb_diagnostics_connection
 //   concept: constrains DynamoDB connections supporting diagnostics
 // (DescribeLimits / DescribeEndpoints / table status).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_diagnostics_connection =
-    has_dynamodb_diagnostics<clean_t<_Type>>::value;
+    has_dynamodb_diagnostics<clean_t<Type>>::value;
 
 // dynamodb_global_table_connection
 //   concept: constrains DynamoDB connections supporting global table
 // operations.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_global_table_connection =
-    has_dynamodb_global_tables<clean_t<_Type>>::value;
+    has_dynamodb_global_tables<clean_t<Type>>::value;
 
 // dynamodb_taggable_connection
 //   concept: constrains DynamoDB connections supporting resource
 // tagging.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_taggable_connection =
-    has_dynamodb_tagging<clean_t<_Type>>::value;
+    has_dynamodb_tagging<clean_t<Type>>::value;
 
 
 // =============================================================================
@@ -2717,99 +2736,99 @@ concept dynamodb_taggable_connection =
 
 // dynamodb_put_capable_connection
 //   concept: constrains types exposing put_item(table, item).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_put_capable_connection =
-    dynamodb_can_put_item<clean_t<_Type>>;
+    dynamodb_can_put_item<clean_t<Type>>;
 
 // dynamodb_get_capable_connection
 //   concept: constrains types exposing get_item(table, key).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_get_capable_connection =
-    dynamodb_can_get_item<clean_t<_Type>>;
+    dynamodb_can_get_item<clean_t<Type>>;
 
 // dynamodb_update_capable_connection
 //   concept: constrains types exposing update_item(table, key, updates).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_update_capable_connection =
-    dynamodb_can_update_item<clean_t<_Type>>;
+    dynamodb_can_update_item<clean_t<Type>>;
 
 // dynamodb_delete_capable_connection
 //   concept: constrains types exposing delete_item(table, key).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_delete_capable_connection =
-    dynamodb_can_delete_item<clean_t<_Type>>;
+    dynamodb_can_delete_item<clean_t<Type>>;
 
 // dynamodb_batch_write_capable_connection
 //   concept: constrains types exposing batch_write_item(table, items).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_batch_write_capable_connection =
-    dynamodb_can_batch_write<clean_t<_Type>>;
+    dynamodb_can_batch_write<clean_t<Type>>;
 
 // dynamodb_queryable_connection
 //   concept: constrains types exposing query(table, key_condition).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_queryable_connection =
-    dynamodb_can_query<clean_t<_Type>>;
+    dynamodb_can_query<clean_t<Type>>;
 
 // dynamodb_scannable_connection
 //   concept: constrains types exposing scan(table).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_scannable_connection =
-    dynamodb_can_scan<clean_t<_Type>>;
+    dynamodb_can_scan<clean_t<Type>>;
 
 // dynamodb_transact_write_capable_connection
 //   concept: constrains types exposing transact_write_items(items).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_transact_write_capable_connection =
-    dynamodb_can_transact_write<clean_t<_Type>>;
+    dynamodb_can_transact_write<clean_t<Type>>;
 
 // dynamodb_statement_capable_connection
 //   concept: constrains types exposing execute_statement(statement).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_statement_capable_connection =
-    dynamodb_can_execute_statement<clean_t<_Type>>;
+    dynamodb_can_execute_statement<clean_t<Type>>;
 
 // dynamodb_conditional_put_connection
 //   concept: constrains types exposing put_item_conditional(...).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_conditional_put_connection =
-    dynamodb_can_put_conditional<clean_t<_Type>>;
+    dynamodb_can_put_conditional<clean_t<Type>>;
 
 // dynamodb_table_creatable_connection
 //   concept: constrains types exposing create_table(...).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_table_creatable_connection =
-    dynamodb_can_create_table<clean_t<_Type>>;
+    dynamodb_can_create_table<clean_t<Type>>;
 
 // dynamodb_index_queryable_connection
 //   concept: constrains types exposing query_index(table, index, cond).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_index_queryable_connection =
-    dynamodb_can_query_index<clean_t<_Type>>;
+    dynamodb_can_query_index<clean_t<Type>>;
 
 // dynamodb_records_readable_connection
 //   concept: constrains types exposing get_records(shard_iterator).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_records_readable_connection =
-    dynamodb_can_get_records<clean_t<_Type>>;
+    dynamodb_can_get_records<clean_t<Type>>;
 
 // dynamodb_ttl_updatable_connection
 //   concept: constrains types exposing update_time_to_live(...).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_ttl_updatable_connection =
-    dynamodb_can_update_ttl<clean_t<_Type>>;
+    dynamodb_can_update_ttl<clean_t<Type>>;
 
 // dynamodb_backup_creatable_connection
 //   concept: constrains types exposing create_backup(table, name).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_backup_creatable_connection =
-    dynamodb_can_create_backup<clean_t<_Type>>;
+    dynamodb_can_create_backup<clean_t<Type>>;
 
 // dynamodb_global_table_creatable_connection
 //   concept: constrains types exposing create_global_table(table, regions).
-template<typename _Type>
+template<typename Type>
 concept dynamodb_global_table_creatable_connection =
-    dynamodb_can_create_global_table<clean_t<_Type>>;
+    dynamodb_can_create_global_table<clean_t<Type>>;
 
 
 // =============================================================================
@@ -2819,107 +2838,107 @@ concept dynamodb_global_table_creatable_connection =
 // dynamodb_item_addressable
 //   concept: constrains types satisfying the full tagless item-
 // operation capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_item_addressable =
-    dynamodb_does_item_ops<clean_t<_Type>>;
+    dynamodb_does_item_ops<clean_t<Type>>;
 
 // dynamodb_batch_capable
 //   concept: constrains types satisfying the full tagless batch-
 // operation capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_batch_capable =
-    dynamodb_does_batch_ops<clean_t<_Type>>;
+    dynamodb_does_batch_ops<clean_t<Type>>;
 
 // dynamodb_query_scannable
 //   concept: constrains types satisfying the full tagless query/scan
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_query_scannable =
-    dynamodb_does_query_scan<clean_t<_Type>>;
+    dynamodb_does_query_scan<clean_t<Type>>;
 
 // dynamodb_transactional
 //   concept: constrains types satisfying the full tagless transaction
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_transactional =
-    dynamodb_does_transactions<clean_t<_Type>>;
+    dynamodb_does_transactions<clean_t<Type>>;
 
 // dynamodb_partiql_capable
 //   concept: constrains types satisfying the full tagless PartiQL
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_partiql_capable =
-    dynamodb_does_partiql<clean_t<_Type>>;
+    dynamodb_does_partiql<clean_t<Type>>;
 
 // dynamodb_conditional_capable
 //   concept: constrains types satisfying the full tagless conditional-
 // write capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_conditional_capable =
-    dynamodb_does_conditional_writes<clean_t<_Type>>;
+    dynamodb_does_conditional_writes<clean_t<Type>>;
 
 // dynamodb_table_manageable
 //   concept: constrains types satisfying the full tagless table-
 // management capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_table_manageable =
-    dynamodb_does_table_management<clean_t<_Type>>;
+    dynamodb_does_table_management<clean_t<Type>>;
 
 // dynamodb_index_manageable
 //   concept: constrains types satisfying the full tagless secondary-
 // index capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_index_manageable =
-    dynamodb_does_secondary_indexes<clean_t<_Type>>;
+    dynamodb_does_secondary_indexes<clean_t<Type>>;
 
 // dynamodb_stream_capable
 //   concept: constrains types satisfying the full tagless Streams
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_stream_capable =
-    dynamodb_does_streams<clean_t<_Type>>;
+    dynamodb_does_streams<clean_t<Type>>;
 
 // dynamodb_ttl_manageable
 //   concept: constrains types satisfying the full tagless TTL-
 // management capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_ttl_manageable =
-    dynamodb_does_ttl_management<clean_t<_Type>>;
+    dynamodb_does_ttl_management<clean_t<Type>>;
 
 // dynamodb_backup_capable
 //   concept: constrains types satisfying the full tagless backup/PITR
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_backup_capable =
-    dynamodb_does_backup<clean_t<_Type>>;
+    dynamodb_does_backup<clean_t<Type>>;
 
 // dynamodb_diagnostic_capable
 //   concept: constrains types satisfying the full tagless diagnostics
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_diagnostic_capable =
-    dynamodb_does_diagnostics<clean_t<_Type>>;
+    dynamodb_does_diagnostics<clean_t<Type>>;
 
 // dynamodb_global_table_capable
 //   concept: constrains types satisfying the full tagless global-table
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_global_table_capable =
-    dynamodb_does_global_tables<clean_t<_Type>>;
+    dynamodb_does_global_tables<clean_t<Type>>;
 
 // dynamodb_taggable
 //   concept: constrains types satisfying the full tagless resource-
 // tagging capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_taggable =
-    dynamodb_does_tagging<clean_t<_Type>>;
+    dynamodb_does_tagging<clean_t<Type>>;
 
 // dynamodb_full_connection
 //   concept: constrains types satisfying the complete tagless
 // DynamoDB connection capability set.
-template<typename _Type>
+template<typename Type>
 concept dynamodb_full_connection =
-    dynamodb_is_full_connection<clean_t<_Type>>;
+    dynamodb_is_full_connection<clean_t<Type>>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -2927,5 +2946,6 @@ concept dynamodb_full_connection =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_DYNAMODB_
+#endif  // DJINTERP_DB_DYNAMODB_DYNAMODB_HPP

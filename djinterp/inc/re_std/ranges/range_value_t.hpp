@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         range_value_t.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            range_value_t.hpp
 *
 * range_value_t alias template header:
 *   Yields the value type of a range — equivalent to the value_type
@@ -11,24 +11,27 @@
 *   Requires alias templates. Available C++11+ only.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/range_value_t.hpp
+* path:      /inc/re_std/ranges/range_value_t.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_RANGE_VALUE_T_
-#define DJINTERP_RE_STD_RANGES_RANGE_VALUE_T_ 1
+#ifndef RE_STD_RANGES_RANGE_VALUE_T_HPP
+#define RE_STD_RANGES_RANGE_VALUE_T_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES && \
-      D_ENV_LANG_IS_CPP11_OR_HIGHER )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES && \
+      RE_STD_LANG_IS_CPP11_OR_HIGHER )
 
 #include "../iterator/iterator_traits.hpp"
 #include "./iterator_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -36,21 +39,21 @@ NS_RESTD
 // ===========================================================================
 
 // range_value_t
-//   alias: the value type of _Range. Equivalent to
-// iterator_traits<iterator_t<_Range>>::value_type.
+//   alias: the value type of Range. Equivalent to
+// iterator_traits<iterator_t<Range>>::value_type.
 // note: in C++20 std this is iter_value_t<iterator_t<R>>. re_std
 // routes through iterator_traits directly because iter_value_t is
 // not yet shipped in re_std's <iterator> surface; the result type
 // is the same.
-template<typename _Range>
+template<typename Range>
 using range_value_t =
-    typename iterator_traits<iterator_t<_Range> >::value_type;
+    typename iterator_traits<iterator_t<Range> >::value_type;
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RE_STD_RANGES_RANGE_VALUE_T_
+#endif  // RE_STD_RANGES_RANGE_VALUE_T_HPP

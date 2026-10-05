@@ -1,0 +1,180 @@
+/*******************************************************************************
+* djinterp [parse]                                              token_shared.def
+*
+* The token kinds C and C++ have in common, as an X-macro list.
+*   This file is data, not a header.  It carries no include guard and is
+* meant to be included many times in one translation unit, each time with a
+* different definition of the three entry macros, so that the enumeration, the
+* spelling table, the keyword table and the operator table are all generated
+* from one list and cannot drift apart.  A macro the includer leaves undefined
+* expands to nothing, so a consumer that wants only operators defines only
+* D_TOKEN_PUNCT.
+*   Every keyword entry carries two availability years, one per language,
+* because the two languages adopted the same spellings at different times:
+* `constexpr` is C++11 and C23, `bool` is C++98 and C23.  A year of zero means
+* the language never had it, which is how a spelling that is shared in
+* principle but absent from one dialect is expressed without a second list.
+* The dialect tables in lang/c and lang/cpp filter on those years, so adding a
+* keyword to a future standard is a one-line edit here and nowhere else.
+*
+*
+* path:      /inc/djinterp/parse/lex/token_shared.def
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+/*
+ENTRY MACROS
+============
+D_TOKEN_CLASS(_name, _label)
+    A control kind or a preprocessing-token class.  `_label` names the kind
+    for diagnostics; these have no fixed spelling.
+D_TOKEN_PUNCT(_name, _spelling)
+    A punctuator.  `_spelling` is its primary form; alternative spellings
+    (digraphs) live in the operator table, not here, because they are other
+    ways to write these same kinds rather than kinds of their own.
+D_TOKEN_KEYWORD(_name, _spelling, _since_c, _since_cpp)
+    A keyword both languages have.  The years are the first standard of each
+    language to carry it, or 0 for never.
+*/
+
+#ifndef D_TOKEN_CLASS
+#define D_TOKEN_CLASS(_name, _label)
+#define D_TOKEN_CLASS_UNDEF_ 1
+#endif
+
+#ifndef D_TOKEN_PUNCT
+#define D_TOKEN_PUNCT(_name, _spelling)
+#define D_TOKEN_PUNCT_UNDEF_ 1
+#endif
+
+#ifndef D_TOKEN_KEYWORD
+#define D_TOKEN_KEYWORD(_name, _spelling, _since_c, _since_cpp)
+#define D_TOKEN_KEYWORD_UNDEF_ 1
+#endif
+
+
+//  control -------------------------------------------------------------------
+D_TOKEN_CLASS(END,          "end of source")
+D_TOKEN_CLASS(ERROR,        "ill-formed text")
+D_TOKEN_CLASS(COMMENT,      "comment")
+D_TOKEN_CLASS(OTHER,        "stray character")
+
+//  preprocessing-token classes ------------------------------------------------
+D_TOKEN_CLASS(IDENTIFIER,   "identifier")
+D_TOKEN_CLASS(NUMBER,       "pp-number")
+D_TOKEN_CLASS(CHARACTER,    "character-literal")
+D_TOKEN_CLASS(STRING,       "string-literal")
+D_TOKEN_CLASS(HEADER_NAME,  "header-name")
+
+//  punctuators ----------------------------------------------------------------
+D_TOKEN_PUNCT(BRACE_OPEN,          "{")
+D_TOKEN_PUNCT(BRACE_CLOSE,         "}")
+D_TOKEN_PUNCT(BRACKET_OPEN,        "[")
+D_TOKEN_PUNCT(BRACKET_CLOSE,       "]")
+D_TOKEN_PUNCT(PAREN_OPEN,          "(")
+D_TOKEN_PUNCT(PAREN_CLOSE,         ")")
+D_TOKEN_PUNCT(SEMICOLON,           ";")
+D_TOKEN_PUNCT(COLON,               ":")
+D_TOKEN_PUNCT(ELLIPSIS,            "...")
+D_TOKEN_PUNCT(QUESTION,            "?")
+D_TOKEN_PUNCT(DOT,                 ".")
+D_TOKEN_PUNCT(ARROW,               "->")
+D_TOKEN_PUNCT(TILDE,               "~")
+D_TOKEN_PUNCT(NOT,                 "!")
+D_TOKEN_PUNCT(PLUS,                "+")
+D_TOKEN_PUNCT(MINUS,               "-")
+D_TOKEN_PUNCT(STAR,                "*")
+D_TOKEN_PUNCT(SLASH,               "/")
+D_TOKEN_PUNCT(PERCENT,             "%")
+D_TOKEN_PUNCT(CARET,               "^")
+D_TOKEN_PUNCT(AMP,                 "&")
+D_TOKEN_PUNCT(PIPE,                "|")
+D_TOKEN_PUNCT(ASSIGN,              "=")
+D_TOKEN_PUNCT(PLUS_ASSIGN,         "+=")
+D_TOKEN_PUNCT(MINUS_ASSIGN,        "-=")
+D_TOKEN_PUNCT(STAR_ASSIGN,         "*=")
+D_TOKEN_PUNCT(SLASH_ASSIGN,        "/=")
+D_TOKEN_PUNCT(PERCENT_ASSIGN,      "%=")
+D_TOKEN_PUNCT(CARET_ASSIGN,        "^=")
+D_TOKEN_PUNCT(AMP_ASSIGN,          "&=")
+D_TOKEN_PUNCT(PIPE_ASSIGN,         "|=")
+D_TOKEN_PUNCT(EQUAL,               "==")
+D_TOKEN_PUNCT(NOT_EQUAL,           "!=")
+D_TOKEN_PUNCT(LESS,                "<")
+D_TOKEN_PUNCT(GREATER,             ">")
+D_TOKEN_PUNCT(LESS_EQUAL,          "<=")
+D_TOKEN_PUNCT(GREATER_EQUAL,       ">=")
+D_TOKEN_PUNCT(AND,                 "&&")
+D_TOKEN_PUNCT(OR,                  "||")
+D_TOKEN_PUNCT(SHIFT_LEFT,          "<<")
+D_TOKEN_PUNCT(SHIFT_RIGHT,         ">>")
+D_TOKEN_PUNCT(SHIFT_LEFT_ASSIGN,   "<<=")
+D_TOKEN_PUNCT(SHIFT_RIGHT_ASSIGN,  ">>=")
+D_TOKEN_PUNCT(INCREMENT,           "++")
+D_TOKEN_PUNCT(DECREMENT,           "--")
+D_TOKEN_PUNCT(COMMA,               ",")
+D_TOKEN_PUNCT(HASH,                "#")
+D_TOKEN_PUNCT(HASH_HASH,           "##")
+
+//  keywords -------------------------------------------------------------------
+//                  name            spelling          since C  since C++
+D_TOKEN_KEYWORD(KW_ALIGNAS,        "alignas",        2023,    2011)
+D_TOKEN_KEYWORD(KW_ALIGNOF,        "alignof",        2023,    2011)
+D_TOKEN_KEYWORD(KW_AUTO,           "auto",           1989,    1998)
+D_TOKEN_KEYWORD(KW_BOOL,           "bool",           2023,    1998)
+D_TOKEN_KEYWORD(KW_BREAK,          "break",          1989,    1998)
+D_TOKEN_KEYWORD(KW_CASE,           "case",           1989,    1998)
+D_TOKEN_KEYWORD(KW_CHAR,           "char",           1989,    1998)
+D_TOKEN_KEYWORD(KW_CONST,          "const",          1989,    1998)
+D_TOKEN_KEYWORD(KW_CONSTEXPR,      "constexpr",      2023,    2011)
+D_TOKEN_KEYWORD(KW_CONTINUE,       "continue",       1989,    1998)
+D_TOKEN_KEYWORD(KW_DEFAULT,        "default",        1989,    1998)
+D_TOKEN_KEYWORD(KW_DO,             "do",             1989,    1998)
+D_TOKEN_KEYWORD(KW_DOUBLE,         "double",         1989,    1998)
+D_TOKEN_KEYWORD(KW_ELSE,           "else",           1989,    1998)
+D_TOKEN_KEYWORD(KW_ENUM,           "enum",           1989,    1998)
+D_TOKEN_KEYWORD(KW_EXTERN,         "extern",         1989,    1998)
+D_TOKEN_KEYWORD(KW_FALSE,          "false",          2023,    1998)
+D_TOKEN_KEYWORD(KW_FLOAT,          "float",          1989,    1998)
+D_TOKEN_KEYWORD(KW_FOR,            "for",            1989,    1998)
+D_TOKEN_KEYWORD(KW_GOTO,           "goto",           1989,    1998)
+D_TOKEN_KEYWORD(KW_IF,             "if",             1989,    1998)
+D_TOKEN_KEYWORD(KW_INLINE,         "inline",         1999,    1998)
+D_TOKEN_KEYWORD(KW_INT,            "int",            1989,    1998)
+D_TOKEN_KEYWORD(KW_LONG,           "long",           1989,    1998)
+D_TOKEN_KEYWORD(KW_NULLPTR,        "nullptr",        2023,    2011)
+D_TOKEN_KEYWORD(KW_REGISTER,       "register",       1989,    1998)
+D_TOKEN_KEYWORD(KW_RETURN,         "return",         1989,    1998)
+D_TOKEN_KEYWORD(KW_SHORT,          "short",          1989,    1998)
+D_TOKEN_KEYWORD(KW_SIGNED,         "signed",         1989,    1998)
+D_TOKEN_KEYWORD(KW_SIZEOF,         "sizeof",         1989,    1998)
+D_TOKEN_KEYWORD(KW_STATIC,         "static",         1989,    1998)
+D_TOKEN_KEYWORD(KW_STATIC_ASSERT,  "static_assert",  2023,    2011)
+D_TOKEN_KEYWORD(KW_STRUCT,         "struct",         1989,    1998)
+D_TOKEN_KEYWORD(KW_SWITCH,         "switch",         1989,    1998)
+D_TOKEN_KEYWORD(KW_THREAD_LOCAL,   "thread_local",   2023,    2011)
+D_TOKEN_KEYWORD(KW_TRUE,           "true",           2023,    1998)
+D_TOKEN_KEYWORD(KW_TYPEDEF,        "typedef",        1989,    1998)
+D_TOKEN_KEYWORD(KW_UNION,          "union",          1989,    1998)
+D_TOKEN_KEYWORD(KW_UNSIGNED,       "unsigned",       1989,    1998)
+D_TOKEN_KEYWORD(KW_VOID,           "void",           1989,    1998)
+D_TOKEN_KEYWORD(KW_VOLATILE,       "volatile",       1989,    1998)
+D_TOKEN_KEYWORD(KW_WHILE,          "while",          1989,    1998)
+
+
+#ifdef D_TOKEN_CLASS_UNDEF_
+#undef D_TOKEN_CLASS
+#undef D_TOKEN_CLASS_UNDEF_
+#endif
+
+#ifdef D_TOKEN_PUNCT_UNDEF_
+#undef D_TOKEN_PUNCT
+#undef D_TOKEN_PUNCT_UNDEF_
+#endif
+
+#ifdef D_TOKEN_KEYWORD_UNDEF_
+#undef D_TOKEN_KEYWORD
+#undef D_TOKEN_KEYWORD_UNDEF_
+#endif

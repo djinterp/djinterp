@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                          shared_ptr_hash.hpp
 *
 * shared_ptr hash support header:
@@ -21,53 +21,55 @@
 * reinterpret_cast, which is non-constexpr on every tier.
 *
 *
-* path:      /inc/djinterp/re_std/memory/shared_ptr_hash.hpp
+* path:      /inc/re_std/memory/shared_ptr_hash.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_SHARED_PTR_HASH_
-#define DJINTERP_RE_STD_MEMORY_SHARED_PTR_HASH_ 1
+#ifndef RE_STD_MEMORY_SHARED_PTR_HASH_HPP
+#define RE_STD_MEMORY_SHARED_PTR_HASH_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./shared_ptr.hpp"
 #include "../functional/hash.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   HASH<SHARED_PTR>
 // ===========================================================================
 
-// hash<shared_ptr<_Type>>
+// hash<shared_ptr<Type>>
 //   class: forwards to hash<element_type*> on the stored pointer, per
 // [util.smartptr.hash].
-template<typename _Type>
-struct hash< shared_ptr<_Type> >
+template<typename Type>
+struct hash< shared_ptr<Type> >
 {
     std::size_t
     operator()(
-        const shared_ptr<_Type>& _p
+        const shared_ptr<Type>& _p
     ) const
     {
-        typedef typename shared_ptr<_Type>::element_type _Elem;
+        typedef typename shared_ptr<Type>::element_type _Elem;
         return hash<_Elem*>()(_p.get());
     }
 };
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_MEMORY_SHARED_PTR_HASH_
+#endif  // RE_STD_MEMORY_SHARED_PTR_HASH_HPP

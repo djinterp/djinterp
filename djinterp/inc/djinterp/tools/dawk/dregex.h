@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                     dregex.h
+/*******************************************************************************
+* djinterp [djinterp]                                                   dregex.h
 *
 *   POSIX extended regular expressions with leftmost-longest semantics.
 *     Patterns are parsed to a tree, compiled by Thompson construction to a
@@ -21,9 +21,9 @@
 *
 * path:      /inc/djinterp/tools/dawk/dregex.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS

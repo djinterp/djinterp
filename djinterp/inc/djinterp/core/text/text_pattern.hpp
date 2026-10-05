@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [text]                                            text_pattern.hpp
+/*******************************************************************************
+* djinterp [core]                                               text_pattern.hpp
 *
 *   Marker-aware text pattern engine.  Given a template literal in the
 * same dialect as text_template (default markers: %key%), text_pattern
@@ -58,41 +58,59 @@
 *     // fixed == "path:      /inc/text/text_pattern.hpp"
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    DEFAULTS
-* II.   COMPILED SEGMENT
-* III.  TEXT PATTERN
-*       a. construction
-*       b. marker configuration
-*       c. escape configuration
-*       d. CRTP face: do_match
-*       e. CRTP face: do_extract
-*       f. CRTP face: do_render
-*       g. CRTP face: do_rewrite
-*       h. find (partial match)
-*       i. accessors
-* IV.   CONCAT
-* V.    CONVENIENCE FACTORIES
-*
-*
-* path:      /inc/text/text_pattern.hpp
+* path:      /inc/djinterp/core/text/text_pattern.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEXT_PATTERN_
-#define DJINTERP_TEXT_PATTERN_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    DEFAULTS
+      --------
+
+II.   COMPILED SEGMENT
+      ----------------
+
+III.  TEXT PATTERN
+      ------------
+      a. construction
+      b. marker configuration
+      c.    escape configuration
+            d. CRTP face: do_match
+            e. CRTP face: do_extract
+            f. CRTP face: do_render
+            g. CRTP face: do_rewrite
+            h. find (partial match)
+      i.    accessors
+
+IV.   CONCAT
+      ------
+
+V.    CONVENIENCE FACTORIES
+      ---------------------
+*/
+
+#ifndef DJINTERP_TEXT_TEXT_PATTERN_HPP
+#define DJINTERP_TEXT_TEXT_PATTERN_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
-#include "../paradigm/pattern.hpp"
+#include "../../djinterp.hpp"
+#include "../paradigm/pattern/pattern.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t
 
 
 NS_DJINTERP
@@ -123,7 +141,7 @@ NS_INTERNAL
 
     // text_pattern_segment_kind
     //   enum: kind of a compiled segment within a text_pattern.
-    enum text_pattern_segment_kind : std::uint8_t
+    enum text_pattern_segment_kind : re_std::uint8_t
     {
         text_pattern_segment_literal = 0,
         text_pattern_segment_capture = 1
@@ -809,5 +827,6 @@ make_mustache_pattern
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEXT_PATTERN_
+#endif  // DJINTERP_TEXT_TEXT_PATTERN_HPP

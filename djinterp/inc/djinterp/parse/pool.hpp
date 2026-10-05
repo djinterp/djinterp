@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                                     pool.hpp
+* djinterp [parse]                                                      pool.hpp
 *
 *   The C++ face of the intern pool declared in pool.h.
 *   `pool` derives from d_parse_pool, adds no data member, and is asserted
@@ -11,22 +11,30 @@
 *   `fixed_pool<Bytes, Entries>` carries its own storage, for a stage that must
 * not allocate.
 *
+*
 * path:      /inc/djinterp/parse/pool.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_POOL_HPP_
-#define DJINTERP_PARSE_POOL_HPP_ 1
+#ifndef DJINTERP_PARSE_POOL_HPP
+#define DJINTERP_PARSE_POOL_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstdint>              // std::uint32_t, std::uint64_t
-#include <type_traits>          // std::is_standard_layout
+#include <type_traits>      // std::is_standard_layout
 // djinterp
-#include "../djinterp.hpp"      // framework root
-#include "./charset.hpp"        // parse::charset, and NS_PARSE
-#include "./pool.h"             // the C pool this layer faces
+#include "../djinterp.hpp"  // framework root
+#include "./charset.hpp"    // parse::charset, and NS_PARSE
+#include "./c/pool.h"       // the C pool this layer faces
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint32_t, uint64_t
 
 
 NS_DJINTERP
@@ -51,9 +59,9 @@ public:
     //   constructor: a pool over caller-supplied storage.
     pool(
         char*                      _bytes,
-        std::uint32_t              _byte_capacity,
+        re_std::uint32_t              _byte_capacity,
         d_parse_pool_entry*        _entries,
-        std::uint32_t              _entry_capacity
+        re_std::uint32_t              _entry_capacity
     ) noexcept
     {
         d_parse_pool_init(this,
@@ -109,8 +117,8 @@ public:
     // owns, which then grows on demand.  Returns false if refused.
     D_NODISCARD bool
     reserve(
-        std::uint32_t _byte_capacity  = 0u,
-        std::uint32_t _entry_capacity = 0u
+        re_std::uint32_t _byte_capacity  = 0u,
+        re_std::uint32_t _entry_capacity = 0u
     ) noexcept
     {
         d_parse_pool_release(this);
@@ -123,10 +131,10 @@ public:
 
     // intern
     //   function: the index of a blob, adding it if it is not already present.
-    std::uint32_t
+    re_std::uint32_t
     intern(
         const void*   _data,
-        std::uint32_t _length
+        re_std::uint32_t _length
     ) noexcept
     {
         return d_parse_pool_intern(this, _data, _length);
@@ -134,7 +142,7 @@ public:
 
     // intern
     //   function: the index of a string, terminator included.
-    std::uint32_t
+    re_std::uint32_t
     intern(
         const char* _text
     ) noexcept
@@ -144,7 +152,7 @@ public:
 
     // intern
     //   function: the index of a character class, stored as its own bytes.
-    std::uint32_t
+    re_std::uint32_t
     intern(
         const d_parse_charset& _set
     ) noexcept
@@ -154,10 +162,10 @@ public:
 
     // find
     //   accessor: the index of a blob already interned, without adding one.
-    std::uint32_t
+    re_std::uint32_t
     find(
         const void*   _data,
-        std::uint32_t _length
+        re_std::uint32_t _length
     ) const noexcept
     {
         return d_parse_pool_find(this, _data, _length);
@@ -167,7 +175,7 @@ public:
     //   accessor: the bytes of an interned blob, or null.
     const void*
     data(
-        std::uint32_t _index
+        re_std::uint32_t _index
     ) const noexcept
     {
         return d_parse_pool_data(this, _index);
@@ -175,9 +183,9 @@ public:
 
     // length
     //   accessor: the length of an interned blob, or 0.
-    std::uint32_t
+    re_std::uint32_t
     length(
-        std::uint32_t _index
+        re_std::uint32_t _index
     ) const noexcept
     {
         return d_parse_pool_length(this, _index);
@@ -187,7 +195,7 @@ public:
     //   accessor: an interned string, or "".  Never null.
     const char*
     text(
-        std::uint32_t _index
+        re_std::uint32_t _index
     ) const noexcept
     {
         return d_parse_pool_string(this, _index);
@@ -198,7 +206,7 @@ public:
     // blob of another size.
     const d_parse_charset*
     set(
-        std::uint32_t _index
+        re_std::uint32_t _index
     ) const noexcept
     {
         if (length(_index) != D_PARSE_CHARSET_BYTES)
@@ -220,7 +228,7 @@ public:
 
     // size
     //   accessor: how many blobs are interned.
-    constexpr std::uint32_t
+    D_CONSTEXPR_CPP14 re_std::uint32_t
     size() const noexcept
     {
         return count;
@@ -228,7 +236,7 @@ public:
 
     // digest
     //   accessor: a 64-bit key over everything the pool holds.
-    std::uint64_t
+    re_std::uint64_t
     digest() const noexcept
     {
         return d_parse_pool_hash(this);
@@ -240,8 +248,8 @@ public:
 //   class: a pool carrying its own storage, for a stage that must not
 // allocate.  Not layout-identical to the C pool, because it adds the arrays as
 // members; it converts through its base as any derived class does.
-template<std::uint32_t _Bytes,
-         std::uint32_t _Entries>
+template<re_std::uint32_t Bytes,
+         re_std::uint32_t Entries>
 class fixed_pool : public pool
 {
 public:
@@ -249,12 +257,12 @@ public:
     //   constructor: binds the embedded arrays as this pool's storage.
     fixed_pool() noexcept
     {
-        d_parse_pool_init(this, m_bytes, _Bytes, m_entries, _Entries);
+        d_parse_pool_init(this, m_bytes, Bytes, m_entries, Entries);
     }
 
 private:
-    char               m_bytes[_Bytes];
-    d_parse_pool_entry m_entries[_Entries];
+    char               m_bytes[Bytes];
+    d_parse_pool_entry m_entries[Entries];
 };
 
 
@@ -270,5 +278,7 @@ static_assert(std::is_standard_layout<pool>::value,
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_POOL_HPP_
+
+#endif  // DJINTERP_PARSE_POOL_HPP

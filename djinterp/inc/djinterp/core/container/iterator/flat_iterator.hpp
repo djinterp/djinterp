@@ -1,80 +1,87 @@
-/******************************************************************************
-* djinterp [container]                                        flat_iterator.hpp
+/*******************************************************************************
+* djinterp [core]                                              flat_iterator.hpp
 *
-*   The foundational FLAT iterator: a positional traversal over a flat container's
+*   The foundational FLAT iterator: a positional traversal over a flat
+* container's
 * leaf positions (structure depth 1).  It is a random-access iterator over
-* contiguous storage, and it realises the two independent iterability axes (the
+* contiguous storage, and it realises the two independent iterability axes
+* (the
 * spec, Iterability) directly:
 *
 *     STAGE.   Every observing and every FUNCTIONAL operation (dereference,
-*              comparison, and the pure `next` / `prev` / `operator+` that return a
-*              NEW iterator) is D_CONSTEXPR, so a traversal runs at compile time
+*              comparison, and the pure `next` / `prev` / `operator+` that
+*            return a
+*              NEW iterator) is D_CONSTEXPR, so a traversal runs at compile
+*            time
 *              wherever the storage is statically addressable, and at runtime
-*              otherwise.  Compile-time iteration is thus functional: advancing
-*              yields a fresh iterator rather than mutating one in place, matching
-*              the spec's compile-time non-const = functional-update reading.  The
-*              in-place mutators (++, --, +=, -=) are the runtime path; they become
-*              constexpr as well from C++14, where a constexpr function may mutate.
+*              otherwise. Compile-time iteration is thus functional: advancing
+*              yields a fresh iterator rather than mutating one in place,
+*            matching
+*              the spec's compile-time non-const = functional-update reading.
+*            The
+*              in-place mutators (++, --, +=, -=) are the runtime path; they
+*            become
+*              constexpr as well from C++14, where a constexpr function may
+*            mutate.
 *     MODE.    Constness is a type parameter.  A non-const iterator grants a
-*              settable reference (_Type&) - it may replace the value at a position,
-*              the position set unchanged - while a const iterator grants only a
-*              read-only reference (const _Type&).  A non-const iterator converts to
+*              settable reference (Type&) - it may replace the value at a
+*            position,
+*              the position set unchanged - while a const iterator grants only
+*            a
+*              read-only reference (const Type&). A non-const iterator
+*            converts to
 *              its const counterpart, never the reverse.
 *
 *   PORTABILITY:
-*   C++11 baseline.  Functional and observing operations are constexpr throughout;
+*   C++11 baseline. Functional and observing operations are constexpr
+* throughout;
 * the in-place mutators are constexpr from C++14 (relaxed constexpr).
 *
 *
 * path:      /inc/djinterp/core/container/iterator/flat_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_FLAT_ITERATOR_
-#define DJINTERP_CONTAINER_FLAT_ITERATOR_ 1
+#ifndef DJINTERP_CONTAINER_ITERATOR_FLAT_ITERATOR_HPP
+#define DJINTERP_CONTAINER_ITERATOR_FLAT_ITERATOR_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"   // D_CONSTEXPR, NS_*, feature macros
-
-
-// D_ITER_CONSTEXPR_MUT
-//   an in-place iterator mutator is constexpr only where a constexpr function may
-// mutate - C++14 (relaxed constexpr) onward; before that it is a runtime operation.
-#ifndef D_ITER_CONSTEXPR_MUT
-    #if ( D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL >= 201304L )
-        #define D_ITER_CONSTEXPR_MUT  constexpr
-    #else
-        #define D_ITER_CONSTEXPR_MUT
-    #endif
-#endif
+#include "../../../djinterp.hpp"   // D_CONSTEXPR, NS_*, feature macros
 
 
 NS_DJINTERP
 
 
 // flat_iterator
-//   class: a random-access iterator over a flat container's contiguous storage.
-// Parameterised on the element type and on constness; the latter fixes whether the
-// per-position access is settable.
-template<typename _Type,
-         bool     _Const = false>
+//   class: a random-access iterator over a flat container's contiguous
+// storage. Parameterised on the element type and on constness; the latter
+// fixes whether the per-position access is settable.
+template<typename Type,
+         bool     Const = false>
 class flat_iterator
 {
 public:
-    using value_type        = _Type;
+    using value_type        = Type;
     using difference_type   = std::ptrdiff_t;
     using size_type         = std::size_t;
     using iterator_category = std::random_access_iterator_tag;
 
     using pointer =
-        typename std::conditional<_Const, const _Type*, _Type*>::type;
+        typename std::conditional<Const, const Type*, Type*>::type;
     using reference =
-        typename std::conditional<_Const, const _Type&, _Type&>::type;
+        typename std::conditional<Const, const Type&, Type&>::type;
 
     // ------------------------------------------------------------------
     //  construction
@@ -94,10 +101,11 @@ public:
 
     // flat_iterator (const conversion)
     //   a non-const iterator converts to its const counterpart (never the
-    // reverse).  Enabled only when THIS is the const flavour, taking the non-const.
-    template<bool _C = _Const,
-             typename = typename std::enable_if<_C>::type>
-    constexpr flat_iterator(const flat_iterator<_Type, false>& _other) noexcept
+    // reverse). Enabled only when THIS is the const flavour, taking the
+    // non-const.
+    template<bool C = Const,
+             typename = typename std::enable_if<C>::type>
+    constexpr flat_iterator(const flat_iterator<Type, false>& _other) noexcept
         : m_ptr(_other.raw())
     {}
 
@@ -182,14 +190,14 @@ public:
     // ------------------------------------------------------------------
 
     // operator++ (pre / post)
-    D_ITER_CONSTEXPR_MUT flat_iterator& operator++() noexcept
+    D_CONSTEXPR_CPP14 flat_iterator& operator++() noexcept
     {
         ++m_ptr;
 
         return *this;
     }
 
-    D_ITER_CONSTEXPR_MUT flat_iterator operator++(int) noexcept
+    D_CONSTEXPR_CPP14 flat_iterator operator++(int) noexcept
     {
         flat_iterator _tmp(*this);
         ++m_ptr;
@@ -198,14 +206,14 @@ public:
     }
 
     // operator-- (pre / post)
-    D_ITER_CONSTEXPR_MUT flat_iterator& operator--() noexcept
+    D_CONSTEXPR_CPP14 flat_iterator& operator--() noexcept
     {
         --m_ptr;
 
         return *this;
     }
 
-    D_ITER_CONSTEXPR_MUT flat_iterator operator--(int) noexcept
+    D_CONSTEXPR_CPP14 flat_iterator operator--(int) noexcept
     {
         flat_iterator _tmp(*this);
         --m_ptr;
@@ -214,14 +222,14 @@ public:
     }
 
     // operator+= / operator-=
-    D_ITER_CONSTEXPR_MUT flat_iterator& operator+=(difference_type _n) noexcept
+    D_CONSTEXPR_CPP14 flat_iterator& operator+=(difference_type _n) noexcept
     {
         m_ptr += _n;
 
         return *this;
     }
 
-    D_ITER_CONSTEXPR_MUT flat_iterator& operator-=(difference_type _n) noexcept
+    D_CONSTEXPR_CPP14 flat_iterator& operator-=(difference_type _n) noexcept
     {
         m_ptr -= _n;
 
@@ -269,12 +277,12 @@ private:
 
 // operator+ (n + it)
 //   the symmetric scalar-plus-iterator form.
-template<typename _Type,
-         bool     _Const>
-constexpr flat_iterator<_Type, _Const>
+template<typename Type,
+         bool     Const>
+constexpr flat_iterator<Type, Const>
 operator+(
-    typename flat_iterator<_Type, _Const>::difference_type _n,
-    const flat_iterator<_Type, _Const>&                    _it
+    typename flat_iterator<Type, Const>::difference_type _n,
+    const flat_iterator<Type, Const>&                    _it
 ) noexcept
 {
     return _it + _n;
@@ -287,24 +295,25 @@ operator+(
 
 // make_flat_iterator
 //   factory: a non-const flat iterator at _ptr.
-template<typename _Type>
-constexpr flat_iterator<_Type, false>
-make_flat_iterator(_Type* _ptr) noexcept
+template<typename Type>
+constexpr flat_iterator<Type, false>
+make_flat_iterator(Type* _ptr) noexcept
 {
-    return flat_iterator<_Type, false>(_ptr);
+    return flat_iterator<Type, false>(_ptr);
 }
 
 // make_const_flat_iterator
 //   factory: a const flat iterator at _ptr.
-template<typename _Type>
-constexpr flat_iterator<_Type, true>
-make_const_flat_iterator(const _Type* _ptr) noexcept
+template<typename Type>
+constexpr flat_iterator<Type, true>
+make_const_flat_iterator(const Type* _ptr) noexcept
 {
-    return flat_iterator<_Type, true>(_ptr);
+    return flat_iterator<Type, true>(_ptr);
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_FLAT_ITERATOR_
+#endif  // DJINTERP_CONTAINER_ITERATOR_FLAT_ITERATOR_HPP

@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                          distance.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 distance.hpp
 *
+* distance function header:
 * distance(_first, _last) returns the number of increments needed to
 * go from _first to _last.
 *
@@ -16,16 +17,17 @@
 * added in std C++98; constexpr in C++17.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/distance.hpp
+* path:      /inc/re_std/iterator/distance.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_DISTANCE_
-#define DJINTERP_RE_STD_ITERATOR_DISTANCE_ 1
+#ifndef RE_STD_ITERATOR_DISTANCE_HPP
+#define RE_STD_ITERATOR_DISTANCE_HPP 1
 
-#include "djinterp.hpp"
-
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "re_std/iterator/iterator_traits.hpp"
 #include "re_std/iterator/input_iterator_tag.hpp"
 #include "re_std/iterator/random_access_iterator_tag.hpp"
@@ -36,48 +38,45 @@ namespace re_std
 namespace internal
 {
 
-    template<typename _It>
-    D_CONSTEXPR typename iterator_traits<_It>::difference_type
+    template<typename It>
+    RE_STD_CONSTEXPR typename iterator_traits<It>::difference_type
     distance_impl
     (
-        _It _first,
-        _It _last,
+        It _first,
+        It _last,
         random_access_iterator_tag
     )
     {
         return _last - _first;
     }
 
-    template<typename _It>
-    D_CONSTEXPR typename iterator_traits<_It>::difference_type
+    template<typename It>
+    RE_STD_CONSTEXPR_CPP14 typename iterator_traits<It>::difference_type
     distance_impl
     (
-        _It _first,
-        _It _last,
+        It _first,
+        It _last,
         input_iterator_tag
     )
     {
-        typename iterator_traits<_It>::difference_type _n = 0;
+        typename iterator_traits<It>::difference_type _n = 0;
         for (; _first != _last; ++_first) ++_n;
         return _n;
     }
 
-}  // namespace internal
-
-
-template<typename _It>
-D_CONSTEXPR typename iterator_traits<_It>::difference_type
-distance(_It _first, _It _last)
+}  // internal
+template<typename It>
+RE_STD_CONSTEXPR typename iterator_traits<It>::difference_type
+distance(It _first, It _last)
 {
     return internal::distance_impl
     (
         _first,
         _last,
-        typename iterator_traits<_It>::iterator_category()
+        typename iterator_traits<It>::iterator_category()
     );
 }
 
 
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_ITERATOR_DISTANCE_
+}  // re_std
+#endif  // RE_STD_ITERATOR_DISTANCE_HPP

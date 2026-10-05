@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [utility]                                        move_if_noexcept.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         move_if_noexcept.hpp
 *
+* move_if_noexcept function header:
 *   conditional move:
 *   `move_if_noexcept(x)` returns an rvalue reference to x when moving it
 * cannot throw, and a CONST LVALUE reference otherwise - so a container
@@ -20,43 +21,54 @@
 * ceiling - there is no meaningful C++98 form.  constexpr from C++11.
 *
 *
-* path:      /inc/djinterp/re_std/utility/move_if_noexcept.hpp
+* path:      /inc/re_std/utility/move_if_noexcept.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_MOVE_IF_NOEXCEPT_
-#define DJINTERP_RE_STD_UTILITY_MOVE_IF_NOEXCEPT_ 1
+#ifndef RE_STD_UTILITY_MOVE_IF_NOEXCEPT_HPP
+#define RE_STD_UTILITY_MOVE_IF_NOEXCEPT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "../type_traits/type_traits.hpp"   // is_nothrow_move_constructible,
                                             // is_copy_constructible, conditional
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
-NS_RESTD
+namespace re_std
+{
 
 // move_if_noexcept
 //   function: cast to T&& when moving is non-throwing (or no copy exists),
 // otherwise to const T&.
-template<typename _Type>
-D_NODISCARD D_CONSTEXPR
+template<typename Type>
+RE_STD_NODISCARD RE_STD_CONSTEXPR
 typename conditional<
-        (   !is_nothrow_move_constructible<_Type>::value
-         &&  is_copy_constructible<_Type>::value),
-        const _Type&,
-        _Type&&>::type
-move_if_noexcept(_Type& value) D_NOEXCEPT
+        (   !is_nothrow_move_constructible<Type>::value
+         &&  is_copy_constructible<Type>::value),
+        const Type&,
+        Type&&>::type
+move_if_noexcept(Type& value) RE_STD_NOEXCEPT
 {
     return static_cast<
         typename conditional<
-            (   !is_nothrow_move_constructible<_Type>::value
-             &&  is_copy_constructible<_Type>::value),
-            const _Type&,
-            _Type&&>::type>(value);
+            (   !is_nothrow_move_constructible<Type>::value
+             &&  is_copy_constructible<Type>::value),
+            const Type&,
+            Type&&>::type>(value);
 }
 
-NS_END  // re_std
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+}  // re_std
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
-#endif  // DJINTERP_RE_STD_UTILITY_MOVE_IF_NOEXCEPT_
+#endif  // floor, for now
+
+
+#endif  // RE_STD_UTILITY_MOVE_IF_NOEXCEPT_HPP

@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [sync]                                               lock_guard.hpp
+/*******************************************************************************
+* djinterp [core]                                                 lock_guard.hpp
 *
 * Policy-aware RAII lock guards for the thread-safe framework.
 *   These guards are the primary mechanism for acquiring and releasing locks
-* in threadsafe code.  They dispatch to the correct lock type based on the
+* in threadsafe code. They dispatch to the correct lock type based on the
 * policy's type aliases, so implementations never name a concrete
 * mutex or lock type directly.
 *
@@ -24,47 +24,64 @@
 *
 * path:      /inc/djinterp/core/sync/lock_guard.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_THREADSAFE_LOCK_GUARD_
-#define DJINTERP_THREADSAFE_LOCK_GUARD_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    SCOPED READ LOCK
+      ----------------
 
-//#ifndef DJINTERP_ENVIRONMENT_
-//    #error "lock_guard.hpp requires env.h to be included first"
-//#endif
+II.   SCOPED WRITE LOCK
+      -----------------
 
-//#ifndef __cplusplus
-//    #error "lock_guard.hpp can only be used in C++ compilation mode"
-//#endif
+III.  SCOPED TRY LOCK
+      ---------------
+
+IV.   TIMED SCOPED LOCK (C++11+)
+      --------------------------
+
+V.    UPGRADE LOCK (C++17+)
+      ---------------------
+*/
+
+#ifndef DJINTERP_SYNC_LOCK_GUARD_HPP
+#define DJINTERP_SYNC_LOCK_GUARD_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./lock_policy.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <chrono>
 #endif
 
 
 NS_DJINTERP
 
-// =========================================================================
-// I.   SCOPED READ LOCK
-// =========================================================================
+// I.    Scoped read lock
 // Acquires a read lock (shared when available) for the
-// lifetime of the object.  On policies without shared
+// lifetime of the object. On policies without shared
 // locking, this acquires an exclusive lock - the
 // user code doesn't need to know the difference.
 
-template<typename _Policy>
+template<typename Policy>
 class scoped_read_lock
 {
 public:
     using lock_type =
-        typename _Policy::read_lock_type;
+        typename Policy::read_lock_type;
     using mutex_type =
-        typename _Policy::mutex_type;
+        typename Policy::mutex_type;
 
     explicit scoped_read_lock(mutex_type& _mutex)
         : m_lock(_mutex)
@@ -85,20 +102,18 @@ private:
 };
 
 
-// =========================================================================
-// II.  SCOPED WRITE LOCK
-// =========================================================================
+// II.   Scoped write lock
 // Acquires an exclusive write lock for the lifetime of
 // the object.
 
-template<typename _Policy>
+template<typename Policy>
 class scoped_write_lock
 {
 public:
     using lock_type =
-        typename _Policy::write_lock_type;
+        typename Policy::write_lock_type;
     using mutex_type =
-        typename _Policy::mutex_type;
+        typename Policy::mutex_type;
 
     explicit scoped_write_lock(mutex_type& _mutex)
         : m_lock(_mutex)
@@ -119,21 +134,19 @@ private:
 };
 
 
-// =========================================================================
-// III. SCOPED TRY LOCK
-// =========================================================================
-// Non-blocking exclusive lock attempt.  The caller must
+// III.  Scoped try lock
+// Non-blocking exclusive lock attempt. The caller must
 // check owns_lock() before accessing the protected
 // resource.
 //
 // On null_lock_policy, try-lock always succeeds.
 
-template<typename _Policy>
+template<typename Policy>
 class scoped_try_lock
 {
 public:
     using mutex_type =
-        typename _Policy::mutex_type;
+        typename Policy::mutex_type;
 
     explicit scoped_try_lock(mutex_type& _mutex)
         : m_mutex(_mutex)
@@ -169,7 +182,7 @@ public:
 
     // release
     //   manually releases the lock before the guard's
-    // destructor.  After calling release(), owns_lock()
+    // destructor. After calling release(), owns_lock()
     // returns false.
     void release()
     {
@@ -186,26 +199,24 @@ private:
 };
 
 
-// =========================================================================
-// IV.  TIMED SCOPED LOCK (C++11+)
-// =========================================================================
-// Acquires an exclusive lock with a timeout.  Only
+// IV.   Timed scoped lock (C++11+)
+// Acquires an exclusive lock with a timeout. Only
 // available on policies where is_timed == true.
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-template<typename _Policy>
+template<typename Policy>
 class scoped_timed_lock
 {
 public:
     using mutex_type =
-        typename _Policy::mutex_type;
+        typename Policy::mutex_type;
 
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     scoped_timed_lock(
         mutex_type&                                  _mutex,
-        const std::chrono::duration<_Rep, _Period>&  _timeout)
+        const std::chrono::duration<Rep, Period>&  _timeout)
         : m_mutex(_mutex)
         , m_owned(false)
     {
@@ -254,27 +265,25 @@ private:
 #endif  // C++11
 
 
-// =========================================================================
-// V.   UPGRADE LOCK (C++17+)
-// =========================================================================
-// Upgrades a read lock to a write lock.  The read lock is
-// released and a write lock is acquired.  NOT atomic -
-// there is a window where no lock is held.  Callers must
+// V.    Upgrade lock (C++17+)
+// Upgrades a read lock to a write lock. The read lock is
+// released and a write lock is acquired. NOT atomic -
+// there is a window where no lock is held. Callers must
 // re-validate shared state after upgrading.
 //
 // Note: true atomic upgrade requires platform-specific
-// support not available in the C++ standard.  This
+// support not available in the C++ standard. This
 // implementation trades atomicity for portability.
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-template<typename _Policy>
+template<typename Policy>
 class upgrade_lock
 {
 public:
-    using mutex_type = typename _Policy::mutex_type;
-    using read_lock  = typename _Policy::read_lock_type;
-    using write_lock = typename _Policy::write_lock_type;
+    using mutex_type = typename Policy::mutex_type;
+    using read_lock  = typename Policy::read_lock_type;
+    using write_lock = typename Policy::write_lock_type;
 
     // construct from an existing read lock.
     // The read lock is released and a write lock is
@@ -299,7 +308,7 @@ public:
     upgrade_lock(upgrade_lock&&)                 = default;
 
     // downgrade
-    //   releases the write lock.  The caller must
+    //   releases the write lock. The caller must
     // re-acquire a read lock separately.
     void downgrade()
     {
@@ -320,5 +329,7 @@ private:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_THREADSAFE_LOCK_GUARD_
+
+#endif  // DJINTERP_SYNC_LOCK_GUARD_HPP

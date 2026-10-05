@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [iterator]                                        default_sentinel.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         default_sentinel.hpp
 *
+* default_sentinel support header:
 *   default_sentinel_t and default_sentinel.
 *
 *   An empty type that means "the end is wherever the iterator says it is".
@@ -16,16 +17,21 @@
 *
 *   STD IS C++20; re_std IS C++98 - it is an empty struct and a constant.
 *
-* path:      /inc/djinterp/re_std/iterator/default_sentinel.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/iterator/default_sentinel.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_DEFAULT_SENTINEL_
-#define DJINTERP_RE_STD_ITERATOR_DEFAULT_SENTINEL_ 1
+#ifndef RE_STD_ITERATOR_DEFAULT_SENTINEL_HPP
+#define RE_STD_ITERATOR_DEFAULT_SENTINEL_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-NS_RESTD
+namespace re_std
+{
 
 // default_sentinel_t
 //   struct: the "ask the iterator" sentinel type.
@@ -33,8 +39,8 @@ struct default_sentinel_t {};
 
 // default_sentinel
 //   constant: the default_sentinel_t instance.
-D_INLINE_VAR D_CONSTEXPR default_sentinel_t default_sentinel = default_sentinel_t();
+RE_STD_INLINE_VAR RE_STD_CONSTEXPR default_sentinel_t default_sentinel = default_sentinel_t();
 
-NS_END
+}
 
-#endif  // DJINTERP_RE_STD_ITERATOR_DEFAULT_SENTINEL_
+#endif  // RE_STD_ITERATOR_DEFAULT_SENTINEL_HPP

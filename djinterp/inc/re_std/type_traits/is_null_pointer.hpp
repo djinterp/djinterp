@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                         is_null_pointer.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          is_null_pointer.hpp
 *
 * is_null_pointer trait header:
-*   Yields true_type if _Type (after cv-stripping) is std::nullptr_t,
+*   Yields true_type if Type (after cv-stripping) is std::nullptr_t,
 * false_type otherwise. The C++14 trait spelling.
 *
 *     is_null_pointer<std::nullptr_t>::value         -> true
@@ -14,45 +14,48 @@
 *   PORTABILITY:
 *   nullptr_t is a C++11 type. On C++98/03 the type does not exist; this
 * trait is omitted entirely. Consumer code must gate on
-* D_ENV_LANG_IS_CPP11_OR_HIGHER.
+* RE_STD_LANG_IS_CPP11_OR_HIGHER.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_null_pointer.hpp
+* path:      /inc/re_std/type_traits/is_null_pointer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NULL_POINTER_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NULL_POINTER_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_NULL_POINTER_HPP
+#define RE_STD_TYPE_TRAITS_IS_NULL_POINTER_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // gate: nullptr_t is C++11
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // std
 #include <cstddef>
-// djinterp
+// re_std
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./remove_cv.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_NULL_POINTER
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_null_pointer_base
-    //   helper: matches std::nullptr_t exactly (post cv-stripping).
-    template<typename _Type>
+    //   trait: matches std::nullptr_t exactly (post cv-stripping).
+    template<typename Type>
     struct is_null_pointer_base : false_type
     {};
 
@@ -60,13 +63,13 @@ NS_INTERNAL
     struct is_null_pointer_base<std::nullptr_t> : true_type
     {};
 
-NS_END  // internal
+}  // internal
 
 // is_null_pointer
-//   trait: true if _Type (cv-stripped) is std::nullptr_t.
-template<typename _Type>
+//   trait: true if Type (cv-stripped) is std::nullptr_t.
+template<typename Type>
 struct is_null_pointer
-    : internal::is_null_pointer_base<typename remove_cv<_Type>::type>
+    : internal::is_null_pointer_base<typename remove_cv<Type>::type>
 {};
 
 
@@ -74,20 +77,20 @@ struct is_null_pointer
 // II.  IS_NULL_POINTER_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_null_pointer_v
-    //   variable: convenience for is_null_pointer<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_null_pointer_v = is_null_pointer<_Type>::value;
+    //   variable: convenience for is_null_pointer<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_null_pointer_v = is_null_pointer<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NULL_POINTER_
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_NULL_POINTER_HPP

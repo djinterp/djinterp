@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                             filter.h
+/*******************************************************************************
+* djinterp [c]                                                          filter.h
 *
 * Collection filtering with expression-based selection.
 *   Provides a comprehensive filtering framework for arrays that supports
@@ -29,112 +29,123 @@
 *   - Iterate lazily over filtered results
 *
 *
-* path:      /inc/functional/filter.h
+* path:      /inc/djinterp/c/functional/filter.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.06
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    CONFIGURATION
-      ---------------
-      1.  Include guards and dependencies
-      2.  Tuning constants
+      -------------
+      1.    Include guards and dependencies
+      2.    Tuning constants
 
 II.   CORE FILTER TYPES
-      ------------------
-      1.  Filter operation enumeration
-      2.  Filter result status enumeration
-      3.  Filter operation parameter structure
-      4.  Filter operation structure
-      5.  Filter chain structure
-      6.  Filter result structure
+      -----------------
+      1.    Filter operation enumeration
+      2.    Filter result status enumeration
+      3.    Filter operation parameter structure
+      4.    Filter operation structure
+      5.    Filter chain structure
+      6.    Filter result structure
 
 III.  FILTER OPERATIONS
-      ------------------
-      1.  Take operations (first, last, nth, head, tail)
-      2.  Skip operations (first, last, init, rest)
-      3.  Range and slice operations
-      4.  Predicate-based filtering
-      5.  Index-based selection
-      6.  Transformation operations (distinct, reverse)
-      7.  Operation cleanup
+      -----------------
+      1.    Take operations (first, last, nth, head, tail)
+      2.    Skip operations (first, last, init, rest)
+      3.    Range and slice operations
+      4.    Predicate-based filtering
+      5.    Index-based selection
+      6.    Transformation operations (distinct, reverse)
+      7.    Operation cleanup
 
 IV.   FILTER CHAIN MANAGEMENT
-      --------------------------
-      1.  Chain creation and cloning
-      2.  Adding operations
-      3.  Convenience add helpers
-      4.  Combining chains
-      5.  Chain manipulation
-      6.  Chain properties
-      7.  Chain cleanup
+      -----------------------
+      1.    Chain creation and cloning
+      2.    Adding operations
+      3.    Convenience add helpers
+      4.    Combining chains
+      5.    Chain manipulation
+      6.    Chain properties
+      7.    Chain cleanup
 
 V.    FILTER COMBINATORS
-      -------------------
-      1.  Union (OR semantics)
-      2.  Intersection (AND semantics)
-      3.  Difference (A - B)
+      ------------------
+      1.    Union (OR semantics)
+      2.    Intersection (AND semantics)
+      3.    Difference (A - B)
 
 VI.   EXECUTION AND APPLICATION
-      --------------------------
-      1.  Apply single operation
-      2.  Apply filter chain
-      3.  Apply combinators
-      4.  Counting and querying
-      5.  Index retrieval
-      6.  In-place filtering
-      7.  Result management
+      -------------------------
+      1.    Apply single operation
+      2.    Apply filter chain
+      3.    Apply combinators
+      4.    Counting and querying
+      5.    Index retrieval
+      6.    In-place filtering
+      7.    Result management
 
 VII.  UTILITY FUNCTIONS
-      ------------------
-      1.  Validation
-      2.  Description / serialization
-      3.  Parsing (from string)
-      4.  Optimization
-      5.  Statistics
+      -----------------
+      1.    Validation
+      2.    Description / serialization
+      3.    Parsing (from string)
+      4.    Optimization
+      5.    Statistics
 
 VIII. ITERATOR INTERFACE
-      -------------------------
-      1.  Iterator creation
-      2.  Iterator operations
-      3.  Iterator cleanup
+      ------------------
+      1.    Iterator creation
+      2.    Iterator operations
+      3.    Iterator cleanup
 
 IX.   FLUENT FILTER BUILDER
-      ----------------------
-      1.  Builder creation
-      2.  Fluent operations
-      3.  Builder finalization
-      4.  Builder error handling
-      5.  Builder cleanup
+      ---------------------
+      1.    Builder creation
+      2.    Fluent operations
+      3.    Builder finalization
+      4.    Builder error handling
+      5.    Builder cleanup
 
 X.    CONVENIENCE MACROS
-      -------------------
-      1.  Single-expression shortcuts
-      2.  Chain construction helpers
-      3.  Fluent chain syntax
+      ------------------
+      1.    Single-expression shortcuts
+      2.    Chain construction helpers
+      3.    Fluent chain syntax
 
 XI.   TYPED FILTER WRAPPERS (C11+)
+      ----------------------------
 */
 
-#ifndef DJINTERP_FILTER_
-#define DJINTERP_FILTER_ 1
+#ifndef DJINTERP_C_FUNCTIONAL_FILTER_H
+#define DJINTERP_C_FUNCTIONAL_FILTER_H 1
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             I.    CONFIGURATION                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
+// std
 #include <stddef.h>
-#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+// djinterp
 #include "../djinterp.h"
-#include "../dmemory.h"
+#include "../memory/dmemory.h"
 #include "../dio.h"
 #include "./functional.h"
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // fixed-width types, for users
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
 
 // D_FILTER_MAX_CHAIN_LENGTH
 //   constant: maximum number of operations in a filter chain.
@@ -703,4 +714,6 @@ void d_filter_builder_free(struct d_filter_builder* _builder);
 #endif  // C11+
 
 
-#endif  // DJINTERP_FILTER_
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_C_FUNCTIONAL_FILTER_H

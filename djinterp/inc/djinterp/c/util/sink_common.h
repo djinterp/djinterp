@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                            sink_common.h
+/*******************************************************************************
+* djinterp [c]                                                     sink_common.h
 *
 *   A context-carrying byte consumer, and the two spans that go with it.
 * Compiled by BOTH C and C++.
@@ -31,19 +31,22 @@
 * same idea.
 *
 *
-* path:      /inc/djinterp/core/util/sink_common.h
+* path:      /inc/djinterp/c/util/sink_common.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_SINK_COMMON_
-#define DJINTERP_UTIL_SINK_COMMON_ 1
+#ifndef DJINTERP_C_UTIL_SINK_COMMON_H
+#define DJINTERP_C_UTIL_SINK_COMMON_H 1
 
+// std
 // c
 #include <stddef.h>
-#include <stdint.h>
 // djinterp
-#include "../../c/djinterp.h"       // D_STATIC_ASSERT, D_EXTERN_C_*
+#include "../djinterp.h"            // D_STATIC_ASSERT, D_EXTERN_C_*
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // fixed-width types, for users
 
 #if !defined(D_EXTERN_C_BEGIN)
     #error "sink_common.h needs D_EXTERN_C_BEGIN; \
@@ -171,4 +174,4 @@ int                d_sink_emit(struct d_pack_sink _sink,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_UTIL_SINK_COMMON_
+#endif  // DJINTERP_C_UTIL_SINK_COMMON_H

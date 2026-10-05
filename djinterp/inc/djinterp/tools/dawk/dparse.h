@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                     dparse.h
+/*******************************************************************************
+* djinterp [djinterp]                                                   dparse.h
 *
 *   Syntax tree and recursive-descent parser for POSIX awk.
 *     One node type carries every construct. Fixed children live in `a` to
@@ -10,9 +10,9 @@
 *
 * path:      /inc/djinterp/tools/dawk/dparse.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS

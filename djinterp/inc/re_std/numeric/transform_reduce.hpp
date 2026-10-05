@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                 transform_reduce.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         transform_reduce.hpp
 *
 * generalisation of reduce that fuses a transformation step:
 *
@@ -18,45 +18,38 @@
 * added in std C++17.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/transform_reduce.hpp
+* path:      /inc/re_std/numeric/transform_reduce.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_TRANSFORM_REDUCE_
-#define DJINTERP_RE_STD_NUMERIC_TRANSFORM_REDUCE_ 1
+#ifndef RE_STD_NUMERIC_TRANSFORM_REDUCE_HPP
+#define RE_STD_NUMERIC_TRANSFORM_REDUCE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/utility/move.hpp"
-
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
 
 namespace re_std
 {
 
 // Two-range, custom ops.
-template<typename _InputIt1, typename _InputIt2, typename _T,
-         typename _BinReduceOp, typename _BinTransformOp>
-D_CONSTEXPR_CPP14 _T transform_reduce
+template<typename InputIt1, typename InputIt2, typename T,
+         typename BinReduceOp, typename BinTransformOp>
+RE_STD_CONSTEXPR_CPP14 T transform_reduce
 (
-    _InputIt1        _first1,
-    _InputIt1        _last1,
-    _InputIt2        _first2,
-    _T               _init,
-    _BinReduceOp     _reduce,
-    _BinTransformOp  _transform
+    InputIt1        _first1,
+    InputIt1        _last1,
+    InputIt2        _first2,
+    T               _init,
+    BinReduceOp     _reduce,
+    BinTransformOp  _transform
 )
 {
     for (; _first1 != _last1; ++_first1, (void)++_first2)
@@ -68,13 +61,13 @@ D_CONSTEXPR_CPP14 _T transform_reduce
 }
 
 // Two-range, default ops (+ and *).
-template<typename _InputIt1, typename _InputIt2, typename _T>
-D_CONSTEXPR_CPP14 _T transform_reduce
+template<typename InputIt1, typename InputIt2, typename T>
+RE_STD_CONSTEXPR_CPP14 T transform_reduce
 (
-    _InputIt1 _first1,
-    _InputIt1 _last1,
-    _InputIt2 _first2,
-    _T        _init
+    InputIt1 _first1,
+    InputIt1 _last1,
+    InputIt2 _first2,
+    T        _init
 )
 {
     for (; _first1 != _last1; ++_first1, (void)++_first2)
@@ -85,15 +78,15 @@ D_CONSTEXPR_CPP14 _T transform_reduce
 }
 
 // Single-range, custom ops.
-template<typename _InputIt, typename _T,
-         typename _BinReduceOp, typename _UnaryTransformOp>
-D_CONSTEXPR_CPP14 _T transform_reduce
+template<typename InputIt, typename T,
+         typename BinReduceOp, typename UnaryTransformOp>
+RE_STD_CONSTEXPR_CPP14 T transform_reduce
 (
-    _InputIt           _first,
-    _InputIt           _last,
-    _T                 _init,
-    _BinReduceOp       _reduce,
-    _UnaryTransformOp  _transform
+    InputIt           _first,
+    InputIt           _last,
+    T                 _init,
+    BinReduceOp       _reduce,
+    UnaryTransformOp  _transform
 )
 {
     for (; _first != _last; ++_first)
@@ -104,8 +97,7 @@ D_CONSTEXPR_CPP14 _T transform_reduce
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_NUMERIC_TRANSFORM_REDUCE_
+#endif  // RE_STD_NUMERIC_TRANSFORM_REDUCE_HPP

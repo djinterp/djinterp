@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [variant]                                             variant_visit.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            variant_visit.hpp
 *
+* variant_visit support header:
 *   visit<R>(vis, v...) and MULTI-VARIANT visit(vis, v1, v2, ...).
 *
 *   Single-variant visit already shipped; this is the general case and the
@@ -33,128 +34,132 @@
 *   STD IS C++17; re_std IS C++11 - a six-year back-port.
 *
 *
-* path:      /inc/djinterp/re_std/variant/variant_visit.hpp
+* path:      /inc/re_std/variant/variant_visit.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_VARIANT_VISIT_
-#define DJINTERP_RE_STD_VARIANT_VARIANT_VISIT_ 1
+#ifndef RE_STD_VARIANT_VARIANT_VISIT_HPP
+#define RE_STD_VARIANT_VARIANT_VISIT_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
 #include "../functional/invoke.hpp"
 #include "./variant.hpp"
+#include "./variant_get.hpp"
+#include "./variant_size.hpp"
 #include "./bad_variant_access.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
-NS_INTERNAL
+namespace internal
+{
 
     // visit_bound
     //   struct: a visitor with its leading argument already chosen.  Holds
     // references only - it never outlives the dispatch that made it.
-    template<typename _Visitor, typename _First>
+    template<typename Visitor, typename First>
     struct visit_bound
     {
-        _Visitor& m_visitor;
-        _First&   m_first;
+        Visitor& m_visitor;
+        First&   m_first;
 
-        template<typename... _Rest>
-        auto operator()(_Rest&&... rest) const
+        template<typename... Rest>
+        auto operator()(Rest&&... rest) const
             -> decltype(re_std::invoke(m_visitor, m_first,
-                                       static_cast<_Rest&&>(rest)...))
+                                       static_cast<Rest&&>(rest)...))
         {
             return re_std::invoke(m_visitor, m_first,
-                                  static_cast<_Rest&&>(rest)...);
+                                  static_cast<Rest&&>(rest)...);
         }
     };
 
     // visit_multi
     //   function: forward declaration - the recursion below needs it.
-    template<typename _Result, typename _Visitor, typename... _Variants>
-    _Result visit_multi(_Visitor&& visitor, _Variants&&... variants);
+    template<typename Result, typename Visitor, typename... Variants>
+    Result visit_multi(Visitor&& visitor, Variants&&... variants);
 
     // visit_dispatch
     //   struct: linear index dispatch over one variant's alternatives.
-    // _Index counts up; the specialisation at variant_size is the
+    // Index counts up; the specialisation at variant_size is the
     // unreachable base.
-    template<size_t _Index, size_t _Size>
+    template<size_t Index, size_t Size>
     struct visit_dispatch
     {
-        template<typename _Result, typename _Visitor,
-                 typename _Variant, typename... _Rest>
-        static _Result apply(_Visitor&& visitor, _Variant&& variant,
-                             _Rest&&... rest)
+        template<typename Result, typename Visitor,
+                 typename Variant, typename... Rest>
+        static Result apply(Visitor&& visitor, Variant&& variant,
+                             Rest&&... rest)
         {
-            if (variant.index() == _Index)
+            if (variant.index() == Index)
             {
                 //   Bind this alternative and recurse on what is left.
                 visit_bound<
-                    typename remove_reference<_Visitor>::type,
+                    typename remove_reference<Visitor>::type,
                     typename remove_reference<
-                        decltype(re_std::get<_Index>(variant))>::type>
-                    bound = { visitor, re_std::get<_Index>(variant) };
+                        decltype(re_std::get<Index>(variant))>::type>
+                    bound = { visitor, re_std::get<Index>(variant) };
 
-                return visit_multi<_Result>(bound,
-                                            static_cast<_Rest&&>(rest)...);
+                return visit_multi<Result>(bound,
+                                            static_cast<Rest&&>(rest)...);
             }
-            return visit_dispatch<_Index + 1, _Size>::template apply<_Result>(
-                static_cast<_Visitor&&>(visitor),
-                static_cast<_Variant&&>(variant),
-                static_cast<_Rest&&>(rest)...);
+            return visit_dispatch<Index + 1, Size>::template apply<Result>(
+                static_cast<Visitor&&>(visitor),
+                static_cast<Variant&&>(variant),
+                static_cast<Rest&&>(rest)...);
         }
     };
 
-    // visit_dispatch<_Size, _Size>
+    // visit_dispatch<Size, Size>
     //   struct: unreachable base.  Only a valueless variant could get here,
     // and that is rejected before dispatch begins - so this throwing arm
     // exists to keep the function well-formed on every path, not because it
     // is expected to run.
-    template<size_t _Size>
-    struct visit_dispatch<_Size, _Size>
+    template<size_t Size>
+    struct visit_dispatch<Size, Size>
     {
-        template<typename _Result, typename _Visitor,
-                 typename _Variant, typename... _Rest>
-        static _Result apply(_Visitor&&, _Variant&&, _Rest&&...)
+        template<typename Result, typename Visitor,
+                 typename Variant, typename... Rest>
+        static Result apply(Visitor&&, Variant&&, Rest&&...)
         {
             internal::throw_bad_variant_access();
-            return visit_dispatch_unreachable<_Result>();
+            return visit_dispatch_unreachable<Result>();
         }
 
-        template<typename _Result>
-        static _Result visit_dispatch_unreachable()
+        template<typename Result>
+        static Result visit_dispatch_unreachable()
         {
             //   Never executed; throw_bad_variant_access does not return.
             internal::throw_bad_variant_access();
-            throw 0;
         }
     };
 
     // visit_multi
     //   function: base case - no variants left, so invoke.
-    template<typename _Result, typename _Visitor>
-    _Result visit_multi(_Visitor&& visitor)
+    template<typename Result, typename Visitor>
+    Result visit_multi(Visitor&& visitor)
     {
-        return static_cast<_Result>(re_std::invoke(visitor));
+        return static_cast<Result>(re_std::invoke(visitor));
     }
 
     //   Recursive case: dispatch on the first variant, recurse on the rest.
-    template<typename _Result, typename _Visitor,
-             typename _Variant, typename... _Rest>
-    _Result visit_multi(_Visitor&& visitor, _Variant&& variant,
-                        _Rest&&... rest)
+    template<typename Result, typename Visitor,
+             typename Variant, typename... Rest>
+    Result visit_multi(Visitor&& visitor, Variant&& variant,
+                        Rest&&... rest)
     {
-        typedef typename remove_reference<_Variant>::type _Bare;
+        typedef typename remove_reference<Variant>::type _Bare;
         return visit_dispatch<0, variant_size<_Bare>::value>::
-            template apply<_Result>(static_cast<_Visitor&&>(visitor),
-                                    static_cast<_Variant&&>(variant),
-                                    static_cast<_Rest&&>(rest)...);
+            template apply<Result>(static_cast<Visitor&&>(visitor),
+                                    static_cast<Variant&&>(variant),
+                                    static_cast<Rest&&>(rest)...);
     }
 
     // any_valueless
@@ -162,55 +167,55 @@ NS_INTERNAL
     // header note on why the order matters.
     inline bool any_valueless() { return false; }
 
-    template<typename _Variant, typename... _Rest>
-    bool any_valueless(const _Variant& variant, const _Rest&... rest)
+    template<typename Variant, typename... Rest>
+    bool any_valueless(const Variant& variant, const Rest&... rest)
     {
         return variant.valueless_by_exception() || any_valueless(rest...);
     }
 
-NS_END  // internal
+}  // internal
 
 
 // visit
 //   function: multi-variant visit, deducing the return type from the
 // first alternative of each variant.
-template<typename _Visitor, typename... _Variants>
-auto visit(_Visitor&& visitor, _Variants&&... variants)
+template<typename Visitor, typename... Variants>
+auto visit(Visitor&& visitor, Variants&&... variants)
     -> decltype(re_std::invoke(
            visitor,
            re_std::get<0>(
-               static_cast<typename remove_reference<_Variants>::type&>(
+               static_cast<typename remove_reference<Variants>::type&>(
                    variants))...))
 {
     typedef decltype(re_std::invoke(
         visitor,
         re_std::get<0>(
-            static_cast<typename remove_reference<_Variants>::type&>(
-                variants))...)) _Result;
+            static_cast<typename remove_reference<Variants>::type&>(
+                variants))...)) Result;
 
     if (internal::any_valueless(variants...))
     {
         internal::throw_bad_variant_access();
     }
-    return internal::visit_multi<_Result>(visitor,
-                                          static_cast<_Variants&&>(variants)...);
+    return internal::visit_multi<Result>(visitor,
+                                          static_cast<Variants&&>(variants)...);
 }
 
 // visit<R>
 //   function: as above with the result type fixed, so that alternatives whose
 // natural results differ but share a common target type still compose.
-template<typename _Result, typename _Visitor, typename... _Variants>
-_Result visit(_Visitor&& visitor, _Variants&&... variants)
+template<typename Result, typename Visitor, typename... Variants>
+Result visit(Visitor&& visitor, Variants&&... variants)
 {
     if (internal::any_valueless(variants...))
     {
         internal::throw_bad_variant_access();
     }
-    return internal::visit_multi<_Result>(visitor,
-                                          static_cast<_Variants&&>(variants)...);
+    return internal::visit_multi<Result>(visitor,
+                                          static_cast<Variants&&>(variants)...);
 }
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_VARIANT_VARIANT_VISIT_
+#endif  // RE_STD_VARIANT_VARIANT_VISIT_HPP

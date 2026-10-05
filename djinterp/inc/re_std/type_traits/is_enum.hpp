@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                is_enum.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  is_enum.hpp
 *
 * is_enum trait header:
 *   Detects whether a type is an enumeration (scoped or unscoped).
@@ -19,95 +19,97 @@
 * the SBO (still functional, just no SBO for enums).
 *
 *   DETECTION MACRO:
-*   D_RE_STD_HAS_IS_ENUM is set to 1 if the intrinsic is available, 0
+*   RE_STD_HAS_IS_ENUM is set to 1 if the intrinsic is available, 0
 * otherwise. Users may pre-define it to override detection.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_enum.hpp
+* path:      /inc/re_std/type_traits/is_enum.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_ENUM_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_ENUM_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_ENUM_HPP
+#define RE_STD_TYPE_TRAITS_IS_ENUM_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
 // =============================================================================
-// 0.   D_RE_STD_HAS_IS_ENUM DETECTION
+// 0.   RE_STD_HAS_IS_ENUM DETECTION
 // =============================================================================
 
-// D_RE_STD_HAS_IS_ENUM
+// RE_STD_HAS_IS_ENUM
 //   constant: 1 if the __is_enum compiler intrinsic is available, 0
 // otherwise. Users may pre-define to override.
-#ifndef D_RE_STD_HAS_IS_ENUM
+#ifndef RE_STD_HAS_IS_ENUM
     #if defined(__has_builtin)
         #if __has_builtin(__is_enum)
-            #define D_RE_STD_HAS_IS_ENUM 1
+            #define RE_STD_HAS_IS_ENUM 1
         #else
-            #define D_RE_STD_HAS_IS_ENUM 0
+            #define RE_STD_HAS_IS_ENUM 0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC) ||                                   \
-            defined(D_ENV_COMPILER_CLANG) ||                                 \
-            defined(D_ENV_COMPILER_MSVC) ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
+    #elif ( defined(RE_STD_COMPILER_GCC) ||                                   \
+            defined(RE_STD_COMPILER_CLANG) ||                                 \
+            defined(RE_STD_COMPILER_MSVC) ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
         // __is_enum has been universally supported on these vendors for
         // long enough that further version gating is unnecessary in
-        // practice. Override D_RE_STD_HAS_IS_ENUM if you encounter a
+        // practice. Override RE_STD_HAS_IS_ENUM if you encounter a
         // toolchain that lacks it.
-        #define D_RE_STD_HAS_IS_ENUM 1
+        #define RE_STD_HAS_IS_ENUM 1
     #else
-        #define D_RE_STD_HAS_IS_ENUM 0
+        #define RE_STD_HAS_IS_ENUM 0
     #endif
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_ENUM
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_ENUM
+#if RE_STD_HAS_IS_ENUM
 
     // is_enum
-    //   trait: true if _Type is an enumeration. Uses __is_enum builtin.
-    template<typename _Type>
-    struct is_enum : integral_constant<bool, __is_enum(_Type)>
+    //   trait: true if Type is an enumeration. Uses __is_enum builtin.
+    template<typename Type>
+    struct is_enum : integral_constant<bool, __is_enum(Type)>
     {};
 
 #else
 
     // is_enum
     //   trait: fallback - always false when intrinsic is unavailable.
-    template<typename _Type>
+    template<typename Type>
     struct is_enum : false_type
     {};
 
-#endif  // D_RE_STD_HAS_IS_ENUM
+#endif  // RE_STD_HAS_IS_ENUM
 
 
 // =============================================================================
 // II.  IS_ENUM_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_enum_v
-    //   variable: convenience for is_enum<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_enum_v = is_enum<_Type>::value;
+    //   variable: convenience for is_enum<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_enum_v = is_enum<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_ENUM_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_ENUM_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [expression]                                            expression.hpp
+/*******************************************************************************
+* djinterp [parse]                                                expression.hpp
 *
 *   The common core of every expression language in the framework -- math,
 * parser, CLI predicate, and whatever comes next.  An expression is a
@@ -39,8 +39,8 @@
 * expression_parse.hpp.  cata (recursion.hpp) already folds the term with no
 * further wiring.
 *
-*   REQUIREMENTS.  _Atom and _OpId must be default-constructible, copyable,
-* and (for signature lookup) _OpId equality-comparable -- the same shape mu
+*   REQUIREMENTS.  Atom and OpId must be default-constructible, copyable,
+* and (for signature lookup) OpId equality-comparable -- the same shape mu
 * and cofree already ask of a layer.  The dynamic term is heap-backed
 * (shared_ptr, via mu) and not constexpr; the compile-time face is
 * expression_static.hpp.
@@ -48,8 +48,9 @@
 *
 * path:      /inc/djinterp/parse/expression/expression.hpp
 * link(s):   ch-recursion.tex, ch-synthesis.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -77,22 +78,30 @@ V.    STRUCTURAL DETECTION                  (is_expr_layer / is_expression)
       ---------------------------------------------------------------------
 */
 
-#ifndef DJINTERP_EXPRESSION_EXPRESSION_
-#define DJINTERP_EXPRESSION_EXPRESSION_ 1
+#ifndef DJINTERP_PARSE_EXPRESSION_EXPRESSION_HPP
+#define DJINTERP_PARSE_EXPRESSION_EXPRESSION_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../../core/meta/type_utility.hpp"  // void_t
 #include "../../core/meta/kv_pair.hpp"
 #include "../../core/util/lookup/lookup_sentinels.hpp"
 #include "../../core/functional/functor.hpp"
 #include "../../core/functional/recursion.hpp"
 #include "../../core/functional/cofree.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t
 
 
 NS_DJINTERP
@@ -116,7 +125,7 @@ NS_DJINTERP
 //   typedef: how repeated infix operators of equal precedence group.
 // Drives both parenthesization (rendering) and precedence climbing
 // (parsing).
-typedef std::int32_t associativity;
+typedef re_std::int32_t associativity;
 
 // DAssoc*
 //   constants: the associativity classes.
@@ -126,7 +135,7 @@ constexpr associativity DAssocRight = 2;   // a op (b op c)
 
 // fixity
 //   typedef: where an operator sits relative to its operands.
-typedef std::int32_t fixity;
+typedef re_std::int32_t fixity;
 
 // DFix*
 //   constants: the fixity classes.
@@ -160,7 +169,7 @@ struct operator_descriptor
     const char*   spelling;
 
     // operator_descriptor (default)
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     operator_descriptor()
         : arity       (0)
         , precedence  (0)
@@ -175,7 +184,7 @@ struct operator_descriptor
     // operator_descriptor (full)
     //   the common fields carry defaults so a language names only what it
     // must; flags default off.
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     operator_descriptor(
         unsigned      _arity,
         int           _precedence  = 0,
@@ -211,16 +220,16 @@ struct operator_descriptor
 // for spelling and parenthesization, a parser for precedence and fixity.
 // Lookup is a first-match-wins walk -- the intuition of the lookup family --
 // and a miss yields a null value or the lookup_npos index.
-template<typename _OpId,
-         typename _Value     = operator_descriptor,
-         typename _Container = std::vector<kv_pair<_OpId, _Value> > >
+template<typename OpId,
+         typename Value      = operator_descriptor,
+         typename Container = std::vector<kv_pair<OpId, Value> > >
 class operator_signature
 {
 public:
-    using op_id_type     = _OpId;
-    using value_type     = _Value;
-    using entry_type     = kv_pair<_OpId, _Value>;
-    using container_type = _Container;
+    using op_id_type     = OpId;
+    using value_type     = Value;
+    using entry_type     = kv_pair<OpId, Value>;
+    using container_type = Container;
 
     operator_signature()
         : m_entries()
@@ -244,8 +253,8 @@ public:
     operator_signature&
     define
     (
-        const _OpId&  _op,
-        const _Value& _value
+        const OpId&  _op,
+        const Value& _value
     )
     {
         m_entries.push_back(entry_type(_op, _value));
@@ -256,10 +265,10 @@ public:
     // describe
     //   method: the value bound to an operator id, or null on a miss.
     D_NODISCARD
-    const _Value*
+    const Value*
     describe
     (
-        const _OpId& _op
+        const OpId& _op
     ) const
     {
         for (typename container_type::const_iterator _it = m_entries.begin();
@@ -282,7 +291,7 @@ public:
     std::size_t
     index_of
     (
-        const _OpId& _op
+        const OpId& _op
     ) const
     {
         std::size_t _i = 0;
@@ -306,7 +315,7 @@ public:
     bool
     has
     (
-        const _OpId& _op
+        const OpId& _op
     ) const
     {
         return (describe(_op) != nullptr);
@@ -333,21 +342,21 @@ private:
 // expr_layer
 //   class: one unrolled layer of an expression -- the signature functor
 // whose fixed point is the term.  A layer is either a leaf carrying an atom,
-// or an application of an operator to a sequence of children of type _Child
-// (the recursive positions).  As a functor it is single-argument in _Child
-// (_OpId and _Atom are fixed), and mapping a layer maps only the children,
+// or an application of an operator to a sequence of children of type Child
+// (the recursive positions).  As a functor it is single-argument in Child
+// (OpId and Atom are fixed), and mapping a layer maps only the children,
 // leaving the operator and any atom in place -- the shape recursion.hpp and
 // cofree.hpp fold and annotate over.
-template<typename _OpId,
-         typename _Atom,
-         typename _Child>
+template<typename OpId,
+         typename Atom,
+         typename Child>
 class expr_layer
 {
 public:
-    using op_id_type    = _OpId;
-    using atom_type     = _Atom;
-    using child_type    = _Child;
-    using children_type = std::vector<_Child>;
+    using op_id_type    = OpId;
+    using atom_type     = Atom;
+    using child_type    = Child;
+    using children_type = std::vector<Child>;
 
     // expr_layer (default)
     //   a leaf carrying a default atom.  Required because mu and cofree box
@@ -365,7 +374,7 @@ public:
     static expr_layer
     leaf
     (
-        const _Atom& _atom
+        const Atom& _atom
     )
     {
         expr_layer _layer;
@@ -382,7 +391,7 @@ public:
     static expr_layer
     apply
     (
-        const _OpId&         _op,
+        const OpId&         _op,
         const children_type& _children
     )
     {
@@ -397,8 +406,8 @@ public:
     // observers
     D_NODISCARD bool         is_leaf()  const { return m_is_leaf;  }
     D_NODISCARD bool         is_apply() const { return !m_is_leaf; }
-    D_NODISCARD const _Atom& atom()     const { return m_atom;     }
-    D_NODISCARD const _OpId& op()       const { return m_op;       }
+    D_NODISCARD const Atom& atom()     const { return m_atom;     }
+    D_NODISCARD const OpId& op()       const { return m_op;       }
 
     D_NODISCARD
     const children_type& children() const { return m_children; }
@@ -408,8 +417,8 @@ public:
 
 private:
     bool          m_is_leaf;
-    _Atom         m_atom;
-    _OpId         m_op;
+    Atom          m_atom;
+    OpId          m_op;
     children_type m_children;
 };
 
@@ -424,37 +433,37 @@ private:
 // map touches only the children; the operator and atom are structure, not
 // contents.
 
-// functor_traits<expr_layer<_OpId, _Atom, _Child>>
-template<typename _OpId,
-         typename _Atom,
-         typename _Child>
-struct functor_traits<expr_layer<_OpId, _Atom, _Child>, void>
+// functor_traits<expr_layer<OpId, Atom, Child>>
+template<typename OpId,
+         typename Atom,
+         typename Child>
+struct functor_traits<expr_layer<OpId, Atom, Child>, void>
 {
     using is_specialized = std::true_type;
-    using value_type     = _Child;
+    using value_type     = Child;
 
-    template<typename _To>
-    using rebind = expr_layer<_OpId, _Atom, _To>;
+    template<typename To>
+    using rebind = expr_layer<OpId, Atom, To>;
 
     // map
     //   applies _function to each child, yielding a layer over the mapped
     // child type; a leaf passes through unchanged (bar the child-type
     // rebind), an application keeps its operator and maps its children.
-    template<typename _Layer,
-             typename _Function>
+    template<typename Layer,
+             typename Function>
     static
-    expr_layer<_OpId, _Atom,
-        typename std::decay<decltype(std::declval<_Function&>()(
-            std::declval<const _Child&>()))>::type>
+    expr_layer<OpId, Atom,
+        typename std::decay<decltype(std::declval<Function&>()(
+            std::declval<const Child&>()))>::type>
     map
     (
-        _Layer&&  _layer,
-        _Function _function
+        Layer&&  _layer,
+        Function _function
     )
     {
         using to_type = typename std::decay<decltype(
-            std::declval<_Function&>()(std::declval<const _Child&>()))>::type;
-        using result_layer = expr_layer<_OpId, _Atom, to_type>;
+            std::declval<Function&>()(std::declval<const Child&>()))>::type;
+        using result_layer = expr_layer<OpId, Atom, to_type>;
 
         if (_layer.is_leaf())
         {
@@ -486,27 +495,27 @@ struct functor_traits<expr_layer<_OpId, _Atom, _Child>, void>
 NS_INTERNAL
 
     // expr_carrier
-    //   helper: binds _OpId and _Atom so expr_layer presents as the
+    //   helper: binds OpId and Atom so expr_layer presents as the
     // single-argument template-template parameter mu (and cofree) require --
     // the same nested-alias device parser_layer uses for free.
-    template<typename _OpId,
-             typename _Atom>
+    template<typename OpId,
+             typename Atom>
     struct expr_carrier
     {
-        template<typename _Child>
-        using layer = expr_layer<_OpId, _Atom, _Child>;
+        template<typename Child>
+        using layer = expr_layer<OpId, Atom, Child>;
     };
 
 NS_END  // internal
 
 
 // expression
-//   alias: an expression over operator ids _OpId and atoms _Atom -- the
+//   alias: an expression over operator ids OpId and atoms Atom -- the
 // least fixed point of expr_layer.  cata folds it, ana builds it, hylo
 // refolds it (all from recursion.hpp), with no further registration.
-template<typename _OpId,
-         typename _Atom>
-using expression = mu<internal::expr_carrier<_OpId, _Atom>::template layer>;
+template<typename OpId,
+         typename Atom>
+using expression = mu<internal::expr_carrier<OpId, Atom>::template layer>;
 
 
 // =================================================================
@@ -515,87 +524,87 @@ using expression = mu<internal::expr_carrier<_OpId, _Atom>::template layer>;
 
 // expr_leaf
 //   function: a leaf expression carrying an atom.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 expr_leaf
 (
-    const _Atom& _atom
+    const Atom& _atom
 )
 {
-    return expression<_OpId, _Atom>::In(
-        expression<_OpId, _Atom>::layer_type::leaf(_atom));
+    return expression<OpId, Atom>::In(
+        expression<OpId, Atom>::layer_type::leaf(_atom));
 }
 
 // expr_apply
 //   function: an operator applied to a vector of child expressions.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 expr_apply
 (
-    const _OpId&                                  _op,
-    const std::vector<expression<_OpId, _Atom> >& _children
+    const OpId&                                  _op,
+    const std::vector<expression<OpId, Atom> >& _children
 )
 {
-    return expression<_OpId, _Atom>::In(
-        expression<_OpId, _Atom>::layer_type::apply(_op, _children));
+    return expression<OpId, Atom>::In(
+        expression<OpId, Atom>::layer_type::apply(_op, _children));
 }
 
 // expr_apply (nullary)
 //   function: an operator with no operands -- a constant symbol.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 expr_apply
 (
-    const _OpId& _op
+    const OpId& _op
 )
 {
-    return expr_apply<_OpId, _Atom>(
-        _op, std::vector<expression<_OpId, _Atom> >());
+    return expr_apply<OpId, Atom>(
+        _op, std::vector<expression<OpId, Atom> >());
 }
 
 // expr_apply (unary)
 //   function: an operator applied to one child.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 expr_apply
 (
-    const _OpId&                     _op,
-    const expression<_OpId, _Atom>&  _child
+    const OpId&                     _op,
+    const expression<OpId, Atom>&  _child
 )
 {
-    std::vector<expression<_OpId, _Atom> > _children;
+    std::vector<expression<OpId, Atom> > _children;
     _children.push_back(_child);
 
-    return expr_apply<_OpId, _Atom>(_op, _children);
+    return expr_apply<OpId, Atom>(_op, _children);
 }
 
 // expr_apply (binary)
 //   function: an operator applied to two children.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 expr_apply
 (
-    const _OpId&                     _op,
-    const expression<_OpId, _Atom>&  _left,
-    const expression<_OpId, _Atom>&  _right
+    const OpId&                     _op,
+    const expression<OpId, Atom>&  _left,
+    const expression<OpId, Atom>&  _right
 )
 {
-    std::vector<expression<_OpId, _Atom> > _children;
+    std::vector<expression<OpId, Atom> > _children;
     _children.reserve(2);
     _children.push_back(_left);
     _children.push_back(_right);
 
-    return expr_apply<_OpId, _Atom>(_op, _children);
+    return expr_apply<OpId, Atom>(_op, _children);
 }
 
 
@@ -605,13 +614,13 @@ expr_apply
 
 // is_leaf
 //   function: whether the expression's root node is a leaf.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
 bool
 is_leaf
 (
-    const expression<_OpId, _Atom>& _expression
+    const expression<OpId, Atom>& _expression
 )
 {
     return _expression.out().is_leaf();
@@ -619,13 +628,13 @@ is_leaf
 
 // atom_of
 //   function: the atom at a leaf root.  Precondition: is_leaf.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-const _Atom&
+const Atom&
 atom_of
 (
-    const expression<_OpId, _Atom>& _expression
+    const expression<OpId, Atom>& _expression
 )
 {
     return _expression.out().atom();
@@ -634,13 +643,13 @@ atom_of
 // operator_of
 //   function: the operator id at an application root.  Precondition:
 // !is_leaf.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-const _OpId&
+const OpId&
 operator_of
 (
-    const expression<_OpId, _Atom>& _expression
+    const expression<OpId, Atom>& _expression
 )
 {
     return _expression.out().op();
@@ -648,13 +657,13 @@ operator_of
 
 // children_of
 //   function: the child expressions at an application root.
-template<typename _OpId,
-         typename _Atom>
+template<typename OpId,
+         typename Atom>
 D_NODISCARD
-const std::vector<expression<_OpId, _Atom> >&
+const std::vector<expression<OpId, Atom> >&
 children_of
 (
-    const expression<_OpId, _Atom>& _expression
+    const expression<OpId, Atom>& _expression
 )
 {
     return _expression.out().children();
@@ -667,16 +676,16 @@ children_of
 
 // annotated_expression
 //   alias: an expression whose every node also carries an annotation of
-// type _Annotation -- the cofree comonad over the very same signature
+// type Annotation -- the cofree comonad over the very same signature
 // functor.  Attribute grammars, inferred-type decoration, source spans, and
 // cached values are all annotations; extract reads a node's, extend
 // re-decorates from whole sub-trees (comonad.hpp), and unfold_cofree builds
 // one (cofree.hpp).
-template<typename _OpId,
-         typename _Atom,
-         typename _Annotation>
+template<typename OpId,
+         typename Atom,
+         typename Annotation>
 using annotated_expression =
-    cofree<internal::expr_carrier<_OpId, _Atom>::template layer, _Annotation>;
+    cofree<internal::expr_carrier<OpId, Atom>::template layer, Annotation>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -685,14 +694,14 @@ using annotated_expression =
 
 // is_expr_layer
 //   trait: whether a type is a signature layer expr_layer<...>.
-template<typename _Type>
+template<typename Type>
 struct is_expr_layer : std::false_type
 {};
 
-template<typename _OpId,
-         typename _Atom,
-         typename _Child>
-struct is_expr_layer<expr_layer<_OpId, _Atom, _Child> > : std::true_type
+template<typename OpId,
+         typename Atom,
+         typename Child>
+struct is_expr_layer<expr_layer<OpId, Atom, Child> > : std::true_type
 {};
 
 
@@ -701,15 +710,15 @@ NS_INTERNAL
     // is_expression_helper
     //   helper: an expression is a mu whose unrolled layer is an expr_layer.
     // mu<F> exposes layer_type = F<mu<F>>, so testing that alias against
-    // is_expr_layer recognizes the term without naming _OpId / _Atom.
-    template<typename _Type,
+    // is_expr_layer recognizes the term without naming OpId / Atom.
+    template<typename Type,
              typename = void>
     struct is_expression_helper : std::false_type
     {};
 
-    template<typename _Type>
-    struct is_expression_helper<_Type, void_t<typename _Type::layer_type> >
-        : is_expr_layer<typename _Type::layer_type>
+    template<typename Type>
+    struct is_expression_helper<Type, void_t<typename Type::layer_type> >
+        : is_expr_layer<typename Type::layer_type>
     {};
 
 NS_END  // internal
@@ -718,23 +727,23 @@ NS_END  // internal
 // is_expression
 //   trait: whether a type is an expression term (a mu over a signature
 // layer), after cv-ref stripping.
-template<typename _Type>
+template<typename Type>
 struct is_expression
-    : internal::is_expression_helper<typename std::decay<_Type>::type>
+    : internal::is_expression_helper<typename std::decay<Type>::type>
 {};
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 // is_expr_layer_v
-//   constant: shorthand for is_expr_layer<_Type>::value.
-template<typename _Type>
-static D_CONSTEXPR bool is_expr_layer_v = is_expr_layer<_Type>::value;
+//   constant: shorthand for is_expr_layer<Type>::value.
+template<typename Type>
+static D_CONSTEXPR bool is_expr_layer_v = is_expr_layer<Type>::value;
 
 // is_expression_v
-//   constant: shorthand for is_expression<_Type>::value.
-template<typename _Type>
-static D_CONSTEXPR bool is_expression_v = is_expression<_Type>::value;
+//   constant: shorthand for is_expression<Type>::value.
+template<typename Type>
+static D_CONSTEXPR bool is_expression_v = is_expression<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -744,18 +753,20 @@ static D_CONSTEXPR bool is_expression_v = is_expression<_Type>::value;
 
 // ExprLayer
 //   concept: satisfied by a signature layer.
-template<typename _Type>
-concept ExprLayer = is_expr_layer<_Type>::value;
+template<typename Type>
+concept ExprLayer = is_expr_layer<Type>::value;
 
 // Expression
 //   concept: satisfied by an expression term.
-template<typename _Type>
-concept Expression = is_expression<_Type>::value;
+template<typename Type>
+concept Expression = is_expression<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EXPRESSION_EXPRESSION_
+
+#endif  // DJINTERP_PARSE_EXPRESSION_EXPRESSION_HPP

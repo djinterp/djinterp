@@ -1,14 +1,14 @@
-/***********************************************************************
-* re_std                                                              gcd.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                      gcd.hpp
 *
 * gcd(_a, _b) returns the greatest common divisor of |_a| and |_b|.
 *
 * return type:
-*   common_type<_M, _N>::type — the wider of the two integral types.
+*   common_type<M, N>::type — the wider of the two integral types.
 *   The result is always non-negative.
 *
 * preconditions (per the standard):
-*   - both _M and _N are integer types other than bool.
+*   - both M and N are integer types other than bool.
 *   - the absolute values of _a and _b must be representable in the
 *     common type.
 *
@@ -22,29 +22,23 @@
 * added in std C++17; constexpr from inception.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/gcd.hpp
+* path:      /inc/re_std/numeric/gcd.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_GCD_
-#define DJINTERP_RE_STD_NUMERIC_GCD_ 1
+#ifndef RE_STD_NUMERIC_GCD_HPP
+#define RE_STD_NUMERIC_GCD_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <type_traits>
-
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
 
 namespace re_std
@@ -52,48 +46,46 @@ namespace re_std
 namespace internal
 {
 
-    // abs-as-unsigned: for signed _T, return the unsigned magnitude
+    // abs-as-unsigned: for signed T, return the unsigned magnitude
     // even if _v is the type's minimum (where -_v would overflow as
-    // a signed expression). For unsigned _T it's identity.
-    template<typename _T>
-    constexpr typename std::make_unsigned<_T>::type
-    gcd_abs_signed(_T _v) D_NOEXCEPT
+    // a signed expression). For unsigned T it's identity.
+    template<typename T>
+    constexpr typename std::make_unsigned<T>::type
+    gcd_abs_signed(T _v) RE_STD_NOEXCEPT
     {
         return _v < 0
-            ? static_cast<typename std::make_unsigned<_T>::type>(0)
-              - static_cast<typename std::make_unsigned<_T>::type>(_v)
-            : static_cast<typename std::make_unsigned<_T>::type>(_v);
+            ? static_cast<typename std::make_unsigned<T>::type>(0)
+              - static_cast<typename std::make_unsigned<T>::type>(_v)
+            : static_cast<typename std::make_unsigned<T>::type>(_v);
     }
 
     // The Euclidean kernel. Operates entirely in unsigned space so
     // we can't accidentally produce a negative intermediate.
-    template<typename _U>
-    D_CONSTEXPR_CPP14 _U gcd_kernel(_U _a, _U _b) D_NOEXCEPT
+    template<typename U>
+    RE_STD_CONSTEXPR_CPP14 U gcd_kernel(U _a, U _b) RE_STD_NOEXCEPT
     {
         while (_b != 0)
         {
-            _U _t = _b;
+            U _t = _b;
             _b = _a % _b;
             _a = _t;
         }
         return _a;
     }
 
-}  // namespace internal
-
-
-template<typename _M, typename _N>
-D_CONSTEXPR_CPP14 typename std::common_type<_M, _N>::type
-gcd(_M _a, _N _b) D_NOEXCEPT
+}  // internal
+template<typename M, typename N>
+RE_STD_CONSTEXPR_CPP14 typename std::common_type<M, N>::type
+gcd(M _a, N _b) RE_STD_NOEXCEPT
 {
-    static_assert(std::is_integral<_M>::value && std::is_integral<_N>::value,
+    static_assert(std::is_integral<M>::value && std::is_integral<N>::value,
                   "re_std::gcd requires integer arguments");
-    static_assert(!std::is_same<typename std::remove_cv<_M>::type, bool>::value,
+    static_assert(!std::is_same<typename std::remove_cv<M>::type, bool>::value,
                   "re_std::gcd does not accept bool");
-    static_assert(!std::is_same<typename std::remove_cv<_N>::type, bool>::value,
+    static_assert(!std::is_same<typename std::remove_cv<N>::type, bool>::value,
                   "re_std::gcd does not accept bool");
 
-    typedef typename std::common_type<_M, _N>::type           _R;
+    typedef typename std::common_type<M, N>::type           _R;
     typedef typename std::make_unsigned<_R>::type             _UR;
 
     const _UR _au = static_cast<_UR>(internal::gcd_abs_signed(_a));
@@ -102,8 +94,7 @@ gcd(_M _a, _N _b) D_NOEXCEPT
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_NUMERIC_GCD_
+#endif  // RE_STD_NUMERIC_GCD_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                              type_info_c.h
+/*******************************************************************************
+* djinterp [c]                                                     type_info_c.h
 *
 *  C-specific extensions to the common type-information system.
 *  Covers:
@@ -17,14 +17,23 @@
 *
 * path:      /inc/djinterp/c/meta/type_info_c.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.12.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.06
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_C_TYPE_INFO_C_
-#define DJINTERP_C_TYPE_INFO_C_ 1
+#ifndef DJINTERP_C_META_TYPE_INFO_C_H
+#define DJINTERP_C_META_TYPE_INFO_C_H 1
 
 // djinterp
 #include "djinterp/c/meta/type_info_common.h"
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's floor
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
 
 
 /*============================================================================*
@@ -132,4 +141,6 @@ static const d_type_info16 D_TYPE_C_CUSTOM   = D_TYPE_CUSTOM_();
 #endif // D_ENV_LANG_IS_C11_OR_HIGHER
 
 
-#endif  // DJINTERP_C_TYPE_INFO_C_
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_C_META_TYPE_INFO_C_H

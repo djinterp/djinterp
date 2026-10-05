@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parsegen]                                              registry.hpp
+* djinterp [parsegen]                                               registry.hpp
 *
 *   The C++ face of the capability vocabulary and the stage registry.
 *   `feature_set` wraps the C mask in a strong type so a capability profile
@@ -11,23 +11,31 @@
 * asserted layout-identical.  `stage` is an ALIAS rather than a derived type,
 * for the same reason `instr` is: a registry is an array of them.
 *
+*
 * path:      /inc/djinterp/parsegen/registry.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSEGEN_REGISTRY_HPP_
-#define DJINTERP_PARSEGEN_REGISTRY_HPP_ 1
+#ifndef DJINTERP_PARSEGEN_REGISTRY_HPP
+#define DJINTERP_PARSEGEN_REGISTRY_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>              // std::size_t
-#include <cstdint>              // std::uint32_t, std::uint64_t
-#include <type_traits>          // std::is_standard_layout
+#include <cstddef>                  // std::size_t
+#include <type_traits>              // std::is_standard_layout
 // djinterp
 #include "../parse/diagnostic.hpp"  // parse::diagnostics
 #include "./parsegen.hpp"           // framework root, NS_PARSEGEN
-#include "./registry.h"             // the C registry this layer faces
+#include "./c/registry.h"           // the C registry this layer faces
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t, uint32_t
 
 
 NS_DJINTERP
@@ -38,7 +46,7 @@ NS_PARSEGEN
 //   enum: one capability a grammar may use or a stage may handle.  A scoped
 // enum over the C bits, so a capability cannot be passed where an opcode or a
 // family identifier was meant.
-enum class feature : std::uint64_t
+enum class feature : re_std::uint64_t
 {
     none                = D_PARSEGEN_FEATURE_NONE,
     ordered_choice      = D_PARSEGEN_ORDERED_CHOICE,
@@ -83,7 +91,7 @@ public:
     constexpr feature_set(
         feature _feature
     ) noexcept
-        : m_bits(static_cast<std::uint64_t>(_feature))
+        : m_bits(static_cast<re_std::uint64_t>(_feature))
     {}
 
     // feature_set
@@ -114,7 +122,7 @@ public:
 
     // operator|=
     //   function: adds another set to this one.
-    constexpr feature_set&
+    D_CONSTEXPR_CPP14 feature_set&
     operator|=(
         const feature_set& _other
     ) noexcept
@@ -205,7 +213,7 @@ operator|(
 
 // stage_kind
 //   enum: what part of the pipeline a stage occupies.
-enum class stage_kind : std::uint32_t
+enum class stage_kind : re_std::uint32_t
 {
     frontend = D_PARSEGEN_STAGE_FRONTEND,
     pass     = D_PARSEGEN_STAGE_PASS,
@@ -239,7 +247,7 @@ public:
     //   constructor: a registry over a caller-supplied table.
     registry(
         stage*        _stages,
-        std::uint32_t _capacity
+        re_std::uint32_t _capacity
     ) noexcept
     {
         d_parsegen_registry_init(this, _stages, _capacity);
@@ -291,7 +299,7 @@ public:
     // owns, which then grows on demand.
     D_NODISCARD bool
     reserve(
-        std::uint32_t _capacity = 0u
+        re_std::uint32_t _capacity = 0u
     ) noexcept
     {
         d_parsegen_registry_release(this);
@@ -322,7 +330,7 @@ public:
     ) const noexcept
     {
         return d_parsegen_registry_find(this,
-                                        static_cast<std::uint32_t>(_kind),
+                                        static_cast<re_std::uint32_t>(_kind),
                                         _name,
                                         _diag);
     }
@@ -339,26 +347,26 @@ public:
     ) const noexcept
     {
         return d_parsegen_registry_select(this,
-                                          static_cast<std::uint32_t>(_kind),
+                                          static_cast<re_std::uint32_t>(_kind),
                                           _features,
                                           _diag);
     }
 
     // count_of
     //   accessor: how many stages of one kind are registered.
-    std::uint32_t
+    re_std::uint32_t
     count_of(
         stage_kind _kind
     ) const noexcept
     {
         return d_parsegen_registry_count_of(
                    this,
-                   static_cast<std::uint32_t>(_kind));
+                   static_cast<re_std::uint32_t>(_kind));
     }
 
     // size
     //   accessor: how many stages are registered, of every kind.
-    constexpr std::uint32_t
+    D_CONSTEXPR_CPP14 re_std::uint32_t
     size() const noexcept
     {
         return count;
@@ -366,7 +374,7 @@ public:
 
     // begin
     //   accessor: a pointer to the first registered stage.
-    constexpr const_iterator
+    D_CONSTEXPR_CPP14 const_iterator
     begin() const noexcept
     {
         return stages;
@@ -374,7 +382,7 @@ public:
 
     // end
     //   accessor: a pointer one past the last registered stage.
-    constexpr const_iterator
+    D_CONSTEXPR_CPP14 const_iterator
     end() const noexcept
     {
         return (stages != nullptr) ? (stages + count) : nullptr;
@@ -385,7 +393,7 @@ public:
 // fixed_registry
 //   class: a registry carrying its own table.  The usual shape: a build links
 // in the stages it wants and registers them once, allocating nothing.
-template<std::uint32_t _Capacity>
+template<re_std::uint32_t Capacity>
 class fixed_registry : public registry
 {
 public:
@@ -393,11 +401,11 @@ public:
     //   constructor: binds the embedded table as this registry's storage.
     fixed_registry() noexcept
     {
-        d_parsegen_registry_init(this, m_stages, _Capacity);
+        d_parsegen_registry_init(this, m_stages, Capacity);
     }
 
 private:
-    stage m_stages[_Capacity];
+    stage m_stages[Capacity];
 };
 
 
@@ -417,5 +425,7 @@ static_assert(std::is_standard_layout<registry>::value,
 NS_END  // parsegen
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSEGEN_REGISTRY_HPP_
+
+#endif  // DJINTERP_PARSEGEN_REGISTRY_HPP

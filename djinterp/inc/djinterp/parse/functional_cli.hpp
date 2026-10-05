@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [cli]                                             functional_cli.hpp
+/*******************************************************************************
+* djinterp [parse]                                            functional_cli.hpp
 *
 *   The runtime spine of the functional command line.  Where the parse
 * subframework builds parsers and the paradigm subframework matches and
@@ -48,8 +48,9 @@
 *
 * path:      /inc/djinterp/parse/functional_cli.hpp
 * link(s):   ch-command.tex, ch-behavior.tex, ch-synthesis.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -87,12 +88,17 @@ IX.   STRUCTURAL TRAITS
       -----------------
 */
 
-#ifndef DJINTERP_CLI_FUNCTIONAL_CLI_
-#define DJINTERP_CLI_FUNCTIONAL_CLI_ 1
+#ifndef DJINTERP_PARSE_FUNCTIONAL_CLI_HPP
+#define DJINTERP_PARSE_FUNCTIONAL_CLI_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <functional>
 #include <string>
 #include <type_traits>
@@ -100,12 +106,29 @@ IX.   STRUCTURAL TRAITS
 #include <vector>
 // djinterp
 #include "../djinterp.hpp"
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t
+
+
+// D_KEYWORD_CLI
+//   keyword: resolves to `cli`, the namespace of this command-line layer.
+#ifndef D_KEYWORD_CLI
+    #define D_KEYWORD_CLI               cli
+#endif  // D_KEYWORD_CLI
+
+// NS_CLI
+//   namespace: opens djinterp's cli namespace (closed with NS_END). The
+// root defines no such macro; this header is its only user.
+#ifndef NS_CLI
+    #define NS_CLI                      D_NAMESPACE(D_KEYWORD_CLI)
+#endif  // NS_CLI
+#include "../core/meta/type_utility.hpp"  // void_t
 #include "../core/functional/maybe.hpp"
 #include "../core/functional/result.hpp"
-#include "../parse/parse.hpp"
-#include "../parse/parser/parser.hpp"
+#include "parse.hpp"
+#include "parser/parser.hpp"
 #include "primitives.hpp"
-#include "../parse/parser/combinators.hpp"
+#include "parser/combinators.hpp"
 
 
 NS_DJINTERP
@@ -126,7 +149,7 @@ NS_CLI
 // cli_status
 //   typedef: classifies the outcome of a CLI operation.  Mirrors
 // parse_status / match_status so the status vocabularies read alike.
-typedef std::int32_t cli_status;
+typedef re_std::int32_t cli_status;
 
 // DCliStatus*
 //   constants: standard CLI status codes.  Command handlers may return
@@ -147,7 +170,7 @@ constexpr cli_status DCliStatusUserBase       = 64;
 //   typedef: classifies a lexed argument token by its surface shape.
 // One concrete instance of the terminal alphabet Sigma consumed by the
 // command grammar.
-typedef std::int32_t arg_kind;
+typedef re_std::int32_t arg_kind;
 
 // DArgKind*
 //   constants: the argument token kinds the reader produces.
@@ -645,16 +668,16 @@ typedef std::vector<command_invocation> command_pipeline;
 // _predicate.  satisfy() defaults its element to char, so the element is
 // pinned to arg_token explicitly here; the result is erased to a handle
 // for uniform composition.
-template<typename _Predicate>
+template<typename Predicate>
 D_NODISCARD
 parse::parser<arg_token, arg_token>
 token_satisfy
 (
-    _Predicate         _predicate,
+    Predicate          _predicate,
     const std::string& _label
 )
 {
-    return parse::satisfy<_Predicate, arg_token>(_predicate, _label);
+    return parse::satisfy<Predicate, arg_token>(_predicate, _label);
 }
 
 
@@ -836,17 +859,17 @@ parse_argv
 //   class: a registered command -- a name and the effect it performs.
 // The effect (the handler) receives the command's parsed options and the
 // value threaded in from the pipeline, and returns the value to thread
-// on, or an error to abort the pipeline.  _Value is the type carried by
+// on, or an error to abort the pipeline.  Value is the type carried by
 // the `|` pipe.
-template<typename _Value>
+template<typename Value>
 class command_spec
 {
 public:
-    using value_type   = _Value;
+    using value_type   = Value;
     using handler_type =
-        std::function<result<_Value, cli_status>(
+        std::function<result<Value, cli_status>(
             const parsed_options&,
-            const _Value&)>;
+            const Value&)>;
 
     command_spec(
         std::string  _name,
@@ -864,11 +887,11 @@ public:
     //   method: applies the command's handler to its parsed options and
     // the threaded input value.
     D_NODISCARD
-    result<_Value, cli_status>
+    result<Value, cli_status>
     invoke
     (
         const parsed_options& _options,
-        const _Value&         _input
+        const Value&         _input
     ) const
     {
         return m_handler(_options, _input);
@@ -884,12 +907,12 @@ private:
 // concrete Omega.  resolve() performs command-head dispatch: ordered
 // first-match by name, the same ordered-choice device as the paradigm
 // matcher and the parser's or_.
-template<typename _Value>
+template<typename Value>
 class command_registry
 {
 public:
-    using value_type   = _Value;
-    using spec_type    = command_spec<_Value>;
+    using value_type   = Value;
+    using spec_type    = command_spec<Value>;
     using handler_type = typename spec_type::handler_type;
 
     command_registry()
@@ -964,17 +987,17 @@ private:
 // dispatches each node on its head -- with command_pipeline standing in
 // for the free term and the registry standing in for the interpretation
 // algebra.
-template<typename _Value>
+template<typename Value>
 D_NODISCARD
-result<_Value, cli_status>
+result<Value, cli_status>
 run
 (
     const command_pipeline&         _pipeline,
-    const command_registry<_Value>& _registry,
-    const _Value&                   _seed
+    const command_registry<Value>& _registry,
+    const Value&                   _seed
 )
 {
-    result<_Value, cli_status> acc = ok<_Value, cli_status>(_seed);
+    result<Value, cli_status> acc = ok<Value, cli_status>(_seed);
 
     for (std::size_t i = 0; i < _pipeline.size(); ++i)
     {
@@ -985,11 +1008,11 @@ run
         }
 
         const command_invocation&   inv  = _pipeline[i];
-        maybe<command_spec<_Value>>  spec = _registry.resolve(inv.verb);
+        maybe<command_spec<Value>>  spec = _registry.resolve(inv.verb);
 
         if (spec.is_nothing())
         {
-            return err<_Value, cli_status>(DCliStatusUnknownCommand);
+            return err<Value, cli_status>(DCliStatusUnknownCommand);
         }
 
         acc = spec.value().invoke(inv.options, acc.value());
@@ -1001,21 +1024,21 @@ run
 // evaluate
 //   function: the whole spine for a command line -- read, parse, and run.
 // A parse failure is reported before any command executes.
-template<typename _Value>
+template<typename Value>
 D_NODISCARD
-result<_Value, cli_status>
+result<Value, cli_status>
 evaluate
 (
     const std::string&              _line,
-    const command_registry<_Value>& _registry,
-    const _Value&                   _seed
+    const command_registry<Value>& _registry,
+    const Value&                   _seed
 )
 {
     result<command_pipeline, cli_status> parsed = parse_line(_line);
 
     if (parsed.is_err())
     {
-        return err<_Value, cli_status>(parsed.error());
+        return err<Value, cli_status>(parsed.error());
     }
 
     return run(parsed.value(), _registry, _seed);
@@ -1023,21 +1046,21 @@ evaluate
 
 // evaluate_argv
 //   function: the whole spine for an argument vector -- read, parse, run.
-template<typename _Value>
+template<typename Value>
 D_NODISCARD
-result<_Value, cli_status>
+result<Value, cli_status>
 evaluate_argv
 (
     const std::vector<std::string>& _args,
-    const command_registry<_Value>& _registry,
-    const _Value&                   _seed
+    const command_registry<Value>& _registry,
+    const Value&                   _seed
 )
 {
     result<command_pipeline, cli_status> parsed = parse_argv(_args);
 
     if (parsed.is_err())
     {
-        return err<_Value, cli_status>(parsed.error());
+        return err<Value, cli_status>(parsed.error());
     }
 
     return run(parsed.value(), _registry, _seed);
@@ -1051,15 +1074,15 @@ evaluate_argv
 // is_command_spec
 //   trait: detects a command-spec-shaped type -- a nested value_type plus
 // a name() face.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct is_command_spec : std::false_type
 {};
 
-template<typename _Type>
-struct is_command_spec<_Type, void_t<
-    typename _Type::value_type,
-    decltype(std::declval<const _Type&>().name())
+template<typename Type>
+struct is_command_spec<Type, void_t<
+    typename Type::value_type,
+    decltype(std::declval<const Type&>().name())
 >> : std::true_type
 {};
 
@@ -1067,16 +1090,16 @@ struct is_command_spec<_Type, void_t<
 // is_command_registry
 //   trait: detects a registry-shaped type -- a nested spec_type plus a
 // resolve(name) face.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct is_command_registry : std::false_type
 {};
 
-template<typename _Type>
-struct is_command_registry<_Type, void_t<
-    typename _Type::spec_type,
+template<typename Type>
+struct is_command_registry<Type, void_t<
+    typename Type::spec_type,
     decltype(
-        std::declval<const _Type&>().resolve(
+        std::declval<const Type&>().resolve(
             std::declval<const std::string&>()))
 >> : std::true_type
 {};
@@ -1085,15 +1108,15 @@ struct is_command_registry<_Type, void_t<
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 // is_command_spec_v
-//   constant: shorthand for is_command_spec<_Type>::value.
-template<typename _Type>
-static D_CONSTEXPR bool is_command_spec_v = is_command_spec<_Type>::value;
+//   constant: shorthand for is_command_spec<Type>::value.
+template<typename Type>
+static D_CONSTEXPR bool is_command_spec_v = is_command_spec<Type>::value;
 
 // is_command_registry_v
-//   constant: shorthand for is_command_registry<_Type>::value.
-template<typename _Type>
+//   constant: shorthand for is_command_registry<Type>::value.
+template<typename Type>
 static D_CONSTEXPR bool is_command_registry_v =
-    is_command_registry<_Type>::value;
+    is_command_registry<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -1103,13 +1126,13 @@ static D_CONSTEXPR bool is_command_registry_v =
 
 // command_spec_c
 //   concept: satisfied by types exposing the command-spec surface.
-template<typename _Type>
-concept command_spec_c = is_command_spec<_Type>::value;
+template<typename Type>
+concept command_spec_c = is_command_spec<Type>::value;
 
 // command_registry_c
 //   concept: satisfied by types exposing the registry surface.
-template<typename _Type>
-concept command_registry_c = is_command_registry<_Type>::value;
+template<typename Type>
+concept command_registry_c = is_command_registry<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -1117,5 +1140,7 @@ concept command_registry_c = is_command_registry<_Type>::value;
 NS_END  // cli
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CLI_FUNCTIONAL_CLI_
+
+#endif  // DJINTERP_PARSE_FUNCTIONAL_CLI_HPP

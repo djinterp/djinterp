@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                      node_container.hpp
+/*******************************************************************************
+* djinterp [core]                                             node_container.hpp
 *
 * Node Container Foundation:
 *   Foundational base class for all containers that manage their elements
@@ -31,28 +31,34 @@
 *     (future) graph_container - adds entry set, adjacency
 *
 * TEMPLATE PARAMETERS:
-*   _ValueType       - the user-facing element type
-*   _NodeType        - the internal node structure
-*   _Allocator       - allocator for nodes (default: std::allocator<N>)
-*   _LockPolicy      - threading policy (default: void = no locking)
-*   _OwnershipPolicy - entry point ownership (default: non_owning_policy)
+*   ValueType        - the user-facing element type
+*   NodeType         - the internal node structure
+*   Allocator        - allocator for nodes (default: std::allocator<N>)
+*   LockPolicy       - threading policy (default: void = no locking)
+*   OwnershipPolicy - entry point ownership (default: non_owning_policy)
 *
 *
-* path:      /inc/container/node/node_container.hpp
+* path:      /inc/djinterp/core/container/node_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.11
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_NODE_CONTAINER_
-#define DJINTERP_CONTAINER_NODE_CONTAINER_ 1
+#ifndef DJINTERP_CONTAINER_NODE_CONTAINER_HPP
+#define DJINTERP_CONTAINER_NODE_CONTAINER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <memory>
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -85,56 +91,56 @@ NS_DJINTERP
 // ─── non_owning_policy ──────────────────────────────────────────────────────
 
 // non_owning_policy
-//   struct: entry point held as a raw pointer.  The container does
-// NOT destroy nodes.  Caller or derived type manages lifetime.
-// This is the backward-compatible default.
+//   struct: entry point held as a raw pointer. The container does NOT destroy
+// nodes. Caller or derived type manages lifetime. This is the
+// backward-compatible default.
 struct non_owning_policy
 {
     static D_CONSTEXPR bool owns     = false;
     static D_CONSTEXPR bool copyable = true;
     static D_CONSTEXPR bool movable  = true;
 
-    template<typename _N>
-    using root_storage_type = _N*;
+    template<typename N>
+    using root_storage_type = N*;
 
-    template<typename _N>
-    static D_CONSTEXPR _N*
+    template<typename N>
+    static D_CONSTEXPR N*
     make_null() noexcept
     {
         return nullptr;
     }
 
-    template<typename _N>
+    template<typename N>
     static D_CONSTEXPR bool
     is_null(
-        _N* _s
+        N* _s
     ) noexcept
     {
         return (_s == nullptr);
     }
 
-    template<typename _N>
-    static D_CONSTEXPR _N*
+    template<typename N>
+    static D_CONSTEXPR N*
     get(
-        _N* _s
+        N* _s
     ) noexcept
     {
         return _s;
     }
 
-    template<typename _N>
-    static D_CONSTEXPR const _N*
+    template<typename N>
+    static D_CONSTEXPR const N*
     get_const(
-        const _N* _s
+        const N* _s
     ) noexcept
     {
         return _s;
     }
 
-    template<typename _N>
+    template<typename N>
     static D_CONSTEXPR void
     reset(
-        _N*& _s
+        N*& _s
     ) noexcept
     {
         _s = nullptr;
@@ -142,11 +148,11 @@ struct non_owning_policy
         return;
     }
 
-    template<typename _N>
+    template<typename N>
     static D_CONSTEXPR void
     adopt(
-        _N*& _s,
-        _N*  _node
+        N*& _s,
+        N*  _node
     ) noexcept
     {
         _s = _node;
@@ -154,23 +160,23 @@ struct non_owning_policy
         return;
     }
 
-    template<typename _N>
-    static D_CONSTEXPR _N*
+    template<typename N>
+    static D_CONSTEXPR N*
     release(
-        _N*& _s
+        N*& _s
     ) noexcept
     {
-        _N* tmp = _s;
+        N* tmp = _s;
         _s = nullptr;
 
         return tmp;
     }
 
-    template<typename _N>
+    template<typename N>
     static D_CONSTEXPR void
     move_from(
-        _N*& _src,
-        _N*& _dst
+        N*& _src,
+        N*& _dst
     ) noexcept
     {
         _dst = _src;
@@ -179,10 +185,10 @@ struct non_owning_policy
         return;
     }
 
-    template<typename _N>
-    static D_CONSTEXPR _N*
+    template<typename N>
+    static D_CONSTEXPR N*
     clone(
-        _N* _src
+        N* _src
     )
     {
         return _src;
@@ -193,56 +199,55 @@ struct non_owning_policy
 // ─── unique_owning_policy ───────────────────────────────────────────────────
 
 // unique_owning_policy
-//   struct: entry point held via std::unique_ptr.  The container
-// exclusively owns the node graph.  Move-only - copy is a
-// compile-time error.
+//   struct: entry point held via std::unique_ptr. The container exclusively
+// owns the node graph. Move-only - copy is a compile-time error.
 struct unique_owning_policy
 {
     static D_CONSTEXPR bool owns     = true;
     static D_CONSTEXPR bool copyable = false;
     static D_CONSTEXPR bool movable  = true;
 
-    template<typename _N>
-    using root_storage_type = std::unique_ptr<_N>;
+    template<typename N>
+    using root_storage_type = std::unique_ptr<N>;
 
-    template<typename _N>
-    static std::unique_ptr<_N>
+    template<typename N>
+    static std::unique_ptr<N>
     make_null()
     {
-        return std::unique_ptr<_N>(nullptr);
+        return std::unique_ptr<N>(nullptr);
     }
 
-    template<typename _N>
+    template<typename N>
     static bool
     is_null(
-        const std::unique_ptr<_N>& _s
+        const std::unique_ptr<N>& _s
     ) noexcept
     {
         return (!_s);
     }
 
-    template<typename _N>
-    static _N*
+    template<typename N>
+    static N*
     get(
-        std::unique_ptr<_N>& _s
+        std::unique_ptr<N>& _s
     ) noexcept
     {
         return _s.get();
     }
 
-    template<typename _N>
-    static const _N*
+    template<typename N>
+    static const N*
     get_const(
-        const std::unique_ptr<_N>& _s
+        const std::unique_ptr<N>& _s
     ) noexcept
     {
         return _s.get();
     }
 
-    template<typename _N>
+    template<typename N>
     static void
     reset(
-        std::unique_ptr<_N>& _s
+        std::unique_ptr<N>& _s
     )
     {
         _s.reset();
@@ -250,11 +255,11 @@ struct unique_owning_policy
         return;
     }
 
-    template<typename _N>
+    template<typename N>
     static void
     adopt(
-        std::unique_ptr<_N>& _s,
-        _N*                  _node
+        std::unique_ptr<N>& _s,
+        N*                  _node
     )
     {
         _s.reset(_node);
@@ -262,11 +267,11 @@ struct unique_owning_policy
         return;
     }
 
-    template<typename _N>
+    template<typename N>
     static void
     adopt(
-        std::unique_ptr<_N>& _s,
-        std::unique_ptr<_N>  _node
+        std::unique_ptr<N>& _s,
+        std::unique_ptr<N>  _node
     )
     {
         _s = std::move(_node);
@@ -274,20 +279,20 @@ struct unique_owning_policy
         return;
     }
 
-    template<typename _N>
-    static _N*
+    template<typename N>
+    static N*
     release(
-        std::unique_ptr<_N>& _s
+        std::unique_ptr<N>& _s
     )
     {
         return _s.release();
     }
 
-    template<typename _N>
+    template<typename N>
     static void
     move_from(
-        std::unique_ptr<_N>& _src,
-        std::unique_ptr<_N>& _dst
+        std::unique_ptr<N>& _src,
+        std::unique_ptr<N>& _dst
     ) noexcept
     {
         _dst = std::move(_src);
@@ -295,19 +300,19 @@ struct unique_owning_policy
         return;
     }
 
-    template<typename _N>
-    static std::unique_ptr<_N>
+    template<typename N>
+    static std::unique_ptr<N>
     clone(
-        const std::unique_ptr<_N>& /* _src */
+        const std::unique_ptr<N>& /* _src */
     )
     {
         static_assert(
-            sizeof(_N) == 0,
+            sizeof(N) == 0,
             "unique_owning_policy does not support cloning. "
             "Provide a deep_copy function on the derived type, "
             "or use shared_owning_policy.");
 
-        return std::unique_ptr<_N>(nullptr);
+        return std::unique_ptr<N>(nullptr);
     }
 };
 
@@ -315,56 +320,56 @@ struct unique_owning_policy
 // ─── shared_owning_policy ───────────────────────────────────────────────────
 
 // shared_owning_policy
-//   struct: entry point held via std::shared_ptr.  Multiple
-// containers can share the same node graph with reference-
-// counted lifetime management.  Copyable and movable.
+//   struct: entry point held via std::shared_ptr. Multiple containers can
+// share the same node graph with reference- counted lifetime management.
+// Copyable and movable.
 struct shared_owning_policy
 {
     static D_CONSTEXPR bool owns     = true;
     static D_CONSTEXPR bool copyable = true;
     static D_CONSTEXPR bool movable  = true;
 
-    template<typename _N>
-    using root_storage_type = std::shared_ptr<_N>;
+    template<typename N>
+    using root_storage_type = std::shared_ptr<N>;
 
-    template<typename _N>
-    static std::shared_ptr<_N>
+    template<typename N>
+    static std::shared_ptr<N>
     make_null()
     {
-        return std::shared_ptr<_N>(nullptr);
+        return std::shared_ptr<N>(nullptr);
     }
 
-    template<typename _N>
+    template<typename N>
     static bool
     is_null(
-        const std::shared_ptr<_N>& _s
+        const std::shared_ptr<N>& _s
     ) noexcept
     {
         return (!_s);
     }
 
-    template<typename _N>
-    static _N*
+    template<typename N>
+    static N*
     get(
-        std::shared_ptr<_N>& _s
+        std::shared_ptr<N>& _s
     ) noexcept
     {
         return _s.get();
     }
 
-    template<typename _N>
-    static const _N*
+    template<typename N>
+    static const N*
     get_const(
-        const std::shared_ptr<_N>& _s
+        const std::shared_ptr<N>& _s
     ) noexcept
     {
         return _s.get();
     }
 
-    template<typename _N>
+    template<typename N>
     static void
     reset(
-        std::shared_ptr<_N>& _s
+        std::shared_ptr<N>& _s
     )
     {
         _s.reset();
@@ -372,11 +377,11 @@ struct shared_owning_policy
         return;
     }
 
-    template<typename _N>
+    template<typename N>
     static void
     adopt(
-        std::shared_ptr<_N>& _s,
-        _N*                  _node
+        std::shared_ptr<N>& _s,
+        N*                  _node
     )
     {
         _s.reset(_node);
@@ -384,11 +389,11 @@ struct shared_owning_policy
         return;
     }
 
-    template<typename _N>
+    template<typename N>
     static void
     adopt(
-        std::shared_ptr<_N>& _s,
-        std::shared_ptr<_N>  _node
+        std::shared_ptr<N>& _s,
+        std::shared_ptr<N>  _node
     )
     {
         _s = std::move(_node);
@@ -396,23 +401,23 @@ struct shared_owning_policy
         return;
     }
 
-    template<typename _N>
-    static _N*
+    template<typename N>
+    static N*
     release(
-        std::shared_ptr<_N>& _s
+        std::shared_ptr<N>& _s
     )
     {
-        _N* raw = _s.get();
+        N* raw = _s.get();
         _s.reset();
 
         return raw;
     }
 
-    template<typename _N>
+    template<typename N>
     static void
     move_from(
-        std::shared_ptr<_N>& _src,
-        std::shared_ptr<_N>& _dst
+        std::shared_ptr<N>& _src,
+        std::shared_ptr<N>& _dst
     ) noexcept
     {
         _dst = std::move(_src);
@@ -420,10 +425,10 @@ struct shared_owning_policy
         return;
     }
 
-    template<typename _N>
-    static std::shared_ptr<_N>
+    template<typename N>
+    static std::shared_ptr<N>
     clone(
-        const std::shared_ptr<_N>& _src
+        const std::shared_ptr<N>& _src
     )
     {
         return _src;
@@ -448,49 +453,49 @@ struct shared_owning_policy
 
 // node_container
 //   class: foundational base for all node-based containers.
-template<typename _ValueType,
-         typename _NodeType,
-         typename _Allocator       = std::allocator<_NodeType>,
-         typename _LockPolicy      = void,
-         typename _OwnershipPolicy = non_owning_policy>
+template<typename ValueType,
+         typename NodeType,
+         typename Allocator        = std::allocator<NodeType>,
+         typename LockPolicy       = void,
+         typename OwnershipPolicy = non_owning_policy>
 class node_container
 {
 private:
-    using allocator_traits = std::allocator_traits<_Allocator>;
+    using allocator_traits = std::allocator_traits<Allocator>;
 
 public:
     // ── type aliases ────────────────────────────────────────────────
-    using value_type       = _ValueType;
-    using node_type        = _NodeType;
-    using allocator_type   = _Allocator;
-    using lock_policy      = _LockPolicy;
-    using ownership_policy = _OwnershipPolicy;
+    using value_type       = ValueType;
+    using node_type        = NodeType;
+    using allocator_type   = Allocator;
+    using lock_policy      = LockPolicy;
+    using ownership_policy = OwnershipPolicy;
     using size_type        = std::size_t;
     using difference_type  = std::ptrdiff_t;
     using depth_type       = std::size_t;
     using reference        = value_type&;
     using const_reference  = const value_type&;
-    //using pointer          = typename allocator_pointer;
-    //using const_pointer    = typename allocator_const_pointer;
+    // using pointer = typename allocator_pointer; using const_pointer =
+    // typename allocator_const_pointer;
 
     // Root storage type determined by ownership policy
-    using entry_storage = typename _OwnershipPolicy::
-        template root_storage_type<_NodeType>;
+    using entry_storage = typename OwnershipPolicy::
+        template root_storage_type<NodeType>;
 
     // ── compile-time ownership queries ──────────────────────────────
-    static D_CONSTEXPR bool entry_owns   = _OwnershipPolicy::owns;
-    static D_CONSTEXPR bool is_copyable  = _OwnershipPolicy::copyable;
-    static D_CONSTEXPR bool is_movable   = _OwnershipPolicy::movable;
+    static D_CONSTEXPR bool entry_owns   = OwnershipPolicy::owns;
+    static D_CONSTEXPR bool is_copyable  = OwnershipPolicy::copyable;
+    static D_CONSTEXPR bool is_movable   = OwnershipPolicy::movable;
 
     // -----------------------------------------------------------------
     // constructors / destructor / assignment
     // -----------------------------------------------------------------
 
     // node_container
-    //   constructor: default.  Creates an empty container.
+    //   constructor: default. Creates an empty container.
     D_CONSTEXPR node_container() noexcept(
         noexcept(entry_storage{}))
-        : m_entry(_OwnershipPolicy::template make_null<_NodeType>()),
+        : m_entry(OwnershipPolicy::template make_null<NodeType>()),
           m_size(0),
           m_allocator()
     {}
@@ -501,7 +506,7 @@ public:
         const allocator_type& _alloc
     ) noexcept(noexcept(entry_storage{}))
         : m_entry(
-                _OwnershipPolicy::template make_null<_NodeType>()),
+                OwnershipPolicy::template make_null<NodeType>()),
             m_size(0),
             m_allocator(_alloc)
     {}
@@ -509,15 +514,15 @@ public:
     // node_container
     //   constructor: copy.
     //   Only participates if the ownership policy supports copying.
-    template<typename _Dummy = void,
+    template<typename Dummy = void,
              std::enable_if_t<
-                 _OwnershipPolicy::copyable &&
-                 std::is_void<_Dummy>::value,
+                 OwnershipPolicy::copyable &&
+                 std::is_void<Dummy>::value,
                  int> = 0>
     D_CONSTEXPR node_container(
         const node_container& _other
     )
-        : m_entry(_OwnershipPolicy::clone(_other.m_entry)),
+        : m_entry(OwnershipPolicy::clone(_other.m_entry)),
           m_size(_other.m_size),
           m_allocator(
               allocator_select_on_container_copy_construction(
@@ -525,32 +530,32 @@ public:
     {}
 
     // node_container
-    //   constructor: move.  Transfers entry point and size.
+    //   constructor: move. Transfers entry point and size.
     D_CONSTEXPR node_container(
             node_container&& _other
         ) noexcept
             : m_entry(
-                  _OwnershipPolicy::template make_null<_NodeType>()),
+                  OwnershipPolicy::template make_null<NodeType>()),
               m_size(_other.m_size),
               m_allocator(
                   static_cast<allocator_type&&>(_other.m_allocator))
         {
-            _OwnershipPolicy::move_from(_other.m_entry, m_entry);
+            OwnershipPolicy::move_from(_other.m_entry, m_entry);
             _other.m_size = 0;
         }
 
     // ~node_container
-    //   destructor: if the ownership policy owns, destruction is
-    // handled by the entry_storage destructor (unique_ptr/shared_ptr).
-    // If non-owning, the raw pointer is abandoned.
+    //   destructor: if the ownership policy owns, destruction is handled by
+    // the entry_storage destructor (unique_ptr/shared_ptr). If non-owning, the
+    // raw pointer is abandoned.
     ~node_container() = default;
 
     // operator=
-    //   assignment: copy.  Only participates if copyable.
-    template<typename _Dummy = void,
+    //   assignment: copy. Only participates if copyable.
+    template<typename Dummy = void,
              std::enable_if_t<
-                 _OwnershipPolicy::copyable &&
-                 std::is_void<_Dummy>::value,
+                 OwnershipPolicy::copyable &&
+                 std::is_void<Dummy>::value,
                  int> = 0>
     D_CONSTEXPR node_container&
     operator=(
@@ -559,7 +564,7 @@ public:
     {
         if (this != &_other)
         {
-            m_entry = _OwnershipPolicy::clone(_other.m_entry);
+            m_entry = OwnershipPolicy::clone(_other.m_entry);
             m_size  = _other.m_size;
 
             if constexpr (allocator_traits::propagate_on_container_copy_assignment::value)
@@ -572,7 +577,7 @@ public:
     }
 
     // operator=
-    //   assignment: move.  Transfers state.
+    //   assignment: move. Transfers state.
     D_CONSTEXPR node_container&
     operator=(
         node_container&& _other
@@ -580,8 +585,8 @@ public:
     {
         if (this != &_other)
         {
-            _OwnershipPolicy::reset(m_entry);
-            _OwnershipPolicy::move_from(_other.m_entry, m_entry);
+            OwnershipPolicy::reset(m_entry);
+            OwnershipPolicy::move_from(_other.m_entry, m_entry);
 
             m_size = _other.m_size;
 
@@ -626,19 +631,19 @@ public:
     // -----------------------------------------------------------------
 
     // entry_point
-    //   returns a mutable pointer to the entry node.
-    // Derived types alias this: root() for trees, head() for lists.
+    //   returns a mutable pointer to the entry node. Derived types alias this:
+    // root() for trees, head() for lists.
     D_CONSTEXPR node_type*
     entry_point() noexcept
     {
-        return _OwnershipPolicy::get(m_entry);
+        return OwnershipPolicy::get(m_entry);
     }
 
     // entry_point (const)
     D_CONSTEXPR const node_type*
     entry_point() const noexcept
     {
-        return _OwnershipPolicy::get_const(m_entry);
+        return OwnershipPolicy::get_const(m_entry);
     }
 
     // has_entry
@@ -646,12 +651,12 @@ public:
     D_CONSTEXPR bool
     has_entry() const noexcept
     {
-        return (!_OwnershipPolicy::is_null(m_entry));
+        return (!OwnershipPolicy::is_null(m_entry));
     }
 
     // entry_storage_ref
-    //   returns a reference to the underlying storage.
-    // Advanced usage - prefer the typed accessors.
+    //   returns a reference to the underlying storage. Advanced usage - prefer
+    // the typed accessors.
     entry_storage&
     entry_storage_ref() noexcept
     {
@@ -675,18 +680,18 @@ public:
     D_CONSTEXPR void
     set_entry(
         node_type* _node
-    ) noexcept(!_OwnershipPolicy::owns)
+    ) noexcept(!OwnershipPolicy::owns)
     {
-        _OwnershipPolicy::adopt(m_entry, _node);
+        OwnershipPolicy::adopt(m_entry, _node);
 
         return;
     }
 
     // adopt_entry (unique_ptr)
     //   only available with unique_owning_policy.
-    template<typename _Dummy = _OwnershipPolicy,
+    template<typename Dummy = OwnershipPolicy,
              std::enable_if_t<
-                 std::is_same<_Dummy,
+                 std::is_same<Dummy,
                               unique_owning_policy>::value,
                  int> = 0>
     void
@@ -694,16 +699,16 @@ public:
         std::unique_ptr<node_type> _node
     )
     {
-        _OwnershipPolicy::adopt(m_entry, std::move(_node));
+        OwnershipPolicy::adopt(m_entry, std::move(_node));
 
         return;
     }
 
     // share_entry (shared_ptr)
     //   only available with shared_owning_policy.
-    template<typename _Dummy = _OwnershipPolicy,
+    template<typename Dummy = OwnershipPolicy,
              std::enable_if_t<
-                 std::is_same<_Dummy,
+                 std::is_same<Dummy,
                               shared_owning_policy>::value,
                  int> = 0>
     void
@@ -711,7 +716,7 @@ public:
         std::shared_ptr<node_type> _node
     )
     {
-        _OwnershipPolicy::adopt(m_entry, std::move(_node));
+        OwnershipPolicy::adopt(m_entry, std::move(_node));
 
         return;
     }
@@ -721,7 +726,7 @@ public:
     node_type*
     release_entry()
     {
-        node_type* released = _OwnershipPolicy::release(m_entry);
+        node_type* released = OwnershipPolicy::release(m_entry);
         m_size = 0;
 
         return released;
@@ -764,9 +769,9 @@ public:
     // -----------------------------------------------------------------
 
     D_CONSTEXPR void
-    clear() noexcept(!_OwnershipPolicy::owns)
+    clear() noexcept(!OwnershipPolicy::owns)
     {
-        _OwnershipPolicy::reset(m_entry);
+        OwnershipPolicy::reset(m_entry);
         m_size = 0;
 
         return;
@@ -842,32 +847,33 @@ private:
 
 // owning_node_container
 //   alias: node_container with unique_owning_policy.
-template<typename _ValueType,
-         typename _NodeType,
-         typename _Allocator  = std::allocator<_NodeType>,
-         typename _LockPolicy = void>
+template<typename ValueType,
+         typename NodeType,
+         typename Allocator   = std::allocator<NodeType>,
+         typename LockPolicy = void>
 using owning_node_container =
-    node_container<_ValueType,
-                   _NodeType,
-                   _Allocator,
-                   _LockPolicy,
+    node_container<ValueType,
+                   NodeType,
+                   Allocator,
+                   LockPolicy,
                    unique_owning_policy>;
 
 // shared_node_container
 //   alias: node_container with shared_owning_policy.
-template<typename _ValueType,
-         typename _NodeType,
-         typename _Allocator  = std::allocator<_NodeType>,
-         typename _LockPolicy = void>
+template<typename ValueType,
+         typename NodeType,
+         typename Allocator   = std::allocator<NodeType>,
+         typename LockPolicy = void>
 using shared_node_container =
-    node_container<_ValueType,
-                   _NodeType,
-                   _Allocator,
-                   _LockPolicy,
+    node_container<ValueType,
+                   NodeType,
+                   Allocator,
+                   LockPolicy,
                    shared_owning_policy>;
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_NODE_CONTAINER_
+#endif  // DJINTERP_CONTAINER_NODE_CONTAINER_HPP

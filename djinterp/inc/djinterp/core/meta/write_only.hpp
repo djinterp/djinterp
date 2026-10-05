@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                           write_only.hpp
+/*******************************************************************************
+* djinterp [core]                                                 write_only.hpp
 *
 *   The WRITE_ONLY access-capability tag: a handle that grants modification but
 * NOT observation of element values - a sink.  It is the corner of the access
@@ -24,13 +24,14 @@
 *   C++11 baseline.
 *
 *
-* path:      /inc/djinterp/core/container/access/write_only.hpp
+* path:      /inc/djinterp/core/meta/write_only.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_WRITE_ONLY_
-#define DJINTERP_WRITE_ONLY_ 1
+#ifndef DJINTERP_META_WRITE_ONLY_HPP
+#define DJINTERP_META_WRITE_ONLY_HPP 1
 
 // djinterp
 #include "../../djinterp.hpp"   // NS_*
@@ -43,16 +44,16 @@ NS_DJINTERP
 //   tag: the access capability granting modification only (an append-only sink).
 struct write_only
 {
-    static constexpr bool can_read  = false;
-    static constexpr bool can_write = true;
+    static D_CONSTEXPR_VAR bool can_read  = false;
+    static D_CONSTEXPR_VAR bool can_write = true;
 
     // name
     //   function: the capability's stable spelling.
-    static constexpr const char* name() noexcept { return "write_only"; }
+    static D_CONSTEXPR const char* name() D_NOEXCEPT { return "write_only"; }
 };
 
 
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_WRITE_ONLY_
+#endif  // DJINTERP_META_WRITE_ONLY_HPP

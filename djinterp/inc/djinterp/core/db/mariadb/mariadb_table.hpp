@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                        mariadb_table.hpp
+/*******************************************************************************
+* djinterp [core]                                              mariadb_table.hpp
 *
 * djinterp MariaDB table module:
 *   MariaDB-specific database_table subclass providing vendor-specific
@@ -13,9 +13,9 @@
 *   - MariaDB-specific storage engine selection (Aria, ColumnStore, S3)
 *
 *   LAYER DIAGRAM:
-*     mariadb_table<_Config>
-*       -> mysql_common_table<mariadb_connection, value, _Config>
-*         -> database_table<mariadb_connection, value, _Config>
+*     mariadb_table<Config>
+*       -> mysql_common_table<mariadb_connection, value, Config>
+*         -> database_table<mariadb_connection, value, Config>
 *
 *   All version-gated features use the mariadb_type_support and
 * mariadb_feature_support compile-time structs from mariadb.hpp, which
@@ -27,16 +27,18 @@
 *
 * path:      /inc/djinterp/core/db/mariadb/mariadb_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.20
+*                                                            revised: 2026.09.30
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_MARIADB_TABLE_
-#define DJINTERP_DATABASE_MARIADB_TABLE_
+#ifndef DJINTERP_DB_MARIADB_MARIADB_TABLE_HPP
+#define DJINTERP_DB_MARIADB_MARIADB_TABLE_HPP
 
-// mysql
-#include <mysql/mysql.h>
-// mariadb
-#include <mariadb/conncpp.hpp>
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 // djinterp
 #include "../../../djinterp.hpp"
 #include "../mysql/mysql_common_table.hpp"
@@ -53,15 +55,15 @@ NS_DJINTERP
     //   class: MariaDB-specific database table. Extends the shared
     // MySQL-family table with MariaDB vendor features. Uses
     // mariadb_connection as the concrete connection type.
-    template<typename _Config = void>
+    template<typename Config = void>
     class mariadb_table : public mysql_common_table<mariadb_connection,
                                                                   value,
-                                                                  _Config>
+                                                                  Config>
     {
     private:
         using base_type = mysql_common_table<mariadb_connection,
                                                            value,
-                                                           _Config>;
+                                                           Config>;
 
     public:
         using typename base_type::size_type;
@@ -69,7 +71,7 @@ NS_DJINTERP
         using typename base_type::row_type;
         using typename base_type::connection_type;
         using typename base_type::schema_type;
-        using self_type = mariadb_table<_Config>;
+        using self_type = mariadb_table<Config>;
 
         using type_support    = mariadb_type_support;
         using feature_support = mariadb_feature_support;
@@ -134,7 +136,8 @@ NS_DJINTERP
         {
         }
 
-        ~mariadb_table() override = default;
+        // non-virtual: the base is not a polymorphic type.
+        ~mariadb_table() = default;
 
         // disable copying
         mariadb_table(const mariadb_table&)            = delete;
@@ -153,7 +156,8 @@ NS_DJINTERP
         //   function: extends the MySQL-family schema introspection with
         // MariaDB-specific column properties (IS_GENERATED, GENERATION_
         // EXPRESSION, visibility via EXTRA column containing "INVISIBLE").
-        void fetch_schema() override
+        // Concrete (not an override): call on the concrete mariadb_table.
+        void fetch_schema()
         {
             // use the base MySQL-family introspection first
             base_type::fetch_schema();
@@ -381,9 +385,11 @@ NS_DJINTERP
         }
 
         // commit
-        //   function: overrides base commit to add Galera sync when
-        // configured.
-        void commit() override
+        //   function: concrete MariaDB commit. Shadows the MySQL-family
+        // commit (mysql_common_table::commit, itself concrete) and folds in
+        // a Galera cluster sync when configured. Called on the concrete
+        // mariadb_table.
+        void commit()
         {
             base_type::commit();
 
@@ -450,13 +456,17 @@ NS_DJINTERP
     protected:
 
         // =================================================================
-        //  protected overrides
+        //  protected helpers (concrete — not overrides)
         // =================================================================
 
         // build_select_query
-        //   function: extends the MySQL-family SELECT with temporal
-        // clauses for system-versioned tables.
-        std::string build_select_query() const override
+        //   function: the MySQL-family SELECT with a temporal clause (FOR
+        // SYSTEM_TIME ...) appended for system-versioned tables. Concrete
+        // (not an override): the concrete base is non-polymorphic, so the
+        // temporal SELECT is routed through the concrete refresh() below.
+        // Identifier quoting matches quote_identifier(name,
+        // database_type::mariadb).
+        std::string build_select_query() const
         {
             std::string query =
                 "SELECT * FROM "
@@ -494,58 +504,62 @@ NS_DJINTERP
             return query;
         }
 
-        // field_type_to_sql
-        //   function: extends the MySQL-family type mapping with
-        // MariaDB-specific types (INET6, UUID, JSON alias).
-        const char* field_type_to_sql(field_type _type) const override
+        // refresh
+        //   function: concrete MariaDB refresh that reloads the local cache
+        // through the temporal-aware SELECT above. Shadows base::refresh()
+        // for direct calls on the concrete mariadb_table; with no temporal
+        // clause set the emitted SQL is identical to the base path, in which
+        // case it simply defers to the base implementation.
+        void refresh()
         {
-            // MariaDB-specific overrides
-            if (_type == field_type::uuid)
+            if (m_temporal_clause.empty())
             {
-                if constexpr (type_support::has_uuid_type)
-                {
-                    return "UUID";
-                }
+                base_type::refresh();
+                return;
             }
 
-            if (_type == field_type::json)
+            this->validate_connected("refresh");
+
+            const std::string query = build_select_query();
+            auto              rs    = this->m_connection->execute_query(query);
+
+            if (this->m_num_cols == 0)
             {
-                // MariaDB JSON is always LONGTEXT alias
-                if constexpr (type_support::has_json_type)
-                {
-                    return "JSON";
-                }
-                else
-                {
-                    return "LONGTEXT";
-                }
+                this->m_num_cols = rs->column_count();
             }
 
-            // fall through to base for common types
-            return base_type::field_type_to_sql(_type);
+            this->m_data.clear();
+
+            while (rs->next())
+            {
+                typename base_type::row_type r;
+                r.reserve(this->m_num_cols);
+
+                for (size_type c = 0; c < this->m_num_cols; ++c)
+                {
+                    r.push_back(rs->get_value(c));
+                }
+
+                this->m_data.push_back(std::move(r));
+            }
+
+            this->m_num_rows     = this->m_data.size();
+            this->m_stale        = false;
+            this->m_dirty        = false;
+            this->m_last_refresh = std::chrono::steady_clock::now();
+
+            return;
         }
 
-        // map_mysql_data_type
-        //   function: extends the MySQL-family type mapping with
-        // MariaDB-specific types.
-        field_type map_mysql_data_type(
-                const std::string& _type_name
-            ) const override
-        {
-            // MariaDB-specific types
-            if (_type_name == "inet6")
-            {
-                return field_type::string;
-            }
-
-            if (_type_name == "uuid")
-            {
-                return field_type::uuid;
-            }
-
-            // fall through to base
-            return base_type::map_mysql_data_type(_type_name);
-        }
+        // NOTE: the former field_type_to_sql and map_mysql_data_type
+        // overrides were removed. MariaDB's forward spellings (LONGTEXT for
+        // JSON, native UUID on 10.7+) are produced by
+        // mysql_common_table::field_type_to_sql from
+        // mariadb_connection::type_support (has_json_type,
+        // has_uuid_type) at compile time; the reverse names ("uuid",
+        // "inet6") are recognised directly by the shared
+        // mysql_common_table::map_mysql_data_type. No per-leaf override is
+        // needed for either direction.
 
 
         // =================================================================
@@ -634,5 +648,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_MARIADB_TABLE_
+#endif  // DJINTERP_DB_MARIADB_MARIADB_TABLE_HPP

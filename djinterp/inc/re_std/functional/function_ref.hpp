@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [functional]                                           function_ref.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             function_ref.hpp
 *
+* function_ref class header:
 *   function_ref - a NON-OWNING reference to a callable.
 *
 *   THE POINT IS THAT IT DOES NOT OWN.
@@ -29,162 +30,164 @@
 * back-port.  Nothing here needs more than variadic templates.
 *
 *
-* path:      /inc/djinterp/re_std/functional/function_ref.hpp
+* path:      /inc/re_std/functional/function_ref.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_REF_
-#define DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_REF_ 1
+#ifndef RE_STD_FUNCTIONAL_FUNCTION_REF_HPP
+#define RE_STD_FUNCTIONAL_FUNCTION_REF_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
 #include "../memory/addressof.hpp"
 #include "./invoke.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // function_ref
 //   class: primary template, deliberately undefined.
-template<typename _Signature>
+template<typename Signature>
 class function_ref;
 
-// function_ref<_Result(_Args...)>
+// function_ref<Result(Args...)>
 //   class: non-owning reference to a callable invoked as a non-const lvalue.
-template<typename _Result, typename... _Args>
-class function_ref<_Result(_Args...)>
+template<typename Result, typename... Args>
+class function_ref<Result(Args...)>
 {
-    typedef _Result (*_Thunk)(void*, _Args&&...);
+    typedef Result (*_Thunk)(void*, Args&&...);
 
     void*  m_target;
     _Thunk m_thunk;
 
-    template<typename _Func>
-    static _Result call(void* target, _Args&&... args)
+    template<typename Func>
+    static Result call(void* target, Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            *static_cast<_Func*>(target), static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            *static_cast<Func*>(target), static_cast<Args&&>(args)...));
     }
 
 public:
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, function_ref>::value,
+                 !is_same<typename decay<Func>::type, function_ref>::value,
                  int>::type = 0>
-    function_ref(_Func& func) D_NOEXCEPT
+    function_ref(Func& func) RE_STD_NOEXCEPT
         : m_target(static_cast<void*>(re_std::addressof(func))),
-          m_thunk(&call<_Func>)
+          m_thunk(&call<Func>)
     {}
 
-    _Result operator()(_Args... args) const
+    Result operator()(Args... args) const
     {
-        return m_thunk(m_target, static_cast<_Args&&>(args)...);
+        return m_thunk(m_target, static_cast<Args&&>(args)...);
     }
 };
 
-// function_ref<_Result(_Args...) const>
+// function_ref<Result(Args...) const>
 //   class: invokes the referenced callable as const.
-template<typename _Result, typename... _Args>
-class function_ref<_Result(_Args...) const>
+template<typename Result, typename... Args>
+class function_ref<Result(Args...) const>
 {
-    typedef _Result (*_Thunk)(const void*, _Args&&...);
+    typedef Result (*_Thunk)(const void*, Args&&...);
 
     const void* m_target;
     _Thunk      m_thunk;
 
-    template<typename _Func>
-    static _Result call(const void* target, _Args&&... args)
+    template<typename Func>
+    static Result call(const void* target, Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            *static_cast<const _Func*>(target),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            *static_cast<const Func*>(target),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, function_ref>::value,
+                 !is_same<typename decay<Func>::type, function_ref>::value,
                  int>::type = 0>
-    function_ref(const _Func& func) D_NOEXCEPT
+    function_ref(const Func& func) RE_STD_NOEXCEPT
         : m_target(static_cast<const void*>(re_std::addressof(func))),
-          m_thunk(&call<_Func>)
+          m_thunk(&call<Func>)
     {}
 
-    _Result operator()(_Args... args) const
+    Result operator()(Args... args) const
     {
-        return m_thunk(m_target, static_cast<_Args&&>(args)...);
+        return m_thunk(m_target, static_cast<Args&&>(args)...);
     }
 };
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
 //   `R(Args...) noexcept` is a distinct TYPE only from C++17.
 
-template<typename _Result, typename... _Args>
-class function_ref<_Result(_Args...) noexcept>
+template<typename Result, typename... Args>
+class function_ref<Result(Args...) noexcept>
 {
-    typedef _Result (*_Thunk)(void*, _Args&&...);
+    typedef Result (*_Thunk)(void*, Args&&...);
     void*  m_target;
     _Thunk m_thunk;
 
-    template<typename _Func>
-    static _Result call(void* target, _Args&&... args) D_NOEXCEPT
+    template<typename Func>
+    static Result call(void* target, Args&&... args) RE_STD_NOEXCEPT
     {
-        return static_cast<_Result>(re_std::invoke(
-            *static_cast<_Func*>(target), static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            *static_cast<Func*>(target), static_cast<Args&&>(args)...));
     }
 
 public:
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, function_ref>::value,
+                 !is_same<typename decay<Func>::type, function_ref>::value,
                  int>::type = 0>
-    function_ref(_Func& func) D_NOEXCEPT
+    function_ref(Func& func) RE_STD_NOEXCEPT
         : m_target(static_cast<void*>(re_std::addressof(func))),
-          m_thunk(&call<_Func>)
+          m_thunk(&call<Func>)
     {}
 
-    _Result operator()(_Args... args) const D_NOEXCEPT
-    { return m_thunk(m_target, static_cast<_Args&&>(args)...); }
+    Result operator()(Args... args) const RE_STD_NOEXCEPT
+    { return m_thunk(m_target, static_cast<Args&&>(args)...); }
 };
 
-template<typename _Result, typename... _Args>
-class function_ref<_Result(_Args...) const noexcept>
+template<typename Result, typename... Args>
+class function_ref<Result(Args...) const noexcept>
 {
-    typedef _Result (*_Thunk)(const void*, _Args&&...);
+    typedef Result (*_Thunk)(const void*, Args&&...);
     const void* m_target;
     _Thunk      m_thunk;
 
-    template<typename _Func>
-    static _Result call(const void* target, _Args&&... args) D_NOEXCEPT
+    template<typename Func>
+    static Result call(const void* target, Args&&... args) RE_STD_NOEXCEPT
     {
-        return static_cast<_Result>(re_std::invoke(
-            *static_cast<const _Func*>(target),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            *static_cast<const Func*>(target),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, function_ref>::value,
+                 !is_same<typename decay<Func>::type, function_ref>::value,
                  int>::type = 0>
-    function_ref(const _Func& func) D_NOEXCEPT
+    function_ref(const Func& func) RE_STD_NOEXCEPT
         : m_target(static_cast<const void*>(re_std::addressof(func))),
-          m_thunk(&call<_Func>)
+          m_thunk(&call<Func>)
     {}
 
-    _Result operator()(_Args... args) const D_NOEXCEPT
-    { return m_thunk(m_target, static_cast<_Args&&>(args)...); }
+    Result operator()(Args... args) const RE_STD_NOEXCEPT
+    { return m_thunk(m_target, static_cast<Args&&>(args)...); }
 };
 
-#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP17_OR_HIGHER
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_REF_
+#endif  // RE_STD_FUNCTIONAL_FUNCTION_REF_HPP

@@ -1,35 +1,38 @@
-/***********************************************************************
-* re_std                                  allocate_shared_for_overwrite.hpp
+/*******************************************************************************
+* djinterp [re_std]                            allocate_shared_for_overwrite.hpp
 *
 * default-init allocator-aware variant:
-*   allocate_shared_for_overwrite<_T>(alloc)
-*   allocate_shared_for_overwrite<_T[]>(alloc, _n)
+*   allocate_shared_for_overwrite<T>(alloc)
+*   allocate_shared_for_overwrite<T[]>(alloc, _n)
 *
 * see make_shared_for_overwrite.hpp for the semantic distinction
 * between default-init and value-init. This file pairs that semantic
 * with allocator-supplied storage.
 *
 *
-* path:      /inc/djinterp/re_std/memory/allocate_shared_for_overwrite.hpp
+* path:      /inc/re_std/memory/allocate_shared_for_overwrite.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_
-#define DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_ 1
+#ifndef RE_STD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_HPP
+#define RE_STD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
     #include <new>
 
     #include "re_std/memory/shared_ptr.hpp"
     #include "re_std/memory/allocator_traits.hpp"
     #include "re_std/memory/sp_control_block.hpp"
-    #include "re_std/memory/make_shared.hpp"               // for array_extent
+    #include "re_std/memory/make_shared.hpp"                        // for array_extent
     #include "re_std/type_traits/enable_if.hpp"
     #include "re_std/type_traits/is_array.hpp"
     #include "re_std/type_traits/is_bounded_array.hpp"
@@ -40,24 +43,24 @@
 namespace re_std
 {
 
-// allocate_shared_for_overwrite<_T>(alloc)  -  non-array form
-template<typename _T, typename _Alloc>
+// allocate_shared_for_overwrite<T>(alloc)  -  non-array form
+template<typename T, typename Alloc>
 typename enable_if
 <
-    !is_array<_T>::value,
-    shared_ptr<_T>
+    !is_array<T>::value,
+    shared_ptr<T>
 >::type
-allocate_shared_for_overwrite(const _Alloc& _alloc)
+allocate_shared_for_overwrite(const Alloc& _alloc)
 {
-    typedef internal::sp_cb_alloc_inplace<_T, _Alloc>     cb_t;
-    typedef typename allocator_traits<_Alloc>
+    typedef internal::sp_cb_alloc_inplace<T, Alloc>     cb_t;
+    typedef typename allocator_traits<Alloc>
         ::template rebind_alloc<cb_t>                     alloc_cb_t;
     typedef allocator_traits<alloc_cb_t>                  cb_traits;
 
     alloc_cb_t _a_cb(_alloc);
     cb_t* _cb = cb_traits::allocate(_a_cb, 1);
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             cb_traits::construct(_a_cb, _cb, _alloc,
@@ -73,22 +76,22 @@ allocate_shared_for_overwrite(const _Alloc& _alloc)
                              internal::sp_for_overwrite_t());
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_cb->get(), _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_cb->get(), _cb);
 }
 
 
-// allocate_shared_for_overwrite<_T[]>(alloc, _n)  -  array form
-template<typename _T, typename _Alloc>
+// allocate_shared_for_overwrite<T[]>(alloc, _n)  -  array form
+template<typename T, typename Alloc>
 typename enable_if
 <
-    is_unbounded_array<_T>::value,
-    shared_ptr<_T>
+    is_unbounded_array<T>::value,
+    shared_ptr<T>
 >::type
-allocate_shared_for_overwrite(const _Alloc& _alloc, std::size_t _n)
+allocate_shared_for_overwrite(const Alloc& _alloc, std::size_t _n)
 {
-    typedef typename remove_extent<_T>::type                       _U;
-    typedef internal::sp_cb_alloc_inplace_array<_U, _Alloc>        cb_t;
-    typedef typename allocator_traits<_Alloc>
+    typedef typename remove_extent<T>::type                       _U;
+    typedef internal::sp_cb_alloc_inplace_array<_U, Alloc>        cb_t;
+    typedef typename allocator_traits<Alloc>
         ::template rebind_alloc<unsigned char>                     byte_alloc_t;
     typedef allocator_traits<byte_alloc_t>                         byte_traits;
 
@@ -100,7 +103,7 @@ allocate_shared_for_overwrite(const _Alloc& _alloc, std::size_t _n)
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_alloc, _n);
@@ -133,26 +136,26 @@ allocate_shared_for_overwrite(const _Alloc& _alloc, std::size_t _n)
         }
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
-// allocate_shared_for_overwrite<_T[_N]>(alloc)  -  bounded array
-template<typename _T, typename _Alloc>
+// allocate_shared_for_overwrite<T[_N]>(alloc)  -  bounded array
+template<typename T, typename Alloc>
 typename enable_if
 <
-    is_bounded_array<_T>::value,
-    shared_ptr<_T>
+    is_bounded_array<T>::value,
+    shared_ptr<T>
 >::type
-allocate_shared_for_overwrite(const _Alloc& _alloc)
+allocate_shared_for_overwrite(const Alloc& _alloc)
 {
-    typedef typename remove_extent<_T>::type                       _U;
-    typedef internal::sp_cb_alloc_inplace_array<_U, _Alloc>        cb_t;
-    typedef typename allocator_traits<_Alloc>
+    typedef typename remove_extent<T>::type                       _U;
+    typedef internal::sp_cb_alloc_inplace_array<_U, Alloc>        cb_t;
+    typedef typename allocator_traits<Alloc>
         ::template rebind_alloc<unsigned char>                     byte_alloc_t;
     typedef allocator_traits<byte_alloc_t>                         byte_traits;
 
-    const std::size_t _n     = internal::array_extent<_T>::value;
+    const std::size_t _n     = internal::array_extent<T>::value;
     byte_alloc_t      _ba(_alloc);
     const std::size_t _bytes = cb_t::total_bytes(_n);
     unsigned char*    _mem = byte_traits::allocate(_ba, _bytes);
@@ -161,7 +164,7 @@ allocate_shared_for_overwrite(const _Alloc& _alloc)
     _U*         _arr = 0;
     std::size_t _i   = 0;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             _cb = ::new (_mem) cb_t(_alloc, _n);
@@ -183,12 +186,11 @@ allocate_shared_for_overwrite(const _Alloc& _alloc)
             ::new (static_cast<void*>(_arr + _i)) _U;
     #endif
 
-    return shared_ptr<_T>::_sp_internal_from_cb(_arr, _cb);
+    return shared_ptr<T>::_sp_internal_from_cb(_arr, _cb);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_
+#endif  // RE_STD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_HPP

@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [iterator]                                        counted_iterator.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         counted_iterator.hpp
 *
+* counted_iterator class header:
 *   counted_iterator - an iterator that carries its own remaining length.
 *
 *   WHY THIS EXISTS.
@@ -34,18 +35,19 @@
 * iterator_traits, which re_std has from C++11.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/counted_iterator.hpp
+* path:      /inc/re_std/iterator/counted_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_COUNTED_ITERATOR_
-#define DJINTERP_RE_STD_ITERATOR_COUNTED_ITERATOR_ 1
+#ifndef RE_STD_ITERATOR_COUNTED_ITERATOR_HPP
+#define RE_STD_ITERATOR_COUNTED_ITERATOR_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
@@ -53,130 +55,132 @@
 #include "./iterator_traits.hpp"
 #include "./default_sentinel.hpp"
 
-NS_RESTD
+
+namespace re_std
+{
 
 // counted_iterator
-//   class: adapts _Iter, carrying the number of steps remaining.
-template<typename _Iter>
+//   class: adapts Iter, carrying the number of steps remaining.
+template<typename Iter>
 class counted_iterator
 {
-    typedef iterator_traits<_Iter> _Traits;
+    typedef iterator_traits<Iter> _Traits;
 
-    _Iter                            m_current;
+    Iter                            m_current;
     typename _Traits::difference_type m_length;
 
 public:
-    typedef _Iter                                iterator_type;
+    typedef Iter                                iterator_type;
     typedef typename _Traits::value_type         value_type;
     typedef typename _Traits::difference_type    difference_type;
     typedef typename _Traits::reference          reference;
     typedef typename _Traits::pointer            pointer;
     typedef typename _Traits::iterator_category  iterator_category;
 
-    D_CONSTEXPR counted_iterator() : m_current(), m_length(0) {}
+    RE_STD_CONSTEXPR counted_iterator() : m_current(), m_length(0) {}
 
-    D_CONSTEXPR counted_iterator(_Iter it, difference_type n)
+    RE_STD_CONSTEXPR counted_iterator(Iter it, difference_type n)
         : m_current(it), m_length(n)
     {}
 
-    D_CONSTEXPR const _Iter& base() const { return m_current; }
+    RE_STD_CONSTEXPR const Iter& base() const { return m_current; }
 
     //   Steps REMAINING, not steps taken.
-    D_CONSTEXPR difference_type count() const D_NOEXCEPT { return m_length; }
+    RE_STD_CONSTEXPR difference_type count() const RE_STD_NOEXCEPT { return m_length; }
 
-    //   The non-const overload is D_CONSTEXPR_CPP14, not D_CONSTEXPR, and
+    //   The non-const overload is RE_STD_CONSTEXPR_CPP14, not RE_STD_CONSTEXPR, and
     // that is not a stylistic choice: in C++11 `constexpr` on a member
-    // function IMPLIES const, so marking both overloads D_CONSTEXPR makes
+    // function IMPLIES const, so marking both overloads RE_STD_CONSTEXPR makes
     // them the same signature and the class fails to compile - at C++11 only.
     // C++14 dropped the implication (N3598), which is why the pair is legal
     // from there.  Caught by the tier matrix; it compiles cleanly at every
     // other tier.
-    D_CONSTEXPR_CPP14 reference operator*()       { return *m_current; }
-    D_CONSTEXPR       reference operator*() const { return *m_current; }
-    D_CONSTEXPR       pointer   operator->() const { return m_current; }
+    RE_STD_CONSTEXPR_CPP14 reference operator*()       { return *m_current; }
+    RE_STD_CONSTEXPR       reference operator*() const { return *m_current; }
+    RE_STD_CONSTEXPR       pointer   operator->() const { return m_current; }
 
-    D_CONSTEXPR_CPP14 counted_iterator& operator++()
+    RE_STD_CONSTEXPR_CPP14 counted_iterator& operator++()
     {
         ++m_current;
         --m_length;
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 counted_iterator operator++(int)
+    RE_STD_CONSTEXPR_CPP14 counted_iterator operator++(int)
     {
         counted_iterator tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    D_CONSTEXPR_CPP14 counted_iterator& operator--()
+    RE_STD_CONSTEXPR_CPP14 counted_iterator& operator--()
     {
         --m_current;
         ++m_length;
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 counted_iterator operator--(int)
+    RE_STD_CONSTEXPR_CPP14 counted_iterator operator--(int)
     {
         counted_iterator tmp = *this;
         --(*this);
         return tmp;
     }
 
-    D_CONSTEXPR_CPP14 counted_iterator& operator+=(difference_type n)
+    RE_STD_CONSTEXPR_CPP14 counted_iterator& operator+=(difference_type n)
     {
         m_current += n;
         m_length  -= n;
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 counted_iterator& operator-=(difference_type n)
+    RE_STD_CONSTEXPR_CPP14 counted_iterator& operator-=(difference_type n)
     {
         m_current -= n;
         m_length  += n;
         return *this;
     }
 
-    D_CONSTEXPR counted_iterator operator+(difference_type n) const
+    RE_STD_CONSTEXPR counted_iterator operator+(difference_type n) const
     { return counted_iterator(m_current + n, m_length - n); }
 
-    D_CONSTEXPR counted_iterator operator-(difference_type n) const
+    RE_STD_CONSTEXPR counted_iterator operator-(difference_type n) const
     { return counted_iterator(m_current - n, m_length + n); }
 
-    D_CONSTEXPR reference operator[](difference_type n) const
+    RE_STD_CONSTEXPR reference operator[](difference_type n) const
     { return m_current[n]; }
 };
 
 // operator- (counted_iterator, counted_iterator)
 //   function: distance between two counted iterators.  REVERSED on purpose -
 // counts run down, so the further-advanced iterator has the smaller count.
-template<typename _Iter1, typename _Iter2>
-D_CONSTEXPR typename iterator_traits<_Iter2>::difference_type
-operator-(const counted_iterator<_Iter1>& a, const counted_iterator<_Iter2>& b)
+template<typename Iter1, typename Iter2>
+RE_STD_CONSTEXPR typename iterator_traits<Iter2>::difference_type
+operator-(const counted_iterator<Iter1>& a, const counted_iterator<Iter2>& b)
 {
     return b.count() - a.count();
 }
 
 // operator- (counted_iterator, default_sentinel_t)
 //   function: negative distance to the end - std specifies this sign.
-template<typename _Iter>
-D_CONSTEXPR typename iterator_traits<_Iter>::difference_type
-operator-(const counted_iterator<_Iter>& a, default_sentinel_t)
+template<typename Iter>
+RE_STD_CONSTEXPR typename iterator_traits<Iter>::difference_type
+operator-(const counted_iterator<Iter>& a, default_sentinel_t)
 {
     return -a.count();
 }
 
-template<typename _Iter>
-D_CONSTEXPR typename iterator_traits<_Iter>::difference_type
-operator-(default_sentinel_t, const counted_iterator<_Iter>& b)
+template<typename Iter>
+RE_STD_CONSTEXPR typename iterator_traits<Iter>::difference_type
+operator-(default_sentinel_t, const counted_iterator<Iter>& b)
 {
     return b.count();
 }
 
-template<typename _Iter>
-D_CONSTEXPR counted_iterator<_Iter>
-operator+(typename iterator_traits<_Iter>::difference_type n,
-          const counted_iterator<_Iter>& it)
+template<typename Iter>
+RE_STD_CONSTEXPR counted_iterator<Iter>
+operator+(typename iterator_traits<Iter>::difference_type n,
+          const counted_iterator<Iter>& it)
 { return it + n; }
 
 // ---- comparisons ---------------------------------------------------------
@@ -184,54 +188,54 @@ operator+(typename iterator_traits<_Iter>::difference_type n,
 // that is what makes the comparison valid for input iterators, whose
 // underlying == may not be meaningful across copies.
 
-template<typename _Iter1, typename _Iter2>
-D_CONSTEXPR bool operator==(const counted_iterator<_Iter1>& a,
-                            const counted_iterator<_Iter2>& b)
+template<typename Iter1, typename Iter2>
+RE_STD_CONSTEXPR bool operator==(const counted_iterator<Iter1>& a,
+                            const counted_iterator<Iter2>& b)
 { return a.count() == b.count(); }
 
-template<typename _Iter1, typename _Iter2>
-D_CONSTEXPR bool operator!=(const counted_iterator<_Iter1>& a,
-                            const counted_iterator<_Iter2>& b)
+template<typename Iter1, typename Iter2>
+RE_STD_CONSTEXPR bool operator!=(const counted_iterator<Iter1>& a,
+                            const counted_iterator<Iter2>& b)
 { return a.count() != b.count(); }
 
-template<typename _Iter1, typename _Iter2>
-D_CONSTEXPR bool operator<(const counted_iterator<_Iter1>& a,
-                           const counted_iterator<_Iter2>& b)
+template<typename Iter1, typename Iter2>
+RE_STD_CONSTEXPR bool operator<(const counted_iterator<Iter1>& a,
+                           const counted_iterator<Iter2>& b)
 { return b.count() < a.count(); }
 
-template<typename _Iter1, typename _Iter2>
-D_CONSTEXPR bool operator>(const counted_iterator<_Iter1>& a,
-                           const counted_iterator<_Iter2>& b)
+template<typename Iter1, typename Iter2>
+RE_STD_CONSTEXPR bool operator>(const counted_iterator<Iter1>& a,
+                           const counted_iterator<Iter2>& b)
 { return b.count() > a.count(); }
 
-template<typename _Iter1, typename _Iter2>
-D_CONSTEXPR bool operator<=(const counted_iterator<_Iter1>& a,
-                            const counted_iterator<_Iter2>& b)
+template<typename Iter1, typename Iter2>
+RE_STD_CONSTEXPR bool operator<=(const counted_iterator<Iter1>& a,
+                            const counted_iterator<Iter2>& b)
 { return b.count() <= a.count(); }
 
-template<typename _Iter1, typename _Iter2>
-D_CONSTEXPR bool operator>=(const counted_iterator<_Iter1>& a,
-                            const counted_iterator<_Iter2>& b)
+template<typename Iter1, typename Iter2>
+RE_STD_CONSTEXPR bool operator>=(const counted_iterator<Iter1>& a,
+                            const counted_iterator<Iter2>& b)
 { return b.count() >= a.count(); }
 
 //   Exhaustion.
-template<typename _Iter>
-D_CONSTEXPR bool operator==(const counted_iterator<_Iter>& a, default_sentinel_t)
+template<typename Iter>
+RE_STD_CONSTEXPR bool operator==(const counted_iterator<Iter>& a, default_sentinel_t)
 { return a.count() == 0; }
 
-template<typename _Iter>
-D_CONSTEXPR bool operator==(default_sentinel_t, const counted_iterator<_Iter>& a)
+template<typename Iter>
+RE_STD_CONSTEXPR bool operator==(default_sentinel_t, const counted_iterator<Iter>& a)
 { return a.count() == 0; }
 
-template<typename _Iter>
-D_CONSTEXPR bool operator!=(const counted_iterator<_Iter>& a, default_sentinel_t)
+template<typename Iter>
+RE_STD_CONSTEXPR bool operator!=(const counted_iterator<Iter>& a, default_sentinel_t)
 { return a.count() != 0; }
 
-template<typename _Iter>
-D_CONSTEXPR bool operator!=(default_sentinel_t, const counted_iterator<_Iter>& a)
+template<typename Iter>
+RE_STD_CONSTEXPR bool operator!=(default_sentinel_t, const counted_iterator<Iter>& a)
 { return a.count() != 0; }
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_ITERATOR_COUNTED_ITERATOR_
+#endif  // RE_STD_ITERATOR_COUNTED_ITERATOR_HPP

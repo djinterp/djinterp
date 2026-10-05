@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [markdown]                            markdown_template_concepts.hpp
+/*******************************************************************************
+* djinterp [core]                                 markdown_template_concepts.hpp
 *
 *   C++20 concepts for the Markdown block / inline / document /
 * backend protocols. Mirrors the structural traits in
@@ -15,37 +15,57 @@
 *   USAGE EXAMPLES:
 *
 *     // Constrain a function template to markdown blocks only.
-*     template<markdown::markdown_block_type _Block>
-*     void process(const _Block& b);
+*     template<markdown::markdown_block_type Block>
+*     void process(const Block& b);
 *
 *     // Constrain a renderer to documents that emit HTML.
-*     template<markdown::html_renderable_document _Doc>
-*     std::string to_html(const _Doc& d);
+*     template<markdown::html_renderable_document Doc>
+*     std::string to_html(const Doc& d);
 *
 *     // Constrain a builder to a complete markdown backend.
-*     template<markdown::complete_markdown_backend _Backend>
+*     template<markdown::complete_markdown_backend Backend>
 *     auto build();
 *
 *
-* path:      /inc/djinterp/core/util/markdown/markdown_template_concepts.hpp
+* path:      /inc/djinterp/core/text/markdown/markdown_template_concepts.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    BLOCK CONCEPTS
+      --------------
+
 II.   INLINE CONCEPTS
+      ---------------
+
 III.  CAPABILITY CONCEPTS
+      -------------------
+
 IV.   DOCUMENT CONCEPTS
+      -----------------
+
 V.    RENDER-TARGET CONCEPTS
+      ----------------------
+
 VI.   COMPOSITE CONCEPTS
+      ------------------
+
 VII.  BACKEND CONCEPTS
+      ----------------
 */
 
-#ifndef DJINTERP_MARKDOWN_TEMPLATE_CONCEPTS_
-#define DJINTERP_MARKDOWN_TEMPLATE_CONCEPTS_ 1
+#ifndef DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_CONCEPTS_HPP
+#define DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_CONCEPTS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
@@ -72,81 +92,81 @@ namespace markdown {
 //   concept: satisfied by any type that satisfies the markdown
 // block protocol (kind accessor + children/inlines/blocks/text
 // access).
-template<typename _Type>
+template<typename Type>
 concept markdown_block_type =
-    is_markdown_block<_Type>::value;
+    is_markdown_block<Type>::value;
 
 
 // markdown_block_loose_type
 //   concept: looser variant -- the block-kind accessor alone
 // is sufficient.
-template<typename _Type>
+template<typename Type>
 concept markdown_block_loose_type =
-    is_markdown_block_loose<_Type>::value;
+    is_markdown_block_loose<Type>::value;
 
 
 // container_markdown_block_type
 //   concept: a markdown block that itself contains other
 // blocks (document, blockquote, list, list_item, ...).
-template<typename _Type>
+template<typename Type>
 concept container_markdown_block_type =
-       ( markdown_block_type<_Type> )
-    && (    has_blocks_method<_Type>::value
-         || has_children_access<_Type>::value );
+       ( markdown_block_type<Type> )
+    && (    has_blocks_method<Type>::value
+         || has_children_access<Type>::value );
 
 
 // leaf_markdown_block_type
 //   concept: a markdown block that contains only inlines or
 // raw text (paragraph, heading, code block, table cell, ...).
-template<typename _Type>
+template<typename Type>
 concept leaf_markdown_block_type =
-       ( markdown_block_type<_Type> )
-    && (    has_inlines_method<_Type>::value
-         || has_text_access<_Type>::value );
+       ( markdown_block_type<Type> )
+    && (    has_inlines_method<Type>::value
+         || has_text_access<Type>::value );
 
 
 // heading_block_type
 //   concept: a markdown block exposing a heading-level
 // accessor.
-template<typename _Type>
+template<typename Type>
 concept heading_block_type =
-       ( markdown_block_type<_Type> )
-    && ( has_heading_level_access<_Type>::value );
+       ( markdown_block_type<Type> )
+    && ( has_heading_level_access<Type>::value );
 
 
 // code_block_type
 //   concept: a markdown block exposing a language accessor
 // (i.e. classifiable as a code block).
-template<typename _Type>
+template<typename Type>
 concept code_block_type =
-       ( markdown_block_type<_Type> )
-    && ( has_language_access<_Type>::value );
+       ( markdown_block_type<Type> )
+    && ( has_language_access<Type>::value );
 
 
 // list_block_type
 //   concept: a markdown block exposing list-ordering
 // information.
-template<typename _Type>
+template<typename Type>
 concept list_block_type =
-       ( markdown_block_type<_Type> )
-    && ( has_list_ordered_method<_Type>::value );
+       ( markdown_block_type<Type> )
+    && ( has_list_ordered_method<Type>::value );
 
 
 // task_list_item_type
 //   concept: a markdown block exposing task-checked state.
-template<typename _Type>
+template<typename Type>
 concept task_list_item_type =
-       ( markdown_block_type<_Type> )
-    && ( has_task_checked_method<_Type>::value );
+       ( markdown_block_type<Type> )
+    && ( has_task_checked_method<Type>::value );
 
 
 // table_block_type
 //   concept: a markdown block exposing column alignments
 // (i.e. the table block itself, not table rows/cells).
-template<typename _Type>
+template<typename Type>
 concept table_block_type =
-       ( markdown_block_type<_Type> )
-    && ( has_table_alignment_method<_Type>::value );
+       ( markdown_block_type<Type> )
+    && ( has_table_alignment_method<Type>::value );
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -156,43 +176,43 @@ concept table_block_type =
 // markdown_inline_type
 //   concept: satisfied by any type that satisfies the markdown
 // inline protocol (kind accessor + text/url/children access).
-template<typename _Type>
+template<typename Type>
 concept markdown_inline_type =
-    is_markdown_inline<_Type>::value;
+    is_markdown_inline<Type>::value;
 
 
 // markdown_inline_loose_type
 //   concept: looser variant -- the inline-kind accessor alone.
-template<typename _Type>
+template<typename Type>
 concept markdown_inline_loose_type =
-    is_markdown_inline_loose<_Type>::value;
+    is_markdown_inline_loose<Type>::value;
 
 
 // linked_inline_type
 //   concept: a markdown inline exposing url and title
 // accessors (i.e. classifiable as a link or image).
-template<typename _Type>
+template<typename Type>
 concept linked_inline_type =
-       ( markdown_inline_type<_Type> )
-    && ( has_url_access<_Type>::value );
+       ( markdown_inline_type<Type> )
+    && ( has_url_access<Type>::value );
 
 
 // image_inline_type
 //   concept: a markdown inline exposing alt-text in addition
 // to url.
-template<typename _Type>
+template<typename Type>
 concept image_inline_type =
-       ( linked_inline_type<_Type> )
-    && ( has_alt_text_access<_Type>::value );
+       ( linked_inline_type<Type> )
+    && ( has_alt_text_access<Type>::value );
 
 
 // styled_inline_type
 //   concept: a markdown inline that wraps other inlines
 // (emphasis, strong, strikethrough, etc.).
-template<typename _Type>
+template<typename Type>
 concept styled_inline_type =
-       ( markdown_inline_type<_Type> )
-    && ( has_children_access<_Type>::value );
+       ( markdown_inline_type<Type> )
+    && ( has_children_access<Type>::value );
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -201,18 +221,18 @@ concept styled_inline_type =
 
 // mutable_block_type
 //   concept: a block exposing text mutation.
-template<typename _Type>
+template<typename Type>
 concept mutable_block_type =
-       ( markdown_block_type<_Type> )
-    && ( has_set_text_method<_Type>::value );
+       ( markdown_block_type<Type> )
+    && ( has_set_text_method<Type>::value );
 
 
 // mutable_inline_type
 //   concept: an inline exposing text mutation.
-template<typename _Type>
+template<typename Type>
 concept mutable_inline_type =
-       ( markdown_inline_type<_Type> )
-    && ( has_set_text_method<_Type>::value );
+       ( markdown_inline_type<Type> )
+    && ( has_set_text_method<Type>::value );
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -222,24 +242,24 @@ concept mutable_inline_type =
 // markdown_document_type
 //   concept: a document type exposing flavor + at least one
 // render method.
-template<typename _Type>
+template<typename Type>
 concept markdown_document_type =
-    is_markdown_document<_Type>::value;
+    is_markdown_document<Type>::value;
 
 
 // markdown_document_loose_type
 //   concept: looser variant -- flavor accessor OR any render
 // method.
-template<typename _Type>
+template<typename Type>
 concept markdown_document_loose_type =
-    is_markdown_document_loose<_Type>::value;
+    is_markdown_document_loose<Type>::value;
 
 
 // flavoured_markdown_document
 //   concept: a document exposing the flavor accessor.
-template<typename _Type>
+template<typename Type>
 concept flavoured_markdown_document =
-    has_flavor_access<_Type>::value;
+    has_flavor_access<Type>::value;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -248,30 +268,30 @@ concept flavoured_markdown_document =
 
 // markdown_renderable_document
 //   concept: a document exposing render_to_markdown.
-template<typename _Type>
+template<typename Type>
 concept markdown_renderable_document =
-    has_render_to_markdown_method<_Type>::value;
+    has_render_to_markdown_method<Type>::value;
 
 
 // html_renderable_document
 //   concept: a document exposing render_to_html.
-template<typename _Type>
+template<typename Type>
 concept html_renderable_document =
-    has_render_to_html_method<_Type>::value;
+    has_render_to_html_method<Type>::value;
 
 
 // xml_renderable_document
 //   concept: a document exposing render_to_xml.
-template<typename _Type>
+template<typename Type>
 concept xml_renderable_document =
-    has_render_to_xml_method<_Type>::value;
+    has_render_to_xml_method<Type>::value;
 
 
 // plaintext_renderable_document
 //   concept: a document exposing render_to_plaintext.
-template<typename _Type>
+template<typename Type>
 concept plaintext_renderable_document =
-    has_render_to_plaintext_method<_Type>::value;
+    has_render_to_plaintext_method<Type>::value;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -281,13 +301,13 @@ concept plaintext_renderable_document =
 // full_markdown_document
 //   concept: a document exposing every render target plus the
 // flavor accessor.
-template<typename _Type>
+template<typename Type>
 concept full_markdown_document =
-       ( markdown_document_type<_Type> )
-    && ( markdown_renderable_document<_Type> )
-    && ( html_renderable_document<_Type> )
-    && ( xml_renderable_document<_Type> )
-    && ( plaintext_renderable_document<_Type> );
+       ( markdown_document_type<Type> )
+    && ( markdown_renderable_document<Type> )
+    && ( html_renderable_document<Type> )
+    && ( xml_renderable_document<Type> )
+    && ( plaintext_renderable_document<Type> );
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -297,20 +317,20 @@ concept full_markdown_document =
 // markdown_backend_type
 //   concept: satisfied by any type tagged with
 // `markdown_backend_tag`.
-template<typename _Type>
+template<typename Type>
 concept markdown_backend_type =
-    is_markdown_backend<_Type>::value;
+    is_markdown_backend<Type>::value;
 
 
 // complete_markdown_backend
 //   concept: a markdown backend that additionally exposes the
 // full nested-type-alias protocol AND a make_markdown_document
 // factory.
-template<typename _Type>
+template<typename Type>
 concept complete_markdown_backend =
-       ( markdown_backend_type<_Type> )
-    && ( is_markdown_backend_complete<_Type>::value )
-    && ( has_make_markdown_document_method<_Type>::value );
+       ( markdown_backend_type<Type> )
+    && ( is_markdown_backend_complete<Type>::value )
+    && ( has_make_markdown_document_method<Type>::value );
 
 
 }   // namespace markdown
@@ -319,4 +339,6 @@ NS_END  // djinterp
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-#endif  // DJINTERP_MARKDOWN_TEMPLATE_CONCEPTS_
+#endif  // floor, for now
+
+#endif  // DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_CONCEPTS_HPP

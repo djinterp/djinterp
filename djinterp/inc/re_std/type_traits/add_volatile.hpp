@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           add_volatile.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             add_volatile.hpp
 *
 * add_volatile trait header:
 *   Adds a top-level volatile-qualifier to a type. Yields member typedef
@@ -11,19 +11,21 @@
 *     add_volatile<int*>::type            -> int* volatile
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/add_volatile.hpp
+* path:      /inc/re_std/type_traits/add_volatile.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ADD_VOLATILE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_ADD_VOLATILE_ 1
+#ifndef RE_STD_TYPE_TRAITS_ADD_VOLATILE_HPP
+#define RE_STD_TYPE_TRAITS_ADD_VOLATILE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -31,14 +33,14 @@ NS_RESTD
 // =============================================================================
 
 // add_volatile
-//   trait: yields _Type with a top-level volatile added. Per
-// [meta.trans.cv], if _Type is a reference, function, or already
+//   trait: yields Type with a top-level volatile added. Per
+// [meta.trans.cv], if Type is a reference, function, or already
 // volatile, the trait is a no-op. The compiler enforces these rules
 // naturally; no specializations are required.
-template<typename _Type>
+template<typename Type>
 struct add_volatile
 {
-    typedef volatile _Type type;
+    typedef volatile Type type;
 };
 
 
@@ -46,17 +48,17 @@ struct add_volatile
 // II.  ADD_VOLATILE_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // add_volatile_t
-    //   alias: convenience alias for add_volatile<_Type>::type.
-    template<typename _Type>
-    using add_volatile_t = typename add_volatile<_Type>::type;
+    //   alias: convenience alias for add_volatile<Type>::type.
+    template<typename Type>
+    using add_volatile_t = typename add_volatile<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ADD_VOLATILE_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_ADD_VOLATILE_HPP

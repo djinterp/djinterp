@@ -16,6 +16,8 @@
 *   Nothing here allocates or blocks on its own: parsers return spans into
 * caller memory, writers fill caller buffers, and every byte moves through a
 * connection the caller supplies.
+*   URLs, as RFC 3986 defines them, are in net/net_url.h, which builds on this
+* header.
 *   The C++ layer, net/net.hpp, is built on this header rather than beside it:
 * its errors, results, and endpoint text handling are these, and its generic
 * algorithms share the framing codec. Text spans are d_pack_text and sinks
@@ -132,7 +134,7 @@ D_EXTERN_C_BEGIN
 // 1.1.2
 // D_NET_VERSION_MINOR
 //   constant: the minor version; 0.2 adds the C foundation beneath net.hpp.
-#define D_NET_VERSION_MINOR     2
+#define D_NET_VERSION_MINOR     3
 
 // 1.1.3
 // D_NET_VERSION_PATCH
@@ -142,7 +144,7 @@ D_EXTERN_C_BEGIN
 // 1.1.4
 // D_NET_VERSION_STRING
 //   constant: the version as text.
-#define D_NET_VERSION_STRING    "0.2.0"
+#define D_NET_VERSION_STRING    "0.3.0"
 
 // 1.2    Addresses
 //------------------------------------------------------------------------------

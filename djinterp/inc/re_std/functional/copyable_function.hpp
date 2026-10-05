@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [functional]                                     copyable_function.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        copyable_function.hpp
 *
+* copyable_function class header:
 *   copyable_function - an OWNING type-erased callable, copyable, honouring the signature's qualifiers.
 *
 *   The copyable counterpart of move_only_function, and the intended successor
@@ -33,76 +34,78 @@ qualifiers are honoured rather than ignored.
 * ref-qualified member functions, both C++11.
 *
 *
-* path:      /inc/djinterp/re_std/functional/copyable_function.hpp
+* path:      /inc/re_std/functional/copyable_function.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_COPYABLE_FUNCTION_
-#define DJINTERP_RE_STD_FUNCTIONAL_COPYABLE_FUNCTION_ 1
+#ifndef RE_STD_FUNCTIONAL_COPYABLE_FUNCTION_HPP
+#define RE_STD_FUNCTIONAL_COPYABLE_FUNCTION_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
 #include "./invoke.hpp"
 #include "./func_storage.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // copyable_function
 //   class: primary template, deliberately undefined - only function-type
 // specialisations are valid, so a non-signature argument is a clear error.
-template<typename _Signature>
+template<typename Signature>
 class copyable_function;
 
 
-// copyable_function<_Result(_Args...)>
+// copyable_function<Result(Args...)>
 //   class: target invoked as the target&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...)>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...)>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<_Target&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<Target&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -111,7 +114,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -144,13 +147,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -158,60 +161,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args)
+    Result operator()(Args... args)
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) const>
+// copyable_function<Result(Args...) const>
 //   class: target invoked as const the target&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) const>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) const>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<const _Target&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<const Target&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -220,7 +223,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -253,13 +256,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -267,60 +270,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) const
+    Result operator()(Args... args) const
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) &>
+// copyable_function<Result(Args...) &>
 //   class: target invoked as the target&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) &>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) &>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<_Target&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<Target&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -329,7 +332,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -362,13 +365,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -376,60 +379,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) &
+    Result operator()(Args... args) &
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) const &>
+// copyable_function<Result(Args...) const &>
 //   class: target invoked as const the target&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) const &>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) const &>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<const _Target&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<const Target&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -438,7 +441,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -471,13 +474,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -485,60 +488,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) const &
+    Result operator()(Args... args) const &
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) &&>
+// copyable_function<Result(Args...) &&>
 //   class: target invoked as the target&&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) &&>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) &&>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<_Target&&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<Target&&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -547,7 +550,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -580,13 +583,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -594,60 +597,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) &&
+    Result operator()(Args... args) &&
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) const &&>
+// copyable_function<Result(Args...) const &&>
 //   class: target invoked as const the target&&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) const &&>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) const &&>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<const _Target&&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<const Target&&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -656,7 +659,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -689,13 +692,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -703,63 +706,63 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) const &&
+    Result operator()(Args... args) const &&
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 //   `R(Args...) noexcept` is a distinct TYPE only from C++17.
 
-// copyable_function<_Result(_Args...) noexcept>
+// copyable_function<Result(Args...) noexcept>
 //   class: target invoked as the target&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) noexcept>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) noexcept>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<_Target&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<Target&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -768,7 +771,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -801,13 +804,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -815,60 +818,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) D_NOEXCEPT
+    Result operator()(Args... args) RE_STD_NOEXCEPT
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) const noexcept>
+// copyable_function<Result(Args...) const noexcept>
 //   class: target invoked as const the target&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) const noexcept>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) const noexcept>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<const _Target&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<const Target&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -877,7 +880,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -910,13 +913,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -924,60 +927,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) const D_NOEXCEPT
+    Result operator()(Args... args) const RE_STD_NOEXCEPT
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) & noexcept>
+// copyable_function<Result(Args...) & noexcept>
 //   class: target invoked as the target&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) & noexcept>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) & noexcept>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<_Target&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<Target&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -986,7 +989,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -1019,13 +1022,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -1033,60 +1036,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) & D_NOEXCEPT
+    Result operator()(Args... args) & RE_STD_NOEXCEPT
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) const & noexcept>
+// copyable_function<Result(Args...) const & noexcept>
 //   class: target invoked as const the target&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) const & noexcept>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) const & noexcept>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<const _Target&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<const Target&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -1095,7 +1098,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -1128,13 +1131,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -1142,60 +1145,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) const & D_NOEXCEPT
+    Result operator()(Args... args) const & RE_STD_NOEXCEPT
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) && noexcept>
+// copyable_function<Result(Args...) && noexcept>
 //   class: target invoked as the target&&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) && noexcept>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) && noexcept>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<_Target&&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<Target&&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -1204,7 +1207,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -1237,13 +1240,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -1251,60 +1254,60 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) && D_NOEXCEPT
+    Result operator()(Args... args) && RE_STD_NOEXCEPT
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-// copyable_function<_Result(_Args...) const && noexcept>
+// copyable_function<Result(Args...) const && noexcept>
 //   class: target invoked as const the target&&.
-template<typename _Result, typename... _Args>
-class copyable_function<_Result(_Args...) const && noexcept>
+template<typename Result, typename... Args>
+class copyable_function<Result(Args...) const && noexcept>
 {
-    typedef _Result (*_Invoker)(internal::func_buffer&, _Args&&...);
+    typedef Result (*_Invoker)(internal::func_buffer&, Args&&...);
 
     internal::func_buffer   m_buffer;
     const internal::func_ops* m_ops;
     _Invoker                m_invoke;
 
-    template<typename _Target>
-    static _Result invoke_target(internal::func_buffer& buffer,
-                                 _Args&&... args)
+    template<typename Target>
+    static Result invoke_target(internal::func_buffer& buffer,
+                                 Args&&... args)
     {
-        return static_cast<_Result>(re_std::invoke(
-            static_cast<const _Target&&>(
-                internal::func_manager<_Target>::get(buffer)),
-            static_cast<_Args&&>(args)...));
+        return static_cast<Result>(re_std::invoke(
+            static_cast<const Target&&>(
+                internal::func_manager<Target>::get(buffer)),
+            static_cast<Args&&>(args)...));
     }
 
 public:
-    typedef _Result result_type;
+    typedef Result result_type;
 
-    copyable_function() D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
-    copyable_function(decltype(nullptr)) D_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function() RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
+    copyable_function(decltype(nullptr)) RE_STD_NOEXCEPT : m_buffer(), m_ops(0), m_invoke(0) {}
 
-    template<typename _Func,
+    template<typename Func,
              typename enable_if<
-                 !is_same<typename decay<_Func>::type, copyable_function>::value,
+                 !is_same<typename decay<Func>::type, copyable_function>::value,
                  int>::type = 0>
-    copyable_function(_Func&& func)
+    copyable_function(Func&& func)
         : m_buffer(), m_ops(0), m_invoke(0)
     {
-        typedef typename decay<_Func>::type _Target;
-        internal::func_manager<_Target>::construct(
-            m_buffer, static_cast<_Func&&>(func));
-        m_ops    = &internal::func_ops_holder<_Target, true>::value;
-        m_invoke = &invoke_target<_Target>;
+        typedef typename decay<Func>::type Target;
+        internal::func_manager<Target>::construct(
+            m_buffer, static_cast<Func&&>(func));
+        m_ops    = &internal::func_ops_holder<Target, true>::value;
+        m_invoke = &invoke_target<Target>;
         return;
     }
 
-    copyable_function(copyable_function&& other) D_NOEXCEPT
+    copyable_function(copyable_function&& other) RE_STD_NOEXCEPT
         : m_buffer(), m_ops(other.m_ops), m_invoke(other.m_invoke)
     {
         if (m_ops) { m_ops->move(m_buffer, other.m_buffer); }
@@ -1313,7 +1316,7 @@ public:
         return;
     }
 
-    copyable_function& operator=(copyable_function&& other) D_NOEXCEPT
+    copyable_function& operator=(copyable_function&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -1346,13 +1349,13 @@ public:
 
     ~copyable_function() { reset(); }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         if (m_ops) { m_ops->destroy(m_buffer); m_ops = 0; m_invoke = 0; }
         return;
     }
 
-    void swap(copyable_function& other) D_NOEXCEPT
+    void swap(copyable_function& other) RE_STD_NOEXCEPT
     {
         copyable_function tmp(static_cast<copyable_function&&>(*this));
         *this = static_cast<copyable_function&&>(other);
@@ -1360,20 +1363,20 @@ public:
         return;
     }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ops != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ops != 0; }
 
     //   Undefined when empty, per std - see the header note.
-    _Result operator()(_Args... args) const && D_NOEXCEPT
+    Result operator()(Args... args) const && RE_STD_NOEXCEPT
     {
         return m_invoke(
             const_cast<internal::func_buffer&>(this->m_buffer),
-            static_cast<_Args&&>(args)...);
+            static_cast<Args&&>(args)...);
     }
 };
 
-#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP17_OR_HIGHER
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_COPYABLE_FUNCTION_
+#endif  // RE_STD_FUNCTIONAL_COPYABLE_FUNCTION_HPP

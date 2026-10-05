@@ -12,17 +12,19 @@
 * path:      /src/djinterp/c/fs/file_stat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.03
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/fs/file_stat.h"  // corresponding header
 // std
 #include <errno.h>   // errno, EBADF, EINVAL, ENOSYS, EPERM
-#include <stdint.h>  // int64_t, uint32_t, uint64_t
 #include <stdio.h>   // FILE, fileno
 #include <string.h>  // memset
 // djinterp
 #include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*
 #include "../../../../inc/djinterp/config/c/fs/cfg_file_stat.h"  // D_INTERNAL_FILE_STAT_*
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uint32_t,
+                                                     // uint64_t
 // posix
 #if (D_INTERNAL_FILE_STAT_STATX == 1)
     // makedev lives here on glibc. <sys/stat.h> only ever dragged it in

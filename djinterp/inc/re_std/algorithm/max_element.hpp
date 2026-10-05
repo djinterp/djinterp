@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              max_element.hpp
 *
 * max_element algorithm header:
@@ -14,32 +14,26 @@
 *     occurrence of the maximum is returned.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/max_element.hpp
+* path:      /inc/re_std/algorithm/max_element.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.24
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_MAX_ELEMENT_
-#define DJINTERP_RE_STD_ALGORITHM_MAX_ELEMENT_ 1
+#ifndef RE_STD_ALGORITHM_MAX_ELEMENT_HPP
+#define RE_STD_ALGORITHM_MAX_ELEMENT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -49,11 +43,11 @@ NS_RESTD
 // max_element
 //   function: iterator to the first largest element, or _last when the
 // range is empty.
-template<typename _ForwardIt>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 max_element(
-    _ForwardIt _first,
-    _ForwardIt _last
+    ForwardIt _first,
+    ForwardIt _last
 )
 {
     if (_first == _last)
@@ -61,7 +55,7 @@ max_element(
         return _last;
     }
 
-    _ForwardIt _largest = _first;
+    ForwardIt _largest = _first;
     ++_first;
 
     for (; _first != _last; ++_first)
@@ -83,13 +77,13 @@ max_element(
 
 // max_element (comparator)
 //   function: as above but ordering is decided by _comp.
-template<typename _ForwardIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 max_element(
-    _ForwardIt _first,
-    _ForwardIt _last,
-    _Compare   _comp
+    ForwardIt _first,
+    ForwardIt _last,
+    Compare   _comp
 )
 {
     if (_first == _last)
@@ -97,7 +91,7 @@ max_element(
         return _last;
     }
 
-    _ForwardIt _largest = _first;
+    ForwardIt _largest = _first;
     ++_first;
 
     for (; _first != _last; ++_first)
@@ -111,7 +105,7 @@ max_element(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_MAX_ELEMENT_
+#endif  // RE_STD_ALGORITHM_MAX_ELEMENT_HPP

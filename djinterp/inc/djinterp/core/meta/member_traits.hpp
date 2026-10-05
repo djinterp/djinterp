@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                            member_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                              member_traits.hpp
 *
 *   DEPRECATED - TRANSITIONAL SHIM.  The contents of this header moved:
 *     - the nested-typedef detection macro and the extract-or-fallback macro
@@ -24,14 +24,21 @@
 *
 * path:      /inc/djinterp/core/meta/member_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_META_MEMBER_TRAITS_
-#define DJINTERP_META_MEMBER_TRAITS_ 1
+#ifndef DJINTERP_META_MEMBER_TRAITS_HPP
+#define DJINTERP_META_MEMBER_TRAITS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./trait_detect.hpp"   // canonical macro homes
 #include "./member_types.hpp"   // concrete detectors + pick_member_type
 
@@ -47,5 +54,7 @@
 #define D_DEFINE_MEMBER_TYPE_OR(TRAIT, MEMBER, FALLBACK)                      \
     D_TYPE_TRAIT_MEMBER_TYPE_OR(TRAIT, MEMBER, FALLBACK)
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_META_MEMBER_TRAITS_
+
+#endif  // DJINTERP_META_MEMBER_TRAITS_HPP

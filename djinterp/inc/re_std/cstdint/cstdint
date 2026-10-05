@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                                     cstdint
+/*******************************************************************************
+* djinterp [re_std]                                                      cstdint
 *
 * <cstdint> umbrella header:
-*   Aggregates the granular headers under /inc/djinterp/re_std/cstdint/.
+*   Aggregates the granular headers under /inc/re_std/cstdint/.
 * Mirrors the standard <cstdint> convenience header and adds no symbols of
 * its own.
 *
@@ -19,7 +19,7 @@
 *     INT8_C(v) ... INTMAX_C(v), UINT8_C(v) ... UINTMAX_C(v)
 *
 *   Including this umbrella makes all of them available exactly as the
-* standard header does; no D_RE_STD_ aliases are minted for them, since a
+* standard header does; no RE_STD_ aliases are minted for them, since a
 * renamed macro would be a second spelling of the same thing with no
 * portability gain.
 *
@@ -33,18 +33,19 @@
 * first reason.
 *
 *
-* path:      /inc/djinterp/re_std/cstdint/cstdint
+* path:      /inc/re_std/cstdint/cstdint
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDINT_
-#define DJINTERP_RE_STD_CSTDINT_ 1
+#ifndef RE_STD_CSTDINT_CSTDINT
+#define RE_STD_CSTDINT_CSTDINT 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 #include "./cstdint.hpp"
 
 
-#endif  // DJINTERP_RE_STD_CSTDINT_
+#endif  // RE_STD_CSTDINT_CSTDINT

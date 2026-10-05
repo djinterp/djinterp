@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                     sort.hpp
 *
 * sort algorithm header:
@@ -25,7 +25,7 @@
 *   - std::sort is C++98.
 *   - NOT constexpr — std does not lift this through C++26 either.
 *   - C++11+ uses move semantics for the insertion-sort element shifts;
-*     C++98 uses copy (gated on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES).
+*     C++98 uses copy (gated on RE_STD_LANG_HAS_RVALUE_REFERENCES).
 *   - Requires RandomAccessIterator.
 *   - Two overloads: default operator< and custom comparator.
 *
@@ -36,45 +36,48 @@
 *   re_std::sort_heap(first, last, comp) and remove the duplicates.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/sort.hpp
+* path:      /inc/re_std/algorithm/sort.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_SORT_
-#define DJINTERP_RE_STD_ALGORITHM_SORT_ 1
+#ifndef RE_STD_ALGORITHM_SORT_HPP
+#define RE_STD_ALGORITHM_SORT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
     #include "../utility/move.hpp"
 #endif
 
 
 
 
-NS_RESTD
+namespace re_std
+{
 //   Opened here 2026-08-25. This file previously began its namespaced
-// content with no NS_RESTD, so everything above the first NS_END lived
-// at GLOBAL SCOPE and that NS_END closed a namespace never opened.
+// content without opening re_std, so everything above the first closing
+// brace lived at GLOBAL SCOPE, and that brace closed a namespace never
+// opened.
 
 // ===========================================================================
 // 0.   INTERNAL HELPERS
 // ===========================================================================
 
 // _sort_log2_floor_
-//   integer floor(log2(_n)) for _n >= 1. Returns 0 for _n == 1.
-template<typename _Distance>
-inline _Distance
+//   function: integer floor(log2(_n)) for _n >= 1. Returns 0 for _n == 1.
+template<typename Distance>
+inline Distance
 _sort_log2_floor_(
-    _Distance _n
+    Distance _n
 )
 {
-    _Distance _r = 0;
+    Distance _r = 0;
     while (_n >= 2)
     {
         ++_r;
@@ -85,45 +88,45 @@ _sort_log2_floor_(
 
 
 // _sort_insertion_
-//   insertion sort on [_first, _last). Used as the bottom-of-recursion
+//   function: insertion sort on [_first, _last). Used as the bottom-of-recursion
 // fallback in introsort. Stable on its own (the stability is incidental
 // and not contractually exposed by sort).
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 _sort_insertion_(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
 
     if (_first == _last)
     {
         return;
     }
 
-    _RandomIt _i = _first;
+    RandomIt _i = _first;
     ++_i;
     for (; _i != _last; ++_i)
     {
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
         _Value _value = re_std::move(*_i);
 #else
         _Value _value = *_i;
 #endif
 
-        _RandomIt _j = _i;
+        RandomIt _j = _i;
         while (_j != _first)
         {
-            _RandomIt _prev = _j;
+            RandomIt _prev = _j;
             --_prev;
             if (!_comp(_value, *_prev))
             {
                 break;
             }
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
             *_j = re_std::move(*_prev);
 #else
             *_j = *_prev;
@@ -131,7 +134,7 @@ _sort_insertion_(
             _j = _prev;
         }
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
         *_j = re_std::move(_value);
 #else
         *_j = _value;
@@ -143,24 +146,24 @@ _sort_insertion_(
 
 
 // _sort_sift_down_
-//   max-heap sift-down on [_first, _first + _length) per _comp. Sifts
+//   function: max-heap sift-down on [_first, _first + _length) per _comp. Sifts
 // the element at index _start downward to restore the heap property.
 // Children of index i are at 2i + 1 and 2i + 2.
-template<typename _RandomIt,
-         typename _Distance,
-         typename _Compare>
+template<typename RandomIt,
+         typename Distance,
+         typename Compare>
 void
 _sort_sift_down_(
-    _RandomIt _first,
-    _Distance _start,
-    _Distance _length,
-    _Compare  _comp
+    RandomIt _first,
+    Distance _start,
+    Distance _length,
+    Compare  _comp
 )
 {
-    _Distance _parent = _start;
+    Distance _parent = _start;
     while (true)
     {
-        _Distance _child = static_cast<_Distance>(2 * _parent + 1);
+        Distance _child = static_cast<Distance>(2 * _parent + 1);
         if (_child >= _length)
         {
             break;
@@ -182,18 +185,18 @@ _sort_sift_down_(
 
 
 // _sort_heap_sort_
-//   heapsort on [_first, _last). Used as the recursion-depth-exceeded
+//   function: heapsort on [_first, _last). Used as the recursion-depth-exceeded
 // fallback in introsort. O(N log N) worst case.
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 _sort_heap_sort_(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _length = _last - _first;
     if (_length < 2)
@@ -217,16 +220,16 @@ _sort_heap_sort_(
 
 
 // _sort_median_of_3_
-//   sorts {*_a, *_b, *_c} via two-element swaps so that *_a <= *_b <=
+//   function: sorts {*_a, *_b, *_c} via two-element swaps so that *_a <= *_b <=
 // *_c per _comp. The median ends up at *_b.
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 _sort_median_of_3_(
-    _RandomIt _a,
-    _RandomIt _b,
-    _RandomIt _c,
-    _Compare  _comp
+    RandomIt _a,
+    RandomIt _b,
+    RandomIt _c,
+    Compare  _comp
 )
 {
     if (_comp(*_b, *_a))
@@ -245,26 +248,26 @@ _sort_median_of_3_(
 
 
 // _sort_partition_
-//   Lomuto partition with median-of-3 pivot selection. Picks the
+//   function: Lomuto partition with median-of-3 pivot selection. Picks the
 // median of {*_first, *(_first + N/2), *(_last - 1)} as the pivot,
 // moves it to the end of the range, partitions in-place, and returns
 // the final iterator position of the pivot. After return, every
 // element in [_first, ret) compares less than *ret, and every element
 // in [ret + 1, _last) is not less.
-template<typename _RandomIt,
-         typename _Compare>
-_RandomIt
+template<typename RandomIt,
+         typename Compare>
+RandomIt
 _sort_partition_(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff     _len = _last - _first;
-    _RandomIt _mid = _first + (_len / 2);
-    _RandomIt _hi  = _last - 1;
+    RandomIt _mid = _first + (_len / 2);
+    RandomIt _hi  = _last - 1;
 
     // sort {first, mid, hi} so that the median lives at *_mid
     _sort_median_of_3_(_first, _mid, _hi, _comp);
@@ -275,8 +278,8 @@ _sort_partition_(
     // Lomuto: i tracks the boundary "[_first, i) contains all less-than-pivot
     // elements seen so far". For each j in [_first, _hi), if *_j < pivot,
     // place it at *_i and advance i.
-    _RandomIt _i = _first;
-    for (_RandomIt _j = _first; _j != _hi; ++_j)
+    RandomIt _i = _first;
+    for (RandomIt _j = _first; _j != _hi; ++_j)
     {
         if (_comp(*_j, *_hi))
         {
@@ -296,15 +299,15 @@ _sort_partition_(
 //   the main introsort driver. Quicksorts down to the small-range
 // threshold, dropping to heapsort if recursion depth is exhausted.
 // Tail-recurses on the larger side to keep stack depth O(log N).
-template<typename _RandomIt,
-         typename _Compare,
-         typename _Distance>
+template<typename RandomIt,
+         typename Compare,
+         typename Distance>
 void
 _sort_introsort_loop_(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Distance _depth_limit,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Distance _depth_limit,
+    Compare  _comp
 )
 {
     // small-range threshold below which insertion sort wins on
@@ -321,7 +324,7 @@ _sort_introsort_loop_(
         }
         --_depth_limit;
 
-        _RandomIt _cut = _sort_partition_(_first, _last, _comp);
+        RandomIt _cut = _sort_partition_(_first, _last, _comp);
 
         // recurse on the smaller half, iterate on the larger half
         if ((_cut - _first) < (_last - _cut))
@@ -341,29 +344,30 @@ _sort_introsort_loop_(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 // ===========================================================================
 // I.   SORT
 // ===========================================================================
 
-NS_RESTD
+namespace re_std
+{
 
 
 // sort (comparator)
 //   function: sorts [_first, _last) into non-descending order per
 // _comp. Unstable.
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 sort(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _len = _last - _first;
     if (_len < 2)
@@ -381,20 +385,20 @@ sort(
 // sort (default operator<)
 //   function: sorts [_first, _last) per operator<. Equivalent to
 // calling the comparator overload with re_std::less<value_type>().
-template<typename _RandomIt>
+template<typename RandomIt>
 void
 sort(
-    _RandomIt _first,
-    _RandomIt _last
+    RandomIt _first,
+    RandomIt _last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
     sort(_first, _last, re_std::less<_Value>());
 }
 
 
 
 
-NS_END  // re_std   (added 2026-08-25 -- was never closed)
+}  // re_std   (added 2026-08-25 -- was never closed)
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_SORT_
+#endif  // RE_STD_ALGORITHM_SORT_HPP

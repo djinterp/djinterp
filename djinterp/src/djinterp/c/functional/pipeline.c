@@ -1,23 +1,98 @@
-#include "../../../inc/c/functional/pipeline.h"
+/*******************************************************************************
+* djinterp [c]                                                        pipeline.c
+*
+* The chainable pipeline pipeline.h declares.
+*   A pipeline either views the caller's array (begin) or owns a copy (every
+* operation that has to produce new elements, and begin_copy). It never
+* writes to a view's array except through for_each, whose consumer the
+* caller supplied for that purpose. The first failure is recorded in
+* error_code (EINVAL for a bad argument or a callback that failed, ENOMEM for
+* an allocation) and every later operation passes the pipeline through
+* unchanged, so a chain needs one check at its end.
+*
+*
+* path:      /src/djinterp/c/functional/pipeline.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
+*                                                            revised: 2026.10.03
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/functional/pipeline.h"  // corresponding header
+// std
+#include <errno.h>    // EINVAL, ENOMEM
+#include <stdbool.h>  // bool
+#include <stddef.h>   // size_t, NULL
+#include <stdlib.h>   // malloc, free
+#include <string.h>   // memcpy, memmove, memset
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
 
 
 /*
-d_functional_pipeline_begin
-  Creates a pipeline wrapping existing mutable data. The pipeline does NOT
-take ownership of the data; the caller remains responsible for freeing it.
-
-Parameter(s):
-  _data:         pointer to the mutable data array.
-  _count:        number of elements in the array.
-  _element_size: size of each element in bytes.
-Return:
-  A d_functional_pipeline struct wrapping the data. If any parameter is
-invalid (NULL data, zero count, or zero element_size), returns a pipeline
-with error_code set to -1.
+d_internal_pipeline_failed
+  Records the first failure; the pipeline keeps whatever data it had, so
+free still releases it.
 */
+static struct d_functional_pipeline
+d_internal_pipeline_failed(
+    struct d_functional_pipeline _pipe,
+    int                          _error
+)
+{
+    if (_pipe.error_code == 0)
+    {
+        _pipe.error_code = _error;
+    }
+
+    return _pipe;
+}
+
+/*
+d_internal_pipeline_bytes
+  The bytes `_count` elements take, or SIZE_MAX when that would overflow.
+*/
+static size_t
+d_internal_pipeline_bytes(
+    size_t _count,
+    size_t _element_size
+)
+{
+    if ( (_element_size > 0u) &&
+         (_count > (SIZE_MAX / _element_size)) )
+    {
+        return SIZE_MAX;
+    }
+
+    return _count * _element_size;
+}
+
+/*
+d_internal_pipeline_adopt
+  Replaces the pipeline's data with a new owned block, releasing the old one
+if the pipeline owned it.
+*/
+static struct d_functional_pipeline
+d_internal_pipeline_adopt(
+    struct d_functional_pipeline _pipe,
+    void*                        _data,
+    size_t                       _count,
+    size_t                       _element_size
+)
+{
+    if (_pipe.owns_data)
+    {
+        free(_pipe.data);
+    }
+
+    _pipe.data         = _data;
+    _pipe.count        = _count;
+    _pipe.element_size = _element_size;
+    _pipe.owns_data    = true;
+
+    return _pipe;
+}
+
 struct d_functional_pipeline
-d_functional_pipeline_begin
-(
+d_functional_pipeline_begin(
     void*  _data,
     size_t _count,
     size_t _element_size
@@ -25,418 +100,332 @@ d_functional_pipeline_begin
 {
     struct d_functional_pipeline pipe;
 
-    // validate parameters
-    if ( (!_data)             ||
-         (_count == 0)        ||
-         (_element_size == 0) )
-    {
-        pipe.data         = NULL;
-        pipe.element_size = 0;
-        pipe.count        = 0;
-        pipe.owns_data    = false;
-        pipe.error_code   = -1;
-
-        return pipe;
-    }
-
     pipe.data         = _data;
     pipe.element_size = _element_size;
     pipe.count        = _count;
     pipe.owns_data    = false;
     pipe.error_code   = 0;
 
+    // elements need an array, and a size
+    if ( (_count > 0u) &&
+         ( (!_data) || (_element_size == 0u) ) )
+    {
+        pipe.count      = 0u;
+        pipe.error_code = EINVAL;
+    }
+
     return pipe;
 }
 
-/*
-d_functional_pipeline_begin_copy
-  Creates a pipeline by copying immutable data into a newly allocated
-buffer. The pipeline takes ownership of the copy.
-
-Parameter(s):
-  _data:         pointer to the immutable source data array.
-  _count:        number of elements in the array.
-  _element_size: size of each element in bytes.
-Return:
-  A d_functional_pipeline struct containing a copy of the data. If any
-parameter is invalid or allocation fails, returns a pipeline with
-error_code set to -1.
-*/
 struct d_functional_pipeline
-d_functional_pipeline_begin_copy
-(
+d_functional_pipeline_begin_copy(
     const void* _data,
     size_t      _count,
     size_t      _element_size
 )
 {
-    struct d_functional_pipeline pipe;
-    void*                        copy;
+    struct d_functional_pipeline pipe =
+        d_functional_pipeline_begin((void*)_data, _count, _element_size);
 
-    // validate parameters
-    if ( (!_data)             ||
-         (_count == 0)        ||
-         (_element_size == 0) )
+    // nothing to copy
+    if ( (pipe.error_code != 0) ||
+         (_count == 0u) )
     {
-        pipe.data         = NULL;
-        pipe.element_size = 0;
-        pipe.count        = 0;
-        pipe.owns_data    = false;
-        pipe.error_code   = -1;
+        pipe.data = NULL;
 
         return pipe;
     }
 
-    copy = malloc(_count * _element_size);
+    const size_t bytes = d_internal_pipeline_bytes(_count, _element_size);
+    void* const  copy  = (bytes == SIZE_MAX) ? NULL : malloc(bytes);
 
-    // check allocation
     if (!copy)
     {
-        pipe.data         = NULL;
-        pipe.element_size = _element_size;
-        pipe.count        = 0;
-        pipe.owns_data    = false;
-        pipe.error_code   = -1;
+        pipe.data  = NULL;
+        pipe.count = 0u;
 
-        return pipe;
+        return d_internal_pipeline_failed(pipe, ENOMEM);
     }
 
-    memcpy(copy, _data, _count * _element_size);
-
-    pipe.data         = copy;
-    pipe.element_size = _element_size;
-    pipe.count        = _count;
-    pipe.owns_data    = true;
-    pipe.error_code   = 0;
+    memcpy(copy, _data, bytes);
+    pipe.data      = copy;
+    pipe.owns_data = true;
 
     return pipe;
 }
 
 /*
 d_functional_pipeline_map
-  Applies a transformer to each element in the pipeline, producing a new
-data buffer with the results. The old buffer is freed if the pipeline
-owned it.
-
-Parameter(s):
-  _pipe:      the current pipeline state.
-  _transform: transformer function to apply to each element.
-  _context:   context forwarded to _transform; may be NULL.
-Return:
-  A new pipeline containing the transformed data. If the pipeline is in
-an error state, _transform is NULL, or allocation fails, returns a
-pipeline with the appropriate error_code.
+  Writes every result to a new owned block of the same element size, so a
+transformer never reads and writes one element in place.
 */
 struct d_functional_pipeline
-d_functional_pipeline_map
-(
+d_functional_pipeline_map(
     struct d_functional_pipeline _pipe,
-    fn_transformer                _transform,
+    fn_transformer               _transform,
     void*                        _context
 )
 {
-    struct d_functional_pipeline result;
-    void*                        new_data;
-    const unsigned char*         src;
-    unsigned char*               dst;
-    size_t                       i;
-
-    // propagate prior errors
+    // an earlier failure, or nothing to apply
     if (_pipe.error_code != 0)
     {
         return _pipe;
     }
 
-    // validate transformer
     if (!_transform)
     {
-        _pipe.error_code = -1;
+        return d_internal_pipeline_failed(_pipe, EINVAL);
+    }
 
+    if (_pipe.count == 0u)
+    {
         return _pipe;
     }
 
-    new_data = malloc(_pipe.count * _pipe.element_size);
+    const size_t bytes = d_internal_pipeline_bytes(_pipe.count,
+                                                   _pipe.element_size);
+    unsigned char* const out = (bytes == SIZE_MAX) ? NULL : malloc(bytes);
 
-    // check allocation
-    if (!new_data)
+    if (!out)
     {
-        _pipe.error_code = -1;
-
-        return _pipe;
+        return d_internal_pipeline_failed(_pipe, ENOMEM);
     }
 
-    src = (const unsigned char*)_pipe.data;
-    dst = (unsigned char*)new_data;
-
-    // apply the transformer to each element
-    for (i = 0; i < _pipe.count; i++)
+    // transform each element into its slot
+    for (size_t i = 0u; i < _pipe.count; ++i)
     {
-        if (!_transform(src + (i * _pipe.element_size),
-                        dst + (i * _pipe.element_size),
+        const size_t at = i * _pipe.element_size;
+
+        if (!_transform((const unsigned char*)_pipe.data + at,
+                        out + at,
                         _context))
         {
-            free(new_data);
-            _pipe.error_code = -1;
+            free(out);
 
-            return _pipe;
+            return d_internal_pipeline_failed(_pipe, EINVAL);
         }
     }
 
-    // free old data if we owned it
-    if (_pipe.owns_data && _pipe.data)
-    {
-        free(_pipe.data);
-    }
-
-    result.data         = new_data;
-    result.element_size = _pipe.element_size;
-    result.count        = _pipe.count;
-    result.owns_data    = true;
-    result.error_code   = 0;
-
-    return result;
+    return d_internal_pipeline_adopt(_pipe,
+                                     out,
+                                     _pipe.count,
+                                     _pipe.element_size);
 }
 
 /*
 d_functional_pipeline_filter
-  Filters elements in the pipeline, keeping only those for which the
-predicate returns true. Allocates a new buffer for the results. The old
-buffer is freed if the pipeline owned it.
-
-Parameter(s):
-  _pipe:    the current pipeline state.
-  _test:    predicate function to test each element.
-  _context: context forwarded to _test; may be NULL.
-Return:
-  A new pipeline containing only the elements that passed the predicate.
-If the pipeline is in an error state, _test is NULL, or allocation fails,
-returns a pipeline with the appropriate error_code.
+  An owned block is compacted in place; a view is copied first, since the
+caller's array is not the pipeline's to rearrange.
 */
 struct d_functional_pipeline
-d_functional_pipeline_filter
-(
+d_functional_pipeline_filter(
     struct d_functional_pipeline _pipe,
-    fn_predicate                  _test,
+    fn_predicate                 _test,
     void*                        _context
 )
 {
-    struct d_functional_pipeline result;
-    void*                        new_data;
-    const unsigned char*         src;
-    unsigned char*               dst;
-    size_t                       out_count;
-    size_t                       i;
-
-    // propagate prior errors
+    // an earlier failure, or nothing to test with
     if (_pipe.error_code != 0)
     {
         return _pipe;
     }
 
-    // validate predicate
     if (!_test)
     {
-        _pipe.error_code = -1;
+        return d_internal_pipeline_failed(_pipe, EINVAL);
+    }
 
+    if (_pipe.count == 0u)
+    {
         return _pipe;
     }
 
-    // allocate worst-case buffer (all elements pass)
-    new_data = malloc(_pipe.count * _pipe.element_size);
+    unsigned char* target = _pipe.data;
 
-    // check allocation
-    if (!new_data)
+    // a view gets its own block before anything moves
+    if (!_pipe.owns_data)
     {
-        _pipe.error_code = -1;
+        const size_t bytes = d_internal_pipeline_bytes(_pipe.count,
+                                                       _pipe.element_size);
 
-        return _pipe;
-    }
+        target = (bytes == SIZE_MAX) ? NULL : malloc(bytes);
 
-    src       = (const unsigned char*)_pipe.data;
-    dst       = (unsigned char*)new_data;
-    out_count = 0;
-
-    // copy elements that pass the predicate
-    for (i = 0; i < _pipe.count; i++)
-    {
-        if (_test(src + (i * _pipe.element_size), _context))
+        if (!target)
         {
-            memcpy(dst + (out_count * _pipe.element_size),
-                   src + (i * _pipe.element_size),
-                   _pipe.element_size);
-            out_count++;
+            return d_internal_pipeline_failed(_pipe, ENOMEM);
         }
     }
 
-    // free old data if we owned it
-    if (_pipe.owns_data && _pipe.data)
+    size_t kept = 0u;
+
+    // keep the accepted elements, in order
+    for (size_t i = 0u; i < _pipe.count; ++i)
     {
-        free(_pipe.data);
+        const unsigned char* const element =
+            (const unsigned char*)_pipe.data + (i * _pipe.element_size);
+
+        if (_test(element, _context))
+        {
+            memmove(target + (kept * _pipe.element_size),
+                    element,
+                    _pipe.element_size);
+            ++kept;
+        }
     }
 
-    result.data         = new_data;
-    result.element_size = _pipe.element_size;
-    result.count        = out_count;
-    result.owns_data    = true;
-    result.error_code   = 0;
+    // compacted in place: only the count changes
+    if (_pipe.owns_data)
+    {
+        _pipe.count = kept;
 
-    return result;
+        return _pipe;
+    }
+
+    return d_internal_pipeline_adopt(_pipe, target, kept, _pipe.element_size);
 }
 
 /*
 d_functional_pipeline_fold
-  Folds (reduces) all elements in the pipeline into a single accumulated
-value. The pipeline's data is freed if owned, and the result pipeline wraps
-the accumulator.
-
-Parameter(s):
-  _pipe:             the current pipeline state.
-  _initial:          pointer to the initial accumulator value; this buffer
-                     is modified in-place with the result.
-  _accumulator_size: size in bytes of the accumulator value.
-  _combine:          accumulator function applied at each step.
-  _context:          context forwarded to _combine; may be NULL.
-Return:
-  A new pipeline wrapping _initial with count 1 and element_size set to
-_accumulator_size. The pipeline does NOT own _initial. If the pipeline is
-in an error state, _initial is NULL, _combine is NULL, or accumulation
-fails, returns a pipeline with the appropriate error_code.
+  Reduces the pipeline to one owned element of `_accumulator_size` bytes,
+starting from `*_initial` (zero when `_initial` is NULL), combining in order.
 */
 struct d_functional_pipeline
-d_functional_pipeline_fold
-(
+d_functional_pipeline_fold(
     struct d_functional_pipeline _pipe,
     void*                        _initial,
     size_t                       _accumulator_size,
-    fn_accumulator                _combine,
+    fn_accumulator               _combine,
     void*                        _context
 )
 {
-    struct d_functional_pipeline result;
-    const unsigned char*         src;
-    size_t                       i;
-
-    // propagate prior errors
+    // an earlier failure, or nothing to fold with
     if (_pipe.error_code != 0)
     {
         return _pipe;
     }
 
-    // validate parameters
-    if ( (!_initial)              ||
-         (!_combine)              ||
-         (_accumulator_size == 0) )
+    if ( (!_combine) ||
+         (_accumulator_size == 0u) )
     {
-        _pipe.error_code = -1;
-
-        return _pipe;
+        return d_internal_pipeline_failed(_pipe, EINVAL);
     }
 
-    src = (const unsigned char*)_pipe.data;
+    unsigned char* const accumulator = malloc(_accumulator_size);
 
-    // accumulate from left to right
-    for (i = 0; i < _pipe.count; i++)
+    if (!accumulator)
     {
-        if (!_combine(_initial,
-                      src + (i * _pipe.element_size),
+        return d_internal_pipeline_failed(_pipe, ENOMEM);
+    }
+
+    // start from the initial value, or from zero
+    if (_initial)
+    {
+        memcpy(accumulator, _initial, _accumulator_size);
+    }
+    else
+    {
+        memset(accumulator, 0, _accumulator_size);
+    }
+
+    // combine every element, first to last
+    for (size_t i = 0u; i < _pipe.count; ++i)
+    {
+        if (!_combine(accumulator,
+                      (const unsigned char*)_pipe.data +
+                          (i * _pipe.element_size),
                       _context))
         {
-            _pipe.error_code = -1;
+            free(accumulator);
 
-            return _pipe;
+            return d_internal_pipeline_failed(_pipe, EINVAL);
         }
     }
 
-    // free old data if we owned it
-    if (_pipe.owns_data && _pipe.data)
-    {
-        free(_pipe.data);
-    }
-
-    result.data         = _initial;
-    result.element_size = _accumulator_size;
-    result.count        = 1;
-    result.owns_data    = false;
-    result.error_code   = 0;
-
-    return result;
+    return d_internal_pipeline_adopt(_pipe, accumulator, 1u,
+                                     _accumulator_size);
 }
 
-/*
-d_functional_pipeline_for_each
-  Applies a consumer function to each element in the pipeline. The data is
-not modified or reallocated; the pipeline is passed through unchanged.
-
-Parameter(s):
-  _pipe:    the current pipeline state.
-  _apply:   consumer function to apply to each element.
-  _context: context forwarded to _apply; may be NULL.
-Return:
-  The same pipeline, unchanged. If the pipeline is in an error state or
-_apply is NULL, returns a pipeline with the appropriate error_code.
-*/
 struct d_functional_pipeline
-d_functional_pipeline_for_each
-(
+d_functional_pipeline_for_each(
     struct d_functional_pipeline _pipe,
-    fn_consumer                   _apply,
+    fn_consumer                  _apply,
     void*                        _context
 )
 {
-    unsigned char* src;
-    size_t         i;
-
-    // propagate prior errors
+    // an earlier failure, or nothing to apply
     if (_pipe.error_code != 0)
     {
         return _pipe;
     }
 
-    // validate consumer
     if (!_apply)
     {
-        _pipe.error_code = -1;
-
-        return _pipe;
+        return d_internal_pipeline_failed(_pipe, EINVAL);
     }
 
-    src = (unsigned char*)_pipe.data;
-
-    // apply to each element
-    for (i = 0; i < _pipe.count; i++)
+    // apply to each element, in place
+    for (size_t i = 0u; i < _pipe.count; ++i)
     {
-        _apply(src + (i * _pipe.element_size), _context);
+        _apply((unsigned char*)_pipe.data + (i * _pipe.element_size),
+               _context);
     }
 
     return _pipe;
 }
 
 /*
-d_functional_pipeline_take
-  Reduces the pipeline to at most the first _n elements. No data is copied
-or reallocated; the count is simply clamped.
-
-Parameter(s):
-  _pipe: the current pipeline state.
-  _n:    maximum number of elements to keep.
-Return:
-  The pipeline with count reduced to min(count, _n). If the pipeline is in
-an error state, returns it unchanged.
+d_functional_pipeline_skip
+  A view moves its start; an owned block keeps its start, which free needs,
+and moves the kept elements down instead.
 */
 struct d_functional_pipeline
-d_functional_pipeline_take
-(
+d_functional_pipeline_skip(
     struct d_functional_pipeline _pipe,
     size_t                       _n
 )
 {
-    // propagate prior errors
+    // an earlier failure
     if (_pipe.error_code != 0)
     {
         return _pipe;
     }
 
-    // clamp count
+    const size_t skipped = (_n < _pipe.count) ? _n : _pipe.count;
+    const size_t offset  = skipped * _pipe.element_size;
+
+    if (skipped == 0u)
+    {
+        return _pipe;
+    }
+
+    if (_pipe.owns_data)
+    {
+        memmove(_pipe.data,
+                (unsigned char*)_pipe.data + offset,
+                (_pipe.count - skipped) * _pipe.element_size);
+    }
+    else
+    {
+        _pipe.data = (unsigned char*)_pipe.data + offset;
+    }
+
+    _pipe.count -= skipped;
+
+    return _pipe;
+}
+
+struct d_functional_pipeline
+d_functional_pipeline_take(
+    struct d_functional_pipeline _pipe,
+    size_t                       _n
+)
+{
+    // an earlier failure
+    if (_pipe.error_code != 0)
+    {
+        return _pipe;
+    }
+
     if (_n < _pipe.count)
     {
         _pipe.count = _n;
@@ -446,114 +435,79 @@ d_functional_pipeline_take
 }
 
 /*
-d_functional_pipeline_skip
-  Advances the pipeline past the first _n elements. The data pointer is
-adjusted forward and the count is reduced accordingly. No data is copied
-or reallocated.
-
-Parameter(s):
-  _pipe: the current pipeline state.
-  _n:    number of elements to skip.
-Return:
-  The pipeline with data pointer advanced by _n elements and count reduced.
-If _n >= count, the pipeline becomes empty (count = 0). If the pipeline is
-in an error state, returns it unchanged.
-*/
-struct d_functional_pipeline
-d_functional_pipeline_skip
-(
-    struct d_functional_pipeline _pipe,
-    size_t                       _n
-)
-{
-    // propagate prior errors
-    if (_pipe.error_code != 0)
-    {
-        return _pipe;
-    }
-
-    // skip past all elements
-    if (_n >= _pipe.count)
-    {
-        _pipe.count = 0;
-
-        return _pipe;
-    }
-
-    // advance the data pointer
-    _pipe.data = (unsigned char*)_pipe.data +
-                 (_n * _pipe.element_size);
-    _pipe.count -= _n;
-
-    return _pipe;
-}
-
-/*
 d_functional_pipeline_end
-  Finalizes the pipeline, returning the data pointer and element count.
-The caller takes ownership of the data if the pipeline owned it.
-
-Parameter(s):
-  _pipe:      the pipeline to finalize.
-  _out_count: pointer to receive the number of elements; may be NULL.
-Return:
-  A pointer to the pipeline's data, or NULL if the pipeline was in an
-error state. If _out_count is non-NULL, the element count is written to
-it.
+  Always hands the caller a block of its own, to release with free(): an
+owned block is handed over, a view is copied. So after end, the pipeline
+must not also be freed. A failed pipeline, or an empty result, yields NULL
+and a count of 0 -- check error_code first to tell them apart. A failed
+pipeline's own block is released here.
 */
 void*
-d_functional_pipeline_end
-(
+d_functional_pipeline_end(
     struct d_functional_pipeline _pipe,
     size_t*                      _out_count
 )
 {
-    // write count if requested
+    if (_out_count)
+    {
+        *_out_count = 0u;
+    }
+
+    // a failure or an empty result: nothing to hand over
+    if ( (_pipe.error_code != 0) ||
+         (_pipe.count == 0u) )
+    {
+        if (_pipe.owns_data)
+        {
+            free(_pipe.data);
+        }
+
+        return NULL;
+    }
+
+    void* result = _pipe.data;
+
+    // a view is copied, so the caller always owns what it receives
+    if (!_pipe.owns_data)
+    {
+        const size_t bytes = d_internal_pipeline_bytes(_pipe.count,
+                                                       _pipe.element_size);
+
+        result = (bytes == SIZE_MAX) ? NULL : malloc(bytes);
+
+        if (!result)
+        {
+            return NULL;
+        }
+
+        memcpy(result, _pipe.data, bytes);
+    }
+
     if (_out_count)
     {
         *_out_count = _pipe.count;
     }
 
-    // return NULL on error
-    if (_pipe.error_code != 0)
-    {
-        return NULL;
-    }
-
-    return _pipe.data;
+    return result;
 }
 
-/*
-d_functional_pipeline_free
-  Frees the pipeline's data if the pipeline owns it, and resets the
-pipeline to an empty state.
-
-Parameter(s):
-  _pipe: pointer to the pipeline to free; may be NULL.
-Return:
-  none.
-*/
 void
-d_functional_pipeline_free
-(
+d_functional_pipeline_free(
     struct d_functional_pipeline* _pipe
 )
 {
+    // nothing to release
     if (!_pipe)
     {
         return;
     }
 
-    // free data if we own it
-    if (_pipe->owns_data && _pipe->data)
+    if (_pipe->owns_data)
     {
         free(_pipe->data);
     }
 
-    _pipe->data       = NULL;
-    _pipe->count      = 0;
-    _pipe->owns_data  = false;
-    _pipe->error_code = 0;
+    memset(_pipe, 0, sizeof(*_pipe));
 
     return;
 }

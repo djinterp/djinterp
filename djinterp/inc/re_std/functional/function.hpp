@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                    function.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 function.hpp
 *
+* function class header:
 * class: type-erased owning callable wrapper -- re_std's portable
 *   alternative to `std::function` (C++11).
 *   `function<R(Args...)>` stores any CopyConstructible callable that is
@@ -24,7 +25,7 @@
 * exactly as `any` derives `any_type_id`, so `target<T>()` works even
 * when `<typeinfo>` is unreachable. The std-parity `target_type()`
 * observer (which must return `const std::type_info&`) is additionally
-* gated on `D_ENV_CPP98_HAS_TYPEINFO`.
+* gated on `RE_STD_HAS_RTTI`.
 *
 *   Min standard: C++11. `function` needs variadic templates (to spell
 * `R(Args...)`) and rvalue references (move, perfect forwarding); the
@@ -40,27 +41,36 @@
 * for parity even though std deprecated them in C++20.
 *
 *
-* path:      /inc/djinterp/re_std/functional/function.hpp
+* path:      /inc/re_std/functional/function.hpp
 * link(s):   TBA
-* author(s): re_std                                      date: 2026.07.25
-***********************************************************************/
+* author(s): re_std                                          created: 2026.07.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_
-#define DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_ 1
+#ifndef RE_STD_FUNCTIONAL_FUNCTION_HPP
+#define RE_STD_FUNCTIONAL_FUNCTION_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if (D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&  \
-     D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES)
+#if (RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&  \
+     RE_STD_LANG_HAS_RVALUE_REFERENCES)
 
 #include "re_std/type_traits/type_traits.hpp"
 #include "re_std/utility/forward.hpp"
 #include "re_std/functional/invoke.hpp"
 #include "re_std/functional/bad_function_call.hpp"
 
+// std
 #include <cstddef>   // std::nullptr_t
 
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if !RE_STD_HAS_EXCEPTIONS
+    // std
+    #include <cstdlib>  // std::abort, an empty call's only outcome
+#endif
+
+#if RE_STD_HAS_RTTI
+    // std
     #include <typeinfo>
 #endif
 
@@ -71,127 +81,128 @@ namespace re_std
 //   class: primary template, intentionally undefined. Only a genuine
 // function type `R(Args...)` names a valid specialisation, so
 // `function<int>` is ill-formed -- matching std.
-template<typename _Signature>
+template<typename Signature>
 class function;
 
-NS_INTERNAL
+namespace internal
+{
 
     // fn_declval
     //   function: declval-style helper. Declared, never defined; usable
     // only in unevaluated contexts. Never instantiated with `void` here
     // (every use is a callable or a function-parameter type).
-    template<typename _Type>
-    _Type&& fn_declval();
+    template<typename Type>
+    Type&& fn_declval();
 
     // fn_type_id / fn_type_id_of
-    //   typedef + function: RTTI-free per-type identity. The address of a
-    // distinct static member is unique per `_Type`, giving a stable,
+    //   alias: typedef + function: RTTI-free per-type identity. The address of a
+    // distinct static member is unique per `Type`, giving a stable,
     // constexpr-address token usable for `target<T>()` comparisons with
     // zero dependence on `<typeinfo>`. Mirrors `any_type_id`.
     typedef const void* fn_type_id;
 
-    template<typename _Type>
+    template<typename Type>
     struct fn_type_tag
     {
         static const char s_id;
     };
 
-    template<typename _Type>
-    const char fn_type_tag<_Type>::s_id = 0;
+    template<typename Type>
+    const char fn_type_tag<Type>::s_id = 0;
 
-    template<typename _Type>
+    template<typename Type>
     fn_type_id
     fn_type_id_of()
     {
-        return &fn_type_tag<_Type>::s_id;
+        return &fn_type_tag<Type>::s_id;
     }
 
     // fn_conv
-    //   trait helper: SFINAE probe for "a prvalue of `_From` is
-    // convertible to `_To`". `accept(_To)` participates only when the
+    //   struct: trait helper: SFINAE probe for "a prvalue of `From` is
+    // convertible to `To`". `accept(To)` participates only when the
     // conversion is well-formed.
-    template<typename _To>
+    template<typename To>
     struct fn_conv
     {
-        static void accept(_To);
+        static void accept(To);
 
-        template<typename _From>
+        template<typename From>
         static true_type
-        probe(decltype(accept(fn_declval<_From>()))*);
+        probe(decltype(accept(fn_declval<From>()))*);
 
-        template<typename _From>
+        template<typename From>
         static false_type
         probe(...);
     };
 
     // fn_convertible
-    //   trait: `true` if `_From` is convertible to `_To`. `_To == void`
+    //   trait: `true` if `From` is convertible to `To`. `To == void`
     // is always satisfiable (any result is discardable).
-    template<typename _To, typename _From>
+    template<typename To, typename From>
     struct fn_convertible
         : integral_constant<bool,
-              is_same<decltype(fn_conv<_To>::template probe<_From>(0)),
+              is_same<decltype(fn_conv<To>::template probe<From>(0)),
                       true_type>::value>
     {};
 
-    template<typename _From>
-    struct fn_convertible<void, _From>
+    template<typename From>
+    struct fn_convertible<void, From>
         : true_type
     {};
 
     // fn_callable
     //   trait: `true` if `invoke(f, args...)` is well-formed for an
-    // lvalue `_Fn` and the given `_Args`. The result is cast to `void`
+    // lvalue `Fn` and the given `Args`. The result is cast to `void`
     // inside the probe so that reference-returning callables (whose
     // result type cannot be pointer-formed) are still detected.
-    template<typename _Fn, typename... _Args>
+    template<typename Fn, typename... Args>
     struct fn_callable
     {
-        template<typename _F>
+        template<typename F>
         static true_type
         probe(int,
-              decltype((void)re_std::invoke(fn_declval<_F&>(),
-                                           fn_declval<_Args>()...))* = 0);
+              decltype((void)re_std::invoke(fn_declval<F&>(),
+                                           fn_declval<Args>()...))* = 0);
 
-        template<typename _F>
+        template<typename F>
         static false_type
         probe(...);
 
         static const bool value =
-            is_same<decltype(probe<_Fn>(0)), true_type>::value;
+            is_same<decltype(probe<Fn>(0)), true_type>::value;
     };
 
     // fn_invocable_r_impl
     //   trait: two-step so the result-type `decltype` is only formed when
     // the call is actually well-formed (guarding against a hard error in
     // the non-callable case).
-    template<bool _Callable, typename _Ret, typename _Fn, typename... _Args>
+    template<bool Callable, typename Ret, typename Fn, typename... Args>
     struct fn_invocable_r_impl
     {
         static const bool value = false;
     };
 
-    template<typename _Ret, typename _Fn, typename... _Args>
-    struct fn_invocable_r_impl<true, _Ret, _Fn, _Args...>
+    template<typename Ret, typename Fn, typename... Args>
+    struct fn_invocable_r_impl<true, Ret, Fn, Args...>
     {
         static const bool value = fn_convertible<
-            _Ret,
-            decltype(re_std::invoke(fn_declval<_Fn&>(),
-                                   fn_declval<_Args>()...))
+            Ret,
+            decltype(re_std::invoke(fn_declval<Fn&>(),
+                                   fn_declval<Args>()...))
         >::value;
     };
 
     // fn_invocable_r
-    //   trait: `true` if an lvalue `_Fn` is invocable per `_Ret(_Args...)`
-    // with the result convertible to `_Ret` (or `_Ret` == void). This is
+    //   trait: `true` if an lvalue `Fn` is invocable per `Ret(Args...)`
+    // with the result convertible to `Ret` (or `Ret` == void). This is
     // the local stand-in for `is_invocable_r` (which is a follow-on to
     // this milestone in re_std::type_traits).
-    template<typename _Ret, typename _Fn, typename... _Args>
+    template<typename Ret, typename Fn, typename... Args>
     struct fn_invocable_r
         : integral_constant<bool,
               fn_invocable_r_impl<
-                  fn_callable<_Fn, _Args...>::value,
-                  _Ret, _Fn, _Args...>::value>
+                  fn_callable<Fn, Args...>::value,
+                  Ret, Fn, Args...>::value>
     {};
 
     // fn_is_null
@@ -211,93 +222,93 @@ NS_INTERNAL
     // preferred whenever its SFINAE succeeds, otherwise the `...` overload
     // is the fallback. (Without a supplied argument to discriminate on,
     // an omitted-defaulted parameter and an ellipsis tie.)
-    template<typename _Fn,
+    template<typename Fn,
              typename = typename enable_if<
-                 !is_function<typename remove_reference<_Fn>::type>::value
+                 !is_function<typename remove_reference<Fn>::type>::value
              >::type>
     bool
-    fn_is_null(const _Fn& _f, int,
-               decltype((void)(fn_declval<const _Fn&>() == 0), 0)* = 0)
+    fn_is_null(const Fn& _f, int,
+               decltype((void)(fn_declval<const Fn&>() == 0), 0)* = 0)
     {
         return _f == 0;
     }
 
-    template<typename _Fn>
+    template<typename Fn>
     bool
-    fn_is_null(const _Fn&, ...)
+    fn_is_null(const Fn&, ...)
     {
         return false;
     }
 
     // fn_call_impl
-    //   helper: performs the actual invoke, discarding the result when
-    // `_Ret` is `void` (C++11 has no `if constexpr` to branch inline).
-    template<typename _Ret>
+    //   trait: performs the actual invoke, discarding the result when
+    // `Ret` is `void` (C++11 has no `if constexpr` to branch inline).
+    template<typename Ret>
     struct fn_call_impl
     {
-        template<typename _Fd, typename... _A>
-        static _Ret
-        call(_Fd& _f, _A&&... _a)
+        template<typename Fd, typename... A>
+        static Ret
+        call(Fd& _f, A&&... _a)
         {
-            return re_std::invoke(_f, re_std::forward<_A>(_a)...);
+            return re_std::invoke(_f, re_std::forward<A>(_a)...);
         }
     };
 
     template<>
     struct fn_call_impl<void>
     {
-        template<typename _Fd, typename... _A>
+        template<typename Fd, typename... A>
         static void
-        call(_Fd& _f, _A&&... _a)
+        call(Fd& _f, A&&... _a)
         {
-            re_std::invoke(_f, re_std::forward<_A>(_a)...);
+            re_std::invoke(_f, re_std::forward<A>(_a)...);
         }
     };
 
     // fn_base
     //   struct: abstract type-erasure interface for a stored target.
-    template<typename _Ret, typename... _Args>
+    template<typename Ret, typename... Args>
     struct fn_base
     {
         virtual ~fn_base() {}
 
-        virtual _Ret        do_call(_Args...) = 0;
+        virtual Ret        do_call(Args...) = 0;
         virtual fn_base*    clone() const     = 0;
         virtual fn_type_id  type_id() const   = 0;
         virtual void*       target_ptr()      = 0;
 
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if RE_STD_HAS_RTTI
         virtual const std::type_info& type_info() const = 0;
 #endif
     };
 
     // fn_holder
     //   struct: concrete holder storing the decayed target by value.
-    template<typename _Fd, typename _Ret, typename... _Args>
+    template<typename Fd, typename Ret, typename... Args>
     struct fn_holder
-        : fn_base<_Ret, _Args...>
+        : fn_base<Ret, Args...>
     {
-        _Fd m_f;
+        Fd m_f;
 
-        template<typename _G>
-        explicit fn_holder(_G&& _g)
-            : m_f(re_std::forward<_G>(_g))
+        template<typename G>
+        explicit fn_holder(G&& _g)
+            : m_f(re_std::forward<G>(_g))
         {}
 
-        _Ret do_call(_Args... _a)
+        Ret do_call(Args... _a)
         {
-            return fn_call_impl<_Ret>::call(
-                m_f, re_std::forward<_Args>(_a)...);
+            return fn_call_impl<Ret>::call(
+                m_f, re_std::forward<Args>(_a)...);
         }
 
-        fn_base<_Ret, _Args...>* clone() const
+        fn_base<Ret, Args...>* clone() const
         {
             return new fn_holder(m_f);
         }
 
         fn_type_id type_id() const
         {
-            return fn_type_id_of<_Fd>();
+            return fn_type_id_of<Fd>();
         }
 
         void* target_ptr()
@@ -305,40 +316,40 @@ NS_INTERNAL
             return static_cast<void*>(&m_f);
         }
 
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if RE_STD_HAS_RTTI
         const std::type_info& type_info() const
         {
-            return typeid(_Fd);
+            return typeid(Fd);
         }
 #endif
     };
 
-NS_END  // internal
+}  // internal
 
-// function<_Ret(_Args...)>
+// function<Ret(Args...)>
 //   class: the type-erased callable wrapper. See the file header for the
 // storage model, type-identity scheme, and deviations from std.
-template<typename _Ret, typename... _Args>
-class function<_Ret(_Args...)>
+template<typename Ret, typename... Args>
+class function<Ret(Args...)>
 {
 public:
 
-#if !D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if !RE_STD_LANG_IS_CPP20_OR_HIGHER
     // typedef: legacy member; present through C++17, removed in C++20
     // (matches std::function).
-    typedef _Ret result_type;
+    typedef Ret result_type;
 #endif
 
     // ---- construction (empty) -------------------------------------------
 
     // function
-    //   ctor: constructs an empty wrapper.
+    //   function: constructs an empty wrapper.
     function() noexcept
         : m_ptr(0)
     {}
 
     // function
-    //   ctor: constructs an empty wrapper from `nullptr`.
+    //   function: constructs an empty wrapper from `nullptr`.
     function(std::nullptr_t) noexcept
         : m_ptr(0)
     {}
@@ -346,14 +357,14 @@ public:
     // ---- construction (copy / move) -------------------------------------
 
     // function
-    //   ctor: deep-copies the target (requires a CopyConstructible
+    //   function: deep-copies the target (requires a CopyConstructible
     // target, as std does).
     function(const function& _other)
         : m_ptr(_other.m_ptr ? _other.m_ptr->clone() : 0)
     {}
 
     // function
-    //   ctor: steals the target; leaves `_other` empty.
+    //   function: steals the target; leaves `_other` empty.
     function(function&& _other) noexcept
         : m_ptr(_other.m_ptr)
     {
@@ -363,31 +374,31 @@ public:
     // ---- construction (from a callable) ---------------------------------
 
     // function
-    //   ctor: wraps any callable invocable as `_Ret(_Args...)`. Excluded
+    //   function: wraps any callable invocable as `Ret(Args...)`. Excluded
     // for `function` itself (so copy/move win) and for non-invocable
     // types (SFINAE). A null function/member pointer yields an empty
     // wrapper, matching std.
-    template<typename _Fn,
+    template<typename Fn,
              typename = typename enable_if<
-                 ( !is_same<typename decay<_Fn>::type, function>::value &&
+                 ( !is_same<typename decay<Fn>::type, function>::value &&
                    internal::fn_invocable_r<
-                       _Ret, typename decay<_Fn>::type, _Args...>::value )
+                       Ret, typename decay<Fn>::type, Args...>::value )
              >::type>
-    function(_Fn&& _f)
+    function(Fn&& _f)
         : m_ptr(0)
     {
-        typedef typename decay<_Fn>::type _Fd;
+        typedef typename decay<Fn>::type Fd;
         if (!internal::fn_is_null(_f, 0))
         {
-            m_ptr = new internal::fn_holder<_Fd, _Ret, _Args...>(
-                re_std::forward<_Fn>(_f));
+            m_ptr = new internal::fn_holder<Fd, Ret, Args...>(
+                re_std::forward<Fn>(_f));
         }
     }
 
     // ---- assignment -----------------------------------------------------
 
     // operator=
-    //   assign: copy via copy-and-swap.
+    //   function: copy via copy-and-swap.
     function&
     operator=(const function& _other)
     {
@@ -396,7 +407,7 @@ public:
     }
 
     // operator=
-    //   assign: move via swap with a stolen temporary.
+    //   function: move via swap with a stolen temporary.
     function&
     operator=(function&& _other) noexcept
     {
@@ -405,7 +416,7 @@ public:
     }
 
     // operator=
-    //   assign: clears the wrapper.
+    //   function: clears the wrapper.
     function&
     operator=(std::nullptr_t) noexcept
     {
@@ -415,18 +426,18 @@ public:
     }
 
     // operator=
-    //   assign: rebinds to a new callable (same constraints as the
+    //   function: rebinds to a new callable (same constraints as the
     // callable ctor).
-    template<typename _Fn>
+    template<typename Fn>
     typename enable_if<
-        ( !is_same<typename decay<_Fn>::type, function>::value &&
+        ( !is_same<typename decay<Fn>::type, function>::value &&
           internal::fn_invocable_r<
-              _Ret, typename decay<_Fn>::type, _Args...>::value ),
+              Ret, typename decay<Fn>::type, Args...>::value ),
         function&
     >::type
-    operator=(_Fn&& _f)
+    operator=(Fn&& _f)
     {
-        function(re_std::forward<_Fn>(_f)).swap(*this);
+        function(re_std::forward<Fn>(_f)).swap(*this);
         return *this;
     }
 
@@ -440,11 +451,11 @@ public:
     // ---- modifiers ------------------------------------------------------
 
     // swap
-    //   modifier: O(1) pointer swap.
+    //   function: O(1) pointer swap.
     void
     swap(function& _other) noexcept
     {
-        internal::fn_base<_Ret, _Args...>* _tmp = m_ptr;
+        internal::fn_base<Ret, Args...>* _tmp = m_ptr;
         m_ptr        = _other.m_ptr;
         _other.m_ptr = _tmp;
     }
@@ -452,7 +463,7 @@ public:
     // ---- observers ------------------------------------------------------
 
     // operator bool
-    //   observer: `true` iff the wrapper holds a target.
+    //   function: `true` iff the wrapper holds a target.
     explicit operator bool() const noexcept
     {
         return m_ptr != 0;
@@ -461,19 +472,25 @@ public:
     // operator()
     //   function: invokes the stored target; throws `bad_function_call`
     // when empty.
-    _Ret
-    operator()(_Args... _a) const
+    Ret
+    operator()(Args... _a) const
     {
+        // an empty wrapper: throw, as std's does, or with exceptions off
+        // abort, as std's does then -- there is no target and no value
         if (!m_ptr)
         {
+        #if RE_STD_HAS_EXCEPTIONS
             throw bad_function_call();
+        #else
+            std::abort();
+        #endif
         }
-        return m_ptr->do_call(re_std::forward<_Args>(_a)...);
+        return m_ptr->do_call(re_std::forward<Args>(_a)...);
     }
 
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if RE_STD_HAS_RTTI
     // target_type
-    //   observer: the `type_info` of the stored target, or `typeid(void)`
+    //   function: the `type_info` of the stored target, or `typeid(void)`
     // when empty. Only available with `<typeinfo>`.
     const std::type_info&
     target_type() const noexcept
@@ -483,80 +500,79 @@ public:
 #endif
 
     // target
-    //   observer: a pointer to the stored target if it is exactly `_Tp`,
+    //   function: a pointer to the stored target if it is exactly `Tp`,
     // else null. RTTI-free (uses the address-based type id).
-    template<typename _Tp>
-    _Tp*
+    template<typename Tp>
+    Tp*
     target() noexcept
     {
-        if (m_ptr && m_ptr->type_id() == internal::fn_type_id_of<_Tp>())
+        if (m_ptr && m_ptr->type_id() == internal::fn_type_id_of<Tp>())
         {
-            return static_cast<_Tp*>(m_ptr->target_ptr());
+            return static_cast<Tp*>(m_ptr->target_ptr());
         }
         return 0;
     }
 
     // target (const)
-    //   observer: const overload of the above.
-    template<typename _Tp>
-    const _Tp*
+    //   function: const overload of the above.
+    template<typename Tp>
+    const Tp*
     target() const noexcept
     {
-        if (m_ptr && m_ptr->type_id() == internal::fn_type_id_of<_Tp>())
+        if (m_ptr && m_ptr->type_id() == internal::fn_type_id_of<Tp>())
         {
-            return static_cast<const _Tp*>(m_ptr->target_ptr());
+            return static_cast<const Tp*>(m_ptr->target_ptr());
         }
         return 0;
     }
 
 private:
 
-    internal::fn_base<_Ret, _Args...>* m_ptr;
+    internal::fn_base<Ret, Args...>* m_ptr;
 };
 
 // ---- non-member swap ----------------------------------------------------
 
 // swap
 //   function: exchanges two wrappers; enables the ADL two-step swap.
-template<typename _Ret, typename... _Args>
+template<typename Ret, typename... Args>
 void
-swap(function<_Ret(_Args...)>& _a, function<_Ret(_Args...)>& _b) noexcept
+swap(function<Ret(Args...)>& _a, function<Ret(Args...)>& _b) noexcept
 {
     _a.swap(_b);
 }
 
 // ---- null comparisons (deprecated in std since C++20, kept for parity) --
 
-template<typename _Ret, typename... _Args>
+template<typename Ret, typename... Args>
 bool
-operator==(const function<_Ret(_Args...)>& _f, std::nullptr_t) noexcept
+operator==(const function<Ret(Args...)>& _f, std::nullptr_t) noexcept
 {
     return !_f;
 }
 
-template<typename _Ret, typename... _Args>
+template<typename Ret, typename... Args>
 bool
-operator==(std::nullptr_t, const function<_Ret(_Args...)>& _f) noexcept
+operator==(std::nullptr_t, const function<Ret(Args...)>& _f) noexcept
 {
     return !_f;
 }
 
-template<typename _Ret, typename... _Args>
+template<typename Ret, typename... Args>
 bool
-operator!=(const function<_Ret(_Args...)>& _f, std::nullptr_t) noexcept
+operator!=(const function<Ret(Args...)>& _f, std::nullptr_t) noexcept
 {
     return static_cast<bool>(_f);
 }
 
-template<typename _Ret, typename... _Args>
+template<typename Ret, typename... Args>
 bool
-operator!=(std::nullptr_t, const function<_Ret(_Args...)>& _f) noexcept
+operator!=(std::nullptr_t, const function<Ret(Args...)>& _f) noexcept
 {
     return static_cast<bool>(_f);
 }
 
-} // namespace re_std
-
+}  // re_std
 #endif // variadic templates + rvalue references
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_
+#endif  // RE_STD_FUNCTIONAL_FUNCTION_HPP

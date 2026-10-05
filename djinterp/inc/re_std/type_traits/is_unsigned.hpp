@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                            is_unsigned.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              is_unsigned.hpp
 *
 * is_unsigned trait header:
 *   Detects whether a type, ignoring cv-qualifiers, is an unsigned
@@ -15,16 +15,17 @@
 *     is_unsigned<int*>::value         -> false
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_unsigned.hpp
+* path:      /inc/re_std/type_traits/is_unsigned.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_UNSIGNED_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_UNSIGNED_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_UNSIGNED_HPP
+#define RE_STD_TYPE_TRAITS_IS_UNSIGNED_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
@@ -32,41 +33,43 @@
 #include "./remove_cv.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_UNSIGNED
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_unsigned_helper
     //   trait: false for non-integral types (primary template).
-    template<typename _Type,
-             bool      _IsIntegral>
+    template<typename Type,
+             bool      IsIntegral>
     struct is_unsigned_helper : false_type
     {};
 
-    // is_unsigned_helper<_Type, true>
+    // is_unsigned_helper<Type, true>
     //   trait: integral types - test via comparison.
     // Unsigned: -1 wraps to max value -> 0 < max is true.
     // Signed:   -1 stays negative     -> 0 < -1 is false.
-    template<typename _Type>
-    struct is_unsigned_helper<_Type, true>
+    template<typename Type>
+    struct is_unsigned_helper<Type, true>
         : integral_constant<bool,
-            ( static_cast<_Type>(0) < static_cast<_Type>(-1) )>
+            ( static_cast<Type>(0) < static_cast<Type>(-1) )>
     {};
 
-NS_END  // internal
+}  // internal
 
 // is_unsigned
-//   trait: true if _Type (cv-stripped) is an unsigned integral type.
-template<typename _Type>
+//   trait: true if Type (cv-stripped) is an unsigned integral type.
+template<typename Type>
 struct is_unsigned
     : internal::is_unsigned_helper<
-          typename remove_cv<_Type>::type,
-          is_integral<_Type>::value>
+          typename remove_cv<Type>::type,
+          is_integral<Type>::value>
 {};
 
 
@@ -74,17 +77,17 @@ struct is_unsigned
 // II.  IS_UNSIGNED_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_unsigned_v
-    //   variable: convenience for is_unsigned<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_unsigned_v = is_unsigned<_Type>::value;
+    //   variable: convenience for is_unsigned<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_unsigned_v = is_unsigned<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_UNSIGNED_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_UNSIGNED_HPP

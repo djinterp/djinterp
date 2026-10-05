@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 find_end.hpp
 *
 * find_end algorithm header:
@@ -18,31 +18,26 @@
 *   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/find_end.hpp
+* path:      /inc/re_std/algorithm/find_end.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_FIND_END_
-#define DJINTERP_RE_STD_ALGORITHM_FIND_END_ 1
+#ifndef RE_STD_ALGORITHM_FIND_END_HPP
+#define RE_STD_ALGORITHM_FIND_END_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -54,14 +49,14 @@ NS_RESTD
 // occurrence of [_first2, _last2) within [_first1, _last1), comparing
 // elements via operator==. Returns _last1 if the needle does not occur
 // or if the needle is empty.
-template<typename _ForwardIt1,
-         typename _ForwardIt2>
-D_CONSTEXPR_CPP14 _ForwardIt1
+template<typename ForwardIt1,
+         typename ForwardIt2>
+RE_STD_CONSTEXPR_CPP14 ForwardIt1
 find_end(
-    _ForwardIt1 _first1,
-    _ForwardIt1 _last1,
-    _ForwardIt2 _first2,
-    _ForwardIt2 _last2
+    ForwardIt1 _first1,
+    ForwardIt1 _last1,
+    ForwardIt2 _first2,
+    ForwardIt2 _last2
 )
 {
     // empty needle: return _last1 (matches std)
@@ -70,13 +65,13 @@ find_end(
         return _last1;
     }
 
-    _ForwardIt1 _result = _last1;
+    ForwardIt1 _result = _last1;
 
     while (_first1 != _last1)
     {
         // try to match needle starting at _first1
-        _ForwardIt1 _it1 = _first1;
-        _ForwardIt2 _it2 = _first2;
+        ForwardIt1 _it1 = _first1;
+        ForwardIt2 _it2 = _first2;
 
         while ( (_it1 != _last1) &&
                 (_it2 != _last2) &&
@@ -106,16 +101,16 @@ find_end(
 // find_end (predicate)
 //   function: as above but element comparison is via the user-supplied
 // binary predicate _pred.
-template<typename _ForwardIt1,
-         typename _ForwardIt2,
-         typename _BinaryPred>
-D_CONSTEXPR_CPP14 _ForwardIt1
+template<typename ForwardIt1,
+         typename ForwardIt2,
+         typename BinaryPred>
+RE_STD_CONSTEXPR_CPP14 ForwardIt1
 find_end(
-    _ForwardIt1 _first1,
-    _ForwardIt1 _last1,
-    _ForwardIt2 _first2,
-    _ForwardIt2 _last2,
-    _BinaryPred _pred
+    ForwardIt1 _first1,
+    ForwardIt1 _last1,
+    ForwardIt2 _first2,
+    ForwardIt2 _last2,
+    BinaryPred _pred
 )
 {
     if (_first2 == _last2)
@@ -123,12 +118,12 @@ find_end(
         return _last1;
     }
 
-    _ForwardIt1 _result = _last1;
+    ForwardIt1 _result = _last1;
 
     while (_first1 != _last1)
     {
-        _ForwardIt1 _it1 = _first1;
-        _ForwardIt2 _it2 = _first2;
+        ForwardIt1 _it1 = _first1;
+        ForwardIt2 _it2 = _first2;
 
         while ( (_it1 != _last1) &&
                 (_it2 != _last2) &&
@@ -150,7 +145,7 @@ find_end(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_FIND_END_
+#endif  // RE_STD_ALGORITHM_FIND_END_HPP

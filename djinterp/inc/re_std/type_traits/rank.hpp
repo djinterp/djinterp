@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                                   rank.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                     rank.hpp
 *
 * rank trait header:
-*   Yields the number of array dimensions of _Type as a `std::size_t`
+*   Yields the number of array dimensions of Type as a `std::size_t`
 * value. For non-array types, yields 0.
 *
 *     rank<int>::value             -> 0
@@ -12,22 +12,24 @@
 *     rank<int[1][2][3][4]>::value -> 4
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/rank.hpp
+* path:      /inc/re_std/type_traits/rank.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_RANK_
-#define DJINTERP_RE_STD_TYPE_TRAITS_RANK_ 1
+#ifndef RE_STD_TYPE_TRAITS_RANK_HPP
+#define RE_STD_TYPE_TRAITS_RANK_HPP 1
 
 // std
 #include <cstddef>
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -36,23 +38,23 @@ NS_RESTD
 
 // rank
 //   trait: 0 for non-array (primary template).
-template<typename _Type>
+template<typename Type>
 struct rank : integral_constant<std::size_t, 0>
 {};
 
-// rank<_Type[]>
+// rank<Type[]>
 //   trait: unbounded array; recurse on element type and add 1.
-template<typename _Type>
-struct rank<_Type[]>
-    : integral_constant<std::size_t, rank<_Type>::value + 1>
+template<typename Type>
+struct rank<Type[]>
+    : integral_constant<std::size_t, rank<Type>::value + 1>
 {};
 
-// rank<_Type[_N]>
+// rank<Type[N]>
 //   trait: bounded array; recurse on element type and add 1.
-template<typename    _Type,
-         std::size_t _N>
-struct rank<_Type[_N]>
-    : integral_constant<std::size_t, rank<_Type>::value + 1>
+template<typename    Type,
+         std::size_t N>
+struct rank<Type[N]>
+    : integral_constant<std::size_t, rank<Type>::value + 1>
 {};
 
 
@@ -60,17 +62,17 @@ struct rank<_Type[_N]>
 // II.  RANK_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // rank_v
-    //   variable: convenience for rank<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR std::size_t rank_v = rank<_Type>::value;
+    //   variable: convenience for rank<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR std::size_t rank_v = rank<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_RANK_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_RANK_HPP

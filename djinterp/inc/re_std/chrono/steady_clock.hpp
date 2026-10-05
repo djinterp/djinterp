@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                             steady_clock.hpp
 *
 * the steady_clock class:
@@ -34,24 +34,25 @@
 * covers 292 years of uptime.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/steady_clock.hpp
+* path:      /inc/re_std/chrono/steady_clock.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_STEADY_CLOCK_
-#define DJINTERP_RE_STD_CHRONO_STEADY_CLOCK_ 1
+#ifndef RE_STD_CHRONO_STEADY_CLOCK_HPP
+#define RE_STD_CHRONO_STEADY_CLOCK_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <ctime>
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "./duration_arithmetic.hpp"
 #include "./duration_cast.hpp"
@@ -63,20 +64,21 @@
 #include "../cstdint/cstdint.hpp"
 
 
-// D_RE_STD_HAS_MONOTONIC_CLOCK
+// RE_STD_HAS_MONOTONIC_CLOCK
 //   constant: 1 if a genuinely monotonic time source is available. Drives
 // steady_clock::is_steady -- do not define it to 1 on a platform that
 // cannot honour it.
-#ifndef D_RE_STD_HAS_MONOTONIC_CLOCK
-    #if D_RE_STD_HAS_POSIX_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
-        #define D_RE_STD_HAS_MONOTONIC_CLOCK  1
+#ifndef RE_STD_HAS_MONOTONIC_CLOCK
+    #if RE_STD_HAS_POSIX_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
+        #define RE_STD_HAS_MONOTONIC_CLOCK  1
     #else
-        #define D_RE_STD_HAS_MONOTONIC_CLOCK  0
+        #define RE_STD_HAS_MONOTONIC_CLOCK  0
     #endif
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
@@ -89,7 +91,7 @@ namespace chrono
     public:
         // rep / period / duration / time_point
         //   typedef: the clock's fixed precision.
-        typedef std::int_least64_t              rep;
+        typedef int_least64_t                   rep;
         typedef nano                            period;
         typedef chrono::duration<rep, period>   duration;
         typedef chrono::time_point<steady_clock> time_point;
@@ -98,15 +100,15 @@ namespace chrono
         //   constant: true only where a monotonic source compiled in.
         // See the header comment -- this is reported honestly rather than
         // asserted.
-        static D_CONSTEXPR const bool is_steady =
-            (D_RE_STD_HAS_MONOTONIC_CLOCK != 0);
+        static RE_STD_CONSTEXPR const bool is_steady =
+            (RE_STD_HAS_MONOTONIC_CLOCK != 0);
 
         // now
         //   function: the current reading. Meaningful only as a
         // difference against another reading.
-        static time_point now() D_NOEXCEPT
+        static time_point now() RE_STD_NOEXCEPT
         {
-#if D_RE_STD_HAS_MONOTONIC_CLOCK
+#if RE_STD_HAS_MONOTONIC_CLOCK
 
             ::timespec _ts;
             if (::clock_gettime(CLOCK_MONOTONIC, &_ts) != 0)
@@ -131,16 +133,16 @@ namespace chrono
     };
 
     // Out-of-class definition; see system_clock.hpp for the gate.
-#if !D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if !RE_STD_LANG_IS_CPP17_OR_HIGHER
     const bool steady_clock::is_steady;
 #endif
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_STEADY_CLOCK_
+#endif  // RE_STD_CHRONO_STEADY_CLOCK_HPP

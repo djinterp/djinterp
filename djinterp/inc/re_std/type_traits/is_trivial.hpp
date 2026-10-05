@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           is_trivial.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               is_trivial.hpp
 *
 * is_trivial trait header:
 *   is_trivial<T>::value is true iff T is trivially default constructible
@@ -16,56 +16,58 @@
 *   C++11 baseline. The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_trivial.hpp
+* path:      /inc/re_std/type_traits/is_trivial.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIAL_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIAL_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_TRIVIAL_HPP
+#define RE_STD_TYPE_TRAITS_IS_TRIVIAL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
 // =============================================================================
-// 0.   D_RE_STD_HAS_IS_TRIVIAL  (intrinsic detection)
+// 0.   RE_STD_HAS_IS_TRIVIAL  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RE_STD_HAS_IS_TRIVIAL
+#ifndef RE_STD_HAS_IS_TRIVIAL
     #if defined(__has_builtin)
         #if __has_builtin(__is_trivial)
-            #define D_RE_STD_HAS_IS_TRIVIAL  1
+            #define RE_STD_HAS_IS_TRIVIAL  1
         #else
-            #define D_RE_STD_HAS_IS_TRIVIAL  0
+            #define RE_STD_HAS_IS_TRIVIAL  0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
-            defined(D_ENV_COMPILER_CLANG) ||                                  \
-            defined(D_ENV_COMPILER_MSVC)  ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
-        #define D_RE_STD_HAS_IS_TRIVIAL      1
+    #elif ( defined(RE_STD_COMPILER_GCC)   ||                                  \
+            defined(RE_STD_COMPILER_CLANG) ||                                  \
+            defined(RE_STD_COMPILER_MSVC)  ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
+        #define RE_STD_HAS_IS_TRIVIAL      1
     #else
-        #define D_RE_STD_HAS_IS_TRIVIAL      0
+        #define RE_STD_HAS_IS_TRIVIAL      0
     #endif
-#endif  // D_RE_STD_HAS_IS_TRIVIAL
+#endif  // RE_STD_HAS_IS_TRIVIAL
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_TRIVIAL
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_TRIVIAL
+#if RE_STD_HAS_IS_TRIVIAL
 
 // is_trivial
 //   trait: intrinsic-backed -- trivially default constructible and trivially copyable.
-template<typename _Type>
-struct is_trivial : integral_constant<bool, __is_trivial(_Type)>
+template<typename Type>
+struct is_trivial : integral_constant<bool, __is_trivial(Type)>
 {};
 
 #else
@@ -75,26 +77,26 @@ struct is_trivial : integral_constant<bool, __is_trivial(_Type)>
 // False is the conservative answer: it sends callers down the general
 // path rather than the optimised one, which is correct but slower. The
 // reverse error would be silent and wrong.
-template<typename _Type>
+template<typename Type>
 struct is_trivial : false_type
 {};
 
-#endif  // D_RE_STD_HAS_IS_TRIVIAL
+#endif  // RE_STD_HAS_IS_TRIVIAL
 
 
 // =============================================================================
 // II.  IS_TRIVIAL_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool is_trivial_v = is_trivial<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool is_trivial_v = is_trivial<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIAL_
+#endif  // RE_STD_TYPE_TRAITS_IS_TRIVIAL_HPP

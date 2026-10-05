@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              rotate_copy.hpp
 *
 * rotate_copy algorithm header:
@@ -15,31 +15,26 @@
 *     trivial.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/rotate_copy.hpp
+* path:      /inc/re_std/algorithm/rotate_copy.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_ROTATE_COPY_
-#define DJINTERP_RE_STD_ALGORITHM_ROTATE_COPY_ 1
+#ifndef RE_STD_ALGORITHM_ROTATE_COPY_HPP
+#define RE_STD_ALGORITHM_ROTATE_COPY_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -50,18 +45,18 @@ NS_RESTD
 //   function: writes [_middle, _last) followed by [_first, _middle)
 // into the output range starting at _d_first. Returns the iterator one
 // past the last element written.
-template<typename _ForwardIt,
-         typename _OutputIt>
-D_CONSTEXPR_CPP14 _OutputIt
+template<typename ForwardIt,
+         typename OutputIt>
+RE_STD_CONSTEXPR_CPP14 OutputIt
 rotate_copy(
-    _ForwardIt _first,
-    _ForwardIt _middle,
-    _ForwardIt _last,
-    _OutputIt  _d_first
+    ForwardIt _first,
+    ForwardIt _middle,
+    ForwardIt _last,
+    OutputIt  _d_first
 )
 {
     // first segment: [_middle, _last)
-    for (_ForwardIt _it = _middle; _it != _last; ++_it, (void)++_d_first)
+    for (ForwardIt _it = _middle; _it != _last; ++_it, (void)++_d_first)
     {
         *_d_first = *_it;
     }
@@ -76,7 +71,7 @@ rotate_copy(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_ROTATE_COPY_
+#endif  // RE_STD_ALGORITHM_ROTATE_COPY_HPP

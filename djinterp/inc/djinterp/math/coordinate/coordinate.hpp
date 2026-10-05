@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                           coordinate.hpp
+/*******************************************************************************
+* djinterp [math]                                                 coordinate.hpp
 *
 * Unified coordinate system header.
 *   This header includes all coordinate sub-modules (Cartesian, polar,
@@ -33,21 +33,24 @@
 *     - static scale_factors(point_type) -> array<value_type, dimension>
 *     - static jacobian(point_type) -> value_type
 *
+*
 * path:      /inc/djinterp/math/coordinate/coordinate.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.02.06
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_COORDINATE_
-#define DJINTERP_MATH_COORDINATE_ 1
+#ifndef DJINTERP_MATH_COORDINATE_COORDINATE_HPP
+#define DJINTERP_MATH_COORDINATE_COORDINATE_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <type_traits>
-#include "../djinterp.hpp"
-
+// djinterp
+#include "../../djinterp.hpp"
 // sub-module headers (usable independently)
 #include "cartesian.hpp"
 #include "polar.hpp"
@@ -616,4 +619,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_COORDINATE_
+#endif  // DJINTERP_MATH_COORDINATE_COORDINATE_HPP

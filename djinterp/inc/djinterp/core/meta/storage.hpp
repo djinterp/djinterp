@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                                  storage.hpp
+/*******************************************************************************
+* djinterp [core]                                                    storage.hpp
 *
 *   The framework's foundational STORAGE vocabulary - the static / dynamic
 * classification of WHERE a container sites its cells, factored out so every
@@ -66,16 +66,24 @@
 *
 * path:      /inc/djinterp/core/meta/storage.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_META_STORAGE_
-#define DJINTERP_META_STORAGE_ 1
+#ifndef DJINTERP_META_STORAGE_HPP
+#define DJINTERP_META_STORAGE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"      // clean_t, void_t, NS_*, D_ENV_* feature macros
+#include "../../djinterp.hpp"      // NS_*, D_ENV_* feature macros
+#include "./type_utility.hpp"      // clean_t
 #include "./trait_detect.hpp"   // D_VOID_T, D_TYPE_TRAIT_* detection macros
 #include "./lifetime.hpp"       // lifetime, is_compile_time (cross-axis bridge)
 
@@ -92,12 +100,15 @@ NS_DJINTERP
 // - with one bit per siting so the four values form a lattice.  static storage
 // aligns with the compile-time stage (cells reserved, trivially, at stage c);
 // dynamic storage with the runtime stage (cells acquired at stage r).
-enum class storage_duration : unsigned
+struct storage_duration
 {
-    unknown         = 0u,                                  // siting undetermined (bottom)
-    static_storage  = (1u << 0),                           // inline / in-object (formal stat)
-    dynamic_storage = (1u << 1),                           // out of line / allocated (formal dyn)
-    hybrid_storage  = (static_storage | dynamic_storage)   // both: small-storage / SBO (top)
+    enum value
+    {
+        unknown         = 0u,                                 // siting undetermined (bottom)
+        static_storage  = (1u << 0),                          // inline / in-object (formal stat)
+        dynamic_storage = (1u << 1),                          // out of line / allocated (formal dyn)
+        hybrid_storage  = (static_storage | dynamic_storage)  // both: small-storage / SBO (top)
+    };
 };
 
 
@@ -116,13 +127,13 @@ enum class storage_duration : unsigned
 // dynamic bit if any are out of line; combining a static part with a dynamic
 // part yields hybrid.  This is the canonical COMPOSITION operator for storage,
 // the DUAL of lifetime_meet.
-constexpr storage_duration
+constexpr storage_duration::value
 storage_join(
-    storage_duration _a,
-    storage_duration _b
+    storage_duration::value _a,
+    storage_duration::value _b
 ) noexcept
 {
-    return static_cast<storage_duration>(
+    return static_cast<storage_duration::value>(
         static_cast<unsigned>(_a) | static_cast<unsigned>(_b) );
 }
 
@@ -130,13 +141,13 @@ storage_join(
 //   function: the lattice meet (intersection of sitings) - provided for lattice
 // completeness and cross-axis intersection; storage composition itself uses the
 // join.
-constexpr storage_duration
+constexpr storage_duration::value
 storage_meet(
-    storage_duration _a,
-    storage_duration _b
+    storage_duration::value _a,
+    storage_duration::value _b
 ) noexcept
 {
-    return static_cast<storage_duration>(
+    return static_cast<storage_duration::value>(
         static_cast<unsigned>(_a) & static_cast<unsigned>(_b) );
 }
 
@@ -144,13 +155,13 @@ storage_meet(
 //   function: builds a storage_duration from two independent siting facts (does
 // the container site any cells inline? any cells out of line?).  Both true
 // yields hybrid; neither yields unknown.
-constexpr storage_duration
+constexpr storage_duration::value
 make_storage_duration(
     bool _has_static_cells,
     bool _has_dynamic_cells
 ) noexcept
 {
-    return static_cast<storage_duration>(
+    return static_cast<storage_duration::value>(
         ( _has_static_cells  ? static_cast<unsigned>(storage_duration::static_storage)  : 0u ) |
         ( _has_dynamic_cells ? static_cast<unsigned>(storage_duration::dynamic_storage) : 0u ) );
 }
@@ -159,7 +170,7 @@ make_storage_duration(
 //   function: true iff the siting includes the static (inline) bit - i.e. some
 // cells are inline (static_storage or hybrid_storage).
 constexpr bool
-has_static_storage_component(storage_duration _dur) noexcept
+has_static_storage_component(storage_duration::value _dur) noexcept
 {
     return ( ( static_cast<unsigned>(_dur) &
                static_cast<unsigned>(storage_duration::static_storage) ) != 0u );
@@ -169,7 +180,7 @@ has_static_storage_component(storage_duration _dur) noexcept
 //   function: true iff the siting includes the dynamic (out-of-line) bit
 // (dynamic_storage or hybrid_storage).
 constexpr bool
-has_dynamic_storage_component(storage_duration _dur) noexcept
+has_dynamic_storage_component(storage_duration::value _dur) noexcept
 {
     return ( ( static_cast<unsigned>(_dur) &
                static_cast<unsigned>(storage_duration::dynamic_storage) ) != 0u );
@@ -179,7 +190,7 @@ has_dynamic_storage_component(storage_duration _dur) noexcept
 //   function: true iff the siting is static (inline) EXCLUSIVELY - the cells
 // are wholly in-object.
 constexpr bool
-is_static_storage(storage_duration _dur) noexcept
+is_static_storage(storage_duration::value _dur) noexcept
 {
     return ( _dur == storage_duration::static_storage );
 }
@@ -188,7 +199,7 @@ is_static_storage(storage_duration _dur) noexcept
 //   function: true iff the siting is dynamic (out of line) EXCLUSIVELY - the
 // cells wholly live in an acquired region.
 constexpr bool
-is_dynamic_storage(storage_duration _dur) noexcept
+is_dynamic_storage(storage_duration::value _dur) noexcept
 {
     return ( _dur == storage_duration::dynamic_storage );
 }
@@ -197,7 +208,7 @@ is_dynamic_storage(storage_duration _dur) noexcept
 //   function: true iff the siting spans both - an inline buffer that spills to
 // an out-of-line region (small-storage / SBO).
 constexpr bool
-is_hybrid_storage(storage_duration _dur) noexcept
+is_hybrid_storage(storage_duration::value _dur) noexcept
 {
     return ( _dur == storage_duration::hybrid_storage );
 }
@@ -205,7 +216,7 @@ is_hybrid_storage(storage_duration _dur) noexcept
 // is_unknown_storage
 //   function: true iff the siting could not be determined (the bottom).
 constexpr bool
-is_unknown_storage(storage_duration _dur) noexcept
+is_unknown_storage(storage_duration::value _dur) noexcept
 {
     return ( _dur == storage_duration::unknown );
 }
@@ -214,7 +225,7 @@ is_unknown_storage(storage_duration _dur) noexcept
 //   function: a stable human-readable spelling of a storage_duration, for
 // diagnostics and agent-facing summaries.
 constexpr const char*
-storage_duration_name(storage_duration _dur) noexcept
+storage_duration_name(storage_duration::value _dur) noexcept
 {
     return ( _dur == storage_duration::hybrid_storage  ? "hybrid_storage"
            : _dur == storage_duration::static_storage  ? "static_storage"
@@ -232,9 +243,9 @@ storage_duration_name(storage_duration _dur) noexcept
 // storage_duration_constant
 //   type: an integral_constant specialized to a storage_duration value (the
 // storage analogue of std::bool_constant).
-template<storage_duration _Dur>
+template<storage_duration::value Dur>
 using storage_duration_constant =
-    std::integral_constant<storage_duration, _Dur>;
+    std::integral_constant<storage_duration::value, Dur>;
 
 // unknown_storage_duration / static_storage_duration / ...
 //   type: named carriers for the four lattice values, for tag dispatch.
@@ -257,7 +268,7 @@ using hybrid_storage_duration  = storage_duration_constant<storage_duration::hyb
 // has a static (inline) component, which an inline footprint requires its size
 // be fixed at compile time.
 constexpr bool
-storage_forces_compile_time_size(storage_duration _dur) noexcept
+storage_forces_compile_time_size(storage_duration::value _dur) noexcept
 {
     return has_static_storage_component(_dur);
 }
@@ -269,8 +280,8 @@ storage_forces_compile_time_size(storage_duration _dur) noexcept
 // false; every other combination is consistent.
 constexpr bool
 storage_lifetime_consistent(
-    storage_duration _dur,
-    lifetime         _size_life
+    storage_duration::value _dur,
+    lifetime::value  _size_life
 ) noexcept
 {
     return ( ( !storage_forces_compile_time_size(_dur) ) ||
@@ -282,7 +293,8 @@ storage_lifetime_consistent(
 // V.   Opt-in detection
 // ===========================================================================
 //   A type declares its own siting by exposing a static member
-//       static constexpr djinterp::storage_duration storage_duration_category = ...;
+//       static constexpr djinterp::storage_duration::value
+//           storage_duration_category = ...;
 // This is the highest-priority signal: it overrides any structural default.
 // (A small-storage type, whose SBO siting cannot be read from its public
 // surface, declares hybrid_storage here.)
@@ -291,7 +303,7 @@ storage_lifetime_consistent(
 //   trait: detects the opt-in `storage_duration_category` static member (cv-ref
 // stripped via clean_t, so the answer agrees for T, const T, T&).
 D_TYPE_TRAIT_TRUE(has_storage_duration_category,
-                  decltype(clean_t<_Type>::storage_duration_category))
+                  decltype(clean_t<Type>::storage_duration_category))
 
 NS_INTERNAL
 
@@ -300,21 +312,22 @@ NS_INTERNAL
     // storage_duration::unknown (primary template - member absent).  The
     // fallback is observed only when has_storage_duration_category is false,
     // where the classifier discards it.
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct storage_duration_category_member
     {
-        static constexpr storage_duration value = storage_duration::unknown;
+        static constexpr storage_duration::value value =
+            storage_duration::unknown;
     };
 
     // storage_duration_category_member (opt-in present)
-    //   trait: reads clean_t<_Type>::storage_duration_category.
-    template<typename _Type>
-    struct storage_duration_category_member<_Type,
-        D_VOID_T<decltype(clean_t<_Type>::storage_duration_category)>>
+    //   trait: reads clean_t<Type>::storage_duration_category.
+    template<typename Type>
+    struct storage_duration_category_member<Type,
+        D_VOID_T<decltype(clean_t<Type>::storage_duration_category)>>
     {
-        static constexpr storage_duration value =
-            clean_t<_Type>::storage_duration_category;
+        static constexpr storage_duration::value value =
+            clean_t<Type>::storage_duration_category;
     };
 
 NS_END  // internal
@@ -331,14 +344,14 @@ NS_END  // internal
 // extent, an allocator, a reserve()) that resolves the unknown case lives with
 // the container storage traits, which feed this opt-in priority.  Exposes the
 // value plus a storage_duration_constant carrier as `::type`.
-template<typename _Type>
+template<typename Type>
 struct storage_of
 {
 private:
-    using clean_type = clean_t<_Type>;
+    using clean_type = clean_t<Type>;
 
 public:
-    static constexpr storage_duration value =
+    static constexpr storage_duration::value value =
         ( has_storage_duration_category<clean_type>::value
               ? internal::storage_duration_category_member<clean_type>::value
               : storage_duration::unknown );
@@ -347,20 +360,21 @@ public:
 };
 
 // storage_of_t
-//   type: convenience alias for storage_of<_Type>::type (a carrier).
-template<typename _Type>
-using storage_of_t = typename storage_of<_Type>::type;
+//   type: convenience alias for storage_of<Type>::type (a carrier).
+template<typename Type>
+using storage_of_t = typename storage_of<Type>::type;
 
 // storage_of_v
 //   value: the `_v` companion of storage_of (a storage_duration, not a bool, so
 // it is emitted by hand rather than via D_TYPE_TRAIT_VALUE_BOOL - same
 // degradation).
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr storage_duration storage_of_v = storage_of<_Type>::value;
+    template<typename Type>
+    inline constexpr storage_duration::value storage_of_v =
+        storage_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
-    constexpr storage_duration storage_of_v = storage_of<_Type>::value;
+    template<typename Type>
+    constexpr storage_duration::value storage_of_v = storage_of<Type>::value;
 #endif
 
 
@@ -374,32 +388,32 @@ using storage_of_t = typename storage_of<_Type>::type;
 // Each emits its `_v` companion through the canonical trait_detect macro.
 
 // is_static_storage_type
-//   trait: true iff _Type's declared siting is static (inline) exclusively.
-template<typename _Type>
+//   trait: true iff Type's declared siting is static (inline) exclusively.
+template<typename Type>
 struct is_static_storage_type
     : std::integral_constant<bool,
-          is_static_storage(storage_of<_Type>::value)>
+          is_static_storage(storage_of<Type>::value)>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_static_storage_type)
 
 // is_dynamic_storage_type
-//   trait: true iff _Type's declared siting is dynamic (out of line)
+//   trait: true iff Type's declared siting is dynamic (out of line)
 // exclusively.
-template<typename _Type>
+template<typename Type>
 struct is_dynamic_storage_type
     : std::integral_constant<bool,
-          is_dynamic_storage(storage_of<_Type>::value)>
+          is_dynamic_storage(storage_of<Type>::value)>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_dynamic_storage_type)
 
 // is_hybrid_storage_type
-//   trait: true iff _Type's declared siting spans both (small-storage / SBO).
-template<typename _Type>
+//   trait: true iff Type's declared siting spans both (small-storage / SBO).
+template<typename Type>
 struct is_hybrid_storage_type
     : std::integral_constant<bool,
-          is_hybrid_storage(storage_of<_Type>::value)>
+          is_hybrid_storage(storage_of<Type>::value)>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_hybrid_storage_type)
@@ -407,5 +421,7 @@ D_TYPE_TRAIT_VALUE_BOOL(is_hybrid_storage_type)
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_META_STORAGE_
+
+#endif  // DJINTERP_META_STORAGE_HPP

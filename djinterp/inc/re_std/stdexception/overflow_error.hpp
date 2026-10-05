@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                         overflow_error.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           overflow_error.hpp
 *
 * overflow_error:
 *   <stdexcept> class derived from runtime_error; reported on arithmetic overflow. Runtime-provided,
@@ -9,19 +9,22 @@
 * inheriting what() from the base.
 *
 *
-* path:      /inc/djinterp/re_std/stdexception/overflow_error.hpp
+* path:      /inc/re_std/stdexception/overflow_error.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_STDEXCEPT_OVERFLOW_ERROR_
-#define DJINTERP_RE_STD_STDEXCEPT_OVERFLOW_ERROR_ 1
+#ifndef RE_STD_STDEXCEPTION_OVERFLOW_ERROR_HPP
+#define RE_STD_STDEXCEPTION_OVERFLOW_ERROR_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "runtime_error.hpp"
 
-#if D_ENV_CPP98_HAS_STDEXCEPT
+#if RE_STD_HAS_EXCEPTIONS
 
+    // std
     #include <stdexcept>
 
 namespace re_std
@@ -30,8 +33,7 @@ namespace re_std
     //   class: using-declaration from std::overflow_error.
     using std::overflow_error;
 
-} // namespace re_std
-
+}  // re_std
 #else // freestanding fallback
 
 namespace re_std
@@ -42,16 +44,15 @@ namespace re_std
     class overflow_error : public runtime_error
     {
     public:
-        explicit overflow_error(const char* _what) D_NOEXCEPT
+        explicit overflow_error(const char* _what) RE_STD_NOEXCEPT
             : runtime_error(_what)
         {}
 
-        virtual ~overflow_error() D_NOEXCEPT
+        virtual ~overflow_error() RE_STD_NOEXCEPT
         {}
     };
 
-} // namespace re_std
+}  // re_std
+#endif // RE_STD_HAS_EXCEPTIONS
 
-#endif // D_ENV_CPP98_HAS_STDEXCEPT
-
-#endif  // DJINTERP_RE_STD_STDEXCEPT_OVERFLOW_ERROR_
+#endif  // RE_STD_STDEXCEPTION_OVERFLOW_ERROR_HPP

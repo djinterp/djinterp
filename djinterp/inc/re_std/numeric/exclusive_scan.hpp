@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                   exclusive_scan.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           exclusive_scan.hpp
 *
 * exclusive_scan writes the running fold up to but EXCLUDING the
 * corresponding input:
@@ -15,47 +15,40 @@
 * return value: iterator past the last destination written.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/exclusive_scan.hpp
+* path:      /inc/re_std/numeric/exclusive_scan.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_EXCLUSIVE_SCAN_
-#define DJINTERP_RE_STD_NUMERIC_EXCLUSIVE_SCAN_ 1
+#ifndef RE_STD_NUMERIC_EXCLUSIVE_SCAN_HPP
+#define RE_STD_NUMERIC_EXCLUSIVE_SCAN_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/utility/move.hpp"
-
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
 
 namespace re_std
 {
 
 // Default-op (operator+).
-template<typename _InputIt, typename _OutputIt, typename _T>
-D_CONSTEXPR_CPP14 _OutputIt exclusive_scan
+template<typename InputIt, typename OutputIt, typename T>
+RE_STD_CONSTEXPR_CPP14 OutputIt exclusive_scan
 (
-    _InputIt   _first,
-    _InputIt   _last,
-    _OutputIt  _d_first,
-    _T         _init
+    InputIt   _first,
+    InputIt   _last,
+    OutputIt  _d_first,
+    T         _init
 )
 {
     while (_first != _last)
     {
-        _T _next = _init + *_first;
+        T _next = _init + *_first;
         *_d_first = re_std::move(_init);
         _init = re_std::move(_next);
         ++_first;
@@ -65,19 +58,19 @@ D_CONSTEXPR_CPP14 _OutputIt exclusive_scan
 }
 
 // Custom-op overload.
-template<typename _InputIt, typename _OutputIt, typename _T, typename _BinOp>
-D_CONSTEXPR_CPP14 _OutputIt exclusive_scan
+template<typename InputIt, typename OutputIt, typename T, typename BinOp>
+RE_STD_CONSTEXPR_CPP14 OutputIt exclusive_scan
 (
-    _InputIt   _first,
-    _InputIt   _last,
-    _OutputIt  _d_first,
-    _T         _init,
-    _BinOp     _op
+    InputIt   _first,
+    InputIt   _last,
+    OutputIt  _d_first,
+    T         _init,
+    BinOp     _op
 )
 {
     while (_first != _last)
     {
-        _T _next = _op(_init, *_first);
+        T _next = _op(_init, *_first);
         *_d_first = re_std::move(_init);
         _init = re_std::move(_next);
         ++_first;
@@ -87,8 +80,7 @@ D_CONSTEXPR_CPP14 _OutputIt exclusive_scan
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_NUMERIC_EXCLUSIVE_SCAN_
+#endif  // RE_STD_NUMERIC_EXCLUSIVE_SCAN_HPP

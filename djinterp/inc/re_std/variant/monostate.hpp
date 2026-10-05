@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                 monostate.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                monostate.hpp
 *
 * monostate header:
 *   Empty trivial unit type. Used as the first alternative in a
@@ -13,20 +13,23 @@
 * and <=).
 *
 *
-* path:      /inc/djinterp/re_std/variant/monostate.hpp
+* path:      /inc/re_std/variant/monostate.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MONOSTATE_
-#define DJINTERP_RE_STD_MONOSTATE_ 1
+#ifndef RE_STD_VARIANT_MONOSTATE_HPP
+#define RE_STD_VARIANT_MONOSTATE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -45,18 +48,18 @@ struct monostate {};
 // All monostates compare equal. Ordering relations are total but
 // trivial.
 
-D_CONSTEXPR inline bool operator==(monostate, monostate) D_NOEXCEPT { return true;  }
-D_CONSTEXPR inline bool operator!=(monostate, monostate) D_NOEXCEPT { return false; }
-D_CONSTEXPR inline bool operator< (monostate, monostate) D_NOEXCEPT { return false; }
-D_CONSTEXPR inline bool operator> (monostate, monostate) D_NOEXCEPT { return false; }
-D_CONSTEXPR inline bool operator<=(monostate, monostate) D_NOEXCEPT { return true;  }
-D_CONSTEXPR inline bool operator>=(monostate, monostate) D_NOEXCEPT { return true;  }
+RE_STD_CONSTEXPR inline bool operator==(monostate, monostate) RE_STD_NOEXCEPT { return true;  }
+RE_STD_CONSTEXPR inline bool operator!=(monostate, monostate) RE_STD_NOEXCEPT { return false; }
+RE_STD_CONSTEXPR inline bool operator< (monostate, monostate) RE_STD_NOEXCEPT { return false; }
+RE_STD_CONSTEXPR inline bool operator> (monostate, monostate) RE_STD_NOEXCEPT { return false; }
+RE_STD_CONSTEXPR inline bool operator<=(monostate, monostate) RE_STD_NOEXCEPT { return true;  }
+RE_STD_CONSTEXPR inline bool operator>=(monostate, monostate) RE_STD_NOEXCEPT { return true;  }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_MONOSTATE_
+#endif  // RE_STD_VARIANT_MONOSTATE_HPP

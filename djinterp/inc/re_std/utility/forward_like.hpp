@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                 forward_like.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             forward_like.hpp
 *
 * forwarding cast that follows another type's category:
 *   forward_like<T>(x) returns x with a value category and constness
@@ -23,52 +23,56 @@
 * single static_cast, constexpr-eligible from C++11.
 *
 *
-* path:      /inc/djinterp/re_std/utility/forward_like.hpp
+* path:      /inc/re_std/utility/forward_like.hpp
 * link(s):   TBA
-* author(s): re_std team                                 date: 2026.05.02
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_FORWARD_LIKE_
-#define DJINTERP_RE_STD_UTILITY_FORWARD_LIKE_ 1
+#ifndef RE_STD_UTILITY_FORWARD_LIKE_HPP
+#define RE_STD_UTILITY_FORWARD_LIKE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 #include "../type_traits/conditional.hpp"
 #include "../type_traits/is_const.hpp"
 #include "../type_traits/is_lvalue_reference.hpp"
 #include "../type_traits/remove_reference.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
-NS_INTERNAL
+namespace internal
+{
 
 // forward_like_type_
-//   trait: computes the return type for forward_like<_T>(_U&&). The
+//   trait: computes the return type for forward_like<T>(U&&). The
 //   computation is done in two steps:
 //     1. Take U with reference stripped; call this _U_bare.
 //     2. If T (with reference stripped) is const, const-qualify
 //        _U_bare; otherwise leave it. Call this _U_constified.
 //     3. If T is an lvalue reference, the type is _U_constified&;
 //        otherwise _U_constified&&.
-template<typename _T, typename _U>
+template<typename T, typename U>
 struct forward_like_type_
 {
-    typedef typename remove_reference<_U>::type _U_bare;
+    typedef typename remove_reference<U>::type _U_bare;
     typedef typename conditional<
-        is_const<typename remove_reference<_T>::type>::value,
+        is_const<typename remove_reference<T>::type>::value,
         const _U_bare,
         _U_bare
     >::type _U_constified;
     typedef typename conditional<
-        is_lvalue_reference<_T>::value,
+        is_lvalue_reference<T>::value,
         _U_constified&,
         _U_constified&&
     >::type type;
 };
 
-NS_END  // internal
+}  // internal
 
 // =============================================================================
 // FORWARD_LIKE
@@ -76,20 +80,20 @@ NS_END  // internal
 
 // forward_like
 //   function: forwards _value with cv- and value-category determined
-//   by _T. The return type is computed by internal::forward_like_type_;
+//   by T. The return type is computed by internal::forward_like_type_;
 //   the body is a single static_cast and is constexpr-eligible.
-template<typename _T, typename _U>
-D_CONSTEXPR
-typename internal::forward_like_type_<_T, _U>::type
-forward_like(_U&& _value) noexcept
+template<typename T, typename U>
+RE_STD_CONSTEXPR
+typename internal::forward_like_type_<T, U>::type
+forward_like(U&& _value) noexcept
 {
     return static_cast<
-        typename internal::forward_like_type_<_T, _U>::type
+        typename internal::forward_like_type_<T, U>::type
     >(_value);
 }
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
-#endif  // DJINTERP_RE_STD_UTILITY_FORWARD_LIKE_
+#endif  // RE_STD_UTILITY_FORWARD_LIKE_HPP

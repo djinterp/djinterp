@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           subrange_kind.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            subrange_kind.hpp
 *
 * subrange_kind enum header:
 *   Provides the two-value enumeration that distinguishes a sized
@@ -15,25 +15,28 @@
 *     unchanged on both paths.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/subrange_kind.hpp
+* path:      /inc/re_std/ranges/subrange_kind.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_SUBRANGE_KIND_
-#define DJINTERP_RE_STD_RANGES_SUBRANGE_KIND_ 1
+#ifndef RE_STD_RANGES_SUBRANGE_KIND_HPP
+#define RE_STD_RANGES_SUBRANGE_KIND_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   SUBRANGE_KIND
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // subrange_kind
 //   enum: classifies a subrange as size-tracking (cached integer
@@ -61,10 +64,10 @@ struct subrange_kind
     };
 };
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_RANGES_SUBRANGE_KIND_
+#endif  // RE_STD_RANGES_SUBRANGE_KIND_HPP

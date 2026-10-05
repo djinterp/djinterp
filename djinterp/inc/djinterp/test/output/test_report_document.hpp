@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                       test_report_document.hpp
 *
 *   The report's PAGE DESIGN, expressed as a document template rather than a
@@ -37,26 +37,39 @@
 * header is renderer-agnostic and a text-only build includes it happily.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    report_palette              (the colour vocabulary, as data)
-* II.   report_document_options     (what to include)
-* III.  render_report_document      (the composition)
-*
-*
 * path:      /inc/djinterp/test/output/test_report_document.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_REPORT_DOCUMENT_
-#define DJINTERP_TEST_REPORT_DOCUMENT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    report_palette              (the colour vocabulary, as data)
+      ------------------------------------------------------------
+
+II.   report_document_options     (what to include)
+      ---------------------------------------------
+
+III.  render_report_document      (the composition)
+      ---------------------------------------------
+*/
+
+#ifndef DJINTERP_TEST_OUTPUT_TEST_REPORT_DOCUMENT_HPP
+#define DJINTERP_TEST_OUTPUT_TEST_REPORT_DOCUMENT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <string>
 // djinterp
-#include "../../core/djinterp.hpp"                  // NS_*, D_NODISCARD
+#include "../../djinterp.hpp"                  // NS_*, D_NODISCARD
 #include "../../core/util/document/templates/document_renderer.hpp"
                                                     // document_renderer
 #include "../../core/util/document/templates/document_attributes.hpp"
@@ -297,5 +310,7 @@ render_report_document(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_REPORT_DOCUMENT_
+
+#endif  // DJINTERP_TEST_OUTPUT_TEST_REPORT_DOCUMENT_HPP

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                  lexicographical_compare.hpp
 *
 * lexicographical_compare algorithm header:
@@ -16,32 +16,26 @@
 *   - Input iterators suffice: each range is traversed once.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/lexicographical_compare.hpp
+* path:      /inc/re_std/algorithm/lexicographical_compare.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.24
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_
-#define DJINTERP_RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_ 1
+#ifndef RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_HPP
+#define RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -50,14 +44,14 @@ NS_RESTD
 
 // lexicographical_compare
 //   function: true iff range 1 precedes range 2 in dictionary order.
-template<typename _InputIt1,
-         typename _InputIt2>
-D_CONSTEXPR_CPP14 bool
+template<typename InputIt1,
+         typename InputIt2>
+RE_STD_CONSTEXPR_CPP14 bool
 lexicographical_compare(
-    _InputIt1 _first1,
-    _InputIt1 _last1,
-    _InputIt2 _first2,
-    _InputIt2 _last2
+    InputIt1 _first1,
+    InputIt1 _last1,
+    InputIt2 _first2,
+    InputIt2 _last2
 )
 {
     for (; (_first1 != _last1) && (_first2 != _last2);
@@ -85,16 +79,16 @@ lexicographical_compare(
 
 // lexicographical_compare (comparator)
 //   function: as above but ordering is decided by _comp.
-template<typename _InputIt1,
-         typename _InputIt2,
-         typename _Compare>
-D_CONSTEXPR_CPP14 bool
+template<typename InputIt1,
+         typename InputIt2,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 bool
 lexicographical_compare(
-    _InputIt1 _first1,
-    _InputIt1 _last1,
-    _InputIt2 _first2,
-    _InputIt2 _last2,
-    _Compare  _comp
+    InputIt1 _first1,
+    InputIt1 _last1,
+    InputIt2 _first2,
+    InputIt2 _last2,
+    Compare  _comp
 )
 {
     for (; (_first1 != _last1) && (_first2 != _last2);
@@ -114,7 +108,7 @@ lexicographical_compare(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_
+#endif  // RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_HPP

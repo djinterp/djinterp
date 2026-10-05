@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                            duration_cast.hpp
 *
 * the duration_cast function template:
@@ -24,21 +24,22 @@
 * the diagnostic points at the call rather than at library internals.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/duration_cast.hpp
+* path:      /inc/re_std/chrono/duration_cast.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_DURATION_CAST_
-#define DJINTERP_RE_STD_CHRONO_DURATION_CAST_ 1
+#ifndef RE_STD_CHRONO_DURATION_CAST_HPP
+#define RE_STD_CHRONO_DURATION_CAST_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "./duration_cast_impl.hpp"
 #include "../ratio/ratio_divide.hpp"
@@ -47,39 +48,40 @@
 #include "../cstdint/cstdint.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
     // duration_cast
     //   function: convert between durations of any periods, truncating
-    // toward zero. Participates only when _ToDur is a duration.
-    template<typename _ToDur,
-             typename _Rep,
-             typename _Period>
-    D_CONSTEXPR
-    typename enable_if<internal::is_duration<_ToDur>::value, _ToDur>::type
-    duration_cast(const duration<_Rep, _Period>& _d)
+    // toward zero. Participates only when ToDur is a duration.
+    template<typename ToDur,
+             typename Rep,
+             typename Period>
+    RE_STD_CONSTEXPR
+    typename enable_if<internal::is_duration<ToDur>::value, ToDur>::type
+    duration_cast(const duration<Rep, Period>& _d)
     {
         return internal::duration_cast_helper<
-                    _ToDur,
-                    typename ratio_divide<_Period,
-                                          typename _ToDur::period>::type,
-                    typename common_type<typename _ToDur::rep,
-                                         _Rep,
-                                         std::intmax_t>::type,
-                    ratio_divide<_Period, typename _ToDur::period>::num == 1,
-                    ratio_divide<_Period, typename _ToDur::period>::den == 1
+                    ToDur,
+                    typename ratio_divide<Period,
+                                          typename ToDur::period>::type,
+                    typename common_type<typename ToDur::rep,
+                                         Rep,
+                                         intmax_t>::type,
+                    ratio_divide<Period, typename ToDur::period>::num == 1,
+                    ratio_divide<Period, typename ToDur::period>::den == 1
                >::cast(_d);
     }
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_DURATION_CAST_
+#endif  // RE_STD_CHRONO_DURATION_CAST_HPP

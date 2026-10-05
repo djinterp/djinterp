@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [expression]                                     expression_static.hpp
+/*******************************************************************************
+* djinterp [parse]                                         expression_static.hpp
 *
 *   The compile-time face of an expression: the term encoded in the *type*,
 * for the zero-overhead path.  Where expression.hpp's term is a heap-backed
@@ -32,15 +32,16 @@
 *
 *   PORTABILITY.  Compile-time shape and leaf construction are C++11;
 * application construction and static_evaluate use the relaxed constexpr and
-* index sequences of C++14 (D_CONSTEXPR14, std::tuple), running at compile
+* index sequences of C++14 (D_CONSTEXPR_CPP14, std::tuple), running at compile
 * time wherever the supplied algebra and atoms are literal.  reify is a
 * runtime bridge (it builds the heap-backed dynamic term).
 *
 *
 * path:      /inc/djinterp/parse/expression/expression_static.hpp
 * link(s):   ch-recursion.tex, ch-synthesis.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -67,8 +68,14 @@ VII.  DETECTION                              (is_static_expr / _leaf / _apply)
       ------------------------------------------------------------------------
 */
 
-#ifndef DJINTERP_EXPRESSION_EXPRESSION_STATIC_
-#define DJINTERP_EXPRESSION_EXPRESSION_STATIC_ 1
+#ifndef DJINTERP_PARSE_EXPRESSION_EXPRESSION_STATIC_HPP
+#define DJINTERP_PARSE_EXPRESSION_EXPRESSION_STATIC_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <array>
@@ -79,6 +86,9 @@ VII.  DETECTION                              (is_static_expr / _leaf / _apply)
 #include <vector>
 // djinterp
 #include "./expression.hpp"
+// re_std
+#include "../../../re_std/utility/make_integer_sequence.hpp"  // re_std::index_sequence,
+                                                              // make_index_sequence
 
 
 NS_DJINTERP
@@ -93,7 +103,7 @@ NS_DJINTERP
 // tags a type as a static expression (so is_static_expr can recognize it by
 // inheritance) and exposes the derived node through self().  It carries no
 // state and imposes no vtable; the node's shape lives entirely in its type.
-template<typename _Derived>
+template<typename Derived>
 class static_expr
 {
 public:
@@ -101,9 +111,9 @@ public:
     //   the most-derived node, for generic code operating through the base.
     D_NODISCARD
     D_CONSTEXPR
-    const _Derived& self() const
+    const Derived& self() const
     {
-        return static_cast<const _Derived&>(*this);
+        return static_cast<const Derived&>(*this);
     }
 
 protected:
@@ -121,7 +131,7 @@ NS_INTERNAL
     // static_sum_sizes
     //   trait: the sum of node_size over a pack of operand nodes -- the
     // child contribution to an application's node_size.
-    template<typename... _Operands>
+    template<typename... Operands>
     struct static_sum_sizes;
 
     template<>
@@ -130,18 +140,18 @@ NS_INTERNAL
         static D_CONSTEXPR std::size_t value = 0;
     };
 
-    template<typename _Head,
-             typename... _Tail>
-    struct static_sum_sizes<_Head, _Tail...>
+    template<typename Head,
+             typename... Tail>
+    struct static_sum_sizes<Head, Tail...>
     {
         static D_CONSTEXPR std::size_t value =
-            _Head::node_size + static_sum_sizes<_Tail...>::value;
+            Head::node_size + static_sum_sizes<Tail...>::value;
     };
 
     // static_max_depths
     //   trait: the maximum node_depth over a pack of operand nodes -- the
     // child contribution to an application's node_depth.
-    template<typename... _Operands>
+    template<typename... Operands>
     struct static_max_depths;
 
     template<>
@@ -150,14 +160,14 @@ NS_INTERNAL
         static D_CONSTEXPR std::size_t value = 0;
     };
 
-    template<typename _Head,
-             typename... _Tail>
-    struct static_max_depths<_Head, _Tail...>
+    template<typename Head,
+             typename... Tail>
+    struct static_max_depths<Head, Tail...>
     {
         static D_CONSTEXPR std::size_t value =
-            (_Head::node_depth > static_max_depths<_Tail...>::value)
-                ? _Head::node_depth
-                : static_max_depths<_Tail...>::value;
+            (Head::node_depth > static_max_depths<Tail...>::value)
+                ? Head::node_depth
+                : static_max_depths<Tail...>::value;
     };
 
 NS_END  // internal
@@ -167,11 +177,11 @@ NS_END  // internal
 //   class: a leaf of a static expression -- a node carrying one atom by
 // value.  Its shape constants are the base case: no children, size and
 // depth one.
-template<typename _Atom>
-class static_leaf : public static_expr<static_leaf<_Atom> >
+template<typename Atom>
+class static_leaf : public static_expr<static_leaf<Atom> >
 {
 public:
-    using atom_type = _Atom;
+    using atom_type = Atom;
 
     static D_CONSTEXPR std::size_t arity      = 0;
     static D_CONSTEXPR std::size_t node_size  = 1;
@@ -180,7 +190,7 @@ public:
     D_CONSTEXPR
     explicit
     static_leaf(
-        const _Atom& _atom
+        const Atom& _atom
     )
         : m_atom(_atom)
     {}
@@ -189,39 +199,39 @@ public:
     //   the value carried at this leaf.
     D_NODISCARD
     D_CONSTEXPR
-    const _Atom& atom() const { return m_atom; }
+    const Atom& atom() const { return m_atom; }
 
 private:
-    _Atom m_atom;
+    Atom m_atom;
 };
 
 
 // static_apply
 //   class: an application of an operator to operand nodes.  The operator is
-// the tag _OpTag (exposing op_id_type and a static constexpr value); the
+// the tag OpTag (exposing op_id_type and a static constexpr value); the
 // operands are the sub-nodes, held by value in a tuple, so the whole term
 // is one composite value whose type is its shape.  Arity is the operand
 // count; size and depth fold over the operands at compile time.
-template<typename _OpTag,
-         typename... _Operands>
+template<typename OpTag,
+         typename... Operands>
 class static_apply
-    : public static_expr<static_apply<_OpTag, _Operands...> >
+    : public static_expr<static_apply<OpTag, Operands...> >
 {
 public:
-    using op_tag_type   = _OpTag;
-    using op_id_type    = typename _OpTag::op_id_type;
-    using operands_type = std::tuple<_Operands...>;
+    using op_tag_type   = OpTag;
+    using op_id_type    = typename OpTag::op_id_type;
+    using operands_type = std::tuple<Operands...>;
 
-    static D_CONSTEXPR std::size_t arity      = sizeof...(_Operands);
+    static D_CONSTEXPR std::size_t arity      = sizeof...(Operands);
     static D_CONSTEXPR std::size_t node_size  =
-        1 + internal::static_sum_sizes<_Operands...>::value;
+        1 + internal::static_sum_sizes<Operands...>::value;
     static D_CONSTEXPR std::size_t node_depth =
-        1 + internal::static_max_depths<_Operands...>::value;
+        1 + internal::static_max_depths<Operands...>::value;
 
-    D_CONSTEXPR14
+    D_CONSTEXPR_CPP14
     explicit
     static_apply(
-        const _Operands&... _operands
+        const Operands&... _operands
     )
         : m_operands(_operands...)
     {}
@@ -231,7 +241,7 @@ public:
     // dynamic term.
     D_NODISCARD
     D_CONSTEXPR
-    op_id_type op_id() const { return _OpTag::value; }
+    op_id_type op_id() const { return OpTag::value; }
 
     // operands
     //   the tuple of operand nodes.
@@ -250,32 +260,32 @@ private:
 
 // make_static_leaf
 //   function: a static leaf carrying an atom (its type deduced).
-template<typename _Atom>
+template<typename Atom>
 D_NODISCARD
 D_CONSTEXPR
-static_leaf<typename std::decay<_Atom>::type>
+static_leaf<typename std::decay<Atom>::type>
 make_static_leaf
 (
-    const _Atom& _atom
+    const Atom& _atom
 )
 {
-    return static_leaf<typename std::decay<_Atom>::type>(_atom);
+    return static_leaf<typename std::decay<Atom>::type>(_atom);
 }
 
 // make_static_apply
-//   function: a static application of the operator tag _OpTag (named
+//   function: a static application of the operator tag OpTag (named
 // explicitly) to operand nodes (their types deduced).
-template<typename _OpTag,
-         typename... _Operands>
+template<typename OpTag,
+         typename... Operands>
 D_NODISCARD
-D_CONSTEXPR14
-static_apply<_OpTag, typename std::decay<_Operands>::type...>
+D_CONSTEXPR_CPP14
+static_apply<OpTag, typename std::decay<Operands>::type...>
 make_static_apply
 (
-    const _Operands&... _operands
+    const Operands&... _operands
 )
 {
-    return static_apply<_OpTag, typename std::decay<_Operands>::type...>(
+    return static_apply<OpTag, typename std::decay<Operands>::type...>(
         _operands...);
 }
 
@@ -288,24 +298,24 @@ make_static_apply
 
 // static_arity
 //   function: the number of immediate operands of a node (0 for a leaf).
-template<typename _Node>
+template<typename Node>
 D_NODISCARD
 D_CONSTEXPR
-std::size_t static_arity(const _Node&) { return _Node::arity; }
+std::size_t static_arity(const Node&) { return Node::arity; }
 
 // static_size
 //   function: the total node count of a term.
-template<typename _Node>
+template<typename Node>
 D_NODISCARD
 D_CONSTEXPR
-std::size_t static_size(const _Node&) { return _Node::node_size; }
+std::size_t static_size(const Node&) { return Node::node_size; }
 
 // static_depth
 //   function: the height of a term.
-template<typename _Node>
+template<typename Node>
 D_NODISCARD
 D_CONSTEXPR
-std::size_t static_depth(const _Node&) { return _Node::node_depth; }
+std::size_t static_depth(const Node&) { return Node::node_depth; }
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -320,53 +330,53 @@ std::size_t static_depth(const _Node&) { return _Node::node_depth; }
 
 // -- forward declarations ---------------------------------------------------
 
-template<typename _Result,
-         typename _Atom,
-         typename _OnLeaf,
-         typename _OnApply>
-D_CONSTEXPR14
-_Result
-static_evaluate(const static_leaf<_Atom>& _leaf,
-                _OnLeaf                    _on_leaf,
-                _OnApply                   _on_apply);
+template<typename Result,
+         typename Atom,
+         typename OnLeaf,
+         typename OnApply>
+D_CONSTEXPR_CPP14
+Result
+static_evaluate(const static_leaf<Atom>& _leaf,
+                OnLeaf                     _on_leaf,
+                OnApply                    _on_apply);
 
-template<typename _Result,
-         typename _OpTag,
-         typename... _Operands,
-         typename _OnLeaf,
-         typename _OnApply>
-D_CONSTEXPR14
-_Result
-static_evaluate(const static_apply<_OpTag, _Operands...>& _apply,
-                _OnLeaf                                    _on_leaf,
-                _OnApply                                   _on_apply);
+template<typename Result,
+         typename OpTag,
+         typename... Operands,
+         typename OnLeaf,
+         typename OnApply>
+D_CONSTEXPR_CPP14
+Result
+static_evaluate(const static_apply<OpTag, Operands...>& _apply,
+                OnLeaf                                     _on_leaf,
+                OnApply                                    _on_apply);
 
 
 NS_INTERNAL
 
     // static_evaluate_apply
-    //   helper: folds an application -- evaluates each operand to _Result,
+    //   helper: folds an application -- evaluates each operand to Result,
     // collects the results into a std::array (a literal type, so the fold
     // stays constexpr), then hands the operator id and that array to the
     // application handler.
-    template<typename _Result,
-             typename _OpTag,
-             typename... _Operands,
-             typename _OnLeaf,
-             typename _OnApply,
-             std::size_t... _Indices>
-    D_CONSTEXPR14
-    _Result
+    template<typename Result,
+             typename OpTag,
+             typename... Operands,
+             typename OnLeaf,
+             typename OnApply,
+             std::size_t... Indices>
+    D_CONSTEXPR_CPP14
+    Result
     static_evaluate_apply(
-        const static_apply<_OpTag, _Operands...>& _apply,
-        _OnLeaf                                   _on_leaf,
-        _OnApply                                  _on_apply,
-        std::index_sequence<_Indices...>
+        const static_apply<OpTag, Operands...>& _apply,
+        OnLeaf                                    _on_leaf,
+        OnApply                                   _on_apply,
+        re_std::index_sequence<Indices...>
     )
     {
-        std::array<_Result, sizeof...(_Operands)> _results = {{
-            ::djinterp::static_evaluate<_Result>(
-                std::get<_Indices>(_apply.operands()),
+        std::array<Result, sizeof...(Operands)> _results = {{
+            ::djinterp::static_evaluate<Result>(
+                std::get<Indices>(_apply.operands()),
                 _on_leaf,
                 _on_apply)...
         }};
@@ -380,42 +390,42 @@ NS_END  // internal
 // -- definitions ------------------------------------------------------------
 
 // static_evaluate (leaf)
-template<typename _Result,
-         typename _Atom,
-         typename _OnLeaf,
-         typename _OnApply>
-D_CONSTEXPR14
-_Result
+template<typename Result,
+         typename Atom,
+         typename OnLeaf,
+         typename OnApply>
+D_CONSTEXPR_CPP14
+Result
 static_evaluate
 (
-    const static_leaf<_Atom>& _leaf,
-    _OnLeaf                    _on_leaf,
-    _OnApply                   /*_on_apply*/
+    const static_leaf<Atom>& _leaf,
+    OnLeaf                     _on_leaf,
+    OnApply                    /*_on_apply*/
 )
 {
     return _on_leaf(_leaf.atom());
 }
 
 // static_evaluate (apply)
-template<typename _Result,
-         typename _OpTag,
-         typename... _Operands,
-         typename _OnLeaf,
-         typename _OnApply>
-D_CONSTEXPR14
-_Result
+template<typename Result,
+         typename OpTag,
+         typename... Operands,
+         typename OnLeaf,
+         typename OnApply>
+D_CONSTEXPR_CPP14
+Result
 static_evaluate
 (
-    const static_apply<_OpTag, _Operands...>& _apply,
-    _OnLeaf                                   _on_leaf,
-    _OnApply                                  _on_apply
+    const static_apply<OpTag, Operands...>& _apply,
+    OnLeaf                                    _on_leaf,
+    OnApply                                   _on_apply
 )
 {
-    return internal::static_evaluate_apply<_Result>(
+    return internal::static_evaluate_apply<Result>(
         _apply,
         _on_leaf,
         _on_apply,
-        std::make_index_sequence<sizeof...(_Operands)>{});
+        re_std::make_index_sequence<sizeof...(Operands)>{});
 }
 
 
@@ -424,57 +434,57 @@ static_evaluate
 ///////////////////////////////////////////////////////////////////////////////
 //   Lowers a static term into the dynamic expression<OpId, Atom>, so a term
 // built (and folded) at compile time can enter the runtime machinery --
-// rewriting, rendering, substitution.  The target _OpId / _Atom are named
+// rewriting, rendering, substitution.  The target OpId / Atom are named
 // explicitly: the caller says which dynamic language the static shape maps
-// onto (the tag's value must be usable as _OpId, each atom as _Atom).  This
+// onto (the tag's value must be usable as OpId, each atom as Atom).  This
 // is a runtime bridge -- it materialises the heap-backed term.
 
 // -- forward declarations ---------------------------------------------------
 
-template<typename _OpId,
-         typename _Atom,
-         typename _LeafAtom>
+template<typename OpId,
+         typename Atom,
+         typename LeafAtom>
 D_NODISCARD
-expression<_OpId, _Atom>
-reify(const static_leaf<_LeafAtom>& _leaf);
+expression<OpId, Atom>
+reify(const static_leaf<LeafAtom>& _leaf);
 
-template<typename _OpId,
-         typename _Atom,
-         typename _OpTag,
-         typename... _Operands>
+template<typename OpId,
+         typename Atom,
+         typename OpTag,
+         typename... Operands>
 D_NODISCARD
-expression<_OpId, _Atom>
-reify(const static_apply<_OpTag, _Operands...>& _apply);
+expression<OpId, Atom>
+reify(const static_apply<OpTag, Operands...>& _apply);
 
 
 NS_INTERNAL
 
     // reify_apply
     //   helper: reifies each operand and assembles the dynamic application.
-    template<typename _OpId,
-             typename _Atom,
-             typename _OpTag,
-             typename... _Operands,
-             std::size_t... _Indices>
+    template<typename OpId,
+             typename Atom,
+             typename OpTag,
+             typename... Operands,
+             std::size_t... Indices>
     D_NODISCARD
-    expression<_OpId, _Atom>
+    expression<OpId, Atom>
     reify_apply(
-        const static_apply<_OpTag, _Operands...>& _apply,
-        std::index_sequence<_Indices...>
+        const static_apply<OpTag, Operands...>& _apply,
+        re_std::index_sequence<Indices...>
     )
     {
-        std::vector<expression<_OpId, _Atom> > _children;
-        _children.reserve(sizeof...(_Operands));
+        std::vector<expression<OpId, Atom> > _children;
+        _children.reserve(sizeof...(Operands));
 
         // reify each operand, in order, into the child vector
         const int _expand[] = { 0,
             ( _children.push_back(
-                  ::djinterp::reify<_OpId, _Atom>(
-                      std::get<_Indices>(_apply.operands()))), 0 )... };
+                  ::djinterp::reify<OpId, Atom>(
+                      std::get<Indices>(_apply.operands()))), 0 )... };
         static_cast<void>(_expand);
 
-        return expr_apply<_OpId, _Atom>(
-            static_cast<_OpId>(_apply.op_id()), _children);
+        return expr_apply<OpId, Atom>(
+            static_cast<OpId>(_apply.op_id()), _children);
     }
 
 NS_END  // internal
@@ -483,34 +493,34 @@ NS_END  // internal
 // -- definitions ------------------------------------------------------------
 
 // reify (leaf)
-template<typename _OpId,
-         typename _Atom,
-         typename _LeafAtom>
+template<typename OpId,
+         typename Atom,
+         typename LeafAtom>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 reify
 (
-    const static_leaf<_LeafAtom>& _leaf
+    const static_leaf<LeafAtom>& _leaf
 )
 {
-    return expr_leaf<_OpId, _Atom>(static_cast<_Atom>(_leaf.atom()));
+    return expr_leaf<OpId, Atom>(static_cast<Atom>(_leaf.atom()));
 }
 
 // reify (apply)
-template<typename _OpId,
-         typename _Atom,
-         typename _OpTag,
-         typename... _Operands>
+template<typename OpId,
+         typename Atom,
+         typename OpTag,
+         typename... Operands>
 D_NODISCARD
-expression<_OpId, _Atom>
+expression<OpId, Atom>
 reify
 (
-    const static_apply<_OpTag, _Operands...>& _apply
+    const static_apply<OpTag, Operands...>& _apply
 )
 {
-    return internal::reify_apply<_OpId, _Atom>(
+    return internal::reify_apply<OpId, Atom>(
         _apply,
-        std::make_index_sequence<sizeof...(_Operands)>{});
+        re_std::make_index_sequence<sizeof...(Operands)>{});
 }
 
 
@@ -520,50 +530,50 @@ reify
 
 // is_static_leaf
 //   trait: whether a type is a static_leaf<...>.
-template<typename _Type>
+template<typename Type>
 struct is_static_leaf : std::false_type
 {};
 
-template<typename _Atom>
-struct is_static_leaf<static_leaf<_Atom> > : std::true_type
+template<typename Atom>
+struct is_static_leaf<static_leaf<Atom> > : std::true_type
 {};
 
 // is_static_apply
 //   trait: whether a type is a static_apply<...>.
-template<typename _Type>
+template<typename Type>
 struct is_static_apply : std::false_type
 {};
 
-template<typename _OpTag,
-         typename... _Operands>
-struct is_static_apply<static_apply<_OpTag, _Operands...> > : std::true_type
+template<typename OpTag,
+         typename... Operands>
+struct is_static_apply<static_apply<OpTag, Operands...> > : std::true_type
 {};
 
 // is_static_expr
 //   trait: whether a type is a static expression node -- recognized by
 // derivation from the CRTP base, so user node types built on static_expr
 // are included, after cv-ref stripping.
-template<typename _Type>
+template<typename Type>
 struct is_static_expr
     : std::is_base_of<
-          static_expr<typename std::decay<_Type>::type>,
-          typename std::decay<_Type>::type>
+          static_expr<typename std::decay<Type>::type>,
+          typename std::decay<Type>::type>
 {};
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 // is_static_leaf_v
-template<typename _Type>
-static D_CONSTEXPR bool is_static_leaf_v = is_static_leaf<_Type>::value;
+template<typename Type>
+static D_CONSTEXPR bool is_static_leaf_v = is_static_leaf<Type>::value;
 
 // is_static_apply_v
-template<typename _Type>
-static D_CONSTEXPR bool is_static_apply_v = is_static_apply<_Type>::value;
+template<typename Type>
+static D_CONSTEXPR bool is_static_apply_v = is_static_apply<Type>::value;
 
 // is_static_expr_v
-template<typename _Type>
-static D_CONSTEXPR bool is_static_expr_v = is_static_expr<_Type>::value;
+template<typename Type>
+static D_CONSTEXPR bool is_static_expr_v = is_static_expr<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -572,21 +582,23 @@ static D_CONSTEXPR bool is_static_expr_v = is_static_expr<_Type>::value;
       (D_ENV_CPP_FEATURE_LANG_CONCEPTS == 1) )
 
 // StaticLeaf
-template<typename _Type>
-concept StaticLeaf = is_static_leaf<_Type>::value;
+template<typename Type>
+concept StaticLeaf = is_static_leaf<Type>::value;
 
 // StaticApply
-template<typename _Type>
-concept StaticApply = is_static_apply<_Type>::value;
+template<typename Type>
+concept StaticApply = is_static_apply<Type>::value;
 
 // StaticExpr
-template<typename _Type>
-concept StaticExpr = is_static_expr<_Type>::value;
+template<typename Type>
+concept StaticExpr = is_static_expr<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EXPRESSION_EXPRESSION_STATIC_
+
+#endif  // DJINTERP_PARSE_EXPRESSION_EXPRESSION_STATIC_HPP

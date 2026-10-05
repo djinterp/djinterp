@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   endian.hpp
 *
 * endian header:
@@ -20,7 +20,7 @@
 * little nor big -- the mixed-endian answer, which is honest, rather
 * than guessing little and being silently wrong.
 *
-*   D_RE_STD_HAS_ENDIAN_DETECTION reports whether the answer came from
+*   RE_STD_HAS_ENDIAN_DETECTION reports whether the answer came from
 * the compiler or from the fallback.
 *
 *   PORTABILITY:
@@ -28,36 +28,38 @@
 * scoped enums arrive.
 *
 *
-* path:      /inc/djinterp/re_std/bit/endian.hpp
+* path:      /inc/re_std/bit/endian.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_ENDIAN_
-#define DJINTERP_RE_STD_BIT_ENDIAN_ 1
+#ifndef RE_STD_BIT_ENDIAN_HPP
+#define RE_STD_BIT_ENDIAN_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0.   DETECTION
 // ===========================================================================
 
-#ifndef D_RE_STD_HAS_ENDIAN_DETECTION
+#ifndef RE_STD_HAS_ENDIAN_DETECTION
     #if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) &&        \
         defined(__ORDER_BIG_ENDIAN__)
-        #define D_RE_STD_HAS_ENDIAN_DETECTION   1
-    #elif defined(D_ENV_COMPILER_MSVC)
-        #define D_RE_STD_HAS_ENDIAN_DETECTION   1
+        #define RE_STD_HAS_ENDIAN_DETECTION   1
+    #elif defined(RE_STD_COMPILER_MSVC)
+        #define RE_STD_HAS_ENDIAN_DETECTION   1
     #else
-        #define D_RE_STD_HAS_ENDIAN_DETECTION   0
+        #define RE_STD_HAS_ENDIAN_DETECTION   0
     #endif
 #endif
 
@@ -78,7 +80,7 @@ enum class endian
     native = __BYTE_ORDER__
 };
 
-#elif defined(D_ENV_COMPILER_MSVC)
+#elif defined(RE_STD_COMPILER_MSVC)
 
 // endian
 //   enum: MSVC does not define __BYTE_ORDER__, but every target it
@@ -106,10 +108,10 @@ enum class endian
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BIT_ENDIAN_
+#endif  // RE_STD_BIT_ENDIAN_HPP

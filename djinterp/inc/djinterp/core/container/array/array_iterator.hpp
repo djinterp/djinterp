@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                      array_iterator.hpp
+/*******************************************************************************
+* djinterp [core]                                             array_iterator.hpp
 *
 * Array-specific iterator adapters.
 *   Thin zero-overhead wrappers for patterns unique to contiguous
@@ -27,28 +27,44 @@
 *
 * path:      /inc/djinterp/core/container/array/array_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-1.   vocabulary: chunk_ref / window_ref
-2.   circular_iterator
-3.   chunk_iterator
-4.   window_iterator
-5.   factory functions
+1.    vocabulary: chunk_ref / window_ref
+      ----------------------------------
+
+2.    circular_iterator
+      -----------------
+
+3.    chunk_iterator
+      --------------
+
+4.    window_iterator
+      ---------------
+
+5.    factory functions
+      -----------------
 */
 
-#ifndef DJINTERP_ARRAY_ITERATOR_
-#define DJINTERP_ARRAY_ITERATOR_ 1
+#ifndef DJINTERP_CONTAINER_ARRAY_ARRAY_ITERATOR_HPP
+#define DJINTERP_CONTAINER_ARRAY_ARRAY_ITERATOR_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
 // djinterp
-#include "../../../core/djinterp.hpp"
+#include "../../../djinterp.hpp"
 
 
 // ===========================================================================
@@ -71,13 +87,13 @@ NS_DJINTERP
 
 // chunk_ref
 //   struct: a (pointer, size) pair describing one chunk.
-template<typename _Type>
+template<typename Type>
 struct chunk_ref
 {
-    const _Type* data;
+    const Type* data;
     std::size_t  size;
 
-    D_CONSTEXPR const _Type&
+    D_CONSTEXPR const Type&
     operator[](
         std::size_t _i
     ) const D_NOEXCEPT
@@ -85,13 +101,13 @@ struct chunk_ref
         return data[_i];
     }
 
-    D_CONSTEXPR const _Type*
+    D_CONSTEXPR const Type*
     begin() const D_NOEXCEPT
     {
         return data;
     }
 
-    D_CONSTEXPR const _Type*
+    D_CONSTEXPR const Type*
     end() const D_NOEXCEPT
     {
         return (data + size);
@@ -105,11 +121,11 @@ struct chunk_ref
 };
 
 // window_ref
-//   alias: a sliding window is structurally identical to a
-// chunk - reuse the type.
+//   alias: a sliding window is structurally identical to a chunk - reuse the
+// type.
 #if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-    template<typename _Type>
-    using window_ref = chunk_ref<_Type>;
+    template<typename Type>
+    using window_ref = chunk_ref<Type>;
 #endif
 
 
@@ -118,18 +134,17 @@ struct chunk_ref
 // ===========================================================================
 
 // circular_iterator
-//   class: iterates over a contiguous buffer with wrap-
-// around semantics.  Given a buffer of capacity N starting
-// at base, a head offset, and a logical index, accesses
-// base[(head + index) % capacity].
-template<typename _Type>
+//   class: iterates over a contiguous buffer with wrap- around semantics.
+// Given a buffer of capacity N starting at base, a head offset, and a logical
+// index, accesses base[(head + index) % capacity].
+template<typename Type>
 class circular_iterator
 {
 public:
-    using value_type        = _Type;
+    using value_type        = Type;
     using difference_type   = std::ptrdiff_t;
-    using pointer           = const _Type*;
-    using reference         = const _Type&;
+    using pointer           = const Type*;
+    using reference         = const Type&;
     using iterator_category = std::random_access_iterator_tag;
 
     D_CONSTEXPR
@@ -142,7 +157,7 @@ public:
 
     D_CONSTEXPR
     circular_iterator(
-        const _Type* _base,
+        const Type* _base,
         std::size_t  _capacity,
         std::size_t  _head,
         std::size_t  _index
@@ -361,7 +376,7 @@ public:
     }
 
 private:
-    const _Type* m_base;
+    const Type* m_base;
     std::size_t  m_capacity;
     std::size_t  m_head;
     std::size_t  m_index;
@@ -373,15 +388,14 @@ private:
 // ===========================================================================
 
 // chunk_iterator
-//   class: groups a flat contiguous range into non-
-// overlapping chunks of m_chunk_size elements.  The last
-// chunk may be smaller.
-template<typename _Iterator>
+//   class: groups a flat contiguous range into non- overlapping chunks of
+// m_chunk_size elements. The last chunk may be smaller.
+template<typename Iterator>
 class chunk_iterator
 {
 public:
     using base_value_type =
-        typename std::iterator_traits<_Iterator>::value_type;
+        typename std::iterator_traits<Iterator>::value_type;
     using value_type        = chunk_ref<base_value_type>;
     using difference_type   = std::ptrdiff_t;
     using reference         = value_type;
@@ -397,8 +411,8 @@ public:
 
     D_CONSTEXPR
     chunk_iterator(
-        _Iterator   _current,
-        _Iterator   _end,
+        Iterator    _current,
+        Iterator    _end,
         std::size_t _chunk_size
     ) D_NOEXCEPT
         : m_current(_current),
@@ -430,7 +444,7 @@ public:
                 : m_chunk_size;
 
         m_current += static_cast<typename
-            std::iterator_traits<_Iterator>::difference_type>(advance);
+            std::iterator_traits<Iterator>::difference_type>(advance);
 
         return *this;
     }
@@ -462,7 +476,7 @@ public:
         return (_a.m_current != _b.m_current);
     }
 
-    D_CONSTEXPR _Iterator
+    D_CONSTEXPR Iterator
     base() const D_NOEXCEPT
     {
         return m_current;
@@ -475,8 +489,8 @@ public:
     }
 
 private:
-    _Iterator   m_current;
-    _Iterator   m_end;
+    Iterator    m_current;
+    Iterator    m_end;
     std::size_t m_chunk_size;
 };
 
@@ -486,15 +500,14 @@ private:
 // ===========================================================================
 
 // window_iterator
-//   class: slides a fixed-width window across a contiguous
-// range, yielding overlapping sub-ranges.  Advances by 1
-// element per increment.
-template<typename _Iterator>
+//   class: slides a fixed-width window across a contiguous range, yielding
+// overlapping sub-ranges. Advances by 1 element per increment.
+template<typename Iterator>
 class window_iterator
 {
 public:
     using base_value_type =
-        typename std::iterator_traits<_Iterator>::value_type;
+        typename std::iterator_traits<Iterator>::value_type;
     using value_type        = chunk_ref<base_value_type>;
     using difference_type   = std::ptrdiff_t;
     using reference         = value_type;
@@ -510,8 +523,8 @@ public:
 
     D_CONSTEXPR
     window_iterator(
-        _Iterator   _current,
-        _Iterator   _end,
+        Iterator    _current,
+        Iterator    _end,
         std::size_t _window_size
     ) D_NOEXCEPT
         : m_current(_current),
@@ -567,7 +580,7 @@ public:
         return (_a.m_current != _b.m_current);
     }
 
-    D_CONSTEXPR _Iterator
+    D_CONSTEXPR Iterator
     base() const D_NOEXCEPT
     {
         return m_current;
@@ -580,8 +593,8 @@ public:
     }
 
 private:
-    _Iterator   m_current;
-    _Iterator   m_end;
+    Iterator    m_current;
+    Iterator    m_end;
     std::size_t m_window_size;
 };
 
@@ -591,18 +604,17 @@ private:
 // ===========================================================================
 
 // make_circular_iterator
-//   factory: constructs a circular_iterator over a fixed
-// buffer.
-template<typename _Type>
-D_CONSTEXPR circular_iterator<_Type>
+//   factory: constructs a circular_iterator over a fixed buffer.
+template<typename Type>
+D_CONSTEXPR circular_iterator<Type>
 make_circular_iterator(
-    const _Type* _base,
+    const Type* _base,
     std::size_t  _capacity,
     std::size_t  _head,
     std::size_t  _index
 ) D_NOEXCEPT
 {
-    return circular_iterator<_Type>(_base,
+    return circular_iterator<Type>(_base,
                                     _capacity,
                                     _head,
                                     _index);
@@ -610,57 +622,57 @@ make_circular_iterator(
 
 // make_chunk_iterator
 //   factory: constructs the begin chunk_iterator.
-template<typename _Iterator>
-D_CONSTEXPR chunk_iterator<_Iterator>
+template<typename Iterator>
+D_CONSTEXPR chunk_iterator<Iterator>
 make_chunk_iterator(
-    _Iterator   _begin,
-    _Iterator   _end,
+    Iterator    _begin,
+    Iterator    _end,
     std::size_t _chunk_size
 ) D_NOEXCEPT
 {
-    return chunk_iterator<_Iterator>(_begin,
+    return chunk_iterator<Iterator>(_begin,
                                      _end,
                                      _chunk_size);
 }
 
 // make_chunk_end
 //   factory: constructs the past-the-end chunk_iterator.
-template<typename _Iterator>
-D_CONSTEXPR chunk_iterator<_Iterator>
+template<typename Iterator>
+D_CONSTEXPR chunk_iterator<Iterator>
 make_chunk_end(
-    _Iterator   _end,
+    Iterator    _end,
     std::size_t _chunk_size
 ) D_NOEXCEPT
 {
-    return chunk_iterator<_Iterator>(_end,
+    return chunk_iterator<Iterator>(_end,
                                      _end,
                                      _chunk_size);
 }
 
 // make_window_iterator
 //   factory: constructs the begin window_iterator.
-template<typename _Iterator>
-D_CONSTEXPR window_iterator<_Iterator>
+template<typename Iterator>
+D_CONSTEXPR window_iterator<Iterator>
 make_window_iterator(
-    _Iterator   _begin,
-    _Iterator   _end,
+    Iterator    _begin,
+    Iterator    _end,
     std::size_t _window_size
 ) D_NOEXCEPT
 {
-    return window_iterator<_Iterator>(_begin,
+    return window_iterator<Iterator>(_begin,
                                       _end,
                                       _window_size);
 }
 
 // make_window_end
-//   factory: constructs the past-the-end window_iterator.
-// The end iterator is positioned so the last full window's
-// first element is at (end - window_size + 1).
-template<typename _Iterator>
-D_INTERNAL_AIT_CONSTEXPR window_iterator<_Iterator>
+//   factory: constructs the past-the-end window_iterator. The end iterator is
+// positioned so the last full window's first element is at (end - window_size
+// + 1).
+template<typename Iterator>
+D_INTERNAL_AIT_CONSTEXPR window_iterator<Iterator>
 make_window_end(
-    _Iterator   _begin,
-    _Iterator   _end,
+    Iterator    _begin,
+    Iterator    _end,
     std::size_t _window_size
 ) D_NOEXCEPT
 {
@@ -670,17 +682,17 @@ make_window_end(
     // not enough data for any full window - return _end
     if (dist < _window_size)
     {
-        return window_iterator<_Iterator>(_end,
+        return window_iterator<Iterator>(_end,
                                           _end,
                                           _window_size);
     }
 
-    _Iterator last_start = _begin +
+    Iterator last_start = _begin +
         static_cast<typename
-            std::iterator_traits<_Iterator>::difference_type>(
+            std::iterator_traits<Iterator>::difference_type>(
             dist - _window_size + 1);
 
-    return window_iterator<_Iterator>(last_start,
+    return window_iterator<Iterator>(last_start,
                                       _end,
                                       _window_size);
 }
@@ -691,5 +703,6 @@ NS_END  // djinterp
 
 #undef D_INTERNAL_AIT_CONSTEXPR
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_ARRAY_ITERATOR_
+#endif  // DJINTERP_CONTAINER_ARRAY_ARRAY_ITERATOR_HPP

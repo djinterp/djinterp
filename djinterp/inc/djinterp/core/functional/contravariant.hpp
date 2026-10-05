@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                      contravariant.hpp
+/*******************************************************************************
+* djinterp [core]                                              contravariant.hpp
 *
 * Contravariant functor protocol and its map, contramap (C++).
 *   A contravariant functor is a type constructor F<T> that consumes values of
@@ -49,19 +49,28 @@
 *   II.   GENERIC CONTRAVARIANT OPERATIONS
 *         1.  contramap                                 (the one operation)
 *
+*
 * path:      /inc/djinterp/core/functional/contravariant.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.07.01
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.01
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_CONTRAVARIANT_
-#define DJINTERP_FUNCTIONAL_CONTRAVARIANT_ 1
+#ifndef DJINTERP_FUNCTIONAL_CONTRAVARIANT_HPP
+#define DJINTERP_FUNCTIONAL_CONTRAVARIANT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // void_t
 
 
 NS_DJINTERP
@@ -84,8 +93,8 @@ NS_DJINTERP
 //   rebind<U> (= F<U>) is supplied as well by instances for which it is well
 // defined.  contramap is the whole obligation.  The primary is left undefined
 // so a use on a non-contravariant type produces a clean resolution error.
-template<typename _Contravariant,
-         typename _Enable = void>
+template<typename Contravariant,
+         typename Enable = void>
 struct contravariant_traits;
 
 
@@ -95,44 +104,42 @@ NS_INTERNAL
     //   helper: SFINAE detector for whether contravariant_traits<T> is
     // specialized.  Looks for the is_specialized marker every specialization
     // provides.
-    template<typename _Type>
+    template<typename Type>
     struct is_contravariant_helper
     {
     private:
-        template<typename _T>
-        static auto test(
-            int
-        ) -> decltype(
-                 typename contravariant_traits<_T>::is_specialized{},
-                 std::true_type{}
-            );
+        template<typename T>
+        static auto test(int)
+            -> decltype(
+                typename contravariant_traits<T>::is_specialized{},
+                std::true_type{});
 
         template<typename>
-        static std::false_type
-        test(
-            ...
-        );
+        static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 
 // is_contravariant
-//   trait: true if _Type has a specialization of contravariant_traits (after
+//   trait: true if Type has a specialization of contravariant_traits (after
 // cv-ref stripping).  Used to SFINAE-constrain generic contravariant ops.
-template<typename _Type>
+template<typename Type>
 struct is_contravariant
-    : internal::is_contravariant_helper<typename std::decay<_Type>::type>::type
-{};
+    : internal::is_contravariant_helper<
+          typename std::decay<Type>::type>::type
+{
+};
+
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // is_contravariant_v
-    //   value: convenience alias for is_contravariant<_Type>::value.
-    template<typename _Type>
-    static constexpr bool is_contravariant_v = is_contravariant<_Type>::value;
+// is_contravariant_v
+//   value: convenience alias for is_contravariant<Type>::value.
+template<typename Type>
+static constexpr bool is_contravariant_v = is_contravariant<Type>::value;
 #endif
 
 
@@ -151,18 +158,18 @@ NS_INTERNAL
     // contravariant_value_type_helper
     //   helper: SFINAE extractor for contravariant_traits<F>::value_type
     // (primary: no `type`, soft failure).
-    template<typename _AlwaysVoid,
-             typename _Contravariant>
+    template<typename AlwaysVoid,
+             typename Contravariant>
     struct contravariant_value_type_helper
     {};
 
     // contravariant_value_type_helper (well-formed specialization)
-    template<typename _Contravariant>
+    template<typename Contravariant>
     struct contravariant_value_type_helper<
-        void_t<typename contravariant_traits<_Contravariant>::value_type>,
-        _Contravariant>
+        void_t<typename contravariant_traits<Contravariant>::value_type>,
+        Contravariant>
     {
-        using type = typename contravariant_traits<_Contravariant>::value_type;
+        using type = typename contravariant_traits<Contravariant>::value_type;
     };
 
 NS_END  // internal
@@ -172,17 +179,18 @@ NS_END  // internal
 //   trait: the inner consumed type A of a contravariant F, i.e.
 // contravariant_traits<F>::value_type.  SFINAE-friendly: has a `::type` only
 // when F is a specialized contravariant functor.
-template<typename _Contravariant>
+template<typename Contravariant>
 struct contravariant_value_type
 {
-    using type = typename internal::contravariant_value_type_helper<void,
-                     typename std::decay<_Contravariant>::type>::type;
+    using type = typename internal::contravariant_value_type_helper<
+        void, typename std::decay<Contravariant>::type>::type;
 };
 
 // contravariant_value_type_t
 //   type: convenience alias for contravariant_value_type<F>::type.
-template<typename _Contravariant>
-using contravariant_value_type_t = typename contravariant_value_type<_Contravariant>::type;
+template<typename Contravariant>
+using contravariant_value_type_t =
+    typename contravariant_value_type<Contravariant>::type;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -199,39 +207,41 @@ using contravariant_value_type_t = typename contravariant_value_type<_Contravari
 //
 //   Argument order follows the standard `contramap :: (b -> a) -> f a -> f b`:
 // the adapting function first, the context second.
-template<typename _Function,
-         typename _Contravariant>
-D_NODISCARD D_CONSTEXPR auto
-contramap
+template<typename Function,
+         typename Contravariant>
+D_NODISCARD
+D_CONSTEXPR
+auto contramap
 (
-    _Function&&      _g,
-    _Contravariant&& _fa
-) -> decltype(contravariant_traits<typename std::decay<_Contravariant>::type>
-        ::contramap(
-            std::forward<_Function>(_g),
-            std::forward<_Contravariant>(_fa)
-        )
-    )
+    Function&&       _g,
+    Contravariant&&  _fa
+)
+-> decltype(contravariant_traits<
+       typename std::decay<Contravariant>::type>::contramap(
+           std::forward<Function>(_g),
+           std::forward<Contravariant>(_fa)))
 {
     return contravariant_traits<
-        typename std::decay<_Contravariant>::type>::contramap(
-            std::forward<_Function>(_g),
-            std::forward<_Contravariant>(_fa));
+        typename std::decay<Contravariant>::type>::contramap(
+            std::forward<Function>(_g),
+            std::forward<Contravariant>(_fa));
 }
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // Contravariant
-    //   concept: satisfied when _Type is a specialized contravariant functor.
+    //   concept: satisfied when Type is a specialized contravariant functor.
     // The PascalCase typeclass face, alongside Functor / Applicative.
-    template<typename _Type>
-    concept Contravariant = is_contravariant<_Type>::value;
+    template<typename Type>
+    concept Contravariant = is_contravariant<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_CONTRAVARIANT_
+
+#endif  // DJINTERP_FUNCTIONAL_CONTRAVARIANT_HPP

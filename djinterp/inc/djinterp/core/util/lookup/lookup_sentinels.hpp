@@ -1,34 +1,41 @@
-/******************************************************************************
-* djinterp [meta]                                        lookup_sentinels.hpp
+/*******************************************************************************
+* djinterp [core]                                           lookup_sentinels.hpp
 *
-*   The two lookup sentinels, factored into their own dependency-free header 
-* so that both lookup.hpp (the search families) and bsearch.hpp (the engine 
-* the sorted family delegates to) can share them without a cyclic include.  
-* `bsearch.hpp` reports misses with these values; `lookup.hpp` re-exports them 
-* as part of its public surface (sections I and onward).  
+*   The two lookup sentinels, factored into their own dependency-free header
+* so that both lookup.hpp (the search families) and bsearch.hpp (the engine
+* the sorted family delegates to) can share them without a cyclic include.
+* `bsearch.hpp` reports misses with these values; `lookup.hpp` re-exports them
+* as part of its public surface (sections I and onward).
 * Nothing else belongs here.
 *
 *
-* path:      /inc/djinterp/core/meta/lookup_sentinels.hpp
+* path:      /inc/djinterp/core/util/lookup/lookup_sentinels.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.03
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.03
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_META_LOOKUP_SENTINELS_
-#define DJINTERP_META_LOOKUP_SENTINELS_ 1
+#ifndef DJINTERP_UTIL_LOOKUP_LOOKUP_SENTINELS_HPP
+#define DJINTERP_UTIL_LOOKUP_LOOKUP_SENTINELS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 
 
 NS_DJINTERP
 
 
 // lookup_not_found
-//   type: sentinel returned by find_*<...>::type (and bsearch_by) when no 
-// entry matches the search.  Inspectable: callers can detect a miss via the 
+//   type: sentinel returned by find_*<...>::type (and bsearch_by) when no
+// entry matches the search.  Inspectable: callers can detect a miss via the
 // ::found bool or by checking the returned type against this tag.
 struct lookup_not_found
 {};
@@ -56,5 +63,6 @@ struct lookup_not_found
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_META_LOOKUP_SENTINELS_
+#endif  // DJINTERP_UTIL_LOOKUP_LOOKUP_SENTINELS_HPP

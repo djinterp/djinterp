@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [ranges]                                    range_common_reference.hpp
+/*******************************************************************************
+* djinterp [re_std]                                   range_common_reference.hpp
 *
+* range_common_reference range-adaptor header:
 *   range_common_reference_t<R> - the common reference type of a range's
 * reference and rvalue-reference types.
 *
@@ -17,33 +18,40 @@
 *   STD IS C++20; re_std IS C++11 - it needs only alias templates and
 * common_reference, both of which re_std already has.
 *
-* path:      /inc/djinterp/re_std/ranges/range_common_reference.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/ranges/range_common_reference.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_RANGE_COMMON_REFERENCE_
-#define DJINTERP_RE_STD_RANGES_RANGE_COMMON_REFERENCE_ 1
+#ifndef RE_STD_RANGES_RANGE_COMMON_REFERENCE_HPP
+#define RE_STD_RANGES_RANGE_COMMON_REFERENCE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
-#include "./range_traits.hpp"
+#include "./range_reference_t.hpp"
+#include "./range_rvalue_reference_t.hpp"
 
-NS_RESTD
-D_NAMESPACE(ranges)
+namespace re_std
+{
+namespace ranges
+{
 
 // range_common_reference_t
 //   alias: the common reference of a range's reference and rvalue-reference.
-template<typename _Range>
+template<typename Range>
 using range_common_reference_t = typename common_reference<
-    range_reference_t<_Range>,
-    range_rvalue_reference_t<_Range> >::type;
+    range_reference_t<Range>,
+    range_rvalue_reference_t<Range> >::type;
 
-NS_END  // ranges
-NS_END
+}  // ranges
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_RANGES_RANGE_COMMON_REFERENCE_
+#endif  // RE_STD_RANGES_RANGE_COMMON_REFERENCE_HPP

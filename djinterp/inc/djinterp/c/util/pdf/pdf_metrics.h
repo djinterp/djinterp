@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                               pdf_metrics.h
+/*******************************************************************************
+* djinterp [c]                                                     pdf_metrics.h
 *
 * Glyph and string width measurement for the standard-14 PDF fonts.
 *   This is the keystone of any real layout: centre and right alignment,
@@ -39,18 +39,22 @@
 * because both compile.
 *
 *
-* path:      \inc\djinterp\c\util\pdf\pdf_metrics.h
+* path:      /inc/djinterp/c/util/pdf/pdf_metrics.h
 * link(s):   ch-pdf.tex
-* author(s): TBA                                            created: 2026.08.09
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.09
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_UTIL_PDF_METRICS_
-#define DJINTERP_C_UTIL_PDF_METRICS_ 1
+#ifndef DJINTERP_C_UTIL_PDF_PDF_METRICS_H
+#define DJINTERP_C_UTIL_PDF_PDF_METRICS_H 1
 
+// std
 #include <stddef.h>
-#include <stdint.h>
+// djinterp
 #include "../../djinterp.h"
 #include "./pdf_primitives.h"
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // int32_t
 
 
 D_EXTERN_C_BEGIN
@@ -117,4 +121,4 @@ size_t d_pdf_wrap_to_width(int32_t                 _font,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_UTIL_PDF_METRICS_
+#endif  // DJINTERP_C_UTIL_PDF_PDF_METRICS_H

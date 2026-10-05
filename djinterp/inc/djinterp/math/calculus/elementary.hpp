@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                     calculus/elementary.hpp
+/*******************************************************************************
+* djinterp [math]                                                 elementary.hpp
 *
 * Elementary functions, identities, and scalar helpers.
 *   Two layers:
@@ -17,22 +17,25 @@
 *      combinatorial functions (abs, sign, floor, ceil, round, clamp, lerp,
 *      radians, degrees, factorial, binomial, gcd, lcm, horner, ...).
 *
+*
 * path:      /inc/djinterp/math/calculus/elementary.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.06.20
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CALCULUS_ELEMENTARY_
-#define DJINTERP_MATH_CALCULUS_ELEMENTARY_ 1
+#ifndef DJINTERP_MATH_CALCULUS_ELEMENTARY_HPP
+#define DJINTERP_MATH_CALCULUS_ELEMENTARY_HPP 1
 
-#include <cstddef>
-#include <cmath>
+// std
 #include <array>
+#include <cmath>
+#include <cstddef>
 #include <type_traits>
-
+// djinterp
 #include "../../djinterp.hpp"
 #include "../expression.hpp"
-#include "./constants.hpp"
+#include "../constants.hpp"
 
 
 NS_DJINTERP
@@ -415,4 +418,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_CALCULUS_ELEMENTARY_
+#endif  // DJINTERP_MATH_CALCULUS_ELEMENTARY_HPP

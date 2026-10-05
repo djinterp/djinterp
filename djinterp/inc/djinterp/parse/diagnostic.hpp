@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                               diagnostic.hpp
+* djinterp [parse]                                                diagnostic.hpp
 *
 *   The C++ face of the diagnostic channel declared in diagnostic.h.
 *   Every type here IS its C counterpart: `span` derives from d_parse_span and
@@ -14,11 +14,12 @@
 * views. A view pairs a record with the sink that holds its text, because a
 * diagnostic's message is an arena offset and means nothing without it.
 *
+*
 * path:      /inc/djinterp/parse/diagnostic.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -44,32 +45,26 @@ TABLE OF CONTENTS
     4.  Layout guarantees
 */
 
-#ifndef DJINTERP_PARSE_DIAGNOSTIC_HPP_
-#define DJINTERP_PARSE_DIAGNOSTIC_HPP_ 1
+#ifndef DJINTERP_PARSE_DIAGNOSTIC_HPP
+#define DJINTERP_PARSE_DIAGNOSTIC_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>              // std::size_t, std::ptrdiff_t
-#include <cstdint>              // std::uint8_t, std::uint16_t, std::uint32_t
-#include <iterator>             // std::forward_iterator_tag
-#include <type_traits>          // std::is_standard_layout
+#include <cstddef>           // std::size_t, std::ptrdiff_t
+#include <iterator>          // std::forward_iterator_tag
+#include <type_traits>       // std::is_standard_layout
 // djinterp
-#include "../djinterp.hpp"      // framework root
-#include "./diagnostic.h"       // the C facility this layer faces
-
-
-// D_KEYWORD_PARSE
-//   keyword: resolves to `parse`.  Guarded rather than owned -- parse.hpp is
-// its canonical home, and this spelling only fires when the substrate is built
-// without it.
-#ifndef D_KEYWORD_PARSE
-    #define D_KEYWORD_PARSE             parse
-#endif
-
-// NS_PARSE
-//   namespace: the parse subsystem namespace.  Guarded for the same reason.
-#ifndef NS_PARSE
-    #define NS_PARSE                    D_NAMESPACE(D_KEYWORD_PARSE)
-#endif
+#include "../djinterp.hpp"   // framework root
+#include "./c/diagnostic.h"  // the C facility this layer faces
+#include "./substrate.hpp"   // NS_PARSE, without parse.hpp
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t, uint32_t,
+                                             // uint16_t
 
 
 NS_DJINTERP
@@ -87,7 +82,7 @@ NS_PARSE
 // severity
 //   enum: how badly a diagnostic bears on the run.  A scoped enum over the C
 // codes, with the same underlying width, so it converts both ways for free.
-enum class severity : std::uint8_t
+enum class severity : re_std::uint8_t
 {
     note    = D_PARSE_SEVERITY_NOTE,
     warning = D_PARSE_SEVERITY_WARNING,
@@ -134,8 +129,8 @@ struct span : d_parse_span
     //   constructor: a byte range of the primary source, with no line or
     // column resolved.
     constexpr span(
-        std::uint32_t _offset,
-        std::uint32_t _length
+        re_std::uint32_t _offset,
+        re_std::uint32_t _length
     ) noexcept
         : d_parse_span{ 0u, _offset, _length, 0u, 0u }
     {}
@@ -143,11 +138,11 @@ struct span : d_parse_span
     // span
     //   constructor: a fully described range.
     constexpr span(
-        std::uint32_t _source,
-        std::uint32_t _offset,
-        std::uint32_t _length,
-        std::uint32_t _line,
-        std::uint32_t _column
+        re_std::uint32_t _source,
+        re_std::uint32_t _offset,
+        re_std::uint32_t _length,
+        re_std::uint32_t _line,
+        re_std::uint32_t _column
     ) noexcept
         : d_parse_span{ _source, _offset, _length, _line, _column }
     {}
@@ -156,7 +151,7 @@ struct span : d_parse_span
     //   function: a zero-length span at one offset.
     static constexpr span
     at(
-        std::uint32_t _offset
+        re_std::uint32_t _offset
     ) noexcept
     {
         return span(_offset, 0u);
@@ -219,18 +214,18 @@ public:
 
     // domain
     //   accessor: the domain of the stage that emitted the record.
-    constexpr std::uint16_t
+    constexpr re_std::uint16_t
     domain() const noexcept
     {
-        return (m_record != nullptr) ? m_record->domain : std::uint16_t(0);
+        return (m_record != nullptr) ? m_record->domain : re_std::uint16_t(0);
     }
 
     // code
     //   accessor: the condition, in that domain's private code space.
-    constexpr std::uint16_t
+    constexpr re_std::uint16_t
     code() const noexcept
     {
-        return (m_record != nullptr) ? m_record->code : std::uint16_t(0);
+        return (m_record != nullptr) ? m_record->code : re_std::uint16_t(0);
     }
 
     // where
@@ -239,6 +234,21 @@ public:
     where() const noexcept
     {
         return (m_record != nullptr) ? span(m_record->span) : span();
+    }
+
+    // is
+    //   accessor: whether this record reports a particular condition.  Takes
+    // the domain AND the code, because a code is numbered within its domain
+    // and the same value in two domains is two different conditions.
+    constexpr bool
+    is(
+        re_std::uint16_t _domain,
+        re_std::uint16_t _code
+    ) const noexcept
+    {
+        return ( (m_record != nullptr)          &&
+                 (m_record->domain == _domain)  &&
+                 (m_record->code == _code)      );
     }
 
     // continuation
@@ -309,7 +319,7 @@ public:
     //   constructor: positions the iterator at one index of a sink.
     constexpr diagnostic_iterator(
         const d_parse_diag_sink* _sink,
-        std::uint32_t            _index
+        re_std::uint32_t            _index
     ) noexcept
         : m_sink(_sink),
           m_index(_index)
@@ -325,7 +335,7 @@ public:
 
     // operator++
     //   function: advances to the next stored record.
-    constexpr diagnostic_iterator&
+    D_CONSTEXPR_CPP14 diagnostic_iterator&
     operator++() noexcept
     {
         ++m_index;
@@ -335,7 +345,7 @@ public:
 
     // operator++
     //   function: advances, yielding the previous position.
-    constexpr diagnostic_iterator
+    D_CONSTEXPR_CPP14 diagnostic_iterator
     operator++(int) noexcept
     {
         const diagnostic_iterator previous = *this;
@@ -368,7 +378,7 @@ public:
 
 private:
     const d_parse_diag_sink* m_sink;
-    std::uint32_t            m_index;
+    re_std::uint32_t            m_index;
 };
 
 
@@ -398,9 +408,9 @@ public:
     //   constructor: a sink over caller-supplied storage.
     diagnostics(
         d_parse_diagnostic* _items,
-        std::uint32_t       _item_count,
+        re_std::uint32_t       _item_count,
         char*               _text,
-        std::uint32_t       _text_bytes
+        re_std::uint32_t       _text_bytes
     ) noexcept
     {
         d_parse_diag_sink_init(this,
@@ -457,8 +467,8 @@ public:
     // valid and empty.
     D_NODISCARD bool
     reserve(
-        std::uint32_t _item_count = 0u,
-        std::uint32_t _text_bytes = 0u
+        re_std::uint32_t _item_count = 0u,
+        re_std::uint32_t _text_bytes = 0u
     ) noexcept
     {
         d_parse_diag_sink_release(this);
@@ -475,8 +485,8 @@ public:
     bool
     emit(
         severity      _severity,
-        std::uint16_t _domain,
-        std::uint16_t _code,
+        re_std::uint16_t _domain,
+        re_std::uint16_t _code,
         const span&   _span,
         const char*   _message
     ) noexcept
@@ -493,8 +503,8 @@ public:
     //   function: accepts a note that elaborates the preceding diagnostic.
     bool
     note(
-        std::uint16_t _domain,
-        std::uint16_t _code,
+        re_std::uint16_t _domain,
+        re_std::uint16_t _code,
         const span&   _span,
         const char*   _message
     ) noexcept
@@ -512,8 +522,8 @@ public:
     //   function: accepts a warning.
     bool
     warning(
-        std::uint16_t _domain,
-        std::uint16_t _code,
+        re_std::uint16_t _domain,
+        re_std::uint16_t _code,
         const span&   _span,
         const char*   _message
     ) noexcept
@@ -525,8 +535,8 @@ public:
     //   function: accepts an error.
     bool
     error(
-        std::uint16_t _domain,
-        std::uint16_t _code,
+        re_std::uint16_t _domain,
+        re_std::uint16_t _code,
         const span&   _span,
         const char*   _message
     ) noexcept
@@ -538,8 +548,8 @@ public:
     //   function: accepts a fatal diagnostic.
     bool
     fatal(
-        std::uint16_t _domain,
-        std::uint16_t _code,
+        re_std::uint16_t _domain,
+        re_std::uint16_t _code,
         const span&   _span,
         const char*   _message
     ) noexcept
@@ -550,15 +560,15 @@ public:
 #if (D_INTERNAL_PARSE_DIAG_FORMAT == 1)
     // emitf
     //   function: accepts a diagnostic whose message is formatted printf-style.
-    template<typename... _Args>
+    template<typename... Args>
     bool
     emitf(
         severity      _severity,
-        std::uint16_t _domain,
-        std::uint16_t _code,
+        re_std::uint16_t _domain,
+        re_std::uint16_t _code,
         const span&   _span,
         const char*   _format,
-        _Args...      _args
+        Args...      _args
     ) noexcept
     {
         return (d_parse_diag_emitf(this,
@@ -621,7 +631,7 @@ public:
     // tally
     //   accessor: how many diagnostics of one severity were accepted, stored
     // or not.
-    std::uint32_t
+    re_std::uint32_t
     tally_of(
         severity _severity
     ) const noexcept
@@ -629,9 +639,21 @@ public:
         return d_parse_diag_tally(this, static_cast<int>(_severity));
     }
 
+    // contains
+    //   accessor: whether a stored diagnostic reports a particular condition,
+    // identified by domain and code together.
+    bool
+    contains(
+        re_std::uint16_t _domain,
+        re_std::uint16_t _code
+    ) const noexcept
+    {
+        return (d_parse_diag_find(this, _domain, _code, 0u) >= 0);
+    }
+
     // size
     //   accessor: how many diagnostics are stored.
-    constexpr std::uint32_t
+    D_CONSTEXPR_CPP14 re_std::uint32_t
     size() const noexcept
     {
         return count;
@@ -639,7 +661,7 @@ public:
 
     // empty
     //   accessor: whether any diagnostic is stored.
-    constexpr bool
+    D_CONSTEXPR_CPP14 bool
     empty() const noexcept
     {
         return (count == 0u);
@@ -649,7 +671,7 @@ public:
     //   accessor: a view of the stored diagnostic at an index.
     diagnostic_view
     operator[](
-        std::uint32_t _index
+        re_std::uint32_t _index
     ) const noexcept
     {
         return diagnostic_view(this, d_parse_diag_at(this, _index));
@@ -657,7 +679,7 @@ public:
 
     // begin
     //   accessor: an iterator to the first stored diagnostic.
-    constexpr iterator
+    D_CONSTEXPR_CPP14 iterator
     begin() const noexcept
     {
         return iterator(this, 0u);
@@ -665,7 +687,7 @@ public:
 
     // end
     //   accessor: an iterator one past the last stored diagnostic.
-    constexpr iterator
+    D_CONSTEXPR_CPP14 iterator
     end() const noexcept
     {
         return iterator(this, count);
@@ -691,8 +713,8 @@ public:
 //   Unlike `diagnostics` this is NOT layout-identical to the C sink, because
 // it adds the arrays as members; it converts to d_parse_diag_sink* through its
 // base as any derived class does, which is all the C side ever needs.
-template<std::uint32_t _Items,
-         std::uint32_t _Text>
+template<re_std::uint32_t Items,
+         re_std::uint32_t Text>
 class fixed_diagnostics : public diagnostics
 {
 public:
@@ -700,12 +722,12 @@ public:
     //   constructor: binds the embedded arrays as this sink's storage.
     fixed_diagnostics() noexcept
     {
-        d_parse_diag_sink_init(this, m_items, _Items, m_text, _Text);
+        d_parse_diag_sink_init(this, m_items, Items, m_text, Text);
     }
 
 private:
-    d_parse_diagnostic m_items[_Items];
-    char               m_text[_Text];
+    d_parse_diagnostic m_items[Items];
+    char               m_text[Text];
 };
 
 
@@ -732,5 +754,7 @@ static_assert(std::is_standard_layout<diagnostics>::value,
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_DIAGNOSTIC_HPP_
+
+#endif  // DJINTERP_PARSE_DIAGNOSTIC_HPP

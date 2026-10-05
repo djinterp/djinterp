@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                solid.hpp
+/*******************************************************************************
+* djinterp [math]                                                      solid.hpp
 *
 * General-purpose 3D shape composers.
 *   Provides the four ways a user can describe an arbitrary 3D solid:
@@ -12,22 +12,26 @@
 * geometry_common.hpp; measurement (volume, surface area, centroid)
 * lives in measure_3d.hpp.
 *
+*
 * path:      /inc/djinterp/math/geometry/solid.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_SOLID_
-#define DJINTERP_MATH_GEOMETRY_SOLID_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_SOLID_HPP
+#define DJINTERP_MATH_GEOMETRY_SOLID_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <tuple>
 #include <type_traits>
+// djinterp
 #include "../../djinterp.hpp"
-#include "../coordinate.hpp"
+#include "../coordinate/coordinate.hpp"
 #include "./geometry_common.hpp"
 #include "./surface.hpp"
 
@@ -765,4 +769,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_SOLID_
+#endif  // DJINTERP_MATH_GEOMETRY_SOLID_HPP

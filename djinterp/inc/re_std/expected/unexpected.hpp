@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                               unexpected.hpp
 *
 * unexpected wrapper header:
@@ -24,21 +24,25 @@
 * all required.
 *
 *
-* path:      /inc/djinterp/re_std/expected/unexpected.hpp
+* path:      /inc/re_std/expected/unexpected.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UNEXPECTED_
-#define DJINTERP_RE_STD_UNEXPECTED_ 1
+#ifndef RE_STD_EXPECTED_UNEXPECTED_HPP
+#define RE_STD_EXPECTED_UNEXPECTED_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 // gate: C++11+ baseline. Pre-C++11 not supported.
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <initializer_list>
 // std (std::swap, for the two-step swap idiom below)
+// std
 #include <utility>
 
 #include "../optional/in_place.hpp"
@@ -48,16 +52,8 @@
 #include "../type_traits/decay.hpp"
 
 
-#ifndef D_CONSTEXPR_CPP20
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        #define D_CONSTEXPR_CPP20   constexpr
-    #else
-        #define D_CONSTEXPR_CPP20
-    #endif
-#endif
-
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -65,9 +61,9 @@ NS_RESTD
 // ===========================================================================
 
 // unexpected<E>
-//   class: wraps an error value of type _E. Used by expected<T, E>
+//   class: wraps an error value of type E. Used by expected<T, E>
 // to disambiguate error construction from value construction.
-template<typename _E>
+template<typename E>
 class unexpected
 {
 public:
@@ -75,51 +71,51 @@ public:
     // MEMBER TYPES
     // =================================================================
 
-    typedef _E error_type;
+    typedef E error_type;
 
     // =================================================================
     // CTORS
     // =================================================================
 
-    // copy / move — defaulted; transitively defaulted on _E.
+    // copy / move — defaulted; transitively defaulted on E.
     unexpected(unexpected const&) = default;
     unexpected(unexpected&&)      = default;
 
     // (1) forwarding-from-Err ctor
-    //   Selected when _Err is something other than unexpected itself
-    // and in_place_t, and _E is constructible from _Err.
-    template<typename _Err = _E,
+    //   Selected when Err is something other than unexpected itself
+    // and in_place_t, and E is constructible from Err.
+    template<typename Err = E,
              typename = typename re_std::enable_if<
-                 !re_std::is_same<typename re_std::decay<_Err>::type, unexpected>::value &&
-                 !re_std::is_same<typename re_std::decay<_Err>::type, in_place_t>::value &&
-                 re_std::is_constructible<_E, _Err>::value
+                 !re_std::is_same<typename re_std::decay<Err>::type, unexpected>::value &&
+                 !re_std::is_same<typename re_std::decay<Err>::type, in_place_t>::value &&
+                 re_std::is_constructible<E, Err>::value
              >::type>
-    D_CONSTEXPR_CPP20 explicit unexpected(_Err&& _err)
-        : m_error(static_cast<_Err&&>(_err))
+    RE_STD_CONSTEXPR_CPP20 explicit unexpected(Err&& _err)
+        : m_error(static_cast<Err&&>(_err))
     {}
 
-    // (2) in_place ctor — emplaces _E from forwarded args.
-    template<typename... _Args,
+    // (2) in_place ctor — emplaces E from forwarded args.
+    template<typename... Args,
              typename = typename re_std::enable_if<
-                 re_std::is_constructible<_E, _Args...>::value
+                 re_std::is_constructible<E, Args...>::value
              >::type>
-    D_CONSTEXPR_CPP20 explicit unexpected(in_place_t, _Args&&... _args)
-        : m_error(static_cast<_Args&&>(_args)...)
+    RE_STD_CONSTEXPR_CPP20 explicit unexpected(in_place_t, Args&&... _args)
+        : m_error(static_cast<Args&&>(_args)...)
     {}
 
-    // (3) in_place + initializer_list ctor — for _E types built from
+    // (3) in_place + initializer_list ctor — for E types built from
     // an initializer_list plus optional extra args (e.g. std::vector).
-    template<typename _U,
-             typename... _Args,
+    template<typename U,
+             typename... Args,
              typename = typename re_std::enable_if<
-                 re_std::is_constructible<_E, std::initializer_list<_U>&, _Args...>::value
+                 re_std::is_constructible<E, std::initializer_list<U>&, Args...>::value
              >::type>
-    D_CONSTEXPR_CPP20 explicit unexpected(
+    RE_STD_CONSTEXPR_CPP20 explicit unexpected(
         in_place_t,
-        std::initializer_list<_U> _il,
-        _Args&&... _args
+        std::initializer_list<U> _il,
+        Args&&... _args
     )
-        : m_error(_il, static_cast<_Args&&>(_args)...)
+        : m_error(_il, static_cast<Args&&>(_args)...)
     {}
 
     // =================================================================
@@ -134,27 +130,27 @@ public:
     // =================================================================
 
     // error (lvalue mutable)
-    D_CONSTEXPR_CPP20 _E& error() & D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP20 E& error() & RE_STD_NOEXCEPT
     {
         return m_error;
     }
 
     // error (lvalue const)
-    D_CONSTEXPR _E const& error() const & D_NOEXCEPT
+    RE_STD_CONSTEXPR E const& error() const & RE_STD_NOEXCEPT
     {
         return m_error;
     }
 
     // error (rvalue mutable)
-    D_CONSTEXPR_CPP20 _E&& error() && D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP20 E&& error() && RE_STD_NOEXCEPT
     {
-        return static_cast<_E&&>(m_error);
+        return static_cast<E&&>(m_error);
     }
 
     // error (rvalue const)
-    D_CONSTEXPR _E const&& error() const && D_NOEXCEPT
+    RE_STD_CONSTEXPR E const&& error() const && RE_STD_NOEXCEPT
     {
-        return static_cast<_E const&&>(m_error);
+        return static_cast<E const&&>(m_error);
     }
 
     // =================================================================
@@ -164,10 +160,10 @@ public:
     // swap
     //   function: exchanges this->m_error with _other.m_error via
     // ADL swap (or std::swap fallback).
-    D_CONSTEXPR_CPP20 void
+    RE_STD_CONSTEXPR_CPP20 void
     swap(
         unexpected& _other
-    ) D_NOEXCEPT
+    ) RE_STD_NOEXCEPT
     {
         using std::swap;
         swap(m_error, _other.m_error);
@@ -177,7 +173,7 @@ public:
 
 private:
 
-    _E m_error;
+    E m_error;
 };
 
 
@@ -185,18 +181,18 @@ private:
 // II.  DEDUCTION GUIDE (C++17+)
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
-template<typename _E>
-unexpected(_E) -> unexpected<_E>;
+template<typename E>
+unexpected(E) -> unexpected<E>;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_UNEXPECTED_
+#endif  // RE_STD_EXPECTED_UNEXPECTED_HPP

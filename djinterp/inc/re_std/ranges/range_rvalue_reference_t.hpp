@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                 range_rvalue_reference_t.hpp
 *
 * range_rvalue_reference_t header:
@@ -12,43 +12,46 @@
 *     iter_rvalue_reference_t (Phase R22).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/range_rvalue_reference_t.hpp
+* path:      /inc/re_std/ranges/range_rvalue_reference_t.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_RANGE_RVALUE_REFERENCE_T_
-#define DJINTERP_RE_STD_RANGES_RANGE_RVALUE_REFERENCE_T_ 1
+#ifndef RE_STD_RANGES_RANGE_RVALUE_REFERENCE_T_HPP
+#define RE_STD_RANGES_RANGE_RVALUE_REFERENCE_T_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../iterator/iter_move.hpp"
 #include "./iterator_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-// range_rvalue_reference<_R>
-//   trait: iter_rvalue_reference<iterator_t<_R>>.
-template<typename _R>
+// range_rvalue_reference<R>
+//   trait: iter_rvalue_reference<iterator_t<R>>.
+template<typename R>
 struct range_rvalue_reference
 {
-    typedef typename iter_rvalue_reference<iterator_t<_R> >::type type;
+    typedef typename iter_rvalue_reference<iterator_t<R> >::type type;
 };
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-template<typename _R>
-using range_rvalue_reference_t = typename range_rvalue_reference<_R>::type;
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+template<typename R>
+using range_rvalue_reference_t = typename range_rvalue_reference<R>::type;
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_RANGE_RVALUE_REFERENCE_T_
+#endif  // RE_STD_RANGES_RANGE_RVALUE_REFERENCE_T_HPP

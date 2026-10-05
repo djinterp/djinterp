@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                     is_nothrow_invocable.hpp
 *
 * is_nothrow_invocable trait:
@@ -26,19 +26,20 @@
 * integral_constant.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_nothrow_invocable.hpp
+* path:      /inc/re_std/type_traits/is_nothrow_invocable.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_HPP
+#define RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./true_type.hpp"
@@ -49,63 +50,65 @@
 #include "../utility/declval.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // is_nothrow_invocable_helper
-        //   trait: primary; gated by the boolean parameter _Invocable.
+        //   trait: primary; gated by the boolean parameter Invocable.
         //          When false, short-circuits to false_type without
         //          instantiating the noexcept probe.
-        template<bool     _Invocable,
-                 typename _F,
-                 typename... _Args>
+        template<bool     Invocable,
+                 typename F,
+                 typename... Args>
         struct is_nothrow_invocable_helper
             : false_type
         {};
 
-        // is_nothrow_invocable_helper<true, _F, _Args...>
+        // is_nothrow_invocable_helper<true, F, Args...>
         //   trait: specialization; selected when the call is invocable.
         //          Probes noexceptness through the dispatcher.
-        template<typename _F,
-                 typename... _Args>
-        struct is_nothrow_invocable_helper<true, _F, _Args...>
+        template<typename F,
+                 typename... Args>
+        struct is_nothrow_invocable_helper<true, F, Args...>
             : integral_constant<
                   bool,
                   noexcept(
                       invoker::do_invoke(
-                          re_std::declval<_F>(),
-                          re_std::declval<_Args>()... ) ) >
+                          re_std::declval<F>(),
+                          re_std::declval<Args>()... ) ) >
         {};
 
-    NS_END  // internal
+    }  // internal
 
 
     // is_nothrow_invocable
     //   trait: true_type if INVOKE(F, Args...) is well-formed AND
     //          noexcept; false_type otherwise.
-    template<typename _F,
-             typename... _Args>
+    template<typename F,
+             typename... Args>
     struct is_nothrow_invocable
         : internal::is_nothrow_invocable_helper<
-              is_invocable<_F, _Args...>::value,
-              _F, _Args... >
+              is_invocable<F, Args...>::value,
+              F, Args... >
     {};
 
 
     // is_nothrow_invocable_v (C++14+)
-    #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-        template<typename _F,
-                 typename... _Args>
-        D_CONSTEXPR bool is_nothrow_invocable_v
-            = is_nothrow_invocable<_F, _Args...>::value;
+    #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+        template<typename F,
+                 typename... Args>
+        RE_STD_CONSTEXPR bool is_nothrow_invocable_v
+            = is_nothrow_invocable<F, Args...>::value;
     #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_
+#endif  // RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_HPP

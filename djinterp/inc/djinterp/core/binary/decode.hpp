@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                              decode.hpp
+/*******************************************************************************
+* djinterp [core]                                                     decode.hpp
 *
 *   The foundational half of the SERIALIZATION externalisation axis on the READ
 * side: the DECODER.  Where encode.hpp casts a value out to the flat medium B*
@@ -49,24 +49,33 @@
 *   C++11 baseline.  The `_v` companions degrade with the language as elsewhere.
 *
 *
-* path:      /inc/djinterp/core/container/serial/decode.hpp
+* path:      /inc/djinterp/core/binary/decode.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DECODE_
-#define DJINTERP_DECODE_ 1
+#ifndef DJINTERP_BINARY_DECODE_HPP
+#define DJINTERP_BINARY_DECODE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"            // clean_t, NS_*, feature macros
-#include "../../meta/trait_detect.hpp"  // D_VOID_T, D_TYPE_TRAIT_VALUE_BOOL
+#include "../../djinterp.hpp"            // NS_*, feature macros
+#include "../meta/type_utility.hpp"      // clean_t
+#include "../meta/trait_detect.hpp"  // D_VOID_T, D_TYPE_TRAIT_VALUE_BOOL
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint32_t, uint64_t
 
 
 NS_DJINTERP
@@ -90,7 +99,7 @@ using byte_string = std::vector<byte>;
 // decode_length_type
 //   type: the width-fixed unsigned integer a container decoder reads as the
 // leading size (element count) - the inverse of encode's leading count.
-using decode_length_type = std::uint64_t;
+using decode_length_type = re_std::uint64_t;
 
 
 // ===========================================================================
@@ -208,31 +217,31 @@ private:
 //   struct: the outcome of a decode - `ok` records whether a value was
 // recovered, `value` holds it (a default-constructed `T` when `ok` is false).
 // The explicit partiality the model's dec : B* -/-> F[tau] calls for.
-template<typename _Type>
+template<typename Type>
 struct decode_result
 {
     bool  ok;
-    _Type value;
+    Type value;
 };
 
 // decode_success
 //   function: a successful result carrying `_value`.
-template<typename _Type>
-decode_result<clean_t<_Type>>
-decode_success(_Type&& _value)
+template<typename Type>
+decode_result<clean_t<Type>>
+decode_success(Type&& _value)
 {
-    return decode_result<clean_t<_Type>>{
-        true, static_cast<_Type&&>(_value)};
+    return decode_result<clean_t<Type>>{
+        true, static_cast<Type&&>(_value)};
 }
 
 // decode_failure
-//   function: a failed result of element type `_Type` (a default-constructed
+//   function: a failed result of element type `Type` (a default-constructed
 // value paired with ok = false).
-template<typename _Type>
-decode_result<_Type>
+template<typename Type>
+decode_result<Type>
 decode_failure()
 {
-    return decode_result<_Type>{false, _Type()};
+    return decode_result<Type>{false, Type()};
 }
 
 
@@ -241,21 +250,21 @@ decode_failure()
 // ===========================================================================
 
 // has_member_decode
-//   trait: true iff `_Type` exposes a static `decode(byte_reader&)` yielding a
-// `decode_result<_Type>` - the extension point by which a non-built-in leaf
+//   trait: true iff `Type` exposes a static `decode(byte_reader&)` yielding a
+// `decode_result<Type>` - the extension point by which a non-built-in leaf
 // supplies its own dec_tau.  A member so found takes precedence over the
 // built-in leaf readers.
-template<typename _Type,
+template<typename Type,
          typename = void>
 struct has_member_decode : std::false_type
 {};
 
-template<typename _Type>
-struct has_member_decode<_Type,
-    D_VOID_T<decltype(clean_t<_Type>::decode(std::declval<byte_reader&>()))>>
+template<typename Type>
+struct has_member_decode<Type,
+    D_VOID_T<decltype(clean_t<Type>::decode(std::declval<byte_reader&>()))>>
     : std::is_same<
-          decltype(clean_t<_Type>::decode(std::declval<byte_reader&>())),
-          decode_result<clean_t<_Type>>>
+          decltype(clean_t<Type>::decode(std::declval<byte_reader&>())),
+          decode_result<clean_t<Type>>>
 {};
 
 
@@ -307,54 +316,54 @@ NS_INTERNAL
     //   helper: read an integral (non-bool) value written at its natural width -
     // reassemble the unsigned pattern, then cast back through the same-width
     // unsigned type to the target, reversing encode_integral_leaf exactly.
-    template<typename _Integral>
-    decode_result<_Integral>
+    template<typename Integral>
+    decode_result<Integral>
     decode_integral_leaf(
         byte_reader& _reader
     )
     {
-        using unsigned_type = typename std::make_unsigned<_Integral>::type;
+        using unsigned_type = typename std::make_unsigned<Integral>::type;
 
         decode_length_type _raw = 0;
 
-        if (!get_uint_be(_reader, sizeof(_Integral), _raw))
+        if (!get_uint_be(_reader, sizeof(Integral), _raw))
         {
-            return decode_failure<_Integral>();
+            return decode_failure<Integral>();
         }
 
         return decode_success(
-            static_cast<_Integral>(static_cast<unsigned_type>(_raw)));
+            static_cast<Integral>(static_cast<unsigned_type>(_raw)));
     }
 
     // decode_floating_leaf
     //   helper: read a 4- or 8-byte floating value - reassemble the same-width
     // unsigned pattern, then std::memcpy it back into the float, reversing
     // encode_floating_leaf exactly.
-    template<typename _Float>
-    decode_result<_Float>
+    template<typename Float>
+    decode_result<Float>
     decode_floating_leaf(
         byte_reader& _reader
     )
     {
         decode_length_type _raw = 0;
 
-        if (!get_uint_be(_reader, sizeof(_Float), _raw))
+        if (!get_uint_be(_reader, sizeof(Float), _raw))
         {
-            return decode_failure<_Float>();
+            return decode_failure<Float>();
         }
 
-        _Float _value = _Float();
+        Float _value = Float();
 
         // 4-byte <- uint32 pattern, 8-byte <- uint64 pattern; the enclosing
         // overload admits only these two widths.
-        if (sizeof(_Float) == 4)
+        if (sizeof(Float) == 4)
         {
-            std::uint32_t _bits = static_cast<std::uint32_t>(_raw);
+            re_std::uint32_t _bits = static_cast<re_std::uint32_t>(_raw);
             std::memcpy(&_value, &_bits, 4);
         }
         else
         {
-            std::uint64_t _bits = static_cast<std::uint64_t>(_raw);
+            re_std::uint64_t _bits = static_cast<re_std::uint64_t>(_raw);
             std::memcpy(&_value, &_bits, 8);
         }
 
@@ -362,50 +371,50 @@ NS_INTERNAL
     }
 
     // leaf_decoder
-    //   helper: dispatch a leaf `_Type` to its dec_tau by category.  The primary
+    //   helper: dispatch a leaf `Type` to its dec_tau by category.  The primary
     // is the "no dec_tau" case (a hard error if instantiated); the four built-in
     // specializations and the member surface cover every decodable leaf.  The
     // category booleans are mutually exclusive, so at most one specialization
     // is viable.
-    template<typename _Type,
-             bool _Member =
-                 has_member_decode<_Type>::value,
-             bool _Bool =
-                 std::is_same<_Type, bool>::value,
-             bool _Integral =
-                 ( std::is_integral<_Type>::value
-                && !std::is_same<_Type, bool>::value
-                && ( sizeof(_Type) <= 8 ) ),
-             bool _Enum =
-                 std::is_enum<_Type>::value,
-             bool _Float =
-                 ( std::is_floating_point<_Type>::value
-                && ( sizeof(_Type) == 4 || sizeof(_Type) == 8 ) )>
+    template<typename Type,
+             bool Member =
+                 has_member_decode<Type>::value,
+             bool Bool =
+                 std::is_same<Type, bool>::value,
+             bool Integral =
+                 ( std::is_integral<Type>::value
+                && !std::is_same<Type, bool>::value
+                && ( sizeof(Type) <= 8 ) ),
+             bool Enum =
+                 std::is_enum<Type>::value,
+             bool Float =
+                 ( std::is_floating_point<Type>::value
+                && ( sizeof(Type) == 4 || sizeof(Type) == 8 ) )>
     struct leaf_decoder;
 
     // member surface (highest precedence)
-    template<typename _Type,
-             bool _B, bool _I, bool _E, bool _F>
-    struct leaf_decoder<_Type, true, _B, _I, _E, _F>
+    template<typename Type,
+             bool B, bool I, bool E, bool F>
+    struct leaf_decoder<Type, true, B, I, E, F>
     {
-        static decode_result<_Type> read(byte_reader& _reader)
+        static decode_result<Type> read(byte_reader& _reader)
         {
-            return clean_t<_Type>::decode(_reader);
+            return clean_t<Type>::decode(_reader);
         }
     };
 
     // bool
-    template<typename _Type,
-             bool _I, bool _E, bool _F>
-    struct leaf_decoder<_Type, false, true, _I, _E, _F>
+    template<typename Type,
+             bool I, bool E, bool F>
+    struct leaf_decoder<Type, false, true, I, E, F>
     {
-        static decode_result<_Type> read(byte_reader& _reader)
+        static decode_result<Type> read(byte_reader& _reader)
         {
             byte _b = 0;
 
             if (!_reader.take(&_b, 1))
             {
-                return decode_failure<_Type>();
+                return decode_failure<Type>();
             }
 
             return decode_success(static_cast<bool>(_b != 0));
@@ -413,45 +422,45 @@ NS_INTERNAL
     };
 
     // integral (non-bool)
-    template<typename _Type,
-             bool _E, bool _F>
-    struct leaf_decoder<_Type, false, false, true, _E, _F>
+    template<typename Type,
+             bool E, bool F>
+    struct leaf_decoder<Type, false, false, true, E, F>
     {
-        static decode_result<_Type> read(byte_reader& _reader)
+        static decode_result<Type> read(byte_reader& _reader)
         {
-            return decode_integral_leaf<_Type>(_reader);
+            return decode_integral_leaf<Type>(_reader);
         }
     };
 
     // enum (through its underlying type)
-    template<typename _Type,
-             bool _F>
-    struct leaf_decoder<_Type, false, false, false, true, _F>
+    template<typename Type,
+             bool F>
+    struct leaf_decoder<Type, false, false, false, true, F>
     {
-        static decode_result<_Type> read(byte_reader& _reader)
+        static decode_result<Type> read(byte_reader& _reader)
         {
             using underlying_type =
-                typename std::underlying_type<_Type>::type;
+                typename std::underlying_type<Type>::type;
 
             decode_result<underlying_type> _u =
                 decode_integral_leaf<underlying_type>(_reader);
 
             if (!_u.ok)
             {
-                return decode_failure<_Type>();
+                return decode_failure<Type>();
             }
 
-            return decode_success(static_cast<_Type>(_u.value));
+            return decode_success(static_cast<Type>(_u.value));
         }
     };
 
     // floating (4- or 8-byte)
-    template<typename _Type>
-    struct leaf_decoder<_Type, false, false, false, false, true>
+    template<typename Type>
+    struct leaf_decoder<Type, false, false, false, false, true>
     {
-        static decode_result<_Type> read(byte_reader& _reader)
+        static decode_result<Type> read(byte_reader& _reader)
         {
-            return decode_floating_leaf<_Type>(_reader);
+            return decode_floating_leaf<Type>(_reader);
         }
     };
 
@@ -463,26 +472,26 @@ NS_END  // internal
 // ===========================================================================
 
 // decode
-//   function: dec_tau for a leaf `_Type` - reads one value of `_Type` from the
-// reader, returning a partial result.  `_Type` is explicit, since the return
+//   function: dec_tau for a leaf `Type` - reads one value of `Type` from the
+// reader, returning a partial result.  `Type` is explicit, since the return
 // type depends on it and there is no value argument to deduce from.
-template<typename _Type>
-decode_result<clean_t<_Type>>
+template<typename Type>
+decode_result<clean_t<Type>>
 decode(byte_reader& _reader)
 {
-    return internal::leaf_decoder<clean_t<_Type>>::read(_reader);
+    return internal::leaf_decoder<clean_t<Type>>::read(_reader);
 }
 
 // decode
 //   function: convenience over a whole `byte_string` - wraps it in a reader and
-// reads one leaf `_Type` from the front.
-template<typename _Type>
-decode_result<clean_t<_Type>>
+// reads one leaf `Type` from the front.
+template<typename Type>
+decode_result<clean_t<Type>>
 decode(const byte_string& _bytes)
 {
     byte_reader _reader(_bytes);
 
-    return decode<_Type>(_reader);
+    return decode<Type>(_reader);
 }
 
 
@@ -493,39 +502,39 @@ decode(const byte_string& _bytes)
 NS_INTERNAL
 
     // decode_builtin_leaf_ok
-    //   helper: whether `_Type` is a built-in leaf of a fixed decodable width.
+    //   helper: whether `Type` is a built-in leaf of a fixed decodable width.
     // Gated on arithmetic-or-enum so `sizeof` is only ever applied to an object
     // type - a non-object leaf (in particular void, the "no element" type of a
     // non-container) selects the primary and reports false without a sizeof.
-    template<typename _Type,
-             bool = ( std::is_integral<_Type>::value
-                   || std::is_floating_point<_Type>::value
-                   || std::is_enum<_Type>::value )>
+    template<typename Type,
+             bool = ( std::is_integral<Type>::value
+                   || std::is_floating_point<Type>::value
+                   || std::is_enum<Type>::value )>
     struct decode_builtin_leaf_ok : std::false_type
     {};
 
-    template<typename _Type>
-    struct decode_builtin_leaf_ok<_Type, true>
+    template<typename Type>
+    struct decode_builtin_leaf_ok<Type, true>
         : std::integral_constant<bool,
-              ( std::is_enum<_Type>::value
-             || std::is_same<_Type, bool>::value
-             || ( std::is_integral<_Type>::value
-               && ( sizeof(_Type) <= 8 ) )
-             || ( std::is_floating_point<_Type>::value
-               && ( sizeof(_Type) == 4 || sizeof(_Type) == 8 ) ) )>
+              ( std::is_enum<Type>::value
+             || std::is_same<Type, bool>::value
+             || ( std::is_integral<Type>::value
+               && ( sizeof(Type) <= 8 ) )
+             || ( std::is_floating_point<Type>::value
+               && ( sizeof(Type) == 4 || sizeof(Type) == 8 ) ) )>
     {};
 
 NS_END  // internal
 
 // is_leaf_decodable
-//   trait: true iff `_Type` has a leaf dec_tau in this header - a static member
+//   trait: true iff `Type` has a leaf dec_tau in this header - a static member
 // `decode`, or one of the built-in leaf families (bool, an <=8-byte integral,
 // an enum, or a 4-/8-byte floating type).
-template<typename _Type>
+template<typename Type>
 struct is_leaf_decodable
     : std::integral_constant<bool,
-          ( has_member_decode<clean_t<_Type>>::value
-         || internal::decode_builtin_leaf_ok<clean_t<_Type>>::value )>
+          ( has_member_decode<clean_t<Type>>::value
+         || internal::decode_builtin_leaf_ok<clean_t<Type>>::value )>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_leaf_decodable)
@@ -533,5 +542,7 @@ D_TYPE_TRAIT_VALUE_BOOL(is_leaf_decodable)
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_DECODE_
+
+#endif  // DJINTERP_BINARY_DECODE_HPP

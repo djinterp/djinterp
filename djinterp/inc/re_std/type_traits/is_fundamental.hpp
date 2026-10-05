@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         is_fundamental.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           is_fundamental.hpp
 *
 * is_fundamental trait header:
 *   Composite trait. Detects whether a type, ignoring cv-qualifiers, is
@@ -19,18 +19,20 @@
 * on arithmetic + void only. On C++11+, nullptr_t is also recognized.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_fundamental.hpp
+* path:      /inc/re_std/type_traits/is_fundamental.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_FUNDAMENTAL_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_FUNDAMENTAL_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_FUNDAMENTAL_HPP
+#define RE_STD_TYPE_TRAITS_IS_FUNDAMENTAL_HPP 1
 
-// 
+// std
+//
 #include <cstddef>
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./is_arithmetic.hpp"
 #include "./is_void.hpp"
@@ -38,56 +40,57 @@
 #include "./remove_cv.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_FUNDAMENTAL
 // =============================================================================
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // is_fundamental
-    //   trait: true if _Type is arithmetic, void, or std::nullptr_t.
-    template<typename _Type>
+    //   trait: true if Type is arithmetic, void, or std::nullptr_t.
+    template<typename Type>
     struct is_fundamental
         : integral_constant<bool,
-            ( is_arithmetic<_Type>::value ||
-              is_void<_Type>::value       ||
-              is_same<typename remove_cv<_Type>::type,
+            ( is_arithmetic<Type>::value ||
+              is_void<Type>::value       ||
+              is_same<typename remove_cv<Type>::type,
                       std::nullptr_t>::value )>
     {};
 
 #else  // C++98/03 - no std::nullptr_t
 
     // is_fundamental
-    //   trait: true if _Type is arithmetic or void (C++98/03 has no
+    //   trait: true if Type is arithmetic or void (C++98/03 has no
     // nullptr_t).
-    template<typename _Type>
+    template<typename Type>
     struct is_fundamental
         : integral_constant<bool,
-            ( is_arithmetic<_Type>::value ||
-              is_void<_Type>::value )>
+            ( is_arithmetic<Type>::value ||
+              is_void<Type>::value )>
     {};
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // =============================================================================
 // II.  IS_FUNDAMENTAL_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_fundamental_v
-    //   variable: convenience for is_fundamental<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_fundamental_v = is_fundamental<_Type>::value;
+    //   variable: convenience for is_fundamental<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_fundamental_v = is_fundamental<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_FUNDAMENTAL_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_FUNDAMENTAL_HPP

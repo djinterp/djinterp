@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                     ray.hpp
+/*******************************************************************************
+* djinterp [math]                                                        ray.hpp
 *
 * A ray (origin + direction) in Cartesian space, plus the intersection tests
 * used for picking and containment queries.
@@ -15,18 +15,21 @@
 * Cartesian coordinates. A locus in another coordinate system is intersected
 * by mapping it through its system's to_cartesian first.
 *
+*
 * path:      /inc/djinterp/math/geometry/ray.hpp
-* link:      TBA
-* author(s): TBA                                           created: 2026.06.18
-******************************************************************************/
+* link(s):   TBA
+* author(s): TBA                                             created: 2026.06.18
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_RAY_
-#define DJINTERP_MATH_GEOMETRY_RAY_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_RAY_HPP
+#define DJINTERP_MATH_GEOMETRY_RAY_HPP 1
 
 // std
-#include <cstddef>
 #include <array>
+#include <cstddef>
 #include <limits>
+// djinterp
 // djinterp [math]
 #include "../../djinterp.hpp"
 #include "../coordinate/coordinate.hpp"
@@ -229,4 +232,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_RAY_
+#endif  // DJINTERP_MATH_GEOMETRY_RAY_HPP

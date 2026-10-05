@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                        dnode.c
+* djinterp [djinterp]                                                    dnode.c
 *
 * Node tree:
 *   Growable arrays of nodes and attributes plus an intern table, all indexed
@@ -10,6 +10,7 @@
 * sharing it across files is the obvious optimisation and is deliberately not
 * done yet, because a shared table outlives a tree and that lifetime question
 * deserves its own decision.
+*
 *
 * path:      /src/djinterp/tools/dawk/dnode.c
 * link(s):   TBA
@@ -46,6 +47,9 @@ struct d_node_tree
     size_t                    bucket_mask;
 
     uint32_t                  next_origin;
+
+    struct d_symbol_table*    symbols;      // types and attribute names
+    bool                      owns_symbols;
 };
 
 
@@ -230,7 +234,51 @@ d_node_tree_new(
     void
 )
 {
-    return calloc(1u, sizeof(struct d_node_tree));
+    struct d_symbol_table* const symbols = d_symbol_table_new();
+
+    if (!symbols)
+    {
+        return NULL;
+    }
+
+    struct d_node_tree* const tree = d_node_tree_new_shared(symbols);
+
+    if (!tree)
+    {
+        d_symbol_table_free(symbols);
+
+        return NULL;
+    }
+
+    tree->owns_symbols = true;
+
+    return tree;
+}
+
+
+/*
+d_node_tree_new_shared
+  The table outlives every clear: names are per run, texts per file.
+*/
+struct d_node_tree*
+d_node_tree_new_shared(
+    struct d_symbol_table* _symbols
+)
+{
+    if (!_symbols)
+    {
+        return NULL;
+    }
+
+    struct d_node_tree* const tree = calloc(1u, sizeof(struct d_node_tree));
+
+    if (tree)
+    {
+        tree->symbols      = _symbols;
+        tree->owns_symbols = false;
+    }
+
+    return tree;
 }
 
 
@@ -250,6 +298,12 @@ d_node_tree_free(
         free(_tree->text);
         free(_tree->offsets);
         free(_tree->buckets);
+
+        if (_tree->owns_symbols)
+        {
+            d_symbol_table_free(_tree->symbols);
+        }
+
         free(_tree);
     }
 
@@ -327,10 +381,12 @@ d_node_add(
 
     memset(node, 0, sizeof(*node));
 
-    node->type            = d_node_intern(_tree, _type, strlen(_type));
+    node->type            = d_symbol_intern(_tree->symbols, _type,
+                                            strlen(_type));
     node->text            = D_DSS_NO_INDEX;
     node->parent          = _parent;
     node->first_child     = D_DSS_NO_INDEX;
+    node->last_child      = D_DSS_NO_INDEX;
     node->next_sibling    = D_DSS_NO_INDEX;
     node->first_attribute = D_DSS_NO_INDEX;
     node->origin          = _tree->next_origin;
@@ -339,7 +395,10 @@ d_node_add(
     ++_tree->next_origin;
     ++_tree->node_count;
 
-    // link as the parent's last child so children stay in document order
+    // link as the parent's last child so children stay in document order;
+    // the parent remembers its last child, since walking the sibling list to
+    // find it made building a wide node quadratic -- a file whose top level
+    // holds every token of a large header took minutes
     if (_parent != D_DSS_NO_INDEX)
     {
         struct d_node* const parent = &_tree->nodes[_parent];
@@ -351,18 +410,14 @@ d_node_add(
         }
         else
         {
-            uint32_t last  = parent->first_child;
-            uint32_t count = 1;
-
-            while (_tree->nodes[last].next_sibling != D_DSS_NO_INDEX)
-            {
-                last = _tree->nodes[last].next_sibling;
-                ++count;
-            }
+            const uint32_t last = parent->last_child;
 
             _tree->nodes[last].next_sibling = at;
-            node->index_in_parent           = count;
+            node->index_in_parent           =
+                _tree->nodes[last].index_in_parent + 1u;
         }
+
+        parent->last_child = at;
     }
 
     return at;
@@ -411,7 +466,8 @@ d_node_set_attribute(
 
     struct d_node_attribute* const attribute = &_tree->attributes[at];
 
-    attribute->name    = d_node_intern(_tree, _name, strlen(_name));
+    attribute->name    = d_symbol_intern(_tree->symbols, _name,
+                                         strlen(_name));
     attribute->value   = _value ? d_node_intern(_tree, _value, strlen(_value))
                                 : D_DSS_NO_INDEX;
     attribute->number  = 0.0;
@@ -432,7 +488,60 @@ d_node_set_attribute(
 
     struct d_node* const node = &_tree->nodes[_node];
 
-    // attributes of one node are contiguous, so the first is recorded once
+    // A node's attributes are one contiguous run, so an attribute added to a
+    // node that is no longer the last to have one would land beyond its
+    // range -- unreachable, and its range would run into another node's.
+    // Relocating the run to the end keeps the invariant, and lets any
+    // extension add a fact to any node at any time.
+    if ( (node->attribute_count > 0) &&
+         ((node->first_attribute + node->attribute_count) != at) )
+    {
+        if ((_tree->attribute_count + node->attribute_count + 1u)
+            > _tree->attribute_capacity)
+        {
+            size_t grown = (_tree->attribute_capacity == 0)
+                         ? 64u : _tree->attribute_capacity;
+
+            while (grown < (_tree->attribute_count + node->attribute_count
+                            + 1u))
+            {
+                grown *= 2u;
+            }
+
+            struct d_node_attribute* const moved =
+                realloc(_tree->attributes,
+                        grown * sizeof(struct d_node_attribute));
+
+            if (!moved)
+            {
+                return false;
+            }
+
+            _tree->attributes         = moved;
+            _tree->attribute_capacity = grown;
+        }
+
+        const struct d_node_attribute pending =
+            _tree->attributes[_tree->attribute_count];
+
+        (void)memmove(&_tree->attributes[_tree->attribute_count + 1u],
+                      &_tree->attributes[node->first_attribute],
+                      node->attribute_count
+                      * sizeof(struct d_node_attribute));
+
+        _tree->attributes[_tree->attribute_count + node->attribute_count]
+            = pending;
+
+        node->first_attribute = (uint32_t)_tree->attribute_count + 1u;
+
+        _tree->attribute_count += node->attribute_count;
+
+        ++node->attribute_count;
+        ++_tree->attribute_count;
+
+        return true;
+    }
+
     if (node->first_attribute == D_DSS_NO_INDEX)
     {
         node->first_attribute = at;
@@ -510,6 +619,17 @@ d_node_text(const struct d_node_tree* _tree, uint32_t _id)
 uint32_t
 d_node_find_id(const struct d_node_tree* _tree, const char* _text)
 {
+    if ((!_tree) || (!_text))
+    {
+        return D_DSS_NO_INDEX;
+    }
+
+    return d_symbol_find(_tree->symbols, _text, strlen(_text));
+}
+
+uint32_t
+d_node_find_text(const struct d_node_tree* _tree, const char* _text)
+{
     if ((!_tree) || (!_text) || (_tree->bucket_mask == 0))
     {
         return D_DSS_NO_INDEX;
@@ -533,4 +653,16 @@ d_node_find_id(const struct d_node_tree* _tree, const char* _text)
     }
 
     return D_DSS_NO_INDEX;
+}
+
+const char*
+d_node_name(const struct d_node_tree* _tree, uint32_t _symbol)
+{
+    return _tree ? d_symbol_text(_tree->symbols, _symbol) : "";
+}
+
+struct d_symbol_table*
+d_node_tree_symbols(const struct d_node_tree* _tree)
+{
+    return _tree ? _tree->symbols : NULL;
 }

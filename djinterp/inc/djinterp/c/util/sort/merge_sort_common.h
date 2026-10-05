@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                        merge_sort_common.h
+/*******************************************************************************
+* djinterp [c]                                               merge_sort_common.h
 *
 *   The primitives every merge sort is built from.
 * A merge sort is a driver wrapped around two operations: merge two adjacent
@@ -48,13 +48,14 @@
 *     stable:     yes
 *
 *
-* path:      /djinterp/c/util/sort/merge_sort_common.h
+* path:      /inc/djinterp/c/util/sort/merge_sort_common.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_MERGE_COMMON_
-#define DJINTERP_UTILITY_SORT_MERGE_COMMON_ 1
+#ifndef DJINTERP_C_UTIL_SORT_MERGE_SORT_COMMON_H
+#define DJINTERP_C_UTIL_SORT_MERGE_SORT_COMMON_H 1
 
 // std
 #include <stddef.h>
@@ -106,4 +107,4 @@ void   d_merge_pass(const void*                     _src,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_UTILITY_SORT_MERGE_COMMON_
+#endif  // DJINTERP_C_UTIL_SORT_MERGE_SORT_COMMON_H

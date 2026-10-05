@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               variant_get.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              variant_get.hpp
 *
 * variant get<I>/get<T> header:
 *   Type-safe access to a variant's active alternative. Throws
@@ -19,94 +19,97 @@
 * the alternative list — same approach std uses.
 *
 *
-* path:      /inc/djinterp/re_std/variant/variant_get.hpp
+* path:      /inc/re_std/variant/variant_get.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_GET_
-#define DJINTERP_RE_STD_VARIANT_GET_ 1
+#ifndef RE_STD_VARIANT_VARIANT_GET_HPP
+#define RE_STD_VARIANT_VARIANT_GET_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include <cstddef>
 #include "./variant.hpp"
 #include "./bad_variant_access.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   GET<I> — BY INDEX
 // ===========================================================================
 
-template<std::size_t _I,
-         typename... _Types>
-typename internal::va_type_at<_I, _Types...>::type&
+template<std::size_t I,
+         typename... Types>
+typename internal::va_type_at<I, Types...>::type&
 get(
-    variant<_Types...>& _v
+    variant<Types...>& _v
 )
 {
-    if (_v.index() != _I)
+    if (_v.index() != I)
     {
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
         throw bad_variant_access();
 #endif
     }
-    return _v.template _ref<_I>();
+    return _v.template _ref<I>();
 }
 
-template<std::size_t _I,
-         typename... _Types>
-typename internal::va_type_at<_I, _Types...>::type const&
+template<std::size_t I,
+         typename... Types>
+typename internal::va_type_at<I, Types...>::type const&
 get(
-    variant<_Types...> const& _v
+    variant<Types...> const& _v
 )
 {
-    if (_v.index() != _I)
+    if (_v.index() != I)
     {
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
         throw bad_variant_access();
 #endif
     }
-    return _v.template _ref<_I>();
+    return _v.template _ref<I>();
 }
 
-template<std::size_t _I,
-         typename... _Types>
-typename internal::va_type_at<_I, _Types...>::type&&
+template<std::size_t I,
+         typename... Types>
+typename internal::va_type_at<I, Types...>::type&&
 get(
-    variant<_Types...>&& _v
+    variant<Types...>&& _v
 )
 {
-    typedef typename internal::va_type_at<_I, _Types...>::type _T;
-    if (_v.index() != _I)
+    typedef typename internal::va_type_at<I, Types...>::type T;
+    if (_v.index() != I)
     {
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
         throw bad_variant_access();
 #endif
     }
-    return static_cast<_T&&>(_v.template _ref<_I>());
+    return static_cast<T&&>(_v.template _ref<I>());
 }
 
-template<std::size_t _I,
-         typename... _Types>
-typename internal::va_type_at<_I, _Types...>::type const&&
+template<std::size_t I,
+         typename... Types>
+typename internal::va_type_at<I, Types...>::type const&&
 get(
-    variant<_Types...> const&& _v
+    variant<Types...> const&& _v
 )
 {
-    typedef typename internal::va_type_at<_I, _Types...>::type _T;
-    if (_v.index() != _I)
+    typedef typename internal::va_type_at<I, Types...>::type T;
+    if (_v.index() != I)
     {
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
         throw bad_variant_access();
 #endif
     }
-    return static_cast<_T const&&>(_v.template _ref<_I>());
+    return static_cast<T const&&>(_v.template _ref<I>());
 }
 
 
@@ -114,53 +117,53 @@ get(
 // II.  GET<T> — BY TYPE (dispatches to get<I>)
 // ===========================================================================
 
-template<typename _T,
-         typename... _Types>
-_T&
+template<typename T,
+         typename... Types>
+T&
 get(
-    variant<_Types...>& _v
+    variant<Types...>& _v
 )
 {
-    return get<internal::index_of<_T, _Types...>::value>(_v);
+    return get<internal::index_of<T, Types...>::value>(_v);
 }
 
-template<typename _T,
-         typename... _Types>
-_T const&
+template<typename T,
+         typename... Types>
+T const&
 get(
-    variant<_Types...> const& _v
+    variant<Types...> const& _v
 )
 {
-    return get<internal::index_of<_T, _Types...>::value>(_v);
+    return get<internal::index_of<T, Types...>::value>(_v);
 }
 
-template<typename _T,
-         typename... _Types>
-_T&&
+template<typename T,
+         typename... Types>
+T&&
 get(
-    variant<_Types...>&& _v
+    variant<Types...>&& _v
 )
 {
-    return get<internal::index_of<_T, _Types...>::value>(
-        static_cast<variant<_Types...>&&>(_v));
+    return get<internal::index_of<T, Types...>::value>(
+        static_cast<variant<Types...>&&>(_v));
 }
 
-template<typename _T,
-         typename... _Types>
-_T const&&
+template<typename T,
+         typename... Types>
+T const&&
 get(
-    variant<_Types...> const&& _v
+    variant<Types...> const&& _v
 )
 {
-    return get<internal::index_of<_T, _Types...>::value>(
-        static_cast<variant<_Types...> const&&>(_v));
+    return get<internal::index_of<T, Types...>::value>(
+        static_cast<variant<Types...> const&&>(_v));
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_VARIANT_GET_
+#endif  // RE_STD_VARIANT_VARIANT_GET_HPP

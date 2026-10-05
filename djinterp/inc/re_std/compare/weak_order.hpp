@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                 weak_order.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               weak_order.hpp
 *
 * weak_order customisation point object header:
 *   Per [cmp.alg]: a niebloid that produces a weak_ordering result
@@ -18,71 +18,73 @@
 * it with weak_ordering as the result-cast target.
 *
 *   PORTABILITY:
-*   Definition gated on D_ENV_LANG_IS_CPP20_OR_HIGHER.
+*   Definition gated on RE_STD_LANG_IS_CPP20_OR_HIGHER.
 *
 *
-* path:      /inc/djinterp/re_std/compare/weak_order.hpp
+* path:      /inc/re_std/compare/weak_order.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_COMPARE_WEAK_ORDER_
-#define DJINTERP_RE_STD_COMPARE_WEAK_ORDER_ 1
+#ifndef RE_STD_COMPARE_WEAK_ORDER_HPP
+#define RE_STD_COMPARE_WEAK_ORDER_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
+
+
+// re_std
 #include "./weak_ordering.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 namespace _weak_order_cpo
 {
 
-    template<int _N>
-    struct priority : priority<_N - 1> {};
+    template<int N>
+    struct priority : priority<N - 1> {};
     template<>
     struct priority<0> {};
 
     void weak_order() = delete;
 
     // (b) ADL path
-    template<typename _T, typename _U>
+    template<typename T, typename U>
     constexpr auto
     impl(
         priority<2>,
-        _T&& _t,
-        _U&& _u
+        T&& _t,
+        U&& _u
     ) noexcept(noexcept(weak_ordering(weak_order(
-                  static_cast<_T&&>(_t), static_cast<_U&&>(_u)))))
+                  static_cast<T&&>(_t), static_cast<U&&>(_u)))))
         -> decltype(weak_ordering(weak_order(
-                        static_cast<_T&&>(_t), static_cast<_U&&>(_u))))
+                        static_cast<T&&>(_t), static_cast<U&&>(_u))))
     {
         return weak_ordering(weak_order(
-                   static_cast<_T&&>(_t), static_cast<_U&&>(_u)));
+                   static_cast<T&&>(_t), static_cast<U&&>(_u)));
     }
 
     // (c) Built-in <=> path
-    template<typename _T, typename _U>
+    template<typename T, typename U>
     constexpr auto
     impl(
         priority<1>,
-        _T&& _t,
-        _U&& _u
+        T&& _t,
+        U&& _u
     ) noexcept(noexcept(weak_ordering(
-                  static_cast<_T&&>(_t) <=> static_cast<_U&&>(_u))))
+                  static_cast<T&&>(_t) <=> static_cast<U&&>(_u))))
         -> decltype(weak_ordering(
-                        static_cast<_T&&>(_t) <=> static_cast<_U&&>(_u)))
+                        static_cast<T&&>(_t) <=> static_cast<U&&>(_u)))
     {
         return weak_ordering(
-                   static_cast<_T&&>(_t) <=> static_cast<_U&&>(_u));
+                   static_cast<T&&>(_t) <=> static_cast<U&&>(_u));
     }
 
 }  // namespace _weak_order_cpo
@@ -93,25 +95,25 @@ namespace _weak_order_cpo_obj
 
     struct weak_order_fn
     {
-        template<typename _T, typename _U>
+        template<typename T, typename U>
         constexpr auto
         operator()(
-            _T&& _t,
-            _U&& _u
+            T&& _t,
+            U&& _u
         ) const
             noexcept(noexcept(_weak_order_cpo::impl(
                 _weak_order_cpo::priority<2>{},
-                static_cast<_T&&>(_t),
-                static_cast<_U&&>(_u))))
+                static_cast<T&&>(_t),
+                static_cast<U&&>(_u))))
             -> decltype(_weak_order_cpo::impl(
                 _weak_order_cpo::priority<2>{},
-                static_cast<_T&&>(_t),
-                static_cast<_U&&>(_u)))
+                static_cast<T&&>(_t),
+                static_cast<U&&>(_u)))
         {
             return _weak_order_cpo::impl(
                 _weak_order_cpo::priority<2>{},
-                static_cast<_T&&>(_t),
-                static_cast<_U&&>(_u));
+                static_cast<T&&>(_t),
+                static_cast<U&&>(_u));
         }
     };
 
@@ -121,10 +123,10 @@ namespace _weak_order_cpo_obj
 inline constexpr _weak_order_cpo_obj::weak_order_fn weak_order = {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_COMPARE_WEAK_ORDER_
+#endif  // RE_STD_COMPARE_WEAK_ORDER_HPP

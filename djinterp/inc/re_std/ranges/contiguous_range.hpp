@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                       contiguous_range.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         contiguous_range.hpp
 *
 * contiguous_range concept-trait header:
 *   Provides the C++20 contiguous_range concept as a SFINAE-detection
@@ -24,17 +24,19 @@
 * tracked in the iterator roadmap.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/contiguous_range.hpp
+* path:      /inc/re_std/ranges/contiguous_range.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_CONTIGUOUS_RANGE_
-#define DJINTERP_RE_STD_RANGES_CONTIGUOUS_RANGE_ 1
+#ifndef RE_STD_RANGES_CONTIGUOUS_RANGE_HPP
+#define RE_STD_RANGES_CONTIGUOUS_RANGE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -42,33 +44,35 @@
 #include "./iterator_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
-template<typename _Type,
-         bool _IsRange = range<_Type>::value>
+template<typename Type,
+         bool IsRange = range<Type>::value>
 struct contiguous_range_impl
     : false_type
 {};
 
-template<typename _Type>
-struct contiguous_range_impl<_Type, true>
+template<typename Type>
+struct contiguous_range_impl<Type, true>
     : is_base_of<contiguous_iterator_tag,
-                 typename iterator_traits<iterator_t<_Type> >::iterator_category>
+                 typename iterator_traits<iterator_t<Type> >::iterator_category>
 {};
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
 // I.   CONTIGUOUS_RANGE
 // ===========================================================================
 
-template<typename _Type>
+template<typename Type>
 struct contiguous_range
-    : internal::contiguous_range_impl<_Type>
+    : internal::contiguous_range_impl<Type>
 {};
 
 
@@ -76,18 +80,18 @@ struct contiguous_range
 // II.  CONTIGUOUS_RANGE_V
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool contiguous_range_v = contiguous_range<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool contiguous_range_v = contiguous_range<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // C++20+
 
 
-#endif  // DJINTERP_RE_STD_RANGES_CONTIGUOUS_RANGE_
+#endif  // RE_STD_RANGES_CONTIGUOUS_RANGE_HPP

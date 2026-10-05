@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         remove_pointer.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           remove_pointer.hpp
 *
 * remove_pointer trait header:
 *   Removes one level of pointer indirection, including through cv-
@@ -15,19 +15,21 @@
 *                                                              is preserved)
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/remove_pointer.hpp
+* path:      /inc/re_std/type_traits/remove_pointer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_POINTER_
-#define DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_POINTER_ 1
+#ifndef RE_STD_TYPE_TRAITS_REMOVE_POINTER_HPP
+#define RE_STD_TYPE_TRAITS_REMOVE_POINTER_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -36,42 +38,42 @@ NS_RESTD
 
 // remove_pointer
 //   trait: passthrough (primary template).
-template<typename _Type>
+template<typename Type>
 struct remove_pointer
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-// remove_pointer<_Type*>
+// remove_pointer<Type*>
 //   trait: specialization stripping unqualified pointer.
-template<typename _Type>
-struct remove_pointer<_Type*>
+template<typename Type>
+struct remove_pointer<Type*>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-// remove_pointer<_Type* const>
+// remove_pointer<Type* const>
 //   trait: specialization stripping const-qualified pointer.
-template<typename _Type>
-struct remove_pointer<_Type* const>
+template<typename Type>
+struct remove_pointer<Type* const>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-// remove_pointer<_Type* volatile>
+// remove_pointer<Type* volatile>
 //   trait: specialization stripping volatile-qualified pointer.
-template<typename _Type>
-struct remove_pointer<_Type* volatile>
+template<typename Type>
+struct remove_pointer<Type* volatile>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-// remove_pointer<_Type* const volatile>
+// remove_pointer<Type* const volatile>
 //   trait: specialization stripping cv-qualified pointer.
-template<typename _Type>
-struct remove_pointer<_Type* const volatile>
+template<typename Type>
+struct remove_pointer<Type* const volatile>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
 
@@ -79,17 +81,17 @@ struct remove_pointer<_Type* const volatile>
 // II.  REMOVE_POINTER_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // remove_pointer_t
-    //   alias: convenience alias for remove_pointer<_Type>::type.
-    template<typename _Type>
-    using remove_pointer_t = typename remove_pointer<_Type>::type;
+    //   alias: convenience alias for remove_pointer<Type>::type.
+    template<typename Type>
+    using remove_pointer_t = typename remove_pointer<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_POINTER_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_REMOVE_POINTER_HPP

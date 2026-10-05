@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                  insertion_sort_common.hpp
+/*******************************************************************************
+* djinterp [core]                                      insertion_sort_common.hpp
 *
 *   The primitives every insertion sort is built from, sequential or otherwise.
 * An insertion sort is a driver wrapped around two operations: place one
@@ -33,17 +33,19 @@
 * equivalent and equal elements keep their input order.
 *
 *
-* path:      /djinterp/cpp/util/sort/insertion_sort_common.hpp
+* path:      /inc/djinterp/core/util/sort/insertion_sort_common.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_INSERTION_COMMON_HPP_
-#define DJINTERP_UTILITY_SORT_INSERTION_COMMON_HPP_ 1
+#ifndef DJINTERP_UTIL_SORT_INSERTION_SORT_COMMON_HPP
+#define DJINTERP_UTIL_SORT_INSERTION_SORT_COMMON_HPP 1
 
+// std
+#include <iterator>               // std::iterator_traits
 // djinterp
-#include "../../djinterp.hpp"
-#include "./sort_common.hpp"
+#include "../../../djinterp.hpp"  // framework root
 
 
 NS_DJINTERP
@@ -87,18 +89,18 @@ NS_INTERNAL
     // the slot it vacated.  The loop stops at the first element the candidate
     // does not strictly precede, which is what keeps equivalents in their
     // input order.
-    template<typename _RandomIterator,
-             typename _Difference,
-             typename _Comparator>
-    _Difference insertion_place(_RandomIterator _first,
-                                _Difference     _lower,
-                                _Difference     _index,
-                                _Comparator     _comparator)
+    template<typename RandomIterator,
+             typename Difference,
+             typename Comparator>
+    Difference insertion_place(RandomIterator _first,
+                                Difference      _lower,
+                                Difference      _index,
+                                Comparator      _comparator)
     {
-        typedef typename std::iterator_traits<_RandomIterator>::value_type
+        typedef typename std::iterator_traits<RandomIterator>::value_type
             value_type;
 
-        _Difference hole;
+        Difference hole;
 
         // the run's first element has nothing behind it to be placed among
         if (_index <= _lower)
@@ -143,15 +145,15 @@ NS_INTERNAL
     //
     //   The caller owns the range; a pass does not check it, because it is
     // called by a driver that checked once per sort.
-    template<typename _RandomIterator,
-             typename _Difference,
-             typename _Comparator>
-    void insertion_pass(_RandomIterator _first,
-                        _Difference     _begin,
-                        _Difference     _end,
-                        _Comparator     _comparator)
+    template<typename RandomIterator,
+             typename Difference,
+             typename Comparator>
+    void insertion_pass(RandomIterator _first,
+                        Difference      _begin,
+                        Difference      _end,
+                        Comparator      _comparator)
     {
-        _Difference index;
+        Difference index;
 
         // a run of 0 or 1 elements is already sorted
         if ((_end - _begin) < 2)
@@ -178,4 +180,4 @@ NS_END  // internal
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_SORT_INSERTION_COMMON_HPP_
+#endif  // DJINTERP_UTIL_SORT_INSERTION_SORT_COMMON_HPP

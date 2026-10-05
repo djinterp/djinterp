@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                              remove_cv.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                remove_cv.hpp
 *
 * remove_cv trait header:
 *   Strips both top-level const and volatile qualifiers from a type.
@@ -12,21 +12,23 @@
 *     remove_cv<const int*>::type          -> const int*  (top-level only)
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/remove_cv.hpp
+* path:      /inc/re_std/type_traits/remove_cv.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_CV_
-#define DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_CV_ 1
+#ifndef RE_STD_TYPE_TRAITS_REMOVE_CV_HPP
+#define RE_STD_TYPE_TRAITS_REMOVE_CV_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./remove_const.hpp"
 #include "./remove_volatile.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -36,11 +38,11 @@ NS_RESTD
 // remove_cv
 //   trait: strips top-level const and volatile via composition of
 // remove_const and remove_volatile.
-template<typename _Type>
+template<typename Type>
 struct remove_cv
 {
     typedef typename remove_volatile<
-                typename remove_const<_Type>::type
+                typename remove_const<Type>::type
             >::type type;
 };
 
@@ -49,17 +51,17 @@ struct remove_cv
 // II.  REMOVE_CV_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // remove_cv_t
-    //   alias: convenience alias for remove_cv<_Type>::type.
-    template<typename _Type>
-    using remove_cv_t = typename remove_cv<_Type>::type;
+    //   alias: convenience alias for remove_cv<Type>::type.
+    template<typename Type>
+    using remove_cv_t = typename remove_cv<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_CV_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_REMOVE_CV_HPP

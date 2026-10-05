@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                            repeat_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              repeat_view.hpp
 *
 * repeat_view header:
 *   Provides the C++23 repeat adaptor. repeat_view<T, Bound> yields
@@ -31,18 +31,21 @@
 *   re_std::views::repeat(value)    — unbounded.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/repeat_view.hpp
+* path:      /inc/re_std/ranges/repeat_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_REPEAT_VIEW_
-#define DJINTERP_RE_STD_RANGES_REPEAT_VIEW_ 1
+#ifndef RE_STD_RANGES_REPEAT_VIEW_HPP
+#define RE_STD_RANGES_REPEAT_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>  // ptrdiff_t
 
 #include "../type_traits/type_traits.hpp"
@@ -54,27 +57,28 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   REPEAT_VIEW (primary template — bounded form)
 // ===========================================================================
 
-// repeat_view<_T, _Bound>
-//   class: the bounded form. _Bound defaults to std::ptrdiff_t.
-template<typename _T,
-         typename _Bound = std::ptrdiff_t>
-class repeat_view : public view_interface<repeat_view<_T, _Bound> >
+// repeat_view<T, Bound>
+//   class: the bounded form. Bound defaults to std::ptrdiff_t.
+template<typename T,
+         typename Bound = std::ptrdiff_t>
+class repeat_view : public view_interface<repeat_view<T, Bound> >
 {
 public:
-    typedef _T      value_type;
-    typedef _Bound  bound_type;
+    typedef T      value_type;
+    typedef Bound  bound_type;
 
 
 private:
-    internal::movable_box<_T>   m_value;
-    _Bound                      m_bound;
+    internal::movable_box<T>   m_value;
+    Bound                      m_bound;
 
 
 public:
@@ -86,49 +90,49 @@ public:
     {
     public:
         typedef random_access_iterator_tag                  iterator_category;
-        typedef _T                                          value_type;
-        typedef _Bound                                      difference_type;
-        typedef _T const*                                   pointer;
-        typedef _T const&                                   reference;
+        typedef T                                          value_type;
+        typedef Bound                                      difference_type;
+        typedef T const*                                   pointer;
+        typedef T const&                                   reference;
 
 
     private:
-        _T const*       m_value;
-        _Bound          m_pos;
+        T const*       m_value;
+        Bound          m_pos;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
-            : m_value(D_NULLPTR),
+            : m_value(RE_STD_NULLPTR),
               m_pos(0)
         {}
 
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator(
-            _T const*   _v,
-            _Bound      _p
+            T const*   _v,
+            Bound      _p
         )
             : m_value(_v),
               m_pos(_p)
         {}
 
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return *m_value;
         }
 
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator++()
         {
             ++m_pos;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator++(int)
         {
             iterator tmp = *this;
@@ -136,14 +140,14 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator--()
         {
             --m_pos;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator--(int)
         {
             iterator tmp = *this;
@@ -152,7 +156,7 @@ public:
         }
 
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator+=(
             difference_type _n
         )
@@ -161,7 +165,7 @@ public:
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator-=(
             difference_type _n
         )
@@ -170,7 +174,7 @@ public:
             return *this;
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR iterator
         operator+(
             difference_type _n
         ) const
@@ -178,7 +182,7 @@ public:
             return iterator(m_value, m_pos + _n);
         }
 
-        friend D_CONSTEXPR iterator
+        friend RE_STD_CONSTEXPR iterator
         operator+(
             difference_type _n,
             iterator        _it
@@ -187,7 +191,7 @@ public:
             return _it + _n;
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR iterator
         operator-(
             difference_type _n
         ) const
@@ -195,7 +199,7 @@ public:
             return iterator(m_value, m_pos - _n);
         }
 
-        D_CONSTEXPR difference_type
+        RE_STD_CONSTEXPR difference_type
         operator-(
             iterator const& _rhs
         ) const
@@ -203,7 +207,7 @@ public:
             return m_pos - _rhs.m_pos;
         }
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator[](
             difference_type
         ) const
@@ -212,7 +216,7 @@ public:
         }
 
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -220,7 +224,7 @@ public:
             return m_pos == _rhs.m_pos;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -228,7 +232,7 @@ public:
             return m_pos != _rhs.m_pos;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<(
             iterator const& _rhs
         ) const
@@ -236,7 +240,7 @@ public:
             return m_pos < _rhs.m_pos;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<=(
             iterator const& _rhs
         ) const
@@ -244,7 +248,7 @@ public:
             return m_pos <= _rhs.m_pos;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>(
             iterator const& _rhs
         ) const
@@ -252,7 +256,7 @@ public:
             return m_pos > _rhs.m_pos;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>=(
             iterator const& _rhs
         ) const
@@ -263,37 +267,37 @@ public:
 
 
 public:
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     repeat_view()
         : m_value(),
           m_bound(0)
     {}
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     repeat_view(
-        _T      _value,
-        _Bound  _bound
+        T      _value,
+        Bound  _bound
     )
-        : m_value(static_cast<_T&&>(_value)),
+        : m_value(static_cast<T&&>(_value)),
           m_bound(_bound)
     {}
 
 
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     begin() const
     {
-        return iterator(&(*m_value), _Bound(0));
+        return iterator(&(*m_value), Bound(0));
     }
 
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     end() const
     {
         return iterator(&(*m_value), m_bound);
     }
 
-    D_CONSTEXPR _Bound
+    RE_STD_CONSTEXPR Bound
     size() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_bound;
     }
@@ -301,19 +305,19 @@ public:
 
 
 // ===========================================================================
-// II.  REPEAT_VIEW<_T, unreachable_sentinel_t>  (unbounded specialisation)
+// II.  REPEAT_VIEW<T, unreachable_sentinel_t>  (unbounded specialisation)
 // ===========================================================================
 
-template<typename _T>
-class repeat_view<_T, unreachable_sentinel_t>
-    : public view_interface<repeat_view<_T, unreachable_sentinel_t> >
+template<typename T>
+class repeat_view<T, unreachable_sentinel_t>
+    : public view_interface<repeat_view<T, unreachable_sentinel_t> >
 {
 public:
-    typedef _T  value_type;
+    typedef T  value_type;
 
 
 private:
-    internal::movable_box<_T>   m_value;
+    internal::movable_box<T>   m_value;
 
 
 public:
@@ -325,45 +329,45 @@ public:
     {
     public:
         typedef random_access_iterator_tag                  iterator_category;
-        typedef _T                                          value_type;
+        typedef T                                          value_type;
         typedef std::ptrdiff_t                              difference_type;
-        typedef _T const*                                   pointer;
-        typedef _T const&                                   reference;
+        typedef T const*                                   pointer;
+        typedef T const&                                   reference;
 
     private:
-        _T const*               m_value;
+        T const*               m_value;
         std::ptrdiff_t          m_pos;
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
-            : m_value(D_NULLPTR),
+            : m_value(RE_STD_NULLPTR),
               m_pos(0)
         {}
 
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator(
-            _T const*       _v,
+            T const*       _v,
             std::ptrdiff_t  _p
         )
             : m_value(_v),
               m_pos(_p)
         {}
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return *m_value;
         }
 
-        D_CONSTEXPR_CPP14 inline iterator&
+        RE_STD_CONSTEXPR_CPP14 inline iterator&
         operator++()
         {
             ++m_pos;
             return *this;
         }
 
-        D_CONSTEXPR_CPP14 inline iterator
+        RE_STD_CONSTEXPR_CPP14 inline iterator
         operator++(int)
         {
             iterator tmp = *this;
@@ -371,14 +375,14 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR_CPP14 inline iterator&
+        RE_STD_CONSTEXPR_CPP14 inline iterator&
         operator--()
         {
             --m_pos;
             return *this;
         }
 
-        D_CONSTEXPR_CPP14 inline iterator&
+        RE_STD_CONSTEXPR_CPP14 inline iterator&
         operator+=(
             difference_type _n
         )
@@ -387,7 +391,7 @@ public:
             return *this;
         }
 
-        D_CONSTEXPR_CPP14 inline iterator&
+        RE_STD_CONSTEXPR_CPP14 inline iterator&
         operator-=(
             difference_type _n
         )
@@ -396,7 +400,7 @@ public:
             return *this;
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR iterator
         operator+(
             difference_type _n
         ) const
@@ -404,7 +408,7 @@ public:
             return iterator(m_value, m_pos + _n);
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR iterator
         operator-(
             difference_type _n
         ) const
@@ -412,7 +416,7 @@ public:
             return iterator(m_value, m_pos - _n);
         }
 
-        D_CONSTEXPR difference_type
+        RE_STD_CONSTEXPR difference_type
         operator-(
             iterator const& _rhs
         ) const
@@ -420,7 +424,7 @@ public:
             return m_pos - _rhs.m_pos;
         }
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator[](
             difference_type
         ) const
@@ -429,7 +433,7 @@ public:
         }
 
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -437,7 +441,7 @@ public:
             return m_pos == _rhs.m_pos;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -447,28 +451,28 @@ public:
     };
 
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     repeat_view()
         : m_value()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     repeat_view(
-        _T _value
+        T _value
     )
-        : m_value(static_cast<_T&&>(_value))
+        : m_value(static_cast<T&&>(_value))
     {}
 
 
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     begin() const
     {
         return iterator(&(*m_value), 0);
     }
 
-    D_CONSTEXPR unreachable_sentinel_t
+    RE_STD_CONSTEXPR unreachable_sentinel_t
     end() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return unreachable_sentinel_t();
     }
@@ -494,39 +498,39 @@ public:
 namespace views
 {
     // views::repeat(_value, _bound)  [bounded form]
-    template<typename _T>
-    D_CONSTEXPR_INLINE
-    repeat_view<typename decay<_T>::type, std::ptrdiff_t>
+    template<typename T>
+    RE_STD_CONSTEXPR_INLINE
+    repeat_view<typename decay<T>::type, std::ptrdiff_t>
     repeat(
-        _T&&            _value,
+        T&&            _value,
         std::ptrdiff_t  _bound
     )
     {
-        return repeat_view<typename decay<_T>::type, std::ptrdiff_t>(
-            static_cast<_T&&>(_value),
+        return repeat_view<typename decay<T>::type, std::ptrdiff_t>(
+            static_cast<T&&>(_value),
             _bound
         );
     }
 
     // views::repeat(_value)  [unbounded form]
-    template<typename _T>
-    D_CONSTEXPR_INLINE
-    repeat_view<typename decay<_T>::type, unreachable_sentinel_t>
+    template<typename T>
+    RE_STD_CONSTEXPR_INLINE
+    repeat_view<typename decay<T>::type, unreachable_sentinel_t>
     repeat(
-        _T&& _value
+        T&& _value
     )
     {
-        return repeat_view<typename decay<_T>::type, unreachable_sentinel_t>(
-            static_cast<_T&&>(_value)
+        return repeat_view<typename decay<T>::type, unreachable_sentinel_t>(
+            static_cast<T&&>(_value)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_REPEAT_VIEW_
+#endif  // RE_STD_RANGES_REPEAT_VIEW_HPP

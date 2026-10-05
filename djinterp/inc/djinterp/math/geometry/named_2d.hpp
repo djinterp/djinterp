@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                  named_2d.hpp
+/*******************************************************************************
+* djinterp [math]                                                   named_2d.hpp
 *
 * Named 2D shapes with closed-form measurements.
 *   Each type here is a shorthand for a specific geometric configuration
@@ -25,21 +25,25 @@
 *   circular_sector<System>    - centre, radius, start and sweep angles
 *   circular_segment<System>   - centre, radius, sweep angle
 *
+*
 * path:      /inc/djinterp/math/geometry/named_2d.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_NAMED_2D_
-#define DJINTERP_MATH_GEOMETRY_NAMED_2D_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_NAMED_2D_HPP
+#define DJINTERP_MATH_GEOMETRY_NAMED_2D_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <type_traits>
+// djinterp
 #include "../../djinterp.hpp"
-#include "../coordinate.hpp"
+#include "../coordinate/coordinate.hpp"
 #include "./geometry_common.hpp"
 
 
@@ -1248,4 +1252,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_NAMED_2D_
+#endif  // DJINTERP_MATH_GEOMETRY_NAMED_2D_HPP

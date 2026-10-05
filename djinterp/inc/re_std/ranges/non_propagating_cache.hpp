@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                   non_propagating_cache.hpp
+/*******************************************************************************
+* djinterp [re_std]                                    non_propagating_cache.hpp
 *
 * non_propagating_cache header:
 *   Provides the C++20 exposition-only "non-propagating-cache"
@@ -33,54 +33,58 @@
 *       move assign     — resets destination to empty, clears source
 *
 *
-* path:      /inc/djinterp/re_std/ranges/non_propagating_cache.hpp
+* path:      /inc/re_std/ranges/non_propagating_cache.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_NON_PROPAGATING_CACHE_
-#define DJINTERP_RE_STD_RANGES_NON_PROPAGATING_CACHE_ 1
+#ifndef RE_STD_RANGES_NON_PROPAGATING_CACHE_HPP
+#define RE_STD_RANGES_NON_PROPAGATING_CACHE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../optional/optional.hpp"
 #include "../type_traits/type_traits.hpp"
 
 
-NS_RESTD
-NS_INTERNAL
+namespace re_std
+{
+namespace internal
+{
 
 
 // ===========================================================================
 // I.   NON_PROPAGATING_CACHE
 // ===========================================================================
 
-// non_propagating_cache<_T>
-//   class: holds an optional _T whose presence does NOT survive
+// non_propagating_cache<T>
+//   class: holds an optional T whose presence does NOT survive
 // copies, moves, or assignments of the cache. The cached value is
 // computed locally to a given instance and stays with it.
-template<typename _T>
+template<typename T>
 class non_propagating_cache
 {
 private:
-    optional<_T>    m_value;
+    optional<T>    m_value;
 
 
 public:
     // -------- ctors --------
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     non_propagating_cache()
         : m_value()
     {}
 
     // copy ctor: destination empty.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     non_propagating_cache(
         non_propagating_cache const&
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
         : m_value()
     {}
 
@@ -88,7 +92,7 @@ public:
     non_propagating_cache(
         non_propagating_cache&&  _other
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
         : m_value()
     {
         _other.m_value.reset();
@@ -101,7 +105,7 @@ public:
     operator=(
         non_propagating_cache const&  _other
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         if (this != &_other)
         {
@@ -115,7 +119,7 @@ public:
     operator=(
         non_propagating_cache&&  _other
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         m_value.reset();
         if (this != &_other)
@@ -127,23 +131,23 @@ public:
 
 
     // -------- accessors --------
-    D_CONSTEXPR bool
+    RE_STD_CONSTEXPR bool
     has_value() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_value.has_value();
     }
 
-    _T&
+    T&
     operator*()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return *m_value;
     }
 
-    _T const&
+    T const&
     operator*() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return *m_value;
     }
@@ -152,31 +156,31 @@ public:
     // -------- mutators --------
 
     // emplace_deref
-    //   function: constructs the cached _T from _ctor_args and
+    //   function: constructs the cached T from _ctor_args and
     // returns a reference to it. Mirrors the spec's name.
-    template<typename _A1>
-    _T&
+    template<typename A1>
+    T&
     emplace_deref(
-        _A1&&  _a1
+        A1&&  _a1
     )
     {
-        m_value.emplace(static_cast<_A1&&>(_a1));
+        m_value.emplace(static_cast<A1&&>(_a1));
         return *m_value;
     }
 
-    template<typename _A1, typename _A2>
-    _T&
+    template<typename A1, typename A2>
+    T&
     emplace_deref(
-        _A1&&  _a1,
-        _A2&&  _a2
+        A1&&  _a1,
+        A2&&  _a2
     )
     {
-        m_value.emplace(static_cast<_A1&&>(_a1), static_cast<_A2&&>(_a2));
+        m_value.emplace(static_cast<A1&&>(_a1), static_cast<A2&&>(_a2));
         return *m_value;
     }
 
     // emplace_deref (0-arg)
-    _T&
+    T&
     emplace_deref()
     {
         m_value.emplace();
@@ -186,18 +190,18 @@ public:
     // reset — drop the cached value.
     void
     reset()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         m_value.reset();
     }
 };
 
 
-NS_END  // internal
-NS_END  // re_std
+}  // internal
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_NON_PROPAGATING_CACHE_
+#endif  // RE_STD_RANGES_NON_PROPAGATING_CACHE_HPP

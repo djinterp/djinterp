@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                      dsource.h
+* djinterp [djinterp]                                                  dsource.h
 *
 * Pluggable record source:
 *   A record source replaces RS splitting.  The interpreter's main loop asks
@@ -11,6 +11,7 @@
 * and a host cannot regress POSIX behaviour by installing one.
 *   Under D_AWK_STRICT_POSIX installation is refused, so the conforming core
 * stays independently verifiable.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dsource.h
 * link(s):   TBA

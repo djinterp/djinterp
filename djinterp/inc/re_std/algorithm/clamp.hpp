@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                    clamp.hpp
 *
 * clamp algorithm header:
@@ -24,32 +24,26 @@
 * only safe while all three arguments are alive.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/clamp.hpp
+* path:      /inc/re_std/algorithm/clamp.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.24
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_CLAMP_
-#define DJINTERP_RE_STD_ALGORITHM_CLAMP_ 1
+#ifndef RE_STD_ALGORITHM_CLAMP_HPP
+#define RE_STD_ALGORITHM_CLAMP_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -58,12 +52,12 @@ NS_RESTD
 
 // clamp
 //   function: reference to _v, _lo or _hi, whichever lies in range.
-template<typename _Type>
-D_CONSTEXPR_CPP14 const _Type&
+template<typename Type>
+RE_STD_CONSTEXPR_CPP14 const Type&
 clamp(
-    const _Type& _v,
-    const _Type& _lo,
-    const _Type& _hi
+    const Type& _v,
+    const Type& _lo,
+    const Type& _hi
 )
 {
     return (_v < _lo)
@@ -78,14 +72,14 @@ clamp(
 
 // clamp (comparator)
 //   function: as above but ordering is decided by _comp.
-template<typename _Type,
-         typename _Compare>
-D_CONSTEXPR_CPP14 const _Type&
+template<typename Type,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 const Type&
 clamp(
-    const _Type& _v,
-    const _Type& _lo,
-    const _Type& _hi,
-    _Compare     _comp
+    const Type& _v,
+    const Type& _lo,
+    const Type& _hi,
+    Compare     _comp
 )
 {
     return _comp(_v, _lo)
@@ -94,7 +88,7 @@ clamp(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_CLAMP_
+#endif  // RE_STD_ALGORITHM_CLAMP_HPP

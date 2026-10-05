@@ -35,7 +35,7 @@
 * path:      /inc/djinterp/core/memory/pool.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 /*
@@ -58,6 +58,12 @@ IV.   THE COST LAW
 
 #ifndef DJINTERP_MEMORY_POOL_HPP
 #define DJINTERP_MEMORY_POOL_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <new>
@@ -315,14 +321,14 @@ private:
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
 
 // pool_handle
-//   struct: a generation-checked reference to a slot holding a _Type. The
+//   struct: a generation-checked reference to a slot holding a Type. The
 // type parameter is PHANTOM: it adds no bytes -- asserted below -- and exists
 // so that a handle into one pool cannot be resolved against a pool of a
 // different element type without a diagnostic.
-template<typename _Type>
+template<typename Type>
 struct pool_handle : ::d_pool_handle
 {
-    using element_type = _Type;
+    using element_type = Type;
 
     // pool_handle (default)
     //   constructor: the null handle, which never resolves.
@@ -378,8 +384,8 @@ struct pool_handle : ::d_pool_handle
 ///////////////////////////////////////////////////////////////////////////////
 
 // pool
-//   class: a fixed-slot allocator for objects of _Type under release policy
-// _Policy. Derives from raw_pool and adds no state; it supplies the geometry
+//   class: a fixed-slot allocator for objects of Type under release policy
+// Policy. Derives from raw_pool and adds no state; it supplies the geometry
 // and the policy at translation time and layers object lifetime on the
 // kernel's raw slots.
 //
@@ -393,40 +399,40 @@ struct pool_handle : ::d_pool_handle
 // costs nothing: the parameter is not a member, the kernel field is still set
 // from it at construction, and both languages arrive at the same value. C++
 // simply arrives EARLIER.
-template<typename _Type,
-         ::d_pool_policy _Policy = D_POOL_POLICY_FREE_LIST>
+template<typename Type,
+         ::d_pool_policy Policy = D_POOL_POLICY_FREE_LIST>
 class pool : public raw_pool
 {
 public:
 
-    using element_type = _Type;
-    using pointer      = _Type*;
+    using element_type = Type;
+    using pointer      = Type*;
 
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
-    using handle_type  = pool_handle<_Type>;
+    using handle_type  = pool_handle<Type>;
 #endif
 
     // slot_bytes / slot_alignment
     //   constant: the geometry the kernel will compute, computed HERE at
     // translation time. Identical numbers, earlier -- which is the whole
     // claim this face makes.
-    static D_CONSTEXPR const mem_size slot_bytes     = size_of<_Type>::value;
-    static D_CONSTEXPR const mem_size slot_alignment = align_of<_Type>::value;
+    static D_CONSTEXPR const mem_size slot_bytes     = size_of<Type>::value;
+    static D_CONSTEXPR const mem_size slot_alignment = align_of<Type>::value;
 
     // policy
     //   constant: the release policy, available at translation time. The
     // strategy layer reads this rather than the kernel's field.
-    static D_CONSTEXPR const ::d_pool_policy policy = _Policy;
+    static D_CONSTEXPR const ::d_pool_policy policy = Policy;
 
     // pool (default)
-    //   constructor: a pool of _Type over the configured default source.
+    //   constructor: a pool of Type over the configured default source.
     D_INLINE
     pool()
-        : raw_pool(slot_bytes, slot_alignment, _Policy)
+        : raw_pool(slot_bytes, slot_alignment, Policy)
     {}
 
     // pool (sourced)
-    //   constructor: a pool of _Type over a named source, with an optional
+    //   constructor: a pool of Type over a named source, with an optional
     // block size and slot ceiling.
     explicit D_INLINE
     pool(
@@ -437,7 +443,7 @@ public:
         : raw_pool(make_config(_source,
                                _slots_per_block,
                                _max_slots,
-                               _Policy))
+                               Policy))
     {}
 
     // ---------------------------------------------------------------
@@ -445,7 +451,7 @@ public:
     // ---------------------------------------------------------------
 
     // acquire
-    //   operation: raw, UNCONSTRUCTED storage for one _Type.
+    //   operation: raw, UNCONSTRUCTED storage for one Type.
     D_INLINE pointer
     acquire()
     {
@@ -457,13 +463,13 @@ public:
     // ---------------------------------------------------------------
 
     // create
-    //   operation: takes a slot and CONSTRUCTS a _Type in it from _args.
+    //   operation: takes a slot and CONSTRUCTS a Type in it from _args.
     // Returns null when the pool is full, in which case nothing was
     // constructed.
-    template<typename... _Args>
+    template<typename... Args>
     D_INLINE pointer
     create(
-        _Args&&... _args
+        Args&&... _args
     )
     {
         void* storage = raw_pool::acquire();
@@ -473,7 +479,7 @@ public:
             return nullptr;
         }
 
-        return new (storage) _Type(std::forward<_Args>(_args)...);
+        return new (storage) Type(std::forward<Args>(_args)...);
     }
 
     // destroy
@@ -492,7 +498,7 @@ public:
             return D_MEM_OK;
         }
 
-        _object->~_Type();
+        _object->~Type();
 
         return raw_pool::release_slot(static_cast<void*>(_object));
     }
@@ -503,14 +509,14 @@ public:
     // ---------------------------------------------------------------
 
     // create_handle
-    //   operation: takes a slot, constructs a _Type in it, and returns a
+    //   operation: takes a slot, constructs a Type in it, and returns a
     // generation-checked handle. UNLIKE A POINTER, the result is safe to
     // store across a destroy: resolving it afterwards yields null rather than
     // the next occupant.
-    template<typename... _Args>
+    template<typename... Args>
     D_INLINE handle_type
     create_handle(
-        _Args&&... _args
+        Args&&... _args
     )
     {
         ::d_pool_handle raw;
@@ -528,7 +534,7 @@ public:
             return handle_type();
         }
 
-        new (storage) _Type(std::forward<_Args>(_args)...);
+        new (storage) Type(std::forward<Args>(_args)...);
 
         return handle_type(raw);
     }
@@ -570,7 +576,7 @@ public:
             return D_MEM_ERR_STALE;
         }
 
-        object->~_Type();
+        object->~Type();
 
         return ::d_pool_release_handle(this, _handle);
     }
@@ -653,5 +659,6 @@ D_STATIC_ASSERT(sizeof(pool_handle<double>) == sizeof(::d_pool_handle),
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
 #endif  // DJINTERP_MEMORY_POOL_HPP

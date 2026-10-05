@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                   jit_riscv.c
+/*******************************************************************************
+* djinterp [jit]                                                     jit_riscv.c
 *
 * djinterp RISC-V (RV32I / RV64I) JIT encoder -- implementation (jit_riscv.h).
 *   Emitters assemble each instruction from its opcode and funct fields via the
@@ -7,13 +7,14 @@
 * displacements are patched by the two relocations at the top (the RISC-V B-
 * and J-type immediate bit-scrambles), invoked by the label facility in jit.h.
 *
-* path:      /inc/djinterp/jit/jit_riscv.c
+*
+* path:      /src/djinterp/jit/jit_riscv.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit_riscv.h"
+#include "../../../inc/djinterp/jit/jit_riscv.h"
 
 
 // ===========================================================================

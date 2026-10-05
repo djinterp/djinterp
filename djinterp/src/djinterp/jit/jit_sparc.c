@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                   jit_sparc.c
+/*******************************************************************************
+* djinterp [jit]                                                     jit_sparc.c
 *
 * djinterp SPARC (V8 / V9) JIT encoder -- implementation (jit_sparc.h).
 *   SPARC instructions are big-endian, so d_jit_sparc_emit_word writes the word
@@ -9,13 +9,14 @@
 * to the branch and scaled by 4, with big-endian read-modify-write. Control
 * transfers have delay slots, which the caller fills.
 *
-* path:      /inc/djinterp/jit/jit_sparc.c
+*
+* path:      /src/djinterp/jit/jit_sparc.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit_sparc.h"
+#include "../../../inc/djinterp/jit/jit_sparc.h"
 
 
 // ===========================================================================

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                    eigen.hpp
+/*******************************************************************************
+* djinterp [math]                                                      eigen.hpp
 *
 * Eigenvalue / eigenvector routines for the linear-algebra subframework.
 *   Three complementary approaches, each as a free factory returning a small
@@ -42,13 +42,15 @@
 *   - The result objects' getters return core value types, so they chain with
 *     the fluent members, e.g. eigen_symmetric(A).eigenvector(0).normalized().
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/eigen.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.22
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_EIGEN_
-#define DJINTERP_MATH_LINALG_EIGEN_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_EIGEN_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_EIGEN_HPP 1
 
 // std
 #include <cstddef>
@@ -666,4 +668,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_EIGEN_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_EIGEN_HPP

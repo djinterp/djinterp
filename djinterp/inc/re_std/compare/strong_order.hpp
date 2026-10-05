@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                strong_order.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             strong_order.hpp
 *
 * strong_order customisation point object header:
 *   Per [cmp.alg]: a niebloid that produces a strong_ordering result
@@ -29,30 +29,32 @@
 * customise via a friend or namespace-scope strong_order.
 *
 *   PORTABILITY:
-*   Definition gated on D_ENV_LANG_IS_CPP20_OR_HIGHER — the call
+*   Definition gated on RE_STD_LANG_IS_CPP20_OR_HIGHER — the call
 * operator's body requires operator<=> at parse time.
 *
 *
-* path:      /inc/djinterp/re_std/compare/strong_order.hpp
+* path:      /inc/re_std/compare/strong_order.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_COMPARE_STRONG_ORDER_
-#define DJINTERP_RE_STD_COMPARE_STRONG_ORDER_ 1
+#ifndef RE_STD_COMPARE_STRONG_ORDER_HPP
+#define RE_STD_COMPARE_STRONG_ORDER_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
+
+
+// re_std
 #include "./strong_ordering.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -65,9 +67,9 @@ namespace _strong_order_cpo
     // priority — same pattern as the ranges:: CPOs in Phase R24.
     // Higher N = more-specific overload preferred via the cast
     // priority<N>{} → priority<N-1>{} chain.
-    template<int _N>
+    template<int N>
     struct priority
-        : priority<_N - 1>
+        : priority<N - 1>
     {};
 
     template<>
@@ -80,35 +82,35 @@ namespace _strong_order_cpo
     void strong_order() = delete;
 
     // (b) ADL path: prefer user-provided strong_order(t, u).
-    template<typename _T, typename _U>
+    template<typename T, typename U>
     constexpr auto
     impl(
         priority<2>,
-        _T&& _t,
-        _U&& _u
+        T&& _t,
+        U&& _u
     ) noexcept(noexcept(strong_ordering(strong_order(
-                  static_cast<_T&&>(_t), static_cast<_U&&>(_u)))))
+                  static_cast<T&&>(_t), static_cast<U&&>(_u)))))
         -> decltype(strong_ordering(strong_order(
-                        static_cast<_T&&>(_t), static_cast<_U&&>(_u))))
+                        static_cast<T&&>(_t), static_cast<U&&>(_u))))
     {
         return strong_ordering(strong_order(
-                   static_cast<_T&&>(_t), static_cast<_U&&>(_u)));
+                   static_cast<T&&>(_t), static_cast<U&&>(_u)));
     }
 
     // (c) Built-in <=> path.
-    template<typename _T, typename _U>
+    template<typename T, typename U>
     constexpr auto
     impl(
         priority<1>,
-        _T&& _t,
-        _U&& _u
+        T&& _t,
+        U&& _u
     ) noexcept(noexcept(strong_ordering(
-                  static_cast<_T&&>(_t) <=> static_cast<_U&&>(_u))))
+                  static_cast<T&&>(_t) <=> static_cast<U&&>(_u))))
         -> decltype(strong_ordering(
-                        static_cast<_T&&>(_t) <=> static_cast<_U&&>(_u)))
+                        static_cast<T&&>(_t) <=> static_cast<U&&>(_u)))
     {
         return strong_ordering(
-                   static_cast<_T&&>(_t) <=> static_cast<_U&&>(_u));
+                   static_cast<T&&>(_t) <=> static_cast<U&&>(_u));
     }
 
 }  // namespace _strong_order_cpo
@@ -123,25 +125,25 @@ namespace _strong_order_cpo_obj
 
     struct strong_order_fn
     {
-        template<typename _T, typename _U>
+        template<typename T, typename U>
         constexpr auto
         operator()(
-            _T&& _t,
-            _U&& _u
+            T&& _t,
+            U&& _u
         ) const
             noexcept(noexcept(_strong_order_cpo::impl(
                 _strong_order_cpo::priority<2>{},
-                static_cast<_T&&>(_t),
-                static_cast<_U&&>(_u))))
+                static_cast<T&&>(_t),
+                static_cast<U&&>(_u))))
             -> decltype(_strong_order_cpo::impl(
                 _strong_order_cpo::priority<2>{},
-                static_cast<_T&&>(_t),
-                static_cast<_U&&>(_u)))
+                static_cast<T&&>(_t),
+                static_cast<U&&>(_u)))
         {
             return _strong_order_cpo::impl(
                 _strong_order_cpo::priority<2>{},
-                static_cast<_T&&>(_t),
-                static_cast<_U&&>(_u));
+                static_cast<T&&>(_t),
+                static_cast<U&&>(_u));
         }
     };
 
@@ -153,10 +155,10 @@ namespace _strong_order_cpo_obj
 inline constexpr _strong_order_cpo_obj::strong_order_fn strong_order = {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_COMPARE_STRONG_ORDER_
+#endif  // RE_STD_COMPARE_STRONG_ORDER_HPP

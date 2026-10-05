@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                           pipeline.h
+/*******************************************************************************
+* djinterp [c]                                                        pipeline.h
 *
 * Function pipeline for chaining operations in the functional module.
 *   Provides a pipeline struct that holds intermediate results and supports
@@ -7,15 +7,19 @@
 * operation accepts a void* _context parameter (may be NULL) that is
 * forwarded to the callback.
 *
-* path:      /inc/functional/pipeline.h
+*
+* path:      /inc/djinterp/c/functional/pipeline.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.09
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_C_FUNCTIONAL_PIPELINE_
-#define DJINTERP_C_FUNCTIONAL_PIPELINE_ 1
+#ifndef DJINTERP_C_FUNCTIONAL_PIPELINE_H
+#define DJINTERP_C_FUNCTIONAL_PIPELINE_H 1
 
+// std
 #include <stdlib.h>
+// djinterp
 #include "../djinterp.h"
 #include "./functional_common.h"
 
@@ -60,4 +64,4 @@ void  d_functional_pipeline_free(struct d_functional_pipeline* _pipe);
 #define D_FUNCTIONAL_PIPE(pipe, op) op(pipe)
 
 
-#endif  // DJINTERP_C_FUNCTIONAL_PIPELINE_
+#endif  // DJINTERP_C_FUNCTIONAL_PIPELINE_H

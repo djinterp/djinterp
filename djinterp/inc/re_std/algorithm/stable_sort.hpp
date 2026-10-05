@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              stable_sort.hpp
 *
 * stable_sort algorithm header:
@@ -47,71 +47,74 @@
 *   re_std::lower_bound and re_std::upper_bound directly.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/stable_sort.hpp
+* path:      /inc/re_std/algorithm/stable_sort.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_STABLE_SORT_
-#define DJINTERP_RE_STD_ALGORITHM_STABLE_SORT_ 1
+#ifndef RE_STD_ALGORITHM_STABLE_SORT_HPP
+#define RE_STD_ALGORITHM_STABLE_SORT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./rotate.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
     #include "../utility/move.hpp"
 #endif
 
 
 
 
-NS_RESTD
+namespace re_std
+{
 //   Opened here 2026-08-25. This file previously began its namespaced
-// content with no NS_RESTD, so everything above the first NS_END lived
-// at GLOBAL SCOPE and that NS_END closed a namespace never opened.
+// content without opening re_std, so everything above the first closing
+// brace lived at GLOBAL SCOPE, and that brace closed a namespace never
+// opened.
 
 // ===========================================================================
 // 0.   INTERNAL HELPERS
 // ===========================================================================
 
 // _stable_insertion_sort_
-//   stable insertion sort on [_first, _last). Used at the bottom of
+//   function: stable insertion sort on [_first, _last). Used at the bottom of
 // merge sort. Distinct from sort.hpp's _sort_insertion_ only in that
 // the duplication keeps the two algorithm files independent until the
 // binary-search batch lands.
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 _stable_insertion_sort_(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
 
     if (_first == _last)
     {
         return;
     }
 
-    _RandomIt _i = _first;
+    RandomIt _i = _first;
     ++_i;
     for (; _i != _last; ++_i)
     {
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
         _Value _value = re_std::move(*_i);
 #else
         _Value _value = *_i;
 #endif
 
-        _RandomIt _j = _i;
+        RandomIt _j = _i;
         while (_j != _first)
         {
-            _RandomIt _prev = _j;
+            RandomIt _prev = _j;
             --_prev;
             // stability: stop at the first position where the predecessor
             // is NOT greater than _value (i.e., where _value is NOT less).
@@ -120,7 +123,7 @@ _stable_insertion_sort_(
             {
                 break;
             }
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
             *_j = re_std::move(*_prev);
 #else
             *_j = *_prev;
@@ -128,7 +131,7 @@ _stable_insertion_sort_(
             _j = _prev;
         }
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
         *_j = re_std::move(_value);
 #else
         *_j = _value;
@@ -140,28 +143,28 @@ _stable_insertion_sort_(
 
 
 // _stable_lower_bound_
-//   returns the first iterator in [_first, _last) at which *iter is
+//   function: returns the first iterator in [_first, _last) at which *iter is
 // NOT less than _value (per _comp). I.e., the leftmost insertion point
 // that preserves _value's relative order against equivalent elements
 // already at or after the returned position.
-template<typename _RandomIt,
-         typename _Type,
-         typename _Compare>
-_RandomIt
+template<typename RandomIt,
+         typename Type,
+         typename Compare>
+RandomIt
 _stable_lower_bound_(
-    _RandomIt    _first,
-    _RandomIt    _last,
-    const _Type& _value,
-    _Compare     _comp
+    RandomIt    _first,
+    RandomIt    _last,
+    const Type& _value,
+    Compare     _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _len = _last - _first;
     while (_len > 0)
     {
         _Diff     _half = _len / 2;
-        _RandomIt _mid  = _first + _half;
+        RandomIt _mid  = _first + _half;
         if (_comp(*_mid, _value))
         {
             _first  = _mid;
@@ -178,26 +181,26 @@ _stable_lower_bound_(
 
 
 // _stable_upper_bound_
-//   returns the first iterator in [_first, _last) at which *iter is
+//   function: returns the first iterator in [_first, _last) at which *iter is
 // strictly greater than _value (per _comp).
-template<typename _RandomIt,
-         typename _Type,
-         typename _Compare>
-_RandomIt
+template<typename RandomIt,
+         typename Type,
+         typename Compare>
+RandomIt
 _stable_upper_bound_(
-    _RandomIt    _first,
-    _RandomIt    _last,
-    const _Type& _value,
-    _Compare     _comp
+    RandomIt    _first,
+    RandomIt    _last,
+    const Type& _value,
+    Compare     _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _len = _last - _first;
     while (_len > 0)
     {
         _Diff     _half = _len / 2;
-        _RandomIt _mid  = _first + _half;
+        RandomIt _mid  = _first + _half;
         if (_comp(_value, *_mid))
         {
             _len = _half;
@@ -214,7 +217,7 @@ _stable_upper_bound_(
 
 
 // _stable_in_place_merge_
-//   merges sorted [_first, _middle) with sorted [_middle, _last) into
+//   function: merges sorted [_first, _middle) with sorted [_middle, _last) into
 // sorted [_first, _last) using rotate as the only data-movement
 // primitive. Recursive; stack depth O(log N). Stable.
 //
@@ -226,17 +229,17 @@ _stable_upper_bound_(
 // AT the first position where _value is strictly less than the right
 // element, i.e., BEFORE any equal right elements). The asymmetric
 // choice is what preserves left-before-right ordering of equals.
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 _stable_in_place_merge_(
-    _RandomIt _first,
-    _RandomIt _middle,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _middle,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     // empty halves: nothing to do
     if ( (_first == _middle) ||
@@ -258,8 +261,8 @@ _stable_in_place_merge_(
         return;
     }
 
-    _RandomIt _cut1;
-    _RandomIt _cut2;
+    RandomIt _cut1;
+    RandomIt _cut2;
     _Diff     _len11;
     _Diff     _len22;
 
@@ -290,7 +293,7 @@ _stable_in_place_merge_(
     // rotate the inner segment [_cut1, _cut2): the new boundary
     // between merged halves moves to _first + _len11 + _len22
     rotate(_cut1, _middle, _cut2);
-    _RandomIt _new_middle = _first + (_len11 + _len22);
+    RandomIt _new_middle = _first + (_len11 + _len22);
 
     _stable_in_place_merge_(_first,       _cut1, _new_middle, _comp);
     _stable_in_place_merge_(_new_middle,  _cut2, _last,       _comp);
@@ -298,18 +301,18 @@ _stable_in_place_merge_(
 
 
 // _stable_sort_impl_
-//   bottom-up driver: insertion-sort 16-element blocks, then merge
+//   function: bottom-up driver: insertion-sort 16-element blocks, then merge
 // blocks of doubling size until one block covers the whole range.
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 _stable_sort_impl_(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     // base-block size; same threshold rationale as sort.hpp
     enum { _STABLE_SORT_BLOCK_ = 16 };
@@ -321,9 +324,9 @@ _stable_sort_impl_(
     }
 
     // pass 0: insertion-sort each contiguous block
-    for (_RandomIt _it = _first; _it < _last; )
+    for (RandomIt _it = _first; _it < _last; )
     {
-        _RandomIt _block_end = _it + _STABLE_SORT_BLOCK_;
+        RandomIt _block_end = _it + _STABLE_SORT_BLOCK_;
         if (_block_end > _last)
         {
             _block_end = _last;
@@ -338,15 +341,15 @@ _stable_sort_impl_(
          _block < _n;
          _block *= 2)
     {
-        for (_RandomIt _it = _first; _it < _last; )
+        for (RandomIt _it = _first; _it < _last; )
         {
-            _RandomIt _mid = _it + _block;
+            RandomIt _mid = _it + _block;
             if (_mid >= _last)
             {
                 // tail block too short to need merging this pass
                 break;
             }
-            _RandomIt _end = _mid + _block;
+            RandomIt _end = _mid + _block;
             if (_end > _last)
             {
                 _end = _last;
@@ -358,26 +361,27 @@ _stable_sort_impl_(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 // ===========================================================================
 // I.   STABLE_SORT
 // ===========================================================================
 
-NS_RESTD
+namespace re_std
+{
 
 
 // stable_sort (comparator)
 //   function: stable-sorts [_first, _last) into non-descending order
 // per _comp. Equal elements retain their original relative order.
-template<typename _RandomIt,
-         typename _Compare>
+template<typename RandomIt,
+         typename Compare>
 void
 stable_sort(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
     _stable_sort_impl_(_first, _last, _comp);
@@ -386,20 +390,20 @@ stable_sort(
 
 // stable_sort (default operator<)
 //   function: stable-sorts [_first, _last) per operator<.
-template<typename _RandomIt>
+template<typename RandomIt>
 void
 stable_sort(
-    _RandomIt _first,
-    _RandomIt _last
+    RandomIt _first,
+    RandomIt _last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
     stable_sort(_first, _last, re_std::less<_Value>());
 }
 
 
 
 
-NS_END  // re_std   (added 2026-08-25 -- was never closed)
+}  // re_std   (added 2026-08-25 -- was never closed)
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_STABLE_SORT_
+#endif  // RE_STD_ALGORITHM_STABLE_SORT_HPP

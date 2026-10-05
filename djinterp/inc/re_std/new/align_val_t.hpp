@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               align_val_t.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              align_val_t.hpp
 *
 * align_val_t header:
 *   Strong typedef for an alignment value. Used by C++17's over-
@@ -25,35 +25,40 @@
 * parameter.
 *
 *
-* path:      /inc/djinterp/re_std/new/align_val_t.hpp
+* path:      /inc/re_std/new/align_val_t.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALIGN_VAL_T_
-#define DJINTERP_RE_STD_ALIGN_VAL_T_ 1
+#ifndef RE_STD_NEW_ALIGN_VAL_T_HPP
+#define RE_STD_NEW_ALIGN_VAL_T_HPP 1
 
+// std
 #include <cstddef>
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+// std
 #include <new>
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   ALIGN_VAL_T
 // ===========================================================================
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
 // C++17+: std::align_val_t is available. Pass-through.
 using std::align_val_t;
 
-#elif D_ENV_LANG_IS_CPP11_OR_HIGHER
+#elif RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // C++11–C++14: back-port as strong-typed enum class. Same source-level
 // semantics as std::align_val_t; only operator-new bindings differ.
@@ -75,7 +80,7 @@ struct align_val_t
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALIGN_VAL_T_
+#endif  // RE_STD_NEW_ALIGN_VAL_T_HPP

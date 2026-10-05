@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                         geometry_common.hpp
+/*******************************************************************************
+* djinterp [math]                                            geometry_common.hpp
 *
 * Foundational geometry infrastructure shared by 2D and 3D modules.
 *   Provides the structural interface documentation for edge and shape
@@ -33,23 +33,27 @@
 *   - (optional) value_type closed_form_volume() const           [3D]
 *   - (optional) point_type closed_form_centroid() const
 *
+*
 * path:      /inc/djinterp/math/geometry/geometry_common.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_COMMON_
-#define DJINTERP_MATH_GEOMETRY_COMMON_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_GEOMETRY_COMMON_HPP
+#define DJINTERP_MATH_GEOMETRY_GEOMETRY_COMMON_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <limits>
 #include <type_traits>
 #include <utility>
+// djinterp
 #include "../../djinterp.hpp"
-#include "../coordinate.hpp"
+#include "../coordinate/coordinate.hpp"
 
 
 NS_DJINTERP
@@ -544,6 +548,26 @@ struct aabb
 
         return aabb{lo, hi};
     }
+
+    // is_empty
+    //   whether the box holds no point: true for empty(), and for any box
+    // whose minimum exceeds its maximum on some axis. A box built by
+    // include() from empty() stops being empty at its first point.
+    constexpr bool
+    is_empty
+    () const noexcept
+    {
+        // an inverted axis leaves no room for a point
+        for (std::size_t i = 0; i < _Dim; ++i)
+        {
+            if (m_min[i] > m_max[i])
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 };
 
 
@@ -711,4 +735,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_COMMON_
+#endif  // DJINTERP_MATH_GEOMETRY_GEOMETRY_COMMON_HPP

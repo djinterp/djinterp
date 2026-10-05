@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                      dbanner.h
+* djinterp [djinterp]                                                  dbanner.h
 *
 * Banner extension:
 *   Builds the node tree for one header's banner.  This is the reference
@@ -13,6 +13,7 @@
 *   Fields the guide requires but the banner does not carry are emitted as
 * nodes with `present` false, because a rule cannot match a node that does not
 * exist and `required` would otherwise assert nothing.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dbanner.h
 * link(s):   TBA
@@ -54,6 +55,18 @@
 uint32_t d_banner_build(struct d_node_tree* _tree,
                         const char*         _path,
                         const char*         _root);
+/**
+ * @brief Adds a file node carrying `path` (relative to `_root`), `name` and
+ *        `top`, the top-level directory.
+ *
+ * @param[in,out] _tree  the tree to add to.
+ * @param[in]     _path  the file's path.
+ * @param[in]     _root  the root the walk began at.
+ * @return the file node, or `D_DSS_NO_INDEX` when the tree refused it.
+ */
+uint32_t d_banner_file(struct d_node_tree* _tree,
+                       const char*         _path,
+                       const char*         _root);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DBANNER_H

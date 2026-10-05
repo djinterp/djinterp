@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                  database_connection.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                        database_connection.hpp
+*
 * djinterp database connection module:
 *   This header provides a rudimentary but functional database connection
 * abstraction built on the connection_template CRTP base. It augments the
@@ -30,14 +30,22 @@
 *   This header requires C++17 or later. It does not include any
 * vendor-specific headers.
 *
-* 
+*
 * path:      /inc/djinterp/core/db/database_connection.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_CONNECTION_
-#define DJINTERP_DATABASE_CONNECTION_
+#ifndef DJINTERP_DB_DATABASE_CONNECTION_HPP
+#define DJINTERP_DB_DATABASE_CONNECTION_HPP
+
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <atomic>
@@ -62,7 +70,7 @@ NS_DJINTERP
 //
 // Template parameters:
 //   _helper:   the concrete CRTP implementation class
-//   _DbType: the database_type enumerator identifying the vendor
+//   DbType: the database_type enumerator identifying the vendor
 //
 // The implementation class (_helper) must provide the following methods:
 //   void connect_helper()         - establish a connection using m_config
@@ -76,12 +84,12 @@ NS_DJINTERP
 // The _helper suffix convention avoids name collisions with the CRTP
 // forwarding methods in the base classes.
 template<typename      _helper,
-         database_type _DbType>
+         database_type DbType>
 class database_connection
-    : public connection_template<_helper, _DbType>
+    : public connection_template<_helper, DbType>
 {
 public:
-    using base_type          = connection_template<_helper, _DbType>;
+    using base_type          = connection_template<_helper, DbType>;
     using traits_type        = typename base_type::traits_type;
     using native_handle_type = typename base_type::native_handle_type;
 
@@ -175,7 +183,7 @@ public:
     //   function: establishes a connection using the current
     // configuration. Updates connection state and captures the server
     // version on success, or captures the error on failure.
-    void 
+    void
     connect()
     {
         if (this->m_state == connection_state::connected)
@@ -344,7 +352,7 @@ public:
     // execute_query
     //   function: executes a query and returns a result set. Updates
     // the connection state to executing for the duration.
-    auto 
+    auto
     execute_query(
         const std::string& _query
     )
@@ -380,7 +388,7 @@ public:
     // execute_update
     //   function: executes an update/insert/delete statement and
     // returns the number of affected rows.
-    std::int64_t
+    re_std::int64_t
     execute_update(
         const std::string& _query
     )
@@ -391,7 +399,7 @@ public:
 
         try
         {
-            std::int64_t rows = self().execute_update_helper(_query);
+            re_std::int64_t rows = self().execute_update_helper(_query);
 
             this->m_state = connection_state::connected;
 
@@ -448,7 +456,7 @@ public:
     // get_server_version
     //   function: returns the cached server version string, or queries
     // the server if not yet cached.
-    std::string 
+    std::string
     get_server_version() const
     {
         if (!m_server_version.empty())
@@ -601,7 +609,7 @@ protected:
 
     // capture_error
     //   function: captures a vendor error code and message.
-    void 
+    void
     capture_error(
         int                _code,
         const std::string& _message
@@ -643,5 +651,6 @@ private:
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_CONNECTION_
+#endif  // DJINTERP_DB_DATABASE_CONNECTION_HPP

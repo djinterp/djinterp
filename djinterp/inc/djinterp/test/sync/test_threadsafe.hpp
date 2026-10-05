@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                          test_threadsafe.hpp
+/*******************************************************************************
+* djinterp [test]                                            test_threadsafe.hpp
 *
 * Umbrella header for the DTest multithreading and threadsafe-behavior
 * testing suite.  Includes every submodule of the multithreaded test
@@ -71,12 +71,21 @@
 *
 * path:      /inc/djinterp/test/sync/test_threadsafe.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_THREADSAFE_
-#define DJINTERP_TEST_THREADSAFE_ 1
+#ifndef DJINTERP_TEST_SYNC_TEST_THREADSAFE_HPP
+#define DJINTERP_TEST_SYNC_TEST_THREADSAFE_HPP 1
 
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but math/interval/closed_interval.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
 // --- threadsafe foundation (production-side primitives) ---
 //
 //   Pulled in transitively so that callers who include this
@@ -84,28 +93,20 @@
 // include <djinterp/core/sync/threadsafe.hpp> separately.  The
 // individual test submodules also include the specific sync
 // headers they consume.
+#include "../../djinterp.hpp"            // framework root
 #include "../../core/sync/threadsafe.hpp"
-
-// --- DTest multithreading harness submodules ---
-
 // foundational thread wrapper and group
 #include "./test_thread.hpp"
-
 // synchronization primitives
 #include "./test_sync.hpp"
-
 // concurrent execution drivers
 #include "./test_concurrent.hpp"
-
 // stress and chaos drivers
 #include "./test_stress.hpp"
-
 // race observation and linearization
 #include "./test_race.hpp"
-
 // invariant monitoring
 #include "./test_invariant.hpp"
-
 // deadlock and timeout detection
 #include "./test_deadlock.hpp"
 
@@ -114,5 +115,7 @@
 // into ./test_thread.hpp (included above), so there is nothing to
 // include here.  The standalone headers have been removed.
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_THREADSAFE_
+
+#endif  // DJINTERP_TEST_SYNC_TEST_THREADSAFE_HPP

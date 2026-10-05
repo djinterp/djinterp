@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                              env_db_config.h
+/*******************************************************************************
+* djinterp [core]                                                env_db_config.h
 *
 * Per-module configuration for env_db.h. Owns D_CFG_ENV_DB_CUSTOM and the
 * pre-defined-detection auto-activation logic for it.

@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [re_std]                                           remove_extent.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            remove_extent.hpp
 *
 * remove_extent trait header:
-*   Strips one level of array dimensioning from a type. If _Type is an
+*   Strips one level of array dimensioning from a type. If Type is an
 * array (bounded or unbounded), yields the element type; otherwise
-* yields _Type unchanged.
+* yields Type unchanged.
 *
 *     remove_extent<int[5]>::type      -> int
 *     remove_extent<int[]>::type       -> int
@@ -13,21 +13,23 @@
 *     remove_extent<int*>::type        -> int*        (pointers untouched)
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/remove_extent.hpp
+* path:      /inc/re_std/type_traits/remove_extent.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_EXTENT_
-#define DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_EXTENT_ 1
+#ifndef RE_STD_TYPE_TRAITS_REMOVE_EXTENT_HPP
+#define RE_STD_TYPE_TRAITS_REMOVE_EXTENT_HPP 1
 
 // std
 #include <cstddef>
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -36,27 +38,27 @@ NS_RESTD
 
 // remove_extent
 //   trait: passthrough (primary template).
-template<typename _Type>
+template<typename Type>
 struct remove_extent
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-// remove_extent<_Type[]>
+// remove_extent<Type[]>
 //   trait: unbounded array specialization.
-template<typename _Type>
-struct remove_extent<_Type[]>
+template<typename Type>
+struct remove_extent<Type[]>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-// remove_extent<_Type[_N]>
+// remove_extent<Type[N]>
 //   trait: bounded array specialization.
-template<typename    _Type,
-         std::size_t _N>
-struct remove_extent<_Type[_N]>
+template<typename    Type,
+         std::size_t N>
+struct remove_extent<Type[N]>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
 
@@ -64,17 +66,17 @@ struct remove_extent<_Type[_N]>
 // II.  REMOVE_EXTENT_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // remove_extent_t
-    //   alias: convenience alias for remove_extent<_Type>::type.
-    template<typename _Type>
-    using remove_extent_t = typename remove_extent<_Type>::type;
+    //   alias: convenience alias for remove_extent<Type>::type.
+    template<typename Type>
+    using remove_extent_t = typename remove_extent<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_EXTENT_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_REMOVE_EXTENT_HPP

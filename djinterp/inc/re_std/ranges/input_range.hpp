@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                            input_range.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              input_range.hpp
 *
 * input_range concept-trait header:
 *   Provides the C++20 input_range concept as a SFINAE-detection
@@ -20,18 +20,20 @@
 * concept binding.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/input_range.hpp
+* path:      /inc/re_std/ranges/input_range.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_INPUT_RANGE_
-#define DJINTERP_RE_STD_RANGES_INPUT_RANGE_ 1
+#ifndef RE_STD_RANGES_INPUT_RANGE_HPP
+#define RE_STD_RANGES_INPUT_RANGE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES && \
-      D_ENV_LANG_IS_CPP11_OR_HIGHER )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES && \
+      RE_STD_LANG_IS_CPP11_OR_HIGHER )
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -39,37 +41,39 @@
 #include "./iterator_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
 // input_range_impl
 //   trait: only instantiates the iterator-category check when
-// _Type already passes the range trait, avoiding a hard error on
+// Type already passes the range trait, avoiding a hard error on
 // non-range inputs.
-template<typename _Type,
-         bool _IsRange = range<_Type>::value>
+template<typename Type,
+         bool IsRange = range<Type>::value>
 struct input_range_impl
     : false_type
 {};
 
-template<typename _Type>
-struct input_range_impl<_Type, true>
+template<typename Type>
+struct input_range_impl<Type, true>
     : is_base_of<input_iterator_tag,
-                 typename iterator_traits<iterator_t<_Type> >::iterator_category>
+                 typename iterator_traits<iterator_t<Type> >::iterator_category>
 {};
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
 // I.   INPUT_RANGE
 // ===========================================================================
 
-template<typename _Type>
+template<typename Type>
 struct input_range
-    : internal::input_range_impl<_Type>
+    : internal::input_range_impl<Type>
 {};
 
 
@@ -77,18 +81,18 @@ struct input_range
 // II.  INPUT_RANGE_V
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool input_range_v = input_range<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool input_range_v = input_range<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RE_STD_RANGES_INPUT_RANGE_
+#endif  // RE_STD_RANGES_INPUT_RANGE_HPP

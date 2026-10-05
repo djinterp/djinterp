@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [text]                                                      emoji.h
-*   
+/*******************************************************************************
+* djinterp [c]                                                           emoji.h
+*
 * Emoji utf-8 utilities and sequences.
 *   This header provides helpers for working with emoji without embedding
 * non-ascii source text. It includes:
@@ -29,27 +29,32 @@
 *    print in separate calls.
 *
 *
-* path:      \inc\text\symbol\emoji\emoji.h
+* path:      /inc/djinterp/c/text/symbol/emoji/emoji.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.09.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.22
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_TEXT_SYMBOL_EMOJI_
-#define DJINTERP_TEXT_SYMBOL_EMOJI_
+#ifndef DJINTERP_C_TEXT_SYMBOL_EMOJI_EMOJI_H
+#define DJINTERP_C_TEXT_SYMBOL_EMOJI_EMOJI_H 1
 
-#include <stddef.h>         // size_t 
-#include <stdint.h>         // uint32_t
-#include "../../djinterp.h"
-#include "../../dmemory.h"
-#include "../../../unicode/unicode.h"
+// std
+#include <stddef.h>         // size_t
+// djinterp
+#include "../../../djinterp.h"
+#include "../../../memory/dmemory.h"
+#include "../../unicode/unicode.h"
 #include "./emoji_flags.h"
+#include "../../../../env/c/env_vendor_attributes.h"  // D_THREAD_LOCAL_*
+// re_std
+#include "../../../../../re_std/cstdint/dstdint.h"  // uint32_t
 
 
 // ============================================================================
 // FACE EMOJIS
 // ============================================================================
-// core smileys                             
-//   U+1F600-U+1F637                        
+// core smileys
+//   U+1F600-U+1F637
 #define D_EMOJI_FACE_GRINNING                    "\xF0\x9F\x98\x80"  // U+1F600
 #define D_EMOJI_FACE_BEAMING                     "\xF0\x9F\x98\x81"  // U+1F601
 #define D_EMOJI_FACE_TEARS_OF_JOY                "\xF0\x9F\x98\x82"  // U+1F602
@@ -106,20 +111,20 @@
 #define D_EMOJI_FACE_DIZZY_FACE                  "\xF0\x9F\x98\xB5"  // U+1F635
 #define D_EMOJI_FACE_NO_MOUTH                    "\xF0\x9F\x98\xB6"  // U+1F636
 #define D_EMOJI_FACE_MASK                        "\xF0\x9F\x98\xB7"  // U+1F637
-// additional commonly-used faces:                              
-//   U+1F641-U+1F644                                            
-//   U+1F914,                                                   
-//   U+1F917                                                    
-//   U+1F928                                                    
-//   U+1F970-U+1F971                                            
-//   U+1F929                                                    
-//   U+1F92A-U+1F92E                                            
+// additional commonly-used faces:
+//   U+1F641-U+1F644
+//   U+1F914,
+//   U+1F917
+//   U+1F928
+//   U+1F970-U+1F971
+//   U+1F929
+//   U+1F92A-U+1F92E
 #define D_EMOJI_FACE_SLIGHTLY_FROWNING           "\xF0\x9F\x99\x81"  // U+1F641
 #define D_EMOJI_FACE_SLIGHTLY_SMILING            "\xF0\x9F\x99\x82"  // U+1F642
 #define D_EMOJI_FACE_UPSIDE_DOWN                 "\xF0\x9F\x99\x83"  // U+1F643
 #define D_EMOJI_FACE_ROLLING_EYES                "\xF0\x9F\x99\x84"  // U+1F644
 #define D_EMOJI_FACE_THINKING                    "\xF0\x9F\xA4\x94"  // U+1F914
-#define D_EMOJI_FACE_HUGGING                     "\xF0\x9F\x99\x97"  // U+1F917
+#define D_EMOJI_FACE_HUGGING                     "\xF0\x9F\xA4\x97"  // U+1F917
 #define D_EMOJI_FACE_RAISED_EYEBROW              "\xF0\x9F\xA4\xA8"  // U+1F928
 #define D_EMOJI_FACE_STAR_STRUCK                 "\xF0\x9F\xA4\xA9"  // U+1F929
 #define D_EMOJI_FACE_ZANY                        "\xF0\x9F\xA4\xAA"  // U+1F92A
@@ -130,7 +135,7 @@
 #define D_EMOJI_FACE_DISTORTED                   "\xF0\x9F\xAB\xAA"  // U+1FAEA
 
 // ============================================================================
-// PEOPLE & HUMAN EMOJIS  
+// PEOPLE & HUMAN EMOJIS
 // ============================================================================
 // basic people
 #define D_EMOJI_PEOPLE_BABY                      "\xF0\x9F\x91\xB6"  // U+1F476
@@ -184,7 +189,7 @@
 #define D_EMOJI_BODY_EYE                         "\xF0\x9F\x91\x81"  // U+1F441
 #define D_EMOJI_BODY_TONGUE                      "\xF0\x9F\x91\x85"  // U+1F445
 #define D_EMOJI_BODY_LIPS                        "\xF0\x9F\x91\x84"  // U+1F444
-// gestures and poses  
+// gestures and poses
 #define D_EMOJI_GESTURE_PERSON_FACEPALM          "\xF0\x9F\xA4\xA6"  // U+1F926
 #define D_EMOJI_GESTURE_PERSON_SHRUG             "\xF0\x9F\xA4\xB7"  // U+1F937
 #define D_EMOJI_GESTURE_PERSON_GESTURING_NO      "\xF0\x9F\x99\x85"  // U+1F645
@@ -241,7 +246,7 @@
 
 // D_EMOJI_FAMILY_MAN_WOMAN_BOY
 //   pre-defined constant: emoji code for family - man, woman, boy
-// Equivalent to: 
+// Equivalent to:
 //   U+1F468 U+200D U+1F469 U+200D U+1F466
 //   \xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA6
 #define D_EMOJI_FAMILY_MAN_WOMAN_BOY             \
@@ -344,11 +349,11 @@
 #define D_EMOJI_ANIMAL_SKUNK                     "\xF0\x9F\xA6\xA8"  // U+1F9A8
 #define D_EMOJI_ANIMAL_KANGAROO                  "\xF0\x9F\xA6\x98"  // U+1F998
 #define D_EMOJI_ANIMAL_BADGER                    "\xF0\x9F\xA6\xA1"  // U+1F9A1
-// mammals (primates)                            
+// mammals (primates)
 #define D_EMOJI_MONKEY_SEE_NO_EVIL               "\xF0\x9F\x99\x88"  // U+1F648
 #define D_EMOJI_MONKEY_HEAR_NO_EVIL              "\xF0\x9F\x99\x89"  // U+1F649
 #define D_EMOJI_MONKEY_SPEAK_NO_EVIL             "\xF0\x9F\x99\x8A"  // U+1F64A
-// aquatic animals                               
+// aquatic animals
 #define D_EMOJI_ANIMAL_WHALE                     "\xF0\x9F\x90\xB3"  // U+1F433
 #define D_EMOJI_ANIMAL_SPERM_WHALE               "\xF0\x9F\x90\x8B"  // U+1F40B
 #define D_EMOJI_ANIMAL_DOLPHIN                   "\xF0\x9F\x90\xAC"  // U+1F42C
@@ -375,14 +380,14 @@
 #define D_EMOJI_ANIMAL_FLY                       "\xF0\x9F\xAA\xB0"  // U+1FAB0
 #define D_EMOJI_ANIMAL_WORM                      "\xF0\x9F\xAA\xB1"  // U+1FAB1
 #define D_EMOJI_ANIMAL_MICROBE                   "\xF0\x9F\xA6\xA0"  // U+1F9A0
-// marine life                                   
+// marine life
 #define D_EMOJI_ANIMAL_SHRIMP                    "\xF0\x9F\xA6\x90"  // U+1F990
 #define D_EMOJI_ANIMAL_SQUID                     "\xF0\x9F\xA6\x91"  // U+1F991
 #define D_EMOJI_ANIMAL_OYSTER                    "\xF0\x9F\xA6\xAA"  // U+1F9AA
 #define D_EMOJI_ANIMAL_CRAB                      "\xF0\x9F\xA6\x80"  // U+1F980
 #define D_EMOJI_ANIMAL_LOBSTER                   "\xF0\x9F\xA6\x9E"  // U+1F99E
 #define D_EMOJI_ANIMAL_JELLYFISH                 "\xF0\x9F\xAA\xBC"  // U+1FABC
-// birds                                         
+// birds
 #define D_EMOJI_ANIMAL_BIRD                      "\xF0\x9F\x90\xA6"  // U+1F426
 #define D_EMOJI_ANIMAL_BLACK_BIRD                "\xF0\x9F\x90\xA6\xE2\x80\x8D\xE2\xAC\x9B"  // U+1F426 U+200D U+2B1B
 #define D_EMOJI_ANIMAL_PENGUIN                   "\xF0\x9F\x90\xA7"  // U+1F427
@@ -402,36 +407,36 @@
 #define D_EMOJI_ANIMAL_HATCHING_CHICK            "\xF0\x9F\x90\xA3"  // U+1F423
 #define D_EMOJI_ANIMAL_BABY_CHICK                "\xF0\x9F\x90\xA4"  // U+1F424
 #define D_EMOJI_ANIMAL_FRONT_FACING_CHICK        "\xF0\x9F\x90\xA5"  // U+1F425
-// reptiles/amphibians                           
+// reptiles/amphibians
 #define D_EMOJI_ANIMAL_TURTLE                    "\xF0\x9F\x90\xA2"  // U+1F422
 #define D_EMOJI_ANIMAL_LIZARD                    "\xF0\x9F\xA6\x8E"  // U+1F98E
 #define D_EMOJI_ANIMAL_SNAKE                     "\xF0\x9F\x90\x8D"  // U+1F40D
 #define D_EMOJI_ANIMAL_DRAGON_FACE               "\xF0\x9F\x90\xB2"  // U+1F432
-#define D_EMOJI_ANIMAL_DRAGON                    "\xF0\x9F\x89"      // U+1F409
+#define D_EMOJI_ANIMAL_DRAGON                    "\xF0\x9F\x90\x89"  // U+1F409
 #define D_EMOJI_ANIMAL_SAUROPOD                  "\xF0\x9F\xA6\x95"  // U+1F995
 #define D_EMOJI_ANIMAL_T_REX                     "\xF0\x9F\xA6\x96"  // U+1F996
 #define D_EMOJI_ANIMAL_FROG                      "\xF0\x9F\x90\xB8"  // U+1F438
 #define D_EMOJI_ANIMAL_CROCODILE                 "\xF0\x9F\x90\x8A"  // U+1F40A
-// mythical/extinct                              
-#define D_EMOJI_ANIMAL_DRAGON_MYTHICAL           "\xF0\x9F\x89"      // U+1F409 (same as dragon, but in mythical context)
-// paw prints                                    
+// mythical/extinct
+#define D_EMOJI_ANIMAL_DRAGON_MYTHICAL           "\xF0\x9F\x90\x89"  // U+1F409 (same as dragon, but in mythical context)
+// paw prints
 #define D_EMOJI_ANIMAL_PAW_PRINTS                "\xF0\x9F\x90\xBE"  // U+1F43E
 
 // ============================================================================
 // NATURE EMOJIS
 // ============================================================================
 // weather/sky
-#define D_EMOJI_NATURE_SUN                       "\xE2\x98\x80"      // U+2600 
-#define D_EMOJI_NATURE_CLOUD                     "\xE2\x98\x81"      // U+2601 
-#define D_EMOJI_NATURE_UMBRELLA                  "\xE2\x98\x82"      // U+2602 
-#define D_EMOJI_NATURE_SNOWMAN                   "\xE2\x98\x83"      // U+2603 
-#define D_EMOJI_NATURE_COMET                     "\xE2\x98\x84"      // U+2604 
-#define D_EMOJI_NATURE_UMBRELLA_RAIN             "\xE2\x98\x94"      // U+2614 
-#define D_EMOJI_NATURE_HIGH_VOLTAGE              "\xE2\x9A\xA1"      // U+26A1 
-#define D_EMOJI_NATURE_SNOWFLAKE                 "\xE2\x9D\x84"      // U+2744 
-#define D_EMOJI_NATURE_SNOWMAN_NO_SNOW           "\xE2\x9B\x84"      // U+26C4 
-#define D_EMOJI_NATURE_SUN_BEHIND_CLOUD          "\xE2\x9B\x85"      // U+26C5 
-#define D_EMOJI_NATURE_THUNDER_CLOUD_RAIN        "\xE2\x9B\x88"      // U+26C8 
+#define D_EMOJI_NATURE_SUN                       "\xE2\x98\x80"      // U+2600
+#define D_EMOJI_NATURE_CLOUD                     "\xE2\x98\x81"      // U+2601
+#define D_EMOJI_NATURE_UMBRELLA                  "\xE2\x98\x82"      // U+2602
+#define D_EMOJI_NATURE_SNOWMAN                   "\xE2\x98\x83"      // U+2603
+#define D_EMOJI_NATURE_COMET                     "\xE2\x98\x84"      // U+2604
+#define D_EMOJI_NATURE_UMBRELLA_RAIN             "\xE2\x98\x94"      // U+2614
+#define D_EMOJI_NATURE_HIGH_VOLTAGE              "\xE2\x9A\xA1"      // U+26A1
+#define D_EMOJI_NATURE_SNOWFLAKE                 "\xE2\x9D\x84"      // U+2744
+#define D_EMOJI_NATURE_SNOWMAN_NO_SNOW           "\xE2\x9B\x84"      // U+26C4
+#define D_EMOJI_NATURE_SUN_BEHIND_CLOUD          "\xE2\x9B\x85"      // U+26C5
+#define D_EMOJI_NATURE_THUNDER_CLOUD_RAIN        "\xE2\x9B\x88"      // U+26C8
 #define D_EMOJI_NATURE_SUN_WITH_FACE             "\xF0\x9F\x8C\x9E"  // U+1F31E
 #define D_EMOJI_NATURE_CRESCENT_MOON             "\xF0\x9F\x8C\x99"  // U+1F319
 #define D_EMOJI_NATURE_FIRST_QUARTER_MOON        "\xF0\x9F\x8C\x9B"  // U+1F31B
@@ -445,10 +450,10 @@
 #define D_EMOJI_NATURE_WAXING_CRESCENT_MOON      "\xF0\x9F\x8C\x92"  // U+1F312
 #define D_EMOJI_NATURE_FIRST_QUARTER_MOON2       "\xF0\x9F\x8C\x93"  // U+1F313
 #define D_EMOJI_NATURE_WAXING_GIBBOUS_MOON       "\xF0\x9F\x8C\x94"  // U+1F314
-#define D_EMOJI_NATURE_STAR                      "\xE2\xAD\x90"      // U+2B50 
+#define D_EMOJI_NATURE_STAR                      "\xE2\xAD\x90"      // U+2B50
 #define D_EMOJI_NATURE_GLOWING_STAR              "\xF0\x9F\x8C\x9F"  // U+1F31F
 #define D_EMOJI_NATURE_DIZZY                     "\xF0\x9F\x92\xAB"  // U+1F4AB
-#define D_EMOJI_NATURE_SPARKLES                  "\xE2\x9C\xA8"      // U+2728 
+#define D_EMOJI_NATURE_SPARKLES                  "\xE2\x9C\xA8"      // U+2728
 #define D_EMOJI_NATURE_SHOOTING_STAR             "\xF0\x9F\x8C\xA0"  // U+1F320
 #define D_EMOJI_NATURE_MILKY_WAY                 "\xF0\x9F\x8C\x8C"  // U+1F30C
 #define D_EMOJI_NATURE_PARTLY_SUNNY              "\xF0\x9F\x8C\xA4"  // U+1F324
@@ -465,17 +470,17 @@
 #define D_EMOJI_NATURE_CLOSED_UMBRELLA           "\xF0\x9F\x8C\x82"  // U+1F302
 #define D_EMOJI_NATURE_DROPLET                   "\xF0\x9F\x92\xA7"  // U+1F4A7
 #define D_EMOJI_NATURE_SWEAT_DROPS               "\xF0\x9F\x92\xA6"  // U+1F4A6
-// fire/energy                                   
+// fire/energy
 #define D_EMOJI_NATURE_FIRE                      "\xF0\x9F\x94\xA5"  // U+1F525
 #define D_EMOJI_NATURE_COLLISION                 "\xF0\x9F\x92\xA5"  // U+1F4A5
 #define D_EMOJI_NATURE_LANDSLIDE                 "\xF0\x9F\x9B\x98"  // U+1F6D8
-// plants/trees                                  
+// plants/trees
 #define D_EMOJI_NATURE_EVERGREEN_TREE            "\xF0\x9F\x8C\xB2"  // U+1F332
 #define D_EMOJI_NATURE_DECIDUOUS_TREE            "\xF0\x9F\x8C\xB3"  // U+1F333
 #define D_EMOJI_NATURE_PALM_TREE                 "\xF0\x9F\x8C\xB4"  // U+1F334
 #define D_EMOJI_NATURE_CACTUS                    "\xF0\x9F\x8C\xB5"  // U+1F335
 #define D_EMOJI_NATURE_HERB                      "\xF0\x9F\x8C\xBF"  // U+1F33F
-#define D_EMOJI_NATURE_SHAMROCK                  "\xE2\x98\x98"      // U+2618 
+#define D_EMOJI_NATURE_SHAMROCK                  "\xE2\x98\x98"      // U+2618
 #define D_EMOJI_NATURE_FOUR_LEAF_CLOVER          "\xF0\x9F\x8D\x80"  // U+1F340
 #define D_EMOJI_NATURE_MAPLE_LEAF                "\xF0\x9F\x8D\x81"  // U+1F341
 #define D_EMOJI_NATURE_FALLEN_LEAVES             "\xF0\x9F\x8D\x82"  // U+1F342
@@ -483,7 +488,7 @@
 #define D_EMOJI_NATURE_MUSHROOM                  "\xF0\x9F\x8D\x84"  // U+1F344
 #define D_EMOJI_NATURE_EAR_OF_RICE               "\xF0\x9F\x8C\xBE"  // U+1F33E
 #define D_EMOJI_NATURE_SHEAF_OF_RICE             "\xF0\x9F\x8C\xBE"  // U+1F33E
-// flowers                                       
+// flowers
 #define D_EMOJI_NATURE_CHERRY_BLOSSOM            "\xF0\x9F\x8C\xB8"  // U+1F338
 #define D_EMOJI_NATURE_ROSE                      "\xF0\x9F\x8C\xB9"  // U+1F339
 #define D_EMOJI_NATURE_HIBISCUS                  "\xF0\x9F\x8C\xBA"  // U+1F33A
@@ -494,8 +499,8 @@
 #define D_EMOJI_NATURE_WILTED_FLOWER             "\xF0\x9F\xA5\x80"  // U+1F940
 #define D_EMOJI_NATURE_WHITE_FLOWER              "\xF0\x9F\x92\xAE"  // U+1F4AE
 #define D_EMOJI_NATURE_LOTUS_FLOWER              "\xF0\x9F\xAA\xB7"  // U+1FAB7
-// landscapes                                    
-#define D_EMOJI_NATURE_MOUNTAIN                  "\xE2\x9B\xB0"      // U+26F0 
+// landscapes
+#define D_EMOJI_NATURE_MOUNTAIN                  "\xE2\x9B\xB0"      // U+26F0
 #define D_EMOJI_NATURE_SNOW_CAPPED_MOUNTAIN      "\xF0\x9F\x8F\x94"  // U+1F3D4
 #define D_EMOJI_NATURE_VOLCANO                   "\xF0\x9F\x8C\x8B"  // U+1F30B
 #define D_EMOJI_NATURE_MOUNT_FUJI                "\xF0\x9F\x97\xBB"  // U+1F5FB
@@ -539,7 +544,7 @@
 #define D_EMOJI_FOOD_KIWI_FRUIT                  "\xF0\x9F\xA5\x9D"  // U+1F95D
 #define D_EMOJI_FOOD_AVOCADO                     "\xF0\x9F\xA5\x91"  // U+1F951
 #define D_EMOJI_FOOD_COCONUT                     "\xF0\x9F\xA5\xA5"  // U+1F965
-// vegetables                                    
+// vegetables
 #define D_EMOJI_FOOD_TOMATO                      "\xF0\x9F\x8D\x85"  // U+1F345
 #define D_EMOJI_FOOD_EGGPLANT                    "\xF0\x9F\x8D\x86"  // U+1F346
 #define D_EMOJI_FOOD_CARROT                      "\xF0\x9F\xA5\x95"  // U+1F955
@@ -553,7 +558,7 @@
 #define D_EMOJI_FOOD_ONION                       "\xF0\x9F\xA7\x85"  // U+1F9C5
 #define D_EMOJI_FOOD_POTATO                      "\xF0\x9F\xA5\x94"  // U+1F954
 #define D_EMOJI_FOOD_SWEET_POTATO                "\xF0\x9F\x8D\xA0"  // U+1F360
-// prepared foods                                
+// prepared foods
 #define D_EMOJI_FOOD_BREAD                       "\xF0\x9F\x8D\x9E"  // U+1F35E
 #define D_EMOJI_FOOD_CROISSANT                   "\xF0\x9F\xA5\x90"  // U+1F950
 #define D_EMOJI_FOOD_BAGUETTE_BREAD              "\xF0\x9F\xA5\x96"  // U+1F956
@@ -578,7 +583,7 @@
 #define D_EMOJI_FOOD_STUFFED_FLATBREAD           "\xF0\x9F\xA5\x99"  // U+1F959
 #define D_EMOJI_FOOD_FALAFEL                     "\xF0\x9F\xA7\x86"  // U+1F9C6
 #define D_EMOJI_FOOD_EGG                         "\xF0\x9F\xA5\x9A"  // U+1F95A
-// cooked dishes/rice                            
+// cooked dishes/rice
 #define D_EMOJI_FOOD_COOKED_RICE                 "\xF0\x9F\x8D\x9A"  // U+1F35A
 #define D_EMOJI_FOOD_RICE_BALL                   "\xF0\x9F\x8D\x99"  // U+1F359
 #define D_EMOJI_FOOD_RICE_CRACKER                "\xF0\x9F\x8D\x98"  // U+1F358
@@ -586,17 +591,17 @@
 #define D_EMOJI_FOOD_STEAMING_BOWL               "\xF0\x9F\x8D\x9C"  // U+1F35C
 #define D_EMOJI_FOOD_SPAGHETTI                   "\xF0\x9F\x8D\x9D"  // U+1F35D
 #define D_EMOJI_FOOD_POT_OF_FOOD                 "\xF0\x9F\x8D\xB2"  // U+1F372
-// seafood                                       
+// seafood
 #define D_EMOJI_FOOD_FRIED_SHRIMP                "\xF0\x9F\x8D\xA4"  // U+1F364
 #define D_EMOJI_FOOD_FISH_CAKE                   "\xF0\x9F\x8D\xA5"  // U+1F365
 #define D_EMOJI_FOOD_SUSHI                       "\xF0\x9F\x8D\xA3"  // U+1F363
 #define D_EMOJI_FOOD_BENTO_BOX                   "\xF0\x9F\x8D\xB1"  // U+1F371
-// snacks                                        
+// snacks
 #define D_EMOJI_FOOD_POPCORN                     "\xF0\x9F\x8D\xBF"  // U+1F37F
 #define D_EMOJI_FOOD_BUTTER                      "\xF0\x9F\xA7\x88"  // U+1F9C8
 #define D_EMOJI_FOOD_SALT                        "\xF0\x9F\xA7\x82"  // U+1F9C2
 #define D_EMOJI_FOOD_CANNED_FOOD                 "\xF0\x9F\xA5\xAB"  // U+1F96B
-// desserts/sweets                               
+// desserts/sweets
 #define D_EMOJI_FOOD_SOFT_ICE_CREAM              "\xF0\x9F\x8D\xA6"  // U+1F366
 #define D_EMOJI_FOOD_SHAVED_ICE                  "\xF0\x9F\x8D\xA7"  // U+1F367
 #define D_EMOJI_FOOD_ICE_CREAM                   "\xF0\x9F\x8D\xA8"  // U+1F368
@@ -614,7 +619,7 @@
 // beverages
 #define D_EMOJI_DRINK_BABY_BOTTLE                "\xF0\x9F\x8D\xBC"  // U+1F37C
 #define D_EMOJI_DRINK_GLASS_OF_MILK              "\xF0\x9F\xA5\x9B"  // U+1F95B
-#define D_EMOJI_DRINK_HOT_BEVERAGE               "\xE2\x98\x95"      // U+2615 
+#define D_EMOJI_DRINK_HOT_BEVERAGE               "\xE2\x98\x95"      // U+2615
 #define D_EMOJI_DRINK_TEAPOT                     "\xF0\x9F\xAB\x96"  // U+1FAD6
 #define D_EMOJI_DRINK_TEACUP_WITHOUT_HANDLE      "\xF0\x9F\x8D\xB5"  // U+1F375
 #define D_EMOJI_DRINK_SAKE                       "\xF0\x9F\x8D\xB6"  // U+1F376
@@ -641,10 +646,10 @@
 // emoji bytes (ASCII-only)
 // ============================================================================
 // ball sports
-#define D_EMOJI_SPORT_SOCCER_BALL                "\xE2\x9A\xBD"      // U+26BD 
+#define D_EMOJI_SPORT_SOCCER_BALL                "\xE2\x9A\xBD"      // U+26BD
 #define D_EMOJI_SPORT_BASKETBALL                 "\xF0\x9F\x8F\x80"  // U+1F3C0
 #define D_EMOJI_SPORT_AMERICAN_FOOTBALL          "\xF0\x9F\x8F\x88"  // U+1F3C8
-#define D_EMOJI_SPORT_BASEBALL                   "\xE2\x9A\xBE"      // U+26BE 
+#define D_EMOJI_SPORT_BASEBALL                   "\xE2\x9A\xBE"      // U+26BE
 #define D_EMOJI_SPORT_SOFTBALL                   "\xF0\x9F\xA5\x8E"  // U+1F94E
 #define D_EMOJI_SPORT_TENNIS                     "\xF0\x9F\x8E\xBE"  // U+1F3BE
 #define D_EMOJI_SPORT_VOLLEYBALL                 "\xF0\x9F\x8F\x90"  // U+1F3D0
@@ -655,12 +660,12 @@
 #define D_EMOJI_SPORT_FIELD_HOCKEY               "\xF0\x9F\x8F\x91"  // U+1F3D1
 #define D_EMOJI_SPORT_ICE_HOCKEY                 "\xF0\x9F\x8F\x92"  // U+1F3D2
 #define D_EMOJI_SPORT_CRICKET_GAME               "\xF0\x9F\x8F\x8F"  // U+1F3CF
-// water sports                                  
+// water sports
 #define D_EMOJI_SPORT_SWIMMING                   "\xF0\x9F\x8F\x8A"  // U+1F3CA
 #define D_EMOJI_SPORT_WATER_POLO                 "\xF0\x9F\xA4\xBD"  // U+1F93D
 #define D_EMOJI_SPORT_SURFING                    "\xF0\x9F\x8F\x84"  // U+1F3C4
 #define D_EMOJI_SPORT_ROWING_BOAT                "\xF0\x9F\x9A\xA3"  // U+1F6A3
-// track and field                               
+// track and field
 #define D_EMOJI_SPORT_RUNNING                    "\xF0\x9F\x8F\x83"  // U+1F3C3
 #define D_EMOJI_SPORT_WALKING                    "\xF0\x9F\x9A\xB6"  // U+1F6B6
 #define D_EMOJI_SPORT_RACING_CAR                 "\xF0\x9F\x8F\x8E"  // U+1F3CE
@@ -668,51 +673,51 @@
 #define D_EMOJI_SPORT_BICYCLE                    "\xF0\x9F\x9A\xB2"  // U+1F6B2
 #define D_EMOJI_SPORT_MOUNTAIN_BICYCLING         "\xF0\x9F\x9A\xB5"  // U+1F6B5
 #define D_EMOJI_SPORT_PERSON_BIKING              "\xF0\x9F\x9A\xB4"  // U+1F6B4
-// winter sports                                 
-#define D_EMOJI_SPORT_SKIER                      "\xE2\x9B\xB7"      // U+26F7 
+// winter sports
+#define D_EMOJI_SPORT_SKIER                      "\xE2\x9B\xB7"      // U+26F7
 #define D_EMOJI_SPORT_SNOWBOARDER                "\xF0\x9F\x8F\x82"  // U+1F3C2
-#define D_EMOJI_SPORT_ICE_SKATE                  "\xE2\x9B\xB8"      // U+26F8 
+#define D_EMOJI_SPORT_ICE_SKATE                  "\xE2\x9B\xB8"      // U+26F8
 #define D_EMOJI_SPORT_CURLING_STONE              "\xF0\x9F\xA5\x8C"  // U+1F94C
-// combat sports                                 
+// combat sports
 #define D_EMOJI_SPORT_BOXING_GLOVE               "\xF0\x9F\xA5\x8A"  // U+1F94A
 #define D_EMOJI_SPORT_MARTIAL_ARTS_UNIFORM       "\xF0\x9F\xA5\x8B"  // U+1F94B
 #define D_EMOJI_SPORT_FENCING                    "\xF0\x9F\xA4\xBA"  // U+1F93A
 #define D_EMOJI_SPORT_WRESTLING                  "\xF0\x9F\xA4\xBC"  // U+1F93C
-// gymnastics and acrobatics                     
+// gymnastics and acrobatics
 #define D_EMOJI_SPORT_GYMNASTICS                 "\xF0\x9F\xA4\xB8"  // U+1F938
 #define D_EMOJI_SPORT_JUGGLING                   "\xF0\x9F\xA4\xB9"  // U+1F939
-// target sports                                 
+// target sports
 #define D_EMOJI_SPORT_BOW_AND_ARROW              "\xF0\x9F\x8F\xB9"  // U+1F3F9
 #define D_EMOJI_SPORT_DIRECT_HIT                 "\xF0\x9F\x8E\xAF"  // U+1F3AF
-// climbing                                      
+// climbing
 #define D_EMOJI_SPORT_CLIMBING                   "\xF0\x9F\xA7\x97"  // U+1F9D7
-// golf                                          
-#define D_EMOJI_SPORT_GOLF                       "\xE2\x9B\xB3"      // U+26F3 
-#define D_EMOJI_SPORT_FLAG_IN_HOLE               "\xE2\x9B\xB3"      // U+26F3 
-// weightlifting                                 
+// golf
+#define D_EMOJI_SPORT_GOLF                       "\xE2\x9B\xB3"      // U+26F3
+#define D_EMOJI_SPORT_FLAG_IN_HOLE               "\xE2\x9B\xB3"      // U+26F3
+// weightlifting
 #define D_EMOJI_SPORT_WEIGHT_LIFTING             "\xF0\x9F\x8F\x8B"  // U+1F3CB
-// racing                                        
+// racing
 #define D_EMOJI_SPORT_AUTO_RACING                "\xF0\x9F\x8F\x81"  // U+1F3C1
 #define D_EMOJI_SPORT_HORSE_RACING               "\xF0\x9F\x8F\x87"  // U+1F3C7
-// entertainment sports                          
+// entertainment sports
 #define D_EMOJI_SPORT_BOWLING                    "\xF0\x9F\x8E\xB3"  // U+1F3B3
 #define D_EMOJI_SPORT_FLYING_DISC                "\xF0\x9F\xA5\x8F"  // U+1F94F
 #define D_EMOJI_SPORT_KITE                       "\xF0\x9F\xAA\x81"  // U+1FA81
 #define D_EMOJI_SPORT_YO_YO                      "\xF0\x9F\xAA\x80"  // U+1FA80
-// sports equipment                              
+// sports equipment
 #define D_EMOJI_SPORT_FISHING_POLE               "\xF0\x9F\x8E\xA3"  // U+1F3A3
 #define D_EMOJI_SPORT_SLED                       "\xF0\x9F\x9B\xB7"  // U+1F6F7
 #define D_EMOJI_SPORT_PARACHUTE                  "\xF0\x9F\xAA\x82"  // U+1FA82
-// awards and achievements                       
+// awards and achievements
 #define D_EMOJI_SPORT_TROPHY                     "\xF0\x9F\x8F\x86"  // U+1F3C6
 #define D_EMOJI_SPORT_MEDAL                      "\xF0\x9F\x8F\x85"  // U+1F3C5
 #define D_EMOJI_SPORT_FIRST_PLACE_MEDAL          "\xF0\x9F\xA5\x87"  // U+1F947
 #define D_EMOJI_SPORT_SECOND_PLACE_MEDAL         "\xF0\x9F\xA5\x88"  // U+1F948
 #define D_EMOJI_SPORT_THIRD_PLACE_MEDAL          "\xF0\x9F\xA5\x89"  // U+1F949
-// stadium and venues                            
+// stadium and venues
 #define D_EMOJI_SPORT_STADIUM                    "\xF0\x9F\x8F\x9F"  // U+1F3DF
 #define D_EMOJI_SPORT_COLOSSEUM                  "\xF0\x9F\x8F\x9B"  // U+1F3DB
-// fan items                                     
+// fan items
 #define D_EMOJI_TICKET                           "\xF0\x9F\x8E\xAB"  // U+1F3AB
 
 // ============================================================================
@@ -723,16 +728,16 @@
 #define D_EMOJI_MUSIC_VIOLIN                     "\xF0\x9F\x8E\xBB"  // U+1F3BB
 #define D_EMOJI_MUSIC_BANJO                      "\xF0\x9F\xAA\x95"  // U+1FA95
 #define D_EMOJI_MUSIC_LONG_DRUM                  "\xF0\x9F\xAA\x98"  // U+1FA98
-// wind instruments                              
+// wind instruments
 #define D_EMOJI_MUSIC_TRUMPET                    "\xF0\x9F\x8E\xBA"  // U+1F3BA
 #define D_EMOJI_MUSIC_SAXOPHONE                  "\xF0\x9F\x8E\xB7"  // U+1F3B7
 #define D_EMOJI_MUSIC_FLUTE                      "\xF0\x9F\xAA\x88"  // U+1FA88
 #define D_EMOJI_MUSIC_ACCORDION                  "\xF0\x9F\xAA\x97"  // U+1FA97
 #define D_EMOJI_MUSIC_TROMBONE                   "\xF0\x9F\xAA\x8A"  // U+1FA8A
-// percussion                                    
-#define D_EMOJI_MUSIC_DRUM                       "\xF0\x9F\x8E\xA5"  // U+1F3A5
+// percussion
+#define D_EMOJI_MUSIC_DRUM                       "\xF0\x9F\xA5\x81"  // U+1F941
 #define D_EMOJI_MUSIC_MUSICAL_KEYBOARD           "\xF0\x9F\x8E\xB9"  // U+1F3B9
-// audio equipment                               
+// audio equipment
 #define D_EMOJI_MUSIC_MICROPHONE                 "\xF0\x9F\x8E\xA4"  // U+1F3A4
 #define D_EMOJI_MUSIC_HEADPHONE                  "\xF0\x9F\x8E\xA7"  // U+1F3A7
 #define D_EMOJI_MUSIC_RADIO                      "\xF0\x9F\x93\xBB"  // U+1F4FB
@@ -741,11 +746,11 @@
 #define D_EMOJI_MUSIC_SPEAKER_LOW_VOLUME         "\xF0\x9F\x94\x88"  // U+1F508
 #define D_EMOJI_MUSIC_MUTED_SPEAKER              "\xF0\x9F\x94\x87"  // U+1F507
 #define D_EMOJI_MUSIC_POSTAL_HORN                "\xF0\x9F\x93\xAF"  // U+1F4EF
-// musical notation                              
+// musical notation
 #define D_EMOJI_MUSIC_MUSICAL_NOTE               "\xF0\x9F\x8E\xB5"  // U+1F3B5
 #define D_EMOJI_MUSIC_MUSICAL_NOTES              "\xF0\x9F\x8E\xB6"  // U+1F3B6
 #define D_EMOJI_MUSIC_MUSICAL_SCORE              "\xF0\x9F\x8E\xBC"  // U+1F3BC
-// entertainment                                 
+// entertainment
 #define D_EMOJI_MUSIC_CLAPPER_BOARD              "\xF0\x9F\x8E\xAC"  // U+1F3AC
 #define D_EMOJI_MUSIC_PERFORMING_ARTS            "\xF0\x9F\x8E\xAD"  // U+1F3AD
 
@@ -762,18 +767,18 @@
 #define D_EMOJI_TRANSPORT_ARTICULATED_LORRY      "\xF0\x9F\x9A\x9B"  // U+1F69B
 #define D_EMOJI_TRANSPORT_PICKUP_TRUCK           "\xF0\x9F\x9B\xBB"  // U+1F6FB
 #define D_EMOJI_TRANSPORT_SPORT_UTILITY_VEHICLE  "\xF0\x9F\x9A\x99"  // U+1F699
-// emergency vehicles                            
+// emergency vehicles
 #define D_EMOJI_TRANSPORT_FIRE_ENGINE            "\xF0\x9F\x9A\x92"  // U+1F692
 #define D_EMOJI_TRANSPORT_POLICE_CAR             "\xF0\x9F\x9A\x93"  // U+1F693
 #define D_EMOJI_TRANSPORT_AMBULANCE              "\xF0\x9F\x9A\x91"  // U+1F691
-// construction vehicles                         
+// construction vehicles
 #define D_EMOJI_TRANSPORT_TRACTOR                "\xF0\x9F\x9A\x9C"  // U+1F69C
 #define D_EMOJI_TRANSPORT_EXCAVATOR              "\xF0\x9F\x9A\x9C"  // U+1F69C
-// two-wheeled vehicles                          
+// two-wheeled vehicles
 #define D_EMOJI_TRANSPORT_MOTOR_SCOOTER          "\xF0\x9F\x9B\xB5"  // U+1F6F5
 #define D_EMOJI_TRANSPORT_MANUAL_WHEELCHAIR      "\xF0\x9F\xA6\xBD"  // U+1F9BD
 #define D_EMOJI_TRANSPORT_MOTORIZED_WHEELCHAIR   "\xF0\x9F\xA6\xBC"  // U+1F9BC
-// rail transport                                
+// rail transport
 #define D_EMOJI_TRANSPORT_TRAIN                  "\xF0\x9F\x9A\x8B"  // U+1F68B
 #define D_EMOJI_TRANSPORT_METRO                  "\xF0\x9F\x9A\x87"  // U+1F687
 #define D_EMOJI_TRANSPORT_LIGHT_RAIL             "\xF0\x9F\x9A\x88"  // U+1F688
@@ -785,34 +790,34 @@
 #define D_EMOJI_TRANSPORT_RAILWAY_CAR            "\xF0\x9F\x9A\x83"  // U+1F683
 #define D_EMOJI_TRANSPORT_HIGH_SPEED_TRAIN       "\xF0\x9F\x9A\x84"  // U+1F684
 #define D_EMOJI_TRANSPORT_BULLET_TRAIN           "\xF0\x9F\x9A\x85"  // U+1F685
-// air transport                                 
-#define D_EMOJI_TRANSPORT_AIRPLANE               "\xE2\x9C\x88"      // U+2708 
+// air transport
+#define D_EMOJI_TRANSPORT_AIRPLANE               "\xE2\x9C\x88"      // U+2708
 #define D_EMOJI_TRANSPORT_SMALL_AIRPLANE         "\xF0\x9F\x9B\xA9"  // U+1F6E9
 #define D_EMOJI_TRANSPORT_AIRPLANE_DEPARTURE     "\xF0\x9F\x9B\xAB"  // U+1F6EB
 #define D_EMOJI_TRANSPORT_AIRPLANE_ARRIVAL       "\xF0\x9F\x9B\xAC"  // U+1F6EC
 #define D_EMOJI_TRANSPORT_HELICOPTER             "\xF0\x9F\x9A\x81"  // U+1F681
 #define D_EMOJI_TRANSPORT_SEAT                   "\xF0\x9F\x92\xBA"  // U+1F4BA
-// water transport                               
+// water transport
 #define D_EMOJI_TRANSPORT_SHIP                   "\xF0\x9F\x9A\xA2"  // U+1F6A2
 #define D_EMOJI_TRANSPORT_SPEEDBOAT              "\xF0\x9F\x9A\xA4"  // U+1F6A4
 #define D_EMOJI_TRANSPORT_PASSENGER_SHIP         "\xF0\x9F\x9B\xB3"  // U+1F6F3
-#define D_EMOJI_TRANSPORT_FERRY                  "\xE2\x9B\xB4"      // U+26F4 
+#define D_EMOJI_TRANSPORT_FERRY                  "\xE2\x9B\xB4"      // U+26F4
 #define D_EMOJI_TRANSPORT_MOTOR_BOAT             "\xF0\x9F\x9B\xA5"  // U+1F6E5
-#define D_EMOJI_TRANSPORT_SAILBOAT               "\xE2\x9B\xB5"      // U+26F5 
+#define D_EMOJI_TRANSPORT_SAILBOAT               "\xE2\x9B\xB5"      // U+26F5
 #define D_EMOJI_TRANSPORT_CANOE                  "\xF0\x9F\x9B\xB6"  // U+1F6F6
 // infrastructure
-#define D_EMOJI_TRANSPORT_FUEL_PUMP              "\xE2\x9B\xBD"      // U+26FD 
+#define D_EMOJI_TRANSPORT_FUEL_PUMP              "\xE2\x9B\xBD"      // U+26FD
 #define D_EMOJI_TRANSPORT_BUS_STOP               "\xF0\x9F\x9A\x8F"  // U+1F68F
 #define D_EMOJI_TRANSPORT_TRAFFIC_LIGHT_VERT     "\xF0\x9F\x9A\xA6"  // U+1F6A6
 #define D_EMOJI_TRANSPORT_TRAFFIC_LIGHT_HORIZ    "\xF0\x9F\x9A\xA5"  // U+1F6A5
 #define D_EMOJI_TRANSPORT_CONSTRUCTION           "\xF0\x9F\x9A\xA7"  // U+1F6A7
-#define D_EMOJI_TRANSPORT_ANCHOR                 "\xE2\x9A\x93"      // U+2693 
+#define D_EMOJI_TRANSPORT_ANCHOR                 "\xE2\x9A\x93"      // U+2693
 #define D_EMOJI_TRANSPORT_BRIDGE_AT_NIGHT        "\xF0\x9F\x8C\x89"  // U+1F309
-// space transportation                          
+// space transportation
 #define D_EMOJI_TRANSPORT_ROCKET                 "\xF0\x9F\x9A\x80"  // U+1F680
 #define D_EMOJI_TRANSPORT_FLYING_SAUCER          "\xF0\x9F\x9B\xB8"  // U+1F6F8
 #define D_EMOJI_TRANSPORT_SATELLITE              "\xF0\x9F\x9B\xB0"  // U+1F6F0
-// other transportation                          
+// other transportation
 #define D_EMOJI_TRANSPORT_AUTO_RICKSHAW          "\xF0\x9F\x9B\xBA"  // U+1F6FA
 #define D_EMOJI_TRANSPORT_KICK_SCOOTER           "\xF0\x9F\x9B\xB4"  // U+1F6F4
 
@@ -840,7 +845,7 @@
 #define D_EMOJI_PLACE_TOKYO_TOWER                "\xF0\x9F\x97\xBC"  // U+1F5FC
 #define D_EMOJI_PLACE_STATUE_OF_LIBERTY          "\xF0\x9F\x97\xBD"  // U+1F5FD
 // religious buildings
-#define D_EMOJI_CHURCH                           "\xE2\x9B\xAA"      // U+26EA 
+#define D_EMOJI_CHURCH                           "\xE2\x9B\xAA"      // U+26EA
 #define D_EMOJI_MOSQUE                           "\xF0\x9F\x95\x8C"  // U+1F54C
 #define D_EMOJI_HINDU_TEMPLE                     "\xF0\x9F\x9B\x95"  // U+1F6D5
 #define D_EMOJI_SYNAGOGUE                        "\xF0\x9F\x95\x8D"  // U+1F54D
@@ -851,30 +856,30 @@
 #define D_EMOJI_SUNRISE                          "\xF0\x9F\x8C\x85"  // U+1F305
 #define D_EMOJI_NIGHT_WITH_STARS                 "\xF0\x9F\x8C\x83"  // U+1F303
 #define D_EMOJI_SUNSET                           "\xF0\x9F\x8C\x87"  // U+1F307
-// entertainment venues                          
+// entertainment venues
 #define D_EMOJI_CIRCUS_TENT                      "\xF0\x9F\x8E\xAA"  // U+1F3AA
 #define D_EMOJI_FERRIS_WHEEL                     "\xF0\x9F\x8E\xA1"  // U+1F3A1
 #define D_EMOJI_ROLLER_COASTER                   "\xF0\x9F\x8E\xA2"  // U+1F3A2
 #define D_EMOJI_CAROUSEL_HORSE                   "\xF0\x9F\x8E\xA0"  // U+1F3A0
-// transportation hubs                           
+// transportation hubs
 #define D_EMOJI_RAILWAY_TRACK                    "\xF0\x9F\x9B\xA4"  // U+1F6E4
 #define D_EMOJI_MOTORWAY                         "\xF0\x9F\x9B\xA3"  // U+1F6E3
 #define D_EMOJI_AIRPORT                          "\xF0\x9F\x9B\xAC"  // U+1F6EC
-// outdoor/camping                               
-#define D_EMOJI_TENT                             "\xE2\x9B\xBA"      // U+26FA 
+// outdoor/camping
+#define D_EMOJI_TENT                             "\xE2\x9B\xBA"      // U+26FA
 #define D_EMOJI_HUT                              "\xF0\x9F\x9B\x96"  // U+1F6D6
-// maps/navigation                               
+// maps/navigation
 #define D_EMOJI_WORLD_MAP                        "\xF0\x9F\x97\xBA"  // U+1F5FA
 #define D_EMOJI_JAPAN_MAP                        "\xF0\x9F\x97\xBE"  // U+1F5FE
 #define D_EMOJI_COMPASS                          "\xF0\x9F\xA7\xAD"  // U+1F9ED
-// signage/markers                               
+// signage/markers
 #define D_EMOJI_ROUND_PUSHPIN                    "\xF0\x9F\x93\x8D"  // U+1F4CD
 #define D_EMOJI_PUSHPIN                          "\xF0\x9F\x93\x8C"  // U+1F4CC
 #define D_EMOJI_TRIANGULAR_FLAG                  "\xF0\x9F\x9A\xA9"  // U+1F6A9
 #define D_EMOJI_CROSSED_FLAGS                    "\xF0\x9F\x8E\x8C"  // U+1F38C
 #define D_EMOJI_BLACK_FLAG                       "\xF0\x9F\x8F\xB4"  // U+1F3F4
 #define D_EMOJI_WHITE_FLAG                       "\xF0\x9F\x8F\xB3"  // U+1F3F3
-// time/schedules                                
+// time/schedules
 #define D_EMOJI_CLOCK_TWELVE                     "\xF0\x9F\x95\x9B"  // U+1F55B
 #define D_EMOJI_CLOCK_ONE                        "\xF0\x9F\x95\x90"  // U+1F550
 #define D_EMOJI_CLOCK_TWO                        "\xF0\x9F\x95\x91"  // U+1F551
@@ -888,8 +893,8 @@
 #define D_EMOJI_CLOCK_TEN                        "\xF0\x9F\x95\x99"  // U+1F559
 #define D_EMOJI_CLOCK_ELEVEN                     "\xF0\x9F\x95\x9A"  // U+1F55A
 #define D_EMOJI_CLOCK_TWELVE_THIRTY              "\xF0\x9F\x95\xA7"  // U+1F567
-#define D_EMOJI_CLOCK_ONE_THIRTY                 "\xF0\x9F\x95\x9C"  // U+1F55C 
-#define D_EMOJI_CLOCK_TWO_THIRTY                 "\xF0\x9F\x95\x9D"  // U+1F55D 
+#define D_EMOJI_CLOCK_ONE_THIRTY                 "\xF0\x9F\x95\x9C"  // U+1F55C
+#define D_EMOJI_CLOCK_TWO_THIRTY                 "\xF0\x9F\x95\x9D"  // U+1F55D
 #define D_EMOJI_CLOCK_THREE_THIRTY               "\xF0\x9F\x95\x9E"  // U+1F55E
 #define D_EMOJI_CLOCK_FOUR_THIRTY                "\xF0\x9F\x95\x9F"  // U+1F55F
 #define D_EMOJI_CLOCK_FIVE_THIRTY                "\xF0\x9F\x95\xA0"  // U+1F560
@@ -902,19 +907,19 @@
 // weather symbols
 #define D_EMOJI_THERMOMETER                      "\xF0\x9F\x8C\xA1"  // U+1F321
 #define D_EMOJI_BEACH_WITH_UMBRELLA              "\xF0\x9F\x8F\x96"  // U+1F3D6
-// international/cultural                                                  
+// international/cultural
 #define D_EMOJI_KAABA                            "\xF0\x9F\x95\x8B"  // U+1F54B
-#define D_EMOJI_FOUNTAIN                         "\xE2\x9B\xB2"      // U+26F2 
-#define D_EMOJI_SHINTO_SHRINE                    "\xE2\x9B\xA9"      // U+26E9 
-// travel documents/currency                                               
+#define D_EMOJI_FOUNTAIN                         "\xE2\x9B\xB2"      // U+26F2
+#define D_EMOJI_SHINTO_SHRINE                    "\xE2\x9B\xA9"      // U+26E9
+// travel documents/currency
 #define D_EMOJI_PASSPORT_CONTROL                 "\xF0\x9F\x9B\x82"  // U+1F6C2
 #define D_EMOJI_CUSTOMS                          "\xF0\x9F\x9B\x83"  // U+1F6C3
 #define D_EMOJI_BAGGAGE_CLAIM                    "\xF0\x9F\x9B\x84"  // U+1F6C4
 #define D_EMOJI_LEFT_LUGGAGE                     "\xF0\x9F\x9B\x85"  // U+1F6C5
-// accommodation                                                               
+// accommodation
 #define D_EMOJI_CLASSICAL_BUILDING               "\xF0\x9F\x8F\x9B"  // U+1F3DB
 #define D_EMOJI_DERELICT_HOUSE                   "\xF0\x9F\x8F\x9A"  // U+1F3DA
-// modern buildings                                                            
+// modern buildings
 #define D_EMOJI_BUILDING_CONSTRUCTION            "\xF0\x9F\x8F\x97"  // U+1F3D7
 #define D_EMOJI_HOUSES                           "\xF0\x9F\x8F\x98"  // U+1F3D8
 
@@ -936,24 +941,24 @@
 #define D_EMOJI_OBJECT_SOAP                      "\xF0\x9F\xA7\xBC"  // U+1F9FC
 #define D_EMOJI_OBJECT_SPONGE                    "\xF0\x9F\xA7\xBD"  // U+1F9FD
 // tools/hardware
-#define D_EMOJI_OBJECT_HAMMER                    "\xF0\x9F\x94\x88"  // U+1F528
-#define D_EMOJI_OBJECT_PICK                      "\xE2\x9B\x8F"      // U+26CF 
-#define D_EMOJI_OBJECT_HAMMER_AND_PICK           "\xE2\x9A\x92"      // U+2692 
+#define D_EMOJI_OBJECT_HAMMER                    "\xF0\x9F\x94\xA8"  // U+1F528
+#define D_EMOJI_OBJECT_PICK                      "\xE2\x9B\x8F"      // U+26CF
+#define D_EMOJI_OBJECT_HAMMER_AND_PICK           "\xE2\x9A\x92"      // U+2692
 #define D_EMOJI_OBJECT_HAMMER_AND_WRENCH         "\xF0\x9F\x9B\xA0"  // U+1F6E0
 #define D_EMOJI_OBJECT_DAGGER                    "\xF0\x9F\x97\xA1"  // U+1F5E1
-#define D_EMOJI_OBJECT_CROSSED_SWORDS            "\xE2\x9A\x94"      // U+2694 
+#define D_EMOJI_OBJECT_CROSSED_SWORDS            "\xE2\x9A\x94"      // U+2694
 #define D_EMOJI_OBJECT_PISTOL                    "\xF0\x9F\x94\xAB"  // U+1F52B
 #define D_EMOJI_OBJECT_BOW_AND_ARROW_TOOL        "\xF0\x9F\x8F\xB9"  // U+1F3F9
 #define D_EMOJI_OBJECT_SHIELD                    "\xF0\x9F\x9B\xA1"  // U+1F6E1
 #define D_EMOJI_OBJECT_WRENCH                    "\xF0\x9F\x94\xA7"  // U+1F527
 #define D_EMOJI_OBJECT_NUT_AND_BOLT              "\xF0\x9F\x94\xA9"  // U+1F529
-#define D_EMOJI_OBJECT_GEAR                      "\xE2\x9A\x99"      // U+2699 
+#define D_EMOJI_OBJECT_GEAR                      "\xE2\x9A\x99"      // U+2699
 #define D_EMOJI_OBJECT_CLAMP                     "\xF0\x9F\x97\x9C"  // U+1F5DC
-#define D_EMOJI_OBJECT_BALANCE_SCALE             "\xE2\x9A\x96"      // U+2696 
+#define D_EMOJI_OBJECT_BALANCE_SCALE             "\xE2\x9A\x96"      // U+2696
 #define D_EMOJI_OBJECT_TREASURE_CHEST            "\xF0\x9F\xAA\x8E"  // U+1FA8E
 // technology/electronics
 #define D_EMOJI_OBJECT_MOBILE_PHONE              "\xF0\x9F\x93\xB1"  // U+1F4F1
-#define D_EMOJI_OBJECT_TELEPHONE                 "\xE2\x98\x8E"      // U+260E 
+#define D_EMOJI_OBJECT_TELEPHONE                 "\xE2\x98\x8E"      // U+260E
 #define D_EMOJI_OBJECT_TELEPHONE_RECEIVER        "\xF0\x9F\x93\x9E"  // U+1F4DE
 #define D_EMOJI_OBJECT_PAGER                     "\xF0\x9F\x93\x9F"  // U+1F4DF
 #define D_EMOJI_OBJECT_FAX_MACHINE               "\xF0\x9F\x93\xA0"  // U+1F4E0
@@ -962,7 +967,7 @@
 #define D_EMOJI_OBJECT_LAPTOP_COMPUTER           "\xF0\x9F\x92\xBB"  // U+1F4BB
 #define D_EMOJI_OBJECT_DESKTOP_COMPUTER          "\xF0\x9F\x96\xA5"  // U+1F5A5
 #define D_EMOJI_OBJECT_PRINTER                   "\xF0\x9F\x96\xA8"  // U+1F5A8
-#define D_EMOJI_OBJECT_KEYBOARD                  "\xE2\x8C\xA8"      // U+2328 
+#define D_EMOJI_OBJECT_KEYBOARD                  "\xE2\x8C\xA8"      // U+2328
 #define D_EMOJI_OBJECT_COMPUTER_MOUSE            "\xF0\x9F\x96\xB1"  // U+1F5B1
 #define D_EMOJI_OBJECT_TRACKBALL                 "\xF0\x9F\x96\xB2"  // U+1F5B2
 #define D_EMOJI_OBJECT_JOYSTICK                  "\xF0\x9F\x95\xB9"  // U+1F579
@@ -978,8 +983,8 @@
 #define D_EMOJI_OBJECT_TELEVISION                "\xF0\x9F\x93\xBA"  // U+1F4FA
 // office supplies
 #define D_EMOJI_OBJECT_MEMO                      "\xF0\x9F\x93\x9D"  // U+1F4DD
-#define D_EMOJI_OBJECT_PENCIL                    "\xE2\x9C\x8F"      // U+270F 
-#define D_EMOJI_OBJECT_BLACK_NIB                 "\xE2\x9C\x92"      // U+2712 
+#define D_EMOJI_OBJECT_PENCIL                    "\xE2\x9C\x8F"      // U+270F
+#define D_EMOJI_OBJECT_BLACK_NIB                 "\xE2\x9C\x92"      // U+2712
 #define D_EMOJI_OBJECT_FOUNTAIN_PEN              "\xF0\x9F\x96\x8B"  // U+1F58B
 #define D_EMOJI_OBJECT_PEN                       "\xF0\x9F\x96\x8A"  // U+1F58A
 #define D_EMOJI_OBJECT_PAINTBRUSH                "\xF0\x9F\x96\x8C"  // U+1F58C
@@ -1019,15 +1024,15 @@
 #define D_EMOJI_OBJECT_GRADUATION_CAP            "\xF0\x9F\x8E\x93"  // U+1F393
 //    (needed for ballet dancer sequence)
 #define D_EMOJI_OBJECT_BALLET_SHOES              "\xF0\x9F\xA9\xB0"  // U+1FA70
-// medical/healthcare 
+// medical/healthcare
 #define D_EMOJI_OBJECT_PILL                      "\xF0\x9F\x92\x8A"  // U+1F48A
 #define D_EMOJI_OBJECT_SYRINGE                   "\xF0\x9F\x92\x89"  // U+1F489
 #define D_EMOJI_OBJECT_THERMOMETER_MEDICAL       "\xF0\x9F\x8C\xA1"  // U+1F321
 #define D_EMOJI_OBJECT_ADHESIVE_BANDAGE          "\xF0\x9F\xA9\xB9"  // U+1FA79
 #define D_EMOJI_OBJECT_STETHOSCOPE               "\xF0\x9F\xA9\xBA"  // U+1FA7A
-// lighting                                      
+// lighting
 #define D_EMOJI_OBJECT_ELECTRIC_LIGHT_BULB       "\xF0\x9F\x92\xA1"  // U+1F4A1
-#define D_EMOJI_OBJECT_FLASHLIGHT                "\xF0\x9F\x94\x86"  // U+1F526
+#define D_EMOJI_OBJECT_FLASHLIGHT                "\xF0\x9F\x94\xA6"  // U+1F526
 #define D_EMOJI_OBJECT_CANDLE                    "\xF0\x9F\x95\xAF"  // U+1F56F
 #define D_EMOJI_OBJECT_FIRE_EXTINGUISHER         "\xF0\x9F\xA7\xAF"  // U+1F9EF
 // books/media
@@ -1041,36 +1046,36 @@
 #define D_EMOJI_OBJECT_BOOK_BLUE                 "\xF0\x9F\x93\x98"  // U+1F4D8
 #define D_EMOJI_OBJECT_BOOK_ORANGE               "\xF0\x9F\x93\x99"  // U+1F4D9
 #define D_EMOJI_OBJECT_BOOKS                     "\xF0\x9F\x93\x9A"  // U+1F4DA
-#define D_EMOJI_OBJECT_BOOKS                     "\xF0\x9F\x93\x9B"  // U+1F4DA
+#define D_EMOJI_OBJECT_NAME_BADGE                "\xF0\x9F\x93\x9B"  // U+1F4DB
 #define D_EMOJI_OBJECT_NEWSPAPER                 "\xF0\x9F\x93\xB0"  // U+1F4F0
 #define D_EMOJI_OBJECT_ROLLED_UP_NEWSPAPER       "\xF0\x9F\x97\x9E"  // U+1F5DE
 #define D_EMOJI_OBJECT_BOOKMARK                  "\xF0\x9F\x94\x96"  // U+1F516
 #define D_EMOJI_OBJECT_SCROLL                    "\xF0\x9F\x93\x9C"  // U+1F4DC
-// games/toys                                    
+// games/toys
 #define D_EMOJI_OBJECT_GAME_DIE                  "\xF0\x9F\x8E\xB2"  // U+1F3B2
 #define D_EMOJI_OBJECT_JIGSAW                    "\xF0\x9F\xA7\xA9"  // U+1F9E9
 #define D_EMOJI_OBJECT_TEDDY_BEAR                "\xF0\x9F\xA7\xB8"  // U+1F9F8
 #define D_EMOJI_OBJECT_PLAYING_CARD_BLACK_JOKER  "\xF0\x9F\x83\x8F"  // U+1F0CF
 #define D_EMOJI_OBJECT_MAHJONG_TILE_RED_DRAGON   "\xF0\x9F\x80\x84"  // U+1F004
 #define D_EMOJI_OBJECT_CHESS_PAWN                "\xE2\x99\x9F"      // U+265F
-// money/finance                                 
+// money/finance
 #define D_EMOJI_OBJECT_MONEY_BAG                 "\xF0\x9F\x92\xB0"  // U+1F4B0
 #define D_EMOJI_OBJECT_COIN                      "\xF0\x9F\xAA\x99"  // U+1FA99
 #define D_EMOJI_OBJECT_BANKNOTE_DOLLAR_SIGN      "\xF0\x9F\x92\xB5"  // U+1F4B5
 #define D_EMOJI_OBJECT_BANKNOTE_YEN_SIGN         "\xF0\x9F\x92\xB4"  // U+1F4B4
 #define D_EMOJI_OBJECT_BANKNOTE_EURO_SIGN        "\xF0\x9F\x92\xB6"  // U+1F4B6
 #define D_EMOJI_OBJECT_BANKNOTE_POUND_SIGN       "\xF0\x9F\x92\xB7"  // U+1F4B7
-#define D_EMOJI_OBJECT_CREDIT_CARD               "\xF0\x9F\x92\xB3"  // U+1F4B3 
-#define D_EMOJI_OBJECT_CHART_UPWARDS_TREND       "\xF0\x9F\x93\x88"  // U+1F4C8 
-#define D_EMOJI_OBJECT_CHART_DOWNWARDS_TREND     "\xF0\x9F\x93\x89" // U+1F4C9 
+#define D_EMOJI_OBJECT_CREDIT_CARD               "\xF0\x9F\x92\xB3"  // U+1F4B3
+#define D_EMOJI_OBJECT_CHART_UPWARDS_TREND       "\xF0\x9F\x93\x88"  // U+1F4C8
+#define D_EMOJI_OBJECT_CHART_DOWNWARDS_TREND     "\xF0\x9F\x93\x89" // U+1F4C9
 // containers/storage
 #define D_EMOJI_OBJECT_TOOLBOX                   "\xF0\x9F\xA7\xB0"  // U+1F9F0
 #define D_EMOJI_OBJECT_CARDBOARD_BOX             "\xF0\x9F\x93\xA6"  // U+1F4E6
-// arts/crafts                                   
+// arts/crafts
 #define D_EMOJI_OBJECT_ARTIST_PALETTE            "\xF0\x9F\x8E\xA8"  // U+1F3A8
 #define D_EMOJI_OBJECT_THREAD                    "\xF0\x9F\xA7\xB5"  // U+1F9F5
 #define D_EMOJI_OBJECT_YARN                      "\xF0\x9F\xA7\xB6"  // U+1F9F6
-// 
+//
 #define D_EMOJI_PAGE_FACING_UP                   "\xF0\x9F\x93\x84"  // U+1F4C4
 #define D_EMOJI_FILE_FOLDER                      "\xF0\x9F\x93\x81"  // U+1F4C1
 #define D_EMOJI_PARTY_POPPER                     "\xF0\x9F\x8E\x89"  // U+1F389
@@ -1080,7 +1085,7 @@
 // SYMBOL EMOJIS
 // ============================================================================
 // hearts/love
-#define D_EMOJI_SYMBOL_HEART_RED                 "\xE2\x9D\xA4"      // U+2764 
+#define D_EMOJI_SYMBOL_HEART_RED                 "\xE2\x9D\xA4"      // U+2764
 #define D_EMOJI_SYMBOL_HEART_ORANGE              "\xF0\x9F\xA7\xA1"  // U+1F9E1
 #define D_EMOJI_SYMBOL_HEART_YELLOW              "\xF0\x9F\x92\x9B"  // U+1F49B
 #define D_EMOJI_SYMBOL_HEART_GREEN               "\xF0\x9F\x92\x9A"  // U+1F49A
@@ -1090,7 +1095,7 @@
 #define D_EMOJI_SYMBOL_HEART_WHITE               "\xF0\x9F\xA4\x8D"  // U+1F90D
 #define D_EMOJI_SYMBOL_HEART_BROWN               "\xF0\x9F\xA4\x8E"  // U+1F90E
 #define D_EMOJI_SYMBOL_HEART_BROKEN              "\xF0\x9F\x92\x94"  // U+1F494
-#define D_EMOJI_SYMBOL_HEART_EXCLAMATION         "\xE2\x9D\xA3"      // U+2763 
+#define D_EMOJI_SYMBOL_HEART_EXCLAMATION         "\xE2\x9D\xA3"      // U+2763
 #define D_EMOJI_SYMBOL_HEARTS_DOUBLE             "\xF0\x9F\x92\x95"  // U+1F495
 #define D_EMOJI_SYMBOL_HEART_REVOLVING           "\xF0\x9F\x92\x9E"  // U+1F49E
 #define D_EMOJI_SYMBOL_HEART_BEATING             "\xF0\x9F\x92\x93"  // U+1F493
@@ -1099,7 +1104,7 @@
 #define D_EMOJI_SYMBOL_HEART_WITH_ARROW          "\xF0\x9F\x92\x98"  // U+1F498
 #define D_EMOJI_SYMBOL_HEART_WITH_RIBBON         "\xF0\x9F\x92\x9D"  // U+1F49D
 #define D_EMOJI_SYMBOL_HEART_DECORATION          "\xF0\x9F\x92\x9F"  // U+1F49F
-// arrows                                        
+// arrows
 #define D_EMOJI_SYMBOL_ARROW_LEFT                "\xE2\xAC\x85"      // U+2B05
 #define D_EMOJI_SYMBOL_ARROW_UP                  "\xE2\xAC\x86"      // U+2B06
 #define D_EMOJI_SYMBOL_ARROW_RIGHT               "\xE2\x9E\xA1"      // U+27A1
@@ -1125,8 +1130,8 @@
 #define D_EMOJI_SHAPE_CIRCLE_BLUE                "\xF0\x9F\x94\xB5"  // U+1F535
 #define D_EMOJI_SHAPE_CIRCLE_PURPLE              "\xF0\x9F\x9F\xA3"  // U+1F7E3
 #define D_EMOJI_SHAPE_CIRCLE_BROWN               "\xF0\x9F\x9F\xA4"  // U+1F7E4
-#define D_EMOJI_SHAPE_CIRCLE_BLACK               "\xE2\x9A\xAB"      // U+26AB 
-#define D_EMOJI_SHAPE_CIRCLE_WHITE               "\xE2\x9A\xAA"      // U+26AA 
+#define D_EMOJI_SHAPE_CIRCLE_BLACK               "\xE2\x9A\xAB"      // U+26AB
+#define D_EMOJI_SHAPE_CIRCLE_WHITE               "\xE2\x9A\xAA"      // U+26AA
 #define D_EMOJI_SHAPE_SQUARE_RED                 "\xF0\x9F\x9F\xA5"  // U+1F7E5
 #define D_EMOJI_SHAPE_SQUARE_ORANGE              "\xF0\x9F\x9F\xA7"  // U+1F7E7
 #define D_EMOJI_SHAPE_SQUARE_YELLOW              "\xF0\x9F\x9F\xA8"  // U+1F7E8
@@ -1134,17 +1139,17 @@
 #define D_EMOJI_SHAPE_SQUARE_BLUE                "\xF0\x9F\x9F\xA6"  // U+1F7E6
 #define D_EMOJI_SHAPE_SQUARE_PURPLE              "\xF0\x9F\x9F\xAA"  // U+1F7EA
 #define D_EMOJI_SHAPE_SQUARE_BROWN               "\xF0\x9F\x9F\xAB"  // U+1F7EB
-#define D_EMOJI_SHAPE_SQUARE_BLACK_LARGE         "\xE2\xAC\x9B"      // U+2B1B 
-#define D_EMOJI_SHAPE_SQUARE_WHITE_LARGE         "\xE2\xAC\x9C"      // U+2B1C 
-#define D_EMOJI_SHAPE_SQUARE_BLACK_MEDIUM        "\xE2\x97\xBC"      // U+25FC 
-#define D_EMOJI_SHAPE_SQUARE_WHITE_MEDIUM        "\xE2\x97\xBB"      // U+25FB 
-#define D_EMOJI_SHAPE_SQUARE_BLACK_SMALL         "\xE2\x96\xAA"      // U+25AA 
-#define D_EMOJI_SHAPE_SQUARE_WHITE_SMALL         "\xE2\x96\xAB"      // U+25AB 
+#define D_EMOJI_SHAPE_SQUARE_BLACK_LARGE         "\xE2\xAC\x9B"      // U+2B1B
+#define D_EMOJI_SHAPE_SQUARE_WHITE_LARGE         "\xE2\xAC\x9C"      // U+2B1C
+#define D_EMOJI_SHAPE_SQUARE_BLACK_MEDIUM        "\xE2\x97\xBC"      // U+25FC
+#define D_EMOJI_SHAPE_SQUARE_WHITE_MEDIUM        "\xE2\x97\xBB"      // U+25FB
+#define D_EMOJI_SHAPE_SQUARE_BLACK_SMALL         "\xE2\x96\xAA"      // U+25AA
+#define D_EMOJI_SHAPE_SQUARE_WHITE_SMALL         "\xE2\x96\xAB"      // U+25AB
 #define D_EMOJI_SHAPE_DIAMOND_WITH_A_DOT         "\xF0\x9F\x92\xA0"  // U+1F4A0
 #define D_EMOJI_SHAPE_BUTTON_RADIO               "\xF0\x9F\x94\x98"  // U+1F518
 #define D_EMOJI_SHAPE_BUTTON_WHITE_SQUARE        "\xF0\x9F\x94\xB3"  // U+1F533
 #define D_EMOJI_SHAPE_BUTTON_BLACK_SQUARE        "\xF0\x9F\x94\xB2"  // U+1F532
-// mathematical                                  
+// mathematical
 #define D_EMOJI_MATH_HEAVY_PLUS_SIGN             "\xE2\x9E\x95"      // U+2795
 #define D_EMOJI_MATH_HEAVY_MINUS_SIGN            "\xE2\x9E\x96"      // U+2796
 #define D_EMOJI_MATH_HEAVY_MULTIPLICATION_X      "\xE2\x9C\x96"      // U+2716
@@ -1187,13 +1192,13 @@
 #define D_EMOJI_RELIGION_MENORAH                 "\xF0\x9F\x95\x8E"  // U+1F54E
 #define D_EMOJI_RELIGION_DOTTED_SIX_POINTED_STAR "\xF0\x9F\x94\xAF"  // U+1F52F
 // gender/sexuality
-#define D_EMOJI_GENDER_FEMALE_SIGN               "\xE2\x99\x80"      // U+2640 
-#define D_EMOJI_GENDER_MALE_SIGN                 "\xE2\x99\x82"      // U+2642 
-#define D_EMOJI_GENDER_TRANSGENDER_SYMBOL        "\xE2\x9A\xA7"      // U+26A7 
+#define D_EMOJI_GENDER_FEMALE_SIGN               "\xE2\x99\x80"      // U+2640
+#define D_EMOJI_GENDER_MALE_SIGN                 "\xE2\x99\x82"      // U+2642
+#define D_EMOJI_GENDER_TRANSGENDER_SYMBOL        "\xE2\x9A\xA7"      // U+26A7
 // warning/hazard
-#define D_EMOJI_SIGN_WARNING_SIGN                "\xE2\x9A\xA0"      // U+26A0 
+#define D_EMOJI_SIGN_WARNING_SIGN                "\xE2\x9A\xA0"      // U+26A0
 #define D_EMOJI_SIGN_CHILDREN_CROSSING           "\xF0\x9F\x9A\xB8"  // U+1F6B8
-#define D_EMOJI_SIGN_NO_ENTRY                    "\xE2\x9B\x94"      // U+26D4 
+#define D_EMOJI_SIGN_NO_ENTRY                    "\xE2\x9B\x94"      // U+26D4
 #define D_EMOJI_SIGN_NO_ENTRY_SIGN               "\xF0\x9F\x9A\xAB"  // U+1F6AB
 #define D_EMOJI_SIGN_NAME_BADGE                  "\xF0\x9F\x93\x9B"  // U+1F4DB
 #define D_EMOJI_SIGN_NO_BICYCLES                 "\xF0\x9F\x9A\xB3"  // U+1F6B3
@@ -1203,10 +1208,10 @@
 #define D_EMOJI_SIGN_NO_PEDESTRIANS              "\xF0\x9F\x9A\xB7"  // U+1F6B7
 #define D_EMOJI_SIGN_NO_MOBILE_PHONES            "\xF0\x9F\x93\xB5"  // U+1F4F5
 #define D_EMOJI_SIGN_NO_ONE_UNDER_EIGHTEEN       "\xF0\x9F\x94\x9E"  // U+1F51E
-#define D_EMOJI_SIGN_RADIOACTIVE                 "\xE2\x98\xA2"      // U+2622 
-#define D_EMOJI_SIGN_BIOHAZARD                   "\xE2\x98\xA3"      // U+2623 
+#define D_EMOJI_SIGN_RADIOACTIVE                 "\xE2\x98\xA2"      // U+2622
+#define D_EMOJI_SIGN_BIOHAZARD                   "\xE2\x98\xA3"      // U+2623
 // recycling/environmental
-#define D_EMOJI_SYMBOL_RECYCLING_SYMBOL          "\xE2\x99\xBB"      // U+267B 
+#define D_EMOJI_SYMBOL_RECYCLING_SYMBOL          "\xE2\x99\xBB"      // U+267B
 #define D_EMOJI_SYMBOL_TRIDENT_EMBLEM            "\xF0\x9F\x94\xB1"  // U+1F531
 // music controls
 #define D_EMOJI_CONTROL_BUTTON_PLAY              "\xE2\x96\xB6"      // U+25B6
@@ -1258,7 +1263,7 @@
 #define D_U0039                  "\x39"
 
 // D_EMOJI_KEYCAP
-//   macro: 
+//   macro:
 #define D_EMOJI_KEYCAP(base)                    \
     (base D_EMOJI_VS16 D_EMOJI_KEYCAP_SUFFIX)
 
@@ -1300,8 +1305,8 @@
     D_EMOJI_KEYCAP(D_U0039)
 
 // single codepoint symbols
-#define D_EMOJI_COPYRIGHT          "\xC2\xA9"            // U+00A9 
-#define D_EMOJI_REGISTERED         "\xC2\xAE"            // U+00AE 
+#define D_EMOJI_COPYRIGHT          "\xC2\xA9"            // U+00A9
+#define D_EMOJI_REGISTERED         "\xC2\xAE"            // U+00AE
 #define D_EMOJI_MAHJONG_RED_DRAGON "\xF0\x9F\x80\x84"    // U+1F004
 #define D_EMOJI_BLACK_JOKER        "\xF0\x9F\x83\x8F"    // U+1F0CF
 
@@ -1311,7 +1316,7 @@
 #define D_EMOJI_NEG_SQUARED_O      "\xF0\x9F\x85\xBE"    // U+1F17E
 #define D_EMOJI_NEG_SQUARED_P      "\xF0\x9F\x85\xBF"    // U+1F17F
 #define D_EMOJI_NEG_SQUARED_AB     "\xF0\x9F\x86\x8E"    // U+1F18E
-                                   
+
 #define D_EMOJI_SQUARED_CL         "\xF0\x9F\x86\x91"    // U+1F191
 #define D_EMOJI_SQUARED_COOL       "\xF0\x9F\x86\x92"    // U+1F192
 #define D_EMOJI_SQUARED_FREE       "\xF0\x9F\x86\x93"    // U+1F193
@@ -1330,21 +1335,95 @@
 // see ".\emoji_flags.h"
 
 
+// ============================================================================
+// UTF-8 ENCODING
+// ============================================================================
+//   Encoders for a code point that has no D_EMOJI_* literal, or that a program
+// computes. d_text_emoji_utf8_encode writes into the caller's buffer and is
+// always available. d_text_emoji_utf8 and d_text_emoji_utf8_seq, and the
+// D_EMOJI_UTF8 and D_EMOJI_SEQ macros over them, return a string in a buffer
+// that belongs to the calling thread, so they exist only where the compiler
+// offers thread-local storage (D_THREAD_LOCAL_AVAILABLE): without it, every
+// thread would share one buffer.
+
+//   C linkage for the functions below, so a C++ translation unit can consume
+// this header and link against the C archive.
+D_EXTERN_C_BEGIN
+
+/**
+ * @brief Encodes one Unicode code point as UTF-8.
+ *
+ * @param[in]  _cp   the code point: a Unicode scalar value, U+0000 to U+10FFFF
+ *                   less the surrogates U+D800 to U+DFFF.
+ * @param[out] _out  receives the encoding, 1 to 4 bytes with no terminator;
+ *                   needs room for 4.
+ * @return the number of bytes written, 1 to 4, or 0, with nothing written,
+ *         when `_cp` is not a scalar value or `_out` is `NULL`.
+ */
+size_t      d_text_emoji_utf8_encode(uint32_t _cp,
+                                     char*    _out);
+
+#if D_THREAD_LOCAL_AVAILABLE
+
+// D_EMOJI_SEQ_CAPACITY
+//   constant: the size, in bytes, of the buffer d_text_emoji_utf8_seq returns,
+// terminator included: room for the longest RGI emoji sequence, 35 bytes,
+// several times over.
+#define D_EMOJI_SEQ_CAPACITY 128
+
+/**
+ * @brief Returns the UTF-8 encoding of one code point as a string.
+ *
+ * @param[in] _cp  the code point: a Unicode scalar value, as for
+ *                 d_text_emoji_utf8_encode().
+ * @return the NUL-terminated encoding, in a buffer that belongs to the calling
+ *         thread, or `NULL` when `_cp` is not a scalar value. U+0000 gives "".
+ * @post The string stays valid until this thread's next call to
+ *       d_text_emoji_utf8(); a call that returns `NULL` leaves it as it was.
+ */
+const char* d_text_emoji_utf8(uint32_t _cp);
+
+/**
+ * @brief Returns the UTF-8 encoding of a sequence of code points, such as a
+ *        ZWJ sequence or a base and its variation selector, as one string.
+ *
+ * @param[in] _cps     the code points, each a Unicode scalar value; may be
+ *                     `NULL` when `_length` is 0.
+ * @param[in] _length  the number of code points in `_cps`.
+ * @return the NUL-terminated encoding, in a buffer that belongs to the calling
+ *         thread, or `NULL` when a code point is not a scalar value, `_cps` is
+ *         `NULL` and `_length` is not 0, or the encoding and its terminator
+ *         would not fit D_EMOJI_SEQ_CAPACITY. An empty sequence gives "", and
+ *         a U+0000 ends the string where it falls.
+ * @post The string stays valid until this thread's next call to
+ *       d_text_emoji_utf8_seq(); a call that returns `NULL` leaves it as it
+ *       was.
+ */
+const char* d_text_emoji_utf8_seq(const uint32_t* _cps,
+                                  size_t          _length);
+
+#endif  // D_THREAD_LOCAL_AVAILABLE
+
+D_EXTERN_C_END
+
+
+#if D_THREAD_LOCAL_AVAILABLE
+
 // D_EMOJI_UTF8
 //   macro: convenience macros for printf-friendly use
 #define D_EMOJI_UTF8(cp_)  \
     (d_text_emoji_utf8((uint32_t)(cp_)))
 
+#if D_ENV_PP_HAS_VARIADIC_MACROS
 // D_EMOJI_SEQ
-//   macro: 
+//   macro: a list of code points as one string, through
+// d_text_emoji_utf8_seq(); the list becomes a C99 compound literal.
 #define D_EMOJI_SEQ(...)  \
     ( d_text_emoji_utf8_seq((const uint32_t[]){ __VA_ARGS__ },  \
      ( sizeof((const uint32_t[]){ __VA_ARGS__ }) / sizeof(uint32_t) ) ) )
+#endif  // D_ENV_PP_HAS_VARIADIC_MACROS
+
+#endif  // D_THREAD_LOCAL_AVAILABLE
 
 
-size_t      d_text_emoji_utf8_encode(uint32_t _cp, char* _out);
-const char* d_text_emoji_utf8(uint32_t _cp);
-const char* d_text_emoji_utf8_seq(const uint32_t* _cps, size_t _length);
-
-
-#endif	// DJINTERP_TEXT_SYMBOL_EMOJI_
+#endif  // DJINTERP_C_TEXT_SYMBOL_EMOJI_EMOJI_H

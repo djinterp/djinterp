@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [config/test]                                             cfg_test.h
+/*******************************************************************************
+* djinterp [config]                                                   cfg_test.h
 *
 *   The DTest config umbrella.  Includes the three per-module config headers
 * and declares nothing of its own.
@@ -27,16 +27,20 @@
 * reader looking for d_test_event_id finds it in test_event.h.  The alias layer
 * only ever renamed one macro to another and put the answer in a third file.
 *
-* path:      /inc/djinterp/config/c/test/cfg_test.h
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.10
-******************************************************************************/
+*
+* path:      /inc/djinterp/config/test/cfg_test.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_CONFIG_C_TEST
-#define DJINTERP_CONFIG_C_TEST 1
+#ifndef DJINTERP_CONFIG_TEST_CFG_TEST_H
+#define DJINTERP_CONFIG_TEST_CFG_TEST_H 1
 
-#include "./cfg_test_object.h"
-#include "./cfg_test_metadata.h"
-#include "./cfg_test_event.h"
+// djinterp
+#include "cfg_test_object.h"
+#include "cfg_test_metadata.h"
+#include "cfg_test_event.h"
 
 //   test_common has NO knobs and no config file, so there is nothing here for
 // it.  Its only one, D_CFG_TEST_COMMON_SKIP_IS_FAILURE, was dropped in
@@ -44,4 +48,4 @@
 // rank table compiled per translation unit is a disagreement no linker can
 // diagnose.
 
-#endif  // DJINTERP_CONFIG_C_TEST
+#endif  // DJINTERP_CONFIG_TEST_CFG_TEST_H

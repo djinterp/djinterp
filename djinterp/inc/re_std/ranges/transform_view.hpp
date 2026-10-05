@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         transform_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           transform_view.hpp
 *
 * transform_view header:
 *   Provides the C++20 lazy-projection adaptor. transform_view<V, F>
@@ -32,17 +32,19 @@
 *   re_std::views::transform(r, f).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/transform_view.hpp
+* path:      /inc/re_std/ranges/transform_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_TRANSFORM_VIEW_
-#define DJINTERP_RE_STD_RANGES_TRANSFORM_VIEW_ 1
+#ifndef RE_STD_RANGES_TRANSFORM_VIEW_HPP
+#define RE_STD_RANGES_TRANSFORM_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -54,28 +56,29 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   TRANSFORM_VIEW
 // ===========================================================================
 
-// transform_view<_View, _Fn>
-//   class: lazy projection of _View through _Fn. _Fn is invoked on
+// transform_view<View, Fn>
+//   class: lazy projection of View through Fn. Fn is invoked on
 // dereference; no transformed elements are stored.
-template<typename _View,
-         typename _Fn>
-class transform_view : public view_interface<transform_view<_View, _Fn> >
+template<typename View,
+         typename Fn>
+class transform_view : public view_interface<transform_view<View, Fn> >
 {
 public:
-    typedef _View   base_view;
-    typedef _Fn     function_type;
+    typedef View   base_view;
+    typedef Fn     function_type;
 
 
 private:
-    _View                       m_base;
-    internal::movable_box<_Fn>  m_fn;
+    View                       m_base;
+    internal::movable_box<Fn>  m_fn;
 
 
 public:
@@ -84,25 +87,25 @@ public:
     // =======================================================
 
     // iterator
-    //   class: wraps iterator_t<_View> + a back-pointer to the
+    //   class: wraps iterator_t<View> + a back-pointer to the
     // parent transform_view. Operator* applies the parent's stored
     // function to the underlying iterator's deref.
     class iterator
     {
     public:
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::iterator_category   iterator_category;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type     difference_type;
 
         // reference: result of m_fn(*m_it). Captured via decltype.
         // value_type strips refs/cv from reference.
         typedef decltype(
-                    declval<_Fn const&>()(
-                        *declval<iterator_t<_View>&>()
+                    declval<Fn const&>()(
+                        *declval<iterator_t<View>&>()
                     )
                 )                                  reference;
 
@@ -114,23 +117,23 @@ public:
 
 
     private:
-        iterator_t<_View>          m_it;
+        iterator_t<View>          m_it;
         transform_view const*      m_parent;
 
 
     public:
         // default ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_it(),
-              m_parent(D_NULLPTR)
+              m_parent(RE_STD_NULLPTR)
         {}
 
         // value ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator(
             transform_view const*  _parent,
-            iterator_t<_View>      _it
+            iterator_t<View>      _it
         )
             : m_it(_it),
               m_parent(_parent)
@@ -138,7 +141,7 @@ public:
 
 
         // base — exposes the underlying iterator.
-        D_CONSTEXPR iterator_t<_View>
+        RE_STD_CONSTEXPR iterator_t<View>
         base() const
         {
             return m_it;
@@ -148,7 +151,7 @@ public:
         // operator*
         //   function: applies the parent's function to the
         // underlying iterator's dereference and returns the result.
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return (*(m_parent->m_fn))(*m_it);
@@ -156,14 +159,14 @@ public:
 
 
         // operator++ (pre / post)
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator++()
         {
             ++m_it;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator++(int)
         {
             iterator tmp = *this;
@@ -175,14 +178,14 @@ public:
         // operator-- (pre / post) -- only well-formed when
         // underlying is bidirectional. SFINAE'd via lazy
         // instantiation.
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator--()
         {
             --m_it;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator
         operator--(int)
         {
             iterator tmp = *this;
@@ -192,7 +195,7 @@ public:
 
 
         // random-access ops -- well-formed when underlying is RA.
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator+=(
             difference_type _n
         )
@@ -201,7 +204,7 @@ public:
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        RE_STD_CONSTEXPR_CPP14 RE_STD_INLINE iterator&
         operator-=(
             difference_type _n
         )
@@ -210,7 +213,7 @@ public:
             return *this;
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR iterator
         operator+(
             difference_type _n
         ) const
@@ -218,7 +221,7 @@ public:
             return iterator(m_parent, m_it + _n);
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR iterator
         operator-(
             difference_type _n
         ) const
@@ -226,7 +229,7 @@ public:
             return iterator(m_parent, m_it - _n);
         }
 
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         auto
         operator-(
             iterator const& _rhs
@@ -236,7 +239,7 @@ public:
             return (m_it - _rhs.m_it);
         }
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator[](
             difference_type _n
         ) const
@@ -246,7 +249,7 @@ public:
 
 
         // comparisons (delegate to underlying iterator)
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -254,7 +257,7 @@ public:
             return (m_it == _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -262,7 +265,7 @@ public:
             return (m_it != _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<(
             iterator const& _rhs
         ) const
@@ -270,7 +273,7 @@ public:
             return (m_it < _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<=(
             iterator const& _rhs
         ) const
@@ -278,7 +281,7 @@ public:
             return (m_it <= _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>(
             iterator const& _rhs
         ) const
@@ -286,7 +289,7 @@ public:
             return (m_it > _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>=(
             iterator const& _rhs
         ) const
@@ -301,36 +304,36 @@ public:
     // =======================================================
 
     // sentinel
-    //   class: thin wrapper over sentinel_t<_View>. Compares equal
+    //   class: thin wrapper over sentinel_t<View>. Compares equal
     // to iterator when the underlying iterators compare equal.
     class sentinel
     {
     private:
-        sentinel_t<_View>  m_end;
+        sentinel_t<View>  m_end;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         sentinel()
             : m_end()
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         sentinel(
-            sentinel_t<_View>  _e
+            sentinel_t<View>  _e
         )
             : m_end(_e)
         {}
 
 
-        D_CONSTEXPR sentinel_t<_View>
+        RE_STD_CONSTEXPR sentinel_t<View>
         base() const
         {
             return m_end;
         }
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             iterator const&  _it,
             sentinel const&  _s
@@ -339,7 +342,7 @@ public:
             return (_it.base() == _s.m_end);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             iterator const&  _it,
             sentinel const&  _s
@@ -348,7 +351,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             sentinel const&  _s,
             iterator const&  _it
@@ -357,7 +360,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             sentinel const&  _s,
             iterator const&  _it
@@ -370,7 +373,7 @@ public:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     transform_view()
         : m_base(),
           m_fn()
@@ -379,19 +382,19 @@ public:
     // value ctor
     //   function: takes the underlying view and the projection
     // function. Both are moved in.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     transform_view(
-        _View  _base,
-        _Fn    _fn
+        View  _base,
+        Fn    _fn
     )
-        : m_base(static_cast<_View&&>(_base)),
-          m_fn(static_cast<_Fn&&>(_fn))
+        : m_base(static_cast<View&&>(_base)),
+          m_fn(static_cast<Fn&&>(_fn))
     {}
 
 
     // base
     //   function: returns a copy of the underlying view.
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
@@ -399,13 +402,13 @@ public:
 
 
     // begin / end
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     begin()
     {
         return iterator(this, re_std::begin(m_base));
     }
 
-    D_CONSTEXPR sentinel
+    RE_STD_CONSTEXPR sentinel
     end()
     {
         return sentinel(re_std::end(m_base));
@@ -413,7 +416,7 @@ public:
 
 
     // size — forwards to the underlying view's size when sized.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     size() const
         -> decltype(re_std::size(m_base))
@@ -427,45 +430,46 @@ public:
 // II.  TRANSFORM_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
 // transform_closure
 //   class: the bound form of views::transform. Holds a function
 // and, when invoked with a range, constructs the transform_view
 // directly.
-template<typename _Fn>
-struct transform_closure : range_adaptor_closure<transform_closure<_Fn> >
+template<typename Fn>
+struct transform_closure : range_adaptor_closure<transform_closure<Fn> >
 {
-    _Fn fn;
+    Fn fn;
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     transform_closure()
         : fn()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     transform_closure(
-        _Fn _f
+        Fn _f
     )
-        : fn(static_cast<_Fn&&>(_f))
+        : fn(static_cast<Fn&&>(_f))
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    transform_view<typename internal::all_dispatch<_R>::type, _Fn>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    transform_view<typename internal::all_dispatch<R>::type, Fn>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
-        return transform_view<view_type, _Fn>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+        typedef typename internal::all_dispatch<R>::type view_type;
+        return transform_view<view_type, Fn>(
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             fn
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -475,44 +479,44 @@ NS_END  // internal
 namespace views
 {
     // views::transform(_r, _fn)  [direct form]
-    template<typename _R,
-             typename _Fn>
-    D_CONSTEXPR_INLINE
-    transform_view<typename internal::all_dispatch<_R>::type,
-                   typename decay<_Fn>::type>
+    template<typename R,
+             typename Fn>
+    RE_STD_CONSTEXPR_INLINE
+    transform_view<typename internal::all_dispatch<R>::type,
+                   typename decay<Fn>::type>
     transform(
-        _R&&  _r,
-        _Fn&& _fn
+        R&&  _r,
+        Fn&& _fn
     )
     {
-        typedef typename internal::all_dispatch<_R>::type  view_type;
-        typedef typename decay<_Fn>::type                  fn_type;
+        typedef typename internal::all_dispatch<R>::type  view_type;
+        typedef typename decay<Fn>::type                  fn_type;
         return transform_view<view_type, fn_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
-            static_cast<_Fn&&>(_fn)
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
+            static_cast<Fn&&>(_fn)
         );
     }
 
     // views::transform(_fn)  [bound form]
     //   function: returns a transform_closure for pipe composition.
-    template<typename _Fn>
-    D_CONSTEXPR_INLINE
-    internal::transform_closure<typename decay<_Fn>::type>
+    template<typename Fn>
+    RE_STD_CONSTEXPR_INLINE
+    internal::transform_closure<typename decay<Fn>::type>
     transform(
-        _Fn&& _fn
+        Fn&& _fn
     )
     {
-        return internal::transform_closure<typename decay<_Fn>::type>(
-            static_cast<_Fn&&>(_fn)
+        return internal::transform_closure<typename decay<Fn>::type>(
+            static_cast<Fn&&>(_fn)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_TRANSFORM_VIEW_
+#endif  // RE_STD_RANGES_TRANSFORM_VIEW_HPP

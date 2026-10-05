@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                                    color.h
+/*******************************************************************************
+* djinterp [c]                                                           color.h
 *
 *   Umbrella header for the djinterp color module (C). Including this single
 * header pulls in every color model, the shared conversion kernel, and the
@@ -15,8 +15,9 @@
 *
 * path:      /inc/djinterp/c/util/color/color.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -24,19 +25,28 @@ TABLE OF CONTENTS
 I.    CONSTANTS
       ---------
       a. D_COLOR_PI
+
 II.   RGB MANIPULATION (HSL-mediated)
-      ------------------------------
+      -------------------------------
       a. d_color_rgb_adjust_saturation
       b. d_color_rgb_adjust_brightness
-      c. d_color_rgb_rotate_hue
+      c.    d_color_rgb_rotate_hue
+
 III.  PERCEPTUAL DIFFERENCE
-      --------------------
+      ---------------------
       a. d_color_delta_e        (CIEDE2000, on L*a*b*)
       b. d_color_rgb_delta_e    (convenience, via L*a*b*)
 */
 
-#ifndef  DJINTERP_C_COLOR_
-#define  DJINTERP_C_COLOR_ 1
+#ifndef DJINTERP_C_UTIL_COLOR_COLOR_H
+#define DJINTERP_C_UTIL_COLOR_COLOR_H 1
+
+// FLOOR, FOR NOW: its C++ face is empty below C++11, rather than an
+// error (README rule 5). The owner's ruling: compile at every level first;
+// port to C++98 only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if ( (!D_ENV_LANG_USING_CPP) ||                                         \
+      (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
 
 // std
 #include <math.h>
@@ -296,5 +306,7 @@ d_color_rgb_delta_e(
 
 D_COLOR_NS_CLOSE
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_C_COLOR_
+
+#endif  // DJINTERP_C_UTIL_COLOR_COLOR_H

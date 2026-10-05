@@ -1,23 +1,26 @@
-/***********************************************************************
-* re_std                                                           crbegin.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  crbegin.hpp
 *
+* crbegin function header:
 * crbegin(c) — explicit const reverse iteration. Forces the const
 * overload of rbegin() and so always yields a const_reverse_iterator
 * (or reverse_iterator<const T*> for arrays).
 *
 *
-* path:      /inc/djinterp/re_std/iterator/crbegin.hpp
+* path:      /inc/re_std/iterator/crbegin.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_CRBEGIN_
-#define DJINTERP_RE_STD_ITERATOR_CRBEGIN_ 1
+#ifndef RE_STD_ITERATOR_CRBEGIN_HPP
+#define RE_STD_ITERATOR_CRBEGIN_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/iterator/rbegin.hpp"
 
@@ -25,15 +28,14 @@
 namespace re_std
 {
 
-template<typename _C>
-D_CONSTEXPR auto crbegin(const _C& _c) -> decltype(re_std::rbegin(_c))
+template<typename C>
+RE_STD_CONSTEXPR auto crbegin(const C& _c) -> decltype(re_std::rbegin(_c))
 {
     return re_std::rbegin(_c);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_CRBEGIN_
+#endif  // RE_STD_ITERATOR_CRBEGIN_HPP

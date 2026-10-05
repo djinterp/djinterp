@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [util]                                        metadata_concepts.hpp
+/*******************************************************************************
+* djinterp [core]                                          metadata_concepts.hpp
 *
 * djinterp metadata concepts module:
 *   C++20 concept-based companions to `metadata_traits.hpp`. Provides
@@ -15,7 +15,7 @@
 * namespace would clash), all concepts live in the `djinterp::concepts`
 * sub-namespace. Idiomatic use:
 *     using namespace djinterp::concepts;
-*     template<has_metadata _T> void foo(_T const&);
+*     template<has_metadata T> void foo(T const&);
 *
 *   CONCEPTS
 *   ========
@@ -44,23 +44,29 @@
 *   ===========
 *     version: C++20 or higher (header is empty under earlier standards).
 *     dependencies:
-*       - djinterp.hpp           : NS_DJINTERP
-*       - core/meta/type_traits.hpp : feature detection macros
+*       - djinterp.hpp           : NS_DJINTERP, D_ENV_CPP_FEATURE_*
 *       - metadata_traits.hpp    : `_t` aliases re-exported here
 *
 *
 * path:      /inc/djinterp/core/util/metadata/metadata_concepts.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_METADATA_CONCEPTS_
-#define DJINTERP_UTILITY_METADATA_CONCEPTS_ 1
+#ifndef DJINTERP_UTIL_METADATA_METADATA_CONCEPTS_HPP
+#define DJINTERP_UTIL_METADATA_METADATA_CONCEPTS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../core/meta/type_traits.hpp"
-#include "./metadata_traits.hpp"
+#include "../../../djinterp.hpp"  // framework root
+#include "./metadata_traits.hpp"  // metadata_t, metadata_type_t,
+                                  // metadata_container_type_t
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -79,43 +85,43 @@ namespace concepts {
 // concept is satisfied if any of the shapes is well-formed.
 
 // has_metadata_data_member
-//   concept: satisfied when `_Type` exposes `metadata` as a
+//   concept: satisfied when `Type` exposes `metadata` as a
 // non-static data member accessible on a const-qualified
 // instance.
-template<typename _Type>
-concept has_metadata_data_member = requires(const _Type& _t)
+template<typename Type>
+concept has_metadata_data_member = requires(const Type& _t)
 {
     _t.metadata;
 };
 
 // has_metadata_method
-//   concept: satisfied when `_Type` exposes a no-argument
+//   concept: satisfied when `Type` exposes a no-argument
 // member function `metadata()` callable on a const-qualified
 // instance.
-template<typename _Type>
-concept has_metadata_method = requires(const _Type& _t)
+template<typename Type>
+concept has_metadata_method = requires(const Type& _t)
 {
     _t.metadata();
 };
 
 // has_metadata_nested_type
-//   concept: satisfied when `_Type` exposes a nested type
+//   concept: satisfied when `Type` exposes a nested type
 // alias named `metadata`.
-template<typename _Type>
+template<typename Type>
 concept has_metadata_nested_type = requires
 {
-    typename _Type::metadata;
+    typename Type::metadata;
 };
 
 // has_metadata
-//   concept: satisfied iff `_Type` exposes `metadata` as a
+//   concept: satisfied iff `Type` exposes `metadata` as a
 // data member, a no-argument member function, or a nested type
 // alias.
-template<typename _Type>
+template<typename Type>
 concept has_metadata =
-    ( has_metadata_data_member<_Type>  ||
-      has_metadata_method<_Type>       ||
-      has_metadata_nested_type<_Type> );
+    ( has_metadata_data_member<Type>  ||
+      has_metadata_method<Type>       ||
+      has_metadata_nested_type<Type> );
 
 
 // =========================================================================
@@ -126,41 +132,41 @@ concept has_metadata =
 // and method forms are detected for completeness.
 
 // has_metadata_type_data_member
-//   concept: satisfied when `_Type` exposes `metadata_type` as
+//   concept: satisfied when `Type` exposes `metadata_type` as
 // a non-static data member.
-template<typename _Type>
-concept has_metadata_type_data_member = requires(const _Type& _t)
+template<typename Type>
+concept has_metadata_type_data_member = requires(const Type& _t)
 {
     _t.metadata_type;
 };
 
 // has_metadata_type_method
-//   concept: satisfied when `_Type` exposes a no-argument
+//   concept: satisfied when `Type` exposes a no-argument
 // member function `metadata_type()`.
-template<typename _Type>
-concept has_metadata_type_method = requires(const _Type& _t)
+template<typename Type>
+concept has_metadata_type_method = requires(const Type& _t)
 {
     _t.metadata_type();
 };
 
 // has_metadata_type_nested_type
-//   concept: satisfied when `_Type` exposes a nested type
+//   concept: satisfied when `Type` exposes a nested type
 // alias named `metadata_type`.
-template<typename _Type>
+template<typename Type>
 concept has_metadata_type_nested_type = requires
 {
-    typename _Type::metadata_type;
+    typename Type::metadata_type;
 };
 
 // has_metadata_type
-//   concept: satisfied iff `_Type` exposes `metadata_type` as
+//   concept: satisfied iff `Type` exposes `metadata_type` as
 // a data member, a no-argument member function, or a nested
 // type alias.
-template<typename _Type>
+template<typename Type>
 concept has_metadata_type =
-    ( has_metadata_type_data_member<_Type>  ||
-      has_metadata_type_method<_Type>       ||
-      has_metadata_type_nested_type<_Type> );
+    ( has_metadata_type_data_member<Type>  ||
+      has_metadata_type_method<Type>       ||
+      has_metadata_type_nested_type<Type> );
 
 
 // =========================================================================
@@ -169,41 +175,41 @@ concept has_metadata_type =
 //   Mirror of section I for the `metadata_container_type` name.
 
 // has_metadata_container_type_data_member
-//   concept: satisfied when `_Type` exposes
+//   concept: satisfied when `Type` exposes
 // `metadata_container_type` as a non-static data member.
-template<typename _Type>
-concept has_metadata_container_type_data_member = requires(const _Type& _t)
+template<typename Type>
+concept has_metadata_container_type_data_member = requires(const Type& _t)
 {
     _t.metadata_container_type;
 };
 
 // has_metadata_container_type_method
-//   concept: satisfied when `_Type` exposes a no-argument
+//   concept: satisfied when `Type` exposes a no-argument
 // member function `metadata_container_type()`.
-template<typename _Type>
-concept has_metadata_container_type_method = requires(const _Type& _t)
+template<typename Type>
+concept has_metadata_container_type_method = requires(const Type& _t)
 {
     _t.metadata_container_type();
 };
 
 // has_metadata_container_type_nested_type
-//   concept: satisfied when `_Type` exposes a nested type
+//   concept: satisfied when `Type` exposes a nested type
 // alias named `metadata_container_type`.
-template<typename _Type>
+template<typename Type>
 concept has_metadata_container_type_nested_type = requires
 {
-    typename _Type::metadata_container_type;
+    typename Type::metadata_container_type;
 };
 
 // has_metadata_container_type
-//   concept: satisfied iff `_Type` exposes
+//   concept: satisfied iff `Type` exposes
 // `metadata_container_type` as a data member, a no-argument
 // member function, or a nested type alias.
-template<typename _Type>
+template<typename Type>
 concept has_metadata_container_type =
-    ( has_metadata_container_type_data_member<_Type>  ||
-      has_metadata_container_type_method<_Type>       ||
-      has_metadata_container_type_nested_type<_Type> );
+    ( has_metadata_container_type_data_member<Type>  ||
+      has_metadata_container_type_method<Type>       ||
+      has_metadata_container_type_nested_type<Type> );
 
 
 // =========================================================================
@@ -233,5 +239,6 @@ NS_END  // djinterp
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTILITY_METADATA_CONCEPTS_
+#endif  // DJINTERP_UTIL_METADATA_METADATA_CONCEPTS_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                          scanner/scanner.hpp
+/*******************************************************************************
+* djinterp [parse]                                                   scanner.hpp
 *
 * Scanner CRTP base + scan status/diagnostic + traits + concepts merged.
 *   A scanner is the producer side of the parsing pipeline: it takes
@@ -9,7 +9,7 @@
 * the scanner sits upstream of Σ*; its output is what populates the
 * parse_state the parser threads.
 *
-*   STRUCTURE.  scanner_base<_Derived, _Input> is a CRTP base
+*   STRUCTURE.  scanner_base<Derived, Input> is a CRTP base
 * delegating do_scan_file to the derived implementation.  Each unit
 * of work is one input_type value (commonly std::string for paths,
 * but any addressable handle works).  Items are accumulated in the
@@ -37,7 +37,7 @@
 *   I.    scan_status                       outcome classifier + codes
 *   II.   scan_diagnostic                   per-failure descriptor
 *   III.  scanner_stats                     per-session aggregates
-*   IV.   scanner_base<_Derived, _Input>    CRTP base
+*   IV.   scanner_base<Derived, Input>    CRTP base
 *   V.    has_do_scan_file_method /         method-shape detectors
 *         has_do_reset_method   /
 *         has_scan_file_method  /
@@ -55,23 +55,32 @@
 *
 * path:      /inc/djinterp/parse/scanner/scanner.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_SCANNER_
-#define DJINTERP_PARSE_SCANNER_ 1
+#ifndef DJINTERP_PARSE_SCANNER_SCANNER_HPP
+#define DJINTERP_PARSE_SCANNER_SCANNER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../../core/meta/type_utility.hpp"  // void_t, clean_t
 #include "../../core/meta/member_traits.hpp"
 #include "../parse.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t
 
 
 NS_DJINTERP
@@ -87,7 +96,7 @@ NS_PARSE
 // from parse_status — scanners report read- and discovery-side
 // outcomes, parsers report grammar-side outcomes — even though both
 // share the integral underpinning.
-typedef std::int32_t scan_status;
+typedef re_std::int32_t scan_status;
 
 // DScanStatus*
 //   constants: standard scan status codes.  Derived scanners may
@@ -112,12 +121,12 @@ D_CONSTEXPR scan_status DScanStatusUserBase       = 64;
 // embedding gives end-to-end continuity with downstream parser
 // failures, which return the same error type.
 //
-//   _Input is the scanner's input_type — usually std::string for
+//   Input is the scanner's input_type — usually std::string for
 // path-driven scanners, but any addressable handle works.
-template<typename _Input>
+template<typename Input>
 struct scan_diagnostic
 {
-    using input_type = _Input;
+    using input_type = Input;
 
     input_type   input;
     scan_status  status;
@@ -174,7 +183,7 @@ struct scanner_stats
 
 // scanner_base
 //   class: the CRTP base for every scanner.  The contract a derived
-// scanner _Derived must satisfy is
+// scanner Derived must satisfy is
 //
 //     using input_type   = ...           the unit of work (e.g. path)
 //     using item_type    = ...           the per-scan element produced
@@ -192,13 +201,13 @@ struct scanner_stats
 //   The header does NOT add directory traversal — that lives in
 // file_scanner.hpp where the discovery axis can be composed with
 // the content axis (e.g. text_scanner) without tangling them.
-template<typename _Derived,
-         typename _Input>
+template<typename Derived,
+         typename Input>
 class scanner_base
 {
 public:
-    using input_type      = _Input;
-    using diagnostic_type = scan_diagnostic<_Input>;
+    using input_type      = Input;
+    using diagnostic_type = scan_diagnostic<Input>;
 
 protected:
     scanner_base()
@@ -223,7 +232,7 @@ public:
 
         m_stats.units_scanned += 1;
 
-        produced = static_cast<_Derived&>(*this)
+        produced = static_cast<Derived&>(*this)
                        .do_scan_file(_input);
 
         if (produced > 0)
@@ -239,15 +248,15 @@ public:
     //   method: convenience batch over an iterable range of input
     // units.  Returns the total number of items emitted across the
     // batch.
-    template<typename _Range>
+    template<typename Range>
     std::size_t
     scan_files(
-        const _Range& _inputs
+        const Range& _inputs
     )
     {
         std::size_t total = 0;
 
-        for (typename _Range::const_iterator it = _inputs.begin();
+        for (typename Range::const_iterator it = _inputs.begin();
              it != _inputs.end();
              ++it)
         {
@@ -267,7 +276,7 @@ public:
         m_stats = scanner_stats();
         m_diagnostics.clear();
 
-        static_cast<_Derived&>(*this).do_reset();
+        static_cast<Derived&>(*this).do_reset();
 
         return;
     }
@@ -347,108 +356,108 @@ NS_INTERNAL
 
     // has_do_scan_file_method_helper
     //   trait: detects a `do_scan_file(const input_type&)` member.
-    template<typename _T,
+    template<typename T,
              typename = void>
     struct has_do_scan_file_method_helper : std::false_type
     {};
 
-    template<typename _T>
-    struct has_do_scan_file_method_helper<_T,
+    template<typename T>
+    struct has_do_scan_file_method_helper<T,
         void_t<decltype(
-            std::declval<_T&>().do_scan_file(
+            std::declval<T&>().do_scan_file(
                 std::declval<
-                    const typename clean_t<_T>::input_type&>()))>
+                    const typename clean_t<T>::input_type&>()))>
     > : std::true_type
     {};
 
     // has_do_reset_method_helper
     //   trait: detects a `do_reset()` member.
-    template<typename _T,
+    template<typename T,
              typename = void>
     struct has_do_reset_method_helper : std::false_type
     {};
 
-    template<typename _T>
-    struct has_do_reset_method_helper<_T,
-        void_t<decltype(std::declval<_T&>().do_reset())>
+    template<typename T>
+    struct has_do_reset_method_helper<T,
+        void_t<decltype(std::declval<T&>().do_reset())>
     > : std::true_type
     {};
 
     // has_scan_file_method_helper
     //   trait: detects a `scan_file(const input_type&)` member.
-    template<typename _T,
+    template<typename T,
              typename = void>
     struct has_scan_file_method_helper : std::false_type
     {};
 
-    template<typename _T>
-    struct has_scan_file_method_helper<_T,
+    template<typename T>
+    struct has_scan_file_method_helper<T,
         void_t<decltype(
-            std::declval<_T&>().scan_file(
+            std::declval<T&>().scan_file(
                 std::declval<
-                    const typename clean_t<_T>::input_type&>()))>
+                    const typename clean_t<T>::input_type&>()))>
     > : std::true_type
     {};
 
     // has_scan_directory_method_helper
     //   trait: detects a `scan_directory(const std::string&)`
     // member (typically added by file_scanner.hpp).
-    template<typename _T,
+    template<typename T,
              typename = void>
     struct has_scan_directory_method_helper : std::false_type
     {};
 
-    template<typename _T>
-    struct has_scan_directory_method_helper<_T,
+    template<typename T>
+    struct has_scan_directory_method_helper<T,
         void_t<decltype(
-            std::declval<_T&>().scan_directory(
+            std::declval<T&>().scan_directory(
                 std::declval<const std::string&>()))>
     > : std::true_type
     {};
 
     // has_results_method_helper
     //   trait: detects a `results()` member.
-    template<typename _T,
+    template<typename T,
              typename = void>
     struct has_results_method_helper : std::false_type
     {};
 
-    template<typename _T>
-    struct has_results_method_helper<_T,
-        void_t<decltype(std::declval<const _T&>().results())>
+    template<typename T>
+    struct has_results_method_helper<T,
+        void_t<decltype(std::declval<const T&>().results())>
     > : std::true_type
     {};
 
 NS_END  // internal
 
 // has_do_scan_file_method
-template<typename _T>
+template<typename T>
 struct has_do_scan_file_method
-    : internal::has_do_scan_file_method_helper<_T>
+    : internal::has_do_scan_file_method_helper<T>
 {};
 
 // has_do_reset_method
-template<typename _T>
+template<typename T>
 struct has_do_reset_method
-    : internal::has_do_reset_method_helper<_T>
+    : internal::has_do_reset_method_helper<T>
 {};
 
 // has_scan_file_method
-template<typename _T>
+template<typename T>
 struct has_scan_file_method
-    : internal::has_scan_file_method_helper<_T>
+    : internal::has_scan_file_method_helper<T>
 {};
 
 // has_scan_directory_method
-template<typename _T>
+template<typename T>
 struct has_scan_directory_method
-    : internal::has_scan_directory_method_helper<_T>
+    : internal::has_scan_directory_method_helper<T>
 {};
 
 // has_results_method
-template<typename _T>
+template<typename T>
 struct has_results_method
-    : internal::has_results_method_helper<_T>
+    : internal::has_results_method_helper<T>
 {};
 
 
@@ -460,43 +469,43 @@ NS_INTERNAL
 
     // is_scanner_helper
     //   trait: primary template (failure case).
-    template<typename _T,
+    template<typename T,
              typename = void>
     struct is_scanner_helper : std::false_type
     {};
 
     // is_scanner_helper (success case)
-    //   trait: succeeds when _T exposes input_type, item_type,
+    //   trait: succeeds when T exposes input_type, item_type,
     // result_type, and a callable do_scan_file taking
     // input_type& and returning a size.
-    template<typename _T>
-    struct is_scanner_helper<_T,
+    template<typename T>
+    struct is_scanner_helper<T,
         void_t<
-            typename clean_t<_T>::input_type,
-            typename clean_t<_T>::item_type,
-            typename clean_t<_T>::result_type,
+            typename clean_t<T>::input_type,
+            typename clean_t<T>::item_type,
+            typename clean_t<T>::result_type,
             decltype(
-                std::declval<_T&>().do_scan_file(
+                std::declval<T&>().do_scan_file(
                     std::declval<
-                        const typename clean_t<_T>::input_type&>()))>
+                        const typename clean_t<T>::input_type&>()))>
     > : std::true_type
     {};
 
     // is_file_scanner_helper
     //   trait: primary template (failure case).
-    template<typename _T,
-             bool     _IsScanner = is_scanner_helper<_T>::value,
+    template<typename T,
+             bool     IsScanner = is_scanner_helper<T>::value,
              typename             = void>
     struct is_file_scanner_helper : std::false_type
     {};
 
     // is_file_scanner_helper (success case)
     //   trait: a scanner whose input_type is std::string.
-    template<typename _T>
-    struct is_file_scanner_helper<_T,
+    template<typename T>
+    struct is_file_scanner_helper<T,
         true,
         typename std::enable_if<
-            std::is_same<typename clean_t<_T>::input_type,
+            std::is_same<typename clean_t<T>::input_type,
                          std::string>::value>::type
     > : std::true_type
     {};
@@ -505,24 +514,24 @@ NS_END  // internal
 
 // is_scanner
 //   trait: full structural check for scanner conformance.
-template<typename _T>
-struct is_scanner : internal::is_scanner_helper<_T>
+template<typename T>
+struct is_scanner : internal::is_scanner_helper<T>
 {};
 
 // is_file_scanner
 //   trait: a structurally conforming scanner whose input_type is
 // std::string — the path-driven scanner case.
-template<typename _T>
-struct is_file_scanner : internal::is_file_scanner_helper<_T>
+template<typename T>
+struct is_file_scanner : internal::is_file_scanner_helper<T>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T>
-    static constexpr bool is_scanner_v = is_scanner<_T>::value;
+    template<typename T>
+    static constexpr bool is_scanner_v = is_scanner<T>::value;
 
-    template<typename _T>
+    template<typename T>
     static constexpr bool is_file_scanner_v =
-        is_file_scanner<_T>::value;
+        is_file_scanner<T>::value;
 #endif
 
 
@@ -533,42 +542,42 @@ struct is_file_scanner : internal::is_file_scanner_helper<_T>
 NS_INTERNAL
 
     // scanners_share_input_helper
-    template<typename _A,
-             typename _B,
-             bool     _BothScanners = ( is_scanner<_A>::value &&
-                                        is_scanner<_B>::value ),
+    template<typename A,
+             typename B,
+             bool     BothScanners = ( is_scanner<A>::value &&
+                                        is_scanner<B>::value ),
              typename = void>
     struct scanners_share_input_helper : std::false_type
     {};
 
-    template<typename _A,
-             typename _B>
-    struct scanners_share_input_helper<_A, _B,
+    template<typename A,
+             typename B>
+    struct scanners_share_input_helper<A, B,
         true,
         typename std::enable_if<
             std::is_same<
-                typename clean_t<_A>::input_type,
-                typename clean_t<_B>::input_type>::value>::type
+                typename clean_t<A>::input_type,
+                typename clean_t<B>::input_type>::value>::type
     > : std::true_type
     {};
 
     // scanners_share_items_helper
-    template<typename _A,
-             typename _B,
-             bool     _BothScanners = ( is_scanner<_A>::value &&
-                                        is_scanner<_B>::value ),
+    template<typename A,
+             typename B,
+             bool     BothScanners = ( is_scanner<A>::value &&
+                                        is_scanner<B>::value ),
              typename = void>
     struct scanners_share_items_helper : std::false_type
     {};
 
-    template<typename _A,
-             typename _B>
-    struct scanners_share_items_helper<_A, _B,
+    template<typename A,
+             typename B>
+    struct scanners_share_items_helper<A, B,
         true,
         typename std::enable_if<
             std::is_same<
-                typename clean_t<_A>::item_type,
-                typename clean_t<_B>::item_type>::value>::type
+                typename clean_t<A>::item_type,
+                typename clean_t<B>::item_type>::value>::type
     > : std::true_type
     {};
 
@@ -577,31 +586,31 @@ NS_END  // internal
 // scanners_share_input
 //   trait: two scanners share the same input_type and are therefore
 // batch-compatible (can process the same input list).
-template<typename _A,
-         typename _B>
+template<typename A,
+         typename B>
 struct scanners_share_input
-    : internal::scanners_share_input_helper<_A, _B>
+    : internal::scanners_share_input_helper<A, B>
 {};
 
 // scanners_share_items
 //   trait: two scanners share the same item_type and are therefore
 // merge-compatible (their output streams can be concatenated).
-template<typename _A,
-         typename _B>
+template<typename A,
+         typename B>
 struct scanners_share_items
-    : internal::scanners_share_items_helper<_A, _B>
+    : internal::scanners_share_items_helper<A, B>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _A,
-             typename _B>
+    template<typename A,
+             typename B>
     static constexpr bool scanners_share_input_v =
-        scanners_share_input<_A, _B>::value;
+        scanners_share_input<A, B>::value;
 
-    template<typename _A,
-             typename _B>
+    template<typename A,
+             typename B>
     static constexpr bool scanners_share_items_v =
-        scanners_share_items<_A, _B>::value;
+        scanners_share_items<A, B>::value;
 #endif
 
 
@@ -632,50 +641,50 @@ D_DEFINE_MEMBER_TYPE_OR(scanner_result_type, result_type, void)
     // scanner_surface
     //   concept: a type exposing input_type, item_type, and
     // result_type.
-    template<typename _T>
+    template<typename T>
     concept scanner_surface =
-        ( has_input_type<_T>::value  &&
-          has_item_type<_T>::value   &&
-          has_result_type<_T>::value );
+        ( has_input_type<T>::value  &&
+          has_item_type<T>::value   &&
+          has_result_type<T>::value );
 
     // scanner_concept
     //   concept: structurally conforming scanner.
-    template<typename _T>
-    concept scanner_concept = is_scanner<_T>::value;
+    template<typename T>
+    concept scanner_concept = is_scanner<T>::value;
 
     // file_scanner_concept
     //   concept: a scanner whose input_type is std::string.
-    template<typename _T>
-    concept file_scanner_concept = is_file_scanner<_T>::value;
+    template<typename T>
+    concept file_scanner_concept = is_file_scanner<T>::value;
 
     // stateful_scanner_concept
     //   concept: a scanner with reset and results access.
-    template<typename _T>
+    template<typename T>
     concept stateful_scanner_concept =
-        ( scanner_concept<_T>           &&
-          has_do_reset_method<_T>::value &&
-          has_results_method<_T>::value );
+        ( scanner_concept<T>           &&
+          has_do_reset_method<T>::value &&
+          has_results_method<T>::value );
 
     // directory_scanner_concept
     //   concept: a scanner supporting directory traversal.
-    template<typename _T>
+    template<typename T>
     concept directory_scanner_concept =
-        ( scanner_concept<_T> &&
-          has_scan_directory_method<_T>::value );
+        ( scanner_concept<T> &&
+          has_scan_directory_method<T>::value );
 
     // scanners_batch_compatible
     //   concept: a scanner pair sharing input_type.
-    template<typename _A,
-             typename _B>
+    template<typename A,
+             typename B>
     concept scanners_batch_compatible =
-        scanners_share_input<_A, _B>::value;
+        scanners_share_input<A, B>::value;
 
     // scanners_merge_compatible
     //   concept: a scanner pair sharing item_type.
-    template<typename _A,
-             typename _B>
+    template<typename A,
+             typename B>
     concept scanners_merge_compatible =
-        scanners_share_items<_A, _B>::value;
+        scanners_share_items<A, B>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -683,5 +692,7 @@ D_DEFINE_MEMBER_TYPE_OR(scanner_result_type, result_type, void)
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_SCANNER_
+
+#endif  // DJINTERP_PARSE_SCANNER_SCANNER_HPP

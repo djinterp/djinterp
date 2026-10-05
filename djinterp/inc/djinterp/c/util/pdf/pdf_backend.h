@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                               pdf_backend.h
+/*******************************************************************************
+* djinterp [c]                                                     pdf_backend.h
 *
 * Backend capabilities and the backend taxonomy.
 *   A PDF backend is whatever actually writes bytes: the built-in serializer,
@@ -35,19 +35,23 @@
 * the initialiser exists rather than a comment saying "zero is fine".
 *
 *
-* path:      \inc\djinterp\c\util\pdf\pdf_backend.h
+* path:      /inc/djinterp/c/util/pdf/pdf_backend.h
 * link(s):   ch-pdf.tex
-* author(s): TBA                                            created: 2026.08.09
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.09
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_UTIL_PDF_BACKEND_
-#define DJINTERP_C_UTIL_PDF_BACKEND_ 1
+#ifndef DJINTERP_C_UTIL_PDF_PDF_BACKEND_H
+#define DJINTERP_C_UTIL_PDF_PDF_BACKEND_H 1
 
+// std
 #include <stddef.h>
-#include <stdint.h>
+// djinterp
 #include "../../djinterp.h"
-#include "../../../core/env/env_pdf.h"
+#include "../../../env/env_pdf.h"
 #include "./pdf_primitives.h"
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // int32_t
 
 
 D_EXTERN_C_BEGIN
@@ -131,4 +135,4 @@ D_STATIC_ASSERT(sizeof(struct d_pdf_capabilities) ==
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_UTIL_PDF_BACKEND_
+#endif  // DJINTERP_C_UTIL_PDF_PDF_BACKEND_H

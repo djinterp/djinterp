@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                         holds_alternative.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        holds_alternative.hpp
 *
 * holds_alternative<T>(v) header:
 *   Query: does variant v currently hold an alternative of type T?
@@ -11,72 +11,79 @@
 *     holds_alternative<string>(v) -> false
 *
 *
-* path:      /inc/djinterp/re_std/variant/holds_alternative.hpp
+* path:      /inc/re_std/variant/holds_alternative.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_HOLDS_ALTERNATIVE_
-#define DJINTERP_RE_STD_HOLDS_ALTERNATIVE_ 1
+#ifndef RE_STD_VARIANT_HOLDS_ALTERNATIVE_HPP
+#define RE_STD_VARIANT_HOLDS_ALTERNATIVE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include <cstddef>
 #include "./variant.hpp"
 #include "../type_traits/is_same.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
-    // count_of<T, Types...> — number of times T appears in Types.
-    // Used to enforce the "exactly once" rule.
-    template<typename _T, typename... _Types>
-    struct count_of;
+    // va_count_of<T, Types...> — number of times T appears in Types.
+    // Used to enforce the "exactly once" rule. Prefixed, as variant's other
+    // helpers are (va_type_at): tuple_get.hpp's internal::count_of is a
+    // different template, and sharing the name redefined it wherever
+    // <tuple> and <variant> met.
+    template<typename T, typename... Types>
+    struct va_count_of;
 
-    template<typename _T>
-    struct count_of<_T>
+    template<typename T>
+    struct va_count_of<T>
     {
         static const std::size_t value = 0;
     };
 
-    template<typename _T, typename _Head, typename... _Tail>
-    struct count_of<_T, _Head, _Tail...>
+    template<typename T, typename Head, typename... Tail>
+    struct va_count_of<T, Head, Tail...>
     {
         static const std::size_t value =
-            (re_std::is_same<_T, _Head>::value ? 1 : 0)
-            + count_of<_T, _Tail...>::value;
+            (re_std::is_same<T, Head>::value ? 1 : 0)
+            + va_count_of<T, Tail...>::value;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
 // I.   HOLDS_ALTERNATIVE
 // ===========================================================================
 
-template<typename _T,
-         typename... _Types>
+template<typename T,
+         typename... Types>
 bool
 holds_alternative(
-    variant<_Types...> const& _v
-) D_NOEXCEPT
+    variant<Types...> const& _v
+) RE_STD_NOEXCEPT
 {
-    static_assert(internal::count_of<_T, _Types...>::value == 1,
+    static_assert(internal::va_count_of<T, Types...>::value == 1,
                   "re_std::holds_alternative<T>: T must appear exactly once "
                   "in the variant's alternative list");
-    return _v.index() == internal::index_of<_T, _Types...>::value;
+    return _v.index() == internal::index_of<T, Types...>::value;
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_HOLDS_ALTERNATIVE_
+#endif  // RE_STD_VARIANT_HOLDS_ALTERNATIVE_HPP

@@ -1,7 +1,8 @@
-/******************************************************************************
-* re_std [concepts]                                                 movable.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  movable.hpp
 *
-*   _Type is an object type that can be moved and swapped.
+* movable concept header:
+*   Type is an object type that can be moved and swapped.
 *
 *   is_object excludes references, functions and void, which is what makes
 * this a concept about VALUES rather than about arbitrary types.
@@ -11,42 +12,44 @@
 * re_std's intrinsic-backed traits there is nothing to detect and nothing to
 * back-port.  Below C++20 this header is EMPTY rather than degraded: a concept
 * that does not exist cannot give a wrong answer, and naming one is an
-* immediate, localised compile error.  Test D_ENV_LANG_IS_CPP20_OR_HIGHER, or
+* immediate, localised compile error.  Test RE_STD_LANG_IS_CPP20_OR_HIGHER, or
 * use the trait-shaped equivalents in re_std::type_traits, which reach C++98.
 *
 *
-* path:      /inc/djinterp/re_std/concepts/movable.hpp
+* path:      /inc/re_std/concepts/movable.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CONCEPTS_MOVABLE_
-#define DJINTERP_RE_STD_CONCEPTS_MOVABLE_ 1
+#ifndef RE_STD_CONCEPTS_MOVABLE_HPP
+#define RE_STD_CONCEPTS_MOVABLE_HPP 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 // re_std
 #include "../type_traits/type_traits.hpp"
-#include "../concepts/move_constructible.hpp"
-#include "../concepts/assignable_from.hpp"
-#include "../concepts/swappable.hpp"
+#include "move_constructible.hpp"
+#include "assignable_from.hpp"
+#include "swappable.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // movable
-//   concept: _Type is an object type, move-constructible, move-assignable
+//   concept: Type is an object type, move-constructible, move-assignable
 // and swappable.
-template<typename _Type>
+template<typename Type>
 concept movable
-    =  is_object<_Type>::value
-    && move_constructible<_Type>
-    && assignable_from<_Type&, _Type>
-    && swappable<_Type>;
+    =  is_object<Type>::value
+    && move_constructible<Type>
+    && assignable_from<Type&, Type>
+    && swappable<Type>;
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_CONCEPTS_MOVABLE_
+#endif  // RE_STD_CONCEPTS_MOVABLE_HPP

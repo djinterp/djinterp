@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/core/memory/mem_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 /*
@@ -58,6 +58,12 @@ IV.   CONCEPTS  (C++20, gated)
 
 #ifndef DJINTERP_MEMORY_MEM_COMMON_HPP
 #define DJINTERP_MEMORY_MEM_COMMON_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -170,22 +176,22 @@ is_aligned(
 }
 
 // align_of_v
-//   trait: alignof(_Type) as a mem_size, so a caller may hand a type's
+//   trait: alignof(Type) as a mem_size, so a caller may hand a type's
 // alignment straight to a C entry point without a cast at every call site.
-template<typename _Type>
+template<typename Type>
 struct align_of
 {
     static D_CONSTEXPR const mem_size value =
-        static_cast<mem_size>(alignof(_Type));
+        static_cast<mem_size>(alignof(Type));
 };
 
 // size_of_v
-//   trait: sizeof(_Type) as a mem_size, for the same reason.
-template<typename _Type>
+//   trait: sizeof(Type) as a mem_size, for the same reason.
+template<typename Type>
 struct size_of
 {
     static D_CONSTEXPR const mem_size value =
-        static_cast<mem_size>(sizeof(_Type));
+        static_cast<mem_size>(sizeof(Type));
 };
 
 
@@ -212,37 +218,37 @@ NS_INTERNAL
         using type = void;
     };
 
-    template<typename... _Args>
-    using void_t = typename make_void<_Args...>::type;
+    template<typename... Args>
+    using void_t = typename make_void<Args...>::type;
 
 NS_END  // internal
 
 // has_allocate
 //   trait: detects a resource exposing allocate(mem_size, mem_size).
-template<typename _Type,
-         typename _Enable = void>
+template<typename Type,
+         typename Enable = void>
 struct has_allocate : std::false_type
 {};
 
-template<typename _Type>
+template<typename Type>
 struct has_allocate<
-    _Type,
-    internal::void_t<decltype(std::declval<_Type&>().allocate(
+    Type,
+    internal::void_t<decltype(std::declval<Type&>().allocate(
         std::declval<mem_size>(),
         std::declval<mem_size>()))>> : std::true_type
 {};
 
 // has_release
 //   trait: detects a resource exposing release(void*, mem_size, mem_size).
-template<typename _Type,
-         typename _Enable = void>
+template<typename Type,
+         typename Enable = void>
 struct has_release : std::false_type
 {};
 
-template<typename _Type>
+template<typename Type>
 struct has_release<
-    _Type,
-    internal::void_t<decltype(std::declval<_Type&>().release(
+    Type,
+    internal::void_t<decltype(std::declval<Type&>().release(
         std::declval<void*>(),
         std::declval<mem_size>(),
         std::declval<mem_size>()))>> : std::true_type
@@ -250,25 +256,25 @@ struct has_release<
 
 // has_reset
 //   trait: detects a resource exposing reset().
-template<typename _Type,
-         typename _Enable = void>
+template<typename Type,
+         typename Enable = void>
 struct has_reset : std::false_type
 {};
 
-template<typename _Type>
+template<typename Type>
 struct has_reset<
-    _Type,
-    internal::void_t<decltype(std::declval<_Type&>().reset())>>
+    Type,
+    internal::void_t<decltype(std::declval<Type&>().reset())>>
     : std::true_type
 {};
 
 // is_memory_resource
 //   trait: detects the minimum resource protocol -- something that can vend
 // bytes at an alignment.
-template<typename _Type>
+template<typename Type>
 struct is_memory_resource
 {
-    static D_CONSTEXPR const bool value = has_allocate<_Type>::value;
+    static D_CONSTEXPR const bool value = has_allocate<Type>::value;
 };
 
 #endif  // D_INTERNAL_MEM_TRAIT_DETECTORS
@@ -288,18 +294,18 @@ struct is_memory_resource
 
 // memory_resource_c
 //   concept: constrains types satisfying the minimum resource protocol.
-template<typename _Type>
-concept memory_resource_c = is_memory_resource<_Type>::value;
+template<typename Type>
+concept memory_resource_c = is_memory_resource<Type>::value;
 
 // releasing_resource
 //   concept: constrains resources that can take bytes back individually.
-template<typename _Type>
-concept releasing_resource = has_release<_Type>::value;
+template<typename Type>
+concept releasing_resource = has_release<Type>::value;
 
 // resettable_resource
 //   concept: constrains resources that can reclaim everything at once.
-template<typename _Type>
-concept resettable_resource = has_reset<_Type>::value;
+template<typename Type>
+concept resettable_resource = has_reset<Type>::value;
 
 #endif  // concepts
 
@@ -319,5 +325,6 @@ D_STATIC_ASSERT(sizeof(mem_stats) == sizeof(::d_mem_stats),
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
 #endif  // DJINTERP_MEMORY_MEM_COMMON_HPP

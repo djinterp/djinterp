@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                              arena.hpp
+/*******************************************************************************
+* djinterp [core]                                                      arena.hpp
 *
 * Generalized Arena Container:
 *   A cache-friendly, index-based, policy-driven arena for contiguous
@@ -35,31 +35,56 @@
 *   No std::optional, std::any, or std::variant required.
 *   All nullable state uses node_id / null_node sentinel.
 *
-* TABLE OF CONTENTS
-* =================
-* I.    Node ID and Sentinel
-* II.   Link Flag Constants
-* III.  tree_link_policy (flag-driven policy generator)
-* IV.   Preset Link Policies
-* V.    arena_node
-* VI.   arena
-* VII.  Convenience Aliases
 *
-*
-* path:      /inc/container/arena/arena.hpp
+* path:      /inc/djinterp/core/container/arena/arena.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.03.18
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.18
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_ARENA_
-#define DJINTERP_CONTAINER_ARENA_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    Node ID and Sentinel
+      --------------------
 
+II.   Link Flag Constants
+      -------------------
+
+III.  tree_link_policy (flag-driven policy generator)
+      -----------------------------------------------
+
+IV.   Preset Link Policies
+      --------------------
+
+V.    arena_node
+      ----------
+
+VI.   arena
+      -----
+
+VII.  Convenience Aliases
+      -------------------
+*/
+
+#ifndef DJINTERP_CONTAINER_ARENA_ARENA_HPP
+#define DJINTERP_CONTAINER_ARENA_ARENA_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <cassert>
 #include <cstddef>
-#include <cstdint>
 #include <type_traits>
 #include <vector>
-#include "../../djinterp.hpp"
+// djinterp
+#include "../../../djinterp.hpp"
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint32_t, uint64_t
 
 
 // D_KEYWORD_ARENA
@@ -78,23 +103,23 @@
 NS_DJINTERP
 
 
-// =============================================================================
+// ===========================================================================
 // I.   Node ID and Sentinel
-// =============================================================================
+// ===========================================================================
 
 // node_id
-//   typedef: index into an arena's node array.  32-bit to halve
-// pointer overhead on 64-bit targets and survive reallocation.
-typedef std::uint32_t node_id;
+//   typedef: index into an arena's node array. 32-bit to halve pointer
+// overhead on 64-bit targets and survive reallocation.
+typedef re_std::uint32_t node_id;
 
 // null_node
 //   constant: sentinel value indicating "no node".
 D_CONSTEXPR node_id null_node = ~node_id(0);
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Link Flag Constants
-// =============================================================================
+// ===========================================================================
 // Bitmask flags specifying which navigational links a node
 // carries.  Combine with bitwise OR to define a topology.
 //
@@ -104,9 +129,9 @@ D_CONSTEXPR node_id null_node = ~node_id(0);
 //       tree_link::parent;
 
 // tree_link
-//   struct: named constants for link flag bits.  Using a
-// struct of constants rather than an enum to allow free
-// bitwise combination without casts.
+//   struct: named constants for link flag bits. Using a
+// struct of constants rather than an enum to allow free bitwise combination
+// without casts.
 struct tree_link
 {
     static D_CONSTEXPR unsigned first_child   = 1u;
@@ -121,9 +146,9 @@ struct tree_link
 };
 
 
-// =============================================================================
+// ===========================================================================
 // III. tree_link_policy (flag-driven policy generator)
-// =============================================================================
+// ===========================================================================
 // Given a bitmask of tree_link flags, generates a policy
 // struct with:
 //   - num_links:  total number of link slots
@@ -134,25 +159,25 @@ struct tree_link
 // receive sequential indices in flag-bit order (lowest
 // flag bit = index 0).
 
-template<unsigned _Flags>
+template<unsigned Flags>
 struct tree_link_policy
 {
     // --- flag queries ---
 
     static D_CONSTEXPR bool has_first_child  =
-        ((_Flags & tree_link::first_child)  != 0);
+        ((Flags & tree_link::first_child)  != 0);
     static D_CONSTEXPR bool has_next_sibling =
-        ((_Flags & tree_link::next_sibling) != 0);
+        ((Flags & tree_link::next_sibling) != 0);
     static D_CONSTEXPR bool has_parent       =
-        ((_Flags & tree_link::parent)       != 0);
+        ((Flags & tree_link::parent)       != 0);
     static D_CONSTEXPR bool has_prev_sibling =
-        ((_Flags & tree_link::prev_sibling) != 0);
+        ((Flags & tree_link::prev_sibling) != 0);
     static D_CONSTEXPR bool has_last_child   =
-        ((_Flags & tree_link::last_child)   != 0);
+        ((Flags & tree_link::last_child)   != 0);
     static D_CONSTEXPR bool has_left         =
-        ((_Flags & tree_link::left)         != 0);
+        ((Flags & tree_link::left)         != 0);
     static D_CONSTEXPR bool has_right        =
-        ((_Flags & tree_link::right)        != 0);
+        ((Flags & tree_link::right)        != 0);
 
     // --- link count ---
 
@@ -165,12 +190,11 @@ struct tree_link_policy
           (has_left         ? 1u : 0u) +
           (has_right        ? 1u : 0u) );
 
-    // --- index assignments ---
-    // Each enabled link receives a sequential index.
+    // --- index assignments --- Each enabled link receives a sequential index.
     // Disabled links map to null_node.
 
 private:
-    static D_CONSTEXPR std::size_t count_before(
+    static D_CONSTEXPR_CPP14 std::size_t count_before(
         unsigned _flag
     )
     {
@@ -205,33 +229,32 @@ public:
 
     // --- raw flags (for trait inspection) ---
 
-    static D_CONSTEXPR unsigned flags = _Flags;
+    static D_CONSTEXPR unsigned flags = Flags;
 };
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Preset Link Policies
-// =============================================================================
+// ===========================================================================
 
 // lcrs_link_policy
-//   policy: left-child/right-sibling — the minimal n-ary
-// tree encoding.  Two links per node.
+//   policy: left-child/right-sibling - the minimal n-ary tree encoding. Two
+// links per node.
 using lcrs_link_policy = tree_link_policy<
     tree_link::first_child |
     tree_link::next_sibling>;
 
 // parented_lcrs_link_policy
-//   policy: LCRS with parent back-pointer.  Enables
-// bottom-up traversal (e.g. event bubbling in a DOM).
+//   policy: LCRS with parent back-pointer. Enables bottom-up traversal (e.g.
+// event bubbling in a DOM).
 using parented_lcrs_link_policy = tree_link_policy<
     tree_link::first_child  |
     tree_link::next_sibling |
     tree_link::parent>;
 
 // full_nary_link_policy
-//   policy: all five n-ary navigational links.  Enables
-// O(1) last-child append, O(1) sibling removal, and
-// O(1) detach.  The original arena.hpp layout.
+//   policy: all five n-ary navigational links. Enables O(1) last-child append,
+// O(1) sibling removal, and O(1) detach. The original arena.hpp layout.
 using full_nary_link_policy = tree_link_policy<
     tree_link::first_child  |
     tree_link::next_sibling |
@@ -240,7 +263,7 @@ using full_nary_link_policy = tree_link_policy<
     tree_link::last_child>;
 
 // binary_link_policy
-//   policy: classic binary tree — left and right children.
+//   policy: classic binary tree - left and right children.
 using binary_link_policy = tree_link_policy<
     tree_link::left |
     tree_link::right>;
@@ -253,22 +276,22 @@ using parented_binary_link_policy = tree_link_policy<
     tree_link::parent>;
 
 
-// =============================================================================
+// ===========================================================================
 // V.   arena_node
-// =============================================================================
+// ===========================================================================
 // A fixed-size node within an arena.  Combines policy-driven
 // topology links, identity fields for change tracking, and the
 // domain-specific payload.
 
-template<typename _Payload,
-         typename _LinkPolicy = full_nary_link_policy>
+template<typename Payload,
+         typename LinkPolicy = full_nary_link_policy>
 struct arena_node
 {
-    using payload_type = _Payload;
-    using link_policy  = _LinkPolicy;
+    using payload_type = Payload;
+    using link_policy  = LinkPolicy;
 
     static D_CONSTEXPR std::size_t num_links =
-        _LinkPolicy::num_links;
+        LinkPolicy::num_links;
 
     // --------------------------------------------------------
     //  topology
@@ -276,13 +299,13 @@ struct arena_node
     // Links stored in a fixed array whose layout is
     // determined entirely by the link policy.  All
     // initialized to null_node.
-    node_id links[_LinkPolicy::num_links];
+    node_id links[LinkPolicy::num_links];
 
     // --------------------------------------------------------
     //  identity
     // --------------------------------------------------------
-    std::uint64_t stable_id;
-    std::uint32_t version;
+    re_std::uint64_t stable_id;
+    re_std::uint32_t version;
 
     // --------------------------------------------------------
     //  lifecycle
@@ -293,7 +316,7 @@ struct arena_node
     // --------------------------------------------------------
     //  payload
     // --------------------------------------------------------
-    _Payload      data;
+    Payload       data;
 
     // --------------------------------------------------------
     //  constructors
@@ -317,8 +340,8 @@ struct arena_node
     // arena_node (with identity and payload)
     //   constructs an unlinked, alive node.
     explicit
-    arena_node(std::uint64_t   _stable_id,
-               const _Payload& _data)
+    arena_node(re_std::uint64_t   _stable_id,
+               const Payload& _data)
         : stable_id(_stable_id)
         , version(1)
         , free_next(null_node)
@@ -331,15 +354,15 @@ struct arena_node
         }
     }
 
-    // arena_node (with identity and payload — move)
+    // arena_node (with identity and payload - move)
     explicit
-    arena_node(std::uint64_t _stable_id,
-               _Payload&&    _data)
+    arena_node(re_std::uint64_t _stable_id,
+               Payload&&    _data)
         : stable_id(_stable_id)
         , version(1)
         , free_next(null_node)
         , alive(true)
-        , data(static_cast<_Payload&&>(_data))
+        , data(static_cast<Payload&&>(_data))
     {
         for (std::size_t i = 0; i < num_links; ++i)
         {
@@ -355,80 +378,79 @@ struct arena_node
     // without the flag is a static_assert failure.
 
     // get_link
-    //   method: returns the link at compile-time index _I.
-    template<std::size_t _I>
+    //   method: returns the link at compile-time index I.
+    template<std::size_t I>
     D_CONSTEXPR node_id get_link() const
     {
-        static_assert(_I < num_links,
+        static_assert(I < num_links,
                       "Link index out of range.");
 
-        return links[_I];
+        return links[I];
     }
 
     // set_link
-    //   method: sets the link at compile-time index _I.
-    template<std::size_t _I>
+    //   method: sets the link at compile-time index I.
+    template<std::size_t I>
     D_CONSTEXPR void set_link(node_id _target)
     {
-        static_assert(_I < num_links,
+        static_assert(I < num_links,
                       "Link index out of range.");
 
-        links[_I] = _target;
+        links[I] = _target;
 
         return;
     }
 
-    // --- convenience named accessors ---
-    // These forward to the policy-determined index.
-    // Disabled links cause static_assert failures.
+    // --- convenience named accessors --- These forward to the
+    // policy-determined index. Disabled links cause static_assert failures.
 
     D_CONSTEXPR node_id first_child() const
     {
-        static_assert(_LinkPolicy::has_first_child,
+        static_assert(LinkPolicy::has_first_child,
             "first_child: not in link policy.");
-        return links[_LinkPolicy::first_child_idx];
+        return links[LinkPolicy::first_child_idx];
     }
 
     D_CONSTEXPR node_id last_child() const
     {
-        static_assert(_LinkPolicy::has_last_child,
+        static_assert(LinkPolicy::has_last_child,
             "last_child: not in link policy.");
-        return links[_LinkPolicy::last_child_idx];
+        return links[LinkPolicy::last_child_idx];
     }
 
     D_CONSTEXPR node_id next_sibling() const
     {
-        static_assert(_LinkPolicy::has_next_sibling,
+        static_assert(LinkPolicy::has_next_sibling,
             "next_sibling: not in link policy.");
-        return links[_LinkPolicy::next_sibling_idx];
+        return links[LinkPolicy::next_sibling_idx];
     }
 
     D_CONSTEXPR node_id prev_sibling() const
     {
-        static_assert(_LinkPolicy::has_prev_sibling,
+        static_assert(LinkPolicy::has_prev_sibling,
             "prev_sibling: not in link policy.");
-        return links[_LinkPolicy::prev_sibling_idx];
+        return links[LinkPolicy::prev_sibling_idx];
     }
 
     D_CONSTEXPR node_id parent() const
     {
-        static_assert(_LinkPolicy::has_parent,
+        static_assert(LinkPolicy::has_parent,
             "parent: not in link policy.");
-        return links[_LinkPolicy::parent_idx];
+        return links[LinkPolicy::parent_idx];
     }
 
     D_CONSTEXPR node_id left() const
     {
-        static_assert(_LinkPolicy::has_left,
+        static_assert(LinkPolicy::has_left,
             "left: not in link policy.");
-        return links[_LinkPolicy::left_idx];
+        return links[LinkPolicy::left_idx];
     }
 
     D_CONSTEXPR node_id right() const
     {
-        static_assert(_LinkPolicy::has_right,
+        static_assert(LinkPolicy::has_right,
             "right: not in link policy.");
-        return links[_LinkPolicy::right_idx];
+        return links[LinkPolicy::right_idx];
     }
 
     // --------------------------------------------------------
@@ -436,15 +458,15 @@ struct arena_node
     // --------------------------------------------------------
 
     // has_children
-    //   method: returns true if this node has at least one
-    // child.  Dispatches by policy.
-    D_CONSTEXPR bool has_children() const
+    //   method: returns true if this node has at least one child. Dispatches
+    // by policy.
+    D_CONSTEXPR_CPP14 bool has_children() const
     {
-        if constexpr (_LinkPolicy::has_first_child)
+        if constexpr (LinkPolicy::has_first_child)
         {
             return (first_child() != null_node);
         }
-        else if constexpr (_LinkPolicy::has_left)
+        else if constexpr (LinkPolicy::has_left)
         {
             return ( (left()  != null_node) ||
                      (right() != null_node) );
@@ -476,22 +498,22 @@ struct arena_node
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  arena
-// =============================================================================
+// ===========================================================================
 // The generalized arena container.  Manages a flat, contiguous
 // array of arena_nodes with policy-driven topology operations,
 // identity tracking, and free-list recycling.
 //
 // Template parameters:
-//   _Payload     — the domain-specific data stored per node
-//   _LinkPolicy  — determines the per-node link topology
-//   _Allocator   — STL allocator for the backing vector
+//   Payload      - the domain-specific data stored per node
+//   LinkPolicy   - determines the per-node link topology
+//   Allocator    - STL allocator for the backing vector
 
-template<typename _Payload,
-         typename _LinkPolicy  = full_nary_link_policy,
-         typename _Allocator   = std::allocator<
-             arena_node<_Payload, _LinkPolicy>>>
+template<typename Payload,
+         typename LinkPolicy   = full_nary_link_policy,
+         typename Allocator    = std::allocator<
+             arena_node<Payload, LinkPolicy>>>
 class arena
 {
 public:
@@ -500,10 +522,10 @@ public:
     //  type aliases
     // -----------------------------------------------------------------
 
-    using payload_type    = _Payload;
-    using link_policy     = _LinkPolicy;
-    using node_type       = arena_node<_Payload, _LinkPolicy>;
-    using allocator_type  = _Allocator;
+    using payload_type    = Payload;
+    using link_policy     = LinkPolicy;
+    using node_type       = arena_node<Payload, LinkPolicy>;
+    using allocator_type  = Allocator;
     using size_type       = std::size_t;
 
     // -----------------------------------------------------------------
@@ -511,12 +533,12 @@ public:
     // -----------------------------------------------------------------
 
 private:
-    using arena_storage = std::vector<node_type, _Allocator>;
+    using arena_storage = std::vector<node_type, Allocator>;
 
-    arena_storage   m_nodes;
-    node_id         m_free_head;
-    size_type       m_live_count;
-    std::uint64_t   m_next_stable_id;
+    arena_storage    m_nodes;
+    node_id          m_free_head;
+    size_type        m_live_count;
+    re_std::uint64_t m_next_stable_id;
 
 public:
 
@@ -531,8 +553,7 @@ public:
         , m_free_head(null_node)
         , m_live_count(0)
         , m_next_stable_id(1)
-    {
-    }
+    {};
 
     // arena (with capacity)
     //   constructor: pre-allocates arena storage.
@@ -553,8 +574,7 @@ public:
         , m_free_head(null_node)
         , m_live_count(0)
         , m_next_stable_id(1)
-    {
-    }
+    {};
 
     // arena (capacity + allocator)
     arena(size_type             _reserve,
@@ -658,14 +678,14 @@ public:
 
     // data
     //   method: payload access (mutable).
-    _Payload&
+    Payload&
     data(node_id _id)
     {
         return m_nodes[_id].data;
     }
 
     // data (const)
-    const _Payload&
+    const Payload&
     data(node_id _id) const
     {
         return m_nodes[_id].data;
@@ -686,11 +706,10 @@ public:
     // =================================================================
 
     // allocate
-    //   method: acquires a slot from the free list or by
-    // extending the arena.  Assigns the next stable_id
-    // automatically.  Returns the new node_id.
+    //   method: acquires a slot from the free list or by extending the arena.
+    // Assigns the next stable_id automatically. Returns the new node_id.
     node_id
-    allocate(const _Payload& _data)
+    allocate(const Payload& _data)
     {
         node_id id = acquire_slot();
 
@@ -704,24 +723,24 @@ public:
 
     // allocate (move)
     node_id
-    allocate(_Payload&& _data)
+    allocate(Payload&& _data)
     {
         node_id id = acquire_slot();
 
         node_type& n = m_nodes[id];
         n.stable_id  = m_next_stable_id++;
         n.version    = 1;
-        n.data       = static_cast<_Payload&&>(_data);
+        n.data       = static_cast<Payload&&>(_data);
 
         return id;
     }
 
     // allocate (explicit stable_id)
-    //   method: allocates with a caller-provided stable_id.
-    // Useful for deserialization and DOM reconstruction.
+    //   method: allocates with a caller-provided stable_id. Useful for
+    // deserialization and DOM reconstruction.
     node_id
-    allocate(std::uint64_t   _stable_id,
-             const _Payload& _data)
+    allocate(re_std::uint64_t   _stable_id,
+             const Payload& _data)
     {
         node_id id = acquire_slot();
 
@@ -742,15 +761,15 @@ public:
 
     // allocate (explicit stable_id, move)
     node_id
-    allocate(std::uint64_t _stable_id,
-             _Payload&&    _data)
+    allocate(re_std::uint64_t _stable_id,
+             Payload&&    _data)
     {
         node_id id = acquire_slot();
 
         node_type& n = m_nodes[id];
         n.stable_id  = _stable_id;
         n.version    = 1;
-        n.data       = static_cast<_Payload&&>(_data);
+        n.data       = static_cast<Payload&&>(_data);
 
         if (_stable_id >= m_next_stable_id)
         {
@@ -761,8 +780,8 @@ public:
     }
 
     // deallocate
-    //   method: marks a node as dead and pushes it onto the
-    // free list.  Does NOT unlink — caller must detach first.
+    //   method: marks a node as dead and pushes it onto the free list. Does
+    // NOT unlink - caller must detach first.
     void
     deallocate(node_id _id)
     {
@@ -913,8 +932,8 @@ public:
     }
 
     // insert_before
-    //   method: links _child as the previous sibling of
-    // _before.  Requires prev_sibling link for O(1).
+    //   method: links _child as the previous sibling of _before. Requires
+    // prev_sibling link for O(1).
     void
     insert_before(node_id _before,
                   node_id _child)
@@ -962,9 +981,8 @@ public:
     }
 
     // detach
-    //   method: unlinks _id from its parent and siblings
-    // without deallocating.  The subtree rooted at _id
-    // remains intact.
+    //   method: unlinks _id from its parent and siblings without deallocating.
+    // The subtree rooted at _id remains intact.
     void
     detach(node_id _id)
     {
@@ -1025,8 +1043,8 @@ public:
     }
 
     // move_subtree
-    //   method: detaches _id and appends it as the last
-    // child of _new_parent.  O(1) with full links.
+    //   method: detaches _id and appends it as the last child of _new_parent.
+    // O(1) with full links.
     void
     move_subtree(node_id _id,
                  node_id _new_parent)
@@ -1043,8 +1061,8 @@ public:
     // =================================================================
 
     // collect_subtree
-    //   method: gathers all descendants of _root (including
-    // _root) in breadth-first order.
+    //   method: gathers all descendants of _root (including _root) in
+    // breadth-first order.
     void
     collect_subtree(node_id               _root,
                     std::vector<node_id>& _out) const
@@ -1169,10 +1187,10 @@ public:
 
     // visit_depth_first
     //   method: invokes _fn(node_id, depth) in pre-order.
-    template<typename _Fn>
+    template<typename Fn>
     void
     visit_depth_first(node_id _root,
-                      _Fn     _fn) const
+                      Fn      _fn) const
     {
         static_assert(
             ( link_policy::has_first_child &&
@@ -1216,10 +1234,10 @@ public:
 
     // visit_breadth_first
     //   method: invokes _fn(node_id, depth) in BFS order.
-    template<typename _Fn>
+    template<typename Fn>
     void
     visit_breadth_first(node_id _root,
-                        _Fn     _fn) const
+                        Fn      _fn) const
     {
         static_assert(
             ( link_policy::has_first_child &&
@@ -1278,7 +1296,7 @@ public:
 
     // stable_id
     //   method: returns the stable_id of a node.
-    std::uint64_t
+    re_std::uint64_t
     stable_id(node_id _id) const
     {
         return m_nodes[_id].stable_id;
@@ -1286,26 +1304,25 @@ public:
 
     // version
     //   method: returns the version counter of a node.
-    std::uint32_t
+    re_std::uint32_t
     version(node_id _id) const
     {
         return m_nodes[_id].version;
     }
 
     // next_stable_id
-    //   method: returns the next stable_id that will be
-    // assigned.  Useful for serialization.
-    std::uint64_t
+    //   method: returns the next stable_id that will be assigned. Useful for
+    // serialization.
+    re_std::uint64_t
     next_stable_id() const noexcept
     {
         return m_next_stable_id;
     }
 
     // set_next_stable_id
-    //   method: overrides the counter.  Use with care
-    // (deserialization).
+    //   method: overrides the counter. Use with care (deserialization).
     void
-    set_next_stable_id(std::uint64_t _id) noexcept
+    set_next_stable_id(re_std::uint64_t _id) noexcept
     {
         m_next_stable_id = _id;
 
@@ -1345,7 +1362,7 @@ public:
           m_live_count         = _other.m_live_count;
           _other.m_live_count  = t; }
 
-        { std::uint64_t t            = m_next_stable_id;
+        { re_std::uint64_t t            = m_next_stable_id;
           m_next_stable_id           = _other.m_next_stable_id;
           _other.m_next_stable_id    = t; }
 
@@ -1410,8 +1427,7 @@ private:
     // --- slot management ---
 
     // acquire_slot
-    //   helper: obtains a slot from the free list or by
-    // extending the vector.
+    //   helper: obtains a slot from the free list or by extending the vector.
     node_id
     acquire_slot()
     {
@@ -1442,10 +1458,9 @@ private:
         return id;
     }
 
-    // --- conditional link setters ---
-    // These write to the appropriate link slot via the
-    // policy index.  The `_if` variants are no-ops when
-    // the link is absent from the policy.
+    // --- conditional link setters --- These write to the appropriate link
+    // slot via the policy index. The `_if` variants are no-ops when the link
+    // is absent from the policy.
 
     static void
     set_first_child(node_type& _n,
@@ -1501,8 +1516,8 @@ private:
         return;
     }
 
-    // --- find_last_child ---
-    // Uses last_child link if available, otherwise walks.
+    // --- find_last_child --- Uses last_child link if available, otherwise
+    // walks.
 
     node_id
     find_last_child(node_id _parent) const noexcept
@@ -1526,8 +1541,7 @@ private:
         }
     }
 
-    // --- detach_child_linear ---
-    // O(k) fallback when prev_sibling is absent.
+    // --- detach_child_linear --- O(k) fallback when prev_sibling is absent.
 
     void
     detach_child_linear(node_id _parent_id,
@@ -1582,28 +1596,29 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VII. Convenience Aliases
-// =============================================================================
+// ===========================================================================
 
 // default_arena
-//   alias: arena with full n-ary links.  Matches the
-// original arena.hpp layout — O(1) everything.
-template<typename _Payload>
-using default_arena = arena<_Payload, full_nary_link_policy>;
+//   alias: arena with full n-ary links. Matches the original arena.hpp layout
+// - O(1) everything.
+template<typename Payload>
+using default_arena = arena<Payload, full_nary_link_policy>;
 
 // lcrs_arena
-//   alias: minimal 2-link arena.  Smallest node size.
-template<typename _Payload>
-using lcrs_arena = arena<_Payload, lcrs_link_policy>;
+//   alias: minimal 2-link arena. Smallest node size.
+template<typename Payload>
+using lcrs_arena = arena<Payload, lcrs_link_policy>;
 
 // parented_arena
 //   alias: 3-link arena with parent back-pointer.
-template<typename _Payload>
-using parented_arena = arena<_Payload, parented_lcrs_link_policy>;
+template<typename Payload>
+using parented_arena = arena<Payload, parented_lcrs_link_policy>;
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_ARENA_
+#endif  // DJINTERP_CONTAINER_ARENA_ARENA_HPP

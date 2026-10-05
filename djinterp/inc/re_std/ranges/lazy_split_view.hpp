@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                        lazy_split_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          lazy_split_view.hpp
 *
 * lazy_split_view header:
 *   Provides the C++20 lazy_split_view adaptor. lazy_split_view<V, T>
@@ -41,17 +41,19 @@
 *   re_std::views::lazy_split(delim)    — bound form for pipe syntax.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/lazy_split_view.hpp
+* path:      /inc/re_std/ranges/lazy_split_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_LAZY_SPLIT_VIEW_
-#define DJINTERP_RE_STD_RANGES_LAZY_SPLIT_VIEW_ 1
+#ifndef RE_STD_RANGES_LAZY_SPLIT_VIEW_HPP
+#define RE_STD_RANGES_LAZY_SPLIT_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -62,28 +64,29 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   LAZY_SPLIT_VIEW
 // ===========================================================================
 
-// lazy_split_view<_View, _Delim>
+// lazy_split_view<View, Delim>
 //   class: input-range-friendly split. Each outer iteration yields
 // an inner_view whose iterators share state with the outer.
-template<typename _View,
-         typename _Delim>
-class lazy_split_view : public view_interface<lazy_split_view<_View, _Delim> >
+template<typename View,
+         typename Delim>
+class lazy_split_view : public view_interface<lazy_split_view<View, Delim> >
 {
 public:
-    typedef _View   base_view;
-    typedef _Delim  delimiter_type;
+    typedef View   base_view;
+    typedef Delim  delimiter_type;
 
 
 private:
-    _View   m_base;
-    _Delim  m_delim;
+    View   m_base;
+    Delim  m_delim;
 
 
 public:
@@ -107,7 +110,7 @@ public:
         typedef forward_iterator_tag                            iterator_category;
         typedef inner_view                                      value_type;
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type                    difference_type;
         typedef inner_view                                      reference;
         typedef void                                            pointer;
@@ -118,25 +121,25 @@ public:
         friend class inner_sentinel;
         friend class inner_view;
 
-        iterator_t<_View>           m_current;
-        sentinel_t<_View>           m_base_end;
+        iterator_t<View>           m_current;
+        sentinel_t<View>           m_base_end;
         bool                        m_trailing;
         lazy_split_view const*      m_parent;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         outer_iterator()
             : m_current(),
               m_base_end(),
               m_trailing(false),
-              m_parent(D_NULLPTR)
+              m_parent(RE_STD_NULLPTR)
         {}
 
         outer_iterator(
             lazy_split_view const*  _parent,
-            iterator_t<_View>       _begin,
-            sentinel_t<_View>       _end
+            iterator_t<View>       _begin,
+            sentinel_t<View>       _end
         )
             : m_current(_begin),
               m_base_end(_end),
@@ -145,9 +148,9 @@ public:
         {}
 
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         trailing() const
-        D_NOEXCEPT
+        RE_STD_NOEXCEPT
         {
             return m_trailing;
         }
@@ -220,7 +223,7 @@ public:
         }
 
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             outer_iterator const& _rhs
         ) const
@@ -230,7 +233,7 @@ public:
                     && m_current == _rhs.m_current);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             outer_iterator const& _rhs
         ) const
@@ -247,12 +250,12 @@ public:
     class outer_sentinel
     {
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         outer_sentinel()
         {}
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             outer_iterator const&  _it,
             outer_sentinel const&
@@ -261,7 +264,7 @@ public:
             return _it.trailing();
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             outer_iterator const&  _it,
             outer_sentinel const&  _s
@@ -270,7 +273,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             outer_sentinel const&  _s,
             outer_iterator const&  _it
@@ -279,7 +282,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             outer_sentinel const&  _s,
             outer_iterator const&  _it
@@ -303,16 +306,16 @@ public:
     public:
         typedef forward_iterator_tag                            iterator_category;
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::value_type                         value_type;
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type                    difference_type;
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::reference                          reference;
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::pointer                            pointer;
 
 
@@ -321,12 +324,12 @@ public:
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         inner_iterator()
-            : m_outer(D_NULLPTR)
+            : m_outer(RE_STD_NULLPTR)
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         inner_iterator(
             outer_iterator*  _outer
         )
@@ -346,7 +349,7 @@ public:
         }
 
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return *(m_outer->m_current);
@@ -369,7 +372,7 @@ public:
         }
 
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             inner_iterator const& _rhs
         ) const
@@ -377,7 +380,7 @@ public:
             return m_outer == _rhs.m_outer;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             inner_iterator const& _rhs
         ) const
@@ -390,7 +393,7 @@ public:
     class inner_sentinel
     {
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         inner_sentinel()
         {}
 
@@ -448,12 +451,12 @@ public:
         outer_iterator*  m_outer;
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         inner_view()
-            : m_outer(D_NULLPTR)
+            : m_outer(RE_STD_NULLPTR)
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         inner_view(
             outer_iterator*  _outer
         )
@@ -461,13 +464,13 @@ public:
         {}
 
 
-        D_CONSTEXPR inner_iterator
+        RE_STD_CONSTEXPR inner_iterator
         begin() const
         {
             return inner_iterator(m_outer);
         }
 
-        D_CONSTEXPR inner_sentinel
+        RE_STD_CONSTEXPR inner_sentinel
         end() const
         {
             return inner_sentinel();
@@ -477,32 +480,32 @@ public:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     lazy_split_view()
         : m_base(),
           m_delim()
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     lazy_split_view(
-        _View   _base,
-        _Delim  _delim
+        View   _base,
+        Delim  _delim
     )
-        : m_base(static_cast<_View&&>(_base)),
-          m_delim(static_cast<_Delim&&>(_delim))
+        : m_base(static_cast<View&&>(_base)),
+          m_delim(static_cast<Delim&&>(_delim))
     {}
 
 
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
     }
 
-    D_CONSTEXPR _Delim const&
+    RE_STD_CONSTEXPR Delim const&
     delim() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_delim;
     }
@@ -517,12 +520,12 @@ public:
     {
         return outer_iterator(
             this,
-            re_std::begin(const_cast<_View&>(m_base)),
-            re_std::end(const_cast<_View&>(m_base))
+            re_std::begin(const_cast<View&>(m_base)),
+            re_std::end(const_cast<View&>(m_base))
         );
     }
 
-    D_CONSTEXPR outer_sentinel
+    RE_STD_CONSTEXPR outer_sentinel
     end() const
     {
         return outer_sentinel();
@@ -534,41 +537,42 @@ public:
 // II.  LAZY_SPLIT_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
-
-template<typename _Delim>
-struct lazy_split_closure : range_adaptor_closure<lazy_split_closure<_Delim> >
+namespace internal
 {
-    _Delim delim;
 
-    D_CONSTEXPR
+template<typename Delim>
+struct lazy_split_closure : range_adaptor_closure<lazy_split_closure<Delim> >
+{
+    Delim delim;
+
+    RE_STD_CONSTEXPR
     lazy_split_closure()
         : delim()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     lazy_split_closure(
-        _Delim _d
+        Delim _d
     )
-        : delim(static_cast<_Delim&&>(_d))
+        : delim(static_cast<Delim&&>(_d))
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    lazy_split_view<typename internal::all_dispatch<_R>::type, _Delim>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    lazy_split_view<typename internal::all_dispatch<R>::type, Delim>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
-        return lazy_split_view<view_type, _Delim>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+        typedef typename internal::all_dispatch<R>::type view_type;
+        return lazy_split_view<view_type, Delim>(
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             delim
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -578,43 +582,43 @@ NS_END  // internal
 namespace views
 {
     // views::lazy_split(_r, _delim)  [direct form]
-    template<typename _R,
-             typename _Delim>
-    D_CONSTEXPR_INLINE
-    lazy_split_view<typename internal::all_dispatch<_R>::type,
-                    typename decay<_Delim>::type>
+    template<typename R,
+             typename Delim>
+    RE_STD_CONSTEXPR_INLINE
+    lazy_split_view<typename internal::all_dispatch<R>::type,
+                    typename decay<Delim>::type>
     lazy_split(
-        _R&&     _r,
-        _Delim&& _delim
+        R&&     _r,
+        Delim&& _delim
     )
     {
-        typedef typename internal::all_dispatch<_R>::type  view_type;
-        typedef typename decay<_Delim>::type               delim_type;
+        typedef typename internal::all_dispatch<R>::type  view_type;
+        typedef typename decay<Delim>::type               delim_type;
         return lazy_split_view<view_type, delim_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
-            static_cast<_Delim&&>(_delim)
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
+            static_cast<Delim&&>(_delim)
         );
     }
 
     // views::lazy_split(_delim)  [bound form]
-    template<typename _Delim>
-    D_CONSTEXPR_INLINE
-    internal::lazy_split_closure<typename decay<_Delim>::type>
+    template<typename Delim>
+    RE_STD_CONSTEXPR_INLINE
+    internal::lazy_split_closure<typename decay<Delim>::type>
     lazy_split(
-        _Delim&& _delim
+        Delim&& _delim
     )
     {
-        return internal::lazy_split_closure<typename decay<_Delim>::type>(
-            static_cast<_Delim&&>(_delim)
+        return internal::lazy_split_closure<typename decay<Delim>::type>(
+            static_cast<Delim&&>(_delim)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_LAZY_SPLIT_VIEW_
+#endif  // RE_STD_RANGES_LAZY_SPLIT_VIEW_HPP

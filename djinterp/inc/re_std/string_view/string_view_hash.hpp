@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                        string_view_hash.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         string_view_hash.hpp
 *
 * string_view hash support header:
 *   re_std::hash specialisations for the five view aliases. Per the
@@ -18,50 +18,54 @@
 * these specialise, plus the view aliases from this module.
 *
 *
-* path:      /inc/djinterp/re_std/string_view/string_view_hash.hpp
+* path:      /inc/re_std/string_view/string_view_hash.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_HASH_
-#define DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_HASH_ 1
+#ifndef RE_STD_STRING_VIEW_STRING_VIEW_HASH_HPP
+#define RE_STD_STRING_VIEW_STRING_VIEW_HASH_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+// re_std
 #include "./basic_string_view.hpp"
 #include "./string_view_typedefs.hpp"
 #include "../functional/hash.hpp"
 
 // std (fundamental types only)
+// std
 #include <cstddef>
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   INTERNAL: VIEW HASH ROLL
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // sv_hash_bytes
     //   function: polynomial roll over the character units of _v,
     // widening each through its unsigned counterpart so the high bit
     // never sign-extends. Self-contained so <string_view> has no run-
     // time hash dependency beyond the re_std::hash primary template.
-    template<typename _CharT,
-             typename _Traits>
+    template<typename CharT,
+             typename Traits>
     inline std::size_t
     sv_hash_bytes(
-        basic_string_view<_CharT, _Traits>  _v
-    ) D_NOEXCEPT
+        basic_string_view<CharT, Traits>  _v
+    ) RE_STD_NOEXCEPT
     {
         std::size_t  _h = static_cast<std::size_t>(1469598103u);
         for (std::size_t _i = 0; _i < _v.size(); ++_i)
@@ -73,7 +77,7 @@ NS_INTERNAL
         return _h;
     }
 
-NS_END  // internal
+}  // internal
 
 
 // =============================================================================
@@ -87,7 +91,7 @@ struct hash<string_view>
     std::size_t
     operator()(
         string_view  _v
-    ) const D_NOEXCEPT
+    ) const RE_STD_NOEXCEPT
     {
         return internal::sv_hash_bytes(_v);
     }
@@ -100,7 +104,7 @@ struct hash<wstring_view>
     std::size_t
     operator()(
         wstring_view  _v
-    ) const D_NOEXCEPT
+    ) const RE_STD_NOEXCEPT
     {
         return internal::sv_hash_bytes(_v);
     }
@@ -113,7 +117,7 @@ struct hash<u16string_view>
     std::size_t
     operator()(
         u16string_view  _v
-    ) const D_NOEXCEPT
+    ) const RE_STD_NOEXCEPT
     {
         return internal::sv_hash_bytes(_v);
     }
@@ -126,14 +130,14 @@ struct hash<u32string_view>
     std::size_t
     operator()(
         u32string_view  _v
-    ) const D_NOEXCEPT
+    ) const RE_STD_NOEXCEPT
     {
         return internal::sv_hash_bytes(_v);
     }
 };
 
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 // hash<u8string_view>  (C++20)
 template<>
 struct hash<u8string_view>
@@ -146,13 +150,13 @@ struct hash<u8string_view>
         return internal::sv_hash_bytes(_v);
     }
 };
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_HASH_
+#endif  // RE_STD_STRING_VIEW_STRING_VIEW_HASH_HPP

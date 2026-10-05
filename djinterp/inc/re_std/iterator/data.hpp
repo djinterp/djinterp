@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                              data.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                     data.hpp
 *
+* data function header:
 * data(c) returns a pointer to the contiguous storage backing the
 * container. For containers with member data(), forwards. For raw
 * arrays, returns &arr[0]. For initializer_list, returns il.begin().
@@ -11,19 +12,22 @@
 * a pointer that does not generalise to the next element via ++.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/data.hpp
+* path:      /inc/re_std/iterator/data.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_DATA_
-#define DJINTERP_RE_STD_ITERATOR_DATA_ 1
+#ifndef RE_STD_ITERATOR_DATA_HPP
+#define RE_STD_ITERATOR_DATA_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
     #include <initializer_list>
 
@@ -31,33 +35,32 @@
 namespace re_std
 {
 
-template<typename _C>
-D_CONSTEXPR auto data(_C& _c) -> decltype(_c.data())
+template<typename C>
+RE_STD_CONSTEXPR auto data(C& _c) -> decltype(_c.data())
 {
     return _c.data();
 }
 
-template<typename _C>
-D_CONSTEXPR auto data(const _C& _c) -> decltype(_c.data())
+template<typename C>
+RE_STD_CONSTEXPR auto data(const C& _c) -> decltype(_c.data())
 {
     return _c.data();
 }
 
-template<typename _T, std::size_t _N>
-D_CONSTEXPR _T* data(_T (&_arr)[_N]) D_NOEXCEPT
+template<typename T, std::size_t N>
+RE_STD_CONSTEXPR T* data(T (&_arr)[N]) RE_STD_NOEXCEPT
 {
     return _arr;
 }
 
-template<typename _E>
-D_CONSTEXPR const _E* data(std::initializer_list<_E> _il) D_NOEXCEPT
+template<typename E>
+RE_STD_CONSTEXPR const E* data(std::initializer_list<E> _il) RE_STD_NOEXCEPT
 {
     return _il.begin();
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_DATA_
+#endif  // RE_STD_ITERATOR_DATA_HPP

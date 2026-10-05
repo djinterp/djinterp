@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                             is_volatile.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              is_volatile.hpp
 *
 * is_volatile trait header:
-*   Yields true_type if _Type is volatile-qualified at the top level,
+*   Yields true_type if Type is volatile-qualified at the top level,
 * false_type otherwise. The check is for top-level volatile only;
 * `volatile int*` (a pointer to volatile int) is not itself volatile.
 *
@@ -14,21 +14,23 @@
 *     is_volatile<volatile int&>::value    -> false  (refs not cv-qual'able)
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_volatile.hpp
+* path:      /inc/re_std/type_traits/is_volatile.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_VOLATILE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_VOLATILE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_VOLATILE_HPP
+#define RE_STD_TYPE_TRAITS_IS_VOLATILE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -37,14 +39,14 @@ NS_RESTD
 
 // is_volatile
 //   trait: false (primary template).
-template<typename _Type>
+template<typename Type>
 struct is_volatile : false_type
 {};
 
-// is_volatile<volatile _Type>
+// is_volatile<volatile Type>
 //   trait: top-level volatile specialization.
-template<typename _Type>
-struct is_volatile<volatile _Type> : true_type
+template<typename Type>
+struct is_volatile<volatile Type> : true_type
 {};
 
 
@@ -52,17 +54,17 @@ struct is_volatile<volatile _Type> : true_type
 // II.  IS_VOLATILE_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_volatile_v
-    //   variable: convenience for is_volatile<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_volatile_v = is_volatile<_Type>::value;
+    //   variable: convenience for is_volatile<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_volatile_v = is_volatile<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_VOLATILE_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_VOLATILE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             test_printer.hpp
+/*******************************************************************************
+* djinterp [test]                                               test_printer.hpp
 *
 *   Template-backed printer for the test framework.  Walks a test tree
 * depth-first and renders each node through configurable text_template
@@ -42,11 +42,11 @@
 * format produces a single output line per render, {line} matches
 * the visible line number; when the format produces multiple lines
 * per render, {line} marks the first line of the rendered node.
-* 
+*
 * ELAPSED TIME:
-*   Each rendered node may carry a wall-clock duration (in nanoseconds) 
+*   Each rendered node may carry a wall-clock duration (in nanoseconds)
 * supplied by an optional extraction function:
-*     _elapsed_fn(elem) -> std::int64_t   // nanoseconds
+*     _elapsed_fn(elem) -> re_std::int64_t   // nanoseconds
 *   When no elapsed extractor is provided, every node renders with
 * an elapsed value of 0.  The {elapsed} specifier is resolved by
 * a configurable elapsed_format function (default: human-readable,
@@ -92,29 +92,48 @@
 *     {pass_rate}  - percentage string (e.g. "100.00%")
 *
 *   PORTABILITY:
-*   C++11 minimum.
+*   C++17 for now: it takes std::string_view throughout, so it is empty below
+* C++17.
 *
 *
 * path:      /inc/djinterp/test/test_printer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.11
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    NUMBERING MODE
+      --------------
+
 II.   INDENT STATE
+      ------------
+
 III.  PRINT CONTEXT
+      -------------
+
 IV.   DEFAULT FORMATS
+      ---------------
+
 V.    TEST PRINTER
+      ------------
 */
 
-#ifndef DJINTERP_TEST_PRINTER_
-#define DJINTERP_TEST_PRINTER_ 1
+#ifndef DJINTERP_TEST_TEST_PRINTER_HPP
+#define DJINTERP_TEST_TEST_PRINTER_HPP 1
 
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but it takes std::string_view (C++17)
+// throughout, and the brief leaves it empty below C++17 for now. The owner's
+// ruling: compile at every level first; port down only where something needs
+// it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <functional>
@@ -124,9 +143,11 @@ V.    TEST PRINTER
 #include <utility>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "../core/text/text_template.hpp"
 #include "./test_common.hpp"
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 
 NS_DJINTERP
@@ -307,7 +328,7 @@ struct print_context
     std::size_t  global_number;
     std::size_t  last_depth;
     std::size_t  line_counter;
-    std::int64_t elapsed_total_ns;
+    re_std::int64_t elapsed_total_ns;
     std::vector<std::size_t> depth_counters;
 
     print_context()
@@ -430,7 +451,7 @@ struct print_context
     // %lld printf format on every conforming C++11 toolchain.
     static std::string
     int64_to_string(
-        std::int64_t _v
+        re_std::int64_t _v
     )
     {
         char buf[32];
@@ -460,24 +481,24 @@ struct print_context
     // pathological inputs cannot wrap.
     void
     accumulate_elapsed(
-        std::int64_t _ns
+        re_std::int64_t _ns
     ) D_NOEXCEPT
     {
         // protect against overflow - clamp instead of wrapping
         if ( (_ns > 0) &&
              (elapsed_total_ns >
-                  ( (std::numeric_limits<std::int64_t>::max)() - _ns )) )
+                  ( (std::numeric_limits<re_std::int64_t>::max)() - _ns )) )
         {
-            elapsed_total_ns = (std::numeric_limits<std::int64_t>::max)();
+            elapsed_total_ns = (std::numeric_limits<re_std::int64_t>::max)();
 
             return;
         }
 
         if ( (_ns < 0) &&
              (elapsed_total_ns <
-                  ( (std::numeric_limits<std::int64_t>::min)() - _ns )) )
+                  ( (std::numeric_limits<re_std::int64_t>::min)() - _ns )) )
         {
-            elapsed_total_ns = (std::numeric_limits<std::int64_t>::min)();
+            elapsed_total_ns = (std::numeric_limits<re_std::int64_t>::min)();
 
             return;
         }
@@ -600,12 +621,12 @@ static const char* const D_TEST_FMT_SECTION_FOOTER_RESULTS =
 //        with a leading '-' and the same unit-selection logic.
 inline std::string
 default_elapsed_format(
-    std::int64_t _ns
+    re_std::int64_t _ns
 )
 {
     char         buf[32];
     bool         negative;
-    std::int64_t magnitude;
+    re_std::int64_t magnitude;
 
     negative  = (_ns < 0);
     magnitude = (negative) ? -_ns : _ns;
@@ -680,8 +701,8 @@ NS_INTERNAL
     // extractor in the simplified walk overload.
     struct const_zero_size_extractor
     {
-        template<typename _Elem>
-        std::size_t operator()(const _Elem&) const D_NOEXCEPT
+        template<typename Elem>
+        std::size_t operator()(const Elem&) const D_NOEXCEPT
         {
             return 0;
         }
@@ -689,12 +710,12 @@ NS_INTERNAL
 
     // const_zero_int64_extractor
     //   trait: stateless extractor that ignores its argument and
-    // always returns std::int64_t{0}.  Bound as the default elapsed
+    // always returns re_std::int64_t{0}.  Bound as the default elapsed
     // extractor when the caller supplies no timing source.
     struct const_zero_int64_extractor
     {
-        template<typename _Elem>
-        std::int64_t operator()(const _Elem&) const D_NOEXCEPT
+        template<typename Elem>
+        re_std::int64_t operator()(const Elem&) const D_NOEXCEPT
         {
             return 0;
         }
@@ -707,8 +728,8 @@ NS_INTERNAL
     // element as a leaf node).
     struct const_true_leaf_extractor
     {
-        template<typename _Elem>
-        bool operator()(const _Elem&) const D_NOEXCEPT
+        template<typename Elem>
+        bool operator()(const Elem&) const D_NOEXCEPT
         {
             return true;
         }
@@ -856,7 +877,7 @@ public:
                                                       std::size_t)>;
     using binder_fn_type         = std::function<void(bound_template&,
                                                       std::size_t)>;
-    using elapsed_format_fn_type = std::function<std::string(std::int64_t)>;
+    using elapsed_format_fn_type = std::function<std::string(re_std::int64_t)>;
 
     // -----------------------------------------------------------------
     //  construction
@@ -1160,7 +1181,7 @@ public:
         const std::string& _message,
         std::size_t        _depth,
         std::size_t        _number,
-        std::int64_t       _elapsed_ns = 0
+        re_std::int64_t       _elapsed_ns = 0
     ) const
     {
         render_node(
@@ -1188,23 +1209,23 @@ public:
     //   _depth_fn(elem)   -> size_t
     //   _status_fn(elem)  -> test_status
     //   _leaf_fn(elem)    -> bool
-    //   _elapsed_fn(elem) -> std::int64_t  (nanoseconds)
-    template<typename _Container,
-             typename _NameFn,
-             typename _MsgFn,
-             typename _DepthFn,
-             typename _StatusFn,
-             typename _LeafFn,
-             typename _ElapsedFn>
+    //   _elapsed_fn(elem) -> re_std::int64_t  (nanoseconds)
+    template<typename Container,
+             typename NameFn,
+             typename MsgFn,
+             typename DepthFn,
+             typename StatusFn,
+             typename LeafFn,
+             typename ElapsedFn>
     void
     walk(
-        const _Container& _elements,
-        _NameFn&&         _name_fn,
-        _MsgFn&&          _msg_fn,
-        _DepthFn&&        _depth_fn,
-        _StatusFn&&       _status_fn,
-        _LeafFn&&         _leaf_fn,
-        _ElapsedFn&&      _elapsed_fn,
+        const Container& _elements,
+        NameFn&&         _name_fn,
+        MsgFn&&          _msg_fn,
+        DepthFn&&        _depth_fn,
+        StatusFn&&       _status_fn,
+        LeafFn&&         _leaf_fn,
+        ElapsedFn&&      _elapsed_fn,
         bool              _with_header  = false,
         bool              _with_summary = true,
         bool              _with_footer  = false
@@ -1226,8 +1247,8 @@ public:
             std::string  msg   = _msg_fn(elem);
             std::size_t  depth = _depth_fn(elem);
             bool         leaf  = _leaf_fn(elem);
-            std::int64_t ns    =
-                static_cast<std::int64_t>(_elapsed_fn(elem));
+            re_std::int64_t ns    =
+                static_cast<re_std::int64_t>(_elapsed_fn(elem));
 
             m_context.accumulate(s);
 
@@ -1259,20 +1280,20 @@ public:
     //   delegates to the elapsed-aware walk with a zero-elapsed
     // extractor.  Preserves the pre-existing six-extractor API for
     // callers that have not yet wired in timing.
-    template<typename _Container,
-             typename _NameFn,
-             typename _MsgFn,
-             typename _DepthFn,
-             typename _StatusFn,
-             typename _LeafFn>
+    template<typename Container,
+             typename NameFn,
+             typename MsgFn,
+             typename DepthFn,
+             typename StatusFn,
+             typename LeafFn>
     void
     walk(
-        const _Container& _elements,
-        _NameFn&&         _name_fn,
-        _MsgFn&&          _msg_fn,
-        _DepthFn&&        _depth_fn,
-        _StatusFn&&       _status_fn,
-        _LeafFn&&         _leaf_fn,
+        const Container& _elements,
+        NameFn&&         _name_fn,
+        MsgFn&&          _msg_fn,
+        DepthFn&&        _depth_fn,
+        StatusFn&&       _status_fn,
+        LeafFn&&         _leaf_fn,
         bool              _with_header  = false,
         bool              _with_summary = true,
         bool              _with_footer  = false
@@ -1280,11 +1301,11 @@ public:
     {
         walk(
             _elements,
-            static_cast<_NameFn&&>(_name_fn),
-            static_cast<_MsgFn&&>(_msg_fn),
-            static_cast<_DepthFn&&>(_depth_fn),
-            static_cast<_StatusFn&&>(_status_fn),
-            static_cast<_LeafFn&&>(_leaf_fn),
+            static_cast<NameFn&&>(_name_fn),
+            static_cast<MsgFn&&>(_msg_fn),
+            static_cast<DepthFn&&>(_depth_fn),
+            static_cast<StatusFn&&>(_status_fn),
+            static_cast<LeafFn&&>(_leaf_fn),
             internal::const_zero_int64_extractor(),
             _with_header,
             _with_summary,
@@ -1294,24 +1315,24 @@ public:
     }
 
     // walk (simplified - flat, all leaves)
-    template<typename _Container,
-             typename _NameFn,
-             typename _MsgFn,
-             typename _StatusFn>
+    template<typename Container,
+             typename NameFn,
+             typename MsgFn,
+             typename StatusFn>
     void
     walk(
-        const _Container& _elements,
-        _NameFn&&         _name_fn,
-        _MsgFn&&          _msg_fn,
-        _StatusFn&&       _status_fn
+        const Container& _elements,
+        NameFn&&         _name_fn,
+        MsgFn&&          _msg_fn,
+        StatusFn&&       _status_fn
     )
     {
         walk(
             _elements,
-            static_cast<_NameFn&&>(_name_fn),
-            static_cast<_MsgFn&&>(_msg_fn),
+            static_cast<NameFn&&>(_name_fn),
+            static_cast<MsgFn&&>(_msg_fn),
             internal::const_zero_size_extractor(),
-            static_cast<_StatusFn&&>(_status_fn),
+            static_cast<StatusFn&&>(_status_fn),
             internal::const_true_leaf_extractor());
 
         return;
@@ -1381,7 +1402,7 @@ private:
     // <chrono>.  Sign is preserved.
     static std::string
     format_seconds(
-        std::int64_t _ns
+        re_std::int64_t _ns
     )
     {
         char buf[32];
@@ -1446,7 +1467,7 @@ private:
         bool               _is_leaf,
         std::size_t        _child_count,
         const std::string& _num_str,
-        std::int64_t       _elapsed_ns
+        re_std::int64_t       _elapsed_ns
     ) const
     {
         if (m_node_fmt.empty())
@@ -1671,5 +1692,7 @@ configure_report_printer(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_PRINTER_
+
+#endif  // DJINTERP_TEST_TEST_PRINTER_HPP

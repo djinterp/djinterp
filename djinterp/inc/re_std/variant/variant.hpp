@@ -1,6 +1,7 @@
-/******************************************************************************
-* djinterp [re_std]                                                   variant.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  variant.hpp
 *
+* variant class header:
 *   re_std's back-port of std::variant<Ts...> — type-safe sum type
 * (discriminated union). C++17 in std; re_std targets C++11+.
 *
@@ -46,22 +47,25 @@
 *   - constexpr — not constexpr at this phase (back-port simplification)
 *
 *
-* path:      /inc/djinterp/re_std/variant/variant.hpp
+* path:      /inc/re_std/variant/variant.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_
-#define DJINTERP_RE_STD_VARIANT_ 1
+#ifndef RE_STD_VARIANT_VARIANT_HPP
+#define RE_STD_VARIANT_VARIANT_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#include <new>
+// std
 #include <cstddef>
-#include <utility>          // std::declval, std::move/forward equivalents
 #include <initializer_list>
+#include <new>
+#include <utility>          // std::declval, std::move/forward equivalents
 
 #include "./bad_variant_access.hpp"
 #include "./variant_npos.hpp"
@@ -76,20 +80,22 @@
 #include "../type_traits/decay.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0.   INTERNAL HELPERS
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // ------------------------------------------------------------------
     // variant_storage<Types...> — recursive union of alternatives.
     // ------------------------------------------------------------------
 
-    template<typename... _Ts> union variant_storage;
+    template<typename... Ts> union variant_storage;
 
     template<>
     union variant_storage<>
@@ -99,11 +105,11 @@ NS_INTERNAL
         ~variant_storage() {}
     };
 
-    template<typename _Head, typename... _Tail>
-    union variant_storage<_Head, _Tail...>
+    template<typename Head, typename... Tail>
+    union variant_storage<Head, Tail...>
     {
-        _Head                       m_head;
-        variant_storage<_Tail...>   m_tail;
+        Head                       m_head;
+        variant_storage<Tail...>   m_tail;
 
         // ctor body empty — the surrounding variant placement-news
         // the right member explicitly.
@@ -118,35 +124,35 @@ NS_INTERNAL
     // storage_at<I> — walks the head/tail chain to find element I.
     // ------------------------------------------------------------------
 
-    template<std::size_t _I>
+    template<std::size_t I>
     struct storage_at
     {
-        template<typename _Head, typename... _Tail>
-        static auto get(variant_storage<_Head, _Tail...>& _s)
-            -> decltype(storage_at<_I - 1>::get(_s.m_tail))
+        template<typename Head, typename... Tail>
+        static auto get(variant_storage<Head, Tail...>& _s)
+            -> decltype(storage_at<I - 1>::get(_s.m_tail))
         {
-            return storage_at<_I - 1>::get(_s.m_tail);
+            return storage_at<I - 1>::get(_s.m_tail);
         }
 
-        template<typename _Head, typename... _Tail>
-        static auto get(variant_storage<_Head, _Tail...> const& _s)
-            -> decltype(storage_at<_I - 1>::get(_s.m_tail))
+        template<typename Head, typename... Tail>
+        static auto get(variant_storage<Head, Tail...> const& _s)
+            -> decltype(storage_at<I - 1>::get(_s.m_tail))
         {
-            return storage_at<_I - 1>::get(_s.m_tail);
+            return storage_at<I - 1>::get(_s.m_tail);
         }
     };
 
     template<>
     struct storage_at<0>
     {
-        template<typename _Head, typename... _Tail>
-        static _Head& get(variant_storage<_Head, _Tail...>& _s)
+        template<typename Head, typename... Tail>
+        static Head& get(variant_storage<Head, Tail...>& _s)
         {
             return _s.m_head;
         }
 
-        template<typename _Head, typename... _Tail>
-        static _Head const& get(variant_storage<_Head, _Tail...> const& _s)
+        template<typename Head, typename... Tail>
+        static Head const& get(variant_storage<Head, Tail...> const& _s)
         {
             return _s.m_head;
         }
@@ -159,16 +165,16 @@ NS_INTERNAL
     // is self-contained for this commonly-used helper.)
     // ------------------------------------------------------------------
 
-    template<std::size_t _I, typename _Head, typename... _Tail>
+    template<std::size_t I, typename Head, typename... Tail>
     struct va_type_at
     {
-        typedef typename va_type_at<_I - 1, _Tail...>::type type;
+        typedef typename va_type_at<I - 1, Tail...>::type type;
     };
 
-    template<typename _Head, typename... _Tail>
-    struct va_type_at<0, _Head, _Tail...>
+    template<typename Head, typename... Tail>
+    struct va_type_at<0, Head, Tail...>
     {
-        typedef _Head type;
+        typedef Head type;
     };
 
 
@@ -177,22 +183,22 @@ NS_INTERNAL
     // Returns sizeof...(Types) if not found (out-of-range).
     // ------------------------------------------------------------------
 
-    template<typename _T, typename... _Types>
+    template<typename T, typename... Types>
     struct index_of;
 
-    template<typename _T>
-    struct index_of<_T>
+    template<typename T>
+    struct index_of<T>
     {
         static const std::size_t value = 0;
     };
 
-    template<typename _T, typename _Head, typename... _Tail>
-    struct index_of<_T, _Head, _Tail...>
+    template<typename T, typename Head, typename... Tail>
+    struct index_of<T, Head, Tail...>
     {
         static const std::size_t value =
-            re_std::is_same<_T, _Head>::value
+            re_std::is_same<T, Head>::value
                 ? 0
-                : 1 + index_of<_T, _Tail...>::value;
+                : 1 + index_of<T, Tail...>::value;
     };
 
 
@@ -202,22 +208,22 @@ NS_INTERNAL
     // if none match. Used as the fallback layer of best_match below.
     // ------------------------------------------------------------------
 
-    template<typename _U, typename... _Types>
+    template<typename U, typename... Types>
     struct first_constructible;
 
-    template<typename _U>
-    struct first_constructible<_U>
+    template<typename U>
+    struct first_constructible<U>
     {
         static const std::size_t value = 0;
     };
 
-    template<typename _U, typename _Head, typename... _Tail>
-    struct first_constructible<_U, _Head, _Tail...>
+    template<typename U, typename Head, typename... Tail>
+    struct first_constructible<U, Head, Tail...>
     {
         static const std::size_t value =
-            re_std::is_constructible<_Head, _U>::value
+            re_std::is_constructible<Head, U>::value
                 ? 0
-                : 1 + first_constructible<_U, _Tail...>::value;
+                : 1 + first_constructible<U, Tail...>::value;
     };
 
 
@@ -227,24 +233,24 @@ NS_INTERNAL
     // if no exact match exists (caller falls through to first_constructible).
     // ------------------------------------------------------------------
 
-    template<typename _U, typename... _Types>
+    template<typename U, typename... Types>
     struct exact_match;
 
-    template<typename _U>
-    struct exact_match<_U>
+    template<typename U>
+    struct exact_match<U>
     {
         static const std::size_t value = 0;
     };
 
-    template<typename _U, typename _Head, typename... _Tail>
-    struct exact_match<_U, _Head, _Tail...>
+    template<typename U, typename Head, typename... Tail>
+    struct exact_match<U, Head, Tail...>
     {
         static const std::size_t value =
             re_std::is_same<
-                typename re_std::decay<_U>::type, _Head
+                typename re_std::decay<U>::type, Head
             >::value
                 ? 0
-                : 1 + exact_match<_U, _Tail...>::value;
+                : 1 + exact_match<U, Tail...>::value;
     };
 
 
@@ -267,26 +273,26 @@ NS_INTERNAL
     //   documented in the variant header subtitle.
     // ------------------------------------------------------------------
 
-    template<typename _U, typename... _Types>
+    template<typename U, typename... Types>
     struct best_match
     {
-        static const std::size_t exact = exact_match<_U, _Types...>::value;
-        static const std::size_t fallback = first_constructible<_U, _Types...>::value;
+        static const std::size_t exact = exact_match<U, Types...>::value;
+        static const std::size_t fallback = first_constructible<U, Types...>::value;
         static const std::size_t value =
-            (exact < sizeof...(_Types)) ? exact : fallback;
+            (exact < sizeof...(Types)) ? exact : fallback;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
 // I.   VARIANT<Types...>
 // ===========================================================================
 
-template<typename... _Types>
+template<typename... Types>
 class variant
 {
-    static_assert(sizeof...(_Types) > 0,
+    static_assert(sizeof...(Types) > 0,
                   "re_std::variant must have at least one alternative");
 
 public:
@@ -296,14 +302,14 @@ public:
 
     // (1) default ctor — value-initialises the FIRST alternative.
     //   Requires the first alternative to be default-constructible.
-    template<typename _T0 = typename internal::va_type_at<0, _Types...>::type,
+    template<typename T0 = typename internal::va_type_at<0, Types...>::type,
              typename = typename re_std::enable_if<
-                 re_std::is_constructible<_T0>::value
+                 re_std::is_constructible<T0>::value
              >::type>
     variant()
         : m_storage(), m_index(0)
     {
-        typedef _T0 _FirstT;
+        typedef T0 _FirstT;
         new (static_cast<void*>(&internal::storage_at<0>::get(m_storage))) _FirstT();
     }
 
@@ -333,53 +339,53 @@ public:
     //   Selects the best alternative via best_match: exact match
     //   preferred, falls back to first-constructible. Documented
     //   divergence from std's full "imaginary function" rule.
-    template<typename _U,
+    template<typename U,
              typename = typename re_std::enable_if<
-                 !re_std::is_same<typename re_std::decay<_U>::type, variant>::value &&
-                 (internal::best_match<_U, _Types...>::value
-                    < sizeof...(_Types))
+                 !re_std::is_same<typename re_std::decay<U>::type, variant>::value &&
+                 (internal::best_match<U, Types...>::value
+                    < sizeof...(Types))
              >::type>
-    variant(_U&& _u)
+    variant(U&& _u)
         : m_storage(),
-          m_index(internal::best_match<_U, _Types...>::value)
+          m_index(internal::best_match<U, Types...>::value)
     {
         static const std::size_t _idx =
-            internal::best_match<_U, _Types...>::value;
-        typedef typename internal::va_type_at<_idx, _Types...>::type _T;
+            internal::best_match<U, Types...>::value;
+        typedef typename internal::va_type_at<_idx, Types...>::type T;
         new (static_cast<void*>(&internal::storage_at<_idx>::get(m_storage)))
-            _T(static_cast<_U&&>(_u));
+            T(static_cast<U&&>(_u));
     }
 
     // (5) in_place_type ctor
-    template<typename _T,
-             typename... _Args,
+    template<typename T,
+             typename... Args,
              typename = typename re_std::enable_if<
-                 (internal::index_of<_T, _Types...>::value < sizeof...(_Types)) &&
-                 re_std::is_constructible<_T, _Args...>::value
+                 (internal::index_of<T, Types...>::value < sizeof...(Types)) &&
+                 re_std::is_constructible<T, Args...>::value
              >::type>
-    explicit variant(in_place_type_t<_T>, _Args&&... _args)
+    explicit variant(in_place_type_t<T>, Args&&... _args)
         : m_storage(),
-          m_index(internal::index_of<_T, _Types...>::value)
+          m_index(internal::index_of<T, Types...>::value)
     {
-        static const std::size_t _idx = internal::index_of<_T, _Types...>::value;
+        static const std::size_t _idx = internal::index_of<T, Types...>::value;
         new (static_cast<void*>(&internal::storage_at<_idx>::get(m_storage)))
-            _T(static_cast<_Args&&>(_args)...);
+            T(static_cast<Args&&>(_args)...);
     }
 
     // (6) in_place_index ctor
-    template<std::size_t _I,
-             typename... _Args,
-             typename _T = typename internal::va_type_at<_I, _Types...>::type,
+    template<std::size_t I,
+             typename... Args,
+             typename T = typename internal::va_type_at<I, Types...>::type,
              typename = typename re_std::enable_if<
-                 (_I < sizeof...(_Types)) &&
-                 re_std::is_constructible<_T, _Args...>::value
+                 (I < sizeof...(Types)) &&
+                 re_std::is_constructible<T, Args...>::value
              >::type>
-    explicit variant(in_place_index_t<_I>, _Args&&... _args)
-        : m_storage(), m_index(_I)
+    explicit variant(in_place_index_t<I>, Args&&... _args)
+        : m_storage(), m_index(I)
     {
-        typedef typename internal::va_type_at<_I, _Types...>::type _Type;
-        new (static_cast<void*>(&internal::storage_at<_I>::get(m_storage)))
-            _Type(static_cast<_Args&&>(_args)...);
+        typedef typename internal::va_type_at<I, Types...>::type _Type;
+        new (static_cast<void*>(&internal::storage_at<I>::get(m_storage)))
+            _Type(static_cast<Args&&>(_args)...);
     }
 
     // =================================================================
@@ -411,7 +417,7 @@ public:
     }
 
     variant& operator=(variant&& _other)
-        D_NOEXCEPT_IF(false /* simplified: not promising the noexcept */)
+        RE_STD_NOEXCEPT_IF(false /* simplified: not promising the noexcept */)
     {
         if (this != &_other)
         {
@@ -427,20 +433,20 @@ public:
     }
 
     // forwarding-from-U assignment
-    template<typename _U,
+    template<typename U,
              typename = typename re_std::enable_if<
-                 !re_std::is_same<typename re_std::decay<_U>::type, variant>::value &&
-                 (internal::best_match<_U, _Types...>::value
-                    < sizeof...(_Types))
+                 !re_std::is_same<typename re_std::decay<U>::type, variant>::value &&
+                 (internal::best_match<U, Types...>::value
+                    < sizeof...(Types))
              >::type>
-    variant& operator=(_U&& _u)
+    variant& operator=(U&& _u)
     {
         _destroy();
         static const std::size_t _idx =
-            internal::best_match<_U, _Types...>::value;
-        typedef typename internal::va_type_at<_idx, _Types...>::type _T;
+            internal::best_match<U, Types...>::value;
+        typedef typename internal::va_type_at<_idx, Types...>::type T;
         new (static_cast<void*>(&internal::storage_at<_idx>::get(m_storage)))
-            _T(static_cast<_U&&>(_u));
+            T(static_cast<U&&>(_u));
         m_index = _idx;
         return *this;
     }
@@ -450,37 +456,37 @@ public:
     // =================================================================
 
     // emplace<T>(args...) — replaces with T constructed from args.
-    template<typename _T, typename... _Args>
-    _T& emplace(_Args&&... _args)
+    template<typename T, typename... Args>
+    T& emplace(Args&&... _args)
     {
         _destroy();
-        static const std::size_t _idx = internal::index_of<_T, _Types...>::value;
+        static const std::size_t _idx = internal::index_of<T, Types...>::value;
         new (static_cast<void*>(&internal::storage_at<_idx>::get(m_storage)))
-            _T(static_cast<_Args&&>(_args)...);
+            T(static_cast<Args&&>(_args)...);
         m_index = _idx;
         return internal::storage_at<_idx>::get(m_storage);
     }
 
     // emplace<I>(args...) — replaces with the I-th alternative.
-    template<std::size_t _I, typename... _Args>
-    typename internal::va_type_at<_I, _Types...>::type&
-    emplace(_Args&&... _args)
+    template<std::size_t I, typename... Args>
+    typename internal::va_type_at<I, Types...>::type&
+    emplace(Args&&... _args)
     {
         _destroy();
-        typedef typename internal::va_type_at<_I, _Types...>::type _T;
-        new (static_cast<void*>(&internal::storage_at<_I>::get(m_storage)))
-            _T(static_cast<_Args&&>(_args)...);
-        m_index = _I;
-        return internal::storage_at<_I>::get(m_storage);
+        typedef typename internal::va_type_at<I, Types...>::type T;
+        new (static_cast<void*>(&internal::storage_at<I>::get(m_storage)))
+            T(static_cast<Args&&>(_args)...);
+        m_index = I;
+        return internal::storage_at<I>::get(m_storage);
     }
 
     // =================================================================
     // OBSERVERS
     // =================================================================
 
-    std::size_t index() const D_NOEXCEPT { return m_index; }
+    std::size_t index() const RE_STD_NOEXCEPT { return m_index; }
 
-    bool valueless_by_exception() const D_NOEXCEPT
+    bool valueless_by_exception() const RE_STD_NOEXCEPT
     {
         return m_index == variant_npos;
     }
@@ -515,18 +521,18 @@ public:
     // _ prefix marks them as implementation detail. Free functions in
     // sibling headers reach in through these.
 
-    template<std::size_t _I>
-    typename internal::va_type_at<_I, _Types...>::type&
+    template<std::size_t I>
+    typename internal::va_type_at<I, Types...>::type&
     _ref()
     {
-        return internal::storage_at<_I>::get(m_storage);
+        return internal::storage_at<I>::get(m_storage);
     }
 
-    template<std::size_t _I>
-    typename internal::va_type_at<_I, _Types...>::type const&
+    template<std::size_t I>
+    typename internal::va_type_at<I, Types...>::type const&
     _ref() const
     {
-        return internal::storage_at<_I>::get(m_storage);
+        return internal::storage_at<I>::get(m_storage);
     }
 
 private:
@@ -535,7 +541,7 @@ private:
     // STORAGE
     // =================================================================
 
-    internal::variant_storage<_Types...>    m_storage;
+    internal::variant_storage<Types...>    m_storage;
     std::size_t                             m_index;
 
     // =================================================================
@@ -548,16 +554,16 @@ private:
     // Index sequence helper (avoids depending on full integer_sequence).
     template<std::size_t...> struct _idx_seq {};
 
-    template<std::size_t _N, std::size_t... _Acc>
-    struct _make_idx_seq : _make_idx_seq<_N - 1, _N - 1, _Acc...> {};
+    template<std::size_t N, std::size_t... Acc>
+    struct _make_idx_seq : _make_idx_seq<N - 1, N - 1, Acc...> {};
 
-    template<std::size_t... _Acc>
-    struct _make_idx_seq<0, _Acc...>
+    template<std::size_t... Acc>
+    struct _make_idx_seq<0, Acc...>
     {
-        typedef _idx_seq<_Acc...> type;
+        typedef _idx_seq<Acc...> type;
     };
 
-    typedef typename _make_idx_seq<sizeof...(_Types)>::type _index_seq_type;
+    typedef typename _make_idx_seq<sizeof...(Types)>::type _index_seq_type;
     static _index_seq_type _index_seq() { return _index_seq_type(); }
 
     // Destroy the active alternative.
@@ -570,101 +576,101 @@ private:
         m_index = variant_npos;
     }
 
-    template<std::size_t... _Is>
-    void _destroy_dispatch(std::size_t _i, _idx_seq<_Is...>)
+    template<std::size_t... Is>
+    void _destroy_dispatch(std::size_t _i, _idx_seq<Is...>)
     {
         // Evaluate left-to-right; calls _destroy_one<I>() exactly once
         // for the matching I via an initializer-list expansion.
         // Cast to void array to discard the result and ensure ordering.
         using _expander = int[];
-        (void)_expander{ 0, (_destroy_one<_Is>(_i), 0)... };
+        (void)_expander{ 0, (_destroy_one<Is>(_i), 0)... };
     }
 
-    template<std::size_t _I>
+    template<std::size_t I>
     void _destroy_one(std::size_t _active)
     {
-        if (_active == _I)
+        if (_active == I)
         {
-            typedef typename internal::va_type_at<_I, _Types...>::type _T;
-            internal::storage_at<_I>::get(m_storage).~_T();
+            typedef typename internal::va_type_at<I, Types...>::type T;
+            internal::storage_at<I>::get(m_storage).~T();
         }
     }
 
     // Copy-construct from another variant's storage at the active index.
-    template<std::size_t... _Is>
+    template<std::size_t... Is>
     void _copy_construct_from(std::size_t _i,
-                              internal::variant_storage<_Types...> const& _src,
-                              _idx_seq<_Is...>)
+                              internal::variant_storage<Types...> const& _src,
+                              _idx_seq<Is...>)
     {
         using _expander = int[];
-        (void)_expander{ 0, (_copy_one<_Is>(_i, _src), 0)... };
+        (void)_expander{ 0, (_copy_one<Is>(_i, _src), 0)... };
     }
 
-    template<std::size_t _I>
+    template<std::size_t I>
     void _copy_one(std::size_t _active,
-                   internal::variant_storage<_Types...> const& _src)
+                   internal::variant_storage<Types...> const& _src)
     {
-        if (_active == _I)
+        if (_active == I)
         {
-            typedef typename internal::va_type_at<_I, _Types...>::type _T;
-            new (static_cast<void*>(&internal::storage_at<_I>::get(m_storage)))
-                _T(internal::storage_at<_I>::get(_src));
+            typedef typename internal::va_type_at<I, Types...>::type T;
+            new (static_cast<void*>(&internal::storage_at<I>::get(m_storage)))
+                T(internal::storage_at<I>::get(_src));
         }
     }
 
     // Move-construct from another variant's storage at the active index.
-    template<std::size_t... _Is>
+    template<std::size_t... Is>
     void _move_construct_from(std::size_t _i,
-                              internal::variant_storage<_Types...>& _src,
-                              _idx_seq<_Is...>)
+                              internal::variant_storage<Types...>& _src,
+                              _idx_seq<Is...>)
     {
         using _expander = int[];
-        (void)_expander{ 0, (_move_one<_Is>(_i, _src), 0)... };
+        (void)_expander{ 0, (_move_one<Is>(_i, _src), 0)... };
     }
 
-    template<std::size_t _I>
+    template<std::size_t I>
     void _move_one(std::size_t _active,
-                   internal::variant_storage<_Types...>& _src)
+                   internal::variant_storage<Types...>& _src)
     {
-        if (_active == _I)
+        if (_active == I)
         {
-            typedef typename internal::va_type_at<_I, _Types...>::type _T;
-            new (static_cast<void*>(&internal::storage_at<_I>::get(m_storage)))
-                _T(static_cast<_T&&>(internal::storage_at<_I>::get(_src)));
+            typedef typename internal::va_type_at<I, Types...>::type T;
+            new (static_cast<void*>(&internal::storage_at<I>::get(m_storage)))
+                T(static_cast<T&&>(internal::storage_at<I>::get(_src)));
         }
     }
 
     // Swap when both variants hold the SAME alternative — ADL swap on
     // the held alternative.
-    template<std::size_t... _Is>
+    template<std::size_t... Is>
     void _swap_same_index(std::size_t _i,
-                          internal::variant_storage<_Types...>& _a,
-                          internal::variant_storage<_Types...>& _b,
-                          _idx_seq<_Is...>)
+                          internal::variant_storage<Types...>& _a,
+                          internal::variant_storage<Types...>& _b,
+                          _idx_seq<Is...>)
     {
         using _expander = int[];
-        (void)_expander{ 0, (_swap_one<_Is>(_i, _a, _b), 0)... };
+        (void)_expander{ 0, (_swap_one<Is>(_i, _a, _b), 0)... };
     }
 
-    template<std::size_t _I>
+    template<std::size_t I>
     void _swap_one(std::size_t _active,
-                   internal::variant_storage<_Types...>& _a,
-                   internal::variant_storage<_Types...>& _b)
+                   internal::variant_storage<Types...>& _a,
+                   internal::variant_storage<Types...>& _b)
     {
-        if (_active == _I)
+        if (_active == I)
         {
             using std::swap;
-            swap(internal::storage_at<_I>::get(_a),
-                 internal::storage_at<_I>::get(_b));
+            swap(internal::storage_at<I>::get(_a),
+                 internal::storage_at<I>::get(_b));
         }
     }
 };
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_VARIANT_
+#endif  // RE_STD_VARIANT_VARIANT_HPP

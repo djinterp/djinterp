@@ -1,8 +1,8 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                               is_trivially_constructible.hpp
 *
 * is_trivially_constructible trait header:
-*   Yields true_type if `_Type t(declval<_Args>()...);` is well-formed
+*   Yields true_type if `Type t(declval<Args>()...);` is well-formed
 * and the construction is trivial (no user-defined or non-trivial
 * operations called), false_type otherwise. Implemented via the
 * `__is_trivially_constructible` builtin where available; degrades to
@@ -14,68 +14,70 @@
 *     is_trivially_constructible<A>::value               -> false
 *
 *   DETECTION MACRO:
-*   D_RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE.
+*   RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_trivially_constructible.hpp
+* path:      /inc/re_std/type_traits/is_trivially_constructible.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIALLY_CONSTRUCTIBLE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIALLY_CONSTRUCTIBLE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_TRIVIALLY_CONSTRUCTIBLE_HPP
+#define RE_STD_TYPE_TRAITS_IS_TRIVIALLY_CONSTRUCTIBLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // gate: variadic templates required
-#if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#if RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
 
-// djinterp
+// re_std
 #include "./integral_constant.hpp"
 #include "./false_type.hpp"
 
 
-#ifndef D_RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE
+#ifndef RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_trivially_constructible)
-            #define D_RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE  1
+            #define RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE  1
         #else
-            #define D_RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE  0
+            #define RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE  0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
-            defined(D_ENV_COMPILER_CLANG) ||                                  \
-            defined(D_ENV_COMPILER_MSVC)  ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
-        #define D_RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE      1
+    #elif ( defined(RE_STD_COMPILER_GCC)   ||                                  \
+            defined(RE_STD_COMPILER_CLANG) ||                                  \
+            defined(RE_STD_COMPILER_MSVC)  ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
+        #define RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE      1
     #else
-        #define D_RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE      0
+        #define RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE      0
     #endif
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_TRIVIALLY_CONSTRUCTIBLE
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE
+#if RE_STD_HAS_IS_TRIVIALLY_CONSTRUCTIBLE
 
-    template<typename    _Type,
-             typename... _Args>
+    template<typename    Type,
+             typename... Args>
     struct is_trivially_constructible
         : integral_constant<bool,
-              __is_trivially_constructible(_Type, _Args...)>
+              __is_trivially_constructible(Type, Args...)>
     {};
 
 #else
 
-    template<typename    _Type,
-             typename... _Args>
+    template<typename    Type,
+             typename... Args>
     struct is_trivially_constructible : false_type
     {};
 
@@ -86,20 +88,20 @@ NS_RESTD
 // II.  IS_TRIVIALLY_CONSTRUCTIBLE_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-    template<typename    _Type,
-             typename... _Args>
-    D_CONSTEXPR bool is_trivially_constructible_v =
-        is_trivially_constructible<_Type, _Args...>::value;
+    template<typename    Type,
+             typename... Args>
+    RE_STD_CONSTEXPR bool is_trivially_constructible_v =
+        is_trivially_constructible<Type, Args...>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#endif  // RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIALLY_CONSTRUCTIBLE_
+#endif  // RE_STD_TYPE_TRAITS_IS_TRIVIALLY_CONSTRUCTIBLE_HPP

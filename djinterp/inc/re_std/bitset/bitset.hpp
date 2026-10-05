@@ -1,8 +1,8 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   bitset.hpp
 *
 * bitset header:
-*   A fixed-size sequence of _N bits with the full standard operator
+*   A fixed-size sequence of N bits with the full standard operator
 * surface: test / set / reset / flip, the bitwise operators, shifts,
 * and the all / any / none / count observers.
 *
@@ -52,43 +52,52 @@
 * until C++23, so re_std is ahead here.
 *
 *
-* path:      /inc/djinterp/re_std/bitset/bitset.hpp
+* path:      /inc/re_std/bitset/bitset.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BITSET_BITSET_
-#define DJINTERP_RE_STD_BITSET_BITSET_ 1
+#ifndef RE_STD_BITSET_BITSET_HPP
+#define RE_STD_BITSET_BITSET_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
+#if !RE_STD_HAS_EXCEPTIONS
+    #include <cstdlib>  // std::abort, a bad character without exceptions
+#endif
 
-// djinterp
+// re_std
 #include "../type_traits/integral_constant.hpp"
 #include "../stdexception/out_of_range.hpp"
 #include "../stdexception/invalid_argument.hpp"
 
 
-NS_RESTD
+// RE_STD_INTERNAL_BITSET_THROW
+//   macro (internal): every bitset error, as an expression: throw EXC(MSG)
+// where exceptions are on, as std's bitset does; std::abort() where they are
+// off, as std's does then (the choice function.hpp makes). A macro, not a
+// function, so the throw stays usable inside a C++11 constexpr expression.
+#if RE_STD_HAS_EXCEPTIONS
+    #define RE_STD_INTERNAL_BITSET_THROW(EXC, MSG)   throw EXC(MSG)
+#else
+    #define RE_STD_INTERNAL_BITSET_THROW(EXC, MSG)   std::abort()
+#endif  // RE_STD_HAS_EXCEPTIONS
+
+
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY
 // ===========================================================================
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
 
 // ===========================================================================
@@ -96,9 +105,9 @@ NS_RESTD
 // ===========================================================================
 
 // bitset
-//   class: a fixed sequence of _N bits packed into unsigned long long
+//   class: a fixed sequence of N bits packed into unsigned long long
 // words. See the header note on the trimming invariant.
-template<std::size_t _N>
+template<std::size_t N>
 class bitset
 {
 private:
@@ -107,19 +116,19 @@ private:
     static const std::size_t s_word_bits = 64;
     // ceil division; the max(...,1) keeps a zero-length bitset legal
     static const std::size_t s_words =
-        (_N + s_word_bits - 1) / s_word_bits > 0
-            ? (_N + s_word_bits - 1) / s_word_bits
+        (N + s_word_bits - 1) / s_word_bits > 0
+            ? (N + s_word_bits - 1) / s_word_bits
             : 1;
 
     _word_t m_w[s_words];
 
     // trim_
-    //   helper: clears the bits above position _N-1 in the top word.
+    //   function: clears the bits above position N-1 in the top word.
     // Every mutator ends with this -- count(), any() and operator==
     // read whole words, so a stray high bit corrupts all three.
-    D_CONSTEXPR_CPP14 void trim_()
+    RE_STD_CONSTEXPR_CPP14 void trim_()
     {
-        const std::size_t _used = _N % s_word_bits;
+        const std::size_t _used = N % s_word_bits;
         if (_used != 0)
         {
             m_w[s_words - 1] &=
@@ -128,7 +137,7 @@ private:
         }
     }
 
-    static D_CONSTEXPR int popcount_(_word_t _v, int _acc = 0)
+    static RE_STD_CONSTEXPR int popcount_(_word_t _v, int _acc = 0)
     {
         return (_v == 0)
             ? _acc
@@ -152,33 +161,33 @@ public:
         std::size_t m_pos;
 
     public:
-        D_CONSTEXPR_CPP14 reference(bitset& _b, std::size_t _p)
+        RE_STD_CONSTEXPR_CPP14 reference(bitset& _b, std::size_t _p)
             : m_owner(&_b), m_pos(_p)
         {}
 
-        D_CONSTEXPR_CPP14 reference& operator=(bool _v)
+        RE_STD_CONSTEXPR_CPP14 reference& operator=(bool _v)
         {
             m_owner->set(m_pos, _v);
             return *this;
         }
 
-        D_CONSTEXPR_CPP14 reference& operator=(const reference& _o)
+        RE_STD_CONSTEXPR_CPP14 reference& operator=(const reference& _o)
         {
             m_owner->set(m_pos, static_cast<bool>(_o));
             return *this;
         }
 
-        D_CONSTEXPR operator bool() const
+        RE_STD_CONSTEXPR operator bool() const
         {
             return m_owner->test_unchecked_(m_pos);
         }
 
-        D_CONSTEXPR bool operator~() const
+        RE_STD_CONSTEXPR bool operator~() const
         {
             return !m_owner->test_unchecked_(m_pos);
         }
 
-        D_CONSTEXPR_CPP14 reference& flip()
+        RE_STD_CONSTEXPR_CPP14 reference& flip()
         {
             m_owner->flip(m_pos);
             return *this;
@@ -186,9 +195,9 @@ public:
     };
 
     // test_unchecked_
-    //   helper: public only because `reference` needs it; performs no
+    //   function: public only because `reference` needs it; performs no
     // bounds check, unlike test().
-    D_CONSTEXPR bool test_unchecked_(std::size_t _pos) const
+    RE_STD_CONSTEXPR bool test_unchecked_(std::size_t _pos) const
     {
         return ( (m_w[_pos / s_word_bits] >> (_pos % s_word_bits)) & 1ull )
                != 0ull;
@@ -198,14 +207,14 @@ public:
     // construction
     // -----------------------------------------------------------------
 
-    D_CONSTEXPR_CPP14 bitset()
+    RE_STD_CONSTEXPR_CPP14 bitset()
         : m_w()
     {}
 
     // bitset(unsigned long long)
-    //   ctor: low-order bits of _v. Bits above _N are discarded, and
-    // bits above 64 are zero when _N exceeds a word.
-    D_CONSTEXPR_CPP14 bitset(unsigned long long _v)
+    //   function: low-order bits of _v. Bits above N are discarded, and
+    // bits above 64 are zero when N exceeds a word.
+    RE_STD_CONSTEXPR_CPP14 bitset(unsigned long long _v)
         : m_w()
     {
         m_w[0] = static_cast<_word_t>(_v);
@@ -213,11 +222,11 @@ public:
     }
 
     // bitset(const char*)
-    //   ctor: parses '0'/'1', leftmost character is the HIGHEST index,
+    //   function: parses '0'/'1', leftmost character is the HIGHEST index,
     // matching std's string constructor. Throws invalid_argument on any
     // other character. The std::string overload is absent -- see the
     // header note.
-    D_CONSTEXPR_CPP14 explicit bitset(const char* _s)
+    RE_STD_CONSTEXPR_CPP14 explicit bitset(const char* _s)
         : m_w()
     {
         std::size_t _len = 0;
@@ -227,10 +236,10 @@ public:
             const char _c = _s[_len - 1 - _i];
             if (_c != '0' && _c != '1')
             {
-                throw invalid_argument(
-                    "re_std::bitset: character is not '0' or '1'");
+                RE_STD_INTERNAL_BITSET_THROW(invalid_argument,
+                                        "re_std::bitset: character is not '0' or '1'");
             }
-            if (_i < _N && _c == '1') { set(_i, true); }
+            if (_i < N && _c == '1') { set(_i, true); }
         }
     }
 
@@ -238,14 +247,14 @@ public:
     // observers
     // -----------------------------------------------------------------
 
-    D_CONSTEXPR std::size_t size() const { return _N; }
+    RE_STD_CONSTEXPR std::size_t size() const { return N; }
 
-    D_CONSTEXPR bool operator[](std::size_t _pos) const
+    RE_STD_CONSTEXPR bool operator[](std::size_t _pos) const
     {
         return test_unchecked_(_pos);
     }
 
-    D_CONSTEXPR_CPP14 reference operator[](std::size_t _pos)
+    RE_STD_CONSTEXPR_CPP14 reference operator[](std::size_t _pos)
     {
         return reference(*this, _pos);
     }
@@ -253,15 +262,16 @@ public:
     // test
     //   function: bounds-checked read. Throws out_of_range, which is what
     // separates it from operator[].
-    D_CONSTEXPR bool test(std::size_t _pos) const
+    RE_STD_CONSTEXPR bool test(std::size_t _pos) const
     {
-        return (_pos >= _N)
-            ? (throw out_of_range("re_std::bitset::test: position out of range"),
+        return (_pos >= N)
+            ? (RE_STD_INTERNAL_BITSET_THROW(out_of_range,
+                                       "re_std::bitset::test: position out of range"),
                false)
             : test_unchecked_(_pos);
     }
 
-    D_CONSTEXPR_CPP14 std::size_t count() const
+    RE_STD_CONSTEXPR_CPP14 std::size_t count() const
     {
         std::size_t _n = 0;
         for (std::size_t _i = 0; _i < s_words; ++_i)
@@ -271,7 +281,7 @@ public:
         return _n;
     }
 
-    D_CONSTEXPR_CPP14 bool any() const
+    RE_STD_CONSTEXPR_CPP14 bool any() const
     {
         for (std::size_t _i = 0; _i < s_words; ++_i)
         {
@@ -280,14 +290,14 @@ public:
         return false;
     }
 
-    D_CONSTEXPR_CPP14 bool none() const { return !any(); }
-    D_CONSTEXPR_CPP14 bool all()  const { return count() == _N; }
+    RE_STD_CONSTEXPR_CPP14 bool none() const { return !any(); }
+    RE_STD_CONSTEXPR_CPP14 bool all()  const { return count() == N; }
 
     // -----------------------------------------------------------------
     // mutators
     // -----------------------------------------------------------------
 
-    D_CONSTEXPR_CPP14 bitset& set()
+    RE_STD_CONSTEXPR_CPP14 bitset& set()
     {
         for (std::size_t _i = 0; _i < s_words; ++_i)
         {
@@ -297,11 +307,12 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 bitset& set(std::size_t _pos, bool _v = true)
+    RE_STD_CONSTEXPR_CPP14 bitset& set(std::size_t _pos, bool _v = true)
     {
-        if (_pos >= _N)
+        if (_pos >= N)
         {
-            throw out_of_range("re_std::bitset::set: position out of range");
+            RE_STD_INTERNAL_BITSET_THROW(out_of_range,
+                                    "re_std::bitset::set: position out of range");
         }
         const _word_t _bit =
             static_cast<_word_t>(static_cast<_word_t>(1) << (_pos % s_word_bits));
@@ -310,18 +321,18 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 bitset& reset()
+    RE_STD_CONSTEXPR_CPP14 bitset& reset()
     {
         for (std::size_t _i = 0; _i < s_words; ++_i) { m_w[_i] = 0; }
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 bitset& reset(std::size_t _pos)
+    RE_STD_CONSTEXPR_CPP14 bitset& reset(std::size_t _pos)
     {
         return set(_pos, false);
     }
 
-    D_CONSTEXPR_CPP14 bitset& flip()
+    RE_STD_CONSTEXPR_CPP14 bitset& flip()
     {
         for (std::size_t _i = 0; _i < s_words; ++_i)
         {
@@ -331,7 +342,7 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 bitset& flip(std::size_t _pos)
+    RE_STD_CONSTEXPR_CPP14 bitset& flip(std::size_t _pos)
     {
         return set(_pos, !test(_pos));
     }
@@ -343,26 +354,27 @@ public:
     // to_ullong
     //   function: throws overflow_error if any bit at or above 64 is set,
     // per [bitset.members]. to_string is absent -- see the header note.
-    D_CONSTEXPR_CPP14 unsigned long long to_ullong() const
+    RE_STD_CONSTEXPR_CPP14 unsigned long long to_ullong() const
     {
         for (std::size_t _i = 1; _i < s_words; ++_i)
         {
             if (m_w[_i] != 0)
             {
-                throw out_of_range(
-                    "re_std::bitset::to_ullong: value does not fit");
+                RE_STD_INTERNAL_BITSET_THROW(out_of_range,
+                                        "re_std::bitset::to_ullong: value does not fit");
             }
         }
         return m_w[0];
     }
 
-    D_CONSTEXPR_CPP14 unsigned long to_ulong() const
+    RE_STD_CONSTEXPR_CPP14 unsigned long to_ulong() const
     {
         const unsigned long long _v = to_ullong();
         if (_v > static_cast<unsigned long long>(
                      static_cast<unsigned long>(-1)))
         {
-            throw out_of_range("re_std::bitset::to_ulong: value does not fit");
+            RE_STD_INTERNAL_BITSET_THROW(out_of_range,
+                                    "re_std::bitset::to_ulong: value does not fit");
         }
         return static_cast<unsigned long>(_v);
     }
@@ -371,25 +383,25 @@ public:
     // bitwise
     // -----------------------------------------------------------------
 
-    D_CONSTEXPR_CPP14 bitset& operator&=(const bitset& _o)
+    RE_STD_CONSTEXPR_CPP14 bitset& operator&=(const bitset& _o)
     {
         for (std::size_t _i = 0; _i < s_words; ++_i) { m_w[_i] &= _o.m_w[_i]; }
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 bitset& operator|=(const bitset& _o)
+    RE_STD_CONSTEXPR_CPP14 bitset& operator|=(const bitset& _o)
     {
         for (std::size_t _i = 0; _i < s_words; ++_i) { m_w[_i] |= _o.m_w[_i]; }
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 bitset& operator^=(const bitset& _o)
+    RE_STD_CONSTEXPR_CPP14 bitset& operator^=(const bitset& _o)
     {
         for (std::size_t _i = 0; _i < s_words; ++_i) { m_w[_i] ^= _o.m_w[_i]; }
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 bitset operator~() const
+    RE_STD_CONSTEXPR_CPP14 bitset operator~() const
     {
         bitset _r(*this);
         _r.flip();
@@ -400,32 +412,32 @@ public:
     //   function: shifts toward higher indices. Implemented bit-wise
     // rather than word-wise: correctness first, and a bitset is rarely
     // the hot path.
-    D_CONSTEXPR_CPP14 bitset& operator<<=(std::size_t _s)
+    RE_STD_CONSTEXPR_CPP14 bitset& operator<<=(std::size_t _s)
     {
-        if (_s >= _N) { return reset(); }
-        for (std::size_t _i = _N; _i-- > 0; )
+        if (_s >= N) { return reset(); }
+        for (std::size_t _i = N; _i-- > 0; )
         {
             set(_i, (_i >= _s) ? test_unchecked_(_i - _s) : false);
         }
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 bitset& operator>>=(std::size_t _s)
+    RE_STD_CONSTEXPR_CPP14 bitset& operator>>=(std::size_t _s)
     {
-        if (_s >= _N) { return reset(); }
-        for (std::size_t _i = 0; _i < _N; ++_i)
+        if (_s >= N) { return reset(); }
+        for (std::size_t _i = 0; _i < N; ++_i)
         {
-            set(_i, (_i + _s < _N) ? test_unchecked_(_i + _s) : false);
+            set(_i, (_i + _s < N) ? test_unchecked_(_i + _s) : false);
         }
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 bitset operator<<(std::size_t _s) const
+    RE_STD_CONSTEXPR_CPP14 bitset operator<<(std::size_t _s) const
     {
         bitset _r(*this); _r <<= _s; return _r;
     }
 
-    D_CONSTEXPR_CPP14 bitset operator>>(std::size_t _s) const
+    RE_STD_CONSTEXPR_CPP14 bitset operator>>(std::size_t _s) const
     {
         bitset _r(*this); _r >>= _s; return _r;
     }
@@ -434,7 +446,7 @@ public:
     // comparison
     // -----------------------------------------------------------------
 
-    D_CONSTEXPR_CPP14 bool operator==(const bitset& _o) const
+    RE_STD_CONSTEXPR_CPP14 bool operator==(const bitset& _o) const
     {
         for (std::size_t _i = 0; _i < s_words; ++_i)
         {
@@ -443,7 +455,7 @@ public:
         return true;
     }
 
-    D_CONSTEXPR_CPP14 bool operator!=(const bitset& _o) const
+    RE_STD_CONSTEXPR_CPP14 bool operator!=(const bitset& _o) const
     {
         return !(*this == _o);
     }
@@ -454,32 +466,32 @@ public:
 // II.  FREE BITWISE OPERATORS
 // ===========================================================================
 
-template<std::size_t _N>
-D_CONSTEXPR_CPP14 bitset<_N>
-operator&(const bitset<_N>& _a, const bitset<_N>& _b)
+template<std::size_t N>
+RE_STD_CONSTEXPR_CPP14 bitset<N>
+operator&(const bitset<N>& _a, const bitset<N>& _b)
 {
-    bitset<_N> _r(_a); _r &= _b; return _r;
+    bitset<N> _r(_a); _r &= _b; return _r;
 }
 
-template<std::size_t _N>
-D_CONSTEXPR_CPP14 bitset<_N>
-operator|(const bitset<_N>& _a, const bitset<_N>& _b)
+template<std::size_t N>
+RE_STD_CONSTEXPR_CPP14 bitset<N>
+operator|(const bitset<N>& _a, const bitset<N>& _b)
 {
-    bitset<_N> _r(_a); _r |= _b; return _r;
+    bitset<N> _r(_a); _r |= _b; return _r;
 }
 
-template<std::size_t _N>
-D_CONSTEXPR_CPP14 bitset<_N>
-operator^(const bitset<_N>& _a, const bitset<_N>& _b)
+template<std::size_t N>
+RE_STD_CONSTEXPR_CPP14 bitset<N>
+operator^(const bitset<N>& _a, const bitset<N>& _b)
 {
-    bitset<_N> _r(_a); _r ^= _b; return _r;
+    bitset<N> _r(_a); _r ^= _b; return _r;
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BITSET_BITSET_
+#endif  // RE_STD_BITSET_BITSET_HPP

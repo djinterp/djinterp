@@ -12,7 +12,7 @@
 * path:      /src/djinterp/net/ssh/ssh_key.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.29
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssh/ssh_key.h"  // corresponding header
 // std
@@ -26,7 +26,7 @@
 #include <string.h>   // memchr, memcpy, memmove, memset
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"  // framework root
-#include "../../../../inc/djinterp/env/net/env_ssh.h"  // D_ENV_SSH_RANDOM_*
+#include "../../../../inc/djinterp/env/net/ssh/env_ssh.h"  // D_ENV_SSH_RANDOM_*
 #include "../../../../inc/djinterp/net/ssh/ssh_base64.h"  // d_ssh_base64_encode
 #include "../../../../inc/djinterp/net/ssh/ssh_wire.h"  // d_ssh_reader
 #include "../../../../inc/djinterp/net/ssh/ssh_internal.h"  // d_ssh_internal_*

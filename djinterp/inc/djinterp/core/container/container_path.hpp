@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                      container_path.hpp
+/*******************************************************************************
+* djinterp [core]                                             container_path.hpp
 *
 * Path resolution over indexed containers:
 *   This header provides templated path traversal and construction for any
@@ -9,11 +9,12 @@
 * can extract parent, first_child, next_sibling, and component from each
 * element.
 *
-*   The accessor policy is an object with const member functions.  All functions
+*   The accessor policy is an object with const member functions. All
+* functions
 * accept the policy as their first parameter; template arguments are fully
 * deducible from the call site.
 *
-* THE SPEC (Addressability).  Two objects are in play here and they are NOT the
+* THE SPEC (Addressability). Two objects are in play here and they are NOT the
 * same object; the whole of what follows turns on keeping them apart.
 *
 *     PATH      path(n) = ( c |> n_1 |> ... |> n_N ),   a chain of COMPONENTS.
@@ -22,7 +23,8 @@
 *               It carries N labels.  THE ROOT CONTRIBUTES NONE: addressing
 *               starts from the root, it is not a step taken.
 *
-* So |addr(n)| == level(n), and an address is exactly one label SHORTER than its
+* So |addr(n)| == level(n), and an address is exactly one label SHORTER than
+* its
 * path is long.  Resolution descends by consuming labels, one per CHILD step:
 *
 *     resolve(root, addr(n)) == n        and       addr(resolve(root, w)) == w
@@ -30,7 +32,7 @@
 * and this round trip is the contract every function below is written to keep.
 * container_path_round_trips will assert it over a whole subtree.
 *
-* SEPARATION IS A PRECONDITION, NOT A NICETY.  The round trip holds if and only
+* SEPARATION IS A PRECONDITION, NOT A NICETY. The round trip holds if and only
 * if the labelling SEPARATES -- the children of every node bear distinct
 * components.  That is the multiplicity restriction mu_1 read sibling-wise:
 * under
@@ -39,27 +41,29 @@
 * implementation of resolve can invert addr.  container_path_is_separating and
 * container_path_is_separating_subtree decide it; resolve does not check,
 * because
-* checking on the resolution path would cost O(k) per step for a property of the
+* checking on the resolution path would cost O(k) per step for a property of
+* the
 * TREE, not of the query.
 *
 * LEVEL IS NOT DEPTH.  container_path_level counts parent links UPWARD, to the
 * root; that is the spec's lambda, and it is the length of an address.  The
 * spec's depth is a node's HEIGHT, counted DOWNWARD to its deepest leaf.  They
-* are different numbers on the same node.  container_path_depth is retained as a
+* are different numbers on the same node. container_path_depth is retained as
+* a
 * spelling of level(), because that is what it always computed.
 *
 * WHAT CHANGED, AND WHY IT MATTERS:
 *   - collect() used to include the ROOT's own component, so it returned
 *     level(n) + 1 components where resolve consumes level(n).  build(n)
 * produced
-*     "root/a/b" and resolve(root, build(n)) != n.  It now stops at the anchor,
+*     "root/a/b" and resolve(root, build(n)) != n. It now stops at the anchor,
 *     exclusive.  (Two neighbours already had this right:
 * container_path_relative
 *     stops at the lca, and path_split("/a/b") yields ["a","b"].)
 *   - relative() returned {0, {}} when the lca was null -- the same value it
 *     returns for relative(a, a).  path_address now carries `valid`.
 *   - The sibling scan was open-coded twice here and once more in the iterator
-*     header.  Resolution now folds tree_find_child, which is the descent step.
+*     header. Resolution now folds tree_find_child, which is the descent step.
 *   - component_view::operator== called memcmp(null, null, 0) on two empty
 * views.
 *
@@ -89,19 +93,26 @@
 *
 *   String convenience:
 *     - container_path_resolve          (const char* / std::string overloads)
-*     - container_path_build            construct a string path with separators
-*     - container_path_build_from       the same, anchored at a chosen ancestor
+*     - container_path_build construct a string path with separators
+*     - container_path_build_from the same, anchored at a chosen ancestor
 *     - container_path_build_is_faithful   no label may contain the separator
 *     - container_path_relative_string  relative address as a ".." string
 *
 *
 * path:      /inc/djinterp/core/container/container_path.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.04.02
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_PATH_
-#define DJINTERP_CONTAINER_PATH_ 1
+#ifndef DJINTERP_CONTAINER_CONTAINER_PATH_HPP
+#define DJINTERP_CONTAINER_CONTAINER_PATH_HPP 1
+
+// FLOOR, FOR NOW: below C++20 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -109,9 +120,9 @@
 #include <string>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../paradigm/path/path.hpp"
-#include "./iterator/linked_tree_iterator.hpp"
+#include "iterator/tree/linked_tree_iterator.hpp"
 #include "./iterator/path_iterator.hpp"
 
 
@@ -122,8 +133,8 @@ NS_DJINTERP
 //  container_path_policy concept
 // ================================================================
 //
-// A valid policy object _policy for container _Container, index type _Index,
-// and component type _Component must provide these type aliases:
+// A valid policy object _policy for container Container, index type Index,
+// and component type Component must provide these type aliases:
 //
 //   container_type  - the container being navigated
 //   index_type      - the element address type
@@ -154,19 +165,19 @@ NS_DJINTERP
 // ================================================================
 
 // component_view
-//   struct: a lightweight, non-owning view into a character buffer.  Used as
-// the
-// component_type for string-based path policies where elements are named by
-// substrings of a string pool.
+//   struct: a lightweight, non-owning view into a character buffer. Used as
+// the component_type for string-based path policies where elements are named
+// by substrings of a string pool.
 struct component_view
 {
     const char* data;
     std::size_t length;
 
     // operator==
-    //   compares two views for byte-wise equality.  The zero-length case is
-    // short-circuited: memcmp with a null pointer is undefined even for a count
-    // of zero, and two empty views are equal without inspecting any byte.
+    //   compares two views for byte-wise equality. The zero-length case is
+    // short-circuited: memcmp with a null pointer is undefined even for a
+    // count of zero, and two empty views are equal without inspecting any
+    // byte.
     bool
     operator==
     (
@@ -204,41 +215,41 @@ struct component_view
 // ================================================================
 
 // path_address
-//   struct: a RELATIVE address -- the (k, v) pair of the spec.  k ascents from
+//   struct: a RELATIVE address -- the (k, v) pair of the spec. k ascents from
 // the source to the meet of the two addresses, followed by the label word v
 // descending from the meet to the destination.
 //
-//   valid = false, up_count = 0, components empty  --> NO relative address
+//   valid = false, up_count = 0, components empty --> NO relative address
 //                                                      exists: the two nodes
 // lie
 //                                                      in different trees and
 //                                                      their addresses have no
 //                                                      meet.
-//   valid = true,  up_count = 0, components empty  --> the same node.
-//   valid = true,  up_count = 2, components = {e,f} --> ../../e/f
+//   valid = true, up_count = 0, components empty --> the same node.
+//   valid = true, up_count = 2, components = {e,f} --> ../../e/f
 //
-//   The `valid` flag is what tells those first two cases apart.  Without it the
+//   The `valid` flag is what tells those first two cases apart. Without it the
 // caller cannot distinguish "these nodes are unrelated" from "these nodes are
 // the same", which are not remotely the same answer.
 //
-//   This representation is component-type-agnostic: it works with string paths,
-// integer keys, bit patterns, and anything else a policy names children by.
-template<typename _Component>
+//   This representation is component-type-agnostic: it works with string
+// paths, integer keys, bit patterns, and anything else a policy names children
+// by.
+template<typename Component>
 struct path_address
 {
     std::size_t             up_count;
-    std::vector<_Component> components;
+    std::vector<Component> components;
     bool                    valid;
 
     // path_address (default)
     //   an INVALID address: no relation between the two nodes has been
-    // established.  container_path_relative sets valid explicitly.
+    // established. container_path_relative sets valid explicitly.
     path_address()
         : up_count(0),
           components(),
           valid(false)
-    {
-    }
+    {}
 };
 
 
@@ -251,32 +262,31 @@ struct path_address
 // returns the component the label word names -- or the null sentinel if any
 // label matches no child.
 //
-//   This is the fold of the descent step (tree_find_child) along the word.  A
+//   This is the fold of the descent step (tree_find_child) along the word. A
 // word of N labels descends N levels, so resolve(root, addr(n)) lands on the
 // component at level N: the root itself consumes NOTHING, which is why an
 // address of the root is the empty word.
 //
-//   PRECONDITION: separation (see the policy concept).  Where two siblings
-// share
-// a label, this returns the first the sibling scan reaches.
-template<typename _Policy,
-         typename _Container,
-         typename _Index,
-         typename _Iter>
-_Index
+//   PRECONDITION: separation (see the policy concept). Where two siblings
+// share a label, this returns the first the sibling scan reaches.
+template<typename Policy,
+         typename Container,
+         typename Index,
+         typename Iter>
+Index
 container_path_resolve
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _root,
-    _Iter             _begin,
-    _Iter             _end
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _root,
+    Iter              _begin,
+    Iter              _end
 )
 {
-    _Index current = _root;
+    Index current = _root;
 
     // fold the descent step along the label word
-    for (_Iter it = _begin; it != _end; ++it)
+    for (Iter it = _begin; it != _end; ++it)
     {
         if (_policy.is_null(current))
         {
@@ -291,17 +301,17 @@ container_path_resolve
 
 // container_path_resolve (pointer + count overload)
 //   function: resolves from a contiguous array of labels.
-template<typename _Policy,
-         typename _Container,
-         typename _Index,
-         typename _Component>
-_Index
+template<typename Policy,
+         typename Container,
+         typename Index,
+         typename Component>
+Index
 container_path_resolve
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _root,
-    const _Component* _components,
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _root,
+    const Component* _components,
     std::size_t       _count
 )
 {
@@ -315,17 +325,17 @@ container_path_resolve
 
 // container_path_resolve (vector overload)
 //   function: resolves from a vector of labels.
-template<typename _Policy,
-         typename _Container,
-         typename _Index,
-         typename _Component>
-_Index
+template<typename Policy,
+         typename Container,
+         typename Index,
+         typename Component>
+Index
 container_path_resolve
 (
-    const _Policy&                 _policy,
-    const _Container&              _container,
-    _Index                         _root,
-    const std::vector<_Component>& _components
+    const Policy&                 _policy,
+    const Container&              _container,
+    Index                          _root,
+    const std::vector<Component>& _components
 )
 {
     return container_path_resolve(
@@ -342,26 +352,26 @@ container_path_resolve
 // ================================================================
 
 // container_path_root
-//   function: the root of _id's tree -- the ancestor with no parent.  Returns
+//   function: the root of _id's tree -- the ancestor with no parent. Returns
 // _id itself when _id is already a root, and the null sentinel when _id is
 // null.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-_Index
+template<typename Policy,
+         typename Container,
+         typename Index>
+Index
 container_path_root
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _id
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _id
 )
 {
-    _Index current = _id;
+    Index current = _id;
 
     // climb until a node with no parent is found
     while (!_policy.is_null(current))
     {
-        _Index parent = _policy.parent(_container, current);
+        Index parent = _policy.parent(_container, current);
 
         if (_policy.is_null(parent))
         {
@@ -377,23 +387,23 @@ container_path_root
 
 // container_path_level
 //   function: the LEVEL (lambda) of _id -- the number of parent links from _id
-// up to its root, which is at level 0.  This is the length of _id's address.
+// up to its root, which is at level 0. This is the length of _id's address.
 //
 //   It is NOT the spec's depth, which is a node's HEIGHT, counted downward to
-// its deepest leaf.  The two are the complementary halves of one descent.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+// its deepest leaf. The two are the complementary halves of one descent.
+template<typename Policy,
+         typename Container,
+         typename Index>
 std::size_t
 container_path_level
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _id
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _id
 )
 {
     std::size_t level   = 0;
-    _Index      current = _policy.parent(_container, _id);
+    Index       current = _policy.parent(_container, _id);
 
     // count parent links to the root
     while (!_policy.is_null(current))
@@ -408,18 +418,19 @@ container_path_level
 
 // container_path_level (anchored overload)
 //   function: the level of _id measured from _anchor, which is at level 0.
-// Returns 0 when _id does not reach _anchor; container_path_is_ancestor_or_self
-// tells that case apart from _id BEING the anchor.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+// Returns 0 when _id does not reach _anchor;
+// container_path_is_ancestor_or_self tells that case apart from _id BEING the
+// anchor.
+template<typename Policy,
+         typename Container,
+         typename Index>
 std::size_t
 container_path_level
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _id,
-    _Index            _anchor
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _id,
+    Index             _anchor
 )
 {
     return path_level(_policy, _container, _id, _anchor);
@@ -427,18 +438,18 @@ container_path_level
 
 
 // container_path_depth
-//   function: the retained spelling of container_path_level.  It counts parent
+//   function: the retained spelling of container_path_level. It counts parent
 // links upward, which is the LEVEL; the spec reserves `depth` for a node's
-// height.  Kept so existing callers continue to compile; prefer level().
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+// height. Kept so existing callers continue to compile; prefer level().
+template<typename Policy,
+         typename Container,
+         typename Index>
 std::size_t
 container_path_depth
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _id
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _id
 )
 {
     return container_path_level(_policy, _container, _id);
@@ -451,36 +462,32 @@ container_path_depth
 
 // container_path_address
 //   function: the ADDRESS of _id relative to _anchor -- the word of labels
-// along
-// path(_id), root-first.
+// along path(_id), root-first.
 //
-//   THE ANCHOR CONTRIBUTES NO LABEL.  Addressing starts from the anchor; the
-// anchor is not a step taken.  So the returned word has exactly level(_id)
+//   THE ANCHOR CONTRIBUTES NO LABEL. Addressing starts from the anchor; the
+// anchor is not a step taken. So the returned word has exactly level(_id)
 // entries, which is exactly what container_path_resolve consumes, and
 //
-//       resolve(anchor, address(anchor, n)) == n
-//
-// for every n in the anchor's subtree, given a separating labelling.  An empty
-// result means either _id == _anchor (whose address is the empty word) or _id
-// does not reach _anchor at all; container_path_is_ancestor_or_self
-// distinguishes
-// them.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-std::vector<typename _Policy::component_type>
+//       resolve(anchor, address(anchor, n)) == n for every n in the anchor's
+// subtree, given a separating labelling. An empty result means either _id ==
+// _anchor (whose address is the empty word) or _id does not reach _anchor at
+// all; container_path_is_ancestor_or_self distinguishes them.
+template<typename Policy,
+         typename Container,
+         typename Index>
+std::vector<typename Policy::component_type>
 container_path_address
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _anchor,
-    _Index            _id
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _anchor,
+    Index             _id
 )
 {
-    using component_type = typename _Policy::component_type;
+    using component_type = typename Policy::component_type;
 
     std::vector<component_type> word;
-    _Index                      current = _id;
+    Index                       current = _id;
 
     // walk up to the anchor, taking a label at every step EXCEPT the anchor's
     while ( (!_policy.is_null(current)) &&
@@ -520,25 +527,23 @@ container_path_address
 
 // container_path_collect
 //   function: the ABSOLUTE address of _id -- its label word from the root of
-// its
-// own tree.  The compatibility spelling of container_path_address.
+// its own tree. The compatibility spelling of container_path_address.
 //
-//   BEHAVIOUR CHANGE.  This used to include the ROOT's own component, returning
-// level(_id) + 1 labels where resolve consumes level(_id).  It no longer does:
+//   BEHAVIOUR CHANGE. This used to include the ROOT's own component, returning
+// level(_id) + 1 labels where resolve consumes level(_id). It no longer does:
 // the root contributes no label, so collect(root) is now the EMPTY word and
-// collect(n) has exactly level(n) entries.  container_path_build, which is
-// built
-// on this, is corrected by the same stroke -- it no longer prefixes the root's
-// name to every path it renders.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-std::vector<typename _Policy::component_type>
+// collect(n) has exactly level(n) entries. container_path_build, which is
+// built on this, is corrected by the same stroke -- it no longer prefixes the
+// root's name to every path it renders.
+template<typename Policy,
+         typename Container,
+         typename Index>
+std::vector<typename Policy::component_type>
 container_path_collect
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _id
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _id
 )
 {
     return container_path_address(
@@ -549,18 +554,18 @@ container_path_collect
 }
 
 // container_path_collect (anchored overload)
-//   function: the address of _id relative to _anchor.  A spelling of
+//   function: the address of _id relative to _anchor. A spelling of
 // container_path_address, for symmetry with the three-argument form.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-std::vector<typename _Policy::component_type>
+template<typename Policy,
+         typename Container,
+         typename Index>
+std::vector<typename Policy::component_type>
 container_path_collect
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _anchor,
-    _Index            _id
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _anchor,
+    Index             _id
 )
 {
     return container_path_address(_policy, _container, _anchor, _id);
@@ -576,23 +581,23 @@ container_path_collect
 // parent up to the root.
 //
 //   These are the components named by the PROPER PREFIXES of addr(_id), and
-// there are exactly level(_id) of them -- one per prefix.  The walk is the path
-// iterator; the vector is only for callers that need to keep the chain.  A
+// there are exactly level(_id) of them -- one per prefix. The walk is the path
+// iterator; the vector is only for callers that need to keep the chain. A
 // caller that merely wants to WALK it should use make_path_view and allocate
 // nothing.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-std::vector<_Index>
+template<typename Policy,
+         typename Container,
+         typename Index>
+std::vector<Index>
 container_path_ancestors
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _id
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _id
 )
 {
-    std::vector<_Index> result;
-    _Index              current = _policy.parent(_container, _id);
+    std::vector<Index> result;
+    Index               current = _policy.parent(_container, _id);
 
     // walk from the parent to the root
     while (!_policy.is_null(current))
@@ -606,22 +611,22 @@ container_path_ancestors
 }
 
 // container_path_ancestor_chain
-//   function: path(_id) itself -- the chain of components from the root down to
-// _id, root-first, _id last.  It names level(_id) + 1 components: one more than
-// the address has labels, the extra one being the root.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-std::vector<_Index>
+//   function: path(_id) itself -- the chain of components from the root down
+// to _id, root-first, _id last. It names level(_id) + 1 components: one more
+// than the address has labels, the extra one being the root.
+template<typename Policy,
+         typename Container,
+         typename Index>
+std::vector<Index>
 container_path_ancestor_chain
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _id
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _id
 )
 {
-    std::vector<_Index> chain;
-    _Index              current = _id;
+    std::vector<Index> chain;
+    Index               current = _id;
 
     // collect from _id up to the root
     while (!_policy.is_null(current))
@@ -639,7 +644,7 @@ container_path_ancestor_chain
     {
         --hi;
 
-        _Index tmp = chain[lo];
+        Index tmp = chain[lo];
         chain[lo]  = chain[hi];
         chain[hi]  = tmp;
 
@@ -659,29 +664,28 @@ container_path_ancestor_chain
 // as
 // the MEET of their addresses in the prefix order,
 //
-//       lca(a, b) = resolve( addr(a) /\ addr(b) ),
-//
-// the longest common prefix of the two words.  In a single-rooted container the
-// meet ALWAYS exists (at worst it is the empty word, the root), so this cannot
-// fail; it returns the null sentinel only for a forest, where the two nodes lie
-// in different trees and their addresses have no common prefix at all.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-_Index
+//       lca(a, b) = resolve( addr(a) /\ addr(b) ), the longest common prefix
+// of the two words. In a single-rooted container the meet ALWAYS exists (at
+// worst it is the empty word, the root), so this cannot fail; it returns the
+// null sentinel only for a forest, where the two nodes lie in different trees
+// and their addresses have no common prefix at all.
+template<typename Policy,
+         typename Container,
+         typename Index>
+Index
 container_path_lca
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _a,
-    _Index            _b
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _a,
+    Index             _b
 )
 {
     std::size_t la = container_path_level(_policy, _container, _a);
     std::size_t lb = container_path_level(_policy, _container, _b);
 
-    _Index ca = _a;
-    _Index cb = _b;
+    Index ca = _a;
+    Index cb = _b;
 
     // equalise levels: a common prefix cannot be longer than the shorter word
     while (la > lb)
@@ -720,32 +724,31 @@ container_path_lca
 // ================================================================
 
 // container_path_relative
-//   function: the relative address of _to as seen from _from -- the (k, v) pair
-// of the spec.  k is the number of ascents from _from to the meet of the two
-// addresses; v is the label word descending from the meet to _to.
+//   function: the relative address of _to as seen from _from -- the (k, v)
+// pair of the spec. k is the number of ascents from _from to the meet of the
+// two addresses; v is the label word descending from the meet to _to.
 //
 //   The result is marked INVALID when the two nodes have no meet -- when they
-// lie in different trees.  Without that flag the caller could not tell such a
+// lie in different trees. Without that flag the caller could not tell such a
 // pair apart from _from == _to, which also yields (0, <>), and those are not
-// the
-// same answer.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-path_address<typename _Policy::component_type>
+// the same answer.
+template<typename Policy,
+         typename Container,
+         typename Index>
+path_address<typename Policy::component_type>
 container_path_relative
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _from,
-    _Index            _to
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _from,
+    Index             _to
 )
 {
-    using component_type = typename _Policy::component_type;
+    using component_type = typename Policy::component_type;
 
     path_address<component_type> result;
 
-    _Index meet = container_path_lca(_policy, _container, _from, _to);
+    Index meet = container_path_lca(_policy, _container, _from, _to);
 
     // no meet: the two nodes are not addressable from one another
     if (_policy.is_null(meet))
@@ -756,7 +759,7 @@ container_path_relative
     result.valid = true;
 
     // k: the ascents from _from up to the meet
-    _Index current = _from;
+    Index current = _from;
 
     while (!(current == meet))
     {
@@ -765,7 +768,7 @@ container_path_relative
         current = _policy.parent(_container, current);
     }
 
-    // v: the labels descending from the meet to _to.  The MEET contributes no
+    // v: the labels descending from the meet to _to. The MEET contributes no
     // label, exactly as a root does not -- it is where this address starts.
     result.components =
         container_path_address(_policy, _container, meet, _to);
@@ -780,19 +783,18 @@ container_path_relative
 
 // container_path_is_ancestor_or_self
 //   function: true if _ancestor lies on the parent chain of _descendant,
-// _itself
-// included.  This is the (non-strict) prefix order: addr(_ancestor) is a prefix
-// of addr(_descendant).
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+// _itself included. This is the (non-strict) prefix order: addr(_ancestor) is
+// a prefix of addr(_descendant).
+template<typename Policy,
+         typename Container,
+         typename Index>
 bool
 container_path_is_ancestor_or_self
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _ancestor,
-    _Index            _descendant
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _ancestor,
+    Index             _descendant
 )
 {
     return path_reaches(_policy, _container, _descendant, _ancestor);
@@ -800,18 +802,18 @@ container_path_is_ancestor_or_self
 
 
 // container_path_is_ancestor
-//   function: true if _ancestor is a STRICT ancestor of _descendant -- a PROPER
-// prefix of its address.  A node is not its own ancestor.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+//   function: true if _ancestor is a STRICT ancestor of _descendant -- a
+// PROPER prefix of its address. A node is not its own ancestor.
+template<typename Policy,
+         typename Container,
+         typename Index>
 bool
 container_path_is_ancestor
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _ancestor,
-    _Index            _descendant
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _ancestor,
+    Index             _descendant
 )
 {
     if (_ancestor == _descendant)
@@ -833,22 +835,20 @@ container_path_is_ancestor
 
 // container_path_is_separating
 //   function: true if the children of _node bear pairwise distinct components
-// --
-// the SEPARATION condition, at one node.
+// -- the SEPARATION condition, at one node.
 //
-//   Separation is the multiplicity restriction mu_1 read sibling-wise.  Under
-// it
-// a node's children are a MAP from label to child; without it a label names a
-// SET, and resolve cannot invert addr.  O(k^2) in the branching factor.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+//   Separation is the multiplicity restriction mu_1 read sibling-wise. Under
+// it a node's children are a MAP from label to child; without it a label names
+// a SET, and resolve cannot invert addr. O(k^2) in the branching factor.
+template<typename Policy,
+         typename Container,
+         typename Index>
 bool
 container_path_is_separating
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _node
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _node
 )
 {
     return tree_children_separating(_policy, _container, _node);
@@ -860,22 +860,22 @@ container_path_is_separating
 // the
 // condition under which the whole subtree is ADDRESSABLE, and under which the
 // round trip below is guaranteed.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+template<typename Policy,
+         typename Container,
+         typename Index>
 bool
 container_path_is_separating_subtree
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _root
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _root
 )
 {
-    tree_view<_Policy, _Container, tree_order::pre> nodes(
+    tree_view<Policy, Container, tree_order::pre> nodes(
         _policy, _container, _root);
 
     // every node of the subtree must separate its own children
-    for (tree_iterator<_Policy, _Container, tree_order::pre> it = nodes.begin();
+    for (tree_iterator<Policy, Container, tree_order::pre> it = nodes.begin();
          it != nodes.end();
          ++it)
     {
@@ -897,25 +897,25 @@ container_path_is_separating_subtree
 // together with |address(root, n)| == level(n).  It holds if and only if the
 // subtree separates, so a failure here is a failure of separation and nothing
 // else.  O(n * k) over the subtree; a debug or test-time check, not a hot path.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+template<typename Policy,
+         typename Container,
+         typename Index>
 bool
 container_path_round_trips
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _root
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _root
 )
 {
-    tree_view<_Policy, _Container, tree_order::pre> nodes(
+    tree_view<Policy, Container, tree_order::pre> nodes(
         _policy, _container, _root);
 
-    for (tree_iterator<_Policy, _Container, tree_order::pre> it = nodes.begin();
+    for (tree_iterator<Policy, Container, tree_order::pre> it = nodes.begin();
          it != nodes.end();
          ++it)
     {
-        std::vector<typename _Policy::component_type> word =
+        std::vector<typename Policy::component_type> word =
             container_path_address(_policy, _container, _root, *it);
 
         // the address of a node has exactly as many labels as its level
@@ -954,24 +954,24 @@ container_path_round_trips
 
 
 // container_path_resolve (string overload)
-//   function: splits a path string into labels and resolves it.  path_split
+//   function: splits a path string into labels and resolves it. path_split
 //   drops leading and repeated separators and emits NO label for the root,
 // which
 //   is exactly the convention container_path_address renders to.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-_Index
+template<typename Policy,
+         typename Container,
+         typename Index>
+Index
 container_path_resolve
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _root,
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _root,
     const char*       _path,
     std::size_t       _path_len
 )
 {
-    _Index current = _root;
+    Index current = _root;
 
     std::vector<path_component> splits =
         djinterp::path_split(_path, _path_len);
@@ -996,15 +996,15 @@ container_path_resolve
 
 // container_path_resolve (std::string overload)
 //   function: resolves a path given as std::string.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-_Index
+template<typename Policy,
+         typename Container,
+         typename Index>
+Index
 container_path_resolve
 (
-    const _Policy&     _policy,
-    const _Container&  _container,
-    _Index             _root,
+    const Policy&     _policy,
+    const Container&  _container,
+    Index              _root,
     const std::string& _path
 )
 {
@@ -1019,19 +1019,19 @@ container_path_resolve
 
 // container_path_build_from
 //   function: renders the address of _id relative to _anchor as a string,
-// labels joined by _sep.  The ANCHOR contributes no segment, so the result has
+// labels joined by _sep. The ANCHOR contributes no segment, so the result has
 // exactly level(_id) segments and parses straight back through
 // container_path_resolve.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+template<typename Policy,
+         typename Container,
+         typename Index>
 std::string
 container_path_build_from
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _anchor,
-    _Index            _id,
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _anchor,
+    Index             _id,
     char              _sep = djinterp::path_separator
 )
 {
@@ -1059,19 +1059,19 @@ container_path_build_from
 //   function: renders the ABSOLUTE address of _id -- from the root of its own
 // tree -- as a separated string.
 //
-//   BEHAVIOUR CHANGE.  This used to prefix the ROOT's own name to every path it
-// built ("root/a/b"), because container_path_collect included it.  It no longer
+//   BEHAVIOUR CHANGE. This used to prefix the ROOT's own name to every path it
+// built ("root/a/b"), because container_path_collect included it. It no longer
 // does: the root contributes no segment, so build(n) now yields "a/b" and
 // resolve(root, build(n)) == n, which was the whole point.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+template<typename Policy,
+         typename Container,
+         typename Index>
 std::string
 container_path_build
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _id,
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _id,
     char              _sep = djinterp::path_separator
 )
 {
@@ -1090,19 +1090,17 @@ container_path_build
 //
 //   Where this is false, container_path_build still produces a string, but
 // container_path_resolve will tear the offending label in two and land
-// somewhere
-// else, or nowhere.  The rendering is then lossy, and the format must escape
-// the
-// separator or choose another.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+// somewhere else, or nowhere. The rendering is then lossy, and the format must
+// escape the separator or choose another.
+template<typename Policy,
+         typename Container,
+         typename Index>
 bool
 container_path_build_is_faithful
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _id,
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _id,
     char              _sep = djinterp::path_separator
 )
 {
@@ -1140,17 +1138,17 @@ container_path_build_is_faithful
 //   Returns "." for the same node -- the (0, <>) address -- and the EMPTY
 // string
 // when no relative address exists at all, the two nodes lying in different
-// trees.  Those are different answers and are now spelled differently.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
+// trees. Those are different answers and are now spelled differently.
+template<typename Policy,
+         typename Container,
+         typename Index>
 std::string
 container_path_relative_string
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _from,
-    _Index            _to,
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _from,
+    Index             _to,
     char              _sep = djinterp::path_separator
 )
 {
@@ -1202,5 +1200,6 @@ container_path_relative_string
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_PATH_
+#endif  // DJINTERP_CONTAINER_CONTAINER_PATH_HPP

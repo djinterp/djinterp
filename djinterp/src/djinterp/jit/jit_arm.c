@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                     jit_arm.c
+/*******************************************************************************
+* djinterp [jit]                                                       jit_arm.c
 *
 * djinterp AArch32 / ARM (A32) JIT encoder -- implementation (jit_arm.h).
 *   Each emitter packs register and immediate fields into a verified base
@@ -7,13 +7,14 @@
 * patched by the relocation at the top (PC base is the branch address plus 8,
 * per the A32 pipeline), invoked by the shared label facility in jit.h.
 *
-* path:      /inc/djinterp/jit/jit_arm.c
+*
+* path:      /src/djinterp/jit/jit_arm.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit_arm.h"
+#include "../../../inc/djinterp/jit/jit_arm.h"
 
 
 // ===========================================================================

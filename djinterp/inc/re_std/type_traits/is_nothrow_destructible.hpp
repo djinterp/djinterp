@@ -1,32 +1,33 @@
-/******************************************************************************
-* djinterp [re_std]                                 is_nothrow_destructible.hpp
+/*******************************************************************************
+* djinterp [re_std]                                  is_nothrow_destructible.hpp
 *
 * is_nothrow_destructible trait header:
-*   Yields true_type if _Type is destructible AND the destructor is
+*   Yields true_type if Type is destructible AND the destructor is
 * `noexcept`, false_type otherwise. Intrinsic-backed via
 * `__is_nothrow_destructible`; falls back to `is_destructible` plus a
 * `noexcept` probe on the destructor expression.
 *
 *   DETECTION MACRO:
-*   D_RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE.
+*   RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_nothrow_destructible.hpp
+* path:      /inc/re_std/type_traits/is_nothrow_destructible.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_DESTRUCTIBLE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_DESTRUCTIBLE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_NOTHROW_DESTRUCTIBLE_HPP
+#define RE_STD_TYPE_TRAITS_IS_NOTHROW_DESTRUCTIBLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+// re_std
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
@@ -35,102 +36,104 @@
 #include "./remove_all_extents.hpp"
 
 
-#ifndef D_RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE
+#ifndef RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_nothrow_destructible)
-            #define D_RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE     1
+            #define RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE     1
         #else
-            #define D_RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE     0
+            #define RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE     0
         #endif
-    #elif defined(D_ENV_COMPILER_MSVC)
-        #define D_RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE         1
+    #elif defined(RE_STD_COMPILER_MSVC)
+        #define RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE         1
     #else
-        #define D_RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE         0
+        #define RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE         0
     #endif
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_NOTHROW_DESTRUCTIBLE
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE
+#if RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE
 
-    template<typename _Type>
+    template<typename Type>
     struct is_nothrow_destructible
-        : integral_constant<bool, __is_nothrow_destructible(_Type)>
+        : integral_constant<bool, __is_nothrow_destructible(Type)>
     {};
 
 #else
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // declval-style lvalue maker (private to this header).
-        template<typename _T>
-        _T& is_nothrow_destruct_lref() D_NOEXCEPT;
+        template<typename T>
+        T& is_nothrow_destruct_lref() RE_STD_NOEXCEPT;
 
         // is_nothrow_destruct_probe
-        //   helper: gated on is_destructible. Then probes whether the
+        //   trait: gated on is_destructible. Then probes whether the
         // destructor expression itself is noexcept.
-        template<typename _Type,
-                 bool     _IsDestructible>
+        template<typename Type,
+                 bool     IsDestructible>
         struct is_nothrow_destruct_probe
         {
-            D_STATIC_CONSTEXPR bool value = false;
+            RE_STD_STATIC_CONSTEXPR bool value = false;
         };
 
-        template<typename _Type>
-        struct is_nothrow_destruct_probe<_Type, true>
+        template<typename Type>
+        struct is_nothrow_destruct_probe<Type, true>
         {
         private:
             // Reference types are vacuously nothrow destructible.
             // Otherwise, peel arrays and probe the element destructor.
-            typedef typename remove_all_extents<_Type>::type _U;
+            typedef typename remove_all_extents<Type>::type _U;
 
         public:
-            D_STATIC_CONSTEXPR bool value =
-                is_reference<_Type>::value
+            RE_STD_STATIC_CONSTEXPR bool value =
+                is_reference<Type>::value
                 ? true
                 : noexcept(is_nothrow_destruct_lref<_U>().~_U());
         };
 
-    NS_END  // internal
+    }  // internal
 
 
-    template<typename _Type>
+    template<typename Type>
     struct is_nothrow_destructible
         : integral_constant<bool,
               internal::is_nothrow_destruct_probe<
-                  _Type,
-                  is_destructible<_Type>::value
+                  Type,
+                  is_destructible<Type>::value
               >::value>
     {};
 
 
-#endif  // D_RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE
+#endif  // RE_STD_HAS_IS_NOTHROW_DESTRUCTIBLE
 
 
 // =============================================================================
 // II.  IS_NOTHROW_DESTRUCTIBLE_V
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-    template<typename _Type>
-    D_CONSTEXPR bool is_nothrow_destructible_v =
-        is_nothrow_destructible<_Type>::value;
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_nothrow_destructible_v =
+        is_nothrow_destructible<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_DESTRUCTIBLE_
+#endif  // RE_STD_TYPE_TRAITS_IS_NOTHROW_DESTRUCTIBLE_HPP

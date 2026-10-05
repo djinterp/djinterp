@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                             symbol_model.hpp
+/*******************************************************************************
+* djinterp [parse]                                              symbol_model.hpp
 *
 * Parser symbol model:
 *   This header carries the parse subframework's output model -- the payload
@@ -18,7 +18,7 @@
 * Design -- qualifier field:
 *   symbol_data carries a uint64_t `qualifiers` field whose bit positions
 * match the type_info system exactly (type_info_common.h, type_info_c.h,
-* type_info_cpp.h), so the D_TYPE_IS_* / D_TYPE_SET_* macros apply directly
+* type_info_cpp.hpp), so the D_TYPE_IS_* / D_TYPE_SET_* macros apply directly
 * to a symbol's qualifiers with no translation or packing.  The qualifier,
 * symbol_kind, and access_specifier constants are the flat core vocabulary
 * from lang/cpp.hpp (the codebase is flat outside djinterp::parse, so they
@@ -27,19 +27,30 @@
 *
 * path:      /inc/djinterp/parse/symbol_model.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.05.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_SYMBOL_MODEL_
-#define DJINTERP_PARSE_SYMBOL_MODEL_ 1
+#ifndef DJINTERP_PARSE_SYMBOL_MODEL_HPP
+#define DJINTERP_PARSE_SYMBOL_MODEL_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but core/container/arena/arena.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 // djinterp
 #include "../djinterp.hpp"
+#include "./substrate.hpp"  // NS_PARSE
 #include "parsers/cpp/cpp.hpp"
 #include "../core/container/arena/arena.hpp"
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint32_t, uint16_t,
+                                             // uint8_t, uint64_t
 
 
 NS_DJINTERP
@@ -54,11 +65,11 @@ NS_PARSE
 //   struct: identifies a span of source text within a file.
 struct source_location
 {
-    std::uint32_t   file_id;
-    std::uint32_t   line;
-    std::uint16_t   column;
-    std::uint32_t   offset;
-    std::uint32_t   length;
+    re_std::uint32_t   file_id;
+    re_std::uint32_t   line;
+    re_std::uint16_t   column;
+    re_std::uint32_t   offset;
+    re_std::uint32_t   length;
 
     source_location
     ()
@@ -72,11 +83,11 @@ struct source_location
 
     source_location
     (
-        std::uint32_t _file_id,
-        std::uint32_t _line,
-        std::uint16_t _column,
-        std::uint32_t _offset,
-        std::uint32_t _length
+        re_std::uint32_t _file_id,
+        re_std::uint32_t _line,
+        re_std::uint16_t _column,
+        re_std::uint32_t _offset,
+        re_std::uint32_t _length
     )
         : file_id (_file_id),
           line    (_line),
@@ -107,15 +118,15 @@ struct symbol_data
 {
     source_location location;
 
-    std::uint16_t   kind;           // symbol_kind
-    std::uint8_t    access;         // access_specifier
-    std::uint8_t    reserved;       // padding / future use
-    std::uint64_t   qualifiers;     // qualifier (type_info-aligned)
+    re_std::uint16_t   kind;           // symbol_kind
+    re_std::uint8_t    access;         // access_specifier
+    re_std::uint8_t    reserved;       // padding / future use
+    re_std::uint64_t   qualifiers;     // qualifier (type_info-aligned)
 
-    std::uint32_t   name_id;        // index into string_table
-    std::uint32_t   type_id;        // index into string_table
-    std::uint32_t   signature_id;   // index into string_table
-    std::uint32_t   comment_id;     // index into string_table
+    re_std::uint32_t   name_id;        // index into string_table
+    re_std::uint32_t   type_id;        // index into string_table
+    re_std::uint32_t   signature_id;   // index into string_table
+    re_std::uint32_t   comment_id;     // index into string_table
 
     symbol_data
     ()
@@ -140,7 +151,7 @@ struct symbol_data
     bool
     has_qualifier
     (
-        std::uint64_t _flag
+        re_std::uint64_t _flag
     ) const
     {
         return (qualifiers & _flag) != 0;
@@ -151,7 +162,7 @@ struct symbol_data
     void
     set_qualifier
     (
-        std::uint64_t _flag
+        re_std::uint64_t _flag
     )
     {
         qualifiers |= _flag;
@@ -196,5 +207,7 @@ typedef arena<symbol_data>  symbol_tree;
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_SYMBOL_MODEL_
+
+#endif  // DJINTERP_PARSE_SYMBOL_MODEL_HPP

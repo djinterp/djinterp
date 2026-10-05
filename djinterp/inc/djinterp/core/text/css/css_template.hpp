@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [css]                                              css_template.hpp
+/*******************************************************************************
+* djinterp [core]                                               css_template.hpp
 *
 *   Templated CSS declaration / rule / stylesheet facades and the
 * bundled default backend. Mirrors the templating pattern of
@@ -19,9 +19,9 @@
 * distinct types -- the trait layer detects them structurally.
 *
 *   FACADES:
-*   - `css_declaration<_Backend>` wraps `_Backend::declaration_type`
-*   - `css_rule<_Backend>`        wraps `_Backend::rule_type`
-*   - `css_stylesheet<_Backend>`  holds a `_Backend::stylesheet_type`
+*   - `css_declaration<Backend>` wraps `Backend::declaration_type`
+*   - `css_rule<Backend>`        wraps `Backend::rule_type`
+*   - `css_stylesheet<Backend>`  holds a `Backend::stylesheet_type`
 *     by value and exposes the render targets.
 *
 *   ZERO OVERHEAD:
@@ -37,25 +37,45 @@
 *                                nesting via `&` selectors)
 *
 *
-* path:      /inc/djinterp/core/util/css/css_template.hpp
+* path:      /inc/djinterp/core/text/css/css_template.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    DEFAULT BACKEND STORAGE
-II.   css_declaration<_Backend>
-III.  css_rule<_Backend>
+      -----------------------
+
+II.   css_declaration<Backend>
+      -------------------------
+
+III.  css_rule<Backend>
+      ------------------
+
 IV.   INTERNAL EMISSION HELPERS
-V.    css_stylesheet<_Backend>
+      -------------------------
+
+V.    css_stylesheet<Backend>
+      ------------------------
+
 VI.   css_default_backend
+      -------------------
+
 VII.  FREE HELPERS / FACTORIES
+      ------------------------
 */
 
-#ifndef DJINTERP_CSS_TEMPLATE_
-#define DJINTERP_CSS_TEMPLATE_ 1
+#ifndef DJINTERP_TEXT_CSS_CSS_TEMPLATE_HPP
+#define DJINTERP_TEXT_CSS_CSS_TEMPLATE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -67,6 +87,7 @@ VII.  FREE HELPERS / FACTORIES
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"
+#include "./css.hpp"             // foundation + folded traits/concepts
 
 
 NS_DJINTERP
@@ -139,20 +160,20 @@ namespace css {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   css_declaration<_Backend>                          ///
+///                II.   css_declaration<Backend>                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // css_declaration
 //   class: thin facade over a backend declaration storage node.
 // Holds only a raw pointer to the node; does not own the
 // storage.
-template<typename _Backend>
+template<typename Backend>
 class css_declaration
 {
 public:
     // node_type
     //   type: the backend's declaration storage type.
-    using node_type = typename _Backend::declaration_type;
+    using node_type = typename Backend::declaration_type;
 
 
     /// constructors
@@ -302,18 +323,18 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III.   css_rule<_Backend>                                ///
+///                III.   css_rule<Backend>                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // css_rule
 //   class: thin facade over a backend rule storage node.
-template<typename _Backend>
+template<typename Backend>
 class css_rule
 {
 public:
-    using node_type             = typename _Backend::rule_type;
-    using declaration_node_type = typename _Backend::declaration_type;
-    using declaration_facade    = css_declaration<_Backend>;
+    using node_type             = typename Backend::rule_type;
+    using declaration_node_type = typename Backend::declaration_type;
+    using declaration_facade    = css_declaration<Backend>;
 
 
     css_rule()
@@ -611,6 +632,71 @@ public:
     }
 
 
+    /// native color / font convenience (via the folded to_css_* bridge)
+
+    // set_color
+    //   sets the `color` property from any native color model
+    // (rgb, rgba, cmyk, hsl, ...).
+    template <typename Color>
+    void
+    set_color(
+        const Color&           _c
+    )
+    {
+        this->set_property(props::color, to_css_color(_c));
+    }
+
+    // set_background_color
+    //   sets `background-color` from any native color model.
+    template <typename Color>
+    void
+    set_background_color(
+        const Color&           _c
+    )
+    {
+        this->set_property(props::background_color, to_css_color(_c));
+    }
+
+    // set_color_property
+    //   sets an arbitrary color-valued property (border-color,
+    // outline-color, ...) from any native color model.
+    template <typename Color>
+    void
+    set_color_property(
+        const css_string_t&     _property,
+        const Color&           _c
+    )
+    {
+        this->set_property(_property, to_css_color(_c));
+    }
+
+    // set_font
+    //   sets the `font` shorthand from a native djinterp::font.
+    template <unsigned Feat, typename ColorT>
+    void
+    set_font(
+        const ::djinterp::font<Feat, ColorT>&  _f
+    )
+    {
+        this->set_property(props::font, to_css_font(_f));
+    }
+
+    // set_font_longhand
+    //   sets font-family / font-size / font-weight / font-style as
+    // four separate declarations from a native djinterp::font.
+    template <unsigned Feat, typename ColorT>
+    void
+    set_font_longhand(
+        const ::djinterp::font<Feat, ColorT>&  _f
+    )
+    {
+        this->set_property(props::font_family, to_css_font_family(_f));
+        this->set_property(props::font_size,   to_css_font_size(_f));
+        this->set_property(props::font_weight, to_css_font_weight(_f));
+        this->set_property(props::font_style,  to_css_font_style(_f));
+    }
+
+
     /// nested rules
 
     // rule_count
@@ -639,14 +725,14 @@ public:
     // rule_at
     //   function: returns the nested rule at index `_index`,
     // skipping declaration entries.
-    css_rule<_Backend>
+    css_rule<Backend>
     rule_at(
         std::size_t     _index
     )   const
     {
         if (m_node == nullptr)
         {
-            return css_rule<_Backend>();
+            return css_rule<Backend>();
         }
         std::size_t seen = 0;
         for (std::size_t i = 0; i < m_node->children.size(); ++i)
@@ -657,31 +743,31 @@ public:
             {
                 if (seen == _index)
                 {
-                    return css_rule<_Backend>(c);
+                    return css_rule<Backend>(c);
                 }
                 ++seen;
             }
         }
-        return css_rule<_Backend>();
+        return css_rule<Backend>();
     }
 
     // add_rule
     //   function: appends a fresh rule of the given kind.
-    css_rule<_Backend>
+    css_rule<Backend>
     add_rule(
         css_rule_kind   _kind = css_rule_kind::style_rule
     )
     {
         if (m_node == nullptr)
         {
-            return css_rule<_Backend>();
+            return css_rule<Backend>();
         }
         std::unique_ptr<node_type>  r(new node_type);
         r->rule_kind = _kind;
         r->parent    = m_node;
         node_type* raw = r.get();
         m_node->children.push_back(std::move(r));
-        return css_rule<_Backend>(raw);
+        return css_rule<Backend>(raw);
     }
 
 
@@ -976,34 +1062,34 @@ namespace css {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                V.   css_stylesheet<_Backend>                            ///
+///                V.   css_stylesheet<Backend>                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // css_stylesheet
 //   class: facade over the backend's storage stylesheet type
 // plus level / syntax-mode metadata. Owns the storage by value
 // and exposes the render targets.
-template<typename _Backend>
+template<typename Backend>
 class css_stylesheet
 {
 public:
-    using backend_type    = _Backend;
-    using stylesheet_type = typename _Backend::stylesheet_type;
-    using rule_node_type  = typename _Backend::rule_type;
-    using rule_facade     = css_rule<_Backend>;
+    using backend_type    = Backend;
+    using stylesheet_type = typename Backend::stylesheet_type;
+    using rule_node_type  = typename Backend::rule_type;
+    using rule_facade     = css_rule<Backend>;
 
 
     /// constructors
 
     css_stylesheet()
-    :   m_sheet(_Backend::make_stylesheet())
+    :   m_sheet(Backend::make_stylesheet())
     {}
 
     explicit
     css_stylesheet(
         css_level   _level
     )
-    :   m_sheet(_Backend::make_stylesheet())
+    :   m_sheet(Backend::make_stylesheet())
     {
         m_sheet.level = _level;
     }
@@ -1012,7 +1098,7 @@ public:
         css_level           _level,
         css_syntax_mode     _syntax
     )
-    :   m_sheet(_Backend::make_stylesheet())
+    :   m_sheet(Backend::make_stylesheet())
     {
         m_sheet.level       = _level;
         m_sheet.syntax_mode = _syntax;
@@ -1302,117 +1388,117 @@ struct css_default_backend
 // make_stylesheet
 //   function: factory returning a freshly-built stylesheet
 // facade for the given backend.
-template<typename _Backend>
-inline css_stylesheet<_Backend>
+template<typename Backend>
+inline css_stylesheet<Backend>
 make_stylesheet(
     css_level           _level  = css_level::css_3,
     css_syntax_mode     _syntax = css_syntax_mode::css
 )
 {
-    return css_stylesheet<_Backend>(_level, _syntax);
+    return css_stylesheet<Backend>(_level, _syntax);
 }
 
 
 // make_style_rule
 //   function: returns a new freestanding style rule with the
 // given selector.
-template<typename _Backend>
-inline css_rule<_Backend>
+template<typename Backend>
+inline css_rule<Backend>
 make_style_rule(
     const css_string_t&     _selector
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->rule_kind = css_rule_kind::style_rule;
     n->selector  = _selector;
-    return css_rule<_Backend>(n);
+    return css_rule<Backend>(n);
 }
 
 
 // make_at_rule
 //   function: returns a new freestanding at-rule with the
 // given keyword and prelude.
-template<typename _Backend>
-inline css_rule<_Backend>
+template<typename Backend>
+inline css_rule<Backend>
 make_at_rule(
     const css_string_t&     _keyword,
     const css_string_t&     _prelude = css_string_t()
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_rule_kind = at_rule_kind_from_name(_keyword.c_str());
     n->rule_kind    = rule_kind_from_at_rule_kind(n->at_rule_kind);
     n->at_keyword   = _keyword;
     n->prelude      = _prelude;
-    return css_rule<_Backend>(n);
+    return css_rule<Backend>(n);
 }
 
 
 // make_media_rule
 //   function: convenience for `make_at_rule(at_rules::media,
 // _query)`.
-template<typename _Backend>
-inline css_rule<_Backend>
+template<typename Backend>
+inline css_rule<Backend>
 make_media_rule(
     const css_string_t&     _query
 )
 {
-    return make_at_rule<_Backend>(at_rules::media, _query);
+    return make_at_rule<Backend>(at_rules::media, _query);
 }
 
 
 // make_supports_rule
 //   function: convenience for `@supports`.
-template<typename _Backend>
-inline css_rule<_Backend>
+template<typename Backend>
+inline css_rule<Backend>
 make_supports_rule(
     const css_string_t&     _condition
 )
 {
-    return make_at_rule<_Backend>(at_rules::supports, _condition);
+    return make_at_rule<Backend>(at_rules::supports, _condition);
 }
 
 
 // make_keyframes_rule
 //   function: convenience for `@keyframes <name>`.
-template<typename _Backend>
-inline css_rule<_Backend>
+template<typename Backend>
+inline css_rule<Backend>
 make_keyframes_rule(
     const css_string_t&     _name
 )
 {
-    return make_at_rule<_Backend>(at_rules::keyframes, _name);
+    return make_at_rule<Backend>(at_rules::keyframes, _name);
 }
 
 
 // make_font_face_rule
 //   function: convenience for `@font-face`.
-template<typename _Backend>
-inline css_rule<_Backend>
+template<typename Backend>
+inline css_rule<Backend>
 make_font_face_rule()
 {
-    return make_at_rule<_Backend>(at_rules::font_face);
+    return make_at_rule<Backend>(at_rules::font_face);
 }
 
 
 // make_import_rule
 //   function: convenience for `@import url(...)`.
-template<typename _Backend>
-inline css_rule<_Backend>
+template<typename Backend>
+inline css_rule<Backend>
 make_import_rule(
     const css_string_t&     _url
 )
 {
-    return make_at_rule<_Backend>(at_rules::import_, _url);
+    return make_at_rule<Backend>(at_rules::import_, _url);
 }
 
 
 // make_charset_rule
 //   function: convenience for `@charset "encoding"`.
-template<typename _Backend>
-inline css_rule<_Backend>
+template<typename Backend>
+inline css_rule<Backend>
 make_charset_rule(
     const css_string_t&     _encoding
 )
@@ -1422,28 +1508,29 @@ make_charset_rule(
     quoted.push_back('"');
     quoted.append(_encoding);
     quoted.push_back('"');
-    return make_at_rule<_Backend>(at_rules::charset, quoted);
+    return make_at_rule<Backend>(at_rules::charset, quoted);
 }
 
 
 // make_comment
 //   function: returns a new freestanding comment rule.
-template<typename _Backend>
-inline css_rule<_Backend>
+template<typename Backend>
+inline css_rule<Backend>
 make_comment(
     const css_string_t&     _text
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->rule_kind    = css_rule_kind::comment;
     n->comment_text = _text;
-    return css_rule<_Backend>(n);
+    return css_rule<Backend>(n);
 }
 
 
 }   // namespace css
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CSS_TEMPLATE_
+#endif  // DJINTERP_TEXT_CSS_CSS_TEMPLATE_HPP

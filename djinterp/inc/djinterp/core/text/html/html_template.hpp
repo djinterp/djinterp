@@ -1,12 +1,12 @@
-/******************************************************************************
-* djinterp [text]                                            html_template.hpp
+/*******************************************************************************
+* djinterp [core]                                              html_template.hpp
 *
 *   Templated HTML element / document facades and the bundled default
 * backend. The facades inherit from their XML counterparts so that
-* memory layout is identical -- `html_element<_Backend>` adds NO
-* members beyond `xml_node<_Backend>`, and `html_document<_Backend>`
+* memory layout is identical -- `html_element<Backend>` adds NO
+* members beyond `xml_node<Backend>`, and `html_document<Backend>`
 * adds only an `html_version` byte and a `std::string` doctype to
-* `xml_document<_Backend>`. All HTML-specific behaviour (DOCTYPE
+* `xml_document<Backend>`. All HTML-specific behaviour (DOCTYPE
 * emission, void-element shorthand, class/id helpers, head/body
 * shortcuts) lives in methods and free functions; never in storage.
 *
@@ -25,20 +25,34 @@
 *
 * path:      /inc/djinterp/core/text/html/html_template.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    HTML DEFAULT BACKEND
-II.   html_element<_Backend>
-III.  html_document<_Backend>
+      --------------------
+
+II.   html_element<Backend>
+      ----------------------
+
+III.  html_document<Backend>
+      -----------------------
+
 IV.   FREE HELPERS / FACTORIES
+      ------------------------
 */
 
-#ifndef DJINTERP_HTML_TEMPLATE_
-#define DJINTERP_HTML_TEMPLATE_ 1
+#ifndef DJINTERP_TEXT_HTML_HTML_TEMPLATE_HPP
+#define DJINTERP_TEXT_HTML_HTML_TEMPLATE_HPP 1
+
+// FLOOR, FOR NOW: below C++20 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -47,8 +61,10 @@ IV.   FREE HELPERS / FACTORIES
 #include <string>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../xml/xml_template.hpp"
+#include "../../../djinterp.hpp"     // framework root
+#include "../xml/xml_template.hpp"   // the XML node / document templates
+#include "./html.hpp"                // html_default_backend_tag, the HTML
+                                     // vocabulary and backend traits
 
 
 NS_DJINTERP
@@ -122,7 +138,7 @@ struct html_default_backend
     {
         document_type   doc;
         doc.version    = "1.0";
-        doc.encoding   = xml_encoding::utf_8;
+        doc.encoding   = xml_encoding_name(xml_encoding::utf_8);
         doc.standalone = xml_standalone::unspecified;
 
         // Build <html><head/><body/></html> skeleton.
@@ -149,23 +165,23 @@ struct html_default_backend
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   html_element<_Backend>                             ///
+///                II.   html_element<Backend>                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // html_element
-//   class: thin facade over `xml_node<_Backend>` adding HTML
+//   class: thin facade over `xml_node<Backend>` adding HTML
 // semantics (kind enum, class-list manipulation, id accessors,
-// void/block/inline queries). Inherits from `xml_node<_Backend>`
+// void/block/inline queries). Inherits from `xml_node<Backend>`
 // so memory layout is unchanged -- `sizeof(html_element<B>) ==
 // sizeof(xml_node<B>)`.
-template<typename _Backend>
+template<typename Backend>
 class html_element
-:   public xml_node<_Backend>
+:   public xml_node<Backend>
 {
 public:
     // base_type
     //   type: alias for the underlying XML node facade.
-    using base_type      = xml_node<_Backend>;
+    using base_type      = xml_node<Backend>;
 
     // node_type
     //   type: backend storage node type, inherited from base.
@@ -582,25 +598,25 @@ namespace html {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III.   html_document<_Backend>                           ///
+///                III.   html_document<Backend>                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // html_document
-//   class: facade over `xml_document<_Backend>` adding HTML
+//   class: facade over `xml_document<Backend>` adding HTML
 // document semantics (DOCTYPE declaration, version stamping,
 // head/body/title shortcuts, HTML-aware emission).
-template<typename _Backend>
+template<typename Backend>
 class html_document
-:   public xml_document<_Backend>
+:   public xml_document<Backend>
 {
 public:
     // base_type
     //   type: alias for the underlying XML document facade.
-    using base_type     = xml_document<_Backend>;
+    using base_type     = xml_document<Backend>;
 
     // backend_type
     //   type: alias for the backend.
-    using backend_type  = _Backend;
+    using backend_type  = Backend;
 
     // node_type
     //   type: backend storage node type.
@@ -612,7 +628,7 @@ public:
 
     // element_facade
     //   type: HTML facade returned by head_element / body_element.
-    using element_facade = html_element<_Backend>;
+    using element_facade = html_element<Backend>;
 
 
     /// constructors
@@ -623,7 +639,7 @@ public:
     html_document(
     )
     :   base_type(),
-        m_version(html_version::html5),
+        m_version(html::html_version::html5),
         m_doctype(D_HTML_DEFAULT_DOCTYPE)
     {}
 
@@ -631,7 +647,7 @@ public:
     //   ctor: constructs an empty document targeting `_v`.
     explicit
     html_document(
-        html_version    _v
+        html::html_version _v
     )
     :   base_type(),
         m_version(_v),
@@ -642,8 +658,8 @@ public:
     //   ctor: wraps an already-built backend storage document.
     explicit
     html_document(
-        document_type&& _doc,
-        html_version    _v = html_version::html5
+        document_type&&    _doc,
+        html::html_version _v = html::html_version::html5
     )
     :   base_type(),
         m_version(_v),
@@ -709,7 +725,7 @@ public:
     )
     {
         m_doctype = _doctype;
-        m_version = html_version::custom;
+        m_version = html::html_version::custom;
     }
 
 
@@ -920,19 +936,19 @@ private:
 //   function: builds a fresh HTML5 document containing an
 // `<html>` root with `<head>` and `<body>` children. If `_title`
 // is non-empty, also inserts a `<title>` element under `<head>`.
-template<typename _Backend>
-inline html_document<_Backend>
+template<typename Backend>
+inline html_document<Backend>
 make_html5_document(
     const xml_string_t& _title = xml_string_t()
 )
 {
-    html_document<_Backend>     doc(html_version::html5);
+    html_document<Backend>     doc(html_version::html5);
 
     // The default ctor leaves the underlying storage document with
     // a null root; bootstrap a skeleton via the backend factory.
-    using doc_t = typename _Backend::document_type;
-    doc_t skeleton = _Backend::make_html_document();
-    doc = html_document<_Backend>(std::move(skeleton),
+    using doc_t = typename Backend::document_type;
+    doc_t skeleton = Backend::make_html_document();
+    doc = html_document<Backend>(std::move(skeleton),
                                   html_version::html5);
 
     if (!_title.empty())
@@ -947,16 +963,16 @@ make_html5_document(
 //   function: builds a fresh XHTML document targeting the given
 // XHTML variant. Skeleton identical to make_html5_document but the
 // emission flags and DOCTYPE differ.
-template<typename _Backend>
-inline html_document<_Backend>
+template<typename Backend>
+inline html_document<Backend>
 make_xhtml_document(
     html_version            _v     = html_version::xhtml1_strict,
     const xml_string_t&     _title = xml_string_t()
 )
 {
-    using doc_t = typename _Backend::document_type;
-    doc_t skeleton = _Backend::make_html_document();
-    html_document<_Backend>     doc(std::move(skeleton), _v);
+    using doc_t = typename Backend::document_type;
+    doc_t skeleton = Backend::make_html_document();
+    html_document<Backend>     doc(std::move(skeleton), _v);
     if (!_title.empty())
     {
         doc.set_title(_title);
@@ -971,19 +987,19 @@ make_xhtml_document(
 // allocated via `new`; ownership transfers to whichever parent
 // later adopts it via `add_child` (when using the default
 // backend, that path moves the unique_ptr in).
-template<typename _Backend>
-inline html_element<_Backend>
+template<typename Backend>
+inline html_element<Backend>
 make_div(
     const xml_string_t& _id    = xml_string_t(),
     const xml_string_t& _class = xml_string_t()
 )
 {
-    using node_t = typename _Backend::node_type;
+    using node_t = typename Backend::node_type;
     node_t* n = new node_t;
     n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::div_;
 
-    html_element<_Backend>  e(n);
+    html_element<Backend>  e(n);
     if (!_id.empty())
     {
         e.set_id(_id);
@@ -998,20 +1014,20 @@ make_div(
 
 // make_span
 //   function: returns a new freestanding `<span>` element.
-template<typename _Backend>
-inline html_element<_Backend>
+template<typename Backend>
+inline html_element<Backend>
 make_span(
     const xml_string_t& _text  = xml_string_t(),
     const xml_string_t& _class = xml_string_t()
 )
 {
-    using node_t = typename _Backend::node_type;
+    using node_t = typename Backend::node_type;
     node_t* n = new node_t;
     n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::span_;
     n->text   = _text;
 
-    html_element<_Backend>  e(n);
+    html_element<Backend>  e(n);
     if (!_class.empty())
     {
         e.add_class(_class);
@@ -1023,20 +1039,20 @@ make_span(
 // make_anchor
 //   function: returns a new freestanding `<a>` element with the
 // given `href` and inner text.
-template<typename _Backend>
-inline html_element<_Backend>
+template<typename Backend>
+inline html_element<Backend>
 make_anchor(
     const xml_string_t& _href,
     const xml_string_t& _text
 )
 {
-    using node_t = typename _Backend::node_type;
+    using node_t = typename Backend::node_type;
     node_t* n = new node_t;
     n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::a;
     n->text   = _text;
 
-    html_element<_Backend>  e(n);
+    html_element<Backend>  e(n);
     e.set_attribute(attrs::href, _href);
     return e;
 }
@@ -1044,19 +1060,19 @@ make_anchor(
 
 // make_image
 //   function: returns a new freestanding `<img>` (void) element.
-template<typename _Backend>
-inline html_element<_Backend>
+template<typename Backend>
+inline html_element<Backend>
 make_image(
     const xml_string_t& _src,
     const xml_string_t& _alt = xml_string_t()
 )
 {
-    using node_t = typename _Backend::node_type;
+    using node_t = typename Backend::node_type;
     node_t* n = new node_t;
     n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::img;
 
-    html_element<_Backend>  e(n);
+    html_element<Backend>  e(n);
     e.set_attribute(attrs::src, _src);
     if (!_alt.empty())
     {
@@ -1069,26 +1085,26 @@ make_image(
 // make_paragraph
 //   function: returns a new freestanding `<p>` element with the
 // given inner text.
-template<typename _Backend>
-inline html_element<_Backend>
+template<typename Backend>
+inline html_element<Backend>
 make_paragraph(
     const xml_string_t& _text = xml_string_t()
 )
 {
-    using node_t = typename _Backend::node_type;
+    using node_t = typename Backend::node_type;
     node_t* n = new node_t;
     n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tags::p;
     n->text   = _text;
-    return html_element<_Backend>(n);
+    return html_element<Backend>(n);
 }
 
 
 // make_heading
 //   function: returns a new freestanding heading element. `_level`
 // must be in [1,6]; values outside that range default to h1.
-template<typename _Backend>
-inline html_element<_Backend>
+template<typename Backend>
+inline html_element<Backend>
 make_heading(
     int                 _level,
     const xml_string_t& _text = xml_string_t()
@@ -1101,12 +1117,12 @@ make_heading(
                     : (_level == 6) ? tags::h6
                     :                 tags::h1;
 
-    using node_t = typename _Backend::node_type;
+    using node_t = typename Backend::node_type;
     node_t* n = new node_t;
     n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = tag;
     n->text   = _text;
-    return html_element<_Backend>(n);
+    return html_element<Backend>(n);
 }
 
 
@@ -1114,22 +1130,23 @@ make_heading(
 //   function: returns a new freestanding element of the given
 // kind with no children, attributes, or text. Useful for generic
 // builders that walk an element-kind enum.
-template<typename _Backend>
-inline html_element<_Backend>
+template<typename Backend>
+inline html_element<Backend>
 make_element_by_kind(
     html_element_kind   _kind
 )
 {
-    using node_t = typename _Backend::node_type;
+    using node_t = typename Backend::node_type;
     node_t* n = new node_t;
     n->kind   = ::djinterp::xml_node_kind::element;
     n->name   = name_from_html_kind(_kind);
-    return html_element<_Backend>(n);
+    return html_element<Backend>(n);
 }
 
 
 }   // namespace html
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_HTML_TEMPLATE_
+#endif  // DJINTERP_TEXT_HTML_HTML_TEMPLATE_HPP

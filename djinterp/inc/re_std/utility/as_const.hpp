@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                     as_const.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 as_const.hpp
 *
 * const-view cast utility:
 *   Provides re_std::as_const, which returns a const reference to its
@@ -16,21 +16,24 @@
 * needs only `= delete` and add_const, both available since C++11).
 *
 *
-* path:      /inc/djinterp/re_std/utility/as_const.hpp
+* path:      /inc/re_std/utility/as_const.hpp
 * link(s):   TBA
-* author(s): re_std team                                 date: 2026.05.02
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_AS_CONST_
-#define DJINTERP_RE_STD_UTILITY_AS_CONST_ 1
+#ifndef RE_STD_UTILITY_AS_CONST_HPP
+#define RE_STD_UTILITY_AS_CONST_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/add_const.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // =============================================================================
 // AS_CONST
@@ -39,9 +42,9 @@ NS_RESTD
 // as_const (lvalue overload)
 //   function: returns a const reference to the argument. Single-
 //   statement; constexpr-eligible from C++11.
-template<typename _Type>
-D_CONSTEXPR
-typename add_const<_Type>::type& as_const(_Type& _value) noexcept
+template<typename Type>
+RE_STD_CONSTEXPR
+typename add_const<Type>::type& as_const(Type& _value) noexcept
 {
     return _value;
 }
@@ -50,11 +53,11 @@ typename add_const<_Type>::type& as_const(_Type& _value) noexcept
 //   function: forbidden -- as_const on an rvalue would return a
 //   reference to a soon-to-die temporary. Deletion is part of the
 //   standard's interface.
-template<typename _Type>
-void as_const(const _Type&&) = delete;
+template<typename Type>
+void as_const(const Type&&) = delete;
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_UTILITY_AS_CONST_
+#endif  // RE_STD_UTILITY_AS_CONST_HPP

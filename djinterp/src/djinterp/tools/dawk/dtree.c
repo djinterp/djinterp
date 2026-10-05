@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                        dtree.c
+* djinterp [djinterp]                                                    dtree.c
 *
 * Filesystem tree record source:
 *   Yields one record per file beneath a root, in document order: a directory
@@ -10,6 +10,7 @@
 * written correctly when the source is replaced by a real node tree.
 *   This translation unit uses POSIX directory reading and is therefore not
 * part of the conforming core.  The conformance build never links it.
+*
 *
 * path:      /src/djinterp/tools/dawk/dtree.c
 * link(s):   TBA

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       test_report_runner.hpp
+/*******************************************************************************
+* djinterp [test]                                         test_report_runner.hpp
 *
 *   The runner-facing front end for the report subsystem.  A report_builder
 * collects a run into a test_report (test_report.hpp) WHILE printing the
@@ -63,33 +63,48 @@
 * emission) configures one with that helper and walks a module's units.
 *
 *   PORTABILITY:
-*   The builder core is C++11 (console + report accumulation).  PDF emission
-* rides the C++17 pdf gate: below C++17 finish() simply skips the document and
-* the run stays console-only.  No third-party dependency.
+*   C++17 for now: core/container/buffer/buffer.hpp, which it reaches, needs
+* C++17, so the header is empty below it.  The builder core itself is C++11
+* (console + report accumulation), and PDF emission rides the C++17 pdf gate.
+* No third-party dependency.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    REPORT BUILDER
-*       a. construction / configuration
-*       b. module / unit recording (live console)
-*       c. finish (summaries + document + exit code)
-*       d. internal: console rendering
-*       e. internal: helpers
-* II.   FREE-FUNCTION CONVENIENCE
-*
-*
-* path:      /inc/djinterp/test/test_report_runner.hpp
+* path:      /inc/djinterp/test/output/test_report_runner.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.26
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.26
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_REPORT_RUNNER_
-#define DJINTERP_TEST_REPORT_RUNNER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    REPORT BUILDER
+      --------------
+      a. construction / configuration
+      b. module / unit recording (live console)
+      c.    finish (summaries + document + exit code)
+            d. internal: console rendering
+            e. internal: helpers
 
-#ifndef __cplusplus
-    #error "test_report_runner.hpp requires C++ compilation"
-#endif
+II.   FREE-FUNCTION CONVENIENCE
+      -------------------------
+*/
+
+#ifndef DJINTERP_TEST_OUTPUT_TEST_REPORT_RUNNER_HPP
+#define DJINTERP_TEST_OUTPUT_TEST_REPORT_RUNNER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but core/container/buffer/buffer.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP11_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 
 // std
 #include <cstddef>
@@ -98,7 +113,7 @@
 #include <string>
 #include <vector>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../../core/container/buffer/byte_buffer.hpp"
 #include "../../core/util/document/document_bundle.hpp"
                                         // document_bundle, output_config,
@@ -106,7 +121,6 @@
                                         //   engine this runner defers to
 #include "./test_packaging.hpp"          // to_output_config
 #include "../test_common.hpp"      // test_status
-#include "../test_context.hpp"     // test_context + at_run (PDF focus)
 #include "../test_options.hpp"     // test_option_set + accessors + defaults
 #include "./test_report.hpp"       // test_report model + tallies +
                                    //   expand_report_file_name
@@ -127,14 +141,9 @@
 // direct facade calls below remain for the per-format capability checks; every
 // format, ZIP included, now goes through the facade.
 #if defined(D_TEST_REPORT_ENABLE_ARCHIVE) && D_ENV_LANG_IS_CPP17_OR_HIGHER
-    #include "../../core/util/archive.hpp"   // entry, entry_list, try_archive<>,
+    #include "../../core/util/archive/archive.hpp"   // entry, entry_list, try_archive<>,
                                              //   formats::*, archive_options,
                                              //   format_is_writable<>
-#endif
-
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "test_report_runner.hpp requires C++11 or higher"
 #endif
 
 
@@ -1149,10 +1158,10 @@ namespace report_detail
     inline std::string to_report_string(const char* _v)        { return std::string(_v ? _v : ""); }
     inline std::string to_report_string(bool _v)               { return _v ? "true" : "false"; }
 
-    template <typename _T>
+    template <typename T>
     inline std::string
     to_report_string(
-        const _T& _v
+        const T& _v
     )
     {
         std::ostringstream _os;
@@ -1189,5 +1198,8 @@ NS_END  // djinterp
     }                                                                            \
     while (false)
 
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_TEST_REPORT_RUNNER_
+#endif  // floor, for now
+
+#endif  // DJINTERP_TEST_OUTPUT_TEST_REPORT_RUNNER_HPP

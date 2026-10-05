@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                             bit_internal.hpp
 *
 * bit module internals header:
@@ -34,21 +34,22 @@
 * worst, all evaluated at compile time.
 *
 *
-* path:      /inc/djinterp/re_std/bit/bit_internal.hpp
+* path:      /inc/re_std/bit/bit_internal.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_BIT_INTERNAL_
-#define DJINTERP_RE_STD_BIT_BIT_INTERNAL_ 1
+#ifndef RE_STD_BIT_BIT_INTERNAL_HPP
+#define RE_STD_BIT_BIT_INTERNAL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "../type_traits/enable_if.hpp"
 #include "../type_traits/true_type.hpp"
 #include "../type_traits/false_type.hpp"
@@ -56,15 +57,17 @@
 #include "../limits/numeric_limits.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
     // bit_uint
     //   trait: the standard's "unsigned integer type" set, spelled out.
     // A trait-derived test would wrongly admit bool and the char types.
-    template<typename _T> struct bit_uint            : false_type {};
+    template<typename T> struct bit_uint            : false_type {};
     template<> struct bit_uint<unsigned char>        : true_type  {};
     template<> struct bit_uint<unsigned short>       : true_type  {};
     template<> struct bit_uint<unsigned int>         : true_type  {};
@@ -72,74 +75,74 @@ NS_INTERNAL
     template<> struct bit_uint<unsigned long long>   : true_type  {};
 
     // bit_enable
-    //   alias hook: SFINAE guard used by every public function here.
+    //   struct: alias hook: SFINAE guard used by every public function here.
     // Cv-stripped first, so a `const unsigned int` argument still binds.
-    template<typename _T,
-             typename _R = _T>
+    template<typename T,
+             typename R = T>
     struct bit_enable
-        : enable_if< bit_uint<typename remove_cv<_T>::type>::value, _R >
+        : enable_if< bit_uint<typename remove_cv<T>::type>::value, R >
     {};
 
     // bit_digits
     //   constant: N, the number of VALUE bits. numeric_limits::digits
     // rather than sizeof * CHAR_BIT, so padding bits cannot skew it.
-    template<typename _T>
+    template<typename T>
     struct bit_digits
     {
-        static const int value = numeric_limits<_T>::digits;
+        static const int value = numeric_limits<T>::digits;
     };
 
 
     // bit_width_rec
-    //   helper: position of the highest set bit, 0 for zero. This is the
+    //   function: position of the highest set bit, 0 for zero. This is the
     // primitive the whole module is built on -- countl_zero, bit_floor
     // and bit_ceil are all one step away from it.
-    template<typename _T>
-    D_CONSTEXPR int
+    template<typename T>
+    RE_STD_CONSTEXPR int
     bit_width_rec(
-        _T _v
+        T _v
     )
     {
-        return (_v == 0) ? 0 : (1 + bit_width_rec<_T>(static_cast<_T>(_v >> 1)));
+        return (_v == 0) ? 0 : (1 + bit_width_rec<T>(static_cast<T>(_v >> 1)));
     }
 
     // bit_ctz_rec
-    //   helper: count of trailing zeros. Caller guarantees _v != 0, which
+    //   function: count of trailing zeros. Caller guarantees _v != 0, which
     // is what keeps the recursion terminating.
-    template<typename _T>
-    D_CONSTEXPR int
+    template<typename T>
+    RE_STD_CONSTEXPR int
     bit_ctz_rec(
-        _T  _v,
+        T  _v,
         int _n
     )
     {
-        return ((_v & static_cast<_T>(1)) != 0)
+        return ((_v & static_cast<T>(1)) != 0)
             ? _n
-            : bit_ctz_rec<_T>(static_cast<_T>(_v >> 1), _n + 1);
+            : bit_ctz_rec<T>(static_cast<T>(_v >> 1), _n + 1);
     }
 
     // bit_popcount_rec
-    //   helper: population count.
-    template<typename _T>
-    D_CONSTEXPR int
+    //   function: population count.
+    template<typename T>
+    RE_STD_CONSTEXPR int
     bit_popcount_rec(
-        _T  _v,
+        T  _v,
         int _acc
     )
     {
         return (_v == 0)
             ? _acc
-            : bit_popcount_rec<_T>(static_cast<_T>(_v >> 1),
-                                   _acc + static_cast<int>(_v & static_cast<_T>(1)));
+            : bit_popcount_rec<T>(static_cast<T>(_v >> 1),
+                                   _acc + static_cast<int>(_v & static_cast<T>(1)));
     }
 
-NS_END  // internal
+}  // internal
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BIT_BIT_INTERNAL_
+#endif  // RE_STD_BIT_BIT_INTERNAL_HPP

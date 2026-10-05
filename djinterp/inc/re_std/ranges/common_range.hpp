@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           common_range.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             common_range.hpp
 *
 * common_range concept-trait header:
 *   Provides the C++20 common_range concept as a SFINAE-detection
@@ -12,18 +12,20 @@
 *   C++11+. Variable spelling C++14+.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/common_range.hpp
+* path:      /inc/re_std/ranges/common_range.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_COMMON_RANGE_
-#define DJINTERP_RE_STD_RANGES_COMMON_RANGE_ 1
+#ifndef RE_STD_RANGES_COMMON_RANGE_HPP
+#define RE_STD_RANGES_COMMON_RANGE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES && \
-      D_ENV_LANG_IS_CPP11_OR_HIGHER )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES && \
+      RE_STD_LANG_IS_CPP11_OR_HIGHER )
 
 #include "../type_traits/type_traits.hpp"
 #include "./range.hpp"
@@ -31,28 +33,30 @@
 #include "./sentinel_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
 // common_range_impl
-//   trait: when range<_Type>, compares iterator_t and sentinel_t.
+//   trait: when range<Type>, compares iterator_t and sentinel_t.
 // Otherwise false. Guarded so that iterator_t / sentinel_t are
 // only instantiated for ranges (avoids hard error on non-range
 // inputs).
-template<typename _Type,
-         bool _IsRange = range<_Type>::value>
+template<typename Type,
+         bool IsRange = range<Type>::value>
 struct common_range_impl
     : false_type
 {};
 
-template<typename _Type>
-struct common_range_impl<_Type, true>
-    : is_same<iterator_t<_Type>, sentinel_t<_Type> >
+template<typename Type>
+struct common_range_impl<Type, true>
+    : is_same<iterator_t<Type>, sentinel_t<Type> >
 {};
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -65,9 +69,9 @@ NS_END  // internal
 // note: legacy iterator-pair algorithms (those taking [first, last)
 // of the same iterator type) accept common_range arguments
 // directly; non-common ranges must be adapted via common_view.
-template<typename _Type>
+template<typename Type>
 struct common_range
-    : internal::common_range_impl<_Type>
+    : internal::common_range_impl<Type>
 {};
 
 
@@ -75,18 +79,18 @@ struct common_range
 // II.  COMMON_RANGE_V
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool common_range_v = common_range<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool common_range_v = common_range<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RE_STD_RANGES_COMMON_RANGE_
+#endif  // RE_STD_RANGES_COMMON_RANGE_HPP

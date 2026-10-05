@@ -1,4 +1,18 @@
-#include "../../../../inc/c/container/vector/vector_common.h"
+/*******************************************************************************
+* djinterp [c]                                                   vector_common.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/container/vector/vector_common.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.10.03
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/container/vector/vector_common.h"
+
+// re_std
+#include "../../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
 
 
 // =============================================================================
@@ -101,7 +115,7 @@ d_vector_common_init_from_array
         return D_FAILURE;
     }
 
-    if ( (!_source) || 
+    if ( (!_source) ||
          (_source_count == 0) )
     {
         *(_destination) = NULL;
@@ -385,7 +399,7 @@ d_vector_common_init_fill
     for (i = 0; i < _size; i++)
     {
         d_memcpy(elem_ptr + (i * _element_size),
-                 _value, 
+                 _value,
                  _element_size);
     }
 
@@ -737,7 +751,7 @@ Parameter(s):
 Return:
   The number of available slots (capacity - count).
 */
-D_INLINE size_t
+size_t
 d_vector_common_available
 (
     size_t _count,
@@ -804,7 +818,7 @@ d_vector_common_push_back
 
 /*
 d_vector_common_push_front
-  Prepends an element to the beginning of the vector, growing capacity if 
+  Prepends an element to the beginning of the vector, growing capacity if
 needed.
 
 Parameter(s):
@@ -882,7 +896,7 @@ Return:
 bool
 d_vector_common_pop_back
 (
-    void*  _elements,
+    void*   _elements,
     size_t* _count,
     size_t  _element_size,
     void*   _out_value
@@ -963,10 +977,11 @@ d_vector_common_pop_front
 }
 
 /*
-d_vector_common_insert
+d_vector_common_insert_element
   Inserts an element at the specified index, growing capacity if needed.
 
 Parameter(s):
+  _destination:  pointer to the elements pointer to write through.
   _elements:     pointer to elements pointer (may be reallocated)
   _count:        pointer to count variable (incremented on success)
   _capacity:     pointer to capacity variable (may be updated)
@@ -1247,6 +1262,7 @@ d_vector_common_append_element
   Appends a single element to the end of the array of elements provided.
 
 Parameter(s):
+  _destination:  pointer to the elements pointer to write through.
   _element:      pointer to elements pointer (may be reallocated)
   _count:        pointer to count variable (updated on success)
   _capacity:     pointer to capacity variable (may be updated)
@@ -1284,7 +1300,7 @@ d_vector_common_append_element
 
     // ensure that memory copying was successful
     if (!d_memcpy((char*)*(_destination) + (*(_count) * _element_size),
-                  _element, 
+                  _element,
                   _element_size))
     {
         return D_FAILURE;
@@ -1332,7 +1348,7 @@ d_vector_common_append_elements
     }
 
     // appending zero elements is a no-op success
-    if ( (!_source) || 
+    if ( (!_source) ||
          (!_source_count) )
     {
         return (_source_count == 0);
@@ -1350,7 +1366,7 @@ d_vector_common_append_elements
 
     // ensure that memory copying was successful
     if (!d_memcpy((char*)*(_destination) + (*(_count) * _element_size),
-                  _source, 
+                  _source,
                   (_source_count * _element_size)))
     {
         return D_FAILURE;
@@ -1367,6 +1383,7 @@ d_vector_common_prepend_element
   Prepends a single element to the beginning of the array of elements provided.
 
 Parameter(s):
+  _destination:  pointer to the elements pointer to write through.
   _element:      pointer to elements pointer (may be reallocated)
   _count:        pointer to count variable (updated on success)
   _capacity:     pointer to capacity variable (may be updated)
@@ -1377,7 +1394,7 @@ Return:
   - D_SUCCESS, if elements were successfully appended, or
   - D_FAILURE, if parameters are invalid, or if memory reallocation failed.
 */
-D_INLINE bool
+bool
 d_vector_common_prepend_element
 (
     void**      _destination,
@@ -1411,7 +1428,7 @@ Return:
   - true, if elements were successfully prepended, or
   - false, if reallocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_vector_common_prepend_elements
 (
     void**      _elements,
@@ -1911,7 +1928,7 @@ d_vector_common_free_elements
 Parameter(s):
   _elements: pointer to elements array to free
 Return:
-  none
+  none.
 */
 void
 d_vector_common_free_elements

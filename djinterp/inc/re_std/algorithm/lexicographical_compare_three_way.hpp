@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [algorithm]                       lexicographical_compare_three_way.hpp
+/*******************************************************************************
+* djinterp [re_std]                        lexicographical_compare_three_way.hpp
 *
+* lexicographical_compare_three_way algorithm header:
 *   lexicographical_compare_three_way - the ordering counterpart of
 * lexicographical_compare, returning a comparison CATEGORY rather than a bool.
 *
@@ -25,32 +26,37 @@
 *   STD IS C++20; re_std IS C++20 - a hard ceiling, since the return type is a
 * comparison category and those do not exist below C++20.
 *
-* path:      /inc/djinterp/re_std/algorithm/lexicographical_compare_three_way.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/algorithm/lexicographical_compare_three_way.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_LEX_COMPARE_THREE_WAY_
-#define DJINTERP_RE_STD_ALGORITHM_LEX_COMPARE_THREE_WAY_ 1
+#ifndef RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_THREE_WAY_HPP
+#define RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_THREE_WAY_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../compare/compare"
-#include "../functional/compare_three_way.hpp"
+#include "../compare/compare_three_way.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // lexicographical_compare_three_way
 //   function: three-way lexicographical comparison under a supplied
 // comparator.
-template<typename _InputIt1, typename _InputIt2, typename _Compare>
-D_CONSTEXPR auto lexicographical_compare_three_way(_InputIt1 first1,
-                                                   _InputIt1 last1,
-                                                   _InputIt2 first2,
-                                                   _InputIt2 last2,
-                                                   _Compare  comp)
+template<typename InputIt1, typename InputIt2, typename Compare>
+RE_STD_CONSTEXPR auto lexicographical_compare_three_way(InputIt1 first1,
+                                                   InputIt1 last1,
+                                                   InputIt2 first2,
+                                                   InputIt2 last2,
+                                                   Compare  comp)
     -> decltype(comp(*first1, *first2))
 {
     typedef decltype(comp(*first1, *first2)) _Category;
@@ -79,19 +85,19 @@ D_CONSTEXPR auto lexicographical_compare_three_way(_InputIt1 first1,
 
 // lexicographical_compare_three_way
 //   function: as above, comparing elements with compare_three_way.
-template<typename _InputIt1, typename _InputIt2>
-D_CONSTEXPR auto lexicographical_compare_three_way(_InputIt1 first1,
-                                                   _InputIt1 last1,
-                                                   _InputIt2 first2,
-                                                   _InputIt2 last2)
+template<typename InputIt1, typename InputIt2>
+RE_STD_CONSTEXPR auto lexicographical_compare_three_way(InputIt1 first1,
+                                                   InputIt1 last1,
+                                                   InputIt2 first2,
+                                                   InputIt2 last2)
     -> decltype(compare_three_way()(*first1, *first2))
 {
     return re_std::lexicographical_compare_three_way(
         first1, last1, first2, last2, compare_three_way());
 }
 
-NS_END
+}
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_LEX_COMPARE_THREE_WAY_
+#endif  // RE_STD_ALGORITHM_LEXICOGRAPHICAL_COMPARE_THREE_WAY_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             tuple_get.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                tuple_get.hpp
 *
 * tuple get<> overloads:
 *   Index-based and type-based element access for re_std::tuple.
@@ -22,26 +22,27 @@
 * sane SFINAE expression on the count.
 *
 *
-* path:      /inc/djinterp/re_std/tuple/tuple_get.hpp
+* path:      /inc/re_std/tuple/tuple_get.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_GET_
-#define DJINTERP_RE_STD_TUPLE_TUPLE_GET_ 1
+#ifndef RE_STD_TUPLE_TUPLE_GET_HPP
+#define RE_STD_TUPLE_TUPLE_GET_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // gate: requires variadic templates + rvalue refs (same as tuple)
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
 
 
 // std
 #include <cstddef>
-// djinterp
+// re_std
 #include "./tuple.hpp"
 #include "./tuple_element.hpp"
 #include "../type_traits/integral_constant.hpp"
@@ -49,251 +50,254 @@
 #include "../type_traits/enable_if.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   GET BY INDEX
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // tuple_get_impl
-    //   helper: recursively descends through the tail of a tuple to
-    // locate the _I-th element. The base case (_I == 0) returns the
+    //   trait: recursively descends through the tail of a tuple to
+    // locate the I-th element. The base case (I == 0) returns the
     // current head.
 
-    template<std::size_t _I>
+    template<std::size_t I>
     struct tuple_get_impl
     {
-        template<typename    _Head,
-                 typename... _Tail>
-        D_STATIC D_CONSTEXPR
-        typename tuple_element<_I, tuple<_Head, _Tail...> >::type&
+        template<typename    Head,
+                 typename... Tail>
+        static RE_STD_CONSTEXPR
+        typename tuple_element<I, tuple<Head, Tail...> >::type&
         get_lref(
-            tuple<_Head, _Tail...>& _t
-        ) D_NOEXCEPT
+            tuple<Head, Tail...>& _t
+        ) RE_STD_NOEXCEPT
         {
-            return tuple_get_impl<_I - 1>::get_lref(_t.tail_ref());
+            return tuple_get_impl<I - 1>::get_lref(_t.tail_ref());
         }
 
-        template<typename    _Head,
-                 typename... _Tail>
-        D_STATIC D_CONSTEXPR
-        const typename tuple_element<_I, tuple<_Head, _Tail...> >::type&
+        template<typename    Head,
+                 typename... Tail>
+        static RE_STD_CONSTEXPR
+        const typename tuple_element<I, tuple<Head, Tail...> >::type&
         get_clref(
-            const tuple<_Head, _Tail...>& _t
-        ) D_NOEXCEPT
+            const tuple<Head, Tail...>& _t
+        ) RE_STD_NOEXCEPT
         {
-            return tuple_get_impl<_I - 1>::get_clref(_t.tail_ref());
+            return tuple_get_impl<I - 1>::get_clref(_t.tail_ref());
         }
     };
 
     template<>
     struct tuple_get_impl<0>
     {
-        template<typename    _Head,
-                 typename... _Tail>
-        D_STATIC D_CONSTEXPR
-        _Head&
+        template<typename    Head,
+                 typename... Tail>
+        static RE_STD_CONSTEXPR
+        Head&
         get_lref(
-            tuple<_Head, _Tail...>& _t
-        ) D_NOEXCEPT
+            tuple<Head, Tail...>& _t
+        ) RE_STD_NOEXCEPT
         {
             return _t.head_ref();
         }
 
-        template<typename    _Head,
-                 typename... _Tail>
-        D_STATIC D_CONSTEXPR
-        const _Head&
+        template<typename    Head,
+                 typename... Tail>
+        static RE_STD_CONSTEXPR
+        const Head&
         get_clref(
-            const tuple<_Head, _Tail...>& _t
-        ) D_NOEXCEPT
+            const tuple<Head, Tail...>& _t
+        ) RE_STD_NOEXCEPT
         {
             return _t.head_ref();
         }
     };
 
-NS_END  // internal
+}  // internal
 
 
 // get<I>(tuple&)
 //   function: yields lvalue reference to the I-th element.
-template<std::size_t _I,
-         typename... _Types>
-D_CONSTEXPR
-typename tuple_element<_I, tuple<_Types...> >::type&
+template<std::size_t I,
+         typename... Types>
+RE_STD_CONSTEXPR
+typename tuple_element<I, tuple<Types...> >::type&
 get(
-    tuple<_Types...>& _t
-) D_NOEXCEPT
+    tuple<Types...>& _t
+) RE_STD_NOEXCEPT
 {
-    return internal::tuple_get_impl<_I>::get_lref(_t);
+    return internal::tuple_get_impl<I>::get_lref(_t);
 }
 
 // get<I>(const tuple&)
-template<std::size_t _I,
-         typename... _Types>
-D_CONSTEXPR
-const typename tuple_element<_I, tuple<_Types...> >::type&
+template<std::size_t I,
+         typename... Types>
+RE_STD_CONSTEXPR
+const typename tuple_element<I, tuple<Types...> >::type&
 get(
-    const tuple<_Types...>& _t
-) D_NOEXCEPT
+    const tuple<Types...>& _t
+) RE_STD_NOEXCEPT
 {
-    return internal::tuple_get_impl<_I>::get_clref(_t);
+    return internal::tuple_get_impl<I>::get_clref(_t);
 }
 
 // get<I>(tuple&&)
-template<std::size_t _I,
-         typename... _Types>
-D_CONSTEXPR
-typename tuple_element<_I, tuple<_Types...> >::type&&
+template<std::size_t I,
+         typename... Types>
+RE_STD_CONSTEXPR
+typename tuple_element<I, tuple<Types...> >::type&&
 get(
-    tuple<_Types...>&& _t
-) D_NOEXCEPT
+    tuple<Types...>&& _t
+) RE_STD_NOEXCEPT
 {
-    typedef typename tuple_element<_I, tuple<_Types...> >::type _E;
+    typedef typename tuple_element<I, tuple<Types...> >::type _E;
     return static_cast<_E&&>(
-        internal::tuple_get_impl<_I>::get_lref(_t));
+        internal::tuple_get_impl<I>::get_lref(_t));
 }
 
 // get<I>(const tuple&&)
-template<std::size_t _I,
-         typename... _Types>
-D_CONSTEXPR
-const typename tuple_element<_I, tuple<_Types...> >::type&&
+template<std::size_t I,
+         typename... Types>
+RE_STD_CONSTEXPR
+const typename tuple_element<I, tuple<Types...> >::type&&
 get(
-    const tuple<_Types...>&& _t
-) D_NOEXCEPT
+    const tuple<Types...>&& _t
+) RE_STD_NOEXCEPT
 {
-    typedef typename tuple_element<_I, tuple<_Types...> >::type _E;
+    typedef typename tuple_element<I, tuple<Types...> >::type _E;
     return static_cast<const _E&&>(
-        internal::tuple_get_impl<_I>::get_clref(_t));
+        internal::tuple_get_impl<I>::get_clref(_t));
 }
 
 
 // =============================================================================
 // II.  GET BY TYPE  (C++14+)
 // =============================================================================
-// Locate the unique element whose type is _T, then dispatch to the
+// Locate the unique element whose type is T, then dispatch to the
 // index-based get. Ambiguous (>1 match) or missing (0 matches) cases
 // are SFINAE-rejected by enable_if on count == 1.
 
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+#if RE_STD_LANG_IS_CPP14_OR_HIGHER
 
 
-NS_INTERNAL
+namespace internal
+{
 
     // count_of
-    //   trait: number of times _T appears in _Pack.
-    template<typename    _T,
-             typename... _Pack>
+    //   trait: number of times T appears in Pack.
+    template<typename    T,
+             typename... Pack>
     struct count_of;
 
-    template<typename _T>
-    struct count_of<_T>
+    template<typename T>
+    struct count_of<T>
         : integral_constant<std::size_t, 0>
     {};
 
-    template<typename    _T,
-             typename    _Head,
-             typename... _Tail>
-    struct count_of<_T, _Head, _Tail...>
+    template<typename    T,
+             typename    Head,
+             typename... Tail>
+    struct count_of<T, Head, Tail...>
         : integral_constant<std::size_t,
-              ( is_same<_T, _Head>::value ? 1 : 0 ) +
-              count_of<_T, _Tail...>::value>
+              ( is_same<T, Head>::value ? 1 : 0 ) +
+              count_of<T, Tail...>::value>
     {};
 
     // first_index_of
-    //   trait: zero-based index of the first occurrence of _T in
-    // _Pack. Caller must ensure _T appears.
-    template<typename    _T,
-             typename... _Pack>
+    //   trait: zero-based index of the first occurrence of T in
+    // Pack. Caller must ensure T appears.
+    template<typename    T,
+             typename... Pack>
     struct first_index_of;
 
-    template<typename    _T,
-             typename    _Head,
-             typename... _Tail>
-    struct first_index_of<_T, _Head, _Tail...>
+    template<typename    T,
+             typename    Head,
+             typename... Tail>
+    struct first_index_of<T, Head, Tail...>
         : integral_constant<std::size_t,
-              is_same<_T, _Head>::value
+              is_same<T, Head>::value
                   ? 0
-                  : 1 + first_index_of<_T, _Tail...>::value>
+                  : 1 + first_index_of<T, Tail...>::value>
     {};
 
-NS_END  // internal
+}  // internal
 
 
 // get<T>(tuple&)
-template<typename    _T,
-         typename... _Types>
-D_CONSTEXPR
+template<typename    T,
+         typename... Types>
+RE_STD_CONSTEXPR
 typename enable_if<
-    internal::count_of<_T, _Types...>::value == 1,
-    _T&
+    internal::count_of<T, Types...>::value == 1,
+    T&
 >::type
 get(
-    tuple<_Types...>& _t
-) D_NOEXCEPT
+    tuple<Types...>& _t
+) RE_STD_NOEXCEPT
 {
-    return get<internal::first_index_of<_T, _Types...>::value>(_t);
+    return get<internal::first_index_of<T, Types...>::value>(_t);
 }
 
 // get<T>(const tuple&)
-template<typename    _T,
-         typename... _Types>
-D_CONSTEXPR
+template<typename    T,
+         typename... Types>
+RE_STD_CONSTEXPR
 typename enable_if<
-    internal::count_of<_T, _Types...>::value == 1,
-    const _T&
+    internal::count_of<T, Types...>::value == 1,
+    const T&
 >::type
 get(
-    const tuple<_Types...>& _t
-) D_NOEXCEPT
+    const tuple<Types...>& _t
+) RE_STD_NOEXCEPT
 {
-    return get<internal::first_index_of<_T, _Types...>::value>(_t);
+    return get<internal::first_index_of<T, Types...>::value>(_t);
 }
 
 // get<T>(tuple&&)
-template<typename    _T,
-         typename... _Types>
-D_CONSTEXPR
+template<typename    T,
+         typename... Types>
+RE_STD_CONSTEXPR
 typename enable_if<
-    internal::count_of<_T, _Types...>::value == 1,
-    _T&&
+    internal::count_of<T, Types...>::value == 1,
+    T&&
 >::type
 get(
-    tuple<_Types...>&& _t
-) D_NOEXCEPT
+    tuple<Types...>&& _t
+) RE_STD_NOEXCEPT
 {
-    return get<internal::first_index_of<_T, _Types...>::value>(
-        static_cast<tuple<_Types...>&&>(_t));
+    return get<internal::first_index_of<T, Types...>::value>(
+        static_cast<tuple<Types...>&&>(_t));
 }
 
 // get<T>(const tuple&&)
-template<typename    _T,
-         typename... _Types>
-D_CONSTEXPR
+template<typename    T,
+         typename... Types>
+RE_STD_CONSTEXPR
 typename enable_if<
-    internal::count_of<_T, _Types...>::value == 1,
-    const _T&&
+    internal::count_of<T, Types...>::value == 1,
+    const T&&
 >::type
 get(
-    const tuple<_Types...>&& _t
-) D_NOEXCEPT
+    const tuple<Types...>&& _t
+) RE_STD_NOEXCEPT
 {
-    return get<internal::first_index_of<_T, _Types...>::value>(
-        static_cast<const tuple<_Types...>&&>(_t));
+    return get<internal::first_index_of<T, Types...>::value>(
+        static_cast<const tuple<Types...>&&>(_t));
 }
 
 
-#endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP14_OR_HIGHER
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_GET_
+#endif  // RE_STD_TUPLE_TUPLE_GET_HPP

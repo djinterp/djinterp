@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                         postgres_table.hpp
+/*******************************************************************************
+* djinterp [core]                                             postgres_table.hpp
 *
 * djinterp PostgreSQL table module:
 *   PostgreSQL-specific database_table subclass providing vendor features
@@ -14,8 +14,8 @@
 *   - LISTEN / NOTIFY invalidation hook for cache staleness
 *
 *   LAYER DIAGRAM:
-*     postgres_table<_Config>
-*       -> database_table<pg_connection, value, _Config>
+*     postgres_table<Config>
+*       -> database_table<pg_connection, value, Config>
 *
 *   NOTE: this header forward-declares pg_connection. The concrete class
 * definition lives in postgres.hpp. Include postgres.hpp before
@@ -24,13 +24,20 @@
 *   PORTABILITY:
 *   Requires C++17 or later.
 *
+*
 * path:      /inc/djinterp/core/db/postgres/postgres_table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.23
+*                                                            revised: 2026.09.30
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_POSTGRES_TABLE_
-#define DJINTERP_DATABASE_POSTGRES_TABLE_
+#ifndef DJINTERP_DB_POSTGRES_POSTGRES_TABLE_HPP
+#define DJINTERP_DB_POSTGRES_POSTGRES_TABLE_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
@@ -86,16 +93,16 @@ NS_DJINTERP
     //   class: PostgreSQL-specific database table. Extends the generic
     // database_table with PostgreSQL DDL, identifier quoting, COPY
     // acceleration, and VACUUM / ANALYZE maintenance.
-    template<typename _Config = void>
+    template<typename Config = void>
     class postgres_table
         : public database_table<pg_connection,
                                 value,
-                                _Config>
+                                Config>
     {
     private:
         using base_type = database_table<pg_connection,
                                          value,
-                                         _Config>;
+                                         Config>;
 
     public:
         using typename base_type::size_type;
@@ -103,7 +110,7 @@ NS_DJINTERP
         using typename base_type::row_type;
         using typename base_type::connection_type;
         using typename base_type::schema_type;
-        using self_type = postgres_table<_Config>;
+        using self_type = postgres_table<Config>;
 
         using type_support    = pg_type_support;
         using feature_support = pg_feature_support;
@@ -170,7 +177,8 @@ NS_DJINTERP
         {
         }
 
-        ~postgres_table() override = default;
+        // non-virtual: the base is not a polymorphic type.
+        ~postgres_table() = default;
 
         // disable copying
         postgres_table(const postgres_table&)            = delete;
@@ -355,14 +363,14 @@ NS_DJINTERP
     protected:
 
         // =================================================================
-        //  protected overrides
+        //  protected helpers (concrete — not overrides)
         // =================================================================
 
         // field_type_to_sql
-        //   function: overrides type mapping for PostgreSQL. Uses
+        //   function: concrete vendor type mapping for PostgreSQL. Uses
         // PostgreSQL-native types (JSONB, native UUID, BYTEA, TIMESTAMPTZ)
         // rather than the defaults.
-        const char* field_type_to_sql(field_type _type) const override
+        const char* field_type_to_sql(field_type _type) const
         {
             switch (_type)
             {
@@ -402,7 +410,8 @@ NS_DJINTERP
                 case field_type::null:
                 case field_type::custom:
                 default:
-                    return base_type::field_type_to_sql(_type);
+                    // common types defer to the connection's type mapping
+                    return field_type_to_pg_sql(_type);
             }
         }
 
@@ -420,5 +429,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_POSTGRES_TABLE_
+#endif  // DJINTERP_DB_POSTGRES_POSTGRES_TABLE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [option]                                         option_factory.hpp
+/*******************************************************************************
+* djinterp [core]                                             option_factory.hpp
 *
 *   Factories for assembling option<> values - both at the type level
 * (`make_option_t`) and at the value level (`make_option()`).  Plus
@@ -27,22 +27,33 @@
 *
 * path:      /inc/djinterp/core/option/option_factory.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.27
+*                                                            revised: 2026.09.30
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    key_carrier                 (NTTP-to-type bridge)
+      -------------------------------------------------
+
 II.   make_option_t               (compile-time factory)
+      --------------------------------------------------
+
 III.  make_option                 (runtime factory)
+      ---------------------------------------------
 */
 
-#ifndef DJINTERP_OPTION_FACTORY_
-#define DJINTERP_OPTION_FACTORY_ 1
+#ifndef DJINTERP_OPTION_OPTION_FACTORY_HPP
+#define DJINTERP_OPTION_OPTION_FACTORY_HPP 1
 
 // djinterp
-#include "../djinterp.hpp"
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
+#include "../../djinterp.hpp"
 #include "./option.hpp"
 
 
@@ -68,12 +79,12 @@ NS_DJINTERP
 //
 // Usage:
 //   key_carrier<my_enum::foo>   // typename slot in a flat schema
-template<auto _Value>
+template<auto Value>
 struct key_carrier
 {
-    using value_type = decltype(_Value);
+    using value_type = decltype(Value);
 
-    static D_CONSTEXPR value_type value = _Value;
+    static D_CONSTEXPR value_type value = Value;
 };
 
 
@@ -83,15 +94,15 @@ struct key_carrier
 
 // make_option_t
 //   alias: compile-time option factory.  Yields
-// option<_Key, _Args...>.  Stylistic counterpart to the
+// option<Key, Args...>.  Stylistic counterpart to the
 // runtime factory below; the args are taken verbatim and
 // passed straight through to the option<> template.
 //
-//   The framework imposes no shape on _Args.  See option.hpp
+//   The framework imposes no shape on Args.  See option.hpp
 // for the option<> type itself.
-template<auto        _Key,
-         typename... _Args>
-using make_option_t = option<_Key, _Args...>;
+template<auto        Key,
+         typename... Args>
+using make_option_t = option<Key, Args...>;
 
 
 // ===========================================================================
@@ -100,7 +111,7 @@ using make_option_t = option<_Key, _Args...>;
 
 // make_option
 //   function: runtime option factory.  Returns a value-
-// initialized option<_Key, _Args...>.
+// initialized option<Key, Args...>.
 //
 //   The built-in option<> is stateless, so this is mostly a
 // stylistic shorthand.  The function exists primarily as a
@@ -112,16 +123,17 @@ using make_option_t = option<_Key, _Args...>;
 //
 // Usage:
 //   constexpr auto opt = make_option<my_enum::foo, slot_a, slot_b>();
-template<auto        _Key,
-         typename... _Args>
-D_CONSTEXPR option<_Key, _Args...>
+template<auto        Key,
+         typename... Args>
+D_CONSTEXPR option<Key, Args...>
 make_option() noexcept
 {
-    return option<_Key, _Args...>{};
+    return option<Key, Args...>{};
 }
 
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_FACTORY_
+#endif  // DJINTERP_OPTION_OPTION_FACTORY_HPP

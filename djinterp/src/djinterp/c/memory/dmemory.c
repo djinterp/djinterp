@@ -1,12 +1,14 @@
-/******************************************************************************
-* djinterp [core]                                                    dmemory.c
+/*******************************************************************************
+* djinterp [c]                                                         dmemory.c
+*
+* TBA
 *
 *
 * path:      /src/djinterp/c/memory/dmemory.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.03.03
-*                                                          revised: 2026.09.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.03
+*                                                            revised: 2026.09.29
+*******************************************************************************/
 #include "../../../../inc/djinterp/c/memory/dmemory.h"
 
 
@@ -40,12 +42,10 @@ d_memcpy(
     return memcpy(_destination, _source, _amount);
 }
 
-
 /*
 d_memcpy_s
   Copies _amount bytes from _source to _destination with destination-bound
 validation.
-
   When the platform provides a compatible bounds-checked memcpy, this function
 adapts that implementation. Otherwise it performs the required validation and
 uses the djinterp memcpy primitive.
@@ -114,10 +114,10 @@ d_memcpy_s(
 #endif
 }
 
-
 /*
 d_memdup
-  Allocates _size bytes and copies the source bytes into the new allocation.
+  Memory duplication function; allocates _size bytes and copies the source
+bytes into the new allocation.
 
 Parameter(s):
   _source: pointer to the source data.
@@ -163,11 +163,10 @@ d_memdup(
     return result;
 }
 
-
 /*
 d_memdup_s
-  Allocates _size bytes and duplicates the source using the bounds-checked
-djinterp memory-copy primitive.
+  Secure memory duplication function; allocates _size bytes and duplicates
+the source using the bounds-checked djinterp memory-copy primitive.
 
 Parameter(s):
   _source: pointer to the source data.
@@ -215,7 +214,6 @@ d_memdup_s(
     return destination;
 }
 
-
 /*
 d_memset
   Fills _amount bytes beginning at _ptr with the byte value represented by
@@ -245,11 +243,11 @@ d_memset(
     return memset(_ptr, _value, _amount);
 }
 
-
 /*
 d_memset_s
-  Fills up to _destination_size bytes while validating the requested count
-against the bounds-checked memory limits used by the framework.
+  Fills up to _destination_size bytes through volatile writes, which the
+compiler may not remove even when the buffer is never read again, after
+validating the request as Annex K's memset_s does.
 
 Parameter(s):
   _destination:      pointer to the destination buffer.
@@ -257,45 +255,38 @@ Parameter(s):
   _ch:               byte value to write.
   _count:            number of bytes requested.
 Return:
-  0 on success; EINVAL for an invalid destination or restricted size; ERANGE
-when _count exceeds _destination_size.
+  0 on success; EINVAL for a null destination or a size above
+D_MEMORY_RSIZE_MAX; ERANGE when _count exceeds _destination_size, after the
+whole destination is filled.
 */
-errno_t
+int
 d_memset_s(
-    void*   _destination,
-    rsize_t _destination_size,
-    int     _ch,
-    rsize_t _count
+    void*  _destination,
+    size_t _destination_size,
+    int    _ch,
+    size_t _count
 )
 {
-    unsigned char  value;
-    unsigned char* destination;
-    rsize_t        amount;
-    rsize_t        index;
+    volatile unsigned char* destination;
+    unsigned char           value;
+    size_t                  amount;
+    size_t                  index;
 
     // validate the destination pointer
     if (_destination == NULL)
     {
-
         return EINVAL;
     }
 
-    // validate the destination size against the framework limit
-    if (_destination_size >= RSIZE_MAX)
+    // validate both sizes against the bound, as Annex K does
+    if ( (_destination_size > D_MEMORY_RSIZE_MAX) ||
+         (_count > D_MEMORY_RSIZE_MAX) )
     {
-
-        return EINVAL;
-    }
-
-    // validate the requested count against the framework limit
-    if (_count >= RSIZE_MAX)
-    {
-
         return EINVAL;
     }
 
     value       = (unsigned char)_ch;
-    destination = (unsigned char*)_destination;
+    destination = (volatile unsigned char*)_destination;
     amount      = (_count < _destination_size)
         ? _count
         : _destination_size;
@@ -306,8 +297,7 @@ d_memset_s(
         destination[index] = value;
     }
 
-    // report a bounds failure after clearing the entire valid destination
-
+    // report a bounds failure after filling the entire valid destination
     return (_count > _destination_size)
         ? ERANGE
         : 0;

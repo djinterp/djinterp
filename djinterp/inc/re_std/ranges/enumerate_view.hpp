@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [ranges]                                            enumerate_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           enumerate_view.hpp
 *
+* enumerate_view view header:
 *   enumerate_view - pairs each element with its zero-based position.
 *
 *   THE INDEX IS CARRIED, NOT COMPUTED.  It would be tempting to derive the
@@ -22,36 +23,44 @@
 *
 *   INTERFACE ASSUMPTIONS: see ADAPTOR_ASSUMPTIONS.txt in this directory.
 *
-* path:      /inc/djinterp/re_std/ranges/enumerate_view.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/ranges/enumerate_view.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_ENUMERATE_VIEW_
-#define DJINTERP_RE_STD_RANGES_ENUMERATE_VIEW_ 1
+#ifndef RE_STD_RANGES_ENUMERATE_VIEW_HPP
+#define RE_STD_RANGES_ENUMERATE_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../tuple/tuple.hpp"
-#include "../iterator/iterator_tags.hpp"
-#include "./range_traits.hpp"
-#include "./range_access.hpp"
 #include "./view_interface.hpp"
+#include "../iterator/input_iterator_tag.hpp"
+#include "./ranges_access.hpp"
+#include "./iterator_t.hpp"
+#include "./range_reference_t.hpp"
+#include "./sentinel_t.hpp"
 
-NS_RESTD
-D_NAMESPACE(ranges)
+namespace re_std
+{
+namespace ranges
+{
 
 // enumerate_view
 //   class: yields (index, element) for each element of the base range.
-template<typename _View>
-class enumerate_view : public view_interface<enumerate_view<_View> >
+template<typename View>
+class enumerate_view : public view_interface<enumerate_view<View> >
 {
-    typedef iterator_t<_View> _BaseIter;
-    typedef sentinel_t<_View> _BaseSent;
+    typedef iterator_t<View> _BaseIter;
+    typedef sentinel_t<View> _BaseSent;
 
-    _View m_base;
+    View m_base;
 
 public:
     class sentinel
@@ -71,8 +80,8 @@ public:
     public:
         typedef tuple<ptrdiff_t,
                       typename remove_reference<
-                          range_reference_t<_View> >::type> value_type;
-        typedef tuple<ptrdiff_t, range_reference_t<_View> > reference;
+                          range_reference_t<View> >::type> value_type;
+        typedef tuple<ptrdiff_t, range_reference_t<View> > reference;
         typedef ptrdiff_t                                   difference_type;
         typedef void                                        pointer;
         typedef input_iterator_tag                          iterator_category;
@@ -105,15 +114,15 @@ public:
     };
 
     enumerate_view() : m_base() {}
-    explicit enumerate_view(_View base) : m_base(static_cast<_View&&>(base)) {}
+    explicit enumerate_view(View base) : m_base(static_cast<View&&>(base)) {}
 
     iterator begin() { return iterator(ranges::begin(m_base), 0); }
     sentinel end()   { return sentinel(ranges::end(m_base)); }
 };
 
-NS_END  // ranges
-NS_END
+}  // ranges
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_RANGES_ENUMERATE_VIEW_
+#endif  // RE_STD_RANGES_ENUMERATE_VIEW_HPP

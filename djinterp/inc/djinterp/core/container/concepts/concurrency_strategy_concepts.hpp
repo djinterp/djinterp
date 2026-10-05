@@ -1,23 +1,38 @@
-/******************************************************************************
-* djinterp [container] concurrency_strategy_concepts.hpp C++20 concepts for the
-* CONCURRENCY STRATEGY axis -- the `requires`-facing view of
-* concurrency_strategy_traits.hpp. THE CONCEPTS ADD NO POLICY. Each is exactly
-* its trait, spelled so it can constrain a template instead of gating one
-* through enable_if. The trait stays the single source of truth; if a
-* classification is wrong, it is wrong in one place. That is the whole point of
-* generating these rather than restating the detection logic in `requires`
-* clauses. PORTABILITY: Gated on C++20 + concepts. Below that the header is
-* empty and callers use the `::value` / `_v` forms directly -- which is why
-* nothing else in the framework is allowed to depend on these. path:
-* /inc/djinterp/core/container/concepts/concurrency_strategy_concepts.hpp
-* link(s): TBA author(s): Samuel 'teer' Neal-Blim created: 2026.07.14
-* *****************************************************************************/
+/*******************************************************************************
+* djinterp [core]                              concurrency_strategy_concepts.hpp
+*
+* C++20 concepts for the CONCURRENCY STRATEGY axis -- the `requires`-facing
+* view of concurrency_strategy_traits.hpp.
+*
+*   THE CONCEPTS ADD NO POLICY.
+*   Each is exactly its trait, spelled so it can constrain a template instead
+* of gating one through enable_if. The trait stays the single source of truth;
+* if a classification is wrong, it is wrong in one place. That is the whole
+* point of generating these rather than restating the detection logic in
+* `requires` clauses.
+*
+*   PORTABILITY:
+*   Gated on C++20 + concepts. Below that the header is empty and callers use
+* the `::value` / `_v` forms directly -- which is why
+*
+*
+* path:      /inc/djinterp/core/container/concepts/concurrency_strategy_concepts.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.14
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONCURRENCY_STRATEGY_CONCEPTS_
-#define DJINTERP_CONCURRENCY_STRATEGY_CONCEPTS_ 1
+#ifndef DJINTERP_CONTAINER_CONCEPTS_CONCURRENCY_STRATEGY_CONCEPTS_HPP
+#define DJINTERP_CONTAINER_CONCEPTS_CONCURRENCY_STRATEGY_CONCEPTS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "../traits/concurrency_strategy_traits.hpp"
 
 
@@ -32,21 +47,21 @@ NS_DJINTERP
 
 
 // concurrent_container
-// concept: safe under concurrent use by SOME strategy -- the umbrella the six
-// below refine.
-template<typename _Type>
+//   concept: safe under concurrent use by SOME strategy -- the umbrella the
+// six below refine.
+template<typename Type>
 concept concurrent_container =
-    is_concurrent_container_v<clean_t<_Type>>;
+    is_concurrent_container_v<clean_t<Type>>;
 
 
 // sequentially_accessed_container
-// concept: NO concurrency strategy: single-threaded use only. Named this way,
-// not `sequential_container`, because that name is already a CONTAINER in this
-// framework (sequential_container.hpp) and a concept sharing it would collide
-// in the same namespace.
-template<typename _Type>
+//   concept: NO concurrency strategy: single-threaded use only. Named this
+// way, not `sequential_container`, because that name is already a CONTAINER in
+// this framework (sequential_container.hpp) and a concept sharing it would
+// collide in the same namespace.
+template<typename Type>
 concept sequentially_accessed_container =
-    is_sequential_container_v<clean_t<_Type>>;
+    is_unsynchronized_container_v<clean_t<Type>>;
 
 
 // ==========================================================================
@@ -56,39 +71,39 @@ concept sequentially_accessed_container =
 
 // locked_container
 //   concept: guarded by a lock -- it exposes read_lock() / write_lock().
-template<typename _Type>
+template<typename Type>
 concept locked_container =
-    is_locked_container_v<clean_t<_Type>>;
+    is_locked_container_v<clean_t<Type>>;
 
 
 // atomic_container
 //   concept: element access is atomic -- no lock, no snapshot.
-template<typename _Type>
+template<typename Type>
 concept atomic_container =
-    is_atomic_container_v<clean_t<_Type>>;
+    is_atomic_container_v<clean_t<Type>>;
 
 
 // cow_container
 //   concept: copy-on-write: readers see an immutable snapshot, writers copy.
-template<typename _Type>
+template<typename Type>
 concept cow_container =
-    is_cow_container_v<clean_t<_Type>>;
+    is_cow_container_v<clean_t<Type>>;
 
 
 // rcu_container
-// concept: read-copy-update: readers never block, reclamation waits for a grace
-// period.
-template<typename _Type>
+//   concept: read-copy-update: readers never block, reclamation waits for a
+// grace period.
+template<typename Type>
 concept rcu_container =
-    is_rcu_container_v<clean_t<_Type>>;
+    is_rcu_container_v<clean_t<Type>>;
 
 
 // hazard_container
-// concept: hazard-pointer protected: readers publish what they are holding so
-// it is not reclaimed under them.
-template<typename _Type>
+//   concept: hazard-pointer protected: readers publish what they are holding
+// so it is not reclaimed under them.
+template<typename Type>
 concept hazard_container =
-    is_hazard_container_v<clean_t<_Type>>;
+    is_hazard_container_v<clean_t<Type>>;
 
 
 // ==========================================================================
@@ -98,24 +113,25 @@ concept hazard_container =
 
 // synchronized_container
 //   concept: synchronized by SOME mechanism -- locked, atomic, or otherwise.
-template<typename _Type>
+template<typename Type>
 concept synchronized_container =
-    is_synchronized_container_v<clean_t<_Type>>;
+    is_synchronized_container_v<clean_t<Type>>;
 
 
 // vacuously_concurrent_container
 //   concept: safe under concurrency because there is nothing to race ON -- an
-// immutable container needs no strategy, and saying it 'has' one would be
-// a category error. This is why is_concurrent is not simply 'declares a
+// immutable container needs no strategy, and saying it 'has' one would be a
+// category error. This is why is_concurrent is not simply 'declares a
 // strategy'.
-template<typename _Type>
+template<typename Type>
 concept vacuously_concurrent_container =
-    is_vacuously_concurrent_v<clean_t<_Type>>;
+    is_vacuously_concurrent_v<clean_t<Type>>;
 
 NS_END  // djinterp
 
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONCURRENCY_STRATEGY_CONCEPTS_
+#endif  // DJINTERP_CONTAINER_CONCEPTS_CONCURRENCY_STRATEGY_CONCEPTS_HPP

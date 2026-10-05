@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [css]                                                       css.hpp
+/*******************************************************************************
+* djinterp [core]                                                        css.hpp
 *
 *   Foundational CSS module for the djinterp framework. Models a
 * CSS stylesheet as a tree of *rules*: style rules carry selector
@@ -10,7 +10,7 @@
 * bipartite block/inline AST.
 *
 *   ZERO OVERHEAD:
-*   - All kind enums are `std::uint8_t`-backed.
+*   - All kind enums are `re_std::uint8_t`-backed.
 *   - Category and classification predicates are `D_CONSTEXPR` and
 *     fold to compile-time constants when the kind is known
 *     statically.
@@ -29,44 +29,87 @@
 *   LEVEL & MODULE GATING:
 *   The runtime `css_level` enum identifies the document's target
 * CSS level (1, 2.1, 3 modules-by-module, 4 drafts). A full
-* compile-time `css_dialect<_Flag>` template, mirroring
+* compile-time `css_dialect<Flag>` template, mirroring
 * `html_dialect`, is a likely follow-on for static feature gating.
 *
 *
-* path:      /inc/djinterp/core/util/css/css.hpp
+* path:      /inc/djinterp/core/text/css/css.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    SHARED TYPES & CONSTANTS
+      ------------------------
+
 II.   CSS LEVEL & SYNTAX MODE
+      -----------------------
+
 III.  RULE KIND ENUM
+      --------------
+
 IV.   AT-RULE KIND ENUM
+      -----------------
+
 V.    DECLARATION ORIGIN / IMPORTANCE
+      -------------------------------
+
 VI.   SELECTOR / COMBINATOR ENUMS
+      ---------------------------
+
 VII.  VALUE TYPE ENUM
+      ---------------
+
 VIII. RULE CATEGORY CLASSIFICATION
+      ----------------------------
+
 IX.   PROPERTY NAME NAMESPACE
+      -----------------------
+
 X.    AT-RULE NAME NAMESPACE
+      ----------------------
+
 XI.   PSEUDO-CLASS / PSEUDO-ELEMENT NAMESPACES
+      ----------------------------------------
+
 XII.  KIND <-> NAME MAPPING
+      ---------------------
+
 XIII. BACKEND TAG DISPATCH
+      --------------------
+
 XIV.  BACKEND DETECTION
-XV.   SUB-MODULE INCLUDES
+      -----------------
+
+XV.   FOLDED TRAITS & CONCEPTS
+      ------------------------
 */
 
-#ifndef DJINTERP_CSS_
-#define DJINTERP_CSS_ 1
+#ifndef DJINTERP_TEXT_CSS_CSS_HPP
+#define DJINTERP_TEXT_CSS_CSS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
+#include <cstdio>
+#include <ostream>
+#include <sstream>
 #include <string>
+#include <type_traits>
 // djinterp
 #include "../../../djinterp.hpp"
+#include "../../util/color/color.hpp"     // native color models + color_cast
+#include "../font.hpp"            // native font (font-* properties)
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -119,7 +162,7 @@ using css_size_t    = std::size_t;
 // but the coarse level tag is still useful for runtime
 // classification. CSS4 has no integrated spec; the value is
 // used for "currently-in-draft" features.
-enum class css_level : std::uint8_t
+enum class css_level : re_std::uint8_t
 {
     css_1,
     css_2_1,
@@ -135,7 +178,7 @@ enum class css_level : std::uint8_t
 // (vanilla CSS, SCSS, Sass-indented, Less, Stylus, native CSS
 // nesting). Drives parsing and emission rules; the AST itself
 // is the same shape across all dialects.
-enum class css_syntax_mode : std::uint8_t
+enum class css_syntax_mode : re_std::uint8_t
 {
     css,                // vanilla CSS
     scss,               // SCSS (curly-brace Sass)
@@ -155,9 +198,9 @@ enum class css_syntax_mode : std::uint8_t
 
 // css_rule_kind
 //   enum: discriminator for top-level rule entries in a
-// stylesheet. Backed by `std::uint8_t`. The `unknown` value
+// stylesheet. Backed by `re_std::uint8_t`. The `unknown` value
 // covers proprietary and not-yet-modelled rule kinds.
-enum class css_rule_kind : std::uint8_t
+enum class css_rule_kind : re_std::uint8_t
 {
     // top-level
     stylesheet,             // root container
@@ -206,7 +249,7 @@ enum class css_rule_kind : std::uint8_t
 // at-keyword. Useful when a backend stores all at-rules under
 // a single `at_rule` discriminator and uses this enum to
 // further classify.
-enum class css_at_rule_kind : std::uint8_t
+enum class css_at_rule_kind : re_std::uint8_t
 {
     media,
     supports,
@@ -239,7 +282,7 @@ enum class css_at_rule_kind : std::uint8_t
 //   enum: identifies the cascade origin of a declaration. Used
 // by adapter backends that surface origin to client code; the
 // default backend stores `author` for everything authored.
-enum class css_origin : std::uint8_t
+enum class css_origin : re_std::uint8_t
 {
     user_agent,
     user,
@@ -253,7 +296,7 @@ enum class css_origin : std::uint8_t
 
 // css_importance
 //   enum: identifies whether a declaration carries `!important`.
-enum class css_importance : std::uint8_t
+enum class css_importance : re_std::uint8_t
 {
     normal,
     important
@@ -269,7 +312,7 @@ enum class css_importance : std::uint8_t
 // backend stores selectors as opaque strings, but exposes this
 // enum for adapter backends that parse the selector grammar
 // (libcss, katana-parser, stylo).
-enum class css_selector_kind : std::uint8_t
+enum class css_selector_kind : re_std::uint8_t
 {
     type,                   // div
     universal,              // *
@@ -289,7 +332,7 @@ enum class css_selector_kind : std::uint8_t
 
 // css_combinator
 //   enum: identifies a combinator between compound selectors.
-enum class css_combinator : std::uint8_t
+enum class css_combinator : re_std::uint8_t
 {
     none,                   // no combinator (compound)
     descendant,             // " " (whitespace)
@@ -305,7 +348,7 @@ enum class css_combinator : std::uint8_t
 // css_attribute_match
 //   enum: identifies the match operator inside an attribute
 // selector ([attr OP value]).
-enum class css_attribute_match : std::uint8_t
+enum class css_attribute_match : re_std::uint8_t
 {
     exists,                 // [attr]
     equals,                 // [attr=value]
@@ -327,7 +370,7 @@ enum class css_attribute_match : std::uint8_t
 // value. The default backend stores values as opaque strings,
 // but exposes this enum for adapter backends that classify
 // values during parsing.
-enum class css_value_kind : std::uint8_t
+enum class css_value_kind : re_std::uint8_t
 {
     keyword,                // auto, none, inherit
     identifier,             // bare ident not classified as keyword
@@ -1004,7 +1047,7 @@ NS_INTERNAL
     // has_css_backend_tag_helper
     //   trait: SFINAE helper detecting a nested
     // `css_backend_tag` alias. Primary template (failure case).
-    template<typename _Type,
+    template<typename Type,
              typename = void>
     struct has_css_backend_tag_helper
     {
@@ -1013,10 +1056,10 @@ NS_INTERNAL
 
     // has_css_backend_tag_helper (specialization)
     //   trait: success case.
-    template<typename _Type>
+    template<typename Type>
     struct has_css_backend_tag_helper<
-        _Type,
-        void_t<typename _Type::css_backend_tag>
+        Type,
+        void_t<typename Type::css_backend_tag>
     >
     {
         D_STATIC_CONSTEXPR bool value = true;
@@ -1027,23 +1070,23 @@ namespace css {
 
 
 // is_css_backend
-//   trait: true if `_Type` has a nested `css_backend_tag`
+//   trait: true if `Type` has a nested `css_backend_tag`
 // type.
-template<typename    _Type>
+template<typename    Type>
 struct is_css_backend
 {
     D_STATIC_CONSTEXPR bool value =
         ::djinterp::internal::has_css_backend_tag_helper<
-            clean_t<_Type>>::value;
+            clean_t<Type>>::value;
 };
 
 
 // is_css_backend_v
 //   constant: convenience accessor.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     D_STATIC_CONSTEXPR bool is_css_backend_v =
-        is_css_backend<_Type>::value;
+        is_css_backend<Type>::value;
 #endif
 
 
@@ -1052,12 +1095,1213 @@ NS_END  // djinterp
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                XV.   SUB-MODULE INCLUDES                                ///
+///                XV.   FOLDED TRAITS & CONCEPTS                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "./css_template_traits.hpp"
-#include "./css_template.hpp"
-#include "./css_template_concepts.hpp"
+// The structural traits and C++20 concepts (formerly
+// css_template_traits.hpp / css_template_concepts.hpp) are folded in
+// directly below.  The builder engine (css_template.hpp) is a separate
+// header that includes this one.
+
+NS_DJINTERP
+
+namespace css {
 
 
-#endif  // DJINTERP_CSS_
+///////////////////////////////////////////////////////////////////////////////
+///                I.   RULE KIND ACCESSOR DETECTION                        ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_rule_kind_method
+//   trait: true if `Type` exposes `rule_kind()` const.
+template<typename Type, typename = void>
+struct has_rule_kind_method : std::false_type
+{};
+
+template<typename Type>
+struct has_rule_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().rule_kind())
+>> : std::true_type
+{};
+
+
+// has_get_rule_kind_method
+template<typename Type, typename = void>
+struct has_get_rule_kind_method : std::false_type
+{};
+
+template<typename Type>
+struct has_get_rule_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_rule_kind())
+>> : std::true_type
+{};
+
+
+// has_rule_kind_access
+//   trait: true if either form is available.
+template<typename Type>
+struct has_rule_kind_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_rule_kind_method<Type>::value ||
+          has_get_rule_kind_method<Type>::value );
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                II.   AT-RULE ACCESSOR DETECTION                         ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_at_rule_kind_method / has_get_at_rule_kind_method
+template<typename Type, typename = void>
+struct has_at_rule_kind_method : std::false_type {};
+template<typename Type>
+struct has_at_rule_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().at_rule_kind())
+>> : std::true_type {};
+
+template<typename Type, typename = void>
+struct has_get_at_rule_kind_method : std::false_type {};
+template<typename Type>
+struct has_get_at_rule_kind_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_at_rule_kind())
+>> : std::true_type {};
+
+template<typename Type>
+struct has_at_rule_kind_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_at_rule_kind_method<Type>::value ||
+          has_get_at_rule_kind_method<Type>::value );
+};
+
+
+// has_at_keyword_method / has_get_at_keyword_method
+template<typename Type, typename = void>
+struct has_at_keyword_method : std::false_type {};
+template<typename Type>
+struct has_at_keyword_method<Type, void_t<
+    decltype(std::declval<const Type&>().at_keyword())
+>> : std::true_type {};
+
+template<typename Type, typename = void>
+struct has_get_at_keyword_method : std::false_type {};
+template<typename Type>
+struct has_get_at_keyword_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_at_keyword())
+>> : std::true_type {};
+
+template<typename Type>
+struct has_at_keyword_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_at_keyword_method<Type>::value ||
+          has_get_at_keyword_method<Type>::value );
+};
+
+
+// has_prelude_method / has_get_prelude_method
+template<typename Type, typename = void>
+struct has_prelude_method : std::false_type {};
+template<typename Type>
+struct has_prelude_method<Type, void_t<
+    decltype(std::declval<const Type&>().prelude())
+>> : std::true_type {};
+
+template<typename Type, typename = void>
+struct has_get_prelude_method : std::false_type {};
+template<typename Type>
+struct has_get_prelude_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_prelude())
+>> : std::true_type {};
+
+template<typename Type>
+struct has_prelude_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_prelude_method<Type>::value ||
+          has_get_prelude_method<Type>::value );
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                III.   SELECTOR ACCESSOR DETECTION                       ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_selector_method / has_get_selector_method
+template<typename Type, typename = void>
+struct has_selector_method : std::false_type {};
+template<typename Type>
+struct has_selector_method<Type, void_t<
+    decltype(std::declval<const Type&>().selector())
+>> : std::true_type {};
+
+template<typename Type, typename = void>
+struct has_get_selector_method : std::false_type {};
+template<typename Type>
+struct has_get_selector_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_selector())
+>> : std::true_type {};
+
+template<typename Type>
+struct has_selector_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_selector_method<Type>::value ||
+          has_get_selector_method<Type>::value );
+};
+
+
+// has_selectors_method
+//   trait: true if `Type` exposes `selectors()` const
+// returning a list of selector strings (or selector facades).
+// Distinct from `selector()` which typically returns the joined
+// selector list as a single string.
+template<typename Type, typename = void>
+struct has_selectors_method : std::false_type {};
+template<typename Type>
+struct has_selectors_method<Type, void_t<
+    decltype(std::declval<const Type&>().selectors())
+>> : std::true_type {};
+
+
+// has_set_selector_method
+template<typename Type, typename = void>
+struct has_set_selector_method : std::false_type {};
+template<typename Type>
+struct has_set_selector_method<Type, void_t<
+    decltype(std::declval<Type&>().set_selector(
+        std::declval<const std::string&>()))
+>> : std::true_type {};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                IV.   DECLARATION ACCESSOR DETECTION                     ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_property_method / has_get_property_method
+template<typename Type, typename = void>
+struct has_property_method : std::false_type {};
+template<typename Type>
+struct has_property_method<Type, void_t<
+    decltype(std::declval<const Type&>().property())
+>> : std::true_type {};
+
+template<typename Type, typename = void>
+struct has_get_property_method : std::false_type {};
+template<typename Type>
+struct has_get_property_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_property())
+>> : std::true_type {};
+
+template<typename Type>
+struct has_property_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_property_method<Type>::value ||
+          has_get_property_method<Type>::value );
+};
+
+
+// has_value_method / has_get_value_method
+template<typename Type, typename = void>
+struct has_value_method : std::false_type {};
+template<typename Type>
+struct has_value_method<Type, void_t<
+    decltype(std::declval<const Type&>().value())
+>> : std::true_type {};
+
+template<typename Type, typename = void>
+struct has_get_value_method : std::false_type {};
+template<typename Type>
+struct has_get_value_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_value())
+>> : std::true_type {};
+
+template<typename Type>
+struct has_value_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_value_method<Type>::value ||
+          has_get_value_method<Type>::value );
+};
+
+
+// has_importance_method / has_is_important_method
+template<typename Type, typename = void>
+struct has_importance_method : std::false_type {};
+template<typename Type>
+struct has_importance_method<Type, void_t<
+    decltype(std::declval<const Type&>().importance())
+>> : std::true_type {};
+
+template<typename Type, typename = void>
+struct has_is_important_method : std::false_type {};
+template<typename Type>
+struct has_is_important_method<Type, void_t<
+    decltype(std::declval<const Type&>().is_important())
+>> : std::true_type {};
+
+template<typename Type>
+struct has_importance_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_importance_method<Type>::value ||
+          has_is_important_method<Type>::value );
+};
+
+
+// has_origin_method
+template<typename Type, typename = void>
+struct has_origin_method : std::false_type {};
+template<typename Type>
+struct has_origin_method<Type, void_t<
+    decltype(std::declval<const Type&>().origin())
+>> : std::true_type {};
+
+
+// has_set_property_method
+template<typename Type, typename = void>
+struct has_set_property_method : std::false_type {};
+template<typename Type>
+struct has_set_property_method<Type, void_t<
+    decltype(std::declval<Type&>().set_property(
+        std::declval<const std::string&>()))
+>> : std::true_type {};
+
+
+// has_set_value_method
+template<typename Type, typename = void>
+struct has_set_value_method : std::false_type {};
+template<typename Type>
+struct has_set_value_method<Type, void_t<
+    decltype(std::declval<Type&>().set_value(
+        std::declval<const std::string&>()))
+>> : std::true_type {};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                V.   DECLARATION BLOCK ACCESSORS                         ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_declarations_method
+//   trait: true if `Type` exposes `declarations()` const
+// returning an iterable of declaration nodes.
+template<typename Type, typename = void>
+struct has_declarations_method : std::false_type {};
+template<typename Type>
+struct has_declarations_method<Type, void_t<
+    decltype(std::declval<const Type&>().declarations())
+>> : std::true_type {};
+
+
+// has_get_declarations_method
+template<typename Type, typename = void>
+struct has_get_declarations_method : std::false_type {};
+template<typename Type>
+struct has_get_declarations_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_declarations())
+>> : std::true_type {};
+
+
+// has_declarations_access
+template<typename Type>
+struct has_declarations_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_declarations_method<Type>::value ||
+          has_get_declarations_method<Type>::value );
+};
+
+
+// has_declaration_count_method
+template<typename Type, typename = void>
+struct has_declaration_count_method : std::false_type {};
+template<typename Type>
+struct has_declaration_count_method<Type, void_t<
+    decltype(std::declval<const Type&>().declaration_count())
+>> : std::true_type {};
+
+
+// has_find_declaration_method
+//   trait: true if `Type` exposes `find_declaration(name)`.
+template<typename Type, typename = void>
+struct has_find_declaration_method : std::false_type {};
+template<typename Type>
+struct has_find_declaration_method<Type, void_t<
+    decltype(std::declval<const Type&>().find_declaration(
+        std::declval<const std::string&>()))
+>> : std::true_type {};
+
+
+// has_add_declaration_method
+template<typename Type, typename = void>
+struct has_add_declaration_method : std::false_type {};
+template<typename Type>
+struct has_add_declaration_method<Type, void_t<
+    decltype(std::declval<Type&>().add_declaration(
+        std::declval<const std::string&>(),
+        std::declval<const std::string&>()))
+>> : std::true_type {};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                VI.   NESTED RULES / CHILDREN ACCESSORS                  ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_rules_method
+//   trait: true if `Type` exposes `rules()` const returning
+// an iterable of nested rules. Stylesheets and grouping at-
+// rules expose this; style rules expose it for CSS Nesting.
+template<typename Type, typename = void>
+struct has_rules_method : std::false_type {};
+template<typename Type>
+struct has_rules_method<Type, void_t<
+    decltype(std::declval<const Type&>().rules())
+>> : std::true_type {};
+
+
+// has_get_rules_method
+template<typename Type, typename = void>
+struct has_get_rules_method : std::false_type {};
+template<typename Type>
+struct has_get_rules_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_rules())
+>> : std::true_type {};
+
+
+// has_rules_access
+template<typename Type>
+struct has_rules_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_rules_method<Type>::value ||
+          has_get_rules_method<Type>::value );
+};
+
+
+// has_rule_count_method
+template<typename Type, typename = void>
+struct has_rule_count_method : std::false_type {};
+template<typename Type>
+struct has_rule_count_method<Type, void_t<
+    decltype(std::declval<const Type&>().rule_count())
+>> : std::true_type {};
+
+
+// has_add_rule_method
+template<typename Type, typename = void>
+struct has_add_rule_method : std::false_type {};
+template<typename Type>
+struct has_add_rule_method<Type, void_t<
+    decltype(std::declval<Type&>().add_rule())
+>> : std::true_type {};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                VII.   STYLESHEET LEVEL / SYNTAX MODE DETECTION          ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_css_level_method
+//   trait: true if `Type` exposes `level()` const returning a
+// `css_level` enum value.
+template<typename Type, typename = void>
+struct has_css_level_method : std::false_type {};
+template<typename Type>
+struct has_css_level_method<Type, void_t<
+    decltype(std::declval<const Type&>().level())
+>> : std::true_type {};
+
+
+// has_get_css_level_method
+template<typename Type, typename = void>
+struct has_get_css_level_method : std::false_type {};
+template<typename Type>
+struct has_get_css_level_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_level())
+>> : std::true_type {};
+
+
+// has_css_level_access
+template<typename Type>
+struct has_css_level_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_css_level_method<Type>::value ||
+          has_get_css_level_method<Type>::value );
+};
+
+
+// has_syntax_mode_method
+template<typename Type, typename = void>
+struct has_syntax_mode_method : std::false_type {};
+template<typename Type>
+struct has_syntax_mode_method<Type, void_t<
+    decltype(std::declval<const Type&>().syntax_mode())
+>> : std::true_type {};
+
+
+// has_get_syntax_mode_method
+template<typename Type, typename = void>
+struct has_get_syntax_mode_method : std::false_type {};
+template<typename Type>
+struct has_get_syntax_mode_method<Type, void_t<
+    decltype(std::declval<const Type&>().get_syntax_mode())
+>> : std::true_type {};
+
+
+// has_syntax_mode_access
+template<typename Type>
+struct has_syntax_mode_access
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_syntax_mode_method<Type>::value ||
+          has_get_syntax_mode_method<Type>::value );
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                VIII.   RENDER METHOD DETECTION                          ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_render_to_css_method
+//   trait: true if `Type` exposes
+// `render_to_css(std::ostream&)` const.
+template<typename Type, typename = void>
+struct has_render_to_css_method : std::false_type {};
+template<typename Type>
+struct has_render_to_css_method<Type, void_t<
+    decltype(std::declval<const Type&>().render_to_css(
+        std::declval<std::ostream&>()))
+>> : std::true_type {};
+
+
+// has_render_to_minified_css_method
+template<typename Type, typename = void>
+struct has_render_to_minified_css_method : std::false_type {};
+template<typename Type>
+struct has_render_to_minified_css_method<Type, void_t<
+    decltype(std::declval<const Type&>().render_to_minified_css(
+        std::declval<std::ostream&>()))
+>> : std::true_type {};
+
+
+// has_render_to_scss_method
+template<typename Type, typename = void>
+struct has_render_to_scss_method : std::false_type {};
+template<typename Type>
+struct has_render_to_scss_method<Type, void_t<
+    decltype(std::declval<const Type&>().render_to_scss(
+        std::declval<std::ostream&>()))
+>> : std::true_type {};
+
+
+// has_any_render_method
+template<typename Type>
+struct has_any_render_method
+{
+    D_STATIC_CONSTEXPR bool value = (
+           has_render_to_css_method<Type>::value
+        || has_render_to_minified_css_method<Type>::value
+        || has_render_to_scss_method<Type>::value
+    );
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                IX.   COMPOSITE CLASSIFIERS                              ///
+///////////////////////////////////////////////////////////////////////////////
+
+// is_css_declaration
+//   trait: true if `Type` satisfies the declaration protocol
+// (property-name accessor + value accessor).
+template<typename Type>
+struct is_css_declaration
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_property_access<Type>::value &&
+          has_value_access<Type>::value );
+};
+
+
+// is_css_declaration_loose
+//   trait: looser variant -- property-name accessor alone.
+template<typename Type>
+struct is_css_declaration_loose
+{
+    D_STATIC_CONSTEXPR bool value =
+        has_property_access<Type>::value;
+};
+
+
+// is_css_rule
+//   trait: true if `Type` satisfies the rule protocol --
+// rule-kind accessor plus selector OR at-keyword OR
+// declarations OR rules access.
+template<typename Type>
+struct is_css_rule
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_rule_kind_access<Type>::value &&
+          ( has_selector_access<Type>::value     ||
+            has_at_keyword_access<Type>::value   ||
+            has_declarations_access<Type>::value ||
+            has_rules_access<Type>::value ) );
+};
+
+
+// is_css_rule_loose
+//   trait: looser variant -- rule-kind accessor alone.
+template<typename Type>
+struct is_css_rule_loose
+{
+    D_STATIC_CONSTEXPR bool value =
+        has_rule_kind_access<Type>::value;
+};
+
+
+// is_css_style_rule
+//   trait: true if `Type` is identifiable as a style rule --
+// has selector access AND declaration access.
+template<typename Type>
+struct is_css_style_rule
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_selector_access<Type>::value &&
+          has_declarations_access<Type>::value );
+};
+
+
+// is_css_at_rule
+//   trait: true if `Type` is identifiable as an at-rule --
+// has at-keyword access.
+template<typename Type>
+struct is_css_at_rule
+{
+    D_STATIC_CONSTEXPR bool value =
+        has_at_keyword_access<Type>::value;
+};
+
+
+// is_css_stylesheet
+//   trait: true if `Type` satisfies the stylesheet protocol
+// -- level / syntax accessor plus rule traversal.
+template<typename Type>
+struct is_css_stylesheet
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( ( has_css_level_access<Type>::value ||
+            has_syntax_mode_access<Type>::value ) &&
+          has_rules_access<Type>::value );
+};
+
+
+// is_css_stylesheet_loose
+//   trait: looser variant -- rules access alone.
+template<typename Type>
+struct is_css_stylesheet_loose
+{
+    D_STATIC_CONSTEXPR bool value =
+        has_rules_access<Type>::value;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                X.   CLASSIFICATION STRUCTS                              ///
+///////////////////////////////////////////////////////////////////////////////
+
+// css_declaration_class
+//   struct: comprehensive classification of a declaration-
+// shaped type.
+template<typename Type>
+struct css_declaration_class
+{
+    D_STATIC_CONSTEXPR bool is_decl         =
+        is_css_declaration<Type>::value;
+    D_STATIC_CONSTEXPR bool has_property    =
+        has_property_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_value       =
+        has_value_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_importance  =
+        has_importance_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_origin      =
+        has_origin_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_set_property =
+        has_set_property_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_set_value   =
+        has_set_value_method<Type>::value;
+};
+
+
+// css_rule_class
+//   struct: comprehensive classification of a rule-shaped
+// type.
+template<typename Type>
+struct css_rule_class
+{
+    D_STATIC_CONSTEXPR bool is_rule          =
+        is_css_rule<Type>::value;
+    D_STATIC_CONSTEXPR bool is_style_rule    =
+        is_css_style_rule<Type>::value;
+    D_STATIC_CONSTEXPR bool is_at_rule       =
+        is_css_at_rule<Type>::value;
+    D_STATIC_CONSTEXPR bool has_kind         =
+        has_rule_kind_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_at_kind      =
+        has_at_rule_kind_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_at_keyword   =
+        has_at_keyword_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_prelude      =
+        has_prelude_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_selector     =
+        has_selector_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_selectors    =
+        has_selectors_method<Type>::value;
+    D_STATIC_CONSTEXPR bool has_declarations =
+        has_declarations_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_rules        =
+        has_rules_access<Type>::value;
+    D_STATIC_CONSTEXPR bool can_find_decl    =
+        has_find_declaration_method<Type>::value;
+    D_STATIC_CONSTEXPR bool can_add_decl     =
+        has_add_declaration_method<Type>::value;
+};
+
+
+// css_stylesheet_class
+//   struct: comprehensive classification of a stylesheet-
+// shaped type.
+template<typename Type>
+struct css_stylesheet_class
+{
+    D_STATIC_CONSTEXPR bool is_sheet         =
+        is_css_stylesheet<Type>::value;
+    D_STATIC_CONSTEXPR bool has_level        =
+        has_css_level_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_syntax       =
+        has_syntax_mode_access<Type>::value;
+    D_STATIC_CONSTEXPR bool has_rules        =
+        has_rules_access<Type>::value;
+    D_STATIC_CONSTEXPR bool can_render_css   =
+        has_render_to_css_method<Type>::value;
+    D_STATIC_CONSTEXPR bool can_render_min   =
+        has_render_to_minified_css_method<Type>::value;
+    D_STATIC_CONSTEXPR bool can_render_scss  =
+        has_render_to_scss_method<Type>::value;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XI.   BACKEND COMPLETENESS                               ///
+///////////////////////////////////////////////////////////////////////////////
+
+// has_rule_type_alias
+//   trait: true if `Type` exposes a nested `rule_type` alias.
+template<typename Type, typename = void>
+struct has_rule_type_alias : std::false_type {};
+template<typename Type>
+struct has_rule_type_alias<Type, void_t<
+    typename clean_t<Type>::rule_type
+>> : std::true_type {};
+
+
+// has_declaration_type_alias
+template<typename Type, typename = void>
+struct has_declaration_type_alias : std::false_type {};
+template<typename Type>
+struct has_declaration_type_alias<Type, void_t<
+    typename clean_t<Type>::declaration_type
+>> : std::true_type {};
+
+
+// has_stylesheet_type_alias
+template<typename Type, typename = void>
+struct has_stylesheet_type_alias : std::false_type {};
+template<typename Type>
+struct has_stylesheet_type_alias<Type, void_t<
+    typename clean_t<Type>::stylesheet_type
+>> : std::true_type {};
+
+
+// has_make_stylesheet_method
+//   trait: true if `Type` exposes a static factory
+// `make_stylesheet()` returning a `stylesheet_type`.
+template<typename Type, typename = void>
+struct has_make_stylesheet_method : std::false_type {};
+template<typename Type>
+struct has_make_stylesheet_method<Type, void_t<
+    decltype(clean_t<Type>::make_stylesheet())
+>> : std::true_type {};
+
+
+// is_css_backend_complete
+//   trait: true if `Type` exposes the full CSS backend
+// protocol -- every nested type alias.
+template<typename Type>
+struct is_css_backend_complete
+{
+    D_STATIC_CONSTEXPR bool value =
+        ( has_rule_type_alias<Type>::value        &&
+          has_declaration_type_alias<Type>::value &&
+          has_stylesheet_type_alias<Type>::value );
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XII.   VARIABLE TEMPLATES                                ///
+///////////////////////////////////////////////////////////////////////////////
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+
+    template<typename Type>
+    D_CONSTEXPR bool has_rule_kind_access_v =
+        has_rule_kind_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_property_access_v =
+        has_property_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_value_access_v =
+        has_value_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_importance_access_v =
+        has_importance_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_selector_access_v =
+        has_selector_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_declarations_access_v =
+        has_declarations_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_rules_access_v =
+        has_rules_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_at_keyword_access_v =
+        has_at_keyword_access<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool has_any_render_method_v =
+        has_any_render_method<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_css_declaration_v =
+        is_css_declaration<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_css_rule_v =
+        is_css_rule<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_css_rule_loose_v =
+        is_css_rule_loose<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_css_style_rule_v =
+        is_css_style_rule<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_css_at_rule_v =
+        is_css_at_rule<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_css_stylesheet_v =
+        is_css_stylesheet<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_css_stylesheet_loose_v =
+        is_css_stylesheet_loose<Type>::value;
+
+    template<typename Type>
+    D_CONSTEXPR bool is_css_backend_complete_v =
+        is_css_backend_complete<Type>::value;
+
+#endif  // variable templates
+
+
+}   // namespace css
+NS_END  // djinterp
+
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+// std
+#include <concepts>
+
+
+NS_DJINTERP
+
+namespace css {
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                I.   DECLARATION CONCEPTS                                ///
+///////////////////////////////////////////////////////////////////////////////
+
+// css_declaration_type
+//   concept: satisfied by any type that satisfies the CSS
+// declaration protocol (property + value accessors).
+template<typename Type>
+concept css_declaration_type =
+    is_css_declaration<Type>::value;
+
+
+// css_declaration_loose_type
+//   concept: looser variant -- property accessor alone.
+template<typename Type>
+concept css_declaration_loose_type =
+    is_css_declaration_loose<Type>::value;
+
+
+// important_aware_declaration
+//   concept: a declaration exposing importance state.
+template<typename Type>
+concept important_aware_declaration =
+       ( css_declaration_type<Type> )
+    && ( has_importance_access<Type>::value );
+
+
+// origin_aware_declaration
+//   concept: a declaration exposing cascade-origin state.
+template<typename Type>
+concept origin_aware_declaration =
+       ( css_declaration_type<Type> )
+    && ( has_origin_method<Type>::value );
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                II.   RULE CONCEPTS                                      ///
+///////////////////////////////////////////////////////////////////////////////
+
+// css_rule_type
+//   concept: satisfied by any type that satisfies the CSS
+// rule protocol (rule-kind accessor plus selector / at-keyword
+// / declarations / rules access).
+template<typename Type>
+concept css_rule_type =
+    is_css_rule<Type>::value;
+
+
+// css_rule_loose_type
+//   concept: looser variant -- rule-kind accessor alone.
+template<typename Type>
+concept css_rule_loose_type =
+    is_css_rule_loose<Type>::value;
+
+
+// css_style_rule_type
+//   concept: a rule identifiable as a style rule (selector +
+// declarations).
+template<typename Type>
+concept css_style_rule_type =
+    is_css_style_rule<Type>::value;
+
+
+// css_at_rule_type
+//   concept: a rule identifiable as an at-rule (has at-keyword
+// access).
+template<typename Type>
+concept css_at_rule_type =
+    is_css_at_rule<Type>::value;
+
+
+// nestable_css_rule_type
+//   concept: a rule whose body may host nested rules (CSS
+// Nesting / SCSS).
+template<typename Type>
+concept nestable_css_rule_type =
+       ( css_rule_type<Type> )
+    && ( has_rules_access<Type>::value );
+
+
+// declaration_holding_rule_type
+//   concept: a rule whose body is a declaration block.
+template<typename Type>
+concept declaration_holding_rule_type =
+       ( css_rule_type<Type> )
+    && ( has_declarations_access<Type>::value );
+
+
+// queryable_rule_type
+//   concept: a rule supporting find_declaration().
+template<typename Type>
+concept queryable_rule_type =
+       ( css_rule_type<Type> )
+    && ( has_find_declaration_method<Type>::value );
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                III.   STYLESHEET CONCEPTS                               ///
+///////////////////////////////////////////////////////////////////////////////
+
+// css_stylesheet_type
+//   concept: a stylesheet exposing level-or-syntax accessor
+// plus rule traversal.
+template<typename Type>
+concept css_stylesheet_type =
+    is_css_stylesheet<Type>::value;
+
+
+// css_stylesheet_loose_type
+//   concept: looser variant -- rules access alone.
+template<typename Type>
+concept css_stylesheet_loose_type =
+    is_css_stylesheet_loose<Type>::value;
+
+
+// levelled_css_stylesheet
+//   concept: a stylesheet exposing the css-level accessor.
+template<typename Type>
+concept levelled_css_stylesheet =
+       ( css_stylesheet_type<Type> )
+    && ( has_css_level_access<Type>::value );
+
+
+// flavoured_css_stylesheet
+//   concept: a stylesheet exposing the syntax-mode accessor.
+template<typename Type>
+concept flavoured_css_stylesheet =
+       ( css_stylesheet_type<Type> )
+    && ( has_syntax_mode_access<Type>::value );
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                IV.   CAPABILITY CONCEPTS                                ///
+///////////////////////////////////////////////////////////////////////////////
+
+// mutable_css_declaration
+//   concept: a declaration exposing both property and value
+// mutators.
+template<typename Type>
+concept mutable_css_declaration =
+       ( css_declaration_type<Type> )
+    && ( has_set_property_method<Type>::value )
+    && ( has_set_value_method<Type>::value );
+
+
+// mutable_css_rule
+//   concept: a rule exposing the add_declaration mutator.
+template<typename Type>
+concept mutable_css_rule =
+       ( css_rule_type<Type> )
+    && ( has_add_declaration_method<Type>::value );
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                V.   RENDER-TARGET CONCEPTS                              ///
+///////////////////////////////////////////////////////////////////////////////
+
+// css_renderable_stylesheet
+//   concept: a stylesheet exposing render_to_css.
+template<typename Type>
+concept css_renderable_stylesheet =
+    has_render_to_css_method<Type>::value;
+
+
+// minifiable_stylesheet
+//   concept: a stylesheet exposing render_to_minified_css.
+template<typename Type>
+concept minifiable_stylesheet =
+    has_render_to_minified_css_method<Type>::value;
+
+
+// scss_renderable_stylesheet
+//   concept: a stylesheet exposing render_to_scss.
+template<typename Type>
+concept scss_renderable_stylesheet =
+    has_render_to_scss_method<Type>::value;
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                VI.   COMPOSITE CONCEPTS                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+// full_css_stylesheet
+//   concept: a stylesheet exposing every render target plus
+// both metadata accessors.
+template<typename Type>
+concept full_css_stylesheet =
+       ( css_stylesheet_type<Type> )
+    && ( levelled_css_stylesheet<Type> )
+    && ( flavoured_css_stylesheet<Type> )
+    && ( css_renderable_stylesheet<Type> )
+    && ( minifiable_stylesheet<Type> )
+    && ( scss_renderable_stylesheet<Type> );
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                VII.   BACKEND CONCEPTS                                  ///
+///////////////////////////////////////////////////////////////////////////////
+
+// css_backend_type
+//   concept: satisfied by any type tagged with
+// `css_backend_tag`.
+template<typename Type>
+concept css_backend_type =
+    is_css_backend<Type>::value;
+
+
+// complete_css_backend
+//   concept: a CSS backend that additionally exposes the full
+// nested-type-alias protocol AND a make_stylesheet factory.
+template<typename Type>
+concept complete_css_backend =
+       ( css_backend_type<Type> )
+    && ( is_css_backend_complete<Type>::value )
+    && ( has_make_stylesheet_method<Type>::value );
+
+
+}   // namespace css
+NS_END  // djinterp
+
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XVI.   NATIVE COLOR & FONT  ->  CSS VALUE FORMATTING      ///
+///////////////////////////////////////////////////////////////////////////////
+
+NS_DJINTERP
+
+namespace css {
+
+
+// css_channel_to_255
+//   helper: maps a normalized [0,1] color channel to an 8-bit
+// integer, clamped.
+inline int
+css_channel_to_255(
+    ::djinterp::channel_t    _v
+)
+{
+    int i = static_cast<int>(_v * 255.0f + 0.5f);
+    return (i < 0) ? 0 : ((i > 255) ? 255 : i);
+}
+
+
+// to_css_color
+//   function: formats a native color as a CSS color value.  An rgb
+// becomes "#rrggbb"; an rgba becomes "rgba(r, g, b, a)"; every other
+// native model is routed through the rgb hub to "#rrggbb".
+inline css_string_t
+to_css_color(
+    const ::djinterp::rgb&   _c
+)
+{
+    char buf[8];
+    std::snprintf(buf, sizeof(buf), "#%02x%02x%02x",
+                  css_channel_to_255(_c.r),
+                  css_channel_to_255(_c.g),
+                  css_channel_to_255(_c.b));
+    return css_string_t(buf);
+}
+
+inline css_string_t
+to_css_color(
+    const ::djinterp::rgba&  _c
+)
+{
+    std::ostringstream os;
+    os << "rgba(" << css_channel_to_255(_c.r) << ", "
+                  << css_channel_to_255(_c.g) << ", "
+                  << css_channel_to_255(_c.b) << ", " << _c.a << ")";
+    return os.str();
+}
+
+template <typename Model,
+          typename = typename std::enable_if<
+              ::djinterp::is_color_model<Model>::value
+              && !std::is_same<clean_t<Model>, ::djinterp::rgb>::value>::type>
+css_string_t
+to_css_color(
+    const Model&            _c
+)
+{
+    return to_css_color(::djinterp::color_cast< ::djinterp::rgb >(_c));
+}
+
+
+// to_css_font_family / size / weight / style
+//   functions: project a native djinterp::font onto the individual
+// CSS font longhand values.
+template <unsigned Feat, typename Color>
+css_string_t
+to_css_font_family(
+    const ::djinterp::font<Feat, Color>&   _f
+)
+{
+    return _f.family.empty() ? css_string_t("inherit") : css_string_t(_f.family);
+}
+
+template <unsigned Feat, typename Color>
+css_string_t
+to_css_font_size(
+    const ::djinterp::font<Feat, Color>&   _f
+)
+{
+    std::ostringstream os;
+    os << _f.size << "px";
+    return os.str();
+}
+
+template <unsigned Feat, typename Color>
+css_string_t
+to_css_font_weight(
+    const ::djinterp::font<Feat, Color>&   _f
+)
+{
+    return css_string_t(std::to_string(::djinterp::fn_effective_weight(_f)));
+}
+
+template <unsigned Feat, typename Color>
+css_string_t
+to_css_font_style(
+    const ::djinterp::font<Feat, Color>&   _f
+)
+{
+    switch (_f.slant)
+    {
+        case ::djinterp::font_slant::italic:  return css_string_t("italic");
+        case ::djinterp::font_slant::oblique: return css_string_t("oblique");
+        default:                              return css_string_t("normal");
+    }
+}
+
+
+// to_css_font
+//   function: the CSS `font` shorthand for a native font -
+// "[style] [weight] size family" (size and family are mandatory in
+// the shorthand; style/weight are emitted only when non-default).
+template <unsigned Feat, typename Color>
+css_string_t
+to_css_font(
+    const ::djinterp::font<Feat, Color>&   _f
+)
+{
+    std::ostringstream os;
+
+    const css_string_t style = to_css_font_style(_f);
+    if (style != "normal") { os << style << " "; }
+
+    const unsigned w = static_cast<unsigned>(::djinterp::fn_effective_weight(_f));
+    if (w != 400u) { os << w << " "; }
+
+    os << to_css_font_size(_f) << " " << to_css_font_family(_f);
+    return os.str();
+}
+
+
+}   // namespace css
+NS_END  // djinterp
+
+#endif  // floor, for now
+
+#endif  // DJINTERP_TEXT_CSS_CSS_HPP

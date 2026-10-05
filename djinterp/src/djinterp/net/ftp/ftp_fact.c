@@ -9,7 +9,7 @@
 * path:      /src/djinterp/net/ftp/ftp_fact.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_fact.h"  // corresponding header
 // std
@@ -104,9 +104,78 @@ d_ftp_time_is_valid(
 }
 
 /*
+d_ftp_internal_time_stamp
+  File-local: reads the fourteen digits "YYYYMMDDHHMMSS" into `_time`.
+*/
+D_STATIC void
+d_ftp_internal_time_stamp(
+    const char*        _digits,
+    struct d_ftp_time* _time
+)
+{
+    _time->year   = (uint16_t)d_ftp_internal_digits_value(_digits,
+                                                          4u);
+    _time->month  = (uint8_t)d_ftp_internal_digits_value(_digits + 4u,
+                                                         2u);
+    _time->day    = (uint8_t)d_ftp_internal_digits_value(_digits + 6u,
+                                                         2u);
+    _time->hour   = (uint8_t)d_ftp_internal_digits_value(_digits + 8u,
+                                                         2u);
+    _time->minute = (uint8_t)d_ftp_internal_digits_value(_digits + 10u,
+                                                         2u);
+    _time->second = (uint8_t)d_ftp_internal_digits_value(_digits + 12u,
+                                                         2u);
+
+    return;
+}
+
+/*
+d_ftp_internal_time_fraction
+  File-local: reads the optional fraction after the fourteen digits: a dot
+and at least one digit, read to three digits and scaled, so ".5" is 500
+milliseconds and ".123456" is 123.
+*/
+D_STATIC bool
+d_ftp_internal_time_fraction(
+    struct d_ftp_span  _text,
+    struct d_ftp_time* _time
+)
+{
+    // no fraction at all
+    if (_text.length == 14u)
+    {
+        return true;
+    }
+
+    const struct d_ftp_span fraction = { _text.data + 15u,
+                                         _text.length - 15u };
+
+    // a dot and at least one digit
+    if ( (_text.data[14] != '.') ||
+         (!d_ftp_internal_is_number(fraction)) )
+    {
+        return false;
+    }
+
+    const size_t used  = (fraction.length < 3u) ? fraction.length : 3u;
+    unsigned     value = d_ftp_internal_digits_value(fraction.data,
+                                                     used);
+
+    // scale a one- or two-digit fraction up to milliseconds
+    for (size_t index = used; index < 3u; index++)
+    {
+        value *= 10u;
+    }
+
+    _time->millisecond = (uint16_t)value;
+
+    return true;
+}
+
+/*
 d_ftp_time_parse
-  Fixed positions for the fourteen digits; a fraction is read to three
-digits and scaled, so ".5" is 500 milliseconds and ".123456" is 123.
+  Fixed positions for the fourteen digits, an optional fraction, and then
+the calendar's verdict on the whole.
 */
 enum d_ftp_error
 d_ftp_time_parse(
@@ -122,65 +191,25 @@ d_ftp_time_parse(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct d_ftp_span text = d_ftp_internal_trim(_text,
-                                                       _length);
-
-    // fourteen characters at least
-    if (text.length < 14u)
-    {
-        return D_FTP_ERROR_MALFORMED;
-    }
-
+    const struct d_ftp_span text  = d_ftp_internal_trim(_text,
+                                                        _length);
     const struct d_ftp_span stamp = { text.data, 14u };
+    struct d_ftp_time       time  = { 0u, 0u, 0u, 0u, 0u, 0u, 0u };
 
-    // and those fourteen all digits
-    if (!d_ftp_internal_is_number(stamp))
+    // fourteen characters at least, all digits
+    if ( (text.length < 14u) ||
+         (!d_ftp_internal_is_number(stamp)) )
     {
         return D_FTP_ERROR_MALFORMED;
     }
 
-    struct d_ftp_time time = { 0u, 0u, 0u, 0u, 0u, 0u, 0u };
+    d_ftp_internal_time_stamp(text.data,
+                              &time);
 
-    time.year   = (uint16_t)d_ftp_internal_digits_value(text.data,
-                                                        4u);
-    time.month  = (uint8_t)d_ftp_internal_digits_value(text.data + 4u,
-                                                       2u);
-    time.day    = (uint8_t)d_ftp_internal_digits_value(text.data + 6u,
-                                                       2u);
-    time.hour   = (uint8_t)d_ftp_internal_digits_value(text.data + 8u,
-                                                       2u);
-    time.minute = (uint8_t)d_ftp_internal_digits_value(text.data + 10u,
-                                                       2u);
-    time.second = (uint8_t)d_ftp_internal_digits_value(text.data + 12u,
-                                                       2u);
-
-    // an optional fraction: a dot and at least one digit
-    if (text.length > 14u)
-    {
-        const struct d_ftp_span fraction = { text.data + 15u,
-                                             text.length - 15u };
-
-        if ( (text.data[14] != '.') ||
-             (!d_ftp_internal_is_number(fraction)) )
-        {
-            return D_FTP_ERROR_MALFORMED;
-        }
-
-        const size_t used  = (fraction.length < 3u) ? fraction.length : 3u;
-        unsigned     value = d_ftp_internal_digits_value(fraction.data,
-                                                         used);
-
-        // scale a one- or two-digit fraction up to milliseconds
-        for (size_t index = used; index < 3u; index++)
-        {
-            value *= 10u;
-        }
-
-        time.millisecond = (uint16_t)value;
-    }
-
-    // the calendar decides the rest
-    if (!d_ftp_time_is_valid(&time))
+    // an optional fraction, then a date and time that exist
+    if ( (!d_ftp_internal_time_fraction(text,
+                                        &time)) ||
+         (!d_ftp_time_is_valid(&time)) )
     {
         return D_FTP_ERROR_MALFORMED;
     }

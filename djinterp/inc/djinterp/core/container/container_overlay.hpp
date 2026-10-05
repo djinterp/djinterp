@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                       container_overlay.hpp
+/*******************************************************************************
+* djinterp [core]                                          container_overlay.hpp
 *
 * djinterp container overlay module:
 *   This header provides the idioms for defining zero-overhead container
@@ -30,25 +30,29 @@
 *                        D_INLINE / D_NODISCARD family.
 *   - `type_traits.hpp`: for the detection idiom (is_detected, nonesuch).
 *
+*
 * path:      /inc/djinterp/core/container/container_overlay.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.28
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_OVERLAY_
-#define DJINTERP_CONTAINER_OVERLAY_ 1
+#ifndef DJINTERP_CONTAINER_CONTAINER_OVERLAY_HPP
+#define DJINTERP_CONTAINER_CONTAINER_OVERLAY_HPP 1
+
+// djinterp
+#include "../../djinterp.hpp"  // framework root, D_ENV_LANG_*
+
+// the overlay baseline is C++17. Below it this header is empty -- a
+// facility above its tier is absent, never an #error -- so it includes its
+// C++17 dependencies only above the gate.
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
 #include "../meta/type_traits.hpp"
-
-// require C++17 for the overlay baseline
-#if !D_ENV_LANG_IS_CPP17_OR_HIGHER
-    #error "container_overlay.hpp requires C++17 or later"
-#endif
 
 
 NS_DJINTERP
@@ -60,8 +64,8 @@ NS_DJINTERP
 // overlay_tag
 //   type: empty marker base inherited by every djinterp overlay. Lets the
 // trait system distinguish a framework overlay from an arbitrary type that
-// merely happens to expose an `underlying_container_type` alias. Empty, so
-// it folds away under empty-base optimization.
+// merely happens to expose an `underlying_container_type` alias. Empty, so it
+// folds away under empty-base optimization.
 struct overlay_tag
 {};
 
@@ -76,87 +80,87 @@ struct overlay_tag
 
 NS_INTERNAL
 
-// member probes for the detection idiom: each yields the corresponding
-// nested alias of `_Container`, or is ill-formed when it is absent.
-template<typename _Container>
-using probe_value_type = typename _Container::value_type;
+// member probes for the detection idiom: each yields the corresponding nested
+// alias of `Container`, or is ill-formed when it is absent.
+template<typename Container>
+using probe_value_type = typename Container::value_type;
 
-template<typename _Container>
-using probe_size_type = typename _Container::size_type;
+template<typename Container>
+using probe_size_type = typename Container::size_type;
 
-template<typename _Container>
-using probe_difference_type = typename _Container::difference_type;
+template<typename Container>
+using probe_difference_type = typename Container::difference_type;
 
-template<typename _Container>
-using probe_allocator_type = typename _Container::allocator_type;
+template<typename Container>
+using probe_allocator_type = typename Container::allocator_type;
 
-template<typename _Container>
-using probe_iterator = typename _Container::iterator;
+template<typename Container>
+using probe_iterator = typename Container::iterator;
 
-template<typename _Container>
-using probe_const_iterator = typename _Container::const_iterator;
+template<typename Container>
+using probe_const_iterator = typename Container::const_iterator;
 
-template<typename _Container>
-using probe_reverse_iterator = typename _Container::reverse_iterator;
+template<typename Container>
+using probe_reverse_iterator = typename Container::reverse_iterator;
 
-template<typename _Container>
+template<typename Container>
 using probe_const_reverse_iterator =
-    typename _Container::const_reverse_iterator;
+    typename Container::const_reverse_iterator;
 
-template<typename _Container>
-using probe_node_type = typename _Container::node_type;
+template<typename Container>
+using probe_node_type = typename Container::node_type;
 
-template<typename _Container>
-using probe_depth_type = typename _Container::depth_type;
+template<typename Container>
+using probe_depth_type = typename Container::depth_type;
 
-template<typename _Container>
-using probe_key_compare = typename _Container::key_compare;
+template<typename Container>
+using probe_key_compare = typename Container::key_compare;
 
-template<typename _Container>
-using probe_value_compare = typename _Container::value_compare;
+template<typename Container>
+using probe_value_compare = typename Container::value_compare;
 
-template<typename _Container>
-using probe_hasher = typename _Container::hasher;
+template<typename Container>
+using probe_hasher = typename Container::hasher;
 
-template<typename _Container>
-using probe_key_type = typename _Container::key_type;
+template<typename Container>
+using probe_key_type = typename Container::key_type;
 
-template<typename _Container>
-using probe_mapped_type = typename _Container::mapped_type;
+template<typename Container>
+using probe_mapped_type = typename Container::mapped_type;
 
-template<typename _Container>
-using probe_size_interval = typename _Container::size_interval;
+template<typename Container>
+using probe_size_interval = typename Container::size_interval;
 
-template<typename _Container>
-using probe_depth_interval = typename _Container::depth_interval;
+template<typename Container>
+using probe_depth_interval = typename Container::depth_interval;
 
-template<typename _Container>
+template<typename Container>
 using probe_multiplicity_interval =
-    typename _Container::multiplicity_interval;
+    typename Container::multiplicity_interval;
 
 NS_END  // internal
 
 // D_INTERNAL_OVERLAY_FORWARD_ALIAS
-//   macro: emits a bool-specialized mixin `MIXIN_NAME<_Container>` that
-// re-exposes `_Container::ALIAS_NAME` when the probe `PROBE_NAME` detects
-// it, and is empty otherwise. The empty primary template means inheriting
+//   macro: emits a bool-specialized mixin `MIXIN_NAME<Container>` that
+// re-exposes `Container::ALIAS_NAME` when the probe `PROBE_NAME` detects it,
+// and is empty otherwise. The empty primary template means inheriting
 // the mixin for a container lacking the alias costs nothing and adds no
 // classification.
-#define D_INTERNAL_OVERLAY_FORWARD_ALIAS(MIXIN_NAME, ALIAS_NAME, PROBE_NAME)  \
-    template<typename _Container,                                             \
-             bool     _Present =                                              \
-                 is_detected<internal::PROBE_NAME, _Container>::value>        \
-    struct MIXIN_NAME                                                         \
-    {};                                                                       \
-                                                                              \
-    template<typename _Container>                                             \
-    struct MIXIN_NAME<_Container, true>                                       \
-    {                                                                         \
-        using ALIAS_NAME = typename _Container::ALIAS_NAME;                   \
+#define D_INTERNAL_OVERLAY_FORWARD_ALIAS(MIXIN_NAME, ALIAS_NAME, PROBE_NAME) \
+    template<typename Container,                                            \
+             bool     Present =                                             \
+                 is_detected<internal::PROBE_NAME, Container>::value>       \
+    struct MIXIN_NAME                                                        \
+    {};                                                                      \
+                                                                             \
+    template<typename Container>                                            \
+    struct MIXIN_NAME<Container, true>                                      \
+    {                                                                        \
+        using ALIAS_NAME = typename Container::ALIAS_NAME;                  \
     };
 
-// common aliases: forwarded by every overlay. None of these flips one of
-// the axes the named overlays toggle, so they are always preserved.
+// common aliases: forwarded by every overlay. None of these flips one of the
+// axes the named overlays toggle, so they are always preserved.
 D_INTERNAL_OVERLAY_FORWARD_ALIAS(forward_value_type,
                                  value_type,
                                  probe_value_type)
@@ -201,8 +205,8 @@ D_INTERNAL_OVERLAY_FORWARD_ALIAS(forward_hasher,
                                  hasher,
                                  probe_hasher)
 
-// uniqueness alias: `key_type` without `mapped_type` is read as the
-// uniqueness invariant. Omitting it performs the unique -> multi view.
+// uniqueness alias: `key_type` without `mapped_type` is read as the uniqueness
+// invariant. Omitting it performs the unique -> multi view.
 D_INTERNAL_OVERLAY_FORWARD_ALIAS(forward_key_type,
                                  key_type,
                                  probe_key_type)
@@ -232,51 +236,51 @@ D_INTERNAL_OVERLAY_FORWARD_ALIAS(forward_multiplicity_interval,
 // forward_common_aliases
 //   type: every alias that does not by itself flip a toggled axis. Inherited
 // by overlay_base, hence by all overlays.
-template<typename _Container>
+template<typename Container>
 struct forward_common_aliases
-    : forward_value_type<_Container>,
-      forward_size_type<_Container>,
-      forward_difference_type<_Container>,
-      forward_allocator_type<_Container>,
-      forward_iterator<_Container>,
-      forward_const_iterator<_Container>,
-      forward_reverse_iterator<_Container>,
-      forward_const_reverse_iterator<_Container>,
-      forward_node_type<_Container>,
-      forward_depth_type<_Container>
+    : forward_value_type<Container>,
+      forward_size_type<Container>,
+      forward_difference_type<Container>,
+      forward_allocator_type<Container>,
+      forward_iterator<Container>,
+      forward_const_iterator<Container>,
+      forward_reverse_iterator<Container>,
+      forward_const_reverse_iterator<Container>,
+      forward_node_type<Container>,
+      forward_depth_type<Container>
 {};
 
 // forward_ordering_aliases
 //   type: the sorted-invariant group (key_compare / value_compare / hasher).
-template<typename _Container>
+template<typename Container>
 struct forward_ordering_aliases
-    : forward_key_compare<_Container>,
-      forward_value_compare<_Container>,
-      forward_hasher<_Container>
+    : forward_key_compare<Container>,
+      forward_value_compare<Container>,
+      forward_hasher<Container>
 {};
 
 // forward_uniqueness_aliases
 //   type: the uniqueness-invariant group (key_type).
-template<typename _Container>
+template<typename Container>
 struct forward_uniqueness_aliases
-    : forward_key_type<_Container>
+    : forward_key_type<Container>
 {};
 
 // forward_associative_aliases
 //   type: the associative group (mapped_type). Preserved independently of
 // uniqueness so a map viewed as multi keeps its mapped_type.
-template<typename _Container>
+template<typename Container>
 struct forward_associative_aliases
-    : forward_mapped_type<_Container>
+    : forward_mapped_type<Container>
 {};
 
 // forward_bounds_aliases
 //   type: the bounds group (size / depth / multiplicity intervals).
-template<typename _Container>
+template<typename Container>
 struct forward_bounds_aliases
-    : forward_size_interval<_Container>,
-      forward_depth_interval<_Container>,
-      forward_multiplicity_interval<_Container>
+    : forward_size_interval<Container>,
+      forward_depth_interval<Container>,
+      forward_multiplicity_interval<Container>
 {};
 
 
@@ -285,19 +289,19 @@ struct forward_bounds_aliases
 // =============================================================================
 
 // overlay_base
-//   class: zero-overhead base for container overlays. Holds the underlying
-// by `const&`, re-exposes the read surface through SFINAE-guarded forwarders
-// (so iteration level, contiguity, reverse/const iteration, and hierarchy are
+//   class: zero-overhead base for container overlays. Holds the underlying by
+// `const&`, re-exposes the read surface through SFINAE-guarded forwarders (so
+// iteration level, contiguity, reverse/const iteration, and hierarchy are
 // preserved exactly when present), and advertises `underlying_container_type`
 // so the trait system classifies the overlay on axis 9 as backed.
-template<typename _Container>
+template<typename Container>
 class overlay_base : public overlay_tag,
-                     public forward_common_aliases<clean_t<_Container>>
+                     public forward_common_aliases<clean_t<Container>>
 {
 public:
     // underlying_container_type
     //   type: the delegated container (axis 9 classification probe).
-    using underlying_container_type = clean_t<_Container>;
+    using underlying_container_type = clean_t<Container>;
 
     explicit overlay_base(
         const underlying_container_type& _underlying
@@ -318,72 +322,72 @@ public:
     //   forwarders: const iteration over the underlying. Present only when
     // the underlying is iterable, so the overlay never fabricates a surface
     // its target lacks.
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto begin() const noexcept(noexcept(std::declval<const _C&>().begin()))
-        -> decltype(std::declval<const _C&>().begin())
+    auto begin() const noexcept(noexcept(std::declval<const C&>().begin()))
+        -> decltype(std::declval<const C&>().begin())
     {
         return m_underlying.begin();
     }
 
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto end() const noexcept(noexcept(std::declval<const _C&>().end()))
-        -> decltype(std::declval<const _C&>().end())
+    auto end() const noexcept(noexcept(std::declval<const C&>().end()))
+        -> decltype(std::declval<const C&>().end())
     {
         return m_underlying.end();
     }
 
     // cbegin / cend
     //   forwarders: explicit const iteration (preserves has_const_iteration).
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto cbegin() const noexcept(noexcept(std::declval<const _C&>().cbegin()))
-        -> decltype(std::declval<const _C&>().cbegin())
+    auto cbegin() const noexcept(noexcept(std::declval<const C&>().cbegin()))
+        -> decltype(std::declval<const C&>().cbegin())
     {
         return m_underlying.cbegin();
     }
 
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto cend() const noexcept(noexcept(std::declval<const _C&>().cend()))
-        -> decltype(std::declval<const _C&>().cend())
+    auto cend() const noexcept(noexcept(std::declval<const C&>().cend()))
+        -> decltype(std::declval<const C&>().cend())
     {
         return m_underlying.cend();
     }
 
     // rbegin / rend
     //   forwarders: reverse iteration (preserves has_reverse_iteration).
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto rbegin() const noexcept(noexcept(std::declval<const _C&>().rbegin()))
-        -> decltype(std::declval<const _C&>().rbegin())
+    auto rbegin() const noexcept(noexcept(std::declval<const C&>().rbegin()))
+        -> decltype(std::declval<const C&>().rbegin())
     {
         return m_underlying.rbegin();
     }
 
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto rend() const noexcept(noexcept(std::declval<const _C&>().rend()))
-        -> decltype(std::declval<const _C&>().rend())
+    auto rend() const noexcept(noexcept(std::declval<const C&>().rend()))
+        -> decltype(std::declval<const C&>().rend())
     {
         return m_underlying.rend();
     }
 
     // size / empty
     //   forwarders: size surface (preserves sized / bounded detection).
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto size() const noexcept(noexcept(std::declval<const _C&>().size()))
-        -> decltype(std::declval<const _C&>().size())
+    auto size() const noexcept(noexcept(std::declval<const C&>().size()))
+        -> decltype(std::declval<const C&>().size())
     {
         return m_underlying.size();
     }
 
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto empty() const noexcept(noexcept(std::declval<const _C&>().empty()))
-        -> decltype(std::declval<const _C&>().empty())
+    auto empty() const noexcept(noexcept(std::declval<const C&>().empty()))
+        -> decltype(std::declval<const C&>().empty())
     {
         return m_underlying.empty();
     }
@@ -391,49 +395,49 @@ public:
     // data
     //   forwarder: contiguous storage pointer (preserves contiguity / the
     // array classification when the underlying is contiguous).
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto data() const noexcept(noexcept(std::declval<const _C&>().data()))
-        -> decltype(std::declval<const _C&>().data())
+    auto data() const noexcept(noexcept(std::declval<const C&>().data()))
+        -> decltype(std::declval<const C&>().data())
     {
         return m_underlying.data();
     }
 
     // operator[]
     //   forwarder: random-access element read (preserves random_access).
-    template<typename _Index,
-             typename _C = underlying_container_type>
+    template<typename Index,
+             typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto operator[](_Index _index) const
-        -> decltype(std::declval<const _C&>()[_index])
+    auto operator[](Index _index) const
+        -> decltype(std::declval<const C&>()[_index])
     {
         return m_underlying[_index];
     }
 
     // parent / children / root
-    //   forwarders: hierarchical navigation (preserves the structure axis so
-    // a tree viewed through an overlay stays hierarchical).
-    template<typename _C = underlying_container_type>
+    //   forwarders: hierarchical navigation (preserves the structure axis so a
+    // tree viewed through an overlay stays hierarchical).
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto parent() const noexcept(noexcept(std::declval<const _C&>().parent()))
-        -> decltype(std::declval<const _C&>().parent())
+    auto parent() const noexcept(noexcept(std::declval<const C&>().parent()))
+        -> decltype(std::declval<const C&>().parent())
     {
         return m_underlying.parent();
     }
 
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
     auto children() const
-        noexcept(noexcept(std::declval<const _C&>().children()))
-        -> decltype(std::declval<const _C&>().children())
+        noexcept(noexcept(std::declval<const C&>().children()))
+        -> decltype(std::declval<const C&>().children())
     {
         return m_underlying.children();
     }
 
-    template<typename _C = underlying_container_type>
+    template<typename C = underlying_container_type>
     D_NODISCARD D_CONSTEXPR_INLINE
-    auto root() const noexcept(noexcept(std::declval<const _C&>().root()))
-        -> decltype(std::declval<const _C&>().root())
+    auto root() const noexcept(noexcept(std::declval<const C&>().root()))
+        -> decltype(std::declval<const C&>().root())
     {
         return m_underlying.root();
     }
@@ -453,58 +457,58 @@ private:
 //   class: presents a container as immutable (mutable -> immutable view).
 // Every readable axis is preserved; mutators are simply never forwarded, so
 // the trait system classifies the overlay as immutable.
-template<typename _Container>
+template<typename Container>
 class immutable_overlay
-    : public overlay_base<_Container>,
-      public forward_ordering_aliases<clean_t<_Container>>,
-      public forward_uniqueness_aliases<clean_t<_Container>>,
-      public forward_associative_aliases<clean_t<_Container>>,
-      public forward_bounds_aliases<clean_t<_Container>>
+    : public overlay_base<Container>,
+      public forward_ordering_aliases<clean_t<Container>>,
+      public forward_uniqueness_aliases<clean_t<Container>>,
+      public forward_associative_aliases<clean_t<Container>>,
+      public forward_bounds_aliases<clean_t<Container>>
 {
 public:
-    using overlay_base<_Container>::overlay_base;
+    using overlay_base<Container>::overlay_base;
 };
 
 // unsorted_overlay
 //   class: drops the sorted invariant (sorted -> unsorted view). Omits the
 // ordering alias group; uniqueness, associativity, and bounds are preserved.
-template<typename _Container>
+template<typename Container>
 class unsorted_overlay
-    : public overlay_base<_Container>,
-      public forward_uniqueness_aliases<clean_t<_Container>>,
-      public forward_associative_aliases<clean_t<_Container>>,
-      public forward_bounds_aliases<clean_t<_Container>>
+    : public overlay_base<Container>,
+      public forward_uniqueness_aliases<clean_t<Container>>,
+      public forward_associative_aliases<clean_t<Container>>,
+      public forward_bounds_aliases<clean_t<Container>>
 {
 public:
-    using overlay_base<_Container>::overlay_base;
+    using overlay_base<Container>::overlay_base;
 };
 
 // multi_overlay
 //   class: drops the uniqueness invariant (unique -> multi view). Omits the
 // uniqueness alias group; ordering, associativity, and bounds are preserved.
-template<typename _Container>
+template<typename Container>
 class multi_overlay
-    : public overlay_base<_Container>,
-      public forward_ordering_aliases<clean_t<_Container>>,
-      public forward_associative_aliases<clean_t<_Container>>,
-      public forward_bounds_aliases<clean_t<_Container>>
+    : public overlay_base<Container>,
+      public forward_ordering_aliases<clean_t<Container>>,
+      public forward_associative_aliases<clean_t<Container>>,
+      public forward_bounds_aliases<clean_t<Container>>
 {
 public:
-    using overlay_base<_Container>::overlay_base;
+    using overlay_base<Container>::overlay_base;
 };
 
 // unbounded_overlay
 //   class: drops size constraints (bounded -> unbounded view). Omits the
 // bounds alias group; ordering, uniqueness, and associativity are preserved.
-template<typename _Container>
+template<typename Container>
 class unbounded_overlay
-    : public overlay_base<_Container>,
-      public forward_ordering_aliases<clean_t<_Container>>,
-      public forward_uniqueness_aliases<clean_t<_Container>>,
-      public forward_associative_aliases<clean_t<_Container>>
+    : public overlay_base<Container>,
+      public forward_ordering_aliases<clean_t<Container>>,
+      public forward_uniqueness_aliases<clean_t<Container>>,
+      public forward_associative_aliases<clean_t<Container>>
 {
 public:
-    using overlay_base<_Container>::overlay_base;
+    using overlay_base<Container>::overlay_base;
 };
 
 
@@ -517,46 +521,46 @@ public:
 
 // as_immutable
 //   function: view `_container` as immutable.
-template<typename _Container>
+template<typename Container>
 D_NODISCARD D_CONSTEXPR_INLINE
-immutable_overlay<_Container> as_immutable(
-    const _Container& _container
+immutable_overlay<Container> as_immutable(
+    const Container& _container
 ) noexcept
 {
-    return immutable_overlay<_Container>(_container);
+    return immutable_overlay<Container>(_container);
 }
 
 // as_unsorted
 //   function: view `_container` with its sorted invariant ignored.
-template<typename _Container>
+template<typename Container>
 D_NODISCARD D_CONSTEXPR_INLINE
-unsorted_overlay<_Container> as_unsorted(
-    const _Container& _container
+unsorted_overlay<Container> as_unsorted(
+    const Container& _container
 ) noexcept
 {
-    return unsorted_overlay<_Container>(_container);
+    return unsorted_overlay<Container>(_container);
 }
 
 // as_multi
 //   function: view `_container` with its uniqueness invariant ignored.
-template<typename _Container>
+template<typename Container>
 D_NODISCARD D_CONSTEXPR_INLINE
-multi_overlay<_Container> as_multi(
-    const _Container& _container
+multi_overlay<Container> as_multi(
+    const Container& _container
 ) noexcept
 {
-    return multi_overlay<_Container>(_container);
+    return multi_overlay<Container>(_container);
 }
 
 // as_unbounded
 //   function: view `_container` with its size bounds ignored.
-template<typename _Container>
+template<typename Container>
 D_NODISCARD D_CONSTEXPR_INLINE
-unbounded_overlay<_Container> as_unbounded(
-    const _Container& _container
+unbounded_overlay<Container> as_unbounded(
+    const Container& _container
 ) noexcept
 {
-    return unbounded_overlay<_Container>(_container);
+    return unbounded_overlay<Container>(_container);
 }
 
 
@@ -566,41 +570,44 @@ unbounded_overlay<_Container> as_unbounded(
 
 
 // is_container_overlay
-//   trait: satisfied when `_Type` is a djinterp overlay (derives from
+//   trait: satisfied when `Type` is a djinterp overlay (derives from
 // overlay_tag). Distinguishes framework overlays from arbitrary backed
 // containers that merely expose `underlying_container_type`.
-template<typename _Type>
+template<typename Type>
 struct is_container_overlay
-    : std::is_base_of<overlay_tag, clean_t<_Type>>
+    : std::is_base_of<overlay_tag, clean_t<Type>>
 {};
 
 // is_container_overlay_v
 //   value: convenience variable template for is_container_overlay.
-template<typename _Type>
+template<typename Type>
 inline constexpr bool is_container_overlay_v =
-    is_container_overlay<_Type>::value;
+    is_container_overlay<Type>::value;
 
 // overlay_underlying
-//   trait: the underlying container an overlay delegates to, or `_Type`
-// itself when `_Type` is not an overlay. Lets generic code strip overlays
-// back to ground truth.
-template<typename _Type,
-            bool     _IsOverlay = is_container_overlay_v<_Type>>
+//   trait: the underlying container an overlay delegates to, or `Type` itself
+// when `Type` is not an overlay. Lets generic code strip overlays back to
+// ground truth.
+template<typename Type,
+            bool     IsOverlay = is_container_overlay_v<Type>>
 struct overlay_underlying
 {
-    using type = clean_t<_Type>;
+    using type = clean_t<Type>;
 };
 
-template<typename _Type>
-struct overlay_underlying<_Type, true>
+// overlay_underlying<Type, true>
+//   helper: the case where `is_container_overlay_v<Type` is true; it maps to
+// `typename clean_t<Type>::underlying_container_type`.
+template<typename Type>
+struct overlay_underlying<Type, true>
 {
-    using type = typename clean_t<_Type>::underlying_container_type;
+    using type = typename clean_t<Type>::underlying_container_type;
 };
 
 // overlay_underlying_t
-//   type: convenience alias for overlay_underlying<_Type>::type.
-template<typename _Type>
-using overlay_underlying_t = typename overlay_underlying<_Type>::type;
+//   type: convenience alias for overlay_underlying<Type>::type.
+template<typename Type>
+using overlay_underlying_t = typename overlay_underlying<Type>::type;
 
 
 
@@ -610,4 +617,6 @@ using overlay_underlying_t = typename overlay_underlying<_Type>::type;
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_CONTAINER_OVERLAY_
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+#endif  // DJINTERP_CONTAINER_CONTAINER_OVERLAY_HPP

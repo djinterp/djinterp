@@ -1,9 +1,10 @@
-/******************************************************************************
-* djinterp [container]                                         table_layout.hpp
+/*******************************************************************************
+* djinterp [core]                                               table_layout.hpp
 *
 *   The LAYOUT overlay Gamma of a table -- the third layer of the model
 * T = (T_, I_T, Gamma) (containers.tex, The table).  Everything in table_shape
-* concerns the ATOMIC table, one value per index; this header adds the optional
+* concerns the ATOMIC table, one value per index; this header adds the
+* optional
 * cover that groups atomic positions into LAYOUT CELLS, the visible cells of a
 * rendered table, in which a span of atomic positions reads as one.  It is an
 * OVERLAY in the sense of Overlays: a discipline over the indexed tuple, not a
@@ -12,22 +13,27 @@
 *   THE FORMAL OBJECTS, at k = 2 rectangular:
 *     - a REGION is a box of atomic positions, [row0, row0+rows) x [col0,
 *       col0+cols); a layout cell's extent |R_C| is rows*cols.
-*     - a MERGE is a region with |R_C| > 1; layout-aware access returns its one
+*     - a MERGE is a region with |R_C| > 1; layout-aware access returns its
+*   one
 *       value, so T[i] = T[j] for all i, j in the region.
 *     - the ANCHOR names the cell once: anchor(C) = min_lex R_C = (row0, col0)
 *       for a box; every position reads as its anchor,
 *       T[i] = T[anchor(cell_T(i))].
 *     - a COVER partitions the atomic domain -- every position in exactly one
-*       cell.  Here a cover is given by its MERGES alone; every position no merge
-*       covers is its own singleton cell (the trivial cover Gamma_0 on the rest),
+*       cell. Here a cover is given by its MERGES alone; every position no
+*     merge
+*       covers is its own singleton cell (the trivial cover Gamma_0 on the
+*     rest),
 *       so the partition is valid exactly when the declared merges are within
 *       bounds and pairwise DISJOINT.
-*     - a SPLIT refines a cell into s >= 2 pieces partitioning its region.  The
-*       descriptor and its partition check are here; splitting a SINGLETON (which
+*     - a SPLIT refines a cell into s >= 2 pieces partitioning its region. The
+*       descriptor and its partition check are here; splitting a SINGLETON
+*     (which
 *       needs the atomic domain refined by a projection pi) is deferred.
 *
 *   TWO INCARNATIONS.  A compile-time layout<Regions...> (the type the builder
-* computes from merged_cell declarations) and a runtime_layout value (the parser
+* computes from merged_cell declarations) and a runtime_layout value (the
+* parser
 * accumulates from a spanning text grid) share the same vocabulary -- owner,
 * anchor, extent, validity -- so the two front ends describe one overlay.
 *
@@ -35,38 +41,61 @@
 * k-box (two corner tuples) without disturbing the surface.
 *
 *   PORTABILITY:
-*   C++11 baseline (regions are std::size_t-parameterised; the runtime layout is
+*   C++11 baseline (regions are std::size_t-parameterised; the runtime layout
+* is
 * a plain std::vector of boxes).  The _v shorthands are C++14; concepts C++20.
 *
 *
 * path:      /inc/djinterp/core/container/table/table_layout.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.14
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.14
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    region                       (a rectangular box of atomic positions)
+      --------------------------------------------------------------------
+
 II.   region relations             (contains / overlap / within)
+      ----------------------------------------------------------
+
 III.  layout                       (compile-time cover: the declared merges)
+      ----------------------------------------------------------------------
+
 IV.   layout queries               (owner_of / anchor / validity)
+      -----------------------------------------------------------
+
 V.    split                        (compile-time cell refinement + partition check)
+      -----------------------------------------------------------------------------
+
 VI.   runtime region + layout      (the value-level overlay)
+      ------------------------------------------------------
+
 VII.  detection traits             (is_region / is_layout / is_split)
+      ---------------------------------------------------------------
+
 VIII. concepts                     (C++20 analogs)
+      --------------------------------------------
 */
 
-#ifndef DJINTERP_CONTAINER_TABLE_LAYOUT_
-#define DJINTERP_CONTAINER_TABLE_LAYOUT_ 1
+#ifndef DJINTERP_CONTAINER_TABLE_TABLE_LAYOUT_HPP
+#define DJINTERP_CONTAINER_TABLE_TABLE_LAYOUT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 #include <vector>
 // djinterp
+#include "../../../djinterp.hpp"   // NS_*, D_CONSTEXPR, D_NODISCARD, clean_t, D_ENV_*
 #include "../../../config/core/container/table/cfg_table.h"
-#include "../../djinterp.hpp"   // NS_*, D_CONSTEXPR, D_NODISCARD, clean_t, D_ENV_*
 
 
 NS_DJINTERP
@@ -77,53 +106,57 @@ NS_DJINTERP
 // ===========================================================================
 
 // region
-//   type: a rectangular region of atomic positions -- the span of a layout cell.
-// Covers the box [_Row0, _Row0+_Rows) x [_Col0, _Col0+_Cols); its extent is the
-// number of atomic positions it holds.  A region is non-empty by construction.
+//   type: a rectangular region of atomic positions -- the span of a layout
+// cell. Covers the box [Row0, Row0+Rows) x [Col0, Col0+Cols); its extent
+// is the number of atomic positions it holds. A region is non-empty by
+// construction.
 //
-//   _Row0, _Col0: the top-left (lexicographically least) atomic position -- the
+//   Row0, Col0: the top-left (lexicographically least) atomic position --
+// the
 //                 cell's ANCHOR.
-//   _Rows, _Cols: the box shape; the cell is MERGED along a coordinate when that
+//   Rows, Cols: the box shape; the cell is MERGED along a coordinate when
+// that
 //                 coordinate's span exceeds one.
-template<std::size_t _Row0,
-         std::size_t _Col0,
-         std::size_t _Rows,
-         std::size_t _Cols>
+template<std::size_t Row0,
+         std::size_t Col0,
+         std::size_t Rows,
+         std::size_t Cols>
 struct region
 {
-    static_assert(( (_Rows > 0) && (_Cols > 0) ),
+    static_assert(( (Rows > 0) && (Cols > 0) ),
                   "region: a layout cell's span must be non-empty.");
 
-    static D_CONSTEXPR std::size_t row0 = _Row0;
-    static D_CONSTEXPR std::size_t col0 = _Col0;
-    static D_CONSTEXPR std::size_t rows = _Rows;
-    static D_CONSTEXPR std::size_t cols = _Cols;
+    static D_CONSTEXPR std::size_t row0 = Row0;
+    static D_CONSTEXPR std::size_t col0 = Col0;
+    static D_CONSTEXPR std::size_t rows = Rows;
+    static D_CONSTEXPR std::size_t cols = Cols;
 
     // extent -- |R_C|, the atomic positions the cell spans.
-    static D_CONSTEXPR std::size_t extent = (_Rows * _Cols);
+    static D_CONSTEXPR std::size_t extent = (Rows * Cols);
 
     // anchor -- min_lex R_C, the (row, col) the cell is named by.
-    static D_CONSTEXPR std::size_t anchor_row = _Row0;
-    static D_CONSTEXPR std::size_t anchor_col = _Col0;
+    static D_CONSTEXPR std::size_t anchor_row = Row0;
+    static D_CONSTEXPR std::size_t anchor_col = Col0;
 
     // is_merge -- whether the cell spans more than one atomic position.
     static D_CONSTEXPR bool is_merge = (extent > 1);
 
-    // merged_along_* -- whether the cell spans that coordinate (b_r - a_r + 1 > 1).
-    static D_CONSTEXPR bool merged_along_rows = (_Rows > 1);
-    static D_CONSTEXPR bool merged_along_cols = (_Cols > 1);
+    // merged_along_* -- whether the cell spans that coordinate (b_r - a_r + 1
+    // > 1).
+    static D_CONSTEXPR bool merged_along_rows = (Rows > 1);
+    static D_CONSTEXPR bool merged_along_cols = (Cols > 1);
 };
 
 // merge
 //   type: a region intended as a merged cell -- an alias for region, named for
-// the call site (a merged_cell<Rows, Cols, V> declaration places one of these at
-// the atomic position it is declared at).  It carries no extra data; whether it
-// is truly a merge (extent > 1) is region::is_merge.
-template<std::size_t _Row0,
-         std::size_t _Col0,
-         std::size_t _Rows,
-         std::size_t _Cols>
-using merge = region<_Row0, _Col0, _Rows, _Cols>;
+// the call site (a merged_cell<Rows, Cols, V> declaration places one of these
+// at the atomic position it is declared at). It carries no extra data; whether
+// it is truly a merge (extent > 1) is region::is_merge.
+template<std::size_t Row0,
+         std::size_t Col0,
+         std::size_t Rows,
+         std::size_t Cols>
+using merge = region<Row0, Col0, Rows, Cols>;
 
 
 // ===========================================================================
@@ -131,39 +164,39 @@ using merge = region<_Row0, _Col0, _Rows, _Cols>;
 // ===========================================================================
 
 // region_contains
-//   trait: whether region _R covers the atomic position (_Row, _Col).
-template<typename    _R,
-         std::size_t _Row,
-         std::size_t _Col>
+//   trait: whether region R covers the atomic position (Row, Col).
+template<typename    R,
+         std::size_t Row,
+         std::size_t Col>
 struct region_contains
     : std::integral_constant<bool,
-        ( (_Row >= _R::row0) && (_Row < _R::row0 + _R::rows) &&
-          (_Col >= _R::col0) && (_Col < _R::col0 + _R::cols) )>
+        ( (Row >= R::row0) && (Row < R::row0 + R::rows) &&
+          (Col >= R::col0) && (Col < R::col0 + R::cols) )>
 {};
 
 // regions_overlap
-//   trait: whether two regions share any atomic position -- their row ranges and
-// their column ranges both intersect.
-template<typename _A,
-         typename _B>
+//   trait: whether two regions share any atomic position -- their row ranges
+// and their column ranges both intersect.
+template<typename A,
+         typename B>
 struct regions_overlap
     : std::integral_constant<bool,
-        ( (_A::row0 < _B::row0 + _B::rows) &&
-          (_B::row0 < _A::row0 + _A::rows) &&
-          (_A::col0 < _B::col0 + _B::cols) &&
-          (_B::col0 < _A::col0 + _A::cols) )>
+        ( (A::row0 < B::row0 + B::rows) &&
+          (B::row0 < A::row0 + A::rows) &&
+          (A::col0 < B::col0 + B::cols) &&
+          (B::col0 < A::col0 + A::cols) )>
 {};
 
 // region_within
-//   trait: whether region _Inner lies entirely inside region _Outer.
-template<typename _Inner,
-         typename _Outer>
+//   trait: whether region Inner lies entirely inside region Outer.
+template<typename Inner,
+         typename Outer>
 struct region_within
     : std::integral_constant<bool,
-        ( (_Inner::row0 >= _Outer::row0) &&
-          (_Inner::col0 >= _Outer::col0) &&
-          (_Inner::row0 + _Inner::rows <= _Outer::row0 + _Outer::rows) &&
-          (_Inner::col0 + _Inner::cols <= _Outer::col0 + _Outer::cols) )>
+        ( (Inner::row0 >= Outer::row0) &&
+          (Inner::col0 >= Outer::col0) &&
+          (Inner::row0 + Inner::rows <= Outer::row0 + Outer::rows) &&
+          (Inner::col0 + Inner::cols <= Outer::col0 + Outer::cols) )>
 {};
 
 
@@ -174,59 +207,60 @@ struct region_within
 NS_INTERNAL
 
     // find_owner
-    //   trait: the first region of the pack covering (_Row, _Col), or the
-    // singleton region at (_Row, _Col) when none does -- the owner function
+    //   trait: the first region of the pack covering (Row, Col), or the
+    // singleton region at (Row, Col) when none does -- the owner function
     // cell_T made total by the trivial cover on the un-merged rest.
-    template<std::size_t _Row,
-             std::size_t _Col,
-             typename... _Regions>
+    template<std::size_t Row,
+             std::size_t Col,
+             typename... Regions>
     struct find_owner
     {
         // no declared merge covers it: the position is its own singleton cell
-        using type = region<_Row, _Col, 1, 1>;
+        using type = region<Row, Col, 1, 1>;
     };
 
-    template<std::size_t _Row,
-             std::size_t _Col,
-             typename    _Head,
-             typename... _Tail>
-    struct find_owner<_Row, _Col, _Head, _Tail...>
+    template<std::size_t Row,
+             std::size_t Col,
+             typename    Head,
+             typename... Tail>
+    struct find_owner<Row, Col, Head, Tail...>
     {
         using type =
             typename std::conditional<
-                region_contains<_Head, _Row, _Col>::value,
-                _Head,
-                typename find_owner<_Row, _Col, _Tail...>::type
+                region_contains<Head, Row, Col>::value,
+                Head,
+                typename find_owner<Row, Col, Tail...>::type
             >::type;
     };
 
 NS_END  // internal
 
 // layout
-//   type: a compile-time cover, given by its declared merges.  Every atomic
+//   type: a compile-time cover, given by its declared merges. Every atomic
 // position a merge does not cover is its own singleton cell, so this is the
-// laid-out table's Gamma with the trivial cover filling the rest.  The empty
+// laid-out table's Gamma with the trivial cover filling the rest. The empty
 // layout is the ordinary (un-merged) table, Gamma_0.
 //
-//   _Regions...: the declared merges (region<>s).
-template<typename... _Regions>
+//   Regions...: the declared merges (region<>s).
+template<typename... Regions>
 struct layout
 {
     // merge_count -- the number of declared merges.
-    static D_CONSTEXPR std::size_t merge_count = sizeof...(_Regions);
+    static D_CONSTEXPR std::size_t merge_count = sizeof...(Regions);
 
     // has_merges / wears_no_merges -- whether any cell spans more than one
     // position; wears_no_merges is the Gamma_0 (ordinary table) case.
     static D_CONSTEXPR bool has_merges      = (merge_count > 0);
     static D_CONSTEXPR bool wears_no_merges = (merge_count == 0);
 
-    // owner_of -- the layout cell owning atomic position (_Row, _Col): a declared
-    // merge that covers it, or the singleton cell there.  Read its anchor_row /
-    // anchor_col for the layout-aware access T[i] = T[anchor(cell(i))].
-    template<std::size_t _Row,
-             std::size_t _Col>
+    // owner_of -- the layout cell owning atomic position (Row, Col): a
+    // declared merge that covers it, or the singleton cell there. Read its
+    // anchor_row / anchor_col for the layout-aware access T[i] =
+    // T[anchor(cell(i))].
+    template<std::size_t Row,
+             std::size_t Col>
     using owner_of =
-        typename internal::find_owner<_Row, _Col, _Regions...>::type;
+        typename internal::find_owner<Row, Col, Regions...>::type;
 };
 
 // trivial_layout
@@ -242,37 +276,37 @@ NS_INTERNAL
 
     // all_within
     //   trait: every region lies within the box {0..H-1} x {0..W-1}.
-    template<std::size_t _H,
-             std::size_t _W,
-             typename... _Regions>
+    template<std::size_t H,
+             std::size_t W,
+             typename... Regions>
     struct all_within : std::true_type
     {};
 
-    template<std::size_t _H,
-             std::size_t _W,
-             typename    _R0,
-             typename... _Rs>
-    struct all_within<_H, _W, _R0, _Rs...>
+    template<std::size_t H,
+             std::size_t W,
+             typename    R0,
+             typename... Rs>
+    struct all_within<H, W, R0, Rs...>
         : std::integral_constant<bool,
-            ( (_R0::row0 + _R0::rows <= _H) &&
-              (_R0::col0 + _R0::cols <= _W) &&
-              all_within<_H, _W, _Rs...>::value )>
+            ( (R0::row0 + R0::rows <= H) &&
+              (R0::col0 + R0::cols <= W) &&
+              all_within<H, W, Rs...>::value )>
     {};
 
     // disjoint_from_all
-    //   trait: _Head overlaps none of the pack.
-    template<typename    _Head,
-             typename... _Rest>
+    //   trait: Head overlaps none of the pack.
+    template<typename    Head,
+             typename... Rest>
     struct disjoint_from_all : std::true_type
     {};
 
-    template<typename    _Head,
-             typename    _R0,
-             typename... _Rs>
-    struct disjoint_from_all<_Head, _R0, _Rs...>
+    template<typename    Head,
+             typename    R0,
+             typename... Rs>
+    struct disjoint_from_all<Head, R0, Rs...>
         : std::integral_constant<bool,
-            ( !regions_overlap<_Head, _R0>::value &&
-              disjoint_from_all<_Head, _Rs...>::value )>
+            ( !regions_overlap<Head, R0>::value &&
+              disjoint_from_all<Head, Rs...>::value )>
     {};
 
     // pairwise_disjoint
@@ -281,54 +315,54 @@ NS_INTERNAL
     struct pairwise_disjoint : std::true_type
     {};
 
-    template<typename    _Head,
-             typename... _Rest>
-    struct pairwise_disjoint<_Head, _Rest...>
+    template<typename    Head,
+             typename... Rest>
+    struct pairwise_disjoint<Head, Rest...>
         : std::integral_constant<bool,
-            ( disjoint_from_all<_Head, _Rest...>::value &&
-              pairwise_disjoint<_Rest...>::value )>
+            ( disjoint_from_all<Head, Rest...>::value &&
+              pairwise_disjoint<Rest...>::value )>
     {};
 
     // layout_valid_impl
     //   trait: the declared merges of a layout are within an H x W table and
-    // pairwise disjoint -- the condition for the merges-plus-singletons cover to
-    // partition the atomic domain.
-    template<typename    _Layout,
-             std::size_t _H,
-             std::size_t _W>
+    // pairwise disjoint -- the condition for the merges-plus-singletons cover
+    // to partition the atomic domain.
+    template<typename    Layout,
+             std::size_t H,
+             std::size_t W>
     struct layout_valid_impl;
 
-    template<typename... _Regions,
-             std::size_t  _H,
-             std::size_t  _W>
-    struct layout_valid_impl<layout<_Regions...>, _H, _W>
+    template<typename... Regions,
+             std::size_t  H,
+             std::size_t  W>
+    struct layout_valid_impl<layout<Regions...>, H, W>
         : std::integral_constant<bool,
-            ( all_within<_H, _W, _Regions...>::value &&
-              pairwise_disjoint<_Regions...>::value )>
+            ( all_within<H, W, Regions...>::value &&
+              pairwise_disjoint<Regions...>::value )>
     {};
 
 NS_END  // internal
 
 // layout_valid
-//   trait: whether _Layout is a valid cover of an _Height x _Width table -- every
-// declared merge within bounds and no two overlapping.  (Positions no merge
-// covers are singletons, so disjoint, in-bounds merges are exactly what a valid
-// partition needs.)
-template<typename    _Layout,
-         std::size_t _Height,
-         std::size_t _Width>
+//   trait: whether Layout is a valid cover of an Height x Width table --
+// every declared merge within bounds and no two overlapping. (Positions no
+// merge covers are singletons, so disjoint, in-bounds merges are exactly what
+// a valid partition needs.)
+template<typename    Layout,
+         std::size_t Height,
+         std::size_t Width>
 struct layout_valid
-    : internal::layout_valid_impl<clean_t<_Layout>, _Height, _Width>
+    : internal::layout_valid_impl<clean_t<Layout>, Height, Width>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // layout_valid_v
-//   value: shorthand for layout_valid<_Layout, _Height, _Width>::value.
-template<typename    _Layout,
-         std::size_t _Height,
-         std::size_t _Width>
+//   value: shorthand for layout_valid<Layout, Height, Width>::value.
+template<typename    Layout,
+         std::size_t Height,
+         std::size_t Width>
 D_CONSTEXPR bool layout_valid_v =
-    layout_valid<_Layout, _Height, _Width>::value;
+    layout_valid<Layout, Height, Width>::value;
 #endif
 
 
@@ -345,82 +379,84 @@ NS_INTERNAL
         : std::integral_constant<std::size_t, 0>
     {};
 
-    template<typename    _R0,
-             typename... _Rs>
-    struct extent_sum<_R0, _Rs...>
+    template<typename    R0,
+             typename... Rs>
+    struct extent_sum<R0, Rs...>
         : std::integral_constant<std::size_t,
-            (_R0::extent + extent_sum<_Rs...>::value)>
+            (R0::extent + extent_sum<Rs...>::value)>
     {};
 
     // all_within_region
-    //   trait: every piece lies within _Parent.
-    template<typename    _Parent,
-             typename... _Pieces>
+    //   trait: every piece lies within Parent.
+    template<typename    Parent,
+             typename... Pieces>
     struct all_within_region : std::true_type
     {};
 
-    template<typename    _Parent,
-             typename    _P0,
-             typename... _Ps>
-    struct all_within_region<_Parent, _P0, _Ps...>
+    template<typename    Parent,
+             typename    P0,
+             typename... Ps>
+    struct all_within_region<Parent, P0, Ps...>
         : std::integral_constant<bool,
-            ( region_within<_P0, _Parent>::value &&
-              all_within_region<_Parent, _Ps...>::value )>
+            ( region_within<P0, Parent>::value &&
+              all_within_region<Parent, Ps...>::value )>
     {};
 
 NS_END  // internal
 
 // split
-//   type: a refinement of a cell -- its region _Parent partitioned into pieces
-// _Pieces... (s >= 2 sub-regions).  The descriptor the builder's split_cell and
-// the parser's sub-cell grid map onto.  Splitting a cell whose region is already
+//   type: a refinement of a cell -- its region Parent partitioned into pieces
+// Pieces... (s >= 2 sub-regions). The descriptor the builder's split_cell and
+// the parser's sub-cell grid map onto. Splitting a cell whose region is
+// already
 // a singleton cannot partition it and needs the atomic domain refined by a
 // projection pi (containers.tex); that case is deferred.
-template<typename    _Parent,
-         typename... _Pieces>
+template<typename    Parent,
+         typename... Pieces>
 struct split
 {
-    static_assert((sizeof...(_Pieces) >= 2),
+    static_assert((sizeof...(Pieces) >= 2),
                   "split: a refinement partitions a cell into two or more pieces.");
 
-    using parent = _Parent;
+    using parent = Parent;
 
     // piece_count -- the number of sub-cells the parent is split into.
-    static D_CONSTEXPR std::size_t piece_count = sizeof...(_Pieces);
+    static D_CONSTEXPR std::size_t piece_count = sizeof...(Pieces);
 };
 
 NS_INTERNAL
 
     // split_valid_impl
-    //   trait: the pieces lie within the parent, are pairwise disjoint, and their
-    // extents sum to the parent's -- for integer boxes, exactly a partition.
-    template<typename _Split>
+    //   trait: the pieces lie within the parent, are pairwise disjoint, and
+    // their extents sum to the parent's -- for integer boxes, exactly a
+    // partition.
+    template<typename Split>
     struct split_valid_impl;
 
-    template<typename    _Parent,
-             typename... _Pieces>
-    struct split_valid_impl<split<_Parent, _Pieces...>>
+    template<typename    Parent,
+             typename... Pieces>
+    struct split_valid_impl<split<Parent, Pieces...>>
         : std::integral_constant<bool,
-            ( all_within_region<_Parent, _Pieces...>::value  &&
-              pairwise_disjoint<_Pieces...>::value           &&
-              (extent_sum<_Pieces...>::value == _Parent::extent) )>
+            ( all_within_region<Parent, Pieces...>::value  &&
+              pairwise_disjoint<Pieces...>::value           &&
+              (extent_sum<Pieces...>::value == Parent::extent) )>
     {};
 
 NS_END  // internal
 
 // split_valid
-//   trait: whether _Split's pieces tile its parent region exactly -- within,
+//   trait: whether Split's pieces tile its parent region exactly -- within,
 // disjoint, and area-complete.
-template<typename _Split>
+template<typename Split>
 struct split_valid
-    : internal::split_valid_impl<clean_t<_Split>>
+    : internal::split_valid_impl<clean_t<Split>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // split_valid_v
-//   value: shorthand for split_valid<_Split>::value.
-template<typename _Split>
-D_CONSTEXPR bool split_valid_v = split_valid<_Split>::value;
+//   value: shorthand for split_valid<Split>::value.
+template<typename Split>
+D_CONSTEXPR bool split_valid_v = split_valid<Split>::value;
 #endif
 
 
@@ -430,7 +466,7 @@ D_CONSTEXPR bool split_valid_v = split_valid<_Split>::value;
 
 // region_value
 //   struct: the runtime counterpart of region -- a box the parser accumulates
-// from a spanning text grid.  Same box arithmetic (extent, contains, anchor) as
+// from a spanning text grid. Same box arithmetic (extent, contains, anchor) as
 // the compile-time region.
 struct region_value
 {
@@ -507,9 +543,9 @@ regions_overlap_rt(
 }
 
 // runtime_layout
-//   class: the value-level cover -- the declared merges, with singletons implied
-// on the rest, exactly as the compile-time layout.  The parser adds a merge per
-// spanning cell it recognises; a consumer reads owner_of / anchor.
+//   class: the value-level cover -- the declared merges, with singletons
+// implied on the rest, exactly as the compile-time layout. The parser adds a
+// merge per spanning cell it recognises; a consumer reads owner_of / anchor.
 class runtime_layout
 {
 public:
@@ -519,7 +555,8 @@ public:
         : m_merges()
     {}
 
-    // add_merge -- record a merged cell spanning _rows x _cols from (_row0, _col0).
+    // add_merge -- record a merged cell spanning _rows x _cols from (_row0,
+    // _col0).
     void add_merge(
         std::size_t _row0,
         std::size_t _col0,
@@ -569,8 +606,8 @@ public:
         return region_value(_row, _col, 1, 1);
     }
 
-    // valid -- every declared merge lies within an _height x _width table and no
-    // two overlap: the runtime cover-validity check.
+    // valid -- every declared merge lies within an _height x _width table and
+    // no two overlap: the runtime cover-validity check.
     D_NODISCARD bool valid(
         std::size_t _height,
         std::size_t _width
@@ -622,59 +659,59 @@ private:
 
 NS_INTERNAL
 
-    template<typename _Type>
+    template<typename Type>
     struct is_region_impl : std::false_type
     {};
 
-    template<std::size_t _R,
-             std::size_t _C,
-             std::size_t _Rows,
-             std::size_t _Cols>
-    struct is_region_impl<region<_R, _C, _Rows, _Cols>> : std::true_type
+    template<std::size_t R,
+             std::size_t C,
+             std::size_t Rows,
+             std::size_t Cols>
+    struct is_region_impl<region<R, C, Rows, Cols>> : std::true_type
     {};
 
-    template<typename _Type>
+    template<typename Type>
     struct is_layout_impl : std::false_type
     {};
 
-    template<typename... _Regions>
-    struct is_layout_impl<layout<_Regions...>> : std::true_type
+    template<typename... Regions>
+    struct is_layout_impl<layout<Regions...>> : std::true_type
     {};
 
-    template<typename _Type>
+    template<typename Type>
     struct is_split_impl : std::false_type
     {};
 
-    template<typename    _Parent,
-             typename... _Pieces>
-    struct is_split_impl<split<_Parent, _Pieces...>> : std::true_type
+    template<typename    Parent,
+             typename... Pieces>
+    struct is_split_impl<split<Parent, Pieces...>> : std::true_type
     {};
 
 NS_END  // internal
 
 // is_region / is_layout / is_split
-//   traits: true iff _Type (after stripping cv/ref) is the named layout type.
-template<typename _Type>
-struct is_region : internal::is_region_impl<clean_t<_Type>>
+//   traits: true iff Type (after stripping cv/ref) is the named layout type.
+template<typename Type>
+struct is_region : internal::is_region_impl<clean_t<Type>>
 {};
 
-template<typename _Type>
-struct is_layout : internal::is_layout_impl<clean_t<_Type>>
+template<typename Type>
+struct is_layout : internal::is_layout_impl<clean_t<Type>>
 {};
 
-template<typename _Type>
-struct is_split : internal::is_split_impl<clean_t<_Type>>
+template<typename Type>
+struct is_split : internal::is_split_impl<clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-template<typename _Type>
-D_CONSTEXPR bool is_region_v = is_region<_Type>::value;
+template<typename Type>
+D_CONSTEXPR bool is_region_v = is_region<Type>::value;
 
-template<typename _Type>
-D_CONSTEXPR bool is_layout_v = is_layout<_Type>::value;
+template<typename Type>
+D_CONSTEXPR bool is_layout_v = is_layout<Type>::value;
 
-template<typename _Type>
-D_CONSTEXPR bool is_split_v = is_split<_Type>::value;
+template<typename Type>
+D_CONSTEXPR bool is_split_v = is_split<Type>::value;
 #endif
 
 
@@ -684,19 +721,20 @@ D_CONSTEXPR bool is_split_v = is_split<_Type>::value;
 
 #if D_INTERNAL_TABLE_CONCEPTS
 
-template<typename _Type>
-concept Region = is_region_v<_Type>;
+template<typename Type>
+concept Region = is_region_v<Type>;
 
-template<typename _Type>
-concept Layout = is_layout_v<_Type>;
+template<typename Type>
+concept Layout = is_layout_v<Type>;
 
-template<typename _Type>
-concept Split = is_split_v<_Type>;
+template<typename Type>
+concept Split = is_split_v<Type>;
 
 #endif  // D_INTERNAL_TABLE_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_TABLE_LAYOUT_
+#endif  // DJINTERP_CONTAINER_TABLE_TABLE_LAYOUT_HPP

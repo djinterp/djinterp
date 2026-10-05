@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                           reduce.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                   reduce.hpp
 *
+* reduce algorithm header:
 * reduce([first, last [, init [, op]]]) is a generalised fold over a
 * range. Unlike accumulate, the binary operation is REQUIRED to be
 * associative AND commutative — the implementation is allowed to
@@ -20,43 +21,36 @@
 * added in std C++17.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/reduce.hpp
+* path:      /inc/re_std/numeric/reduce.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_REDUCE_
-#define DJINTERP_RE_STD_NUMERIC_REDUCE_ 1
+#ifndef RE_STD_NUMERIC_REDUCE_HPP
+#define RE_STD_NUMERIC_REDUCE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/iterator/iterator_traits.hpp"
     #include "re_std/utility/move.hpp"
-
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
 
 namespace re_std
 {
 
 // Most-general overload: explicit init + custom op.
-template<typename _InputIt, typename _T, typename _BinOp>
-D_CONSTEXPR_CPP14 _T reduce
+template<typename InputIt, typename T, typename BinOp>
+RE_STD_CONSTEXPR_CPP14 T reduce
 (
-    _InputIt _first,
-    _InputIt _last,
-    _T       _init,
-    _BinOp   _op
+    InputIt _first,
+    InputIt _last,
+    T       _init,
+    BinOp   _op
 )
 {
     for (; _first != _last; ++_first)
@@ -67,12 +61,12 @@ D_CONSTEXPR_CPP14 _T reduce
 }
 
 // Default-op overload: explicit init, op = operator+.
-template<typename _InputIt, typename _T>
-D_CONSTEXPR_CPP14 _T reduce
+template<typename InputIt, typename T>
+RE_STD_CONSTEXPR_CPP14 T reduce
 (
-    _InputIt _first,
-    _InputIt _last,
-    _T       _init
+    InputIt _first,
+    InputIt _last,
+    T       _init
 )
 {
     for (; _first != _last; ++_first)
@@ -84,21 +78,20 @@ D_CONSTEXPR_CPP14 _T reduce
 
 // Default-init / default-op overload.
 //   The standard says: T = iterator_traits<It>::value_type, init = T().
-template<typename _InputIt>
-D_CONSTEXPR_CPP14 typename iterator_traits<_InputIt>::value_type
+template<typename InputIt>
+RE_STD_CONSTEXPR_CPP14 typename iterator_traits<InputIt>::value_type
 reduce
 (
-    _InputIt _first,
-    _InputIt _last
+    InputIt _first,
+    InputIt _last
 )
 {
-    typedef typename iterator_traits<_InputIt>::value_type _T;
-    return re_std::reduce(_first, _last, _T());
+    typedef typename iterator_traits<InputIt>::value_type T;
+    return re_std::reduce(_first, _last, T());
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_NUMERIC_REDUCE_
+#endif  // RE_STD_NUMERIC_REDUCE_HPP

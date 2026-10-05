@@ -1,19 +1,19 @@
-/******************************************************************************
-* djinterp [functional]                                             result.hpp
+/*******************************************************************************
+* djinterp [core]                                                     result.hpp
 *
 * Result<T, E> -- a monadic success-or-error type (C++).
 *   Represents the outcome of a fallible computation: either a value of
-* type _Type (success / ok) or an error of type _Error (err). Equivalent in
+* type Type (success / ok) or an error of type Error (err). Equivalent in
 * purpose to Rust's Result, Haskell's Either, std::expected (C++23). The
 * error type is explicit, unlike maybe<T>, so the caller knows what kind
 * of failure to handle.
 *   result<T, E> participates in the djinterp monad protocol on its
-* success type _Type: bind, map, and the operator| combinators all propagate
+* success type Type: bind, map, and the operator| combinators all propagate
 * the err case unchanged. To transform or inspect the error side, use
 * map_err, or_else, or pattern-match via match().
 *
-*   Storage uses a union (via aligned_storage) with a discriminator. _Type
-* and _Error need not be related; either may be void-like (use a unit type
+*   Storage uses a union (via aligned_storage) with a discriminator. Type
+* and Error need not be related; either may be void-like (use a unit type
 * such as struct{}). Both must be at least move-constructible.
 *
 * USAGE:
@@ -36,44 +36,65 @@
 *       [](int v)              { return std::to_string(v); },
 *       [](const std::string& e) { return std::string("ERR: ") + e; });
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/result.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    RESULT PRIMITIVE
-      1.  result<T, E>                           (tagged union + interface)
-II.   RESULT SFINAE STRUCTURAL TRAITS & CONCEPTS       
-      1.  is_result<T>                           (detects result<U, F>)
-      2.  result_value_type<R> /                 (T / E extractors)
-          result_error_type<R>                
-      3.  is_result_value_mapper<F, T>           (F callable (const T&))
-      4.  is_result_error_mapper<F, E>           (F callable (const E&))
-      5.  is_result_v / ..._mapper_v             (variable-template shorthands)
-      6.  result_type /                          (C++20 concept parallels)
-          result_value_mapper_for /
-          result_error_mapper_for
+      ----------------
+      1.    result<T, E>                           (tagged union + interface)
+
+II.   RESULT SFINAE STRUCTURAL TRAITS & CONCEPTS
+      ------------------------------------------
+      1.    is_result<T>                           (detects result<U, F>)
+      2.    result_value_type<R> /                 (T / E extractors)
+
+      result_error_type<R>
+      3.    is_result_value_mapper<F, T>           (F callable (const T&))
+      4.    is_result_error_mapper<F, E>           (F callable (const E&))
+      5.    is_result_v / ..._mapper_v             (variable-template shorthands)
+      6.    result_type /                          (C++20 concept parallels)
+
+      result_value_mapper_for /
+
+      result_error_mapper_for
+
 III.  FACTORIES
-      1.  ok<T, E>(value)
-      2.  err<T, E>(error)
+      ---------
+      1.    ok<T, E>(value)
+      2.    err<T, E>(error)
+
 IV.   COMBINATOR FACTORIES (pipeline form)
-      1.  or_value_with(default)                  (extract value or default)
-      2.  map_err_with(f)                         (transform error side)
-      3.  unwrap_with(message)                    (extract value or throw)
+      ------------------------------------
+      1.    or_value_with(default)                  (extract value or default)
+      2.    map_err_with(f)                         (transform error side)
+      3.    unwrap_with(message)                    (extract value or throw)
+
 V.    MONAD TRAITS SPECIALIZATION
+      ---------------------------
+
 VI.   FREE-FUNCTION HELPERS
-      1.  collect(container_of_result)            -> result<container, E>
-      2.  combine(r1, r2, f)                      (binary, both must be ok)
-      3.  to_maybe(result)                        (lossy: drops error)
+      ---------------------
+      1.    collect(container_of_result)            -> result<container, E>
+      2.    combine(r1, r2, f)                      (binary, both must be ok)
+      3.    to_maybe(result)                        (lossy: drops error)
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_RESULT_
-#define DJINTERP_FUNCTIONAL_RESULT_ 1
+#ifndef DJINTERP_FUNCTIONAL_RESULT_HPP
+#define DJINTERP_FUNCTIONAL_RESULT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -85,7 +106,7 @@ VI.   FREE-FUNCTION HELPERS
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./monad.hpp"
 #include "./maybe.hpp"
 #include "./foldable.hpp"
@@ -105,7 +126,7 @@ NS_INTERNAL
     // ok_tag / err_tag
     //   helpers: disambiguators for result's tagged constructors.
     // Used so that ok<T, E>(x) and err<T, E>(x) can be value-
-    // constructed even when _Type and _Error are the same type.
+    // constructed even when Type and Error are the same type.
     struct ok_tag
     {
         struct construct_tag {};
@@ -122,21 +143,21 @@ NS_END  // internal
 
 
 // result
-//   class: holds either a value of type _Type (ok) or an error of
-// type _Error (err). The active branch is tracked by a boolean
+//   class: holds either a value of type Type (ok) or an error of
+// type Error (err). The active branch is tracked by a boolean
 // discriminator; storage for the inactive branch is unused.
 //
 //   result is value-typed and supports copy, move, assignment,
-// equality (when both _Type and _Error support ==), and pattern-matching
+// equality (when both Type and Error support ==), and pattern-matching
 // access via match(). The default constructor is intentionally
 // deleted: every result must be explicitly an ok or an err.
-template<typename _Type,
-         typename _Error>
+template<typename Type,
+         typename Error>
 class result
 {
 public:
-    using value_type = _Type;
-    using error_type = _Error;
+    using value_type = Type;
+    using error_type = Error;
 
     // constructor (deleted default)
     //   no implicit "empty" state; constructors below are the
@@ -144,9 +165,9 @@ public:
     result() = delete;
 
     // constructor (ok, copy)
-    D_CONSTEXPR result(
+    D_CONSTEXPR_CPP14 result(
         internal::ok_tag,
-        const _Type& _value
+        const Type& _value
     )
         : m_is_ok(true)
     {
@@ -154,9 +175,9 @@ public:
     }
 
     // constructor (ok, move)
-    D_CONSTEXPR result(
+    D_CONSTEXPR_CPP14 result(
         internal::ok_tag,
-        _Type&& _value
+        Type&& _value
     )
         : m_is_ok(true)
     {
@@ -164,9 +185,9 @@ public:
     }
 
     // constructor (err, copy)
-    D_CONSTEXPR result(
+    D_CONSTEXPR_CPP14 result(
         internal::err_tag,
-        const _Error& _error
+        const Error& _error
     )
         : m_is_ok(false)
     {
@@ -174,9 +195,9 @@ public:
     }
 
     // constructor (err, move)
-    D_CONSTEXPR result(
+    D_CONSTEXPR_CPP14 result(
         internal::err_tag,
-        _Error&& _error
+        Error&& _error
     )
         : m_is_ok(false)
     {
@@ -184,7 +205,7 @@ public:
     }
 
     // constructor (copy)
-    D_CONSTEXPR result(
+    D_CONSTEXPR_CPP14 result(
         const result& _other
     )
         : m_is_ok(_other.m_is_ok)
@@ -200,10 +221,10 @@ public:
     }
 
     // constructor (move)
-    D_CONSTEXPR result(
+    D_CONSTEXPR_CPP14 result(
         result&& _other
-    ) noexcept(std::is_nothrow_move_constructible<_Type>::value &&
-               std::is_nothrow_move_constructible<_Error>::value)
+    ) noexcept(std::is_nothrow_move_constructible<Type>::value &&
+               std::is_nothrow_move_constructible<Error>::value)
         : m_is_ok(_other.m_is_ok)
     {
         if (m_is_ok)
@@ -217,14 +238,14 @@ public:
     }
 
     // destructor
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP20
     ~result()
     {
         destroy_active();
     }
 
     // assignment (copy)
-    D_CONSTEXPR result& 
+    D_CONSTEXPR_CPP14 result&
     operator=(
         const result& _other
     )
@@ -267,13 +288,13 @@ public:
     }
 
     // assignment (move)
-    D_CONSTEXPR result& 
+    D_CONSTEXPR_CPP14 result&
     operator=(
         result&& _other
-    ) noexcept(std::is_nothrow_move_assignable<_Type>::value     &&
-               std::is_nothrow_move_assignable<_Error>::value    &&
-               std::is_nothrow_move_constructible<_Type>::value  &&
-               std::is_nothrow_move_constructible<_Error>::value)
+    ) noexcept(std::is_nothrow_move_assignable<Type>::value     &&
+               std::is_nothrow_move_assignable<Error>::value    &&
+               std::is_nothrow_move_constructible<Type>::value  &&
+               std::is_nothrow_move_constructible<Error>::value)
     {
         if (this == &_other)
         {
@@ -312,7 +333,7 @@ public:
 
     // is_ok
     //   method: whether this result holds a value.
-    D_NODISCARD D_CONSTEXPR bool 
+    D_NODISCARD D_CONSTEXPR bool
     is_ok() const noexcept
     {
         return m_is_ok;
@@ -320,7 +341,7 @@ public:
 
     // is_err
     //   method: whether this result holds an error.
-    D_CONSTEXPR bool 
+    D_CONSTEXPR bool
     is_err() const noexcept
     {
         return !m_is_ok;
@@ -330,21 +351,21 @@ public:
     //   method: returns the contained value. Behavior is
     // undefined when is_err(); use value_or or unwrap for safe
     // access.
-    D_NODISCARD D_CONSTEXPR const 
-    _Type& value() const&
+    D_NODISCARD D_CONSTEXPR const
+    Type& value() const&
     {
         return *value_pointer();
     }
 
     // value (mutable)
-    D_NODISCARD D_CONSTEXPR _Type& 
+    D_NODISCARD D_CONSTEXPR_CPP14 Type&
     value() &
     {
         return *value_pointer();
     }
 
     // value (rvalue)
-    D_NODISCARD D_CONSTEXPR _Type&& 
+    D_NODISCARD D_CONSTEXPR_CPP14 Type&&
     value() &&
     {
         return std::move(*value_pointer());
@@ -353,14 +374,14 @@ public:
     // error (const)
     //   method: returns the contained error. Behavior is
     // undefined when is_ok().
-    D_NODISCARD D_CONSTEXPR const _Error& 
+    D_NODISCARD D_CONSTEXPR const Error&
     error() const&
     {
         return *error_pointer();
     }
 
     // error (mutable)
-    D_NODISCARD D_CONSTEXPR _Error& 
+    D_NODISCARD D_CONSTEXPR_CPP14 Error&
     error() &
     {
         return *error_pointer();
@@ -370,10 +391,10 @@ public:
     //   method: returns the contained value if ok, otherwise
     // _default. _default is evaluated unconditionally; for
     // expensive defaults use or_else with a lambda.
-    template<typename _U>
-    D_NODISCARD D_CONSTEXPR _Type
+    template<typename U>
+    D_NODISCARD D_CONSTEXPR_CPP14 Type
     value_or(
-        _U&& _default
+        U&& _default
     ) const&
     {
         if (m_is_ok)
@@ -381,13 +402,13 @@ public:
             return *value_pointer();
         }
 
-        return static_cast<_Type>(std::forward<_U>(_default));
+        return static_cast<Type>(std::forward<U>(_default));
     }
 
     // unwrap
     //   method: returns the contained value, or throws
     // std::runtime_error with the given message if err.
-    D_NODISCARD const _Type& 
+    D_NODISCARD const Type&
     unwrap(
         const std::string& _message
     ) const&
@@ -404,17 +425,17 @@ public:
     //   method: if ok, applies _function to the value and wraps
     // the result; if err, propagates the error unchanged into the
     // new result type.
-    template<typename _Function>
-    D_NODISCARD D_CONSTEXPR auto
+    template<typename Function>
+    D_NODISCARD D_CONSTEXPR_CPP14 auto
     map(
-        _Function _function
+        Function _function
     ) const
     -> result<typename std::decay<decltype(
-        _function(std::declval<const _Type&>()))>::type, _Error>
+        _function(std::declval<const Type&>()))>::type, Error>
     {
         using mapped_t = typename std::decay<decltype(
-            _function(std::declval<const _Type&>()))>::type;
-        using out_t    = result<mapped_t, _Error>;
+            _function(std::declval<const Type&>()))>::type;
+        using out_t    = result<mapped_t, Error>;
 
         if (m_is_ok)
         {
@@ -432,17 +453,17 @@ public:
     //   method: transforms the error side via _function; the ok
     // case is propagated unchanged. Useful for converting between
     // error type hierarchies.
-    template<typename _Function>
-    D_NODISCARD D_CONSTEXPR auto 
+    template<typename Function>
+    D_NODISCARD D_CONSTEXPR_CPP14 auto
     map_err(
-        _Function _function
+        Function _function
     ) const
-    -> result<_Type, typename std::decay<decltype(
-        _function(std::declval<const _Error&>()))>::type>
+    -> result<Type, typename std::decay<decltype(
+        _function(std::declval<const Error&>()))>::type>
     {
         using mapped_e = typename std::decay<decltype(
-            _function(std::declval<const _Error&>()))>::type;
-        using out_t    = result<_Type, mapped_e>;
+            _function(std::declval<const Error&>()))>::type;
+        using out_t    = result<Type, mapped_e>;
 
         if (m_is_ok)
         {
@@ -460,16 +481,16 @@ public:
     //   method: monadic bind on the ok side. _function must
     // return a result whose error type matches this one; on err,
     // _function is not invoked and the error propagates.
-    template<typename _Function>
-    D_NODISCARD D_CONSTEXPR auto 
+    template<typename Function>
+    D_NODISCARD D_CONSTEXPR_CPP14 auto
     and_then(
-        _Function _function
+        Function _function
     ) const
     -> typename std::decay<decltype(
-        _function(std::declval<const _Type&>()))>::type
+        _function(std::declval<const Type&>()))>::type
     {
         using out_t = typename std::decay<decltype(
-            _function(std::declval<const _Type&>()))>::type;
+            _function(std::declval<const Type&>()))>::type;
 
         if (m_is_ok)
         {
@@ -486,16 +507,16 @@ public:
     // _function on the error to produce a recovery result. The
     // recovery function may return a result of the same shape
     // (offering an alternative ok value, or a different err).
-    template<typename _Function>
-    D_NODISCARD D_CONSTEXPR auto 
+    template<typename Function>
+    D_NODISCARD D_CONSTEXPR_CPP14 auto
     or_else(
-        _Function _function
+        Function _function
     ) const
     -> typename std::decay<decltype(
-        _function(std::declval<const _Error&>()))>::type
+        _function(std::declval<const Error&>()))>::type
     {
         using out_t = typename std::decay<decltype(
-            _function(std::declval<const _Error&>()))>::type;
+            _function(std::declval<const Error&>()))>::type;
 
         if (m_is_ok)
         {
@@ -511,15 +532,15 @@ public:
     //   method: pattern-match dispatch. _on_ok is invoked with the
     // value if ok; _on_err is invoked with the error if err. Both
     // callables must return the same type.
-    template<typename _OnOk,
-             typename _OnErr>
-    D_NODISCARD D_CONSTEXPR auto 
+    template<typename OnOk,
+             typename OnErr>
+    D_NODISCARD D_CONSTEXPR_CPP14 auto
     match(
-        _OnOk  _on_ok,
-        _OnErr _on_err
+        OnOk   _on_ok,
+        OnErr _on_err
     ) const
     -> typename std::decay<decltype(
-        _on_ok(std::declval<const _Type&>()))>::type
+        _on_ok(std::declval<const Type&>()))>::type
     {
         if (m_is_ok)
         {
@@ -541,42 +562,42 @@ public:
     // ok (conversion to maybe)
     //   method: returns just(value) if ok, nothing if err. Lossy:
     // drops the error information.
-    D_NODISCARD maybe<_Type>
+    D_NODISCARD maybe<Type>
     ok() const
     {
         if (m_is_ok)
         {
-            return maybe<_Type>(*value_pointer());
+            return maybe<Type>(*value_pointer());
         }
 
-        return maybe<_Type>{};
+        return maybe<Type>{};
     }
 
     // err (conversion to maybe)
     //   method: returns just(error) if err, nothing if ok.
-    D_NODISCARD maybe<_Error> 
+    D_NODISCARD maybe<Error>
     err() const
     {
         if (!m_is_ok)
         {
-            return maybe<_Error>(*error_pointer());
+            return maybe<Error>(*error_pointer());
         }
 
-        return maybe<_Error>{};
+        return maybe<Error>{};
     }
 
 private:
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     // ---- C++20 tagged-union storage ----
-    //   Direct union of _Type and _Error with explicit lifetime management via
+    //   Direct union of Type and Error with explicit lifetime management via
     // std::construct_at / std::destroy_at (both constexpr in C++20). No
     // aligned_storage, placement-new, or void* casts -- so result<T,E>
     // is usable in a constant expression.
     union storage_t
     {
         struct empty_t {} m_empty;
-        _Type             m_value;
-        _Error            m_error;
+        Type              m_value;
+        Error             m_error;
 
         D_CONSTEXPR storage_t() noexcept : m_empty() {}
         D_CONSTEXPR ~storage_t() {}
@@ -587,33 +608,33 @@ private:
     // construct_value / construct_error
     //   construct the active branch in place. Caller is responsible for
     // setting m_is_ok consistently.
-    template<typename... _Args>
-    D_CONSTEXPR void 
+    template<typename... Args>
+    D_CONSTEXPR_CPP14 void
     construct_value(
-        _Args&&... _args
+        Args&&... _args
     )
     {
         std::construct_at(std::addressof(m_union.m_value),
-                          std::forward<_Args>(_args)...);
+                          std::forward<Args>(_args)...);
 
         return;
     }
 
-    template<typename... _Args>
-    D_CONSTEXPR void 
+    template<typename... Args>
+    D_CONSTEXPR_CPP14 void
     construct_error(
-        _Args&&... _args
+        Args&&... _args
     )
     {
         std::construct_at(std::addressof(m_union.m_error),
-                          std::forward<_Args>(_args)...);
+                          std::forward<Args>(_args)...);
 
         return;
     }
 
     // destroy_active
     //   destroys whichever branch is currently live.
-    D_CONSTEXPR void 
+    D_CONSTEXPR_CPP14 void
     destroy_active() noexcept
     {
         if (m_is_ok)
@@ -629,25 +650,25 @@ private:
     }
 
     // typed pointers to the active union members
-    D_CONSTEXPR const _Type* 
+    D_CONSTEXPR const Type*
     value_pointer() const noexcept
     {
         return std::addressof(m_union.m_value);
     }
 
-    D_CONSTEXPR _Type* 
+    D_CONSTEXPR_CPP14 Type*
     value_pointer() noexcept
     {
         return std::addressof(m_union.m_value);
     }
 
-    D_CONSTEXPR const _Error* 
+    D_CONSTEXPR const Error*
     error_pointer() const noexcept
     {
         return std::addressof(m_union.m_error);
     }
 
-    D_CONSTEXPR _Error*
+    D_CONSTEXPR_CPP14 Error*
     error_pointer() noexcept
     {
         return std::addressof(m_union.m_error);
@@ -659,72 +680,72 @@ private:
     // a constant expression before C++20.
 
     // construct_value / construct_error
-    template<typename... _Args>
-    void 
+    template<typename... Args>
+    void
     construct_value(
-        _Args&&... _args
+        Args&&... _args
     )
     {
         new (static_cast<void*>(&m_value_storage))
-            _Type(std::forward<_Args>(_args)...);
+            Type(std::forward<Args>(_args)...);
 
         return;
     }
 
-    template<typename... _Args>
+    template<typename... Args>
     void
     construct_error(
-        _Args&&... _args
+        Args&&... _args
     )
     {
         new (static_cast<void*>(&m_error_storage))
-            _Error(std::forward<_Args>(_args)...);
+            Error(std::forward<Args>(_args)...);
 
         return;
     }
 
     // destroy_active
-    void 
+    void
     destroy_active() noexcept
     {
         if (m_is_ok)
         {
-            value_pointer()->~_Type();
+            value_pointer()->~Type();
         }
         else
         {
-            error_pointer()->~_Error();
+            error_pointer()->~Error();
         }
 
         return;
     }
 
     // typed pointers into the aligned storage
-    const _Type* 
+    const Type*
     value_pointer() const noexcept
     {
-        return static_cast<const _Type*>(
+        return static_cast<const Type*>(
             static_cast<const void*>(&m_value_storage));
     }
 
-    _Type* 
+    Type*
     value_pointer() noexcept
     {
-        return static_cast<_Type*>(
+        return static_cast<Type*>(
             static_cast<void*>(&m_value_storage));
     }
 
-    const _Error*
+    const Error*
     error_pointer() const noexcept
     {
-        return static_cast<const _Error*>(
+        return static_cast<const Error*>(
             static_cast<const void*>(&m_error_storage));
     }
 
-    _Error* 
+    Error*
     error_pointer() noexcept
     {
-        return static_cast<_Error*>(
+        return static_cast<Error*>(
             static_cast<void*>(&m_error_storage));
     }
 
@@ -732,8 +753,8 @@ private:
     // Only the buffer corresponding to m_is_ok is active.
     union
     {
-        typename std::aligned_storage<sizeof(_Type), alignof(_Type)>::type m_value_storage;
-        typename std::aligned_storage<sizeof(_Error), alignof(_Error)>::type m_error_storage;
+        typename std::aligned_storage<sizeof(Type), alignof(Type)>::type m_value_storage;
+        typename std::aligned_storage<sizeof(Error), alignof(Error)>::type m_error_storage;
     };
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
@@ -748,12 +769,12 @@ private:
 // operator== (result vs result)
 //   true if both are ok with equal values, or both are err with
 // equal errors.
-template<typename _Type,
-         typename _Error>
-D_NODISCARD bool 
+template<typename Type,
+         typename Error>
+D_NODISCARD bool
 operator==(
-    const result<_Type, _Error>& _a,
-    const result<_Type, _Error>& _b
+    const result<Type, Error>& _a,
+    const result<Type, Error>& _b
 )
 {
     if (_a.is_ok() != _b.is_ok())
@@ -769,12 +790,12 @@ operator==(
     return (_a.error() == _b.error());
 }
 
-template<typename _Type,
-         typename _Error>
-D_NODISCARD bool 
+template<typename Type,
+         typename Error>
+D_NODISCARD bool
 operator!=(
-    const result<_Type, _Error>& _a,
-    const result<_Type, _Error>& _b
+    const result<Type, Error>& _a,
+    const result<Type, Error>& _b
 )
 {
     return !(_a == _b);
@@ -796,53 +817,53 @@ operator!=(
 NS_INTERNAL
 
     // is_result_helper
-    //   helper: primary is std::false_type; the result<_Type, _Error> partial
+    //   helper: primary is std::false_type; the result<Type, Error> partial
     // specialization lifts it to std::true_type. Kept internal so the
     // public is_result can decay its argument before matching.
-    template<typename _Type>
+    template<typename Type>
     struct is_result_helper
         : std::false_type
     {};
 
-    template<typename _Type,
-             typename _Error>
-    struct is_result_helper<result<_Type, _Error>>
+    template<typename Type,
+             typename Error>
+    struct is_result_helper<result<Type, Error>>
         : std::true_type
     {};
 
     // result_decompose_helper
     //   helper: primary exposes no members (soft failure for non-result
-    // types); the result<_Type, _Error> specialization exposes the value and
+    // types); the result<Type, Error> specialization exposes the value and
     // error types. Used by the SFINAE-friendly extractors below.
-    template<typename _Type>
+    template<typename Type>
     struct result_decompose_helper
     {};
 
-    template<typename _Type,
-             typename _Error>
-    struct result_decompose_helper<result<_Type, _Error>>
+    template<typename Type,
+             typename Error>
+    struct result_decompose_helper<result<Type, Error>>
     {
-        using value_type = _Type;
-        using error_type = _Error;
+        using value_type = Type;
+        using error_type = Error;
     };
 
 
     // is_callable_with_helper
-    //   helper: SFINAE-detects whether _Fn can be invoked with a single
-    // const _Arg&. Return type is unconstrained -- result's value / error
+    //   helper: SFINAE-detects whether Fn can be invoked with a single
+    // const Arg&. Return type is unconstrained -- result's value / error
     // handlers (map, map_err, match arms) accept any return type.
-    template<typename _Fn,
-             typename _Arg>
+    template<typename Fn,
+             typename Arg>
     struct is_callable_with_helper
     {
     private:
-        template<typename _F,
-                 typename _A>
+        template<typename F,
+                 typename A>
         static auto test(int)
             -> decltype(
                 static_cast<void>(
-                    std::declval<const _F&>()(
-                        std::declval<const _A&>())),
+                    std::declval<const F&>()(
+                        std::declval<const A&>())),
                 std::true_type{});
 
         template<typename,
@@ -850,116 +871,116 @@ NS_INTERNAL
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Fn, _Arg>(0));
+        using type = decltype(test<Fn, Arg>(0));
     };
 
 NS_END  // internal
 
 
 // is_result
-//   trait: true if _Type is a result<_U, _F> specialization, after
+//   trait: true if Type is a result<U, F> specialization, after
 // stripping cv-qualifiers and references. False for every other type.
-template<typename _Type>
+template<typename Type>
 struct is_result
-    : internal::is_result_helper<typename std::decay<_Type>::type>::type
+    : internal::is_result_helper<typename std::decay<Type>::type>::type
 {};
 
 // result_value_type
-//   trait: the success type _Type of a result<_Type, _Error>. SFINAE-friendly:
-// has a `::type` only when _Result is (a cv/ref-qualified) result.
-template<typename _Result>
+//   trait: the success type Type of a result<Type, Error>. SFINAE-friendly:
+// has a `::type` only when Result is (a cv/ref-qualified) result.
+template<typename Result>
 struct result_value_type
 {
     using type = typename internal::result_decompose_helper<
-        typename std::decay<_Result>::type>::value_type;
+        typename std::decay<Result>::type>::value_type;
 };
 
 // result_value_type_t
-//   alias: shorthand for result_value_type<_Result>::type.
-template<typename _Result>
-using result_value_type_t = typename result_value_type<_Result>::type;
+//   alias: shorthand for result_value_type<Result>::type.
+template<typename Result>
+using result_value_type_t = typename result_value_type<Result>::type;
 
 
 // result_error_type
-//   trait: the error type _Error of a result<_Type, _Error>. SFINAE-friendly.
-template<typename _Result>
+//   trait: the error type Error of a result<Type, Error>. SFINAE-friendly.
+template<typename Result>
 struct result_error_type
 {
     using type = typename internal::result_decompose_helper<
-        typename std::decay<_Result>::type>::error_type;
+        typename std::decay<Result>::type>::error_type;
 };
 
 // result_error_type_t
-//   alias: shorthand for result_error_type<_Result>::type.
-template<typename _Result>
-using result_error_type_t = typename result_error_type<_Result>::type;
+//   alias: shorthand for result_error_type<Result>::type.
+template<typename Result>
+using result_error_type_t = typename result_error_type<Result>::type;
 
 
 // is_result_value_mapper
-//   trait: true if _Fn is callable as _Fn(const _Type&) -- the value-side
+//   trait: true if Fn is callable as Fn(const Type&) -- the value-side
 // handler shape accepted by result::map, result::and_then, and the ok
 // arm of result::match. The return type is unconstrained.
-template<typename _Fn,
-         typename _Type>
+template<typename Fn,
+         typename Type>
 struct is_result_value_mapper
-    : internal::is_callable_with_helper<_Fn, _Type>::type
+    : internal::is_callable_with_helper<Fn, Type>::type
 {};
 
 // is_result_error_mapper
-//   trait: true if _Fn is callable as _Fn(const _Error&) -- the error-side
+//   trait: true if Fn is callable as Fn(const Error&) -- the error-side
 // handler shape accepted by result::map_err, result::or_else, and the
 // err arm of result::match. The return type is unconstrained.
-template<typename _Fn,
-         typename _Error>
+template<typename Fn,
+         typename Error>
 struct is_result_error_mapper
-    : internal::is_callable_with_helper<_Fn, _Error>::type
+    : internal::is_callable_with_helper<Fn, Error>::type
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // is_result_v
-    //   variable: shorthand for is_result<_Type>::value. Available only
+    //   variable: shorthand for is_result<Type>::value. Available only
     // when variable templates are supported (C++14+).
-    template<typename _Type>
-    static constexpr bool is_result_v = is_result<_Type>::value;
+    template<typename Type>
+    static constexpr bool is_result_v = is_result<Type>::value;
 
     // is_result_value_mapper_v
-    //   variable: shorthand for is_result_value_mapper<_Fn, _Type>::value.
-    template<typename _Fn,
-             typename _Type>
+    //   variable: shorthand for is_result_value_mapper<Fn, Type>::value.
+    template<typename Fn,
+             typename Type>
     static constexpr bool is_result_value_mapper_v =
-        is_result_value_mapper<_Fn, _Type>::value;
+        is_result_value_mapper<Fn, Type>::value;
 
     // is_result_error_mapper_v
-    //   variable: shorthand for is_result_error_mapper<_Fn, _Error>::value.
-    template<typename _Fn,
-             typename _Error>
+    //   variable: shorthand for is_result_error_mapper<Fn, Error>::value.
+    template<typename Fn,
+             typename Error>
     static constexpr bool is_result_error_mapper_v =
-        is_result_error_mapper<_Fn, _Error>::value;
+        is_result_error_mapper<Fn, Error>::value;
 #endif
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
     // result_type
-    //   concept: satisfied by any result<_U, _F> specialization (cv-ref
+    //   concept: satisfied by any result<U, F> specialization (cv-ref
     // stripped). The C++20 parallel of is_result.
-    template<typename _Type>
-    concept result_type = is_result<_Type>::value;
+    template<typename Type>
+    concept result_type = is_result<Type>::value;
 
     // result_value_mapper_for
-    //   concept: satisfied when _Fn is a valid value-side handler for a
-    // result whose success type is _Type. The C++20 parallel of
+    //   concept: satisfied when Fn is a valid value-side handler for a
+    // result whose success type is Type. The C++20 parallel of
     // is_result_value_mapper.
-    template<typename _Fn,
-             typename _Type>
-    concept result_value_mapper_for = is_result_value_mapper<_Fn, _Type>::value;
+    template<typename Fn,
+             typename Type>
+    concept result_value_mapper_for = is_result_value_mapper<Fn, Type>::value;
 
     // result_error_mapper_for
-    //   concept: satisfied when _Fn is a valid error-side handler for a
-    // result whose error type is _Error. The C++20 parallel of
+    //   concept: satisfied when Fn is a valid error-side handler for a
+    // result whose error type is Error. The C++20 parallel of
     // is_result_error_mapper.
-    template<typename _Fn,
-             typename _Error>
-    concept result_error_mapper_for = is_result_error_mapper<_Fn, _Error>::value;
+    template<typename Fn,
+             typename Error>
+    concept result_error_mapper_for = is_result_error_mapper<Fn, Error>::value;
 #endif
 
 
@@ -976,37 +997,37 @@ struct is_result_error_mapper
 // type, so result is a runtime construct there.
 
 // ok
-//   function: builds an ok result holding _value. Both _Type and _Error
+//   function: builds an ok result holding _value. Both Type and Error
 // must be specified explicitly because there is no error to
 // deduce from.
-template<typename _Type,
-         typename _Error,
-         typename _Value>
-D_NODISCARD D_CONSTEXPR result<_Type, _Error>
+template<typename Type,
+         typename Error,
+         typename Value>
+D_NODISCARD D_CONSTEXPR result<Type, Error>
 ok(
-    _Value&& _value
+    Value&& _value
 )
 {
-    return result<_Type, _Error>(
+    return result<Type, Error>(
         internal::ok_tag(internal::ok_tag::construct_tag{}),
-        std::forward<_Value>(_value));
+        std::forward<Value>(_value));
 }
 
 
 // err
-//   function: builds an err result holding _error. Both _Type and
-// _Error must be specified explicitly.
-template<typename _Type,
-         typename _Error,
-         typename _Value>
-D_NODISCARD D_CONSTEXPR result<_Type, _Error>
+//   function: builds an err result holding _error. Both Type and
+// Error must be specified explicitly.
+template<typename Type,
+         typename Error,
+         typename Value>
+D_NODISCARD D_CONSTEXPR result<Type, Error>
 err(
-    _Value&& _error
+    Value&& _error
 )
 {
-    return result<_Type, _Error>(
+    return result<Type, Error>(
         internal::err_tag(internal::err_tag::construct_tag{}),
-        std::forward<_Value>(_error));
+        std::forward<Value>(_error));
 }
 
 
@@ -1022,61 +1043,61 @@ NS_INTERNAL
     // avoid colliding with the method on the class, since the
     // method takes a recovery function rather than a default
     // value.)
-    template<typename _Default>
+    template<typename Default>
     class or_value_combinator
     {
     public:
-        template<typename _DFwd>
-        D_CONSTEXPR explicit 
+        template<typename DFwd>
+        D_CONSTEXPR explicit
         or_value_combinator(
-            _DFwd&& _default
+            DFwd&& _default
         )
-            : m_default(std::forward<_DFwd>(_default))
+            : m_default(std::forward<DFwd>(_default))
         {}
 
-        template<typename _Type,
-                 typename _Error>
-        D_CONSTEXPR _Type 
+        template<typename Type,
+                 typename Error>
+        D_CONSTEXPR Type
         apply(
-            const result<_Type, _Error>& _r
+            const result<Type, Error>& _r
         ) const
         {
             return _r.value_or(m_default);
         }
 
     private:
-        _Default m_default;
+        Default m_default;
     };
 
 
     // map_err_combinator
     //   helper: stores an error-transform function; when piped,
     // forwards to result::map_err.
-    template<typename _Function>
+    template<typename Function>
     class map_err_combinator
     {
     public:
-        template<typename _FFwd>
+        template<typename FFwd>
         D_CONSTEXPR explicit
         map_err_combinator(
-            _FFwd&& _function
+            FFwd&& _function
         )
-            : m_function(std::forward<_FFwd>(_function))
+            : m_function(std::forward<FFwd>(_function))
         {}
 
-        template<typename _Type,
-                 typename _Error>
-        D_CONSTEXPR auto 
+        template<typename Type,
+                 typename Error>
+        D_CONSTEXPR auto
         apply(
-            const result<_Type, _Error>& _r
+            const result<Type, Error>& _r
         ) const
-        -> decltype(_r.map_err(std::declval<const _Function&>()))
+        -> decltype(_r.map_err(std::declval<const Function&>()))
         {
             return _r.map_err(m_function);
         }
 
     private:
-        _Function m_function;
+        Function m_function;
     };
 
 
@@ -1092,10 +1113,10 @@ NS_INTERNAL
             : m_message(std::move(_message))
         {}
 
-        template<typename _Type,
-                 typename _Error>
-        _Type apply(
-            const result<_Type, _Error>& _r
+        template<typename Type,
+                 typename Error>
+        Type apply(
+            const result<Type, Error>& _r
         ) const
         {
             return _r.unwrap(m_message);
@@ -1112,15 +1133,15 @@ NS_END  // internal
 //   function: combinator that, when piped against a result,
 // returns the contained value if ok, otherwise _default.
 //   Usage:  r | or_value_with(0)
-template<typename _Default>
-D_NODISCARD D_CONSTEXPR internal::or_value_combinator<typename std::decay<_Default>::type>
+template<typename Default>
+D_NODISCARD D_CONSTEXPR internal::or_value_combinator<typename std::decay<Default>::type>
 or_value_with(
-    _Default&& _default
+    Default&& _default
 )
 {
     return internal::or_value_combinator<
-        typename std::decay<_Default>::type>(
-            std::forward<_Default>(_default));
+        typename std::decay<Default>::type>(
+            std::forward<Default>(_default));
 }
 
 
@@ -1129,15 +1150,15 @@ or_value_with(
 // transforms the error side via _function. Ok values pass
 // through unchanged.
 //   Usage:  r | map_err_with([](int code) { return error_msg(code); })
-template<typename _Function>
-D_NODISCARD D_CONSTEXPR internal::map_err_combinator<typename std::decay<_Function>::type>
+template<typename Function>
+D_NODISCARD D_CONSTEXPR internal::map_err_combinator<typename std::decay<Function>::type>
 map_err_with(
-    _Function&& _function
+    Function&& _function
 )
 {
     return internal::map_err_combinator<
-        typename std::decay<_Function>::type>(
-            std::forward<_Function>(_function));
+        typename std::decay<Function>::type>(
+            std::forward<Function>(_function));
 }
 
 
@@ -1156,16 +1177,16 @@ unwrap_with(
 // operator| (result | combinator)
 //   pipeline operator for result combinators. SFINAE-constrained
 // to those defined in this module.
-template<typename _Type,
-         typename _Error,
-         typename _Combinator,
+template<typename Type,
+         typename Error,
+         typename Combinator,
          typename = decltype(
-             std::declval<const _Combinator&>().apply(
-                 std::declval<const result<_Type, _Error>&>()))>
-D_CONSTEXPR auto 
+             std::declval<const Combinator&>().apply(
+                 std::declval<const result<Type, Error>&>()))>
+D_CONSTEXPR auto
 operator|(
-    const result<_Type, _Error>& _r,
-    _Combinator&&                _combinator
+    const result<Type, Error>& _r,
+    Combinator&&                _combinator
 )
 -> decltype(_combinator.apply(_r))
 {
@@ -1177,31 +1198,31 @@ operator|(
 ///             V.    MONAD TRAITS SPECIALIZATION                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// monad_traits<result<_Type, _Error>>
+// monad_traits<result<Type, Error>>
 //   specialization: makes result participate in the generic
-// monad protocol over the success type _Type. The error type _Error is
+// monad protocol over the success type Type. The error type Error is
 // preserved across map/bind (errors propagate unchanged).
-template<typename _Type,
-         typename _Error>
-struct monad_traits<result<_Type, _Error>>
+template<typename Type,
+         typename Error>
+struct monad_traits<result<Type, Error>>
 {
     using is_specialized = std::true_type;
-    using value_type     = _Type;
-    using error_type     = _Error;
+    using value_type     = Type;
+    using error_type     = Error;
 
-    template<typename _U>
-    using rebind = result<_U, _Error>;
+    template<typename U>
+    using rebind = result<U, Error>;
 
     // unit
     //   lifts a value into result as an ok. The error type is
     // preserved by rebind; no error can be produced by unit
     // alone.
-    static D_CONSTEXPR result<_Type, _Error>
+    static D_CONSTEXPR result<Type, Error>
     unit(
-        _Type _value
+        Type _value
     )
     {
-        return result<_Type, _Error>(
+        return result<Type, Error>(
             internal::ok_tag(internal::ok_tag::construct_tag{}),
             std::move(_value));
     }
@@ -1209,52 +1230,52 @@ struct monad_traits<result<_Type, _Error>>
     // bind
     //   monadic bind on the success side. Threads the value
     // through _function (which must return a result with the
-    // same _Error); err propagates unchanged.
+    // same Error); err propagates unchanged.
     //   D_CONSTEXPR so the generic monad_bind / monad_map fold at
     // compile time over a carrier-holding result under C++20 (runtime
     // on the C++17 floor, where result is not a literal type).
-    template<typename _Function>
-    static D_CONSTEXPR auto 
+    template<typename Function>
+    static D_CONSTEXPR auto
     bind(
-        const result<_Type, _Error>& _r,
-        _Function             _function
+        const result<Type, Error>& _r,
+        Function              _function
     )
     -> typename std::decay<decltype(
-        _function(std::declval<const _Type&>()))>::type
+        _function(std::declval<const Type&>()))>::type
     {
         return _r.and_then(_function);
     }
 };
 
 
-// foldable_traits<result<_Type, _Error>>
+// foldable_traits<result<Type, Error>>
 //   specialization: makes result participate in the generic foldable
-// protocol over its success type _Type. An ok folds its one value; an err is
+// protocol over its success type Type. An ok folds its one value; an err is
 // treated as empty (the error is not an element), so fold_left is the
 // identity on err -- consistent with map / bind, which propagate err
 // untouched. Keyed on is_result so the single instance covers every
 // result<T, E>.
-template<typename _Result>
+template<typename Result>
 struct foldable_traits<
-    _Result,
-    typename std::enable_if<is_result<_Result>::value>::type>
+    Result,
+    typename std::enable_if<is_result<Result>::value>::type>
 {
     using is_specialized = std::true_type;
-    using value_type     = typename _Result::value_type;
+    using value_type     = typename Result::value_type;
 
     // fold_left
     //   threads _init through the success value when ok; identity on err.
     //   D_CONSTEXPR so the generic folds fold at compile time over a
     // carrier-holding result under C++20 (runtime on the C++17 floor, where
     // result is not a literal type).
-    template<typename _Acc,
-             typename _Function>
+    template<typename Acc,
+             typename Function>
     static
-    D_CONSTEXPR
-    _Acc fold_left(
-        const _Result& _r,
-        _Acc           _init,
-        _Function      _function
+    D_CONSTEXPR_CPP14
+    Acc fold_left(
+        const Result& _r,
+        Acc            _init,
+        Function       _function
     )
     {
         if (_r.is_ok())
@@ -1273,46 +1294,46 @@ NS_INTERNAL
     //   helper: wraps a bare value into an ok, used by result's traverse to
     // turn F<B> into F<result<B,Error>> via functor_map. A named functor so it
     // can appear in trailing return types on every floor.
-    template<typename _Value,
-             typename _Error>
+    template<typename Value,
+             typename Error>
     struct traversable_ok_helper
     {
         D_CONSTEXPR
-        result<_Value, _Error> operator()(
-            const _Value& _value
+        result<Value, Error> operator()(
+            const Value& _value
         ) const
         {
-            return ::djinterp::ok<_Value, _Error>(_value);
+            return ::djinterp::ok<Value, Error>(_value);
         }
     };
 
 NS_END  // internal
 
 
-// traversable_traits<result<_Type, _Error>>
+// traversable_traits<result<Type, Error>>
 //   specialization: result is Traversable over its success side. Traversing an
 // ok runs the effect on its value and re-wraps the result in an ok inside the
 // effect (F<B> -> F<result<B,Error>>); traversing an err injects that same err
 // into the effect with pure -- the effect F being recovered from the type of
 // f's result, so the err branch is well-typed even though f is never called.
 // Keyed on is_result.
-template<typename _Result>
+template<typename Result>
 struct traversable_traits<
-    _Result,
-    typename std::enable_if<is_result<_Result>::value>::type>
+    Result,
+    typename std::enable_if<is_result<Result>::value>::type>
 {
     using is_specialized = std::true_type;
-    using value_type     = typename _Result::value_type;
-    using error_type     = typename _Result::error_type;
+    using value_type     = typename Result::value_type;
+    using error_type     = typename Result::error_type;
 
     // traverse
     //   F<result<B,Error>> from a result<A,Error> and f : A -> F<B>.
-    template<typename _Function>
+    template<typename Function>
     static
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto traverse(
-        const _Result& _r,
-        _Function      _function
+        const Result& _r,
+        Function       _function
     )
     -> decltype(::djinterp::functor_map(
            _function(std::declval<const value_type&>()),
@@ -1339,33 +1360,33 @@ struct traversable_traits<
 };
 
 
-// bifunctor_traits<result<_Type, _Error>>
+// bifunctor_traits<result<Type, Error>>
 //   specialization: result is a Bifunctor over (success, error). bimap maps
 // the success side with f and the error side with g -- exactly map followed by
 // map_err -- so the one-sided map_first / map_second recover result's own map
 // and map_err. Keyed on is_result.
-template<typename _Result>
+template<typename Result>
 struct bifunctor_traits<
-    _Result,
-    typename std::enable_if<is_result<_Result>::value>::type>
+    Result,
+    typename std::enable_if<is_result<Result>::value>::type>
 {
     using is_specialized = std::true_type;
-    using first_type     = typename _Result::value_type;
-    using second_type    = typename _Result::error_type;
+    using first_type     = typename Result::value_type;
+    using second_type    = typename Result::error_type;
 
     // bimap
     //   result<f(T), g(E)> from result<T, E>.
-    template<typename _First,
-             typename _Second>
+    template<typename First,
+             typename Second>
     static
     D_CONSTEXPR
     auto bimap(
-        const _Result& _r,
-        _First         _f,
-        _Second        _g
+        const Result& _r,
+        First          _f,
+        Second         _g
     )
-    -> decltype(std::declval<const _Result&>().map(std::declval<_First&>())
-                    .map_err(std::declval<_Second&>()))
+    -> decltype(std::declval<const Result&>().map(std::declval<First&>())
+                    .map_err(std::declval<Second&>()))
     {
         return _r.map(_f).map_err(_g);
     }
@@ -1386,18 +1407,18 @@ struct bifunctor_traits<
 // collect in maybe.hpp -- a result<T, E> element exposes a nested
 // value_type, which is all maybe's collect requires, so both
 // overloads would otherwise be ambiguous for a container of result.
-template<typename _Container,
+template<typename Container,
          typename std::enable_if<
-             is_result<typename _Container::value_type>::value,
+             is_result<typename Container::value_type>::value,
              int>::type = 0>
-D_NODISCARD auto 
+D_NODISCARD auto
 collect(
-    const _Container& _container
+    const Container& _container
 )
--> result<std::vector<typename _Container::value_type::value_type>,
-          typename _Container::value_type::error_type>
+-> result<std::vector<typename Container::value_type::value_type>,
+          typename Container::value_type::error_type>
 {
-    using element_t = typename _Container::value_type;
+    using element_t = typename Container::value_type;
     using inner_t   = typename element_t::value_type;
     using error_t   = typename element_t::error_type;
     using out_t     = result<std::vector<inner_t>, error_t>;
@@ -1426,24 +1447,24 @@ collect(
 //   function: combines two results via a binary function. Returns
 // ok(f(a, b)) if both are ok. Otherwise returns the first err.
 // Useful for "two-input" operations where either input may fail.
-template<typename _A,
-         typename _B,
-         typename _Error,
-         typename _Function>
-D_NODISCARD auto 
+template<typename A,
+         typename B,
+         typename Error,
+         typename Function>
+D_NODISCARD auto
 combine(
-    const result<_A, _Error>& _ra,
-    const result<_B, _Error>& _rb,
-    _Function             _function
+    const result<A, Error>& _ra,
+    const result<B, Error>& _rb,
+    Function              _function
 )
 -> result<typename std::decay<decltype(
-    _function(std::declval<const _A&>(),
-              std::declval<const _B&>()))>::type, _Error>
+    _function(std::declval<const A&>(),
+              std::declval<const B&>()))>::type, Error>
 {
     using out_value_t = typename std::decay<decltype(
-        _function(std::declval<const _A&>(),
-                  std::declval<const _B&>()))>::type;
-    using out_t = result<out_value_t, _Error>;
+        _function(std::declval<const A&>(),
+                  std::declval<const B&>()))>::type;
+    using out_t = result<out_value_t, Error>;
 
     if (_ra.is_err())
     {
@@ -1469,11 +1490,11 @@ combine(
 //   function: converts a result into a maybe by discarding the
 // error. Lossy; use only when the caller does not care about
 // the failure reason.
-template<typename _Type,
-         typename _Error>
-D_NODISCARD maybe<_Type>
+template<typename Type,
+         typename Error>
+D_NODISCARD maybe<Type>
 to_maybe(
-    const result<_Type, _Error>& _r
+    const result<Type, Error>& _r
 )
 {
     return _r.ok();
@@ -1482,5 +1503,7 @@ to_maybe(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_RESULT_
+
+#endif  // DJINTERP_FUNCTIONAL_RESULT_HPP

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   all_of.hpp
 *
 * all_of algorithm header:
@@ -12,34 +12,29 @@
 *     constexpr (the loop body needs mutable iteration).
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/all_of.hpp
+* path:      /inc/re_std/algorithm/all_of.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_ALL_OF_
-#define DJINTERP_RE_STD_ALGORITHM_ALL_OF_ 1
+#ifndef RE_STD_ALGORITHM_ALL_OF_HPP
+#define RE_STD_ALGORITHM_ALL_OF_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
-// D_CONSTEXPR_CPP14: constexpr from C++14 onward; empty on C++98/03/11.
+// RE_STD_CONSTEXPR_CPP14: constexpr from C++14 onward; empty on C++98/03/11.
 // Required by every loop-bodied algorithm in this module. Local
 // redefinition pending a global qualifier-macro-table entry.
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -49,13 +44,13 @@ NS_RESTD
 // all_of
 //   function: returns true if _pred holds for every element in
 // [_first, _last), and true for an empty range.
-template<typename _InputIt,
-         typename _Pred>
-D_CONSTEXPR_CPP14 bool
+template<typename InputIt,
+         typename Pred>
+RE_STD_CONSTEXPR_CPP14 bool
 all_of(
-    _InputIt _first,
-    _InputIt _last,
-    _Pred    _pred
+    InputIt _first,
+    InputIt _last,
+    Pred    _pred
 )
 {
     for (; _first != _last; ++_first)
@@ -70,7 +65,7 @@ all_of(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_ALL_OF_
+#endif  // RE_STD_ALGORITHM_ALL_OF_HPP

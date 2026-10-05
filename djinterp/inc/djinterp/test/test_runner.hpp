@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                              test_runner.hpp
+/*******************************************************************************
+* djinterp [test]                                                test_runner.hpp
 *
 *   The top-level RUN facade for DTest -- the single object that composes the
 * pieces so running a suite is one call.  A test_runner owns a test_handler
@@ -53,31 +53,44 @@
 * the free resolve() the option subframework defines.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    REPORTER HELPERS         (status / context / interpolation - internal)
-* II.   TEST RUNNER              (the facade)
-* III.  FREE-FUNCTION RUNNERS    (run_tests overloads + schema convenience)
-*
-*
 * path:      /inc/djinterp/test/test_runner.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_RUNNER_
-#define DJINTERP_TEST_RUNNER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    REPORTER HELPERS         (status / context / interpolation - internal)
+      ----------------------------------------------------------------------
+
+II.   TEST RUNNER              (the facade)
+      -------------------------------------
+
+III.  FREE-FUNCTION RUNNERS    (run_tests overloads + schema convenience)
+      -------------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_RUNNER_HPP
+#define DJINTERP_TEST_TEST_RUNNER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <fstream>
-#include <ostream>
 #include <iostream>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "./test_common.hpp"     // test_status
 #include "./test_event.hpp"      //  alphabet
 #include "./test_object.hpp"     // basic_test
@@ -261,7 +274,7 @@ public:
     // installed.
     test_runner()
         : m_handler(),
-          m_options(),
+          m_options(default_test_options()),
           m_console(&std::cout),
           m_file(),
           m_file_open(false),
@@ -336,10 +349,10 @@ public:
     // routes each one), and returns the session_result.  _nodes is any
     // iterable of test_object-protocol elements; the handler brackets the walk
     // with the session events.
-    template<typename _Iterable>
+    template<typename Iterable>
     session_result
     run(
-        _Iterable& _nodes
+        Iterable& _nodes
     )
     {
         open_file_if_needed();
@@ -486,17 +499,17 @@ private:
         const basic_test* _node
     )
     {
-        if ( (m_options.show == test_show::summary_only) ||
-             (m_options.show == test_show::silent) )
+        if ( (show(m_options) == test_show::summary_only) ||
+             (show(m_options) == test_show::silent) )
         {
             return;
         }
 
-        std::string line = m_options.format_module;
+        std::string line = format_module(m_options);
         internal::runner_subst_helper(line, "{name}",
             _node->metadata().get("name"));
 
-        route(line, m_options.sinks);
+        route(line, sinks(m_options));
 
         return;
     }
@@ -539,13 +552,13 @@ private:
         (void) _passed;
         (void) _failed;
 
-        if (m_options.show == test_show::silent)
+        if (show(m_options) == test_show::silent)
         {
             return;
         }
 
         session_result res = m_handler.result();
-        std::string    line = m_options.format_summary;
+        std::string    line = format_summary(m_options);
 
         internal::runner_subst_helper(line, "{passed}",  to_string(res.passed));
         internal::runner_subst_helper(line, "{failed}",  to_string(res.failed));
@@ -554,7 +567,7 @@ private:
         internal::runner_subst_helper(line, "{pending}", to_string(res.pending));
         internal::runner_subst_helper(line, "{total}",   to_string(res.total));
 
-        route(line, m_options.sinks);
+        route(line, sinks(m_options));
 
         return;
     }
@@ -657,7 +670,7 @@ private:
         m_pack_buffering = false;
 
         // no path: the file sink is inactive either way
-        if (m_options.output_path.empty())
+        if (output_path(m_options).empty())
         {
             return;
         }
@@ -678,7 +691,7 @@ private:
             return;
         }
 
-        m_file.open(m_options.output_path.c_str(),
+        m_file.open(output_path(m_options).c_str(),
                     std::ios::out | std::ios::trunc);
         m_file_open = m_file.is_open();
 
@@ -717,7 +730,7 @@ private:
         byte_blob packed;
         status      s = pack_report(m_options, m_file_buffer, packed);
 
-        std::ofstream out(m_options.output_path.c_str(),
+        std::ofstream out(output_path(m_options).c_str(),
                           std::ios::out | std::ios::binary | std::ios::trunc);
 
         if (!out.is_open())
@@ -794,10 +807,10 @@ private:
 // run_tests
 //   function: construct a default runner, run _nodes, return the exit code.
 // The one-call entry point.
-template<typename _Iterable>
+template<typename Iterable>
 D_NODISCARD int
 run_tests(
-    _Iterable& _nodes
+    Iterable& _nodes
 )
 {
     test_runner runner;
@@ -808,10 +821,10 @@ run_tests(
 
 // run_tests
 //   function: run _nodes under an explicit option set; return the exit code.
-template<typename _Iterable>
+template<typename Iterable>
 D_NODISCARD int
 run_tests(
-    _Iterable&      _nodes,
+    Iterable&      _nodes,
     test_option_set _options
 )
 {
@@ -825,5 +838,7 @@ run_tests(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_RUNNER_
+
+#endif  // DJINTERP_TEST_TEST_RUNNER_HPP

@@ -4,20 +4,18 @@
 * djinterp compiler detection and preprocessor limits.
 *   Compiler identification and version (the D_ENV_COMPILER_* interface),
 * __VA_OPT__ availability, and the preprocessor translation-limit interface
-* (D_ENV_PP_*). The limits block consults the D_ENV_PLATFORM_* flags from the
-* OS section, so this header must be included after env_os.h, which the
-* umbrella env.h arranges. Compiler identity itself is independent of
-* architecture and OS, and must precede env_c_lib.h.
-*   Requires cfg_env.h, env_lang.h (for D_ENV_LANG_*), and env_os.h (for
-* D_ENV_PLATFORM_WINDOWS, used by the limits block). This header is an
-* internal component of env.h and is #included by it; do not #include it
-* directly.
+* (D_ENV_PP_*). Compiler identity is independent of architecture and OS; the
+* limits block consults the OS section's D_ENV_PLATFORM_WINDOWS.
+*   It includes its own configuration, cfg_env_compiler.h, and the two sections
+* it reads, env_lang.h (D_ENV_LANG_*) and env_os.h (D_ENV_PLATFORM_WINDOWS), so
+* it gives the same answers whether a unit includes it directly or through
+* env.h.
 *
 *
 * path:      /inc/djinterp/env/env_compiler.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 /*
@@ -47,7 +45,9 @@ TABLE OF CONTENTS
          1.  D_ENV_COMPILER_HAS_RESTRICT_EXTENSION
 2.  PREPROCESSOR FEATURES
     ---------------------
-    1.  __VA_OPT__
+    1.  Variadic macros
+         1.  D_ENV_PP_HAS_VARIADIC_MACROS
+    2.  __VA_OPT__
          1.  D_ENV_PP_HAS_VA_OPT
          2.  D_ENV_PP_HAS_VA_OPT_ENABLED
 3.  PREPROCESSOR LIMITS
@@ -85,6 +85,11 @@ TABLE OF CONTENTS
 #ifndef DJINTERP_ENV_ENV_COMPILER_H
 #define DJINTERP_ENV_ENV_COMPILER_H 1
 
+// djinterp
+#include "../config/core/env/cfg_env_compiler.h"  // D_CFG_ENV_COMPILER_ENABLED
+#include "./env_lang.h"                           // D_ENV_LANG_*
+#include "./env_os.h"                             // D_ENV_PLATFORM_WINDOWS
+
 
 //==============================================================================
 // 1.  COMPILER DETECTION
@@ -93,7 +98,7 @@ TABLE OF CONTENTS
 // when detection is disabled, from the D_ENV_DETECTED_COMPILER_* overrides.
 
 
-#if D_CFG_ENV_COMPILER_ENABLED
+#if D_CFG_IS_ON(D_CFG_ENV_COMPILER_ENABLED)
 
 // 1.1    Automatic detection
 //------------------------------------------------------------------------------
@@ -364,11 +369,44 @@ TABLE OF CONTENTS
 //==============================================================================
 
 
-// 2.1    __VA_OPT__
+// 2.1    Variadic macros
 //------------------------------------------------------------------------------
 // 2.1.1
+// D_ENV_PP_HAS_VARIADIC_MACROS
+//   constant: 1 when the build may define variadic macros (`...`,
+// __VA_ARGS__), 0 otherwise. They are standard from C99 and C++11. Below
+// C++11 they are an extension every common compiler offers -- the default
+// C++98 mode, built with -Wno-variadic-macros (decision 3.6) -- unless the
+// build asks for ISO strictness (D_CFG_ENV_ISO_STRICT): ISO C++98 has none,
+// so there every variadic family is absent, never an error (decision 4.5).
+// The C floor is C99, which has them.
+//   pre-definable: 0 also simulates a build without them.
+#ifndef D_ENV_PP_HAS_VARIADIC_MACROS
+    #if ( (D_ENV_LANG_IS_CPP11_OR_HIGHER) ||                                   \
+          (D_ENV_LANG_IS_C99_OR_HIGHER) )
+        #define D_ENV_PP_HAS_VARIADIC_MACROS 1
+    #elif D_CFG_IS_ON(D_CFG_ENV_ISO_STRICT)
+        #define D_ENV_PP_HAS_VARIADIC_MACROS 0
+    #elif ( (defined(__GNUC__))         ||                                     \
+            (defined(__clang__))        ||                                     \
+            (defined(_MSC_VER))         ||                                     \
+            (defined(__INTEL_COMPILER)) ||                                     \
+            (defined(__IBMCPP__))       ||                                     \
+            (defined(__SUNPRO_CC)) )
+        // before C99 and C++11: a common compiler extension
+        #define D_ENV_PP_HAS_VARIADIC_MACROS 1
+    #else
+        #define D_ENV_PP_HAS_VARIADIC_MACROS 0
+    #endif
+#endif  // D_ENV_PP_HAS_VARIADIC_MACROS
+
+// 2.2    __VA_OPT__
+//------------------------------------------------------------------------------
+// 2.2.1
 // D_ENV_PP_HAS_VA_OPT
 //   constant: 1 when __VA_OPT__ is available, 0 otherwise, decided in order:
+//     - without variadic macros (D_ENV_PP_HAS_VARIADIC_MACROS) there is no
+//       __VA_OPT__, and no probe, which would itself be variadic.
 //     - __cpp_va_opt, where a C++ compiler defines it (GCC 13 and Clang 18
 //       do not, even at C++20), answers directly.
 //     - a strict ISO mode (__STRICT_ANSI__) whose standard predates
@@ -381,7 +419,9 @@ TABLE OF CONTENTS
 //       arguments, which MSVC's traditional preprocessor otherwise passes on
 //       as one.
 #ifndef D_ENV_PP_HAS_VA_OPT
-    #if ( (defined(__cpp_va_opt)) &&                                           \
+    #if !D_ENV_PP_HAS_VARIADIC_MACROS
+        #define D_ENV_PP_HAS_VA_OPT 0
+    #elif ( (defined(__cpp_va_opt)) &&                                           \
           (__cpp_va_opt >= 201803L) )
         #define D_ENV_PP_HAS_VA_OPT 1
     #elif ( (defined(__STRICT_ANSI__)) &&                                      \
@@ -411,7 +451,7 @@ TABLE OF CONTENTS
     #endif
 #endif  // D_ENV_PP_HAS_VA_OPT
 
-// 2.1.2
+// 2.2.2
 // D_ENV_PP_HAS_VA_OPT_ENABLED
 //   macro: alias for D_ENV_PP_HAS_VA_OPT, for cleaner conditionals.
 #define D_ENV_PP_HAS_VA_OPT_ENABLED                                            \

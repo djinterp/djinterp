@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              unique_copy.hpp
 *
 * unique_copy algorithm header:
@@ -26,16 +26,17 @@
 *     conditional move dance.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/unique_copy.hpp
+* path:      /inc/re_std/algorithm/unique_copy.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_UNIQUE_COPY_
-#define DJINTERP_RE_STD_ALGORITHM_UNIQUE_COPY_ 1
+#ifndef RE_STD_ALGORITHM_UNIQUE_COPY_HPP
+#define RE_STD_ALGORITHM_UNIQUE_COPY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../iterator/iterator_traits.hpp"
 
@@ -44,16 +45,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -64,13 +58,13 @@ NS_RESTD
 //   function: copies [_first, _last) to _d_first, collapsing runs of
 // consecutive equal elements to one. Returns one past the last
 // element written. The empty-input case returns _d_first unchanged.
-template<typename _InputIt,
-         typename _OutputIt>
-D_CONSTEXPR_CPP14 _OutputIt
+template<typename InputIt,
+         typename OutputIt>
+RE_STD_CONSTEXPR_CPP14 OutputIt
 unique_copy(
-    _InputIt  _first,
-    _InputIt  _last,
-    _OutputIt _d_first
+    InputIt  _first,
+    InputIt  _last,
+    OutputIt _d_first
 )
 {
     if (_first == _last)
@@ -80,7 +74,7 @@ unique_copy(
 
     // remember the most recently written value to compare incoming
     // elements against; written-out type is the input value_type
-    typedef typename iterator_traits<_InputIt>::value_type _Value;
+    typedef typename iterator_traits<InputIt>::value_type _Value;
 
     _Value _prev = *_first;
     *_d_first    = _prev;
@@ -108,15 +102,15 @@ unique_copy(
 // unique_copy (predicate)
 //   function: as above but adjacent equality is determined by the
 // user-supplied binary predicate _pred.
-template<typename _InputIt,
-         typename _OutputIt,
-         typename _BinaryPred>
-D_CONSTEXPR_CPP14 _OutputIt
+template<typename InputIt,
+         typename OutputIt,
+         typename BinaryPred>
+RE_STD_CONSTEXPR_CPP14 OutputIt
 unique_copy(
-    _InputIt    _first,
-    _InputIt    _last,
-    _OutputIt   _d_first,
-    _BinaryPred _pred
+    InputIt    _first,
+    InputIt    _last,
+    OutputIt   _d_first,
+    BinaryPred _pred
 )
 {
     if (_first == _last)
@@ -124,7 +118,7 @@ unique_copy(
         return _d_first;
     }
 
-    typedef typename iterator_traits<_InputIt>::value_type _Value;
+    typedef typename iterator_traits<InputIt>::value_type _Value;
 
     _Value _prev = *_first;
     *_d_first    = _prev;
@@ -145,7 +139,7 @@ unique_copy(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_UNIQUE_COPY_
+#endif  // RE_STD_ALGORITHM_UNIQUE_COPY_HPP

@@ -7,14 +7,14 @@
 * path:      /src/djinterp/parse/program.c
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
+*                                                          revised: 2026.09.30
 ******************************************************************************/
-#include "../../../inc/djinterp/parse/program.h"  // corresponding header
+#include "../../../inc/djinterp/parse/c/program.h"  // corresponding header
 // std
 #include <stdio.h>   // printf, snprintf
 #include <string.h>  // memset, memcpy
 // djinterp
-#include "../../../inc/djinterp/parse/storage.h"  // d_parse_grow, the shared
+#include "../../../inc/djinterp/parse/c/storage.h"  // d_parse_grow, the shared
                                                   // growth policy
 #if (D_INTERNAL_PARSE_PROGRAM_HEAP == 1)
 #include <stdlib.h>  // malloc, free

@@ -6,15 +6,15 @@
 * macros, OS detection, and the legacy D_ENV_PLATFORM_* backward-compatibility
 * flags. This is the core OS layer; the per-OS feature headers (env_linux.h,
 * env_windows.h, env_apple.h, env_bsd.h, env_ios.h) build on top of it.
-*   Requires cfg_env.h and the architecture section (for the platform-flag
-* derivation). This header is an internal component of env.h and is #included
-* by it; do not #include it directly.
+*   It includes its own configuration, cfg_env_os.h, and reads no other env
+* section, so it gives the same answers whether a unit includes it directly or
+* through env.h.
 *
 *
 * path:      /inc/djinterp/env/env_os.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.09.30
 *******************************************************************************/
 
 /*
@@ -143,6 +143,9 @@ TABLE OF CONTENTS
 
 #ifndef DJINTERP_ENV_ENV_OS_H
 #define DJINTERP_ENV_ENV_OS_H 1
+
+// djinterp
+#include "../config/core/env/cfg_env_os.h"  // D_CFG_ENV_OS_ENABLED
 
 
 //==============================================================================
@@ -576,7 +579,7 @@ TABLE OF CONTENTS
 // detection is disabled, from the D_ENV_DETECTED_OS_* overrides.
 
 
-#if D_CFG_ENV_OS_ENABLED
+#if D_CFG_IS_ON(D_CFG_ENV_OS_ENABLED)
 
 // 3.1    Automatic detection
 //------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                     duration_common_type.hpp
 *
 * the common_type specialisation for two durations:
@@ -30,69 +30,72 @@
 * rather than reimplemented, and it is why <ratio> had to ship first.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/duration_common_type.hpp
+* path:      /inc/re_std/chrono/duration_common_type.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_DURATION_COMMON_TYPE_
-#define DJINTERP_RE_STD_CHRONO_DURATION_COMMON_TYPE_ 1
+#ifndef RE_STD_CHRONO_DURATION_COMMON_TYPE_HPP
+#define RE_STD_CHRONO_DURATION_COMMON_TYPE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "../ratio/ratio.hpp"
 #include "../type_traits/common_type.hpp"
 #include "../cstdint/cstdint.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
-NS_INTERNAL
+namespace internal
+{
 
     // duration_common_ratio
-    //   trait: the finest period that represents both _R1 and _R2
+    //   trait: the finest period that represents both R1 and R2
     // exactly -- gcd of the numerators over lcm of the denominators.
-    template<typename _R1,
-             typename _R2>
+    template<typename R1,
+             typename R2>
     struct duration_common_ratio
     {
     private:
-        static const std::intmax_t s_gcd_num =
-            ratio_gcd< ratio_abs<_R1::num>::value,
-                       ratio_abs<_R2::num>::value >::value;
+        static const intmax_t s_gcd_num =
+            ratio_gcd< ratio_abs<R1::num>::value,
+                       ratio_abs<R2::num>::value >::value;
 
-        static const std::intmax_t s_gcd_den =
-            ratio_gcd<_R1::den, _R2::den>::value;
+        static const intmax_t s_gcd_den =
+            ratio_gcd<R1::den, R2::den>::value;
 
     public:
         // Divide before multiplying -- see the header comment.
-        typedef ratio<s_gcd_num, (_R1::den / s_gcd_den) * _R2::den> type;
+        typedef ratio<s_gcd_num, (R1::den / s_gcd_den) * R2::den> type;
     };
 
-NS_END  // internal
+}  // internal
 
 
     // common_type< chrono::duration, chrono::duration >
     //   trait: specialisation. The common representation is the reps'
     // common type; the common period is the finest of the two.
-    template<typename _Rep1,
-             typename _Period1,
-             typename _Rep2,
-             typename _Period2>
-    struct common_type< chrono::duration<_Rep1, _Period1>,
-                        chrono::duration<_Rep2, _Period2> >
+    template<typename Rep1,
+             typename Period1,
+             typename Rep2,
+             typename Period2>
+    struct common_type< chrono::duration<Rep1, Period1>,
+                        chrono::duration<Rep2, Period2> >
     {
         typedef chrono::duration<
-                    typename common_type<_Rep1, _Rep2>::type,
+                    typename common_type<Rep1, Rep2>::type,
                     typename internal::duration_common_ratio<
-                        typename _Period1::type,
-                        typename _Period2::type >::type
+                        typename Period1::type,
+                        typename Period2::type >::type
                 > type;
     };
 
@@ -102,19 +105,19 @@ NS_END  // internal
     // with an UNREDUCED period, so common_type<duration<int, ratio<2,4> > >
     // and duration<int, ratio<1,2> > would not agree. Normalising here
     // keeps the unary and binary forms consistent.
-    template<typename _Rep,
-             typename _Period>
-    struct common_type< chrono::duration<_Rep, _Period> >
+    template<typename Rep,
+             typename Period>
+    struct common_type< chrono::duration<Rep, Period> >
     {
         typedef chrono::duration<
-                    typename common_type<_Rep>::type,
-                    typename _Period::type > type;
+                    typename common_type<Rep>::type,
+                    typename Period::type > type;
     };
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_DURATION_COMMON_TYPE_
+#endif  // RE_STD_CHRONO_DURATION_COMMON_TYPE_HPP

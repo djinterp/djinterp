@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                                map.hpp
+/*******************************************************************************
+* djinterp [core]                                                        map.hpp
 *
 * Map overlay module for djinterp containers.
 *   Defines the compile-time traits, strategy dispatch, vocabulary types,
@@ -57,43 +57,78 @@
 *   container_compare_traits.hpp       -- element compatibility
 *   container_conversion_traits.hpp    -- conversion tier
 *
-* TABLE OF CONTENTS
-* =================
-* I.      Namespace and Keywords
-* II.     Vocabulary Types                  (djinterp::container::map)
-* III.    Map Overlay Strategy Enum         (djinterp::container::traits)
-* IV.     Backing Requirement Traits        (djinterp::container::traits)
-* V.      Element Compatibility Traits      (djinterp::container::traits)
-* VI.     Strategy Deduction                (djinterp::container::traits)
-* VII.    Combined Classification           (djinterp::container::traits)
-* VIII.   Zero-Overhead Validation          (djinterp::container::traits)
-* IX.     C++20 Concepts                    (djinterp::container::traits)
-* X.      Map Overlay CRTP Base             (djinterp::container::map)
-* XI.     Key-Projected Iterators           (djinterp::container::map)
-* XII.    Value-Projected Iterators         (djinterp::container::map)
-* XIII.   Factory Functions                 (djinterp::container::map)
 *
-*
-* path:      /inc/container/map.hpp
+* path:      /inc/djinterp/core/container/map/map.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_MAP_
-#define DJINTERP_MAP_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    Namespace and Keywords
+      ----------------------
 
+II.   Vocabulary Types                  (djinterp::container::map)
+      ------------------------------------------------------------
+
+III.  Map Overlay Strategy Enum         (djinterp::container::traits)
+      ---------------------------------------------------------------
+
+IV.   Backing Requirement Traits        (djinterp::container::traits)
+      ---------------------------------------------------------------
+
+V.    Element Compatibility Traits      (djinterp::container::traits)
+      ---------------------------------------------------------------
+
+VI.   Strategy Deduction                (djinterp::container::traits)
+      ---------------------------------------------------------------
+
+VII.  Combined Classification           (djinterp::container::traits)
+      ---------------------------------------------------------------
+
+VIII. Zero-Overhead Validation          (djinterp::container::traits)
+      ---------------------------------------------------------------
+
+IX.   C++20 Concepts                    (djinterp::container::traits)
+      ---------------------------------------------------------------
+
+X.    Map Overlay CRTP Base             (djinterp::container::map)
+      ------------------------------------------------------------
+
+XI.   Key-Projected Iterators           (djinterp::container::map)
+      ------------------------------------------------------------
+
+XII.  Value-Projected Iterators         (djinterp::container::map)
+      ------------------------------------------------------------
+
+XIII. Factory Functions                 (djinterp::container::map)
+      ------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_CONTAINER_MAP_MAP_HPP
+#define DJINTERP_CONTAINER_MAP_MAP_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <iterator>
 #include <type_traits>
 #include <utility>
-#include "../djinterp.hpp"
-#include "../type_traits.hpp"
-#include "./meta/container_traits.hpp"
-#include "./meta/container_compare_traits.hpp"
-#include "./meta/container_conversion_traits.hpp"
-#include "./meta/iterator_traits.hpp"
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "../traits/container_traits.hpp"
+#include "../traits/container_conversion_traits.hpp"
+#include "../iterator/iterator_traits.hpp"
 
 
 NS_DJINTERP
@@ -126,19 +161,18 @@ NS_MAP
 
 // map_entry
 //   type: canonical key-value pair stored in a map overlay.
-template<typename _Key,
-         typename _Value>
-using map_entry = std::pair<const _Key, _Value>;
+template<typename Key,
+         typename Value>
+using map_entry = std::pair<const Key, Value>;
 
 // map_result
 //   struct: result of a lookup or insertion operation.
-// Holds an iterator to the element and a boolean indicating
-// whether insertion took place (true) or the key already
-// existed (false).
-template<typename _Iterator>
+// Holds an iterator to the element and a boolean indicating whether insertion
+// took place (true) or the key already existed (false).
+template<typename Iterator>
 struct map_result
 {
-    _Iterator iterator;
+    Iterator iterator;
     bool      inserted;
 };
 
@@ -152,32 +186,27 @@ NS_END  // map
 NS_TRAITS
 
 // DMapOverlayStrategy
-//   enum: classifies how the overlay enforces map semantics
-// over the backing container.  Strategy selection is fully
-// constexpr.
+//   enum: classifies how the overlay enforces map semantics over the backing
+// container. Strategy selection is fully constexpr.
 enum class DMapOverlayStrategy
 {
-    // backing already provides full map semantics
-    // (key_type, mapped_type, find-by-key, unique insert).
-    // overlay is zero-cost: pure forwarding.
+    // backing already provides full map semantics (key_type, mapped_type,
+    // find-by-key, unique insert). overlay is zero-cost: pure forwarding.
     identity = 0,
 
-    // backing is contiguous + random-access + sorted.
-    // binary-search lookup, shift-based insert/erase.
-    // O(log n) lookup, O(n) insert/erase amortized.
+    // backing is contiguous + random-access + sorted. binary-search lookup,
+    // shift-based insert/erase. O(log n) lookup, O(n) insert/erase amortized.
     sorted_flat = 1,
 
-    // backing is node-based + sorted (tree, skip-list).
-    // logarithmic lookup via the backing's own ordering.
-    // O(log n) lookup, O(log n) insert/erase.
+    // backing is node-based + sorted (tree, skip-list). logarithmic lookup via
+    // the backing's own ordering. O(log n) lookup, O(log n) insert/erase.
     sorted_node = 2,
 
-    // backing provides hash-based lookup natively.
-    // O(1) amortized lookup, insert, erase.
+    // backing provides hash-based lookup natively. O(1) amortized lookup,
+    // insert, erase.
     hashed = 3,
 
-    // fallback: no acceleration structure.
-    // O(n) key search on every operation.
+    // fallback: no acceleration structure. O(n) key search on every operation.
     linear_scan = 4
 };
 
@@ -194,140 +223,149 @@ enum class DMapOverlayStrategy
 // --- element pair detection ---
 
 // has_pair_element
-//   trait: true if the container's value_type is a
-// std::pair instantiation.
+//   trait: true if the container's value_type is a std::pair instantiation.
 NS_INTERNAL
 
-    template<typename _Type>
+    template<typename Type>
     struct is_pair_type : std::false_type
     {};
 
-    template<typename _A,
-             typename _B>
-    struct is_pair_type<std::pair<_A, _B>> : std::true_type
+    template<typename A,
+             typename B>
+    struct is_pair_type<std::pair<A, B>> : std::true_type
     {};
 
 NS_END  // internal
 
-template<typename _Container,
+template<typename Container,
          typename = void>
 struct has_pair_element : std::false_type
 {};
 
-template<typename _Container>
-struct has_pair_element<_Container,
+// has_pair_element<Container, std::enable_if_t<
+// has_value_type_v<clean_t<Container>> && internal::is_pair_type< typename
+// clean_t< Container>
+//   trait: the `std::enable_if_t< has_value_type_v<clean_t<Container>> &&
+// internal::is_pair_type< typename clean_t< Container` case; it reports true.
+template<typename Container>
+struct has_pair_element<Container,
     std::enable_if_t<
-        has_value_type_v<clean_t<_Container>>  &&
+        has_value_type_v<clean_t<Container>>  &&
         internal::is_pair_type<
             typename clean_t<
-                _Container>::value_type>::value
+                Container>::value_type>::value
     >> : std::true_type
 {};
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool has_pair_element_v =
-    has_pair_element<_Container>::value;
+    has_pair_element<Container>::value;
 
 // --- key/value extraction from pair elements ---
 
 // pair_key_type_of
-//   trait: extracts the key type (first) from a container
-// whose value_type is a std::pair.  Yields void otherwise.
+//   trait: extracts the key type (first) from a container whose value_type is
+// a std::pair. Yields void otherwise.
 NS_INTERNAL
 
-    template<typename _Container,
+    template<typename Container,
              typename = void>
     struct pair_key_type_of_helper
     {
         using type = void;
     };
 
-    template<typename _Container>
-    struct pair_key_type_of_helper<_Container,
+    template<typename Container>
+    struct pair_key_type_of_helper<Container,
         std::enable_if_t<
-            has_pair_element_v<_Container>>>
+            has_pair_element_v<Container>>>
     {
         using type = typename clean_t<
-            _Container>::value_type::first_type;
+            Container>::value_type::first_type;
     };
 
 NS_END  // internal
 
-template<typename _Container>
+template<typename Container>
 struct pair_key_type_of
 {
     using type =
         typename internal::pair_key_type_of_helper<
-            clean_t<_Container>>::type;
+            clean_t<Container>>::type;
 };
 
-template<typename _Container>
+// pair_key_type_of_t
+//   type: the carrier of pair_key_type_of -- its `::type`, for use where a
+// type rather than a value is wanted.
+template<typename Container>
 using pair_key_type_of_t =
-    typename pair_key_type_of<_Container>::type;
+    typename pair_key_type_of<Container>::type;
 
 // pair_mapped_type_of
-//   trait: extracts the mapped type (second) from a container
-// whose value_type is a std::pair.  Yields void otherwise.
+//   trait: extracts the mapped type (second) from a container whose value_type
+// is a std::pair. Yields void otherwise.
 NS_INTERNAL
 
-    template<typename _Container,
+    template<typename Container,
              typename = void>
     struct pair_mapped_type_of_helper
     {
         using type = void;
     };
 
-    template<typename _Container>
-    struct pair_mapped_type_of_helper<_Container,
+    template<typename Container>
+    struct pair_mapped_type_of_helper<Container,
         std::enable_if_t<
-            has_pair_element_v<_Container>>>
+            has_pair_element_v<Container>>>
     {
         using type = typename clean_t<
-            _Container>::value_type::second_type;
+            Container>::value_type::second_type;
     };
 
 NS_END  // internal
 
-template<typename _Container>
+template<typename Container>
 struct pair_mapped_type_of
 {
     using type =
         typename internal::pair_mapped_type_of_helper<
-            clean_t<_Container>>::type;
+            clean_t<Container>>::type;
 };
 
-template<typename _Container>
+// pair_mapped_type_of_t
+//   type: the carrier of pair_mapped_type_of -- its `::type`, for use where a
+// type rather than a value is wanted.
+template<typename Container>
 using pair_mapped_type_of_t =
-    typename pair_mapped_type_of<_Container>::type;
+    typename pair_mapped_type_of<Container>::type;
 
 
 // --- backing requirement compounds ---
 
 // is_map_backing_iterable
-//   trait: true if the container is iterable and exposes a
-// value_type.  Minimum bar for read-only map overlay.
-template<typename _Container>
+//   trait: true if the container is iterable and exposes a value_type. Minimum
+// bar for read-only map overlay.
+template<typename Container>
 struct is_map_backing_iterable
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr bool value =
         ( is_iterable_container_v<C> &&
           has_value_type_v<C> );
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool is_map_backing_iterable_v =
-    is_map_backing_iterable<_Container>::value;
+    is_map_backing_iterable<Container>::value;
 
 // is_map_backing_writable
-//   trait: true if the container supports insertion and
-// erasure in addition to iteration.  Required for a mutable
-// map overlay.
-template<typename _Container>
+//   trait: true if the container supports insertion and erasure in addition to
+// iteration. Required for a mutable map overlay.
+template<typename Container>
 struct is_map_backing_writable
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr bool value =
         ( is_map_backing_iterable_v<C> &&
@@ -336,27 +374,27 @@ struct is_map_backing_writable
           has_erase_v<C> );
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool is_map_backing_writable_v =
-    is_map_backing_writable<_Container>::value;
+    is_map_backing_writable<Container>::value;
 
 // is_map_backing_compatible
-//   trait: true if the container's elements are pair-typed
-// AND the container is writable.  Full compatibility for
-// a mutable map overlay without element conversion.
-template<typename _Container>
+//   trait: true if the container's elements are pair-typed AND the container
+// is writable. Full compatibility for a mutable map overlay without element
+// conversion.
+template<typename Container>
 struct is_map_backing_compatible
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr bool value =
         ( is_map_backing_writable_v<C> &&
           has_pair_element_v<C> );
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool is_map_backing_compatible_v =
-    is_map_backing_compatible<_Container>::value;
+    is_map_backing_compatible<Container>::value;
 
 
 // =============================================================================
@@ -366,76 +404,76 @@ inline constexpr bool is_map_backing_compatible_v =
 // are compatible with a specific Key and Value type.
 
 // has_compatible_map_key
-//   trait: true if the backing container's pair first_type
-// is the same as or convertible to _Key.
-template<typename _Container,
-         typename _Key>
+//   trait: true if the backing container's pair first_type is the same as or
+// convertible to Key.
+template<typename Container,
+         typename Key>
 struct has_compatible_map_key
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr bool value =
         ( has_pair_element_v<C> &&
           ( std::is_same_v<
                 pair_key_type_of_t<C>,
-                const _Key>            ||
+                const Key>            ||
             std::is_same_v<
                 std::remove_const_t<
                     pair_key_type_of_t<C>>,
-                _Key>                  ||
+                Key>                  ||
             std::is_convertible_v<
                 pair_key_type_of_t<C>,
-                _Key> ) );
+                Key> ) );
 };
 
-template<typename _Container,
-         typename _Key>
+template<typename Container,
+         typename Key>
 inline constexpr bool has_compatible_map_key_v =
-    has_compatible_map_key<_Container, _Key>::value;
+    has_compatible_map_key<Container, Key>::value;
 
 // has_compatible_map_value
-//   trait: true if the backing container's pair second_type
-// is the same as or convertible to _Value.
-template<typename _Container,
-         typename _Value>
+//   trait: true if the backing container's pair second_type is the same as or
+// convertible to Value.
+template<typename Container,
+         typename Value>
 struct has_compatible_map_value
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr bool value =
         ( has_pair_element_v<C> &&
           ( std::is_same_v<
                 pair_mapped_type_of_t<C>,
-                _Value>                ||
+                Value>                ||
             std::is_convertible_v<
                 pair_mapped_type_of_t<C>,
-                _Value> ) );
+                Value> ) );
 };
 
-template<typename _Container,
-         typename _Value>
+template<typename Container,
+         typename Value>
 inline constexpr bool has_compatible_map_value_v =
-    has_compatible_map_value<_Container, _Value>::value;
+    has_compatible_map_value<Container, Value>::value;
 
 // has_compatible_map_entry
-//   trait: true if the backing container's pair element is
-// compatible with map_entry<_Key, _Value>.
-template<typename _Container,
-         typename _Key,
-         typename _Value>
+//   trait: true if the backing container's pair element is compatible with
+// map_entry<Key, Value>.
+template<typename Container,
+         typename Key,
+         typename Value>
 struct has_compatible_map_entry
 {
     static constexpr bool value =
-        ( has_compatible_map_key_v<_Container, _Key>   &&
-          has_compatible_map_value_v<_Container, _Value> );
+        ( has_compatible_map_key_v<Container, Key>   &&
+          has_compatible_map_value_v<Container, Value> );
 };
 
-template<typename _Container,
-         typename _Key,
-         typename _Value>
+template<typename Container,
+         typename Key,
+         typename Value>
 inline constexpr bool has_compatible_map_entry_v =
     has_compatible_map_entry<
-        _Container, _Key, _Value>::value;
+        Container, Key, Value>::value;
 
 
 // =============================================================================
@@ -456,35 +494,40 @@ inline constexpr bool has_compatible_map_entry_v =
 // --- native map detection ---
 
 // has_native_map_find
-//   trait: true if the container has a find() that accepts
-// a key_type argument.
-template<typename _Container,
+//   trait: true if the container has a find() that accepts a key_type
+// argument.
+template<typename Container,
          typename = void>
 struct has_native_map_find : std::false_type
 {};
 
-template<typename _Container>
-struct has_native_map_find<_Container,
+// has_native_map_find<Container, std::void_t< decltype(std::declval<const
+// Container&>().find( std::declval< typename Container::key_type const&>()))
+// >>
+//   trait: the `std::void_t< decltype(std::declval<const Container&>().find(
+// std::declval< typename Container::key_type const&>())) >` case; it reports
+// true.
+template<typename Container>
+struct has_native_map_find<Container,
     std::void_t<
-        decltype(std::declval<const _Container&>().find(
+        decltype(std::declval<const Container&>().find(
             std::declval<
-                typename _Container::key_type
+                typename Container::key_type
                     const&>()))
     >> : std::true_type
 {};
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool has_native_map_find_v =
-    has_native_map_find<_Container>::value;
+    has_native_map_find<Container>::value;
 
 // has_native_map_semantics
-//   trait: true if the backing container already provides
-// full associative map semantics (key_type, mapped_type,
-// find-by-key, unique keys).
-template<typename _Container>
+//   trait: true if the backing container already provides full associative map
+// semantics (key_type, mapped_type, find-by-key, unique keys).
+template<typename Container>
 struct has_native_map_semantics
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr bool value =
         ( has_key_type_v<C>          &&
@@ -494,38 +537,38 @@ struct has_native_map_semantics
           enforces_uniqueness_v<C> );
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool has_native_map_semantics_v =
-    has_native_map_semantics<_Container>::value;
+    has_native_map_semantics<Container>::value;
 
 // --- hash infrastructure detection ---
 
 // has_map_hash_infrastructure
-//   trait: true if the container provides hash-based lookup
-// infrastructure sufficient for map overlay dispatch.
-template<typename _Container>
+//   trait: true if the container provides hash-based lookup infrastructure
+// sufficient for map overlay dispatch.
+template<typename Container>
 struct has_map_hash_infrastructure
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr bool value =
         ( has_hasher_type_v<C> &&
           has_native_map_find_v<C> );
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool has_map_hash_infrastructure_v =
-    has_map_hash_infrastructure<_Container>::value;
+    has_map_hash_infrastructure<Container>::value;
 
 // --- sorted + contiguous detection ---
 
 // has_sorted_contiguous_layout
-//   trait: true if the container is sorted, contiguous,
-// and random-access -- the flat-map pattern.
-template<typename _Container>
+//   trait: true if the container is sorted, contiguous, and random-access --
+// the flat-map pattern.
+template<typename Container>
 struct has_sorted_contiguous_layout
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr bool value =
         ( is_sorted_container_v<C>       &&
@@ -533,17 +576,17 @@ struct has_sorted_contiguous_layout
           is_random_access_iterable_v<C> );
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool has_sorted_contiguous_layout_v =
-    has_sorted_contiguous_layout<_Container>::value;
+    has_sorted_contiguous_layout<Container>::value;
 
 // has_sorted_node_layout
-//   trait: true if the container is sorted but not
-// contiguous -- tree-like or skip-list-like.
-template<typename _Container>
+//   trait: true if the container is sorted but not contiguous -- tree-like or
+// skip-list-like.
+template<typename Container>
 struct has_sorted_node_layout
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr bool value =
         ( is_sorted_container_v<C>       &&
@@ -551,20 +594,20 @@ struct has_sorted_node_layout
           is_iterable_container_v<C> );
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool has_sorted_node_layout_v =
-    has_sorted_node_layout<_Container>::value;
+    has_sorted_node_layout<Container>::value;
 
 
 // --- strategy deduction ---
 
 // map_overlay_strategy_for
-//   trait: deduces the optimal DMapOverlayStrategy for a
-// given backing container.
-template<typename _Container>
+//   trait: deduces the optimal DMapOverlayStrategy for a given backing
+// container.
+template<typename Container>
 struct map_overlay_strategy_for
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     static constexpr DMapOverlayStrategy value =
         has_native_map_semantics_v<C>
@@ -582,10 +625,10 @@ struct map_overlay_strategy_for
         : DMapOverlayStrategy::linear_scan;
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr DMapOverlayStrategy
     map_overlay_strategy_for_v =
-        map_overlay_strategy_for<_Container>::value;
+        map_overlay_strategy_for<Container>::value;
 
 
 // =============================================================================
@@ -594,14 +637,14 @@ inline constexpr DMapOverlayStrategy
 
 // map_overlay_class
 //   struct: complete compile-time classification of a
-// map overlay over a specific backing container with
-// given key and value types.
-template<typename _Container,
-         typename _Key,
-         typename _Value>
+// map overlay over a specific backing container with given key and value
+// types.
+template<typename Container,
+         typename Key,
+         typename Value>
 struct map_overlay_class
 {
-    using C = clean_t<_Container>;
+    using C = clean_t<Container>;
 
     // --- backing compatibility ---
     static constexpr bool is_iterable    =
@@ -615,11 +658,11 @@ struct map_overlay_class
     static constexpr bool has_pair       =
         has_pair_element_v<C>;
     static constexpr bool key_matches    =
-        has_compatible_map_key_v<C, _Key>;
+        has_compatible_map_key_v<C, Key>;
     static constexpr bool mapped_matches =
-        has_compatible_map_value_v<C, _Value>;
+        has_compatible_map_value_v<C, Value>;
     static constexpr bool entry_matches  =
-        has_compatible_map_entry_v<C, _Key, _Value>;
+        has_compatible_map_entry_v<C, Key, Value>;
 
     // --- native capability detection ---
     static constexpr bool has_native_find =
@@ -643,7 +686,7 @@ struct map_overlay_class
 
     // --- from underlying container_class ---
     static constexpr bool is_backed      =
-        is_backed_container_v<C>;
+        is_underlying_container_v<C>;
     static constexpr bool is_fundamental =
         is_fundamental_container_v<C>;
 };
@@ -654,38 +697,36 @@ struct map_overlay_class
 // =============================================================================
 
 // is_zero_cost_map_overlay
-//   trait: true if the map overlay adds no runtime cost
-// over the backing container -- i.e. the strategy is
-// identity.
-template<typename _Container>
+//   trait: true if the map overlay adds no runtime cost over the backing
+// container -- i.e. the strategy is identity.
+template<typename Container>
 struct is_zero_cost_map_overlay
 {
     static constexpr bool value =
         ( map_overlay_strategy_for_v<
-              clean_t<_Container>> ==
+              clean_t<Container>> ==
           DMapOverlayStrategy::identity );
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool is_zero_cost_map_overlay_v =
-    is_zero_cost_map_overlay<_Container>::value;
+    is_zero_cost_map_overlay<Container>::value;
 
 // is_efficient_map_overlay
-//   trait: true if the overlay strategy provides
-// sub-linear lookup (identity, hashed, sorted_flat,
-// or sorted_node).  False only for linear_scan.
-template<typename _Container>
+//   trait: true if the overlay strategy provides sub-linear lookup (identity,
+// hashed, sorted_flat, or sorted_node). False only for linear_scan.
+template<typename Container>
 struct is_efficient_map_overlay
 {
     static constexpr bool value =
         ( map_overlay_strategy_for_v<
-              clean_t<_Container>> !=
+              clean_t<Container>> !=
           DMapOverlayStrategy::linear_scan );
 };
 
-template<typename _Container>
+template<typename Container>
 inline constexpr bool is_efficient_map_overlay_v =
-    is_efficient_map_overlay<_Container>::value;
+    is_efficient_map_overlay<Container>::value;
 
 
 // =============================================================================
@@ -695,30 +736,30 @@ inline constexpr bool is_efficient_map_overlay_v =
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
     // map_backing
-    //   concept: constrains _C to types that satisfy the full
-    // map backing requirements for key type _K and value type _V.
-    template<typename _C,
-             typename _K,
-             typename _V>
+    //   concept: constrains C to types that satisfy the full map backing
+    // requirements for key type K and value type V.
+    template<typename C,
+             typename K,
+             typename V>
     concept map_backing =
-        is_map_backing_compatible_v<_C> &&
-        has_compatible_map_entry_v<_C, _K, _V>;
+        is_map_backing_compatible_v<C> &&
+        has_compatible_map_entry_v<C, K, V>;
 
     // efficient_map_backing
-    //   concept: constrains _C to types that provide sub-linear
-    // lookup as a map backing.
-    template<typename _C>
+    //   concept: constrains C to types that provide sub-linear lookup as a
+    // map backing.
+    template<typename C>
     concept efficient_map_backing =
-        is_map_backing_compatible_v<_C> &&
-        is_efficient_map_overlay_v<_C>;
+        is_map_backing_compatible_v<C> &&
+        is_efficient_map_overlay_v<C>;
 
     // zero_cost_map_backing
-    //   concept: constrains _C to types where the map overlay
-    // is a zero-cost abstraction.
-    template<typename _C>
+    //   concept: constrains C to types where the map overlay is a zero-cost
+    // abstraction.
+    template<typename C>
     concept zero_cost_map_backing =
-        is_map_backing_compatible_v<_C> &&
-        is_zero_cost_map_overlay_v<_C>;
+        is_map_backing_compatible_v<C> &&
+        is_zero_cost_map_overlay_v<C>;
 
 #endif  // C++20
 
@@ -729,37 +770,37 @@ NS_END  // traits
 // X.   Map Overlay CRTP Base                (djinterp::container::map)
 // =============================================================================
 // The overlay base provides the map-semantic API.  The
-// _Derived class owns the backing container and exposes it
+// Derived class owns the backing container and exposes it
 // via the CRTP hook backing().
 //
 // Template parameters:
-//   _Derived    -- the concrete map type (CRTP).
-//   _Key        -- the key type.
-//   _Value      -- the mapped value type.
-//   _Backing    -- the backing container type.
-//   _Compare    -- the key comparison function object type.
-//                   defaults to std::less<_Key>.
+//   Derived     -- the concrete map type (CRTP).
+//   Key         -- the key type.
+//   Value       -- the mapped value type.
+//   Backing     -- the backing container type.
+//   Compare     -- the key comparison function object type.
+//                   defaults to std::less<Key>.
 //
-// The _Derived type must provide:
-//   _Backing&       backing()       noexcept;
-//   const _Backing& backing() const noexcept;
+// The Derived type must provide:
+//   Backing&       backing()       noexcept;
+//   const Backing& backing() const noexcept;
 
 NS_MAP
 
-template<typename _Derived,
-         typename _Key,
-         typename _Value,
-         typename _Backing,
-         typename _Compare = std::less<_Key>>
+template<typename Derived,
+         typename Key,
+         typename Value,
+         typename Backing,
+         typename Compare = std::less<Key>>
 class map_overlay_base
 {
 private:
     using self_type    = map_overlay_base;
-    using derived_type = _Derived;
+    using derived_type = Derived;
 
     static constexpr traits::DMapOverlayStrategy
         m_strategy =
-            traits::map_overlay_strategy_for_v<_Backing>;
+            traits::map_overlay_strategy_for_v<Backing>;
 
     // --- CRTP access ---
 
@@ -779,20 +820,20 @@ private:
 public:
     // --- public type aliases ---
 
-    using key_type               = _Key;
-    using mapped_type            = _Value;
+    using key_type               = Key;
+    using mapped_type            = Value;
     using value_type             =
-        map_entry<_Key, _Value>;
-    using key_compare            = _Compare;
-    using backing_container_type = _Backing;
+        map_entry<Key, Value>;
+    using key_compare            = Compare;
+    using backing_container_type = Backing;
     using size_type              = std::size_t;
     using difference_type        = std::ptrdiff_t;
 
     using iterator =
-        decltype(std::declval<_Backing&>().begin());
+        decltype(std::declval<Backing&>().begin());
     using const_iterator =
         decltype(std::declval<
-            const _Backing&>().cbegin());
+            const Backing&>().cbegin());
 
     using insert_result = map_result<iterator>;
 
@@ -856,17 +897,16 @@ public:
     // --- lookup ---
 
     // find
-    //   returns an iterator to the entry with the given key,
-    // or end() if not found.  Dispatch is compile-time via
-    // overlay strategy.
+    //   returns an iterator to the entry with the given key, or end() if not
+    // found. Dispatch is compile-time via overlay strategy.
     constexpr const_iterator
-    find(const _Key& _key) const
+    find(const Key& _key) const
     {
         return find_impl(_key);
     }
 
     constexpr iterator
-    find(const _Key& _key)
+    find(const Key& _key)
     {
         return find_impl_mut(_key);
     }
@@ -874,7 +914,7 @@ public:
     // contains
     //   returns true if an entry with the given key exists.
     constexpr bool
-    contains(const _Key& _key) const
+    contains(const Key& _key) const
     {
         return (find(_key) != cend());
     }
@@ -882,25 +922,24 @@ public:
     // count
     //   returns 0 or 1 (map enforces uniqueness).
     constexpr size_type
-    count(const _Key& _key) const
+    count(const Key& _key) const
     {
         return contains(_key) ? 1 : 0;
     }
 
     // at
-    //   returns a reference to the mapped value for _key.
-    // precondition: _key exists in the map.
-    // undefined behavior if _key is not found.
-    constexpr const _Value&
-    at(const _Key& _key) const
+    //   returns a reference to the mapped value for _key. precondition: _key
+    // exists in the map. undefined behavior if _key is not found.
+    constexpr const Value&
+    at(const Key& _key) const
     {
         auto it = find(_key);
 
         return it->second;
     }
 
-    constexpr _Value&
-    at(const _Key& _key)
+    constexpr Value&
+    at(const Key& _key)
     {
         auto it = find(_key);
 
@@ -910,9 +949,9 @@ public:
     // --- insertion ---
 
     // insert
-    //   inserts a key-value pair if the key does not already
-    // exist.  Returns a map_result with an iterator and a
-    // boolean indicating whether insertion occurred.
+    //   inserts a key-value pair if the key does not already exist. Returns a
+    // map_result with an iterator and a boolean indicating whether insertion
+    // occurred.
     constexpr insert_result
     insert(const value_type& _entry)
     {
@@ -926,19 +965,19 @@ public:
     }
 
     // insert_or_assign
-    //   inserts a key-value pair if the key does not exist,
-    // or assigns the value if it does.
-    template<typename _V>
+    //   inserts a key-value pair if the key does not exist, or assigns the
+    // value if it does.
+    template<typename V>
     constexpr insert_result
-    insert_or_assign(const _Key& _key,
-                     _V&&        _value)
+    insert_or_assign(const Key& _key,
+                     V&&        _value)
     {
         auto it = find_impl_mut(_key);
 
         // key exists: assign
         if (it != derived().backing().end())
         {
-            it->second = std::forward<_V>(_value);
+            it->second = std::forward<V>(_value);
 
             return { it, false };
         }
@@ -946,16 +985,16 @@ public:
         // key does not exist: insert
         return insert_impl(
             value_type(_key,
-                       std::forward<_V>(_value)));
+                       std::forward<V>(_value)));
     }
 
     // --- erasure ---
 
     // erase
-    //   erases the entry with the given key.  Returns the
-    // number of entries erased (0 or 1).
+    //   erases the entry with the given key. Returns the number of entries
+    // erased (0 or 1).
     constexpr size_type
-    erase(const _Key& _key)
+    erase(const Key& _key)
     {
         auto it = find_impl_mut(_key);
 
@@ -992,7 +1031,7 @@ public:
     constexpr key_compare
     key_comp() const
     {
-        return _Compare{};
+        return Compare{};
     }
 
 protected:
@@ -1018,7 +1057,7 @@ private:
     // is compiled.
 
     constexpr const_iterator
-    find_impl(const _Key& _key) const
+    find_impl(const Key& _key) const
     {
         // identity: delegate to the backing's native find
         if constexpr (
@@ -1061,7 +1100,7 @@ private:
     }
 
     constexpr iterator
-    find_impl_mut(const _Key& _key)
+    find_impl_mut(const Key& _key)
     {
         // identity or hashed: delegate to native find
         if constexpr (
@@ -1100,18 +1139,18 @@ private:
 
     // --- sorted find (lower_bound + key match) ---
 
-    template<typename _Iter>
-    static constexpr _Iter
-    sorted_find(_Iter       _begin,
-                _Iter       _end,
-                const _Key& _key)
+    template<typename Iter>
+    static constexpr Iter
+    sorted_find(Iter        _begin,
+                Iter        _end,
+                const Key& _key)
     {
-        _Compare comp{};
+        Compare comp{};
 
         auto it = std::lower_bound(
             _begin, _end, _key,
             [&comp](const auto& _entry,
-                    const _Key& _k)
+                    const Key& _k)
             {
                 return comp(_entry.first, _k);
             });
@@ -1128,13 +1167,13 @@ private:
 
     // --- linear find ---
 
-    template<typename _Iter>
-    static constexpr _Iter
-    linear_find(_Iter       _begin,
-                _Iter       _end,
-                const _Key& _key)
+    template<typename Iter>
+    static constexpr Iter
+    linear_find(Iter        _begin,
+                Iter        _end,
+                const Key& _key)
     {
-        _Compare comp{};
+        Compare comp{};
 
         for (auto it = _begin; it != _end; ++it)
         {
@@ -1154,9 +1193,9 @@ private:
     // insertion dispatch (private)
     // -----------------------------------------------------------------
 
-    template<typename _Entry>
+    template<typename Entry>
     constexpr insert_result
-    insert_impl(_Entry&& _entry)
+    insert_impl(Entry&& _entry)
     {
         // identity or hashed: delegate to the backing
         if constexpr (
@@ -1167,7 +1206,7 @@ private:
                 traits::DMapOverlayStrategy::hashed)
         {
             auto result = derived().backing().insert(
-                std::forward<_Entry>(_entry));
+                std::forward<Entry>(_entry));
 
             return { result.first, result.second };
         }
@@ -1182,29 +1221,29 @@ private:
                 traits::DMapOverlayStrategy::sorted_node)
         {
             return sorted_insert(
-                std::forward<_Entry>(_entry));
+                std::forward<Entry>(_entry));
         }
 
         // linear_scan: check for duplicate, append
         else
         {
             return linear_insert(
-                std::forward<_Entry>(_entry));
+                std::forward<Entry>(_entry));
         }
     }
 
-    template<typename _Entry>
+    template<typename Entry>
     constexpr insert_result
-    sorted_insert(_Entry&& _entry)
+    sorted_insert(Entry&& _entry)
     {
-        _Compare comp{};
+        Compare comp{};
 
         auto it = std::lower_bound(
             derived().backing().begin(),
             derived().backing().end(),
             _entry.first,
             [&comp](const auto& _existing,
-                    const _Key& _k)
+                    const Key& _k)
             {
                 return comp(_existing.first, _k);
             });
@@ -1218,14 +1257,14 @@ private:
 
         // insert at sorted position
         auto pos = derived().backing().insert(
-            it, std::forward<_Entry>(_entry));
+            it, std::forward<Entry>(_entry));
 
         return { pos, true };
     }
 
-    template<typename _Entry>
+    template<typename Entry>
     constexpr insert_result
-    linear_insert(_Entry&& _entry)
+    linear_insert(Entry&& _entry)
     {
         // check for duplicate via linear scan
         auto it = linear_find(
@@ -1240,10 +1279,10 @@ private:
 
         // append to end
         if constexpr (
-            traits::has_push_back_v<_Backing>)
+            has_push_back_v<Backing>)
         {
             derived().backing().push_back(
-                std::forward<_Entry>(_entry));
+                std::forward<Entry>(_entry));
 
             auto last = derived().backing().end();
             --last;
@@ -1254,7 +1293,7 @@ private:
         {
             auto pos = derived().backing().insert(
                 derived().backing().end(),
-                std::forward<_Entry>(_entry));
+                std::forward<Entry>(_entry));
 
             return { pos, true };
         }
@@ -1268,12 +1307,12 @@ private:
 // Wraps an iterator over map_entry elements and yields only
 // the key (first) on dereference.
 
-template<typename _Iterator>
+template<typename Iterator>
 class key_iterator
 {
 public:
     using base_traits      =
-        std::iterator_traits<_Iterator>;
+        std::iterator_traits<Iterator>;
     using difference_type  =
         typename base_traits::difference_type;
     using value_type       =
@@ -1289,7 +1328,7 @@ public:
     constexpr key_iterator() = default;
 
     constexpr explicit
-    key_iterator(_Iterator _it) : m_it(_it)
+    key_iterator(Iterator _it) : m_it(_it)
     {}
 
     constexpr reference
@@ -1338,7 +1377,7 @@ public:
         return tmp;
     }
 
-    constexpr _Iterator
+    constexpr Iterator
     base() const
     {
         return m_it;
@@ -1359,7 +1398,7 @@ public:
     }
 
 private:
-    _Iterator m_it;
+    Iterator m_it;
 };
 
 
@@ -1369,12 +1408,12 @@ private:
 // Wraps an iterator over map_entry elements and yields only
 // the mapped value (second) on dereference.
 
-template<typename _Iterator>
+template<typename Iterator>
 class value_iterator
 {
 public:
     using base_traits      =
-        std::iterator_traits<_Iterator>;
+        std::iterator_traits<Iterator>;
     using difference_type  =
         typename base_traits::difference_type;
     using value_type       =
@@ -1388,7 +1427,7 @@ public:
     constexpr value_iterator() = default;
 
     constexpr explicit
-    value_iterator(_Iterator _it) : m_it(_it)
+    value_iterator(Iterator _it) : m_it(_it)
     {}
 
     constexpr reference
@@ -1437,7 +1476,7 @@ public:
         return tmp;
     }
 
-    constexpr _Iterator
+    constexpr Iterator
     base() const
     {
         return m_it;
@@ -1458,7 +1497,7 @@ public:
     }
 
 private:
-    _Iterator m_it;
+    Iterator m_it;
 };
 
 
@@ -1467,19 +1506,19 @@ private:
 // =============================================================================
 
 // make_key_iterator
-template<typename _Iterator>
-constexpr key_iterator<_Iterator>
-make_key_iterator(_Iterator _it)
+template<typename Iterator>
+constexpr key_iterator<Iterator>
+make_key_iterator(Iterator _it)
 {
-    return key_iterator<_Iterator>(_it);
+    return key_iterator<Iterator>(_it);
 }
 
 // make_value_iterator
-template<typename _Iterator>
-constexpr value_iterator<_Iterator>
-make_value_iterator(_Iterator _it)
+template<typename Iterator>
+constexpr value_iterator<Iterator>
+make_value_iterator(Iterator _it)
 {
-    return value_iterator<_Iterator>(_it);
+    return value_iterator<Iterator>(_it);
 }
 
 
@@ -1487,5 +1526,6 @@ NS_END  // map
 NS_END  // container
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_MAP_
+#endif  // DJINTERP_CONTAINER_MAP_MAP_HPP

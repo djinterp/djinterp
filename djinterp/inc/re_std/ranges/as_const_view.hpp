@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                          as_const_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            as_const_view.hpp
 *
 * as_const_view header:
 *   Provides the C++23 const-projection adaptor. as_const_view<V>
@@ -25,17 +25,19 @@
 *   re_std::views::as_const(r).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/as_const_view.hpp
+* path:      /inc/re_std/ranges/as_const_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_AS_CONST_VIEW_
-#define DJINTERP_RE_STD_RANGES_AS_CONST_VIEW_ 1
+#ifndef RE_STD_RANGES_AS_CONST_VIEW_HPP
+#define RE_STD_RANGES_AS_CONST_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../iterator/basic_const_iterator.hpp"
 #include "./view_interface.hpp"
@@ -46,47 +48,48 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   AS_CONST_VIEW
 // ===========================================================================
 
-// as_const_view<_View>
-//   class: lazy const-projection of _View. begin yields a
+// as_const_view<View>
+//   class: lazy const-projection of View. begin yields a
 // basic_const_iterator wrapping the underlying iterator; end yields
 // the underlying sentinel unchanged (it cross-compares correctly).
-template<typename _View>
-class as_const_view : public view_interface<as_const_view<_View> >
+template<typename View>
+class as_const_view : public view_interface<as_const_view<View> >
 {
 public:
-    typedef _View                                           base_view;
-    typedef basic_const_iterator<iterator_t<_View> >        iterator;
-    typedef sentinel_t<_View>                               sentinel;
+    typedef View                                           base_view;
+    typedef basic_const_iterator<iterator_t<View> >        iterator;
+    typedef sentinel_t<View>                               sentinel;
 
 
 private:
-    _View   m_base;
+    View   m_base;
 
 
 public:
     // -------- ctors --------
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     as_const_view()
         : m_base()
     {}
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     as_const_view(
-        _View  _base
+        View  _base
     )
-        : m_base(static_cast<_View&&>(_base))
+        : m_base(static_cast<View&&>(_base))
     {}
 
 
     // -------- base accessor --------
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
@@ -99,25 +102,25 @@ public:
     // directly. The cross-type == / != on basic_const_iterator
     // makes this work whether or not the underlying view is a
     // common_range.
-    D_CONSTEXPR_CPP14 iterator
+    RE_STD_CONSTEXPR_CPP14 iterator
     begin()
     {
         return iterator(re_std::begin(m_base));
     }
 
-    D_CONSTEXPR iterator
+    RE_STD_CONSTEXPR iterator
     begin() const
     {
         return iterator(re_std::begin(m_base));
     }
 
-    D_CONSTEXPR_CPP14 sentinel
+    RE_STD_CONSTEXPR_CPP14 sentinel
     end()
     {
         return re_std::end(m_base);
     }
 
-    D_CONSTEXPR sentinel
+    RE_STD_CONSTEXPR sentinel
     end() const
     {
         return re_std::end(m_base);
@@ -125,7 +128,7 @@ public:
 
 
     // -------- size --------
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     auto
     size()
         -> decltype(re_std::size(m_base))
@@ -133,7 +136,7 @@ public:
         return re_std::size(m_base);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     size() const
         -> decltype(re_std::size(m_base))
@@ -147,9 +150,9 @@ public:
 // II.  ENABLE_BORROWED_RANGE OPT-IN
 // ===========================================================================
 
-template<typename _View>
-struct enable_borrowed_range<as_const_view<_View> >
-    : enable_borrowed_range<_View>
+template<typename View>
+struct enable_borrowed_range<as_const_view<View> >
+    : enable_borrowed_range<View>
 {};
 
 
@@ -161,32 +164,32 @@ namespace views
 {
     struct as_const_fn : range_adaptor_closure<as_const_fn>
     {
-        template<typename _R>
-        D_CONSTEXPR_INLINE
-        as_const_view<typename internal::all_dispatch<_R>::type>
+        template<typename R>
+        RE_STD_CONSTEXPR_INLINE
+        as_const_view<typename internal::all_dispatch<R>::type>
         operator()(
-            _R&&  _r
+            R&&  _r
         ) const
         {
-            typedef typename internal::all_dispatch<_R>::type view_type;
+            typedef typename internal::all_dispatch<R>::type view_type;
             return as_const_view<view_type>(
-                internal::all_dispatch<_R>::call(static_cast<_R&&>(_r))
+                internal::all_dispatch<R>::call(static_cast<R&&>(_r))
             );
         }
     };
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    inline D_CONSTEXPR as_const_fn as_const = as_const_fn();
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+    inline RE_STD_CONSTEXPR as_const_fn as_const = as_const_fn();
 #else
-    static D_CONSTEXPR as_const_fn as_const = as_const_fn();
+    static RE_STD_CONSTEXPR as_const_fn as_const = as_const_fn();
 #endif
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_AS_CONST_VIEW_
+#endif  // RE_STD_RANGES_AS_CONST_VIEW_HPP

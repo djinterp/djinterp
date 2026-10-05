@@ -10,7 +10,7 @@
 * path:      /inc/djinterp/net/ftp/ftp_transfer.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 
 /*
@@ -43,8 +43,7 @@ TABLE OF CONTENTS
 #define DJINTERP_NET_FTP_FTP_TRANSFER_H 1
 
 // std
-#include <stdbool.h>  // bool
-#include <stddef.h>   // size_t
+#include <stddef.h>  // size_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
 #include "./ftp_common.h"      // d_ftp_error, d_ftp_buffer

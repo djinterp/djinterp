@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                      svd.hpp
+/*******************************************************************************
+* djinterp [math]                                                        svd.hpp
 *
 * Singular value decomposition and pseudoinverse for the linear-algebra
 * subframework.
@@ -32,13 +32,15 @@
 *   - The getters return core value types, so they chain with the fluent
 *     members, e.g. svd(A).v().transposed().
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/svd.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_SVD_
-#define DJINTERP_MATH_LINALG_SVD_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_SVD_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_SVD_HPP 1
 
 // std
 #include <cstddef>
@@ -410,4 +412,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_SVD_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_SVD_HPP

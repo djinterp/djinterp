@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                             cartesian.hpp
+/*******************************************************************************
+* djinterp [math]                                                  cartesian.hpp
 *
 * Compile-time N-dimensional Cartesian coordinate system.
 *   Provides the Cartesian coordinate system type, point representation,
@@ -24,20 +24,24 @@
 *   3D: x, y, z
 *   ND: x₀, x₁, ..., x_{N-1}
 *
+*
 * path:      /inc/djinterp/math/coordinate/cartesian.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.02.06
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CARTESIAN_
-#define DJINTERP_MATH_CARTESIAN_ 1
+#ifndef DJINTERP_MATH_COORDINATE_CARTESIAN_HPP
+#define DJINTERP_MATH_COORDINATE_CARTESIAN_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <type_traits>
-#include "../djinterp.hpp"
+// djinterp
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -397,4 +401,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_CARTESIAN_
+#endif  // DJINTERP_MATH_COORDINATE_CARTESIAN_HPP

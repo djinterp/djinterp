@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        test_layout_suite.hpp
+/*******************************************************************************
+* djinterp [test]                                          test_layout_suite.hpp
 *
 *   The layout subframework's own test module -- and the new home of the two
 * demos that used to ship inside the library headers.
@@ -26,37 +26,50 @@
 *        per-level layout literals this stack replaced could not express.
 *
 *   PORTABILITY:
-*   C++14 (layout.hpp's floor); self-suppresses below it.
-*
-*
-* TABLE OF CONTENTS
-* =================
-* I.    FIXTURES                    (build the same document four ways)
-* II.   demo_render                 (assemble + render, the worked example)
-* III.  register_layout_tests       (the module the runner executes)
+*   C++17: layout.hpp's floor is C++14, and test_report_runner.hpp's buffer
+* needs C++17.  Empty below it.
 *
 *
 * path:      /inc/djinterp/test/output/test_layout_suite.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_LAYOUT_SUITE_
-#define DJINTERP_TEST_LAYOUT_SUITE_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    FIXTURES                    (build the same document four ways)
+      ---------------------------------------------------------------
+
+II.   demo_render                 (assemble + render, the worked example)
+      -------------------------------------------------------------------
+
+III.  register_layout_tests       (the module the runner executes)
+      ------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_TEST_OUTPUT_TEST_LAYOUT_SUITE_HPP
+#define DJINTERP_TEST_OUTPUT_TEST_LAYOUT_SUITE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but core/container/buffer/buffer.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <string>
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../../core/util/document/report_surfaces.hpp"   // the three surfaces
 #include "../../core/util/document/report_dialect.hpp"    // report_op + combinators
-#include "../../core/util/document/layout_parse.hpp"      // the block-DSL surface
+#include "../../core/util/document/layout/layout_parse.hpp"      // the block-DSL surface
 #include "./test_report_runner.hpp"                       // report_builder, D_CHECK_EQ
-
-
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+#include "./test_layout.hpp"                              // render_report_layout
 
 
 NS_DJINTERP
@@ -233,7 +246,7 @@ surfaces_equivalent()
             _meta.set(std::string("title"), std::string("djinterp"));
 
             plain_document_renderer _renderer;
-            render_document(_doc, _sig, _body, _meta, _renderer);
+            render_report_layout(_doc, _sig, _body, _meta, _renderer);
 
             return _renderer.str();
         }
@@ -341,7 +354,7 @@ demo_render()
     _meta.set(std::string("title"), std::string("djinterp"));
 
     plain_document_renderer _renderer;
-    render_document(_doc, _sig, _body, _meta, _renderer);
+    render_report_layout(_doc, _sig, _body, _meta, _renderer);
 
     return _renderer.str();
 }
@@ -407,8 +420,7 @@ register_layout_tests(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
-
-#endif  // DJINTERP_TEST_LAYOUT_SUITE_
+#endif  // DJINTERP_TEST_OUTPUT_TEST_LAYOUT_SUITE_HPP

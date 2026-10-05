@@ -1,4 +1,15 @@
-#include "../../../../inc/c/container/array/array_common.h"
+/*******************************************************************************
+* djinterp [c]                                                    array_common.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/container/array/array_common.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.29
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/container/array/array_common.h"
 
 
 /*
@@ -49,11 +60,11 @@ d_array_common_init_from_array
   Initialize elements array from existing array data.
 
 Parameter(s):
-  _destination:   pointer to elements pointer to be initialized
-  _count:         pointer to count variable to be set
-  _element_size:  the size, in bytes, of each individual element.
-  _source:        pointer to the source array data to copy from
-  _source_count:  number of elements in the source array
+  _destination:  pointer to elements pointer to be initialized
+  _count:        pointer to count variable to be set
+  _element_size: the size, in bytes, of each individual element.
+  _source:       pointer to the source array data to copy from
+  _source_count: number of elements in the source array
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
@@ -81,7 +92,7 @@ d_array_common_init_from_array
     *(_destination) = malloc(_source_count * _element_size);
 
     if ( (!*(_destination)) ||
-         (!d_memcpy(*(_destination), 
+         (!d_memcpy(*(_destination),
                     _source,
                     (_source_count * _element_size))) )
     {
@@ -181,17 +192,17 @@ d_array_common_init_copy
   Copy initialization from another container's elements.
 
 Parameter(s):
-  _destination:   pointer to elements pointer to be initialized
-  _count:         pointer to count variable to be set
-  _element_size:  the size, in bytes, of each individual element.
-  _source:        pointer to the source elements to copy from
-  _source_count:  number of elements in the source
+  _destination:  pointer to elements pointer to be initialized
+  _count:        pointer to count variable to be set
+  _element_size: the size, in bytes, of each individual element.
+  _source:       pointer to the source elements to copy from
+  _source_count: number of elements in the source
 Return:
   A boolean value corresponding to either:
   - true, if copy initialization was successful, or
   - false, if memory allocation failed.
 */
-D_INLINE bool
+bool
 d_array_common_init_copy
 (
     void**      _destination,
@@ -213,13 +224,13 @@ d_array_common_init_copy_reverse
   Initialize a new array by copying elements from source array in reverse order.
 
 Parameter(s):
-  _destination:   pointer to elements pointer to be initialized
-  _count:         pointer to count variable to be set
-  _element_size:  the size, in bytes, of each individual element.
-  _source:        pointer to source array
-  _source_count:  total number of elements in the source array
-  _start:         starting index (supports negative indexing)
-  _end:           ending index (supports negative indexing)
+  _destination:  pointer to elements pointer to be initialized
+  _count:        pointer to count variable to be set
+  _element_size: the size, in bytes, of each individual element.
+  _source:       pointer to source array
+  _source_count: total number of elements in the source array
+  _start:        starting index (supports negative indexing)
+  _end:          ending index (supports negative indexing)
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
@@ -244,7 +255,7 @@ d_array_common_init_copy_reverse
     if ( (!_destination)  ||
          (!_count)        ||
          (!_element_size) ||
-         (!_source)       || 
+         (!_source)       ||
          (!_source_count) )
     {
         if (_destination)
@@ -289,7 +300,7 @@ d_array_common_init_copy_reverse
     }
 
     dest_ptr = (char*)*(_destination);
-    
+
     // copy elements in reverse order
     for (i = 0; i < copy_count; i++)
     {
@@ -307,13 +318,13 @@ d_array_common_init_copy_range
   Initialize a new array by copying a range of elements from source array.
 
 Parameter(s):
-  _destination:   pointer to elements pointer to be initialized
-  _count:         pointer to count variable to be set
-  _element_size:  the size, in bytes, of each individual element.
-  _source:        pointer to source array
-  _source_count:  total number of elements in the source array
-  _start:         starting index (supports negative indexing)
-  _end:           ending index (supports negative indexing)
+  _destination:  pointer to elements pointer to be initialized
+  _count:        pointer to count variable to be set
+  _element_size: the size, in bytes, of each individual element.
+  _source:       pointer to source array
+  _source_count: total number of elements in the source array
+  _start:        starting index (supports negative indexing)
+  _end:          ending index (supports negative indexing)
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
@@ -331,7 +342,7 @@ d_array_common_init_copy_range
     d_index     _end
 )
 {
-    size_t start_idx, 
+    size_t start_idx,
            end_idx,
            copy_count;
     const char* src_ptr;
@@ -396,19 +407,19 @@ d_array_common_init_copy_range_reverse
   Initialize a new array by copying a range from source array in reverse order.
 
 Parameter(s):
-  _destination:   pointer to elements pointer to be initialized
-  _count:         pointer to count variable to be set
-  _element_size:  the size, in bytes, of each individual element.
-  _source:        pointer to source array
-  _source_count:  total number of elements in the source array
-  _start:         starting index (supports negative indexing)
-  _end:           ending index (supports negative indexing)
+  _destination:  pointer to elements pointer to be initialized
+  _count:        pointer to count variable to be set
+  _element_size: the size, in bytes, of each individual element.
+  _source:       pointer to source array
+  _source_count: total number of elements in the source array
+  _start:        starting index (supports negative indexing)
+  _end:          ending index (supports negative indexing)
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_array_common_init_copy_range_reverse
 (
     void**      _destination,
@@ -498,12 +509,12 @@ d_array_common_init_slice
   Initialize an array by slicing from a source starting at a given index.
 
 Parameter(s):
-  _destination:   pointer to elements pointer to be initialized
-  _count:         pointer to count variable to be set
-  _element_size:  the size, in bytes, of each individual element.
-  _source:        pointer to source array
-  _source_count:  total number of elements in the source array
-  _start:         starting index (supports negative indexing)
+  _destination:  pointer to elements pointer to be initialized
+  _count:        pointer to count variable to be set
+  _element_size: the size, in bytes, of each individual element.
+  _source:       pointer to source array
+  _source_count: total number of elements in the source array
+  _start:        starting index (supports negative indexing)
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
@@ -512,15 +523,15 @@ Return:
 bool
 d_array_common_init_slice
 (
-    void**        _destination,
-    size_t*       _count,
-    size_t        _element_size,
-    const void**  _source,
-    size_t        _source_count,
-    d_index       _start
+    void**       _destination,
+    size_t*      _count,
+    size_t       _element_size,
+    const void** _source,
+    size_t       _source_count,
+    d_index      _start
 )
 {
-    size_t start_idx, 
+    size_t start_idx,
            copy_count;
     const char* src_ptr;
 
@@ -575,17 +586,17 @@ d_array_common_init_slice_reverse
   Initialize an array by slicing from source in reverse order.
 
 Parameter(s):
-  _destination:   pointer to elements pointer to be initialized
-  _count:         pointer to count variable to be set
-  _element_size:  the size, in bytes, of each individual element.
-  _source:        pointer to source array
-  _source_count:  total number of elements in the source array
+  _destination:  pointer to elements pointer to be initialized
+  _count:        pointer to count variable to be set
+  _element_size: the size, in bytes, of each individual element.
+  _source:       pointer to source array
+  _source_count: total number of elements in the source array
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_array_common_init_slice_reverse
 (
     void**       _destination,
@@ -609,19 +620,19 @@ d_array_common_init_slice_range
   Initialize an array by slicing a range from source.
 
 Parameter(s):
-  _destination:   pointer to elements pointer to be initialized
-  _count:         pointer to count variable to be set
-  _element_size:  the size, in bytes, of each individual element.
-  _source:        pointer to source array
-  _source_count:  total number of elements in the source array
-  _start:         starting index (supports negative indexing)
-  _end:           ending index (supports negative indexing)
+  _destination:  pointer to elements pointer to be initialized
+  _count:        pointer to count variable to be set
+  _element_size: the size, in bytes, of each individual element.
+  _source:       pointer to source array
+  _source_count: total number of elements in the source array
+  _start:        starting index (supports negative indexing)
+  _end:          ending index (supports negative indexing)
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_array_common_init_slice_range
 (
     void**       _destination,
@@ -647,19 +658,19 @@ d_array_common_init_slice_range_reverse
   Initialize an array by slicing a range from source in reverse order.
 
 Parameter(s):
-  _destination:   pointer to elements pointer to be initialized
-  _count:         pointer to count variable to be set
-  _element_size:  the size, in bytes, of each individual element.
-  _source:        pointer to source array
-  _source_count:  total number of elements in the source array
-  _start:         starting index (supports negative indexing)
-  _end:           ending index (supports negative indexing)
+  _destination:  pointer to elements pointer to be initialized
+  _count:        pointer to count variable to be set
+  _element_size: the size, in bytes, of each individual element.
+  _source:       pointer to source array
+  _source_count: total number of elements in the source array
+  _start:        starting index (supports negative indexing)
+  _end:          ending index (supports negative indexing)
 Return:
   A boolean value corresponding to either:
   - true, if initialization was successful, or
   - false, if memory allocation failed or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_array_common_init_slice_range_reverse
 (
     void**       _destination,
@@ -685,11 +696,12 @@ d_array_common_alloc
   Allocate memory for a container structure.
 
 Parameter(s):
-  _struct_size: size in bytes of each individual array element.
+  _element_size: the size, in bytes, of a single element.
+  _struct_size:  size in bytes of each individual array element.
 Return:
   Pointer to allocated memory, or NULL if allocation failed.
 */
-D_INLINE void*
+void*
 d_array_common_alloc
 (
     size_t _element_size
@@ -717,7 +729,7 @@ Return:
   - true, if element was successfully appended, or
   - false, if parameters are invalid.
 */
-D_INLINE bool
+bool
 d_array_common_append_element
 (
     void**      _elements,
@@ -773,7 +785,7 @@ Return:
   - true, if elements were successfully appended, or
   - false, if parameters are invalid.
 */
-D_INLINE bool
+bool
 d_array_common_append_elements
 (
     void**      _elements,
@@ -844,7 +856,7 @@ d_array_common_calc_capacity
         {
             return SIZE_MAX;  // Prevent overflow
         }
-        
+
         capacity *= 2;
     }
 
@@ -866,7 +878,7 @@ Return:
   - true, if the value was found in the array, or
   - false, if the value was not found or parameters are invalid.
 */
-D_INLINE bool
+bool
 d_array_common_contains
 (
     void*         _elements,
@@ -1074,7 +1086,7 @@ d_array_common_insert_element
     {
         return D_FAILURE;
     }
-    
+
     // reallocate to hold one more element
     new_elements = realloc(*_elements, (*_count + 1) * _element_size);
 
@@ -1171,8 +1183,8 @@ d_array_common_insert_elements
     }
 
     // Insert the new elements
-    d_memcpy(elem_ptr + (insert_idx * _element_size), 
-             _value, 
+    d_memcpy(elem_ptr + (insert_idx * _element_size),
+             _value,
              (_source_count * _element_size));
 
     *(_count) += _source_count;
@@ -1261,7 +1273,7 @@ d_array_common_is_valid_resize_factor
 {
     double calculated_size;
 
-    if ( (!_result) || 
+    if ( (!_result) ||
          (_factor < 0.0) )
     {
         return D_FAILURE;
@@ -1299,7 +1311,7 @@ Return:
   - true, if element was successfully prepended, or
   - false, if parameters are invalid.
 */
-D_INLINE bool
+bool
 d_array_common_prepend_element
 (
     void**      _elements,
@@ -1308,10 +1320,10 @@ d_array_common_prepend_element
     const void* _value
 )
 {
-    return d_array_common_insert_element(_elements, 
-                                         _count, 
-                                         _element_size, 
-                                         _value, 
+    return d_array_common_insert_element(_elements,
+                                         _count,
+                                         _element_size,
+                                         _value,
                                          0);
 }
 
@@ -1330,7 +1342,7 @@ Return:
   - true, if elements were successfully prepended, or
   - false, if parameters are invalid.
 */
-D_INLINE bool
+bool
 d_array_common_prepend_elements
 (
     void**      _elements,
@@ -1371,7 +1383,7 @@ d_array_common_resize_amount
 {
     size_t result;
 
-    if ( (!_elements) || 
+    if ( (!_elements) ||
          (!_element_size) )
     {
         return -1;
@@ -1409,13 +1421,13 @@ d_array_common_resize_factor
     double result;
 
     // p
-    if ( (!_elements) || 
+    if ( (!_elements) ||
          (!_element_size) )
     {
         return -1;
     }
 
-    if (d_array_common_is_valid_resize_factor(_count, 
+    if (d_array_common_is_valid_resize_factor(_count,
                                               _factor,
                                               &result,
                                               true))
@@ -1515,18 +1527,18 @@ d_array_common_shift_left
     size_t _amount
 )
 {
-    if ( (!_elements)     || 
-         (!_element_size) || 
+    if ( (!_elements)     ||
+         (!_element_size) ||
          (_amount == 0) )
     {
         return (_amount == 0);
-    } 
+    }
     else if (_amount >= _count)
     {
         return D_FAILURE;  // would shift all elements out
     }
 
-    memmove(_elements, 
+    memmove(_elements,
             (char*)_elements + (_amount * _element_size),
             (_count - _amount) * _element_size);
 
@@ -1536,7 +1548,7 @@ d_array_common_shift_left
 
 /*
 d_array_common_shift_left_circular
-  Circularly shift elements left by the specified amount. Elements that would 
+  Circularly shift elements left by the specified amount. Elements that would
   be shifted out of the left end wrap around to the right end.
 
 Parameter(s):
@@ -1576,7 +1588,7 @@ d_array_common_shift_left_circular
 
     // reduce amount to within array bounds using modulo
     effective_shift = _amount % _count;
-    
+
     if (effective_shift == 0)
     {
         return D_SUCCESS;  // no actual shift needed
@@ -1592,7 +1604,8 @@ d_array_common_shift_left_circular
 
     elem_ptr = (char*)_elements;
 
-    // save the elements that will wrap around (first 'effective_shift' elements)
+    // save the elements that will wrap around (first 'effective_shift'
+    // elements)
     d_memcpy(temp_buffer, elem_ptr, effective_shift * _element_size);
 
     // shift remaining elements left
@@ -1633,8 +1646,8 @@ d_array_common_shift_right
     size_t _amount
 )
 {
-    if ( (!_elements)     || 
-         (!_element_size) || 
+    if ( (!_elements)     ||
+         (!_element_size) ||
          (_amount == 0) )
     {
         return _amount == 0;
@@ -1655,7 +1668,7 @@ d_array_common_shift_right
 
 /*
 d_array_common_shift_right_circular
-  Circularly shift elements right by the specified amount. Elements that would 
+  Circularly shift elements right by the specified amount. Elements that would
   be shifted out of the right end wrap around to the left end.
 
 Parameter(s):
@@ -1695,7 +1708,7 @@ d_array_common_shift_right_circular
 
     // Reduce amount to within array bounds using modulo
     effective_shift = _amount % _count;
-    
+
     if (effective_shift == 0)
     {
         return D_SUCCESS;  // no actual shift needed
@@ -1733,14 +1746,14 @@ d_array_common_sort
   Sort elements in the array using provided comparator.
 
 Parameter(s):
-  _elements:    pointer to elements array
-  _count:       number of elements
+  _elements:     pointer to elements array
+  _count:        number of elements
   _element_size: the size, in bytes, of each individual element.
-  _comparator:  function to compare elements
+  _comparator:   function to compare elements
 Return:
   none
 */
-D_INLINE void
+void
 d_array_common_sort
 (
     void*         _elements,
@@ -1749,8 +1762,8 @@ d_array_common_sort
     fn_comparator _comparator
 )
 {
-    if ( (!_elements)     || 
-         (!_element_size) || 
+    if ( (!_elements)     ||
+         (!_element_size) ||
          (!_comparator)   ||
          (_count <= 1) )
     {
@@ -1771,7 +1784,7 @@ Parameter(s):
 Return:
   none
 */
-D_INLINE void
+void
 d_array_common_free_elements_arr
 (
     void* _elements
@@ -1796,27 +1809,27 @@ Parameter(s):
   _elements: pointer to elements array to be freed
   _free_fn:  function to free each element
 Return:
-  none
+  none.
 */
 void
 d_array_common_free_elements_deep
 (
-    size_t  _count, 
-    void**  _elements, 
+    size_t  _count,
+    void**  _elements,
     fn_free _free_fn
 )
 {
     size_t i;
 
     if ( (!_count)    ||
-         (!_elements) || 
+         (!_elements) ||
          (!_free_fn) )
     {
         return;
     }
 
     // Free each element
-    for (i = 0; i < _count; i++) 
+    for (i = 0; i < _count; i++)
     {
         if (_elements[i])
         {

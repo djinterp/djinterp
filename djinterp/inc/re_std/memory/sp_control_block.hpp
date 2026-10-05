@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                             sp_control_block.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         sp_control_block.hpp
 *
+* sp_control_block class header:
 * shared_ptr / weak_ptr control block hierarchy and atomic counters.
 *
 * this is an INTERNAL header. The control block is an implementation
@@ -17,11 +18,11 @@
 *                  0, destroy() runs and the cb itself is deallocated.
 *
 * concrete cb variants:
-*   sp_cb_pointer<_U, _D>          allocated separately from the object,
+*   sp_cb_pointer<U, D>          allocated separately from the object,
 *                                  holds the U* and a deleter D.
-*   sp_cb_inplace<_U>              single-allocation cb that holds U
+*   sp_cb_inplace<U>              single-allocation cb that holds U
 *                                  inline. Used by make_shared.
-*   sp_cb_alloc_inplace<_U, _A>    single-allocation cb with an
+*   sp_cb_alloc_inplace<U, _A>    single-allocation cb with an
 *                                  allocator copy. Used by
 *                                  allocate_shared. destroy() rebinds
 *                                  and deallocates self via _A.
@@ -30,7 +31,7 @@
 *   sp_cb_pointer_alloc            for shared_ptr(p, d, alloc) ctors.
 *
 * atomic refcounts:
-*   D_RE_STD_HAS_SP_ATOMICS         1 when compiler supports __atomic_*
+*   RE_STD_HAS_SP_ATOMICS         1 when compiler supports __atomic_*
 *                                  builtins. GCC, Clang, Intel are
 *                                  detected. MSVC support TODO.
 *
@@ -39,26 +40,31 @@
 * such a configuration is UNSAFE. Document accordingly.
 *
 *
-* path:      /inc/djinterp/re_std/memory/sp_control_block.hpp
+* path:      /inc/re_std/memory/sp_control_block.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_INTERNAL_SP_CONTROL_BLOCK_
-#define DJINTERP_RE_STD_MEMORY_INTERNAL_SP_CONTROL_BLOCK_ 1
+#ifndef RE_STD_MEMORY_SP_CONTROL_BLOCK_HPP
+#define RE_STD_MEMORY_SP_CONTROL_BLOCK_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
 
-    #if D_ENV_CPP98_HAS_TYPEINFO
+    #if RE_STD_HAS_RTTI
+        // std
         #include <typeinfo>
     #endif
 
-    #if D_ENV_CPP98_HAS_NEW
+    #if RE_STD_HAS_HEADER_NEW
+        // std
         #include <new>
     #endif
 
@@ -68,21 +74,21 @@
 
 
 // =============================================================================
-// D_RE_STD_HAS_SP_ATOMICS
+// RE_STD_HAS_SP_ATOMICS
 // =============================================================================
 
-#ifndef D_RE_STD_HAS_SP_ATOMICS
+#ifndef RE_STD_HAS_SP_ATOMICS
     #if defined(__has_builtin)
         #if __has_builtin(__atomic_fetch_add) && __has_builtin(__atomic_load_n)
-            #define D_RE_STD_HAS_SP_ATOMICS 1
+            #define RE_STD_HAS_SP_ATOMICS 1
         #else
-            #define D_RE_STD_HAS_SP_ATOMICS 0
+            #define RE_STD_HAS_SP_ATOMICS 0
         #endif
-    #elif defined(D_ENV_COMPILER_GCC) || defined(D_ENV_COMPILER_INTEL)
-        #define D_RE_STD_HAS_SP_ATOMICS 1
+    #elif defined(RE_STD_COMPILER_GCC) || defined(RE_STD_COMPILER_INTEL)
+        #define RE_STD_HAS_SP_ATOMICS 1
     #else
         // MSVC requires _Interlocked* — different surface, deferred.
-        #define D_RE_STD_HAS_SP_ATOMICS 0
+        #define RE_STD_HAS_SP_ATOMICS 0
     #endif
 #endif
 
@@ -98,28 +104,28 @@ namespace internal
 
 typedef long sp_count_t;
 
-#if D_RE_STD_HAS_SP_ATOMICS
+#if RE_STD_HAS_SP_ATOMICS
 
-    inline sp_count_t sp_atomic_load(const sp_count_t* _p) D_NOEXCEPT
+    inline sp_count_t sp_atomic_load(const sp_count_t* _p) RE_STD_NOEXCEPT
     {
         return __atomic_load_n(_p, __ATOMIC_ACQUIRE);
     }
 
     // Returns the PREVIOUS value (not the new one).
-    inline sp_count_t sp_atomic_inc(sp_count_t* _p) D_NOEXCEPT
+    inline sp_count_t sp_atomic_inc(sp_count_t* _p) RE_STD_NOEXCEPT
     {
         return __atomic_fetch_add(_p, 1, __ATOMIC_ACQ_REL);
     }
 
     // Returns the PREVIOUS value (not the new one).
-    inline sp_count_t sp_atomic_dec(sp_count_t* _p) D_NOEXCEPT
+    inline sp_count_t sp_atomic_dec(sp_count_t* _p) RE_STD_NOEXCEPT
     {
         return __atomic_fetch_sub(_p, 1, __ATOMIC_ACQ_REL);
     }
 
     // CAS-loop incrementer. Returns true if successfully incremented
     // (i.e. counter was nonzero), false if counter was 0.
-    inline bool sp_atomic_inc_if_nonzero(sp_count_t* _p) D_NOEXCEPT
+    inline bool sp_atomic_inc_if_nonzero(sp_count_t* _p) RE_STD_NOEXCEPT
     {
         sp_count_t _expected = __atomic_load_n(_p, __ATOMIC_RELAXED);
         for (;;)
@@ -138,30 +144,30 @@ typedef long sp_count_t;
         }
     }
 
-#else  // !D_RE_STD_HAS_SP_ATOMICS
+#else  // !RE_STD_HAS_SP_ATOMICS
 
     // Fallback: plain int ops. Single-thread only.
 
-    inline sp_count_t sp_atomic_load(const sp_count_t* _p) D_NOEXCEPT
+    inline sp_count_t sp_atomic_load(const sp_count_t* _p) RE_STD_NOEXCEPT
     {
         return *_p;
     }
 
-    inline sp_count_t sp_atomic_inc(sp_count_t* _p) D_NOEXCEPT
+    inline sp_count_t sp_atomic_inc(sp_count_t* _p) RE_STD_NOEXCEPT
     {
         sp_count_t _old = *_p;
         ++*_p;
         return _old;
     }
 
-    inline sp_count_t sp_atomic_dec(sp_count_t* _p) D_NOEXCEPT
+    inline sp_count_t sp_atomic_dec(sp_count_t* _p) RE_STD_NOEXCEPT
     {
         sp_count_t _old = *_p;
         --*_p;
         return _old;
     }
 
-    inline bool sp_atomic_inc_if_nonzero(sp_count_t* _p) D_NOEXCEPT
+    inline bool sp_atomic_inc_if_nonzero(sp_count_t* _p) RE_STD_NOEXCEPT
     {
         if (*_p == 0)
         {
@@ -171,7 +177,7 @@ typedef long sp_count_t;
         return true;
     }
 
-#endif  // D_RE_STD_HAS_SP_ATOMICS
+#endif  // RE_STD_HAS_SP_ATOMICS
 
 
 // =============================================================================
@@ -184,25 +190,22 @@ public:
     sp_count_t m_use_count;
     sp_count_t m_weak_count;
 
-    sp_control_block_base() D_NOEXCEPT
+    sp_control_block_base() RE_STD_NOEXCEPT
         : m_use_count(1)
         , m_weak_count(1)
     {
     }
 
-    virtual ~sp_control_block_base() D_NOEXCEPT
+    virtual ~sp_control_block_base() RE_STD_NOEXCEPT
     {
     }
 
-    sp_control_block_base(const sp_control_block_base&)            D_DELETE_FN;
-    sp_control_block_base& operator=(const sp_control_block_base&) D_DELETE_FN;
-
     // Polymorphic destruction strategies.
-    virtual void dispose() D_NOEXCEPT = 0;   // destroy managed object
-    virtual void destroy() D_NOEXCEPT = 0;   // destroy this cb
+    virtual void dispose() RE_STD_NOEXCEPT = 0;   // destroy managed object
+    virtual void destroy() RE_STD_NOEXCEPT = 0;   // destroy this cb
 
-    #if D_ENV_CPP98_HAS_TYPEINFO
-        virtual void* get_deleter(const std::type_info&) D_NOEXCEPT
+    #if RE_STD_HAS_RTTI
+        virtual void* get_deleter(const std::type_info&) RE_STD_NOEXCEPT
         {
             return 0;
         }
@@ -210,17 +213,17 @@ public:
 
     // ---- ref-count operations ----
 
-    void add_ref() D_NOEXCEPT
+    void add_ref() RE_STD_NOEXCEPT
     {
         sp_atomic_inc(&m_use_count);
     }
 
-    bool add_ref_if_nonzero() D_NOEXCEPT
+    bool add_ref_if_nonzero() RE_STD_NOEXCEPT
     {
         return sp_atomic_inc_if_nonzero(&m_use_count);
     }
 
-    void release() D_NOEXCEPT
+    void release() RE_STD_NOEXCEPT
     {
         if (sp_atomic_dec(&m_use_count) == 1)
         {
@@ -230,12 +233,12 @@ public:
         }
     }
 
-    void weak_add_ref() D_NOEXCEPT
+    void weak_add_ref() RE_STD_NOEXCEPT
     {
         sp_atomic_inc(&m_weak_count);
     }
 
-    void weak_release() D_NOEXCEPT
+    void weak_release() RE_STD_NOEXCEPT
     {
         if (sp_atomic_dec(&m_weak_count) == 1)
         {
@@ -243,10 +246,18 @@ public:
         }
     }
 
-    sp_count_t use_count() const D_NOEXCEPT
+    sp_count_t use_count() const RE_STD_NOEXCEPT
     {
         return sp_atomic_load(&m_use_count);
     }
+
+private:
+    // copying a control block would duplicate its counts; it is not
+    // copyable at any tier (decision 3.3: private, so C++98's undefined
+    // declaration is as inaccessible as C++11's deleted one).
+    RE_STD_DELETED_FN(sp_control_block_base(const sp_control_block_base&))
+    RE_STD_DELETED_FN(sp_control_block_base& operator=(
+                     const sp_control_block_base&))
 };
 
 
@@ -256,33 +267,33 @@ public:
 
 // Allocated separately from the managed object. The cb holds a pointer
 // to the object (so dispose can reach it) and the deleter.
-template<typename _U, typename _D>
+template<typename U, typename D>
 class sp_cb_pointer : public sp_control_block_base
 {
-    _U* m_ptr;
-    _D  m_del;
+    U* m_ptr;
+    D  m_del;
 
 public:
-    sp_cb_pointer(_U* _p, _D _d)
+    sp_cb_pointer(U* _p, D _d)
         : m_ptr(_p)
         , m_del(re_std::move(_d))
     {
     }
 
-    void dispose() D_NOEXCEPT D_OVERRIDE
+    void dispose() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
         m_del(m_ptr);
     }
 
-    void destroy() D_NOEXCEPT D_OVERRIDE
+    void destroy() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
         delete this;
     }
 
-    #if D_ENV_CPP98_HAS_TYPEINFO
-        void* get_deleter(const std::type_info& _ti) D_NOEXCEPT D_OVERRIDE
+    #if RE_STD_HAS_RTTI
+        void* get_deleter(const std::type_info& _ti) RE_STD_NOEXCEPT RE_STD_OVERRIDE
         {
-            if (_ti == typeid(_D))
+            if (_ti == typeid(D))
             {
                 return &m_del;
             }
@@ -305,41 +316,41 @@ struct sp_for_overwrite_t
 
 
 // Holds the object inline. Single allocation: cb + object live together.
-template<typename _U>
+template<typename U>
 class sp_cb_inplace : public sp_control_block_base
 {
-    alignas(_U) char m_storage[sizeof(_U)];
+    alignas(U) char m_storage[sizeof(U)];
 
-    _U* obj_ptr() D_NOEXCEPT
+    U* obj_ptr() RE_STD_NOEXCEPT
     {
-        return reinterpret_cast<_U*>(&m_storage[0]);
+        return reinterpret_cast<U*>(&m_storage[0]);
     }
 
 public:
-    template<typename... _Args>
-    explicit sp_cb_inplace(_Args&&... _args)
+    template<typename... Args>
+    explicit sp_cb_inplace(Args&&... _args)
     {
         ::new (static_cast<void*>(&m_storage[0]))
-            _U(re_std::forward<_Args>(_args)...);
+            U(re_std::forward<Args>(_args)...);
     }
 
     // For make_shared_for_overwrite: default-initialise (no parens).
     explicit sp_cb_inplace(sp_for_overwrite_t)
     {
-        ::new (static_cast<void*>(&m_storage[0])) _U;
+        ::new (static_cast<void*>(&m_storage[0])) U;
     }
 
-    _U* get() D_NOEXCEPT
+    U* get() RE_STD_NOEXCEPT
     {
         return obj_ptr();
     }
 
-    void dispose() D_NOEXCEPT D_OVERRIDE
+    void dispose() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
-        obj_ptr()->~_U();
+        obj_ptr()->~U();
     }
 
-    void destroy() D_NOEXCEPT D_OVERRIDE
+    void destroy() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
         delete this;
     }
@@ -352,50 +363,50 @@ public:
 
 // Holds the object inline AND a copy of the allocator. The allocator
 // is used to deallocate the cb itself (after destructing this).
-template<typename _U, typename _Alloc>
+template<typename U, typename Alloc>
 class sp_cb_alloc_inplace : public sp_control_block_base
 {
-    alignas(_U) char m_storage[sizeof(_U)];
-    _Alloc m_alloc;
+    alignas(U) char m_storage[sizeof(U)];
+    Alloc m_alloc;
 
-    _U* obj_ptr() D_NOEXCEPT
+    U* obj_ptr() RE_STD_NOEXCEPT
     {
-        return reinterpret_cast<_U*>(&m_storage[0]);
+        return reinterpret_cast<U*>(&m_storage[0]);
     }
 
 public:
-    template<typename... _Args>
-    sp_cb_alloc_inplace(const _Alloc& _a, _Args&&... _args)
+    template<typename... Args>
+    sp_cb_alloc_inplace(const Alloc& _a, Args&&... _args)
         : m_alloc(_a)
     {
         ::new (static_cast<void*>(&m_storage[0]))
-            _U(re_std::forward<_Args>(_args)...);
+            U(re_std::forward<Args>(_args)...);
     }
 
     // For allocate_shared_for_overwrite: default-initialise (no parens).
-    sp_cb_alloc_inplace(const _Alloc& _a, sp_for_overwrite_t)
+    sp_cb_alloc_inplace(const Alloc& _a, sp_for_overwrite_t)
         : m_alloc(_a)
     {
-        ::new (static_cast<void*>(&m_storage[0])) _U;
+        ::new (static_cast<void*>(&m_storage[0])) U;
     }
 
-    _U* get() D_NOEXCEPT
+    U* get() RE_STD_NOEXCEPT
     {
         return obj_ptr();
     }
 
-    void dispose() D_NOEXCEPT D_OVERRIDE
+    void dispose() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
-        obj_ptr()->~_U();
+        obj_ptr()->~U();
     }
 
-    void destroy() D_NOEXCEPT D_OVERRIDE
+    void destroy() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
-        // The cb was allocated via a rebound _Alloc. To deallocate it,
+        // The cb was allocated via a rebound Alloc. To deallocate it,
         // we need a fresh rebind. Critical ordering: take a COPY of
         // the allocator BEFORE destructing self (which destructs
         // m_alloc), then deallocate using the copy.
-        typedef typename allocator_traits<_Alloc>
+        typedef typename allocator_traits<Alloc>
             ::template rebind_alloc<sp_cb_alloc_inplace> alloc_cb_t;
 
         alloc_cb_t _a(m_alloc);
@@ -410,36 +421,36 @@ public:
 // =============================================================================
 
 // Allocator-aware pointer-with-deleter cb. Like sp_cb_pointer, but the
-// cb itself is allocated via _Alloc (rebound). dispose() invokes the
+// cb itself is allocated via Alloc (rebound). dispose() invokes the
 // stored deleter on the held pointer; destroy() rebinds and uses
-// _Alloc to deallocate self. Used by the (p, d, alloc) shared_ptr
+// Alloc to deallocate self. Used by the (p, d, alloc) shared_ptr
 // constructor.
-template<typename _U, typename _D, typename _Alloc>
+template<typename U, typename D, typename Alloc>
 class sp_cb_pointer_alloc : public sp_control_block_base
 {
-    _U*     m_ptr;
-    _D      m_del;
-    _Alloc  m_alloc;
+    U*     m_ptr;
+    D      m_del;
+    Alloc  m_alloc;
 
 public:
-    sp_cb_pointer_alloc(_U* _p, _D _d, const _Alloc& _a)
+    sp_cb_pointer_alloc(U* _p, D _d, const Alloc& _a)
         : m_ptr(_p)
         , m_del(re_std::move(_d))
         , m_alloc(_a)
     {
     }
 
-    void dispose() D_NOEXCEPT D_OVERRIDE
+    void dispose() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
         m_del(m_ptr);
     }
 
-    void destroy() D_NOEXCEPT D_OVERRIDE
+    void destroy() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
         // Same dance as sp_cb_alloc_inplace: take a copy of the
         // allocator before destructing self, then deallocate via the
         // copy.
-        typedef typename allocator_traits<_Alloc>
+        typedef typename allocator_traits<Alloc>
             ::template rebind_alloc<sp_cb_pointer_alloc> alloc_cb_t;
 
         alloc_cb_t _a(m_alloc);
@@ -447,10 +458,10 @@ public:
         allocator_traits<alloc_cb_t>::deallocate(_a, this, 1);
     }
 
-    #if D_ENV_CPP98_HAS_TYPEINFO
-        void* get_deleter(const std::type_info& _ti) D_NOEXCEPT D_OVERRIDE
+    #if RE_STD_HAS_RTTI
+        void* get_deleter(const std::type_info& _ti) RE_STD_NOEXCEPT RE_STD_OVERRIDE
         {
-            if (_ti == typeid(_D))
+            if (_ti == typeid(D))
             {
                 return &m_del;
             }
@@ -476,47 +487,47 @@ public:
 //
 // Allocation: ::operator new(total_bytes(n)).
 // Deallocation: ::operator delete(this) in destroy().
-template<typename _U>
+template<typename U>
 class sp_cb_inplace_array : public sp_control_block_base
 {
     std::size_t m_count;
 
 public:
-    // round_up sizeof(self) to alignof(_U).
-    static std::size_t offset_to_array() D_NOEXCEPT
+    // round_up sizeof(self) to alignof(U).
+    static std::size_t offset_to_array() RE_STD_NOEXCEPT
     {
         const std::size_t _s = sizeof(sp_cb_inplace_array);
-        const std::size_t _a = alignof(_U);
+        const std::size_t _a = alignof(U);
         return (_s + _a - 1) / _a * _a;
     }
 
-    static std::size_t total_bytes(std::size_t _count) D_NOEXCEPT
+    static std::size_t total_bytes(std::size_t _count) RE_STD_NOEXCEPT
     {
-        return offset_to_array() + sizeof(_U) * _count;
+        return offset_to_array() + sizeof(U) * _count;
     }
 
-    explicit sp_cb_inplace_array(std::size_t _count) D_NOEXCEPT
+    explicit sp_cb_inplace_array(std::size_t _count) RE_STD_NOEXCEPT
         : m_count(_count)
     {
     }
 
-    _U* data() D_NOEXCEPT
+    U* data() RE_STD_NOEXCEPT
     {
-        return reinterpret_cast<_U*>(
+        return reinterpret_cast<U*>(
             reinterpret_cast<unsigned char*>(this) + offset_to_array());
     }
 
-    void dispose() D_NOEXCEPT D_OVERRIDE
+    void dispose() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
         // Destroy in reverse order, mirroring delete[].
-        _U* _arr = data();
+        U* _arr = data();
         for (std::size_t _i = m_count; _i > 0; --_i)
         {
-            _arr[_i - 1].~_U();
+            _arr[_i - 1].~U();
         }
     }
 
-    void destroy() D_NOEXCEPT D_OVERRIDE
+    void destroy() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
         // Destroy self, then free the entire allocation.
         this->~sp_cb_inplace_array();
@@ -529,54 +540,54 @@ public:
 // sp_cb_alloc_inplace_array  -  for allocate_shared<T[]>(alloc, n)
 // =============================================================================
 
-// Like sp_cb_inplace_array, but the entire block is allocated via _Alloc
+// Like sp_cb_inplace_array, but the entire block is allocated via Alloc
 // rebound to unsigned char. m_alloc is held inline and used in destroy()
 // to deallocate self.
-template<typename _U, typename _Alloc>
+template<typename U, typename Alloc>
 class sp_cb_alloc_inplace_array : public sp_control_block_base
 {
     std::size_t m_count;
-    _Alloc      m_alloc;
+    Alloc      m_alloc;
 
 public:
-    static std::size_t offset_to_array() D_NOEXCEPT
+    static std::size_t offset_to_array() RE_STD_NOEXCEPT
     {
         const std::size_t _s = sizeof(sp_cb_alloc_inplace_array);
-        const std::size_t _a = alignof(_U);
+        const std::size_t _a = alignof(U);
         return (_s + _a - 1) / _a * _a;
     }
 
-    static std::size_t total_bytes(std::size_t _count) D_NOEXCEPT
+    static std::size_t total_bytes(std::size_t _count) RE_STD_NOEXCEPT
     {
-        return offset_to_array() + sizeof(_U) * _count;
+        return offset_to_array() + sizeof(U) * _count;
     }
 
-    sp_cb_alloc_inplace_array(const _Alloc& _a, std::size_t _count) D_NOEXCEPT
+    sp_cb_alloc_inplace_array(const Alloc& _a, std::size_t _count) RE_STD_NOEXCEPT
         : m_count(_count)
         , m_alloc(_a)
     {
     }
 
-    _U* data() D_NOEXCEPT
+    U* data() RE_STD_NOEXCEPT
     {
-        return reinterpret_cast<_U*>(
+        return reinterpret_cast<U*>(
             reinterpret_cast<unsigned char*>(this) + offset_to_array());
     }
 
-    void dispose() D_NOEXCEPT D_OVERRIDE
+    void dispose() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
-        _U* _arr = data();
+        U* _arr = data();
         for (std::size_t _i = m_count; _i > 0; --_i)
         {
-            _arr[_i - 1].~_U();
+            _arr[_i - 1].~U();
         }
     }
 
-    void destroy() D_NOEXCEPT D_OVERRIDE
+    void destroy() RE_STD_NOEXCEPT RE_STD_OVERRIDE
     {
         // Take a copy of the allocator BEFORE destructing self, then
         // rebind to unsigned char and deallocate the whole block.
-        typedef typename allocator_traits<_Alloc>
+        typedef typename allocator_traits<Alloc>
             ::template rebind_alloc<unsigned char> byte_alloc_t;
 
         const std::size_t _bytes = total_bytes(m_count);
@@ -588,9 +599,8 @@ public:
 };
 
 
-}  // namespace internal
-}  // namespace re_std
+}  // internal
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_INTERNAL_SP_CONTROL_BLOCK_
+#endif  // RE_STD_MEMORY_SP_CONTROL_BLOCK_HPP

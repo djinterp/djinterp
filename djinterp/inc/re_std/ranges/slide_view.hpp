@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             slide_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               slide_view.hpp
 *
 * slide_view header:
 *   Provides the C++23 sliding-window adaptor. slide_view<V> yields
@@ -32,17 +32,19 @@
 *   re_std::views::slide(n)    — bound form for pipe syntax.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/slide_view.hpp
+* path:      /inc/re_std/ranges/slide_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_SLIDE_VIEW_
-#define DJINTERP_RE_STD_RANGES_SLIDE_VIEW_ 1
+#ifndef RE_STD_RANGES_SLIDE_VIEW_HPP
+#define RE_STD_RANGES_SLIDE_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -54,28 +56,29 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   SLIDE_VIEW
 // ===========================================================================
 
-// slide_view<_View>
-//   class: yields all length-N windows of _View. Never yields a
-// short window — when size(_View) < N, the slide is empty.
-template<typename _View>
-class slide_view : public view_interface<slide_view<_View> >
+// slide_view<View>
+//   class: yields all length-N windows of View. Never yields a
+// short window — when size(View) < N, the slide is empty.
+template<typename View>
+class slide_view : public view_interface<slide_view<View> >
 {
 public:
-    typedef _View                                       base_view;
+    typedef View                                       base_view;
     typedef typename iterator_traits<
-                          iterator_t<_View>
+                          iterator_t<View>
                       >::difference_type                difference_type;
 
 
 private:
-    _View            m_base;
+    View            m_base;
     difference_type  m_n;
 
 
@@ -95,37 +98,37 @@ public:
         // _bidi_clamp — passthrough; R28 promoted from forward-only,
         // R29 lifted the clamp to allow RA underlyings to yield an
         // RA slide iterator (O(1) window shift).
-        template<typename _Cat>
+        template<typename Cat>
         struct _bidi_clamp
         {
-            typedef _Cat type;
+            typedef Cat type;
         };
 
     public:
         typedef typename _bidi_clamp<
                               typename iterator_traits<
-                                            iterator_t<_View>
+                                            iterator_t<View>
                                         >::iterator_category
                           >::type                       iterator_category;
-        typedef subrange<iterator_t<_View>,
-                         iterator_t<_View> >            value_type;
+        typedef subrange<iterator_t<View>,
+                         iterator_t<View> >            value_type;
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type            difference_type;
         typedef value_type                              reference;
         typedef void                                    pointer;
 
 
     private:
-        iterator_t<_View>   m_start;
-        iterator_t<_View>   m_window_end;
-        sentinel_t<_View>   m_base_end;
+        iterator_t<View>   m_start;
+        iterator_t<View>   m_window_end;
+        sentinel_t<View>   m_base_end;
         bool                m_exhausted;
 
 
     public:
         // default ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_start(),
               m_window_end(),
@@ -139,8 +142,8 @@ public:
         // full window (fewer than _n elements remaining), sets
         // m_exhausted = true immediately.
         iterator(
-            iterator_t<_View>   _begin,
-            sentinel_t<_View>   _base_end,
+            iterator_t<View>   _begin,
+            sentinel_t<View>   _base_end,
             difference_type     _n
         )
             : m_start(_begin),
@@ -161,7 +164,7 @@ public:
         }
 
 
-        D_CONSTEXPR iterator_t<_View>
+        RE_STD_CONSTEXPR iterator_t<View>
         base() const
         {
             return m_start;
@@ -170,15 +173,15 @@ public:
         // exhausted
         //   function: introspection — true when no further window
         // fits. The sentinel comparison reads this.
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         exhausted() const
-        D_NOEXCEPT
+        RE_STD_NOEXCEPT
         {
             return m_exhausted;
         }
 
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return reference(m_start, m_window_end);
@@ -225,7 +228,7 @@ public:
         // and m_window_end were left at the last valid window's
         // positions, so we simply clear the exhausted flag.
         //
-        //   Compiles only when iterator_t<_View> supports operator--.
+        //   Compiles only when iterator_t<View> supports operator--.
         iterator&
         operator--()
         {
@@ -258,7 +261,7 @@ public:
         // m_window_end would exceed m_base_end the iterator becomes
         // exhausted.
         //
-        //   Compiles only when iterator_t<_View> is random-access.
+        //   Compiles only when iterator_t<View> is random-access.
 
         iterator&
         operator+=(
@@ -318,7 +321,7 @@ public:
             return *this += (-_n);
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR_CPP14 iterator
         operator+(
             difference_type _n
         ) const
@@ -328,7 +331,7 @@ public:
             return tmp;
         }
 
-        friend D_CONSTEXPR iterator
+        friend RE_STD_CONSTEXPR iterator
         operator+(
             difference_type     _n,
             iterator            _it
@@ -337,7 +340,7 @@ public:
             return _it + _n;
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR_CPP14 iterator
         operator-(
             difference_type _n
         ) const
@@ -351,7 +354,7 @@ public:
         //   For non-exhausted iterators: simple position subtraction.
         //   For one-side exhausted: treat exhausted as position
         // (last_valid_start + 1).
-        D_CONSTEXPR difference_type
+        RE_STD_CONSTEXPR_CPP14 difference_type
         operator-(
             iterator const& _rhs
         ) const
@@ -361,7 +364,7 @@ public:
             return (m_start - _rhs.m_start) + _lhs_offset - _rhs_offset;
         }
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator[](
             difference_type _n
         ) const
@@ -371,32 +374,32 @@ public:
 
 
         // ordering.
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<(iterator const& _r) const
         {
             return ((*this) - _r) < 0;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator<=(iterator const& _r) const
         {
             return ((*this) - _r) <= 0;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>(iterator const& _r) const
         {
             return ((*this) - _r) > 0;
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator>=(iterator const& _r) const
         {
             return ((*this) - _r) >= 0;
         }
 
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -408,7 +411,7 @@ public:
                     && m_start == _rhs.m_start);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -428,12 +431,12 @@ public:
     class sentinel
     {
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         sentinel()
         {}
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             iterator const&  _it,
             sentinel const&
@@ -442,7 +445,7 @@ public:
             return _it.exhausted();
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             iterator const&  _it,
             sentinel const&  _s
@@ -451,7 +454,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             sentinel const&  _s,
             iterator const&  _it
@@ -460,7 +463,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             sentinel const&  _s,
             iterator const&  _it
@@ -473,32 +476,32 @@ public:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     slide_view()
         : m_base(),
           m_n(1)
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     slide_view(
-        _View            _base,
+        View            _base,
         difference_type  _n
     )
-        : m_base(static_cast<_View&&>(_base)),
+        : m_base(static_cast<View&&>(_base)),
           m_n(_n)
     {}
 
 
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
     }
 
-    D_CONSTEXPR difference_type
+    RE_STD_CONSTEXPR difference_type
     window_size() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_n;
     }
@@ -511,7 +514,7 @@ public:
         return iterator(re_std::begin(m_base), re_std::end(m_base), m_n);
     }
 
-    D_CONSTEXPR sentinel
+    RE_STD_CONSTEXPR sentinel
     end()
     {
         return sentinel();
@@ -521,7 +524,7 @@ public:
     // size
     //   function: max(0, size(base) - N + 1). Only well-formed
     // when the underlying view is sized.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR_CPP14
     auto
     size() const
         -> decltype(re_std::size(m_base))
@@ -538,44 +541,45 @@ public:
 // II.  SLIDE_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
-
-template<typename _N>
-struct slide_closure : range_adaptor_closure<slide_closure<_N> >
+namespace internal
 {
-    _N count;
 
-    D_CONSTEXPR
+template<typename N>
+struct slide_closure : range_adaptor_closure<slide_closure<N> >
+{
+    N count;
+
+    RE_STD_CONSTEXPR
     slide_closure()
         : count()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     slide_closure(
-        _N _n
+        N _n
     )
         : count(_n)
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    slide_view<typename internal::all_dispatch<_R>::type>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    slide_view<typename internal::all_dispatch<R>::type>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
+        typedef typename internal::all_dispatch<R>::type view_type;
         typedef typename iterator_traits<
-                              iterator_t<typename remove_reference<_R>::type>
+                              iterator_t<typename remove_reference<R>::type>
                           >::difference_type             diff_type;
         return slide_view<view_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             static_cast<diff_type>(count)
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -585,42 +589,42 @@ NS_END  // internal
 namespace views
 {
     // views::slide(_r, _n)  [direct form]
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    slide_view<typename internal::all_dispatch<_R>::type>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    slide_view<typename internal::all_dispatch<R>::type>
     slide(
-        _R&&                                                            _r,
+        R&&                                                            _r,
         typename iterator_traits<
-                     iterator_t<typename remove_reference<_R>::type>
+                     iterator_t<typename remove_reference<R>::type>
                  >::difference_type                                     _n
     )
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
+        typedef typename internal::all_dispatch<R>::type view_type;
         return slide_view<view_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             _n
         );
     }
 
     // views::slide(_n)  [bound form]
-    template<typename _N>
-    D_CONSTEXPR_INLINE
-    internal::slide_closure<typename decay<_N>::type>
+    template<typename N>
+    RE_STD_CONSTEXPR_INLINE
+    internal::slide_closure<typename decay<N>::type>
     slide(
-        _N&& _n
+        N&& _n
     )
     {
-        return internal::slide_closure<typename decay<_N>::type>(
-            static_cast<_N&&>(_n)
+        return internal::slide_closure<typename decay<N>::type>(
+            static_cast<N&&>(_n)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_SLIDE_VIEW_
+#endif  // RE_STD_RANGES_SLIDE_VIEW_HPP

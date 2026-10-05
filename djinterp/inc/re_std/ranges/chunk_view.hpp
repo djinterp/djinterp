@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             chunk_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               chunk_view.hpp
 *
 * chunk_view header:
 *   Provides the C++23 chunk adaptor. chunk_view<V> partitions an
@@ -29,17 +29,19 @@
 *   re_std::views::chunk(n)    — bound form for pipe syntax.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/chunk_view.hpp
+* path:      /inc/re_std/ranges/chunk_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_CHUNK_VIEW_
-#define DJINTERP_RE_STD_RANGES_CHUNK_VIEW_ 1
+#ifndef RE_STD_RANGES_CHUNK_VIEW_HPP
+#define RE_STD_RANGES_CHUNK_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -52,29 +54,30 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   CHUNK_VIEW
 // ===========================================================================
 
-// chunk_view<_View>
-//   class: partitions _View into N-element subranges. Chunks of N
+// chunk_view<View>
+//   class: partitions View into N-element subranges. Chunks of N
 // elements at all positions except possibly the last, which is
 // short if size(V) % N != 0.
-template<typename _View>
-class chunk_view : public view_interface<chunk_view<_View> >
+template<typename View>
+class chunk_view : public view_interface<chunk_view<View> >
 {
 public:
-    typedef _View                                       base_view;
+    typedef View                                       base_view;
     typedef typename iterator_traits<
-                          iterator_t<_View>
+                          iterator_t<View>
                       >::difference_type                difference_type;
 
 
 private:
-    _View            m_base;
+    View            m_base;
     difference_type  m_n;
 
 
@@ -95,31 +98,31 @@ public:
         // R29 lifted the clamp to allow RA underlyings to yield an
         // RA chunk iterator (O(1) advance to chunk K via m_start +=
         // K * m_n).
-        template<typename _Cat>
+        template<typename Cat>
         struct _bidi_clamp
         {
-            typedef _Cat type;
+            typedef Cat type;
         };
 
     public:
         typedef typename _bidi_clamp<
                               typename iterator_traits<
-                                            iterator_t<_View>
+                                            iterator_t<View>
                                         >::iterator_category
                           >::type                       iterator_category;
-        typedef subrange<iterator_t<_View>,
-                         iterator_t<_View> >            value_type;
+        typedef subrange<iterator_t<View>,
+                         iterator_t<View> >            value_type;
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type            difference_type;
         typedef value_type                              reference;
         typedef void                                    pointer;
 
 
     private:
-        iterator_t<_View>   m_start;
-        iterator_t<_View>   m_chunk_end;
-        sentinel_t<_View>   m_base_end;
+        iterator_t<View>   m_start;
+        iterator_t<View>   m_chunk_end;
+        sentinel_t<View>   m_base_end;
         difference_type     m_n;
 
 
@@ -141,7 +144,7 @@ public:
 
     public:
         // default ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_start(),
               m_chunk_end(),
@@ -151,8 +154,8 @@ public:
 
         // value ctor
         iterator(
-            iterator_t<_View>   _start,
-            sentinel_t<_View>   _base_end,
+            iterator_t<View>   _start,
+            sentinel_t<View>   _base_end,
             difference_type     _n
         )
             : m_start(_start),
@@ -164,7 +167,7 @@ public:
         }
 
 
-        D_CONSTEXPR iterator_t<_View>
+        RE_STD_CONSTEXPR iterator_t<View>
         base() const
         {
             return m_start;
@@ -174,7 +177,7 @@ public:
         // operator*
         //   function: yields the current chunk as a subrange. O(1)
         // — uses the cached chunk_end.
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return reference(m_start, m_chunk_end);
@@ -237,7 +240,7 @@ public:
         // chunk_end is recomputed to span the new chunk (may be
         // shorter than m_n if the last chunk is short).
         //
-        //   Compiles only when iterator_t<_View> supports operator+=
+        //   Compiles only when iterator_t<View> supports operator+=
         // and operator- (i.e. is random-access).
 
         iterator&
@@ -277,7 +280,7 @@ public:
             return *this += (-_n);
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR_CPP14 iterator
         operator+(
             difference_type _n
         ) const
@@ -287,7 +290,7 @@ public:
             return tmp;
         }
 
-        friend D_CONSTEXPR iterator
+        friend RE_STD_CONSTEXPR iterator
         operator+(
             difference_type     _n,
             iterator            _it
@@ -296,7 +299,7 @@ public:
             return _it + _n;
         }
 
-        D_CONSTEXPR iterator
+        RE_STD_CONSTEXPR_CPP14 iterator
         operator-(
             difference_type _n
         ) const
@@ -310,7 +313,7 @@ public:
         //   Ceiling division so the past-last-short-chunk position
         // (m_start == m_base_end) counts as one more than the last
         // valid chunk index.
-        D_CONSTEXPR difference_type
+        RE_STD_CONSTEXPR difference_type
         operator-(
             iterator const& _rhs
         ) const
@@ -318,7 +321,7 @@ public:
             return (m_start - _rhs.m_start + m_n - 1) / m_n;
         }
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator[](
             difference_type _n
         ) const
@@ -328,14 +331,14 @@ public:
 
 
         // ordering by m_start.
-        D_CONSTEXPR bool operator<(iterator const& _r)  const { return m_start <  _r.m_start; }
-        D_CONSTEXPR bool operator<=(iterator const& _r) const { return m_start <= _r.m_start; }
-        D_CONSTEXPR bool operator>(iterator const& _r)  const { return m_start >  _r.m_start; }
-        D_CONSTEXPR bool operator>=(iterator const& _r) const { return m_start >= _r.m_start; }
+        RE_STD_CONSTEXPR bool operator<(iterator const& _r)  const { return m_start <  _r.m_start; }
+        RE_STD_CONSTEXPR bool operator<=(iterator const& _r) const { return m_start <= _r.m_start; }
+        RE_STD_CONSTEXPR bool operator>(iterator const& _r)  const { return m_start >  _r.m_start; }
+        RE_STD_CONSTEXPR bool operator>=(iterator const& _r) const { return m_start >= _r.m_start; }
 
 
         // == / !=
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -343,7 +346,7 @@ public:
             return (m_start == _rhs.m_start);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -360,31 +363,31 @@ public:
     class sentinel
     {
     private:
-        sentinel_t<_View>  m_end;
+        sentinel_t<View>  m_end;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         sentinel()
             : m_end()
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         sentinel(
-            sentinel_t<_View>  _e
+            sentinel_t<View>  _e
         )
             : m_end(_e)
         {}
 
 
-        D_CONSTEXPR sentinel_t<_View>
+        RE_STD_CONSTEXPR sentinel_t<View>
         base() const
         {
             return m_end;
         }
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             iterator const&  _it,
             sentinel const&  _s
@@ -393,7 +396,7 @@ public:
             return (_it.base() == _s.m_end);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             iterator const&  _it,
             sentinel const&  _s
@@ -402,7 +405,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             sentinel const&  _s,
             iterator const&  _it
@@ -411,7 +414,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             sentinel const&  _s,
             iterator const&  _it
@@ -424,7 +427,7 @@ public:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     chunk_view()
         : m_base(),
           m_n(1)
@@ -433,17 +436,17 @@ public:
     // value ctor
     //   function: _n must be positive. Zero or negative N is
     // undefined behaviour.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     chunk_view(
-        _View            _base,
+        View            _base,
         difference_type  _n
     )
-        : m_base(static_cast<_View&&>(_base)),
+        : m_base(static_cast<View&&>(_base)),
           m_n(_n)
     {}
 
 
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
@@ -451,9 +454,9 @@ public:
 
     // chunk_size
     //   function: returns the N value. Non-standard accessor.
-    D_CONSTEXPR difference_type
+    RE_STD_CONSTEXPR difference_type
     chunk_size() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_n;
     }
@@ -466,7 +469,7 @@ public:
         return iterator(re_std::begin(m_base), re_std::end(m_base), m_n);
     }
 
-    D_CONSTEXPR sentinel
+    RE_STD_CONSTEXPR sentinel
     end()
     {
         return sentinel(re_std::end(m_base));
@@ -476,7 +479,7 @@ public:
     // size
     //   function: ceil(size(base) / n). Only well-formed when the
     // underlying view is sized.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR_CPP14
     auto
     size() const
         -> decltype(re_std::size(m_base))
@@ -493,44 +496,45 @@ public:
 // II.  CHUNK_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
-
-template<typename _N>
-struct chunk_closure : range_adaptor_closure<chunk_closure<_N> >
+namespace internal
 {
-    _N count;
 
-    D_CONSTEXPR
+template<typename N>
+struct chunk_closure : range_adaptor_closure<chunk_closure<N> >
+{
+    N count;
+
+    RE_STD_CONSTEXPR
     chunk_closure()
         : count()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     chunk_closure(
-        _N _n
+        N _n
     )
         : count(_n)
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    chunk_view<typename internal::all_dispatch<_R>::type>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    chunk_view<typename internal::all_dispatch<R>::type>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
+        typedef typename internal::all_dispatch<R>::type view_type;
         typedef typename iterator_traits<
-                              iterator_t<typename remove_reference<_R>::type>
+                              iterator_t<typename remove_reference<R>::type>
                           >::difference_type             diff_type;
         return chunk_view<view_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             static_cast<diff_type>(count)
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -540,42 +544,42 @@ NS_END  // internal
 namespace views
 {
     // views::chunk(_r, _n)  [direct form]
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    chunk_view<typename internal::all_dispatch<_R>::type>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    chunk_view<typename internal::all_dispatch<R>::type>
     chunk(
-        _R&&                                                            _r,
+        R&&                                                            _r,
         typename iterator_traits<
-                     iterator_t<typename remove_reference<_R>::type>
+                     iterator_t<typename remove_reference<R>::type>
                  >::difference_type                                     _n
     )
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
+        typedef typename internal::all_dispatch<R>::type view_type;
         return chunk_view<view_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             _n
         );
     }
 
     // views::chunk(_n)  [bound form]
-    template<typename _N>
-    D_CONSTEXPR_INLINE
-    internal::chunk_closure<typename decay<_N>::type>
+    template<typename N>
+    RE_STD_CONSTEXPR_INLINE
+    internal::chunk_closure<typename decay<N>::type>
     chunk(
-        _N&& _n
+        N&& _n
     )
     {
-        return internal::chunk_closure<typename decay<_N>::type>(
-            static_cast<_N&&>(_n)
+        return internal::chunk_closure<typename decay<N>::type>(
+            static_cast<N&&>(_n)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_CHUNK_VIEW_
+#endif  // RE_STD_RANGES_CHUNK_VIEW_HPP

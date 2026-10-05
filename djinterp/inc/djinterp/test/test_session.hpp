@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             test_session.hpp
+/*******************************************************************************
+* djinterp [test]                                               test_session.hpp
 *
 *   Test session: the top-level runtime context for executing tests.
 * A session owns a test tree, maintains quasi-global options,
@@ -64,30 +64,44 @@
 *
 * path:      /inc/djinterp/test/test_session.hpp
 * link(s):   TBA
-* Samuel 'teer' Neal-Blim                       created: 2026.04.11
-******************************************************************************/
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    Session state
+      -------------
+
 II.   Test session
+      ------------
 */
 
-#ifndef DJINTERP_TEST_SESSION_
-#define DJINTERP_TEST_SESSION_ 1
+#ifndef DJINTERP_TEST_TEST_SESSION_HPP
+#define DJINTERP_TEST_TEST_SESSION_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but
+// core/container/tree/nary/nary_tree.hpp, which it reaches, needs C++17
+// (lowered from C++20 by round 3's lane 2). The owner's ruling: compile at
+// every level first; port down only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <cstddef>
 #include <chrono>
+#include <cstddef>
 #include <utility>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "./test_common.hpp"
 #include "./test_tree.hpp"
 #include "./test_counter.hpp"
 #include "./test_handler.hpp"
 #include "./test_timer.hpp"
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 
 NS_DJINTERP
@@ -119,8 +133,8 @@ enum class session_state
 // and session-wide options.
 //
 // Template parameters:
-//   _Element:    the test object element type.
-//   _Underlying: the n-ary tree container type.
+//   Element:    the test object element type.
+//   Underlying: the n-ary tree container type.
 //
 // Usage:
 //   test_session<basic_test, my_tree<basic_test>> session;
@@ -131,15 +145,15 @@ enum class session_state
 //   session_verdict v = session.run(handler);
 //
 //   auto passed = session.passed().value();
-template<typename _Element,
-         typename _Underlying>
+template<typename Element,
+         typename Underlying>
 class test_session
 {
 public:
-    using element_type    = _Element;
-    using underlying_type = _Underlying;
-    using tree_type       = test_tree<_Element, _Underlying>;
-    using counter_type    = test_counter<std::int64_t>;
+    using element_type    = Element;
+    using underlying_type = Underlying;
+    using tree_type       = test_tree<Element, Underlying>;
+    using counter_type    = test_counter<re_std::int64_t>;
     using timer_type      = test_timer<>;
     using size_type       = std::size_t;
 
@@ -462,7 +476,7 @@ public:
 
     // total
     //   returns the sum of all status counters.
-    std::int64_t
+    re_std::int64_t
     total() const noexcept
     {
         return m_passed.value()  +
@@ -613,5 +627,7 @@ private:
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_SESSION_
+
+#endif  // DJINTERP_TEST_TEST_SESSION_HPP

@@ -1,11 +1,11 @@
-/******************************************************************************
-* djinterp [container]                                          array_config.h
+/*******************************************************************************
+* djinterp [container]                                            array_config.h
 *
 * Feature configuration for the array sub-module.
 *   Resolves per-array-type filter toggles from the category defaults in
-* container_config.h.  The toggle hierarchy within this file is:
+* cfg_container.h.  The toggle hierarchy within this file is:
 *
-*   container_config.h
+*   cfg_container.h
 *     D_CFG_CONTAINER_FILTER_CONTIGUOUS           (category default)
 *       |
 *       +-- array_config.h
@@ -48,10 +48,10 @@
 *       #define D_CFG_CONTAINER_FILTER_CIRCULAR_ARRAY 0
 *
 *   Disable filter for all arrays (entire sub-module):
-*       #define D_CFG_CONTAINER_FILTER_CONTIGUOUS 0   // in container_config.h
+*       #define D_CFG_CONTAINER_FILTER_CONTIGUOUS 0   // in cfg_container.h
 *
 *
-* path:      \inc\container\array\array_config.h
+* path:      /inc/djinterp/config/core/container/array/array_config.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.02.19
 ******************************************************************************/
@@ -59,7 +59,7 @@
 #ifndef DJINTERP_C_CONTAINER_ARRAY_CONFIG_
 #define DJINTERP_C_CONTAINER_ARRAY_CONFIG_ 1
 
-#include "../container_config.h"
+#include "../cfg_container.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////

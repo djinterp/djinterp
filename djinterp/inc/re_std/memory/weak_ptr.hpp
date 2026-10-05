@@ -1,8 +1,8 @@
-/***********************************************************************
-* re_std                                                       weak_ptr.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 weak_ptr.hpp
 *
 * non-owning observer of a shared_ptr-managed object:
-*   weak_ptr<_T> tracks an object without keeping it alive. Use lock()
+*   weak_ptr<T> tracks an object without keeping it alive. Use lock()
 * to obtain a shared_ptr if the object still exists, or expired() to
 * check.
 *
@@ -13,18 +13,20 @@
 * (the re_std/memory umbrella does it transitively).
 *
 *
-* path:      /inc/djinterp/re_std/memory/weak_ptr.hpp
+* path:      /inc/re_std/memory/weak_ptr.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_WEAK_PTR_
-#define DJINTERP_RE_STD_MEMORY_WEAK_PTR_ 1
+#ifndef RE_STD_MEMORY_WEAK_PTR_HPP
+#define RE_STD_MEMORY_WEAK_PTR_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/memory/shared_ptr.hpp"
     #include "re_std/memory/bad_weak_ptr.hpp"
@@ -36,18 +38,18 @@ namespace re_std
 {
 
 // =============================================================================
-// weak_ptr<_T>
+// weak_ptr<T>
 // =============================================================================
 
-template<typename _T>
+template<typename T>
 class weak_ptr
 {
 public:
-    typedef _T element_type;
+    typedef T element_type;
 
-    template<typename _U> friend class weak_ptr;
-    template<typename _U> friend class shared_ptr;
-    template<typename _U> friend class enable_shared_from_this;
+    template<typename U> friend class weak_ptr;
+    template<typename U> friend class shared_ptr;
+    template<typename U> friend class enable_shared_from_this;
 
 private:
     element_type*                    m_ptr;
@@ -63,7 +65,7 @@ public:
     // "friend class" route does not grant it access.
 
     void _sp_internal_assign(element_type* _p,
-                             internal::sp_control_block_base* _cb) D_NOEXCEPT
+                             internal::sp_control_block_base* _cb) RE_STD_NOEXCEPT
     {
         // Bumps the weak refcount on the new cb. Assumes weak_ptr was
         // previously empty (called only from esft init while shared_ptr
@@ -80,13 +82,13 @@ public:
     // construction
     // -------------------------------------------------------------------------
 
-    D_CONSTEXPR weak_ptr() D_NOEXCEPT
+    RE_STD_CONSTEXPR weak_ptr() RE_STD_NOEXCEPT
         : m_ptr(0)
         , m_ctrl(0)
     {
     }
 
-    weak_ptr(const weak_ptr& _r) D_NOEXCEPT
+    weak_ptr(const weak_ptr& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -98,13 +100,13 @@ public:
 
     template
     <
-        typename _Y,
+        typename Y,
         typename = typename enable_if
         <
-            is_convertible<_Y*, element_type*>::value
+            is_convertible<Y*, element_type*>::value
         >::type
     >
-    weak_ptr(const weak_ptr<_Y>& _r) D_NOEXCEPT
+    weak_ptr(const weak_ptr<Y>& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -117,13 +119,13 @@ public:
     // From shared_ptr.
     template
     <
-        typename _Y,
+        typename Y,
         typename = typename enable_if
         <
-            is_convertible<_Y*, element_type*>::value
+            is_convertible<Y*, element_type*>::value
         >::type
     >
-    weak_ptr(const shared_ptr<_Y>& _r) D_NOEXCEPT
+    weak_ptr(const shared_ptr<Y>& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -133,7 +135,7 @@ public:
         }
     }
 
-    weak_ptr(weak_ptr&& _r) D_NOEXCEPT
+    weak_ptr(weak_ptr&& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -143,13 +145,13 @@ public:
 
     template
     <
-        typename _Y,
+        typename Y,
         typename = typename enable_if
         <
-            is_convertible<_Y*, element_type*>::value
+            is_convertible<Y*, element_type*>::value
         >::type
     >
-    weak_ptr(weak_ptr<_Y>&& _r) D_NOEXCEPT
+    weak_ptr(weak_ptr<Y>&& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -173,49 +175,49 @@ public:
     // assignment
     // -------------------------------------------------------------------------
 
-    weak_ptr& operator=(const weak_ptr& _r) D_NOEXCEPT
+    weak_ptr& operator=(const weak_ptr& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(_r).swap(*this);
         return *this;
     }
 
-    template<typename _Y>
+    template<typename Y>
     typename enable_if
     <
-        is_convertible<_Y*, element_type*>::value,
+        is_convertible<Y*, element_type*>::value,
         weak_ptr&
     >::type
-    operator=(const weak_ptr<_Y>& _r) D_NOEXCEPT
+    operator=(const weak_ptr<Y>& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(_r).swap(*this);
         return *this;
     }
 
-    template<typename _Y>
+    template<typename Y>
     typename enable_if
     <
-        is_convertible<_Y*, element_type*>::value,
+        is_convertible<Y*, element_type*>::value,
         weak_ptr&
     >::type
-    operator=(const shared_ptr<_Y>& _r) D_NOEXCEPT
+    operator=(const shared_ptr<Y>& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(_r).swap(*this);
         return *this;
     }
 
-    weak_ptr& operator=(weak_ptr&& _r) D_NOEXCEPT
+    weak_ptr& operator=(weak_ptr&& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
-    template<typename _Y>
+    template<typename Y>
     typename enable_if
     <
-        is_convertible<_Y*, element_type*>::value,
+        is_convertible<Y*, element_type*>::value,
         weak_ptr&
     >::type
-    operator=(weak_ptr<_Y>&& _r) D_NOEXCEPT
+    operator=(weak_ptr<Y>&& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(re_std::move(_r)).swap(*this);
         return *this;
@@ -225,12 +227,12 @@ public:
     // modifiers
     // -------------------------------------------------------------------------
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         weak_ptr().swap(*this);
     }
 
-    void swap(weak_ptr& _r) D_NOEXCEPT
+    void swap(weak_ptr& _r) RE_STD_NOEXCEPT
     {
         element_type* _tp = m_ptr;
         m_ptr = _r.m_ptr;
@@ -245,18 +247,18 @@ public:
     // observers
     // -------------------------------------------------------------------------
 
-    long use_count() const D_NOEXCEPT
+    long use_count() const RE_STD_NOEXCEPT
     {
         return m_ctrl ? static_cast<long>(m_ctrl->use_count()) : 0;
     }
 
-    bool expired() const D_NOEXCEPT
+    bool expired() const RE_STD_NOEXCEPT
     {
         return use_count() == 0;
     }
 
     // lock(): atomic check + bump. Returns empty if expired.
-    shared_ptr<_T> lock() const D_NOEXCEPT
+    shared_ptr<T> lock() const RE_STD_NOEXCEPT
     {
         if (m_ctrl && m_ctrl->add_ref_if_nonzero())
         {
@@ -265,22 +267,22 @@ public:
             // shared_ptr's ctor that bumps is the copy ctor, and we
             // want to NOT bump (we already did), we use the trick of
             // constructing via a moved-from-empty shared_ptr.
-            shared_ptr<_T> _sp;
+            shared_ptr<T> _sp;
             _sp.m_ptr = m_ptr;
             _sp.m_ctrl = m_ctrl;
             return _sp;
         }
-        return shared_ptr<_T>();
+        return shared_ptr<T>();
     }
 
-    template<typename _Y>
-    bool owner_before(const weak_ptr<_Y>& _r) const D_NOEXCEPT
+    template<typename Y>
+    bool owner_before(const weak_ptr<Y>& _r) const RE_STD_NOEXCEPT
     {
         return m_ctrl < _r.m_ctrl;
     }
 
-    template<typename _Y>
-    bool owner_before(const shared_ptr<_Y>& _r) const D_NOEXCEPT
+    template<typename Y>
+    bool owner_before(const shared_ptr<Y>& _r) const RE_STD_NOEXCEPT
     {
         return m_ctrl < _r.m_ctrl;
     }
@@ -291,9 +293,9 @@ public:
 // shared_ptr's weak_ptr-using ctor body  (declared in shared_ptr.hpp)
 // =============================================================================
 
-template<typename _T>
-template<typename _Y>
-shared_ptr<_T>::shared_ptr(const weak_ptr<_Y>& _w)
+template<typename T>
+template<typename Y>
+shared_ptr<T>::shared_ptr(const weak_ptr<Y>& _w)
     : m_ptr(0)
     , m_ctrl(0)
 {
@@ -304,7 +306,7 @@ shared_ptr<_T>::shared_ptr(const weak_ptr<_Y>& _w)
     }
     else
     {
-        #if D_ENV_CPP98_HAS_EXCEPTION
+        #if RE_STD_HAS_EXCEPTIONS
             throw bad_weak_ptr();
         #else
             // No exception support — leave empty. Caller is responsible.
@@ -314,34 +316,34 @@ shared_ptr<_T>::shared_ptr(const weak_ptr<_Y>& _w)
 
 
 // shared_ptr::owner_before(weak_ptr) body.
-template<typename _T>
-template<typename _Y>
-bool shared_ptr<_T>::owner_before(const weak_ptr<_Y>& _r) const D_NOEXCEPT
+template<typename T>
+template<typename Y>
+bool shared_ptr<T>::owner_before(const weak_ptr<Y>& _r) const RE_STD_NOEXCEPT
 {
     return m_ctrl < _r.m_ctrl;
 }
 
 
 // =============================================================================
-// weak_ptr<_T[]>  -  array specialization
+// weak_ptr<T[]>  -  array specialization
 // =============================================================================
 //
-// A minimal specialization that mirrors weak_ptr<_T> but uses
-// element_type* (= _T*) for storage and returns shared_ptr<_T[]> from
+// A minimal specialization that mirrors weak_ptr<T> but uses
+// element_type* (= T*) for storage and returns shared_ptr<T[]> from
 // lock(). weak_ptr never dereferences, so there are no operator*/->/[]
 // changes to make.
 //
 // Conversion rules use the array qualification-only rule, matching
-// shared_ptr<_T[]>.
+// shared_ptr<T[]>.
 
-template<typename _T>
-class weak_ptr<_T[]>
+template<typename T>
+class weak_ptr<T[]>
 {
 public:
-    typedef _T  element_type;
+    typedef T  element_type;
 
-    template<typename _U> friend class weak_ptr;
-    template<typename _U> friend class shared_ptr;
+    template<typename U> friend class weak_ptr;
+    template<typename U> friend class shared_ptr;
 
 private:
     element_type*                    m_ptr;
@@ -349,7 +351,7 @@ private:
 
 public:
     void _sp_internal_assign(element_type* _p,
-                             internal::sp_control_block_base* _cb) D_NOEXCEPT
+                             internal::sp_control_block_base* _cb) RE_STD_NOEXCEPT
     {
         m_ptr = _p;
         m_ctrl = _cb;
@@ -359,13 +361,13 @@ public:
         }
     }
 
-    D_CONSTEXPR weak_ptr() D_NOEXCEPT
+    RE_STD_CONSTEXPR weak_ptr() RE_STD_NOEXCEPT
         : m_ptr(0)
         , m_ctrl(0)
     {
     }
 
-    weak_ptr(const weak_ptr& _r) D_NOEXCEPT
+    weak_ptr(const weak_ptr& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -375,7 +377,7 @@ public:
         }
     }
 
-    weak_ptr(const shared_ptr<_T[]>& _r) D_NOEXCEPT
+    weak_ptr(const shared_ptr<T[]>& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.get())
         , m_ctrl(_r.m_ctrl)
     {
@@ -385,7 +387,7 @@ public:
         }
     }
 
-    weak_ptr(weak_ptr&& _r) D_NOEXCEPT
+    weak_ptr(weak_ptr&& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -401,30 +403,30 @@ public:
         }
     }
 
-    weak_ptr& operator=(const weak_ptr& _r) D_NOEXCEPT
+    weak_ptr& operator=(const weak_ptr& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(_r).swap(*this);
         return *this;
     }
 
-    weak_ptr& operator=(const shared_ptr<_T[]>& _r) D_NOEXCEPT
+    weak_ptr& operator=(const shared_ptr<T[]>& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(_r).swap(*this);
         return *this;
     }
 
-    weak_ptr& operator=(weak_ptr&& _r) D_NOEXCEPT
+    weak_ptr& operator=(weak_ptr&& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         weak_ptr().swap(*this);
     }
 
-    void swap(weak_ptr& _r) D_NOEXCEPT
+    void swap(weak_ptr& _r) RE_STD_NOEXCEPT
     {
         element_type* _tp = m_ptr;
         m_ptr = _r.m_ptr;
@@ -435,61 +437,61 @@ public:
         _r.m_ctrl = _tc;
     }
 
-    long use_count() const D_NOEXCEPT
+    long use_count() const RE_STD_NOEXCEPT
     {
         return m_ctrl ? static_cast<long>(m_ctrl->use_count()) : 0;
     }
 
-    bool expired() const D_NOEXCEPT
+    bool expired() const RE_STD_NOEXCEPT
     {
         return use_count() == 0;
     }
 
-    shared_ptr<_T[]> lock() const D_NOEXCEPT
+    shared_ptr<T[]> lock() const RE_STD_NOEXCEPT
     {
         if (m_ctrl && m_ctrl->add_ref_if_nonzero())
         {
-            return shared_ptr<_T[]>::_sp_internal_from_cb(m_ptr, m_ctrl);
+            return shared_ptr<T[]>::_sp_internal_from_cb(m_ptr, m_ctrl);
         }
-        return shared_ptr<_T[]>();
+        return shared_ptr<T[]>();
     }
 };
 
 
 // =============================================================================
-// weak_ptr<_T[_N]>  -  bounded-array specialization
+// weak_ptr<T[N]>  -  bounded-array specialization
 // =============================================================================
 
-template<typename _T, std::size_t _N>
-class weak_ptr<_T[_N]>
+template<typename T, std::size_t N>
+class weak_ptr<T[N]>
 {
 public:
-    typedef _T  element_type;
+    typedef T  element_type;
 
-    template<typename _U> friend class weak_ptr;
-    template<typename _U> friend class shared_ptr;
+    template<typename U> friend class weak_ptr;
+    template<typename U> friend class shared_ptr;
 
 private:
     element_type*                    m_ptr;
     internal::sp_control_block_base* m_ctrl;
 
 public:
-    D_CONSTEXPR weak_ptr() D_NOEXCEPT
+    RE_STD_CONSTEXPR weak_ptr() RE_STD_NOEXCEPT
         : m_ptr(0), m_ctrl(0) {}
 
-    weak_ptr(const weak_ptr& _r) D_NOEXCEPT
+    weak_ptr(const weak_ptr& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr), m_ctrl(_r.m_ctrl)
     {
         if (m_ctrl) m_ctrl->weak_add_ref();
     }
 
-    weak_ptr(const shared_ptr<_T[_N]>& _r) D_NOEXCEPT
+    weak_ptr(const shared_ptr<T[N]>& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.get()), m_ctrl(_r.m_ctrl)
     {
         if (m_ctrl) m_ctrl->weak_add_ref();
     }
 
-    weak_ptr(weak_ptr&& _r) D_NOEXCEPT
+    weak_ptr(weak_ptr&& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr), m_ctrl(_r.m_ctrl)
     {
         _r.m_ptr = 0;
@@ -501,53 +503,52 @@ public:
         if (m_ctrl) m_ctrl->weak_release();
     }
 
-    weak_ptr& operator=(const weak_ptr& _r) D_NOEXCEPT
+    weak_ptr& operator=(const weak_ptr& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(_r).swap(*this);
         return *this;
     }
 
-    weak_ptr& operator=(const shared_ptr<_T[_N]>& _r) D_NOEXCEPT
+    weak_ptr& operator=(const shared_ptr<T[N]>& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(_r).swap(*this);
         return *this;
     }
 
-    weak_ptr& operator=(weak_ptr&& _r) D_NOEXCEPT
+    weak_ptr& operator=(weak_ptr&& _r) RE_STD_NOEXCEPT
     {
         weak_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
-    void reset() D_NOEXCEPT { weak_ptr().swap(*this); }
+    void reset() RE_STD_NOEXCEPT { weak_ptr().swap(*this); }
 
-    void swap(weak_ptr& _r) D_NOEXCEPT
+    void swap(weak_ptr& _r) RE_STD_NOEXCEPT
     {
         element_type* _tp = m_ptr; m_ptr = _r.m_ptr; _r.m_ptr = _tp;
         internal::sp_control_block_base* _tc = m_ctrl;
         m_ctrl = _r.m_ctrl; _r.m_ctrl = _tc;
     }
 
-    long use_count() const D_NOEXCEPT
+    long use_count() const RE_STD_NOEXCEPT
     {
         return m_ctrl ? static_cast<long>(m_ctrl->use_count()) : 0;
     }
 
-    bool expired() const D_NOEXCEPT { return use_count() == 0; }
+    bool expired() const RE_STD_NOEXCEPT { return use_count() == 0; }
 
-    shared_ptr<_T[_N]> lock() const D_NOEXCEPT
+    shared_ptr<T[N]> lock() const RE_STD_NOEXCEPT
     {
         if (m_ctrl && m_ctrl->add_ref_if_nonzero())
         {
-            return shared_ptr<_T[_N]>::_sp_internal_from_cb(m_ptr, m_ctrl);
+            return shared_ptr<T[N]>::_sp_internal_from_cb(m_ptr, m_ctrl);
         }
-        return shared_ptr<_T[_N]>();
+        return shared_ptr<T[N]>();
     }
 };
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_WEAK_PTR_
+#endif  // RE_STD_MEMORY_WEAK_PTR_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                              test_traits.hpp
+/*******************************************************************************
+* djinterp [test]                                                test_traits.hpp
 *
 *   The trait-TESTING toolkit: the shorthands and idioms a unit test needs in
 * order to interrogate a SFINAE / detection trait, as opposed to the machinery
@@ -10,7 +10,7 @@
 *
 *   WHY IT HAS TO BE ITS OWN THING:
 *   A trait test cannot be written the way an ordinary test is written.  The
-* negative case - "this expression is NOT valid for _Type" - cannot be spelled
+* negative case - "this expression is NOT valid for Type" - cannot be spelled
 * by writing the expression, because an ill-formed expression is a hard error,
 * not a `false`.  Every honest negative therefore has to be routed through a
 * SFINAE context first.  That routing is mechanical, it is easy to get subtly
@@ -18,14 +18,14 @@
 * trait.  This header names it once.
 *
 *   WHAT A TRAIT TEST ACTUALLY ASKS:
-*     1. is the probed expression well-formed for _Type?             (I, II)
+*     1. is the probed expression well-formed for Type?             (I, II)
 *     2. and what does it yield - which type exactly, in which value
 *        category, throwing or not, constant or not?                 (I, II)
 *     3. does that answer hold across a SET of types?                (III)
 *     4. is the trait ITSELF a well-formed bool trait - `::value`,
 *        `value_type`, `::type`, and a `_v` companion that agrees?   (IV)
-*     5. does it answer identically for `_Type`, `const _Type&`,
-*        `_Type&&`, ...?                                             (V)
+*     5. does it answer identically for `Type`, `const Type&`,
+*        `Type&&`, ...?                                             (V)
 *     6. does it survive the types nobody thought to try it on?      (VI)
 *     7. (C++20) does its concept face agree with it, and does the
 *        refinement ladder genuinely subsume?                        (VIII)
@@ -53,51 +53,65 @@
 *   PORTABILITY:
 *   C++17.  That floor is set by the detection idiom this header READS, not by
 * anything written here: type_traits.hpp section 0.2 spells its template-
-* template parameters `template<typename...> typename _Op`, which is C++17
+* template parameters `template<typename...> typename Op`, which is C++17
 * (P0522), notwithstanding the C++11 claim in its own comment block.  Beyond
 * the floor: `_v` companions need variable templates (C++14+), is_valid's
 * inline spelling needs generic lambdas (C++14+), and section VIII needs
 * concepts (C++20).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    PROBE DECLARATORS
-* II.   READING A PROBE
-* III.  TYPE-SET QUANTIFIERS
-* IV.   TRAIT SHAPE
-* V.    CV-REF AGREEMENT
-* VI.   FIXTURES  (the type zoo)
-* VII.  BUILD-TIME PINS
-* VIII. CONCEPT LAYER  (C++20)
-*
-*
 * path:      /inc/djinterp/test/test_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.09.30
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_TRAITS_
-#define DJINTERP_TEST_TRAITS_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    PROBE DECLARATORS
+      -----------------
 
-#ifndef __cplusplus
-    #error "test_traits.hpp requires C++ compilation"
-#endif  // __cplusplus
+II.   READING A PROBE
+      ---------------
+
+III.  TYPE-SET QUANTIFIERS
+      --------------------
+
+IV.   TRAIT SHAPE
+      -----------
+
+V.    CV-REF AGREEMENT
+      ----------------
+
+VI.   FIXTURES  (the type zoo)
+      ------------------------
+
+VII.  BUILD-TIME PINS
+      ---------------
+
+VIII. CONCEPT LAYER  (C++20)
+      ----------------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_TRAITS_HPP
+#define DJINTERP_TEST_TEST_TRAITS_HPP 1
+
+// djinterp
+#include "../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 
 // std
 #include <cstddef>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "../core/meta/trait_detect.hpp"   // D_VOID_T + the D_TYPE_TRAIT_* family
 #include "../core/meta/type_traits.hpp"    // the detection idiom this header reads
 #include "./test_common.hpp"
-
-
-#if !D_ENV_LANG_IS_CPP17_OR_HIGHER
-    #error "test_traits.hpp requires C++17 or higher"
-#endif  // !D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
 #ifndef D_KEYWORD_FIXTURES
@@ -132,7 +146,7 @@ NS_TEST
 //     D_TEST_NOEXCEPT_PROBE  ...and is it non-throwing?
 //     D_TEST_CONSTEXPR_PROBE ...and is it a CONSTANT expression?
 //
-//   Every declarator names its type parameter `_Type` (and `_Other`, for the
+//   Every declarator names its type parameter `Type` (and `Other`, for the
 // binary forms), so the expression body is written against those names.  They
 // are alias TEMPLATES, so they must be declared at namespace or class scope -
 // never inside a test function.  For the one-off, in-function case there is
@@ -143,59 +157,59 @@ NS_TEST
 // macro is invoked in (normally the suite's own djinterp::testing).
 
 // D_TEST_TYPE_PROBE
-//   macro: names a one-parameter TYPE probe over `_Type`.  Instantiation is
+//   macro: names a one-parameter TYPE probe over `Type`.  Instantiation is
 // well-formed iff the type expression is.  This is the probe for nested
 // typedefs, alias-template applications, and anything else that is a type
 // rather than an expression.
 //
 // Usage:
-//   D_TEST_TYPE_PROBE(p_value_type, typename _Type::value_type)
+//   D_TEST_TYPE_PROBE(p_value_type, typename Type::value_type)
 //   ...
 //   is_detected<p_value_type, my_type>::value
 #define D_TEST_TYPE_PROBE(PROBE_NAME, ...)                                    \
-    template<typename _Type>                                                  \
+    template<typename Type>                                                  \
     using PROBE_NAME = __VA_ARGS__;
 
 // D_TEST_TYPE_PROBE_2
-//   macro: the binary form of D_TEST_TYPE_PROBE, over `_Type` and `_Other`.
+//   macro: the binary form of D_TEST_TYPE_PROBE, over `Type` and `Other`.
 #define D_TEST_TYPE_PROBE_2(PROBE_NAME, ...)                                  \
-    template<typename _Type,                                                  \
-             typename _Other>                                                 \
+    template<typename Type,                                                  \
+             typename Other>                                                 \
     using PROBE_NAME = __VA_ARGS__;
 
 // D_TEST_EXPR_PROBE
-//   macro: names a one-parameter EXPRESSION probe over `_Type`.  The probe is
+//   macro: names a one-parameter EXPRESSION probe over `Type`.  The probe is
 // the `decltype` of the expression, so a successful detection hands back not
 // just "well-formed" but the exact result type - which is what lets
 // is_detected_exact, is_detected_convertible and the yields_* family in
 // section II say something sharper than yes/no.
 //
 //   Write the expression with std::declval so no object is required and the
-// value category under test is stated explicitly: `declval<_Type&>()` for a
-// mutable lvalue, `declval<const _Type&>()` for an immutable one,
-// `declval<_Type>()` for an rvalue.
+// value category under test is stated explicitly: `declval<Type&>()` for a
+// mutable lvalue, `declval<const Type&>()` for an immutable one,
+// `declval<Type>()` for an rvalue.
 //
 // Usage:
-//   D_TEST_EXPR_PROBE(p_size, std::declval<const _Type&>().size())
+//   D_TEST_EXPR_PROBE(p_size, std::declval<const Type&>().size())
 //   ...
 //   is_detected_convertible<std::size_t, p_size, my_type>::value
 #define D_TEST_EXPR_PROBE(PROBE_NAME, ...)                                    \
-    template<typename _Type>                                                  \
+    template<typename Type>                                                  \
     using PROBE_NAME = decltype(__VA_ARGS__);
 
 // D_TEST_EXPR_PROBE_2
-//   macro: the binary form of D_TEST_EXPR_PROBE, over `_Type` and `_Other` -
+//   macro: the binary form of D_TEST_EXPR_PROBE, over `Type` and `Other` -
 // the shape every cross-type question wants (comparability, assignability,
 // constructibility from, conversion to).
 //
 // Usage:
-//   D_TEST_EXPR_PROBE_2(p_eq, std::declval<const _Type&>() ==
-//                             std::declval<const _Other&>())
+//   D_TEST_EXPR_PROBE_2(p_eq, std::declval<const Type&>() ==
+//                             std::declval<const Other&>())
 //   ...
 //   is_detected<p_eq, my_type, other_type>::value
 #define D_TEST_EXPR_PROBE_2(PROBE_NAME, ...)                                  \
-    template<typename _Type,                                                  \
-             typename _Other>                                                 \
+    template<typename Type,                                                  \
+             typename Other>                                                 \
     using PROBE_NAME = decltype(__VA_ARGS__);
 
 // D_TEST_NOEXCEPT_PROBE
@@ -213,11 +227,11 @@ NS_TEST
 //
 // Usage:
 //   D_TEST_NOEXCEPT_PROBE(p_swap_nothrow,
-//                         std::declval<_Type&>().swap(std::declval<_Type&>()))
+//                         std::declval<Type&>().swap(std::declval<Type&>()))
 //   ...
 //   is_nothrow_probe<p_swap_nothrow, my_type>::value
 #define D_TEST_NOEXCEPT_PROBE(PROBE_NAME, ...)                                \
-    template<typename _Type>                                                  \
+    template<typename Type>                                                  \
     using PROBE_NAME =                                                        \
         std::integral_constant<bool, noexcept(__VA_ARGS__)>;
 
@@ -242,7 +256,7 @@ NS_TEST
 //   ...
 //   is_detected<p_make_ce, my_type>::value
 #define D_TEST_CONSTEXPR_PROBE(PROBE_NAME, ...)                               \
-    template<typename _Type>                                                  \
+    template<typename Type>                                                  \
     using PROBE_NAME =                                                        \
         std::integral_constant<int, ((void)(__VA_ARGS__), 0)>;
 
@@ -264,13 +278,13 @@ NS_TEST
 
 // is_nothrow_probe
 //   trait: reads a D_TEST_NOEXCEPT_PROBE.  True iff the probed expression is
-// BOTH well-formed for `_Types...` AND non-throwing.  An ill-formed
+// BOTH well-formed for `Types...` AND non-throwing.  An ill-formed
 // expression reads as false rather than as a diagnostic, which is the whole
 // point: it makes the negative case testable.
-template<template<typename...> typename _Probe,
-         typename...                    _Types>
+template<template<typename...> typename Probe,
+         typename...                    Types>
 struct is_nothrow_probe
-    : detected_or_t<std::false_type, _Probe, _Types...>
+    : detected_or_t<std::false_type, Probe, Types...>
 {};
 
 // yields_lvalue
@@ -278,19 +292,19 @@ struct is_nothrow_probe
 // lvalue - that is, `decltype(EXPR)` is `X&`.  The question every accessor
 // test asks and no plain detection trait answers: `front()` returning a
 // reference and `front()` returning a copy are both "detected".
-template<template<typename...> typename _Probe,
-         typename...                    _Types>
+template<template<typename...> typename Probe,
+         typename...                    Types>
 struct yields_lvalue
-    : std::is_lvalue_reference<detected_t<_Probe, _Types...>>
+    : std::is_lvalue_reference<detected_t<Probe, Types...>>
 {};
 
 // yields_xvalue
 //   trait: true iff the probe is well-formed and its result is an xvalue -
 // `decltype(EXPR)` is `X&&`.
-template<template<typename...> typename _Probe,
-         typename...                    _Types>
+template<template<typename...> typename Probe,
+         typename...                    Types>
 struct yields_xvalue
-    : std::is_rvalue_reference<detected_t<_Probe, _Types...>>
+    : std::is_rvalue_reference<detected_t<Probe, Types...>>
 {};
 
 // yields_prvalue
@@ -299,12 +313,12 @@ struct yields_xvalue
 // on failure detected_t yields `nonesuch`, which is not a reference either,
 // so a naive `!is_reference<detected_t<...>>` would report every ill-formed
 // expression as a prvalue.
-template<template<typename...> typename _Probe,
-         typename...                    _Types>
+template<template<typename...> typename Probe,
+         typename...                    Types>
 struct yields_prvalue
     : bool_constant<
-        ( is_detected<_Probe, _Types...>::value &&
-          (!std::is_reference<detected_t<_Probe, _Types...>>::value) )>
+        ( is_detected<Probe, Types...>::value &&
+          (!std::is_reference<detected_t<Probe, Types...>>::value) )>
 {};
 
 
@@ -312,19 +326,19 @@ NS_INTERNAL
 
     // valid_call
     //   trait: the SFINAE dispatch behind is_valid.  The `int` overload
-    // survives substitution only when `_Probe` is callable on `_Args...`; the
+    // survives substitution only when `Probe` is callable on `Args...`; the
     // ellipsis overload is the fallback and is always a worse match for the
     // literal 0 the caller passes.
     //
     //   The result is fed through `void(...)` rather than a bare comma so a
     // probed type that overloads `operator,` (see fixtures::evil) cannot
     // hijack the dispatch.
-    template<typename    _Probe,
-             typename... _Args>
+    template<typename    Probe,
+             typename... Args>
     D_CONSTEXPR auto
     valid_call(
         int _tag
-    ) -> decltype(void(std::declval<_Probe>()(std::declval<_Args>()...)), true)
+    ) -> decltype(void(std::declval<Probe>()(std::declval<Args>()...)), true)
     {
         return ( (void)_tag, true );
     }
@@ -332,8 +346,8 @@ NS_INTERNAL
     // valid_call
     //   trait: the fallback overload - reached only when the call above fails
     // to substitute.
-    template<typename    _Probe,
-             typename... _Args>
+    template<typename    Probe,
+             typename... Args>
     D_CONSTEXPR bool
     valid_call(
         ...
@@ -346,7 +360,7 @@ NS_END  // internal
 
 
 // is_valid
-//   function: true iff `_probe(std::declval<_Args>()...)` is a well-formed
+//   function: true iff `_probe(std::declval<Args>()...)` is a well-formed
 // call.  This is the INLINE spelling of a probe - hand it a generic lambda
 // whose trailing return type names the expression under test and it answers
 // on the spot, with no alias template declared and no name added to the
@@ -368,15 +382,15 @@ NS_END  // internal
 //
 //   const bool no = is_valid<my_type&, int>(
 //       [](auto&& _x, auto&& _i) -> decltype(void(_x.at(_i))) {});
-template<typename... _Args,
-         typename    _Probe>
+template<typename... Args,
+         typename    Probe>
 D_NODISCARD D_CONSTEXPR bool
 is_valid(
-    _Probe&& _probe
+    Probe&& _probe
 )
 {
     return ( (void)_probe,
-             internal::valid_call<_Probe&&, _Args...>(0) );
+             internal::valid_call<Probe&&, Args...>(0) );
 }
 
 
@@ -384,31 +398,31 @@ is_valid(
 
     // is_nothrow_probe_v
     //   value: convenience alias for is_nothrow_probe<...>::value.
-    template<template<typename...> typename _Probe,
-             typename...                    _Types>
+    template<template<typename...> typename Probe,
+             typename...                    Types>
     constexpr bool is_nothrow_probe_v =
-        is_nothrow_probe<_Probe, _Types...>::value;
+        is_nothrow_probe<Probe, Types...>::value;
 
     // yields_lvalue_v
     //   value: convenience alias for yields_lvalue<...>::value.
-    template<template<typename...> typename _Probe,
-             typename...                    _Types>
+    template<template<typename...> typename Probe,
+             typename...                    Types>
     constexpr bool yields_lvalue_v =
-        yields_lvalue<_Probe, _Types...>::value;
+        yields_lvalue<Probe, Types...>::value;
 
     // yields_xvalue_v
     //   value: convenience alias for yields_xvalue<...>::value.
-    template<template<typename...> typename _Probe,
-             typename...                    _Types>
+    template<template<typename...> typename Probe,
+             typename...                    Types>
     constexpr bool yields_xvalue_v =
-        yields_xvalue<_Probe, _Types...>::value;
+        yields_xvalue<Probe, Types...>::value;
 
     // yields_prvalue_v
     //   value: convenience alias for yields_prvalue<...>::value.
-    template<template<typename...> typename _Probe,
-             typename...                    _Types>
+    template<template<typename...> typename Probe,
+             typename...                    Types>
     constexpr bool yields_prvalue_v =
-        yields_prvalue<_Probe, _Types...>::value;
+        yields_prvalue<Probe, Types...>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -435,7 +449,7 @@ NS_INTERNAL
     // than folded so the C++11-era spelling still reads the same; the pack is
     // fully expanded by the caller, so every trait instantiation in it has
     // already happened by the time this is entered.
-    template<bool... _Values>
+    template<bool... Values>
     struct count_true;
 
     // count_true (empty case)
@@ -448,62 +462,62 @@ NS_INTERNAL
 
     // count_true (recursive case)
     //   trait: adds the head to the count of the tail.
-    template<bool    _Value,
-             bool... _Rest>
-    struct count_true<_Value, _Rest...>
+    template<bool    Value,
+             bool... Rest>
+    struct count_true<Value, Rest...>
     {
         static D_CONSTEXPR std::size_t value =
-            ( (_Value ? static_cast<std::size_t>(1)
+            ( (Value ? static_cast<std::size_t>(1)
                       : static_cast<std::size_t>(0)) +
-              count_true<_Rest...>::value );
+              count_true<Rest...>::value );
     };
 
 NS_END  // internal
 
 
 // count_holds
-//   trait: how many of `_Types...` satisfy `_Trait`.  Every `_Trait<_Type>`
+//   trait: how many of `Types...` satisfy `Trait`.  Every `Trait<Type>`
 // in the pack is instantiated - there is no short-circuit - so this doubles
 // as the blunt instrument that proves a trait is SFINAE-friendly across a
 // type set: if any cell hard-errors instead of answering, the build stops
 // here.  (That is the only way to detect a non-SFINAE-friendly trait from
 // inside the same translation unit; a hard error cannot be caught, only
 // provoked.)
-template<template<typename> typename _Trait,
-         typename...                 _Types>
+template<template<typename> typename Trait,
+         typename...                 Types>
 struct count_holds
     : std::integral_constant<
           std::size_t,
-          internal::count_true<_Trait<_Types>::value...>::value>
+          internal::count_true<Trait<Types>::value...>::value>
 {};
 
 // holds_for_all
-//   trait: true iff `_Trait` is satisfied by every one of `_Types...`.  The
+//   trait: true iff `Trait` is satisfied by every one of `Types...`.  The
 // positive battery.
-template<template<typename> typename _Trait,
-         typename...                 _Types>
+template<template<typename> typename Trait,
+         typename...                 Types>
 struct holds_for_all
     : bool_constant<
-        ( count_holds<_Trait, _Types...>::value == sizeof...(_Types) )>
+        ( count_holds<Trait, Types...>::value == sizeof...(Types) )>
 {};
 
 // holds_for_any
-//   trait: true iff `_Trait` is satisfied by at least one of `_Types...`.
-template<template<typename> typename _Trait,
-         typename...                 _Types>
+//   trait: true iff `Trait` is satisfied by at least one of `Types...`.
+template<template<typename> typename Trait,
+         typename...                 Types>
 struct holds_for_any
-    : bool_constant<( count_holds<_Trait, _Types...>::value > 0 )>
+    : bool_constant<( count_holds<Trait, Types...>::value > 0 )>
 {};
 
 // holds_for_none
-//   trait: true iff `_Trait` is satisfied by none of `_Types...`.  The
+//   trait: true iff `Trait` is satisfied by none of `Types...`.  The
 // negative battery - and, paired with the D_TEST_HOSTILE_* lists in section
 // VI, the statement "this trait rejects everything it should reject and
 // survives everything it cannot classify".
-template<template<typename> typename _Trait,
-         typename...                 _Types>
+template<template<typename> typename Trait,
+         typename...                 Types>
 struct holds_for_none
-    : bool_constant<( count_holds<_Trait, _Types...>::value == 0 )>
+    : bool_constant<( count_holds<Trait, Types...>::value == 0 )>
 {};
 
 
@@ -511,31 +525,31 @@ struct holds_for_none
 
     // count_holds_v
     //   value: convenience alias for count_holds<...>::value.
-    template<template<typename> typename _Trait,
-             typename...                 _Types>
+    template<template<typename> typename Trait,
+             typename...                 Types>
     constexpr std::size_t count_holds_v =
-        count_holds<_Trait, _Types...>::value;
+        count_holds<Trait, Types...>::value;
 
     // holds_for_all_v
     //   value: convenience alias for holds_for_all<...>::value.
-    template<template<typename> typename _Trait,
-             typename...                 _Types>
+    template<template<typename> typename Trait,
+             typename...                 Types>
     constexpr bool holds_for_all_v =
-        holds_for_all<_Trait, _Types...>::value;
+        holds_for_all<Trait, Types...>::value;
 
     // holds_for_any_v
     //   value: convenience alias for holds_for_any<...>::value.
-    template<template<typename> typename _Trait,
-             typename...                 _Types>
+    template<template<typename> typename Trait,
+             typename...                 Types>
     constexpr bool holds_for_any_v =
-        holds_for_any<_Trait, _Types...>::value;
+        holds_for_any<Trait, Types...>::value;
 
     // holds_for_none_v
     //   value: convenience alias for holds_for_none<...>::value.
-    template<template<typename> typename _Trait,
-             typename...                 _Types>
+    template<template<typename> typename Trait,
+             typename...                 Types>
     constexpr bool holds_for_none_v =
-        holds_for_none<_Trait, _Types...>::value;
+        holds_for_none<Trait, Types...>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -559,7 +573,7 @@ struct holds_for_none
 // the contract.  is_bool_trait is that missing test.
 
 // is_bool_trait
-//   trait: true iff `_Trait` - an INSTANTIATED trait, e.g. `is_foo<int>`, not
+//   trait: true iff `Trait` - an INSTANTIATED trait, e.g. `is_foo<int>`, not
 // the template - has the shape the standard requires of a bool trait:
 //     - a nested `value_type` that is exactly bool,
 //     - a `::value` usable as a constant expression,
@@ -571,7 +585,7 @@ struct holds_for_none
 //   Every clause is probed, so an instantiation missing any of them reads as
 // false instead of diagnosing.  `is_bool_trait<nonesuch>` is false, as is
 // `is_bool_trait<int>`.
-template<typename _Trait,
+template<typename Trait,
          typename = void>
 struct is_bool_trait : std::false_type
 {};
@@ -579,48 +593,48 @@ struct is_bool_trait : std::false_type
 // is_bool_trait (well-formed case)
 //   trait: the specialization reached once every member the contract names is
 // present; it then checks that they say the right things.
-template<typename _Trait>
-struct is_bool_trait<_Trait,
-    D_VOID_T<typename _Trait::value_type,
-             typename _Trait::type,
-             std::integral_constant<bool, _Trait::value>,
-             decltype(static_cast<bool>(std::declval<const _Trait&>())),
-             decltype(std::declval<const _Trait&>()())>>
+template<typename Trait>
+struct is_bool_trait<Trait,
+    D_VOID_T<typename Trait::value_type,
+             typename Trait::type,
+             std::integral_constant<bool, Trait::value>,
+             decltype(static_cast<bool>(std::declval<const Trait&>())),
+             decltype(std::declval<const Trait&>()())>>
     : bool_constant<
-        ( std::is_same<typename _Trait::value_type, bool>::value      &&
-          std::is_same<typename _Trait::type,
-                       bool_constant<_Trait::value>>::value           &&
-          std::is_base_of<bool_constant<_Trait::value>, _Trait>::value )>
+        ( std::is_same<typename Trait::value_type, bool>::value      &&
+          std::is_same<typename Trait::type,
+                       bool_constant<Trait::value>>::value           &&
+          std::is_base_of<bool_constant<Trait::value>, Trait>::value )>
 {};
 
 NS_INTERNAL
 
     // well_formed_binder
-    //   trait: binds `_Trait` so that "is `_Trait<_Type>` a well-formed bool
+    //   trait: binds `Trait` so that "is `Trait<Type>` a well-formed bool
     // trait?" becomes the one-parameter trait the quantifiers in section III
     // take.  Declared after is_bool_trait, which it names.
-    template<template<typename> typename _Trait>
+    template<template<typename> typename Trait>
     struct well_formed_binder
     {
         // check
-        //   trait: is_bool_trait applied to one instantiation of _Trait.
-        template<typename _Type>
-        using check = is_bool_trait<_Trait<_Type>>;
+        //   trait: is_bool_trait applied to one instantiation of Trait.
+        template<typename Type>
+        using check = is_bool_trait<Trait<Type>>;
     };
 
 NS_END  // internal
 
 
 // trait_is_well_formed
-//   trait: true iff `_Trait<_Type>` is a well-formed bool trait for every one
-// of `_Types...`.  The shape check, run over a battery - and the natural
+//   trait: true iff `Trait<Type>` is a well-formed bool trait for every one
+// of `Types...`.  The shape check, run over a battery - and the natural
 // partner of the D_TEST_HOSTILE_* lists, since a trait's shape is exactly the
 // thing most likely to quietly degrade on the types its author never tried.
-template<template<typename> typename _Trait,
-         typename...                 _Types>
+template<template<typename> typename Trait,
+         typename...                 Types>
 struct trait_is_well_formed
-    : holds_for_all<internal::well_formed_binder<_Trait>::template check,
-                    _Types...>
+    : holds_for_all<internal::well_formed_binder<Trait>::template check,
+                    Types...>
 {};
 
 
@@ -651,16 +665,16 @@ struct trait_is_well_formed
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     // is_bool_trait_v
-    //   value: convenience alias for is_bool_trait<_Trait>::value.
-    template<typename _Trait>
-    constexpr bool is_bool_trait_v = is_bool_trait<_Trait>::value;
+    //   value: convenience alias for is_bool_trait<Trait>::value.
+    template<typename Trait>
+    constexpr bool is_bool_trait_v = is_bool_trait<Trait>::value;
 
     // trait_is_well_formed_v
     //   value: convenience alias for trait_is_well_formed<...>::value.
-    template<template<typename> typename _Trait,
-             typename...                 _Types>
+    template<template<typename> typename Trait,
+             typename...                 Types>
     constexpr bool trait_is_well_formed_v =
-        trait_is_well_formed<_Trait, _Types...>::value;
+        trait_is_well_formed<Trait, Types...>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -672,13 +686,13 @@ struct trait_is_well_formed
 //   Almost every trait in the framework is written to be cv-ref agnostic -
 // D_TYPE_TRAIT_HAS_TYPE strips through `clean_t`, and traits that dispatch on
 // a class template do the same by hand (is_test_kind_set is
-// `internal::..._instantiation<clean_t<_Type>>`).  A trait that FORGETS the
+// `internal::..._instantiation<clean_t<Type>>`).  A trait that FORGETS the
 // strip still passes every test written against the bare type and then
 // answers false the first time a caller hands it a `const T&`.
 //
 //   The obvious test - probe all eight forms and AND them together - loses
 // the one fact worth reporting: WHICH form broke.  cvref_report keeps the
-// cells, so a failing suite says "const volatile _Type" instead of "cvref:
+// cells, so a failing suite says "const volatile Type" instead of "cvref:
 // FAIL".
 
 NS_INTERNAL
@@ -689,45 +703,45 @@ NS_INTERNAL
     // drift apart.  Each is total: add_const / add_lvalue_reference and their
     // siblings are no-ops on the types (void, functions, references) that
     // cannot take the qualifier, so the cells are well-formed for every
-    // `_Type` a trait might be handed.
+    // `Type` a trait might be handed.
 
     // cell_const
-    //   type: `const _Type`.
-    template<typename _Type>
-    using cell_const = typename std::add_const<_Type>::type;
+    //   type: `const Type`.
+    template<typename Type>
+    using cell_const = typename std::add_const<Type>::type;
 
     // cell_volatile
-    //   type: `volatile _Type`.
-    template<typename _Type>
-    using cell_volatile = typename std::add_volatile<_Type>::type;
+    //   type: `volatile Type`.
+    template<typename Type>
+    using cell_volatile = typename std::add_volatile<Type>::type;
 
     // cell_cv
-    //   type: `const volatile _Type`.
-    template<typename _Type>
-    using cell_cv = typename std::add_cv<_Type>::type;
+    //   type: `const volatile Type`.
+    template<typename Type>
+    using cell_cv = typename std::add_cv<Type>::type;
 
     // cell_lvalue_ref
-    //   type: `_Type&`.
-    template<typename _Type>
-    using cell_lvalue_ref = typename std::add_lvalue_reference<_Type>::type;
+    //   type: `Type&`.
+    template<typename Type>
+    using cell_lvalue_ref = typename std::add_lvalue_reference<Type>::type;
 
     // cell_const_lvalue_ref
-    //   type: `const _Type&` - the form a by-const-reference parameter hands
+    //   type: `const Type&` - the form a by-const-reference parameter hands
     // a trait, and the one most often forgotten.
-    template<typename _Type>
+    template<typename Type>
     using cell_const_lvalue_ref =
-        typename std::add_lvalue_reference<cell_const<_Type>>::type;
+        typename std::add_lvalue_reference<cell_const<Type>>::type;
 
     // cell_rvalue_ref
-    //   type: `_Type&&`.
-    template<typename _Type>
-    using cell_rvalue_ref = typename std::add_rvalue_reference<_Type>::type;
+    //   type: `Type&&`.
+    template<typename Type>
+    using cell_rvalue_ref = typename std::add_rvalue_reference<Type>::type;
 
     // cell_const_rvalue_ref
-    //   type: `const _Type&&`.
-    template<typename _Type>
+    //   type: `const Type&&`.
+    template<typename Type>
     using cell_const_rvalue_ref =
-        typename std::add_rvalue_reference<cell_const<_Type>>::type;
+        typename std::add_rvalue_reference<cell_const<Type>>::type;
 
 NS_END  // internal
 
@@ -739,31 +753,31 @@ NS_END  // internal
 // are what a suite actually reports.
 struct cvref_report
 {
-    bool bare;               // _Type
-    bool with_const;         // const _Type
-    bool with_volatile;      // volatile _Type
-    bool with_cv;            // const volatile _Type
-    bool lvalue_ref;         // _Type&
-    bool const_lvalue_ref;   // const _Type&
-    bool rvalue_ref;         // _Type&&
-    bool const_rvalue_ref;   // const _Type&&
+    bool bare;               // Type
+    bool with_const;         // const Type
+    bool with_volatile;      // volatile Type
+    bool with_cv;            // const volatile Type
+    bool lvalue_ref;         // Type&
+    bool const_lvalue_ref;   // const Type&
+    bool rvalue_ref;         // Type&&
+    bool const_rvalue_ref;   // const Type&&
 
 
     // first_disagreement
     //   the name of the first cell whose answer differs from the bare type's,
     // or nullptr when every cell agrees.  This is what turns a failed cv-ref
-    // check from "something is wrong" into "`const volatile _Type` is wrong",
+    // check from "something is wrong" into "`const volatile Type` is wrong",
     // which is the difference between a report line and a debugging session.
     D_CONSTEXPR const char*
     first_disagreement() const D_NOEXCEPT
     {
-        return (with_const       != bare) ? "const _Type"
-             : (with_volatile    != bare) ? "volatile _Type"
-             : (with_cv          != bare) ? "const volatile _Type"
-             : (lvalue_ref       != bare) ? "_Type&"
-             : (const_lvalue_ref != bare) ? "const _Type&"
-             : (rvalue_ref       != bare) ? "_Type&&"
-             : (const_rvalue_ref != bare) ? "const _Type&&"
+        return (with_const       != bare) ? "const Type"
+             : (with_volatile    != bare) ? "volatile Type"
+             : (with_cv          != bare) ? "const volatile Type"
+             : (lvalue_ref       != bare) ? "Type&"
+             : (const_lvalue_ref != bare) ? "const Type&"
+             : (rvalue_ref       != bare) ? "Type&&"
+             : (const_rvalue_ref != bare) ? "const Type&&"
              :                              nullptr;
     }
 
@@ -810,7 +824,7 @@ struct cvref_report
 };
 
 // trait_across_cvref
-//   function: instantiates `_Trait` over all eight cv-ref forms of `_Type`
+//   function: instantiates `Trait` over all eight cv-ref forms of `Type`
 // and hands back the filled report.  Constexpr, so a suite can hold the
 // result in a `constexpr cvref_report` and still print the failing cell's
 // name at runtime.
@@ -819,31 +833,31 @@ struct cvref_report
 //   D_CONSTEXPR cvref_report r =
 //       trait_across_cvref<is_test_kind_set, kind_set_type>();
 //   ok &= D_TK_CHECK(r.all(), "is_test_kind_set: cv-ref agnostic");
-template<template<typename> typename _Trait,
-         typename                    _Type>
+template<template<typename> typename Trait,
+         typename                    Type>
 D_NODISCARD D_CONSTEXPR cvref_report
 trait_across_cvref()
 {
     return cvref_report{
-        _Trait<_Type>::value,
-        _Trait<internal::cell_const<_Type>>::value,
-        _Trait<internal::cell_volatile<_Type>>::value,
-        _Trait<internal::cell_cv<_Type>>::value,
-        _Trait<internal::cell_lvalue_ref<_Type>>::value,
-        _Trait<internal::cell_const_lvalue_ref<_Type>>::value,
-        _Trait<internal::cell_rvalue_ref<_Type>>::value,
-        _Trait<internal::cell_const_rvalue_ref<_Type>>::value
+        Trait<Type>::value,
+        Trait<internal::cell_const<Type>>::value,
+        Trait<internal::cell_volatile<Type>>::value,
+        Trait<internal::cell_cv<Type>>::value,
+        Trait<internal::cell_lvalue_ref<Type>>::value,
+        Trait<internal::cell_const_lvalue_ref<Type>>::value,
+        Trait<internal::cell_rvalue_ref<Type>>::value,
+        Trait<internal::cell_const_rvalue_ref<Type>>::value
     };
 }
 
 // trait_ignores_cvref
-//   trait: true iff `_Trait` answers identically for all eight cv-ref forms
-// of `_Type` - the report's agrees(), lifted to a trait so it can be pinned
+//   trait: true iff `Trait` answers identically for all eight cv-ref forms
+// of `Type` - the report's agrees(), lifted to a trait so it can be pinned
 // with D_TEST_STATIC or folded into a larger constant expression.
-template<template<typename> typename _Trait,
-         typename                    _Type>
+template<template<typename> typename Trait,
+         typename                    Type>
 struct trait_ignores_cvref
-    : bool_constant<trait_across_cvref<_Trait, _Type>().agrees()>
+    : bool_constant<trait_across_cvref<Trait, Type>().agrees()>
 {};
 
 
@@ -851,10 +865,10 @@ struct trait_ignores_cvref
 
     // trait_ignores_cvref_v
     //   value: convenience alias for trait_ignores_cvref<...>::value.
-    template<template<typename> typename _Trait,
-             typename                    _Type>
+    template<template<typename> typename Trait,
+             typename                    Type>
     constexpr bool trait_ignores_cvref_v =
-        trait_ignores_cvref<_Trait, _Type>::value;
+        trait_ignores_cvref<Trait, Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
@@ -880,7 +894,7 @@ struct trait_ignores_cvref
 //     nonliteral          the negative for every constexpr probe
 //     the non-class list  void, functions, arrays, references, enums, member
 //                         pointers - the shapes that turn a careless
-//                         `_Type::value_type` into a hard error
+//                         `Type::value_type` into a hard error
 //
 //   None of these is exotic.  Every one of them is a type a generic container
 // or a generic algorithm will eventually be instantiated on.
@@ -969,8 +983,8 @@ struct ambiguous_members : value_type_a,
 // an expression.
 struct greedy
 {
-    template<typename _Type>
-    operator _Type() const;
+    template<typename Type>
+    operator Type() const;
 };
 
 // evil
@@ -982,8 +996,8 @@ struct evil
 {
     void* operator&() const;
 
-    template<typename _Type>
-    evil operator,(_Type&& _rhs) const;
+    template<typename Type>
+    evil operator,(Type&& _rhs) const;
 };
 
 // throwing
@@ -1076,7 +1090,7 @@ using const_void_type = const void;
 
 // function_type
 //   type: a function type.  Not an object type: it cannot be cv-qualified, it
-// cannot be a member, and `declval<_Type>()` on it is a reference.
+// cannot be a member, and `declval<Type>()` on it is a reference.
 using function_type = int(int);
 
 // function_ptr_type
@@ -1258,7 +1272,7 @@ NS_END  // fixtures
     ( (TRAIT<__VA_ARGS__>::value) == (CONCEPT<__VA_ARGS__>) )
 
 // D_TEST_DECLARE_SUBSUMES
-//   macro: emits `TRAIT_NAME<_Type>` - a trait true iff `_Type` satisfies BOTH
+//   macro: emits `TRAIT_NAME<Type>` - a trait true iff `Type` satisfies BOTH
 // concepts and CONCEPT_MORE genuinely SUBSUMES CONCEPT_LESS, i.e. the more
 // constrained overload wins.
 //
@@ -1294,8 +1308,8 @@ NS_END  // fixtures
                                                                               \
         /* TRAIT_NAME##_rank                                              */  \
         /*   function: the less-constrained overload (rank 1).            */  \
-        template<typename _Type>                                              \
-            requires CONCEPT_LESS<_Type>                                      \
+        template<typename Type>                                              \
+            requires CONCEPT_LESS<Type>                                      \
         D_CONSTEXPR int                                                       \
         TRAIT_NAME##_rank()                                                   \
         {                                                                     \
@@ -1305,8 +1319,8 @@ NS_END  // fixtures
         /* TRAIT_NAME##_rank                                              */  \
         /*   function: the more-constrained overload (rank 2).  Chosen    */  \
         /* over the above only if CONCEPT_MORE subsumes CONCEPT_LESS.     */  \
-        template<typename _Type>                                              \
-            requires CONCEPT_MORE<_Type>                                      \
+        template<typename Type>                                              \
+            requires CONCEPT_MORE<Type>                                      \
         D_CONSTEXPR int                                                       \
         TRAIT_NAME##_rank()                                                   \
         {                                                                     \
@@ -1317,24 +1331,24 @@ NS_END  // fixtures
         /*   trait: the ranked call, in a detection context - an          */  \
         /* ambiguous overload set is a substitution failure here, not a   */  \
         /* diagnostic.                                                    */  \
-        template<typename _Type>                                              \
+        template<typename Type>                                              \
         using TRAIT_NAME##_probe =                                            \
-            std::integral_constant<int, TRAIT_NAME##_rank<_Type>()>;          \
+            std::integral_constant<int, TRAIT_NAME##_rank<Type>()>;          \
                                                                               \
     NS_END  /* internal */                                                    \
                                                                               \
     /* TRAIT_NAME                                                         */  \
-    /*   trait: true iff _Type satisfies both concepts and the more       */  \
+    /*   trait: true iff Type satisfies both concepts and the more       */  \
     /* constrained one wins the overload.                                 */  \
-    template<typename _Type>                                                  \
+    template<typename Type>                                                  \
     struct TRAIT_NAME                                                         \
         : ::djinterp::bool_constant<                                          \
-            ( CONCEPT_LESS<_Type> &&                                          \
-              CONCEPT_MORE<_Type> &&                                          \
+            ( CONCEPT_LESS<Type> &&                                          \
+              CONCEPT_MORE<Type> &&                                          \
               (::djinterp::detected_or_t<                                     \
                    std::integral_constant<int, 0>,                            \
                    internal::TRAIT_NAME##_probe,                              \
-                   _Type>::value == 2) )>                                     \
+                   Type>::value == 2) )>                                     \
     {};
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -1343,5 +1357,6 @@ NS_END  // fixtures
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_TEST_TRAITS_
+#endif  // DJINTERP_TEST_TEST_TRAITS_HPP

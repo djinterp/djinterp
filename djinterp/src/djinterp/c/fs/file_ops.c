@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/fs/file_ops.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.03
 *******************************************************************************/
 // Linux declares copy_file_range(2) only under _GNU_SOURCE; a feature-test
 // macro must precede every include, so it sits here, ahead of the header.
@@ -25,7 +25,6 @@
 // std
 #include <errno.h>   // errno, EEXIST, EINTR, EXDEV and the other E* codes
 #include <stddef.h>  // NULL, size_t
-#include <stdint.h>  // int64_t
 #include <stdio.h>   // remove, rename
 // djinterp
 #include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*
@@ -33,6 +32,8 @@
 #include "../../../../inc/djinterp/c/fs/file_io.h"      // d_file_read_fd, d_file_write_full_fd
 #include "../../../../inc/djinterp/c/fs/file_stat.h"    // d_file_stat_fd, d_file_chmod, d_file_exists
 #include "../../../../inc/djinterp/config/c/fs/cfg_file_ops.h"  // D_INTERNAL_FILE_OPS_*
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
 // apple
 #if ( (D_INTERNAL_FILE_OPS_COPY_NATIVE == 1) &&                                \
       (D_CFG_IS_ON(D_CFG_FILE_HAS_FCOPYFILE)) )

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                                  cfg_parse.h
+/*******************************************************************************
+* djinterp [config]                                                  cfg_parse.h
 *
 * Configuration for the parse subframework's execution substrate.
 *   Owns every knob the substrate reads: whether the diagnostic sink and the
@@ -8,31 +8,32 @@
 * sizing constants. One file for the whole subframework rather than one per
 * module, per the "group config per subframework" guidance.
 *
-* targets:  parse/diagnostic.h -> D_INTERNAL_PARSE_DIAG_HEAP /
+* targets:  parse/c/diagnostic.h -> D_INTERNAL_PARSE_DIAG_HEAP /
 *                                 D_INTERNAL_PARSE_DIAG_FORMAT /
 *                                 D_PARSE_DIAG_DEFAULT_ITEMS /
 *                                 D_PARSE_DIAG_DEFAULT_TEXT /
 *                                 D_PARSE_DIAG_MESSAGE_MAX
-*           parse/pool.h       -> D_INTERNAL_PARSE_POOL_HEAP /
+*           parse/c/pool.h       -> D_INTERNAL_PARSE_POOL_HEAP /
 *                                 D_PARSE_POOL_DEFAULT_BYTES /
 *                                 D_PARSE_POOL_DEFAULT_ENTRIES
-*           parse/program.h    -> D_INTERNAL_PARSE_PROGRAM_HEAP /
+*           parse/c/program.h    -> D_INTERNAL_PARSE_PROGRAM_HEAP /
 *                                 D_INTERNAL_PARSE_PROGRAM_TRANSPORT /
 *                                 D_PARSE_PROGRAM_DEFAULT_CODE
-*           parse/machine.h    -> D_INTERNAL_PARSE_MACHINE_TRACE /
+*           parse/c/machine.h    -> D_INTERNAL_PARSE_MACHINE_TRACE /
 *                                 D_INTERNAL_PARSE_OP_SET_HEAP /
 *                                 D_PARSE_MACHINE_STEP_LIMIT
 *           the parse sources  -> D_INTERNAL_PARSE_HEAP
-* requires: cfg_common.h (helpers, D_CFG_TESTING)
+* requires: cfg_common.h (helpers, and the testing preset it applies)
+*
 *
 * path:      /inc/djinterp/config/parse/cfg_parse.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 
-#ifndef DJINTERP_CFG_PARSE_
-#define DJINTERP_CFG_PARSE_ 1
+#ifndef DJINTERP_CONFIG_PARSE_CFG_PARSE_H
+#define DJINTERP_CONFIG_PARSE_CFG_PARSE_H 1
 
 // (0) root first: helpers, user overrides, testing flag/preset.
 #include "../cfg_common.h"
@@ -126,16 +127,14 @@
 // D_CFG_PARSE_MACHINE_TRACE
 //   brief: 1 gives the machine a per-dispatch trace hook (two pointers of
 // state, one predicted branch per step); 0 removes the fields entirely.
-// Follows D_CFG_TESTING, since tracing is a debugging facility.
-//   The default is TESTED, then written as a literal, never defined as an
-// expression over D_CFG_TESTING: D_CFG_IS_BOOL validates a knob by pasting its
-// fully-expanded value, so only the single token 0 or 1 passes, and an
+// Test builds turn it on from cfg_testing.h, the one home for what differs in
+// a test build; the default here is for everything else.
+//   Any default for it must be the literal token 0 or 1, never an expression:
+// D_CFG_IS_BOOL validates a knob by pasting its fully-expanded value, so an
 // expression such as D_CFG_NORM(...) is a hard preprocessing error.
 #ifndef D_CFG_PARSE_MACHINE_TRACE
 #   if defined(D_CFG_PARSE_ALL)
 #       define D_CFG_PARSE_MACHINE_TRACE    D_CFG_PARSE_ALL
-#   elif D_CFG_IS_ON(D_CFG_TESTING)
-#       define D_CFG_PARSE_MACHINE_TRACE    1
 #   else
 #       define D_CFG_PARSE_MACHINE_TRACE    0
 #   endif
@@ -354,4 +353,4 @@
 #endif
 
 
-#endif  // DJINTERP_CFG_PARSE_
+#endif  // DJINTERP_CONFIG_PARSE_CFG_PARSE_H

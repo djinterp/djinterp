@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                         byte_buffer.hpp
+/*******************************************************************************
+* djinterp [core]                                                byte_buffer.hpp
 *
 * Concrete byte buffer for the djinterp container framework.
 *   A byte buffer is a growable, staged accumulator for raw binary data -
@@ -56,7 +56,7 @@
 *   has_data_accessor_v          -  yes (data)
 *   has_size_accessor_v          -  yes (size)
 *   has_capacity_accessor_v      -  yes (capacity)
-*   has_push__v                  -  yes (push_)
+*   has_push_back_v              -  yes (push_back)
 *   has_clear_v                  -  yes (clear)
 *   is_ostream_insertable_v      -  yes (operator<<, raw bytes)
 *
@@ -76,31 +76,40 @@
 *
 * path:      /inc/djinterp/core/container/buffer/byte_buffer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.18
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.   byte_buffer Class
-       a.   Type Aliases and CRTP Contract
-       b.   Construction and Destruction
-       c.   Move and Copy
-       d.   Byte Append Operations
-       e.   Serialization Contract (put / get / reader)
-       f.   Byte Extraction
-       g.   Container Protocol
-       h.   Ostream Integration
-II.  Factory Functions and Aliases
+I.    byte_buffer Class
+      -----------------
+      a. Type Aliases and CRTP Contract
+      b. Construction and Destruction
+      c.    Move and Copy
+            d. Byte Append Operations
+            e. Serialization Contract (put / get / reader)
+            f. Byte Extraction
+            g. Container Protocol
+            h. Ostream Integration
+
+II.   Factory Functions and Aliases
+      -----------------------------
 */
 
-#ifndef DJINTERP_CONTAINER_BYTE_BUFFER_
-#define DJINTERP_CONTAINER_BYTE_BUFFER_ 1
+#ifndef DJINTERP_CONTAINER_BUFFER_BYTE_BUFFER_HPP
+#define DJINTERP_CONTAINER_BUFFER_BYTE_BUFFER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <iterator>
 #include <limits>
@@ -110,29 +119,28 @@ II.  Factory Functions and Aliases
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"
-#include "./buffer.hpp"
+#include "../../../djinterp.hpp"
 #include "../../binary/encode.hpp"   // byte, byte_string, encode_into, encode_length_type
 #include "../../binary/decode.hpp"   // byte_reader, decode_result, decode<T>
+#include "./buffer.hpp"
 
 
 NS_DJINTERP
 
-
 // =============================================================================
 // I.   byte_buffer Class
 // =============================================================================
-template<typename _GrowthPolicy = default_growth_policy,
-         typename _CursorPolicy = write_only_cursor_policy>
-class byte_buffer : public buffer_base<byte_buffer<_GrowthPolicy,
-                                                    _CursorPolicy>,
-                                       _GrowthPolicy,
-                                       _CursorPolicy>
+template<typename GrowthPolicy = default_growth_policy,
+         typename CursorPolicy = write_only_cursor_policy>
+class byte_buffer : public buffer_base<byte_buffer<GrowthPolicy,
+                                                   CursorPolicy>,
+                                       GrowthPolicy,
+                                       CursorPolicy>
 {
 private:
-    using base_type = buffer_base<byte_buffer<_GrowthPolicy, _CursorPolicy>,
-                                  _GrowthPolicy,
-                                  _CursorPolicy>;
+    using base_type = buffer_base<byte_buffer<GrowthPolicy, CursorPolicy>,
+                                  GrowthPolicy,
+                                  CursorPolicy>;
 
     // buffer_base accesses storage()/capacity()/grow()
     friend base_type;
@@ -163,8 +171,8 @@ public:
     // =========================================================================
 
     // default constructor
-    //   creates an empty byte buffer with no allocation.
-    // The first append triggers the growth policy.
+    //   creates an empty byte buffer with no allocation. The first append
+    // triggers the growth policy.
     byte_buffer() noexcept
         : base_type(),
           m_data(nullptr),
@@ -172,8 +180,8 @@ public:
     {}
 
     // capacity constructor
-    //   creates an empty byte buffer pre-allocated to hold
-    // at least _initial_capacity bytes.
+    //   creates an empty byte buffer pre-allocated to hold at least
+    // _initial_capacity bytes.
     explicit
     byte_buffer(
         size_type _initial_capacity
@@ -189,8 +197,7 @@ public:
     }
 
     // raw-range constructor
-    //   creates a byte buffer initialized with _len bytes
-    // copied from _data.
+    //   creates a byte buffer initialized with _len bytes copied from _data.
     byte_buffer(
         const byte* _data,
         size_type   _len
@@ -206,8 +213,8 @@ public:
     }
 
     // byte_string constructor
-    //   creates a byte buffer initialized from a byte_string
-    // (the medium B* as a value).
+    //   creates a byte buffer initialized from a byte_string (the medium B* as
+    // a value).
     explicit
     byte_buffer(
         const byte_string& _bytes
@@ -276,9 +283,9 @@ public:
     }
 
     // copy constructor
-    //   deep-copies the readable region of _other to the
-    // front of fresh storage (a copy compacts, dropping any
-    // already-consumed prefix in dual-cursor mode).
+    //   deep-copies the readable region of _other to the front of fresh
+    // storage (a copy compacts, dropping any already-consumed prefix in
+    // dual-cursor mode).
     byte_buffer(const byte_buffer& _other)
         : base_type(),
           m_data(nullptr),
@@ -293,8 +300,8 @@ public:
             std::memcpy(m_data, _other.data(), _sz);
 
             // fresh cursors: content at [0, sz)
-            _CursorPolicy::reset(this->m_cursors);
-            _CursorPolicy::advance_write(this->m_cursors, _sz);
+            CursorPolicy::reset(this->m_cursors);
+            CursorPolicy::advance_write(this->m_cursors, _sz);
         }
     }
 
@@ -316,8 +323,8 @@ public:
 
                 std::memcpy(m_data, _other.data(), _sz);
 
-                _CursorPolicy::reset(this->m_cursors);
-                _CursorPolicy::advance_write(this->m_cursors, _sz);
+                CursorPolicy::reset(this->m_cursors);
+                CursorPolicy::advance_write(this->m_cursors, _sz);
             }
         }
 
@@ -370,7 +377,7 @@ public:
     }
 
     // append (single byte)
-    //   appends one byte.  Returns 1 on success, 0 on failure.
+    //   appends one byte. Returns 1 on success, 0 on failure.
     size_type
     append(byte _b) noexcept
     {
@@ -378,8 +385,8 @@ public:
     }
 
     // append (another byte_buffer)
-    //   appends the readable region of _other.  Safe against
-    // self-append (a snapshot is taken when _other is *this).
+    //   appends the readable region of _other. Safe against self-append (a
+    // snapshot is taken when _other is *this).
     size_type
     append(const byte_buffer& _other)
     {
@@ -394,8 +401,8 @@ public:
     }
 
     // append_fill
-    //   appends _count copies of _b.  Returns the number of
-    // bytes actually appended.
+    //   appends _count copies of _b. Returns the number of bytes actually
+    // appended.
     size_type
     append_fill(byte      _b,
                 size_type _count) noexcept
@@ -425,20 +432,10 @@ public:
     }
 
     // push_back
-    //   appends one byte.  This is the customization point
-    // encode.hpp's sink probe looks for (has_push_back_byte),
-    // so a byte_buffer is a valid ENCODE SINK.
+    //   appends one byte. This is the customization point encode.hpp's sink
+    // probe looks for (has_push_back_byte), so a byte_buffer is a valid ENCODE
+    // SINK.
     void push_back(byte _b) noexcept
-    {
-        append(&_b, 1);
-
-        return;
-    }
-
-    // push_
-    //   appends one byte.  Satisfies the container push_
-    // requirement detected by has_push__v.
-    void push_(byte _b)
     {
         append(&_b, 1);
 
@@ -456,15 +453,14 @@ public:
     // sink (encode_container_into) and reader() entry points.
 
     // put
-    //   encodes a leaf value into the buffer and returns *this
-    // for chaining.  Because the buffer is a sink, this is
-    // exactly encode.hpp's enc_tau writing into it; it lifts to
-    // container encoding automatically when container_encode.hpp
-    // is in scope, since the call resolves encode_into anew at
-    // instantiation.
-    template<typename _Type>
+    //   encodes a leaf value into the buffer and returns *this for chaining.
+    // Because the buffer is a sink, this is exactly encode.hpp's enc_tau
+    // writing into it; it lifts to container encoding automatically when
+    // container_encode.hpp is in scope, since the call resolves encode_into
+    // anew at instantiation.
+    template<typename Type>
     byte_buffer&
-    put(const _Type& _value)
+    put(const Type& _value)
     {
         encode_into(*this, _value);
 
@@ -472,11 +468,10 @@ public:
     }
 
     // reader
-    //   returns a detached byte_reader over the readable region.
-    // It does NOT advance this buffer's cursor; the buffer must
-    // outlive the reader and must not reallocate (append/grow)
-    // while the reader is in use.  This is the general decode
-    // entry - pair it with the container decoder for nested
+    //   returns a detached byte_reader over the readable region. It does NOT
+    // advance this buffer's cursor; the buffer must outlive the reader and
+    // must not reallocate (append/grow) while the reader is in use. This is
+    // the general decode entry - pair it with the container decoder for nested
     // shapes.
     byte_reader reader() const noexcept
     {
@@ -484,23 +479,23 @@ public:
     }
 
     // get
-    //   decodes one leaf value of _Type from the read cursor.
-    // On SUCCESS the read cursor advances past the consumed
-    // bytes; on failure the cursor is left unchanged so the
-    // caller may inspect or retry.  Available only under a
-    // cursor policy with a read cursor (dual_cursor_policy).
-    template<typename _Type,
-             typename _CP = _CursorPolicy>
-    std::enable_if_t<_CP::has_read_cursor,
-                     decode_result<clean_t<_Type>>>
+    //   decodes one leaf value of Type from the read cursor. On SUCCESS the
+    // read cursor advances past the consumed bytes; on failure the cursor is
+    // left unchanged so the caller may inspect or retry.
+    // Available only under a cursor policy with a read cursor
+    // (dual_cursor_policy).
+    template<typename Type,
+             typename CP = CursorPolicy>
+    std::enable_if_t<CP::has_read_cursor,
+                     decode_result<clean_t<Type>>>
     get()
     {
         byte_reader _rd(this->data(), this->size());
 
         const size_type _before = _rd.remaining();
 
-        decode_result<clean_t<_Type>> _result =
-            decode<_Type>(_rd);
+        decode_result<clean_t<Type>> _result =
+            decode<Type>(_rd);
 
         if (_result.ok)
         {
@@ -518,8 +513,8 @@ public:
     // =========================================================================
 
     // to_byte_string
-    //   returns the readable region as a byte_string - the
-    // model's medium B* materialized as a value.
+    //   returns the readable region as a byte_string - the model's medium B*
+    // materialized as a value.
     byte_string to_byte_string() const
     {
         if (this->size() == 0)
@@ -540,9 +535,8 @@ public:
     }
 
     // stream_to
-    //   copies as many bytes as fit into _buf (up to _cap
-    // bytes) and returns the number copied.  Does not advance
-    // any cursor.
+    //   copies as many bytes as fit into _buf (up to _cap bytes) and returns
+    // the number copied. Does not advance any cursor.
     std::size_t
     stream_to(byte*       _buf,
               std::size_t _cap) const noexcept
@@ -560,11 +554,11 @@ public:
     }
 
     // take
-    //   returns the readable region as a byte_string and then
-    // resets the buffer to empty (storage retained) - a drain,
-    // fitting the buffer's write-then-consume temporality.
-    // This is a copy followed by reset(), not a cheap move: the
-    // underlying storage is a raw byte array, not a byte_string.
+    //   returns the readable region as a byte_string and then resets the
+    // buffer to empty (storage retained) - a drain, fitting the buffer's
+    // write-then-consume temporality. This is a copy followed by reset(), not
+    // a cheap move: the underlying storage is a raw byte array, not a
+    // byte_string.
     byte_string take()
     {
         byte_string _out = to_byte_string();
@@ -653,9 +647,9 @@ public:
         return rend();
     }
 
-    // --- positional access ---
-    // Indices are relative to the start of the readable region
-    // (operator[](0) is the first unconsumed byte in dual mode).
+    // --- positional access --- Indices are relative to the start of the
+    // readable region (operator[](0) is the first unconsumed byte in dual
+    // mode).
 
     reference operator[](size_type _pos) noexcept
     {
@@ -712,9 +706,8 @@ public:
             m_data)[this->write_position() - 1];
     }
 
-    // --- data access ---
-    // data() returns a pointer to the start of the readable
-    // content region, consistent with begin() and size().
+    // --- data access --- data() returns a pointer to the start of the
+    // readable content region, consistent with begin() and size().
 
     const byte* data() const noexcept
     {
@@ -727,9 +720,9 @@ public:
     }
 
     // capacity
-    //   usable capacity in bytes.  For a byte buffer there is
-    // no reserved terminator, so this is the full allocation.
-    // Public: also the CRTP capacity() buffer_base queries.
+    //   usable capacity in bytes. For a byte buffer there is no reserved
+    // terminator, so this is the full allocation. Public: also the CRTP
+    // capacity() buffer_base queries.
     size_type capacity() const noexcept
     {
         return m_capacity;
@@ -741,8 +734,7 @@ public:
     }
 
     // clear
-    //   resets the buffer to empty and zeroes storage.
-    // Satisfies has_clear_v.
+    //   resets the buffer to empty and zeroes storage. Satisfies has_clear_v.
     void clear() noexcept
     {
         base_type::clear();
@@ -785,10 +777,10 @@ public:
     // The readable region is written as RAW BYTES; intended for
     // binary ostreams (a text stream will see arbitrary octets).
 
-    template<typename _GP, typename _CP>
+    template<typename GP, typename CP>
     friend std::ostream&
     operator<<(std::ostream&                _os,
-               const byte_buffer<_GP, _CP>& _buf);
+               const byte_buffer<GP, CP>& _buf);
 
 
 private:
@@ -804,10 +796,10 @@ private:
         return m_data;
     }
 
-    // --- content region helpers ---
-    // Start of the readable content region, as a byte pointer.
+    // --- content region helpers --- Start of the readable content region, as
+    // a byte pointer.
     //   write_only: m_data
-    //   dual:       m_data + read_pos
+    //   dual: m_data + read_pos
 
     const byte* content_begin_() const noexcept
     {
@@ -816,7 +808,7 @@ private:
             return nullptr;
         }
 
-        if constexpr (_CursorPolicy::has_read_cursor)
+        if constexpr (CursorPolicy::has_read_cursor)
         {
             return reinterpret_cast<const byte*>(
                 m_data + this->m_cursors.read_pos);
@@ -834,7 +826,7 @@ private:
             return nullptr;
         }
 
-        if constexpr (_CursorPolicy::has_read_cursor)
+        if constexpr (CursorPolicy::has_read_cursor)
         {
             return reinterpret_cast<byte*>(
                 m_data + this->m_cursors.read_pos);
@@ -846,11 +838,10 @@ private:
     }
 
     // grow
-    //   reallocates so that usable capacity is at least
-    // _new_capacity bytes.  No terminator is reserved (binary
-    // data is self-measured), so the allocation is exactly
-    // _new_capacity.  Preserves the written region [0, write_pos)
-    // so both cursors remain valid.  Returns true on success.
+    //   reallocates so that usable capacity is at least _new_capacity bytes.
+    // No terminator is reserved (binary data is self-measured), so the
+    // allocation is exactly _new_capacity. Preserves the written region [0,
+    // write_pos) so both cursors remain valid. Returns true on success.
     bool grow(size_type _new_capacity) noexcept
     {
         // already have enough
@@ -900,10 +891,10 @@ private:
 
 // --- ostream operator (out-of-class definition) ---
 
-template<typename _GP, typename _CP>
+template<typename GP, typename CP>
 std::ostream&
 operator<<(std::ostream&                    _os,
-           const byte_buffer<_GP, _CP>&     _buf)
+           const byte_buffer<GP, CP>&     _buf)
 {
     if (_buf.size() > 0)
     {
@@ -921,16 +912,15 @@ operator<<(std::ostream&                    _os,
 // =============================================================================
 
 // byte_stream
-//   alias: a byte_buffer configured for the producer/consumer
-// (encode-in, decode-out) workflow - exponential growth with a
-// dual cursor, so get<T>()/advance()/peek() and the incremental
-// read protocol are available.
+//   alias: a byte_buffer configured for the producer/consumer (encode-in,
+// decode-out) workflow - exponential growth with a dual cursor, so
+// get<T>()/advance()/peek() and the incremental read protocol are available.
 using byte_stream = byte_buffer<default_growth_policy,
                                 dual_cursor_policy>;
 
 // make_byte_buffer
-//   creates a byte_buffer with default policies and the
-// specified initial capacity.
+//   creates a byte_buffer with default policies and the specified initial
+// capacity.
 inline byte_buffer<>
 make_byte_buffer(std::size_t _capacity = 0)
 {
@@ -946,8 +936,7 @@ make_byte_buffer(const byte_string& _bytes)
 }
 
 // make_byte_buffer (from a raw range)
-//   creates a byte_buffer initialized with _len bytes from
-// _data.
+//   creates a byte_buffer initialized with _len bytes from _data.
 inline byte_buffer<>
 make_byte_buffer(const byte* _data,
                  std::size_t _len)
@@ -956,8 +945,8 @@ make_byte_buffer(const byte* _data,
 }
 
 // make_fixed_byte_buffer
-//   creates a byte_buffer with fixed (non-growable) storage of
-// the specified capacity.
+//   creates a byte_buffer with fixed (non-growable) storage of the specified
+// capacity.
 inline byte_buffer<fixed_growth_policy>
 make_fixed_byte_buffer(std::size_t _capacity)
 {
@@ -967,5 +956,6 @@ make_fixed_byte_buffer(std::size_t _capacity)
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_BYTE_BUFFER_
+#endif  // DJINTERP_CONTAINER_BUFFER_BYTE_BUFFER_HPP

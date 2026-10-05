@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                         transform_inclusive_scan.hpp
+/*******************************************************************************
+* djinterp [re_std]                                 transform_inclusive_scan.hpp
 *
 * like inclusive_scan but applies _unary_op to each input before
 * folding via _bin_op:
@@ -12,44 +12,37 @@
 *   d[i] = bin_op(d[i-1], unary(src[i]))
 *
 *
-* path:      /inc/djinterp/re_std/numeric/transform_inclusive_scan.hpp
+* path:      /inc/re_std/numeric/transform_inclusive_scan.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_
-#define DJINTERP_RE_STD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_ 1
+#ifndef RE_STD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_HPP
+#define RE_STD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/utility/move.hpp"
-
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
 
 namespace re_std
 {
 
 // Without explicit init.
-template<typename _InputIt, typename _OutputIt,
-         typename _BinOp, typename _UnaryOp>
-D_CONSTEXPR_CPP14 _OutputIt transform_inclusive_scan
+template<typename InputIt, typename OutputIt,
+         typename BinOp, typename UnaryOp>
+RE_STD_CONSTEXPR_CPP14 OutputIt transform_inclusive_scan
 (
-    _InputIt    _first,
-    _InputIt    _last,
-    _OutputIt   _d_first,
-    _BinOp      _bin_op,
-    _UnaryOp    _unary_op
+    InputIt    _first,
+    InputIt    _last,
+    OutputIt   _d_first,
+    BinOp      _bin_op,
+    UnaryOp    _unary_op
 )
 {
     if (_first == _last) return _d_first;
@@ -65,16 +58,16 @@ D_CONSTEXPR_CPP14 _OutputIt transform_inclusive_scan
 }
 
 // With explicit init.
-template<typename _InputIt, typename _OutputIt,
-         typename _BinOp, typename _UnaryOp, typename _T>
-D_CONSTEXPR_CPP14 _OutputIt transform_inclusive_scan
+template<typename InputIt, typename OutputIt,
+         typename BinOp, typename UnaryOp, typename T>
+RE_STD_CONSTEXPR_CPP14 OutputIt transform_inclusive_scan
 (
-    _InputIt    _first,
-    _InputIt    _last,
-    _OutputIt   _d_first,
-    _BinOp      _bin_op,
-    _UnaryOp    _unary_op,
-    _T          _init
+    InputIt    _first,
+    InputIt    _last,
+    OutputIt   _d_first,
+    BinOp      _bin_op,
+    UnaryOp    _unary_op,
+    T          _init
 )
 {
     for (; _first != _last; ++_first, (void)++_d_first)
@@ -86,8 +79,7 @@ D_CONSTEXPR_CPP14 _OutputIt transform_inclusive_scan
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_
+#endif  // RE_STD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_HPP

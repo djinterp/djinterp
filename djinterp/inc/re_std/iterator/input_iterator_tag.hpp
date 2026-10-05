@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                 input_iterator_tag.hpp
+/*******************************************************************************
+* djinterp [re_std]                                       input_iterator_tag.hpp
 *
 * iterator-category tag types are empty struct types used solely for
 * tag dispatch in iterator-aware algorithms. The inheritance hierarchy
@@ -20,15 +20,17 @@
 * overload via standard overload resolution.
 *
 *
-* path:      /inc/djinterp/re_std/iterator/input_iterator_tag.hpp
+* path:      /inc/re_std/iterator/input_iterator_tag.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_INPUT_ITERATOR_TAG_
-#define DJINTERP_RE_STD_ITERATOR_INPUT_ITERATOR_TAG_ 1
+#ifndef RE_STD_ITERATOR_INPUT_ITERATOR_TAG_HPP
+#define RE_STD_ITERATOR_INPUT_ITERATOR_TAG_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 namespace re_std
@@ -39,6 +41,5 @@ struct input_iterator_tag
 };
 
 
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_ITERATOR_INPUT_ITERATOR_TAG_
+}  // re_std
+#endif  // RE_STD_ITERATOR_INPUT_ITERATOR_TAG_HPP

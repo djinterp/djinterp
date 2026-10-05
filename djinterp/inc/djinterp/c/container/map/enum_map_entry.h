@@ -1,23 +1,28 @@
-/******************************************************************************
-* djinterp [container]                                        enum_map_entry.h
+/*******************************************************************************
+* djinterp [c]                                                  enum_map_entry.h
 *
 *   Defines the key-value entry structure used by d_enum_map. Each entry maps
 * an integer enum key to an arbitrary pointer value.
 *
 *
-* path:      \inc\container\map\enum_map_entry.h 
-* link:      TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.11.27
-******************************************************************************/
+* path:      /inc/djinterp/c/container/map/enum_map_entry.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.11.27
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_CONTAINER_ENUM_MAP_ENTRY_
-#define	DJINTERP_C_CONTAINER_ENUM_MAP_ENTRY_ 1
+#ifndef DJINTERP_C_CONTAINER_MAP_ENUM_MAP_ENTRY_H
+#define DJINTERP_C_CONTAINER_MAP_ENUM_MAP_ENTRY_H 1
 
+// std
 #include <stdarg.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include "../../../../inc/c/djinterp.h"
-#include "../../../../inc/c/container/container.h"
+// djinterp
+#include "../../djinterp.h"
+#include "../container.h"
+#include "./map.h"
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // int32_t, intptr_t
 
 
 // d_enum_map_entry
@@ -25,105 +30,85 @@
 // to an arbitrary pointer value.
 struct d_enum_map_entry
 {
-    int   key;       // integer representing enum values
-    void* value;     // associated value
+    int32_t key;       // integer representing enum values
+    void*   value;     // associated value
 };
 
-// D_ENUM_ENTRY
-//   macro: creates a d_enum_map_entry initializer from key and value.
-//   Usage: D_ENUM_ENTRY(MY_ENUM_VALUE, ptr_to_data)
-#define D_ENUM_ENTRY(_key, _val)                                              \
-    {                                                                         \
-      .key   = (int)(_key),                                                   \
-      .value = (void*)(_val)                                                  \
-    }
 
-// D_ENUM_KEY_ENTRY (legacy alias)
-//   macro: alias for D_ENUM_ENTRY for backwards compatibility.
-#define D_ENUM_KEY_ENTRY(_key, _val)  D_ENUM_ENTRY(_key, _val)
+// D_ENUM_ENTRY
+//   macro: creates a d_key_value initializer from an enum key and a pointer
+// value, casting the key to int32_t and the value to void*.
+#define D_ENUM_ENTRY(_key, _val) \
+    D_KEY_VALUE_T(_key, int32_t, _val, void*)
+
+// D_ENUM_ENTRY_T
+//   macro: creates a d_key_value initializer from an enum key and value,
+// casting each to the specified types.
+#define D_ENUM_ENTRY_T(_key, _type1, _val, _type2) \
+    D_KEY_VALUE_T(_key, _type1, _val, _type2)
+
+// D_ENUM_KEY_ENTRY
+//   macro: legacy alias for D_ENUM_ENTRY.
+#define D_ENUM_KEY_ENTRY(_key, _val) \
+    D_ENUM_ENTRY(_key, _val)
 
 // D_ENUM_ENTRY_STR
-//   macro: creates a d_enum_map_entry with a string literal value.
-//   Usage: D_ENUM_ENTRY_STR(MY_ENUM_VALUE, "string value")
-#define D_ENUM_ENTRY_STR(_key, _str)                                          \
-    {                                                                         \
-      .key   = (int)(_key),                                                   \
-      .value = (void*)(_str)                                                  \
-    }
+//   macro: creates a d_key_value initializer from an enum key and a string
+// literal, casting the key to int and the string to void*.
+#define D_ENUM_ENTRY_STR(_key, _str) \
+    D_KEY_VALUE_T(_key, int, _str, void*)
 
 // D_ENUM_ENTRY_INT
-//   macro: creates a d_enum_map_entry with an integer value cast to void*.
-//   Usage: D_ENUM_ENTRY_INT(MY_ENUM_VALUE, 42)
-//   Note: only use for integers that fit in a pointer (intptr_t range).
-#define D_ENUM_ENTRY_INT(_key, _int_val)                                      \
-    {                                                                         \
-      .key   = (int)(_key),                                                   \
-      .value = (void*)(intptr_t)(_int_val)                                    \
-    }
+//   macro: creates a d_key_value initializer from an enum key and an integer
+// value. the integer is cast through intptr_t to void*. only use for integers
+// that fit in a pointer.
+#define D_ENUM_ENTRY_INT(_key, _int_val) \
+    D_KEY_VALUE_T(_key, int, (intptr_t)(_int_val), void*)
 
 // D_ENUM_ENTRY_NULL
-//   macro: creates a d_enum_map_entry with a NULL value.
-//   Usage: D_ENUM_ENTRY_NULL(MY_ENUM_VALUE)
-#define D_ENUM_ENTRY_NULL(_key)                                               \
-    {                                                                         \
-      .key   = (int)(_key),                                                   \
-      .value = NULL                                                           \
-    }
+//   macro: creates a d_key_value initializer from an enum key with a NULL
+// value.
+#define D_ENUM_ENTRY_NULL(_key) \
+    D_KEY_VALUE_T(_key, int, NULL, void*)
 
 // D_ENUM_ENTRY_SELF
-//   macro: creates a d_enum_map_entry where the value equals the key (as int).
-//   Useful for identity mappings.
-//   Usage: D_ENUM_ENTRY_SELF(MY_ENUM_VALUE)
-#define D_ENUM_ENTRY_SELF(_key)                                               \
-    {                                                                         \
-      .key   = (int)(_key),                                                   \
-      .value = (void*)(intptr_t)(_key)                                        \
-    }
-
-
-///////////////////////////////////////////////////////////////////////////////
-///                      ENTRY COMPARISON MACROS                            ///
-///////////////////////////////////////////////////////////////////////////////
+//   macro: creates a d_key_value initializer where the value equals the key,
+// cast through intptr_t to void*. useful for identity mappings.
+#define D_ENUM_ENTRY_SELF(_key) \
+    D_KEY_VALUE_T(_key, int, (intptr_t)(_key), void*)
 
 // D_ENUM_ENTRY_KEY_EQ
-//   macro: returns true if two entries have the same key.
-#define D_ENUM_ENTRY_KEY_EQ(_e1, _e2)                                         \
-    ((_e1).key == (_e2).key)
+//   macro: evaluates to true if two enum entries have the same key. delegates
+// to D_KEY_VALUE_KEY_EQ.
+#define D_ENUM_ENTRY_KEY_EQ(_e1, _e2) \
+    D_KEY_VALUE_KEY_EQ(_e1, _e2)
 
 // D_ENUM_ENTRY_VAL_EQ
-//   macro: returns true if two entries have the same value.
-#define D_ENUM_ENTRY_VAL_EQ(_e1, _e2)                                         \
-    ((_e1).value == (_e2).value)
+//   macro: evaluates to true if two enum entries have the same value.
+// delegates to D_KEY_VALUE_VAL_EQ.
+#define D_ENUM_ENTRY_VAL_EQ(_e1, _e2) \
+    D_KEY_VALUE_VAL_EQ(_e1, _e2)
 
 // D_ENUM_ENTRY_EQ
-//   macro: returns true if two entries are equal (same key and value).
-#define D_ENUM_ENTRY_EQ(_e1, _e2)                                             \
-    ( ((_e1).key == (_e2).key) && ((_e1).value == (_e2).value) )
-
-
-///////////////////////////////////////////////////////////////////////////////
-///                        SENTINEL MARKERS                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//   macro: evaluates to true if two enum entries are equal in both key and
+// value. delegates to D_KEY_VALUE_EQ.
+#define D_ENUM_ENTRY_EQ(_e1, _e2) \
+    D_KEY_VALUE_EQ(_e1, _e2)
 
 // D_ENUM_MAP_SENTINEL_KEY
-//   constant: special key value used to mark the end of static entry arrays.
-//   Uses INT_MIN to minimize collision with valid enum values.
-#ifndef D_ENUM_MAP_SENTINEL_KEY
-    #define D_ENUM_MAP_SENTINEL_KEY INT_MIN
-#endif
+//   constant: legacy alias for D_KEY_VALUE_SENTINEL_KEY.
+#define D_ENUM_MAP_SENTINEL_KEY \
+    D_KEY_VALUE_SENTINEL_KEY
 
 // D_ENUM_ENTRY_SENTINEL
-//   macro: creates a sentinel entry to mark end of static arrays.
-#define D_ENUM_ENTRY_SENTINEL                                                 \
-    {                                                                         \
-      .key   = D_ENUM_MAP_SENTINEL_KEY,                                       \
-      .value = NULL                                                           \
-    }
+//   macro: legacy alias for D_KEY_VALUE_SENTINEL.
+#define D_ENUM_ENTRY_SENTINEL \
+    D_KEY_VALUE_SENTINEL
 
 // D_ENUM_ENTRY_IS_SENTINEL
-//   macro: returns true if an entry is the sentinel marker.
-#define D_ENUM_ENTRY_IS_SENTINEL(_entry)                                      \
-    ((_entry).key == D_ENUM_MAP_SENTINEL_KEY)
+//   macro: legacy alias for D_KEY_VALUE_IS_SENTINEL.
+#define D_ENUM_ENTRY_IS_SENTINEL(_entry) \
+    D_KEY_VALUE_IS_SENTINEL(_entry)
 
 
-#endif	// DJINTERP_C_CONTAINER_ENUM_MAP_ENTRY_
+#endif  // DJINTERP_C_CONTAINER_MAP_ENUM_MAP_ENTRY_H

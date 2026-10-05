@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                         fixed_table.hpp
+/*******************************************************************************
+* djinterp [core]                                                fixed_table.hpp
 *
 *   fixed_table -- the fixed-shape mutable grid of the table trio.  A rank-2,
 * rectangular, cell-homogeneous table whose two extents R and C are fixed by
@@ -13,8 +13,10 @@
 *                                     compile-time bounds are exactly what an
 *                                     inline table requires.
 *   - Mutability: element_mutable  -- a cell value v_i may be overwritten with
-*                                     I_T left fixed, but no row or column may be
-*                                     added or removed (structural mutation would
+*                                     I_T left fixed, but no row or column may
+*                                   be
+*                                     added or removed (structural mutation
+*                                   would
 *                                     change I_T and needs dynamic storage).
 *   It is ordered, bounded (|T| = R*C, a compile-time constant), and iterable.
 *
@@ -31,19 +33,31 @@
 *
 * path:      /inc/djinterp/core/container/table/fixed_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    is_fixed_table (detection trait)
+      --------------------------------
+
 II.   fixed_table (class)
+      -------------------
+
 III.  make_fixed_table / equality / swap
+      ----------------------------------
 */
 
-#ifndef DJINTERP_CONTAINER_FIXED_TABLE_
-#define DJINTERP_CONTAINER_FIXED_TABLE_ 1
+#ifndef DJINTERP_CONTAINER_TABLE_FIXED_TABLE_HPP
+#define DJINTERP_CONTAINER_TABLE_FIXED_TABLE_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <algorithm>
@@ -52,17 +66,19 @@ III.  make_fixed_table / equality / swap
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
+#include "../../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
 #include "./table_base.hpp"                        // table_base, row/column views
 #include "../container_options.hpp"                // axis enums, options base
 #include "../traits/mutable_container_traits.hpp"  // mutability grade
-#include "../serial/encode_options.hpp"             // enc_tau<E>, put_length<L,E>, serial enums
-#include "../serial/decode_options.hpp"             // dec_tau<E>, get_length<L,E>
+#include "../../binary/encode_options.hpp"             // enc_tau<E>, put_length<L,E>, serial enums
+#include "../../binary/decode_options.hpp"             // dec_tau<E>, get_length<L,E>
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 
 
 // DJINTERP_TABLE_MUT_CONSTEXPR
 //   constexpr on a MUTATING member only where C++14 relaxed constexpr allows a
-// non-const member to be constexpr; empty in C++11.  Undefined at end of file.
+// non-const member to be constexpr; empty in C++11. Undefined at end of file.
 #if ( D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL >= 201304L )
     #define DJINTERP_TABLE_MUT_CONSTEXPR  D_CONSTEXPR
 #else
@@ -79,48 +95,48 @@ NS_DJINTERP
 
 // fixed_table (fwd)
 //   class: forward declaration for the detection trait below.
-template<typename    _Type,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _DifferenceType,
-         typename    _SizeType,
-         typename    _Iterator,
-         typename    _ConstIterator,
-         typename... _Options>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    DifferenceType,
+         typename    SizeType,
+         typename    Iterator,
+         typename    ConstIterator,
+         typename... Options>
 class fixed_table;
 
 // is_fixed_table
-//   trait: true when _Type (after stripping cv/ref) is a specialization of
+//   trait: true when Type (after stripping cv/ref) is a specialization of
 // fixed_table.
 NS_INTERNAL
 
-    template<typename _Type>
+    template<typename Type>
     struct is_fixed_table_impl : std::false_type
     {};
 
-    template<typename    _T,
-             std::size_t _R,
-             std::size_t _C,
-             typename    _D,
-             typename    _S,
-             typename    _I,
-             typename    _CI,
-             typename... _O>
-    struct is_fixed_table_impl<fixed_table<_T, _R, _C, _D, _S, _I, _CI, _O...>>
+    template<typename    T,
+             std::size_t R,
+             std::size_t C,
+             typename    D,
+             typename    S,
+             typename    I,
+             typename    CI,
+             typename... O>
+    struct is_fixed_table_impl<fixed_table<T, R, C, D, S, I, CI, O...>>
         : std::true_type
     {};
 
 NS_END  // internal
 
-template<typename _Type>
-struct is_fixed_table : internal::is_fixed_table_impl<clean_t<_Type>>
+template<typename Type>
+struct is_fixed_table : internal::is_fixed_table_impl<clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 // is_fixed_table_v
-//   value: variable-template shorthand for is_fixed_table<_Type>::value.
-template<typename _Type>
-inline constexpr bool is_fixed_table_v = is_fixed_table<_Type>::value;
+//   value: variable-template shorthand for is_fixed_table<Type>::value.
+template<typename Type>
+inline constexpr bool is_fixed_table_v = is_fixed_table<Type>::value;
 #endif
 
 
@@ -129,63 +145,63 @@ inline constexpr bool is_fixed_table_v = is_fixed_table<_Type>::value;
 // ===========================================================================
 
 // fixed_table
-//   class: a fixed-shape mutable rank-2 cell-homogeneous table of _Rows by
-// _Cols cells, stored row-major in an inline std::array.  Inherits the const
+//   class: a fixed-shape mutable rank-2 cell-homogeneous table of Rows by
+// Cols cells, stored row-major in an inline std::array. Inherits the const
 // surface from table_base and adds the writable half; the shape is frozen.
-template<typename    _Type,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _DifferenceType = std::ptrdiff_t,
-         typename    _SizeType       = std::size_t,
-         typename    _Iterator       = _Type*,
-         typename    _ConstIterator  = const _Type*,
-         typename... _Options>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename    SizeType        = std::size_t,
+         typename    Iterator        = Type*,
+         typename    ConstIterator   = const Type*,
+         typename... Options>
 class fixed_table
-    : public table_base<fixed_table<_Type,
-                                    _Rows,
-                                    _Cols,
-                                    _DifferenceType,
-                                    _SizeType,
-                                    _Iterator,
-                                    _ConstIterator,
-                                    _Options...>,
-                        _Type,
-                        _SizeType,
-                        _DifferenceType>,
-      public options_container_base<_Options...>
+    : public table_base<fixed_table<Type,
+                                    Rows,
+                                    Cols,
+                                    DifferenceType,
+                                    SizeType,
+                                    Iterator,
+                                    ConstIterator,
+                                    Options...>,
+                        Type,
+                        SizeType,
+                        DifferenceType>,
+      public options_container_base<Options...>
 {
 private:
     using base_type = table_base<fixed_table,
-                                 _Type,
-                                 _SizeType,
-                                 _DifferenceType>;
+                                 Type,
+                                 SizeType,
+                                 DifferenceType>;
 
     // the flat, row-major cell store; std::array<_,0> is well-formed.
-    using storage_type = std::array<_Type, (_Rows * _Cols)>;
+    using storage_type = std::array<Type, (Rows * Cols)>;
 
 public:
     // --- member types ---
 
-    using value_type      = _Type;
-    using cell_type       = _Type;
-    using size_type       = _SizeType;
-    using difference_type = _DifferenceType;
-    using reference       = _Type&;
-    using const_reference = const _Type&;
-    using pointer         = _Type*;
-    using const_pointer   = const _Type*;
+    using value_type      = Type;
+    using cell_type       = Type;
+    using size_type       = SizeType;
+    using difference_type = DifferenceType;
+    using reference       = Type&;
+    using const_reference = const Type&;
+    using pointer         = Type*;
+    using const_pointer   = const Type*;
 
     // cell iteration: a mutable cursor and its const face.
-    using iterator        = _Iterator;
-    using const_iterator  = _ConstIterator;
+    using iterator        = Iterator;
+    using const_iterator  = ConstIterator;
 
     // writable subtable T[r] and projection T[*,c], plus their const faces
     // (the const faces are inherited from table_base and re-exported here).
-    using row_type           = internal::basic_row_view<_Type>;
+    using row_type           = internal::basic_row_view<Type>;
     using const_row_type     = typename base_type::const_row_type;
-    using column_type        = internal::basic_column_view<_Type>;
+    using column_type        = internal::basic_column_view<Type>;
     using const_column_type  = typename base_type::const_column_type;
-    using row_iterator       = internal::row_cursor<_Type>;
+    using row_iterator       = internal::row_cursor<Type>;
     using const_row_iterator = typename base_type::const_row_iterator;
 
     // --- axis positions (the first few axes, then the ones that follow) ---
@@ -207,35 +223,36 @@ public:
     static constexpr container_structure     structure     =
         container_structure::hierarchical;  // uniformly nested; depth = rank = 2
 
-    // Iterability stage sub-axis: structure is compile-time-expressible but the
+    // Iterability stage sub-axis: structure is compile-time-expressible but
+    // the
     // contents are filled at runtime, so the cursor is statically evaluable
     // while the values are not (the "fixed array, runtime fill" row).
     static constexpr bool compile_time_iterable = true;
     static constexpr bool compile_time_values   = false;
 
-    // Boundedness: a fixed capacity kappa = R*C < infinity.  `extent` is the
+    // Boundedness: a fixed capacity kappa = R*C < infinity. `extent` is the
     // djinterp compile-time fixed-capacity signal; the domain is left free.
-    static constexpr size_type extent = static_cast<size_type>(_Rows * _Cols);
+    static constexpr size_type extent = static_cast<size_type>(Rows * Cols);
     static constexpr size_type max_cells = extent;
 
-    static constexpr size_type row_extent    = static_cast<size_type>(_Rows);
-    static constexpr size_type column_extent = static_cast<size_type>(_Cols);
+    static constexpr size_type row_extent    = static_cast<size_type>(Rows);
+    static constexpr size_type column_extent = static_cast<size_type>(Cols);
 
     // --- construction ---
 
-    // default: value-initializes every cell to _Type{}.
+    // default: value-initializes every cell to Type{}.
     constexpr fixed_table()
         : m_cells{}
     {}
 
-    // element-wise: exactly R*C cell values in row-major order.  Constrained to
+    // element-wise: exactly R*C cell values in row-major order. Constrained to
     // two-or-more cells so it never shadows the copy, move, or array forms.
-    template<typename... _Cells,
+    template<typename... Cells,
              typename = typename std::enable_if<
-                 ( (sizeof...(_Cells) == (_Rows * _Cols)) &&
-                   (sizeof...(_Cells) >= 2) )>::type>
-    constexpr fixed_table(_Cells&&... _cells)
-        : m_cells{ { static_cast<_Type>(static_cast<_Cells&&>(_cells))... } }
+                 ( (sizeof...(Cells) == (Rows * Cols)) &&
+                   (sizeof...(Cells) >= 2) )>::type>
+    constexpr fixed_table(Cells&&... _cells)
+        : m_cells{ { static_cast<Type>(static_cast<Cells&&>(_cells))... } }
     {}
 
     // from a flat, row-major std::array of the exact cell count.
@@ -251,7 +268,7 @@ public:
 
     // filled
     //   factory: a table with every cell equal to _value.
-    static DJINTERP_TABLE_MUT_CONSTEXPR fixed_table filled(const _Type& _value)
+    static DJINTERP_TABLE_MUT_CONSTEXPR fixed_table filled(const Type& _value)
     {
         fixed_table t;
         t.fill(_value);
@@ -319,7 +336,7 @@ public:
         size_type _c
     )
     {
-        return m_cells[(_r * _Cols) + _c];
+        return m_cells[(_r * Cols) + _c];
     }
 
     // at -- checked writable cell; throws std::out_of_range off the domain.
@@ -334,7 +351,7 @@ public:
             throw std::out_of_range("fixed_table::at");
         }
 
-        return m_cells[(_r * _Cols) + _c];
+        return m_cells[(_r * Cols) + _c];
     }
 
     // --- writable subtable and projection ---
@@ -342,7 +359,7 @@ public:
     // row / operator[] -- the writable rank-1 subtable T[r].
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR row_type row(size_type _r)
     {
-        return row_type(m_cells.data() + (_r * _Cols), _Cols);
+        return row_type(m_cells.data() + (_r * Cols), Cols);
     }
 
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR row_type operator[](size_type _r)
@@ -354,8 +371,8 @@ public:
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR column_type column(size_type _c)
     {
         return column_type(m_cells.data() + _c,
-                           _Rows,
-                           static_cast<difference_type>(_Cols));
+                           Rows,
+                           static_cast<difference_type>(Cols));
     }
 
     // --- writable cell and row iteration ---
@@ -367,29 +384,29 @@ public:
 
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR iterator end() noexcept
     {
-        return m_cells.data() + (_Rows * _Cols);
+        return m_cells.data() + (Rows * Cols);
     }
 
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR row_iterator row_begin() noexcept
     {
-        return row_iterator(m_cells.data(), 0, _Cols);
+        return row_iterator(m_cells.data(), 0, Cols);
     }
 
     D_NODISCARD DJINTERP_TABLE_MUT_CONSTEXPR row_iterator row_end() noexcept
     {
         return row_iterator(m_cells.data(),
-                            static_cast<difference_type>(_Rows),
-                            _Cols);
+                            static_cast<difference_type>(Rows),
+                            Cols);
     }
 
     // --- whole-grid mutation (shape-preserving) ---
 
     // fill
     //   writes _value into every cell, leaving I_T fixed.
-    DJINTERP_TABLE_MUT_CONSTEXPR void fill(const _Type& _value)
+    DJINTERP_TABLE_MUT_CONSTEXPR void fill(const Type& _value)
     {
         // overwrite every cell in row-major order
-        for (std::size_t i = 0; i < (_Rows * _Cols); ++i)
+        for (std::size_t i = 0; i < (Rows * Cols); ++i)
         {
             m_cells[i] = _value;
         }
@@ -406,19 +423,20 @@ public:
         return;
     }
 
-    // --- sortedness: impose comparator order on the rows (shape-preserving) ---
+    // --- sortedness: impose comparator order on the rows (shape-preserving)
+    // ---
 
     // sort_rows
     //   stably reorders the rows so consecutive rows are non-decreasing under
-    // _cmp(const_row_type a, const_row_type b) -- the sorted overlay on the row
-    // dimension (relational ORDER BY).  It permutes which values sit at existing
-    // positions and leaves I_T (the R x C shape) fixed, so it is pure element
-    // mutation, within reach of an element-mutable table.
-    template<typename _RowCompare>
-    void sort_rows(_RowCompare _cmp)
+    // _cmp(const_row_type a, const_row_type b) -- the sorted overlay on the
+    // row dimension (relational ORDER BY). It permutes which values sit at
+    // existing positions and leaves I_T (the R x C shape) fixed, so it is pure
+    // element mutation, within reach of an element-mutable table.
+    template<typename RowCompare>
+    void sort_rows(RowCompare _cmp)
     {
         // a table with no rows or a single row is trivially in order
-        if (_Rows < 2)
+        if (Rows < 2)
         {
             return;
         }
@@ -426,8 +444,8 @@ public:
         const fixed_table& cself = *this;
 
         // build and stably sort a row-index permutation by the comparator
-        std::array<size_type, _Rows> perm{};
-        for (size_type i = 0; i < _Rows; ++i)
+        std::array<size_type, Rows> perm{};
+        for (size_type i = 0; i < Rows; ++i)
         {
             perm[i] = i;
         }
@@ -440,12 +458,12 @@ public:
 
         // materialize the reordered grid, then adopt it (I_T unchanged)
         storage_type reordered{};
-        for (size_type i = 0; i < _Rows; ++i)
+        for (size_type i = 0; i < Rows; ++i)
         {
-            const size_type src = perm[i] * static_cast<size_type>(_Cols);
-            const size_type dst = i       * static_cast<size_type>(_Cols);
+            const size_type src = perm[i] * static_cast<size_type>(Cols);
+            const size_type dst = i       * static_cast<size_type>(Cols);
 
-            for (size_type c = 0; c < _Cols; ++c)
+            for (size_type c = 0; c < Cols; ++c)
             {
                 reordered[dst + c] = m_cells[src + c];
             }
@@ -460,111 +478,117 @@ public:
 
     // map
     //   the functorial mapping mu_f: applies _fn to every cell and returns a
-    // same-shape fixed_table over the image type sigma = f(tau).  Size and
-    // arrangement are preserved exactly; a non-monotone or non-injective _fn may
-    // break sortedness or uniqueness.  A fixed_table is a transform SOURCE when
-    // the element type changes (its fixed inline store cannot hold a re-typed
-    // image in place), so the retyped result is built fresh here.
-    template<typename _Fn>
+    // same-shape fixed_table over the image type sigma = f(tau). Size and
+    // arrangement are preserved exactly; a non-monotone or non-injective _fn
+    // may break sortedness or uniqueness. A fixed_table is a transform SOURCE
+    // when the element type changes (its fixed inline store cannot hold a
+    // re-typed image in place), so the retyped result is built fresh here.
+    template<typename Fn>
     D_NODISCARD constexpr
-    fixed_table<clean_t<decltype(std::declval<_Fn&>()(std::declval<const _Type&>()))>,
-                _Rows, _Cols>
-    map(_Fn _fn) const
+    fixed_table<clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>,
+                Rows, Cols>
+    map(Fn _fn) const
     {
         using mapped_cell =
-            clean_t<decltype(std::declval<_Fn&>()(std::declval<const _Type&>()))>;
+            clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>;
 
-        std::array<mapped_cell, (_Rows * _Cols)> out{};
+        std::array<mapped_cell, (Rows * Cols)> out{};
 
-        for (std::size_t i = 0; i < (_Rows * _Cols); ++i)
+        for (std::size_t i = 0; i < (Rows * Cols); ++i)
         {
             out[i] = _fn(m_cells[i]);
         }
 
-        return fixed_table<mapped_cell, _Rows, _Cols>(out);
+        return fixed_table<mapped_cell, Rows, Cols>(out);
     }
 
     // map_inplace
-    //   the element-preserving mapping mu_f with sigma = tau, applied in place:
-    // each cell is overwritten by its image.  This is the native, shape- and
-    // size-preserving transform an element-mutable fixed grid supports without
-    // building a new container; only the values change, so I_T stays fixed.
-    template<typename _Fn>
-    DJINTERP_TABLE_MUT_CONSTEXPR void map_inplace(_Fn _fn)
+    //   the element-preserving mapping mu_f with sigma = tau, applied in
+    // place: each cell is overwritten by its image. This is the native, shape-
+    // and size-preserving transform an element-mutable fixed grid supports
+    // without building a new container; only the values change, so I_T stays
+    // fixed.
+    template<typename Fn>
+    DJINTERP_TABLE_MUT_CONSTEXPR void map_inplace(Fn _fn)
     {
-        // the rewrite must be closed on the element type (result assignable to tau)
-        for (std::size_t i = 0; i < (_Rows * _Cols); ++i)
+        // the rewrite must be closed on the element type (result assignable to
+        // tau)
+        for (std::size_t i = 0; i < (Rows * Cols); ++i)
         {
-            m_cells[i] = static_cast<_Type>(_fn(m_cells[i]));
+            m_cells[i] = static_cast<Type>(_fn(m_cells[i]));
         }
 
         return;
     }
 
-    // --- serialization (Serialization: shape + cells, under the serial options) ---
+    // --- serialization (Serialization: shape + cells, under the serial
+    // options) ---
 
     // encode_into_e / decode_e
     //   the parameterised member enc_tau / dec_tau: the SHAPE (rows then cols,
-    // each a length field per <_L,_E>) and the cells (each a leaf under
-    // enc_tau<_E>).  This is where the container-serial options reach a table's
+    // each a length field per <L,E>) and the cells (each a leaf under
+    // enc_tau<E>). This is where the container-serial options reach a table's
     // own bytes.
-    template<serial_endian _E,
-             serial_length  _L,
-             typename       _Sink>
-    void encode_into_e(_Sink& _sink) const
+    template<serial_endian E,
+             serial_length  L,
+             typename       Sink>
+    void encode_into_e(Sink& _sink) const
     {
-        internal::put_length<_L, _E>(_sink, static_cast<std::uint64_t>(rows()));
-        internal::put_length<_L, _E>(_sink, static_cast<std::uint64_t>(cols()));
+        internal::put_length<L, E>(_sink,
+                                   static_cast<re_std::uint64_t>(rows()));
+        internal::put_length<L, E>(_sink,
+                                   static_cast<re_std::uint64_t>(cols()));
 
         for (const_pointer p = data(); p != (data() + this->size()); ++p)
         {
-            encode_leaf_into<_E>(_sink, *p);
+            encode_leaf_into<E>(_sink, *p);
         }
 
         return;
     }
 
-    template<serial_endian _E,
-             serial_length  _L>
+    template<serial_endian E,
+             serial_length  L>
     static decode_result<fixed_table> decode_e(byte_reader& _reader)
     {
-        std::uint64_t _r = 0;
-        std::uint64_t _c = 0;
+        re_std::uint64_t _r = 0;
+        re_std::uint64_t _c = 0;
 
-        if (!internal::get_length<_L, _E>(_reader, _r))
+        if (!internal::get_length<L, E>(_reader, _r))
         {
             return decode_failure<fixed_table>();
         }
-        if (!internal::get_length<_L, _E>(_reader, _c))
+        if (!internal::get_length<L, E>(_reader, _c))
         {
             return decode_failure<fixed_table>();
         }
 
         // the stream's shape must match this type's fixed shape
-        if ( (_r != static_cast<std::uint64_t>(_Rows)) ||
-             (_c != static_cast<std::uint64_t>(_Cols)) )
+        if ( (_r != static_cast<re_std::uint64_t>(Rows)) ||
+             (_c != static_cast<re_std::uint64_t>(Cols)) )
         {
             return decode_failure<fixed_table>();
         }
 
         storage_type _cells{};
-        for (std::size_t i = 0; i < (_Rows * _Cols); ++i)
+        for (std::size_t i = 0; i < (Rows * Cols); ++i)
         {
-            decode_result<_Type> _cell = decode_leaf<_E, _Type>(_reader);
+            decode_result<Type> _cell = decode_leaf<E, Type>(_reader);
             if (!_cell.ok) { return decode_failure<fixed_table>(); }
 
-            _cells[i] = static_cast<_Type&&>(_cell.value);
+            _cells[i] = static_cast<Type&&>(_cell.value);
         }
 
         return decode_success(fixed_table(_cells));
     }
 
     // encode_into / decode
-    //   the foundational member surface: the default (big-endian, 8-byte count)
-    // delegating to the parameterised pair.  This is what the option front ends
-    // observe; call encode_into_e<E,L> directly for another (endian, length).
-    template<typename _Sink>
-    void encode_into(_Sink& _sink) const
+    //   the foundational member surface: the default (big-endian, 8-byte
+    // count) delegating to the parameterised pair. This is what the option
+    // front ends observe; call encode_into_e<E,L> directly for another
+    // (endian, length).
+    template<typename Sink>
+    void encode_into(Sink& _sink) const
     {
         this->template encode_into_e<serial_endian::big,
                                      serial_length::u64>(_sink);
@@ -590,7 +614,8 @@ namespace table_axis_conformance
 {
     using fixed_table_probe = fixed_table<int, 2, 3>;
 
-    // Iterability: iterable, and non-const (element-mutable -> settable cursor).
+    // Iterability: iterable, and non-const (element-mutable -> settable
+    // cursor).
     static_assert(is_iterable_container_v<fixed_table_probe>,
                   "fixed_table must classify as iterable.");
     static_assert(iteration_mode_of<fixed_table_probe>::value
@@ -608,7 +633,8 @@ namespace table_axis_conformance
                       == multiplicity_kind::sequence,
                   "fixed_table must classify as a sequence (m = infinity).");
 
-    // Sortedness / Ordering: ordered, and order-dependent (not sorted in itself).
+    // Sortedness / Ordering: ordered, and order-dependent (not sorted in
+    // itself).
     static_assert(is_ordered_container_v<fixed_table_probe>,
                   "fixed_table must classify as ordered.");
     static_assert(sortedness_of<fixed_table_probe>::value
@@ -625,7 +651,7 @@ namespace table_axis_conformance
                   "fixed_table structure_kind must be hierarchical.");
 
     // Filterability and Transformability (composite, detection-only): a
-    // filter/transform SOURCE.  No cell-level build (push_back), so a re-typed
+    // filter/transform SOURCE. No cell-level build (push_back), so a re-typed
     // image or a selection is built in a fresh container; a same-type map may
     // still run in place (map_inplace), a native shape-preserving rewrite.
     // Verified out-of-band (see the note in static_table.hpp).
@@ -637,70 +663,70 @@ namespace table_axis_conformance
 // ===========================================================================
 
 // make_fixed_table
-//   function: builds a fixed_table<_Type, _Rows, _Cols> from R*C cell values
+//   function: builds a fixed_table<Type, Rows, Cols> from R*C cell values
 // given in row-major order, deducing the cell type from the first argument.
-template<std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _First,
-         typename... _Rest>
+template<std::size_t Rows,
+         std::size_t Cols,
+         typename    First,
+         typename... Rest>
 D_NODISCARD constexpr
-fixed_table<clean_t<_First>, _Rows, _Cols>
-make_fixed_table(_First&& _first, _Rest&&... _rest)
+fixed_table<clean_t<First>, Rows, Cols>
+make_fixed_table(First&& _first, Rest&&... _rest)
 {
-    static_assert(((1 + sizeof...(_Rest)) == (_Rows * _Cols)),
+    static_assert(((1 + sizeof...(Rest)) == (Rows * Cols)),
                   "make_fixed_table: the number of cell values must equal "
-                  "_Rows * _Cols.");
+                  "Rows * Cols.");
 
-    return fixed_table<clean_t<_First>, _Rows, _Cols>(
-        static_cast<_First&&>(_first),
-        static_cast<_Rest&&>(_rest)...);
+    return fixed_table<clean_t<First>, Rows, Cols>(
+        static_cast<First&&>(_first),
+        static_cast<Rest&&>(_rest)...);
 }
 
 // operator== / operator!=
 //   compares two fixed_tables cell-by-cell after a shape check.
-template<typename    _Type,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _D,
-         typename    _S,
-         typename    _I,
-         typename    _CI,
-         typename... _O>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    D,
+         typename    S,
+         typename    I,
+         typename    CI,
+         typename... O>
 D_NODISCARD constexpr bool operator==(
-    const fixed_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _a,
-    const fixed_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _b)
+    const fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    const fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _b)
 {
     return _a.content_equals(_b);
 }
 
-template<typename    _Type,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _D,
-         typename    _S,
-         typename    _I,
-         typename    _CI,
-         typename... _O>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    D,
+         typename    S,
+         typename    I,
+         typename    CI,
+         typename... O>
 D_NODISCARD constexpr bool operator!=(
-    const fixed_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _a,
-    const fixed_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _b)
+    const fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    const fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _b)
 {
     return !(_a == _b);
 }
 
 // swap
 //   free swap for two same-shape fixed_tables.
-template<typename    _Type,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _D,
-         typename    _S,
-         typename    _I,
-         typename    _CI,
-         typename... _O>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    D,
+         typename    S,
+         typename    I,
+         typename    CI,
+         typename... O>
 DJINTERP_TABLE_MUT_CONSTEXPR void swap(
-    fixed_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _a,
-    fixed_table<_Type, _Rows, _Cols, _D, _S, _I, _CI, _O...>& _b) noexcept
+    fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _b) noexcept
 {
     _a.swap(_b);
 
@@ -713,5 +739,6 @@ NS_END  // djinterp
 
 #undef DJINTERP_TABLE_MUT_CONSTEXPR
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_FIXED_TABLE_
+#endif  // DJINTERP_CONTAINER_TABLE_FIXED_TABLE_HPP

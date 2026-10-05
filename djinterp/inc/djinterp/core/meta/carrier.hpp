@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                                  carrier.hpp
+/*******************************************************************************
+* djinterp [core]                                                    carrier.hpp
 *
 * Carriers - the dual-domain substrate:
 *   This header introduces the substrate that lets a single combinator body run
@@ -53,18 +53,27 @@
 * additive over val_t and is intentionally NOT defined here pending the Q2
 * decision in the roadmap; the locked design (D5) keeps leaves domain-specific.
 *
+*
 * path:      /inc/djinterp/core/meta/carrier.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_META_CARRIER_
-#define DJINTERP_META_CARRIER_ 1
+#ifndef DJINTERP_META_CARRIER_HPP
+#define DJINTERP_META_CARRIER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "./type_utility.hpp"  // clean_t
 #include "./trait_detect.hpp"   // D_TYPE_TRAIT_VALUE_BOOL (the canonical _v emitter)
 
 
@@ -80,17 +89,17 @@ NS_DJINTERP
 // type-domain leaf or combinator can be invoked as `f(type_c<T>)`
 // and yield another carrier.  Recover the carried type with
 // `decltype(expr)::type` or `carrier_type_t<...>`.  C++11-clean.
-template<typename _Type>
+template<typename Type>
 struct type_t
 {
-    using type = _Type;
+    using type = Type;
 };
 
 // carrier_type_t
 //   type: recovers the type carried by a type_t (or any carrier
 // exposing a nested `type`).  cv-ref on the carrier is ignored.
-template<typename _Carrier>
-using carrier_type_t = typename clean_t<_Carrier>::type;
+template<typename CarrierType>
+using carrier_type_t = typename clean_t<CarrierType>::type;
 
 
 // ================================================================
@@ -102,14 +111,14 @@ NS_INTERNAL
     // is_type_carrier_raw
     //   trait: primary template (failure case); cv-ref is already
     // stripped by the public face below.
-    template<typename _Type>
+    template<typename Type>
     struct is_type_carrier_raw : std::false_type
     {};
 
     // is_type_carrier_raw (success case)
     //   trait: succeeds for a type_t<...> specialization.
-    template<typename _Type>
-    struct is_type_carrier_raw<type_t<_Type>> : std::true_type
+    template<typename Type>
+    struct is_type_carrier_raw<type_t<Type>> : std::true_type
     {};
 
     // is_value_carrier_raw
@@ -117,38 +126,38 @@ NS_INTERNAL
     // C++11 floor, so is_value_carrier is well-formed even when the
     // value-carrier object layer (C++17) is guarded away; the val_t
     // success specialization is added inside the C++17 block below.
-    template<typename _Type>
+    template<typename Type>
     struct is_value_carrier_raw : std::false_type
     {};
 
 NS_END  // internal
 
 // is_type_carrier
-//   trait: detects whether _Type is a type-domain carrier, i.e. a
+//   trait: detects whether Type is a type-domain carrier, i.e. a
 // specialization of type_t.  Specialization-based (not tagless), so
 // detection is exact.  C++11-clean.
-template<typename _Type>
+template<typename Type>
 struct is_type_carrier
-    : internal::is_type_carrier_raw<clean_t<_Type>>
+    : internal::is_type_carrier_raw<clean_t<Type>>
 {};
 
 // is_value_carrier
-//   trait: detects whether _Type is a value-domain carrier, i.e. a
+//   trait: detects whether Type is a value-domain carrier, i.e. a
 // specialization of val_t.  Always false at the C++11 floor (val_t is
 // a C++17 facility).  Specialization-based, so detection is exact.
-template<typename _Type>
+template<typename Type>
 struct is_value_carrier
-    : internal::is_value_carrier_raw<clean_t<_Type>>
+    : internal::is_value_carrier_raw<clean_t<Type>>
 {};
 
 // is_carrier
-//   trait: detects whether _Type is either kind of carrier (type or
+//   trait: detects whether Type is either kind of carrier (type or
 // value).  C++11-clean.
-template<typename _Type>
+template<typename Type>
 struct is_carrier
     : std::integral_constant<bool,
-        ( is_type_carrier<_Type>::value  ||
-          is_value_carrier<_Type>::value )>
+        ( is_type_carrier<Type>::value  ||
+          is_value_carrier<Type>::value )>
 {};
 
 // is_type_carrier_v / is_value_carrier_v / is_carrier_v
@@ -173,41 +182,41 @@ D_TYPE_TRAIT_VALUE_BOOL(is_carrier)
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
     // type_c
-    //   value: the canonical type-carrier object for _Type; pass it
+    //   value: the canonical type-carrier object for Type; pass it
     // into a type-domain leaf/combinator, e.g. `f(type_c<int>)`.
-    template<typename _Type>
-    inline constexpr type_t<_Type> type_c{};
+    template<typename Type>
+    inline constexpr type_t<Type> type_c{};
 
     // val_t
     //   type: carries a compile-time NTTP value as an ordinary (empty)
     // object.  Recover it with `decltype(expr)::value` or
     // `carrier_value_v<...>`.
-    template<auto _Value>
+    template<auto Value>
     struct val_t
     {
-        static constexpr auto value = _Value;
+        static constexpr auto value = Value;
     };
 
     // val
-    //   value: the canonical value-carrier object for _Value; pass it
+    //   value: the canonical value-carrier object for Value; pass it
     // into a value-domain leaf/combinator, e.g. `f(val<10>)`.
-    template<auto _Value>
-    inline constexpr val_t<_Value> val{};
+    template<auto Value>
+    inline constexpr val_t<Value> val{};
 
     // carrier_value_v
     //   value: recovers the value carried by a val_t (or any carrier
     // exposing a nested static `value`).  cv-ref on the carrier is
     // ignored.
-    template<typename _Carrier>
-    inline constexpr auto carrier_value_v = clean_t<_Carrier>::value;
+    template<typename CarrierType>
+    inline constexpr auto carrier_value_v = clean_t<CarrierType>::value;
 
     NS_INTERNAL
 
         // is_value_carrier_raw (success case)
         //   trait: succeeds for a val_t<...> specialization.  Completes
         // the primary declared at the C++11 floor above.
-        template<auto _Value>
-        struct is_value_carrier_raw<val_t<_Value>> : std::true_type
+        template<auto Value>
+        struct is_value_carrier_raw<val_t<Value>> : std::true_type
         {};
 
     NS_END  // internal
@@ -228,23 +237,25 @@ D_TYPE_TRAIT_VALUE_BOOL(is_carrier)
     //   concept: satisfied by a type-domain carrier (type_t<...>).
     // PascalCase per the project's concept naming convention (cf.
     // passthrough.hpp's Passthrough), paralleling is_type_carrier_v.
-    template<typename _Type>
-    concept TypeCarrier = is_type_carrier<_Type>::value;
+    template<typename Type>
+    concept TypeCarrier = is_type_carrier<Type>::value;
 
     // ValueCarrier
     //   concept: satisfied by a value-domain carrier (val_t<...>).
-    template<typename _Type>
-    concept ValueCarrier = is_value_carrier<_Type>::value;
+    template<typename Type>
+    concept ValueCarrier = is_value_carrier<Type>::value;
 
     // Carrier
     //   concept: satisfied by either kind of carrier.
-    template<typename _Type>
-    concept Carrier = is_carrier<_Type>::value;
+    template<typename Type>
+    concept Carrier = is_carrier<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_META_CARRIER_
+
+#endif  // DJINTERP_META_CARRIER_HPP

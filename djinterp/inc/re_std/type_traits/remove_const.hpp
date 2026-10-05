@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           remove_const.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             remove_const.hpp
 *
 * remove_const trait header:
 *   Strips top-level const-qualifier from a type. Yields member typedef
@@ -12,19 +12,21 @@
 *     remove_const<const volatile int>::type  -> volatile int (volatile kept)
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/remove_const.hpp
+* path:      /inc/re_std/type_traits/remove_const.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_CONST_
-#define DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_CONST_ 1
+#ifndef RE_STD_TYPE_TRAITS_REMOVE_CONST_HPP
+#define RE_STD_TYPE_TRAITS_REMOVE_CONST_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -33,18 +35,18 @@ NS_RESTD
 
 // remove_const
 //   trait: passthrough (primary template).
-template<typename _Type>
+template<typename Type>
 struct remove_const
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
-// remove_const<const _Type>
+// remove_const<const Type>
 //   trait: specialization stripping top-level const.
-template<typename _Type>
-struct remove_const<const _Type>
+template<typename Type>
+struct remove_const<const Type>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
 
@@ -52,17 +54,17 @@ struct remove_const<const _Type>
 // II.  REMOVE_CONST_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // remove_const_t
-    //   alias: convenience alias for remove_const<_Type>::type.
-    template<typename _Type>
-    using remove_const_t = typename remove_const<_Type>::type;
+    //   alias: convenience alias for remove_const<Type>::type.
+    template<typename Type>
+    using remove_const_t = typename remove_const<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_CONST_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_REMOVE_CONST_HPP

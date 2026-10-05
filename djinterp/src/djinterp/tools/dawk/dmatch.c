@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                       dmatch.c
+* djinterp [djinterp]                                                   dmatch.c
 *
 * Selector matching:
 *   Right-to-left evaluation of a complex selector.  The descendant and
@@ -12,6 +12,7 @@
 * optimisation and is not done here, because a shared table outlives both and
 * the lifetime question has not been ruled on.
 *
+*
 * path:      /src/djinterp/tools/dawk/dmatch.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
@@ -19,28 +20,37 @@
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dmatch.h"  // corresponding header
 // std
-#include <string.h>  // strcmp, strlen, strstr
+#include <stdlib.h>  // malloc, calloc, free
+#include <string.h>  // strcmp, strlen, strstr, memcpy
 
 
 /*
 d_internal_same_name
-  Compares a sheet-interned identifier with a tree-interned one by text.
+  Compares a sheet's name with a tree's: as symbols when the sheet is bound
+to the tree's table, as text otherwise.
 */
 static bool
 d_internal_same_name(
-    const struct d_dss_sheet* _sheet,
-    struct d_node_tree*       _tree,
-    uint32_t                  _sheet_id,
-    uint32_t                  _tree_id
+    const struct d_dss_sheet*  _sheet,
+    struct d_node_tree*        _tree,
+    bool                       _bound,
+    const struct d_dss_simple* _simple,
+    uint32_t                   _tree_id
 )
 {
-    if ((_sheet_id == D_DSS_NO_INDEX) || (_tree_id == D_DSS_NO_INDEX))
+    if ( (_simple->name == D_DSS_NO_INDEX) || (_tree_id == D_DSS_NO_INDEX) )
     {
         return false;
     }
 
-    return (strcmp(d_dss_text(_sheet, _sheet_id),
-                   d_node_text(_tree, _tree_id)) == 0);
+    // one table: a name is its symbol, and equal names are equal integers
+    if (_bound)
+    {
+        return (_simple->symbol == _tree_id);
+    }
+
+    return (strcmp(d_dss_text(_sheet, _simple->name),
+                   d_node_name(_tree, _tree_id)) == 0);
 }
 
 
@@ -54,6 +64,7 @@ static bool
 d_internal_attribute_matches(
     const struct d_dss_sheet*   _sheet,
     struct d_node_tree*         _tree,
+    bool                        _bound,
     const struct d_node*        _node,
     const struct d_dss_simple*  _simple
 )
@@ -68,7 +79,7 @@ d_internal_attribute_matches(
             continue;
         }
 
-        if (!d_internal_same_name(_sheet, _tree, _simple->name,
+        if (!d_internal_same_name(_sheet, _tree, _bound, _simple,
                                   attribute->name))
         {
             continue;
@@ -135,6 +146,192 @@ d_internal_attribute_matches(
 }
 
 
+
+/*
+d_internal_nth_holds
+  Whether a one-based position is An+B for some n >= 0.
+*/
+static bool
+d_internal_nth_holds(
+    int32_t _a,
+    int32_t _b,
+    long    _position
+)
+{
+    // A of zero is a single position
+    if (_a == 0)
+    {
+        return (_position == (long)_b);
+    }
+
+    const long offset = _position - (long)_b;
+
+    // n = offset / A must be a whole number, and not negative
+    return ( ((offset % (long)_a) == 0) &&
+             ((offset / (long)_a) >= 0) );
+}
+
+
+/*
+d_internal_position
+  Counts the present siblings before and after a node, of its type only when
+asked.  Position is document position, so an absent node -- a placeholder for
+something the file does not carry -- is not a sibling for this purpose.
+*/
+static void
+d_internal_position(
+    struct d_node_tree* _tree,
+    uint32_t            _node_index,
+    bool                _same_type,
+    long*               _out_before,
+    long*               _out_after
+)
+{
+    const struct d_node* const node = d_node_at(_tree, _node_index);
+    bool                       seen = false;
+
+    *_out_before = 0;
+    *_out_after  = 0;
+
+    for (uint32_t at = d_node_at(_tree, node->parent)->first_child;
+         at != D_DSS_NO_INDEX;
+         at = d_node_at(_tree, at)->next_sibling)
+    {
+        const struct d_node* const other = d_node_at(_tree, at);
+
+        if (at == _node_index)
+        {
+            seen = true;
+            continue;
+        }
+
+        if ( (!other->present) ||
+             ( _same_type &&
+               (other->type != node->type) ) )
+        {
+            continue;
+        }
+
+        if (seen)
+        {
+            ++*_out_after;
+        }
+        else
+        {
+            ++*_out_before;
+        }
+    }
+
+    return;
+}
+
+
+static bool d_internal_has(const struct d_dss_sheet* _sheet,
+                           struct d_node_tree*       _tree,
+                           uint32_t                  _anchor,
+                           uint32_t                  _selector);
+
+
+/*
+d_internal_functional_matches
+  :not holds when no argument selector matches, :is when one does, :has when
+one of its relative selectors finds a match anchored at the node.
+*/
+static bool
+d_internal_functional_matches(
+    const struct d_dss_sheet*  _sheet,
+    struct d_node_tree*        _tree,
+    uint32_t                   _node_index,
+    const struct d_dss_simple* _simple
+)
+{
+    const bool has = (_simple->pseudo == D_DSS_PSEUDO_HAS);
+    const bool is  = (_simple->pseudo == D_DSS_PSEUDO_IS);
+
+    for (uint32_t at = 0; at < _simple->argument_count; ++at)
+    {
+        const uint32_t selector = _simple->first_argument + at;
+        const bool     hit      = has
+            ? d_internal_has(_sheet, _tree, _node_index, selector)
+            : d_match_selector(_sheet, _tree, _node_index, selector);
+
+        if (hit)
+        {
+            return (has || is);
+        }
+    }
+
+    return !(has || is);
+}
+
+
+/*
+d_internal_pseudo_matches
+  Evaluates a pseudo-class: the functional three by their selector arguments,
+the structural ones by the node's position among its present siblings.  A
+root node has no siblings, so every structural pseudo-class is false there;
+the functional ones still apply.
+*/
+static bool
+d_internal_pseudo_matches(
+    const struct d_dss_sheet*  _sheet,
+    struct d_node_tree*        _tree,
+    uint32_t                   _node_index,
+    const struct d_dss_simple* _simple
+)
+{
+    struct d_node* const node   = d_node_at(_tree, _node_index);
+    long                 before = 0;
+    long                 after  = 0;
+
+    if (!node)
+    {
+        return false;
+    }
+
+    if (_simple->argument_count > 0u)
+    {
+        return d_internal_functional_matches(_sheet, _tree, _node_index,
+                                             _simple);
+    }
+
+    if (node->parent == D_DSS_NO_INDEX)
+    {
+        return false;
+    }
+
+    d_internal_position(_tree, _node_index,
+                        ( (_simple->pseudo == D_DSS_PSEUDO_FIRST_OF_TYPE) ||
+                          (_simple->pseudo == D_DSS_PSEUDO_LAST_OF_TYPE) ),
+                        &before, &after);
+
+    switch (_simple->pseudo)
+    {
+        case D_DSS_PSEUDO_FIRST_CHILD:
+        case D_DSS_PSEUDO_FIRST_OF_TYPE:
+            return (before == 0);
+
+        case D_DSS_PSEUDO_LAST_CHILD:
+        case D_DSS_PSEUDO_LAST_OF_TYPE:
+            return (after == 0);
+
+        case D_DSS_PSEUDO_ONLY_CHILD:
+            return ( (before == 0) &&
+                     (after == 0) );
+
+        case D_DSS_PSEUDO_NTH_CHILD:
+            return d_internal_nth_holds(_simple->nth_a, _simple->nth_b,
+                                        before + 1);
+
+        case D_DSS_PSEUDO_NTH_LAST_CHILD:
+            return d_internal_nth_holds(_simple->nth_a, _simple->nth_b,
+                                        after + 1);
+
+        default:
+            return false;
+    }
+}
+
 /*
 d_internal_compound_matches
   Every simple in the compound must hold.
@@ -157,6 +354,10 @@ d_internal_compound_matches(
         return false;
     }
 
+    // one pointer compare per compound buys integer name tests below
+    const bool bound = ( (d_dss_symbols(_sheet) != NULL) &&
+                         (d_dss_symbols(_sheet) == d_node_tree_symbols(_tree)) );
+
     for (uint32_t at = 0; at < compound->simple_count; ++at)
     {
         const struct d_dss_simple* const simple =
@@ -173,7 +374,7 @@ d_internal_compound_matches(
                 break;
 
             case D_DSS_SIMPLE_TYPE:
-                if (!d_internal_same_name(_sheet, _tree, simple->name,
+                if (!d_internal_same_name(_sheet, _tree, bound, simple,
                                           node->type))
                 {
                     return false;
@@ -181,13 +382,22 @@ d_internal_compound_matches(
                 break;
 
             case D_DSS_SIMPLE_ATTRIBUTE:
-                if (!d_internal_attribute_matches(_sheet, _tree, node, simple))
+                if (!d_internal_attribute_matches(_sheet, _tree, bound, node,
+                                                  simple))
                 {
                     return false;
                 }
                 break;
 
-            // classes and pseudos have no host facts yet; they never match
+            case D_DSS_SIMPLE_PSEUDO_CLASS:
+                if (!d_internal_pseudo_matches(_sheet, _tree, _node_index,
+                                               simple))
+                {
+                    return false;
+                }
+                break;
+
+            // classes and pseudo-elements have no host facts yet
             default:
                 return false;
         }
@@ -374,6 +584,122 @@ d_internal_chain(
 
 
 /*
+d_internal_next_in_subtree
+  The node after `_at` in a preorder walk of the subtree rooted at `_root`, or
+D_DSS_NO_INDEX when the walk is done.  Iterative, so a deep tree costs no
+stack.
+*/
+static uint32_t
+d_internal_next_in_subtree(
+    struct d_node_tree* _tree,
+    uint32_t            _root,
+    uint32_t            _at
+)
+{
+    const struct d_node* node = d_node_at(_tree, _at);
+
+    // down first
+    if (node->first_child != D_DSS_NO_INDEX)
+    {
+        return node->first_child;
+    }
+
+    // then right, climbing until a sibling exists, never above the root
+    while (_at != _root)
+    {
+        if (node->next_sibling != D_DSS_NO_INDEX)
+        {
+            return node->next_sibling;
+        }
+
+        _at  = node->parent;
+        node = d_node_at(_tree, _at);
+    }
+
+    return D_DSS_NO_INDEX;
+}
+
+
+/*
+d_internal_forward
+  Satisfies a relative selector's compounds left to right from an anchor: the
+compound at `_part` (0 is the head) must match a node related to `_anchor` by
+the combinator that introduces it, and the rest must follow from there.
+Recursion is bounded by the selector's length, not the tree's size.
+*/
+static bool
+d_internal_forward(
+    const struct d_dss_sheet*    _sheet,
+    struct d_node_tree*          _tree,
+    uint32_t                     _anchor,
+    const struct d_dss_selector* _selector,
+    uint32_t                     _part
+)
+{
+    const struct d_dss_step* const step = (_part == 0u)
+        ? NULL
+        : d_dss_step_at(_sheet, _selector->first_step + _part - 1u);
+    const uint32_t compound   = step ? step->compound : _selector->head;
+    const uint8_t  combinator = step ? step->combinator : _selector->leading;
+    const bool     last       = (_part == _selector->step_count);
+    const struct d_node* const anchor = d_node_at(_tree, _anchor);
+
+    // children and descendants start below the anchor, siblings beside it
+    uint32_t at = ( (combinator == D_DSS_COMBINATOR_CHILD) ||
+                    (combinator == D_DSS_COMBINATOR_DESCENDANT) )
+                ? anchor->first_child
+                : anchor->next_sibling;
+
+    while (at != D_DSS_NO_INDEX)
+    {
+        const struct d_node* const node = d_node_at(_tree, at);
+
+        if ( node->present &&
+             d_internal_compound_matches(_sheet, _tree, at, compound) &&
+             ( last ||
+               d_internal_forward(_sheet, _tree, at, _selector,
+                                  _part + 1u) ) )
+        {
+            return true;
+        }
+
+        // `+` looks at the next present sibling only
+        if ( (combinator == D_DSS_COMBINATOR_ADJACENT) &&
+             node->present )
+        {
+            return false;
+        }
+
+        at = (combinator == D_DSS_COMBINATOR_DESCENDANT)
+           ? d_internal_next_in_subtree(_tree, _anchor, at)
+           : node->next_sibling;
+    }
+
+    return false;
+}
+
+
+/*
+d_internal_has
+  Whether a relative selector, anchored at a node, finds a match.
+*/
+static bool
+d_internal_has(
+    const struct d_dss_sheet* _sheet,
+    struct d_node_tree*       _tree,
+    uint32_t                  _anchor,
+    uint32_t                  _selector
+)
+{
+    const struct d_dss_selector* const selector =
+        d_dss_selector_at(_sheet, _selector);
+
+    return ( selector &&
+             d_internal_forward(_sheet, _tree, _anchor, selector, 0u) );
+}
+
+
+/*
 d_match_selector
   Tests one complex selector against one node.
 */
@@ -454,4 +780,393 @@ d_match_rule(
     }
 
     return false;
+}
+
+
+/*
+d_internal_unsupported_in
+  Finds a simple the matcher cannot evaluate in one selector, looking inside
+the arguments of :not, :is and :has as well; nesting is bounded by the sheet.
+*/
+static const struct d_dss_simple*
+d_internal_unsupported_in(
+    const struct d_dss_sheet* _sheet,
+    uint32_t                  _selector
+)
+{
+    const struct d_dss_selector* const selector =
+        d_dss_selector_at(_sheet, _selector);
+
+    for (uint32_t part = 0; selector && (part <= selector->step_count); ++part)
+    {
+        const uint32_t compound_index = (part == 0)
+            ? selector->head
+            : d_dss_step_at(_sheet, selector->first_step + part - 1u)
+                  ->compound;
+        const struct d_dss_compound* const compound =
+            d_dss_compound_at(_sheet, compound_index);
+
+        for (uint32_t k = 0; k < compound->simple_count; ++k)
+        {
+            const struct d_dss_simple* const simple =
+                d_dss_simple_at(_sheet, compound->first_simple + k);
+            bool refused = ( (simple->kind == D_DSS_SIMPLE_CLASS) ||
+                             (simple->kind == D_DSS_SIMPLE_PSEUDO_ELEMENT) );
+
+            if (simple->kind == D_DSS_SIMPLE_PSEUDO_CLASS)
+            {
+                refused = (simple->pseudo == D_DSS_PSEUDO_UNKNOWN);
+            }
+
+            if (refused)
+            {
+                return simple;
+            }
+
+            for (uint32_t arg = 0; arg < simple->argument_count; ++arg)
+            {
+                const struct d_dss_simple* const inner =
+                    d_internal_unsupported_in(_sheet,
+                                              simple->first_argument + arg);
+
+                if (inner)
+                {
+                    return inner;
+                }
+            }
+        }
+    }
+
+    return NULL;
+}
+
+
+/*
+d_match_unsupported
+  Finds the first simple selector in a sheet that the matcher cannot
+evaluate, and reports the line of the rule that carries it.  A pseudo-class
+the matcher does not know would otherwise match nothing, silently -- a typo
+that disables a rule and says nothing is the worst failure a linter can have.
+*/
+bool
+d_match_unsupported(
+    const struct d_dss_sheet* _sheet,
+    uint32_t*                 _out_line,
+    const char**              _out_name
+)
+{
+    for (size_t at = 0; at < d_dss_rule_count(_sheet); ++at)
+    {
+        const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+
+        for (uint32_t which = 0; which < rule->selector_count; ++which)
+        {
+            const struct d_dss_simple* const simple =
+                d_internal_unsupported_in(_sheet,
+                                          rule->first_selector + which);
+
+            if (simple)
+            {
+                *_out_line = rule->line;
+                *_out_name = d_dss_text(_sheet, simple->name);
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+// d_match_index
+//   struct: rules bucketed by the type their subject compound names, in CSR
+// form, plus the rules whose subject names no type.
+struct d_match_index
+{
+    uint32_t*  offsets;          // limit + 1 entries
+    uint32_t*  rules;            // bucketed rule indices, ascending per bucket
+    uint32_t*  universal;        // rules any node may match, ascending
+    size_t     universal_count;
+    size_t     limit;            // symbols known when the index was built
+    size_t     rule_count;
+};
+
+
+/**
+ * @brief Reports the type symbol a selector's subject compound requires.
+ *
+ * @param[in] _sheet     a bound sheet.
+ * @param[in] _selector  the selector.
+ * @return the symbol, or `D_DSS_NO_INDEX` when any type may match.
+ */
+static uint32_t
+d_internal_subject_type(
+    const struct d_dss_sheet* _sheet,
+    uint32_t                  _selector
+)
+{
+    const struct d_dss_selector* const selector =
+        d_dss_selector_at(_sheet, _selector);
+
+    if (!selector)
+    {
+        return D_DSS_NO_INDEX;
+    }
+
+    const uint32_t subject = (selector->step_count == 0u)
+        ? selector->head
+        : d_dss_step_at(_sheet, selector->first_step +
+                                selector->step_count - 1u)->compound;
+    const struct d_dss_compound* const compound =
+        d_dss_compound_at(_sheet, subject);
+
+    for (uint32_t at = 0u; (compound) && (at < compound->simple_count); ++at)
+    {
+        const struct d_dss_simple* const simple =
+            d_dss_simple_at(_sheet, compound->first_simple + at);
+
+        if ( (simple->kind == D_DSS_SIMPLE_TYPE) &&
+             (simple->symbol != D_DSS_NO_INDEX) )
+        {
+            return simple->symbol;
+        }
+    }
+
+    return D_DSS_NO_INDEX;
+}
+
+
+/*
+d_match_index_new
+  Two passes over the rules: count each bucket, then fill it.  A rule whose
+every subject names a type lands in each distinct bucket; a rule with any
+subject naming none goes to the universal list instead, which reaches every
+node already.
+*/
+struct d_match_index*
+d_match_index_new(
+    const struct d_dss_sheet* _sheet
+)
+{
+    if (!_sheet)
+    {
+        return NULL;
+    }
+
+    struct d_symbol_table* const symbols = d_dss_symbols(_sheet);
+    struct d_match_index* const  index   = calloc(1u, sizeof(*index));
+
+    if (!index)
+    {
+        return NULL;
+    }
+
+    index->rule_count = d_dss_rule_count(_sheet);
+    index->limit      = symbols ? d_symbol_count(symbols) : 0u;
+    index->offsets    = calloc(index->limit + 1u, sizeof(uint32_t));
+    index->universal  = malloc((index->rule_count + 1u) * sizeof(uint32_t));
+
+    if ( (!index->offsets) || (!index->universal) )
+    {
+        d_match_index_free(index);
+
+        return NULL;
+    }
+
+    uint32_t* fill = NULL;
+
+    // pass 0 counts each bucket, pass 1 places each rule
+    for (int pass = 0; pass < 2; ++pass)
+    {
+        for (size_t at = 0u; at < index->rule_count; ++at)
+        {
+            const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+            bool universal = (!symbols);
+
+            for (uint32_t which = 0u;
+                 (!universal) && (which < rule->selector_count);
+                 ++which)
+            {
+                universal = (d_internal_subject_type(_sheet,
+                                 rule->first_selector + which)
+                             == D_DSS_NO_INDEX);
+            }
+
+            if (universal)
+            {
+                if (pass == 1)
+                {
+                    index->universal[index->universal_count++] =
+                        (uint32_t)at;
+                }
+
+                continue;
+            }
+
+            for (uint32_t which = 0u; which < rule->selector_count; ++which)
+            {
+                const uint32_t type = d_internal_subject_type(_sheet,
+                                          rule->first_selector + which);
+                bool           seen = false;
+
+                // a type two selectors share is one bucket entry
+                for (uint32_t earlier = 0u; earlier < which; ++earlier)
+                {
+                    seen = ( (seen) ||
+                             (d_internal_subject_type(_sheet,
+                                  rule->first_selector + earlier) == type) );
+                }
+
+                if ( (seen) || (type >= index->limit) )
+                {
+                    continue;
+                }
+
+                if (pass == 0)
+                {
+                    ++index->offsets[type + 1u];
+                }
+                else
+                {
+                    index->rules[fill[type]++] = (uint32_t)at;
+                }
+            }
+        }
+
+        if (pass == 0)
+        {
+            for (size_t type = 0u; type < index->limit; ++type)
+            {
+                index->offsets[type + 1u] += index->offsets[type];
+            }
+
+            index->rules = malloc((index->offsets[index->limit] + 1u) *
+                                  sizeof(uint32_t));
+            fill         = malloc((index->limit + 1u) * sizeof(uint32_t));
+
+            if ( (!index->rules) || (!fill) )
+            {
+                free(fill);
+                d_match_index_free(index);
+
+                return NULL;
+            }
+
+            memcpy(fill, index->offsets,
+                   (index->limit + 1u) * sizeof(uint32_t));
+        }
+    }
+
+    free(fill);
+
+    return index;
+}
+
+
+/*
+d_match_index_free
+  Accepts NULL, as free does.
+*/
+void
+d_match_index_free(
+    struct d_match_index* _index
+)
+{
+    if (_index)
+    {
+        free(_index->offsets);
+        free(_index->rules);
+        free(_index->universal);
+        free(_index);
+    }
+
+    return;
+}
+
+
+/*
+d_match_index_candidates
+  Merges the type's bucket with the universal list, both ascending, so the
+caller sees candidates in rule order -- the order first-match resolution and
+every report depend on.  A type interned after the index was built has no
+bucket and meets only the universal rules, which is exact: no rule names it.
+*/
+size_t
+d_match_index_candidates(
+    const struct d_match_index* _index,
+    uint32_t                    _type,
+    uint32_t*                   _out,
+    size_t                      _capacity
+)
+{
+    if ( (!_index) || (!_out) )
+    {
+        return 0u;
+    }
+
+    const bool            bucketed = (_type < _index->limit);
+    const uint32_t* const bucket   = bucketed
+                                     ? (_index->rules + _index->offsets[_type])
+                                     : NULL;
+    const size_t          size     = bucketed
+                                     ? (size_t)(_index->offsets[_type + 1u] -
+                                                _index->offsets[_type])
+                                     : 0u;
+    size_t                a        = 0u;
+    size_t                b        = 0u;
+    size_t                count    = 0u;
+
+    // a two-way merge of ascending lists
+    while ( (count < _capacity) &&
+            ( (a < size) || (b < _index->universal_count) ) )
+    {
+        const bool from_bucket = ( (b >= _index->universal_count) ||
+                                   ( (a < size) &&
+                                     (bucket[a] < _index->universal[b]) ) );
+
+        _out[count++] = from_bucket ? bucket[a++] : _index->universal[b++];
+    }
+
+    return count;
+}
+
+
+/*
+d_match_rule_specificity
+  Unlike d_match_rule it cannot stop at the first matching selector: the CSS
+cascade ranks a rule by the most specific selector of its list that matched.
+*/
+bool
+d_match_rule_specificity(
+    const struct d_dss_sheet* _sheet,
+    struct d_node_tree*       _tree,
+    uint32_t                  _node,
+    const struct d_dss_rule*  _rule,
+    uint32_t*                 _out_specificity
+)
+{
+    bool     matched = false;
+    uint32_t best    = 0u;
+
+    for (uint32_t at = 0u; (_rule) && (at < _rule->selector_count); ++at)
+    {
+        // every selector: the best of the matching ones is the rule's rank
+        if (d_match_selector(_sheet, _tree, _node, _rule->first_selector + at))
+        {
+            const uint32_t specificity =
+                d_dss_selector_at(_sheet, _rule->first_selector + at)
+                    ->specificity;
+
+            matched = true;
+            best    = (specificity > best) ? specificity : best;
+        }
+    }
+
+    if (_out_specificity)
+    {
+        *_out_specificity = best;
+    }
+
+    return matched;
 }

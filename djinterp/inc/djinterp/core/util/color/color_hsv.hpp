@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [color]                                                color_hsv.hpp
+/*******************************************************************************
+* djinterp [core]                                                  color_hsv.hpp
 *
 *   C++ ergonomic layer for the HSV color model. `hsv` derives from the
 * shared-kernel POD (color_hsv.h) without adding state, providing constexpr
@@ -8,10 +8,11 @@
 * facade.
 *
 *
-* path:      /inc/djinterp/util/color/color_hsv.hpp
+* path:      /inc/djinterp/core/util/color/color_hsv.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -20,16 +21,23 @@ I.    hsv
       ---
       a. model_tag, value_type, channels
       b. constructors / converting constructor
-      c. operator==
-      d. is_valid / clamp
+      c.    operator==
+            d. is_valid / clamp
 */
 
-#ifndef DJINTERP_COLOR_HSV_HPP_
-#define DJINTERP_COLOR_HSV_HPP_ 1
+#ifndef DJINTERP_UTIL_COLOR_COLOR_HSV_HPP
+#define DJINTERP_UTIL_COLOR_COLOR_HSV_HPP 1
 
-#include "../../djinterp.hpp"
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../../../c/util/color/color_hsv.h"
 #include "./color_common.hpp"
-#include "./color_hsv.h"
 
 
 NS_DJINTERP
@@ -99,5 +107,6 @@ struct hsv : d_color_hsv
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_COLOR_HSV_HPP_
+#endif  // DJINTERP_UTIL_COLOR_COLOR_HSV_HPP

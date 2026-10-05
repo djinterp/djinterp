@@ -1,9 +1,9 @@
-/***********************************************************************
-* re_std                                                     unique_ptr.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               unique_ptr.hpp
 *
 * exclusive-ownership smart pointer:
-*   unique_ptr<_T, _D>      single object
-*   unique_ptr<_T[], _D>    array
+*   unique_ptr<T, D>      single object
+*   unique_ptr<T[], D>    array
 *
 * both specialisations are move-only (copy ctor and copy-assignment are
 * deleted). on destruction, the deleter is invoked on the held pointer
@@ -11,19 +11,19 @@
 * assignment, or release()+reset() pairs.
 *
 * deleter selection:
-*   _D defaults to re_std::default_delete<_T> for the single form and
-*   re_std::default_delete<_T[]> for the array form.
+*   D defaults to re_std::default_delete<T> for the single form and
+*   re_std::default_delete<T[]> for the array form.
 *
 * pointer type detection:
-*   pointer = _D::pointer if defined, else _T*. The detection idiom is
+*   pointer = D::pointer if defined, else T*. The detection idiom is
 *   the same void_t-based approach used by allocator_traits.
 *
 * converting moves:
-*   unique_ptr<_U, _E> -> unique_ptr<_T, _D> is enabled when:
-*     - _U* is convertible to _T*
-*     - _U is not an array
-*     - either _D is a reference and _E is the same type, or
-*       _D is non-reference and _E is convertible to _D
+*   unique_ptr<U, E> -> unique_ptr<T, D> is enabled when:
+*     - U* is convertible to T*
+*     - U is not an array
+*     - either D is a reference and E is the same type, or
+*       D is non-reference and E is convertible to D
 *   The array specialisation has stricter rules (qualification-conversion
 *   only on the element type) per [unique.ptr.runtime.ctor].
 *
@@ -44,25 +44,28 @@
 *
 *   4. hash<unique_ptr> deferred (needs re_std::hash).
 *
-*   5. Reference deleters (_D = X&) work for the simple cases but the
-*      full constructor-overload table for reference _D per
+*   5. Reference deleters (D = X&) work for the simple cases but the
+*      full constructor-overload table for reference D per
 *      [unique.ptr.single.ctor] is not exhaustively implemented. Use
 *      with caution.
 *
 *
-* path:      /inc/djinterp/re_std/memory/unique_ptr.hpp
+* path:      /inc/re_std/memory/unique_ptr.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_UNIQUE_PTR_
-#define DJINTERP_RE_STD_MEMORY_UNIQUE_PTR_ 1
+#ifndef RE_STD_MEMORY_UNIQUE_PTR_HPP
+#define RE_STD_MEMORY_UNIQUE_PTR_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>  // size_t, ptrdiff_t, nullptr_t
 
     #include "re_std/memory/default_delete.hpp"
@@ -89,50 +92,48 @@ namespace re_std
 namespace internal
 {
 
-    // up_pointer<_D, _T>::type
-    //   trait: _D::pointer if defined, else _T*. Used to compute
+    // up_pointer<D, T>::type
+    //   trait: D::pointer if defined, else T*. Used to compute
     //   unique_ptr's pointer typedef.
 
-    template<typename _D, typename _T, typename = void>
+    template<typename D, typename T, typename = void>
     struct up_pointer
     {
-        typedef _T* type;
+        typedef T* type;
     };
 
-    template<typename _D, typename _T>
+    template<typename D, typename T>
     struct up_pointer
     <
-        _D,
-        _T,
-        typename void_t<typename remove_reference<_D>::type::pointer>::type
+        D,
+        T,
+        void_t<typename remove_reference<D>::type::pointer>
     >
     {
-        typedef typename remove_reference<_D>::type::pointer type;
+        typedef typename remove_reference<D>::type::pointer type;
     };
 
-    // up_safe_array_conversion<_From, _To>
-    //   trait: true if a unique_ptr<_From[]> -> unique_ptr<_To[]> array
+    // up_safe_array_conversion<From, To>
+    //   trait: true if a unique_ptr<From[]> -> unique_ptr<To[]> array
     //   conversion is allowed. Per [unique.ptr.runtime.ctor], this
-    //   requires that _From(*)[] is convertible to _To(*)[] — i.e. only
+    //   requires that From(*)[] is convertible to To(*)[] — i.e. only
     //   qualification conversions on the element type, never derived-
     //   to-base.
 
-    template<typename _From, typename _To>
+    template<typename From, typename To>
     struct up_safe_array_conversion
-        : integral_constant<bool, is_convertible<_From(*)[], _To(*)[]>::value>
+        : integral_constant<bool, is_convertible<From(*)[], To(*)[]>::value>
     {
     };
 
-}  // namespace internal
-
-
+}  // internal
 // =============================================================================
-// unique_ptr<_T, _D>  -  single-object specialisation
+// unique_ptr<T, D>  -  single-object specialisation
 // =============================================================================
 
-// unique_ptr<_T, _D>
-//   class: exclusive-ownership smart pointer for a single _T.
-template<typename _T, typename _D = default_delete<_T> >
+// unique_ptr<T, D>
+//   class: exclusive-ownership smart pointer for a single T.
+template<typename T, typename D = default_delete<T> >
 class unique_ptr
 {
 public:
@@ -140,17 +141,17 @@ public:
     // member types
     // -------------------------------------------------------------------------
 
-    typedef typename internal::up_pointer<_D, _T>::type pointer;
-    typedef _T                                          element_type;
-    typedef _D                                          deleter_type;
+    typedef typename internal::up_pointer<D, T>::type pointer;
+    typedef T                                          element_type;
+    typedef D                                          deleter_type;
 
 private:
     pointer       m_ptr;
     deleter_type  m_del;
 
     // copy operations are deleted (unique ownership).
-    unique_ptr(const unique_ptr&)            D_DELETE_FN;
-    unique_ptr& operator=(const unique_ptr&) D_DELETE_FN;
+    RE_STD_DELETED_FN(unique_ptr(const unique_ptr&))
+    RE_STD_DELETED_FN(unique_ptr& operator=(const unique_ptr&))
 
 public:
     // -------------------------------------------------------------------------
@@ -158,95 +159,95 @@ public:
     // -------------------------------------------------------------------------
 
     // Default ctor: empty pointer, default-constructed deleter.
-    // Disabled when _D is a pointer or a reference, per the standard
+    // Disabled when D is a pointer or a reference, per the standard
     // ([unique.ptr.single.ctor]/1), since those cannot be value-init'd
     // into a usable state.
-    D_CONSTEXPR unique_ptr() D_NOEXCEPT
+    RE_STD_CONSTEXPR unique_ptr() RE_STD_NOEXCEPT
         : m_ptr()
         , m_del()
     {
     }
 
     // Ctor from nullptr: same as default.
-    D_CONSTEXPR unique_ptr(std::nullptr_t) D_NOEXCEPT
+    RE_STD_CONSTEXPR unique_ptr(std::nullptr_t) RE_STD_NOEXCEPT
         : m_ptr()
         , m_del()
     {
     }
 
     // Ctor from raw pointer: takes ownership.
-    explicit unique_ptr(pointer _p) D_NOEXCEPT
+    explicit unique_ptr(pointer _p) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_del()
     {
     }
 
     // Ctor from raw pointer + deleter (lvalue ref form).
-    // Note: when _D is a reference type (_D = X&), this is the form that
-    // binds the reference. Not exhaustively tested for reference _D —
+    // Note: when D is a reference type (D = X&), this is the form that
+    // binds the reference. Not exhaustively tested for reference D —
     // see header documentation.
     unique_ptr
     (
         pointer                                        _p,
-        typename add_lvalue_reference<const _D>::type  _d
-    ) D_NOEXCEPT
+        typename add_lvalue_reference<const D>::type  _d
+    ) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_del(_d)
     {
     }
 
     // Ctor from raw pointer + deleter (rvalue ref form).
-    // For non-reference _D, takes a true rvalue.
+    // For non-reference D, takes a true rvalue.
     unique_ptr
     (
         pointer                                  _p,
-        typename remove_reference<_D>::type&&    _d
-    ) D_NOEXCEPT
+        typename remove_reference<D>::type&&    _d
+    ) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_del(re_std::move(_d))
     {
     }
 
     // Move ctor.
-    unique_ptr(unique_ptr&& _other) D_NOEXCEPT
+    unique_ptr(unique_ptr&& _other) RE_STD_NOEXCEPT
         : m_ptr(_other.release())
-        , m_del(re_std::forward<_D>(_other.m_del))
+        , m_del(re_std::forward<D>(_other.m_del))
     {
     }
 
-    // Converting move ctor: unique_ptr<_U, _E> -> unique_ptr<_T, _D>.
+    // Converting move ctor: unique_ptr<U, E> -> unique_ptr<T, D>.
     // Constraints (per [unique.ptr.single.ctor]/14):
-    //   - unique_ptr<_U,_E>::pointer is convertible to pointer
-    //   - _U is not an array type
-    //   - _D is a reference => _E is the same type as _D
-    //     OR _D is not a reference => _E is convertible to _D
+    //   - unique_ptr<U,E>::pointer is convertible to pointer
+    //   - U is not an array type
+    //   - D is a reference => E is the same type as D
+    //     OR D is not a reference => E is convertible to D
     template
     <
-        typename _U,
-        typename _E,
+        typename U,
+        typename E,
         typename = typename enable_if
         <
             is_convertible
             <
-                typename unique_ptr<_U, _E>::pointer,
+                typename unique_ptr<U, E>::pointer,
                 pointer
             >::value
-            && !is_array<_U>::value
+            && !is_array<U>::value
             && (
                 (
-                    is_reference<_D>::value
-                    && is_same<_E, _D>::value
+                    is_reference<D>::value
+                    && is_same<E, D>::value
                 )
                 || (
-                    !is_reference<_D>::value
-                    && is_convertible<_E, _D>::value
+                    !is_reference<D>::value
+                    && is_convertible<E, D>::value
                 )
             )
         >::type
     >
-    unique_ptr(unique_ptr<_U, _E>&& _other) D_NOEXCEPT
+    unique_ptr(unique_ptr<U, E>&& _other) RE_STD_NOEXCEPT
         : m_ptr(_other.release())
-        , m_del(re_std::forward<_E>(_other.get_deleter()))
+        , m_del(re_std::forward<E>(_other.get_deleter()))
     {
     }
 
@@ -266,32 +267,32 @@ public:
     // assignment
     // -------------------------------------------------------------------------
 
-    unique_ptr& operator=(unique_ptr&& _other) D_NOEXCEPT
+    unique_ptr& operator=(unique_ptr&& _other) RE_STD_NOEXCEPT
     {
         reset(_other.release());
-        m_del = re_std::forward<_D>(_other.m_del);
+        m_del = re_std::forward<D>(_other.m_del);
         return *this;
     }
 
-    template<typename _U, typename _E>
+    template<typename U, typename E>
     typename enable_if
     <
         is_convertible
         <
-            typename unique_ptr<_U, _E>::pointer,
+            typename unique_ptr<U, E>::pointer,
             pointer
         >::value
-        && !is_array<_U>::value,
+        && !is_array<U>::value,
         unique_ptr&
     >::type
-    operator=(unique_ptr<_U, _E>&& _other) D_NOEXCEPT
+    operator=(unique_ptr<U, E>&& _other) RE_STD_NOEXCEPT
     {
         reset(_other.release());
-        m_del = re_std::forward<_E>(_other.get_deleter());
+        m_del = re_std::forward<E>(_other.get_deleter());
         return *this;
     }
 
-    unique_ptr& operator=(std::nullptr_t) D_NOEXCEPT
+    unique_ptr& operator=(std::nullptr_t) RE_STD_NOEXCEPT
     {
         reset();
         return *this;
@@ -301,33 +302,33 @@ public:
     // observers
     // -------------------------------------------------------------------------
 
-    typename add_lvalue_reference<_T>::type
+    typename add_lvalue_reference<T>::type
     operator*() const
     {
         return *m_ptr;
     }
 
-    pointer operator->() const D_NOEXCEPT
+    pointer operator->() const RE_STD_NOEXCEPT
     {
         return m_ptr;
     }
 
-    pointer get() const D_NOEXCEPT
+    pointer get() const RE_STD_NOEXCEPT
     {
         return m_ptr;
     }
 
-    deleter_type& get_deleter() D_NOEXCEPT
+    deleter_type& get_deleter() RE_STD_NOEXCEPT
     {
         return m_del;
     }
 
-    const deleter_type& get_deleter() const D_NOEXCEPT
+    const deleter_type& get_deleter() const RE_STD_NOEXCEPT
     {
         return m_del;
     }
 
-    explicit operator bool() const D_NOEXCEPT
+    explicit operator bool() const RE_STD_NOEXCEPT
     {
         return m_ptr != pointer();
     }
@@ -336,14 +337,14 @@ public:
     // modifiers
     // -------------------------------------------------------------------------
 
-    pointer release() D_NOEXCEPT
+    pointer release() RE_STD_NOEXCEPT
     {
         pointer _old = m_ptr;
         m_ptr = pointer();
         return _old;
     }
 
-    void reset(pointer _p = pointer()) D_NOEXCEPT
+    void reset(pointer _p = pointer()) RE_STD_NOEXCEPT
     {
         pointer _old = m_ptr;
         m_ptr = _p;
@@ -353,7 +354,7 @@ public:
         }
     }
 
-    void swap(unique_ptr& _other) D_NOEXCEPT
+    void swap(unique_ptr& _other) RE_STD_NOEXCEPT
     {
         // Manual two-step swap for the pointer; for the deleter we use
         // re_std::swap when it lands. For now this is correct for any
@@ -371,63 +372,63 @@ public:
 
 
 // =============================================================================
-// unique_ptr<_T[], _D>  -  array specialisation
+// unique_ptr<T[], D>  -  array specialisation
 // =============================================================================
 
-// unique_ptr<_T[], _D>
+// unique_ptr<T[], D>
 //   class: exclusive-ownership smart pointer for a heap-allocated array
-//   of _T. Differs from the single form in:
+//   of T. Differs from the single form in:
 //     - operator[] replaces operator* and operator->
 //     - converting ctors use the much stricter qualification-conversion
 //       rule (no derived-to-base array conversions)
-//     - reset() can take any pointer convertible-via-array to _T*, not
-//       just exactly _T*
-template<typename _T, typename _D>
-class unique_ptr<_T[], _D>
+//     - reset() can take any pointer convertible-via-array to T*, not
+//       just exactly T*
+template<typename T, typename D>
+class unique_ptr<T[], D>
 {
 public:
-    typedef typename internal::up_pointer<_D, _T>::type pointer;
-    typedef _T                                          element_type;
-    typedef _D                                          deleter_type;
+    typedef typename internal::up_pointer<D, T>::type pointer;
+    typedef T                                          element_type;
+    typedef D                                          deleter_type;
 
 private:
     pointer       m_ptr;
     deleter_type  m_del;
 
-    unique_ptr(const unique_ptr&)            D_DELETE_FN;
-    unique_ptr& operator=(const unique_ptr&) D_DELETE_FN;
+    RE_STD_DELETED_FN(unique_ptr(const unique_ptr&))
+    RE_STD_DELETED_FN(unique_ptr& operator=(const unique_ptr&))
 
 public:
     // ---- ctors ----
 
-    D_CONSTEXPR unique_ptr() D_NOEXCEPT
+    RE_STD_CONSTEXPR unique_ptr() RE_STD_NOEXCEPT
         : m_ptr()
         , m_del()
     {
     }
 
-    D_CONSTEXPR unique_ptr(std::nullptr_t) D_NOEXCEPT
+    RE_STD_CONSTEXPR unique_ptr(std::nullptr_t) RE_STD_NOEXCEPT
         : m_ptr()
         , m_del()
     {
     }
 
     // Pointer-taking ctor. SFINAE-restricted to types that satisfy the
-    // qualification-conversion rule for arrays. A raw _T* always
+    // qualification-conversion rule for arrays. A raw T* always
     // qualifies trivially.
     template
     <
-        typename _U,
+        typename U,
         typename = typename enable_if
         <
-            is_same<_U, pointer>::value
+            is_same<U, pointer>::value
             || (
                 is_same<pointer, element_type*>::value
-                && is_convertible<_U(*)[], element_type(*)[]>::value
+                && is_convertible<U(*)[], element_type(*)[]>::value
             )
         >::type
     >
-    explicit unique_ptr(_U _p) D_NOEXCEPT
+    explicit unique_ptr(U _p) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_del()
     {
@@ -435,21 +436,21 @@ public:
 
     template
     <
-        typename _U,
+        typename U,
         typename = typename enable_if
         <
-            is_same<_U, pointer>::value
+            is_same<U, pointer>::value
             || (
                 is_same<pointer, element_type*>::value
-                && is_convertible<_U(*)[], element_type(*)[]>::value
+                && is_convertible<U(*)[], element_type(*)[]>::value
             )
         >::type
     >
     unique_ptr
     (
-        _U                                            _p,
-        typename add_lvalue_reference<const _D>::type _d
-    ) D_NOEXCEPT
+        U                                            _p,
+        typename add_lvalue_reference<const D>::type _d
+    ) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_del(_d)
     {
@@ -457,66 +458,66 @@ public:
 
     template
     <
-        typename _U,
+        typename U,
         typename = typename enable_if
         <
-            is_same<_U, pointer>::value
+            is_same<U, pointer>::value
             || (
                 is_same<pointer, element_type*>::value
-                && is_convertible<_U(*)[], element_type(*)[]>::value
+                && is_convertible<U(*)[], element_type(*)[]>::value
             )
         >::type
     >
     unique_ptr
     (
-        _U                                       _p,
-        typename remove_reference<_D>::type&&    _d
-    ) D_NOEXCEPT
+        U                                       _p,
+        typename remove_reference<D>::type&&    _d
+    ) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_del(re_std::move(_d))
     {
     }
 
-    unique_ptr(unique_ptr&& _other) D_NOEXCEPT
+    unique_ptr(unique_ptr&& _other) RE_STD_NOEXCEPT
         : m_ptr(_other.release())
-        , m_del(re_std::forward<_D>(_other.m_del))
+        , m_del(re_std::forward<D>(_other.m_del))
     {
     }
 
     // Converting move ctor: stricter rules than the single form.
     template
     <
-        typename _U,
-        typename _E,
+        typename U,
+        typename E,
         typename = typename enable_if
         <
-            is_array<_U>::value
+            is_array<U>::value
             && is_same<pointer, element_type*>::value
             && is_same
                <
-                   typename unique_ptr<_U, _E>::pointer,
-                   typename unique_ptr<_U, _E>::element_type*
+                   typename unique_ptr<U, E>::pointer,
+                   typename unique_ptr<U, E>::element_type*
                >::value
             && is_convertible
                <
-                   typename unique_ptr<_U, _E>::element_type(*)[],
+                   typename unique_ptr<U, E>::element_type(*)[],
                    element_type(*)[]
                >::value
             && (
                 (
-                    is_reference<_D>::value
-                    && is_same<_E, _D>::value
+                    is_reference<D>::value
+                    && is_same<E, D>::value
                 )
                 || (
-                    !is_reference<_D>::value
-                    && is_convertible<_E, _D>::value
+                    !is_reference<D>::value
+                    && is_convertible<E, D>::value
                 )
             )
         >::type
     >
-    unique_ptr(unique_ptr<_U, _E>&& _other) D_NOEXCEPT
+    unique_ptr(unique_ptr<U, E>&& _other) RE_STD_NOEXCEPT
         : m_ptr(_other.release())
-        , m_del(re_std::forward<_E>(_other.get_deleter()))
+        , m_del(re_std::forward<E>(_other.get_deleter()))
     {
     }
 
@@ -532,33 +533,33 @@ public:
 
     // ---- assignment ----
 
-    unique_ptr& operator=(unique_ptr&& _other) D_NOEXCEPT
+    unique_ptr& operator=(unique_ptr&& _other) RE_STD_NOEXCEPT
     {
         reset(_other.release());
-        m_del = re_std::forward<_D>(_other.m_del);
+        m_del = re_std::forward<D>(_other.m_del);
         return *this;
     }
 
-    template<typename _U, typename _E>
+    template<typename U, typename E>
     typename enable_if
     <
-        is_array<_U>::value
+        is_array<U>::value
         && is_same<pointer, element_type*>::value
         && is_convertible
            <
-               typename unique_ptr<_U, _E>::element_type(*)[],
+               typename unique_ptr<U, E>::element_type(*)[],
                element_type(*)[]
            >::value,
         unique_ptr&
     >::type
-    operator=(unique_ptr<_U, _E>&& _other) D_NOEXCEPT
+    operator=(unique_ptr<U, E>&& _other) RE_STD_NOEXCEPT
     {
         reset(_other.release());
-        m_del = re_std::forward<_E>(_other.get_deleter());
+        m_del = re_std::forward<E>(_other.get_deleter());
         return *this;
     }
 
-    unique_ptr& operator=(std::nullptr_t) D_NOEXCEPT
+    unique_ptr& operator=(std::nullptr_t) RE_STD_NOEXCEPT
     {
         reset();
         return *this;
@@ -566,35 +567,35 @@ public:
 
     // ---- observers ----
 
-    typename add_lvalue_reference<_T>::type
+    typename add_lvalue_reference<T>::type
     operator[](std::size_t _i) const
     {
         return m_ptr[_i];
     }
 
-    pointer get() const D_NOEXCEPT
+    pointer get() const RE_STD_NOEXCEPT
     {
         return m_ptr;
     }
 
-    deleter_type& get_deleter() D_NOEXCEPT
+    deleter_type& get_deleter() RE_STD_NOEXCEPT
     {
         return m_del;
     }
 
-    const deleter_type& get_deleter() const D_NOEXCEPT
+    const deleter_type& get_deleter() const RE_STD_NOEXCEPT
     {
         return m_del;
     }
 
-    explicit operator bool() const D_NOEXCEPT
+    explicit operator bool() const RE_STD_NOEXCEPT
     {
         return m_ptr != pointer();
     }
 
     // ---- modifiers ----
 
-    pointer release() D_NOEXCEPT
+    pointer release() RE_STD_NOEXCEPT
     {
         pointer _old = m_ptr;
         m_ptr = pointer();
@@ -602,7 +603,7 @@ public:
     }
 
     // reset(nullptr) and reset() — explicit nullptr overload.
-    void reset(std::nullptr_t = D_NULLPTR) D_NOEXCEPT
+    void reset(std::nullptr_t = RE_STD_NULLPTR) RE_STD_NOEXCEPT
     {
         pointer _old = m_ptr;
         m_ptr = pointer();
@@ -613,17 +614,17 @@ public:
     }
 
     // reset(pointer) — SFINAE-restricted like the ctors.
-    template<typename _U>
+    template<typename U>
     typename enable_if
     <
-        is_same<_U, pointer>::value
+        is_same<U, pointer>::value
         || (
             is_same<pointer, element_type*>::value
-            && is_convertible<_U(*)[], element_type(*)[]>::value
+            && is_convertible<U(*)[], element_type(*)[]>::value
         ),
         void
     >::type
-    reset(_U _p) D_NOEXCEPT
+    reset(U _p) RE_STD_NOEXCEPT
     {
         pointer _old = m_ptr;
         m_ptr = _p;
@@ -633,7 +634,7 @@ public:
         }
     }
 
-    void swap(unique_ptr& _other) D_NOEXCEPT
+    void swap(unique_ptr& _other) RE_STD_NOEXCEPT
     {
         pointer _tmp_p = m_ptr;
         m_ptr = _other.m_ptr;
@@ -655,61 +656,61 @@ public:
 // here pending re_std::less; this gives the same result on every flat-
 // memory architecture in production today.
 
-template<typename _T1, typename _D1, typename _T2, typename _D2>
+template<typename T1, typename D1, typename T2, typename D2>
 inline bool operator==
 (
-    const unique_ptr<_T1, _D1>& _a,
-    const unique_ptr<_T2, _D2>& _b
+    const unique_ptr<T1, D1>& _a,
+    const unique_ptr<T2, D2>& _b
 )
 {
     return _a.get() == _b.get();
 }
 
-template<typename _T1, typename _D1, typename _T2, typename _D2>
+template<typename T1, typename D1, typename T2, typename D2>
 inline bool operator!=
 (
-    const unique_ptr<_T1, _D1>& _a,
-    const unique_ptr<_T2, _D2>& _b
+    const unique_ptr<T1, D1>& _a,
+    const unique_ptr<T2, D2>& _b
 )
 {
     return _a.get() != _b.get();
 }
 
-template<typename _T1, typename _D1, typename _T2, typename _D2>
+template<typename T1, typename D1, typename T2, typename D2>
 inline bool operator<
 (
-    const unique_ptr<_T1, _D1>& _a,
-    const unique_ptr<_T2, _D2>& _b
+    const unique_ptr<T1, D1>& _a,
+    const unique_ptr<T2, D2>& _b
 )
 {
     return _a.get() < _b.get();
 }
 
-template<typename _T1, typename _D1, typename _T2, typename _D2>
+template<typename T1, typename D1, typename T2, typename D2>
 inline bool operator<=
 (
-    const unique_ptr<_T1, _D1>& _a,
-    const unique_ptr<_T2, _D2>& _b
+    const unique_ptr<T1, D1>& _a,
+    const unique_ptr<T2, D2>& _b
 )
 {
     return !(_b < _a);
 }
 
-template<typename _T1, typename _D1, typename _T2, typename _D2>
+template<typename T1, typename D1, typename T2, typename D2>
 inline bool operator>
 (
-    const unique_ptr<_T1, _D1>& _a,
-    const unique_ptr<_T2, _D2>& _b
+    const unique_ptr<T1, D1>& _a,
+    const unique_ptr<T2, D2>& _b
 )
 {
     return _b < _a;
 }
 
-template<typename _T1, typename _D1, typename _T2, typename _D2>
+template<typename T1, typename D1, typename T2, typename D2>
 inline bool operator>=
 (
-    const unique_ptr<_T1, _D1>& _a,
-    const unique_ptr<_T2, _D2>& _b
+    const unique_ptr<T1, D1>& _a,
+    const unique_ptr<T2, D2>& _b
 )
 {
     return !(_a < _b);
@@ -720,129 +721,128 @@ inline bool operator>=
 // comparison operators  (unique_ptr <=> nullptr)
 // =============================================================================
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator==
 (
-    const unique_ptr<_T, _D>& _a,
+    const unique_ptr<T, D>& _a,
     std::nullptr_t
-) D_NOEXCEPT
+) RE_STD_NOEXCEPT
 {
     return !_a;
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator==
 (
     std::nullptr_t,
-    const unique_ptr<_T, _D>& _a
-) D_NOEXCEPT
+    const unique_ptr<T, D>& _a
+) RE_STD_NOEXCEPT
 {
     return !_a;
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator!=
 (
-    const unique_ptr<_T, _D>& _a,
+    const unique_ptr<T, D>& _a,
     std::nullptr_t
-) D_NOEXCEPT
+) RE_STD_NOEXCEPT
 {
     return static_cast<bool>(_a);
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator!=
 (
     std::nullptr_t,
-    const unique_ptr<_T, _D>& _a
-) D_NOEXCEPT
+    const unique_ptr<T, D>& _a
+) RE_STD_NOEXCEPT
 {
     return static_cast<bool>(_a);
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator<
 (
-    const unique_ptr<_T, _D>& _a,
+    const unique_ptr<T, D>& _a,
     std::nullptr_t
 )
 {
-    return _a.get() < typename unique_ptr<_T, _D>::pointer();
+    return _a.get() < typename unique_ptr<T, D>::pointer();
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator<
 (
     std::nullptr_t,
-    const unique_ptr<_T, _D>& _a
+    const unique_ptr<T, D>& _a
 )
 {
-    return typename unique_ptr<_T, _D>::pointer() < _a.get();
+    return typename unique_ptr<T, D>::pointer() < _a.get();
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator<=
 (
-    const unique_ptr<_T, _D>& _a,
+    const unique_ptr<T, D>& _a,
     std::nullptr_t
 )
 {
-    return !(D_NULLPTR < _a);
+    return !(RE_STD_NULLPTR < _a);
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator<=
 (
     std::nullptr_t,
-    const unique_ptr<_T, _D>& _a
+    const unique_ptr<T, D>& _a
 )
 {
-    return !(_a < D_NULLPTR);
+    return !(_a < RE_STD_NULLPTR);
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator>
 (
-    const unique_ptr<_T, _D>& _a,
+    const unique_ptr<T, D>& _a,
     std::nullptr_t
 )
 {
-    return D_NULLPTR < _a;
+    return RE_STD_NULLPTR < _a;
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator>
 (
     std::nullptr_t,
-    const unique_ptr<_T, _D>& _a
+    const unique_ptr<T, D>& _a
 )
 {
-    return _a < D_NULLPTR;
+    return _a < RE_STD_NULLPTR;
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator>=
 (
-    const unique_ptr<_T, _D>& _a,
+    const unique_ptr<T, D>& _a,
     std::nullptr_t
 )
 {
-    return !(_a < D_NULLPTR);
+    return !(_a < RE_STD_NULLPTR);
 }
 
-template<typename _T, typename _D>
+template<typename T, typename D>
 inline bool operator>=
 (
     std::nullptr_t,
-    const unique_ptr<_T, _D>& _a
+    const unique_ptr<T, D>& _a
 )
 {
-    return !(D_NULLPTR < _a);
+    return !(RE_STD_NULLPTR < _a);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_UNIQUE_PTR_
+#endif  // RE_STD_MEMORY_UNIQUE_PTR_HPP

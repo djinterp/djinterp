@@ -10,7 +10,7 @@
 * path:      /inc/djinterp/net/ftp/ftp_security.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 
 /*
@@ -30,7 +30,6 @@ TABLE OF CONTENTS
 #define DJINTERP_NET_FTP_FTP_SECURITY_H 1
 
 // std
-#include <stdbool.h>  // bool
 // djinterp
 #include "../../c/djinterp.h"  // framework root
 

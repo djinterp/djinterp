@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                        make_error_condition.hpp
+/*******************************************************************************
+* djinterp [re_std]                                     make_error_condition.hpp
 *
 * the make_error_condition factory (re-export):
 *   builds an error_condition from an errc value, bound to
@@ -7,30 +7,32 @@
 *   std::make_error_condition.
 *
 *
-* path:      /inc/djinterp/re_std/system_error/make_error_condition.hpp
+* path:      /inc/re_std/system_error/make_error_condition.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_MAKE_ERROR_CONDITION_
-#define DJINTERP_RE_STD_SYSTEM_ERROR_MAKE_ERROR_CONDITION_ 1
+#ifndef RE_STD_SYSTEM_ERROR_MAKE_ERROR_CONDITION_HPP
+#define RE_STD_SYSTEM_ERROR_MAKE_ERROR_CONDITION_HPP 1
 
-// djinterp
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <system_error>
 
-NS_RESTD
+namespace re_std
+{
 
     // make_error_condition
     //   function: re-export of std::make_error_condition (errc overload).
     using ::std::make_error_condition;
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_MAKE_ERROR_CONDITION_
+#endif  // RE_STD_SYSTEM_ERROR_MAKE_ERROR_CONDITION_HPP

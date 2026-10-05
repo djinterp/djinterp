@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           is_invocable_r.hpp
 *
 * is_invocable_r trait:
@@ -14,9 +14,9 @@
 * (which is ill-formed for non-invocable F) when the call would not
 * succeed in the first place.
 *
-*   When _R is cv void, the convertibility check is short-circuited to
+*   When R is cv void, the convertibility check is short-circuited to
 * true (any expression can be converted to void via discarded-value
-* conversion). For non-void _R, is_convertible<invoke_result_type, _R>
+* conversion). For non-void R, is_convertible<invoke_result_type, R>
 * yields the answer.
 *
 *   PORTABILITY:
@@ -27,19 +27,20 @@
 *   is_invocable, invoke_result, is_void, is_convertible, integral_constant.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_invocable_r.hpp
+* path:      /inc/re_std/type_traits/is_invocable_r.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_INVOCABLE_R_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_INVOCABLE_R_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_INVOCABLE_R_HPP
+#define RE_STD_TYPE_TRAITS_IS_INVOCABLE_R_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./true_type.hpp"
@@ -51,69 +52,71 @@
 #include "./invoke_result.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // is_invocable_r_helper
-        //   trait: primary; gated by the boolean parameter _Invocable.
+        //   trait: primary; gated by the boolean parameter Invocable.
         //          When false, short-circuits to false_type without
         //          instantiating invoke_result (which would be
         //          ill-formed for non-invocable F).
-        template<bool     _Invocable,
-                 typename _R,
-                 typename _F,
-                 typename... _Args>
+        template<bool     Invocable,
+                 typename R,
+                 typename F,
+                 typename... Args>
         struct is_invocable_r_helper
             : false_type
         {};
 
-        // is_invocable_r_helper<true, _R, _F, _Args...>
+        // is_invocable_r_helper<true, R, F, Args...>
         //   trait: specialization; selected when the call is invocable.
         //          R = void short-circuits to true; otherwise tests
         //          convertibility from the invoke result type to R.
-        template<typename _R,
-                 typename _F,
-                 typename... _Args>
-        struct is_invocable_r_helper<true, _R, _F, _Args...>
+        template<typename R,
+                 typename F,
+                 typename... Args>
+        struct is_invocable_r_helper<true, R, F, Args...>
             : integral_constant<
                   bool,
-                  (    is_void<_R>::value
+                  (    is_void<R>::value
                     || is_convertible<
-                           typename invoke_result<_F, _Args...>::type,
-                           _R >::value ) >
+                           typename invoke_result<F, Args...>::type,
+                           R >::value ) >
         {};
 
-    NS_END  // internal
+    }  // internal
 
 
     // is_invocable_r
     //   trait: true_type if INVOKE<R>(F, Args...) is well-formed,
     //          false_type otherwise.
-    template<typename _R,
-             typename _F,
-             typename... _Args>
+    template<typename R,
+             typename F,
+             typename... Args>
     struct is_invocable_r
         : internal::is_invocable_r_helper<
-              is_invocable<_F, _Args...>::value,
-              _R, _F, _Args... >
+              is_invocable<F, Args...>::value,
+              R, F, Args... >
     {};
 
 
     // is_invocable_r_v (C++14+)
-    #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-        template<typename _R,
-                 typename _F,
-                 typename... _Args>
-        D_CONSTEXPR bool is_invocable_r_v
-            = is_invocable_r<_R, _F, _Args...>::value;
+    #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+        template<typename R,
+                 typename F,
+                 typename... Args>
+        RE_STD_CONSTEXPR bool is_invocable_r_v
+            = is_invocable_r<R, F, Args...>::value;
     #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_INVOCABLE_R_
+#endif  // RE_STD_TYPE_TRAITS_IS_INVOCABLE_R_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                            merge_sort.hpp
+/*******************************************************************************
+* djinterp [core]                                                 merge_sort.hpp
 *
 *   Merge sort: the sequential driver.
 * Stable, comparison-based, O(n log n) in every case -- no input defeats it,
@@ -33,8 +33,8 @@
 * where quicksort does -- or when stability is required at O(n log n), which no
 * other algorithm here offers.  The price is the buffer.
 *
-*   REQUIREMENTS.  _RandomIterator must be a random-access iterator; the
-* element type must be copy-constructible and copy-assignable.  _Comparator
+*   REQUIREMENTS.  RandomIterator must be a random-access iterator; the
+* element type must be copy-constructible and copy-assignable.  Comparator
 * must be a std::sort-convention binary predicate, so the composed comparators
 * from the functional layer drop in unchanged:
 *
@@ -42,21 +42,24 @@
 *                  by_key(&person::age) | then(by_member(&person::name)));
 *
 *
-* path:      /djinterp/cpp/util/sort/merge_sort.hpp
+* path:      /inc/djinterp/core/util/sort/merge_sort.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.03.22
-*                                                         revised: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.22
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_MERGE_HPP_
-#define DJINTERP_UTILITY_SORT_MERGE_HPP_ 1
+#ifndef DJINTERP_UTIL_SORT_MERGE_SORT_HPP
+#define DJINTERP_UTIL_SORT_MERGE_SORT_HPP 1
 
 // std
-#include <vector>
+#include <functional>               // std::less
+#include <iterator>                 // std::iterator_traits
+#include <vector>                   // std::vector
 // djinterp
-#include "../../djinterp.hpp"
-#include "./sort_common.hpp"
-#include "./merge_sort_common.hpp"
+#include "../../../djinterp.hpp"    // framework root
+#include "./merge_sort_common.hpp"  // internal::merge_sort_apply
+#include "./sort_common.hpp"        // sort_order,
+                                    // internal::order_comparator
 
 
 NS_DJINTERP
@@ -83,15 +86,15 @@ NS_INTERNAL
     //
     //   After the loop the sorted elements are wherever the last pass wrote
     // them, so the range is written back only when that was the scratch.
-    template<typename _RandomIterator,
-             typename _BufferIterator,
-             typename _Comparator>
-    void merge_sort_apply(_RandomIterator _first,
-                          _RandomIterator _last,
-                          _BufferIterator _buffer,
-                          _Comparator     _comparator)
+    template<typename RandomIterator,
+             typename BufferIterator,
+             typename Comparator>
+    void merge_sort_apply(RandomIterator _first,
+                          RandomIterator _last,
+                          BufferIterator _buffer,
+                          Comparator      _comparator)
     {
-        typedef typename std::iterator_traits<_RandomIterator>::difference_type
+        typedef typename std::iterator_traits<RandomIterator>::difference_type
             difference_type;
 
         difference_type count;
@@ -151,13 +154,13 @@ NS_END  // internal
 // merge_sort
 //   function: sorts the range [_first, _last) using merge sort with the
 // comparator _comparator, acquiring and releasing its own scratch.
-template<typename _RandomIterator,
-         typename _Comparator>
-void merge_sort(_RandomIterator _first,
-                _RandomIterator _last,
-                _Comparator     _comparator)
+template<typename RandomIterator,
+         typename Comparator>
+void merge_sort(RandomIterator _first,
+                RandomIterator _last,
+                Comparator      _comparator)
 {
-    typedef typename std::iterator_traits<_RandomIterator>::value_type
+    typedef typename std::iterator_traits<RandomIterator>::value_type
         value_type;
 
     // a range of 0 or 1 elements is already sorted, and buying a buffer to
@@ -181,7 +184,7 @@ void merge_sort(_RandomIterator _first,
 
 // ----------------------------------------------------------------------------
 // B.  merge_sort(first, last)      (C++11+)
-//     Uses operator< via less<value_type>.
+//     Uses operator< via std::less<value_type>.
 // ----------------------------------------------------------------------------
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -189,16 +192,16 @@ void merge_sort(_RandomIterator _first,
 // merge_sort
 //   function: sorts the range [_first, _last) using merge sort with the
 // default ascending comparator.
-template<typename _RandomIterator>
-void merge_sort(_RandomIterator _first,
-                _RandomIterator _last)
+template<typename RandomIterator>
+void merge_sort(RandomIterator _first,
+                RandomIterator _last)
 {
-    typedef typename std::iterator_traits<_RandomIterator>::value_type
+    typedef typename std::iterator_traits<RandomIterator>::value_type
         value_type;
 
     merge_sort(_first,
                _last,
-               less<value_type>());
+               std::less<value_type>());
 
     return;
 }
@@ -220,13 +223,13 @@ void merge_sort(_RandomIterator _first,
 // repeatedly this reuses one buffer instead of acquiring a new one per call;
 // there is no other difference, and no status to check, because a buffer that
 // is too short is a precondition violation rather than a run-time condition.
-template<typename _RandomIterator,
-         typename _BufferIterator,
-         typename _Comparator>
-void merge_sort_buffered(_RandomIterator _first,
-                         _RandomIterator _last,
-                         _Comparator     _comparator,
-                         _BufferIterator _buffer)
+template<typename RandomIterator,
+         typename BufferIterator,
+         typename Comparator>
+void merge_sort_buffered(RandomIterator _first,
+                         RandomIterator _last,
+                         Comparator      _comparator,
+                         BufferIterator _buffer)
 {
     internal::merge_sort_apply(_first,
                                _last,
@@ -246,14 +249,14 @@ void merge_sort_buffered(_RandomIterator _first,
 // _comparator to the requested _order.  The C++ counterpart of the C module's
 // _order parameter: there the direction is passed to the call, here it is
 // folded into the comparator, which costs the same and composes better.
-template<typename _RandomIterator,
-         typename _Comparator>
-void merge_sort_ordered(_RandomIterator _first,
-                        _RandomIterator _last,
-                        _Comparator     _comparator,
-                        sort_order      _order)
+template<typename RandomIterator,
+         typename Comparator>
+void merge_sort_ordered(RandomIterator    _first,
+                        RandomIterator    _last,
+                        Comparator        _comparator,
+                        sort_order::value _order)
 {
-    internal::order_comparator<_Comparator> wrapped(_comparator, _order);
+    internal::order_comparator<Comparator> wrapped(_comparator, _order);
 
     merge_sort(_first,
                _last,
@@ -266,4 +269,4 @@ void merge_sort_ordered(_RandomIterator _first,
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_SORT_MERGE_HPP_
+#endif  // DJINTERP_UTIL_SORT_MERGE_SORT_HPP

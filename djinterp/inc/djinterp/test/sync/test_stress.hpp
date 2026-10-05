@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                              test_stress.hpp
+/*******************************************************************************
+* djinterp [test]                                                test_stress.hpp
 *
 *   Stress-test harness for the DTest multithreading module: drives a
 * set of operations many times across many threads, with optional
@@ -35,33 +35,54 @@
 * randomness (each op runs in declaration order).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    STRESS REPORT
-* II.   STRESS RUNNER (FIXED ITERATIONS)
-* III.  TIMED STRESS RUNNER
-* IV.   STRESS OPERATION DESCRIPTOR
-* V.    CHAOS RUNNER (WEIGHTED OP-MIX)
-* VI.   FACTORY HELPERS
-*
-*
 * path:      /inc/djinterp/test/sync/test_stress.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_STRESS_
-#define DJINTERP_TEST_STRESS_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    STRESS REPORT
+      -------------
+
+II.   STRESS RUNNER (FIXED ITERATIONS)
+      --------------------------------
+
+III.  TIMED STRESS RUNNER
+      -------------------
+
+IV.   STRESS OPERATION DESCRIPTOR
+      ---------------------------
+
+V.    CHAOS RUNNER (WEIGHTED OP-MIX)
+      ------------------------------
+
+VI.   FACTORY HELPERS
+      ---------------
+*/
+
+#ifndef DJINTERP_TEST_SYNC_TEST_STRESS_HPP
+#define DJINTERP_TEST_SYNC_TEST_STRESS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but math/interval/closed_interval.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
-
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 // djinterp core first: defines the D_ENV_LANG_* gates the std block needs
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>
     #include <chrono>
     #include <functional>
@@ -207,6 +228,8 @@ public:
 
     stress_runner(const stress_runner&)            = delete;
     stress_runner& operator=(const stress_runner&) = delete;
+    stress_runner(stress_runner&&)                 = default;
+    stress_runner& operator=(stress_runner&&)      = default;
 
     // -----------------------------------------------------------------
     //  configuration
@@ -249,11 +272,11 @@ public:
     }
 
     // set_join_timeout
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_join_timeout(
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     )
     {
         m_join_timeout =
@@ -383,6 +406,8 @@ public:
 
     timed_stress(const timed_stress&)            = delete;
     timed_stress& operator=(const timed_stress&) = delete;
+    timed_stress(timed_stress&&)                 = default;
+    timed_stress& operator=(timed_stress&&)      = default;
 
     // -----------------------------------------------------------------
     //  configuration
@@ -398,11 +423,11 @@ public:
         return;
     }
 
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_duration(
-        const std::chrono::duration<_Rep, _Period>& _d
+        const std::chrono::duration<Rep, Period>& _d
     )
     {
         m_duration =
@@ -424,11 +449,11 @@ public:
     // set_join_grace
     //   maximum time to wait beyond the duration for
     // workers to notice the stop signal and exit.
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_join_grace(
-        const std::chrono::duration<_Rep, _Period>& _g
+        const std::chrono::duration<Rep, Period>& _g
     )
     {
         m_join_grace =
@@ -646,7 +671,7 @@ public:
     // seed + same op set => same per-thread op streams.
     void
     set_seed(
-        std::uint64_t _seed
+        re_std::uint64_t _seed
     ) D_NOEXCEPT
     {
         m_seed = _seed;
@@ -692,11 +717,11 @@ public:
         return m_ops.size();
     }
 
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_join_timeout(
-        const std::chrono::duration<_Rep, _Period>& _t
+        const std::chrono::duration<Rep, Period>& _t
     )
     {
         m_join_timeout =
@@ -728,7 +753,7 @@ public:
 
         size_type tcount     = m_thread_count;
         size_type iterations = m_iterations;
-        std::uint64_t seed   = m_seed;
+        re_std::uint64_t seed   = m_seed;
         const auto& ops      = m_ops;
 
         // per-thread iteration counts and per-op atomic
@@ -771,7 +796,7 @@ public:
             (size_type _tid)
             {
                 std::mt19937_64 rng(
-                    seed ^ static_cast<std::uint64_t>(_tid));
+                    seed ^ static_cast<re_std::uint64_t>(_tid));
                 std::uniform_int_distribution<unsigned>
                     dist(0, total_weight - 1);
 
@@ -843,7 +868,7 @@ public:
 private:
     size_type              m_thread_count;
     size_type              m_iterations;
-    std::uint64_t          m_seed;
+    re_std::uint64_t          m_seed;
     std::vector<stress_op> m_ops;
     duration_type          m_join_timeout;
 };
@@ -855,40 +880,40 @@ private:
 
 // make_stress
 //   factory: returns a configured stress_runner.
-template<typename _Op>
+template<typename Op>
 inline stress_runner
 make_stress(
     std::size_t _thread_count,
     std::size_t _iterations,
-    _Op&&       _op
+    Op&&       _op
 )
 {
     stress_runner runner;
     runner.set_thread_count(_thread_count);
     runner.set_iterations(_iterations);
     runner.set_operation(stress_runner::operation_fn(
-        static_cast<_Op&&>(_op)));
+        static_cast<Op&&>(_op)));
 
     return runner;
 }
 
 // make_timed_stress
 //   factory: returns a configured timed_stress.
-template<typename _Op,
-         typename _Rep,
-         typename _Period>
+template<typename Op,
+         typename Rep,
+         typename Period>
 inline timed_stress
 make_timed_stress(
     std::size_t                                 _thread_count,
-    const std::chrono::duration<_Rep, _Period>& _duration,
-    _Op&&                                       _op
+    const std::chrono::duration<Rep, Period>& _duration,
+    Op&&                                       _op
 )
 {
     timed_stress stress;
     stress.set_thread_count(_thread_count);
     stress.set_duration(_duration);
     stress.set_operation(timed_stress::operation_fn(
-        static_cast<_Op&&>(_op)));
+        static_cast<Op&&>(_op)));
 
     return stress;
 }
@@ -899,5 +924,7 @@ make_timed_stress(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_STRESS_
+
+#endif  // DJINTERP_TEST_SYNC_TEST_STRESS_HPP

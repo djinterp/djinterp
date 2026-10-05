@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                       database_table.hpp
+/*******************************************************************************
+* djinterp [core]                                             database_table.hpp
 *
 * djinterp database-table module:
 *   The foundational module for all table-based database back-ends —
@@ -9,10 +9,10 @@
 *
 *   DESIGN
 *   ======
-*   `database_table<_Connection, _ValueType, _Config>` is a CONCRETE
+*   `database_table<Connection, ValueType, Config>` is a CONCRETE
 * class. It is NOT a CRTP base, NOT designed for virtual inheritance,
 * and exposes NO `virtual` methods. Vendor variation flows through the
-* `_Connection` template parameter — a vendor's concrete connection
+* `Connection` template parameter — a vendor's concrete connection
 * type drives every interaction with the back-end, and that connection
 * type already encapsulates dialect-specific behaviour via the
 * `djinterp::connection<_helper>` CRTP surface in `database.hpp`.
@@ -67,22 +67,22 @@
 *
 * path:      /inc/djinterp/core/db/database_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.18
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.18
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_TABLE_
-#define DJINTERP_DATABASE_TABLE_ 1
+#ifndef DJINTERP_DB_DATABASE_TABLE_HPP
+#define DJINTERP_DB_DATABASE_TABLE_HPP 1
 
-#if !D_ENV_LANG_IS_CPP17_OR_HIGHER
-    #error "`database_table.hpp` requires C++17 or later                       \
-            (std::optional, std::variant, std::string_view)."
-#endif
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
-#include <cstdint>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -91,9 +91,11 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
-#include "./table_common.hpp"
-#include "./db/database.hpp"
+#include "../../djinterp.hpp"  // framework root
+#include "./database.hpp"     // value, database_type, connection surfaces
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t, int32_t,
+                                                // uint8_t
 
 
 NS_DJINTERP
@@ -369,9 +371,9 @@ NS_DJINTERP
     // V.   DATABASE TABLE
     // =========================================================================
     //
-    // `database_table<_Connection, _ValueType, _Config>`
+    // `database_table<Connection, ValueType, Config>`
     //   The concrete class. One template instantiation per vendor,
-    // driven by the `_Connection` template parameter — a MySQL
+    // driven by the `Connection` template parameter — a MySQL
     // connection gives `database_table<mysql_connection, ...>`,
     // a PostgreSQL connection gives `database_table<pg_connection,
     // ...>`, and so on. No inheritance, no virtual functions, no
@@ -379,14 +381,14 @@ NS_DJINTERP
     // connection type.
     //
     //   Template parameters:
-    //     _Connection  - the concrete connection type. Must satisfy the
+    //     Connection   - the concrete connection type. Must satisfy the
     //                    `djinterp::connection<_helper>` CRTP surface
     //                    from `database.hpp` (execute_query,
     //                    get_database_type, is_connected, …).
-    //     _ValueType   - the cell value type. Defaults to `value`, the
+    //     ValueType    - the cell value type. Defaults to `value`, the
     //                    `std::variant` covering null / bool / ints /
     //                    double / string / binary / timestamp.
-    //     _Config      - an opaque pass-through used by downstream
+    //     Config       - an opaque pass-through used by downstream
     //                    layout / decoration layers. Not interpreted
     //                    here; surfaced as the `config_type` alias for
     //                    consumers that want to attach metadata.
@@ -395,16 +397,16 @@ NS_DJINTERP
     //   class: concrete, non-polymorphic database-backed table. Owns
     // a local cache of rows plus a non-owning connection handle; all
     // back-end interaction flows through the connection's interface.
-    template<typename _Connection,
-             typename _ValueType = value,
-             typename _Config    = void>
+    template<typename Connection,
+             typename ValueType = value,
+             typename Config     = void>
     class database_table
     {
     public:
         // -----------------------------------------------------------------
         //  standard container type aliases
         // -----------------------------------------------------------------
-        using value_type      = _ValueType;
+        using value_type      = ValueType;
         using size_type       = std::size_t;
         using difference_type = std::ptrdiff_t;
         using reference       = value_type&;
@@ -416,9 +418,9 @@ NS_DJINTERP
         // -----------------------------------------------------------------
         //  identity / row / storage aliases
         // -----------------------------------------------------------------
-        using self_type       = database_table<_Connection, _ValueType, _Config>;
-        using config_type     = _Config;
-        using connection_type = _Connection;
+        using self_type       = database_table<Connection, ValueType, Config>;
+        using config_type     = Config;
+        using connection_type = Connection;
         using schema_type     = table_schema;
         using row_type        = std::vector<value_type>;
         using storage_type    = std::vector<row_type>;
@@ -465,7 +467,7 @@ NS_DJINTERP
         // Does not automatically fetch schema or data — call
         // `fetch_schema()` and `refresh()` after construction.
         explicit database_table(
-            _Connection& _conn,
+            Connection& _conn,
             std::string  _table_name,
             table_kind   _kind = table_kind::base_table
         )
@@ -483,7 +485,7 @@ NS_DJINTERP
         //   constructor: bound to a connection with an explicit schema.
         // Useful when schema is already known or was retrieved externally.
         explicit database_table(
-            _Connection& _conn,
+            Connection& _conn,
             table_schema _schema,
             table_kind   _kind = table_kind::base_table
         )
@@ -502,7 +504,7 @@ NS_DJINTERP
         //   constructor: bound to a connection with an explicit schema
         // and sync policy.
         explicit database_table(
-            _Connection&       _conn,
+            Connection&       _conn,
             table_schema       _schema,
             table_kind         _kind,
             const sync_config& _sync
@@ -1038,14 +1040,14 @@ NS_DJINTERP
 
         // get_connection
         //   function: pointer to the bound connection (may be null).
-        _Connection* get_connection() noexcept
+        Connection* get_connection() noexcept
         {
             return m_connection;
         }
 
         // get_connection (const)
         //   function: const pointer to the bound connection.
-        const _Connection* get_connection() const noexcept
+        const Connection* get_connection() const noexcept
         {
             return m_connection;
         }
@@ -1053,7 +1055,7 @@ NS_DJINTERP
         // set_connection
         //   function: rebinds the table to a different connection.
         // Marks the local cache as stale.
-        void set_connection(_Connection& _conn)
+        void set_connection(Connection& _conn)
         {
             m_connection = &_conn;
             m_stale      = true;
@@ -1274,7 +1276,7 @@ NS_DJINTERP
         //  DATABASE OPERATIONS
         // =================================================================
         //   All of these are CONCRETE — no `virtual`, no override hooks.
-        // Vendor variation is supplied by the `_Connection` template
+        // Vendor variation is supplied by the `Connection` template
         // parameter (which knows its own dialect) plus dialect-aware
         // free helpers (`quote_identifier`, `dialect_format_limit_offset`).
 
@@ -1381,7 +1383,7 @@ NS_DJINTERP
                 return;
             }
 
-            transaction<_Connection> txn(*m_connection);
+            transaction<Connection> txn(*m_connection);
 
             try
             {
@@ -1426,7 +1428,7 @@ NS_DJINTERP
         //   function: queries the database for the row count without
         // fetching the rows themselves. Respects any active WHERE
         // clause.
-        std::int64_t row_count_remote() const
+        re_std::int64_t row_count_remote() const
         {
             validate_connected("row_count_remote");
 
@@ -1726,8 +1728,8 @@ NS_DJINTERP
         //   helper: dispatches a `value` variant onto the appropriate
         // statement bind method. Index is 1-based per the statement
         // CRTP surface convention.
-        template<typename _Statement>
-        static void bind_value(_Statement&       _stmt,
+        template<typename Statement>
+        static void bind_value(Statement&       _stmt,
                                std::size_t       _index,
                                const value_type& _v)
         {
@@ -1744,11 +1746,11 @@ NS_DJINTERP
                     {
                         _stmt.bind_bool(_index, _arg);
                     }
-                    else if constexpr (std::is_same_v<arg_t, std::int32_t>)
+                    else if constexpr (std::is_same_v<arg_t, re_std::int32_t>)
                     {
                         _stmt.bind_int(_index, _arg);
                     }
-                    else if constexpr (std::is_same_v<arg_t, std::int64_t>)
+                    else if constexpr (std::is_same_v<arg_t, re_std::int64_t>)
                     {
                         _stmt.bind_long(_index, _arg);
                     }
@@ -1761,7 +1763,7 @@ NS_DJINTERP
                         _stmt.bind_string(_index, _arg);
                     }
                     else if constexpr (std::is_same_v<
-                        arg_t, std::vector<std::uint8_t>>)
+                        arg_t, std::vector<re_std::uint8_t>>)
                     {
                         _stmt.bind_binary(_index, _arg);
                     }
@@ -1786,7 +1788,7 @@ NS_DJINTERP
         //  PROTECTED MEMBERS
         // =================================================================
 
-        _Connection* m_connection;
+        Connection* m_connection;
         table_schema m_schema;
         table_kind   m_kind;
         sync_config  m_sync;
@@ -1809,5 +1811,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_TABLE_
+#endif  // DJINTERP_DB_DATABASE_TABLE_HPP

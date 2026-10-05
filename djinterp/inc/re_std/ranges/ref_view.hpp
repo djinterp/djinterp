@@ -1,16 +1,16 @@
-/******************************************************************************
-* djinterp [re_std]                                               ref_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 ref_view.hpp
 *
 * ref_view header:
 *   Provides the C++20 reference-wrapping range adaptor. ref_view<R>
-* holds a pointer to an external _Range and forwards begin / end /
+* holds a pointer to an external Range and forwards begin / end /
 * size / empty / data to it, presenting a view over an unowned range.
 * Used by views::all when the source range is an lvalue non-view.
 *
 *   PORTABILITY:
 *   - Requires CRTP + view_interface + trailing return types,
 *     available C++11+.
-*   - Explicitly deletes the rvalue-_Range constructor (a ref_view
+*   - Explicitly deletes the rvalue-Range constructor (a ref_view
 *     bound to a temporary would dangle as soon as the constructor
 *     returned). Matches the C++20 contract.
 *   - Specialises enable_borrowed_range<ref_view<R>> to true. The
@@ -19,17 +19,19 @@
 *     (the underlying range outlives the ref_view by construction).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/ref_view.hpp
+* path:      /inc/re_std/ranges/ref_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_REF_VIEW_
-#define DJINTERP_RE_STD_RANGES_REF_VIEW_ 1
+#ifndef RE_STD_RANGES_REF_VIEW_HPP
+#define RE_STD_RANGES_REF_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../iterator/begin.hpp"
 #include "../iterator/end.hpp"
@@ -40,33 +42,34 @@
 #include "./enable_borrowed_range.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   REF_VIEW
 // ===========================================================================
 
-// ref_view<_Range>
-//   class: view that holds a pointer to an external _Range. begin /
+// ref_view<Range>
+//   class: view that holds a pointer to an external Range. begin /
 // end / size / etc. forward to the underlying range. Construction
-// from an rvalue _Range is deleted.
-template<typename _Range>
-class ref_view : public view_interface<ref_view<_Range> >
+// from an rvalue Range is deleted.
+template<typename Range>
+class ref_view : public view_interface<ref_view<Range> >
 {
 private:
-    _Range* m_range;
+    Range* m_range;
 
 
 public:
     // value ctor (lvalue ref)
     //   function: stores the address of _r. The ref_view's
     // lifetime must not exceed _r's.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     ref_view(
-        _Range& _r
+        Range& _r
     )
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
         : m_range(&_r)
     {}
 
@@ -74,22 +77,22 @@ public:
     //   function: explicitly deleted. Prevents binding a ref_view
     // to a temporary.
     ref_view(
-        _Range&&
+        Range&&
     ) = delete;
 
 
     // base
     //   function: returns the underlying range by reference.
-    D_CONSTEXPR _Range&
+    RE_STD_CONSTEXPR Range&
     base() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return *m_range;
     }
 
 
     // begin / end — forward to the underlying range's begin / end.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     begin() const
         -> decltype(re_std::begin(*m_range))
@@ -97,7 +100,7 @@ public:
         return re_std::begin(*m_range);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     end() const
         -> decltype(re_std::end(*m_range))
@@ -109,7 +112,7 @@ public:
     // empty / size / data — forward to the underlying range when
     // each operation is well-formed. SFINAE via trailing return
     // type so non-applicable members instantiate only at call.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     empty() const
         -> decltype(re_std::empty(*m_range))
@@ -117,7 +120,7 @@ public:
         return re_std::empty(*m_range);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     size() const
         -> decltype(re_std::size(*m_range))
@@ -125,7 +128,7 @@ public:
         return re_std::size(*m_range);
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     auto
     data() const
         -> decltype(re_std::data(*m_range))
@@ -139,20 +142,20 @@ public:
 // II.  ENABLE_BORROWED_RANGE OPT-IN
 // ===========================================================================
 
-// enable_borrowed_range<ref_view<_Range>>
+// enable_borrowed_range<ref_view<Range>>
 //   trait: ref_view is a borrowed_range. Its iterators are the
 // underlying range's iterators, which by construction live in
 // storage that outlives the ref_view.
-template<typename _Range>
-struct enable_borrowed_range<ref_view<_Range> >
+template<typename Range>
+struct enable_borrowed_range<ref_view<Range> >
     : true_type
 {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_REF_VIEW_
+#endif  // RE_STD_RANGES_REF_VIEW_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [fs]                                               file_tree_ios.hpp
+/*******************************************************************************
+* djinterp [core]                                              file_tree_ios.hpp
 *
 * iOS file tree scanner:
 *   iOS runs the Darwin kernel, so the directory-enumeration machinery
@@ -19,22 +19,33 @@
 * apple_scanner applies here too.
 *
 *
-* path:      /inc/cpp/fs/file_tree_ios.hpp
+* path:      /inc/djinterp/core/container/tree/file/file_tree_ios.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.03.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_FS_FILE_TREE_IOS_
-#define DJINTERP_FS_FILE_TREE_IOS_ 1
+#ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_IOS_HPP
+#define DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_IOS_HPP 1
 
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
 #include "./file_tree_common.hpp"
+
+#if D_FILESYS_ENABLE_IOS
+
 #include "./file_tree_apple.hpp"
 
+// std
 #include <string>
 
 
 NS_DJINTERP
-NS_FS
 
 
 // ================================================================
@@ -42,22 +53,21 @@ NS_FS
 // ================================================================
 
 // ios_scanner
-//   policy: Darwin enumeration confined to the app sandbox.  Shares
-// apple_scanner's batch backend; the distinction is documentary and
-// behavioral at the sandbox boundary, not in the per-entry path.
+//   policy: Darwin enumeration confined to the app sandbox. Shares
+// apple_scanner's batch backend; the distinction is documentary and behavioral
+// at the sandbox boundary, not in the per-entry path.
 struct ios_scanner
 {
     // scan
-    //   delegates to apple_scanner.  An inaccessible directory simply
-    // yields no children (apple_scanner / bsd_scanner already return
-    // on open failure), which on iOS is the correct response to a
-    // sandbox denial.
-    template<typename _Ctx>
+    //   delegates to apple_scanner. An inaccessible directory simply yields no
+    // children (apple_scanner / bsd_scanner already return on open failure),
+    // which on iOS is the correct response to a sandbox denial.
+    template<typename Ctx>
     static void
     scan(
-        _Ctx&              _ctx,
+        Ctx&              _ctx,
         const std::string& _dir_path,
-        node_id            _parent
+        file_node_id            _parent
     )
     {
         apple_scanner::scan(_ctx, _dir_path, _parent);
@@ -67,8 +77,19 @@ struct ios_scanner
 };
 
 
-NS_END  // fs
 NS_END  // djinterp
 
+#else  // !D_FILESYS_ENABLE_IOS
 
-#endif  // DJINTERP_FS_FILE_TREE_IOS_
+// iOS backend not enabled for this build. Without it this header declares
+// nothing, rather than stopping the build: a disabled backend is absent, and
+// naming its scanner fails at the point of use (see os_scanner in
+// file_tree.hpp). Set D_CFG_FILESYS_ALLOW_IOS (or
+// D_CFG_FILESYS_ALLOW_APPLE_FAMILY, or D_CFG_FILESYS_ALLOW_POSIX_FAMILY, or
+// D_CFG_FILESYS_ALLOW_FOREIGN) to 1 before including file_tree.hpp.
+
+#endif  // D_FILESYS_ENABLE_IOS
+
+#endif  // floor, for now
+
+#endif  // DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_IOS_HPP

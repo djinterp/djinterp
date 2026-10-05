@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             test_builder.hpp
+/*******************************************************************************
+* djinterp [test]                                               test_builder.hpp
 *
 *   The fluent, functional builder over a test_tree.  Where test_tree.hpp
 * is the storage and test_object.hpp the node, this module is the AUTHORING
@@ -68,9 +68,9 @@
 * on_test_start / on_status_change / on_test_passed|failed|skipped|error /
 * on_test_end sequence per leaf, and on_session_end carrying the pass/fail
 * counts.  Subscribe with the chainable on_passed / on_failed / on_skipped /
-* on_error sugar, the generic on<_Event>(handler), or events().bind<_Event>()
+* on_error sugar, the generic on<Event>(handler), or events().bind<Event>()
 * when you need the handler_id back.  Emit your own (e.g. value-tagged) events
-* mid-chain with fire<_Event>(payload...).  Handlers are plain callables
+* mid-chain with fire<Event>(payload...).  Handlers are plain callables
 * returning void (always-pass) or `verdict` (verdict::consume halts the rest
 * of that event's word); a handler that throws is caught and re-reported as
 * on_listener_threw rather than aborting the run.
@@ -87,27 +87,50 @@
 * perfect forwarding).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    PORTABILITY CHECKS
-* II.   DEFAULT TEST KINDS
-* III.  RUN SUMMARY
-* IV.   CALLABLE DETECTION (internal)
-* V.    TEST BUILDER
-* VI.   FACTORY FUNCTIONS
-*
-*
 * path:      /inc/djinterp/test/test_builder.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.17
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_BUILDER_
-#define DJINTERP_TEST_BUILDER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    PORTABILITY CHECKS
+      ------------------
 
-#ifndef __cplusplus
-    #error "test_builder.hpp requires C++ compilation"
-#endif
+II.   DEFAULT TEST KINDS
+      ------------------
+
+III.  RUN SUMMARY
+      -----------
+
+IV.   CALLABLE DETECTION (internal)
+      -----------------------------
+
+V.    TEST BUILDER
+      ------------
+
+VI.   FACTORY FUNCTIONS
+      -----------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_BUILDER_HPP
+#define DJINTERP_TEST_TEST_BUILDER_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but
+// core/container/tree/nary/nary_tree.hpp, which it reaches, needs C++17
+// (lowered from C++20 by round 3's lane 2). The owner's ruling: compile at
+// every level first; port down only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
+#include "../env/env.h"  // D_ENV_LANG_IS_CPP11_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 
 // std
 #include <cstddef>
@@ -118,7 +141,8 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
+#include "../core/meta/type_utility.hpp"  // void_t
 #include "../core/event/event_common.hpp"
 #include "../core/event/event_dispatcher.hpp"
 #include "./test_common.hpp"
@@ -127,11 +151,6 @@
 #include "./test_callable.hpp"
 #include "./test_event.hpp"
 #include "./test_tree.hpp"
-
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "test_builder.hpp requires C++11 or higher"
-#endif
 
 
 NS_DJINTERP
@@ -245,20 +264,20 @@ struct test_summary
 NS_INTERNAL
 
     // is_nullary_bool_callable
-    //   trait: true iff `_Fn` can be invoked with no arguments and its
+    //   trait: true iff `Fn` can be invoked with no arguments and its
     // result is contextually convertible to bool.  Distinguishes a
     // deferred predicate (a lambda or `bool(*)()`) from a bare boolean
     // VALUE, so the builder can wrap each correctly into a thunk.  The
     // primary template is false; the specialization fires when the call
     // expression is well-formed.
-    template<typename _Fn,
+    template<typename Fn,
              typename = void>
     struct is_nullary_bool_callable : std::false_type
     {};
 
-    template<typename _Fn>
-    struct is_nullary_bool_callable<_Fn,
-        void_t<decltype(static_cast<bool>(std::declval<_Fn&>()()))>>
+    template<typename Fn>
+    struct is_nullary_bool_callable<Fn,
+        void_t<decltype(static_cast<bool>(std::declval<Fn&>()()))>>
         : std::true_type
     {};
 
@@ -277,7 +296,7 @@ NS_END  // internal
 // procedural / functional / hybrid idioms this single surface supports.
 //
 // Template parameters:
-//   _Tree - the backing test container.  Defaults to test_tree<basic_test>.
+//   Tree - the backing test container.  Defaults to test_tree<basic_test>.
 //           Its value_type must be basic_test (the builder authors names
 //           through test_metadata and status through the basic_test
 //           protocol); the tree's backing and rank-validation flag are
@@ -288,21 +307,21 @@ NS_END  // internal
 //   suite.test_module("foo").test_block("props")
 //        .test("is mutable").assert_([]{ return true; });
 //   test_summary s = suite.run();
-template<typename _Tree = test_tree<basic_test> >
+template<typename Tree = test_tree<basic_test> >
 class test_builder
 {
     static_assert(
-        std::is_same<typename _Tree::value_type, basic_test>::value,
-        "`test_builder` v1 authors basic_test nodes; `_Tree::value_type` "
+        std::is_same<typename Tree::value_type, basic_test>::value,
+        "`test_builder` v1 authors basic_test nodes; `Tree::value_type` "
         "must be basic_test.");
 
 public:
     // -----------------------------------------------------------------
     //  type aliases
     // -----------------------------------------------------------------
-    using tree_type   = _Tree;
+    using tree_type   = Tree;
     using value_type  = basic_test;
-    using node_type   = typename _Tree::node_type;
+    using node_type   = typename Tree::node_type;
     using size_type   = std::size_t;
     using thunk_type  = test_callable_table::thunk_type;
 
@@ -469,13 +488,13 @@ public:
     //   Spelled with a trailing underscore on purpose: a member named
     // `assert` is unusable because <cassert> may define `assert` as a
     // function-like macro that would rewrite the call.
-    template<typename _Cond>
+    template<typename Cond>
     test_builder&
     assert_(
-        _Cond&& _cond
+        Cond&& _cond
     )
     {
-        return bind_clause(make_thunk(std::forward<_Cond>(_cond)));
+        return bind_clause(make_thunk(std::forward<Cond>(_cond)));
     }
 
     // test_fn
@@ -483,27 +502,27 @@ public:
     // mechanism to assert_, named for the intent of binding a standalone
     // `bool()` test routine (e.g. `&test_flat_static_mutable`).  Returns
     // *this.
-    template<typename _Fn>
+    template<typename Fn>
     test_builder&
     test_fn(
-        _Fn&& _fn
+        Fn&& _fn
     )
     {
-        return bind_clause(make_thunk(std::forward<_Fn>(_fn)));
+        return bind_clause(make_thunk(std::forward<Fn>(_fn)));
     }
 
     // assert_all
     //   conjoins the AND of every supplied clause onto the current test:
     // the test passes only if all of them pass.  Mirrors
     // functional/predicate.hpp's all_of.  Returns *this.
-    template<typename... _Conds>
+    template<typename... Conds>
     test_builder&
     assert_all(
-        _Conds&&... _conds
+        Conds&&... _conds
     )
     {
         std::vector<thunk_type> clauses =
-            { make_thunk(std::forward<_Conds>(_conds))... };
+            { make_thunk(std::forward<Conds>(_conds))... };
 
         thunk_type all =
             [clauses]() -> bool
@@ -528,14 +547,14 @@ public:
     //   conjoins the OR of every supplied clause onto the current test:
     // the clause passes if any of them passes.  Mirrors
     // functional/predicate.hpp's any_of.  Returns *this.
-    template<typename... _Conds>
+    template<typename... Conds>
     test_builder&
     assert_any(
-        _Conds&&... _conds
+        Conds&&... _conds
     )
     {
         std::vector<thunk_type> clauses =
-            { make_thunk(std::forward<_Conds>(_conds))... };
+            { make_thunk(std::forward<Conds>(_conds))... };
 
         thunk_type any =
             [clauses]() -> bool
@@ -604,26 +623,26 @@ public:
     // boolean value).  Its result is folded into the tree's counts but it
     // carries no name and no callable row, and it does NOT become the
     // current test.  Returns *this.
-    template<typename _Cond>
+    template<typename Cond>
     test_builder&
     check(
-        _Cond&& _cond
+        Cond&& _cond
     )
     {
-        return inline_eval("(check)", make_thunk(std::forward<_Cond>(_cond)));
+        return inline_eval("(check)", make_thunk(std::forward<Cond>(_cond)));
     }
 
     // expect
     //   a named alias of check(): the inline outcome is recorded under
     // `_name` for readability in the forest.  Returns *this.
-    template<typename _Cond>
+    template<typename Cond>
     test_builder&
     expect(
         const char* _name,
-        _Cond&&     _cond
+        Cond&&     _cond
     )
     {
-        return inline_eval(_name, make_thunk(std::forward<_Cond>(_cond)));
+        return inline_eval(_name, make_thunk(std::forward<Cond>(_cond)));
     }
 
 
@@ -654,16 +673,16 @@ public:
     // evaluated now, or a bare boolean).  Predicate-driven conditional
     // structure, the functional spelling of "include these tests when X".
     // Returns *this.
-    template<typename _Cond>
+    template<typename Cond>
     test_builder&
     add_if(
-        _Cond&&   _cond,
+        Cond&&   _cond,
         body_type _body
     )
     {
         // evaluate the condition immediately through the same wrapper the
         // assertions use, so a value or a predicate both work.
-        if ( (make_thunk(std::forward<_Cond>(_cond))()) &&
+        if ( (make_thunk(std::forward<Cond>(_cond))()) &&
              (_body) )
         {
             _body(*this);
@@ -695,20 +714,20 @@ public:
     }
 
     // on
-    //   subscribes _handler to _Event and returns *this - the chainable,
-    // subscribe-and-forget spelling.  Reach for events().bind<_Event>() when
+    //   subscribes _handler to Event and returns *this - the chainable,
+    // subscribe-and-forget spelling.  Reach for events().bind<Event>() when
     // you need the handler_id back for a later unbind / enable / disable.
-    // The handler must be invocable with _Event's payload and return void
+    // The handler must be invocable with Event's payload and return void
     // (an always-pass handler) or `verdict`; the dispatcher's bind()
     // static_asserts that contract.
-    template<typename _Event,
-             typename _Callable>
+    template<typename Event,
+             typename Callable>
     test_builder&
     on(
-        _Callable&& _handler
+        Callable&& _handler
     )
     {
-        m_events.bind<_Event>(std::forward<_Callable>(_handler));
+        m_events.bind<Event>(std::forward<Callable>(_handler));
 
         return *this;
     }
@@ -720,50 +739,50 @@ public:
     // once per failure with that leaf as a `const basic_test*`.  on_error's
     // handler additionally receives the diagnostic `const char*`.  Each
     // returns *this for chaining.
-    template<typename _Callable>
+    template<typename Callable>
     test_builder&
     on_passed(
-        _Callable&& _handler
+        Callable&& _handler
     )
     {
         m_events.bind<on_test_passed>(
-            std::forward<_Callable>(_handler));
+            std::forward<Callable>(_handler));
 
         return *this;
     }
 
-    template<typename _Callable>
+    template<typename Callable>
     test_builder&
     on_failed(
-        _Callable&& _handler
+        Callable&& _handler
     )
     {
         m_events.bind<on_test_failed>(
-            std::forward<_Callable>(_handler));
+            std::forward<Callable>(_handler));
 
         return *this;
     }
 
-    template<typename _Callable>
+    template<typename Callable>
     test_builder&
     on_skipped(
-        _Callable&& _handler
+        Callable&& _handler
     )
     {
         m_events.bind<on_test_skipped>(
-            std::forward<_Callable>(_handler));
+            std::forward<Callable>(_handler));
 
         return *this;
     }
 
-    template<typename _Callable>
+    template<typename Callable>
     test_builder&
     on_error(
-        _Callable&& _handler
+        Callable&& _handler
     )
     {
         m_events.bind<on_test_error>(
-            std::forward<_Callable>(_handler));
+            std::forward<Callable>(_handler));
 
         return *this;
     }
@@ -774,20 +793,20 @@ public:
     // -----------------------------------------------------------------
 
     // fire
-    //   dispatches an occurrence of _Event immediately against the owned
+    //   dispatches an occurrence of Event immediately against the owned
     // dispatcher and returns *this, so a custom (e.g. value-tagged) event can
     // be emitted mid-chain.  The framework's lifecycle events are fired for
     // you by run(); reach for this to emit your OWN events.  The enriched
     // (count, verdict) dispatch_result is discarded here - call
-    // events().fire<_Event>(...) directly when you want it.
-    template<typename _Event,
-             typename... _Args>
+    // events().fire<Event>(...) directly when you want it.
+    template<typename Event,
+             typename... Args>
     test_builder&
     fire(
-        _Args&&... _args
+        Args&&... _args
     )
     {
-        m_events.fire<_Event>(std::forward<_Args>(_args)...);
+        m_events.fire<Event>(std::forward<Args>(_args)...);
 
         return *this;
     }
@@ -800,10 +819,10 @@ public:
     // each
     //   applies _fn to every node in the forest (a mutating visitor over
     // value_type&).  Returns *this.
-    template<typename _Fn>
+    template<typename Fn>
     test_builder&
     each(
-        _Fn _fn
+        Fn _fn
     )
     {
         for (auto it = m_tree.begin(); it != m_tree.end(); ++it)
@@ -816,10 +835,10 @@ public:
 
     // count_if
     //   counts the nodes for which _pred holds.
-    template<typename _Pred>
+    template<typename Pred>
     size_type
     count_if(
-        _Pred _pred
+        Pred _pred
     ) const
     {
         size_type n = 0;
@@ -839,12 +858,12 @@ public:
     //   left-folds _fn over every node, threading an accumulator from
     // _init.  The tree-shaped analogue of functional/reduce.hpp's
     // fold_left.
-    template<typename _Acc,
-             typename _Fn>
-    _Acc
+    template<typename Acc,
+             typename Fn>
+    Acc
     fold(
-        _Acc _init,
-        _Fn  _fn
+        Acc _init,
+        Fn   _fn
     ) const
     {
         for (auto it = m_tree.begin(); it != m_tree.end(); ++it)
@@ -1015,31 +1034,31 @@ private:
     // make_thunk
     //   wraps `_cond` into a thunk, dispatching on whether it is a nullary
     // bool-callable (a deferred predicate) or a plain boolean value.
-    template<typename _Cond>
+    template<typename Cond>
     static thunk_type
     make_thunk(
-        _Cond&& _cond
+        Cond&& _cond
     )
     {
-        using clean_cond = typename std::decay<_Cond>::type;
+        using clean_cond = typename std::decay<Cond>::type;
 
         return make_thunk_dispatch(
-            std::forward<_Cond>(_cond),
+            std::forward<Cond>(_cond),
             std::integral_constant<bool,
                 internal::is_nullary_bool_callable<clean_cond>::value>{});
     }
 
     // make_thunk_dispatch (predicate)
     //   _cond is callable: store it by value and defer the call.
-    template<typename _Cond>
+    template<typename Cond>
     static thunk_type
     make_thunk_dispatch(
-        _Cond&&         _cond,
+        Cond&&         _cond,
         std::true_type
     )
     {
-        typename std::decay<_Cond>::type pred =
-            std::forward<_Cond>(_cond);
+        typename std::decay<Cond>::type pred =
+            std::forward<Cond>(_cond);
 
         return thunk_type(
             [pred]() -> bool
@@ -1050,10 +1069,10 @@ private:
 
     // make_thunk_dispatch (value)
     //   _cond is a value: capture its truth now and return it on demand.
-    template<typename _Cond>
+    template<typename Cond>
     static thunk_type
     make_thunk_dispatch(
-        _Cond&&          _cond,
+        Cond&&          _cond,
         std::false_type
     )
     {
@@ -1296,27 +1315,27 @@ private:
     }
 
     // safe_fire
-    //   dispatches _Event immediately, but contains a throwing handler: an
+    //   dispatches Event immediately, but contains a throwing handler: an
     // escaping exception is caught and re-reported as on_listener_threw
-    // (named by _Event::name()) rather than aborting the walk.
-    template<typename _Event,
-             typename... _Args>
+    // (named by Event::name()) rather than aborting the walk.
+    template<typename Event,
+             typename... Args>
     void
     safe_fire(
-        _Args&&... _args
+        Args&&... _args
     )
     {
         try
         {
-            m_events.fire<_Event>(std::forward<_Args>(_args)...);
+            m_events.fire<Event>(std::forward<Args>(_args)...);
         }
         catch (const std::exception& _e)
         {
-            guarded_listener_threw(_Event::name(), _e.what());
+            guarded_listener_threw(Event::name(), _e.what());
         }
         catch (...)
         {
-            guarded_listener_threw(_Event::name(), "unknown exception");
+            guarded_listener_threw(Event::name(), "unknown exception");
         }
 
         return;
@@ -1456,5 +1475,8 @@ make_suite()
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_TEST_BUILDER_
+#endif  // floor, for now
+
+#endif  // DJINTERP_TEST_TEST_BUILDER_HPP

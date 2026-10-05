@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                             is_member_function_pointer.hpp
+/*******************************************************************************
+* djinterp [re_std]                               is_member_function_pointer.hpp
 *
 * is_member_function_pointer trait header:
-*   Yields true_type if _Type (after cv-stripping) is a pointer to a
+*   Yields true_type if Type (after cv-stripping) is a pointer to a
 * member function; false_type otherwise. Distinguished from
 * is_member_object_pointer by checking whether the pointee type is a
 * function type.
@@ -14,16 +14,17 @@
 *     is_member_function_pointer<int*>::value              -> false
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_member_function_pointer.hpp
+* path:      /inc/re_std/type_traits/is_member_function_pointer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_MEMBER_FUNCTION_POINTER_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_MEMBER_FUNCTION_POINTER_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_MEMBER_FUNCTION_POINTER_HPP
+#define RE_STD_TYPE_TRAITS_IS_MEMBER_FUNCTION_POINTER_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./is_function.hpp"
@@ -31,34 +32,36 @@
 #include "./remove_cv.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_MEMBER_FUNCTION_POINTER
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_mem_fn_ptr_base
-    //   helper: detects T C::* and forwards is_function on T.
-    template<typename _Type>
+    //   trait: detects T C::* and forwards is_function on T.
+    template<typename Type>
     struct is_mem_fn_ptr_base : false_type
     {};
 
-    template<typename _Type,
-             typename _Class>
-    struct is_mem_fn_ptr_base<_Type _Class::*>
-        : integral_constant<bool, is_function<_Type>::value>
+    template<typename Type,
+             typename Class>
+    struct is_mem_fn_ptr_base<Type Class::*>
+        : integral_constant<bool, is_function<Type>::value>
     {};
 
-NS_END  // internal
+}  // internal
 
 // is_member_function_pointer
-//   trait: true if _Type is a pointer-to-member-function (cv-stripped).
-template<typename _Type>
+//   trait: true if Type is a pointer-to-member-function (cv-stripped).
+template<typename Type>
 struct is_member_function_pointer
-    : internal::is_mem_fn_ptr_base<typename remove_cv<_Type>::type>
+    : internal::is_mem_fn_ptr_base<typename remove_cv<Type>::type>
 {};
 
 
@@ -66,18 +69,18 @@ struct is_member_function_pointer
 // II.  IS_MEMBER_FUNCTION_POINTER_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_member_function_pointer_v
-    //   variable: convenience for is_member_function_pointer<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_member_function_pointer_v =
-        is_member_function_pointer<_Type>::value;
+    //   variable: convenience for is_member_function_pointer<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_member_function_pointer_v =
+        is_member_function_pointer<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_MEMBER_FUNCTION_POINTER_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_MEMBER_FUNCTION_POINTER_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [less]                                            less_template.hpp
+/*******************************************************************************
+* djinterp [core]                                              less_template.hpp
 *
 *   Templated Less rule and stylesheet facades and the bundled
 * default backend. Mirrors `sass_template.hpp` but targets Less
@@ -16,8 +16,8 @@
 * appended to `prelude`, import options in `prelude`, etc.
 *
 *   FACADES:
-*   - `less_rule<_Backend>`       extends `css::css_rule<_Backend>`
-*   - `less_stylesheet<_Backend>` extends `css::css_stylesheet<_Backend>`
+*   - `less_rule<Backend>`       extends `css::css_rule<Backend>`
+*   - `less_stylesheet<Backend>` extends `css::css_stylesheet<Backend>`
 *
 *   ZERO ADDED MEMBERS:
 *   `less_rule<B>` adds NO members beyond `css_rule<B>`.
@@ -32,23 +32,39 @@
 *                               or less-cpp)
 *
 *
-* path:      /inc/djinterp/core/util/less/less_template.hpp
+* path:      /inc/djinterp/core/text/css/less/less_template.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    less_rule<_Backend>
+I.    less_rule<Backend>
+      -------------------
+
 II.   INTERNAL EMISSION HELPERS
-III.  less_stylesheet<_Backend>
+      -------------------------
+
+III.  less_stylesheet<Backend>
+      -------------------------
+
 IV.   less_default_backend
+      --------------------
+
 V.    FREE HELPERS / FACTORIES
+      ------------------------
 */
 
-#ifndef DJINTERP_LESS_TEMPLATE_
-#define DJINTERP_LESS_TEMPLATE_ 1
+#ifndef DJINTERP_TEXT_CSS_LESS_LESS_TEMPLATE_HPP
+#define DJINTERP_TEXT_CSS_LESS_LESS_TEMPLATE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -59,8 +75,11 @@ V.    FREE HELPERS / FACTORIES
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../css/css_template.hpp"
+#include "../../../../djinterp.hpp"  // framework root
+#include "../css_template.hpp"       // the CSS rule / stylesheet templates
+#include "./less.hpp"                // less_rule_kind, less_at_rule_kind,
+                                     // less_dialect, less_string_t, the
+                                     // default backend tag
 
 
 NS_DJINTERP
@@ -69,22 +88,22 @@ namespace less {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                I.   less_rule<_Backend>                                 ///
+///                I.   less_rule<Backend>                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // less_rule
-//   class: thin facade extending `css::css_rule<_Backend>`
+//   class: thin facade extending `css::css_rule<Backend>`
 // with Less-specific accessors. The Less kind discriminator is
 // derived from the underlying CSS rule kind plus inspection of
 // the property name (for variables) / selector shape (for
 // mixins) / at-keyword (for plugin and option directives) /
 // prelude content (for guards and imports).
-template<typename _Backend>
+template<typename Backend>
 class less_rule
-:   public ::djinterp::css::css_rule<_Backend>
+:   public ::djinterp::css::css_rule<Backend>
 {
 public:
-    using base_type = ::djinterp::css::css_rule<_Backend>;
+    using base_type = ::djinterp::css::css_rule<Backend>;
     using node_type = typename base_type::node_type;
 
 
@@ -654,22 +673,22 @@ namespace less {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III.   less_stylesheet<_Backend>                         ///
+///                III.   less_stylesheet<Backend>                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // less_stylesheet
 //   class: thin facade extending
-// `css::css_stylesheet<_Backend>` with Less-specific metadata
+// `css::css_stylesheet<Backend>` with Less-specific metadata
 // and emission. Adds NO data members beyond the CSS base.
-template<typename _Backend>
+template<typename Backend>
 class less_stylesheet
-:   public ::djinterp::css::css_stylesheet<_Backend>
+:   public ::djinterp::css::css_stylesheet<Backend>
 {
 public:
-    using base_type       = ::djinterp::css::css_stylesheet<_Backend>;
+    using base_type       = ::djinterp::css::css_stylesheet<Backend>;
     using stylesheet_type = typename base_type::stylesheet_type;
     using rule_node_type  = typename base_type::rule_node_type;
-    using rule_facade     = less_rule<_Backend>;
+    using rule_facade     = less_rule<Backend>;
 
 
     /// constructors
@@ -917,45 +936,45 @@ struct less_default_backend
 // make_less_stylesheet
 //   function: factory returning a freshly-built Less
 // stylesheet facade for the given backend.
-template<typename _Backend>
-inline less_stylesheet<_Backend>
+template<typename Backend>
+inline less_stylesheet<Backend>
 make_less_stylesheet()
 {
-    return less_stylesheet<_Backend>();
+    return less_stylesheet<Backend>();
 }
 
 
 // make_variable
 //   function: returns a new freestanding variable declaration.
-template<typename _Backend>
-inline less_rule<_Backend>
+template<typename Backend>
+inline less_rule<Backend>
 make_variable(
     const less_string_t&    _name,
     const less_string_t&    _value
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->rule_kind = ::djinterp::css::css_rule_kind::declaration_block;
     n->property  = ( (!_name.empty()) && (_name[0] == '@') )
         ? _name
         : less_string_t("@") + _name;
     n->value = _value;
-    return less_rule<_Backend>(n);
+    return less_rule<Backend>(n);
 }
 
 
 // make_mixin
 //   function: returns a new freestanding mixin definition.
-template<typename _Backend>
-inline less_rule<_Backend>
+template<typename Backend>
+inline less_rule<Backend>
 make_mixin(
     const less_string_t&    _selector,
     const less_string_t&    _parameters = less_string_t(),
     const less_string_t&    _guard      = less_string_t()
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->rule_kind = ::djinterp::css::css_rule_kind::style_rule;
     n->selector  = _selector;
@@ -968,40 +987,40 @@ make_mixin(
         n->selector += _guard;
         n->selector += ')';
     }
-    return less_rule<_Backend>(n);
+    return less_rule<Backend>(n);
 }
 
 
 // make_mixin_call
 //   function: returns a new freestanding mixin call statement.
-template<typename _Backend>
-inline less_rule<_Backend>
+template<typename Backend>
+inline less_rule<Backend>
 make_mixin_call(
     const less_string_t&    _selector,
     const less_string_t&    _arguments = less_string_t()
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->rule_kind = ::djinterp::css::css_rule_kind::style_rule;
     n->selector  = _selector;
     n->selector += '(';
     n->selector += _arguments;
     n->selector += ')';
-    return less_rule<_Backend>(n);
+    return less_rule<Backend>(n);
 }
 
 
 // make_import
 //   function: returns a new freestanding @import rule.
-template<typename _Backend>
-inline less_rule<_Backend>
+template<typename Backend>
+inline less_rule<Backend>
 make_import(
     const less_string_t&    _url,
     unsigned                _options = lio_none
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::import_;
     n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
@@ -1029,29 +1048,30 @@ make_import(
     pre.push_back('\'');
     pre += _url;
     pre.push_back('\'');
-    return less_rule<_Backend>(n);
+    return less_rule<Backend>(n);
 }
 
 
 // make_plugin
 //   function: returns a new freestanding @plugin rule.
-template<typename _Backend>
-inline less_rule<_Backend>
+template<typename Backend>
+inline less_rule<Backend>
 make_plugin(
     const less_string_t&    _url
 )
 {
-    using node_t = typename _Backend::rule_type;
+    using node_t = typename Backend::rule_type;
     node_t* n = new node_t;
     n->at_keyword = at_keywords::plugin;
     n->rule_kind  = ::djinterp::css::css_rule_kind::at_rule;
     n->prelude    = less_string_t("'") + _url + less_string_t("'");
-    return less_rule<_Backend>(n);
+    return less_rule<Backend>(n);
 }
 
 
 }   // namespace less
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_LESS_TEMPLATE_
+#endif  // DJINTERP_TEXT_CSS_LESS_LESS_TEMPLATE_HPP

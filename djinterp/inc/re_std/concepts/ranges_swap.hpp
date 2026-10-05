@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [concepts]                                             ranges_swap.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              ranges_swap.hpp
 *
+* ranges_swap swap specialization header:
 *   the re_std::ranges::swap customisation point object.
 *
 *   Despite living in namespace ranges, this CPO is specified in <concepts>
@@ -33,70 +34,68 @@
 *   If none applies the call is ill-formed, which is what makes swappable<T>
 * correctly report false rather than failing later inside a body.
 *
-*   NOTE - NO NS_RANGES MACRO EXISTS.
-*   djinterp.hpp defines NS_INTERNAL, NS_CONCEPTS and friends but not
-* NS_RANGES, so this file opens the namespace with the D_NAMESPACE primitive.
-* Adding NS_RANGES alongside the others would be the consistent fix.
-*
 *   COSTS NOTHING BELOW C++20.
 *   Every dependency include sits INSIDE the language gate, so on a pre-C++20
-* compiler this header pulls in djinterp.hpp to read the tier and then expands
+* compiler this header pulls in config.hpp to read the tier and then expands
 * to nothing at all - no transitive includes, no parse cost, and no way for a
 * dependency that is not C++98-clean to break a translation unit that never
 * wanted concepts in the first place.
 *
-*   ALSO NOTE - THESE ARE NOT IN re_std::concepts.
-*   djinterp has an NS_CONCEPTS macro, but it is for djinterp's own concept
-* layers over its trait surfaces.  std puts same_as, integral and the rest
-* directly in std, so re_std puts them directly in re_std - mirroring std is
-* the rule, and NS_CONCEPTS is deliberately not used by this module.
+*   NOTE - THESE ARE NOT IN re_std::concepts.
+*   std puts same_as, integral and the rest directly in std, so re_std puts
+* them directly in re_std - mirroring std is the rule.
 *
 *
-* path:      /inc/djinterp/re_std/concepts/ranges_swap.hpp
+* path:      /inc/re_std/concepts/ranges_swap.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CONCEPTS_RANGES_SWAP_
-#define DJINTERP_RE_STD_CONCEPTS_RANGES_SWAP_ 1
+#ifndef RE_STD_CONCEPTS_RANGES_SWAP_HPP
+#define RE_STD_CONCEPTS_RANGES_SWAP_HPP 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
 #include "./move_constructible.hpp"
 #include "./assignable_from.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
-D_NAMESPACE(ranges)      // no NS_RANGES macro in djinterp.hpp — see header note
+namespace ranges
+{
 
-NS_INTERNAL
-D_NAMESPACE(swap_cpo)
+namespace internal
+{
+namespace swap_cpo
+{
 
     // swap
     //   function: the poison pill.  Deleted, and deliberately visible to the
     // unqualified call below so that only an ADL-found swap can win.
-    template<typename _Type>
-    void swap(_Type&, _Type&) = delete;
+    template<typename Type>
+    void swap(Type&, Type&) = delete;
 
     // adl_swappable
     //   concept: an ADL-found swap exists for these operands.  The
     // class-or-enum guard reflects that ADL only has anywhere to look for
     // those; without it, unqualified lookup on a scalar would reach the
     // poison pill and hard-error instead of falling through.
-    template<typename _TypeA, typename _TypeB>
+    template<typename TypeA, typename TypeB>
     concept adl_swappable
-        =  (   is_class<typename remove_reference<_TypeA>::type>::value
-            || is_enum<typename remove_reference<_TypeA>::type>::value
-            || is_class<typename remove_reference<_TypeB>::type>::value
-            || is_enum<typename remove_reference<_TypeB>::type>::value)
-        && requires(_TypeA&& a, _TypeB&& b)
+        =  (   is_class<typename remove_reference<TypeA>::type>::value
+            || is_enum<typename remove_reference<TypeA>::type>::value
+            || is_class<typename remove_reference<TypeB>::type>::value
+            || is_enum<typename remove_reference<TypeB>::type>::value)
+        && requires(TypeA&& a, TypeB&& b)
            {
-               swap(static_cast<_TypeA&&>(a), static_cast<_TypeB&&>(b));
+               swap(static_cast<TypeA&&>(a), static_cast<TypeB&&>(b));
            };
 
     // fn
@@ -104,26 +103,32 @@ D_NAMESPACE(swap_cpo)
     struct fn
     {
         // (1) ADL-found swap
-        template<typename _TypeA, typename _TypeB>
-            requires adl_swappable<_TypeA, _TypeB>
-        D_CONSTEXPR void operator()(_TypeA&& a, _TypeB&& b) const
-            D_NOEXCEPT_IF(noexcept(swap(static_cast<_TypeA&&>(a),
-                                        static_cast<_TypeB&&>(b))))
+        template<typename TypeA, typename TypeB>
+            requires adl_swappable<TypeA, TypeB>
+        RE_STD_CONSTEXPR void operator()(TypeA&& a, TypeB&& b) const
+            RE_STD_NOEXCEPT_IF(noexcept(swap(static_cast<TypeA&&>(a),
+                                        static_cast<TypeB&&>(b))))
         {
-            swap(static_cast<_TypeA&&>(a), static_cast<_TypeB&&>(b));
+            swap(static_cast<TypeA&&>(a), static_cast<TypeB&&>(b));
             return;
         }
 
         // (2) two arrays of equal extent — swap element-wise, recursing so
         // that arrays of arrays work and so each element re-enters the CPO
-        template<typename _TypeA, typename _TypeB, size_t _Size>
-            requires (!adl_swappable<_TypeA (&)[_Size], _TypeB (&)[_Size]>)
-                  && requires(_TypeA& a, _TypeB& b) { fn()(a, b); }
-        D_CONSTEXPR void operator()(_TypeA (&a)[_Size],
-                                    _TypeB (&b)[_Size]) const
-            D_NOEXCEPT_IF(noexcept(fn()(*a, *b)))
+        //   fn is incomplete here, so the constraint and the noexcept
+        // operand name it only through a reference, as std's own ranges::swap
+        // does; constructing fn() would need a complete type.
+        template<typename TypeA, typename TypeB, size_t Size>
+            requires (!adl_swappable<TypeA (&)[Size], TypeB (&)[Size]>)
+                  && requires(const fn& self, TypeA& a, TypeB& b)
+                     {
+                         self(a, b);
+                     }
+        RE_STD_CONSTEXPR void operator()(TypeA (&a)[Size],
+                                    TypeB (&b)[Size]) const
+            RE_STD_NOEXCEPT_IF(noexcept(declval<const fn&>()(*a, *b)))
         {
-            for (size_t i = 0; i < _Size; ++i)
+            for (size_t i = 0; i < Size; ++i)
             {
                 fn()(a[i], b[i]);
             }
@@ -131,34 +136,34 @@ D_NAMESPACE(swap_cpo)
         }
 
         // (3) the three-move exchange fallback
-        template<typename _Type>
-            requires (!adl_swappable<_Type&, _Type&>)
-                  && move_constructible<_Type>
-                  && assignable_from<_Type&, _Type>
-        D_CONSTEXPR void operator()(_Type& a, _Type& b) const
-            D_NOEXCEPT_IF(   is_nothrow_move_constructible<_Type>::value
-                          && is_nothrow_move_assignable<_Type>::value)
+        template<typename Type>
+            requires (!adl_swappable<Type&, Type&>)
+                  && move_constructible<Type>
+                  && assignable_from<Type&, Type>
+        RE_STD_CONSTEXPR void operator()(Type& a, Type& b) const
+            RE_STD_NOEXCEPT_IF(   is_nothrow_move_constructible<Type>::value
+                          && is_nothrow_move_assignable<Type>::value)
         {
-            _Type tmp = static_cast<_Type&&>(a);
-            a         = static_cast<_Type&&>(b);
-            b         = static_cast<_Type&&>(tmp);
+            Type tmp = static_cast<Type&&>(a);
+            a         = static_cast<Type&&>(b);
+            b         = static_cast<Type&&>(tmp);
             return;
         }
     };
 
-NS_END  // swap_cpo
-NS_END  // internal
+}  // swap_cpo
+}  // internal
 
     // swap
-    //   object: the customisation point.  Declared in an inline namespace in
+    //   variable: the customisation point.  Declared in an inline namespace in
     // std so that a user cannot introduce a conflicting `swap` at namespace
     // scope; re_std keeps it a plain inline constexpr object, which has the
     // same practical effect here because the name is never re-opened.
-    D_INLINE_VAR D_CONSTEXPR internal::swap_cpo::fn swap = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::swap_cpo::fn swap = {};
 
-NS_END  // ranges
+}  // ranges
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_CONCEPTS_RANGES_SWAP_
+#endif  // RE_STD_CONCEPTS_RANGES_SWAP_HPP

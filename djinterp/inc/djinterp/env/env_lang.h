@@ -6,15 +6,15 @@
 * unified D_ENV_LANG_* interface (version constants, *_STANDARD / *_NAME,
 * USING_C / USING_CPP, and the IS_*_OR_HIGHER comparison helpers), the
 * D_DELETE helper, and core integral-type availability (long long).
-*   Requires cfg_env.h (for the D_CFG_ENV_* switches). This header is an
-* internal component of env.h and is #included by it; do not #include it
-* directly.
+*   It includes its own configuration, cfg_env_lang.h, and reads no other env
+* section, so it gives the same answers whether a unit includes it directly or
+* through env.h.
 *
 *
 * path:      /inc/djinterp/env/env_lang.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.09.30
 *******************************************************************************/
 
 /*
@@ -75,6 +75,9 @@ TABLE OF CONTENTS
 
 #ifndef DJINTERP_ENV_ENV_LANG_H
 #define DJINTERP_ENV_ENV_LANG_H 1
+
+// djinterp
+#include "../config/core/env/cfg_env_lang.h"  // D_CFG_ENV_LANG_ENABLED
 
 
 //==============================================================================
@@ -158,7 +161,7 @@ TABLE OF CONTENTS
 // when detection is disabled, from the D_ENV_DETECTED_* overrides.
 
 
-#if D_CFG_ENV_LANG_ENABLED
+#if D_CFG_IS_ON(D_CFG_ENV_LANG_ENABLED)
 
 // 2.1    Automatic detection
 //------------------------------------------------------------------------------
@@ -364,6 +367,15 @@ TABLE OF CONTENTS
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP23)
 #else
     #define D_ENV_LANG_USING_CPP 0
+
+    // with no C++ standard every C++ predicate is 0, so a C build can test
+    // one with #if without reading an undefined name
+    #define D_ENV_LANG_IS_CPP98_OR_HIGHER           0
+    #define D_ENV_LANG_IS_CPP11_OR_HIGHER           0
+    #define D_ENV_LANG_IS_CPP14_OR_HIGHER           0
+    #define D_ENV_LANG_IS_CPP17_OR_HIGHER           0
+    #define D_ENV_LANG_IS_CPP20_OR_HIGHER           0
+    #define D_ENV_LANG_IS_CPP23_OR_HIGHER           0
 #endif  // D_ENV_LANG_CPP_STANDARD
 
 // 3.2    C
@@ -456,8 +468,8 @@ TABLE OF CONTENTS
 // detected above (freestanding-safe, C and C++ alike). It lives in the sibling
 // header below, which depends only on the D_ENV_LANG_IS_* macros and the
 // intrinsic compiler predefines, so it is included here, at the end.
-// env_long_long.h is an internal component of this header; do not #include it
-// directly.
+// env_long_long.h includes this header in turn, so a unit that includes it
+// directly gets the same answer.
 
 // djinterp
 #include "./c/env_long_long.h"  // `long long` availability

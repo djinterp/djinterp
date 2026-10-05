@@ -1,66 +1,103 @@
-/******************************************************************************
-* djinterp [event]                                                     event.h
+/*******************************************************************************
+* djinterp [c]                                                           event.h
 *
-* 
+* The event subframework umbrella:
+*   One include for the whole module. Follows the shared-core convention set
+* by c/meta/type_info.h -- the umbrella pulls in the language-neutral
+* `_common` headers and then dispatches to the face for the language actually
+* compiling it. Nothing in this file declares a type or a function.
 *
-* file:      /inc/c/event/event.h                                   
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2023.06.26
-******************************************************************************/
+* LAYERING:
+*
+*   event.h                        this umbrella
+*     |
+*     +-- event_common.h           tier 0: alphabet, key, verdict, payload
+*     +-- event_handler_common.h   tier 0: the step and the seq/skip monoid
+*     +-- event_table_common.h     tier 0: the erased store, mask, merge
+*     +-- event_registry_common.h  tier 0: dispatch, run, the fused word
+*     +-- event_dispatcher_common.h tier 0: the queue and the facade
+*     |
+*     +-- event_c.h                tier 1a: C ergonomics (C builds)
+*     `-- event.hpp                tier 1b: the C++ face (C++ builds)
+*
+*   Tier 0 is ONE declaration of every layout, compiled by both languages and
+* asserted in both. Tier 1a adds macros; tier 1b adds templates, traits, and
+* concepts. Neither face declares a layout and neither reimplements an
+* algorithm: a face that did would be a second implementation of one formal
+* object, which is the failure this arrangement exists to prevent.
+*
+* WHAT MOVED, AND WHY IT MATTERS:
+*   The pre-core C and C++ event modules implemented DIFFERENT formal objects,
+* not one object in two notations. C bound at most one handler per event id
+* and its callback returned nothing; C++ bound an ordered word of handlers,
+* each returning a verdict, with a mask, a merge, and a staging operation. No
+* amount of wrapping reconciles those, so the core is the C++ object -- the
+* one the note defines -- lowered into C, and the C side gains the word, the
+* verdict, the merge, and the fused path it did not have.
+*
+*   event_c.h section VI carries the symbol-by-symbol migration map.
+*
+* PORTABLE ACROSS:
+*   C99, C11, C17, C23  /  C++11, C++14, C++17, C++20, C++23, C++26
+*
+*
+* path:      /inc/djinterp/c/event/event.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_C_EVENT_
-#define	DJINTERP_C_EVENT_ 1
+#ifndef DJINTERP_C_EVENT_EVENT_H
+#define DJINTERP_C_EVENT_EVENT_H 1
 
-#include <stdlib.h>
+// djinterp
+// ---- tier -2: the environment the configuration detects on ----
+//   These come FIRST, ahead of config, and the order is load-bearing.
+// cfg_event_common.h resolves two knobs by DETECTION -- the iteration tier
+// (probing dmacro's generated tables) and the C++ notation tier (probing the
+// env's concepts feature) -- and a detection that runs before the thing it
+// detects on has been loaded always reports "absent". That is the quiet kind
+// of wrong: the build still compiles, it just silently takes the fallback
+// tier. Every individual module header already loads its prerequisites ahead
+// of its own config; the umbrella has to do the same.
 #include "../djinterp.h"
-#include "../dmemory.h"
+#include "../dmacro.h"
+
+#ifdef __cplusplus
+    #include "../../djinterp.hpp"
+#endif  // __cplusplus
+
+// ---- tier -1: configuration, resolved before anything reads it ----
+//   The umbrella is the ONE place the umbrella config belongs. A layer that
+// needs one module's knobs includes that module's config; pulling this from
+// event_table_common.h would load the queue's defaults for a caller who never
+// included the queue, which is demand-loading running backwards.
+#include "../../config/core/event/cfg_event.h"
+
+// ---- tier 0: the shared core, in dependency order ----
+#include "./event_common.h"
+#include "./event_handler_common.h"
+#include "./event_table_common.h"
+#include "./event_registry_common.h"
+#include "./event_dispatcher_common.h"
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's floor
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
+
+// ---- tier 1: the face for the language compiling this header ----
+// From C++11, decision 3.6's floor for event; below it a C++ caller has the
+// C core.
+#if ( (D_ENV_LANG_USING_CPP) &&                                           \
+      (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
+    #include "../../core/event/event.hpp"
+#endif  // C++11 and up
 
 
-// D_EVENT_LISTENER_DEFAULT_SIZE
-//   predefined constant: the size of a `d_event_handler`
-#define D_EVENT_LISTENER_DEFAULT_SIZE	64
+#endif  // defined(INT64_MAX)
 
-// D_EVENT_ID_TYPE
-//   type: 
-#ifndef D_EVENT_ID_TYPE
-	#define D_EVENT_ID_TYPE int
-#endif	// D_EVENT_ID_TYPE
-
-// d_event_id
-//   type: a unique ID number used to distinguish between different events.
-typedef D_EVENT_ID_TYPE d_event_id;
-
-// d_event
-//   struct: type corresponding to an event that represents a change in state.
-struct d_event
-{
-	d_event_id id;
-	void*      args;
-	uint8_t    num_args;
-};
-
-// d_event_listener
-//   struct: an event listener tha
-struct d_event_listener
-{
-	d_event_id  id;
-	fn_callback fn;
-	bool        enabled;
-};
-
-
-struct d_event*          d_event_new(d_event_id _event_id);
-struct d_event*          d_event_new_args(d_event_id _event_id, void** const, size_t);
-struct d_event_listener* d_event_listener_new(d_event_id _event_id, fn_callback, bool);
-struct d_event_listener* d_event_listener_new_default(d_event_id _event_id, fn_callback);
-
-int                      d_event_compare(const struct d_event* _event1, const struct d_event* _event2);
-int                      d_event_compare_deep(const struct d_event* _event1, const struct d_event* _event2, fn_comparator _comparator);
-int                      d_event_listener_compare(const struct d_event_listener* _listener1, const struct d_event_listener* _listener2);
-ssize_t                  d_event_listener_find_index_of(const struct d_event_listener** _listeners, size_t _listeners_count, d_event_id _event_id, size_t* _num_occurrences);
-
-void                     d_event_free(struct d_event* _event);
-void                     d_event_listener_free(struct d_event_listener* _listener);
-
-
-#endif	// DJINTERP_C_EVENT_
+#endif  // DJINTERP_C_EVENT_EVENT_H

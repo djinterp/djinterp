@@ -1,5 +1,7 @@
-/******************************************************************************
-* djinterp                                                constexpr_iterator.hpp
+/*******************************************************************************
+* djinterp [core]                                         constexpr_iterator.hpp
+*
+* djinterp constexpr_iterator.hpp
 *
 * Compile-time iterator for constexpr containers.
 *   Provides constexpr_iterator<T>, a fully constexpr random-access
@@ -42,28 +44,44 @@
 * increment/decrement and arithmetic in-place mutators degrade
 * to non-constexpr.  C++14+ enables full constexpr usage.
 *
-* TABLE OF CONTENTS
-* =================
-* I.    constexpr_iterator
-* II.   constexpr_range
-* III.  Factory Functions
-* IV.   Compile-Time Algorithms
-*
 *
 * path:      /inc/djinterp/core/container/iterator/constexpr_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.23
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONSTEXPR_ITERATOR_
-#define DJINTERP_CONSTEXPR_ITERATOR_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    constexpr_iterator
+      ------------------
+
+II.   constexpr_range
+      ---------------
+
+III.  Factory Functions
+      -----------------
+
+IV.   Compile-Time Algorithms
+      -----------------------
+*/
+
+#ifndef DJINTERP_CONTAINER_ITERATOR_CONSTEXPR_ITERATOR_HPP
+#define DJINTERP_CONTAINER_ITERATOR_CONSTEXPR_ITERATOR_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
 // djinterp
-#include "../../../core/djinterp.hpp"
+#include "../../../djinterp.hpp"
 
 
 // ===========================================================================
@@ -86,20 +104,19 @@ NS_DJINTERP
 // ===========================================================================
 
 // constexpr_iterator
-//   class: a fully constexpr random-access iterator over
-// contiguous const storage.  All operations are constexpr,
-// enabling compile-time iteration and algorithms.
-//   The iterator is always immutable: dereference yields
-// const _Type&.  This mirrors const_iterator semantics but
-// in a constexpr-evaluable context.
-template<typename _Type>
+//   class: a fully constexpr random-access iterator over contiguous const
+// storage. All operations are constexpr, enabling compile-time iteration and
+// algorithms.
+//   The iterator is always immutable: dereference yields const Type&. This
+// mirrors const_iterator semantics but in a constexpr-evaluable context.
+template<typename Type>
 class constexpr_iterator
 {
 public:
-    using value_type      = _Type;
+    using value_type      = Type;
     using difference_type = std::ptrdiff_t;
-    using pointer         = const _Type*;
-    using reference       = const _Type&;
+    using pointer         = const Type*;
+    using reference       = const Type&;
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     using iterator_category = std::contiguous_iterator_tag;
@@ -117,7 +134,7 @@ public:
 
     D_CONSTEXPR explicit
     constexpr_iterator(
-        const _Type* _ptr
+        const Type* _ptr
     ) D_NOEXCEPT
         : m_ptr(_ptr)
     {}
@@ -296,14 +313,14 @@ public:
 
     // --- raw pointer access ---
 
-    D_CONSTEXPR const _Type*
+    D_CONSTEXPR const Type*
     base() const D_NOEXCEPT
     {
         return m_ptr;
     }
 
 private:
-    const _Type* m_ptr;
+    const Type* m_ptr;
 };
 
 
@@ -312,22 +329,21 @@ private:
 // ===========================================================================
 
 // constexpr_range
-//   class: a compile-time range adapter over contiguous
-// const storage.  Provides constexpr_iterator-based
-// iteration, indexed access, and size queries.
-template<typename _Type>
+//   class: a compile-time range adapter over contiguous const storage.
+// Provides constexpr_iterator-based iteration, indexed access, and size
+// queries.
+template<typename Type>
 class constexpr_range
 {
 public:
-    using value_type     = _Type;
+    using value_type     = Type;
     using size_type      = std::size_t;
-    using iterator       = constexpr_iterator<_Type>;
-    using const_iterator = constexpr_iterator<_Type>;
+    using iterator       = constexpr_iterator<Type>;
+    using const_iterator = constexpr_iterator<Type>;
 
-    // the constexpr_iterator type itself, exposed as a
-    // member alias to participate in
-    // has_constexpr_iterator_alias detection.
-    using constexpr_iterator_type = constexpr_iterator<_Type>;
+    // the constexpr_iterator type itself, exposed as a member alias to
+    // participate in has_constexpr_iterator_alias detection.
+    using constexpr_iterator_type = constexpr_iterator<Type>;
 
     // --- construction ---
 
@@ -339,19 +355,18 @@ public:
 
     D_CONSTEXPR
     constexpr_range(
-        const _Type* _data,
+        const Type* _data,
         size_type    _count
     ) D_NOEXCEPT
         : m_data(_data),
           m_size(_count)
     {}
 
-    // construct from any contiguous container with data()
-    // and size().
-    template<typename _Container>
+    // construct from any contiguous container with data() and size().
+    template<typename Container>
     D_CONSTEXPR
     constexpr_range(
-        const _Container& _c
+        const Container& _c
     ) D_NOEXCEPT
         : m_data(_c.data()),
           m_size(_c.size())
@@ -385,7 +400,7 @@ public:
 
     // --- access ---
 
-    D_CONSTEXPR const _Type&
+    D_CONSTEXPR const Type&
     operator[](
         size_type _index
     ) const D_NOEXCEPT
@@ -393,7 +408,7 @@ public:
         return m_data[_index];
     }
 
-    D_CONSTEXPR const _Type&
+    D_CONSTEXPR const Type&
     front() const D_NOEXCEPT
     {
         return m_data[0];
@@ -401,13 +416,13 @@ public:
 
     // back
     //   returns a const reference to the last element.
-    D_CONSTEXPR const _Type&
+    D_CONSTEXPR const Type&
     back() const D_NOEXCEPT
     {
         return m_data[m_size - 1];
     }
 
-    D_CONSTEXPR const _Type*
+    D_CONSTEXPR const Type*
     data() const D_NOEXCEPT
     {
         return m_data;
@@ -428,7 +443,7 @@ public:
     }
 
 private:
-    const _Type* m_data;
+    const Type* m_data;
     size_type    m_size;
 };
 
@@ -438,43 +453,41 @@ private:
 // ===========================================================================
 
 // make_constexpr_range
-//   function: constructs a constexpr_range from a pointer
-// and count.
-template<typename _Type>
-D_CONSTEXPR constexpr_range<_Type>
+//   function: constructs a constexpr_range from a pointer and count.
+template<typename Type>
+D_CONSTEXPR constexpr_range<Type>
 make_constexpr_range(
-    const _Type* _data,
+    const Type* _data,
     std::size_t  _count
 ) D_NOEXCEPT
 {
-    return constexpr_range<_Type>(_data, _count);
+    return constexpr_range<Type>(_data, _count);
 }
 
 // make_constexpr_range (container)
-//   function: constructs a constexpr_range from any
-// contiguous container with data() and size().
-template<typename _Container>
-D_CONSTEXPR constexpr_range<typename _Container::value_type>
+//   function: constructs a constexpr_range from any contiguous container with
+// data() and size().
+template<typename Container>
+D_CONSTEXPR constexpr_range<typename Container::value_type>
 make_constexpr_range(
-    const _Container& _c
+    const Container& _c
 ) D_NOEXCEPT
 {
-    return constexpr_range<typename _Container::value_type>(
+    return constexpr_range<typename Container::value_type>(
         _c.data(),
         _c.size());
 }
 
 // make_constexpr_range (C array)
-//   function: constructs a constexpr_range from a C
-// array.
-template<typename    _Type,
-         std::size_t _N>
-D_CONSTEXPR constexpr_range<_Type>
+//   function: constructs a constexpr_range from a C array.
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR constexpr_range<Type>
 make_constexpr_range(
-    const _Type (&_arr)[_N]
+    const Type (&_arr)[N]
 ) D_NOEXCEPT
 {
-    return constexpr_range<_Type>(_arr, _N);
+    return constexpr_range<Type>(_arr, N);
 }
 
 
@@ -485,15 +498,15 @@ make_constexpr_range(
 // constexpr_range or any constexpr_iterator pair.
 
 // constexpr_find
-//   function: returns the first iterator where *it == _val,
-// or _end if not found.
-template<typename _Iterator,
-         typename _Value>
-D_INTERNAL_CXIT_CONSTEXPR _Iterator
+//   function: returns the first iterator where *it == _val, or _end if not
+// found.
+template<typename Iterator,
+         typename Value>
+D_INTERNAL_CXIT_CONSTEXPR Iterator
 constexpr_find(
-    _Iterator     _begin,
-    _Iterator     _end,
-    const _Value& _val
+    Iterator      _begin,
+    Iterator      _end,
+    const Value& _val
 )
 {
     for (; _begin != _end; ++_begin)
@@ -509,15 +522,15 @@ constexpr_find(
 }
 
 // constexpr_find_if
-//   function: returns the first iterator where _predicate(*it)
-// is true, or _end if not found.
-template<typename _Iterator,
-         typename _Predicate>
-D_INTERNAL_CXIT_CONSTEXPR _Iterator
+//   function: returns the first iterator where _predicate(*it) is true, or
+// _end if not found.
+template<typename Iterator,
+         typename Predicate>
+D_INTERNAL_CXIT_CONSTEXPR Iterator
 constexpr_find_if(
-    _Iterator  _begin,
-    _Iterator  _end,
-    _Predicate _predicate
+    Iterator   _begin,
+    Iterator   _end,
+    Predicate _predicate
 )
 {
     for (; _begin != _end; ++_begin)
@@ -534,13 +547,13 @@ constexpr_find_if(
 
 // constexpr_count
 //   function: counts elements equal to _val.
-template<typename _Iterator,
-         typename _Value>
+template<typename Iterator,
+         typename Value>
 D_INTERNAL_CXIT_CONSTEXPR std::size_t
 constexpr_count(
-    _Iterator     _begin,
-    _Iterator     _end,
-    const _Value& _val
+    Iterator      _begin,
+    Iterator      _end,
+    const Value& _val
 )
 {
     std::size_t n = 0;
@@ -559,13 +572,13 @@ constexpr_count(
 
 // constexpr_count_if
 //   function: counts elements satisfying _predicate.
-template<typename _Iterator,
-         typename _Predicate>
+template<typename Iterator,
+         typename Predicate>
 D_INTERNAL_CXIT_CONSTEXPR std::size_t
 constexpr_count_if(
-    _Iterator  _begin,
-    _Iterator  _end,
-    _Predicate _predicate
+    Iterator   _begin,
+    Iterator   _end,
+    Predicate _predicate
 )
 {
     std::size_t n = 0;
@@ -584,13 +597,13 @@ constexpr_count_if(
 
 // constexpr_all_of
 //   function: true if _predicate(*it) holds for every element.
-template<typename _Iterator,
-         typename _Predicate>
+template<typename Iterator,
+         typename Predicate>
 D_INTERNAL_CXIT_CONSTEXPR bool
 constexpr_all_of(
-    _Iterator  _begin,
-    _Iterator  _end,
-    _Predicate _predicate
+    Iterator   _begin,
+    Iterator   _end,
+    Predicate _predicate
 )
 {
     for (; _begin != _end; ++_begin)
@@ -606,15 +619,14 @@ constexpr_all_of(
 }
 
 // constexpr_any_of
-//   function: true if _predicate(*it) holds for at least one
-// element.
-template<typename _Iterator,
-         typename _Predicate>
+//   function: true if _predicate(*it) holds for at least one element.
+template<typename Iterator,
+         typename Predicate>
 D_INTERNAL_CXIT_CONSTEXPR bool
 constexpr_any_of(
-    _Iterator  _begin,
-    _Iterator  _end,
-    _Predicate _predicate
+    Iterator   _begin,
+    Iterator   _end,
+    Predicate _predicate
 )
 {
     for (; _begin != _end; ++_begin)
@@ -630,32 +642,30 @@ constexpr_any_of(
 }
 
 // constexpr_none_of
-//   function: true if _predicate(*it) is false for every
-// element.
-template<typename _Iterator,
-         typename _Predicate>
+//   function: true if _predicate(*it) is false for every element.
+template<typename Iterator,
+         typename Predicate>
 D_INTERNAL_CXIT_CONSTEXPR bool
 constexpr_none_of(
-    _Iterator  _begin,
-    _Iterator  _end,
-    _Predicate _predicate
+    Iterator   _begin,
+    Iterator   _end,
+    Predicate _predicate
 )
 {
     return !constexpr_any_of(_begin, _end, _predicate);
 }
 
 // constexpr_fold
-//   function: left fold over [_begin, _end) with an initial
-// accumulator value.
-template<typename _Iterator,
-         typename _Acc,
-         typename _Fn>
-D_INTERNAL_CXIT_CONSTEXPR _Acc
+//   function: left fold over [_begin, _end) with an initial accumulator value.
+template<typename Iterator,
+         typename Acc,
+         typename Fn>
+D_INTERNAL_CXIT_CONSTEXPR Acc
 constexpr_fold(
-    _Iterator _begin,
-    _Iterator _end,
-    _Acc      _init,
-    _Fn       _fn
+    Iterator _begin,
+    Iterator _end,
+    Acc       _init,
+    Fn        _fn
 )
 {
     for (; _begin != _end; ++_begin)
@@ -667,15 +677,14 @@ constexpr_fold(
 }
 
 // constexpr_accumulate
-//   function: sums elements over [_begin, _end) starting from
-// _init.
-template<typename _Iterator,
-         typename _Value>
-D_INTERNAL_CXIT_CONSTEXPR _Value
+//   function: sums elements over [_begin, _end) starting from _init.
+template<typename Iterator,
+         typename Value>
+D_INTERNAL_CXIT_CONSTEXPR Value
 constexpr_accumulate(
-    _Iterator _begin,
-    _Iterator _end,
-    _Value    _init
+    Iterator _begin,
+    Iterator _end,
+    Value     _init
 )
 {
     for (; _begin != _end; ++_begin)
@@ -687,13 +696,13 @@ constexpr_accumulate(
 }
 
 // constexpr_min_element
-//   function: returns iterator to the smallest element, or
-// _end if the range is empty.
-template<typename _Iterator>
-D_INTERNAL_CXIT_CONSTEXPR _Iterator
+//   function: returns iterator to the smallest element, or _end if the range
+// is empty.
+template<typename Iterator>
+D_INTERNAL_CXIT_CONSTEXPR Iterator
 constexpr_min_element(
-    _Iterator _begin,
-    _Iterator _end
+    Iterator _begin,
+    Iterator _end
 )
 {
     // empty range guard
@@ -702,7 +711,7 @@ constexpr_min_element(
         return _end;
     }
 
-    _Iterator result = _begin;
+    Iterator result = _begin;
     ++_begin;
 
     for (; _begin != _end; ++_begin)
@@ -718,13 +727,13 @@ constexpr_min_element(
 }
 
 // constexpr_max_element
-//   function: returns iterator to the largest element, or
-// _end if the range is empty.
-template<typename _Iterator>
-D_INTERNAL_CXIT_CONSTEXPR _Iterator
+//   function: returns iterator to the largest element, or _end if the range is
+// empty.
+template<typename Iterator>
+D_INTERNAL_CXIT_CONSTEXPR Iterator
 constexpr_max_element(
-    _Iterator _begin,
-    _Iterator _end
+    Iterator _begin,
+    Iterator _end
 )
 {
     // empty range guard
@@ -733,7 +742,7 @@ constexpr_max_element(
         return _end;
     }
 
-    _Iterator result = _begin;
+    Iterator result = _begin;
     ++_begin;
 
     for (; _begin != _end; ++_begin)
@@ -749,16 +758,15 @@ constexpr_max_element(
 }
 
 // constexpr_equal
-//   function: true if ranges [_a_begin, _a_end) and
-// [_b_begin, ...) are element-wise equal.  The second range
-// is presumed to be at least as long.
-template<typename _IterA,
-         typename _IterB>
+//   function: true if ranges [_a_begin, _a_end) and [_b_begin, ...) are
+// element-wise equal. The second range is presumed to be at least as long.
+template<typename IterA,
+         typename IterB>
 D_INTERNAL_CXIT_CONSTEXPR bool
 constexpr_equal(
-    _IterA _a_begin,
-    _IterA _a_end,
-    _IterB _b_begin
+    IterA _a_begin,
+    IterA _a_end,
+    IterB _b_begin
 )
 {
     for (; _a_begin != _a_end; ++_a_begin, ++_b_begin)
@@ -779,5 +787,6 @@ NS_END  // djinterp
 
 #undef D_INTERNAL_CXIT_CONSTEXPR
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONSTEXPR_ITERATOR_
+#endif  // DJINTERP_CONTAINER_ITERATOR_CONSTEXPR_ITERATOR_HPP

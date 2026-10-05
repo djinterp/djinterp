@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                         calculus/series.hpp
+/*******************************************************************************
+* djinterp [math]                                                     series.hpp
 *
 * Series and summation.
 *   Finite summation of a callable, partial sums over any sequence, the usual
@@ -14,16 +14,19 @@
 *   taylor_eval<N>(e, c, x)      - degree-N Taylor approx of e about c, at x
 *   maclaurin_eval<N>(e, x)      - taylor_eval<N>(e, 0, x)
 *
+*
 * path:      /inc/djinterp/math/calculus/series.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.06.20
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CALCULUS_SERIES_
-#define DJINTERP_MATH_CALCULUS_SERIES_ 1
+#ifndef DJINTERP_MATH_CALCULUS_SERIES_HPP
+#define DJINTERP_MATH_CALCULUS_SERIES_HPP 1
 
+// std
 #include <cstddef>
-
+// djinterp
 #include "../../djinterp.hpp"
 #include "./sequence.hpp"
 #include "./differentiation.hpp"
@@ -164,4 +167,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_CALCULUS_SERIES_
+#endif  // DJINTERP_MATH_CALCULUS_SERIES_HPP

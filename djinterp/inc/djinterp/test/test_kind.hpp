@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                                test_kind.hpp
+/*******************************************************************************
+* djinterp [test]                                                  test_kind.hpp
 *
 *   The test_kind module: the kind record, the kind-set wrapper, and
 * the resolved-query free functions that tie them together.  Storage
@@ -20,7 +20,7 @@
 * container holds whatever represents kinds - test_kind records,
 * integral ids, string tags, enum values - and all set work (lookup,
 * insertion, erasure, iteration) is delegated to it.  test_kind_set
-* stores no kind data of its own.  The previous test_type<_Container>
+* stores no kind data of its own.  The previous test_type<Container>
 * registry is retired; this wrapper plus the record above replace it.
 *
 *   RESOLVED QUERIES:
@@ -28,7 +28,7 @@
 * registry performed as member functions is provided as free
 * functions over a kind set:
 *     - find_kind(kinds, id)         -> const test_kind*
-*     - rank_of(kinds, id)           -> std::uint16_t
+*     - rank_of(kinds, id)           -> re_std::uint16_t
 *     - is_leaf(kinds, id)           -> bool
 *     - is_interior(kinds, id)       -> bool
 *     - name_of(kinds, id)           -> const char*
@@ -52,7 +52,7 @@
 * test_defaults.hpp for the framework's default kind set.
 *
 *   CONSTRAINTS:
-*   test_kind_set's _SetContainer must be structurally classified as
+*   test_kind_set's SetContainer must be structurally classified as
 * a set-like container by set_traits.hpp.  Under C++20 this is
 * enforced through a concept; under earlier standards through
 * static_assert.
@@ -62,34 +62,54 @@
 * falls back to static_assert.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    TEST KIND RECORD
-* II.   FACTORY FUNCTION
-* III.  TEST KIND SET
-* IV.   RESOLVED QUERIES (FREE FUNCTIONS)
-* V.    STRUCTURAL DETECTION
-*
-*
 * path:      /inc/djinterp/test/test_kind.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.14
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.14
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_KIND_
-#define DJINTERP_TEST_KIND_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    TEST KIND RECORD
+      ----------------
+
+II.   FACTORY FUNCTION
+      ----------------
+
+III.  TEST KIND SET
+      -------------
+
+IV.   RESOLVED QUERIES (FREE FUNCTIONS)
+      ---------------------------------
+
+V.    STRUCTURAL DETECTION
+      --------------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_KIND_HPP
+#define DJINTERP_TEST_TEST_KIND_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but math/interval/closed_interval.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
+#include "../core/meta/type_utility.hpp"  // void_t, clean_t
 #include "../core/meta/type_traits.hpp"
 #include "../core/container/set/set.hpp"
 #include "./test_common.hpp"
 #include "./test_options.hpp"
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t
 
 
 NS_DJINTERP
@@ -123,7 +143,7 @@ struct test_kind
 {
     test_type_id           id;
     const char*            name;
-    std::uint16_t          rank;
+    re_std::uint16_t          rank;
     bool                   is_leaf;
     const test_option_set* default_options;
 };
@@ -141,7 +161,7 @@ D_CONSTEXPR_INLINE test_kind
 make_test_kind(
     test_type_id           _id,
     const char*            _name,
-    std::uint16_t          _rank,
+    re_std::uint16_t          _rank,
     bool                   _is_leaf,
     const test_option_set* _default_options = nullptr
 ) D_NOEXCEPT
@@ -162,14 +182,14 @@ make_test_kind(
 // underlying container.
 //
 //   Template parameters:
-//   _SetContainer - any set-classified container (std::set,
+//   SetContainer - any set-classified container (std::set,
 //                   djinterp::container::set, unordered variants,
 //                   flat sets, etc.).  Must expose key_type,
 //                   value_type, size_type, iterator, begin/end,
 //                   and a structural set operation surface.
 //
 // Usage:
-//   using kind_id_set = djinterp::container::set<std::int32_t>;
+//   using kind_id_set = djinterp::container::set<re_std::int32_t>;
 //   test_kind_set<kind_id_set> kinds;
 //
 //   kinds.insert(D_TEST_KIND_ASSERT);
@@ -177,34 +197,34 @@ make_test_kind(
 
 NS_INTERNAL
     // has_set_contains
-    //   trait: ::type is std::true_type when _Container exposes a
+    //   trait: ::type is std::true_type when Container exposes a
     // contains(key_type) member (native-contains dispatch), else
     // std::false_type (the find()-fallback dispatch is selected).
-    template<typename _Container,
+    template<typename Container,
              typename = void>
     struct has_set_contains : std::false_type
     {};
 
-    template<typename _Container>
-    struct has_set_contains<_Container, void_t<
-        decltype(std::declval<const _Container&>().contains(
-            std::declval<const typename _Container::key_type&>()))
+    template<typename Container>
+    struct has_set_contains<Container, void_t<
+        decltype(std::declval<const Container&>().contains(
+            std::declval<const typename Container::key_type&>()))
     >> : std::true_type
     {};
 NS_END  // internal
 
-template<typename _SetContainer>
+template<typename SetContainer>
 class test_kind_set
 {
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
     static_assert(
-        ::djinterp::SetLike<_SetContainer>,
-        "`_SetContainer` must satisfy the set-like container "
+        ::djinterp::SetLike<SetContainer>,
+        "`SetContainer` must satisfy the set-like container "
         "protocol (set_traits.hpp / set_concepts.hpp).");
 #else
     static_assert(
-        ::djinterp::is_set_like<_SetContainer>::value,
-        "`_SetContainer` must satisfy the set-like container "
+        ::djinterp::is_set_like<SetContainer>::value,
+        "`SetContainer` must satisfy the set-like container "
         "protocol (set_traits.hpp).");
 #endif
 
@@ -213,12 +233,12 @@ public:
     //  type aliases (forwarded from the underlying container)
     // -----------------------------------------------------------------
 
-    using container_type   = _SetContainer;
-    using key_type         = typename _SetContainer::key_type;
-    using value_type       = typename _SetContainer::value_type;
-    using size_type        = typename _SetContainer::size_type;
-    using iterator         = typename _SetContainer::iterator;
-    using const_iterator   = typename _SetContainer::const_iterator;
+    using container_type   = SetContainer;
+    using key_type         = typename SetContainer::key_type;
+    using value_type       = typename SetContainer::value_type;
+    using size_type        = typename SetContainer::size_type;
+    using iterator         = typename SetContainer::iterator;
+    using const_iterator   = typename SetContainer::const_iterator;
 
 
     // -----------------------------------------------------------------
@@ -409,7 +429,7 @@ private:
 ///                IV.  RESOLVED QUERIES (FREE FUNCTIONS)                   ///
 ///////////////////////////////////////////////////////////////////////////////
 //
-//   These resolve a test_type_id against a kind set.  _Kinds is any
+//   These resolve a test_type_id against a kind set.  Kinds is any
 // range of test_kind records exposing const_iterator and begin() /
 // end() (a test_kind_set, a std::vector<test_kind>, etc.); lookup is
 // a linear scan by id - the discipline the retired registry used,
@@ -418,15 +438,15 @@ private:
 // find_kind
 //   returns a pointer to the test_kind whose id is _id within
 // _kinds, or nullptr if none is registered.
-template<typename _Kinds>
+template<typename Kinds>
 const test_kind*
 find_kind(
-    const _Kinds& _kinds,
+    const Kinds& _kinds,
     test_type_id  _id
 )
 {
-    typename _Kinds::const_iterator it  = _kinds.begin();
-    typename _Kinds::const_iterator end = _kinds.end();
+    typename Kinds::const_iterator it  = _kinds.begin();
+    typename Kinds::const_iterator end = _kinds.end();
 
     for (; it != end; ++it)
     {
@@ -443,10 +463,10 @@ find_kind(
 //   returns the rank for _id.  If registered, the matched kind's
 // rank; otherwise the raw id cast to uint16_t (the fallback when no
 // kind set resolves the id).
-template<typename _Kinds>
-std::uint16_t
+template<typename Kinds>
+re_std::uint16_t
 rank_of(
-    const _Kinds& _kinds,
+    const Kinds& _kinds,
     test_type_id  _id
 )
 {
@@ -457,16 +477,16 @@ rank_of(
         return k->rank;
     }
 
-    return static_cast<std::uint16_t>(_id);
+    return static_cast<re_std::uint16_t>(_id);
 }
 
 // is_leaf
 //   returns true if _id maps to a leaf kind.  Unregistered ids
 // default to leaf.
-template<typename _Kinds>
+template<typename Kinds>
 bool
 is_leaf(
-    const _Kinds& _kinds,
+    const Kinds& _kinds,
     test_type_id  _id
 )
 {
@@ -482,10 +502,10 @@ is_leaf(
 
 // is_interior
 //   complement of is_leaf.
-template<typename _Kinds>
+template<typename Kinds>
 bool
 is_interior(
-    const _Kinds& _kinds,
+    const Kinds& _kinds,
     test_type_id  _id
 )
 {
@@ -494,10 +514,10 @@ is_interior(
 
 // name_of
 //   returns the name for _id, or nullptr if unregistered.
-template<typename _Kinds>
+template<typename Kinds>
 const char*
 name_of(
-    const _Kinds& _kinds,
+    const Kinds& _kinds,
     test_type_id  _id
 )
 {
@@ -514,10 +534,10 @@ name_of(
 // default_options
 //   returns the default options pointer for _id, or nullptr if
 // unregistered or the kind has no defaults.
-template<typename _Kinds>
+template<typename Kinds>
 const test_option_set*
 default_options(
-    const _Kinds& _kinds,
+    const Kinds& _kinds,
     test_type_id  _id
 )
 {
@@ -536,10 +556,10 @@ default_options(
 // child of an object of kind _parent_id.  The rule is rank
 // monotonicity: child rank <= parent rank, both resolved through the
 // kind set (unmatched ids fall back to the raw id as rank).
-template<typename _Kinds>
+template<typename Kinds>
 bool
 can_be_child_of(
-    const _Kinds& _kinds,
+    const Kinds& _kinds,
     test_type_id  _child_id,
     test_type_id  _parent_id
 )
@@ -557,33 +577,35 @@ NS_INTERNAL
     // is_test_kind_set_instantiation
     //   trait: detects whether a type is an instantiation of
     // the test_kind_set class template.
-    template<typename _Type>
+    template<typename Type>
     struct is_test_kind_set_instantiation : std::false_type
     {};
 
-    template<typename _SetContainer>
-    struct is_test_kind_set_instantiation<test_kind_set<_SetContainer>>
+    template<typename SetContainer>
+    struct is_test_kind_set_instantiation<test_kind_set<SetContainer>>
         : std::true_type
     {};
 
 NS_END  // internal
 
 // is_test_kind_set
-//   trait: true if _Type is an instantiation of test_kind_set.
-template<typename _Type>
+//   trait: true if Type is an instantiation of test_kind_set.
+template<typename Type>
 struct is_test_kind_set
-    : internal::is_test_kind_set_instantiation<clean_t<_Type>>
+    : internal::is_test_kind_set_instantiation<clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_test_kind_set_v =
-        is_test_kind_set<_Type>::value;
+        is_test_kind_set<Type>::value;
 #endif
 
 
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_KIND_
+
+#endif  // DJINTERP_TEST_TEST_KIND_HPP

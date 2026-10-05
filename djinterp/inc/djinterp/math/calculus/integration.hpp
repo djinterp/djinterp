@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                    calculus/integration.hpp
+/*******************************************************************************
+* djinterp [math]                                                integration.hpp
 *
 * Numerical definite integration.
 *   Quadrature rules over [a, b] for an arbitrary callable f. Each rule is a
@@ -13,19 +13,22 @@
 *   romberg<Levels>(f, a, b)  - Romberg / Richardson extrapolation
 *   integrate(expr, a, b, n)  - Simpson over a univariate expression (arg 0)
 *
+*
 * path:      /inc/djinterp/math/calculus/integration.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.06.20
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CALCULUS_INTEGRATION_
-#define DJINTERP_MATH_CALCULUS_INTEGRATION_ 1
+#ifndef DJINTERP_MATH_CALCULUS_INTEGRATION_HPP
+#define DJINTERP_MATH_CALCULUS_INTEGRATION_HPP 1
 
-#include <cstddef>
+// std
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <type_traits>
-
+// djinterp
 #include "../../djinterp.hpp"
 #include "../expression.hpp"
 
@@ -190,4 +193,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_CALCULUS_INTEGRATION_
+#endif  // DJINTERP_MATH_CALCULUS_INTEGRATION_HPP

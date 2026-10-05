@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [config][db]                                   env_mongodb_config.h
+/*******************************************************************************
+* djinterp [config][db]                                     env_mongodb_config.h
 *
 * Per-module configuration for env_mongodb.h. Owns all D_CFG_ENV_MONGODB_*
 * defaults plus D_CFG_ENV_MONGO_CUSTOM and the pre-defined-detection

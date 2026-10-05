@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [re_std]                                              enable_if.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                enable_if.hpp
 *
 * enable_if trait header:
-*   Defines member typedef `type` as `_Type` when `_Condition` is true.
-* When `_Condition` is false, the primary template has no `type` member,
+*   Defines member typedef `type` as `Type` when `Condition` is true.
+* When `Condition` is false, the primary template has no `type` member,
 * causing substitution failure (SFINAE).
 *
 *   USAGE:
@@ -18,19 +18,21 @@
 *     foo(_T _v);
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/enable_if.hpp
+* path:      /inc/re_std/type_traits/enable_if.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ENABLE_IF_
-#define DJINTERP_RE_STD_TYPE_TRAITS_ENABLE_IF_ 1
+#ifndef RE_STD_TYPE_TRAITS_ENABLE_IF_HPP
+#define RE_STD_TYPE_TRAITS_ENABLE_IF_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -39,19 +41,19 @@ NS_RESTD
 
 // enable_if
 //   trait: SFINAE primitive. Has member typedef `type` only when
-// `_Condition` is true.
-template<bool     _Condition,
-         typename _Type = void>
+// `Condition` is true.
+template<bool     Condition,
+         typename Type = void>
 struct enable_if
 {};
 
-// enable_if<true, _Type>
+// enable_if<true, Type>
 //   trait: specialization for the true case; provides member typedef
-// `type` as `_Type`.
-template<typename _Type>
-struct enable_if<true, _Type>
+// `type` as `Type`.
+template<typename Type>
+struct enable_if<true, Type>
 {
-    typedef _Type type;
+    typedef Type type;
 };
 
 
@@ -59,18 +61,18 @@ struct enable_if<true, _Type>
 // II.  ENABLE_IF_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // enable_if_t
-    //   alias: convenience alias for enable_if<_Condition, _Type>::type.
-    template<bool     _Condition,
-             typename _Type = void>
-    using enable_if_t = typename enable_if<_Condition, _Type>::type;
+    //   alias: convenience alias for enable_if<Condition, Type>::type.
+    template<bool     Condition,
+             typename Type = void>
+    using enable_if_t = typename enable_if<Condition, Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ENABLE_IF_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_ENABLE_IF_HPP

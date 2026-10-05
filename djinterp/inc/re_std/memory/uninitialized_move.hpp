@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                               uninitialized_move.hpp
+/*******************************************************************************
+* djinterp [re_std]                                       uninitialized_move.hpp
 *
 * move elements from [_first, _last) into uninitialised storage at
 * _d_first, constructing each destination via move-construction:
@@ -15,19 +15,22 @@
 * required).
 *
 *
-* path:      /inc/djinterp/re_std/memory/uninitialized_move.hpp
+* path:      /inc/re_std/memory/uninitialized_move.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_UNINITIALIZED_MOVE_
-#define DJINTERP_RE_STD_MEMORY_UNINITIALIZED_MOVE_ 1
+#ifndef RE_STD_MEMORY_UNINITIALIZED_MOVE_HPP
+#define RE_STD_MEMORY_UNINITIALIZED_MOVE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER && D_ENV_CPP98_HAS_NEW
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER && RE_STD_HAS_HEADER_NEW
 
+    // std
     #include <new>
 
     #include "re_std/memory/addressof.hpp"
@@ -39,19 +42,19 @@
 namespace re_std
 {
 
-template<typename _InputIt, typename _ForwardIt>
-_ForwardIt uninitialized_move
+template<typename InputIt, typename ForwardIt>
+ForwardIt uninitialized_move
 (
-    _InputIt    _first,
-    _InputIt    _last,
-    _ForwardIt  _d_first
+    InputIt    _first,
+    InputIt    _last,
+    ForwardIt  _d_first
 )
 {
-    typedef typename internal::iter_value<_ForwardIt>::type _T;
+    typedef typename internal::iter_value<ForwardIt>::type _T;
 
-    _ForwardIt _current = _d_first;
+    ForwardIt _current = _d_first;
 
-    #if D_ENV_CPP98_HAS_EXCEPTION
+    #if RE_STD_HAS_EXCEPTIONS
         try
         {
             for (; _first != _last; ++_first, (void)++_current)
@@ -80,8 +83,7 @@ _ForwardIt uninitialized_move
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER && RE_STD_HAS_HEADER_NEW
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER && D_ENV_CPP98_HAS_NEW
-
-#endif  // DJINTERP_RE_STD_MEMORY_UNINITIALIZED_MOVE_
+#endif  // RE_STD_MEMORY_UNINITIALIZED_MOVE_HPP

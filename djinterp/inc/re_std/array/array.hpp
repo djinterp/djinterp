@@ -1,9 +1,10 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                    array.hpp
 *
+* array class header:
 *   Fixed-size, contiguous, aggregate sequence container — re_std's
 * portable reimplementation of std::array<T, N>. Wraps a C-style array
-* of _Size elements of type _Type and exposes the standard container
+* of Size elements of type Type and exposes the standard container
 * interface (iterators, element access, capacity, fill, swap).
 *
 *   AGGREGATE GUARANTEE:
@@ -15,16 +16,16 @@
 * members — the four standard aggregate requirements per [dcl.init.aggr].
 *
 *   ZERO-SIZE INSTANTIATION:
-*   array<_Type, 0> is permitted by the standard. Declaring `_Type
+*   array<Type, 0> is permitted by the standard. Declaring `Type
 * _M_elems[0]` is ill-formed in standard C++, so the storage is
-* indirected through internal::array_storage<_Type, _Size>, which has
-* a partial specialisation for _Size == 0 that holds a single
+* indirected through internal::array_storage<Type, Size>, which has
+* a partial specialisation for Size == 0 that holds a single
 * placeholder element. data() may return any value for the zero-size
 * case per [array.zero]; begin() == end() and size() returns 0 as
 * required. libstdc++ and libc++ both use this same workaround.
 *
 *   CONSTEXPR SURFACE (matches std::array):
-*   - C++98/03: no constexpr; D_CONSTEXPR* macros degrade to empty.
+*   - C++98/03: no constexpr; RE_STD_CONSTEXPR* macros degrade to empty.
 *   - C++11+:   size, max_size, empty (these are intrinsically const).
 *   - C++14+:   const overloads of operator[], at, front, back, data,
 *               begin, end, cbegin, cend (per LWG 2185 — the implicit-
@@ -50,32 +51,44 @@
 *   Uses:
 *     env.h              - language version detection
 *     env_cpp_features.h - fine-grained feature detection
-*     djinterp.hpp       - D_CONSTEXPR, D_NOEXCEPT, D_NULLPTR, namespaces
+*     config.hpp         - RE_STD_CONSTEXPR, RE_STD_NOEXCEPT, RE_STD_NULLPTR
 *
 *
-* TABLE OF CONTENTS
-* =================
-* 0.    COMPATIBILITY MACROS
-* 0a.   CONDITIONAL INCLUDES
-* I.    STORAGE HELPER (zero-size workaround)
-* II.   ARRAY CLASS
-* III.  DEDUCTION GUIDE (C++17+)
-*
-*
-* path:      /inc/djinterp/re_std/array/array.hpp
+* path:      /inc/re_std/array/array.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.19
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ARRAY_
-#define DJINTERP_RE_STD_ARRAY_ 1
+/*
+TABLE OF CONTENTS
+=================
+0.    COMPATIBILITY MACROS
+      --------------------
+
+      0a.   CONDITIONAL INCLUDES
+
+I.    STORAGE HELPER (zero-size workaround)
+      -------------------------------------
+
+II.   ARRAY CLASS
+      -----------
+
+III.  DEDUCTION GUIDE (C++17+)
+      ------------------------
+*/
+
+#ifndef RE_STD_ARRAY_ARRAY_HPP
+#define RE_STD_ARRAY_ARRAY_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-
-// djinterp
-#include "../../core/djinterp.hpp"
-
 // re_std
 #include "../iterator/reverse_iterator.hpp"
 #include "../type_traits/is_same.hpp"
@@ -89,9 +102,11 @@
 // falling back to std::exception, then to no-op (UB) when exceptions
 // are disabled.
 
-#if D_ENV_CPP98_HAS_STDEXCEPT
+#if RE_STD_HAS_EXCEPTIONS
+    // std
     #include <stdexcept>
-#elif D_ENV_CPP98_HAS_EXCEPTION
+#elif RE_STD_HAS_EXCEPTIONS
+    // std
     #include <exception>
 #endif
 
@@ -104,111 +119,81 @@
 // here, matching the convention currently used across <iterator>,
 // <numeric>, <utility>, and most of <algorithm>.
 
-#ifndef D_NULLPTR
-    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        #define D_NULLPTR   nullptr
-    #else
-        #define D_NULLPTR   0
-    #endif
-#endif
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14   constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
-
-#ifndef D_CONSTEXPR_CPP17
-    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-        #define D_CONSTEXPR_CPP17   constexpr
-    #else
-        #define D_CONSTEXPR_CPP17
-    #endif
-#endif
-
-#ifndef D_CONSTEXPR_CPP20
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        #define D_CONSTEXPR_CPP20   constexpr
-    #else
-        #define D_CONSTEXPR_CPP20
-    #endif
-#endif
-
-
-NS_RESTD
+namespace re_std
+{
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   STORAGE HELPER (zero-size workaround)               ///
 ///////////////////////////////////////////////////////////////////////////////
-// `_Type m_elems[0]` is ill-formed in standard C++. The standard
-// nevertheless permits array<_Type, 0> and specifies that data()
+// `Type m_elems[0]` is ill-formed in standard C++. The standard
+// nevertheless permits array<Type, 0> and specifies that data()
 // may return any pointer ([array.zero]/p2). We satisfy both rules
 // by indirecting through array_storage, which holds a real
-// _Type[_Size] for _Size > 0 and a single placeholder element for
-// _Size == 0. Same approach used by libstdc++ (__array_traits) and
+// Type[Size] for Size > 0 and a single placeholder element for
+// Size == 0. Same approach used by libstdc++ (__array_traits) and
 // libc++ (__zero_sized_array_storage).
 
-NS_INTERNAL
+namespace internal
+{
 
     // array_storage
-    //   struct: holds the raw C-array backing an array<_Type, _Size>.
-    // Primary template for _Size > 0.
-    template<typename _Type,
-             std::size_t _Size>
+    //   struct: holds the raw C-array backing an array<Type, Size>.
+    // Primary template for Size > 0.
+    template<typename Type,
+             std::size_t Size>
     struct array_storage
     {
-        typedef _Type type[_Size];
+        typedef Type type[Size];
 
-        static D_CONSTEXPR_CPP14 _Type*
+        static RE_STD_CONSTEXPR_CPP14 Type*
         ptr(
             type& _data
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
         {
             return _data;
         }
 
-        static D_CONSTEXPR _Type const*
+        static RE_STD_CONSTEXPR Type const*
         ptr(
             type const& _data
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
         {
             return _data;
         }
     };
 
-    // array_storage<_Type, 0>
+    // array_storage<Type, 0>
     //   struct: zero-size specialisation. Holds a single placeholder
-    // element; ptr() returns D_NULLPTR cast to the appropriate type
+    // element; ptr() returns RE_STD_NULLPTR cast to the appropriate type
     // (data() on a zero-size array may return any value).
-    template<typename _Type>
-    struct array_storage<_Type, 0>
+    template<typename Type>
+    struct array_storage<Type, 0>
     {
         struct type
         {
-            _Type _M_placeholder;
+            Type _M_placeholder;
         };
 
-        static D_CONSTEXPR_CPP14 _Type*
+        static RE_STD_CONSTEXPR_CPP14 Type*
         ptr(
             type&
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
         {
-            return static_cast<_Type*>(D_NULLPTR);
+            return static_cast<Type*>(RE_STD_NULLPTR);
         }
 
-        static D_CONSTEXPR _Type const*
+        static RE_STD_CONSTEXPR Type const*
         ptr(
             type const&
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
         {
-            return static_cast<_Type const*>(D_NULLPTR);
+            return static_cast<Type const*>(RE_STD_NULLPTR);
         }
     };
 
-NS_END  // internal
+}  // internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -217,23 +202,23 @@ NS_END  // internal
 
 // array
 //   class: fixed-size, contiguous, aggregate sequence container.
-// Wraps _Type[_Size]. Standard interface (element access, iterators,
+// Wraps Type[Size]. Standard interface (element access, iterators,
 // capacity, fill, swap). Aggregate-initialisable on every tier.
-template<typename    _Type,
-         std::size_t _Size>
+template<typename    Type,
+         std::size_t Size>
 struct array
 {
     // =================================================================
     // MEMBER TYPES
     // =================================================================
 
-    typedef _Type                                       value_type;
-    typedef _Type&                                      reference;
-    typedef _Type const&                                const_reference;
-    typedef _Type*                                      pointer;
-    typedef _Type const*                                const_pointer;
-    typedef _Type*                                      iterator;
-    typedef _Type const*                                const_iterator;
+    typedef Type                                       value_type;
+    typedef Type&                                      reference;
+    typedef Type const&                                const_reference;
+    typedef Type*                                      pointer;
+    typedef Type const*                                const_pointer;
+    typedef Type*                                      iterator;
+    typedef Type const*                                const_iterator;
     typedef std::size_t                                 size_type;
     typedef std::ptrdiff_t                              difference_type;
     typedef re_std::reverse_iterator<iterator>           reverse_iterator;
@@ -247,7 +232,7 @@ struct array
     // Equivalent to libstdc++'s _M_elems and libc++'s __elems_.
     // User code should access via the methods below, never directly.
 
-    typedef internal::array_storage<_Type, _Size>           _storage;
+    typedef internal::array_storage<Type, Size>           _storage;
     typename _storage::type                                 _M_elems;
 
     // =================================================================
@@ -256,17 +241,17 @@ struct array
 
     // at (mutable)
     //   function: bounds-checked element access.
-    // throws: std::out_of_range when D_ENV_CPP98_HAS_STDEXCEPT,
-    // std::exception when only D_ENV_CPP98_HAS_EXCEPTION, otherwise
+    // throws: std::out_of_range when RE_STD_HAS_EXCEPTIONS,
+    // std::exception when only RE_STD_HAS_EXCEPTIONS, otherwise
     // returns garbage (UB — matches libstdc++ -fno-exceptions).
     // Constexpr from C++17 (non-const overloads were ill-formed
     // constexpr on C++11–C++14 per the implicit-const rule).
-    D_CONSTEXPR_CPP17 reference
+    RE_STD_CONSTEXPR_CPP17 reference
     at(
         size_type _pos
     )
     {
-        if (_pos >= _Size)
+        if (_pos >= Size)
         {
             _throw_out_of_range();
         }
@@ -277,12 +262,12 @@ struct array
     // at (const)
     //   function: bounds-checked element access.
     // Constexpr from C++14 (LWG 2185).
-    D_CONSTEXPR_CPP14 const_reference
+    RE_STD_CONSTEXPR_CPP14 const_reference
     at(
         size_type _pos
     ) const
     {
-        if (_pos >= _Size)
+        if (_pos >= Size)
         {
             _throw_out_of_range();
         }
@@ -292,19 +277,19 @@ struct array
 
     // operator[] (mutable)
     //   function: unchecked element access.
-    D_CONSTEXPR_CPP17 reference
+    RE_STD_CONSTEXPR_CPP17 reference
     operator[](
         size_type _pos
-    ) D_NOEXCEPT
+    ) RE_STD_NOEXCEPT
     {
         return _storage::ptr(_M_elems)[_pos];
     }
 
     // operator[] (const)
-    D_CONSTEXPR_CPP14 const_reference
+    RE_STD_CONSTEXPR_CPP14 const_reference
     operator[](
         size_type _pos
-    ) const D_NOEXCEPT
+    ) const RE_STD_NOEXCEPT
     {
         return _storage::ptr(_M_elems)[_pos];
     }
@@ -312,15 +297,15 @@ struct array
     // front (mutable)
     //   function: returns a reference to the first element.
     // note: calling on a zero-size array is undefined.
-    D_CONSTEXPR_CPP17 reference
-    front() D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP17 reference
+    front() RE_STD_NOEXCEPT
     {
         return _storage::ptr(_M_elems)[0];
     }
 
     // front (const)
-    D_CONSTEXPR_CPP14 const_reference
-    front() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_reference
+    front() const RE_STD_NOEXCEPT
     {
         return _storage::ptr(_M_elems)[0];
     }
@@ -328,31 +313,31 @@ struct array
     // back (mutable)
     //   function: returns a reference to the last element.
     // note: calling on a zero-size array is undefined.
-    D_CONSTEXPR_CPP17 reference
-    back() D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP17 reference
+    back() RE_STD_NOEXCEPT
     {
-        return _storage::ptr(_M_elems)[_Size - 1];
+        return _storage::ptr(_M_elems)[Size - 1];
     }
 
     // back (const)
-    D_CONSTEXPR_CPP14 const_reference
-    back() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_reference
+    back() const RE_STD_NOEXCEPT
     {
-        return _storage::ptr(_M_elems)[_Size - 1];
+        return _storage::ptr(_M_elems)[Size - 1];
     }
 
     // data (mutable)
     //   function: returns a pointer to the underlying storage.
-    // For zero-size arrays may return D_NULLPTR ([array.zero]/p2).
-    D_CONSTEXPR_CPP17 pointer
-    data() D_NOEXCEPT
+    // For zero-size arrays may return RE_STD_NULLPTR ([array.zero]/p2).
+    RE_STD_CONSTEXPR_CPP17 pointer
+    data() RE_STD_NOEXCEPT
     {
         return _storage::ptr(_M_elems);
     }
 
     // data (const)
-    D_CONSTEXPR_CPP14 const_pointer
-    data() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_pointer
+    data() const RE_STD_NOEXCEPT
     {
         return _storage::ptr(_M_elems);
     }
@@ -361,74 +346,74 @@ struct array
     // ITERATORS
     // =================================================================
 
-    D_CONSTEXPR_CPP17 iterator
-    begin() D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP17 iterator
+    begin() RE_STD_NOEXCEPT
     {
         return iterator(_storage::ptr(_M_elems));
     }
 
-    D_CONSTEXPR_CPP14 const_iterator
-    begin() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_iterator
+    begin() const RE_STD_NOEXCEPT
     {
         return const_iterator(_storage::ptr(_M_elems));
     }
 
-    D_CONSTEXPR_CPP17 iterator
-    end() D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP17 iterator
+    end() RE_STD_NOEXCEPT
     {
-        return iterator(_storage::ptr(_M_elems) + _Size);
+        return iterator(_storage::ptr(_M_elems) + Size);
     }
 
-    D_CONSTEXPR_CPP14 const_iterator
-    end() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_iterator
+    end() const RE_STD_NOEXCEPT
     {
-        return const_iterator(_storage::ptr(_M_elems) + _Size);
+        return const_iterator(_storage::ptr(_M_elems) + Size);
     }
 
-    D_CONSTEXPR_CPP14 const_iterator
-    cbegin() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_iterator
+    cbegin() const RE_STD_NOEXCEPT
     {
         return const_iterator(_storage::ptr(_M_elems));
     }
 
-    D_CONSTEXPR_CPP14 const_iterator
-    cend() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_iterator
+    cend() const RE_STD_NOEXCEPT
     {
-        return const_iterator(_storage::ptr(_M_elems) + _Size);
+        return const_iterator(_storage::ptr(_M_elems) + Size);
     }
 
-    D_CONSTEXPR_CPP17 reverse_iterator
-    rbegin() D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP17 reverse_iterator
+    rbegin() RE_STD_NOEXCEPT
     {
         return reverse_iterator(end());
     }
 
-    D_CONSTEXPR_CPP14 const_reverse_iterator
-    rbegin() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_reverse_iterator
+    rbegin() const RE_STD_NOEXCEPT
     {
         return const_reverse_iterator(end());
     }
 
-    D_CONSTEXPR_CPP17 reverse_iterator
-    rend() D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP17 reverse_iterator
+    rend() RE_STD_NOEXCEPT
     {
         return reverse_iterator(begin());
     }
 
-    D_CONSTEXPR_CPP14 const_reverse_iterator
-    rend() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_reverse_iterator
+    rend() const RE_STD_NOEXCEPT
     {
         return const_reverse_iterator(begin());
     }
 
-    D_CONSTEXPR_CPP14 const_reverse_iterator
-    crbegin() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_reverse_iterator
+    crbegin() const RE_STD_NOEXCEPT
     {
         return const_reverse_iterator(end());
     }
 
-    D_CONSTEXPR_CPP14 const_reverse_iterator
-    crend() const D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14 const_reverse_iterator
+    crend() const RE_STD_NOEXCEPT
     {
         return const_reverse_iterator(begin());
     }
@@ -439,27 +424,27 @@ struct array
 
     // empty
     //   function: true if size() == 0.
-    D_CONSTEXPR bool
-    empty() const D_NOEXCEPT
+    RE_STD_CONSTEXPR bool
+    empty() const RE_STD_NOEXCEPT
     {
-        return _Size == 0;
+        return Size == 0;
     }
 
     // size
-    //   function: returns _Size.
-    D_CONSTEXPR size_type
-    size() const D_NOEXCEPT
+    //   function: returns Size.
+    RE_STD_CONSTEXPR size_type
+    size() const RE_STD_NOEXCEPT
     {
-        return _Size;
+        return Size;
     }
 
     // max_size
-    //   function: returns _Size. Identical to size() for a
+    //   function: returns Size. Identical to size() for a
     // fixed-extent container.
-    D_CONSTEXPR size_type
-    max_size() const D_NOEXCEPT
+    RE_STD_CONSTEXPR size_type
+    max_size() const RE_STD_NOEXCEPT
     {
-        return _Size;
+        return Size;
     }
 
     // =================================================================
@@ -468,12 +453,12 @@ struct array
 
     // fill
     //   function: assigns _value to every element.
-    D_CONSTEXPR_CPP20 void
+    RE_STD_CONSTEXPR_CPP20 void
     fill(
         const_reference _value
     )
     {
-        for (size_type _i = 0; _i < _Size; ++_i)
+        for (size_type _i = 0; _i < Size; ++_i)
         {
             _storage::ptr(_M_elems)[_i] = _value;
         }
@@ -483,17 +468,17 @@ struct array
 
     // swap
     //   function: element-wise swap with _other. Conditional noexcept
-    // when is_nothrow_swappable_v<_Type> is satisfied — gated out
+    // when is_nothrow_swappable_v<Type> is satisfied — gated out
     // pre-C++17 because the trait is C++17+; non-throwing path on
-    // earlier tiers depends on _Type's own swap behaviour.
-    D_CONSTEXPR_CPP20 void
+    // earlier tiers depends on Type's own swap behaviour.
+    RE_STD_CONSTEXPR_CPP20 void
     swap(
         array& _other
     )
     {
-        for (size_type _i = 0; _i < _Size; ++_i)
+        for (size_type _i = 0; _i < Size; ++_i)
         {
-            _Type _tmp                          = _storage::ptr(_M_elems)[_i];
+            Type _tmp                          = _storage::ptr(_M_elems)[_i];
             _storage::ptr(_M_elems)[_i]         = _storage::ptr(_other._M_elems)[_i];
             _storage::ptr(_other._M_elems)[_i]  = _tmp;
         }
@@ -516,14 +501,14 @@ private:
 
 // out-of-line definition for the at() helper.
 // note: split out so the class body stays constexpr-compatible.
-template<typename    _Type,
-         std::size_t _Size>
+template<typename    Type,
+         std::size_t Size>
 void
-array<_Type, _Size>::_throw_out_of_range()
+array<Type, Size>::_throw_out_of_range()
 {
-#if D_ENV_CPP98_HAS_STDEXCEPT
+#if RE_STD_HAS_EXCEPTIONS
     throw std::out_of_range("re_std::array::at: index out of range");
-#elif D_ENV_CPP98_HAS_EXCEPTION
+#elif RE_STD_HAS_EXCEPTIONS
     throw std::exception();
 #else
     // exceptions disabled: undefined behaviour on out-of-range at().
@@ -550,22 +535,24 @@ array<_Type, _Size>::_throw_out_of_range()
 // argument — fold expressions are required, so this is gated on
 // C++17+ anyway.
 
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
 
-template<typename    _Type,
-         typename... _Rest>
-array(_Type, _Rest...)
+template<typename    Type,
+         typename... Rest>
+array(Type, Rest...)
     -> array<
            typename re_std::enable_if<
-               (re_std::is_same<_Type, _Rest>::value && ...),
-               _Type
+               (re_std::is_same<Type, Rest>::value && ...),
+               Type
            >::type,
-           1 + sizeof...(_Rest)>;
+           1 + sizeof...(Rest)>;
 
-#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_IS_CPP17_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_ARRAY_
+}  // re_std
+
+#endif  // floor, for now
+
+
+#endif  // RE_STD_ARRAY_ARRAY_HPP

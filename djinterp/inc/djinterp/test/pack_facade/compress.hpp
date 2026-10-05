@@ -1,14 +1,12 @@
-/******************************************************************************
-* djinterp [test]                                    pack_facade/compress.hpp
+/*******************************************************************************
+* djinterp [test]                                                   compress.hpp
 *
-* Instrumented drop-in for core/util/compress.hpp, used by the test_pack suite:
-*   This header shadows the production compression facade when a test build
-* defines DTEST_PACK_USE_FACADE_DOUBLE and puts this directory on the include
-* path ahead of the real tree (e.g. -I .../pack_facade).  It reuses the
-* production include guard (DJINTERP_UTILITY_COMPRESSION_), claimed at the top
-* before any nested include, so that if anything else in the translation unit
-* reaches for the real header that header collapses to a no-op and only this
-* double is in force.
+* Instrumented drop-in for core/util/compress/compress.hpp, used by the test_pack suite:
+*   This header stands in for the production compression facade when a test
+* build defines DTEST_PACK_USE_FACADE_DOUBLE: core/util/compress/compress.hpp
+* then includes this double in place of itself (the owner's ruling of
+* 2026.10.02), so wherever a unit reaches the facade it gets the double, and
+* never both. This header keeps its own path-derived include guard.
 *
 *   It reproduces exactly the surface test_pack.hpp consumes -- byte_blob,
 * status, the codecs:: tags, try_compress<>, and codec_is_available<> -- but
@@ -31,23 +29,26 @@
 * integer level is rendered through std::ostringstream rather than the
 * C++11-only std::to_string, and no other post-C++98 facility is used.
 *
-* path:      /tests/djinterp/test/pack_facade/compress.hpp
+*
+* path:      /inc/djinterp/test/pack_facade/compress.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.20
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_COMPRESSION_
-#define DJINTERP_UTILITY_COMPRESSION_ 1
+#ifndef DJINTERP_TEST_PACK_FACADE_COMPRESS_HPP
+#define DJINTERP_TEST_PACK_FACADE_COMPRESS_HPP 1
 
 // std
 #include <cstddef>
 #include <sstream>
 #include <string>
+// djinterp
 // djinterp  -- angle-bracket paths so the double is location-independent (a
 // relative include would resolve against this file's own directory, not the
 // real tree).
-#include <djinterp/core/djinterp.hpp>               // NS_*, D_INLINE
-#include <djinterp/core/util/compress_options.hpp>  // compress_options
+#include <djinterp/djinterp.hpp>               // NS_*, D_INLINE
+#include <djinterp/core/util/compress/compress_options.hpp>  // compress_options
 
 
 NS_DJINTERP
@@ -173,7 +174,7 @@ NS_INTERNAL
     //   trait: maps a codec tag to the short id string the recorder emits (one
     // trivial specialization per tag).  The primary template is left undefined
     // so an unknown tag is a compile error, as the production codec_traits does.
-    template<typename _Codec>
+    template<typename Codec>
     struct codec_label;
 
     template<> struct codec_label<codecs::store>   { static const char* name() { return "store";   } };
@@ -194,11 +195,11 @@ NS_END  // internal
 // =============================================================================
 
 // codec_stat
-//   function: the mutable status slot for codec _Codec, status_ok by default.
-// try_compress<_Codec> and codec_is_available<_Codec> both read it, and a test
+//   function: the mutable status slot for codec Codec, status_ok by default.
+// try_compress<Codec> and codec_is_available<Codec> both read it, and a test
 // writes it to force a codec's outcome.  Each codec type owns exactly one slot
 // for the life of the program.
-template<typename _Codec>
+template<typename Codec>
 status&
 codec_stat()
 {
@@ -237,8 +238,8 @@ reset_codec_hooks()
 //   function: RECORDS a compression request instead of performing it.  On a
 // status_ok slot it writes "C|<tag>|<opt.level>|<payload>" into _out; otherwise
 // it empties _out, matching the production contract that _out is unusable on a
-// non-ok status.  Always returns codec_stat<_Codec>() and never throws.
-template<typename _Codec>
+// non-ok status.  Always returns codec_stat<Codec>() and never throws.
+template<typename Codec>
 status
 try_compress(
     const byte_blob&       _in,
@@ -249,7 +250,7 @@ try_compress(
     status             s;
     std::ostringstream rec;
 
-    s = codec_stat<_Codec>();
+    s = codec_stat<Codec>();
 
     // a failed codec records nothing and leaves _out empty
     if (s != status_ok)
@@ -260,7 +261,7 @@ try_compress(
     }
 
     rec << "C|"
-        << internal::codec_label<_Codec>::name()
+        << internal::codec_label<Codec>::name()
         << "|" << _opt.level
         << "|" << _in;
     _out = rec.str();
@@ -271,11 +272,11 @@ try_compress(
 // codec_is_available
 //   function: reports a codec available exactly when its status slot is
 // status_ok, so the availability routers are exercised through the same hook.
-template<typename _Codec>
+template<typename Codec>
 bool
 codec_is_available()
 {
-    return (codec_stat<_Codec>() == status_ok);
+    return (codec_stat<Codec>() == status_ok);
 }
 
 
@@ -451,4 +452,4 @@ NS_END  // internal
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_COMPRESSION_
+#endif  // DJINTERP_TEST_PACK_FACADE_COMPRESS_HPP

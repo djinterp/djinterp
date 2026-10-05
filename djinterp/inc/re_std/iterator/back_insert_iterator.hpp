@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                             back_insert_iterator.hpp
+/*******************************************************************************
+* djinterp [re_std]                                     back_insert_iterator.hpp
 *
 * output-iterator adaptor that turns assignment-through-dereference
 * into push_back on a container:
@@ -24,19 +24,22 @@
 * won't compile against it (they shouldn't — there's nothing to read).
 *
 *
-* path:      /inc/djinterp/re_std/iterator/back_insert_iterator.hpp
+* path:      /inc/re_std/iterator/back_insert_iterator.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.08
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ITERATOR_BACK_INSERT_ITERATOR_
-#define DJINTERP_RE_STD_ITERATOR_BACK_INSERT_ITERATOR_ 1
+#ifndef RE_STD_ITERATOR_BACK_INSERT_ITERATOR_HPP
+#define RE_STD_ITERATOR_BACK_INSERT_ITERATOR_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
 
     #include "re_std/iterator/output_iterator_tag.hpp"
@@ -46,7 +49,7 @@
 namespace re_std
 {
 
-template<typename _Container>
+template<typename Container>
 class back_insert_iterator
 {
 public:
@@ -56,24 +59,24 @@ public:
     typedef void                        difference_type;
     typedef void                        pointer;
     typedef void                        reference;
-    typedef _Container                  container_type;
+    typedef Container                  container_type;
 
 protected:
-    _Container* container;
+    Container* container;
 
 public:
-    explicit back_insert_iterator(_Container& _c) D_NOEXCEPT
+    explicit back_insert_iterator(Container& _c) RE_STD_NOEXCEPT
         : container(&_c) {}
 
     back_insert_iterator&
-    operator=(const typename _Container::value_type& _value)
+    operator=(const typename Container::value_type& _value)
     {
         container->push_back(_value);
         return *this;
     }
 
     back_insert_iterator&
-    operator=(typename _Container::value_type&& _value)
+    operator=(typename Container::value_type&& _value)
     {
         container->push_back(re_std::move(_value));
         return *this;
@@ -88,15 +91,14 @@ public:
 
 // ---- back_inserter factory ----
 
-template<typename _Container>
-back_insert_iterator<_Container> back_inserter(_Container& _c)
+template<typename Container>
+back_insert_iterator<Container> back_inserter(Container& _c)
 {
-    return back_insert_iterator<_Container>(_c);
+    return back_insert_iterator<Container>(_c);
 }
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_ITERATOR_BACK_INSERT_ITERATOR_
+#endif  // RE_STD_ITERATOR_BACK_INSERT_ITERATOR_HPP

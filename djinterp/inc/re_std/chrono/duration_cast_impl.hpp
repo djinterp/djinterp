@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                       duration_cast_impl.hpp
 *
 * the internal duration conversion arithmetic:
@@ -45,66 +45,69 @@
 * than a surprise.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/duration_cast_impl.hpp
+* path:      /inc/re_std/chrono/duration_cast_impl.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_DURATION_CAST_IMPL_
-#define DJINTERP_RE_STD_CHRONO_DURATION_CAST_IMPL_ 1
+#ifndef RE_STD_CHRONO_DURATION_CAST_IMPL_HPP
+#define RE_STD_CHRONO_DURATION_CAST_IMPL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration_fwd.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
-NS_INTERNAL
+namespace internal
+{
 
     // duration_cast_helper
-    //   struct: primary template. _CF is the conversion factor ratio,
-    // _CR the arithmetic type. The two bools select the specialisation;
+    //   struct: primary template. CF is the conversion factor ratio,
+    // CR the arithmetic type. The two bools select the specialisation;
     // the primary is the general multiply-then-divide case.
-    template<typename _ToDur,
-             typename _CF,
-             typename _CR,
-             bool     _NumIsOne = false,
-             bool     _DenIsOne = false>
+    template<typename ToDur,
+             typename CF,
+             typename CR,
+             bool     NumIsOne = false,
+             bool     DenIsOne = false>
     struct duration_cast_helper
     {
-        template<typename _Rep,
-                 typename _Period>
-        static D_CONSTEXPR _ToDur cast(const duration<_Rep, _Period>& _d)
+        template<typename Rep,
+                 typename Period>
+        static RE_STD_CONSTEXPR ToDur cast(const duration<Rep, Period>& _d)
         {
-            return _ToDur(static_cast<typename _ToDur::rep>(
-                static_cast<_CR>(_d.count())
-                    * static_cast<_CR>(_CF::num)
-                    / static_cast<_CR>(_CF::den)));
+            return ToDur(static_cast<typename ToDur::rep>(
+                static_cast<CR>(_d.count())
+                    * static_cast<CR>(CF::num)
+                    / static_cast<CR>(CF::den)));
         }
     };
 
     // duration_cast_helper<..., true, true>
     //   struct: periods are identical -- only the representation changes,
     // so no arithmetic runs at all.
-    template<typename _ToDur,
-             typename _CF,
-             typename _CR>
-    struct duration_cast_helper<_ToDur, _CF, _CR, true, true>
+    template<typename ToDur,
+             typename CF,
+             typename CR>
+    struct duration_cast_helper<ToDur, CF, CR, true, true>
     {
-        template<typename _Rep,
-                 typename _Period>
-        static D_CONSTEXPR _ToDur cast(const duration<_Rep, _Period>& _d)
+        template<typename Rep,
+                 typename Period>
+        static RE_STD_CONSTEXPR ToDur cast(const duration<Rep, Period>& _d)
         {
-            return _ToDur(static_cast<typename _ToDur::rep>(_d.count()));
+            return ToDur(static_cast<typename ToDur::rep>(_d.count()));
         }
     };
 
@@ -112,17 +115,17 @@ NS_INTERNAL
     //   struct: numerator is 1 -- divide only. This is the coarsening
     // direction (milliseconds to seconds), where integral reps truncate
     // toward zero.
-    template<typename _ToDur,
-             typename _CF,
-             typename _CR>
-    struct duration_cast_helper<_ToDur, _CF, _CR, true, false>
+    template<typename ToDur,
+             typename CF,
+             typename CR>
+    struct duration_cast_helper<ToDur, CF, CR, true, false>
     {
-        template<typename _Rep,
-                 typename _Period>
-        static D_CONSTEXPR _ToDur cast(const duration<_Rep, _Period>& _d)
+        template<typename Rep,
+                 typename Period>
+        static RE_STD_CONSTEXPR ToDur cast(const duration<Rep, Period>& _d)
         {
-            return _ToDur(static_cast<typename _ToDur::rep>(
-                static_cast<_CR>(_d.count()) / static_cast<_CR>(_CF::den)));
+            return ToDur(static_cast<typename ToDur::rep>(
+                static_cast<CR>(_d.count()) / static_cast<CR>(CF::den)));
         }
     };
 
@@ -130,28 +133,28 @@ NS_INTERNAL
     //   struct: denominator is 1 -- multiply only. The refining direction
     // (seconds to milliseconds), which is exact and therefore the case
     // duration's converting constructor allows implicitly.
-    template<typename _ToDur,
-             typename _CF,
-             typename _CR>
-    struct duration_cast_helper<_ToDur, _CF, _CR, false, true>
+    template<typename ToDur,
+             typename CF,
+             typename CR>
+    struct duration_cast_helper<ToDur, CF, CR, false, true>
     {
-        template<typename _Rep,
-                 typename _Period>
-        static D_CONSTEXPR _ToDur cast(const duration<_Rep, _Period>& _d)
+        template<typename Rep,
+                 typename Period>
+        static RE_STD_CONSTEXPR ToDur cast(const duration<Rep, Period>& _d)
         {
-            return _ToDur(static_cast<typename _ToDur::rep>(
-                static_cast<_CR>(_d.count()) * static_cast<_CR>(_CF::num)));
+            return ToDur(static_cast<typename ToDur::rep>(
+                static_cast<CR>(_d.count()) * static_cast<CR>(CF::num)));
         }
     };
 
-NS_END  // internal
+}  // internal
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_DURATION_CAST_IMPL_
+#endif  // RE_STD_CHRONO_DURATION_CAST_IMPL_HPP

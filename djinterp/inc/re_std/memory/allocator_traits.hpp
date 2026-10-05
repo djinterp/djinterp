@@ -1,28 +1,28 @@
-/***********************************************************************
-* re_std                                               allocator_traits.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         allocator_traits.hpp
 *
 * uniform allocator interface:
-*   allocator_traits<_Alloc> normalises an allocator type so that
+*   allocator_traits<Alloc> normalises an allocator type so that
 * container code can speak one vocabulary regardless of which optional
 * members the allocator chose to define. Every member type and every
 * static function in this trait has a fallback for when the underlying
 * allocator omits the corresponding member.
 *
 * member-type fallbacks:
-*   pointer                  _A::pointer            else value_type*
-*   const_pointer            _A::const_pointer      else
+*   pointer                  A::pointer            else value_type*
+*   const_pointer            A::const_pointer      else
 *                              pointer_traits<pointer>::rebind<const value_type>
-*   void_pointer             _A::void_pointer       else
+*   void_pointer             A::void_pointer       else
 *                              pointer_traits<pointer>::rebind<void>
-*   const_void_pointer       _A::const_void_pointer else
+*   const_void_pointer       A::const_void_pointer else
 *                              pointer_traits<pointer>::rebind<const void>
-*   difference_type          _A::difference_type    else
+*   difference_type          A::difference_type    else
 *                              pointer_traits<pointer>::difference_type
-*   size_type                _A::size_type          else
+*   size_type                A::size_type          else
 *                              make_unsigned<difference_type>
-*   propagate_on_container_*  _A::p_o_c_*            else false_type
-*   is_always_equal          _A::is_always_equal    else is_empty<_A>
-*   rebind_alloc<_U>         _A::rebind<_U>::other  else head-substitution
+*   propagate_on_container_*  A::p_o_c_*            else false_type
+*   is_always_equal          A::is_always_equal    else is_empty<A>
+*   rebind_alloc<U>         A::rebind<U>::other  else head-substitution
 *
 * static-function fallbacks:
 *   allocate(a, n)           a.allocate(n)
@@ -41,7 +41,7 @@
 *                            if defined, else returns a.
 *
 * C++11+ floor:
-*   The detection idiom uses void_t + decltype(declval<_A>().X(...)).
+*   The detection idiom uses void_t + decltype(declval<A>().X(...)).
 *   None of those is available pre-C++11, so the entire header is
 *   gated. Code that needs allocator_traits on C++98 must do allocator
 *   member calls directly.
@@ -53,16 +53,18 @@
 *
 * path:      /inc/re_std/memory/allocator_traits.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.01
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.01
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_ALLOCATOR_TRAITS_
-#define DJINTERP_RE_STD_MEMORY_ALLOCATOR_TRAITS_ 1
+#ifndef RE_STD_MEMORY_ALLOCATOR_TRAITS_HPP
+#define RE_STD_MEMORY_ALLOCATOR_TRAITS_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include <cstddef>  // size_t
     #include "re_std/memory/pointer_traits.hpp"
@@ -75,9 +77,10 @@
     #include "re_std/utility/declval.hpp"
     #include "re_std/utility/forward.hpp"
 
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         #include "re_std/memory/construct_at.hpp"
-    #elif D_ENV_CPP98_HAS_NEW
+    #elif RE_STD_HAS_HEADER_NEW
+        // std
         #include <new>  // placement new
     #endif
 
@@ -95,179 +98,179 @@ namespace internal
     // ---------- pointer ----------
     //   A::pointer if defined, else A::value_type*.
 
-    template<typename _A, typename = void>
+    template<typename A, typename = void>
     struct alloc_pointer
     {
-        typedef typename _A::value_type* type;
+        typedef typename A::value_type* type;
     };
 
-    template<typename _A>
+    template<typename A>
     struct alloc_pointer
     <
-        _A,
-        typename void_t<typename _A::pointer>::type
+        A,
+        void_t<typename A::pointer>
     >
     {
-        typedef typename _A::pointer type;
+        typedef typename A::pointer type;
     };
 
     // ---------- const_pointer ----------
     //   A::const_pointer if defined, else
     //   pointer_traits<pointer>::rebind<const value_type>.
 
-    template<typename _A, typename _Ptr, typename = void>
+    template<typename A, typename Ptr, typename = void>
     struct alloc_const_pointer
     {
-        typedef typename pointer_traits<_Ptr>
-            ::template rebind<const typename _A::value_type> type;
+        typedef typename pointer_traits<Ptr>
+            ::template rebind<const typename A::value_type> type;
     };
 
-    template<typename _A, typename _Ptr>
+    template<typename A, typename Ptr>
     struct alloc_const_pointer
     <
-        _A,
-        _Ptr,
-        typename void_t<typename _A::const_pointer>::type
+        A,
+        Ptr,
+        void_t<typename A::const_pointer>
     >
     {
-        typedef typename _A::const_pointer type;
+        typedef typename A::const_pointer type;
     };
 
     // ---------- void_pointer ----------
 
-    template<typename _A, typename _Ptr, typename = void>
+    template<typename A, typename Ptr, typename = void>
     struct alloc_void_pointer
     {
-        typedef typename pointer_traits<_Ptr>::template rebind<void> type;
+        typedef typename pointer_traits<Ptr>::template rebind<void> type;
     };
 
-    template<typename _A, typename _Ptr>
+    template<typename A, typename Ptr>
     struct alloc_void_pointer
     <
-        _A,
-        _Ptr,
-        typename void_t<typename _A::void_pointer>::type
+        A,
+        Ptr,
+        void_t<typename A::void_pointer>
     >
     {
-        typedef typename _A::void_pointer type;
+        typedef typename A::void_pointer type;
     };
 
     // ---------- const_void_pointer ----------
 
-    template<typename _A, typename _Ptr, typename = void>
+    template<typename A, typename Ptr, typename = void>
     struct alloc_const_void_pointer
     {
-        typedef typename pointer_traits<_Ptr>::template rebind<const void> type;
+        typedef typename pointer_traits<Ptr>::template rebind<const void> type;
     };
 
-    template<typename _A, typename _Ptr>
+    template<typename A, typename Ptr>
     struct alloc_const_void_pointer
     <
-        _A,
-        _Ptr,
-        typename void_t<typename _A::const_void_pointer>::type
+        A,
+        Ptr,
+        void_t<typename A::const_void_pointer>
     >
     {
-        typedef typename _A::const_void_pointer type;
+        typedef typename A::const_void_pointer type;
     };
 
     // ---------- difference_type ----------
 
-    template<typename _A, typename _Ptr, typename = void>
+    template<typename A, typename Ptr, typename = void>
     struct alloc_difference_type
     {
-        typedef typename pointer_traits<_Ptr>::difference_type type;
+        typedef typename pointer_traits<Ptr>::difference_type type;
     };
 
-    template<typename _A, typename _Ptr>
+    template<typename A, typename Ptr>
     struct alloc_difference_type
     <
-        _A,
-        _Ptr,
-        typename void_t<typename _A::difference_type>::type
+        A,
+        Ptr,
+        void_t<typename A::difference_type>
     >
     {
-        typedef typename _A::difference_type type;
+        typedef typename A::difference_type type;
     };
 
     // ---------- size_type ----------
     //   A::size_type if defined, else make_unsigned<difference_type>.
 
-    template<typename _A, typename _Diff, typename = void>
+    template<typename A, typename Diff, typename = void>
     struct alloc_size_type
     {
-        typedef typename make_unsigned<_Diff>::type type;
+        typedef typename make_unsigned<Diff>::type type;
     };
 
-    template<typename _A, typename _Diff>
+    template<typename A, typename Diff>
     struct alloc_size_type
     <
-        _A,
-        _Diff,
-        typename void_t<typename _A::size_type>::type
+        A,
+        Diff,
+        void_t<typename A::size_type>
     >
     {
-        typedef typename _A::size_type type;
+        typedef typename A::size_type type;
     };
 
     // ---------- propagate_on_container_copy_assignment ----------
 
-    template<typename _A, typename = void>
+    template<typename A, typename = void>
     struct alloc_pocca
     {
         typedef false_type type;
     };
 
-    template<typename _A>
+    template<typename A>
     struct alloc_pocca
     <
-        _A,
-        typename void_t
+        A,
+        void_t
         <
-            typename _A::propagate_on_container_copy_assignment
-        >::type
+            typename A::propagate_on_container_copy_assignment
+        >
     >
     {
-        typedef typename _A::propagate_on_container_copy_assignment type;
+        typedef typename A::propagate_on_container_copy_assignment type;
     };
 
     // ---------- propagate_on_container_move_assignment ----------
 
-    template<typename _A, typename = void>
+    template<typename A, typename = void>
     struct alloc_pocma
     {
         typedef false_type type;
     };
 
-    template<typename _A>
+    template<typename A>
     struct alloc_pocma
     <
-        _A,
-        typename void_t
+        A,
+        void_t
         <
-            typename _A::propagate_on_container_move_assignment
-        >::type
+            typename A::propagate_on_container_move_assignment
+        >
     >
     {
-        typedef typename _A::propagate_on_container_move_assignment type;
+        typedef typename A::propagate_on_container_move_assignment type;
     };
 
     // ---------- propagate_on_container_swap ----------
 
-    template<typename _A, typename = void>
+    template<typename A, typename = void>
     struct alloc_pocs
     {
         typedef false_type type;
     };
 
-    template<typename _A>
+    template<typename A>
     struct alloc_pocs
     <
-        _A,
-        typename void_t<typename _A::propagate_on_container_swap>::type
+        A,
+        void_t<typename A::propagate_on_container_swap>
     >
     {
-        typedef typename _A::propagate_on_container_swap type;
+        typedef typename A::propagate_on_container_swap type;
     };
 
     // ---------- is_always_equal ----------
@@ -275,68 +278,66 @@ namespace internal
     //   fallback was added by C++17 and matches the standard's
     //   default rule.
 
-    template<typename _A, typename = void>
+    template<typename A, typename = void>
     struct alloc_is_always_equal
     {
-        typedef typename is_empty<_A>::type type;
+        typedef typename is_empty<A>::type type;
     };
 
-    template<typename _A>
+    template<typename A>
     struct alloc_is_always_equal
     <
-        _A,
-        typename void_t<typename _A::is_always_equal>::type
+        A,
+        void_t<typename A::is_always_equal>
     >
     {
-        typedef typename _A::is_always_equal type;
+        typedef typename A::is_always_equal type;
     };
 
     // ---------- rebind_alloc ----------
-    //   _A::rebind<_U>::other if defined, else replace _A's first
-    //   template argument with _U.
+    //   A::rebind<U>::other if defined, else replace A's first
+    //   template argument with U.
 
-    template<typename _A, typename _U, typename = void>
+    template<typename A, typename U, typename = void>
     struct alloc_rebind_substituted
     {
-        // Primary: ill-formed if _A is not a class template specialisation.
+        // Primary: ill-formed if A is not a class template specialisation.
         // The pattern below catches the common case.
     };
 
     template
     <
-        template<typename, typename...> class _Tmpl,
-        typename _Head,
-        typename... _Tail,
-        typename _U
+        template<typename, typename...> class Tmpl,
+        typename Head,
+        typename... Tail,
+        typename U
     >
-    struct alloc_rebind_substituted<_Tmpl<_Head, _Tail...>, _U>
+    struct alloc_rebind_substituted<Tmpl<Head, Tail...>, U>
     {
-        typedef _Tmpl<_U, _Tail...> type;
+        typedef Tmpl<U, Tail...> type;
     };
 
-    template<typename _A, typename _U, typename = void>
+    template<typename A, typename U, typename = void>
     struct alloc_rebind
-        : alloc_rebind_substituted<_A, _U>
+        : alloc_rebind_substituted<A, U>
     {
     };
 
-    template<typename _A, typename _U>
+    template<typename A, typename U>
     struct alloc_rebind
     <
-        _A,
-        _U,
-        typename void_t
+        A,
+        U,
+        void_t
         <
-            typename _A::template rebind<_U>::other
-        >::type
+            typename A::template rebind<U>::other
+        >
     >
     {
-        typedef typename _A::template rebind<_U>::other type;
+        typedef typename A::template rebind<U>::other type;
     };
 
-}  // namespace internal
-
-
+}  // internal
 // =============================================================================
 // internal: static-function detection
 // =============================================================================
@@ -348,9 +349,9 @@ namespace internal
 
     template
     <
-        typename _A,
-        typename _Size,
-        typename _CVPtr,
+        typename A,
+        typename Size,
+        typename CVPtr,
         typename = void
     >
     struct has_allocate_hint
@@ -358,21 +359,21 @@ namespace internal
     {
     };
 
-    template<typename _A, typename _Size, typename _CVPtr>
+    template<typename A, typename Size, typename CVPtr>
     struct has_allocate_hint
     <
-        _A, _Size, _CVPtr,
-        typename void_t
+        A, Size, CVPtr,
+        void_t
         <
             decltype
             (
-                re_std::declval<_A&>().allocate
+                re_std::declval<A&>().allocate
                 (
-                    re_std::declval<_Size>(),
-                    re_std::declval<_CVPtr>()
+                    re_std::declval<Size>(),
+                    re_std::declval<CVPtr>()
                 )
             )
-        >::type
+        >
     >
         : true_type
     {
@@ -384,18 +385,18 @@ namespace internal
     //   void_t because parameter packs sit awkwardly inside the
     //   default-template-arg substitution.
 
-    template<typename _A, typename _P, typename... _Args>
+    template<typename A, typename P, typename... Args>
     struct has_member_construct
     {
     private:
-        template<typename _A1, typename _P1, typename... _A1rgs>
+        template<typename A1, typename P1, typename... A1rgs>
         static auto try_call(int)
             -> decltype
                (
-                   (void)re_std::declval<_A1&>().construct
+                   (void)re_std::declval<A1&>().construct
                    (
-                       re_std::declval<_P1>(),
-                       re_std::declval<_A1rgs>()...
+                       re_std::declval<P1>(),
+                       re_std::declval<A1rgs>()...
                    ),
                    true_type()
                );
@@ -404,26 +405,26 @@ namespace internal
         static false_type try_call(...);
 
     public:
-        typedef decltype(try_call<_A, _P, _Args...>(0)) type;
+        typedef decltype(try_call<A, P, Args...>(0)) type;
         static const bool value = type::value;
     };
 
     // ---------- has a.destroy(p) ----------
 
-    template<typename _A, typename _P, typename = void>
+    template<typename A, typename P, typename = void>
     struct has_member_destroy
         : false_type
     {
     };
 
-    template<typename _A, typename _P>
+    template<typename A, typename P>
     struct has_member_destroy
     <
-        _A, _P,
-        typename void_t
+        A, P,
+        void_t
         <
-            decltype(re_std::declval<_A&>().destroy(re_std::declval<_P>()))
-        >::type
+            decltype(re_std::declval<A&>().destroy(re_std::declval<P>()))
+        >
     >
         : true_type
     {
@@ -431,20 +432,20 @@ namespace internal
 
     // ---------- has a.max_size() ----------
 
-    template<typename _A, typename = void>
+    template<typename A, typename = void>
     struct has_member_max_size
         : false_type
     {
     };
 
-    template<typename _A>
+    template<typename A>
     struct has_member_max_size
     <
-        _A,
-        typename void_t
+        A,
+        void_t
         <
-            decltype(re_std::declval<const _A&>().max_size())
-        >::type
+            decltype(re_std::declval<const A&>().max_size())
+        >
     >
         : true_type
     {
@@ -452,32 +453,30 @@ namespace internal
 
     // ---------- has a.select_on_container_copy_construction() ----------
 
-    template<typename _A, typename = void>
+    template<typename A, typename = void>
     struct has_member_socc
         : false_type
     {
     };
 
-    template<typename _A>
+    template<typename A>
     struct has_member_socc
     <
-        _A,
-        typename void_t
+        A,
+        void_t
         <
             decltype
             (
-                re_std::declval<const _A&>()
+                re_std::declval<const A&>()
                     .select_on_container_copy_construction()
             )
-        >::type
+        >
     >
         : true_type
     {
     };
 
-}  // namespace internal
-
-
+}  // internal
 // =============================================================================
 // internal: dispatchers for max_size and select_on_container_copy_construction
 //
@@ -492,68 +491,67 @@ namespace internal
 
     // ---------- max_size dispatch ----------
 
-    template<typename _SizeType, typename _ValueType, typename _A>
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    template<typename SizeType, typename ValueType, typename A>
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        has_member_max_size<_A>::value,
-        _SizeType
+        has_member_max_size<A>::value,
+        SizeType
     >::type
-    alloc_max_size_dispatch(const _A& _a, int)
+    alloc_max_size_dispatch(const A& _a, int)
     {
-        return static_cast<_SizeType>(_a.max_size());
+        return static_cast<SizeType>(_a.max_size());
     }
 
-    template<typename _SizeType, typename _ValueType, typename _A>
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    template<typename SizeType, typename ValueType, typename A>
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        !has_member_max_size<_A>::value,
-        _SizeType
+        !has_member_max_size<A>::value,
+        SizeType
     >::type
-    alloc_max_size_dispatch(const _A&, ...)
+    alloc_max_size_dispatch(const A&, ...)
     {
         // Fallback formula matches the C++17 wording. size_type is
         // required to be unsigned, so (size_type)-1 is its max.
-        return static_cast<_SizeType>(-1) / sizeof(_ValueType);
+        return static_cast<SizeType>(-1) / sizeof(ValueType);
     }
 
     // ---------- select_on_container_copy_construction dispatch ----------
 
-    template<typename _A>
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    template<typename A>
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        has_member_socc<_A>::value,
-        _A
+        has_member_socc<A>::value,
+        A
     >::type
-    alloc_socc_dispatch(const _A& _a, int)
+    alloc_socc_dispatch(const A& _a, int)
     {
         return _a.select_on_container_copy_construction();
     }
 
-    template<typename _A>
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    template<typename A>
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        !has_member_socc<_A>::value,
-        _A
+        !has_member_socc<A>::value,
+        A
     >::type
-    alloc_socc_dispatch(const _A& _a, ...)
+    alloc_socc_dispatch(const A& _a, ...)
     {
         return _a;
     }
 
-}  // namespace internal
-
+}  // internal
 // NOTE: this block must precede allocator_traits: the member functions below
 // name internal::alloc_*_dispatch through a qualified-id whose nested-name-
 // specifier does not depend on a template parameter, so it is looked up at
@@ -563,57 +561,57 @@ namespace internal
 // allocator_traits
 // =============================================================================
 
-// allocator_traits<_Alloc>
+// allocator_traits<Alloc>
 //   class: uniform allocator interface. All members and all static
 //          functions have detection-with-fallback semantics.
-template<typename _Alloc>
+template<typename Alloc>
 struct allocator_traits
 {
     // -------------------------------------------------------------------------
     // member types
     // -------------------------------------------------------------------------
 
-    typedef _Alloc                              allocator_type;
-    typedef typename _Alloc::value_type         value_type;
+    typedef Alloc                              allocator_type;
+    typedef typename Alloc::value_type         value_type;
 
-    typedef typename internal::alloc_pointer<_Alloc>::type
+    typedef typename internal::alloc_pointer<Alloc>::type
         pointer;
 
-    typedef typename internal::alloc_const_pointer<_Alloc, pointer>::type
+    typedef typename internal::alloc_const_pointer<Alloc, pointer>::type
         const_pointer;
 
-    typedef typename internal::alloc_void_pointer<_Alloc, pointer>::type
+    typedef typename internal::alloc_void_pointer<Alloc, pointer>::type
         void_pointer;
 
-    typedef typename internal::alloc_const_void_pointer<_Alloc, pointer>::type
+    typedef typename internal::alloc_const_void_pointer<Alloc, pointer>::type
         const_void_pointer;
 
-    typedef typename internal::alloc_difference_type<_Alloc, pointer>::type
+    typedef typename internal::alloc_difference_type<Alloc, pointer>::type
         difference_type;
 
-    typedef typename internal::alloc_size_type<_Alloc, difference_type>::type
+    typedef typename internal::alloc_size_type<Alloc, difference_type>::type
         size_type;
 
-    typedef typename internal::alloc_pocca<_Alloc>::type
+    typedef typename internal::alloc_pocca<Alloc>::type
         propagate_on_container_copy_assignment;
 
-    typedef typename internal::alloc_pocma<_Alloc>::type
+    typedef typename internal::alloc_pocma<Alloc>::type
         propagate_on_container_move_assignment;
 
-    typedef typename internal::alloc_pocs<_Alloc>::type
+    typedef typename internal::alloc_pocs<Alloc>::type
         propagate_on_container_swap;
 
-    typedef typename internal::alloc_is_always_equal<_Alloc>::type
+    typedef typename internal::alloc_is_always_equal<Alloc>::type
         is_always_equal;
 
     // rebind_alloc / rebind_traits  (require alias templates)
-    #if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-        template<typename _U>
+    #if RE_STD_LANG_HAS_ALIAS_TEMPLATES
+        template<typename U>
         using rebind_alloc =
-            typename internal::alloc_rebind<_Alloc, _U>::type;
+            typename internal::alloc_rebind<Alloc, U>::type;
 
-        template<typename _U>
-        using rebind_traits = allocator_traits<rebind_alloc<_U> >;
+        template<typename U>
+        using rebind_traits = allocator_traits<rebind_alloc<U> >;
     #endif
 
     // -------------------------------------------------------------------------
@@ -621,42 +619,42 @@ struct allocator_traits
     // -------------------------------------------------------------------------
 
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
-    pointer allocate(_Alloc& _a, size_type _n)
+    pointer allocate(Alloc& _a, size_type _n)
     {
         return _a.allocate(_n);
     }
 
     // allocate(a, n, hint) — try a.allocate(n, hint), else a.allocate(n).
 
-    template<typename _A>
+    template<typename A>
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        internal::has_allocate_hint<_A, size_type, const_void_pointer>::value,
+        internal::has_allocate_hint<A, size_type, const_void_pointer>::value,
         pointer
     >::type
-    allocate(_A& _a, size_type _n, const_void_pointer _hint)
+    allocate(A& _a, size_type _n, const_void_pointer _hint)
     {
         return _a.allocate(_n, _hint);
     }
 
-    template<typename _A>
+    template<typename A>
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        !internal::has_allocate_hint<_A, size_type, const_void_pointer>::value,
+        !internal::has_allocate_hint<A, size_type, const_void_pointer>::value,
         pointer
     >::type
-    allocate(_A& _a, size_type _n, const_void_pointer)
+    allocate(A& _a, size_type _n, const_void_pointer)
     {
         return _a.allocate(_n);
     }
@@ -666,10 +664,10 @@ struct allocator_traits
     // -------------------------------------------------------------------------
 
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
-    void deallocate(_Alloc& _a, pointer _p, size_type _n)
+    void deallocate(Alloc& _a, pointer _p, size_type _n)
     {
         _a.deallocate(_p, _n);
     }
@@ -678,7 +676,7 @@ struct allocator_traits
     // construct
     // -------------------------------------------------------------------------
 
-    // Two overloads, dispatched on whether _Alloc has a member construct.
+    // Two overloads, dispatched on whether Alloc has a member construct.
     //
     // The fallback is `::new((void*)p) U(args...)` on C++11..C++17 and
     // `re_std::construct_at(p, args...)` on C++20+. The C++20 standard
@@ -686,38 +684,38 @@ struct allocator_traits
     // can trace through allocator_traits without hitting a non-
     // constexpr placement-new expression.
 
-    template<typename _U, typename... _Args>
+    template<typename U, typename... Args>
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        internal::has_member_construct<_Alloc, _U*, _Args...>::value,
+        internal::has_member_construct<Alloc, U*, Args...>::value,
         void
     >::type
-    construct(_Alloc& _a, _U* _p, _Args&&... _args)
+    construct(Alloc& _a, U* _p, Args&&... _args)
     {
-        _a.construct(_p, re_std::forward<_Args>(_args)...);
+        _a.construct(_p, re_std::forward<Args>(_args)...);
     }
 
-    template<typename _U, typename... _Args>
+    template<typename U, typename... Args>
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        !internal::has_member_construct<_Alloc, _U*, _Args...>::value,
+        !internal::has_member_construct<Alloc, U*, Args...>::value,
         void
     >::type
-    construct(_Alloc&, _U* _p, _Args&&... _args)
+    construct(Alloc&, U* _p, Args&&... _args)
     {
-        #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-            re_std::construct_at(_p, re_std::forward<_Args>(_args)...);
+        #if RE_STD_LANG_IS_CPP20_OR_HIGHER
+            re_std::construct_at(_p, re_std::forward<Args>(_args)...);
         #else
             ::new (static_cast<void*>(_p))
-                _U(re_std::forward<_Args>(_args)...);
+                U(re_std::forward<Args>(_args)...);
         #endif
     }
 
@@ -725,32 +723,32 @@ struct allocator_traits
     // destroy
     // -------------------------------------------------------------------------
 
-    template<typename _U>
+    template<typename U>
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        internal::has_member_destroy<_Alloc, _U*>::value,
+        internal::has_member_destroy<Alloc, U*>::value,
         void
     >::type
-    destroy(_Alloc& _a, _U* _p)
+    destroy(Alloc& _a, U* _p)
     {
         _a.destroy(_p);
     }
 
-    template<typename _U>
+    template<typename U>
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
     typename enable_if
     <
-        !internal::has_member_destroy<_Alloc, _U*>::value,
+        !internal::has_member_destroy<Alloc, U*>::value,
         void
     >::type
-    destroy(_Alloc&, _U* _p)
+    destroy(Alloc&, U* _p)
     {
         re_std::destroy_at(_p);
     }
@@ -764,20 +762,20 @@ struct allocator_traits
     // -------------------------------------------------------------------------
 
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
-    size_type max_size(const _Alloc& _a) D_NOEXCEPT
+    size_type max_size(const Alloc& _a) RE_STD_NOEXCEPT
     {
         return internal::alloc_max_size_dispatch<size_type, value_type>
                    (_a, 0);
     }
 
     static
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP20_OR_HIGHER
         constexpr
     #endif
-    _Alloc select_on_container_copy_construction(const _Alloc& _a)
+    Alloc select_on_container_copy_construction(const Alloc& _a)
     {
         return internal::alloc_socc_dispatch(_a, 0);
     }
@@ -786,8 +784,7 @@ struct allocator_traits
 
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_ALLOCATOR_TRAITS_
+#endif  // RE_STD_MEMORY_ALLOCATOR_TRAITS_HPP

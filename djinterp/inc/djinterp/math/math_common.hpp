@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                              math_common.hpp
+/*******************************************************************************
+* djinterp [math]                                                math_common.hpp
 *
 * Common foundation for the math subsystem.
 *   Establishes the math namespace macro and the shared environment include
@@ -7,14 +7,17 @@
 * transitively) is sufficient to obtain the NS_MATH / NS_DJINTERP / NS_INTERNAL
 * namespace-open macros and the version-gating helpers from djinterp.hpp.
 *
+*
 * path:      /inc/djinterp/math/math_common.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.04
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.04
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_COMMON_
-#define DJINTERP_MATH_COMMON_ 1
+#ifndef DJINTERP_MATH_MATH_COMMON_HPP
+#define DJINTERP_MATH_MATH_COMMON_HPP 1
 
+// djinterp
 #include "../djinterp.hpp"
 
 
@@ -28,4 +31,4 @@
 #define NS_MATH                     D_NAMESPACE(D_KEYWORD_MATH)
 
 
-#endif  // DJINTERP_MATH_COMMON_
+#endif  // DJINTERP_MATH_MATH_COMMON_HPP

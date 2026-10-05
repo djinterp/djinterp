@@ -1,30 +1,37 @@
-/******************************************************************************
-* djinterp [container]                                        path_iterator.hpp
+/*******************************************************************************
+* djinterp [core]                                              path_iterator.hpp
 *
-*   The PATH iterator: a traversal of the descent relation UPWARD -- the unique
-* chain of components from a node back to its root.  It is the exact converse of
-* linked_tree_iterator.hpp, which walks the same relation downward, and between
+*   The PATH iterator: a traversal of the descent relation UPWARD -- the
+* unique
+* chain of components from a node back to its root. It is the exact converse
+* of
+* linked_tree_iterator.hpp, which walks the same relation downward, and
+* between
 * them the two exhaust it.
 *
-*     linked_tree_iterator   the descent |>  : root -> ... -> node   (downward)
+*     linked_tree_iterator the descent |> : root -> ... -> node (downward)
 *     path_iterator          the ascent  |>^-1: node -> ... -> root  (upward)
 *
-*   THE SPEC (Structure, Addressability).  Because the components of a container
+*   THE SPEC (Structure, Addressability). Because the components of a
+* container
 * form a finite tree, THE PATH TO A COMPONENT EXISTS AND IS UNIQUE:
 *
 *       path(n)  =  ( c |> n_1 |> n_2 |> ... |> n_N ),      n_N = n
 *
 * so paths and components are in bijection, and a path may be identified with
-* the component it ends at.  Its length N is the LEVEL of n, written lambda(n),
-* and it is also the length of n's ADDRESS -- the word of labels along the path,
+* the component it ends at. Its length N is the LEVEL of n, written lambda(n),
+* and it is also the length of n's ADDRESS -- the word of labels along the
+* path,
 *
 *       addr(n)  =  < gamma(n_1), gamma(n_2), ..., gamma(n_N) >.
 *
-*   THE ANCHOR CONTRIBUTES NO LABEL.  Addressing STARTS from the root; the root
+*   THE ANCHOR CONTRIBUTES NO LABEL. Addressing STARTS from the root; the root
 * is not a step taken.  So addr(c) is the empty word, |addr(n)| == lambda(n),
 * and
-* an iterator over path(n) yields lambda(n) + 1 NODES but only lambda(n) LABELS.
-* Conflating the two is the single commonest error in a path implementation, and
+* an iterator over path(n) yields lambda(n) + 1 NODES but only lambda(n)
+* LABELS.
+* Conflating the two is the single commonest error in a path implementation,
+* and
 * it is what container_path_address exists to get right.
 *
 *   THE ASCENT IS LOCAL; THE DESCENT ALONG A PATH IS NOT.  Each step upward is
@@ -32,7 +39,8 @@
 * Downward is not symmetric: from an ancestor there is NO WAY to know which of
 * its children leads to the target without consulting the target.  The
 * root-first
-* reading of a path is therefore not a cheap reversal -- it is either the ascent
+* reading of a path is therefore not a cheap reversal -- it is either the
+* ascent
 * MATERIALISED (container_path_ancestor_chain) or the address RESOLVED
 * (resolve(addr(n))), and the second is what resolution has always been.  This
 * is
@@ -42,11 +50,12 @@
 * Anchoring at the container's root gives the absolute path; anchoring at any
 * other ancestor gives the path RELATIVE to that ancestor, and the level it
 * reports is relative to it too -- which is the spec's reading exactly: an
-* address is relative to a designated root.  A node that is not in the anchor's
+* address is relative to a designated root. A node that is not in the anchor's
 * subtree has no path to it, and the iterator is empty.
 *
 *   NAVIGATION IS BY POLICY.  The same accessor policy that container_path.hpp
-* and linked_tree_iterator.hpp take; only parent(), is_null(), null_index(), and
+* and linked_tree_iterator.hpp take; only parent(), is_null(), null_index(),
+* and
 * component() are used here.  The policy is held BY VALUE and must be cheap to
 * copy.
 *
@@ -59,39 +68,39 @@
 * construction and traversal are constexpr from C++14.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    Ascent Primitives           (level, reachability)
-* II.   Path Iterator               (the ascent, lazily)
-* III.  Path View and Factories
-*
-*
 * path:      /inc/djinterp/core/container/iterator/path_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_PATH_ITERATOR_
-#define DJINTERP_CONTAINER_PATH_ITERATOR_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    Ascent Primitives           (level, reachability)
+      -------------------------------------------------
+
+II.   Path Iterator               (the ascent, lazily)
+      ------------------------------------------------
+
+III.  Path View and Factories
+      -----------------------
+*/
+
+#ifndef DJINTERP_CONTAINER_ITERATOR_PATH_ITERATOR_HPP
+#define DJINTERP_CONTAINER_ITERATOR_PATH_ITERATOR_HPP 1
+
+// FLOOR, FOR NOW: below C++20 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <iterator>
 // djinterp
-#include "../../djinterp.hpp"   // D_CONSTEXPR, NS_*, feature macros
-
-
-// D_ITER_CONSTEXPR_MUT
-//   an operation that must loop -- climbing a parent chain -- is constexpr only
-// where a constexpr function may mutate, that is C++14 (relaxed constexpr)
-// onward; before that it is a runtime step.
-#ifndef D_ITER_CONSTEXPR_MUT
-    #if ( D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL >= 201304L )
-        #define D_ITER_CONSTEXPR_MUT  constexpr
-    #else
-        #define D_ITER_CONSTEXPR_MUT
-    #endif
-#endif
+#include "../../../djinterp.hpp"   // D_CONSTEXPR, NS_*, feature macros
 
 
 NS_DJINTERP
@@ -107,22 +116,22 @@ NS_DJINTERP
 //
 //   This is the ANCESTOR relation, and by the spec it is the PREFIX ORDER
 // transported along addr: _anchor is an ancestor of _node exactly when
-// addr(_anchor) is a prefix of addr(_node).  Walking the chain is the cheap way
+// addr(_anchor) is a prefix of addr(_node). Walking the chain is the cheap way
 // to decide it; comparing addresses is the same question asked twice.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-D_ITER_CONSTEXPR_MUT
+template<typename Policy,
+         typename Container,
+         typename Index>
+D_CONSTEXPR_CPP14
 bool
 path_reaches
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _node,
-    _Index            _anchor
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _node,
+    Index             _anchor
 )
 {
-    _Index node = _node;
+    Index node = _node;
 
     // climb the parent chain looking for the anchor
     while (!_policy.is_null(node))
@@ -141,29 +150,28 @@ path_reaches
 
 // path_level
 //   function: the LEVEL (lambda) of _node measured from _anchor, which is at
-// level 0 -- the number of descents from the anchor down to the node, and hence
-// the length of the node's address.  O(lambda).
+// level 0 -- the number of descents from the anchor down to the node, and
+// hence the length of the node's address. O(lambda).
 //
 //   Returns 0 when _node does not reach _anchor; use path_reaches to tell that
-// case apart from the node BEING the anchor.  This is NOT the depth of the
-// spec,
-// which is a node's HEIGHT, measured downward to its deepest leaf: level counts
-// upward, height counts downward, and they agree only at the anchor.
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-D_ITER_CONSTEXPR_MUT
+// case apart from the node BEING the anchor. This is NOT the depth of the
+// spec, which is a node's HEIGHT, measured downward to its deepest leaf: level
+// counts upward, height counts downward, and they agree only at the anchor.
+template<typename Policy,
+         typename Container,
+         typename Index>
+D_CONSTEXPR_CPP14
 std::size_t
 path_level
 (
-    const _Policy&    _policy,
-    const _Container& _container,
-    _Index            _node,
-    _Index            _anchor
+    const Policy&    _policy,
+    const Container& _container,
+    Index             _node,
+    Index             _anchor
 )
 {
     std::size_t level;
-    _Index      node;
+    Index       node;
 
     level = 0;
     node  = _node;
@@ -192,8 +200,7 @@ path_level
 // path_iterator_end_tag
 //   struct: disambiguates the past-the-end constructor of path_iterator.
 struct path_iterator_end_tag
-{
-};
+{};
 
 
 // path_iterator
@@ -216,15 +223,15 @@ struct path_iterator_end_tag
 // traversal itself will pay), and thereafter decremented, reaching 0 at the
 // anchor.  A node that does not reach the anchor has no path to it, and the
 // iterator is constructed already at its end.
-template<typename _Policy,
-         typename _Container>
+template<typename Policy,
+         typename Container>
 class path_iterator
 {
 public:
-    using policy_type       = _Policy;
-    using container_type    = _Container;
-    using index_type        = typename _Policy::index_type;
-    using component_type    = typename _Policy::component_type;
+    using policy_type       = Policy;
+    using container_type    = Container;
+    using index_type        = typename Policy::index_type;
+    using component_type    = typename Policy::component_type;
 
     using value_type        = index_type;
     using reference         = const index_type&;
@@ -237,7 +244,7 @@ public:
     // ------------------------------------------------------------------
 
     // path_iterator (default)
-    //   a singular iterator addressing nothing.  It compares equal only to
+    //   a singular iterator addressing nothing. It compares equal only to
     // another singular iterator, never to a real traversal's end.
     path_iterator()
         : m_policy(),
@@ -245,19 +252,17 @@ public:
           m_node(),
           m_anchor(),
           m_level(0)
-    {
-    }
+    {}
 
     // path_iterator (begin)
-    //   an iterator at _node, the first component of path(_node).  If _node
+    //   an iterator at _node, the first component of path(_node). If _node
     // does
     // not reach _anchor it has no path to it, and the iterator is already at
-    // its
-    // end.
-    D_ITER_CONSTEXPR_MUT
+    // its end.
+    D_CONSTEXPR_CPP14
     path_iterator(
-        _Policy           _policy,
-        const _Container& _container,
+        Policy            _policy,
+        const Container& _container,
         index_type        _node,
         index_type        _anchor
     )
@@ -272,10 +277,10 @@ public:
 
     // path_iterator (end)
     //   the past-the-end iterator of any path anchored at _anchor.
-    D_ITER_CONSTEXPR_MUT
+    D_CONSTEXPR_CPP14
     path_iterator(
-        _Policy           _policy,
-        const _Container& _container,
+        Policy            _policy,
+        const Container& _container,
         index_type        _anchor,
         path_iterator_end_tag
     )
@@ -284,8 +289,7 @@ public:
           m_node(_policy.null_index()),
           m_anchor(_anchor),
           m_level(0)
-    {
-    }
+    {}
 
     // ------------------------------------------------------------------
     //  access (observing)
@@ -329,7 +333,7 @@ public:
 
     // level
     //   the level (lambda) of the current component, measured from the anchor,
-    // which is at level 0.  Maintained incrementally; O(1).
+    // which is at level 0. Maintained incrementally; O(1).
     D_CONSTEXPR
     std::size_t
     level() const
@@ -349,13 +353,11 @@ public:
 
     // component
     //   the component (the label, in the sense of Addressability) of the node
-    // at
-    // the current position.
+    // at the current position.
     //
     //   Reading this AT THE ANCHOR is almost always a mistake: the anchor is
     // where addressing starts, not a step taken, so its label is not part of
-    // any
-    // address rooted there.  Guard with is_anchor().
+    // any address rooted there. Guard with is_anchor().
     component_type
     component() const
     {
@@ -367,9 +369,9 @@ public:
     // ------------------------------------------------------------------
 
     // operator++ (pre)
-    //   ascends one link, to the parent.  Stepping off the anchor ends the
+    //   ascends one link, to the parent. Stepping off the anchor ends the
     // walk.
-    D_ITER_CONSTEXPR_MUT
+    D_CONSTEXPR_CPP14
     path_iterator&
     operator++()
     {
@@ -379,7 +381,7 @@ public:
     }
 
     // operator++ (post)
-    D_ITER_CONSTEXPR_MUT
+    D_CONSTEXPR_CPP14
     path_iterator
     operator++(int)
     {
@@ -396,7 +398,7 @@ public:
 
     // operator==
     //   two iterators are equal when they rest on the same node of the same
-    // container.  Comparing the container as well is what keeps a singular
+    // container. Comparing the container as well is what keeps a singular
     // iterator (which holds none) from ever comparing equal to a real end.
     D_CONSTEXPR
     bool
@@ -417,7 +419,7 @@ public:
 private:
     // mark_end
     //   places the iterator past the last component of the path.
-    D_ITER_CONSTEXPR_MUT
+    D_CONSTEXPR_CPP14
     void
     mark_end()
     {
@@ -428,9 +430,9 @@ private:
     }
 
     // settle_begin
-    //   establishes the level by one climb to the anchor.  A node that never
+    //   establishes the level by one climb to the anchor. A node that never
     // meets the anchor has no path to it, and the walk is empty.
-    D_ITER_CONSTEXPR_MUT
+    D_CONSTEXPR_CPP14
     void
     settle_begin()
     {
@@ -462,10 +464,10 @@ private:
     }
 
     // advance
-    //   ascends to the parent.  The anchor is the last component yielded, so
+    //   ascends to the parent. The anchor is the last component yielded, so
     // stepping off it ends the walk -- the walk must never climb past its own
     // anchor, whose own ancestors lie outside the path.
-    D_ITER_CONSTEXPR_MUT
+    D_CONSTEXPR_CPP14
     void
     advance()
     {
@@ -498,8 +500,8 @@ private:
         return;
     }
 
-    _Policy           m_policy;
-    const _Container* m_container;
+    Policy            m_policy;
+    const Container* m_container;
     index_type        m_node;
     index_type        m_anchor;
     std::size_t       m_level;
@@ -511,25 +513,24 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 // path_view
-//   class: a range over path(_node) -- the chain of components from _node up to
-// _anchor, leaf-first -- so a path may drive a range-for.  Holds a policy, a
+//   class: a range over path(_node) -- the chain of components from _node up
+// to _anchor, leaf-first -- so a path may drive a range-for. Holds a policy, a
 // container pointer, the node, and the anchor; it owns nothing, and it
-// allocates
-// nothing.  This is what replaces materialising an ancestor chain into a vector
-// merely to walk it once.
-template<typename _Policy,
-         typename _Container>
+// allocates nothing. This is what replaces materialising an ancestor chain
+// into a vector merely to walk it once.
+template<typename Policy,
+         typename Container>
 class path_view
 {
 public:
-    using iterator   = path_iterator<_Policy, _Container>;
-    using index_type = typename _Policy::index_type;
+    using iterator   = path_iterator<Policy, Container>;
+    using index_type = typename Policy::index_type;
 
     // path_view
     //   constructs a view of path(_node), anchored at _anchor.
     path_view(
-        _Policy           _policy,
-        const _Container& _container,
+        Policy            _policy,
+        const Container& _container,
         index_type        _node,
         index_type        _anchor
     )
@@ -537,12 +538,11 @@ public:
           m_container(&_container),
           m_node(_node),
           m_anchor(_anchor)
-    {
-    }
+    {}
 
     // begin
     //   an iterator at _node, the first component of the path.
-    D_ITER_CONSTEXPR_MUT
+    D_CONSTEXPR_CPP14
     iterator
     begin() const
     {
@@ -551,7 +551,7 @@ public:
 
     // end
     //   the past-the-end iterator.
-    D_ITER_CONSTEXPR_MUT
+    D_CONSTEXPR_CPP14
     iterator
     end() const
     {
@@ -563,7 +563,7 @@ public:
 
     // empty
     //   true if _node has no path to _anchor -- that is, if it does not reach
-    // it.  A node that DOES reach the anchor always yields at least itself.
+    // it. A node that DOES reach the anchor always yields at least itself.
     bool
     empty() const
     {
@@ -571,7 +571,7 @@ public:
     }
 
     // level
-    //   the level (lambda) of _node, and so the length of its ADDRESS.  The
+    //   the level (lambda) of _node, and so the length of its ADDRESS. The
     // path itself yields one more component than this -- the anchor, which
     // contributes no label.
     std::size_t
@@ -582,7 +582,7 @@ public:
 
     // size
     //   the number of COMPONENTS on the path, which is level() + 1: a path of
-    // length N names N + 1 components, the anchor included.  Named apart from
+    // length N names N + 1 components, the anchor included. Named apart from
     // level() precisely because the two differ by exactly one, and that one is
     // the anchor.
     std::size_t
@@ -597,8 +597,8 @@ public:
     }
 
 private:
-    _Policy           m_policy;
-    const _Container* m_container;
+    Policy            m_policy;
+    const Container* m_container;
     index_type        m_node;
     index_type        m_anchor;
 };
@@ -606,27 +606,26 @@ private:
 
 // make_path_view
 //   factory: a range over path(_node) anchored at _anchor -- the components
-// from
-// _node up to and including _anchor, leaf-first.
+// from _node up to and including _anchor, leaf-first.
 //
 // Usage:
 //   for (auto n : make_path_view(policy, arena, node, root))
 //   {
 //       ...
 //   }
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-path_view<_Policy, _Container>
+template<typename Policy,
+         typename Container,
+         typename Index>
+path_view<Policy, Container>
 make_path_view
 (
-    _Policy           _policy,
-    const _Container& _container,
-    _Index            _node,
-    _Index            _anchor
+    Policy            _policy,
+    const Container& _container,
+    Index             _node,
+    Index             _anchor
 )
 {
-    return path_view<_Policy, _Container>(
+    return path_view<Policy, Container>(
         _policy,
         _container,
         _node,
@@ -636,20 +635,20 @@ make_path_view
 
 // make_path_iterator
 //   factory: an iterator at _node, the first component of path(_node).
-template<typename _Policy,
-         typename _Container,
-         typename _Index>
-D_ITER_CONSTEXPR_MUT
-path_iterator<_Policy, _Container>
+template<typename Policy,
+         typename Container,
+         typename Index>
+D_CONSTEXPR_CPP14
+path_iterator<Policy, Container>
 make_path_iterator
 (
-    _Policy           _policy,
-    const _Container& _container,
-    _Index            _node,
-    _Index            _anchor
+    Policy            _policy,
+    const Container& _container,
+    Index             _node,
+    Index             _anchor
 )
 {
-    return path_iterator<_Policy, _Container>(
+    return path_iterator<Policy, Container>(
         _policy,
         _container,
         _node,
@@ -659,5 +658,6 @@ make_path_iterator
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_PATH_ITERATOR_
+#endif  // DJINTERP_CONTAINER_ITERATOR_PATH_ITERATOR_HPP

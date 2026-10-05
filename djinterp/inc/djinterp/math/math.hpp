@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                     math.hpp
+/*******************************************************************************
+* djinterp [math]                                                       math.hpp
 *
 * Umbrella header for the math subframework.
 *   math.hpp defines no types of its own; it includes the focused headers that
@@ -24,36 +24,35 @@
 *   calculus/       - calculus subframework (differentiation, integration,
 *                     sequences, series, elementary functions)
 *
+*
 * path:      /inc/djinterp/math/math.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2024.04.24
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_
-#define DJINTERP_MATH_ 1
+#ifndef DJINTERP_MATH_MATH_HPP
+#define DJINTERP_MATH_MATH_HPP 1
 
+// djinterp
 // foundation
 #include "./math_common.hpp"
-
 // expression core + functions
 #include "./expression.hpp"
-#include "./function.hpp"
-
+#include "function/function.hpp"
 // coordinate systems
-#include "./coordinate.hpp"
-#include "./cartesian.hpp"
-#include "./polar.hpp"
-#include "./cylindrical.hpp"
-#include "./spherical.hpp"
-
+#include "coordinate/coordinate.hpp"
+#include "coordinate/cartesian.hpp"
+#include "coordinate/polar.hpp"
+#include "coordinate/cylindrical.hpp"
+#include "coordinate/spherical.hpp"
 // numeric support
-#include "./interval.hpp"
+#include "interval/interval.hpp"
 #include "./constants.hpp"
 #include "./values.hpp"
-
 // subframeworks
 #include "./geometry/geometry.hpp"
 #include "./calculus/calculus.hpp"
 
 
-#endif  // DJINTERP_MATH_
+#endif  // DJINTERP_MATH_MATH_HPP

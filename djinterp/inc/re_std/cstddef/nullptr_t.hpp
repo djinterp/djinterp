@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                nullptr_t.hpp
 *
 * nullptr_t typedef (identity-preserving re-export):
@@ -18,36 +18,39 @@
 * substituting a NULL-shaped stand-in with different conversion rules.
 *
 *
-* path:      /inc/djinterp/re_std/cstddef/nullptr_t.hpp
+* path:      /inc/re_std/cstddef/nullptr_t.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDDEF_NULLPTR_T_
-#define DJINTERP_RE_STD_CSTDDEF_NULLPTR_T_ 1
+#ifndef RE_STD_CSTDDEF_NULLPTR_T_HPP
+#define RE_STD_CSTDDEF_NULLPTR_T_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 //   permitted: fundamental types only.
+// std
 #include <cstddef>
 
 
-NS_RESTD
+namespace re_std
+{
 
     // nullptr_t
     //   typedef: identity-preserving re-export of std::nullptr_t, the
     // compiler-synthesised type of the nullptr literal.
     using ::std::nullptr_t;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CSTDDEF_NULLPTR_T_
+#endif  // RE_STD_CSTDDEF_NULLPTR_T_HPP

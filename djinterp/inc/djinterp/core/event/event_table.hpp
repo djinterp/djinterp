@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [event]                                             event_table.hpp
+/*******************************************************************************
+* djinterp [core]                                                event_table.hpp
 *
 * The erased store:
 *   Type-erased handler storage for the event system -- the realization of
@@ -17,7 +17,7 @@
 * event_table_concepts.hpp.
 *
 * FORMAL CORRESPONDENCE ("Definition of an Event"):
-*   erasure   kappa : T_e -> K        -- internal::type_key<_Event>()
+*   erasure   kappa : T_e -> K        -- internal::type_key<Event>()
 *   key set   K                       -- std::size_t
 *   word per type, rho_e              -- a bucket (vector of handler_entry)
 *   mask      m : L -> {on,off}       -- handler_entry::enabled
@@ -32,11 +32,11 @@
 * COMPONENTS:
 *   djinterp::event_table_stats  - table statistics snapshot
 *   djinterp::event_table        - type-erased handler storage
-*   djinterp::event_table_traits<_Table>   - structural detection
+*   djinterp::event_table_traits<Table>   - structural detection
 *   djinterp::is_event_table_type          (C++20 concept)
 *
 * INTERNAL COMPONENTS:
-*   djinterp::internal::type_key<_Event>  - per-type unique key (kappa)
+*   djinterp::internal::type_key<Event>  - per-type unique key (kappa)
 *   djinterp::internal::handler_entry     - type-erased handler slot
 *
 * FEATURE DEPENDENCIES:
@@ -47,37 +47,33 @@
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26
 *
-* 
+*
 * path:      /inc/djinterp/core/event/event_table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.11
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_EVENT_TABLE_
-#define DJINTERP_EVENT_TABLE_ 1
+#ifndef DJINTERP_EVENT_EVENT_TABLE_HPP
+#define DJINTERP_EVENT_EVENT_TABLE_HPP 1
 
-// require the C++ framework header
-#ifndef DJINTERP_
-    #error "event_table.hpp requires djinterp.h to be included first"
-#endif
-
-#ifndef __cplusplus
-    #error "event_table.hpp can only be used in C++ compilation mode"
-#endif
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "event_table.hpp requires C++11 or higher"
-#endif
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <functional>
 #include <type_traits>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 // djinterp
 #include "./event_handler.hpp"
+#include "../meta/type_utility.hpp"  // clean_t
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 
 
 NS_DJINTERP
@@ -97,8 +93,8 @@ NS_INTERNAL
     // token. The injection's only obligation (soundness of erasure) is that
     // an erased payload is touched only by code selected by its own key --
     // which holds because bind and dispatch both key by this same kappa.
-    template<typename _Event>
-    std::size_t 
+    template<typename Event>
+    std::size_t
     type_key()
     {
         static const char anchor = '\0';
@@ -351,8 +347,8 @@ public:
     // for_each_entry
     //   invokes _fn for every entry in every bucket. The callable receives
     // (std::size_t type_key, const handler_entry& entry).
-    template<typename _Callable>
-    void for_each_entry(_Callable&& _fn) const
+    template<typename Callable>
+    void for_each_entry(Callable&& _fn) const
     {
         for (const auto& kv : m_table)
         {
@@ -361,14 +357,14 @@ public:
                 _fn(kv.first, entry);
             }
         }
-    };
+    }
 
     // for_each_entry_for
     //   invokes _fn for every entry in the bucket identified by _type_key.
     // The callable receives (const handler_entry& entry).
-    template<typename _Callable>
+    template<typename Callable>
     void for_each_entry_for(std::size_t  _type_key,
-                            _Callable&&  _fn) const
+                            Callable&&  _fn) const
     {
         auto it = m_table.find(_type_key);
 
@@ -379,7 +375,7 @@ public:
                 _fn(entry);
             }
         }
-    };
+    }
 
     // type_key_count
     //   returns the number of distinct event type keys in the table.
@@ -570,7 +566,7 @@ private:
     };
 
     table_type    m_table;
-    std::uint64_t m_next_id;
+    re_std::uint64_t m_next_id;
     std::size_t   m_total_count;
     std::size_t   m_enabled_count;
 };
@@ -587,18 +583,18 @@ NS_INTERNAL
     // has_table_insert
     //   trait: detects insert(size_t, std::function<verdict(void*)>)
     // returning handler_id.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_insert
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_insert<_Table,
+    template<typename Table>
+    struct has_table_insert<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Table&>().insert(
+                decltype(std::declval<Table&>().insert(
                     std::declval<std::size_t>(),
                     std::declval<std::function<verdict(void*)>>())),
                 handler_id
@@ -610,18 +606,18 @@ NS_INTERNAL
 
     // has_table_remove
     //   trait: detects remove(handler_id) returning bool.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_remove
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_remove<_Table,
+    template<typename Table>
+    struct has_table_remove<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Table&>().remove(
+                decltype(std::declval<Table&>().remove(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -632,18 +628,18 @@ NS_INTERNAL
 
     // has_table_enable
     //   trait: detects enable(handler_id) returning bool.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_enable
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_enable<_Table,
+    template<typename Table>
+    struct has_table_enable<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Table&>().enable(
+                decltype(std::declval<Table&>().enable(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -654,18 +650,18 @@ NS_INTERNAL
 
     // has_table_disable
     //   trait: detects disable(handler_id) returning bool.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_disable
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_disable<_Table,
+    template<typename Table>
+    struct has_table_disable<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Table&>().disable(
+                decltype(std::declval<Table&>().disable(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -678,18 +674,18 @@ NS_INTERNAL
 
     // has_table_is_enabled
     //   trait: detects is_enabled(handler_id) const returning bool.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_is_enabled
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_is_enabled<_Table,
+    template<typename Table>
+    struct has_table_is_enabled<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Table&>().is_enabled(
+                decltype(std::declval<const Table&>().is_enabled(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -700,18 +696,18 @@ NS_INTERNAL
 
     // has_table_contains
     //   trait: detects contains(handler_id) const returning bool.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_contains
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_contains<_Table,
+    template<typename Table>
+    struct has_table_contains<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Table&>().contains(
+                decltype(std::declval<const Table&>().contains(
                     std::declval<handler_id>())),
                 bool
             >::value
@@ -722,18 +718,18 @@ NS_INTERNAL
 
     // has_table_count_for
     //   trait: detects count_for(size_t) const returning size_t.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_count_for
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_count_for<_Table,
+    template<typename Table>
+    struct has_table_count_for<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Table&>().count_for(
+                decltype(std::declval<const Table&>().count_for(
                     std::declval<std::size_t>())),
                 std::size_t
             >::value
@@ -744,18 +740,18 @@ NS_INTERNAL
 
     // has_table_has_entries_for
     //   trait: detects has_entries_for(size_t) const returning bool.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_has_entries_for
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_has_entries_for<_Table,
+    template<typename Table>
+    struct has_table_has_entries_for<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Table&>().has_entries_for(
+                decltype(std::declval<const Table&>().has_entries_for(
                     std::declval<std::size_t>())),
                 bool
             >::value
@@ -766,18 +762,18 @@ NS_INTERNAL
 
     // has_table_total_count
     //   trait: detects total_count() const returning size_t.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_total_count
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_total_count<_Table,
+    template<typename Table>
+    struct has_table_total_count<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Table&>().total_count()),
+                decltype(std::declval<const Table&>().total_count()),
                 std::size_t
             >::value
         >::type>
@@ -787,18 +783,18 @@ NS_INTERNAL
 
     // has_table_enabled_count
     //   trait: detects enabled_count() const returning size_t.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_enabled_count
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_enabled_count<_Table,
+    template<typename Table>
+    struct has_table_enabled_count<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Table&>().enabled_count()),
+                decltype(std::declval<const Table&>().enabled_count()),
                 std::size_t
             >::value
         >::type>
@@ -808,17 +804,17 @@ NS_INTERNAL
 
     // has_table_clear
     //   trait: detects clear() as a well-formed expression.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_clear
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_clear<_Table,
+    template<typename Table>
+    struct has_table_clear<Table,
         decltype(static_cast<void>(
-            std::declval<_Table&>().clear()
+            std::declval<Table&>().clear()
         ))>
     {
         static constexpr bool value = true;
@@ -828,18 +824,18 @@ NS_INTERNAL
 
     // has_table_type_key_count
     //   trait: detects type_key_count() const returning size_t.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_type_key_count
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_type_key_count<_Table,
+    template<typename Table>
+    struct has_table_type_key_count<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<const _Table&>().type_key_count()),
+                decltype(std::declval<const Table&>().type_key_count()),
                 std::size_t
             >::value
         >::type>
@@ -849,17 +845,17 @@ NS_INTERNAL
 
     // has_table_get_stats
     //   trait: detects get_stats() const as a well-formed expression.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_get_stats
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_get_stats<_Table,
+    template<typename Table>
+    struct has_table_get_stats<Table,
         decltype(static_cast<void>(
-            std::declval<const _Table&>().get_stats()
+            std::declval<const Table&>().get_stats()
         ))>
     {
         static constexpr bool value = true;
@@ -867,17 +863,17 @@ NS_INTERNAL
 
     // has_table_clear_for
     //   trait: detects clear_for(size_t) as a well-formed expression.
-    template<typename _Table,
+    template<typename Table,
              typename = void>
     struct has_table_clear_for
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_clear_for<_Table,
+    template<typename Table>
+    struct has_table_clear_for<Table,
         decltype(static_cast<void>(
-            std::declval<_Table&>().clear_for(
+            std::declval<Table&>().clear_for(
                 std::declval<std::size_t>())
         ))>
     {
@@ -885,20 +881,20 @@ NS_INTERNAL
     };
 
     // has_table_merge
-    //   trait: detects merge(const _Table&) returning size_t.
-    template<typename _Table,
+    //   trait: detects merge(const Table&) returning size_t.
+    template<typename Table,
              typename = void>
     struct has_table_merge
     {
         static constexpr bool value = false;
     };
 
-    template<typename _Table>
-    struct has_table_merge<_Table,
+    template<typename Table>
+    struct has_table_merge<Table,
         typename std::enable_if<
             std::is_same<
-                decltype(std::declval<_Table&>().merge(
-                    std::declval<const _Table&>())),
+                decltype(std::declval<Table&>().merge(
+                    std::declval<const Table&>())),
                 std::size_t
             >::value
         >::type>
@@ -915,14 +911,14 @@ NS_END  // internal
 
 // event_table_traits
 //   trait: compile-time structural detection for types that satisfy the
-// event table interface required by the registry. Validates that _Table
+// event table interface required by the registry. Validates that Table
 // provides insert, remove, enable, disable, query, and clear operations
 // with the expected signatures.
 //
 // note: does not verify semantic contracts (e.g. that remove actually
 // removes, or that enable/disable are idempotent). This is a structural
 // check only, consistent with the djinterp trait philosophy.
-template<typename _Table>
+template<typename Table>
 struct event_table_traits
 {
     // ---- core mutation detection ----
@@ -930,64 +926,64 @@ struct event_table_traits
     // has_insert
     //   constant: true if insert(size_t, function) --> handler_id.
     static constexpr bool has_insert =
-        internal::has_table_insert<clean_t<_Table>>::value;
+        internal::has_table_insert<clean_t<Table>>::value;
 
     // has_remove
     //   constant: true if remove(handler_id) --> bool.
     static constexpr bool has_remove =
-        internal::has_table_remove<clean_t<_Table>>::value;
+        internal::has_table_remove<clean_t<Table>>::value;
 
     // has_enable
     //   constant: true if enable(handler_id) --> bool.
     static constexpr bool has_enable =
-        internal::has_table_enable<clean_t<_Table>>::value;
+        internal::has_table_enable<clean_t<Table>>::value;
 
     // has_disable
     //   constant: true if disable(handler_id) --> bool.
     static constexpr bool has_disable =
-        internal::has_table_disable<clean_t<_Table>>::value;
+        internal::has_table_disable<clean_t<Table>>::value;
 
     // ---- const query detection ----
 
     // has_is_enabled
     //   constant: true if is_enabled(handler_id) const --> bool.
     static constexpr bool has_is_enabled =
-        internal::has_table_is_enabled<clean_t<_Table>>::value;
+        internal::has_table_is_enabled<clean_t<Table>>::value;
 
     // has_contains
     //   constant: true if contains(handler_id) const --> bool.
     static constexpr bool has_contains =
-        internal::has_table_contains<clean_t<_Table>>::value;
+        internal::has_table_contains<clean_t<Table>>::value;
 
     // has_count_for
     //   constant: true if count_for(size_t) const --> size_t.
     static constexpr bool has_count_for =
-        internal::has_table_count_for<clean_t<_Table>>::value;
+        internal::has_table_count_for<clean_t<Table>>::value;
 
     // has_has_entries_for
     //   constant: true if has_entries_for(size_t) const --> bool.
     static constexpr bool has_has_entries_for =
-        internal::has_table_has_entries_for<clean_t<_Table>>::value;
+        internal::has_table_has_entries_for<clean_t<Table>>::value;
 
     // has_total_count
     //   constant: true if total_count() const --> size_t.
     static constexpr bool has_total_count =
-        internal::has_table_total_count<clean_t<_Table>>::value;
+        internal::has_table_total_count<clean_t<Table>>::value;
 
     // has_enabled_count
     //   constant: true if enabled_count() const --> size_t.
     static constexpr bool has_enabled_count =
-        internal::has_table_enabled_count<clean_t<_Table>>::value;
+        internal::has_table_enabled_count<clean_t<Table>>::value;
 
     // has_clear
     //   constant: true if clear() is well-formed.
     static constexpr bool has_clear =
-        internal::has_table_clear<clean_t<_Table>>::value;
+        internal::has_table_clear<clean_t<Table>>::value;
 
     // ---- composite detection ----
 
     // is_event_table
-    //   constant: true if _Table provides all required operations for use
+    //   constant: true if Table provides all required operations for use
     // as a handler storage backend.
     static constexpr bool is_event_table =
         ( has_insert          &&
@@ -1007,22 +1003,22 @@ struct event_table_traits
     // has_type_key_count
     //   constant: true if type_key_count() const --> size_t.
     static constexpr bool has_type_key_count =
-        internal::has_table_type_key_count<clean_t<_Table>>::value;
+        internal::has_table_type_key_count<clean_t<Table>>::value;
 
     // has_stats
     //   constant: true if get_stats() const is well-formed.
     static constexpr bool has_stats =
-        internal::has_table_get_stats<clean_t<_Table>>::value;
+        internal::has_table_get_stats<clean_t<Table>>::value;
 
     // has_clear_for
     //   constant: true if clear_for(size_t) is well-formed.
     static constexpr bool has_clear_for =
-        internal::has_table_clear_for<clean_t<_Table>>::value;
+        internal::has_table_clear_for<clean_t<Table>>::value;
 
     // has_merge
-    //   constant: true if merge(const _Table&) --> size_t.
+    //   constant: true if merge(const Table&) --> size_t.
     static constexpr bool has_merge =
-        internal::has_table_merge<clean_t<_Table>>::value;
+        internal::has_table_merge<clean_t<Table>>::value;
 };
 
 
@@ -1037,29 +1033,29 @@ struct event_table_traits
 // is_event_table_type
 //   concept: constrains types that satisfy the event table structural
 // requirements for use as a handler storage backend.
-template<typename _Table>
+template<typename Table>
 concept is_event_table_type =
-    event_table_traits<clean_t<_Table>>::is_event_table;
+    event_table_traits<clean_t<Table>>::is_event_table;
 
 // event_table_type
 //   concept: readable spelling of is_event_table_type.
-template<typename _Type>
+template<typename Type>
 concept event_table_type =
-    is_event_table_type<clean_t<_Type>>;
+    is_event_table_type<clean_t<Type>>;
 
 // non_event_table_type
 //   concept: constrains types that do not satisfy the structural event
 // table protocol.
-template<typename _Type>
+template<typename Type>
 concept non_event_table_type =
-    !event_table_type<_Type>;
+    !event_table_type<Type>;
 
 // clearable_event_table_type
 //   concept: constrains event tables supporting clear().
-template<typename _Type>
+template<typename Type>
 concept clearable_event_table_type =
-    event_table_type<_Type> &&
-    event_table_traits<clean_t<_Type>>::has_clear;
+    event_table_type<Type> &&
+    event_table_traits<clean_t<Type>>::has_clear;
 
 
 // ---- count and query concepts ----
@@ -1067,60 +1063,62 @@ concept clearable_event_table_type =
 // counting_event_table_type
 //   concept: constrains event tables supporting the full required count
 // and query interface.
-template<typename _Type>
+template<typename Type>
 concept counting_event_table_type =
-    event_table_type<_Type> &&
-    event_table_traits<clean_t<_Type>>::has_count_for &&
-    event_table_traits<clean_t<_Type>>::has_has_entries_for &&
-    event_table_traits<clean_t<_Type>>::has_total_count &&
-    event_table_traits<clean_t<_Type>>::has_enabled_count;
+    event_table_type<Type> &&
+    event_table_traits<clean_t<Type>>::has_count_for &&
+    event_table_traits<clean_t<Type>>::has_has_entries_for &&
+    event_table_traits<clean_t<Type>>::has_total_count &&
+    event_table_traits<clean_t<Type>>::has_enabled_count;
 
 // type_key_counting_event_table_type
 //   concept: constrains event tables exposing type_key_count().
-template<typename _Type>
+template<typename Type>
 concept type_key_counting_event_table_type =
-    event_table_type<_Type> &&
-    event_table_traits<clean_t<_Type>>::has_type_key_count;
+    event_table_type<Type> &&
+    event_table_traits<clean_t<Type>>::has_type_key_count;
 
 
 // ---- extended feature concepts ----
 
 // stats_event_table_type
 //   concept: constrains event tables exposing get_stats().
-template<typename _Type>
+template<typename Type>
 concept stats_event_table_type =
-    event_table_type<_Type> &&
-    event_table_traits<clean_t<_Type>>::has_stats;
+    event_table_type<Type> &&
+    event_table_traits<clean_t<Type>>::has_stats;
 
 // selectively_clearable_event_table_type
 //   concept: constrains event tables supporting clear_for(type-key).
-template<typename _Type>
+template<typename Type>
 concept selectively_clearable_event_table_type =
-    event_table_type<_Type> &&
-    event_table_traits<clean_t<_Type>>::has_clear_for;
+    event_table_type<Type> &&
+    event_table_traits<clean_t<Type>>::has_clear_for;
 
 // mergeable_event_table_type
 //   concept: constrains event tables supporting pointwise merge.
-template<typename _Type>
+template<typename Type>
 concept mergeable_event_table_type =
-    event_table_type<_Type> &&
-    event_table_traits<clean_t<_Type>>::has_merge;
+    event_table_type<Type> &&
+    event_table_traits<clean_t<Type>>::has_merge;
 
 // extended_event_table_type
 //   concept: constrains event tables exposing all optional extension points
 // currently tracked by event_table_traits.
-template<typename _Type>
+template<typename Type>
 concept extended_event_table_type =
-    event_table_type<_Type> &&
-    event_table_traits<clean_t<_Type>>::has_type_key_count &&
-    event_table_traits<clean_t<_Type>>::has_stats &&
-    event_table_traits<clean_t<_Type>>::has_clear_for &&
-    event_table_traits<clean_t<_Type>>::has_merge;
+    event_table_type<Type> &&
+    event_table_traits<clean_t<Type>>::has_type_key_count &&
+    event_table_traits<clean_t<Type>>::has_stats &&
+    event_table_traits<clean_t<Type>>::has_clear_for &&
+    event_table_traits<clean_t<Type>>::has_merge;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EVENT_TABLE_
+
+#endif  // DJINTERP_EVENT_EVENT_TABLE_HPP

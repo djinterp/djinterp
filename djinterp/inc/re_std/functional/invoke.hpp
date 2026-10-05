@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                      invoke.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                   invoke.hpp
 *
+* invoke function header:
 * function: standard INVOKE pseudo-operation.
 *   Generalises function-call syntax across every callable shape:
 *   1.  pointer-to-member-function on an object of the owning class
@@ -19,7 +20,7 @@
 * type plus enable_if on the type relations elects the right one.
 *
 *   Min standard: C++11 (variadic templates + perfect forwarding).
-* `D_CONSTEXPR` lifts to `constexpr` from C++11 onward; the standard
+* `RE_STD_CONSTEXPR` lifts to `constexpr` from C++11 onward; the standard
 * did not make INVOKE constexpr until C++20 (P1065), so this header
 * over-qualifies relative to std on C++11 / C++14 / C++17. That is
 * deliberate -- re_std's "constexpr maximization" goal.
@@ -27,16 +28,18 @@
 *
 * path:      /inc/re_std/functional/invoke.hpp
 * link(s):   TBA
-* author(s): re_std                                      date: 2026.05.07
-***********************************************************************/
+* author(s): re_std                                          created: 2026.05.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_INVOKE_
-#define DJINTERP_RE_STD_FUNCTIONAL_INVOKE_ 1
+#ifndef RE_STD_FUNCTIONAL_INVOKE_HPP
+#define RE_STD_FUNCTIONAL_INVOKE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if (D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&  \
-     D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES)
+#if (RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&  \
+     RE_STD_LANG_HAS_RVALUE_REFERENCES)
 
 #include "re_std/type_traits/type_traits.hpp"
 #include "re_std/utility/forward.hpp"
@@ -51,110 +54,111 @@
 namespace re_std
 {
 
-NS_INTERNAL
+namespace internal
+{
 
     // -------------------------------------------------------------------
     // bullet 1: PMF, first arg derived from owning class -- (a1.*f)(args)
     // -------------------------------------------------------------------
-    template<typename _F,
-             typename _Class,
-             typename _A1,
-             typename... _Args>
-    D_CONSTEXPR auto
+    template<typename F,
+             typename Class,
+             typename A1,
+             typename... Args>
+    RE_STD_CONSTEXPR auto
     INVOKE(
-        _F _Class::*_f,
-        _A1&&       _a1,
-        _Args&&...  _args
+        F Class::*_f,
+        A1&&       _a1,
+        Args&&...  _args
     ) -> typename enable_if<
-            ( is_function<_F>::value &&
-              is_base_of<_Class, typename decay<_A1>::type>::value ),
-            decltype((re_std::forward<_A1>(_a1).*_f)
-                         (re_std::forward<_Args>(_args)...))
+            ( is_function<F>::value &&
+              is_base_of<Class, typename decay<A1>::type>::value ),
+            decltype((re_std::forward<A1>(_a1).*_f)
+                         (re_std::forward<Args>(_args)...))
          >::type
     {
-        return (re_std::forward<_A1>(_a1).*_f)
-                   (re_std::forward<_Args>(_args)...);
+        return (re_std::forward<A1>(_a1).*_f)
+                   (re_std::forward<Args>(_args)...);
     }
 
     // -------------------------------------------------------------------
     // bullet 2: PMF, first arg is reference_wrapper -- (a1.get().*f)(args)
     // -------------------------------------------------------------------
-    template<typename _F,
-             typename _Class,
-             typename _A1,
-             typename... _Args>
-    D_CONSTEXPR auto
+    template<typename F,
+             typename Class,
+             typename A1,
+             typename... Args>
+    RE_STD_CONSTEXPR auto
     INVOKE(
-        _F _Class::*_f,
-        _A1&&       _a1,
-        _Args&&...  _args
+        F Class::*_f,
+        A1&&       _a1,
+        Args&&...  _args
     ) -> typename enable_if<
-            ( is_function<_F>::value &&
-              is_reference_wrapper<typename decay<_A1>::type>::value ),
+            ( is_function<F>::value &&
+              is_reference_wrapper<typename decay<A1>::type>::value ),
             decltype((_a1.get().*_f)
-                         (re_std::forward<_Args>(_args)...))
+                         (re_std::forward<Args>(_args)...))
          >::type
     {
         return (_a1.get().*_f)
-                   (re_std::forward<_Args>(_args)...);
+                   (re_std::forward<Args>(_args)...);
     }
 
     // -------------------------------------------------------------------
     // bullet 3: PMF, first arg is a pointer -- ((*a1).*f)(args)
     // -------------------------------------------------------------------
-    template<typename _F,
-             typename _Class,
-             typename _A1,
-             typename... _Args>
-    D_CONSTEXPR auto
+    template<typename F,
+             typename Class,
+             typename A1,
+             typename... Args>
+    RE_STD_CONSTEXPR auto
     INVOKE(
-        _F _Class::*_f,
-        _A1&&       _a1,
-        _Args&&...  _args
+        F Class::*_f,
+        A1&&       _a1,
+        Args&&...  _args
     ) -> typename enable_if<
-            ( is_function<_F>::value &&
-              !is_base_of<_Class, typename decay<_A1>::type>::value &&
-              !is_reference_wrapper<typename decay<_A1>::type>::value ),
-            decltype(((*re_std::forward<_A1>(_a1)).*_f)
-                         (re_std::forward<_Args>(_args)...))
+            ( is_function<F>::value &&
+              !is_base_of<Class, typename decay<A1>::type>::value &&
+              !is_reference_wrapper<typename decay<A1>::type>::value ),
+            decltype(((*re_std::forward<A1>(_a1)).*_f)
+                         (re_std::forward<Args>(_args)...))
          >::type
     {
-        return ((*re_std::forward<_A1>(_a1)).*_f)
-                   (re_std::forward<_Args>(_args)...);
+        return ((*re_std::forward<A1>(_a1)).*_f)
+                   (re_std::forward<Args>(_args)...);
     }
 
     // -------------------------------------------------------------------
     // bullet 4: PMD, first arg derived from owning class -- a1.*f
     // -------------------------------------------------------------------
-    template<typename _F,
-             typename _Class,
-             typename _A1>
-    D_CONSTEXPR auto
+    template<typename F,
+             typename Class,
+             typename A1>
+    RE_STD_CONSTEXPR auto
     INVOKE(
-        _F _Class::*_f,
-        _A1&&       _a1
+        F Class::*_f,
+        A1&&       _a1
     ) -> typename enable_if<
-            ( !is_function<_F>::value &&
-              is_base_of<_Class, typename decay<_A1>::type>::value ),
-            decltype(re_std::forward<_A1>(_a1).*_f)
+            ( !is_function<F>::value &&
+              is_base_of<Class, typename decay<A1>::type>::value ),
+            decltype(re_std::forward<A1>(_a1).*_f)
          >::type
     {
-        return re_std::forward<_A1>(_a1).*_f;
+        return re_std::forward<A1>(_a1).*_f;
     }
 
     // -------------------------------------------------------------------
     // bullet 5: PMD, first arg is reference_wrapper -- a1.get().*f
     // -------------------------------------------------------------------
-    template<typename _F,
-             typename _Class,
-             typename _A1>
-    D_CONSTEXPR auto
+    template<typename F,
+             typename Class,
+             typename A1>
+    RE_STD_CONSTEXPR auto
     INVOKE(
-        _F _Class::*_f,
-        _A1&&       _a1
+        F Class::*_f,
+        A1&&       _a1
     ) -> typename enable_if<
-            ( !is_function<_F>::value &&
-              is_reference_wrapper<typename decay<_A1>::type>::value ),
+            ( !is_function<F>::value &&
+              is_reference_wrapper<typename decay<A1>::type>::value ),
             decltype(_a1.get().*_f)
          >::type
     {
@@ -164,21 +168,21 @@ NS_INTERNAL
     // -------------------------------------------------------------------
     // bullet 6: PMD, first arg is a pointer -- (*a1).*f
     // -------------------------------------------------------------------
-    template<typename _F,
-             typename _Class,
-             typename _A1>
-    D_CONSTEXPR auto
+    template<typename F,
+             typename Class,
+             typename A1>
+    RE_STD_CONSTEXPR auto
     INVOKE(
-        _F _Class::*_f,
-        _A1&&       _a1
+        F Class::*_f,
+        A1&&       _a1
     ) -> typename enable_if<
-            ( !is_function<_F>::value &&
-              !is_base_of<_Class, typename decay<_A1>::type>::value &&
-              !is_reference_wrapper<typename decay<_A1>::type>::value ),
-            decltype((*re_std::forward<_A1>(_a1)).*_f)
+            ( !is_function<F>::value &&
+              !is_base_of<Class, typename decay<A1>::type>::value &&
+              !is_reference_wrapper<typename decay<A1>::type>::value ),
+            decltype((*re_std::forward<A1>(_a1)).*_f)
          >::type
     {
-        return (*re_std::forward<_A1>(_a1)).*_f;
+        return (*re_std::forward<A1>(_a1)).*_f;
     }
 
     // -------------------------------------------------------------------
@@ -189,39 +193,38 @@ NS_INTERNAL
     // ordinary callables the trailing return is well-formed and this
     // overload is the only viable one.
     // -------------------------------------------------------------------
-    template<typename _F,
-             typename... _Args>
-    D_CONSTEXPR auto
+    template<typename F,
+             typename... Args>
+    RE_STD_CONSTEXPR auto
     INVOKE(
-        _F&&        _f,
-        _Args&&...  _args
-    ) -> decltype(re_std::forward<_F>(_f)
-                      (re_std::forward<_Args>(_args)...))
+        F&&        _f,
+        Args&&...  _args
+    ) -> decltype(re_std::forward<F>(_f)
+                      (re_std::forward<Args>(_args)...))
     {
-        return re_std::forward<_F>(_f)
-                   (re_std::forward<_Args>(_args)...);
+        return re_std::forward<F>(_f)
+                   (re_std::forward<Args>(_args)...);
     }
 
-NS_END  // internal
+}  // internal
 
 // invoke
 //   function: public entry point. Forwards to the matching INVOKE
 // overload chosen by the rules above.
-template<typename _F,
-         typename... _Args>
-D_CONSTEXPR auto
+template<typename F,
+         typename... Args>
+RE_STD_CONSTEXPR auto
 invoke(
-    _F&&        _f,
-    _Args&&...  _args
-) -> decltype(internal::INVOKE(re_std::forward<_F>(_f),
-                               re_std::forward<_Args>(_args)...))
+    F&&        _f,
+    Args&&...  _args
+) -> decltype(internal::INVOKE(re_std::forward<F>(_f),
+                               re_std::forward<Args>(_args)...))
 {
-    return internal::INVOKE(re_std::forward<_F>(_f),
-                            re_std::forward<_Args>(_args)...);
+    return internal::INVOKE(re_std::forward<F>(_f),
+                            re_std::forward<Args>(_args)...);
 }
 
-} // namespace re_std
-
+}  // re_std
 #endif // variadic templates + rvalue references
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_INVOKE_
+#endif  // RE_STD_FUNCTIONAL_INVOKE_HPP

@@ -1,24 +1,40 @@
-/******************************************************************************
-* djinterp [container] write_only_container_concepts.hpp C++20 concepts for the
-* ACCESS (write_only) axis -- the `requires`-facing view of
-* write_only_container_traits.hpp. THE CONCEPTS ADD NO POLICY. Each is exactly
-* its trait, spelled so it can constrain a template instead of gating one
-* through enable_if. The trait stays the single source of truth. NAMES. Where
-* the obvious name is taken by a CONTAINER CLASS in this namespace, the concept
-* takes an adjective form instead. A concept and a class of the same name in one
-* namespace is a hard redeclaration, and this framework has already been bitten
-* by that three times. PORTABILITY: Gated on C++20 + concepts. Below that the
-* header is empty and callers use the `::value` / `_v` forms directly. path:
-* /inc/djinterp/core/container/concepts/write_only_container_concepts.hpp
-* link(s): TBA author(s): Samuel 'teer' Neal-Blim created: 2026.07.14
-* *****************************************************************************/
+/*******************************************************************************
+* djinterp [core]                              write_only_container_concepts.hpp
+*
+* C++20 concepts for the ACCESS (write_only) axis -- the `requires`-facing
+* view of write_only_container_traits.hpp.
+*
+*   THE CONCEPTS ADD NO POLICY.
+*   Each is exactly its trait, spelled so it can constrain a template instead
+* of gating one through enable_if. The trait stays the single source of truth.
+*
+*   NAMES.
+*   Where the obvious name is taken by a CONTAINER CLASS in this namespace,
+* the concept takes an adjective form instead. A concept and a class of the
+* same name in one namespace is a hard redeclaration, and this framework has
+* already been bitten by that three times.
+*
+*   PORTABILITY:
+*   Gated on C++20 + concepts.
+*
+*
+* path:      /inc/djinterp/core/container/concepts/write_only_container_concepts.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.14
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_WRITE_ONLY_CONTAINER_CONCEPTS_
-#define DJINTERP_WRITE_ONLY_CONTAINER_CONCEPTS_ 1
+#ifndef DJINTERP_CONTAINER_CONCEPTS_WRITE_ONLY_CONTAINER_CONCEPTS_HPP
+#define DJINTERP_CONTAINER_CONCEPTS_WRITE_ONLY_CONTAINER_CONCEPTS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../meta/concepts.hpp"   // D_CONCEPT_FROM_TRAIT
+#include "../../../djinterp.hpp"
 #include "../traits/write_only_container_traits.hpp"
 
 
@@ -33,15 +49,17 @@ NS_DJINTERP
 
 
 // WriteOnlyContainer
-// concept: a handle grants mutation but NOT observation of element VALUES. The
-// value-free metadata size() / empty() is not an observer, so a sink exposing
-// only those plus an append surface still reads write_only.
-D_CONCEPT_FROM_TRAIT(WriteOnlyContainer, is_write_only_container_v)
+//   concept: a handle grants mutation but NOT observation of element VALUES.
+// The value-free metadata size() / empty() is not an observer, so a sink
+// exposing only those plus an append surface still reads write_only.
+template<typename Type>
+concept WriteOnlyContainer = is_write_only_container_v<Type>;
 
 NS_END  // djinterp
 
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_WRITE_ONLY_CONTAINER_CONCEPTS_
+#endif  // DJINTERP_CONTAINER_CONCEPTS_WRITE_ONLY_CONTAINER_CONCEPTS_HPP

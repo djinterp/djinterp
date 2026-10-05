@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [fs]                                           file_tree_windows.hpp
+/*******************************************************************************
+* djinterp [core]                                          file_tree_windows.hpp
 *
 * Windows file tree scanner:
 *   Defines windows_scanner and windows10_scanner.  The Win32 directory
@@ -15,28 +15,41 @@
 * before being interned, matching the core's UTF-8 storage contract.
 *
 *
-* path:      /inc/cpp/fs/file_tree_windows.hpp
+* path:      /inc/djinterp/core/container/tree/file/file_tree_windows.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.03.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.03.22
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_FS_FILE_TREE_WINDOWS_
-#define DJINTERP_FS_FILE_TREE_WINDOWS_ 1
+#ifndef DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_WINDOWS_HPP
+#define DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_WINDOWS_HPP 1
 
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// djinterp
 #include "./file_tree_common.hpp"
+// re_std
+#include "../../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
+
+#if D_FILESYS_ENABLE_WINDOWS
 
 #if defined(_WIN32)
     #ifndef WIN32_LEAN_AND_MEAN
         #define WIN32_LEAN_AND_MEAN
     #endif
+    // windows
     #include <windows.h>
 #endif
 
+// std
 #include <string>
 
 
 NS_DJINTERP
-NS_FS
 
 
 // ================================================================
@@ -44,13 +57,12 @@ NS_FS
 // ================================================================
 
 // windows_scanner
-//   policy: Win32 directory walk via FindFirstFileExW.  Pulls type
-// and size from WIN32_FIND_DATAW with no per-entry stat.
+//   policy: Win32 directory walk via FindFirstFileExW. Pulls type and size
+// from WIN32_FIND_DATAW with no per-entry stat.
 //
-//   The _LargeFetch template parameter selects the modern
-// enumeration hints; windows10_scanner is the specialization with
-// it enabled.
-template<bool _LargeFetch>
+//   The LargeFetch template parameter selects the modern enumeration hints;
+// windows10_scanner is the specialization with it enabled.
+template<bool LargeFetch>
 struct basic_windows_scanner
 {
 #if defined(_WIN32)
@@ -149,12 +161,12 @@ struct basic_windows_scanner
     }
 
     // scan
-    template<typename _Ctx>
+    template<typename Ctx>
     static void
     scan(
-        _Ctx&              _ctx,
+        Ctx&              _ctx,
         const std::string& _dir_path,
-        node_id            _parent
+        file_node_id            _parent
     )
     {
         std::wstring pattern = widen(_dir_path + "\\*");
@@ -163,7 +175,7 @@ struct basic_windows_scanner
 
         HANDLE h;
 
-        if (_LargeFetch)
+        if (LargeFetch)
         {
             h = ::FindFirstFileExW(
                 pattern.c_str(),
@@ -200,11 +212,11 @@ struct basic_windows_scanner
 
             file_type type = classify(fd.dwFileAttributes);
 
-            std::uint64_t sz =
-                (static_cast<std::uint64_t>(fd.nFileSizeHigh) << 32) |
-                static_cast<std::uint64_t>(fd.nFileSizeLow);
+            re_std::uint64_t sz =
+                (static_cast<re_std::uint64_t>(fd.nFileSizeHigh) << 32) |
+                static_cast<re_std::uint64_t>(fd.nFileSizeLow);
 
-            node_id id = _ctx.intern_child(
+            file_node_id id = _ctx.intern_child(
                 _parent,
                 child_name.c_str(),
                 child_name.size(),
@@ -225,11 +237,11 @@ struct basic_windows_scanner
 
 #else  // !_WIN32
 
-    // off-platform stub: compiles, scans nothing, so the umbrella
-    // can name this policy on any host.
-    template<typename _Ctx>
+    // off-platform stub: compiles, scans nothing, so the umbrella can name
+    // this policy on any host.
+    template<typename Ctx>
     static void
-    scan(_Ctx&, const std::string&, node_id)
+    scan(Ctx&, const std::string&, file_node_id)
     {
         return;
     }
@@ -244,12 +256,23 @@ using windows_scanner = basic_windows_scanner<false>;
 
 // windows10_scanner
 //   policy: Win32 enumeration with FindExInfoBasic +
-// FIND_FIRST_EX_LARGE_FETCH.  Also the Windows 11 backend.
+// FIND_FIRST_EX_LARGE_FETCH. Also the Windows 11 backend.
 using windows10_scanner = basic_windows_scanner<true>;
 
 
-NS_END  // fs
 NS_END  // djinterp
 
+#else  // !D_FILESYS_ENABLE_WINDOWS
 
-#endif  // DJINTERP_FS_FILE_TREE_WINDOWS_
+// Windows backend not enabled for this build. Without it this header declares
+// nothing, rather than stopping the build: a disabled backend is absent, and
+// naming its scanner fails at the point of use (see os_scanner in
+// file_tree.hpp). Set D_CFG_FILESYS_ALLOW_WINDOWS (or
+// D_CFG_FILESYS_ALLOW_WINDOWS_FAMILY, or D_CFG_FILESYS_ALLOW_FOREIGN) to 1
+// before including file_tree.hpp.
+
+#endif  // D_FILESYS_ENABLE_WINDOWS
+
+#endif  // floor, for now
+
+#endif  // DJINTERP_CONTAINER_TREE_FILE_FILE_TREE_WINDOWS_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                             monoid.hpp
+/*******************************************************************************
+* djinterp [core]                                                     monoid.hpp
 *
 * Monoid protocol, its identity-aware operations, and the standard instances.
 *   A monoid is a semigroup (an associative combine, semigroup.hpp) that also
@@ -41,34 +41,48 @@
 *
 *   std::string j = mconcat(std::vector<std::string>{ "a", "b", "c" });       // "abc"
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/monoid.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    MONOID NEWTYPES                              (namespace monoids)
-      1.  sum<T> / product<T>
-      2.  all / any
-      3.  min<T> / max<T>
+      ----------------------------------------------------------------
+      1.    sum<T> / product<T>
+      2.    all / any
+      3.    min<T> / max<T>
+
 II.   MONOID PROTOCOL
-      1.  monoid_traits<T>                         (primary, undefined)
-      2.  is_monoid<T>                             (detection trait)
+      ---------------
+      1.    monoid_traits<T>                         (primary, undefined)
+      2.    is_monoid<T>                             (detection trait)
+
 III.  INSTANCES                                     (semigroup + monoid)
-      1.  std::string, std::vector<T>
-      2.  the  newtypes
+      ------------------------------------------------------------------
+      1.    std::string, std::vector<T>
+      2.    the  newtypes
+
 IV.   GENERIC MONOID OPERATIONS
-      1.  mempty<T>                                (identity element)
-      2.  mconcat                                  (combine a foldable of M)
-      3.  fold_monoid                              (map into M, then mconcat)
+      -------------------------
+      1.    mempty<T>                                (identity element)
+      2.    mconcat                                  (combine a foldable of M)
+      3.    fold_monoid                              (map into M, then mconcat)
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_MONOID_
-#define DJINTERP_FUNCTIONAL_MONOID_ 1
+#ifndef DJINTERP_FUNCTIONAL_MONOID_HPP
+#define DJINTERP_FUNCTIONAL_MONOID_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <limits>
@@ -77,7 +91,7 @@ IV.   GENERIC MONOID OPERATIONS
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./semigroup.hpp"
 #include "./foldable.hpp"
 
@@ -94,41 +108,41 @@ NS_DJINTERP
 // the namespace keeps them clear of the flat accumulator factories.
 
 // sum
-//   struct: the additive monoid over _Type -- combine is +, identity 0.
-template<typename _Type>
+//   struct: the additive monoid over Type -- combine is +, identity 0.
+template<typename Type>
 struct sum
 {
-    _Type value;
+    Type value;
 
     D_CONSTEXPR
     sum()
-        : value(_Type())
+        : value(Type())
     {}
 
     D_CONSTEXPR
     explicit sum(
-        _Type _value
+        Type _value
     )
         : value(_value)
     {}
 };
 
 // product
-//   struct: the multiplicative monoid over _Type -- combine is *,
+//   struct: the multiplicative monoid over Type -- combine is *,
 // identity 1.
-template<typename _Type>
+template<typename Type>
 struct product
 {
-    _Type value;
+    Type value;
 
     D_CONSTEXPR
     product()
-        : value(_Type(1))
+        : value(Type(1))
     {}
 
     D_CONSTEXPR
     explicit product(
-        _Type _value
+        Type _value
     )
         : value(_value)
     {}
@@ -175,34 +189,34 @@ struct any
 };
 
 // min
-//   struct: the minimum monoid over _Type -- combine keeps the smaller,
-// identity is the largest representable _Type. Intended for numeric
-// _Type (the identity is std::numeric_limits<_Type>::max()).
-template<typename _Type>
+//   struct: the minimum monoid over Type -- combine keeps the smaller,
+// identity is the largest representable Type. Intended for numeric
+// Type (the identity is std::numeric_limits<Type>::max()).
+template<typename Type>
 struct min
 {
-    _Type value;
+    Type value;
 
     D_CONSTEXPR
     explicit min(
-        _Type _value
+        Type _value
     )
         : value(_value)
     {}
 };
 
 // max
-//   struct: the maximum monoid over _Type -- combine keeps the larger,
-// identity is the smallest representable _Type. Intended for numeric
-// _Type (the identity is std::numeric_limits<_Type>::lowest()).
-template<typename _Type>
+//   struct: the maximum monoid over Type -- combine keeps the larger,
+// identity is the smallest representable Type. Intended for numeric
+// Type (the identity is std::numeric_limits<Type>::lowest()).
+template<typename Type>
 struct max
 {
-    _Type value;
+    Type value;
 
     D_CONSTEXPR
     explicit max(
-        _Type _value
+        Type _value
     )
         : value(_value)
     {}
@@ -223,8 +237,8 @@ struct max
 // (every instance below specializes both). The second parameter is a SFINAE
 // hook, mirroring semigroup_traits. The primary is left undefined so a use on
 // a non-monoid produces a clean resolution error.
-template<typename _Monoid,
-         typename _Enable = void>
+template<typename Monoid,
+         typename Enable = void>
 struct monoid_traits;
 
 
@@ -233,52 +247,52 @@ NS_INTERNAL
     // is_monoid_helper
     //   helper: SFINAE detector for whether monoid_traits<T> is specialized.
     // Looks for the is_specialized marker that every specialization provides.
-    template<typename _Type>
+    template<typename Type>
     struct is_monoid_helper
     {
     private:
-        template<typename _T>
+        template<typename T>
         static auto test(int)
             -> decltype(
-                typename monoid_traits<_T>::is_specialized{},
+                typename monoid_traits<T>::is_specialized{},
                 std::true_type{});
 
         template<typename>
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 
 // is_monoid
-//   trait: true if _Type has a specialization of monoid_traits (after cv-ref
+//   trait: true if Type has a specialization of monoid_traits (after cv-ref
 // stripping). A monoid is necessarily a semigroup, so is_semigroup is also
 // true for any such type.
-template<typename _Type>
+template<typename Type>
 struct is_monoid
-    : internal::is_monoid_helper<typename std::decay<_Type>::type>::type
+    : internal::is_monoid_helper<typename std::decay<Type>::type>::type
 {
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // is_monoid_v
-//   value: convenience alias for is_monoid<_Type>::value.
-template<typename _Type>
-static constexpr bool is_monoid_v = is_monoid<_Type>::value;
+//   value: convenience alias for is_monoid<Type>::value.
+template<typename Type>
+static constexpr bool is_monoid_v = is_monoid<Type>::value;
 #endif
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // Monoid
-    //   concept: satisfied when _Type is a specialized monoid. The PascalCase
+    //   concept: satisfied when Type is a specialized monoid. The PascalCase
     // typeclass face, alongside Semigroup / Functor / Applicative / Foldable.
-    template<typename _Type>
-    concept Monoid = is_monoid<_Type>::value;
+    template<typename Type>
+    concept Monoid = is_monoid<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -326,20 +340,20 @@ struct monoid_traits<std::string, void>
 
 // -- std::vector<T> : concatenation -----------------------------------------
 
-// semigroup_traits<std::vector<_Type>>
+// semigroup_traits<std::vector<Type>>
 //   instance: vector concatenation is associative.
-template<typename _Type>
-struct semigroup_traits<std::vector<_Type>, void>
+template<typename Type>
+struct semigroup_traits<std::vector<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
-    std::vector<_Type> combine(
-        const std::vector<_Type>& _a,
-        const std::vector<_Type>& _b
+    std::vector<Type> combine(
+        const std::vector<Type>& _a,
+        const std::vector<Type>& _b
     )
     {
-        std::vector<_Type> _result;
+        std::vector<Type> _result;
 
         _result.reserve(_a.size() + _b.size());
         _result.insert(_result.end(), _a.begin(), _a.end());
@@ -349,81 +363,81 @@ struct semigroup_traits<std::vector<_Type>, void>
     }
 };
 
-// monoid_traits<std::vector<_Type>>
+// monoid_traits<std::vector<Type>>
 //   instance: the empty vector is the identity for concatenation.
-template<typename _Type>
-struct monoid_traits<std::vector<_Type>, void>
+template<typename Type>
+struct monoid_traits<std::vector<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
-    std::vector<_Type> empty()
+    std::vector<Type> empty()
     {
-        return std::vector<_Type>();
+        return std::vector<Type>();
     }
 };
 
 
 // -- sum<T> : addition ---------------------------------------------
 
-template<typename _Type>
-struct semigroup_traits<sum<_Type>, void>
+template<typename Type>
+struct semigroup_traits<sum<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
     D_CONSTEXPR
-    sum<_Type> combine(
-        const sum<_Type>& _a,
-        const sum<_Type>& _b
+    sum<Type> combine(
+        const sum<Type>& _a,
+        const sum<Type>& _b
     )
     {
-        return sum<_Type>(_a.value + _b.value);
+        return sum<Type>(_a.value + _b.value);
     }
 };
 
-template<typename _Type>
-struct monoid_traits<sum<_Type>, void>
+template<typename Type>
+struct monoid_traits<sum<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
     D_CONSTEXPR
-    sum<_Type> empty()
+    sum<Type> empty()
     {
-        return sum<_Type>();
+        return sum<Type>();
     }
 };
 
 
 // -- product<T> : multiplication -----------------------------------
 
-template<typename _Type>
-struct semigroup_traits<product<_Type>, void>
+template<typename Type>
+struct semigroup_traits<product<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
     D_CONSTEXPR
-    product<_Type> combine(
-        const product<_Type>& _a,
-        const product<_Type>& _b
+    product<Type> combine(
+        const product<Type>& _a,
+        const product<Type>& _b
     )
     {
-        return product<_Type>(_a.value * _b.value);
+        return product<Type>(_a.value * _b.value);
     }
 };
 
-template<typename _Type>
-struct monoid_traits<product<_Type>, void>
+template<typename Type>
+struct monoid_traits<product<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
     D_CONSTEXPR
-    product<_Type> empty()
+    product<Type> empty()
     {
-        return product<_Type>();
+        return product<Type>();
     }
 };
 
@@ -494,64 +508,64 @@ struct monoid_traits<any, void>
 
 // -- min<T> : minimum ----------------------------------------------
 
-template<typename _Type>
-struct semigroup_traits<min<_Type>, void>
+template<typename Type>
+struct semigroup_traits<min<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
     D_CONSTEXPR
-    min<_Type> combine(
-        const min<_Type>& _a,
-        const min<_Type>& _b
+    min<Type> combine(
+        const min<Type>& _a,
+        const min<Type>& _b
     )
     {
         return (_b.value < _a.value) ? _b : _a;
     }
 };
 
-template<typename _Type>
-struct monoid_traits<min<_Type>, void>
+template<typename Type>
+struct monoid_traits<min<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
     D_CONSTEXPR
-    min<_Type> empty()
+    min<Type> empty()
     {
-        return min<_Type>((std::numeric_limits<_Type>::max)());
+        return min<Type>((std::numeric_limits<Type>::max)());
     }
 };
 
 
 // -- max<T> : maximum ----------------------------------------------
 
-template<typename _Type>
-struct semigroup_traits<max<_Type>, void>
+template<typename Type>
+struct semigroup_traits<max<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
     D_CONSTEXPR
-    max<_Type> combine(
-        const max<_Type>& _a,
-        const max<_Type>& _b
+    max<Type> combine(
+        const max<Type>& _a,
+        const max<Type>& _b
     )
     {
         return (_a.value < _b.value) ? _b : _a;
     }
 };
 
-template<typename _Type>
-struct monoid_traits<max<_Type>, void>
+template<typename Type>
+struct monoid_traits<max<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static
     D_CONSTEXPR
-    max<_Type> empty()
+    max<Type> empty()
     {
-        return max<_Type>((std::numeric_limits<_Type>::lowest)());
+        return max<Type>((std::numeric_limits<Type>::lowest)());
     }
 };
 
@@ -566,17 +580,17 @@ struct monoid_traits<max<_Type>, void>
 // carrier-holding maybe / result), and run at runtime otherwise.
 
 // mempty
-//   function: the identity element of a monoid. The monoid type _Monoid must
+//   function: the identity element of a monoid. The monoid type Monoid must
 // be supplied explicitly because it cannot be deduced (the dual of how
 // monad_unit / pure take their type explicitly).
 //
 //   Example: mempty<sum<int>>().value -> 0
-template<typename _Monoid>
+template<typename Monoid>
 D_NODISCARD
 D_CONSTEXPR
-_Monoid mempty()
+Monoid mempty()
 {
-    return monoid_traits<_Monoid>::empty();
+    return monoid_traits<Monoid>::empty();
 }
 
 
@@ -587,13 +601,13 @@ NS_INTERNAL
     // running accumulator with the next monoid value via mappend, threading
     // the accumulator by value. A named functor keeps it usable on every
     // floor and lets the trailing return types name it.
-    template<typename _Monoid>
+    template<typename Monoid>
     struct monoid_mappend_helper
     {
         D_CONSTEXPR
-        _Monoid operator()(
-            _Monoid        _acc,
-            const _Monoid& _value
+        Monoid operator()(
+            Monoid         _acc,
+            const Monoid& _value
         ) const
         {
             return ::djinterp::mappend(_acc, _value);
@@ -609,16 +623,16 @@ NS_END  // internal
 // mappend. The empty foldable yields mempty.
 //
 //   Example: mconcat(vector<sum<int>>{1,2,3}).value -> 6
-template<typename _Foldable>
+template<typename Foldable>
 D_NODISCARD
 D_CONSTEXPR
-foldable_value_type_t<_Foldable>
+foldable_value_type_t<Foldable>
 mconcat
 (
-    const _Foldable& _fa
+    const Foldable& _fa
 )
 {
-    using monoid_t = foldable_value_type_t<_Foldable>;
+    using monoid_t = foldable_value_type_t<Foldable>;
 
     return ::djinterp::fold_left(
         _fa,
@@ -635,21 +649,21 @@ mconcat
 //
 //   Example: fold_monoid(just(5), [](int x){ return sum<int>(x); })
 //            -> sum<int> with value 5
-template<typename _Foldable,
-         typename _Function>
+template<typename Foldable,
+         typename Function>
 D_NODISCARD
 D_CONSTEXPR
-typename std::decay<decltype(std::declval<_Function&>()(
-    std::declval<const foldable_value_type_t<_Foldable>&>()))>::type
+typename std::decay<decltype(std::declval<Function&>()(
+    std::declval<const foldable_value_type_t<Foldable>&>()))>::type
 fold_monoid
 (
-    const _Foldable& _fa,
-    _Function        _function
+    const Foldable& _fa,
+    Function         _function
 )
 {
-    using value_t  = foldable_value_type_t<_Foldable>;
+    using value_t  = foldable_value_type_t<Foldable>;
     using monoid_t = typename std::decay<decltype(
-        std::declval<_Function&>()(std::declval<const value_t&>()))>::type;
+        std::declval<Function&>()(std::declval<const value_t&>()))>::type;
 
     return ::djinterp::fold_left(
         _fa,
@@ -663,5 +677,7 @@ fold_monoid
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_MONOID_
+
+#endif  // DJINTERP_FUNCTIONAL_MONOID_HPP

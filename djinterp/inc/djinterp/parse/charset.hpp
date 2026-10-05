@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                                  charset.hpp
+* djinterp [parse]                                                   charset.hpp
 *
 *   The C++ face of the character class declared in charset.h.
 *   `charset` derives from d_parse_charset, adds no data member, and is
@@ -11,37 +11,31 @@
 * lets a class be built and queried at compile time -- the first piece of the
 * compile-time-parser door that the POD instruction opens the rest of.
 *
+*
 * path:      /inc/djinterp/parse/charset.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_CHARSET_HPP_
-#define DJINTERP_PARSE_CHARSET_HPP_ 1
+#ifndef DJINTERP_PARSE_CHARSET_HPP
+#define DJINTERP_PARSE_CHARSET_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>              // std::size_t
-#include <cstdint>              // std::uint8_t, std::uint32_t
-#include <type_traits>          // std::is_standard_layout
+#include <cstddef>          // std::size_t
+#include <type_traits>      // std::is_standard_layout
 // djinterp
-#include "../djinterp.hpp"      // framework root
-#include "./charset.h"          // the C type this layer faces
-
-
-// D_KEYWORD_PARSE
-//   keyword: resolves to `parse`.  Guarded rather than owned -- parse.hpp is
-// its canonical home, and this spelling only fires when the substrate is built
-// without it.
-#ifndef D_KEYWORD_PARSE
-    #define D_KEYWORD_PARSE             parse
-#endif
-
-// NS_PARSE
-//   namespace: the parse subsystem namespace.  Guarded for the same reason.
-#ifndef NS_PARSE
-    #define NS_PARSE                    D_NAMESPACE(D_KEYWORD_PARSE)
-#endif
+#include "../djinterp.hpp"  // framework root
+#include "./c/charset.h"    // the C type this layer faces
+#include "./substrate.hpp"  // NS_PARSE, without parse.hpp
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint8_t, uint32_t
 
 
 NS_DJINTERP
@@ -114,24 +108,24 @@ struct charset : d_parse_charset
 
     // add
     //   function: adds a byte value.
-    constexpr charset&
+    D_CONSTEXPR_CPP14 charset&
     add(
         unsigned char _value
     ) noexcept
     {
-        bits[_value >> 3] |= static_cast<std::uint8_t>(1u << (_value & 7u));
+        bits[_value >> 3] |= static_cast<re_std::uint8_t>(1u << (_value & 7u));
 
         return *this;
     }
 
     // remove
     //   function: removes a byte value.
-    constexpr charset&
+    D_CONSTEXPR_CPP14 charset&
     remove(
         unsigned char _value
     ) noexcept
     {
-        bits[_value >> 3] &= static_cast<std::uint8_t>(~(1u << (_value & 7u)));
+        bits[_value >> 3] &= static_cast<re_std::uint8_t>(~(1u << (_value & 7u)));
 
         return *this;
     }
@@ -198,7 +192,7 @@ struct charset : d_parse_charset
     // count
     //   accessor: how many byte values are members.  Density, for choosing an
     // encoding.
-    std::uint32_t
+    re_std::uint32_t
     count() const noexcept
     {
         return d_parse_charset_count(this);
@@ -276,5 +270,7 @@ static_assert(std::is_trivially_copyable<charset>::value,
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_CHARSET_HPP_
+
+#endif  // DJINTERP_PARSE_CHARSET_HPP

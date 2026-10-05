@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                       accumulate.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               accumulate.hpp
 *
+* accumulate algorithm header:
 * accumulate(_first, _last, _init [, _op]) folds [_first, _last) into
 * the accumulator _init via _op (default: operator+). Strict left-fold
 * semantics: the operations are applied in iteration order.
@@ -16,28 +17,21 @@
 * constexpr to C++14+ on every tier.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/accumulate.hpp
+* path:      /inc/re_std/numeric/accumulate.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_ACCUMULATE_
-#define DJINTERP_RE_STD_NUMERIC_ACCUMULATE_ 1
+#ifndef RE_STD_NUMERIC_ACCUMULATE_HPP
+#define RE_STD_NUMERIC_ACCUMULATE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     #include "re_std/utility/move.hpp"
-#endif
-
-
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
 #endif
 
 
@@ -45,19 +39,19 @@ namespace re_std
 {
 
 // Default-op (operator+) overload.
-template<typename _InputIt, typename _T>
-D_CONSTEXPR_CPP14 _T accumulate
+template<typename InputIt, typename T>
+RE_STD_CONSTEXPR_CPP14 T accumulate
 (
-    _InputIt _first,
-    _InputIt _last,
-    _T       _init
+    InputIt _first,
+    InputIt _last,
+    T       _init
 )
 {
     for (; _first != _last; ++_first)
     {
-        #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #if RE_STD_LANG_IS_CPP11_OR_HIGHER
             // Move the running total through each step so user-defined
-            // _T types with non-trivial copy can move-fold.
+            // T types with non-trivial copy can move-fold.
             _init = re_std::move(_init) + *_first;
         #else
             _init = _init + *_first;
@@ -67,18 +61,18 @@ D_CONSTEXPR_CPP14 _T accumulate
 }
 
 // Custom-op overload.
-template<typename _InputIt, typename _T, typename _BinOp>
-D_CONSTEXPR_CPP14 _T accumulate
+template<typename InputIt, typename T, typename BinOp>
+RE_STD_CONSTEXPR_CPP14 T accumulate
 (
-    _InputIt _first,
-    _InputIt _last,
-    _T       _init,
-    _BinOp   _op
+    InputIt _first,
+    InputIt _last,
+    T       _init,
+    BinOp   _op
 )
 {
     for (; _first != _last; ++_first)
     {
-        #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #if RE_STD_LANG_IS_CPP11_OR_HIGHER
             _init = _op(re_std::move(_init), *_first);
         #else
             _init = _op(_init, *_first);
@@ -88,6 +82,5 @@ D_CONSTEXPR_CPP14 _T accumulate
 }
 
 
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_NUMERIC_ACCUMULATE_
+}  // re_std
+#endif  // RE_STD_NUMERIC_ACCUMULATE_HPP

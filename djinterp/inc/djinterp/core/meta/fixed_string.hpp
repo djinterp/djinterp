@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                             fixed_string.hpp
+/*******************************************************************************
+* djinterp [core]                                               fixed_string.hpp
 *
 *   fixed_string<N>: structural string-literal carrier suitable for use
 * as a C++20 class-type NTTP.  Raw const char[N] doesn't satisfy the
@@ -13,17 +13,24 @@
 *
 * path:      /inc/djinterp/core/meta/fixed_string.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_META_FIXED_STRING_
-#define DJINTERP_META_FIXED_STRING_ 1
+#ifndef DJINTERP_META_FIXED_STRING_HPP
+#define DJINTERP_META_FIXED_STRING_HPP 1
+
+// THE MODULE FLOOR is C++17 (std::string_view), and below it this header is
+// EMPTY rather than an error (README rule 5: a facility is absent from a
+// level it cannot express). env comes first, as the floor reads it.
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <string_view>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -33,16 +40,16 @@ NS_DJINTERP
 //   helper: structural string-literal carrier for use as a C++20
 // class-type NTTP.  Stores the literal byte-for-byte in a public
 // data[] member so the type satisfies the structural-type rules.
-template<std::size_t _N>
+template<std::size_t N>
 struct fixed_string
 {
-    char data[_N];
+    char data[N];
 
     constexpr fixed_string(
-        const char (&_s)[_N]
+        const char (&_s)[N]
     )
     {
-        for (std::size_t i = 0; i < _N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
         {
             data[i] = _s[i];
         }
@@ -61,7 +68,7 @@ struct fixed_string
     constexpr std::size_t
     size() const noexcept
     {
-        return _N - 1;
+        return N - 1;
     }
 
     // view
@@ -71,16 +78,18 @@ struct fixed_string
     constexpr std::string_view
     view() const noexcept
     {
-        return std::string_view{data, _N - 1};
+        return std::string_view{data, N - 1};
     }
 };
 
 // deduction guide
-template<std::size_t _N>
-fixed_string(const char (&)[_N]) -> fixed_string<_N>;
+template<std::size_t N>
+fixed_string(const char (&)[N]) -> fixed_string<N>;
 
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_META_FIXED_STRING_
+
+#endif  // DJINTERP_META_FIXED_STRING_HPP

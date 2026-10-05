@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [text]                                                emoji_flags.h
+/*******************************************************************************
+* djinterp [c]                                                     emoji_flags.h
 *
 * Emoji flag sequences.
 *   This header defines UTF-8 string constants for flag emoji using regional
@@ -7,15 +7,17 @@
 * composing flags from two regional indicator codepoints.
 *
 *
-* path:      \inc\text\symbol\emoji\emoji_flags.h
+* path:      /inc/djinterp/c/text/symbol/emoji/emoji_flags.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.08
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_TEXT_SYMBOL_EMOJI_FLAGS_
-#define DJINTERP_TEXT_SYMBOL_EMOJI_FLAGS_
+#ifndef DJINTERP_C_TEXT_SYMBOL_EMOJI_EMOJI_FLAGS_H
+#define DJINTERP_C_TEXT_SYMBOL_EMOJI_EMOJI_FLAGS_H 1
 
-#include "../../../unicode/unicode.h"
+// djinterp
+#include "../../unicode/unicode.h"
 
 
 // D_EMOJI_FLAG
@@ -1385,4 +1387,4 @@
     D_EMOJI_FLAG(D_UNICODE_RI_Z, D_UNICODE_RI_W)  // ZW
 
 
-#endif	// DJINTERP_TEXT_SYMBOL_EMOJI_FLAGS_
+#endif  // DJINTERP_C_TEXT_SYMBOL_EMOJI_EMOJI_FLAGS_H

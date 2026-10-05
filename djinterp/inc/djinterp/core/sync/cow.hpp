@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [sync]                                          cow.hpp
+/*******************************************************************************
+* djinterp [core]                                                        cow.hpp
 *
 * Copy-on-write and immutable snapshot primitives for the thread-safe
 * framework.
@@ -10,15 +10,15 @@
 *
 * TYPES:
 *   cow_ptr<T>             - intrusive reference-counted copy-on-write
-*                            smart pointer.  Shares a single allocation
+*                            smart pointer. Shares a single allocation
 *                            across readers; clones on the first write
 *                            when refcount > 1.
 *   immutable_snapshot<T>  - a frozen, reference-counted view of a
-*                            container state.  Cheap to create (one
+*                            container state. Cheap to create (one
 *                            atomic increment), cheap to copy (shared),
 *                            never mutated after construction.
 *   cow_state<T, Policy>   - combines cow_ptr with a lock policy and
-*                            version stamp.  This is the canonical
+*                            version stamp. This is the canonical
 *                            building block for copy-on-write containers.
 *
 * DESIGN NOTES:
@@ -26,7 +26,7 @@
 *     to avoid the double-allocation of std::shared_ptr.
 *   - All refcount operations use acquire/release memory ordering.
 *   - immutable_snapshot holds a cow_ptr and exposes only const
-*     access.  It is trivially copyable in the sense that copies
+*     access. It is trivially copyable in the sense that copies
 *     share the same underlying data.
 *   - cow_state provides the mutation protocol: read_access()
 *     returns a const view, write_access() clones-on-write and
@@ -41,27 +41,39 @@
 *
 * path:      /inc/djinterp/core/sync/cow.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_THREADSAFE_COW_
-#define DJINTERP_THREADSAFE_COW_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    COW CONTROL BLOCK
+      -----------------
 
-//#ifndef DJINTERP_ENVIRONMENT_
-//    #error "cow.hpp requires env.h to be included first"
-//#endif
+II.   COW_PTR
+      -------
 
-//#ifndef __cplusplus
-//    #error "cow.hpp can only be used in C++ compilation mode"
-//#endif
+III.  IMMUTABLE SNAPSHOT
+      ------------------
 
-//#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+IV.   COW STATE
+      ---------
+*/
+
+#ifndef DJINTERP_SYNC_COW_HPP
+#define DJINTERP_SYNC_COW_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
 // std
 #include <atomic>
 #include <cstddef>
-#include <cstdint>
 #include <new>
 #include <type_traits>
 #include <utility>
@@ -70,15 +82,14 @@
 #include "./lock_guard.hpp"
 #include "./atomic.hpp"
 #include "./concurrency_strategy_tags.hpp"
-
-
+#include "./sync_common.hpp"
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 NS_DJINTERP
 
 
-// =========================================================================
-// I.   COW CONTROL BLOCK
-// =========================================================================
-// Intrusive reference-counted control block.  Embedded
+// I.    Cow control block
+// Intrusive reference-counted control block. Embedded
 // directly in the cow allocation alongside the managed
 // object, avoiding the double allocation of shared_ptr.
 
@@ -86,28 +97,28 @@ NS_INTERNAL
 
     // cow_control_block
     //   struct: reference count and managed object storage.
-    template<typename _Type>
+    template<typename Type>
     struct cow_control_block
     {
         std::atomic<std::size_t> refcount;
-        _Type                    value;
+        Type                    value;
 
         // construct from forwarded args
-        template<typename... _Args>
-        explicit cow_control_block(_Args&&... _args)
+        template<typename... Args>
+        explicit cow_control_block(Args&&... _args)
             : refcount(1),
-              value(std::forward<_Args>(_args)...)
+              value(std::forward<Args>(_args)...)
         {}
 
         // copy the value (refcount starts at 1)
-        explicit cow_control_block(const _Type& _src)
+        explicit cow_control_block(const Type& _src)
             : refcount(1),
               value(_src)
         {}
 
         // move the value (refcount starts at 1)
-        explicit cow_control_block(_Type&& _src)
-            : refcount(1), 
+        explicit cow_control_block(Type&& _src)
+            : refcount(1),
               value(std::move(_src))
         {}
 
@@ -138,26 +149,24 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// =========================================================================
-// II.  COW_PTR
-// =========================================================================
-// Intrusive copy-on-write smart pointer.  Multiple
-// cow_ptrs can share the same control block.  On the
+// II.   Cow_ptr
+// Intrusive copy-on-write smart pointer. Multiple
+// cow_ptrs can share the same control block. On the
 // first write when the refcount > 1, the data is cloned
 // into a new allocation and the writer detaches.
 //
 // THREAD SAFETY:
-//   The refcount is atomic.  However, concurrent reads
+//   The refcount is atomic. However, concurrent reads
 //   and writes to the SAME cow_ptr instance are NOT safe.
 //   Protect the cow_ptr itself with a lock (see
 //   cow_state below) or use separate cow_ptrs per thread.
 
-template<typename _Type>
+template<typename Type>
 class cow_ptr
 {
 public:
     using control_block =
-        internal::cow_control_block<_Type>;
+        internal::cow_control_block<Type>;
 
     // --- constructors ---
 
@@ -166,12 +175,13 @@ public:
     {}
 
     // construct with a new value
-    template<typename... _Args>
-    static cow_ptr make(_Args&&... _args)
+    template<typename... Args>
+    static cow_ptr make(Args&&... _args)
     {
         cow_ptr result;
         result.m_block = new control_block(
-            std::forward<_Args>(_args)...);
+            std::forward<Args>(_args)...);
+
         return result;
     }
 
@@ -231,17 +241,17 @@ public:
 
     // --- const access (never clones) ---
 
-    const _Type& read() const noexcept
+    const Type& read() const noexcept
     {
         return m_block->value;
     }
 
-    const _Type* operator->() const noexcept
+    const Type* operator->() const noexcept
     {
         return &m_block->value;
     }
 
-    const _Type& operator*() const noexcept
+    const Type& operator*() const noexcept
     {
         return m_block->value;
     }
@@ -250,11 +260,12 @@ public:
 
     // write
     //   returns a mutable reference to the managed
-    // object.  If the refcount > 1, clones the data
+    // object. If the refcount > 1, clones the data
     // first so that other readers are not affected.
-    _Type& write()
+    Type& write()
     {
         ensure_unique();
+
         return m_block->value;
     }
 
@@ -309,7 +320,8 @@ public:
 private:
     void release() noexcept
     {
-        if (m_block && m_block->release())
+        if ( (m_block) &&
+             (m_block->release()) )
         {
             delete m_block;
         }
@@ -319,7 +331,8 @@ private:
 
     void ensure_unique()
     {
-        if (m_block && !m_block->is_unique())
+        if ( (m_block) &&
+             (!m_block->is_unique()) )
         {
             control_block* fresh =
                 new control_block(m_block->value);
@@ -334,17 +347,15 @@ private:
 };
 
 // swap (ADL)
-template<typename _Type>
-void swap(cow_ptr<_Type>& _a,
-          cow_ptr<_Type>& _b) noexcept
+template<typename Type>
+void swap(cow_ptr<Type>& _a,
+          cow_ptr<Type>& _b) noexcept
 {
     _a.swap(_b);
 }
 
 
-// =========================================================================
-// III. IMMUTABLE SNAPSHOT
-// =========================================================================
+// III. Immutable snapshot
 // A frozen, read-only view of a container's state.
 // Construction takes a copy under a lock; after that,
 // the snapshot is independent and can be read without
@@ -354,34 +365,34 @@ void swap(cow_ptr<_Type>& _a,
 // snapshot is an atomic refcount increment, not a deep
 // copy.
 
-template<typename _Type>
+template<typename Type>
 class immutable_snapshot
 {
 public:
     // construct from a value (takes a copy)
-    explicit immutable_snapshot(const _Type& _src)
-        : m_data(cow_ptr<_Type>::make(_src))
+    explicit immutable_snapshot(const Type& _src)
+        : m_data(cow_ptr<Type>::make(_src))
         , m_version(0)
     {}
 
     // construct with version stamp
     immutable_snapshot(
-        const _Type&     _src,
-        std::uint64_t _version)
-        : m_data(cow_ptr<_Type>::make(_src))
+        const Type&     _src,
+        re_std::uint64_t _version)
+        : m_data(cow_ptr<Type>::make(_src))
         , m_version(_version)
     {}
 
     // construct from an existing cow_ptr (zero-copy)
     explicit immutable_snapshot(
-        const cow_ptr<_Type>& _cow)
+        const cow_ptr<Type>& _cow)
         : m_data(_cow)
         , m_version(0)
     {}
 
     immutable_snapshot(
-        const cow_ptr<_Type>& _cow,
-        std::uint64_t      _version)
+        const cow_ptr<Type>& _cow,
+        re_std::uint64_t   _version)
         : m_data(_cow)
         , m_version(_version)
     {}
@@ -398,24 +409,24 @@ public:
 
     // --- const access ---
 
-    const _Type& get() const noexcept
+    const Type& get() const noexcept
     {
         return m_data.read();
     }
 
-    const _Type* operator->() const noexcept
+    const Type* operator->() const noexcept
     {
         return &m_data.read();
     }
 
-    const _Type& operator*() const noexcept
+    const Type& operator*() const noexcept
     {
         return m_data.read();
     }
 
     // --- version ---
 
-    std::uint64_t version() const noexcept
+    re_std::uint64_t version() const noexcept
     {
         return m_version;
     }
@@ -433,14 +444,12 @@ public:
     }
 
 private:
-    cow_ptr<_Type>   m_data;
-    std::uint64_t m_version;
+    cow_ptr<Type>   m_data;
+    re_std::uint64_t m_version;
 };
 
 
-// =========================================================================
-// IV.  COW STATE
-// =========================================================================
+// IV.   Cow state
 // Combines a cow_ptr, a lock policy, and a version stamp
 // into a single building block for copy-on-write
 // containers.
@@ -453,19 +462,27 @@ private:
 // snapshot()     - takes an immutable_snapshot under a
 //                  read lock.
 
-template<typename _Type,
-         typename _Policy = default_lock_policy>
+template<typename Type,
+         typename Policy = default_lock_policy>
 class cow_state
 {
 public:
-    using lock_policy_type = _Policy;
+    // non-copyable, non-movable: others hold references
+    // or pointers INTO this object. The MACRO form is used
+    // rather than the nonmovable base because these types
+    // nest one another - two empty bases in one object need
+    // distinct addresses, which defeats the empty base
+    // optimization and would grow every one of them.
+    D_NONMOVABLE(cow_state)
+
+    using lock_policy_type = Policy;
     using mutex_type =
-        typename _Policy::mutex_type;
+        typename Policy::mutex_type;
 
     // cow_state_type
     //   alias: self-marker so that
     // `has_cow_state_type<cow_state<...>>` reports
-    // true.  Containers built on top of cow_state typically
+    // true. Containers built on top of cow_state typically
     // forward this alias to identify themselves as
     // copy-on-write.
     using cow_state_type = cow_state;
@@ -479,32 +496,29 @@ public:
     // --- constructors ---
 
     cow_state()
-        : m_data(cow_ptr<_Type>::make())
+        : m_data(cow_ptr<Type>::make())
     {}
 
-    explicit cow_state(const _Type& _initial)
-        : m_data(cow_ptr<_Type>::make(_initial))
+    explicit cow_state(const Type& _initial)
+        : m_data(cow_ptr<Type>::make(_initial))
     {}
 
-    explicit cow_state(_Type&& _initial)
-        : m_data(cow_ptr<_Type>::make(
+    explicit cow_state(Type&& _initial)
+        : m_data(cow_ptr<Type>::make(
               std::move(_initial)))
     {}
 
-    // non-copyable (contains mutex)
-    cow_state(const cow_state&)            = delete;
-    cow_state& operator=(const cow_state&) = delete;
 
     // --- read access ---
 
     // read
     //   returns a const reference to the managed object
-    // under a read lock.  The lock is held only during
+    // under a read lock. The lock is held only during
     // this call; callers must not retain references.
     // For persistent access, use snapshot() instead.
-    const _Type& read() const
+    const Type& read() const
     {
-        typename _Policy::read_lock_type guard(
+        typename Policy::read_lock_type guard(
             m_mutex);
 
         return m_data.read();
@@ -514,12 +528,12 @@ public:
 
     // write
     //   returns a mutable reference to the managed
-    // object under a write lock.  Clones if the cow_ptr
+    // object under a write lock. Clones if the cow_ptr
     // is shared (snapshots are holding references).
     // Bumps the version counter.
-    _Type& write()
+    Type& write()
     {
-        typename _Policy::write_lock_type guard(
+        typename Policy::write_lock_type guard(
             m_mutex);
 
         m_version.bump();
@@ -530,17 +544,17 @@ public:
     // modify
     //   acquires a write lock, clones if necessary,
     // invokes _fn with a mutable reference, bumps the
-    // version.  Returns the result of _fn.
-    template<typename _Fn>
-    auto modify(_Fn&& _fn)
-        -> decltype(_fn(std::declval<_Type&>()))
+    // version. Returns the result of _fn.
+    template<typename Fn>
+    auto modify(Fn&& _fn)
+        -> decltype(_fn(std::declval<Type&>()))
     {
-        typename _Policy::write_lock_type guard(
+        typename Policy::write_lock_type guard(
             m_mutex);
 
         m_version.bump();
 
-        return std::forward<_Fn>(_fn)(
+        return std::forward<Fn>(_fn)(
             m_data.write());
     }
 
@@ -548,15 +562,15 @@ public:
 
     // snapshot
     //   returns an immutable_snapshot of the current
-    // state.  The read lock is held only during the
+    // state. The read lock is held only during the
     // cow_ptr copy (atomic refcount bump).
-    immutable_snapshot<_Type> 
+    immutable_snapshot<Type>
     snapshot() const
     {
-        typename _Policy::read_lock_type guard(
+        typename Policy::read_lock_type guard(
             m_mutex);
 
-        return immutable_snapshot<_Type>(
+        return immutable_snapshot<Type>(
             m_data,
             m_version.load(std::memory_order_acquire)
         );
@@ -564,7 +578,7 @@ public:
 
     // --- version query ---
 
-    std::uint64_t version() const noexcept
+    re_std::uint64_t version() const noexcept
     {
         return m_version.load(
             std::memory_order_acquire);
@@ -577,22 +591,22 @@ public:
     // Previous snapshots remain valid (they hold their
     // own cow_ptr).
     void replace(
-        const _Type& _new_value
+        const Type& _new_value
     )
     {
-        typename _Policy::write_lock_type guard(m_mutex);
+        typename Policy::write_lock_type guard(m_mutex);
 
-        m_data = cow_ptr<_Type>::make(_new_value);
+        m_data = cow_ptr<Type>::make(_new_value);
         m_version.bump();
     }
 
     void replace(
-        _Type&& _new_value
+        Type&& _new_value
     )
     {
-        typename _Policy::write_lock_type guard(m_mutex);
+        typename Policy::write_lock_type guard(m_mutex);
 
-        m_data = cow_ptr<_Type>::make(std::move(_new_value));
+        m_data = cow_ptr<Type>::make(std::move(_new_value));
         m_version.bump();
     }
 
@@ -604,7 +618,7 @@ public:
     }
 
 private:
-    cow_ptr<_Type>     m_data;
+    cow_ptr<Type>     m_data;
     atomic_version     m_version;
     mutable mutex_type m_mutex;
 };
@@ -612,7 +626,7 @@ private:
 
 NS_END  // djinterp
 
-//#endif  // C++11
+#endif  // floor, for now
 
 
-#endif  // DJINTERP_THREADSAFE_COW_
+#endif  // DJINTERP_SYNC_COW_HPP

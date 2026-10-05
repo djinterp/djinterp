@@ -1,8 +1,8 @@
-/***********************************************************************
-* re_std                                                     shared_ptr.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               shared_ptr.hpp
 *
 * shared-ownership smart pointer:
-*   shared_ptr<_T> holds a strong reference to a managed object. The
+*   shared_ptr<T> holds a strong reference to a managed object. The
 * object is destroyed when the LAST shared_ptr to it is destroyed or
 * reset. Ref counting is via an internal control block, atomic where
 * the compiler supports it (see internal/sp_control_block.hpp).
@@ -28,22 +28,26 @@
 *      caveat as unique_ptr.
 *
 *
-* path:      /inc/djinterp/re_std/memory/shared_ptr.hpp
+* path:      /inc/re_std/memory/shared_ptr.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_SHARED_PTR_
-#define DJINTERP_RE_STD_MEMORY_SHARED_PTR_ 1
+#ifndef RE_STD_MEMORY_SHARED_PTR_HPP
+#define RE_STD_MEMORY_SHARED_PTR_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+    // std
     #include <cstddef>
 
-    #if D_ENV_CPP98_HAS_TYPEINFO
+    #if RE_STD_HAS_RTTI
+        // std
         #include <typeinfo>
     #endif
 
@@ -61,15 +65,15 @@ namespace re_std
 {
 
 // Forward declarations.
-template<typename _T> class weak_ptr;
-template<typename _T> class enable_shared_from_this;
+template<typename T> class weak_ptr;
+template<typename T> class enable_shared_from_this;
 
 
 // =============================================================================
 // internal: enable_shared_from_this hook
 // =============================================================================
 
-// Catch-all: called when _Y is not derived from any
+// Catch-all: called when Y is not derived from any
 // enable_shared_from_this<U>. Lives in re_std:: (not re_std::internal::)
 // so that unqualified `sp_esft_link(...)` calls in shared_ptr's
 // internals find it via ordinary unqualified lookup. The inline
@@ -78,24 +82,24 @@ template<typename _T> class enable_shared_from_this;
 // argument's associated class set includes enable_shared_from_this<U>.
 // Overload resolution then picks the more-specific friend over the
 // variadic catch-all.
-inline void sp_esft_link(...) D_NOEXCEPT
+inline void sp_esft_link(...) RE_STD_NOEXCEPT
 {
 }
 
 
 // =============================================================================
-// shared_ptr<_T>
+// shared_ptr<T>
 // =============================================================================
 
-template<typename _T>
+template<typename T>
 class shared_ptr
 {
 public:
-    typedef _T element_type;
+    typedef T element_type;
 
     // weak_ptr / shared_ptr / esft can poke at m_ptr / m_ctrl directly.
-    template<typename _U> friend class shared_ptr;
-    template<typename _U> friend class weak_ptr;
+    template<typename U> friend class shared_ptr;
+    template<typename U> friend class weak_ptr;
 
 private:
     element_type*                    m_ptr;
@@ -110,10 +114,10 @@ public:
     // Public-but-underscored factory used by make_shared /
     // allocate_shared. Takes ownership of (ptr, cb) without bumping
     // refcount. Not for user code.
-    template<typename _U>
+    template<typename U>
     static shared_ptr _sp_internal_from_cb(
-        _U* _p,
-        internal::sp_control_block_base* _cb) D_NOEXCEPT
+        U* _p,
+        internal::sp_control_block_base* _cb) RE_STD_NOEXCEPT
     {
         shared_ptr _r;
         _r.m_ptr  = _p;
@@ -127,9 +131,9 @@ public:
     // of the requested type, else null. Public because get_deleter is
     // a function template and friending it across the boundary is
     // syntactically painful for the SFINAE form.
-    #if D_ENV_CPP98_HAS_TYPEINFO
+    #if RE_STD_HAS_RTTI
         void* _sp_internal_get_deleter(const std::type_info& _ti) const
-            D_NOEXCEPT
+            RE_STD_NOEXCEPT
         {
             return m_ctrl ? m_ctrl->get_deleter(_ti) : 0;
         }
@@ -146,13 +150,13 @@ public:
     // construction
     // -------------------------------------------------------------------------
 
-    D_CONSTEXPR shared_ptr() D_NOEXCEPT
+    RE_STD_CONSTEXPR shared_ptr() RE_STD_NOEXCEPT
         : m_ptr(0)
         , m_ctrl(0)
     {
     }
 
-    D_CONSTEXPR shared_ptr(std::nullptr_t) D_NOEXCEPT
+    RE_STD_CONSTEXPR shared_ptr(std::nullptr_t) RE_STD_NOEXCEPT
         : m_ptr(0)
         , m_ctrl(0)
     {
@@ -161,17 +165,17 @@ public:
     // From raw pointer with default deleter.
     template
     <
-        typename _Y,
+        typename Y,
         typename = typename enable_if
         <
-            is_convertible<_Y*, element_type*>::value
+            is_convertible<Y*, element_type*>::value
         >::type
     >
-    explicit shared_ptr(_Y* _p)
+    explicit shared_ptr(Y* _p)
         : m_ptr(_p)
         , m_ctrl(_p
-            ? new internal::sp_cb_pointer<_Y, default_delete<_Y> >
-                  (_p, default_delete<_Y>())
+            ? new internal::sp_cb_pointer<Y, default_delete<Y> >
+                  (_p, default_delete<Y>())
             : 0)
     {
         sp_esft_link(m_ctrl, _p, _p);
@@ -180,59 +184,59 @@ public:
     // From raw pointer with custom deleter.
     template
     <
-        typename _Y,
-        typename _D,
+        typename Y,
+        typename D,
         typename = typename enable_if
         <
-            is_convertible<_Y*, element_type*>::value
+            is_convertible<Y*, element_type*>::value
         >::type
     >
-    shared_ptr(_Y* _p, _D _d)
+    shared_ptr(Y* _p, D _d)
         : m_ptr(_p)
-        , m_ctrl(new internal::sp_cb_pointer<_Y, _D>(_p, re_std::move(_d)))
+        , m_ctrl(new internal::sp_cb_pointer<Y, D>(_p, re_std::move(_d)))
     {
         sp_esft_link(m_ctrl, _p, _p);
     }
 
     // From nullptr with custom deleter.
-    template<typename _D>
-    shared_ptr(std::nullptr_t, _D _d)
+    template<typename D>
+    shared_ptr(std::nullptr_t, D _d)
         : m_ptr(0)
-        , m_ctrl(new internal::sp_cb_pointer<element_type, _D>
+        , m_ctrl(new internal::sp_cb_pointer<element_type, D>
                      (0, re_std::move(_d)))
     {
     }
 
     // From raw pointer + custom deleter + allocator. Allocator-aware
-    // pointer cb; the cb itself is allocated via _A (rebound), and
-    // a copy of _A is held inside it for later self-deallocation.
+    // pointer cb; the cb itself is allocated via A (rebound), and
+    // a copy of A is held inside it for later self-deallocation.
     //
     // Standard semantics ([util.smartptr.shared.const]/9-10): if
     // construction throws, _d(_p) is invoked and the exception
     // propagates. We deallocate the cb storage and re-raise.
     template
     <
-        typename _Y,
-        typename _D,
-        typename _A,
+        typename Y,
+        typename D,
+        typename A,
         typename = typename enable_if
         <
-            is_convertible<_Y*, element_type*>::value
+            is_convertible<Y*, element_type*>::value
         >::type
     >
-    shared_ptr(_Y* _p, _D _d, _A _a)
+    shared_ptr(Y* _p, D _d, A _a)
         : m_ptr(0)
         , m_ctrl(0)
     {
-        typedef internal::sp_cb_pointer_alloc<_Y, _D, _A>      cb_t;
-        typedef typename allocator_traits<_A>
+        typedef internal::sp_cb_pointer_alloc<Y, D, A>      cb_t;
+        typedef typename allocator_traits<A>
             ::template rebind_alloc<cb_t>                      alloc_cb_t;
         typedef allocator_traits<alloc_cb_t>                   cb_traits;
 
         alloc_cb_t _a_cb(_a);
         cb_t* _cb = cb_traits::allocate(_a_cb, 1);
 
-        #if D_ENV_CPP98_HAS_EXCEPTION
+        #if RE_STD_HAS_EXCEPTIONS
             try
             {
                 cb_traits::construct(_a_cb, _cb,
@@ -255,20 +259,20 @@ public:
     }
 
     // From nullptr + custom deleter + allocator.
-    template<typename _D, typename _A>
-    shared_ptr(std::nullptr_t, _D _d, _A _a)
+    template<typename D, typename A>
+    shared_ptr(std::nullptr_t, D _d, A _a)
         : m_ptr(0)
         , m_ctrl(0)
     {
-        typedef internal::sp_cb_pointer_alloc<element_type, _D, _A>  cb_t;
-        typedef typename allocator_traits<_A>
+        typedef internal::sp_cb_pointer_alloc<element_type, D, A>  cb_t;
+        typedef typename allocator_traits<A>
             ::template rebind_alloc<cb_t>                            alloc_cb_t;
         typedef allocator_traits<alloc_cb_t>                         cb_traits;
 
         alloc_cb_t _a_cb(_a);
         cb_t* _cb = cb_traits::allocate(_a_cb, 1);
 
-        #if D_ENV_CPP98_HAS_EXCEPTION
+        #if RE_STD_HAS_EXCEPTIONS
             try
             {
                 cb_traits::construct(_a_cb, _cb,
@@ -291,9 +295,9 @@ public:
     }
 
     // Aliasing constructor.
-    template<typename _U>
-    shared_ptr(const shared_ptr<_U>& _r,
-               element_type* _p) D_NOEXCEPT
+    template<typename U>
+    shared_ptr(const shared_ptr<U>& _r,
+               element_type* _p) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_ctrl(_r.m_ctrl)
     {
@@ -304,9 +308,9 @@ public:
     }
 
     // Aliasing constructor (rvalue, C++17+ but harmless to ship now).
-    template<typename _U>
-    shared_ptr(shared_ptr<_U>&& _r,
-               element_type* _p) D_NOEXCEPT
+    template<typename U>
+    shared_ptr(shared_ptr<U>&& _r,
+               element_type* _p) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_ctrl(_r.m_ctrl)
     {
@@ -315,7 +319,7 @@ public:
     }
 
     // Copy ctor (same type).
-    shared_ptr(const shared_ptr& _r) D_NOEXCEPT
+    shared_ptr(const shared_ptr& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -328,13 +332,13 @@ public:
     // Converting copy ctor.
     template
     <
-        typename _Y,
+        typename Y,
         typename = typename enable_if
         <
-            is_convertible<_Y*, element_type*>::value
+            is_convertible<Y*, element_type*>::value
         >::type
     >
-    shared_ptr(const shared_ptr<_Y>& _r) D_NOEXCEPT
+    shared_ptr(const shared_ptr<Y>& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -345,7 +349,7 @@ public:
     }
 
     // Move ctor (same type).
-    shared_ptr(shared_ptr&& _r) D_NOEXCEPT
+    shared_ptr(shared_ptr&& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -356,13 +360,13 @@ public:
     // Converting move ctor.
     template
     <
-        typename _Y,
+        typename Y,
         typename = typename enable_if
         <
-            is_convertible<_Y*, element_type*>::value
+            is_convertible<Y*, element_type*>::value
         >::type
     >
-    shared_ptr(shared_ptr<_Y>&& _r) D_NOEXCEPT
+    shared_ptr(shared_ptr<Y>&& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -371,24 +375,24 @@ public:
     }
 
     // From weak_ptr (declared here, defined in weak_ptr.hpp).
-    template<typename _Y>
-    explicit shared_ptr(const weak_ptr<_Y>& _w);
+    template<typename Y>
+    explicit shared_ptr(const weak_ptr<Y>& _w);
 
     // From unique_ptr.
     template
     <
-        typename _Y,
-        typename _D,
+        typename Y,
+        typename D,
         typename = typename enable_if
         <
-            is_convertible<_Y*, element_type*>::value
-            && !is_array<_Y>::value
+            is_convertible<Y*, element_type*>::value
+            && !is_array<Y>::value
         >::type
     >
-    shared_ptr(unique_ptr<_Y, _D>&& _u)
+    shared_ptr(unique_ptr<Y, D>&& _u)
         : m_ptr(_u.get())
         , m_ctrl(_u.get()
-            ? new internal::sp_cb_pointer<_Y, _D>
+            ? new internal::sp_cb_pointer<Y, D>
                   (_u.get(), re_std::move(_u.get_deleter()))
             : 0)
     {
@@ -415,49 +419,49 @@ public:
     // assignment
     // -------------------------------------------------------------------------
 
-    shared_ptr& operator=(const shared_ptr& _r) D_NOEXCEPT
+    shared_ptr& operator=(const shared_ptr& _r) RE_STD_NOEXCEPT
     {
         shared_ptr(_r).swap(*this);
         return *this;
     }
 
-    template<typename _Y>
+    template<typename Y>
     typename enable_if
     <
-        is_convertible<_Y*, element_type*>::value,
+        is_convertible<Y*, element_type*>::value,
         shared_ptr&
     >::type
-    operator=(const shared_ptr<_Y>& _r) D_NOEXCEPT
+    operator=(const shared_ptr<Y>& _r) RE_STD_NOEXCEPT
     {
         shared_ptr(_r).swap(*this);
         return *this;
     }
 
-    shared_ptr& operator=(shared_ptr&& _r) D_NOEXCEPT
+    shared_ptr& operator=(shared_ptr&& _r) RE_STD_NOEXCEPT
     {
         shared_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
-    template<typename _Y>
+    template<typename Y>
     typename enable_if
     <
-        is_convertible<_Y*, element_type*>::value,
+        is_convertible<Y*, element_type*>::value,
         shared_ptr&
     >::type
-    operator=(shared_ptr<_Y>&& _r) D_NOEXCEPT
+    operator=(shared_ptr<Y>&& _r) RE_STD_NOEXCEPT
     {
         shared_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
-    template<typename _Y, typename _D>
+    template<typename Y, typename D>
     typename enable_if
     <
-        is_convertible<_Y*, element_type*>::value && !is_array<_Y>::value,
+        is_convertible<Y*, element_type*>::value && !is_array<Y>::value,
         shared_ptr&
     >::type
-    operator=(unique_ptr<_Y, _D>&& _u)
+    operator=(unique_ptr<Y, D>&& _u)
     {
         shared_ptr(re_std::move(_u)).swap(*this);
         return *this;
@@ -467,34 +471,34 @@ public:
     // modifiers
     // -------------------------------------------------------------------------
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         shared_ptr().swap(*this);
     }
 
-    template<typename _Y>
+    template<typename Y>
     typename enable_if
     <
-        is_convertible<_Y*, element_type*>::value,
+        is_convertible<Y*, element_type*>::value,
         void
     >::type
-    reset(_Y* _p)
+    reset(Y* _p)
     {
         shared_ptr(_p).swap(*this);
     }
 
-    template<typename _Y, typename _D>
+    template<typename Y, typename D>
     typename enable_if
     <
-        is_convertible<_Y*, element_type*>::value,
+        is_convertible<Y*, element_type*>::value,
         void
     >::type
-    reset(_Y* _p, _D _d)
+    reset(Y* _p, D _d)
     {
         shared_ptr(_p, re_std::move(_d)).swap(*this);
     }
 
-    void swap(shared_ptr& _r) D_NOEXCEPT
+    void swap(shared_ptr& _r) RE_STD_NOEXCEPT
     {
         element_type* _tp = m_ptr;
         m_ptr = _r.m_ptr;
@@ -509,46 +513,46 @@ public:
     // observers
     // -------------------------------------------------------------------------
 
-    element_type* get() const D_NOEXCEPT
+    element_type* get() const RE_STD_NOEXCEPT
     {
         return m_ptr;
     }
 
-    element_type& operator*() const D_NOEXCEPT
+    element_type& operator*() const RE_STD_NOEXCEPT
     {
         return *m_ptr;
     }
 
-    element_type* operator->() const D_NOEXCEPT
+    element_type* operator->() const RE_STD_NOEXCEPT
     {
         return m_ptr;
     }
 
-    long use_count() const D_NOEXCEPT
+    long use_count() const RE_STD_NOEXCEPT
     {
         return m_ctrl ? static_cast<long>(m_ctrl->use_count()) : 0;
     }
 
     // unique() is deprecated in std C++17, removed C++20. re_std retains.
-    bool unique() const D_NOEXCEPT
+    bool unique() const RE_STD_NOEXCEPT
     {
         return use_count() == 1;
     }
 
-    explicit operator bool() const D_NOEXCEPT
+    explicit operator bool() const RE_STD_NOEXCEPT
     {
         return m_ptr != 0;
     }
 
     // owner_before: ordering by control-block address.
-    template<typename _Y>
-    bool owner_before(const shared_ptr<_Y>& _r) const D_NOEXCEPT
+    template<typename Y>
+    bool owner_before(const shared_ptr<Y>& _r) const RE_STD_NOEXCEPT
     {
         return m_ctrl < _r.m_ctrl;
     }
 
-    template<typename _Y>
-    bool owner_before(const weak_ptr<_Y>& _r) const D_NOEXCEPT;
+    template<typename Y>
+    bool owner_before(const weak_ptr<Y>& _r) const RE_STD_NOEXCEPT;
 };
 
 
@@ -556,99 +560,99 @@ public:
 // comparison operators
 // =============================================================================
 
-template<typename _T1, typename _T2>
-inline bool operator==(const shared_ptr<_T1>& _a, const shared_ptr<_T2>& _b)
-    D_NOEXCEPT
+template<typename T1, typename T2>
+inline bool operator==(const shared_ptr<T1>& _a, const shared_ptr<T2>& _b)
+    RE_STD_NOEXCEPT
 {
     return _a.get() == _b.get();
 }
 
-template<typename _T1, typename _T2>
-inline bool operator!=(const shared_ptr<_T1>& _a, const shared_ptr<_T2>& _b)
-    D_NOEXCEPT
+template<typename T1, typename T2>
+inline bool operator!=(const shared_ptr<T1>& _a, const shared_ptr<T2>& _b)
+    RE_STD_NOEXCEPT
 {
     return _a.get() != _b.get();
 }
 
-template<typename _T1, typename _T2>
-inline bool operator<(const shared_ptr<_T1>& _a, const shared_ptr<_T2>& _b)
-    D_NOEXCEPT
+template<typename T1, typename T2>
+inline bool operator<(const shared_ptr<T1>& _a, const shared_ptr<T2>& _b)
+    RE_STD_NOEXCEPT
 {
     return _a.get() < _b.get();
 }
 
-template<typename _T1, typename _T2>
-inline bool operator<=(const shared_ptr<_T1>& _a, const shared_ptr<_T2>& _b)
-    D_NOEXCEPT
+template<typename T1, typename T2>
+inline bool operator<=(const shared_ptr<T1>& _a, const shared_ptr<T2>& _b)
+    RE_STD_NOEXCEPT
 {
     return !(_b < _a);
 }
 
-template<typename _T1, typename _T2>
-inline bool operator>(const shared_ptr<_T1>& _a, const shared_ptr<_T2>& _b)
-    D_NOEXCEPT
+template<typename T1, typename T2>
+inline bool operator>(const shared_ptr<T1>& _a, const shared_ptr<T2>& _b)
+    RE_STD_NOEXCEPT
 {
     return _b < _a;
 }
 
-template<typename _T1, typename _T2>
-inline bool operator>=(const shared_ptr<_T1>& _a, const shared_ptr<_T2>& _b)
-    D_NOEXCEPT
+template<typename T1, typename T2>
+inline bool operator>=(const shared_ptr<T1>& _a, const shared_ptr<T2>& _b)
+    RE_STD_NOEXCEPT
 {
     return !(_a < _b);
 }
 
 
 // nullptr comparisons.
-template<typename _T>
-inline bool operator==(const shared_ptr<_T>& _a, std::nullptr_t) D_NOEXCEPT
+template<typename T>
+inline bool operator==(const shared_ptr<T>& _a, std::nullptr_t) RE_STD_NOEXCEPT
 {
     return !_a;
 }
 
-template<typename _T>
-inline bool operator==(std::nullptr_t, const shared_ptr<_T>& _a) D_NOEXCEPT
+template<typename T>
+inline bool operator==(std::nullptr_t, const shared_ptr<T>& _a) RE_STD_NOEXCEPT
 {
     return !_a;
 }
 
-template<typename _T>
-inline bool operator!=(const shared_ptr<_T>& _a, std::nullptr_t) D_NOEXCEPT
+template<typename T>
+inline bool operator!=(const shared_ptr<T>& _a, std::nullptr_t) RE_STD_NOEXCEPT
 {
     return static_cast<bool>(_a);
 }
 
-template<typename _T>
-inline bool operator!=(std::nullptr_t, const shared_ptr<_T>& _a) D_NOEXCEPT
+template<typename T>
+inline bool operator!=(std::nullptr_t, const shared_ptr<T>& _a) RE_STD_NOEXCEPT
 {
     return static_cast<bool>(_a);
 }
 
 
 // =============================================================================
-// shared_ptr<_T[]>  -  array specialization
+// shared_ptr<T[]>  -  array specialization
 // =============================================================================
 //
 // Differs from the primary template in:
-//   - element_type is _T (the element), not the array itself
-//   - m_ptr is element_type*, not _T(*)[]
+//   - element_type is T (the element), not the array itself
+//   - m_ptr is element_type*, not T(*)[]
 //   - operator[] replaces operator* / operator->
-//   - conversion from shared_ptr<_Y[]> requires Y(*)[] -> T(*)[]
+//   - conversion from shared_ptr<Y[]> requires Y(*)[] -> T(*)[]
 //     (qualification only, no covariance — same rule as unique_ptr<T[]>)
-//   - the default deleter is default_delete<_T[]>, which uses delete[]
+//   - the default deleter is default_delete<T[]>, which uses delete[]
 //
-// shared_ptr<_T[N]> (bounded array) is NOT YET implemented; it follows the
+// shared_ptr<T[N]> (bounded array) is NOT YET implemented; it follows the
 // same template structure with N as a non-type parameter. Will ship in
 // a follow-up.
 
-template<typename _T>
-class shared_ptr<_T[]>
+template<typename T>
+class shared_ptr<T[]>
 {
 public:
-    typedef _T  element_type;
+    typedef T  element_type;
 
-    template<typename _U> friend class shared_ptr;
-    template<typename _U> friend class weak_ptr;
+    template<typename U> friend class shared_ptr;
+    template<typename U> friend class weak_ptr;
 
 private:
     element_type*                    m_ptr;
@@ -656,10 +660,10 @@ private:
 
 public:
     // Public-but-underscored factory mirroring the primary template's.
-    template<typename _U>
+    template<typename U>
     static shared_ptr _sp_internal_from_cb(
-        _U* _p,
-        internal::sp_control_block_base* _cb) D_NOEXCEPT
+        U* _p,
+        internal::sp_control_block_base* _cb) RE_STD_NOEXCEPT
     {
         shared_ptr _r;
         _r.m_ptr  = _p;
@@ -671,34 +675,34 @@ public:
 
     // ---- ctors ----
 
-    D_CONSTEXPR shared_ptr() D_NOEXCEPT
+    RE_STD_CONSTEXPR shared_ptr() RE_STD_NOEXCEPT
         : m_ptr(0)
         , m_ctrl(0)
     {
     }
 
-    D_CONSTEXPR shared_ptr(std::nullptr_t) D_NOEXCEPT
+    RE_STD_CONSTEXPR shared_ptr(std::nullptr_t) RE_STD_NOEXCEPT
         : m_ptr(0)
         , m_ctrl(0)
     {
     }
 
-    // From raw pointer with default deleter (default_delete<_T[]>,
+    // From raw pointer with default deleter (default_delete<T[]>,
     // which calls delete[]). Conversion is qualification-only on
-    // _Y(*)[] -> element_type(*)[].
+    // Y(*)[] -> element_type(*)[].
     template
     <
-        typename _Y,
+        typename Y,
         typename = typename enable_if
         <
-            is_convertible<_Y(*)[], element_type(*)[]>::value
+            is_convertible<Y(*)[], element_type(*)[]>::value
         >::type
     >
-    explicit shared_ptr(_Y* _p)
+    explicit shared_ptr(Y* _p)
         : m_ptr(_p)
         , m_ctrl(_p
-            ? new internal::sp_cb_pointer<_Y, default_delete<_Y[]> >
-                  (_p, default_delete<_Y[]>())
+            ? new internal::sp_cb_pointer<Y, default_delete<Y[]> >
+                  (_p, default_delete<Y[]>())
             : 0)
     {
     }
@@ -706,23 +710,23 @@ public:
     // From raw pointer with custom deleter.
     template
     <
-        typename _Y,
-        typename _D,
+        typename Y,
+        typename D,
         typename = typename enable_if
         <
-            is_convertible<_Y(*)[], element_type(*)[]>::value
+            is_convertible<Y(*)[], element_type(*)[]>::value
         >::type
     >
-    shared_ptr(_Y* _p, _D _d)
+    shared_ptr(Y* _p, D _d)
         : m_ptr(_p)
-        , m_ctrl(new internal::sp_cb_pointer<_Y, _D>(_p, re_std::move(_d)))
+        , m_ctrl(new internal::sp_cb_pointer<Y, D>(_p, re_std::move(_d)))
     {
     }
 
     // Aliasing ctor.
-    template<typename _U>
-    shared_ptr(const shared_ptr<_U>& _r,
-               element_type* _p) D_NOEXCEPT
+    template<typename U>
+    shared_ptr(const shared_ptr<U>& _r,
+               element_type* _p) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_ctrl(_r.m_ctrl)
     {
@@ -732,9 +736,9 @@ public:
         }
     }
 
-    template<typename _U>
-    shared_ptr(shared_ptr<_U>&& _r,
-               element_type* _p) D_NOEXCEPT
+    template<typename U>
+    shared_ptr(shared_ptr<U>&& _r,
+               element_type* _p) RE_STD_NOEXCEPT
         : m_ptr(_p)
         , m_ctrl(_r.m_ctrl)
     {
@@ -743,7 +747,7 @@ public:
     }
 
     // Copy / move ctors.
-    shared_ptr(const shared_ptr& _r) D_NOEXCEPT
+    shared_ptr(const shared_ptr& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -753,7 +757,7 @@ public:
         }
     }
 
-    shared_ptr(shared_ptr&& _r) D_NOEXCEPT
+    shared_ptr(shared_ptr&& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -761,16 +765,16 @@ public:
         _r.m_ctrl = 0;
     }
 
-    // Converting copy/move from another shared_ptr<_Y[]>.
+    // Converting copy/move from another shared_ptr<Y[]>.
     template
     <
-        typename _Y,
+        typename Y,
         typename = typename enable_if
         <
-            is_convertible<_Y(*)[], element_type(*)[]>::value
+            is_convertible<Y(*)[], element_type(*)[]>::value
         >::type
     >
-    shared_ptr(const shared_ptr<_Y[]>& _r) D_NOEXCEPT
+    shared_ptr(const shared_ptr<Y[]>& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -782,13 +786,13 @@ public:
 
     template
     <
-        typename _Y,
+        typename Y,
         typename = typename enable_if
         <
-            is_convertible<_Y(*)[], element_type(*)[]>::value
+            is_convertible<Y(*)[], element_type(*)[]>::value
         >::type
     >
-    shared_ptr(shared_ptr<_Y[]>&& _r) D_NOEXCEPT
+    shared_ptr(shared_ptr<Y[]>&& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr)
         , m_ctrl(_r.m_ctrl)
     {
@@ -808,13 +812,13 @@ public:
 
     // ---- assignment ----
 
-    shared_ptr& operator=(const shared_ptr& _r) D_NOEXCEPT
+    shared_ptr& operator=(const shared_ptr& _r) RE_STD_NOEXCEPT
     {
         shared_ptr(_r).swap(*this);
         return *this;
     }
 
-    shared_ptr& operator=(shared_ptr&& _r) D_NOEXCEPT
+    shared_ptr& operator=(shared_ptr&& _r) RE_STD_NOEXCEPT
     {
         shared_ptr(re_std::move(_r)).swap(*this);
         return *this;
@@ -822,12 +826,12 @@ public:
 
     // ---- modifiers ----
 
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         shared_ptr().swap(*this);
     }
 
-    void swap(shared_ptr& _r) D_NOEXCEPT
+    void swap(shared_ptr& _r) RE_STD_NOEXCEPT
     {
         element_type* _tp = m_ptr;
         m_ptr = _r.m_ptr;
@@ -840,33 +844,33 @@ public:
 
     // ---- observers ----
 
-    element_type* get() const D_NOEXCEPT
+    element_type* get() const RE_STD_NOEXCEPT
     {
         return m_ptr;
     }
 
-    element_type& operator[](std::ptrdiff_t _i) const D_NOEXCEPT
+    element_type& operator[](std::ptrdiff_t _i) const RE_STD_NOEXCEPT
     {
         return m_ptr[_i];
     }
 
-    long use_count() const D_NOEXCEPT
+    long use_count() const RE_STD_NOEXCEPT
     {
         return m_ctrl ? static_cast<long>(m_ctrl->use_count()) : 0;
     }
 
-    bool unique() const D_NOEXCEPT
+    bool unique() const RE_STD_NOEXCEPT
     {
         return use_count() == 1;
     }
 
-    explicit operator bool() const D_NOEXCEPT
+    explicit operator bool() const RE_STD_NOEXCEPT
     {
         return m_ptr != 0;
     }
 
-    template<typename _Y>
-    bool owner_before(const shared_ptr<_Y>& _r) const D_NOEXCEPT
+    template<typename Y>
+    bool owner_before(const shared_ptr<Y>& _r) const RE_STD_NOEXCEPT
     {
         return m_ctrl < _r.m_ctrl;
     }
@@ -874,32 +878,32 @@ public:
 
 
 // =============================================================================
-// shared_ptr<_T[_N]>  -  bounded-array specialization
+// shared_ptr<T[N]>  -  bounded-array specialization
 // =============================================================================
 //
-// Same shape as shared_ptr<_T[]>, but the type encodes N. Conversions:
-//   - shared_ptr<_T[N]> -> shared_ptr<_T[]>   IS provided (decay)
-//   - shared_ptr<_T[N]> <-> shared_ptr<_U[N]> with qualification-only
+// Same shape as shared_ptr<T[]>, but the type encodes N. Conversions:
+//   - shared_ptr<T[N]> -> shared_ptr<T[]>   IS provided (decay)
+//   - shared_ptr<T[N]> <-> shared_ptr<U[N]> with qualification-only
 //     convertibility is NOT YET provided. Add when needed.
 
-template<typename _T, std::size_t _N>
-class shared_ptr<_T[_N]>
+template<typename T, std::size_t N>
+class shared_ptr<T[N]>
 {
 public:
-    typedef _T  element_type;
+    typedef T  element_type;
 
-    template<typename _U> friend class shared_ptr;
-    template<typename _U> friend class weak_ptr;
+    template<typename U> friend class shared_ptr;
+    template<typename U> friend class weak_ptr;
 
 private:
     element_type*                    m_ptr;
     internal::sp_control_block_base* m_ctrl;
 
 public:
-    template<typename _U>
+    template<typename U>
     static shared_ptr _sp_internal_from_cb(
-        _U* _p,
-        internal::sp_control_block_base* _cb) D_NOEXCEPT
+        U* _p,
+        internal::sp_control_block_base* _cb) RE_STD_NOEXCEPT
     {
         shared_ptr _r;
         _r.m_ptr  = _p;
@@ -907,19 +911,19 @@ public:
         return _r;
     }
 
-    D_CONSTEXPR shared_ptr() D_NOEXCEPT
+    RE_STD_CONSTEXPR shared_ptr() RE_STD_NOEXCEPT
         : m_ptr(0), m_ctrl(0) {}
 
-    D_CONSTEXPR shared_ptr(std::nullptr_t) D_NOEXCEPT
+    RE_STD_CONSTEXPR shared_ptr(std::nullptr_t) RE_STD_NOEXCEPT
         : m_ptr(0), m_ctrl(0) {}
 
-    shared_ptr(const shared_ptr& _r) D_NOEXCEPT
+    shared_ptr(const shared_ptr& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr), m_ctrl(_r.m_ctrl)
     {
         if (m_ctrl) m_ctrl->add_ref();
     }
 
-    shared_ptr(shared_ptr&& _r) D_NOEXCEPT
+    shared_ptr(shared_ptr&& _r) RE_STD_NOEXCEPT
         : m_ptr(_r.m_ptr), m_ctrl(_r.m_ctrl)
     {
         _r.m_ptr = 0;
@@ -931,60 +935,59 @@ public:
         if (m_ctrl) m_ctrl->release();
     }
 
-    shared_ptr& operator=(const shared_ptr& _r) D_NOEXCEPT
+    shared_ptr& operator=(const shared_ptr& _r) RE_STD_NOEXCEPT
     {
         shared_ptr(_r).swap(*this);
         return *this;
     }
 
-    shared_ptr& operator=(shared_ptr&& _r) D_NOEXCEPT
+    shared_ptr& operator=(shared_ptr&& _r) RE_STD_NOEXCEPT
     {
         shared_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
-    void reset() D_NOEXCEPT { shared_ptr().swap(*this); }
+    void reset() RE_STD_NOEXCEPT { shared_ptr().swap(*this); }
 
-    void swap(shared_ptr& _r) D_NOEXCEPT
+    void swap(shared_ptr& _r) RE_STD_NOEXCEPT
     {
         element_type* _tp = m_ptr; m_ptr = _r.m_ptr; _r.m_ptr = _tp;
         internal::sp_control_block_base* _tc = m_ctrl;
         m_ctrl = _r.m_ctrl; _r.m_ctrl = _tc;
     }
 
-    element_type* get() const D_NOEXCEPT { return m_ptr; }
+    element_type* get() const RE_STD_NOEXCEPT { return m_ptr; }
 
-    element_type& operator[](std::ptrdiff_t _i) const D_NOEXCEPT
+    element_type& operator[](std::ptrdiff_t _i) const RE_STD_NOEXCEPT
     {
         return m_ptr[_i];
     }
 
-    long use_count() const D_NOEXCEPT
+    long use_count() const RE_STD_NOEXCEPT
     {
         return m_ctrl ? static_cast<long>(m_ctrl->use_count()) : 0;
     }
 
-    bool unique() const D_NOEXCEPT { return use_count() == 1; }
+    bool unique() const RE_STD_NOEXCEPT { return use_count() == 1; }
 
-    explicit operator bool() const D_NOEXCEPT { return m_ptr != 0; }
+    explicit operator bool() const RE_STD_NOEXCEPT { return m_ptr != 0; }
 
-    template<typename _Y>
-    bool owner_before(const shared_ptr<_Y>& _r) const D_NOEXCEPT
+    template<typename Y>
+    bool owner_before(const shared_ptr<Y>& _r) const RE_STD_NOEXCEPT
     {
         return m_ctrl < _r.m_ctrl;
     }
 
     // Decay conversion: shared_ptr<T[N]> -> shared_ptr<T[]>.
-    operator shared_ptr<_T[]>() const D_NOEXCEPT
+    operator shared_ptr<T[]>() const RE_STD_NOEXCEPT
     {
         if (m_ctrl) m_ctrl->add_ref();
-        return shared_ptr<_T[]>::_sp_internal_from_cb(m_ptr, m_ctrl);
+        return shared_ptr<T[]>::_sp_internal_from_cb(m_ptr, m_ctrl);
     }
 };
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_SHARED_PTR_
+#endif  // RE_STD_MEMORY_SHARED_PTR_HPP

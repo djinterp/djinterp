@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                           numeric.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  numeric.hpp
 *
 * umbrella header for re_std's <numeric> implementation.
 *
@@ -33,16 +33,17 @@
 *     associative. Use accumulate when iteration order matters.
 *
 *
-* path:      /inc/djinterp/re_std/numeric/numeric.hpp
+* path:      /inc/re_std/numeric/numeric.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.09
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.09
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_NUMERIC_
-#define DJINTERP_RE_STD_NUMERIC_ 1
+#ifndef RE_STD_NUMERIC_NUMERIC_HPP
+#define RE_STD_NUMERIC_NUMERIC_HPP 1
 
-#include "djinterp.hpp"
-
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "re_std/numeric/accumulate.hpp"
 #include "re_std/numeric/inner_product.hpp"
 #include "re_std/numeric/partial_sum.hpp"
@@ -58,4 +59,4 @@
 #include "re_std/numeric/transform_inclusive_scan.hpp"
 #include "re_std/numeric/transform_exclusive_scan.hpp"
 
-#endif  // DJINTERP_RE_STD_NUMERIC_
+#endif  // RE_STD_NUMERIC_NUMERIC_HPP

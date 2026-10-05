@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                   linalg.hpp
+/*******************************************************************************
+* djinterp [math]                                                     linalg.hpp
 *
 * Umbrella header for the linear-algebra subframework.
 *   Includes every public linalg header. Users may also include the sub-headers
@@ -52,32 +52,31 @@
 * includes in /inc/math/math.hpp to pull the subframework into the math
 * umbrella.
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/linalg.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.22
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_
-#define DJINTERP_MATH_LINALG_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_LINALG_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_LINALG_HPP 1
 
+// djinterp
 #include "./linalg_common.hpp"
-
 // core value types
 #include "./vector.hpp"
 #include "./matrix.hpp"
-
 // operations
 #include "./square.hpp"
 #include "./decomposition.hpp"
 #include "./solve.hpp"
 #include "./eigen.hpp"
 #include "./svd.hpp"
-
 // transforms
 #include "./transform.hpp"
-
 // runtime-sized companion
 #include "./dynamic_matrix.hpp"
 
 
-#endif  // DJINTERP_MATH_LINALG_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_LINALG_HPP

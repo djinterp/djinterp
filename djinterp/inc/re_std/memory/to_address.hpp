@@ -1,13 +1,13 @@
-/***********************************************************************
-* re_std                                                      to_address.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               to_address.hpp
 *
 * obtain the raw address represented by a (possibly fancy) pointer.
 *
 * overloads:
-*   to_address(_T* _p)         -> _T*       (raw pointer pass-through)
-*   to_address(const _Ptr& _p) -> auto      (fancy pointer)
+*   to_address(T* _p)         -> T*       (raw pointer pass-through)
+*   to_address(const Ptr& _p) -> auto      (fancy pointer)
 *
-* the fancy-pointer overload defers to pointer_traits<_Ptr>::to_address
+* the fancy-pointer overload defers to pointer_traits<Ptr>::to_address
 * when that member exists; otherwise falls back to to_address(p.operator->()).
 * This matches the C++20 std::to_address contract on all tiers.
 *
@@ -26,16 +26,18 @@
 *
 * path:      /inc/re_std/memory/to_address.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_TO_ADDRESS_
-#define DJINTERP_RE_STD_MEMORY_TO_ADDRESS_ 1
+#ifndef RE_STD_MEMORY_TO_ADDRESS_HPP
+#define RE_STD_MEMORY_TO_ADDRESS_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/memory/pointer_traits.hpp"
     #include "re_std/type_traits/is_function.hpp"
@@ -47,39 +49,37 @@ namespace re_std
 // a trailing return type, and that qualified-id is looked up where it is
 // written rather than at instantiation, so it must be declared first.  Only
 // the raw-pointer overload is needed: the impl applies it to p.operator->().
-template<typename _T>
-D_CONSTEXPR _T* to_address(_T* _p) D_NOEXCEPT;
+template<typename T>
+RE_STD_CONSTEXPR T* to_address(T* _p) RE_STD_NOEXCEPT;
 
 namespace internal
 {
 
-    // Detection: does pointer_traits<_Ptr> have a static to_address?
+    // Detection: does pointer_traits<Ptr> have a static to_address?
     // We do not implement the detection trait fully here — instead, a
     // 2-overload tag-style approach via overload resolution works on
     // any C++11+ compiler.
 
     // Fallback path: use _p.operator->() recursively.
-    template<typename _Ptr>
-    auto to_address_impl(const _Ptr& _p, long /*tag*/) D_NOEXCEPT
+    template<typename Ptr>
+    auto to_address_impl(const Ptr& _p, long /*tag*/) RE_STD_NOEXCEPT
         -> decltype(re_std::to_address(_p.operator->()));
 
     // Preferred path: use pointer_traits::to_address when present.
-    // Detected via decltype substitution — if pointer_traits<_Ptr>
+    // Detected via decltype substitution — if pointer_traits<Ptr>
     // exposes to_address, this overload is viable; otherwise it
     // SFINAEs out and the fallback wins.
-    template<typename _Ptr>
-    auto to_address_impl(const _Ptr& _p, int /*tag*/) D_NOEXCEPT
-        -> decltype(pointer_traits<_Ptr>::to_address(_p));
+    template<typename Ptr>
+    auto to_address_impl(const Ptr& _p, int /*tag*/) RE_STD_NOEXCEPT
+        -> decltype(pointer_traits<Ptr>::to_address(_p));
 
-}  // namespace internal
-
-
+}  // internal
 // Raw pointer overload.
-template<typename _T>
-D_CONSTEXPR _T* to_address(_T* _p) D_NOEXCEPT
+template<typename T>
+RE_STD_CONSTEXPR T* to_address(T* _p) RE_STD_NOEXCEPT
 {
     // Function pointers are explicitly excluded by the standard.
-    static_assert(!is_function<_T>::value,
+    static_assert(!is_function<T>::value,
                   "re_std::to_address: function pointers are not allowed");
     return _p;
 }
@@ -92,8 +92,8 @@ D_CONSTEXPR _T* to_address(_T* _p) D_NOEXCEPT
 // pointer_traits implementations that lack it, the overload resolution
 // falls through to the operator->() path, which is the C++17 std
 // behaviour for fancy pointers.
-template<typename _Ptr>
-auto to_address(const _Ptr& _p) D_NOEXCEPT
+template<typename Ptr>
+auto to_address(const Ptr& _p) RE_STD_NOEXCEPT
     -> decltype(internal::to_address_impl(_p, 0))
 {
     return internal::to_address_impl(_p, 0);
@@ -105,25 +105,22 @@ namespace internal
 
     // Definitions of the implementation overloads (after to_address is
     // declared, to permit recursion through the fallback path).
-    template<typename _Ptr>
-    auto to_address_impl(const _Ptr& _p, long) D_NOEXCEPT
+    template<typename Ptr>
+    auto to_address_impl(const Ptr& _p, long) RE_STD_NOEXCEPT
         -> decltype(re_std::to_address(_p.operator->()))
     {
         return re_std::to_address(_p.operator->());
     }
 
-    template<typename _Ptr>
-    auto to_address_impl(const _Ptr& _p, int) D_NOEXCEPT
-        -> decltype(pointer_traits<_Ptr>::to_address(_p))
+    template<typename Ptr>
+    auto to_address_impl(const Ptr& _p, int) RE_STD_NOEXCEPT
+        -> decltype(pointer_traits<Ptr>::to_address(_p))
     {
-        return pointer_traits<_Ptr>::to_address(_p);
+        return pointer_traits<Ptr>::to_address(_p);
     }
 
-}  // namespace internal
+}  // internal
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-
-}  // namespace re_std
-
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_TO_ADDRESS_
+#endif  // RE_STD_MEMORY_TO_ADDRESS_HPP

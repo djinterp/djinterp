@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                   tuple.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                    tuple.hpp
 *
 * tuple class header:
 *   Fixed-size collection of heterogeneous values. A generalisation of
@@ -30,7 +30,7 @@
 *   PORTABILITY:
 *   Requires variadic templates and rvalue references (C++11+). The
 * whole header is omitted on C++98/03; consumer code must gate on
-* D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES.
+* RE_STD_LANG_HAS_VARIADIC_TEMPLATES.
 *
 *   constexpr is applied opportunistically:
 *   - The default and copy constructors are constexpr on C++11+.
@@ -41,32 +41,33 @@
 *   PAIR INTEROP:
 *   The 2-element specialisation supports pair-converting copy and
 * move construction plus pair-converting copy and move assignment.
-* These template members are SFINAE-restricted to sizeof...(_Tail)
+* These template members are SFINAE-restricted to sizeof...(Tail)
 * == 1 and require pair to be complete at the point of instantiation
 * (a forward declaration is supplied above; the user must include
 * "../utility/pair.hpp" before invoking).
 *
 *
-* path:      /inc/djinterp/re_std/tuple/tuple.hpp
+* path:      /inc/re_std/tuple/tuple.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_
-#define DJINTERP_RE_STD_TUPLE_TUPLE_ 1
+#ifndef RE_STD_TUPLE_TUPLE_HPP
+#define RE_STD_TUPLE_TUPLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // gate: tuple requires variadic templates + rvalue refs
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
 
 
 // std
 #include <cstddef>
-// djinterp
+// re_std
 #include "../type_traits/integral_constant.hpp"
 #include "../type_traits/conditional.hpp"
 #include "../type_traits/enable_if.hpp"
@@ -91,22 +92,12 @@
 // and it took every tuple down on the C++11 tier. C++14 dropped the
 // implicit const, so the non-const halves are gated to C++14 and are
 // simply non-constexpr on C++11.
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
-NS_RESTD
+namespace re_std
+{
 //   Opened here 2026-08-25. This file previously began its
-// namespaced content with no NS_RESTD, so everything above the
-// first NS_END lived at GLOBAL SCOPE and that NS_END closed a
-// namespace that was never opened.
-
-
-
-
+// namespaced content without opening re_std, so everything above
+// the first closing brace lived at GLOBAL SCOPE, and that brace
+// closed a namespace that was never opened.
 
 
 // =============================================================================
@@ -117,121 +108,123 @@ NS_RESTD
 // pair-converting ctor / assignment templates below only instantiate
 // when called, at which point pair must be complete (via the user's
 // own #include of pair.hpp or via pair_tuple_size.hpp / pair_get.hpp).
-template<typename _T1,
-         typename _T2>
+template<typename T1,
+         typename T2>
 struct pair;
 
 
-NS_END  // re_std
+}  // re_std
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
     // ------------------------------------------------------------------
-    // tuple_head<_I, _T>
-    //   class: holds the _I-th element of a tuple. The index makes
+    // tuple_head<I, T>
+    //   class: holds the I-th element of a tuple. The index makes
     // each base distinct so that tuple<T, T, T> has three distinct
     // tuple_head bases, not one.
     //
-    //   When _T is empty and not final, EBO is applied by deriving
-    // from _T (giving zero-byte storage for empty types). Otherwise
-    // _T is held as a value member.
+    //   When T is empty and not final, EBO is applied by deriving
+    // from T (giving zero-byte storage for empty types). Otherwise
+    // T is held as a value member.
     // ------------------------------------------------------------------
 
-    template<std::size_t _I,
-             typename    _T,
-             bool        _UseEbo =
-                 ( is_empty<_T>::value && !is_final<_T>::value )>
+    template<std::size_t I,
+             typename    T,
+             bool        UseEbo =
+                 ( is_empty<T>::value && !is_final<T>::value )>
     class tuple_head;
 
-    // EBO path: derive from _T.
-    template<std::size_t _I,
-             typename    _T>
-    class tuple_head<_I, _T, true> : private _T
+    // EBO path: derive from T.
+    template<std::size_t I,
+             typename    T>
+    class tuple_head<I, T, true> : private T
     {
     public:
-        D_CONSTEXPR
-        tuple_head() D_NOEXCEPT
+        RE_STD_CONSTEXPR
+        tuple_head() RE_STD_NOEXCEPT
         {}
 
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         tuple_head(
-            const _T& _v
+            const T& _v
         )
-            : _T(_v)
+            : T(_v)
         {}
 
-        template<typename _U>
-        D_CONSTEXPR
+        template<typename U>
+        RE_STD_CONSTEXPR
         tuple_head(
-            _U&& _v
+            U&& _v
         )
-            : _T(static_cast<_U&&>(_v))
+            : T(static_cast<U&&>(_v))
         {}
 
-        D_CONSTEXPR_CPP14
-        _T&
-        head() D_NOEXCEPT
+        RE_STD_CONSTEXPR_CPP14
+        T&
+        head() RE_STD_NOEXCEPT
         {
             return *this;
         }
 
-        D_CONSTEXPR
-        const _T&
-        head() const D_NOEXCEPT
+        RE_STD_CONSTEXPR
+        const T&
+        head() const RE_STD_NOEXCEPT
         {
             return *this;
         }
     };
 
-    // value-member path: hold _T as a member named m_value.
-    template<std::size_t _I,
-             typename    _T>
-    class tuple_head<_I, _T, false>
+    // value-member path: hold T as a member named m_value.
+    template<std::size_t I,
+             typename    T>
+    class tuple_head<I, T, false>
     {
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         tuple_head()
             : m_value()
         {}
 
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         tuple_head(
-            const _T& _v
+            const T& _v
         )
             : m_value(_v)
         {}
 
-        template<typename _U>
-        D_CONSTEXPR
+        template<typename U>
+        RE_STD_CONSTEXPR
         tuple_head(
-            _U&& _v
+            U&& _v
         )
-            : m_value(static_cast<_U&&>(_v))
+            : m_value(static_cast<U&&>(_v))
         {}
 
-        D_CONSTEXPR_CPP14
-        _T&
-        head() D_NOEXCEPT
+        RE_STD_CONSTEXPR_CPP14
+        T&
+        head() RE_STD_NOEXCEPT
         {
             return m_value;
         }
 
-        D_CONSTEXPR
-        const _T&
-        head() const D_NOEXCEPT
+        RE_STD_CONSTEXPR
+        const T&
+        head() const RE_STD_NOEXCEPT
         {
             return m_value;
         }
 
     private:
-        _T m_value;
+        T m_value;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // =============================================================================
@@ -240,7 +233,7 @@ NS_END  // internal
 // The forward declaration in tuple_size.hpp / tuple_element.hpp is
 // matched here. The primary definition lives in this file.
 
-template<typename... _Types>
+template<typename... Types>
 class tuple;
 
 
@@ -252,14 +245,14 @@ template<>
 class tuple<>
 {
 public:
-    D_CONSTEXPR
-    tuple() D_NOEXCEPT
+    RE_STD_CONSTEXPR
+    tuple() RE_STD_NOEXCEPT
     {}
 
     void
     swap(
         tuple&
-    ) D_NOEXCEPT
+    ) RE_STD_NOEXCEPT
     {
         return;
     }
@@ -267,21 +260,21 @@ public:
 
 
 // -----------------------------------------------------------------------------
-// I-B. NON-EMPTY TUPLE: tuple<_Head, _Tail...>
+// I-B. NON-EMPTY TUPLE: tuple<Head, Tail...>
 // -----------------------------------------------------------------------------
 // Recursive inheritance scheme. The element index is computed from
 // the tail length so tuple_head<I, T> bases are distinct even when
 // element types repeat.
 
-template<typename    _Head,
-         typename... _Tail>
-class tuple<_Head, _Tail...>
-    : private internal::tuple_head<sizeof...(_Tail), _Head>,
-      private tuple<_Tail...>
+template<typename    Head,
+         typename... Tail>
+class tuple<Head, Tail...>
+    : private internal::tuple_head<sizeof...(Tail), Head>,
+      private tuple<Tail...>
 {
 private:
-    typedef internal::tuple_head<sizeof...(_Tail), _Head> _head_base;
-    typedef tuple<_Tail...>                                _tail_base;
+    typedef internal::tuple_head<sizeof...(Tail), Head> _head_base;
+    typedef tuple<Tail...>                                _tail_base;
 
 public:
     // ---------------------------------------------------------------
@@ -291,7 +284,7 @@ public:
     // 1) Default constructor.
     //    Value-initialises every element. Requires every element type
     //    to be default-constructible.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     tuple()
         : _head_base(),
           _tail_base()
@@ -299,76 +292,76 @@ public:
 
     // 2) Direct constructor.
     //    Initialises each element from the corresponding argument.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     tuple(
-        const _Head&    _h,
-        const _Tail&... _t
+        const Head&    _h,
+        const Tail&... _t
     )
         : _head_base(_h),
           _tail_base(_t...)
     {}
 
     // 3) Converting constructor (perfect forwarding).
-    template<typename    _UHead,
-             typename... _UTail,
+    template<typename    UHead,
+             typename... UTail,
              typename = typename enable_if<
-                 ( sizeof...(_UTail) == sizeof...(_Tail) &&
-                   is_constructible<_Head, _UHead&&>::value )
+                 ( sizeof...(UTail) == sizeof...(Tail) &&
+                   is_constructible<Head, UHead&&>::value )
              >::type>
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     tuple(
-        _UHead&&    _h,
-        _UTail&&... _t
+        UHead&&    _h,
+        UTail&&... _t
     )
-        : _head_base(static_cast<_UHead&&>(_h)),
-          _tail_base(static_cast<_UTail&&>(_t)...)
+        : _head_base(static_cast<UHead&&>(_h)),
+          _tail_base(static_cast<UTail&&>(_t)...)
     {}
 
     // 4) Converting copy constructor.
-    template<typename    _UHead,
-             typename... _UTail,
+    template<typename    UHead,
+             typename... UTail,
              typename = typename enable_if<
-                 ( sizeof...(_UTail) == sizeof...(_Tail) &&
-                   is_constructible<_Head, const _UHead&>::value )
+                 ( sizeof...(UTail) == sizeof...(Tail) &&
+                   is_constructible<Head, const UHead&>::value )
              >::type>
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     tuple(
-        const tuple<_UHead, _UTail...>& _other
+        const tuple<UHead, UTail...>& _other
     )
         : _head_base(_other.head_ref()),
           _tail_base(_other.tail_ref())
     {}
 
     // 5) Converting move constructor.
-    template<typename    _UHead,
-             typename... _UTail,
+    template<typename    UHead,
+             typename... UTail,
              typename = typename enable_if<
-                 ( sizeof...(_UTail) == sizeof...(_Tail) &&
-                   is_constructible<_Head, _UHead&&>::value )
+                 ( sizeof...(UTail) == sizeof...(Tail) &&
+                   is_constructible<Head, UHead&&>::value )
              >::type>
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     tuple(
-        tuple<_UHead, _UTail...>&& _other
+        tuple<UHead, UTail...>&& _other
     )
-        : _head_base(static_cast<_UHead&&>(_other.head_ref())),
-          _tail_base(static_cast<tuple<_UTail...>&&>(_other.tail_ref()))
+        : _head_base(static_cast<UHead&&>(_other.head_ref())),
+          _tail_base(static_cast<tuple<UTail...>&&>(_other.tail_ref()))
     {}
 
     // 6) Pair-converting copy constructor (2-element tuples only).
     //    Initialises from pair.first / pair.second. SFINAE-restricted
-    // to 2-element tuples (sizeof...(_Tail) == 1) so it doesn't fire
+    // to 2-element tuples (sizeof...(Tail) == 1) so it doesn't fire
     // for other arities. Requires pair to be complete at the point
     // of instantiation (via #include "../utility/pair.hpp" in user
     // code or via pair_tuple_size.hpp / pair_get.hpp).
-    template<typename _U1,
-             typename _U2,
+    template<typename U1,
+             typename U2,
              typename = typename enable_if<
-                 ( sizeof...(_Tail) == 1 &&
-                   is_constructible<_Head, const _U1&>::value )
+                 ( sizeof...(Tail) == 1 &&
+                   is_constructible<Head, const U1&>::value )
              >::type>
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     tuple(
-        const pair<_U1, _U2>& _p
+        const pair<U1, U2>& _p
     )
         : _head_base(_p.first),
           _tail_base(_p.second)
@@ -376,18 +369,18 @@ public:
 
     // 7) Pair-converting move constructor (2-element tuples only).
     //    Same shape as (6) but rvalue-extracting pair.first / .second.
-    template<typename _U1,
-             typename _U2,
+    template<typename U1,
+             typename U2,
              typename = typename enable_if<
-                 ( sizeof...(_Tail) == 1 &&
-                   is_constructible<_Head, _U1&&>::value )
+                 ( sizeof...(Tail) == 1 &&
+                   is_constructible<Head, U1&&>::value )
              >::type>
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     tuple(
-        pair<_U1, _U2>&& _p
+        pair<U1, U2>&& _p
     )
-        : _head_base(static_cast<_U1&&>(_p.first)),
-          _tail_base(static_cast<_U2&&>(_p.second))
+        : _head_base(static_cast<U1&&>(_p.first)),
+          _tail_base(static_cast<U2&&>(_p.second))
     {}
 
     // ---------------------------------------------------------------
@@ -409,7 +402,7 @@ public:
         tuple&& _other
     )
     {
-        head_ref() = static_cast<_Head&&>(_other.head_ref());
+        head_ref() = static_cast<Head&&>(_other.head_ref());
         tail_ref() = static_cast<_tail_base&&>(_other.tail_ref());
         return *this;
     }
@@ -429,14 +422,14 @@ public:
     // constrained behaviour rather than over-promising.
     tuple(const tuple&) = default;
 
-    template<typename    _UHead,
-             typename... _UTail>
+    template<typename    UHead,
+             typename... UTail>
     typename enable_if<
-        sizeof...(_UTail) == sizeof...(_Tail),
+        sizeof...(UTail) == sizeof...(Tail),
         tuple&
     >::type
     operator=(
-        const tuple<_UHead, _UTail...>& _other
+        const tuple<UHead, UTail...>& _other
     )
     {
         head_ref() = _other.head_ref();
@@ -444,41 +437,41 @@ public:
         return *this;
     }
 
-    template<typename    _UHead,
-             typename... _UTail>
+    template<typename    UHead,
+             typename... UTail>
     typename enable_if<
-        sizeof...(_UTail) == sizeof...(_Tail),
+        sizeof...(UTail) == sizeof...(Tail),
         tuple&
     >::type
     operator=(
-        tuple<_UHead, _UTail...>&& _other
+        tuple<UHead, UTail...>&& _other
     )
     {
-        head_ref() = static_cast<_UHead&&>(_other.head_ref());
-        tail_ref() = static_cast<tuple<_UTail...>&&>(_other.tail_ref());
+        head_ref() = static_cast<UHead&&>(_other.head_ref());
+        tail_ref() = static_cast<tuple<UTail...>&&>(_other.tail_ref());
         return *this;
     }
 
     // Pair-converting copy assignment (2-element tuples only).
     //   Assigns head from pair.first and the single-element tail's
-    // head from pair.second. SFINAE-restricted to sizeof...(_Tail)
+    // head from pair.second. SFINAE-restricted to sizeof...(Tail)
     // == 1 so it does not match for other arities.
-    // NOTE: the arity test is routed through _N, a template parameter of
-    // THIS member, not through sizeof...(_Tail) directly. A condition that
+    // NOTE: the arity test is routed through N, a template parameter of
+    // THIS member, not through sizeof...(Tail) directly. A condition that
     // depends only on the enclosing class's parameters is already fixed by
     // the time the member is declared, so enable_if<false, ...> becomes a
     // hard error instead of quietly removing the overload -- which made
     // every tuple<A,B> ill-formed on instantiation, and took tuple_cat
     // down with it.
-    template<typename    _U1,
-             typename    _U2,
-             std::size_t _N = sizeof...(_Tail)>
+    template<typename    U1,
+             typename    U2,
+             std::size_t N = sizeof...(Tail)>
     typename enable_if<
-        _N == 1,
+        N == 1,
         tuple&
     >::type
     operator=(
-        const pair<_U1, _U2>& _p
+        const pair<U1, U2>& _p
     )
     {
         head_ref() = _p.first;
@@ -487,19 +480,19 @@ public:
     }
 
     // Pair-converting move assignment (2-element tuples only).
-    template<typename    _U1,
-             typename    _U2,
-             std::size_t _N = sizeof...(_Tail)>
+    template<typename    U1,
+             typename    U2,
+             std::size_t N = sizeof...(Tail)>
     typename enable_if<
-        _N == 1,
+        N == 1,
         tuple&
     >::type
     operator=(
-        pair<_U1, _U2>&& _p
+        pair<U1, U2>&& _p
     )
     {
-        head_ref() = static_cast<_U1&&>(_p.first);
-        tail_ref().head_ref() = static_cast<_U2&&>(_p.second);
+        head_ref() = static_cast<U1&&>(_p.first);
+        tail_ref().head_ref() = static_cast<U2&&>(_p.second);
         return *this;
     }
 
@@ -513,9 +506,9 @@ public:
     )
     {
         // canonical three-way swap (no <utility> dependency).
-        _Head tmp(static_cast<_Head&&>(head_ref()));
-        head_ref()         = static_cast<_Head&&>(_other.head_ref());
-        _other.head_ref()  = static_cast<_Head&&>(tmp);
+        Head tmp(static_cast<Head&&>(head_ref()));
+        head_ref()         = static_cast<Head&&>(_other.head_ref());
+        _other.head_ref()  = static_cast<Head&&>(tmp);
         tail_ref().swap(_other.tail_ref());
         return;
     }
@@ -525,41 +518,39 @@ public:
     // sibling tuple instantiations. NOT part of the public API.
     // ---------------------------------------------------------------
 
-    D_CONSTEXPR_CPP14
-    _Head&
-    head_ref() D_NOEXCEPT
+    RE_STD_CONSTEXPR_CPP14
+    Head&
+    head_ref() RE_STD_NOEXCEPT
     {
         return _head_base::head();
     }
 
-    D_CONSTEXPR
-    const _Head&
-    head_ref() const D_NOEXCEPT
+    RE_STD_CONSTEXPR
+    const Head&
+    head_ref() const RE_STD_NOEXCEPT
     {
         return _head_base::head();
     }
 
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     _tail_base&
-    tail_ref() D_NOEXCEPT
+    tail_ref() RE_STD_NOEXCEPT
     {
         return *this;
     }
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     const _tail_base&
-    tail_ref() const D_NOEXCEPT
+    tail_ref() const RE_STD_NOEXCEPT
     {
         return *this;
     }
 };
 
 
-
+}  // re_std -- inside the gate, like the opening it closes
 
 #endif  // variadic templates && rvalue references
 
 
-NS_END  // re_std   (added 2026-08-25 -- was never closed)
-
-#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_
+#endif  // RE_STD_TUPLE_TUPLE_HPP

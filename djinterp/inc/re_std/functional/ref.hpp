@@ -1,24 +1,27 @@
-/***********************************************************************
-* re_std                                                          ref.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                      ref.hpp
 *
-* function: factory producing `reference_wrapper<_Type>`.
+* ref function header:
+* function: factory producing `reference_wrapper<Type>`.
 *   Two overloads: one accepting an lvalue (returns a wrapper to it)
 * and one explicitly deleted for rvalues (mirrors `reference_wrapper`'s
 * own deleted rvalue ctor). The reference_wrapper-of-reference_wrapper
 * overload unwraps one level so `ref(ref(x))` is just `ref(x)`.
 *
 *
-* path:      /inc/djinterp/re_std/functional/ref.hpp
+* path:      /inc/re_std/functional/ref.hpp
 * link(s):   TBA
-* author(s): re_std                                      date: 2026.05.07
-***********************************************************************/
+* author(s): re_std                                          created: 2026.05.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_REF_
-#define DJINTERP_RE_STD_FUNCTIONAL_REF_ 1
+#ifndef RE_STD_FUNCTIONAL_REF_HPP
+#define RE_STD_FUNCTIONAL_REF_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 #include "re_std/functional/reference_wrapper.hpp"
 
@@ -27,33 +30,32 @@ namespace re_std
 
 // ref
 //   function: build a reference_wrapper from an lvalue.
-template<typename _Type>
-D_CONSTEXPR reference_wrapper<_Type>
+template<typename Type>
+RE_STD_CONSTEXPR reference_wrapper<Type>
 ref(
-    _Type& _v
+    Type& _v
 ) noexcept
 {
-    return reference_wrapper<_Type>(_v);
+    return reference_wrapper<Type>(_v);
 }
 
 // ref (rvalue overload)
 //   function: deleted -- forbidden, would dangle.
-template<typename _Type>
-void ref(const _Type&&) = delete;
+template<typename Type>
+void ref(const Type&&) = delete;
 
 // ref (idempotent overload)
 //   function: ref(reference_wrapper<T>) returns a copy unchanged.
-template<typename _Type>
-D_CONSTEXPR reference_wrapper<_Type>
+template<typename Type>
+RE_STD_CONSTEXPR reference_wrapper<Type>
 ref(
-    reference_wrapper<_Type> _v
+    reference_wrapper<Type> _v
 ) noexcept
 {
     return _v;
 }
 
-} // namespace re_std
+}  // re_std
+#endif // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
-#endif // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_REF_
+#endif  // RE_STD_FUNCTIONAL_REF_HPP

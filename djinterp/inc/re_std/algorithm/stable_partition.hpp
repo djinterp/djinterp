@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                         stable_partition.hpp
 *
 * stable_partition algorithm header:
@@ -35,22 +35,24 @@
 *   - Recursive; stack depth O(log N).
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/stable_partition.hpp
+* path:      /inc/re_std/algorithm/stable_partition.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_STABLE_PARTITION_
-#define DJINTERP_RE_STD_ALGORITHM_STABLE_PARTITION_ 1
+#ifndef RE_STD_ALGORITHM_STABLE_PARTITION_HPP
+#define RE_STD_ALGORITHM_STABLE_PARTITION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./rotate.hpp"
 #include "../iterator/iterator_traits.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -58,19 +60,19 @@ NS_RESTD
 // ===========================================================================
 
 // _stable_partition_impl_
-//   recursive worker. Assumes [_first, _last) is non-empty AND already
+//   function: recursive worker. Assumes [_first, _last) is non-empty AND already
 // trimmed (no leading trues, no trailing falses); the public entry
 // performs the trim. Returns the partition point in the post-rotate
 // range.
-template<typename _BidirIt,
-         typename _Pred,
-         typename _Distance>
-_BidirIt
+template<typename BidirIt,
+         typename Pred,
+         typename Distance>
+BidirIt
 _stable_partition_impl_(
-    _BidirIt  _first,
-    _BidirIt  _last,
-    _Pred     _pred,
-    _Distance _len
+    BidirIt  _first,
+    BidirIt  _last,
+    Pred     _pred,
+    Distance _len
 )
 {
     // single element: it must be a false (the leading-trues trim
@@ -81,21 +83,21 @@ _stable_partition_impl_(
     }
 
     // split at the midpoint
-    _Distance _half = _len / 2;
-    _BidirIt  _mid  = _first;
-    for (_Distance _i = 0; _i < _half; ++_i)
+    Distance _half = _len / 2;
+    BidirIt  _mid  = _first;
+    for (Distance _i = 0; _i < _half; ++_i)
     {
         ++_mid;
     }
 
     // recurse on each half — but a half might be all-true or all-false
     // (no internal mixed elements); handle those without recursion
-    _BidirIt _left_cut;
+    BidirIt _left_cut;
     {
         // left half: [_first, _mid)
         // skip leading trues
-        _BidirIt  _lf = _first;
-        _Distance _i  = 0;
+        BidirIt  _lf = _first;
+        Distance _i  = 0;
         while ( (_lf != _mid) &&
                 _pred(*_lf) )
         {
@@ -110,11 +112,11 @@ _stable_partition_impl_(
         else
         {
             // skip trailing falses in left half (walk back from _mid)
-            _BidirIt  _ll = _mid;
-            _Distance _ll_idx = _half;
+            BidirIt  _ll = _mid;
+            Distance _ll_idx = _half;
             while (true)
             {
-                _BidirIt _prev = _ll;
+                BidirIt _prev = _ll;
                 --_prev;
                 if (_pred(*_prev))
                 {
@@ -139,14 +141,14 @@ _stable_partition_impl_(
         }
     }
 
-    _BidirIt _right_cut;
+    BidirIt _right_cut;
     {
         // right half: [_mid, _last), length _len - _half
-        _Distance _right_len = _len - _half;
+        Distance _right_len = _len - _half;
 
         // skip leading trues
-        _BidirIt  _rf = _mid;
-        _Distance _i  = 0;
+        BidirIt  _rf = _mid;
+        Distance _i  = 0;
         while ( (_rf != _last) &&
                 _pred(*_rf) )
         {
@@ -160,11 +162,11 @@ _stable_partition_impl_(
         else
         {
             // skip trailing falses
-            _BidirIt  _rl = _last;
-            _Distance _rl_idx = _right_len;
+            BidirIt  _rl = _last;
+            Distance _rl_idx = _right_len;
             while (true)
             {
-                _BidirIt _prev = _rl;
+                BidirIt _prev = _rl;
                 --_prev;
                 if (_pred(*_prev))
                 {
@@ -204,16 +206,16 @@ _stable_partition_impl_(
 //   function: rearranges [_first, _last) so that all elements
 // satisfying _pred come first, preserving relative order within each
 // half. Returns the iterator to the first false-element.
-template<typename _BidirIt,
-         typename _Pred>
-_BidirIt
+template<typename BidirIt,
+         typename Pred>
+BidirIt
 stable_partition(
-    _BidirIt _first,
-    _BidirIt _last,
-    _Pred    _pred
+    BidirIt _first,
+    BidirIt _last,
+    Pred    _pred
 )
 {
-    typedef typename iterator_traits<_BidirIt>::difference_type _Diff;
+    typedef typename iterator_traits<BidirIt>::difference_type _Diff;
 
     // trim leading trues — these stay in place
     while ( (_first != _last) &&
@@ -229,7 +231,7 @@ stable_partition(
     // trim trailing falses — these also stay in place
     while (true)
     {
-        _BidirIt _prev = _last;
+        BidirIt _prev = _last;
         --_prev;
         if (_pred(*_prev))
         {
@@ -244,7 +246,7 @@ stable_partition(
 
     // measure the trimmed mid-segment
     _Diff _len = 0;
-    for (_BidirIt _it = _first; _it != _last; ++_it)
+    for (BidirIt _it = _first; _it != _last; ++_it)
     {
         ++_len;
     }
@@ -253,7 +255,7 @@ stable_partition(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_STABLE_PARTITION_
+#endif  // RE_STD_ALGORITHM_STABLE_PARTITION_HPP

@@ -1,4 +1,15 @@
-#include "../../../inc/c/text/str_interp.h"
+/*******************************************************************************
+* djinterp [c]                                                      str_interp.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/text/str_interp.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.20
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/text/str_interp.h"
 
 
 /*

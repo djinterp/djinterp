@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                 void_t.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                   void_t.hpp
 *
 * void_t alias header:
 *   Maps any well-formed type sequence to `void`. The cornerstone of
@@ -18,30 +18,33 @@
 * available on C++98/03.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/void_t.hpp
+* path:      /inc/re_std/type_traits/void_t.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_VOID_T_
-#define DJINTERP_RE_STD_TYPE_TRAITS_VOID_T_ 1
+#ifndef RE_STD_TYPE_TRAITS_VOID_T_HPP
+#define RE_STD_TYPE_TRAITS_VOID_T_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 // gate: requires alias templates + variadic templates
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES &&                               \
-      D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES &&                               \
+      RE_STD_LANG_HAS_VARIADIC_TEMPLATES )
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   VOID_T
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // make_void
     //   trait: maps any well-formed type sequence to void. Indirection
@@ -53,19 +56,19 @@ NS_INTERNAL
         typedef void type;
     };
 
-NS_END  // internal
+}  // internal
 
 // void_t
 //   alias: maps any well-formed type sequence to void. Used to trigger
 // SFINAE on the well-formedness of an arbitrary expression or type.
-template<typename... _Types>
-using void_t = typename internal::make_void<_Types...>::type;
+template<typename... Types>
+using void_t = typename internal::make_void<Types...>::type;
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates && variadic templates
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_VOID_T_
+#endif  // RE_STD_TYPE_TRAITS_VOID_T_HPP

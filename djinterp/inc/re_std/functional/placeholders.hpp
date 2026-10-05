@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [functional]                                            placeholders.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             placeholders.hpp
 *
+* placeholders support header:
 *   placeholders::_1 ... _10, and the argument-resolution machinery that bind
 * is built on.
 *
@@ -30,38 +31,44 @@
 * stores the bound arguments are both hard C++11 requirements.
 *
 *
-* path:      /inc/djinterp/re_std/functional/placeholders.hpp
+* path:      /inc/re_std/functional/placeholders.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_PLACEHOLDERS_
-#define DJINTERP_RE_STD_FUNCTIONAL_PLACEHOLDERS_ 1
+#ifndef RE_STD_FUNCTIONAL_PLACEHOLDERS_HPP
+#define RE_STD_FUNCTIONAL_PLACEHOLDERS_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
 #include "../tuple/tuple.hpp"
+#include "../tuple/tuple_get.hpp"
+#include "../tuple/apply.hpp"
 #include "./invoke.hpp"
 #include "./reference_wrapper.hpp"
 #include "./is_placeholder.hpp"
 #include "./is_bind_expression.hpp"
 
-NS_RESTD
 
-NS_INTERNAL
+namespace re_std
+{
+
+namespace internal
+{
 
     // placeholder_type
     //   struct: the type of placeholders::_N.  Empty; the index lives in the
     // type, not in any object.
-    template<int _Index>
+    template<int Index>
     struct placeholder_type
     {
-        D_CONSTEXPR placeholder_type() D_NOEXCEPT {}
+        RE_STD_CONSTEXPR placeholder_type() RE_STD_NOEXCEPT {}
     };
 
     // ---- argument-kind tags ------------------------------------------
@@ -74,21 +81,21 @@ NS_INTERNAL
     //   trait: true for re_std::reference_wrapper specialisations.  Not a std
     // trait, but bind needs the distinction and std's wording states it as a
     // special case rather than exposing a name for it.
-    template<typename _Type>
+    template<typename Type>
     struct is_reference_wrapper : false_type {};
 
-    template<typename _Type>
-    struct is_reference_wrapper<reference_wrapper<_Type> > : true_type {};
+    template<typename Type>
+    struct is_reference_wrapper<reference_wrapper<Type> > : true_type {};
 
     // bind_kind
     //   trait: which of the four resolution rules applies to a bound
     // argument.  Order matters - a placeholder is checked first because a
     // placeholder type could in principle also satisfy a later test.
-    template<typename _Bound>
+    template<typename Bound>
     struct bind_kind
     {
         typedef typename remove_cv<
-            typename remove_reference<_Bound>::type>::type _Bare;
+            typename remove_reference<Bound>::type>::type _Bare;
 
         typedef typename conditional<
             (is_placeholder<_Bare>::value > 0),
@@ -107,37 +114,37 @@ NS_INTERNAL
     // bind_resolve (placeholder)
     //   function: substitute the N-1'th call argument, forwarded with its
     // original value category.  The bound object itself is not read.
-    template<typename _Bound, typename _CallTuple>
-    D_CONSTEXPR_CPP14 auto bind_resolve(bind_arg_placeholder,
-                                        _Bound&, _CallTuple&& call)
+    template<typename Bound, typename CallTuple>
+    RE_STD_CONSTEXPR_CPP14 auto bind_resolve(bind_arg_placeholder,
+                                        Bound&, CallTuple&& call)
         -> decltype(re_std::get<
                is_placeholder<typename remove_cv<
-                   typename remove_reference<_Bound>::type>::type>::value - 1>(
-                       static_cast<_CallTuple&&>(call)))
+                   typename remove_reference<Bound>::type>::type>::value - 1>(
+                       static_cast<CallTuple&&>(call)))
     {
         return re_std::get<
             is_placeholder<typename remove_cv<
-                typename remove_reference<_Bound>::type>::type>::value - 1>(
-                    static_cast<_CallTuple&&>(call));
+                typename remove_reference<Bound>::type>::type>::value - 1>(
+                    static_cast<CallTuple&&>(call));
     }
 
     // bind_resolve (nested bind expression)
     //   function: invoke the nested expression with ALL the call arguments
     // and substitute its result.
-    template<typename _Bound, typename _CallTuple>
-    D_CONSTEXPR_CPP14 auto bind_resolve(bind_arg_nested,
-                                        _Bound& bound, _CallTuple&& call)
-        -> decltype(re_std::apply(bound, static_cast<_CallTuple&&>(call)))
+    template<typename Bound, typename CallTuple>
+    RE_STD_CONSTEXPR_CPP14 auto bind_resolve(bind_arg_nested,
+                                        Bound& bound, CallTuple&& call)
+        -> decltype(re_std::apply(bound, static_cast<CallTuple&&>(call)))
     {
-        return re_std::apply(bound, static_cast<_CallTuple&&>(call));
+        return re_std::apply(bound, static_cast<CallTuple&&>(call));
     }
 
     // bind_resolve (reference_wrapper)
     //   function: unwrap.  This is how ref(x) escapes bind's decay-and-copy
     // of bound arguments.
-    template<typename _Bound, typename _CallTuple>
-    D_CONSTEXPR auto bind_resolve(bind_arg_refwrap,
-                                  _Bound& bound, _CallTuple&&)
+    template<typename Bound, typename CallTuple>
+    RE_STD_CONSTEXPR auto bind_resolve(bind_arg_refwrap,
+                                  Bound& bound, CallTuple&&)
         -> decltype(bound.get())
     {
         return bound.get();
@@ -146,42 +153,43 @@ NS_INTERNAL
     // bind_resolve (plain value)
     //   function: pass the stored copy as an lvalue, const-qualified when the
     // bind object is.
-    template<typename _Bound, typename _CallTuple>
-    D_CONSTEXPR _Bound& bind_resolve(bind_arg_plain,
-                                     _Bound& bound, _CallTuple&&)
+    template<typename Bound, typename CallTuple>
+    RE_STD_CONSTEXPR Bound& bind_resolve(bind_arg_plain,
+                                     Bound& bound, CallTuple&&)
     {
         return bound;
     }
 
-NS_END  // internal
+}  // internal
 
 
-// is_placeholder<placeholder_type<_Index>>
+// is_placeholder<placeholder_type<Index>>
 //   trait: recovers the index carried by a placeholder's type.
-template<int _Index>
-struct is_placeholder<internal::placeholder_type<_Index> >
-    : integral_constant<int, _Index>
+template<int Index>
+struct is_placeholder<internal::placeholder_type<Index> >
+    : integral_constant<int, Index>
 {};
 
 
-D_NAMESPACE(placeholders)
+namespace placeholders
+{
 
     //   std guarantees at least _1 through _10; re_std provides exactly that.
     // They are objects, not types, so that `bind(f, _1)` reads as a call.
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<1>  _1  = {};
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<2>  _2  = {};
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<3>  _3  = {};
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<4>  _4  = {};
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<5>  _5  = {};
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<6>  _6  = {};
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<7>  _7  = {};
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<8>  _8  = {};
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<9>  _9  = {};
-    D_INLINE_VAR D_CONSTEXPR internal::placeholder_type<10> _10 = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<1>  _1  = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<2>  _2  = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<3>  _3  = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<4>  _4  = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<5>  _5  = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<6>  _6  = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<7>  _7  = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<8>  _8  = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<9>  _9  = {};
+    RE_STD_INLINE_VAR RE_STD_CONSTEXPR internal::placeholder_type<10> _10 = {};
 
-NS_END  // placeholders
+}  // placeholders
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_PLACEHOLDERS_
+#endif  // RE_STD_FUNCTIONAL_PLACEHOLDERS_HPP

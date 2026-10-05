@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                       dlex.c
+/*******************************************************************************
+* djinterp [djinterp]                                                     dlex.c
 *
 *   Definitions for the non-inline declarations in dlex.h.
 *     The scanner keeps one bit of history: whether the previous token can end
@@ -10,9 +10,9 @@
 *
 * path:      /src/djinterp/tools/dawk/dlex.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dlex.h"  // corresponding header
 // std
 #include <stdio.h>   // snprintf

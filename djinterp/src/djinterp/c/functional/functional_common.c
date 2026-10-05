@@ -1,79 +1,104 @@
-#include "../../../inc/c/functional/functional_common.h"
+/*******************************************************************************
+* djinterp [c]                                               functional_common.c
+*
+* The functional core's utilities and higher-order functions.
+*   Defines what functional_common.h declares in its sections IX and X. Every
+* higher-order function hands its callback a pointer to the element, never
+* the element itself, and treats a missing callback, or a missing array with
+* elements to visit, as a failure: false, 0, or NULL, as the return allows.
+*
+*
+* path:      /src/djinterp/c/functional/functional_common.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
+*                                                            revised: 2026.09.30
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/functional/functional_common.h"  // corresponding header
+// std
+#include <stdbool.h>  // bool
+#include <stddef.h>   // size_t, NULL
+#include <string.h>   // memcpy
 
 
 /*
-d_functional_identity_transformer
-  Copies the input element to the output unchanged.
+d_internal_functional_valid
+  The shared argument test: a callback, and an array whenever there is
+anything to visit in it.
+*/
+static bool
+d_internal_functional_valid(
+    const void* _input,
+    size_t      _count,
+    size_t      _element_size,
+    bool        _has_callback
+)
+{
+    return ( (_has_callback) &&
+             ( (_count == 0u) ||
+               ( (_input != NULL) && (_element_size > 0u) ) ) );
+}
 
-Parameter(s):
-  _input:   pointer to the input element.
-  _output:  pointer to the output destination.
-  _context: unused; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if _input and _output were both non-NULL, or
-  - false, if either was NULL.
+/*
+d_internal_functional_at
+  The address of element _i.
+*/
+static const void*
+d_internal_functional_at(
+    const void* _input,
+    size_t      _i,
+    size_t      _element_size
+)
+{
+    return (const unsigned char*)_input + (_i * _element_size);
+}
+
+/*
+d_functional_identity_transformer
+  An element's size is not in a transformer's signature, so the identity
+reads it from the context: `_context` must point to a size_t holding it.
+Without one there is nothing it can safely copy, and it fails.
 */
 bool
-d_functional_identity_transformer
-(
+d_functional_identity_transformer(
     const void* _input,
     void*       _output,
     void*       _context
 )
 {
-    (void)_context;
+    const size_t* const size = _context;
 
-    // validate parameters
-    if ( (!_input) ||
+    // the size is required, and so are both ends
+    if ( (!size)   ||
+         (!_input) ||
          (!_output) )
     {
         return false;
     }
 
-    // a shallow pointer copy is the only safe generic operation
-    *(const void**)_output = _input;
+    memcpy(_output, _input, *size);
 
     return true;
 }
 
 /*
 d_functional_identity_predicate
-  Always returns true for any non-NULL element.
-
-Parameter(s):
-  _element: pointer to the element to test.
-  _context: unused; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if _element was non-NULL, or
-  - false, if _element was NULL.
+  The element as its own truth value, for arrays of bool; a missing element
+is false.
 */
 bool
-d_functional_identity_predicate
-(
+d_functional_identity_predicate(
     const void* _element,
     void*       _context
 )
 {
     (void)_context;
 
-    return (_element != NULL);
+    return ( (_element != NULL) &&
+             (*(const bool*)_element) );
 }
 
-/*
-d_functional_constant_true
-  Always returns true regardless of input.
-
-Parameter(s):
-  _element: pointer to the element (ignored).
-  _context: unused; may be NULL.
-Return:
-  true, always.
-*/
 bool
-d_functional_constant_true
-(
+d_functional_constant_true(
     const void* _element,
     void*       _context
 )
@@ -84,19 +109,8 @@ d_functional_constant_true
     return true;
 }
 
-/*
-d_functional_constant_false
-  Always returns false regardless of input.
-
-Parameter(s):
-  _element: pointer to the element (ignored).
-  _context: unused; may be NULL.
-Return:
-  false, always.
-*/
 bool
-d_functional_constant_false
-(
+d_functional_constant_false(
     const void* _element,
     void*       _context
 )
@@ -108,166 +122,84 @@ d_functional_constant_false
 }
 
 /*
-d_functional_compare_int
-  Three-way comparison for int values.
-
-Parameter(s):
-  _a:       pointer to the first int.
-  _b:       pointer to the second int.
-  _context: unused; may be NULL.
-Return:
-  A negative value if *_a < *_b, 0 if *_a == *_b, or a positive value if
-*_a > *_b. Returns 0 if either pointer is NULL.
+d_internal_functional_order
+  -1, 0 or 1 for the pointers' order, used when either is missing: a missing
+operand sorts first, and two missing ones are equal.
 */
-int
-d_functional_compare_int
-(
+static int
+d_internal_functional_order(
     const void* _a,
-    const void* _b,
-    void*       _context
+    const void* _b
 )
 {
-    int a;
-    int b;
-
-    (void)_context;
-
-    // validate parameters
-    if ( (!_a) ||
-         (!_b) )
+    if (_a == _b)
     {
         return 0;
     }
 
-    a = *(const int*)_a;
-    b = *(const int*)_b;
-
-    // avoid potential overflow from subtraction
-    if (a < b)
-    {
-        return -1;
-    }
-
-    if (a > b)
-    {
-        return 1;
-    }
-
-    return 0;
+    return (!_a) ? -1 : 1;
 }
 
-/*
-d_functional_compare_size_t
-  Three-way comparison for size_t values.
-
-Parameter(s):
-  _a:       pointer to the first size_t.
-  _b:       pointer to the second size_t.
-  _context: unused; may be NULL.
-Return:
-  A negative value if *_a < *_b, 0 if *_a == *_b, or a positive value if
-*_a > *_b. Returns 0 if either pointer is NULL.
-*/
 int
-d_functional_compare_size_t
-(
+d_functional_compare_int(
     const void* _a,
     const void* _b,
     void*       _context
 )
 {
-    size_t a;
-    size_t b;
-
     (void)_context;
 
-    // validate parameters
+    // a missing operand sorts first
     if ( (!_a) ||
          (!_b) )
     {
-        return 0;
+        return d_internal_functional_order(_a, _b);
     }
 
-    a = *(const size_t*)_a;
-    b = *(const size_t*)_b;
+    const int a = *(const int*)_a;
+    const int b = *(const int*)_b;
 
-    if (a < b)
-    {
-        return -1;
-    }
-
-    if (a > b)
-    {
-        return 1;
-    }
-
-    return 0;
+    return (a < b) ? -1 : ((a > b) ? 1 : 0);
 }
 
 /*
 d_functional_compare_double
-  Three-way comparison for double values.
-
-Parameter(s):
-  _a:       pointer to the first double.
-  _b:       pointer to the second double.
-  _context: unused; may be NULL.
-Return:
-  A negative value if *_a < *_b, 0 if *_a == *_b, or a positive value if
-*_a > *_b. Returns 0 if either pointer is NULL.
+  A total order: NaN sorts after every number and equals another NaN, so a
+sort over doubles that contain NaN still terminates and is deterministic.
 */
 int
-d_functional_compare_double
-(
+d_functional_compare_double(
     const void* _a,
     const void* _b,
     void*       _context
 )
 {
-    double a;
-    double b;
-
     (void)_context;
 
-    // validate parameters
+    // a missing operand sorts first
     if ( (!_a) ||
          (!_b) )
     {
-        return 0;
+        return d_internal_functional_order(_a, _b);
     }
 
-    a = *(const double*)_a;
-    b = *(const double*)_b;
+    const double a     = *(const double*)_a;
+    const double b     = *(const double*)_b;
+    const bool   a_nan = (a != a);
+    const bool   b_nan = (b != b);
 
-    if (a < b)
+    // NaN after every number, and equal to itself
+    if ( (a_nan) ||
+         (b_nan) )
     {
-        return -1;
+        return (a_nan == b_nan) ? 0 : (a_nan ? 1 : -1);
     }
 
-    if (a > b)
-    {
-        return 1;
-    }
-
-    return 0;
+    return (a < b) ? -1 : ((a > b) ? 1 : 0);
 }
 
-/*
-d_functional_equal_int
-  Equality comparison for int values.
-
-Parameter(s):
-  _a:       pointer to the first int.
-  _b:       pointer to the second int.
-  _context: unused; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if *_a == *_b, or
-  - false, if *_a != *_b or either pointer was NULL.
-*/
-bool
-d_functional_equal_int
-(
+int
+d_functional_compare_size_t(
     const void* _a,
     const void* _b,
     void*       _context
@@ -275,166 +207,95 @@ d_functional_equal_int
 {
     (void)_context;
 
-    // validate parameters
+    // a missing operand sorts first
     if ( (!_a) ||
          (!_b) )
     {
-        return false;
+        return d_internal_functional_order(_a, _b);
     }
 
-    return (*(const int*)_a == *(const int*)_b);
+    const size_t a = *(const size_t*)_a;
+    const size_t b = *(const size_t*)_b;
+
+    return (a < b) ? -1 : ((a > b) ? 1 : 0);
 }
 
-/*
-d_functional_equal_size_t
-  Equality comparison for size_t values.
-
-Parameter(s):
-  _a:       pointer to the first size_t.
-  _b:       pointer to the second size_t.
-  _context: unused; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if *_a == *_b, or
-  - false, if *_a != *_b or either pointer was NULL.
-*/
 bool
-d_functional_equal_size_t
-(
+d_functional_equal_int(
     const void* _a,
     const void* _b,
     void*       _context
 )
 {
-    (void)_context;
+    return (d_functional_compare_int(_a, _b, _context) == 0);
+}
 
-    // validate parameters
-    if ( (!_a) ||
-         (!_b) )
-    {
-        return false;
-    }
-
-    return (*(const size_t*)_a == *(const size_t*)_b);
+bool
+d_functional_equal_size_t(
+    const void* _a,
+    const void* _b,
+    void*       _context
+)
+{
+    return (d_functional_compare_size_t(_a, _b, _context) == 0);
 }
 
 /*
 d_functional_is_null
-  Tests whether an element pointer is NULL. Intended for use with arrays of
-pointers, where each element is itself a pointer. Dereferences the element
-to read the stored pointer value.
-
-Parameter(s):
-  _element: pointer to the element to test (pointer to a pointer).
-  _context: unused; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if the pointer stored at *_element is NULL, or
-  - false, if the pointer stored at *_element is non-NULL.
-  Returns true if _element itself is NULL.
+  For arrays of pointers: the element holds a NULL pointer. A missing element
+counts as null too.
 */
 bool
-d_functional_is_null
-(
+d_functional_is_null(
     const void* _element,
     void*       _context
 )
 {
     (void)_context;
 
-    // a NULL element pointer is considered NULL
-    if (!_element)
-    {
-        return true;
-    }
-
-    return (*(const void* const*)_element == NULL);
+    return ( (_element == NULL) ||
+             (*(const void* const*)_element == NULL) );
 }
 
-/*
-d_functional_is_not_null
-  Tests whether an element pointer is non-NULL. Intended for use with arrays
-of pointers, where each element is itself a pointer. Dereferences the
-element to read the stored pointer value.
-
-Parameter(s):
-  _element: pointer to the element to test (pointer to a pointer).
-  _context: unused; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if the pointer stored at *_element is non-NULL, or
-  - false, if the pointer stored at *_element is NULL.
-  Returns false if _element itself is NULL.
-*/
 bool
-d_functional_is_not_null
-(
+d_functional_is_not_null(
     const void* _element,
     void*       _context
 )
 {
-    (void)_context;
-
-    // a NULL element pointer is not "not null"
-    if (!_element)
-    {
-        return false;
-    }
-
-    return (*(const void* const*)_element != NULL);
+    return !d_functional_is_null(_element, _context);
 }
 
 /*
 d_functional_map
-  Applies a transformer to each element of an input array, writing the
-results to an output array.
-
-Parameter(s):
-  _input:        pointer to the input array.
-  _output:       pointer to the output array; must be at least
-                 _count * _element_size bytes.
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _transform:    transformer function to apply to each element.
-  _context:      context forwarded to _transform; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if all parameters were valid and every transformation succeeded, or
-  - false, if any parameter was NULL/zero or any transformation failed.
+  Output elements have the input's size; a transformer that fails stops the
+map where it failed, and the elements already written stay written.
 */
 bool
-d_functional_map
-(
-    const void*   _input,
-    void*         _output,
-    size_t        _count,
-    size_t        _element_size,
+d_functional_map(
+    const void*    _input,
+    void*          _output,
+    size_t         _count,
+    size_t         _element_size,
     fn_transformer _transform,
-    void*         _context
+    void*          _context
 )
 {
-    const unsigned char* src;
-    unsigned char*       dst;
-    size_t               i;
-
-    // validate parameters
-    if ( (!_input)            ||
-         (!_output)           ||
-         (!_transform)        ||
-         (_count == 0)        ||
-         (_element_size == 0) )
+    // an output is needed whenever there is anything to map
+    if ( (!d_internal_functional_valid(_input,
+                                       _count,
+                                       _element_size,
+                                       (_transform != NULL))) ||
+         ( (_count > 0u) && (!_output) ) )
     {
         return false;
     }
 
-    src = (const unsigned char*)_input;
-    dst = (unsigned char*)_output;
-
-    // apply the transformer to each element
-    for (i = 0; i < _count; i++)
+    // transform each element into its slot, in order
+    for (size_t i = 0u; i < _count; ++i)
     {
-        if (!_transform(src + (i * _element_size),
-                        dst + (i * _element_size),
+        if (!_transform(d_internal_functional_at(_input, i, _element_size),
+                        (unsigned char*)_output + (i * _element_size),
                         _context))
         {
             return false;
@@ -444,375 +305,156 @@ d_functional_map
     return true;
 }
 
-/*
-d_functional_filter
-  Copies elements from an input array to an output array for which the
-predicate returns true. Elements are packed contiguously in the output.
+bool
+d_functional_fold_left(
+    const void*    _input,
+    size_t         _count,
+    size_t         _element_size,
+    void*          _accumulator,
+    fn_accumulator _combine,
+    void*          _context
+)
+{
+    // an accumulator is always needed
+    if ( (!d_internal_functional_valid(_input,
+                                       _count,
+                                       _element_size,
+                                       (_combine != NULL))) ||
+         (!_accumulator) )
+    {
+        return false;
+    }
 
-Parameter(s):
-  _input:        pointer to the input array.
-  _output:       pointer to the output array; must be at least
-                 _count * _element_size bytes.
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _test:         predicate function to test each element.
-  _context:      context forwarded to _test; may be NULL.
-Return:
-  The number of elements written to _output, or 0 if any parameter was
-NULL/zero.
-*/
-size_t
-d_functional_filter
-(
-    const void* _input,
-    void*       _output,
+    // combine from the first element to the last
+    for (size_t i = 0u; i < _count; ++i)
+    {
+        if (!_combine(_accumulator,
+                      d_internal_functional_at(_input, i, _element_size),
+                      _context))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool
+d_functional_fold_right(
+    const void*    _input,
+    size_t         _count,
+    size_t         _element_size,
+    void*          _accumulator,
+    fn_accumulator _combine,
+    void*          _context
+)
+{
+    // an accumulator is always needed
+    if ( (!d_internal_functional_valid(_input,
+                                       _count,
+                                       _element_size,
+                                       (_combine != NULL))) ||
+         (!_accumulator) )
+    {
+        return false;
+    }
+
+    // combine from the last element to the first
+    for (size_t i = _count; i > 0u; --i)
+    {
+        if (!_combine(_accumulator,
+                      d_internal_functional_at(_input, i - 1u, _element_size),
+                      _context))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void
+d_functional_for_each(
+    void*       _input,
     size_t      _count,
     size_t      _element_size,
-    fn_predicate _test,
-    void*       _context
-)
-{
-    const unsigned char* src;
-    unsigned char*       dst;
-    size_t               out_count;
-    size_t               i;
-
-    // validate parameters
-    if ( (!_input)            ||
-         (!_output)           ||
-         (!_test)             ||
-         (_count == 0)        ||
-         (_element_size == 0) )
-    {
-        return 0;
-    }
-
-    src       = (const unsigned char*)_input;
-    dst       = (unsigned char*)_output;
-    out_count = 0;
-
-    // copy elements that pass the predicate
-    for (i = 0; i < _count; i++)
-    {
-        if (_test(src + (i * _element_size), _context))
-        {
-            memcpy(dst + (out_count * _element_size),
-                   src + (i * _element_size),
-                   _element_size);
-            out_count++;
-        }
-    }
-
-    return out_count;
-}
-
-/*
-d_functional_fold_left
-  Performs a left fold (reduce) over an input array. The accumulator is
-combined with each element from left to right.
-
-Parameter(s):
-  _input:        pointer to the input array.
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _accumulator:  pointer to the accumulated value; serves as both the
-                 initial value and the destination for the result.
-  _combine:      accumulator function applied at each step.
-  _context:      context forwarded to _combine; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if all parameters were valid and every accumulation succeeded, or
-  - false, if any parameter was NULL/zero or any accumulation failed.
-*/
-bool
-d_functional_fold_left
-(
-    const void*   _input,
-    size_t        _count,
-    size_t        _element_size,
-    void*         _accumulator,
-    fn_accumulator _combine,
-    void*         _context
-)
-{
-    const unsigned char* src;
-    size_t               i;
-
-    // validate parameters
-    if ( (!_input)            ||
-         (!_accumulator)      ||
-         (!_combine)          ||
-         (_count == 0)        ||
-         (_element_size == 0) )
-    {
-        return false;
-    }
-
-    src = (const unsigned char*)_input;
-
-    // accumulate from left to right
-    for (i = 0; i < _count; i++)
-    {
-        if (!_combine(_accumulator,
-                      src + (i * _element_size),
-                      _context))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/*
-d_functional_fold_right
-  Performs a right fold (reduce) over an input array. The accumulator is
-combined with each element from right to left.
-
-Parameter(s):
-  _input:        pointer to the input array.
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _accumulator:  pointer to the accumulated value; serves as both the
-                 initial value and the destination for the result.
-  _combine:      accumulator function applied at each step.
-  _context:      context forwarded to _combine; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if all parameters were valid and every accumulation succeeded, or
-  - false, if any parameter was NULL/zero or any accumulation failed.
-*/
-bool
-d_functional_fold_right
-(
-    const void*   _input,
-    size_t        _count,
-    size_t        _element_size,
-    void*         _accumulator,
-    fn_accumulator _combine,
-    void*         _context
-)
-{
-    const unsigned char* src;
-    size_t               i;
-
-    // validate parameters
-    if ( (!_input)            ||
-         (!_accumulator)      ||
-         (!_combine)          ||
-         (_count == 0)        ||
-         (_element_size == 0) )
-    {
-        return false;
-    }
-
-    src = (const unsigned char*)_input;
-
-    // accumulate from right to left
-    for (i = _count; i > 0; i--)
-    {
-        if (!_combine(_accumulator,
-                      src + ((i - 1) * _element_size),
-                      _context))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/*
-d_functional_for_each
-  Applies a consumer function to each element of a mutable input array.
-
-Parameter(s):
-  _input:        pointer to the input array (mutable).
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _apply:        consumer function to apply to each element.
-  _context:      context forwarded to _apply; may be NULL.
-Return:
-  none.
-*/
-void
-d_functional_for_each
-(
-    void*      _input,
-    size_t     _count,
-    size_t     _element_size,
     fn_consumer _apply,
-    void*      _context
+    void*       _context
 )
 {
-    unsigned char* src;
-    size_t         i;
-
-    // validate parameters
-    if ( (!_input)            ||
-         (!_apply)            ||
-         (_count == 0)        ||
-         (_element_size == 0) )
+    // nothing to apply, or nothing to apply it to
+    if (!d_internal_functional_valid(_input,
+                                     _count,
+                                     _element_size,
+                                     (_apply != NULL)))
     {
         return;
     }
 
-    src = (unsigned char*)_input;
-
-    // apply to each element
-    for (i = 0; i < _count; i++)
+    // apply to each element, in order
+    for (size_t i = 0u; i < _count; ++i)
     {
-        _apply(src + (i * _element_size), _context);
+        _apply((unsigned char*)_input + (i * _element_size), _context);
     }
 
     return;
 }
 
-/*
-d_functional_for_each_const
-  Applies a const consumer function to each element of an immutable input
-array.
-
-Parameter(s):
-  _input:        pointer to the input array (immutable).
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _apply:        const consumer function to apply to each element.
-  _context:      context forwarded to _apply; may be NULL.
-Return:
-  none.
-*/
 void
-d_functional_for_each_const
-(
-    const void*      _input,
-    size_t           _count,
-    size_t           _element_size,
+d_functional_for_each_const(
+    const void*       _input,
+    size_t            _count,
+    size_t            _element_size,
     fn_consumer_const _apply,
-    void*            _context
+    void*             _context
 )
 {
-    const unsigned char* src;
-    size_t               i;
-
-    // validate parameters
-    if ( (!_input)            ||
-         (!_apply)            ||
-         (_count == 0)        ||
-         (_element_size == 0) )
+    // nothing to apply, or nothing to apply it to
+    if (!d_internal_functional_valid(_input,
+                                     _count,
+                                     _element_size,
+                                     (_apply != NULL)))
     {
         return;
     }
 
-    src = (const unsigned char*)_input;
-
-    // apply to each element
-    for (i = 0; i < _count; i++)
+    // apply to each element, in order
+    for (size_t i = 0u; i < _count; ++i)
     {
-        _apply(src + (i * _element_size), _context);
+        _apply(d_internal_functional_at(_input, i, _element_size), _context);
     }
 
     return;
 }
 
 /*
-d_functional_any
-  Tests whether any element in the input array satisfies the predicate.
-Short-circuits on the first match.
-
-Parameter(s):
-  _input:        pointer to the input array.
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _test:         predicate function to test each element.
-  _context:      context forwarded to _test; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if at least one element satisfied the predicate, or
-  - false, if no element satisfied the predicate or any parameter was
-    NULL/zero.
+d_functional_all
+  Vacuously true for no elements; false for invalid arguments, since nothing
+was shown to hold.
 */
 bool
-d_functional_any
-(
-    const void* _input,
-    size_t      _count,
-    size_t      _element_size,
+d_functional_all(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
     fn_predicate _test,
-    void*       _context
+    void*        _context
 )
 {
-    const unsigned char* src;
-    size_t               i;
-
-    // validate parameters
-    if ( (!_input)            ||
-         (!_test)             ||
-         (_count == 0)        ||
-         (_element_size == 0) )
+    // nothing can be vouched for without a test
+    if (!d_internal_functional_valid(_input,
+                                     _count,
+                                     _element_size,
+                                     (_test != NULL)))
     {
         return false;
     }
 
-    src = (const unsigned char*)_input;
-
-    // short-circuit on first match
-    for (i = 0; i < _count; i++)
+    // the first failure decides
+    for (size_t i = 0u; i < _count; ++i)
     {
-        if (_test(src + (i * _element_size), _context))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/*
-d_functional_all
-  Tests whether all elements in the input array satisfy the predicate.
-Short-circuits on the first failure.
-
-Parameter(s):
-  _input:        pointer to the input array.
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _test:         predicate function to test each element.
-  _context:      context forwarded to _test; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if every element satisfied the predicate, or
-  - false, if any element failed the predicate or any parameter was
-    NULL/zero.
-*/
-bool
-d_functional_all
-(
-    const void* _input,
-    size_t      _count,
-    size_t      _element_size,
-    fn_predicate _test,
-    void*       _context
-)
-{
-    const unsigned char* src;
-    size_t               i;
-
-    // validate parameters
-    if ( (!_input)            ||
-         (!_test)             ||
-         (_count == 0)        ||
-         (_element_size == 0) )
-    {
-        return false;
-    }
-
-    src = (const unsigned char*)_input;
-
-    // short-circuit on first failure
-    for (i = 0; i < _count; i++)
-    {
-        if (!_test(src + (i * _element_size), _context))
+        if (!_test(d_internal_functional_at(_input, i, _element_size),
+                   _context))
         {
             return false;
         }
@@ -821,159 +463,111 @@ d_functional_all
     return true;
 }
 
-/*
-d_functional_none
-  Tests whether no element in the input array satisfies the predicate.
-Short-circuits on the first match.
-
-Parameter(s):
-  _input:        pointer to the input array.
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _test:         predicate function to test each element.
-  _context:      context forwarded to _test; may be NULL.
-Return:
-  A boolean value corresponding to either:
-  - true, if no element satisfied the predicate, or
-  - false, if any element satisfied the predicate or any parameter was
-    NULL/zero.
-*/
 bool
-d_functional_none
-(
-    const void* _input,
-    size_t      _count,
-    size_t      _element_size,
+d_functional_any(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
     fn_predicate _test,
-    void*       _context
+    void*        _context
 )
 {
-    const unsigned char* src;
-    size_t               i;
+    return (d_functional_find_if(_input,
+                                 _count,
+                                 _element_size,
+                                 _test,
+                                 _context) != NULL);
+}
 
-    // validate parameters
-    if ( (!_input)            ||
-         (!_test)             ||
-         (_count == 0)        ||
-         (_element_size == 0) )
+/*
+d_functional_none
+  Vacuously true for no elements; false for invalid arguments, as for all.
+*/
+bool
+d_functional_none(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
+    fn_predicate _test,
+    void*        _context
+)
+{
+    // nothing can be vouched for without a test
+    if (!d_internal_functional_valid(_input,
+                                     _count,
+                                     _element_size,
+                                     (_test != NULL)))
     {
         return false;
     }
 
-    src = (const unsigned char*)_input;
-
-    // short-circuit on first match
-    for (i = 0; i < _count; i++)
-    {
-        if (_test(src + (i * _element_size), _context))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return (d_functional_find_if(_input,
+                                 _count,
+                                 _element_size,
+                                 _test,
+                                 _context) == NULL);
 }
 
-/*
-d_functional_count_if
-  Counts the number of elements in the input array that satisfy the
-predicate.
-
-Parameter(s):
-  _input:        pointer to the input array.
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _test:         predicate function to test each element.
-  _context:      context forwarded to _test; may be NULL.
-Return:
-  The number of elements for which the predicate returned true, or 0 if any
-parameter was NULL/zero.
-*/
 size_t
-d_functional_count_if
-(
-    const void* _input,
-    size_t      _count,
-    size_t      _element_size,
+d_functional_count_if(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
     fn_predicate _test,
-    void*       _context
+    void*        _context
 )
 {
-    const unsigned char* src;
-    size_t               result;
-    size_t               i;
+    size_t matches = 0u;
 
-    // validate parameters
-    if ( (!_input)            ||
-         (!_test)             ||
-         (_count == 0)        ||
-         (_element_size == 0) )
+    // nothing to count
+    if (!d_internal_functional_valid(_input,
+                                     _count,
+                                     _element_size,
+                                     (_test != NULL)))
     {
-        return 0;
+        return 0u;
     }
 
-    src    = (const unsigned char*)_input;
-    result = 0;
-
-    // count elements that pass the predicate
-    for (i = 0; i < _count; i++)
+    // count every element the test accepts
+    for (size_t i = 0u; i < _count; ++i)
     {
-        if (_test(src + (i * _element_size), _context))
+        if (_test(d_internal_functional_at(_input, i, _element_size),
+                  _context))
         {
-            result++;
+            ++matches;
         }
     }
 
-    return result;
+    return matches;
 }
 
-/*
-d_functional_find_if
-  Returns a pointer to the first element in the input array that satisfies
-the predicate. Short-circuits on the first match.
-
-Parameter(s):
-  _input:        pointer to the input array.
-  _count:        number of elements in the input array.
-  _element_size: size of each element in bytes.
-  _test:         predicate function to test each element.
-  _context:      context forwarded to _test; may be NULL.
-Return:
-  A pointer to the first matching element, or NULL if no element matched or
-any parameter was NULL/zero. Note: the returned pointer is into the original
-input array; the const qualifier is cast away to match the generic return
-type.
-*/
 void*
-d_functional_find_if
-(
-    const void* _input,
-    size_t      _count,
-    size_t      _element_size,
+d_functional_find_if(
+    const void*  _input,
+    size_t       _count,
+    size_t       _element_size,
     fn_predicate _test,
-    void*       _context
+    void*        _context
 )
 {
-    const unsigned char* src;
-    size_t               i;
-
-    // validate parameters
-    if ( (!_input)            ||
-         (!_test)             ||
-         (_count == 0)        ||
-         (_element_size == 0) )
+    // nothing to search
+    if (!d_internal_functional_valid(_input,
+                                     _count,
+                                     _element_size,
+                                     (_test != NULL)))
     {
         return NULL;
     }
 
-    src = (const unsigned char*)_input;
-
-    // short-circuit on first match
-    for (i = 0; i < _count; i++)
+    // the first element the test accepts
+    for (size_t i = 0u; i < _count; ++i)
     {
-        if (_test(src + (i * _element_size), _context))
+        const void* const element =
+            d_internal_functional_at(_input, i, _element_size);
+
+        if (_test(element, _context))
         {
-            return (void*)(src + (i * _element_size));
+            return (void*)element;
         }
     }
 

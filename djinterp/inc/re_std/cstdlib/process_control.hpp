@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                          process_control.hpp
 *
 * the process-termination functions (re-exports):
@@ -35,37 +35,39 @@
 * spelling; including this header makes them available as <cstdlib> does.
 *
 *
-* path:      /inc/djinterp/re_std/cstdlib/process_control.hpp
+* path:      /inc/re_std/cstdlib/process_control.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDLIB_PROCESS_CONTROL_
-#define DJINTERP_RE_STD_CSTDLIB_PROCESS_CONTROL_ 1
+#ifndef RE_STD_CSTDLIB_PROCESS_CONTROL_HPP
+#define RE_STD_CSTDLIB_PROCESS_CONTROL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstdlib>
 
 
-// D_RE_STD_HAS_QUICK_EXIT
+// RE_STD_HAS_QUICK_EXIT
 //   constant: 1 if std::quick_exit and std::at_quick_exit are declared.
 // Overridable for a runtime the checks below do not know about.
-#ifndef D_RE_STD_HAS_QUICK_EXIT
+#ifndef RE_STD_HAS_QUICK_EXIT
     #if defined(__APPLE__)
-        #define D_RE_STD_HAS_QUICK_EXIT  0
+        #define RE_STD_HAS_QUICK_EXIT  0
     #else
-        #define D_RE_STD_HAS_QUICK_EXIT  1
+        #define RE_STD_HAS_QUICK_EXIT  1
     #endif
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
     // abort
     //   function: terminate abnormally. No handlers, no flushing.
@@ -85,7 +87,7 @@ NS_RESTD
     // registration order.
     using ::std::atexit;
 
-#if D_RE_STD_HAS_QUICK_EXIT
+#if RE_STD_HAS_QUICK_EXIT
 
     // quick_exit
     //   function: terminate running only the at_quick_exit handlers.
@@ -96,12 +98,12 @@ NS_RESTD
     // atexit's -- neither path runs the other's handlers.
     using ::std::at_quick_exit;
 
-#endif  // D_RE_STD_HAS_QUICK_EXIT
+#endif  // RE_STD_HAS_QUICK_EXIT
 
-NS_END  // re_std
-
-
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_CSTDLIB_PROCESS_CONTROL_
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+#endif  // RE_STD_CSTDLIB_PROCESS_CONTROL_HPP

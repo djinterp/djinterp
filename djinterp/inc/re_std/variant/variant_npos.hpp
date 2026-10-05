@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               variant_npos.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             variant_npos.hpp
 *
 * variant_npos sentinel header:
 *   Constant returned by variant<Ts...>::index() when the variant
@@ -9,34 +9,38 @@
 *   Value: static_cast<size_t>(-1).
 *
 *
-* path:      /inc/djinterp/re_std/variant/variant_npos.hpp
+* path:      /inc/re_std/variant/variant_npos.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_NPOS_
-#define DJINTERP_RE_STD_VARIANT_NPOS_ 1
+#ifndef RE_STD_VARIANT_VARIANT_NPOS_HPP
+#define RE_STD_VARIANT_VARIANT_NPOS_HPP 1
 
+// std
 #include <cstddef>
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   VARIANT_NPOS
 // ===========================================================================
 
-D_CONSTEXPR std::size_t variant_npos = static_cast<std::size_t>(-1);
+RE_STD_CONSTEXPR std::size_t variant_npos = static_cast<std::size_t>(-1);
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_VARIANT_NPOS_
+#endif  // RE_STD_VARIANT_VARIANT_NPOS_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                 calculus/differentiation.hpp
+/*******************************************************************************
+* djinterp [math]                                            differentiation.hpp
 *
 * Symbolic and numerical differentiation.
 *   Symbolic differentiation rewrites the expression AST of expression.hpp
@@ -19,21 +19,24 @@
 * log, atan. Everything composed from these (sec, sinh, asin, pow, ...) is
 * differentiated automatically.
 *
+*
 * path:      /inc/djinterp/math/calculus/differentiation.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.06.20
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CALCULUS_DIFFERENTIATION_
-#define DJINTERP_MATH_CALCULUS_DIFFERENTIATION_ 1
+#ifndef DJINTERP_MATH_CALCULUS_DIFFERENTIATION_HPP
+#define DJINTERP_MATH_CALCULUS_DIFFERENTIATION_HPP 1
 
-#include <cstddef>
+// std
 #include <array>
+#include <cstddef>
 #include <utility>
-
+// djinterp
 #include "../../djinterp.hpp"
 #include "../expression.hpp"
-#include "../function.hpp"
+#include "../function/function.hpp"
 #include "./elementary.hpp"
 
 
@@ -281,4 +284,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_CALCULUS_DIFFERENTIATION_
+#endif  // DJINTERP_MATH_CALCULUS_DIFFERENTIATION_HPP

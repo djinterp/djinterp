@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                                test_pack.hpp
+/*******************************************************************************
+* djinterp [test]                                                  test_pack.hpp
 *
 *   The bridge between the DTest configuration vocabulary and the portable
 * compression / archive facades.  test_options.hpp lets a configuration ask
@@ -47,45 +47,51 @@
 * runtime enums on top of the facades, which are themselves C++98 - C++23.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    INTERNAL DISPATCH        (enum -> facade tag; entry-name helpers)
-* II.   AVAILABILITY             (pack_enabled, codec/format runtime queries)
-* III.  PACK REPORT              (the one public entry)
-*
-*
 * path:      /inc/djinterp/test/test_pack.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_PACK_
-#define DJINTERP_TEST_PACK_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    INTERNAL DISPATCH        (enum -> facade tag; entry-name helpers)
+      -----------------------------------------------------------------
+
+II.   AVAILABILITY             (pack_enabled, codec/format runtime queries)
+      ---------------------------------------------------------------------
+
+III.  PACK REPORT              (the one public entry)
+      -----------------------------------------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_PACK_HPP
+#define DJINTERP_TEST_TEST_PACK_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <string>
 // djinterp
-#include "../core/djinterp.hpp"       // NS_*, D_INLINE, D_NODISCARD
+#include "../djinterp.hpp"       // NS_*, D_INLINE, D_NODISCARD
 // ---- swappable compress/archive facade (test seam) -------------------------
-//   Production (default) resolves the real facades by their in-tree relative
-// paths, so a normal build needs no configuration.  A relative include is
-// resolved against THIS file's own directory first and therefore cannot be
-// shadowed by -I; to let an instrumented double take effect, a test build
-// defines DTEST_PACK_USE_FACADE_DOUBLE and puts basename drop-ins named
-// "archive.hpp" / "compress.hpp" on the include path (e.g. -I .../pack_facade).
-// Those basenames are NOT present next to this header, so they fall through to
-// the -I double.  The double supplies the same surface, recorded: byte_blob,
-// status{status_ok,status_unavailable,status_invalid_argument}, compress_options,
-// archive_options, entry, entry_list, codecs::/formats:: tags, and
-// try_compress<>/try_archive<>/codec_is_available<>/format_is_writable<>.
-#ifdef DTEST_PACK_USE_FACADE_DOUBLE
-#  include "archive.hpp"                 // instrumented drop-in (-I .../pack_facade)
-#  include "compress.hpp"                // instrumented drop-in (-I .../pack_facade)
-#else
-#  include "../core/util/archive.hpp"   // entry, entry_list, formats::, archive
-#  include "../core/util/compress.hpp"  // byte_blob, status, codecs::, try_*
-#endif
+//   The facades are included by their in-tree paths. A test build that
+// defines DTEST_PACK_USE_FACADE_DOUBLE gets the instrumented doubles in
+// test/pack_facade/ instead: each production facade includes its double in
+// place of itself when the switch is on, so the double is in force wherever
+// the facade is reached, and no unit holds both. The double supplies the same
+// surface, recorded: byte_blob, status{status_ok,status_unavailable,
+// status_invalid_argument}, compress_options, archive_options, entry,
+// entry_list, codecs::/formats:: tags, and try_compress<>/try_archive<>/
+// codec_is_available<>/format_is_writable<>.
+#include "../core/util/archive/archive.hpp"    // entry_list, formats::
+#include "../core/util/compress/compress.hpp"  // byte_blob, codecs::
 #include "./test_options.hpp"         // test_option_set + the packaging enums + accessors
 
 
@@ -395,5 +401,7 @@ pack_report(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_PACK_
+
+#endif  // DJINTERP_TEST_TEST_PACK_HPP

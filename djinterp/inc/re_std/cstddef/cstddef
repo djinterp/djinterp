@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                                     cstddef
+/*******************************************************************************
+* djinterp [re_std]                                                      cstddef
 *
 * <cstddef> umbrella header:
-*   Aggregates the granular headers under /inc/djinterp/re_std/cstddef/.
+*   Aggregates the granular headers under /inc/re_std/cstddef/.
 * Mirrors the standard <cstddef> convenience header and adds no symbols of
 * its own.
 *
@@ -27,21 +27,22 @@
 * is invented here -- including this umbrella makes both available exactly
 * as the standard header does. Two notes on using them from re_std code:
 *
-*     - Prefer D_NULLPTR (or a bare nullptr on C++11+) to NULL. NULL is
+*     - Prefer RE_STD_NULLPTR (or a bare nullptr on C++11+) to NULL. NULL is
 *       an integer literal in disguise and picks integer overloads.
 *     - offsetof is only defined behaviour on standard-layout types.
 *
 *
-* path:      /inc/djinterp/re_std/cstddef/cstddef
+* path:      /inc/re_std/cstddef/cstddef
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDDEF_
-#define DJINTERP_RE_STD_CSTDDEF_ 1
+#ifndef RE_STD_CSTDDEF_CSTDDEF
+#define RE_STD_CSTDDEF_CSTDDEF 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // -- implementation-fixed types (re-exports) --------------------------------
@@ -56,4 +57,4 @@
 #include "./byte_ops.hpp"
 
 
-#endif  // DJINTERP_RE_STD_CSTDDEF_
+#endif  // RE_STD_CSTDDEF_CSTDDEF

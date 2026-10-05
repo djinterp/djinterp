@@ -5,25 +5,25 @@
 *   Implements the negative-index validation and conversion functions; the rest
 * of the header consists of macros and typedefs, which need no definitions.
 *
+*
 * path:      /src/djinterp/c/djinterp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.09.22
+*                                                            revised: 2026.09.29
 *******************************************************************************/
 #include "../../../inc/djinterp/c/djinterp.h"  // corresponding header
 // std
-#include <assert.h>   // static_assert
 #include <stdbool.h>  // bool, true, false
 #include <stddef.h>   // size_t, NULL
 
 
 // the index arithmetic below depends on both of these properties of d_index
-static_assert((d_index)-1 < 0,
-              "d_index must be a signed type: every index function below "
-              "branches on its sign");
-static_assert(sizeof(d_index) <= sizeof(size_t),
-              "d_index must be no wider than size_t: index magnitudes are "
-              "converted to size_t without a range check");
+D_STATIC_ASSERT((d_index)-1 < 0,
+                "d_index must be a signed type: every index function below "
+                "branches on its sign");
+D_STATIC_ASSERT(sizeof(d_index) <= sizeof(size_t),
+                "d_index must be no wider than size_t: index magnitudes are "
+                "converted to size_t without a range check");
 
 /*
 d_internal_index_magnitude

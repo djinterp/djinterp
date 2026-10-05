@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                          chrono_literals.hpp
 *
 * the chrono user-defined literals:
@@ -44,43 +44,60 @@
 * back-port for the first six and a nine-year one for the last two.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/chrono_literals.hpp
+* path:      /inc/re_std/chrono/chrono_literals.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_CHRONO_LITERALS_
-#define DJINTERP_RE_STD_CHRONO_CHRONO_LITERALS_ 1
+#ifndef RE_STD_CHRONO_CHRONO_LITERALS_HPP
+#define RE_STD_CHRONO_CHRONO_LITERALS_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "./duration_typedefs.hpp"
 #include "../ratio/ratio.hpp"
 #include "../ratio/ratio_typedefs.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
-namespace literals
+// inline, as [time.syn] declares it, and as string_view_literals.hpp
+// declares the same namespace: a namespace first opened non-inline cannot be
+// reopened inline, so the two headers could not meet in one translation unit
+inline namespace literals
 {
 inline namespace chrono_literals
 {
 
+// h, min, s, ms, us, ns, d and y lack the leading underscore reserved for
+// user code; they are the standard-mandated spellings. Suppress the
+// reserved-suffix diagnostic around these definitions only, as
+// string_view_literals.hpp does for sv.
+#if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wuser-defined-literals"
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wliteral-suffix"
+#endif
+
     // operator""h
     //   function: hours. `2h` is hours(2); `1.5h` is a floating-point
     // duration of ninety minutes.
-    D_CONSTEXPR chrono::hours operator"" h(unsigned long long _v)
+    RE_STD_CONSTEXPR chrono::hours operator"" h(unsigned long long _v)
     {
         return chrono::hours(static_cast<chrono::hours::rep>(_v));
     }
 
-    D_CONSTEXPR chrono::duration<long double, ratio<3600> >
+    RE_STD_CONSTEXPR chrono::duration<long double, ratio<3600> >
     operator"" h(long double _v)
     {
         return chrono::duration<long double, ratio<3600> >(_v);
@@ -89,12 +106,12 @@ inline namespace chrono_literals
     // operator""min
     //   function: minutes. Spelled `min` rather than `m` because `m`
     // would collide with a metres suffix in any program that has one.
-    D_CONSTEXPR chrono::minutes operator"" min(unsigned long long _v)
+    RE_STD_CONSTEXPR chrono::minutes operator"" min(unsigned long long _v)
     {
         return chrono::minutes(static_cast<chrono::minutes::rep>(_v));
     }
 
-    D_CONSTEXPR chrono::duration<long double, ratio<60> >
+    RE_STD_CONSTEXPR chrono::duration<long double, ratio<60> >
     operator"" min(long double _v)
     {
         return chrono::duration<long double, ratio<60> >(_v);
@@ -104,25 +121,25 @@ inline namespace chrono_literals
     //   function: seconds. Note this suffix is also used by
     // basic_string's literal in std; the two live in different nested
     // namespaces and are distinguished by the operand type.
-    D_CONSTEXPR chrono::seconds operator"" s(unsigned long long _v)
+    RE_STD_CONSTEXPR chrono::seconds operator"" s(unsigned long long _v)
     {
         return chrono::seconds(static_cast<chrono::seconds::rep>(_v));
     }
 
-    D_CONSTEXPR chrono::duration<long double> operator"" s(long double _v)
+    RE_STD_CONSTEXPR chrono::duration<long double> operator"" s(long double _v)
     {
         return chrono::duration<long double>(_v);
     }
 
     // operator""ms
     //   function: milliseconds.
-    D_CONSTEXPR chrono::milliseconds operator"" ms(unsigned long long _v)
+    RE_STD_CONSTEXPR chrono::milliseconds operator"" ms(unsigned long long _v)
     {
         return chrono::milliseconds(
             static_cast<chrono::milliseconds::rep>(_v));
     }
 
-    D_CONSTEXPR chrono::duration<long double, milli>
+    RE_STD_CONSTEXPR chrono::duration<long double, milli>
     operator"" ms(long double _v)
     {
         return chrono::duration<long double, milli>(_v);
@@ -130,13 +147,13 @@ inline namespace chrono_literals
 
     // operator""us
     //   function: microseconds.
-    D_CONSTEXPR chrono::microseconds operator"" us(unsigned long long _v)
+    RE_STD_CONSTEXPR chrono::microseconds operator"" us(unsigned long long _v)
     {
         return chrono::microseconds(
             static_cast<chrono::microseconds::rep>(_v));
     }
 
-    D_CONSTEXPR chrono::duration<long double, micro>
+    RE_STD_CONSTEXPR chrono::duration<long double, micro>
     operator"" us(long double _v)
     {
         return chrono::duration<long double, micro>(_v);
@@ -144,13 +161,13 @@ inline namespace chrono_literals
 
     // operator""ns
     //   function: nanoseconds.
-    D_CONSTEXPR chrono::nanoseconds operator"" ns(unsigned long long _v)
+    RE_STD_CONSTEXPR chrono::nanoseconds operator"" ns(unsigned long long _v)
     {
         return chrono::nanoseconds(
             static_cast<chrono::nanoseconds::rep>(_v));
     }
 
-    D_CONSTEXPR chrono::duration<long double, nano>
+    RE_STD_CONSTEXPR chrono::duration<long double, nano>
     operator"" ns(long double _v)
     {
         return chrono::duration<long double, nano>(_v);
@@ -160,12 +177,12 @@ inline namespace chrono_literals
     //   function: days, the DURATION. See the header comment -- in C++20
     // this suffix also has a calendar meaning re_std does not yet
     // implement.
-    D_CONSTEXPR chrono::days operator"" d(unsigned long long _v)
+    RE_STD_CONSTEXPR chrono::days operator"" d(unsigned long long _v)
     {
         return chrono::days(static_cast<chrono::days::rep>(_v));
     }
 
-    D_CONSTEXPR chrono::duration<long double, ratio<86400> >
+    RE_STD_CONSTEXPR chrono::duration<long double, ratio<86400> >
     operator"" d(long double _v)
     {
         return chrono::duration<long double, ratio<86400> >(_v);
@@ -174,16 +191,22 @@ inline namespace chrono_literals
     // operator""y
     //   function: years, the DURATION -- the average Gregorian year, not
     // a calendar year. Same caveat as `d`.
-    D_CONSTEXPR chrono::years operator"" y(unsigned long long _v)
+    RE_STD_CONSTEXPR chrono::years operator"" y(unsigned long long _v)
     {
         return chrono::years(static_cast<chrono::years::rep>(_v));
     }
 
-    D_CONSTEXPR chrono::duration<long double, ratio<31556952> >
+    RE_STD_CONSTEXPR chrono::duration<long double, ratio<31556952> >
     operator"" y(long double _v)
     {
         return chrono::duration<long double, ratio<31556952> >(_v);
     }
+
+#if defined(__clang__)
+    #pragma clang diagnostic pop
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic pop
+#endif
 
 }  // namespace chrono_literals
 }  // namespace literals
@@ -197,10 +220,10 @@ namespace chrono
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_CHRONO_LITERALS_
+#endif  // RE_STD_CHRONO_CHRONO_LITERALS_HPP

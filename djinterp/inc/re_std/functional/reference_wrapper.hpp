@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                           reference_wrapper.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        reference_wrapper.hpp
 *
+* reference_wrapper class header:
 * class: copyable, assignable wrapper around a reference.
 *   Stores a pointer internally and exposes the wrapped reference via an
 * implicit conversion and the `get()` accessor. Modelling a value type
@@ -19,21 +20,28 @@
 *
 * path:      /inc/re_std/functional/reference_wrapper.hpp
 * link(s):   TBA
-* author(s): re_std                                      date: 2026.05.07
-***********************************************************************/
+* author(s): re_std                                          created: 2026.05.07
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_REFERENCE_WRAPPER_
-#define DJINTERP_RE_STD_FUNCTIONAL_REFERENCE_WRAPPER_ 1
+#ifndef RE_STD_FUNCTIONAL_REFERENCE_WRAPPER_HPP
+#define RE_STD_FUNCTIONAL_REFERENCE_WRAPPER_HPP 1
 
-#include "djinterp.hpp"
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// re_std
 #include "re_std/type_traits/type_traits.hpp"
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 #include "re_std/utility/forward.hpp"
 #include "re_std/functional/is_reference_wrapper.hpp"
                                     // is_reference_wrapper (+ the fwd decl)
-#include "re_std/functional/invoke.hpp"   // re_std::invoke -- operator() needs it
+#include "re_std/functional/invoke.hpp"            // re_std::invoke -- operator() needs it
                                     // DECLARED, not merely defined later
 
 namespace re_std
@@ -44,24 +52,24 @@ namespace re_std
 // an lvalue; deleted from an rvalue. Implicitly converts back to the
 // underlying reference and is itself callable when the wrapped object
 // is callable.
-template<typename _Type>
+template<typename Type>
 class reference_wrapper
 {
 public:
-    typedef _Type type;
+    typedef Type type;
 
     // ctor from lvalue
-    D_CONSTEXPR reference_wrapper(_Type& _v) noexcept
+    RE_STD_CONSTEXPR reference_wrapper(Type& _v) noexcept
         : m_ptr(&_v)
     {}
 
     // explicitly delete the rvalue ctor: storing a pointer to a
     // soon-to-die temporary is never useful.
-    reference_wrapper(_Type&&) = delete;
+    reference_wrapper(Type&&) = delete;
 
     // copy ctor / assign — defaulted via implicit rules; the
     // C++98 fallback is also a trivial pointer copy.
-    D_CONSTEXPR reference_wrapper(const reference_wrapper& _o) noexcept
+    RE_STD_CONSTEXPR reference_wrapper(const reference_wrapper& _o) noexcept
         : m_ptr(_o.m_ptr)
     {}
 
@@ -75,45 +83,46 @@ public:
     }
 
     // accessors
-    D_CONSTEXPR operator _Type&() const noexcept
+    RE_STD_CONSTEXPR operator Type&() const noexcept
     {
         return *m_ptr;
     }
 
-    D_CONSTEXPR _Type&
+    RE_STD_CONSTEXPR Type&
     get() const noexcept
     {
         return *m_ptr;
     }
 
     // call forwarder (delegates to re_std::invoke).
-#if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
-    template<typename... _Args>
-    D_CONSTEXPR auto
+#if RE_STD_LANG_HAS_VARIADIC_TEMPLATES
+    template<typename... Args>
+    RE_STD_CONSTEXPR auto
     operator()(
-        _Args&&... _args
-    ) const -> decltype(re_std::invoke(get(), re_std::forward<_Args>(_args)...))
+        Args&&... _args
+    ) const -> decltype(re_std::invoke(get(), re_std::forward<Args>(_args)...))
     {
-        return re_std::invoke(get(), re_std::forward<_Args>(_args)...);
+        return re_std::invoke(get(), re_std::forward<Args>(_args)...);
     }
 #endif
 
 private:
-    _Type* m_ptr;
+    Type* m_ptr;
 };
 
 // is_reference_wrapper now lives in is_reference_wrapper.hpp (included
 // above) so that invoke.hpp can use it without this class definition.
 
 // C++17 deduction guide
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-template<typename _Type>
-reference_wrapper(_Type&) -> reference_wrapper<_Type>;
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+template<typename Type>
+reference_wrapper(Type&) -> reference_wrapper<Type>;
 #endif
 
-} // namespace re_std
+}  // re_std
+#endif // RE_STD_LANG_HAS_RVALUE_REFERENCES
+
+#endif  // floor, for now
 
 
-#endif // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_REFERENCE_WRAPPER_
+#endif  // RE_STD_FUNCTIONAL_REFERENCE_WRAPPER_HPP

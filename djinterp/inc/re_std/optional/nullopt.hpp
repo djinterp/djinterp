@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                  nullopt.hpp
 *
 * nullopt_t / nullopt:
@@ -27,22 +27,24 @@
 * stateless.
 *
 *
-* path:      /inc/djinterp/re_std/optional/nullopt.hpp
+* path:      /inc/re_std/optional/nullopt.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_OPTIONAL_NULLOPT_
-#define DJINTERP_RE_STD_OPTIONAL_NULLOPT_ 1
+#ifndef RE_STD_OPTIONAL_NULLOPT_HPP
+#define RE_STD_OPTIONAL_NULLOPT_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+namespace re_std
+{
 
 
     // nullopt_t
@@ -60,11 +62,11 @@ NS_RESTD
         //           explicit constructor.
         struct construct_tag_
         {
-            explicit D_CONSTEXPR construct_tag_() D_NOEXCEPT
+            explicit RE_STD_CONSTEXPR construct_tag_() RE_STD_NOEXCEPT
             {}
         };
 
-        explicit D_CONSTEXPR nullopt_t(construct_tag_) D_NOEXCEPT
+        explicit RE_STD_CONSTEXPR nullopt_t(construct_tag_) RE_STD_NOEXCEPT
         {}
     };
 
@@ -74,15 +76,15 @@ NS_RESTD
     //             single-instance semantics; pre-C++17, namespace-scope
     //             constexpr gives internal linkage and per-TU instances,
     //             which is harmless because nullopt_t carries no state.
-    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP17_OR_HIGHER
         inline
     #endif
-    D_CONSTEXPR nullopt_t nullopt{nullopt_t::construct_tag_{}};
+    RE_STD_CONSTEXPR nullopt_t nullopt{nullopt_t::construct_tag_{}};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_OPTIONAL_NULLOPT_
+#endif  // RE_STD_OPTIONAL_NULLOPT_HPP

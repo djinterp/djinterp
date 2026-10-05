@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [util]                                            mutex_counter.hpp
+/*******************************************************************************
+* djinterp [core]                                              mutex_counter.hpp
 *
 * Lock-policy-based thread-safe counter.
-*   Wraps the base `counter<_ValueType>` with a configurable lock policy
+*   Wraps the base `counter<ValueType>` with a configurable lock policy
 * from the threadsafe module.  Every public operation acquires
 * either a read lock (accessors) or a write lock (mutations) through the
 * policy's RAII guards.
@@ -31,61 +31,70 @@
 *   Requires C++17 or later.
 *
 *
-* path:      /inc/djinterp/util/counter/mutex_counter.hpp
+* path:      /inc/djinterp/core/util/counter/mutex_counter.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.07
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_COUNTER_MUTEX_
-#define DJINTERP_UTILITY_COUNTER_MUTEX_ 1
+#ifndef DJINTERP_UTIL_COUNTER_MUTEX_COUNTER_HPP
+#define DJINTERP_UTIL_COUNTER_MUTEX_COUNTER_HPP 1
 
-#include <cstdint>
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// std
 #include <limits>
-#include "../../djinterp.hpp"
+// djinterp
+#include "../../../djinterp.hpp"
 #include "../../sync/lock_policy.hpp"
 #include "../../sync/lock_guard.hpp"
 #include "./counter.hpp"
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 
 NS_DJINTERP
-NS_UTIL
 
 
 // mutex_counter
 //   class: a thread-safe bounded counter with configurable lock policy.
 //
-//   Wraps `counter<_ValueType>` by composition.  Read operations acquire
+//   Wraps `counter<ValueType>` by composition.  Read operations acquire
 // a shared lock (when the policy supports it); write operations acquire
 // an exclusive lock.  Children are mutex_counters with the same policy,
 // each with their own mutex.
 //
-//   Template parameter `_ValueType` must be an arithmetic type.
-//   Template parameter `_Policy` must be a lock policy struct.
-template<typename _ValueType = std::int64_t,
-         typename _Policy    = threadsafe::default_lock_policy>
+//   Template parameter `ValueType` must be an arithmetic type.
+//   Template parameter `Policy` must be a lock policy struct.
+template<typename ValueType = re_std::int64_t,
+         typename Policy     = default_lock_policy>
 class mutex_counter
 {
-    static_assert(std::is_arithmetic_v<_ValueType>,
-                  "`_ValueType` must be an arithmetic type.");
+    static_assert(std::is_arithmetic_v<ValueType>,
+                  "`ValueType` must be an arithmetic type.");
 
 private:
-    using self_type     = mutex_counter<_ValueType, _Policy>;
-    using base_type     = counter<_ValueType>;
+    using self_type     = mutex_counter<ValueType, Policy>;
+    using base_type     = counter<ValueType>;
     using children_type = std::vector<self_type>;
     using observed_type = std::vector<self_type*>;
-    using read_guard    = threadsafe::scoped_read_lock<_Policy>;
-    using write_guard   = threadsafe::scoped_write_lock<_Policy>;
+    using read_guard    = scoped_read_lock<Policy>;
+    using write_guard   = scoped_write_lock<Policy>;
 
 public:
-    using value_type       = _ValueType;
+    using value_type       = ValueType;
     using size_type        = std::size_t;
-    using lock_policy_type = _Policy;
-    using mutex_type       = typename _Policy::mutex_type;
+    using lock_policy_type = Policy;
+    using mutex_type       = typename Policy::mutex_type;
 
     // --- policy descriptors ---
-    static constexpr bool is_threadsafe = _Policy::is_threadsafe;
-    static constexpr bool is_shared     = _Policy::is_shared;
-    static constexpr bool is_timed      = _Policy::is_timed;
+    static constexpr bool is_threadsafe = Policy::is_threadsafe;
+    static constexpr bool is_shared     = Policy::is_shared;
+    static constexpr bool is_timed      = Policy::is_timed;
 
     // -----------------------------------------------------------------
     // constructors
@@ -104,10 +113,10 @@ public:
     //   constructor: constructs a counter with an initial value and
     // optional min/max bounds.
     mutex_counter(
-		value_type _initial,
-		value_type _min = std::numeric_limits<value_type>::lowest(),
-		value_type _max = std::numeric_limits<value_type>::max()
-	)
+        value_type _initial,
+        value_type _min = std::numeric_limits<value_type>::lowest(),
+        value_type _max = std::numeric_limits<value_type>::max()
+    )
         : m_counter(_initial, _min, _max),
           m_children(),
           m_observed(),
@@ -126,8 +135,8 @@ public:
     //   increments the counter by `_amount`. returns false and clamps
     // to max if the operation would exceed the upper bound.
     bool increment(
-		value_type _amount = value_type{1}
-	)
+        value_type _amount = value_type{1}
+    )
     {
         write_guard guard(m_mutex);
 
@@ -138,8 +147,8 @@ public:
     //   decrements the counter by `_amount`. returns false and clamps
     // to min if the operation would exceed the lower bound.
     bool decrement(
-		value_type _amount = value_type{1}
-	)
+        value_type _amount = value_type{1}
+    )
     {
         write_guard guard(m_mutex);
 
@@ -187,10 +196,10 @@ public:
     // could not be acquired or if the counter would exceed its upper
     // bound (clamped to max in the latter case).
     bool try_increment(
-		value_type _amount = value_type{1}
-	)
+        value_type _amount = value_type{1}
+    )
     {
-        threadsafe::scoped_try_lock<_Policy> guard(m_mutex);
+        scoped_try_lock<Policy> guard(m_mutex);
 
         if (!guard.owns_lock())
         {
@@ -205,10 +214,10 @@ public:
     // could not be acquired or if the counter would exceed its lower
     // bound (clamped to min in the latter case).
     bool try_decrement(
-		value_type _amount = value_type{1}
-	)
+        value_type _amount = value_type{1}
+    )
     {
-        threadsafe::scoped_try_lock<_Policy> guard(m_mutex);
+        scoped_try_lock<Policy> guard(m_mutex);
 
         if (!guard.owns_lock())
         {
@@ -288,10 +297,10 @@ public:
     // children vector reallocates on a subsequent add_child call.
     // The child has its own mutex for independent operation.
     self_type& add_child(
-		value_type _initial = value_type{0},
-		value_type _min     = std::numeric_limits<value_type>::lowest(),
-		value_type _max     = std::numeric_limits<value_type>::max()
-	)
+        value_type _initial = value_type{0},
+        value_type _min     = std::numeric_limits<value_type>::lowest(),
+        value_type _max     = std::numeric_limits<value_type>::max()
+    )
     {
         write_guard guard(m_mutex);
 
@@ -307,8 +316,8 @@ public:
     // the child has its own mutex; callers may operate on it
     // without holding the parent lock.
     self_type& child(
-		size_type _index
-	)
+        size_type _index
+    )
     {
         read_guard guard(m_mutex);
 
@@ -318,8 +327,8 @@ public:
     // child (const)
     //   returns a const reference to the owned child at `_index`.
     const self_type& child(
-		size_type _index
-	) const
+        size_type _index
+    ) const
     {
         read_guard guard(m_mutex);
 
@@ -344,8 +353,8 @@ public:
     // the caller is responsible for ensuring the observed counter
     // outlives this counter.
     void observe(
-		self_type& _target
-	)
+        self_type& _target
+    )
     {
         write_guard guard(m_mutex);
 
@@ -358,8 +367,8 @@ public:
     //   returns a pointer to the observed counter at `_index`,
     // or nullptr if out of range.
     self_type* observed(
-		size_type _index
-	) const
+        size_type _index
+    ) const
     {
         read_guard guard(m_mutex);
 
@@ -400,8 +409,8 @@ private:
 };
 
 
-NS_END  // util
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTILITY_COUNTER_MUTEX_
+#endif  // DJINTERP_UTIL_COUNTER_MUTEX_COUNTER_HPP

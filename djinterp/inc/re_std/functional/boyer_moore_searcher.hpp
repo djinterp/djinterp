@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [functional]                                   boyer_moore_searcher.hpp
+/*******************************************************************************
+* djinterp [re_std]                                     boyer_moore_searcher.hpp
 *
+* boyer_moore_searcher class header:
 *   full Boyer-Moore: bad-character rule AND good-suffix rule.
 *
 *   THE GOOD-SUFFIX RULE IS WHAT BUYS THE WORST-CASE BOUND.
@@ -53,18 +54,20 @@
 *   STD IS C++17; re_std IS C++11 (floor is re_std::hash - see
 * searcher_detail.hpp).
 *
-* path:      /inc/djinterp/re_std/functional/boyer_moore_searcher.hpp
+*
+* path:      /inc/re_std/functional/boyer_moore_searcher.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_BOYER_MOORE_SEARCHER_
-#define DJINTERP_RE_STD_FUNCTIONAL_BOYER_MOORE_SEARCHER_ 1
+#ifndef RE_STD_FUNCTIONAL_BOYER_MOORE_SEARCHER_HPP
+#define RE_STD_FUNCTIONAL_BOYER_MOORE_SEARCHER_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/pair.hpp"
@@ -73,22 +76,23 @@
 #include "./equal_to.hpp"
 #include "./searcher_detail.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // boyer_moore_searcher
 //   class: binds a pattern and searches using both Boyer-Moore rules.
-template<typename _RandomIt,
-         typename _Hash = hash<
-             typename iterator_traits<_RandomIt>::value_type>,
-         typename _Pred = equal_to<> >
+template<typename RandomIt,
+         typename Hash = hash<
+             typename iterator_traits<RandomIt>::value_type>,
+         typename Pred = equal_to<> >
 class boyer_moore_searcher
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
-    typedef internal::bad_char_table<_Value, _Hash, _Pred>  _Table;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
+    typedef internal::bad_char_table<_Value, Hash, Pred>  _Table;
 
-    _RandomIt                            m_first;
-    _RandomIt                            m_last;
-    _Pred                                m_pred;
+    RandomIt                            m_first;
+    RandomIt                            m_last;
+    Pred                                m_pred;
     ptrdiff_t                            m_size;
     _Table                               m_bad;
     internal::searcher_buffer<ptrdiff_t> m_good;
@@ -163,10 +167,10 @@ class boyer_moore_searcher
     }
 
 public:
-    boyer_moore_searcher(_RandomIt pat_first,
-                         _RandomIt pat_last,
-                         _Hash h = _Hash(),
-                         _Pred p = _Pred())
+    boyer_moore_searcher(RandomIt pat_first,
+                         RandomIt pat_last,
+                         Hash h = Hash(),
+                         Pred p = Pred())
         : m_first(pat_first), m_last(pat_last), m_pred(p),
           m_size(pat_last - pat_first),
           m_bad(static_cast<size_t>(pat_last - pat_first), h, p),
@@ -180,15 +184,15 @@ public:
         return;
     }
 
-    template<typename _RandomIt2>
-    pair<_RandomIt2, _RandomIt2>
-    operator()(_RandomIt2 first, _RandomIt2 last) const
+    template<typename RandomIt2>
+    pair<RandomIt2, RandomIt2>
+    operator()(RandomIt2 first, RandomIt2 last) const
     {
         const ptrdiff_t n = last - first;
         const ptrdiff_t m = m_size;
 
-        if (m == 0) { return pair<_RandomIt2, _RandomIt2>(first, first); }
-        if (n < m)  { return pair<_RandomIt2, _RandomIt2>(last, last); }
+        if (m == 0) { return pair<RandomIt2, RandomIt2>(first, first); }
+        if (n < m)  { return pair<RandomIt2, RandomIt2>(last, last); }
 
         ptrdiff_t pos = 0;
         while (pos <= n - m)
@@ -198,7 +202,7 @@ public:
 
             if (j < 0)
             {
-                return pair<_RandomIt2, _RandomIt2>(first + pos,
+                return pair<RandomIt2, RandomIt2>(first + pos,
                                                     first + pos + m);
             }
 
@@ -211,11 +215,11 @@ public:
             if (shift < 1) { shift = 1; }
             pos += shift;
         }
-        return pair<_RandomIt2, _RandomIt2>(last, last);
+        return pair<RandomIt2, RandomIt2>(last, last);
     }
 };
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_BOYER_MOORE_SEARCHER_
+#endif  // RE_STD_FUNCTIONAL_BOYER_MOORE_SEARCHER_HPP

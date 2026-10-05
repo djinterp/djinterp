@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                         hierarchical.hpp
+/*******************************************************************************
+* djinterp [core]                                               hierarchical.hpp
 *
 *   The HIERARCHICAL structural-kind tag: an opt-in marker for the structure
 * axis, declaring that a container nests - depth >= 2, a node summand present.
@@ -28,18 +28,19 @@
 *   C++11 baseline.
 *
 *
-* path:      /inc/djinterp/core/container/structure/hierarchical.hpp
+* path:      /inc/djinterp/core/meta/hierarchical.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_HIERARCHICAL_
-#define DJINTERP_HIERARCHICAL_ 1
+#ifndef DJINTERP_META_HIERARCHICAL_HPP
+#define DJINTERP_META_HIERARCHICAL_HPP 1
 
 // std
 #include <cstddef>
 // djinterp
-#include "../../djinterp.hpp"   // NS_*
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -49,16 +50,18 @@ NS_DJINTERP
 //   tag: the structural kind of a container that nests (depth >= 2).
 struct hierarchical
 {
-    static constexpr bool        nests     = true;    // node summand present
-    static constexpr std::size_t min_depth = 2;       // some component a node
+    static D_CONSTEXPR_VAR bool        nests     = true;    // node summand
+                                                            // present
+    static D_CONSTEXPR_VAR std::size_t min_depth = 2;       // some component a
+                                                            // node
 
     // name
     //   function: the kind's stable spelling.
-    static constexpr const char* name() noexcept { return "hierarchical"; }
+    static D_CONSTEXPR const char* name() D_NOEXCEPT { return "hierarchical"; }
 };
 
 
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_HIERARCHICAL_
+#endif  // DJINTERP_META_HIERARCHICAL_HPP

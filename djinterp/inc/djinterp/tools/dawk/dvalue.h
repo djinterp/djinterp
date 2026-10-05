@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                     dvalue.h
+/*******************************************************************************
+* djinterp [djinterp]                                                   dvalue.h
 *
 *   awk's scalar model, its conversion rules, and its associative arrays.
 *     The subtlety here is not the representation but the comparison. A value
@@ -14,9 +14,9 @@
 *
 * path:      /inc/djinterp/tools/dawk/dvalue.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS

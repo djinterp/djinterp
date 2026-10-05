@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   rotate.hpp
 *
 * rotate algorithm header:
@@ -17,16 +17,17 @@
 *     avoid relying on the compiler's TCO.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/rotate.hpp
+* path:      /inc/re_std/algorithm/rotate.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_ROTATE_
-#define DJINTERP_RE_STD_ALGORITHM_ROTATE_ 1
+#ifndef RE_STD_ALGORITHM_ROTATE_HPP
+#define RE_STD_ALGORITHM_ROTATE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 
@@ -35,16 +36,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -56,12 +50,12 @@ NS_RESTD
 // _middle becomes the new beginning. Returns the iterator pointing to
 // the new position of the element formerly at _first
 // (= _first + (_last - _middle)).
-template<typename _ForwardIt>
-D_CONSTEXPR_CPP14 _ForwardIt
+template<typename ForwardIt>
+RE_STD_CONSTEXPR_CPP14 ForwardIt
 rotate(
-    _ForwardIt _first,
-    _ForwardIt _middle,
-    _ForwardIt _last
+    ForwardIt _first,
+    ForwardIt _middle,
+    ForwardIt _last
 )
 {
     if (_first == _middle)
@@ -73,7 +67,7 @@ rotate(
         return _first;
     }
 
-    _ForwardIt _result      = _first;
+    ForwardIt _result      = _first;
     bool       _result_set  = false;
 
     // outer loop: manually-eliminated tail recursion. Each iteration
@@ -90,9 +84,9 @@ rotate(
             return _result;
         }
 
-        _ForwardIt _write     = _first;
-        _ForwardIt _next_read = _first;  // tracks "unread" boundary
-        _ForwardIt _read      = _middle;
+        ForwardIt _write     = _first;
+        ForwardIt _next_read = _first;  // tracks "unread" boundary
+        ForwardIt _read      = _middle;
 
         while (_read != _last)
         {
@@ -120,7 +114,7 @@ rotate(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_ROTATE_
+#endif  // RE_STD_ALGORITHM_ROTATE_HPP

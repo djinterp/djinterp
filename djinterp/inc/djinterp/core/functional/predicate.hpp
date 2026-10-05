@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                          predicate.hpp
+/*******************************************************************************
+* djinterp [core]                                                  predicate.hpp
 *
 * Template predicate combinators for the functional module (C++).
 *   Provides type-safe, SFINAE-constrained predicate combinators that compose
@@ -35,22 +35,27 @@
 * predicate combinators stay carrier-agnostic; the carriers live at the call
 * site, so this header needs no dependency on carrier.hpp.
 *
+*
 * path:      /inc/djinterp/core/functional/predicate.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_PREDICATE_
-#define DJINTERP_FUNCTIONAL_PREDICATE_ 1
+#ifndef DJINTERP_FUNCTIONAL_PREDICATE_HPP
+#define DJINTERP_FUNCTIONAL_PREDICATE_HPP 1
 
 // std
 #include <cstddef>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-#  include <type_traits>
+// std
+#  include <type_traits>              // std::true_type, std::decay
+// djinterp
+#  include "./functional_common.hpp"  // is_predicate, Predicate
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
@@ -67,69 +72,69 @@ NS_INTERNAL
     // binary). The arity-1 and arity-2 forms cover the typical
     // uses (element predicates and binary relations); higher
     // arities can be added by hand if needed.
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     class predicate_and_combinator
     {
     private:
-        _Predicate1 m_predicate1;
-        _Predicate2 m_predicate2;
+        Predicate1 m_predicate1;
+        Predicate2 m_predicate2;
 
     public:
         typedef bool result_type;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        template<typename _Predicate1Fwd,
-                 typename _Predicate2Fwd>
+        template<typename Predicate1Fwd,
+                 typename Predicate2Fwd>
         D_CONSTEXPR
         predicate_and_combinator
         (
-            _Predicate1Fwd&& _predicate1,
-            _Predicate2Fwd&& _predicate2
+            Predicate1Fwd&& _predicate1,
+            Predicate2Fwd&& _predicate2
         )
-            : m_predicate1(std::forward<_Predicate1Fwd>(_predicate1)),
-              m_predicate2(std::forward<_Predicate2Fwd>(_predicate2))
+            : m_predicate1(std::forward<Predicate1Fwd>(_predicate1)),
+              m_predicate2(std::forward<Predicate2Fwd>(_predicate2))
         {}
 
-        template<typename... _Args>
+        template<typename... Args>
         D_CONSTEXPR
-        bool operator()(_Args&&... _args) const
+        bool operator()(Args&&... _args) const
         {
-            return m_predicate1(std::forward<_Args>(_args)...) &&
-                   m_predicate2(std::forward<_Args>(_args)...);
+            return m_predicate1(std::forward<Args>(_args)...) &&
+                   m_predicate2(std::forward<Args>(_args)...);
         }
 #else
         // C++98 fallback: const-ref ctor + fixed-arity overloads.
         predicate_and_combinator(
-            const _Predicate1& _predicate1,
-            const _Predicate2& _predicate2
+            const Predicate1& _predicate1,
+            const Predicate2& _predicate2
         )
             : m_predicate1(_predicate1),
               m_predicate2(_predicate2)
         {}
 
-        template<typename _Arg>
-        bool operator()(const _Arg& _arg) const
+        template<typename Arg>
+        bool operator()(const Arg& _arg) const
         {
             return m_predicate1(_arg) && m_predicate2(_arg);
         }
 
-        template<typename _A,
-                 typename _B>
-        bool operator()(const _A& _a, const _B& _b) const
+        template<typename A,
+                 typename B>
+        bool operator()(const A& _a, const B& _b) const
         {
             return m_predicate1(_a, _b) && m_predicate2(_a, _b);
         }
 #endif
 
         // accessors for introspection
-        D_CONSTEXPR const _Predicate1&
+        D_CONSTEXPR const Predicate1&
         first()  const
         {
             return m_predicate1;
         }
 
-        D_CONSTEXPR const _Predicate2&
+        D_CONSTEXPR const Predicate2&
         second() const
         {
             return m_predicate2;
@@ -139,121 +144,121 @@ NS_INTERNAL
     // predicate_or_combinator
     //   helper: evaluates two predicates with logical OR
     // (short-circuiting).
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     class predicate_or_combinator
     {
     private:
-        _Predicate1 m_predicate1;
-        _Predicate2 m_predicate2;
+        Predicate1 m_predicate1;
+        Predicate2 m_predicate2;
 
     public:
         typedef bool result_type;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        template<typename _Predicate1Fwd,
-                 typename _Predicate2Fwd>
+        template<typename Predicate1Fwd,
+                 typename Predicate2Fwd>
         D_CONSTEXPR
         predicate_or_combinator
         (
-            _Predicate1Fwd&& _predicate1,
-            _Predicate2Fwd&& _predicate2
+            Predicate1Fwd&& _predicate1,
+            Predicate2Fwd&& _predicate2
         )
-            : m_predicate1(std::forward<_Predicate1Fwd>(_predicate1)),
-              m_predicate2(std::forward<_Predicate2Fwd>(_predicate2))
+            : m_predicate1(std::forward<Predicate1Fwd>(_predicate1)),
+              m_predicate2(std::forward<Predicate2Fwd>(_predicate2))
         {}
 
-        template<typename... _Args>
+        template<typename... Args>
         D_CONSTEXPR
-        bool operator()(_Args&&... _args) const
+        bool operator()(Args&&... _args) const
         {
-            return m_predicate1(std::forward<_Args>(_args)...) ||
-                   m_predicate2(std::forward<_Args>(_args)...);
+            return m_predicate1(std::forward<Args>(_args)...) ||
+                   m_predicate2(std::forward<Args>(_args)...);
         }
 #else
         predicate_or_combinator(
-            const _Predicate1& _predicate1,
-            const _Predicate2& _predicate2
+            const Predicate1& _predicate1,
+            const Predicate2& _predicate2
         )
             : m_predicate1(_predicate1),
               m_predicate2(_predicate2)
         {}
 
-        template<typename _Arg>
-        bool operator()(const _Arg& _arg) const
+        template<typename Arg>
+        bool operator()(const Arg& _arg) const
         {
             return m_predicate1(_arg) || m_predicate2(_arg);
         }
 
-        template<typename _A,
-                 typename _B>
-        bool operator()(const _A& _a, const _B& _b) const
+        template<typename A,
+                 typename B>
+        bool operator()(const A& _a, const B& _b) const
         {
             return m_predicate1(_a, _b) || m_predicate2(_a, _b);
         }
 #endif
 
-        D_CONSTEXPR const _Predicate1& first()  const { return m_predicate1; }
-        D_CONSTEXPR const _Predicate2& second() const { return m_predicate2; }
+        D_CONSTEXPR const Predicate1& first()  const { return m_predicate1; }
+        D_CONSTEXPR const Predicate2& second() const { return m_predicate2; }
     };
 
     // predicate_xor_combinator
     //   helper: evaluates two predicates with logical XOR.
     // Both predicates are always evaluated (XOR has no
     // short-circuit).
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     class predicate_xor_combinator
     {
     private:
-        _Predicate1 m_predicate1;
-        _Predicate2 m_predicate2;
+        Predicate1 m_predicate1;
+        Predicate2 m_predicate2;
 
     public:
         typedef bool result_type;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        template<typename _Predicate1Fwd,
-                 typename _Predicate2Fwd>
+        template<typename Predicate1Fwd,
+                 typename Predicate2Fwd>
         D_CONSTEXPR
         predicate_xor_combinator
         (
-            _Predicate1Fwd&& _predicate1,
-            _Predicate2Fwd&& _predicate2
+            Predicate1Fwd&& _predicate1,
+            Predicate2Fwd&& _predicate2
         )
-            : m_predicate1(std::forward<_Predicate1Fwd>(_predicate1)),
-              m_predicate2(std::forward<_Predicate2Fwd>(_predicate2))
+            : m_predicate1(std::forward<Predicate1Fwd>(_predicate1)),
+              m_predicate2(std::forward<Predicate2Fwd>(_predicate2))
         {}
 
-        template<typename... _Args>
-        D_CONSTEXPR
-        bool operator()(_Args&&... _args) const
+        template<typename... Args>
+        D_CONSTEXPR_CPP14
+        bool operator()(Args&&... _args) const
         {
-            bool a = m_predicate1(std::forward<_Args>(_args)...);
-            bool b = m_predicate2(std::forward<_Args>(_args)...);
+            bool a = m_predicate1(std::forward<Args>(_args)...);
+            bool b = m_predicate2(std::forward<Args>(_args)...);
 
             return a != b;
         }
 #else
         predicate_xor_combinator(
-            const _Predicate1& _predicate1,
-            const _Predicate2& _predicate2
+            const Predicate1& _predicate1,
+            const Predicate2& _predicate2
         )
             : m_predicate1(_predicate1),
               m_predicate2(_predicate2)
         {}
 
-        template<typename _Arg>
-        bool operator()(const _Arg& _arg) const
+        template<typename Arg>
+        bool operator()(const Arg& _arg) const
         {
             const bool a = m_predicate1(_arg);
             const bool b = m_predicate2(_arg);
             return a != b;
         }
 
-        template<typename _A,
-                 typename _B>
-        bool operator()(const _A& _a, const _B& _b) const
+        template<typename A,
+                 typename B>
+        bool operator()(const A& _a, const B& _b) const
         {
             const bool a = m_predicate1(_a, _b);
             const bool b = m_predicate2(_a, _b);
@@ -261,107 +266,107 @@ NS_INTERNAL
         }
 #endif
 
-        D_CONSTEXPR const _Predicate1& first()  const { return m_predicate1; }
-        D_CONSTEXPR const _Predicate2& second() const { return m_predicate2; }
+        D_CONSTEXPR const Predicate1& first()  const { return m_predicate1; }
+        D_CONSTEXPR const Predicate2& second() const { return m_predicate2; }
     };
 
     // predicate_not_combinator
     //   helper: negates a single predicate.
-    template<typename _Predicate>
+    template<typename Predicate>
     class predicate_not_combinator
     {
     private:
-        _Predicate m_pred;
+        Predicate m_pred;
 
     public:
         typedef bool result_type;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        template<typename _PredicateFwd>
+        template<typename PredicateFwd>
         explicit D_CONSTEXPR
-        predicate_not_combinator(_PredicateFwd&& _predicate)
-            : m_pred(std::forward<_PredicateFwd>(_predicate))
+        predicate_not_combinator(PredicateFwd&& _predicate)
+            : m_pred(std::forward<PredicateFwd>(_predicate))
         {}
 
-        template<typename... _Args>
+        template<typename... Args>
         D_CONSTEXPR
-        bool operator()(_Args&&... _args) const
+        bool operator()(Args&&... _args) const
         {
-            return !m_pred(std::forward<_Args>(_args)...);
+            return !m_pred(std::forward<Args>(_args)...);
         }
 #else
         explicit
-        predicate_not_combinator(const _Predicate& _predicate)
+        predicate_not_combinator(const Predicate& _predicate)
             : m_pred(_predicate)
         {}
 
-        template<typename _Arg>
-        bool operator()(const _Arg& _arg) const
+        template<typename Arg>
+        bool operator()(const Arg& _arg) const
         {
             return !m_pred(_arg);
         }
 
-        template<typename _A,
-                 typename _B>
-        bool operator()(const _A& _a, const _B& _b) const
+        template<typename A,
+                 typename B>
+        bool operator()(const A& _a, const B& _b) const
         {
             return !m_pred(_a, _b);
         }
 #endif
 
-        D_CONSTEXPR const _Predicate& inner() const { return m_pred; }
+        D_CONSTEXPR const Predicate& inner() const { return m_pred; }
     };
 
     // predicate_nand_combinator
     //   helper: evaluates two predicates with logical NAND.
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     class predicate_nand_combinator
     {
     private:
-        _Predicate1 m_predicate1;
-        _Predicate2 m_predicate2;
+        Predicate1 m_predicate1;
+        Predicate2 m_predicate2;
 
     public:
         typedef bool result_type;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        template<typename _Predicate1Fwd,
-                 typename _Predicate2Fwd>
+        template<typename Predicate1Fwd,
+                 typename Predicate2Fwd>
         D_CONSTEXPR
         predicate_nand_combinator(
-            _Predicate1Fwd&& _predicate1,
-            _Predicate2Fwd&& _predicate2
+            Predicate1Fwd&& _predicate1,
+            Predicate2Fwd&& _predicate2
         )
-            : m_predicate1(std::forward<_Predicate1Fwd>(_predicate1))
-            , m_predicate2(std::forward<_Predicate2Fwd>(_predicate2))
+            : m_predicate1(std::forward<Predicate1Fwd>(_predicate1))
+            , m_predicate2(std::forward<Predicate2Fwd>(_predicate2))
         {}
 
-        template<typename... _Args>
+        template<typename... Args>
         D_CONSTEXPR bool
         operator()(
-            _Args&&... _args
+            Args&&... _args
         ) const
         {
-            return !(m_predicate1(std::forward<_Args>(_args)...) &&
-                     m_predicate2(std::forward<_Args>(_args)...));
+            return !(m_predicate1(std::forward<Args>(_args)...) &&
+                     m_predicate2(std::forward<Args>(_args)...));
         }
 #else
-        predicate_nand_combinator(const _Predicate1& _predicate1,
-                                  const _Predicate2& _predicate2)
+        predicate_nand_combinator(const Predicate1& _predicate1,
+                                  const Predicate2& _predicate2)
             : m_predicate1(_predicate1),
               m_predicate2(_predicate2)
         {}
 
-        template<typename _Arg>
-        bool operator()(const _Arg& _arg) const
+        template<typename Arg>
+        bool operator()(const Arg& _arg) const
         {
             return !(m_predicate1(_arg) && m_predicate2(_arg));
         }
 
-        template<typename _A,
-                 typename _B>
-        bool operator()(const _A& _a, const _B& _b) const
+        template<typename A,
+                 typename B>
+        bool operator()(const A& _a, const B& _b) const
         {
             return !(m_predicate1(_a, _b) && m_predicate2(_a, _b));
         }
@@ -370,52 +375,52 @@ NS_INTERNAL
 
     // predicate_nor_combinator
     //   helper: evaluates two predicates with logical NOR.
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     class predicate_nor_combinator
     {
     private:
-        _Predicate1 m_predicate1;
-        _Predicate2 m_predicate2;
+        Predicate1 m_predicate1;
+        Predicate2 m_predicate2;
 
     public:
         typedef bool result_type;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        template<typename _Predicate1Fwd,
-                 typename _Predicate2Fwd>
+        template<typename Predicate1Fwd,
+                 typename Predicate2Fwd>
         D_CONSTEXPR
-        predicate_nor_combinator(_Predicate1Fwd&& _predicate1,
-                                 _Predicate2Fwd&& _predicate2)
-            : m_predicate1(std::forward<_Predicate1Fwd>(_predicate1))
-            , m_predicate2(std::forward<_Predicate2Fwd>(_predicate2))
+        predicate_nor_combinator(Predicate1Fwd&& _predicate1,
+                                 Predicate2Fwd&& _predicate2)
+            : m_predicate1(std::forward<Predicate1Fwd>(_predicate1))
+            , m_predicate2(std::forward<Predicate2Fwd>(_predicate2))
         {}
 
-        template<typename... _Args>
+        template<typename... Args>
         D_CONSTEXPR
-        bool operator()(_Args&&... _args) const
+        bool operator()(Args&&... _args) const
         {
-            return !(m_predicate1(std::forward<_Args>(_args)...) ||
-                     m_predicate2(std::forward<_Args>(_args)...));
+            return !(m_predicate1(std::forward<Args>(_args)...) ||
+                     m_predicate2(std::forward<Args>(_args)...));
         }
 #else
-        predicate_nor_combinator(const _Predicate1& _predicate1,
-                                 const _Predicate2& _predicate2)
+        predicate_nor_combinator(const Predicate1& _predicate1,
+                                 const Predicate2& _predicate2)
             : m_predicate1(_predicate1),
               m_predicate2(_predicate2)
         {}
 
-        template<typename _Arg>
-        bool operator()(const _Arg& _arg) const
+        template<typename Arg>
+        bool operator()(const Arg& _arg) const
         {
             return !(m_predicate1(_arg) || m_predicate2(_arg));
         }
 
-        template<typename _A,
-                 typename _B>
+        template<typename A,
+                 typename B>
         bool operator()(
-            const _A& _a, 
-            const _B& _b
+            const A& _a,
+            const B& _b
         ) const
         {
             return !(m_predicate1(_a, _b) || m_predicate2(_a, _b));
@@ -434,33 +439,33 @@ NS_END  // internal
 //   function: creates an AND combinator from two predicates.
 // predicate_and(p1, p2)(x) = p1(x) && p2(x)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-template<typename _Predicate1,
-         typename _Predicate2>
+template<typename Predicate1,
+         typename Predicate2>
 D_CONSTEXPR
-internal::predicate_and_combinator<typename std::decay<_Predicate1>::type,
-                                   typename std::decay<_Predicate2>::type>
+internal::predicate_and_combinator<typename std::decay<Predicate1>::type,
+                                   typename std::decay<Predicate2>::type>
 predicate_and(
-    _Predicate1&& _predicate1,
-    _Predicate2&& _predicate2
+    Predicate1&& _predicate1,
+    Predicate2&& _predicate2
 )
 {
     return internal::predicate_and_combinator<
-        typename std::decay<_Predicate1>::type,
-        typename std::decay<_Predicate2>::type>(
-            std::forward<_Predicate1>(_predicate1),
-            std::forward<_Predicate2>(_predicate2));
+        typename std::decay<Predicate1>::type,
+        typename std::decay<Predicate2>::type>(
+            std::forward<Predicate1>(_predicate1),
+            std::forward<Predicate2>(_predicate2));
 }
 #else
-template<typename _Predicate1,
-         typename _Predicate2>
-internal::predicate_and_combinator<_Predicate1, _Predicate2>
+template<typename Predicate1,
+         typename Predicate2>
+internal::predicate_and_combinator<Predicate1, Predicate2>
 predicate_and
 (
-    const _Predicate1& _predicate1,
-    const _Predicate2& _predicate2
+    const Predicate1& _predicate1,
+    const Predicate2& _predicate2
 )
 {
-    return internal::predicate_and_combinator<_Predicate1, _Predicate2>(
+    return internal::predicate_and_combinator<Predicate1, Predicate2>(
         _predicate1, _predicate2);
 }
 #endif
@@ -469,34 +474,34 @@ predicate_and
 //   function: creates an OR combinator from two predicates.
 // predicate_or(p1, p2)(x) = p1(x) || p2(x)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-template<typename _Predicate1,
-         typename _Predicate2>
+template<typename Predicate1,
+         typename Predicate2>
 D_CONSTEXPR
-internal::predicate_or_combinator<typename std::decay<_Predicate1>::type,
-                                  typename std::decay<_Predicate2>::type>
+internal::predicate_or_combinator<typename std::decay<Predicate1>::type,
+                                  typename std::decay<Predicate2>::type>
 predicate_or
 (
-    _Predicate1&& _predicate1,
-    _Predicate2&& _predicate2
+    Predicate1&& _predicate1,
+    Predicate2&& _predicate2
 )
 {
     return internal::predicate_or_combinator<
-        typename std::decay<_Predicate1>::type,
-        typename std::decay<_Predicate2>::type>(
-            std::forward<_Predicate1>(_predicate1),
-            std::forward<_Predicate2>(_predicate2));
+        typename std::decay<Predicate1>::type,
+        typename std::decay<Predicate2>::type>(
+            std::forward<Predicate1>(_predicate1),
+            std::forward<Predicate2>(_predicate2));
 }
 #else
-template<typename _Predicate1,
-         typename _Predicate2>
-internal::predicate_or_combinator<_Predicate1, _Predicate2>
+template<typename Predicate1,
+         typename Predicate2>
+internal::predicate_or_combinator<Predicate1, Predicate2>
 predicate_or
 (
-    const _Predicate1& _predicate1,
-    const _Predicate2& _predicate2
+    const Predicate1& _predicate1,
+    const Predicate2& _predicate2
 )
 {
-    return internal::predicate_or_combinator<_Predicate1, _Predicate2>(
+    return internal::predicate_or_combinator<Predicate1, Predicate2>(
         _predicate1, _predicate2);
 }
 #endif
@@ -505,33 +510,33 @@ predicate_or
 //   function: creates an XOR combinator from two predicates.
 // predicate_xor(p1, p2)(x) = p1(x) != p2(x)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-template<typename _Predicate1,
-         typename _Predicate2>
+template<typename Predicate1,
+         typename Predicate2>
 D_CONSTEXPR internal::predicate_xor_combinator<
-    typename std::decay<_Predicate1>::type,
-    typename std::decay<_Predicate2>::type>
+    typename std::decay<Predicate1>::type,
+    typename std::decay<Predicate2>::type>
 predicate_xor(
-    _Predicate1&& _predicate1,
-    _Predicate2&& _predicate2
+    Predicate1&& _predicate1,
+    Predicate2&& _predicate2
 )
 {
     return internal::predicate_xor_combinator<
-        typename std::decay<_Predicate1>::type,
-        typename std::decay<_Predicate2>::type>(
-            std::forward<_Predicate1>(_predicate1),
-            std::forward<_Predicate2>(_predicate2));
+        typename std::decay<Predicate1>::type,
+        typename std::decay<Predicate2>::type>(
+            std::forward<Predicate1>(_predicate1),
+            std::forward<Predicate2>(_predicate2));
 }
 #else
-template<typename _Predicate1,
-         typename _Predicate2>
-internal::predicate_xor_combinator<_Predicate1, _Predicate2>
+template<typename Predicate1,
+         typename Predicate2>
+internal::predicate_xor_combinator<Predicate1, Predicate2>
 predicate_xor
 (
-    const _Predicate1& _predicate1,
-    const _Predicate2& _predicate2
+    const Predicate1& _predicate1,
+    const Predicate2& _predicate2
 )
 {
-    return internal::predicate_xor_combinator<_Predicate1, _Predicate2>(
+    return internal::predicate_xor_combinator<Predicate1, Predicate2>(
         _predicate1, _predicate2);
 }
 #endif
@@ -540,27 +545,27 @@ predicate_xor
 //   function: creates a NOT combinator that negates a predicate.
 // predicate_not(p)(x) = !p(x)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-template<typename _Predicate>
+template<typename Predicate>
 D_CONSTEXPR
-internal::predicate_not_combinator<typename std::decay<_Predicate>::type>
+internal::predicate_not_combinator<typename std::decay<Predicate>::type>
 predicate_not
 (
-    _Predicate&& _predicate
+    Predicate&& _predicate
 )
 {
     return internal::predicate_not_combinator<
-        typename std::decay<_Predicate>::type>(
-            std::forward<_Predicate>(_predicate));
+        typename std::decay<Predicate>::type>(
+            std::forward<Predicate>(_predicate));
 }
 #else
-template<typename _Predicate>
-internal::predicate_not_combinator<_Predicate>
+template<typename Predicate>
+internal::predicate_not_combinator<Predicate>
 predicate_not
 (
-    const _Predicate& _predicate
+    const Predicate& _predicate
 )
 {
-    return internal::predicate_not_combinator<_Predicate>(_predicate);
+    return internal::predicate_not_combinator<Predicate>(_predicate);
 }
 #endif
 
@@ -568,34 +573,34 @@ predicate_not
 //   function: creates a NAND combinator from two predicates.
 // predicate_nand(p1, p2)(x) = !(p1(x) && p2(x))
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-template<typename _Predicate1,
-         typename _Predicate2>
+template<typename Predicate1,
+         typename Predicate2>
 D_CONSTEXPR
-internal::predicate_nand_combinator<typename std::decay<_Predicate1>::type,
-                                    typename std::decay<_Predicate2>::type>
+internal::predicate_nand_combinator<typename std::decay<Predicate1>::type,
+                                    typename std::decay<Predicate2>::type>
 predicate_nand
 (
-    _Predicate1&& _predicate1,
-    _Predicate2&& _predicate2
+    Predicate1&& _predicate1,
+    Predicate2&& _predicate2
 )
 {
     return internal::predicate_nand_combinator<
-        typename std::decay<_Predicate1>::type,
-        typename std::decay<_Predicate2>::type>(
-            std::forward<_Predicate1>(_predicate1),
-            std::forward<_Predicate2>(_predicate2));
+        typename std::decay<Predicate1>::type,
+        typename std::decay<Predicate2>::type>(
+            std::forward<Predicate1>(_predicate1),
+            std::forward<Predicate2>(_predicate2));
 }
 #else
-template<typename _Predicate1,
-         typename _Predicate2>
-internal::predicate_nand_combinator<_Predicate1, _Predicate2>
+template<typename Predicate1,
+         typename Predicate2>
+internal::predicate_nand_combinator<Predicate1, Predicate2>
 predicate_nand
 (
-    const _Predicate1& _predicate1,
-    const _Predicate2& _predicate2
+    const Predicate1& _predicate1,
+    const Predicate2& _predicate2
 )
 {
-    return internal::predicate_nand_combinator<_Predicate1, _Predicate2>(
+    return internal::predicate_nand_combinator<Predicate1, Predicate2>(
         _predicate1, _predicate2);
 }
 #endif
@@ -604,26 +609,26 @@ predicate_nand
 //   function: creates a NOR combinator from two predicates.
 // predicate_nor(p1, p2)(x) = !(p1(x) || p2(x))
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-template<typename _Predicate1,
-         typename _Predicate2>
+template<typename Predicate1,
+         typename Predicate2>
 D_CONSTEXPR
-internal::predicate_nor_combinator<typename std::decay<_Predicate1>::type,
-                                   typename std::decay<_Predicate2>::type>
-predicate_nor(_Predicate1&& _predicate1, _Predicate2&& _predicate2)
+internal::predicate_nor_combinator<typename std::decay<Predicate1>::type,
+                                   typename std::decay<Predicate2>::type>
+predicate_nor(Predicate1&& _predicate1, Predicate2&& _predicate2)
 {
     return internal::predicate_nor_combinator<
-        typename std::decay<_Predicate1>::type,
-        typename std::decay<_Predicate2>::type>(
-            std::forward<_Predicate1>(_predicate1),
-            std::forward<_Predicate2>(_predicate2));
+        typename std::decay<Predicate1>::type,
+        typename std::decay<Predicate2>::type>(
+            std::forward<Predicate1>(_predicate1),
+            std::forward<Predicate2>(_predicate2));
 }
 #else
-template<typename _Predicate1,
-         typename _Predicate2>
-internal::predicate_nor_combinator<_Predicate1, _Predicate2>
-predicate_nor(const _Predicate1& _predicate1, const _Predicate2& _predicate2)
+template<typename Predicate1,
+         typename Predicate2>
+internal::predicate_nor_combinator<Predicate1, Predicate2>
+predicate_nor(const Predicate1& _predicate1, const Predicate2& _predicate2)
 {
-    return internal::predicate_nor_combinator<_Predicate1, _Predicate2>(
+    return internal::predicate_nor_combinator<Predicate1, Predicate2>(
         _predicate1, _predicate2);
 }
 #endif
@@ -658,97 +663,97 @@ NS_INTERNAL
     // all_of_fold
     //   helper: computes the type of, and builds, the left-associated
     // predicate_and fold of a non-empty pack.
-    template<typename _First,
-             typename... _Rest>
+    template<typename First,
+             typename... Rest>
     struct all_of_fold;
 
     // base case: a single predicate folds to itself (decayed).
-    template<typename _Only>
-    struct all_of_fold<_Only>
+    template<typename Only>
+    struct all_of_fold<Only>
     {
-        typedef typename std::decay<_Only>::type type;
+        typedef typename std::decay<Only>::type type;
 
-        template<typename _OnlyFwd>
+        template<typename OnlyFwd>
         static D_CONSTEXPR
-        type apply(_OnlyFwd&& _only)
+        type apply(OnlyFwd&& _only)
         {
-            return std::forward<_OnlyFwd>(_only);
+            return std::forward<OnlyFwd>(_only);
         }
     };
 
     // recursive case: fold (p1 AND p2) with the rest.
-    template<typename _First,
-             typename _Second,
-             typename... _Rest>
-    struct all_of_fold<_First, _Second, _Rest...>
+    template<typename First,
+             typename Second,
+             typename... Rest>
+    struct all_of_fold<First, Second, Rest...>
     {
         // the combinator produced by anding the first two
         typedef internal::predicate_and_combinator<
-            typename std::decay<_First>::type,
-            typename std::decay<_Second>::type> combined_type;
+            typename std::decay<First>::type,
+            typename std::decay<Second>::type> combined_type;
 
         // recurse on (combined, rest...)
-        typedef all_of_fold<combined_type, _Rest...> next_fold;
+        typedef all_of_fold<combined_type, Rest...> next_fold;
         typedef typename next_fold::type             type;
 
-        template<typename _FirstFwd,
-                 typename _SecondFwd,
-                 typename... _RestFwd>
+        template<typename FirstFwd,
+                 typename SecondFwd,
+                 typename... RestFwd>
         static D_CONSTEXPR
-        type apply(_FirstFwd&&  _first,
-                   _SecondFwd&& _second,
-                   _RestFwd&&...  _rest)
+        type apply(FirstFwd&&  _first,
+                   SecondFwd&& _second,
+                   RestFwd&&...  _rest)
         {
             return next_fold::apply(
-                predicate_and(std::forward<_FirstFwd>(_first),
-                              std::forward<_SecondFwd>(_second)),
-                std::forward<_RestFwd>(_rest)...);
+                predicate_and(std::forward<FirstFwd>(_first),
+                              std::forward<SecondFwd>(_second)),
+                std::forward<RestFwd>(_rest)...);
         }
     };
 
     // any_of_fold
     //   helper: same shape as all_of_fold but folds with predicate_or.
-    template<typename _First,
-             typename... _Rest>
+    template<typename First,
+             typename... Rest>
     struct any_of_fold;
 
-    template<typename _Only>
-    struct any_of_fold<_Only>
+    template<typename Only>
+    struct any_of_fold<Only>
     {
-        typedef typename std::decay<_Only>::type type;
+        typedef typename std::decay<Only>::type type;
 
-        template<typename _OnlyFwd>
+        template<typename OnlyFwd>
         static D_CONSTEXPR
-        type apply(_OnlyFwd&& _only)
+        type apply(OnlyFwd&& _only)
         {
-            return std::forward<_OnlyFwd>(_only);
+            return std::forward<OnlyFwd>(_only);
         }
     };
 
-    template<typename _First,
-             typename _Second,
-             typename... _Rest>
-    struct any_of_fold<_First, _Second, _Rest...>
+    template<typename First,
+             typename Second,
+             typename... Rest>
+    struct any_of_fold<First, Second, Rest...>
     {
         typedef internal::predicate_or_combinator<
-            typename std::decay<_First>::type,
-            typename std::decay<_Second>::type> combined_type;
+            typename std::decay<First>::type,
+            typename std::decay<Second>::type> combined_type;
 
-        typedef any_of_fold<combined_type, _Rest...> next_fold;
+        typedef any_of_fold<combined_type, Rest...> next_fold;
         typedef typename next_fold::type             type;
 
-        template<typename _FirstFwd,
-                 typename _SecondFwd,
-                 typename... _RestFwd>
+        template<typename FirstFwd,
+                 typename SecondFwd,
+                 typename... RestFwd>
         static D_CONSTEXPR
-        type apply(_FirstFwd&&  _first,
-                   _SecondFwd&& _second,
-                   _RestFwd&&...  _rest)
+        type apply(FirstFwd&&  _first,
+                   SecondFwd&& _second,
+                   RestFwd&&...  _rest)
         {
             return next_fold::apply(
-                predicate_or(std::forward<_FirstFwd>(_first),
-                             std::forward<_SecondFwd>(_second)),
-                std::forward<_RestFwd>(_rest)...);
+                predicate_or(std::forward<FirstFwd>(_first),
+                             std::forward<SecondFwd>(_second)),
+                std::forward<RestFwd>(_rest)...);
         }
     };
 
@@ -759,14 +764,14 @@ NS_END  // internal
 //   function: creates a predicate that is true when all given predicates
 // are true. Evaluates left-to-right with short-circuiting.
 // all_of(p1, p2, p3)(x) = p1(x) && p2(x) && p3(x)
-template<typename _First,
-         typename... _Rest>
-D_CONSTEXPR typename internal::all_of_fold<_First, _Rest...>::type
-all_of(_First&& _first, _Rest&&... _rest)
+template<typename First,
+         typename... Rest>
+D_CONSTEXPR typename internal::all_of_fold<First, Rest...>::type
+all_of(First&& _first, Rest&&... _rest)
 {
-    return internal::all_of_fold<_First, _Rest...>::apply(
-        std::forward<_First>(_first),
-        std::forward<_Rest>(_rest)...);
+    return internal::all_of_fold<First, Rest...>::apply(
+        std::forward<First>(_first),
+        std::forward<Rest>(_rest)...);
 }
 
 
@@ -774,15 +779,15 @@ all_of(_First&& _first, _Rest&&... _rest)
 //   function: creates a predicate that is true when any given predicate
 // is true. Evaluates left-to-right with short-circuiting.
 // any_of(p1, p2, p3)(x) = p1(x) || p2(x) || p3(x)
-template<typename _First,
-         typename... _Rest>
+template<typename First,
+         typename... Rest>
 D_CONSTEXPR
-typename internal::any_of_fold<_First, _Rest...>::type
-any_of(_First&& _first, _Rest&&... _rest)
+typename internal::any_of_fold<First, Rest...>::type
+any_of(First&& _first, Rest&&... _rest)
 {
-    return internal::any_of_fold<_First, _Rest...>::apply(
-        std::forward<_First>(_first),
-        std::forward<_Rest>(_rest)...);
+    return internal::any_of_fold<First, Rest...>::apply(
+        std::forward<First>(_first),
+        std::forward<Rest>(_rest)...);
 }
 
 
@@ -790,12 +795,12 @@ any_of(_First&& _first, _Rest&&... _rest)
 //   function: creates a predicate that is true when none of the given
 // predicates are true.
 // none_of(p1, p2)(x) = !p1(x) && !p2(x)
-template<typename... _Predicates>
+template<typename... Predicates>
 D_CONSTEXPR
-auto none_of(_Predicates&&... _preds)
-    -> decltype(predicate_not(any_of(std::forward<_Predicates>(_preds)...)))
+auto none_of(Predicates&&... _preds)
+    -> decltype(predicate_not(any_of(std::forward<Predicates>(_preds)...)))
 {
-    return predicate_not(any_of(std::forward<_Predicates>(_preds)...));
+    return predicate_not(any_of(std::forward<Predicates>(_preds)...));
 }
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -814,7 +819,7 @@ auto none_of(_Predicates&&... _preds)
 // -----------------------------------------------------------------------------
 //  I.   STRUCTURAL DETECTION  (which combinator template a type came from)
 // -----------------------------------------------------------------------------
-// These traits answer "is _Type a specialization of <this> combinator
+// These traits answer "is Type a specialization of <this> combinator
 // template?".  Each is a pure structural match on the class template; the
 // input is decayed first so that cv-qualified and reference forms answer
 // identically to the bare type. Every public trait pairs with a `_v`
@@ -824,148 +829,148 @@ NS_INTERNAL
 
     // is_predicate_and_helper
     //   trait: detects if a type is a predicate_and_combinator (primary).
-    template<typename _Type>
+    template<typename Type>
     struct is_predicate_and_helper : std::false_type
     {};
 
     // is_predicate_and_helper<predicate_and_combinator<...>>
     //   trait: success specialization for predicate_and_combinator.
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     struct is_predicate_and_helper<
-        predicate_and_combinator<_Predicate1, _Predicate2>>
+        predicate_and_combinator<Predicate1, Predicate2>>
         : std::true_type
     {};
 
     // is_predicate_or_helper
     //   trait: detects if a type is a predicate_or_combinator (primary).
-    template<typename _Type>
+    template<typename Type>
     struct is_predicate_or_helper : std::false_type
     {};
 
     // is_predicate_or_helper<predicate_or_combinator<...>>
     //   trait: success specialization for predicate_or_combinator.
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     struct is_predicate_or_helper<
-        predicate_or_combinator<_Predicate1, _Predicate2>>
+        predicate_or_combinator<Predicate1, Predicate2>>
         : std::true_type
     {};
 
     // is_predicate_xor_helper
     //   trait: detects if a type is a predicate_xor_combinator (primary).
-    template<typename _Type>
+    template<typename Type>
     struct is_predicate_xor_helper : std::false_type
     {};
 
     // is_predicate_xor_helper<predicate_xor_combinator<...>>
     //   trait: success specialization for predicate_xor_combinator.
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     struct is_predicate_xor_helper<
-        predicate_xor_combinator<_Predicate1, _Predicate2>>
+        predicate_xor_combinator<Predicate1, Predicate2>>
         : std::true_type
     {};
 
     // is_predicate_not_helper
     //   trait: detects if a type is a predicate_not_combinator (primary).
-    template<typename _Type>
+    template<typename Type>
     struct is_predicate_not_helper : std::false_type
     {};
 
     // is_predicate_not_helper<predicate_not_combinator<...>>
     //   trait: success specialization for predicate_not_combinator.
-    template<typename _Predicate>
-    struct is_predicate_not_helper<predicate_not_combinator<_Predicate>>
+    template<typename Predicate>
+    struct is_predicate_not_helper<predicate_not_combinator<Predicate>>
         : std::true_type
     {};
 
     // is_predicate_nand_helper
     //   trait: detects if a type is a predicate_nand_combinator (primary).
-    template<typename _Type>
+    template<typename Type>
     struct is_predicate_nand_helper : std::false_type
     {};
 
     // is_predicate_nand_helper<predicate_nand_combinator<...>>
     //   trait: success specialization for predicate_nand_combinator.
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     struct is_predicate_nand_helper<
-        predicate_nand_combinator<_Predicate1, _Predicate2>>
+        predicate_nand_combinator<Predicate1, Predicate2>>
         : std::true_type
     {};
 
     // is_predicate_nor_helper
     //   trait: detects if a type is a predicate_nor_combinator (primary).
-    template<typename _Type>
+    template<typename Type>
     struct is_predicate_nor_helper : std::false_type
     {};
 
     // is_predicate_nor_helper<predicate_nor_combinator<...>>
     //   trait: success specialization for predicate_nor_combinator.
-    template<typename _Predicate1,
-             typename _Predicate2>
+    template<typename Predicate1,
+             typename Predicate2>
     struct is_predicate_nor_helper<
-        predicate_nor_combinator<_Predicate1, _Predicate2>>
+        predicate_nor_combinator<Predicate1, Predicate2>>
         : std::true_type
     {};
 
 NS_END  // internal
 
 // is_predicate_and
-//   trait: true if _Type (decayed) is a predicate_and_combinator.
-template<typename _Type>
+//   trait: true if Type (decayed) is a predicate_and_combinator.
+template<typename Type>
 struct is_predicate_and
-    : internal::is_predicate_and_helper<typename std::decay<_Type>::type>
+    : internal::is_predicate_and_helper<typename std::decay<Type>::type>
 {};
 
 // is_predicate_or
-//   trait: true if _Type (decayed) is a predicate_or_combinator.
-template<typename _Type>
+//   trait: true if Type (decayed) is a predicate_or_combinator.
+template<typename Type>
 struct is_predicate_or
-    : internal::is_predicate_or_helper<typename std::decay<_Type>::type>
+    : internal::is_predicate_or_helper<typename std::decay<Type>::type>
 {};
 
 // is_predicate_xor
-//   trait: true if _Type (decayed) is a predicate_xor_combinator.
-template<typename _Type>
+//   trait: true if Type (decayed) is a predicate_xor_combinator.
+template<typename Type>
 struct is_predicate_xor
-    : internal::is_predicate_xor_helper<typename std::decay<_Type>::type>
+    : internal::is_predicate_xor_helper<typename std::decay<Type>::type>
 {};
 
 // is_predicate_not
-//   trait: true if _Type (decayed) is a predicate_not_combinator.
-template<typename _Type>
+//   trait: true if Type (decayed) is a predicate_not_combinator.
+template<typename Type>
 struct is_predicate_not
-    : internal::is_predicate_not_helper<typename std::decay<_Type>::type>
+    : internal::is_predicate_not_helper<typename std::decay<Type>::type>
 {};
 
 // is_predicate_nand
-//   trait: true if _Type (decayed) is a predicate_nand_combinator.
-template<typename _Type>
+//   trait: true if Type (decayed) is a predicate_nand_combinator.
+template<typename Type>
 struct is_predicate_nand
-    : internal::is_predicate_nand_helper<typename std::decay<_Type>::type>
+    : internal::is_predicate_nand_helper<typename std::decay<Type>::type>
 {};
 
 // is_predicate_nor
-//   trait: true if _Type (decayed) is a predicate_nor_combinator.
-template<typename _Type>
+//   trait: true if Type (decayed) is a predicate_nor_combinator.
+template<typename Type>
 struct is_predicate_nor
-    : internal::is_predicate_nor_helper<typename std::decay<_Type>::type>
+    : internal::is_predicate_nor_helper<typename std::decay<Type>::type>
 {};
 
 // is_predicate_combinator
-//   trait: true if _Type is any predicate combinator produced by this
+//   trait: true if Type is any predicate combinator produced by this
 // header (and / or / xor / not / nand / nor).
-template<typename _Type>
+template<typename Type>
 struct is_predicate_combinator
     : std::integral_constant<bool,
-          ( is_predicate_and<_Type>::value  ||
-            is_predicate_or<_Type>::value   ||
-            is_predicate_xor<_Type>::value  ||
-            is_predicate_not<_Type>::value  ||
-            is_predicate_nand<_Type>::value ||
-            is_predicate_nor<_Type>::value )>
+          ( is_predicate_and<Type>::value  ||
+            is_predicate_or<Type>::value   ||
+            is_predicate_xor<Type>::value  ||
+            is_predicate_not<Type>::value  ||
+            is_predicate_nand<Type>::value ||
+            is_predicate_nor<Type>::value )>
 {};
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -976,40 +981,40 @@ struct is_predicate_combinator
     // (fixed 2026-05-29)
 
     // is_predicate_and_v
-    //   value: convenience alias for is_predicate_and<_Type>::value.
-    template<typename _Type>
-    constexpr bool is_predicate_and_v = is_predicate_and<_Type>::value;
+    //   value: convenience alias for is_predicate_and<Type>::value.
+    template<typename Type>
+    constexpr bool is_predicate_and_v = is_predicate_and<Type>::value;
 
     // is_predicate_or_v
-    //   value: convenience alias for is_predicate_or<_Type>::value.
-    template<typename _Type>
-    constexpr bool is_predicate_or_v = is_predicate_or<_Type>::value;
+    //   value: convenience alias for is_predicate_or<Type>::value.
+    template<typename Type>
+    constexpr bool is_predicate_or_v = is_predicate_or<Type>::value;
 
     // is_predicate_xor_v
-    //   value: convenience alias for is_predicate_xor<_Type>::value.
-    template<typename _Type>
-    constexpr bool is_predicate_xor_v = is_predicate_xor<_Type>::value;
+    //   value: convenience alias for is_predicate_xor<Type>::value.
+    template<typename Type>
+    constexpr bool is_predicate_xor_v = is_predicate_xor<Type>::value;
 
     // is_predicate_not_v
-    //   value: convenience alias for is_predicate_not<_Type>::value.
-    template<typename _Type>
-    constexpr bool is_predicate_not_v = is_predicate_not<_Type>::value;
+    //   value: convenience alias for is_predicate_not<Type>::value.
+    template<typename Type>
+    constexpr bool is_predicate_not_v = is_predicate_not<Type>::value;
 
     // is_predicate_nand_v
-    //   value: convenience alias for is_predicate_nand<_Type>::value.
-    template<typename _Type>
-    constexpr bool is_predicate_nand_v = is_predicate_nand<_Type>::value;
+    //   value: convenience alias for is_predicate_nand<Type>::value.
+    template<typename Type>
+    constexpr bool is_predicate_nand_v = is_predicate_nand<Type>::value;
 
     // is_predicate_nor_v
-    //   value: convenience alias for is_predicate_nor<_Type>::value.
-    template<typename _Type>
-    constexpr bool is_predicate_nor_v = is_predicate_nor<_Type>::value;
+    //   value: convenience alias for is_predicate_nor<Type>::value.
+    template<typename Type>
+    constexpr bool is_predicate_nor_v = is_predicate_nor<Type>::value;
 
     // is_predicate_combinator_v
-    //   value: convenience alias for is_predicate_combinator<_Type>::value.
-    template<typename _Type>
+    //   value: convenience alias for is_predicate_combinator<Type>::value.
+    template<typename Type>
     constexpr bool is_predicate_combinator_v =
-        is_predicate_combinator<_Type>::value;
+        is_predicate_combinator<Type>::value;
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 
@@ -1017,70 +1022,12 @@ struct is_predicate_combinator
 //  II.  BEHAVIORAL DETECTION  (is a type usable as a predicate over Args...)
 // -----------------------------------------------------------------------------
 // Structural detection above only recognizes the combinators this header
-// builds. The behavioral trait below is broader: it asks whether an
-// arbitrary callable _Predicate can be invoked with _Args... and yields a
-// result that is contextually convertible to bool. This is the structural
-// contract every factory in this header silently relies on, surfaced as a
-// first-class, SFINAE-friendly trait.
-
-NS_INTERNAL
-
-    // predicate_make_void
-    //   trait: header-local map from any type sequence to void, the
-    // foundation for the SFINAE detection below. Defined locally so the
-    // trait block carries no dependency on an external void_t facility.
-    template<typename...>
-    struct predicate_make_void
-    {
-        typedef void type;
-    };
-
-    // predicate_void_t
-    //   type: header-local alias for predicate_make_void<...>::type.
-    template<typename... _Types>
-    using predicate_void_t = typename predicate_make_void<_Types...>::type;
-
-    // is_predicate_invocable_helper
-    //   trait: detects whether _Predicate(_Args...) is well-formed and
-    // produces a bool-convertible result (primary / failure case).
-    template<typename _Predicate,
-             typename _AlwaysVoid,
-             typename... _Args>
-    struct is_predicate_invocable_helper : std::false_type
-    {};
-
-    // is_predicate_invocable_helper (success case)
-    //   trait: specialization for when the call expression is well-formed
-    // and its result is contextually convertible to bool.
-    template<typename _Predicate,
-             typename... _Args>
-    struct is_predicate_invocable_helper<
-        _Predicate,
-        predicate_void_t<decltype(static_cast<bool>(
-            std::declval<const _Predicate&>()(std::declval<_Args>()...)))>,
-        _Args...>
-        : std::true_type
-    {};
-
-NS_END  // internal
-
-// is_predicate
-//   trait: true if _Predicate is callable with _Args... and its result is
-// contextually convertible to bool. Models the structural contract a
-// callable must satisfy to be combined by this header's factories.
-template<typename _Predicate,
-         typename... _Args>
-struct is_predicate
-    : internal::is_predicate_invocable_helper<_Predicate, void, _Args...>
-{};
-
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
-    // is_predicate_v
-    //   value: convenience alias for is_predicate<_Predicate, _Args...>::value.
-    template<typename _Predicate,
-             typename... _Args>
-    constexpr bool is_predicate_v = is_predicate<_Predicate, _Args...>::value;
-#endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
+// builds. The behavioral question -- can an arbitrary callable be invoked with
+// Args... and answer true or false -- is the functional module's is_predicate,
+// with its is_predicate_v shorthand and its Predicate concept, all defined
+// once in functional_common.hpp and included above. Every factory here relies
+// on that contract; this header used to define its own is_predicate, which no
+// translation unit could include beside functional_common.hpp's.
 
 
 // -----------------------------------------------------------------------------
@@ -1090,17 +1037,11 @@ struct is_predicate
 // abbreviated function templates. Available only on C++20 and later.
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-    // predicate_combinator
-    //   concept: satisfied by any combinator this header builds.
-    template<typename _Type>
-    concept PredicateCombinator = is_predicate_combinator<_Type>::value;
-
-    // predicate
-    //   concept: satisfied by a callable invocable with _Args... whose
-    // result is contextually convertible to bool.
-    template<typename _Predicate,
-             typename... _Args>
-    concept Predicate = is_predicate<_Predicate, _Args...>::value;
+    // PredicateCombinator
+    //   concept: satisfied by any combinator this header builds. (Predicate,
+    // satisfied by any predicate over Args..., is functional_common.hpp's.)
+    template<typename Type>
+    concept PredicateCombinator = is_predicate_combinator<Type>::value;
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
@@ -1110,4 +1051,4 @@ struct is_predicate
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_PREDICATE_
+#endif  // DJINTERP_FUNCTIONAL_PREDICATE_HPP

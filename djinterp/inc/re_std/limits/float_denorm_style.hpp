@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                          float_denorm_style.hpp
+/*******************************************************************************
+* djinterp [re_std]                                       float_denorm_style.hpp
 *
 * the float_denorm_style subnormal-support enumeration:
 *   the plain enumeration naming a floating-point type's subnormal (denormal)
@@ -9,18 +9,20 @@
 *   attribute. C++98 baseline.
 *
 *
-* path:      /inc/djinterp/re_std/limits/float_denorm_style.hpp
+* path:      /inc/re_std/limits/float_denorm_style.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_LIMITS_FLOAT_DENORM_STYLE_
-#define DJINTERP_RE_STD_LIMITS_FLOAT_DENORM_STYLE_ 1
+#ifndef RE_STD_LIMITS_FLOAT_DENORM_STYLE_HPP
+#define RE_STD_LIMITS_FLOAT_DENORM_STYLE_HPP 1
 
-// djinterp
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-NS_RESTD
+namespace re_std
+{
 
     // float_denorm_style
     //   enum: subnormal support (numeric_limits<T>::has_denorm). Deprecated in
@@ -32,6 +34,6 @@ NS_RESTD
         denorm_present       = 1
     };
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // DJINTERP_RE_STD_LIMITS_FLOAT_DENORM_STYLE_
+#endif  // RE_STD_LIMITS_FLOAT_DENORM_STYLE_HPP

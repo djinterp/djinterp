@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                       typeindex
+/*******************************************************************************
+* djinterp [re_std]                                                    typeindex
 *
 * umbrella header for <typeindex>:
 *   Pulls in the re_std::type_index class. Include this for the std::
@@ -14,17 +14,18 @@
 *       follow-up file (forwards to type_index::hash_code()).
 *
 *   Requires RTTI / <typeinfo>: the class is gated on
-* D_ENV_CPP98_HAS_TYPEINFO and is absent where that is unavailable.
+* RE_STD_HAS_RTTI and is absent where that is unavailable.
 *
 *
-* path:      /inc/re_std/typeindex
+* path:      /inc/re_std/typeindex/typeindex
 * link(s):   TBA
-* author(s): re_std contributors                       date: 2026.06.05
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPEINDEX_
-#define DJINTERP_RE_STD_TYPEINDEX_ 1
+#ifndef RE_STD_TYPEINDEX_TYPEINDEX
+#define RE_STD_TYPEINDEX_TYPEINDEX 1
 
-#include "re_std/typeindex/type_index.hpp"
+#include "./type_index.hpp"
 
-#endif  // DJINTERP_RE_STD_TYPEINDEX_
+#endif  // RE_STD_TYPEINDEX_TYPEINDEX

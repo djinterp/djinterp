@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [optional]                                           make_optional.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            make_optional.hpp
 *
+* make_optional factory header:
 *   optional<T> factories.
 *
 *   Three overloads: deduce from a value, construct in place from an argument
@@ -13,42 +14,47 @@
 * make_optional(x) always yields optional of a value type, never
 * optional<const T&>.
 *
-* path:      /inc/djinterp/re_std/optional/make_optional.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/optional/make_optional.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_OPTIONAL_MAKE_OPTIONAL_
-#define DJINTERP_RE_STD_OPTIONAL_MAKE_OPTIONAL_ 1
+#ifndef RE_STD_OPTIONAL_MAKE_OPTIONAL_HPP
+#define RE_STD_OPTIONAL_MAKE_OPTIONAL_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./optional.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // make_optional
 //   function: an engaged optional holding a decayed copy of value.
-template<typename _Type>
-D_CONSTEXPR optional<typename decay<_Type>::type>
-make_optional(_Type&& value)
+template<typename Type>
+RE_STD_CONSTEXPR optional<typename decay<Type>::type>
+make_optional(Type&& value)
 {
-    return optional<typename decay<_Type>::type>(
-        static_cast<_Type&&>(value));
+    return optional<typename decay<Type>::type>(
+        static_cast<Type&&>(value));
 }
 
 // make_optional
 //   function: an engaged optional whose value is constructed in place.
-template<typename _Type, typename... _Args>
-D_CONSTEXPR optional<_Type> make_optional(_Args&&... args)
+template<typename Type, typename... Args>
+RE_STD_CONSTEXPR optional<Type> make_optional(Args&&... args)
 {
-    return optional<_Type>(in_place, static_cast<_Args&&>(args)...);
+    return optional<Type>(in_place, static_cast<Args&&>(args)...);
 }
 
-NS_END
+}
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_OPTIONAL_MAKE_OPTIONAL_
+#endif  // RE_STD_OPTIONAL_MAKE_OPTIONAL_HPP

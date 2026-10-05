@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                    bubble_sort_common.hpp
+/*******************************************************************************
+* djinterp [core]                                         bubble_sort_common.hpp
 *
 *   The primitives every bubble sort is built from, sequential or concurrent.
 * A bubble sort is a driver wrapped around two operations: exchange an adjacent
@@ -36,17 +36,20 @@
 * another, and every driver built on it inherits that.
 *
 *
-* path:      /djinterp/cpp/util/sort/bubble_sort_common.hpp
+* path:      /inc/djinterp/core/util/sort/bubble_sort_common.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_BUBBLE_COMMON_HPP_
-#define DJINTERP_UTILITY_SORT_BUBBLE_COMMON_HPP_ 1
+#ifndef DJINTERP_UTIL_SORT_BUBBLE_SORT_COMMON_HPP
+#define DJINTERP_UTIL_SORT_BUBBLE_SORT_COMMON_HPP 1
 
+// std
+#include <algorithm>              // std::iter_swap
+#include <iterator>               // std::iterator_traits
 // djinterp
-#include "../../djinterp.hpp"
-#include "./sort_common.hpp"
+#include "../../../djinterp.hpp"  // framework root
 
 
 NS_DJINTERP
@@ -86,11 +89,11 @@ NS_INTERNAL
     //   The atom of every bubble sort.  STRICT precedence is what makes the
     // family stable: an exchange on equivalence would reorder equal elements,
     // so this is the one comparison no driver should open-code.
-    template<typename _RandomIterator,
-             typename _Comparator>
-    bool bubble_compare_exchange(_RandomIterator _earlier,
-                                 _RandomIterator _later,
-                                 _Comparator     _comparator)
+    template<typename RandomIterator,
+             typename Comparator>
+    bool bubble_compare_exchange(RandomIterator _earlier,
+                                 RandomIterator _later,
+                                 Comparator      _comparator)
     {
         // out of order only when the LATER element strictly precedes
         if (!_comparator(*_later, *_earlier))
@@ -119,19 +122,19 @@ NS_INTERNAL
     //
     //   The caller owns the range.  A pass does not check it, because it is
     // called once per pass by a driver that checked once per sort.
-    template<typename _RandomIterator,
-             typename _Difference,
-             typename _Comparator>
-    _Difference bubble_pass(_RandomIterator _first,
-                            _Difference     _begin,
-                            _Difference     _end,
-                            _Comparator     _comparator)
+    template<typename RandomIterator,
+             typename Difference,
+             typename Comparator>
+    Difference bubble_pass(RandomIterator _first,
+                            Difference      _begin,
+                            Difference      _end,
+                            Comparator      _comparator)
     {
-        typedef typename std::iterator_traits<_RandomIterator>::value_type
+        typedef typename std::iterator_traits<RandomIterator>::value_type
             value_type;
 
-        _Difference last_exchange;
-        _Difference index;
+        Difference last_exchange;
+        Difference index;
 
         // an empty or degenerate run has no pairs to sweep
         if ( (_begin < 1)     ||
@@ -173,4 +176,4 @@ NS_END  // internal
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_SORT_BUBBLE_COMMON_HPP_
+#endif  // DJINTERP_UTIL_SORT_BUBBLE_SORT_COMMON_HPP

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                               ratio_less.hpp
 *
 * ratio_less header:
@@ -40,55 +40,58 @@
 *   C++11 in std; the _v spelling is C++17 in std and C++14 here.
 *
 *
-* path:      /inc/djinterp/re_std/ratio/ratio_less.hpp
+* path:      /inc/re_std/ratio/ratio_less.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RATIO_RATIO_LESS_
-#define DJINTERP_RE_STD_RATIO_RATIO_LESS_ 1
+#ifndef RE_STD_RATIO_RATIO_LESS_HPP
+#define RE_STD_RATIO_RATIO_LESS_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./ratio.hpp"
 #include "../type_traits/integral_constant.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   INTERNAL: CONTINUED-FRACTION COMPARISON
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // ratio_less_walk
     //   trait: n1/d1 < n2/d2 for NON-NEGATIVE numerators and POSITIVE
     // denominators. Forward-declared so the step helper can name it.
-    template<std::intmax_t _N1, std::intmax_t _D1,
-             std::intmax_t _N2, std::intmax_t _D2>
+    template<intmax_t N1, intmax_t D1,
+             intmax_t N2, intmax_t D2>
     struct ratio_less_walk;
 
     // ratio_less_step
-    //   helper: one step of the walk. _Recurse is computed by the caller
+    //   trait: one step of the walk. Recurse is computed by the caller
     // so that exactly one of these two specialisations is instantiated --
     // a ternary would instantiate both arms and never terminate.
-    template<std::intmax_t _N1, std::intmax_t _D1,
-             std::intmax_t _N2, std::intmax_t _D2,
-             bool          _Recurse>
+    template<intmax_t N1, intmax_t D1,
+             intmax_t N2, intmax_t D2,
+             bool          Recurse>
     struct ratio_less_step
     {
         // terminal: the integer parts differ, or one side divides evenly.
-        static const std::intmax_t _s_q1 = _N1 / _D1;
-        static const std::intmax_t _s_r1 = _N1 % _D1;
-        static const std::intmax_t _s_q2 = _N2 / _D2;
-        static const std::intmax_t _s_r2 = _N2 % _D2;
+        static const intmax_t _s_q1 = N1 / D1;
+        static const intmax_t _s_r1 = N1 % D1;
+        static const intmax_t _s_q2 = N2 / D2;
+        static const intmax_t _s_r2 = N2 % D2;
 
         static const bool value =
             ( _s_q1 != _s_q2 ) ? ( _s_q1 < _s_q2 )
@@ -98,67 +101,67 @@ NS_INTERNAL
     // recursive step: integer parts agree and both remainders are
     // non-zero, so compare the inverted fractional parts -- which swaps
     // the operand order, because inverting reverses the comparison.
-    template<std::intmax_t _N1, std::intmax_t _D1,
-             std::intmax_t _N2, std::intmax_t _D2>
-    struct ratio_less_step<_N1, _D1, _N2, _D2, true>
+    template<intmax_t N1, intmax_t D1,
+             intmax_t N2, intmax_t D2>
+    struct ratio_less_step<N1, D1, N2, D2, true>
     {
         static const bool value =
-            ratio_less_walk<_D2, _N2 % _D2, _D1, _N1 % _D1>::value;
+            ratio_less_walk<D2, N2 % D2, D1, N1 % D1>::value;
     };
 
-    template<std::intmax_t _N1, std::intmax_t _D1,
-             std::intmax_t _N2, std::intmax_t _D2>
+    template<intmax_t N1, intmax_t D1,
+             intmax_t N2, intmax_t D2>
     struct ratio_less_walk
     {
         static const bool value = ratio_less_step<
-            _N1, _D1, _N2, _D2,
-            ( ( _N1 / _D1 == _N2 / _D2 ) &&
-              ( _N1 % _D1 != 0 )         &&
-              ( _N2 % _D2 != 0 ) )>::value;
+            N1, D1, N2, D2,
+            ( ( N1 / D1 == N2 / D2 ) &&
+              ( N1 % D1 != 0 )         &&
+              ( N2 % D2 != 0 ) )>::value;
     };
 
 
     // ratio_less_signed
-    //   helper: sign dispatch. _S1 / _S2 are "numerator is negative".
+    //   trait: sign dispatch. S1 / _S2 are "numerator is negative".
     // Only the both-non-negative case reaches the walk.
-    template<typename _R1, typename _R2,
-             bool _S1 = (_R1::num < 0),
-             bool _S2 = (_R2::num < 0)>
+    template<typename R1, typename R2,
+             bool S1 = (R1::num < 0),
+             bool _S2 = (R2::num < 0)>
     struct ratio_less_signed;
 
     // negative < non-negative
-    template<typename _R1, typename _R2>
-    struct ratio_less_signed<_R1, _R2, true, false>
+    template<typename R1, typename R2>
+    struct ratio_less_signed<R1, R2, true, false>
     {
         static const bool value = true;
     };
 
     // non-negative < negative is never true
-    template<typename _R1, typename _R2>
-    struct ratio_less_signed<_R1, _R2, false, true>
+    template<typename R1, typename R2>
+    struct ratio_less_signed<R1, R2, false, true>
     {
         static const bool value = false;
     };
 
     // both non-negative: walk directly
-    template<typename _R1, typename _R2>
-    struct ratio_less_signed<_R1, _R2, false, false>
+    template<typename R1, typename R2>
+    struct ratio_less_signed<R1, R2, false, false>
     {
         static const bool value =
-            ratio_less_walk<_R1::num, _R1::den,
-                            _R2::num, _R2::den>::value;
+            ratio_less_walk<R1::num, R1::den,
+                            R2::num, R2::den>::value;
     };
 
     // both negative: -a < -b is b < a, so negate and swap
-    template<typename _R1, typename _R2>
-    struct ratio_less_signed<_R1, _R2, true, true>
+    template<typename R1, typename R2>
+    struct ratio_less_signed<R1, R2, true, true>
     {
         static const bool value =
-            ratio_less_walk<-_R2::num, _R2::den,
-                            -_R1::num, _R1::den>::value;
+            ratio_less_walk<-R2::num, R2::den,
+                            -R1::num, R1::den>::value;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -168,10 +171,10 @@ NS_END  // internal
 // ratio_less
 //   trait: whether R1 is strictly less than R2. Never multiplies, so it
 // cannot overflow for any representable pair of operands.
-template<typename _R1,
-         typename _R2>
+template<typename R1,
+         typename R2>
 struct ratio_less
-    : integral_constant<bool, internal::ratio_less_signed<_R1, _R2>::value>
+    : integral_constant<bool, internal::ratio_less_signed<R1, R2>::value>
 {};
 
 
@@ -179,19 +182,19 @@ struct ratio_less
 // III. RATIO_LESS_V (C++14+ variable)
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _R1,
-         typename _R2>
-D_CONSTEXPR bool ratio_less_v = ratio_less<_R1, _R2>::value;
+template<typename R1,
+         typename R2>
+RE_STD_CONSTEXPR bool ratio_less_v = ratio_less<R1, R2>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RATIO_RATIO_LESS_
+#endif  // RE_STD_RATIO_RATIO_LESS_HPP

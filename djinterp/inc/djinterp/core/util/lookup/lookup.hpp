@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [util]                                                  lookup.hpp
+/*******************************************************************************
+* djinterp [core]                                                     lookup.hpp
 *
 *   Compile-time lookup-by-key idioms over type packs.  Domain-agnostic:
 * knows nothing about options, settings, commands, configs, or any other
@@ -8,23 +8,23 @@
 * alias), the traits here can search, count, locate, and project them.
 *   Four families:
 *     Value-keyed entries (entry::key is an NTTP value):
-*       find_by_key<_Key, _Entries...>          - first match or sentinel
-*       contains_key<_Key, _Entries...>         - bool trait
-*       key_index_of<_Key, _Entries...>         - size_t (or lookup_npos)
-*       keys_of<_Entries...>                    - value_pack of every key
+*       find_by_key<Key, Entries...>          - first match or sentinel
+*       contains_key<Key, Entries...>         - bool trait
+*       key_index_of<Key, Entries...>         - size_t (or lookup_npos)
+*       keys_of<Entries...>                    - value_pack of every key
 *     Type-keyed entries (entry::key_type is a type):
-*       find_by_type_key<_Type, _Entries...>    - first match or sentinel
-*       contains_type_key<_Type, _Entries...>   - bool trait
-*       type_key_index_of<_Type, _Entries...>   - size_t (or lookup_npos)
-*       type_keys_of<_Entries...>               - type_pack of every key
+*       find_by_type_key<Type, Entries...>    - first match or sentinel
+*       contains_type_key<Type, Entries...>   - bool trait
+*       type_key_index_of<Type, Entries...>   - size_t (or lookup_npos)
+*       type_keys_of<Entries...>               - type_pack of every key
 *     Predicate-driven (no key convention; caller supplies the match):
-*       find_by_pred<_Predicate, _Entries...>   - first match or sentinel
-*       contains_pred<_Predicate, _Entries...>  - bool trait
-*       pred_index_of<_Predicate, _Entries...>  - size_t (or lookup_npos)
+*       find_by_pred<Predicate, Entries...>   - first match or sentinel
+*       contains_pred<Predicate, Entries...>  - bool trait
+*       pred_index_of<Predicate, Entries...>  - size_t (or lookup_npos)
 *     Sorted-key binary search (value-/type-keyed; opt-in fast path):
-*       find_by_key_bsearch<_Key, _Entries...>          - O(log N) depth
-*       find_by_type_key_bsearch<_Cmp, _Type, _E...>    - comparator-ordered
-*       find_by_key_auto<_Key, _Entries...>             - dispatch on sorted
+*       find_by_key_bsearch<Key, Entries...>          - O(log N) depth
+*       find_by_type_key_bsearch<Cmp, Type, E...>    - comparator-ordered
+*       find_by_key_auto<Key, Entries...>             - dispatch on sorted
 *   Plus two carrier shapes:
 *
 *     value_pack<auto...>     - results carrier for NTTP packs
@@ -32,8 +32,8 @@
 *
 *   And two NTTP-pack predicates (also useful in their own right):
 *
-*     value_pack_contains<_Needle, _Haystack...>    - bool trait
-*     value_pack_unique<_Haystack...>               - bool trait
+*     value_pack_contains<Needle, Haystack...>    - bool trait
+*     value_pack_unique<Haystack...>               - bool trait
 *
 *   Search policy is first-match-wins on a left-to-right walk, matching
 * the intuition from std::find / std::ranges::find.  Misses yield the
@@ -45,55 +45,77 @@
 * and section VIII for the depth-vs-instantiation-count caveat.
 *
 *
-* path:      /inc/djinterp/core/util/lookup.hpp
+* path:      /inc/djinterp/core/util/lookup/lookup.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.24
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    Sentinels and constants
-      1. lookup_not_found
-      2. lookup_npos
+      -----------------------
+      1.    lookup_not_found
+      2.    lookup_npos
+
 II.   Result carriers
-      1. value_pack
-      2. type_pack
+      ---------------
+      1.    value_pack
+      2.    type_pack
+
 III.  NTTP-pack predicates
-      1. value_pack_contains
-      2. value_pack_unique
+      --------------------
+      1.    value_pack_contains
+      2.    value_pack_unique
+
 IV.   Type-pack predicates
-      1. type_pack_contains
-      2. type_pack_unique
+      --------------------
+      1.    type_pack_contains
+      2.    type_pack_unique
+
 V.    Value-keyed lookup (convention: entry::key is an NTTP)
-      1. find_by_key
-      2. contains_key
-      3. key_index_of
-      4. keys_of
+      ------------------------------------------------------
+      1.    find_by_key
+      2.    contains_key
+      3.    key_index_of
+      4.    keys_of
+
 VI.   Type-keyed lookup (convention: entry::key_type is a type)
-      1. find_by_type_key
-      2. contains_type_key
-      3. type_key_index_of
-      4. type_keys_of
+      ---------------------------------------------------------
+      1.    find_by_type_key
+      2.    contains_type_key
+      3.    type_key_index_of
+      4.    type_keys_of
+
 VII.  Predicate-driven lookup (key-convention-agnostic)
-      1. find_by_pred
-      2. contains_pred
-      3. pred_index_of
+      -------------------------------------------------
+      1.    find_by_pred
+      2.    contains_pred
+      3.    pred_index_of
+
 VIII. Sorted value-/type-key lookup (binary search; opt-in)
-      1. is_key_sorted
-      2. find_by_key_bsearch
-      3. find_by_type_key_bsearch
-      4. find_by_key_auto
+      -----------------------------------------------------
+      1.    is_key_sorted
+      2.    find_by_key_bsearch
+      3.    find_by_type_key_bsearch
+      4.    find_by_key_auto
 */
 
-#ifndef DJINTERP_LOOKUP_
-#define DJINTERP_LOOKUP_ 1
+#ifndef DJINTERP_UTIL_LOOKUP_LOOKUP_HPP
+#define DJINTERP_UTIL_LOOKUP_LOOKUP_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "../../meta/bsearch.hpp"  // bsearch_by (engine for section VIII)
 #include "./lookup_sentinels.hpp"  // lookup_not_found, lookup_npos (shared)
 
@@ -123,10 +145,10 @@ NS_DJINTERP
 // Example:
 //   using ts = type_pack<int, double, char>;
 //   static_assert(ts::size == 3, "");
-template<typename... _Types>
+template<typename... Types>
 struct type_pack
 {
-    static constexpr std::size_t size = sizeof...(_Types);
+    static constexpr std::size_t size = sizeof...(Types);
 };
 
 // value_pack
@@ -138,10 +160,10 @@ struct type_pack
 // Example:
 //   using ks = value_pack<1, 2, 3>;
 //   static_assert(ks::size == 3, "");
-template<auto... _Values>
+template<auto... Values>
 struct value_pack
 {
-    static constexpr std::size_t size = sizeof...(_Values);
+    static constexpr std::size_t size = sizeof...(Values);
 };
 
 
@@ -150,52 +172,52 @@ struct value_pack
 // ===========================================================================
 
 // value_pack_contains
-//   trait: true iff some value in the NTTP pack equals _Needle.
+//   trait: true iff some value in the NTTP pack equals Needle.
 // Short-circuits on the first match via the recursive ||.
-template<auto    _Needle,
-         auto... _Haystack>
+template<auto    Needle,
+         auto... Haystack>
 struct value_pack_contains;
 
-template<auto _Needle>
-struct value_pack_contains<_Needle> 
+template<auto Needle>
+struct value_pack_contains<Needle>
     : std::false_type
 {};
 
-template<auto    _Needle,
-         auto    _First,
-         auto... _Rest>
-struct value_pack_contains<_Needle, _First, _Rest...>
-    : std::integral_constant<bool,  ( (_Needle == _First) || value_pack_contains<_Needle, _Rest...>::value )>
+template<auto    Needle,
+         auto    First,
+         auto... Rest>
+struct value_pack_contains<Needle, First, Rest...>
+    : std::integral_constant<bool,  ( (Needle == First) || value_pack_contains<Needle, Rest...>::value )>
 {};
 
 // value_pack_contains_v
 //   value: convenience alias.
-template<auto    _Needle,
-         auto... _Haystack>
-inline constexpr bool value_pack_contains_v = value_pack_contains<_Needle, _Haystack...>::value;
+template<auto    Needle,
+         auto... Haystack>
+inline constexpr bool value_pack_contains_v = value_pack_contains<Needle, Haystack...>::value;
 
 // value_pack_unique
 //   trait: true iff every value in the NTTP pack is distinct.
 // O(N^2): each step checks whether the head appears in the
 // tail, then recurses on the tail.
-template<auto... _Haystack>
+template<auto... Haystack>
 struct value_pack_unique;
 
 template<>
 struct value_pack_unique<> : std::true_type
 {};
 
-template<auto    _First,
-         auto... _Rest>
-struct value_pack_unique<_First, _Rest...>
-    : std::integral_constant<bool, ((!value_pack_contains<_First, _Rest...>::value) &&
-                                      value_pack_unique<_Rest...>::value )>
+template<auto    First,
+         auto... Rest>
+struct value_pack_unique<First, Rest...>
+    : std::integral_constant<bool, ((!value_pack_contains<First, Rest...>::value) &&
+                                      value_pack_unique<Rest...>::value )>
 {};
 
 // value_pack_unique_v
 //   value: convenience alias.
-template<auto... _Haystack>
-inline constexpr bool value_pack_unique_v = value_pack_unique<_Haystack...>::value;
+template<auto... Haystack>
+inline constexpr bool value_pack_unique_v = value_pack_unique<Haystack...>::value;
 
 
 // ===========================================================================
@@ -204,53 +226,53 @@ inline constexpr bool value_pack_unique_v = value_pack_unique<_Haystack...>::val
 
 // type_pack_contains
 //   trait: true iff some type in the pack is the same as
-// _Needle.  Short-circuits on the first match.
-template<typename    _Needle,
-         typename... _Haystack>
+// Needle.  Short-circuits on the first match.
+template<typename    Needle,
+         typename... Haystack>
 struct type_pack_contains;
 
-template<typename _Needle>
-struct type_pack_contains<_Needle> : std::false_type
+template<typename Needle>
+struct type_pack_contains<Needle> : std::false_type
 {};
 
-template<typename    _Needle,
-         typename    _First,
-         typename... _Rest>
-struct type_pack_contains<_Needle, _First, _Rest...>
+template<typename    Needle,
+         typename    First,
+         typename... Rest>
+struct type_pack_contains<Needle, First, Rest...>
     : std::integral_constant<bool,
-        ( std::is_same<_Needle, _First>::value ||
-          type_pack_contains<_Needle, _Rest...>::value )>
+        ( std::is_same<Needle, First>::value ||
+          type_pack_contains<Needle, Rest...>::value )>
 {};
 
 // type_pack_contains_v
 //   value: convenience alias.
-template<typename    _Needle,
-         typename... _Haystack>
+template<typename    Needle,
+         typename... Haystack>
 inline constexpr bool type_pack_contains_v =
-    type_pack_contains<_Needle, _Haystack...>::value;
+    type_pack_contains<Needle, Haystack...>::value;
 
 
 // type_pack_unique
 //   trait: true iff every type in the pack is distinct.
-template<typename... _Haystack>
+template<typename... Haystack>
 struct type_pack_unique;
 
 template<>
 struct type_pack_unique<> : std::true_type
 {};
 
-template<typename    _First,
-         typename... _Rest>
-struct type_pack_unique<_First, _Rest...>
+template<typename    First,
+         typename... Rest>
+struct type_pack_unique<First, Rest...>
     : std::integral_constant<bool,
-        ( !type_pack_contains<_First, _Rest...>::value &&
-          type_pack_unique<_Rest...>::value )>
+        ( !type_pack_contains<First, Rest...>::value &&
+          type_pack_unique<Rest...>::value )>
 {};
 
 // type_pack_unique_v
 //   value: convenience alias.
-template<typename... _Haystack>
-inline constexpr bool type_pack_unique_v = type_pack_unique<_Haystack...>::value;
+template<typename... Haystack>
+inline constexpr bool type_pack_unique_v = type_pack_unique<Haystack...>::value;
 
 
 // ===========================================================================
@@ -261,7 +283,7 @@ inline constexpr bool type_pack_unique_v = type_pack_unique<_Haystack...>::value
 // via `==` between the needle and entry::key.
 
 // find_by_key
-//   trait: finds the first entry whose ::key equals _Needle.
+//   trait: finds the first entry whose ::key equals Needle.
 //
 //   On match:  ::type    = the matching entry
 //              ::found   = true
@@ -277,13 +299,13 @@ inline constexpr bool type_pack_unique_v = type_pack_unique<_Haystack...>::value
 //   // f::type   == e2
 //   // f::found  == true
 //   // f::index  == 1
-template<auto        _Needle,
-         typename... _Entries>
+template<auto        Needle,
+         typename... Entries>
 struct find_by_key;
 
 // base case: empty pack - miss
-template<auto _Needle>
-struct find_by_key<_Needle>
+template<auto Needle>
+struct find_by_key<Needle>
 {
     using type = lookup_not_found;
 
@@ -292,18 +314,18 @@ struct find_by_key<_Needle>
 };
 
 // recursive case
-template<auto        _Needle,
-         typename    _Head,
-         typename... _Tail>
-struct find_by_key<_Needle, _Head, _Tail...>
+template<auto        Needle,
+         typename    Head,
+         typename... Tail>
+struct find_by_key<Needle, Head, Tail...>
 {
 private:
-    static constexpr bool head_matches = (_Head::key == _Needle);
+    static constexpr bool head_matches = (Head::key == Needle);
 
-    using next_t = find_by_key<_Needle, _Tail...>;
+    using next_t = find_by_key<Needle, Tail...>;
 
 public:
-    using type = std::conditional_t<head_matches, _Head, typename next_t::type>;
+    using type = std::conditional_t<head_matches, Head, typename next_t::type>;
 
     static constexpr bool found = (head_matches || next_t::found);
 
@@ -317,61 +339,61 @@ public:
 
 // find_by_key_t
 //   type: convenience alias for find_by_key<...>::type.
-template<auto       _Needle,
-         typename... _Entries>
-using find_by_key_t = typename find_by_key<_Needle, _Entries...>::type;
+template<auto       Needle,
+         typename... Entries>
+using find_by_key_t = typename find_by_key<Needle, Entries...>::type;
 
 
 // contains_key
-//   trait: true iff some entry's ::key equals _Needle.  Equivalent
+//   trait: true iff some entry's ::key equals Needle.  Equivalent
 // to find_by_key<...>::found, but written standalone so it
 // short-circuits via the recursive || without computing ::type.
-template<auto        _Needle,
-         typename... _Entries>
+template<auto        Needle,
+         typename... Entries>
 struct contains_key;
 
-template<auto _Needle>
-struct contains_key<_Needle> : std::false_type
+template<auto Needle>
+struct contains_key<Needle> : std::false_type
 {};
 
-template<auto        _Needle,
-         typename    _Head,
-         typename... _Tail>
-struct contains_key<_Needle, _Head, _Tail...>
+template<auto        Needle,
+         typename    Head,
+         typename... Tail>
+struct contains_key<Needle, Head, Tail...>
     : std::integral_constant<bool,
-        ( (_Head::key == _Needle) ||
-          contains_key<_Needle, _Tail...>::value )>
+        ( (Head::key == Needle) ||
+          contains_key<Needle, Tail...>::value )>
 {};
 
 // contains_key_v
 //   value: convenience alias.
-template<auto        _Needle,
-         typename... _Entries>
-inline constexpr bool contains_key_v = contains_key<_Needle, _Entries...>::value;
+template<auto        Needle,
+         typename... Entries>
+inline constexpr bool contains_key_v = contains_key<Needle, Entries...>::value;
 
 
 // key_index_of
 //   trait: returns the index of the first entry whose ::key
-// equals _Needle, or lookup_npos if no such entry exists.
-template<auto       _Needle,
-         typename... _Entries>
+// equals Needle, or lookup_npos if no such entry exists.
+template<auto       Needle,
+         typename... Entries>
 struct key_index_of;
 
-template<auto _Needle>
-struct key_index_of<_Needle>
+template<auto Needle>
+struct key_index_of<Needle>
     : std::integral_constant<std::size_t, lookup_npos>
 {};
 
-template<auto        _Needle,
-         typename    _Head,
-         typename... _Tail>
-struct key_index_of<_Needle, _Head, _Tail...>
+template<auto        Needle,
+         typename    Head,
+         typename... Tail>
+struct key_index_of<Needle, Head, Tail...>
 {
 private:
-    static constexpr bool head_matches = (_Head::key == _Needle);
+    static constexpr bool head_matches = (Head::key == Needle);
 
     static constexpr std::size_t tail_index =
-        key_index_of<_Needle, _Tail...>::value;
+        key_index_of<Needle, Tail...>::value;
 
 public:
     static constexpr std::size_t value =
@@ -384,10 +406,10 @@ public:
 
 // key_index_of_v
 //   value: convenience alias.
-template<auto        _Needle,
-         typename... _Entries>
-inline constexpr std::size_t 
-key_index_of_v = key_index_of<_Needle, _Entries...>::value;
+template<auto        Needle,
+         typename... Entries>
+inline constexpr std::size_t
+key_index_of_v = key_index_of<Needle, Entries...>::value;
 
 // keys_of
 //   trait: emits a value_pack containing every entry's ::key
@@ -398,16 +420,16 @@ key_index_of_v = key_index_of<_Needle, _Entries...>::value;
 // Example:
 //   using ks = keys_of<e1, e2, e3>::type;
 //   // ks == value_pack<e1::key, e2::key, e3::key>
-template<typename... _Entries>
+template<typename... Entries>
 struct keys_of
 {
-    using type = value_pack<_Entries::key...>;
+    using type = value_pack<Entries::key...>;
 };
 
 // keys_of_t
 //   type: convenience alias for keys_of<...>::type.
-template<typename... _Entries>
-using keys_of_t = typename keys_of<_Entries...>::type;
+template<typename... Entries>
+using keys_of_t = typename keys_of<Entries...>::type;
 
 
 // ===========================================================================
@@ -419,7 +441,7 @@ using keys_of_t = typename keys_of<_Entries...>::type;
 
 // find_by_type_key
 //   trait: finds the first entry whose ::key_type is the same
-// type as _Needle.  Result members mirror find_by_key.
+// type as Needle.  Result members mirror find_by_key.
 //
 // Example:
 //   struct e1 { using key_type = int;    };
@@ -428,13 +450,13 @@ using keys_of_t = typename keys_of<_Entries...>::type;
 //   // f::type  == e2
 //   // f::found == true
 //   // f::index == 1
-template<typename    _Needle,
-         typename... _Entries>
+template<typename    Needle,
+         typename... Entries>
 struct find_by_type_key;
 
 // base case: empty pack - miss
-template<typename _Needle>
-struct find_by_type_key<_Needle>
+template<typename Needle>
+struct find_by_type_key<Needle>
 {
     using type = lookup_not_found;
 
@@ -443,20 +465,20 @@ struct find_by_type_key<_Needle>
 };
 
 // recursive case
-template<typename    _Needle,
-         typename    _Head,
-         typename... _Tail>
-struct find_by_type_key<_Needle, _Head, _Tail...>
+template<typename    Needle,
+         typename    Head,
+         typename... Tail>
+struct find_by_type_key<Needle, Head, Tail...>
 {
 private:
     static constexpr bool head_matches =
-        std::is_same<typename _Head::key_type, _Needle>::value;
+        std::is_same<typename Head::key_type, Needle>::value;
 
-    using next_t = find_by_type_key<_Needle, _Tail...>;
+    using next_t = find_by_type_key<Needle, Tail...>;
 
 public:
     using type =
-        std::conditional_t<head_matches, _Head, typename next_t::type>;
+        std::conditional_t<head_matches, Head, typename next_t::type>;
 
     static constexpr bool found = (head_matches || next_t::found);
 
@@ -470,59 +492,59 @@ public:
 
 // find_by_type_key_t
 //   type: convenience alias for find_by_type_key<...>::type.
-template<typename    _Needle,
-         typename... _Entries>
-using find_by_type_key_t = typename find_by_type_key<_Needle, _Entries...>::type;
+template<typename    Needle,
+         typename... Entries>
+using find_by_type_key_t = typename find_by_type_key<Needle, Entries...>::type;
 
 // contains_type_key
 //   trait: true iff some entry's ::key_type is the same type
-// as _Needle.  Short-circuits via the recursive ||.
-template<typename    _Needle,
-         typename... _Entries>
+// as Needle.  Short-circuits via the recursive ||.
+template<typename    Needle,
+         typename... Entries>
 struct contains_type_key;
 
-template<typename _Needle>
-struct contains_type_key<_Needle> : std::false_type
+template<typename Needle>
+struct contains_type_key<Needle> : std::false_type
 {};
 
-template<typename    _Needle,
-         typename    _Head,
-         typename... _Tail>
-struct contains_type_key<_Needle, _Head, _Tail...>
+template<typename    Needle,
+         typename    Head,
+         typename... Tail>
+struct contains_type_key<Needle, Head, Tail...>
     : std::integral_constant<bool,
-        ( std::is_same<typename _Head::key_type, _Needle>::value ||
-          contains_type_key<_Needle, _Tail...>::value )>
+        ( std::is_same<typename Head::key_type, Needle>::value ||
+          contains_type_key<Needle, Tail...>::value )>
 {};
 
 // contains_type_key_v
 //   value: convenience alias.
-template<typename    _Needle,
-         typename... _Entries>
-inline constexpr bool contains_type_key_v = contains_type_key<_Needle, _Entries...>::value;
+template<typename    Needle,
+         typename... Entries>
+inline constexpr bool contains_type_key_v = contains_type_key<Needle, Entries...>::value;
 
 // type_key_index_of
 //   trait: returns the index of the first entry whose
-// ::key_type is the same as _Needle, or lookup_npos otherwise.
-template<typename    _Needle,
-         typename... _Entries>
+// ::key_type is the same as Needle, or lookup_npos otherwise.
+template<typename    Needle,
+         typename... Entries>
 struct type_key_index_of;
 
-template<typename _Needle>
-struct type_key_index_of<_Needle>
+template<typename Needle>
+struct type_key_index_of<Needle>
     : std::integral_constant<std::size_t, lookup_npos>
 {};
 
-template<typename    _Needle,
-         typename    _Head,
-         typename... _Tail>
-struct type_key_index_of<_Needle, _Head, _Tail...>
+template<typename    Needle,
+         typename    Head,
+         typename... Tail>
+struct type_key_index_of<Needle, Head, Tail...>
 {
 private:
     static constexpr bool head_matches =
-        std::is_same<typename _Head::key_type, _Needle>::value;
+        std::is_same<typename Head::key_type, Needle>::value;
 
     static constexpr std::size_t tail_index =
-        type_key_index_of<_Needle, _Tail...>::value;
+        type_key_index_of<Needle, Tail...>::value;
 
 public:
     static constexpr std::size_t value =
@@ -535,10 +557,10 @@ public:
 
 // type_key_index_of_v
 //   value: convenience alias.
-template<typename    _Needle,
-         typename... _Entries>
+template<typename    Needle,
+         typename... Entries>
 inline constexpr std::size_t type_key_index_of_v =
-    type_key_index_of<_Needle, _Entries...>::value;
+    type_key_index_of<Needle, Entries...>::value;
 
 
 // type_keys_of
@@ -548,16 +570,16 @@ inline constexpr std::size_t type_key_index_of_v =
 // Example:
 //   using ts = type_keys_of<e1, e2, e3>::type;
 //   // ts == type_pack<e1::key_type, e2::key_type, e3::key_type>
-template<typename... _Entries>
+template<typename... Entries>
 struct type_keys_of
 {
-    using type = type_pack<typename _Entries::key_type...>;
+    using type = type_pack<typename Entries::key_type...>;
 };
 
 // type_keys_of_t
 //   type: convenience alias for type_keys_of<...>::type.
-template<typename... _Entries>
-using type_keys_of_t = typename type_keys_of<_Entries...>::type;
+template<typename... Entries>
+using type_keys_of_t = typename type_keys_of<Entries...>::type;
 
 
 // ===========================================================================
@@ -571,7 +593,7 @@ using type_keys_of_t = typename type_keys_of<_Entries...>::type;
 // effectively special cases with a fixed predicate baked in.
 
 // find_by_pred
-//   trait: finds the first entry satisfying _Predicate, scanning
+//   trait: finds the first entry satisfying Predicate, scanning
 // left to right.  Result members mirror find_by_key exactly:
 //
 //   On match:  ::type    = the matching entry
@@ -582,19 +604,19 @@ using type_keys_of_t = typename type_keys_of<_Entries...>::type;
 //              ::index   = lookup_npos
 //
 // Example:
-//   template<typename _Type> struct is_big
-//       : std::integral_constant<bool, (sizeof(_Type) >= 4)> {};
+//   template<typename Type> struct is_big
+//       : std::integral_constant<bool, (sizeof(Type) >= 4)> {};
 //   using f = find_by_pred<is_big, char, short, int>;
 //   // f::type  == int
 //   // f::found == true
 //   // f::index == 2
-template<template<typename> class _Predicate,
-         typename...               _Entries>
+template<template<typename> class Predicate,
+         typename...               Entries>
 struct find_by_pred;
 
 // base case: empty pack - miss
-template<template<typename> class _Predicate>
-struct find_by_pred<_Predicate>
+template<template<typename> class Predicate>
+struct find_by_pred<Predicate>
 {
     using type = lookup_not_found;
 
@@ -603,19 +625,19 @@ struct find_by_pred<_Predicate>
 };
 
 // recursive case
-template<template<typename> class _Predicate,
-         typename                  _Head,
-         typename...               _Tail>
-struct find_by_pred<_Predicate, _Head, _Tail...>
+template<template<typename> class Predicate,
+         typename                  Head,
+         typename...               Tail>
+struct find_by_pred<Predicate, Head, Tail...>
 {
 private:
-    static constexpr bool head_matches = _Predicate<_Head>::value;
+    static constexpr bool head_matches = Predicate<Head>::value;
 
-    using next_t = find_by_pred<_Predicate, _Tail...>;
+    using next_t = find_by_pred<Predicate, Tail...>;
 
 public:
     using type =
-        std::conditional_t<head_matches, _Head, typename next_t::type>;
+        std::conditional_t<head_matches, Head, typename next_t::type>;
 
     static constexpr bool found = (head_matches || next_t::found);
 
@@ -629,62 +651,62 @@ public:
 
 // find_by_pred_t
 //   type: convenience alias for find_by_pred<...>::type.
-template<template<typename> class _Predicate,
-         typename...               _Entries>
-using find_by_pred_t = typename find_by_pred<_Predicate, _Entries...>::type;
+template<template<typename> class Predicate,
+         typename...               Entries>
+using find_by_pred_t = typename find_by_pred<Predicate, Entries...>::type;
 
 
 // contains_pred
-//   trait: true iff some entry satisfies _Predicate.  Equivalent to
+//   trait: true iff some entry satisfies Predicate.  Equivalent to
 // find_by_pred<...>::found, but standalone so it short-circuits via
 // the recursive || without computing ::type.
-template<template<typename> class _Predicate,
-         typename...               _Entries>
+template<template<typename> class Predicate,
+         typename...               Entries>
 struct contains_pred;
 
-template<template<typename> class _Predicate>
-struct contains_pred<_Predicate> : std::false_type
+template<template<typename> class Predicate>
+struct contains_pred<Predicate> : std::false_type
 {};
 
-template<template<typename> class _Predicate,
-         typename                  _Head,
-         typename...               _Tail>
-struct contains_pred<_Predicate, _Head, _Tail...>
+template<template<typename> class Predicate,
+         typename                  Head,
+         typename...               Tail>
+struct contains_pred<Predicate, Head, Tail...>
     : std::integral_constant<bool,
-        ( _Predicate<_Head>::value ||
-          contains_pred<_Predicate, _Tail...>::value )>
+        ( Predicate<Head>::value ||
+          contains_pred<Predicate, Tail...>::value )>
 {};
 
 // contains_pred_v
 //   value: convenience alias.
-template<template<typename> class _Predicate,
-         typename...               _Entries>
+template<template<typename> class Predicate,
+         typename...               Entries>
 inline constexpr bool contains_pred_v =
-    contains_pred<_Predicate, _Entries...>::value;
+    contains_pred<Predicate, Entries...>::value;
 
 
 // pred_index_of
-//   trait: index of the first entry satisfying _Predicate, or
+//   trait: index of the first entry satisfying Predicate, or
 // lookup_npos if none does.
-template<template<typename> class _Predicate,
-         typename...               _Entries>
+template<template<typename> class Predicate,
+         typename...               Entries>
 struct pred_index_of;
 
-template<template<typename> class _Predicate>
-struct pred_index_of<_Predicate>
+template<template<typename> class Predicate>
+struct pred_index_of<Predicate>
     : std::integral_constant<std::size_t, lookup_npos>
 {};
 
-template<template<typename> class _Predicate,
-         typename                  _Head,
-         typename...               _Tail>
-struct pred_index_of<_Predicate, _Head, _Tail...>
+template<template<typename> class Predicate,
+         typename                  Head,
+         typename...               Tail>
+struct pred_index_of<Predicate, Head, Tail...>
 {
 private:
-    static constexpr bool head_matches = _Predicate<_Head>::value;
+    static constexpr bool head_matches = Predicate<Head>::value;
 
     static constexpr std::size_t tail_index =
-        pred_index_of<_Predicate, _Tail...>::value;
+        pred_index_of<Predicate, Tail...>::value;
 
 public:
     static constexpr std::size_t value =
@@ -697,10 +719,10 @@ public:
 
 // pred_index_of_v
 //   value: convenience alias.
-template<template<typename> class _Predicate,
-         typename...               _Entries>
+template<template<typename> class Predicate,
+         typename...               Entries>
 inline constexpr std::size_t pred_index_of_v =
-    pred_index_of<_Predicate, _Entries...>::value;
+    pred_index_of<Predicate, Entries...>::value;
 
 
 // ===========================================================================
@@ -724,77 +746,77 @@ inline constexpr std::size_t pred_index_of_v =
 //   trait: true iff the entries' ::key values are non-decreasing left
 // to right (adjacent-pair check, `<=`).  Guards the value-keyed
 // binary search and drives find_by_key_auto.  O(N) - cheap, not free.
-template<typename... _Entries>
+template<typename... Entries>
 struct is_key_sorted;
 
 template<>
 struct is_key_sorted<> : std::true_type
 {};
 
-template<typename _Only>
-struct is_key_sorted<_Only> : std::true_type
+template<typename Only>
+struct is_key_sorted<Only> : std::true_type
 {};
 
-template<typename    _A,
-         typename    _B,
-         typename... _Rest>
-struct is_key_sorted<_A, _B, _Rest...>
+template<typename    A,
+         typename    B,
+         typename... Rest>
+struct is_key_sorted<A, B, Rest...>
     : std::integral_constant<bool,
-        ( (_A::key <= _B::key) &&
-          is_key_sorted<_B, _Rest...>::value )>
+        ( (A::key <= B::key) &&
+          is_key_sorted<B, Rest...>::value )>
 {};
 
 // is_key_sorted_v
 //   value: convenience alias.
-template<typename... _Entries>
-inline constexpr bool is_key_sorted_v = is_key_sorted<_Entries...>::value;
+template<typename... Entries>
+inline constexpr bool is_key_sorted_v = is_key_sorted<Entries...>::value;
 
 
 // ---------------------------------------------------------------------------
 // VIII.2  find_by_key_bsearch  (value-key shorthand)
 // ---------------------------------------------------------------------------
 //   Convention: entry::key is an NTTP, ordered by `<`.  Forms the
-// engine's _Below / _Above predicates from _Needle and calls
+// engine's Below / Above predicates from Needle and calls
 // bsearch_by.  Same result members and semantics as find_by_key (V.1),
-// but O(log N) depth; precondition is_key_sorted_v<_Entries...>.
+// but O(log N) depth; precondition is_key_sorted_v<Entries...>.
 
 NS_INTERNAL
 
     // nttp_key_preds
     //   helper: bakes an NTTP needle into the engine's predicate shape,
     // comparing entry::key with `<`.
-    template<auto _Needle>
+    template<auto Needle>
     struct nttp_key_preds
     {
-        template<typename _Entry>
+        template<typename Entry>
         struct below
-            : std::integral_constant<bool, (_Entry::key < _Needle)>
+            : std::integral_constant<bool, (Entry::key < Needle)>
         {};
 
-        template<typename _Entry>
+        template<typename Entry>
         struct above
-            : std::integral_constant<bool, (_Needle < _Entry::key)>
+            : std::integral_constant<bool, (Needle < Entry::key)>
         {};
     };
 
 NS_END  // internal
 
-template<auto        _Needle,
-         typename... _Entries>
+template<auto        Needle,
+         typename... Entries>
 struct find_by_key_bsearch
 {
 #ifndef DJINTERP_NO_SORTED_ASSERT
-    static_assert(is_key_sorted_v<_Entries...>,
-                  "find_by_key_bsearch requires _Entries sorted by ::key.");
+    static_assert(is_key_sorted_v<Entries...>,
+                  "find_by_key_bsearch requires Entries sorted by ::key.");
 #endif
 
 private:
-    using preds = internal::nttp_key_preds<_Needle>;
+    using preds = internal::nttp_key_preds<Needle>;
 
 public:
     using engine = bsearch_by<preds::template below,
                               preds::template above,
-                              _Entries...>;
+                              Entries...>;
 
     using type = typename engine::type;
 
@@ -804,10 +826,10 @@ public:
 
 // find_by_key_bsearch_t
 //   type: convenience alias.
-template<auto        _Needle,
-         typename... _Entries>
+template<auto        Needle,
+         typename... Entries>
 using find_by_key_bsearch_t =
-    typename find_by_key_bsearch<_Needle, _Entries...>::type;
+    typename find_by_key_bsearch<Needle, Entries...>::type;
 
 
 // ---------------------------------------------------------------------------
@@ -815,84 +837,84 @@ using find_by_key_bsearch_t =
 // ---------------------------------------------------------------------------
 //   Convention: entry::key_type is a TYPE.  Types have no intrinsic
 // order, so the caller MUST supply a strict-weak ordering as a binary
-// type comparator _Compare<_A, _B> with `static constexpr bool ::value`
-// meaning "_A sorts before _B".  Entries must be sorted ascending
-// under that same _Compare.
+// type comparator Compare<A, B> with `static constexpr bool ::value`
+// meaning "A sorts before B".  Entries must be sorted ascending
+// under that same Compare.
 //
 // Example comparator:
-//   template<typename _A, typename _B>
-//   struct by_size : std::integral_constant<bool, (sizeof(_A) < sizeof(_B))> {};
+//   template<typename A, typename B>
+//   struct by_size : std::integral_constant<bool, (sizeof(A) < sizeof(B))> {};
 
 NS_INTERNAL
 
     // type_key_preds
     //   helper: bakes a needle TYPE and a comparator into the engine's
-    // predicate shape.  below(E) = _Compare<E::key_type, needle>;
-    // above(E) = _Compare<needle, E::key_type>.
-    template<typename                           _Needle,
-             template<typename, typename> class _Compare>
+    // predicate shape.  below(E) = Compare<E::key_type, needle>;
+    // above(E) = Compare<needle, E::key_type>.
+    template<typename                           Needle,
+             template<typename, typename> class Compare>
     struct type_key_preds
     {
-        template<typename _Entry>
+        template<typename Entry>
         struct below
             : std::integral_constant<bool,
-                _Compare<typename _Entry::key_type, _Needle>::value>
+                Compare<typename Entry::key_type, Needle>::value>
         {};
 
-        template<typename _Entry>
+        template<typename Entry>
         struct above
             : std::integral_constant<bool,
-                _Compare<_Needle, typename _Entry::key_type>::value>
+                Compare<Needle, typename Entry::key_type>::value>
         {};
     };
 
     // type_keys_sorted
     //   helper: true iff entries' ::key_type are non-decreasing under
-    // _Compare (no adjacent pair strictly out of order).
-    template<template<typename, typename> class _Compare,
-             typename...                         _Entries>
+    // Compare (no adjacent pair strictly out of order).
+    template<template<typename, typename> class Compare,
+             typename...                         Entries>
     struct type_keys_sorted;
 
-    template<template<typename, typename> class _Compare>
-    struct type_keys_sorted<_Compare> : std::true_type
+    template<template<typename, typename> class Compare>
+    struct type_keys_sorted<Compare> : std::true_type
     {};
 
-    template<template<typename, typename> class _Compare,
-             typename                            _Only>
-    struct type_keys_sorted<_Compare, _Only> : std::true_type
+    template<template<typename, typename> class Compare,
+             typename                            Only>
+    struct type_keys_sorted<Compare, Only> : std::true_type
     {};
 
-    template<template<typename, typename> class _Compare,
-             typename                           _A,
-             typename                           _B,
-             typename...                        _Rest>
-    struct type_keys_sorted<_Compare, _A, _B, _Rest...>
+    template<template<typename, typename> class Compare,
+             typename                           A,
+             typename                           B,
+             typename...                        Rest>
+    struct type_keys_sorted<Compare, A, B, Rest...>
         : std::integral_constant<bool,
-            ( !_Compare<typename _B::key_type,
-                        typename _A::key_type>::value &&
-              type_keys_sorted<_Compare, _B, _Rest...>::value )>
+            ( !Compare<typename B::key_type,
+                        typename A::key_type>::value &&
+              type_keys_sorted<Compare, B, Rest...>::value )>
     {};
 
 NS_END  // internal
 
-template<template<typename, typename> class _Compare,
-         typename                            _Needle,
-         typename...                         _Entries>
+template<template<typename, typename> class Compare,
+         typename                            Needle,
+         typename...                         Entries>
 struct find_by_type_key_bsearch
 {
 #ifndef DJINTERP_NO_SORTED_ASSERT
-    static_assert(internal::type_keys_sorted<_Compare, _Entries...>::value,
-                  "find_by_type_key_bsearch requires _Entries sorted by "
-                  "::key_type under _Compare.");
+    static_assert(internal::type_keys_sorted<Compare, Entries...>::value,
+                  "find_by_type_key_bsearch requires Entries sorted by "
+                  "::key_type under Compare.");
 #endif
 
 private:
-    using preds = internal::type_key_preds<_Needle, _Compare>;
+    using preds = internal::type_key_preds<Needle, Compare>;
 
 public:
     using engine = bsearch_by<preds::template below,
                               preds::template above,
-                              _Entries...>;
+                              Entries...>;
 
     using type = typename engine::type;
 
@@ -902,11 +924,11 @@ public:
 
 // find_by_type_key_bsearch_t
 //   type: convenience alias.
-template<template<typename, typename> class _Compare,
-         typename                            _Needle,
-         typename...                         _Entries>
+template<template<typename, typename> class Compare,
+         typename                            Needle,
+         typename...                         Entries>
 using find_by_type_key_bsearch_t =
-    typename find_by_type_key_bsearch<_Compare, _Needle, _Entries...>::type;
+    typename find_by_type_key_bsearch<Compare, Needle, Entries...>::type;
 
 
 // ---------------------------------------------------------------------------
@@ -924,22 +946,23 @@ using find_by_type_key_bsearch_t =
 // already know the data is sorted; reach for auto only when the caller
 // genuinely cannot know and correctness-on-either-input matters more
 // than compile cost.
-template<auto        _Needle,
-         typename... _Entries>
+template<auto        Needle,
+         typename... Entries>
 struct find_by_key_auto
-    : std::conditional_t<is_key_sorted_v<_Entries...>,
-                         find_by_key_bsearch<_Needle, _Entries...>,
-                         find_by_key<_Needle, _Entries...>>
+    : std::conditional_t<is_key_sorted_v<Entries...>,
+                         find_by_key_bsearch<Needle, Entries...>,
+                         find_by_key<Needle, Entries...>>
 {};
 
 // find_by_key_auto_t
 //   type: convenience alias.
-template<auto        _Needle,
-         typename... _Entries>
-using find_by_key_auto_t = typename find_by_key_auto<_Needle, _Entries...>::type;
+template<auto        Needle,
+         typename... Entries>
+using find_by_key_auto_t = typename find_by_key_auto<Needle, Entries...>::type;
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_LOOKUP_
+#endif  // DJINTERP_UTIL_LOOKUP_LOOKUP_HPP

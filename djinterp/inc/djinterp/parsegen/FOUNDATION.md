@@ -11,97 +11,148 @@ unzip -o vparse.zip
 build/cmake/config/testing/djinterp/parsegen/foundation/run_foundation_tests.sh
 ```
 
-Expected: `passed: 18   failed: 0`. Add `--matrix` to also build and run
-under every configuration knob.
+It builds and runs two suites against the same library, and expects
+`passed: 18   failed: 0` from the C++ tests and `passed: 5   failed: 0` from the
+C tests. Add `--matrix` to run both under every configuration knob. The consolidated vparse builds as
+`parsegen/vparse/vparse-AGENTS.md` describes, expecting `passed: 14   failed: 0`.
 
-**Exactly one existing file is replaced:** `inc/djinterp/parsegen/parsegen.hpp`.
-Its only dependent is `inc/djinterp/parsegen/vparse/machine.hpp`, and the old
-umbrella included `../core/djinterp.hpp`, which does not exist in the snapshot
-this was verified against — so the replacement, which includes the real
-`../djinterp.hpp` and defines `NS_PARSEGEN` identically, is strictly an
-improvement for that dependent. Everything else in the archive is a new file.
+The archive carries three things: this foundation, the consolidated vparse, and
+five framework files with fixes or registrations applied. **Eight existing files
+are replaced:**
 
-Nothing in the existing `vparse` tree is modified or removed. The old `peg`,
-`gen`, `notation` and `adapter` keep building exactly as before; moving them
-onto this foundation is the port, which is separate work.
+| file | why |
+|---|---|
+| `inc/djinterp/djinterp.hpp` | `NS_DJINTERP` fix; the `djinterp::functional` alias |
+| `inc/djinterp/env/env.h` | `env_c_lib.h` include order |
+| `inc/djinterp/parse/parser/parser.hpp` | `parser_expr` return-type deduction |
+| `inc/djinterp/config/dconfig.h` | registers `cfg_parse.h` and `cfg_parsegen.h` |
+| `inc/djinterp/config/cfg_testing.h` | the parse machine trace's test-build default |
+| `inc/djinterp/parsegen/parsegen.hpp` | the C / C++ umbrella split |
+| `inc/djinterp/parsegen/vparse/machine.hpp` | consolidated vparse, on the real root |
+| `inc/djinterp/parsegen/vparse/peg.hpp` | consolidated vparse |
+
+If your copies of the first five have changed since the snapshot this was built
+against, merge the changes rather than overwriting.
+
+**Delete by hand, since a zip cannot remove files:** `inc/djinterp/parse/vparse/`.
+Its six headers are an older generation of vparse that nothing references;
+`parsegen/vparse/` supersedes them.
+
+**If you unzipped an earlier version of this archive,** also delete the C
+layer's old locations: this version moves it into `c/` (see Layout), and a
+build that globs `src/djinterp/parse/*.c` would otherwise compile both copies
+and fail on duplicate symbols. None of these files is in the original tree, so
+the command removes nothing of yours:
+
+```bash
+cd <repo-root>
+rm -f inc/djinterp/parse/{charset,diagnostic,machine,pool,program,storage}.h \
+      src/djinterp/parse/{charset,diagnostic,machine,pool,program,storage}.c \
+      inc/djinterp/parsegen/{parsegen,feature,registry,grammar,analysis}.h \
+      src/djinterp/parsegen/{feature,registry,grammar,analysis}.c
+```
 
 ### CMake
 
 `build/cmake/config/testing/djinterp/parsegen/foundation/CMakeLists.txt` is a
 plain-CMake leaf. Wire it with `add_subdirectory()` wherever your other test
-leaves are added. It does not use `djinterp_add_test_executable`, because that
+leaves are added. It builds the library and both test executables, and registers both with
+CTest. It does not use `djinterp_add_test_executable`, because that
 helper's source was not available; swapping to it is mechanical.
 
-### Three pre-existing framework issues
+### Framework fixes, and one open issue
 
-Building against your real root headers, rather than stand-ins, surfaced three
-issues in the framework itself. Neither is in this foundation and both affect
-existing code; each is worked around in the script and the CMake leaf so the
-drop-in builds, and each has a one-line real fix. The zip deliberately does
-**not** patch your root headers: your working copy may differ from the
-snapshot this was verified against, and overwriting a root header is what a
-drop-in must not do.
+Building against your real headers, rather than stand-ins, surfaced four
+framework issues. The three files above fix them, so nothing here needs a build
+flag or a force-include to compile:
 
-#### `D_KEYWORD_FRAMEWORK_NAME` is used but never defined
+- **`D_FRAMEWORK_NAME` was used but never defined.** The C root defines
+  `D_FRAMEWORK_NAME`; the C++ root's `NS_DJINTERP` expanded through the other
+  name, so every `NS_DJINTERP` opened a namespace literally called
+  `D_FRAMEWORK_NAME`. It now uses `D_FRAMEWORK_NAME`.
+- **`functional` was never declared.** `parse.hpp`, `core/functional` and
+  `core/event` spell the functional API `functional::` (32 uses in 7 files), and
+  only the old sandbox stand-in declared the alias. `djinterp.hpp` now declares
+  `djinterp::functional` — inside `djinterp`, as the stand-in did, so it adds no
+  name to the global namespace.
+- **`env.h` included `c/env_c_lib.h` too early,** before the headers whose macros
+  its `#if` tests read. It now comes after the detection headers and before
+  `env_build.h`, the order `env.h`'s own banner documents.
+- **`parser_expr` used a trailing `decltype` return** that g++ evaluates while
+  the derived class is still incomplete, so no `parser<R, E>` instantiated under
+  g++. It now deduces at the point of use — your own fix from the corrected copy,
+  which had not carried over when `parser.hpp` moved to the real root.
 
-The C root defines `D_FRAMEWORK_NAME djinterp`. The C++ root's `NS_DJINTERP` is
-`D_NAMESPACE(D_KEYWORD_FRAMEWORK_NAME)`, and nothing defines
-`D_KEYWORD_FRAMEWORK_NAME` — it looks like a rename that landed in one root and
-not the other. So in this snapshot every `NS_DJINTERP` opens a namespace
-literally named `D_KEYWORD_FRAMEWORK_NAME`, which affects every C++ header in
-the tree that uses it. Only `core/fs/file_path.hpp` works around it, with its
-own `NS_DJINTERP`.
+**Still open, by your choice:** the C-side attribute macros in
+`env/c/env_attributes.h` select C23 `[[...]]` syntax under `-std=c11`, which
+`-Wpedantic` reports. The script leaves `-Wpedantic` off by default;
+`PEDANTIC=1` turns it on. A fix ships *beside* this archive rather than in it,
+so adopting it stays a separate decision: `env_attributes.h` gates the C23 probe
+on `__STDC_VERSION__ > 201710L` at all six sites. That takes a pedantic C11 or
+C17 build of this foundation from 62 warnings to 0, leaves every attribute in
+effect (a discarded `D_NODISCARD` result and a `D_DEPRECATED` call still warn),
+and changes nothing in C++.
 
-Workaround: `-DD_KEYWORD_FRAMEWORK_NAME=djinterp` (CMake option
-`DJINTERP_FOUNDATION_NAME_FIX`). Safe even where a header also defines it,
-since an identical redefinition is allowed. **Real fix:** in `djinterp.hpp`,
-either define `D_KEYWORD_FRAMEWORK_NAME` or have `NS_DJINTERP` use
-`D_FRAMEWORK_NAME`.
+## Layout
 
-#### The env include-order issue
+Every subsystem X owns `X/`: its C++ lives at `X/`, its C in `X/c/`, and `X/c/`
+mirrors X's layout beneath it. The framework root follows the same rule, and its
+C half, `c/`, is the C foundation -- which is why an optional subsystem never
+puts anything there: a C user who takes djinterp without parse or parsegen must
+not carry them. Preprocessor-only code (`env/`, `config/`) is language-neutral
+and exempt.
 
-Both the script and the CMake leaf also force-include `djinterp/env/env_os.h`.
-In this snapshot `env/c/env_c_lib.h` uses `D_ENV_IS_OS_POSIX_LIKE_OR_ANDROID` in an
-`#if` before `env_os.h`, which defines it, is included — so the framework root
-does not preprocess on its own, with or without anything here. Force-including
-`env_os.h` first fixes it and is harmless where unneeded. **The real fix is one
-`#include` in `env_c_lib.h`**; then drop the workaround (the CMake option is
-`DJINTERP_FOUNDATION_ENV_FIX`).
+| | C | C++ |
+|---|---|---|
+| parse | `inc/djinterp/parse/c/*.h`, `src/djinterp/parse/c/*.c` | `inc/djinterp/parse/*.hpp` |
+| parsegen | `inc/djinterp/parsegen/c/*.h`, `src/djinterp/parsegen/c/*.c` | `inc/djinterp/parsegen/*.hpp` |
+| tests | `tests/djinterp/parse/c/`, `tests/djinterp/parsegen/c/` | `tests/djinterp/parse/`, `tests/djinterp/parsegen/` |
 
-C foundation with a zero-overhead C++ face. Verified: clean under
-`-Wall -Wextra -Wpedantic` on C99/C11/C17, C++20 consumer linking against a
-**C archive** (`gcc -c` → `ar` → `g++`), 18/18 tests pass, and all fourteen
-knob configurations build and pass including
-`-DD_CFG_PARSE_ALL=0 -DD_CFG_PARSEGEN_ALL=0` (no allocator anywhere, no
-formatting, no transport, no trace).
+A test's directory follows the language it is *written* in, not the API it
+calls: the C++ suite exercises the C API through C++, so it stays outside `c/`.
 
-#### C builds get C23 attribute syntax under `-std=c11`
+A C++ face reaches its C layer through `./c/` -- `diagnostic.hpp` includes
+`./c/diagnostic.h` -- the way `djinterp.hpp` reaches `c/djinterp.h`. And a bare
+`c/` directly under a subsystem means only that subsystem's C half. A language
+as a *subject* sits under a role directory instead: `parse/parsers/c/` (a parser
+of C) already does, and a C export target would go in `parsegen/backends/c/`,
+never `parsegen/c/`.
 
-`env/c/env_attributes.h` resolves the C-side `D_NODISCARD` in four steps; step 2
-probes `__has_c_attribute(nodiscard)`, which GCC answers "yes" even in C11 mode
-because it accepts `[[...]]` as an extension. So C11 builds get `[[nodiscard]]`,
-and `-Wpedantic` flags every use as C2X syntax. This is a warning, not an
-error, and it applies to your existing C code as much as to this foundation.
+Config stays at the subframework level (`config/parse/`, `config/parsegen/`),
+since one knob file configures both halves. Both files are registered in
+`dconfig.h`, and the one knob that differs in a test build, the machine trace,
+takes its test default from `cfg_testing.h`, as the config README requires. It
+defers to `D_CFG_PARSE_ALL` there, so relocating it changed nothing except one
+case: a testing build that sets `D_CFG_NO_TESTING_PRESET` now gets the trace
+off, as suppressing the preset is documented to do.
 
-Workaround: the script leaves `-Wpedantic` off by default, matching what your
-own build evidently does; `PEDANTIC=1` turns it on. **Real fix:** delete step 2
-— step 1 already covers C23 and step 3 covers GCC and Clang before it.
+Applying the rule to existing code is deferred, but needs no further decision:
+`c/test/` moves to `test/c/`; the C headers in `parse/parsers/{bnf,abnf,ebnf}/`
+move to `parse/c/parsers/...`; `jit/` becomes `jit/c/` if the rule is held
+strictly; and `env/c/` and `env/cpp/`, which hold detection *of* C and C++
+features, move under a role directory such as `env/lang/`, so that `c/` keeps
+one meaning.
 
 ## Files
 
 | path | what |
 |---|---|
 | `inc/djinterp/config/parse/cfg_parse.h` | every `D_CFG_PARSE_*` knob and its `D_INTERNAL_PARSE_*` derived value |
-| `inc/djinterp/parse/diagnostic.h` | C: `d_parse_span`, `d_parse_diagnostic`, `d_parse_diag_sink` |
-| `inc/djinterp/parse/machine.h` | C: `d_parse_machine`, `d_parse_voperator`, `d_parse_op_set` |
-| `inc/djinterp/parse/charset.h` | C: `d_parse_charset`, the canonical 256-bit class |
-| `inc/djinterp/parse/pool.h` | C: `d_parse_pool`, the operand intern pool |
-| `inc/djinterp/parse/program.h` | C: `d_parse_instr`, `d_parse_program`, verify/hash/transport |
-| `inc/djinterp/parse/storage.h` | C: `d_parse_grow`, the one growth policy |
-| `inc/djinterp/parsegen/feature.h` | C: `d_parsegen_features`, the capability vocabulary |
-| `inc/djinterp/parsegen/registry.h` | C: `d_parsegen_stage`, `d_parsegen_registry`, selection |
-| `inc/djinterp/parsegen/grammar.h` | C: `d_parsegen_node`, `d_parsegen_grammar`, the neutral model |
-| `inc/djinterp/parsegen/analysis.h` | C: `d_parsegen_facts` — nullability, first sets, left recursion |
+| `inc/djinterp/parse/c/diagnostic.h` | C: `d_parse_span`, `d_parse_diagnostic`, `d_parse_diag_sink` |
+| `inc/djinterp/parse/c/machine.h` | C: `d_parse_machine`, `d_parse_voperator`, `d_parse_op_set` |
+| `inc/djinterp/parse/c/charset.h` | C: `d_parse_charset`, the canonical 256-bit class |
+| `inc/djinterp/parse/c/pool.h` | C: `d_parse_pool`, the operand intern pool |
+| `inc/djinterp/parse/c/program.h` | C: `d_parse_instr`, `d_parse_program`, verify/hash/transport |
+| `inc/djinterp/parse/c/storage.h` | C: `d_parse_grow`, the one growth policy |
+| `inc/djinterp/parse/substrate.hpp` | C++: the substrate's one guarded `NS_PARSE` |
+| `tests/djinterp/parse/c/parse_c_tests.{h,c}` | C tests: diagnostics, machine, program |
+| `tests/djinterp/parsegen/c/parsegen_c_tests.{h,c}` | C tests: grammar, analysis and routing |
+| `.../parsegen/foundation/foundation_c_tests_runner.c` | the C suite's entry point |
+| `inc/djinterp/parsegen/vparse/` | the consolidated vparse; see its `vparse-AGENTS.md` |
+| `inc/djinterp/parsegen/c/feature.h` | C: `d_parsegen_features`, the capability vocabulary |
+| `inc/djinterp/parsegen/c/registry.h` | C: `d_parsegen_stage`, `d_parsegen_registry`, selection |
+| `inc/djinterp/parsegen/c/grammar.h` | C: `d_parsegen_node`, `d_parsegen_grammar`, the neutral model |
+| `inc/djinterp/parsegen/c/analysis.h` | C: `d_parsegen_facts` — nullability, first sets, left recursion |
 | `inc/djinterp/config/parsegen/cfg_parsegen.h` | parsegen's own knobs and derived values |
 | `inc/djinterp/parse/diagnostic.hpp` | C++: `span`, `diagnostics`, `fixed_diagnostics<N,M>`, views, iteration |
 | `inc/djinterp/parse/machine.hpp` | C++: `machine`, `op_set`, `fixed_op_set<N>`, the `def()` family |
@@ -111,10 +162,10 @@ own build evidently does; `PEDANTIC=1` turns it on. **Real fix:** delete step 2
 | `inc/djinterp/parsegen/registry.hpp` | C++: `feature`, `feature_set`, `stage`, `registry` |
 | `inc/djinterp/parsegen/grammar.hpp` | C++: `node` (alias), `grammar`, `fixed_grammar<…>` |
 | `inc/djinterp/parsegen/analysis.hpp` | C++: `facts`, `fixed_facts<N,R>`, the named queries |
-| `inc/djinterp/parsegen/parsegen.h` | C umbrella: subsystem keyword, generator diagnostic domains |
+| `inc/djinterp/parsegen/c/parsegen.h` | C umbrella: subsystem keyword, generator diagnostic domains |
 | `inc/djinterp/parsegen/parsegen.hpp` | C++ face: `NS_PARSEGEN` and nothing else |
-| `src/djinterp/parse/{diagnostic,machine,charset,pool,program,storage}.c` | definitions |
-| `src/djinterp/parsegen/{feature,registry,grammar,analysis}.c` | definitions |
+| `src/djinterp/parse/c/{diagnostic,machine,charset,pool,program,storage}.c` | definitions |
+| `src/djinterp/parsegen/c/{feature,registry,grammar,analysis}.c` | definitions |
 | `tests/djinterp/parse/parse_substrate_tests.{hpp,cpp}` | 3 sections |
 | `tests/djinterp/parse/parse_program_tests.cpp` | 3 sections |
 | `tests/djinterp/parsegen/parsegen_registry_tests.cpp` | 3 sections |
@@ -305,7 +356,7 @@ needed.
 
 Four containers held a fixed-or-owned array and each had written the same
 twelve lines — refuse if not ours, double until it fits, realloc, zero the
-tail. That is now `d_parse_grow` in `parse/storage.h`, and `op_set`, both pool
+tail. That is now `d_parse_grow` in `parse/c/storage.h`, and `op_set`, both pool
 arrays, the program, and the registry all call it.
 
 **What is deliberately not extracted: the containers.** A generic buffer
@@ -473,10 +524,64 @@ suite and knob matrix pass against it, including the empty-flag case
 out to assemble in the sandbox once the env include order is corrected, so the
 packaged foundation is verified against **your real root headers with no
 stand-ins at all** — dropped into a fresh copy of the tree with one `unzip`,
-built by the included script, and run. That is what surfaced the two framework
+built by the included script, and run. That is what surfaced the framework
 issues described under Install. The guarded `NS_PARSE` / `D_KEYWORD_PARSE`
 spellings were also confirmed token-identical to `parse.hpp`'s, which is what
 makes their redefinition benign.
+
+## Framework fixes: verification
+
+Every header in the tree was compiled standalone, before and after the
+`NS_DJINTERP` and include-order fixes: **0 regressions, 102 headers fixed** —
+almost all C++ (core/container 32, core/functional 18, core/util 14, core/text 11,
+and others), broken because `NS_DJINTERP` opened the wrong namespace. The one
+header that changed from pass to fail, `env/c/env_c_lib.h` compiled on its own,
+also fails in the original tree: it is a fragment reachable only through
+`env.h`, which passes before and after.
+
+That sweep placed `env_c_lib.h` after `env_build.h`; the final placement is just
+before it, as `env.h`'s banner documents. The two headers are independent in
+both directions — neither uses a macro the other defines — so the result carries
+over.
+
+With the `functional` alias declared, `parse.hpp` compiles against the real root
+for the first time, as do `parser/combinators.hpp`, `core/functional/recursion.hpp`
+and `core/functional/polynomial.hpp`. Three other `functional::` users still fail,
+each for a reason unrelated to the alias that predates these changes:
+`parse/functional_cli.hpp` (`NS_CLI` undefined), `core/functional/free.hpp`
+(`djinterp::free` not found as a template), and `core/event/event_registry.hpp`
+(an `#error` requiring `djinterp.h` first).
+
+`NS_EXCEPTION` has the first bug's twin — `D_KEYWORD_EXCEPTION` is defined
+nowhere — but it has no users and no evident intended name, so it is untouched.
+
+## Diagnostic codes
+
+Every parsegen diagnostic now carries a real code. Each stage owns its code
+space, declared beside it, as a family owns its opcode space:
+`d_parsegen_grammar_diag` (7 codes), `d_parsegen_analysis_diag` (6),
+`d_parsegen_registry_diag` (3). Codes are append-only.
+
+The registry has its own domain, `D_PARSEGEN_DIAG_DOMAIN_REGISTRY`. It had been
+reporting under FRONTEND for `find` and FAMILY for `select`, whatever kind of
+stage was asked for.
+
+**Identity is the pair, never the code alone.** Codes are numbered from zero
+within each domain, so code 3 in one domain and code 3 in another are unrelated
+conditions. `d_parse_diag_find(sink, domain, code, from)` (C) and
+`diagnostic_view::is(domain, code)` / `diagnostics::contains(domain, code)`
+(C++) make comparing the pair the easy path.
+
+Tests now identify diagnostics by that pair. Text is checked only where the
+message carries information the test is about — which rule, which capability,
+which candidate — never for wording.
+
+## NS_PARSE umbrella
+
+`parse/substrate.hpp` holds the substrate's one guarded `NS_PARSE`, replacing
+copies in `diagnostic.hpp` and `charset.hpp`. It mirrors `parsegen.hpp`: an
+umbrella's C++ face holds the namespace macro and nothing else. The spelling is
+token-identical to `parse.hpp`'s, so the two can be included in either order.
 
 ## Step 6: analysis, and the loop it closes
 
@@ -595,7 +700,7 @@ ROOT=<repo-root>
 FIX="-include djinterp/env/env_os.h"
 INC="-I$ROOT/inc -I$ROOT/tests/djinterp/parse -I$ROOT/tests/djinterp/parsegen"
 
-for c in $ROOT/src/djinterp/parse/*.c $ROOT/src/djinterp/parsegen/*.c; do
+for c in $ROOT/src/djinterp/parse/c/*.c $ROOT/src/djinterp/parsegen/c/*.c; do
   gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -DD_TESTING=1 $FIX $INC \
       -c "$c" -o "$(basename "${c%.c}").o"
 done
@@ -609,3 +714,13 @@ g++ -std=c++20 -O2 -Wall -Wextra -Wpedantic -DD_TESTING=1 $FIX $INC \
 
 `D_TESTING` must be the same for the library and the tests: it turns on the
 machine's trace hook, which changes the layout of `struct d_parse_machine`.
+
+## Open: a grammar has no fixed-storage initializer in C
+
+Writing the C tests found one gap in the C API. Facts, pools, programs,
+registries, operator sets and sinks all have an initializer that binds
+caller-supplied storage; a grammar does not, so C code binds its fields by hand
+(`parsegen_c_tests.c` does, in one helper) -- the same fields `fixed_grammar`
+binds in C++. A `d_parsegen_grammar_init_fixed` would close it and let
+`fixed_grammar` use it too.
+

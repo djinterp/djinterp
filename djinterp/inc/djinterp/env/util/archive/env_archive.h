@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/env/util/archive/env_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.09.30
 *******************************************************************************/
 
 /*
@@ -168,7 +168,8 @@ TABLE OF CONTENTS
 // <archive.h>
 //   included only when the build pre-defines D_ENV_ARCHIVE_HAVE_LIBARCHIVE to
 // a nonzero value: the macro is not detected until section 3, below this.
-#if D_ENV_ARCHIVE_HAVE_LIBARCHIVE
+#if ( (defined(D_ENV_ARCHIVE_HAVE_LIBARCHIVE)) &&                              \
+      (D_ENV_ARCHIVE_HAVE_LIBARCHIVE) )
     // libarchive
     #include <archive.h>  // ARCHIVE_VERSION_NUMBER, ARCHIVE_VERSION_STRING
 #endif

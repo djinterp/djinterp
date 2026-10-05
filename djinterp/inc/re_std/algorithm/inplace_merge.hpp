@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                            inplace_merge.hpp
 *
 * inplace_merge algorithm header:
@@ -38,16 +38,17 @@
 *     delete the private version and call re_std::inplace_merge.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/inplace_merge.hpp
+* path:      /inc/re_std/algorithm/inplace_merge.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_INPLACE_MERGE_
-#define DJINTERP_RE_STD_ALGORITHM_INPLACE_MERGE_ 1
+#ifndef RE_STD_ALGORITHM_INPLACE_MERGE_HPP
+#define RE_STD_ALGORITHM_INPLACE_MERGE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "./lower_bound.hpp"
@@ -59,7 +60,8 @@
 #include "../functional/less.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -67,19 +69,19 @@ NS_RESTD
 // ===========================================================================
 
 // _inplace_merge_recurse_
-//   recursive worker. Distances are passed in to avoid repeated
+//   function: recursive worker. Distances are passed in to avoid repeated
 // distance() calls on non-random-access iterators.
-template<typename _BidirIt,
-         typename _Distance,
-         typename _Compare>
+template<typename BidirIt,
+         typename Distance,
+         typename Compare>
 void
 _inplace_merge_recurse_(
-    _BidirIt  _first,
-    _BidirIt  _middle,
-    _BidirIt  _last,
-    _Distance _len1,
-    _Distance _len2,
-    _Compare  _comp
+    BidirIt  _first,
+    BidirIt  _middle,
+    BidirIt  _last,
+    Distance _len1,
+    Distance _len2,
+    Compare  _comp
 )
 {
     // empty half: nothing to merge
@@ -99,10 +101,10 @@ _inplace_merge_recurse_(
         return;
     }
 
-    _BidirIt  _cut1;
-    _BidirIt  _cut2;
-    _Distance _len11;
-    _Distance _len22;
+    BidirIt  _cut1;
+    BidirIt  _cut2;
+    Distance _len11;
+    Distance _len22;
 
     if (_len1 > _len2)
     {
@@ -129,7 +131,7 @@ _inplace_merge_recurse_(
     // rotate the inner segment to bring matching halves together
     re_std::rotate(_cut1, _middle, _cut2);
 
-    _BidirIt _new_middle = _first;
+    BidirIt _new_middle = _first;
     re_std::advance(_new_middle, _len11 + _len22);
 
     _inplace_merge_recurse_(_first, _cut1, _new_middle,
@@ -147,16 +149,16 @@ _inplace_merge_recurse_(
 //   function: merges sorted [_first, _middle) with sorted
 // [_middle, _last) so that [_first, _last) becomes sorted, in place,
 // stably.
-template<typename _BidirIt>
+template<typename BidirIt>
 void
 inplace_merge(
-    _BidirIt _first,
-    _BidirIt _middle,
-    _BidirIt _last
+    BidirIt _first,
+    BidirIt _middle,
+    BidirIt _last
 )
 {
-    typedef typename iterator_traits<_BidirIt>::value_type _Value;
-    typedef typename iterator_traits<_BidirIt>::difference_type _Diff;
+    typedef typename iterator_traits<BidirIt>::value_type _Value;
+    typedef typename iterator_traits<BidirIt>::difference_type _Diff;
 
     _Diff _len1 = re_std::distance(_first,  _middle);
     _Diff _len2 = re_std::distance(_middle, _last);
@@ -170,17 +172,17 @@ inplace_merge(
 // II.  INPLACE_MERGE (COMPARATOR)
 // ===========================================================================
 
-template<typename _BidirIt,
-         typename _Compare>
+template<typename BidirIt,
+         typename Compare>
 void
 inplace_merge(
-    _BidirIt _first,
-    _BidirIt _middle,
-    _BidirIt _last,
-    _Compare _comp
+    BidirIt _first,
+    BidirIt _middle,
+    BidirIt _last,
+    Compare _comp
 )
 {
-    typedef typename iterator_traits<_BidirIt>::difference_type _Diff;
+    typedef typename iterator_traits<BidirIt>::difference_type _Diff;
 
     _Diff _len1 = re_std::distance(_first,  _middle);
     _Diff _len2 = re_std::distance(_middle, _last);
@@ -189,7 +191,7 @@ inplace_merge(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_INPLACE_MERGE_
+#endif  // RE_STD_ALGORITHM_INPLACE_MERGE_HPP

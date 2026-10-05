@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                      enable_shared_from_this.hpp
+/*******************************************************************************
+* djinterp [re_std]                                  enable_shared_from_this.hpp
 *
 * CRTP base for types that need to obtain a shared_ptr to themselves:
 *
@@ -18,7 +18,7 @@
 *
 * implementation note (the inline-friend ADL trick):
 *   The class declares a templated inline friend `sp_esft_link` that
-* takes an enable_shared_from_this<_T>* among its arguments. When
+* takes an enable_shared_from_this<T>* among its arguments. When
 * shared_ptr's ctor calls sp_esft_link(cb, ptr, ptr), ADL on ptr's
 * type finds this friend ONLY if the pointee derives from
 * enable_shared_from_this<U> for some U. Otherwise, only the variadic
@@ -29,18 +29,20 @@
 * via several inheritance hops.
 *
 *
-* path:      /inc/djinterp/re_std/memory/enable_shared_from_this.hpp
+* path:      /inc/re_std/memory/enable_shared_from_this.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_ENABLE_SHARED_FROM_THIS_
-#define DJINTERP_RE_STD_MEMORY_ENABLE_SHARED_FROM_THIS_ 1
+#ifndef RE_STD_MEMORY_ENABLE_SHARED_FROM_THIS_HPP
+#define RE_STD_MEMORY_ENABLE_SHARED_FROM_THIS_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/memory/shared_ptr.hpp"
     #include "re_std/memory/weak_ptr.hpp"
@@ -50,48 +52,48 @@ namespace re_std
 {
 
 // =============================================================================
-// enable_shared_from_this<_T>
+// enable_shared_from_this<T>
 // =============================================================================
 
-template<typename _T>
+template<typename T>
 class enable_shared_from_this
 {
 private:
-    mutable weak_ptr<_T> m_weak_this;
+    mutable weak_ptr<T> m_weak_this;
 
     // Inline friend, found by ADL when an argument's associated
-    // classes include enable_shared_from_this<_T> (i.e. the pointee
-    // derives from it). Templated on _Y so the deducer captures the
+    // classes include enable_shared_from_this<T> (i.e. the pointee
+    // derives from it). Templated on Y so the deducer captures the
     // most-derived static type at the call site.
-    template<typename _Y>
+    template<typename Y>
     friend void sp_esft_link
     (
         internal::sp_control_block_base*    _cb,
         const enable_shared_from_this*      _esft,
-        const _Y*                           _p
-    ) D_NOEXCEPT
+        const Y*                           _p
+    ) RE_STD_NOEXCEPT
     {
         if (_esft && _esft->m_weak_this.expired())
         {
             _esft->m_weak_this._sp_internal_assign(
-                const_cast<_Y*>(_p), _cb);
+                const_cast<Y*>(_p), _cb);
         }
     }
 
 protected:
-    D_CONSTEXPR enable_shared_from_this() D_NOEXCEPT
+    RE_STD_CONSTEXPR enable_shared_from_this() RE_STD_NOEXCEPT
         : m_weak_this()
     {
     }
 
-    enable_shared_from_this(const enable_shared_from_this&) D_NOEXCEPT
+    enable_shared_from_this(const enable_shared_from_this&) RE_STD_NOEXCEPT
         : m_weak_this()
     {
         // Copy ctor: do NOT copy the weak_this. Each enable_shared_from_this
         // instance starts fresh; the new shared_ptr (if any) re-installs.
     }
 
-    enable_shared_from_this& operator=(const enable_shared_from_this&) D_NOEXCEPT
+    enable_shared_from_this& operator=(const enable_shared_from_this&) RE_STD_NOEXCEPT
     {
         // Same logic: do not propagate weak_this.
         return *this;
@@ -102,30 +104,29 @@ protected:
     }
 
 public:
-    shared_ptr<_T> shared_from_this()
+    shared_ptr<T> shared_from_this()
     {
-        return shared_ptr<_T>(m_weak_this);
+        return shared_ptr<T>(m_weak_this);
     }
 
-    shared_ptr<const _T> shared_from_this() const
+    shared_ptr<const T> shared_from_this() const
     {
-        return shared_ptr<const _T>(m_weak_this);
+        return shared_ptr<const T>(m_weak_this);
     }
 
-    weak_ptr<_T> weak_from_this() D_NOEXCEPT
+    weak_ptr<T> weak_from_this() RE_STD_NOEXCEPT
     {
         return m_weak_this;
     }
 
-    weak_ptr<const _T> weak_from_this() const D_NOEXCEPT
+    weak_ptr<const T> weak_from_this() const RE_STD_NOEXCEPT
     {
         return m_weak_this;
     }
 };
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_ENABLE_SHARED_FROM_THIS_
+#endif  // RE_STD_MEMORY_ENABLE_SHARED_FROM_THIS_HPP

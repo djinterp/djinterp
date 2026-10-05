@@ -1,11 +1,11 @@
-/******************************************************************************
-* djinterp [re_std]                                             aligned_union.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            aligned_union.hpp
 *
 * aligned_union trait:
 *   Yields `type` as a POD type suitable for use as uninitialized storage
-* for an object of any of _Types..., with size at least _Len bytes (or
-* the largest sizeof(_Types...), whichever is greater) and alignment at
-* least the maximum of alignof(_Types...).
+* for an object of any of Types..., with size at least Len bytes (or
+* the largest sizeof(Types...), whichever is greater) and alignment at
+* least the maximum of alignof(Types...).
 *
 *   Also exposes `alignment_value` as a static constexpr std::size_t,
 * equal to that maximum alignment.
@@ -32,27 +32,31 @@
 * helper is self-contained).
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/aligned_union.hpp
+* path:      /inc/re_std/type_traits/aligned_union.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_UNION_
-#define DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_UNION_ 1
+#ifndef RE_STD_TYPE_TRAITS_ALIGNED_UNION_HPP
+#define RE_STD_TYPE_TRAITS_ALIGNED_UNION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>  // std::size_t
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // pack_max
         //   trait: compile-time maximum of a non-empty pack of
@@ -65,38 +69,38 @@ NS_RESTD
         template<std::size_t...>
         struct pack_max;
 
-        // pack_max<_N>
+        // pack_max<N>
         //   trait: 1-element base case.
-        template<std::size_t _N>
-        struct pack_max<_N>
+        template<std::size_t N>
+        struct pack_max<N>
         {
-            static const std::size_t value = _N;
+            static const std::size_t value = N;
         };
 
-        // pack_max<_A, _B, _Rest...>
-        //   trait: 2+-element step. Picks the larger of _A and _B,
-        //          recurses on (max, _Rest...).
-        template<std::size_t _A,
-                 std::size_t _B,
-                 std::size_t... _Rest>
-        struct pack_max<_A, _B, _Rest...>
-            : pack_max<( _A > _B ? _A : _B ), _Rest...>
+        // pack_max<A, B, Rest...>
+        //   trait: 2+-element step. Picks the larger of A and B,
+        //          recurses on (max, Rest...).
+        template<std::size_t A,
+                 std::size_t B,
+                 std::size_t... Rest>
+        struct pack_max<A, B, Rest...>
+            : pack_max<( A > B ? A : B ), Rest...>
         {};
 
-    NS_END  // internal
+    }  // internal
 
 
     // aligned_union
     //   trait: yields `type` as a POD struct suitable for storage of
-    //          any of _Types..., with size >= max(_Len, sizeof(_Types)...)
-    //          and alignment >= max(alignof(_Types)...). Also exposes
+    //          any of Types..., with size >= max(Len, sizeof(Types)...)
+    //          and alignment >= max(alignof(Types)...). Also exposes
     //          `alignment_value` as the maximum alignment.
-    template<std::size_t _Len,
-             typename... _Types>
+    template<std::size_t Len,
+             typename... Types>
     struct aligned_union
     {
         // alignment_value
-        //   constant: maximum alignment among _Types. Declared
+        //   constant: maximum alignment among Types. Declared
         //             `static const` (not `static constexpr`) for
         //             reliability across the C++11+ matrix -- the
         //             integral-type-with-constant-initializer rule has
@@ -105,16 +109,16 @@ NS_RESTD
         //             is incomplete. Matches the std spec's wording
         //             for the C++11 form of the trait.
         static const std::size_t alignment_value
-            = internal::pack_max<alignof(_Types)...>::value;
+            = internal::pack_max<alignof(Types)...>::value;
 
         // type
-        //   struct: the storage type. Sized to the largest of _Len and
-        //           any sizeof(_Types...), aligned to alignment_value.
+        //   struct: the storage type. Sized to the largest of Len and
+        //           any sizeof(Types...), aligned to alignment_value.
         struct type
         {
-            alignas( internal::pack_max<alignof(_Types)...>::value )
+            alignas( internal::pack_max<alignof(Types)...>::value )
             unsigned char m_data[
-                internal::pack_max<_Len, sizeof(_Types)...>::value ];
+                internal::pack_max<Len, sizeof(Types)...>::value ];
         };
     };
 
@@ -122,16 +126,16 @@ NS_RESTD
     // aligned_union_t
     //   alias: convenience alias yielding aligned_union<...>::type
     //          directly. Available wherever alias templates are.
-    #if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-        template<std::size_t _Len,
-                 typename... _Types>
-        using aligned_union_t = typename aligned_union<_Len, _Types...>::type;
+    #if RE_STD_LANG_HAS_ALIAS_TEMPLATES
+        template<std::size_t Len,
+                 typename... Types>
+        using aligned_union_t = typename aligned_union<Len, Types...>::type;
     #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_UNION_
+#endif  // RE_STD_TYPE_TRAITS_ALIGNED_UNION_HPP

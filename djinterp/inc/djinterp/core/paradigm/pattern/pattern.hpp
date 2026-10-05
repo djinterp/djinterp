@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [paradigm]                                              pattern.hpp
+/*******************************************************************************
+* djinterp [core]                                                    pattern.hpp
 *
 *   Type-agnostic pattern primitive.  A pattern is a four-faced view
 * of a structural specification:
@@ -35,47 +35,69 @@
 *
 * path:      /inc/djinterp/core/paradigm/pattern/pattern.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    STATUS CODES
+      ------------
+
 II.   CAPTURE MAP
+      -----------
+
 III.  MATCH RESULT
+      ------------
+
 IV.   PATTERN (CRTP BASE)
+      -------------------
+
 V.    PATTERN TRAITS
+      --------------
+
 VI.   COMBINATORS
+      -----------
       a. pattern_and
       b. pattern_or
-      c. pattern_not
+      c.    pattern_not
+
 VII.  C++20 CONCEPTS
+      --------------
 */
 
-#ifndef DJINTERP_PARADIGM_PATTERN_
-#define DJINTERP_PARADIGM_PATTERN_ 1
+#ifndef DJINTERP_PARADIGM_PATTERN_PATTERN_HPP
+#define DJINTERP_PARADIGM_PATTERN_PATTERN_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <type_traits>
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
+#include "../../meta/type_utility.hpp"  // void_t
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t
 
 
 NS_DJINTERP
 
 // forward declarations
-template<typename _Type, typename = void> struct pattern_has_input_type;
-template<typename _Type, typename = void> struct pattern_has_key_type;  
-template<typename _Type, typename = void> struct pattern_has_value_type;
-template<typename _Type, typename = void> struct pattern_has_do_match;
-template<typename _Type, typename = void> struct pattern_has_do_extract;
-template<typename _Type, typename = void> struct pattern_has_do_render;
-template<typename _Type, typename = void> struct pattern_has_do_rewrite;
+template<typename Type, typename = void> struct pattern_has_input_type;
+template<typename Type, typename = void> struct pattern_has_key_type;
+template<typename Type, typename = void> struct pattern_has_value_type;
+template<typename Type, typename = void> struct pattern_has_do_match;
+template<typename Type, typename = void> struct pattern_has_do_extract;
+template<typename Type, typename = void> struct pattern_has_do_render;
+template<typename Type, typename = void> struct pattern_has_do_rewrite;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,7 +106,7 @@ template<typename _Type, typename = void> struct pattern_has_do_rewrite;
 
 // pattern_status
 //   typedef: classifies the outcome of a pattern operation.
-typedef std::int32_t pattern_status;
+typedef re_std::int32_t pattern_status;
 
 // DPatternStatus*
 //   constants: standard pattern status codes.  Derived patterns
@@ -103,12 +125,12 @@ constexpr pattern_status DPatternStatusUserBase    = 64;
 
 // pattern_capture
 //   struct: a single key -> value binding produced by extraction.
-template<typename _Key,
-         typename _Value>
+template<typename Key,
+         typename Value>
 struct pattern_capture
 {
-    _Key    key;
-    _Value  value;
+    Key     key;
+    Value   value;
 
     pattern_capture()
         : key  (),
@@ -116,16 +138,16 @@ struct pattern_capture
     {}
 
     pattern_capture(
-        const _Key&   _key,
-        const _Value& _value
+        const Key&   _key,
+        const Value& _value
     )
         : key  (_key),
           value(_value)
     {}
 
     pattern_capture(
-        _Key&&   _key,
-        _Value&& _value
+        Key&&   _key,
+        Value&& _value
     )
         : key  (std::move(_key)),
           value(std::move(_value))
@@ -137,18 +159,18 @@ struct pattern_capture
 //   class: ordered list of pattern_capture entries with by-key
 // lookup.  Preserves insertion order (matching text_template's
 // binding semantics) and supports replace-on-set.
-template<typename _Key,
-         typename _Value>
+template<typename Key,
+         typename Value>
 class pattern_capture_map
 {
 public:
-    using capture_type   = pattern_capture<_Key, _Value>;
+    using capture_type   = pattern_capture<Key, Value>;
     using storage_type   = std::vector<capture_type>;
     using iterator       = typename storage_type::iterator;
     using const_iterator = typename storage_type::const_iterator;
     using size_type      = std::size_t;
-    using key_type       = _Key;
-    using value_type     = _Value;
+    using key_type       = Key;
+    using value_type     = Value;
 
     pattern_capture_map()
         : m_entries()
@@ -171,9 +193,9 @@ public:
     // find
     //   method: returns a pointer to the value bound to _key, or
     // nullptr if the key is absent.
-    D_NODISCARD const _Value*
+    D_NODISCARD const Value*
     find(
-        const _Key& _key
+        const Key& _key
     ) const
     {
         for (const auto& e : m_entries)
@@ -189,9 +211,9 @@ public:
 
     // find (mutable)
     //   method: mutable overload of find().
-    D_NODISCARD _Value*
+    D_NODISCARD Value*
     find(
-        const _Key& _key
+        const Key& _key
     )
     {
         for (auto& e : m_entries)
@@ -209,7 +231,7 @@ public:
     //   method: returns true if _key is bound.
     D_NODISCARD bool
     has(
-        const _Key& _key
+        const Key& _key
     ) const
     {
         return (find(_key) != nullptr);
@@ -224,11 +246,11 @@ public:
     // binding.  Returns a reference to *this for chaining.
     pattern_capture_map&
     set(
-        const _Key&   _key,
-        const _Value& _value
+        const Key&   _key,
+        const Value& _value
     )
     {
-        _Value* existing = find(_key);
+        Value* existing = find(_key);
 
         if (existing)
         {
@@ -245,11 +267,11 @@ public:
     // set (move overload)
     pattern_capture_map&
     set(
-        _Key&&   _key,
-        _Value&& _value
+        Key&&   _key,
+        Value&& _value
     )
     {
-        _Value* existing = find(_key);
+        Value* existing = find(_key);
 
         if (existing)
         {
@@ -269,7 +291,7 @@ public:
     // a binding was removed.
     bool
     erase(
-        const _Key& _key
+        const Key& _key
     )
     {
         for (auto it = m_entries.begin();
@@ -299,8 +321,8 @@ public:
     {
         for (const auto& e : _other.m_entries)
         {
-            if ( _overwrite || 
-                 !has(e.key)) )
+            if ( (_overwrite) ||
+                 (!has(e.key)) )
             {
                 set(e.key, e.value);
             }
@@ -341,11 +363,11 @@ private:
 //   struct: result of applying a pattern's extractor face.
 // Carries the matched flag, a status code, and the populated
 // capture map.  Default-constructed = no match.
-template<typename _Key,
-         typename _Value>
+template<typename Key,
+         typename Value>
 struct pattern_match_result
 {
-    using capture_map_type = pattern_capture_map<_Key, _Value>;
+    using capture_map_type = pattern_capture_map<Key, Value>;
 
     bool                matched;
     pattern_status      status;
@@ -386,25 +408,25 @@ struct pattern_match_result
 // forward declaration of traits for static_assert in pattern<>
 NS_TRAITS
 
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct pattern_has_input_type;
 
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct pattern_has_key_type;
 
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct pattern_has_value_type;
 
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct pattern_has_do_match;
 
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct pattern_has_do_extract;
 
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct pattern_has_do_render;
 
-    template<typename _Type, typename = void>
+    template<typename Type, typename = void>
     struct pattern_has_do_rewrite;
 
 NS_END  // traits
@@ -419,11 +441,11 @@ NS_END  // traits
 //   Conformance of the derived type is checked via deferred
 // static_asserts in the public methods, mirroring the
 // approach used in parse/scanner.hpp.
-template<typename _Derived>
+template<typename Derived>
 class pattern
 {
 public:
-    using derived_type = _Derived;
+    using derived_type = Derived;
 
     // -----------------------------------------------------------------
     //  predicate face (operator())
@@ -433,10 +455,10 @@ public:
     //   method: predicate face.  Returns true iff the input
     // conforms to the pattern.  Allows a conforming pattern to
     // act as a predicate in any predicate-consuming combinator.
-    template<typename _D = derived_type>
+    template<typename D = derived_type>
     D_NODISCARD bool
     operator()(
-        const typename _D::input_type& _in
+        const typename D::input_type& _in
     ) const
     {
         check_conformance();
@@ -451,10 +473,10 @@ public:
     // match
     //   method: explicit alias for operator() - preferred when
     // operator() would be ambiguous with another face.
-    template<typename _D = derived_type>
+    template<typename D = derived_type>
     D_NODISCARD bool
     match(
-        const typename _D::input_type& _in
+        const typename D::input_type& _in
     ) const
     {
         check_conformance();
@@ -470,11 +492,11 @@ public:
     //   method: returns a match result populated with the
     // captures bound by the input.  An unmatched input yields
     // a result with matched == false.
-    template<typename _D = derived_type>
-    D_NODISCARD pattern_match_result<typename _D::key_type,
-                                     typename _D::value_type>
+    template<typename D = derived_type>
+    D_NODISCARD pattern_match_result<typename D::key_type,
+                                     typename D::value_type>
     extract(
-        const typename _D::input_type& _in
+        const typename D::input_type& _in
     ) const
     {
         check_conformance();
@@ -489,11 +511,11 @@ public:
     // render
     //   method: produces an input value from a capture map,
     // substituting bound values at each capture point.
-    template<typename _D = derived_type>
-    D_NODISCARD typename _D::input_type
+    template<typename D = derived_type>
+    D_NODISCARD typename D::input_type
     render(
-        const pattern_capture_map<typename _D::key_type,
-                                  typename _D::value_type>& _captures
+        const pattern_capture_map<typename D::key_type,
+                                  typename D::value_type>& _captures
     ) const
     {
         check_conformance();
@@ -510,12 +532,12 @@ public:
     // _value, and re-renders.  Captures other than _key are
     // preserved.  If _in does not match the pattern, the input
     // is returned unchanged.
-    template<typename _D = derived_type>
-    D_NODISCARD typename _D::input_type
+    template<typename D = derived_type>
+    D_NODISCARD typename D::input_type
     rewrite(
-        const typename _D::input_type& _in,
-        const typename _D::key_type&   _key,
-        const typename _D::value_type& _value
+        const typename D::input_type& _in,
+        const typename D::key_type&   _key,
+        const typename D::value_type& _value
     ) const
     {
         check_conformance();
@@ -532,14 +554,14 @@ private:
     //   method: CRTP cast helper.
     D_NODISCARD derived_type&
     self()
-    { 
-        return *static_cast<derived_type*>(this); 
+    {
+        return *static_cast<derived_type*>(this);
     }
 
     D_NODISCARD const derived_type&
-    self() const 
-    { 
-        return *static_cast<const derived_type*>(this); 
+    self() const
+    {
+        return *static_cast<const derived_type*>(this);
     }
 
     // check_conformance
@@ -590,123 +612,126 @@ private:
 
     // pattern_has_input_type
     //   trait: detects a public `input_type` typedef.
-    template<typename _Type, typename>
+    template<typename Type, typename>
     struct pattern_has_input_type : std::false_type
     {};
 
-    template<typename _Type>
-    struct pattern_has_input_type<_Type,
-        std::void_t<typename _Type::input_type>> : std::true_type
+    template<typename Type>
+    struct pattern_has_input_type<Type,
+        void_t<typename Type::input_type>> : std::true_type
     {};
 
     // pattern_has_key_type
     //   trait: detects a public `key_type` typedef.
-    template<typename _Type, typename>
+    template<typename Type, typename>
     struct pattern_has_key_type : std::false_type
     {};
 
-    template<typename _Type>
-    struct pattern_has_key_type<_Type,
-        std::void_t<typename _Type::key_type>> : std::true_type
+    template<typename Type>
+    struct pattern_has_key_type<Type,
+        void_t<typename Type::key_type>> : std::true_type
     {};
 
     // pattern_has_value_type
     //   trait: detects a public `value_type` typedef.
-    template<typename _Type, typename>
+    template<typename Type, typename>
     struct pattern_has_value_type : std::false_type
     {};
 
-    template<typename _Type>
-    struct pattern_has_value_type<_Type,
-        std::void_t<typename _Type::value_type>> : std::true_type
+    template<typename Type>
+    struct pattern_has_value_type<Type,
+        void_t<typename Type::value_type>> : std::true_type
     {};
 
     // pattern_has_do_match
     //   trait: detects a callable `do_match(input_type) -> bool`.
-    template<typename _Type, typename>
+    template<typename Type, typename>
     struct pattern_has_do_match : std::false_type
     {};
 
-    template<typename _Type>
-    struct pattern_has_do_match<_Type, std::void_t<
+    template<typename Type>
+    struct pattern_has_do_match<Type, void_t<
         decltype(
             static_cast<bool>(
-                std::declval<const _Type&>().do_match(
+                std::declval<const Type&>().do_match(
                     std::declval<
-                        const typename _Type::input_type&>()))
+                        const typename Type::input_type&>()))
         )>> : std::true_type
     {};
 
     // pattern_has_do_extract
     //   trait: detects a callable `do_extract(input_type)`.
-    template<typename _Type, typename>
+    template<typename Type, typename>
     struct pattern_has_do_extract : std::false_type
     {};
 
-    template<typename _Type>
-    struct pattern_has_do_extract<_Type, std::void_t<
+    template<typename Type>
+    struct pattern_has_do_extract<Type, void_t<
         decltype(
-            std::declval<const _Type&>().do_extract(
+            std::declval<const Type&>().do_extract(
                 std::declval<
-                    const typename _Type::input_type&>())
+                    const typename Type::input_type&>())
         )>> : std::true_type
     {};
 
     // pattern_has_do_render
     //   trait: detects a callable
     // `do_render(capture_map_type) -> input_type`.
-    template<typename _Type, typename>
+    template<typename Type, typename>
     struct pattern_has_do_render : std::false_type
     {};
 
-    template<typename _Type>
-    struct pattern_has_do_render<_Type, std::void_t<
+    template<typename Type>
+    struct pattern_has_do_render<Type, void_t<
         decltype(
-            std::declval<const _Type&>().do_render(
+            std::declval<const Type&>().do_render(
                 std::declval<
                     const pattern_capture_map<
-                        typename _Type::key_type,
-                        typename _Type::value_type>&>())
+                        typename Type::key_type,
+                        typename Type::value_type>&>())
         )>> : std::true_type
     {};
 
     // pattern_has_do_rewrite
     //   trait: detects a callable
     // `do_rewrite(input_type, key_type, value_type) -> input_type`.
-    template<typename _Type, typename>
+    template<typename Type, typename>
     struct pattern_has_do_rewrite : std::false_type
     {};
 
-    template<typename _Type>
-    struct pattern_has_do_rewrite<_Type, std::void_t<
+    template<typename Type>
+    struct pattern_has_do_rewrite<Type, void_t<
         decltype(
-            std::declval<const _Type&>().do_rewrite(
-                std::declval<const typename _Type::input_type&>(),
-                std::declval<const typename _Type::key_type&>(),
-                std::declval<const typename _Type::value_type&>())
+            std::declval<const Type&>().do_rewrite(
+                std::declval<const typename Type::input_type&>(),
+                std::declval<const typename Type::key_type&>(),
+                std::declval<const typename Type::value_type&>())
         )>> : std::true_type
     {};
 
     // is_pattern
-    //   trait: composite trait - true iff _Type satisfies the
+    //   trait: composite trait - true iff Type satisfies the
     // full pattern protocol.
-    template<typename _Type>
+    template<typename Type>
     struct is_pattern
     {
         static constexpr bool value =
-            ( pattern_has_input_type <_Type>::value &&
-              pattern_has_key_type   <_Type>::value &&
-              pattern_has_value_type <_Type>::value &&
-              pattern_has_do_match   <_Type>::value &&
-              pattern_has_do_extract <_Type>::value &&
-              pattern_has_do_render  <_Type>::value &&
-              pattern_has_do_rewrite <_Type>::value );
+            ( pattern_has_input_type <Type>::value &&
+              pattern_has_key_type   <Type>::value &&
+              pattern_has_value_type <Type>::value &&
+              pattern_has_do_match   <Type>::value &&
+              pattern_has_do_extract <Type>::value &&
+              pattern_has_do_render  <Type>::value &&
+              pattern_has_do_rewrite <Type>::value );
     };
 
     // is_pattern_v
-    //   value: convenience alias for is_pattern<_Type>::value.
-    template<typename _Type>
-    constexpr bool is_pattern_v = is_pattern<_Type>::value;
+    //   value: convenience alias for is_pattern<Type>::value; a variable
+    // template, so C++14 and up.
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename Type>
+    constexpr bool is_pattern_v = is_pattern<Type>::value;
+#endif
 
 
 
@@ -723,42 +748,42 @@ private:
 // Extraction merges both capture maps (right-hand keys win on
 // collision).  Render delegates to the right-hand pattern.
 // Rewrite delegates to the right-hand pattern.
-template<typename _PatternA,
-         typename _PatternB>
+template<typename PatternA,
+         typename PatternB>
 class pattern_and_combinator
-    : public pattern<pattern_and_combinator<_PatternA, _PatternB>>
+    : public pattern<pattern_and_combinator<PatternA, PatternB>>
 {
 public:
-    using input_type       = typename _PatternA::input_type;
-    using key_type         = typename _PatternA::key_type;
-    using value_type       = typename _PatternA::value_type;
+    using input_type       = typename PatternA::input_type;
+    using key_type         = typename PatternA::key_type;
+    using value_type       = typename PatternA::value_type;
     using capture_map_type = pattern_capture_map<key_type, value_type>;
     using match_result_type =
         pattern_match_result<key_type, value_type>;
 
     static_assert(
-        std::is_same<typename _PatternA::input_type,
-                     typename _PatternB::input_type>::value,
+        std::is_same<typename PatternA::input_type,
+                     typename PatternB::input_type>::value,
         "pattern_and requires matching input_type on both sides.");
 
     static_assert(
-        std::is_same<typename _PatternA::key_type,
-                     typename _PatternB::key_type>::value,
+        std::is_same<typename PatternA::key_type,
+                     typename PatternB::key_type>::value,
         "pattern_and requires matching key_type on both sides.");
 
     static_assert(
-        std::is_same<typename _PatternA::value_type,
-                     typename _PatternB::value_type>::value,
+        std::is_same<typename PatternA::value_type,
+                     typename PatternB::value_type>::value,
         "pattern_and requires matching value_type on both sides.");
 
-    template<typename _AFwd,
-             typename _BFwd>
+    template<typename AFwd,
+             typename BFwd>
     pattern_and_combinator(
-        _AFwd&& _a,
-        _BFwd&& _b
+        AFwd&& _a,
+        BFwd&& _b
     )
-        : m_a(std::forward<_AFwd>(_a)),
-          m_b(std::forward<_BFwd>(_b))
+        : m_a(std::forward<AFwd>(_a)),
+          m_b(std::forward<BFwd>(_b))
     {}
 
     // CRTP-required interface
@@ -814,34 +839,34 @@ public:
     }
 
     // introspection
-    D_NODISCARD const _PatternA& first()  const { return m_a; }
-    D_NODISCARD const _PatternB& second() const { return m_b; }
+    D_NODISCARD const PatternA& first()  const { return m_a; }
+    D_NODISCARD const PatternB& second() const { return m_b; }
 
 private:
-    _PatternA m_a;
-    _PatternB m_b;
+    PatternA m_a;
+    PatternB m_b;
 };
 
 
 // pattern_and
 //   function: constructs a pattern_and_combinator from two
 // patterns of matching type.
-template<typename _PatternA,
-         typename _PatternB>
+template<typename PatternA,
+         typename PatternB>
 D_NODISCARD
-pattern_and_combinator<typename std::decay<_PatternA>::type,
-                       typename std::decay<_PatternB>::type>
+pattern_and_combinator<typename std::decay<PatternA>::type,
+                       typename std::decay<PatternB>::type>
 pattern_and
 (
-    _PatternA&& _a,
-    _PatternB&& _b
+    PatternA&& _a,
+    PatternB&& _b
 )
 {
     return pattern_and_combinator<
-        typename std::decay<_PatternA>::type,
-        typename std::decay<_PatternB>::type>(
-            std::forward<_PatternA>(_a),
-            std::forward<_PatternB>(_b));
+        typename std::decay<PatternA>::type,
+        typename std::decay<PatternB>::type>(
+            std::forward<PatternA>(_a),
+            std::forward<PatternB>(_b));
 }
 
 
@@ -854,42 +879,42 @@ pattern_and
 // matches.  Extraction returns the left-hand result if it
 // matches, otherwise the right-hand result.  Render and rewrite
 // delegate to the left-hand pattern.
-template<typename _PatternA,
-         typename _PatternB>
+template<typename PatternA,
+         typename PatternB>
 class pattern_or_combinator
-    : public pattern<pattern_or_combinator<_PatternA, _PatternB>>
+    : public pattern<pattern_or_combinator<PatternA, PatternB>>
 {
 public:
-    using input_type       = typename _PatternA::input_type;
-    using key_type         = typename _PatternA::key_type;
-    using value_type       = typename _PatternA::value_type;
+    using input_type       = typename PatternA::input_type;
+    using key_type         = typename PatternA::key_type;
+    using value_type       = typename PatternA::value_type;
     using capture_map_type = pattern_capture_map<key_type, value_type>;
     using match_result_type =
         pattern_match_result<key_type, value_type>;
 
     static_assert(
-        std::is_same<typename _PatternA::input_type,
-                     typename _PatternB::input_type>::value,
+        std::is_same<typename PatternA::input_type,
+                     typename PatternB::input_type>::value,
         "pattern_or requires matching input_type on both sides.");
 
     static_assert(
-        std::is_same<typename _PatternA::key_type,
-                     typename _PatternB::key_type>::value,
+        std::is_same<typename PatternA::key_type,
+                     typename PatternB::key_type>::value,
         "pattern_or requires matching key_type on both sides.");
 
     static_assert(
-        std::is_same<typename _PatternA::value_type,
-                     typename _PatternB::value_type>::value,
+        std::is_same<typename PatternA::value_type,
+                     typename PatternB::value_type>::value,
         "pattern_or requires matching value_type on both sides.");
 
-    template<typename _AFwd,
-             typename _BFwd>
+    template<typename AFwd,
+             typename BFwd>
     pattern_or_combinator(
-        _AFwd&& _a,
-        _BFwd&& _b
+        AFwd&& _a,
+        BFwd&& _b
     )
-        : m_a(std::forward<_AFwd>(_a)),
-          m_b(std::forward<_BFwd>(_b))
+        : m_a(std::forward<AFwd>(_a)),
+          m_b(std::forward<BFwd>(_b))
     {}
 
     D_NODISCARD bool
@@ -939,42 +964,42 @@ public:
         return m_b.do_rewrite(_in, _k, _v);
     }
 
-    D_NODISCARD const _PatternA&
-    first()  const 
+    D_NODISCARD const PatternA&
+    first()  const
     {
-        return m_a;     
+        return m_a;
     }
 
-    D_NODISCARD const _PatternB&
+    D_NODISCARD const PatternB&
     second() const
     {
         return m_b;
     }
 
 private:
-    _PatternA m_a;
-    _PatternB m_b;
+    PatternA m_a;
+    PatternB m_b;
 };
 
 
 // pattern_or
 //   function: constructs a pattern_or_combinator.
-template<typename _PatternA,
-         typename _PatternB>
+template<typename PatternA,
+         typename PatternB>
 D_NODISCARD
-pattern_or_combinator<typename std::decay<_PatternA>::type,
-                      typename std::decay<_PatternB>::type>
+pattern_or_combinator<typename std::decay<PatternA>::type,
+                      typename std::decay<PatternB>::type>
 pattern_or
 (
-    _PatternA&& _a,
-    _PatternB&& _b
+    PatternA&& _a,
+    PatternB&& _b
 )
 {
     return pattern_or_combinator<
-        typename std::decay<_PatternA>::type,
-        typename std::decay<_PatternB>::type>(
-            std::forward<_PatternA>(_a),
-            std::forward<_PatternB>(_b));
+        typename std::decay<PatternA>::type,
+        typename std::decay<PatternB>::type>(
+            std::forward<PatternA>(_a),
+            std::forward<PatternB>(_b));
 }
 
 
@@ -988,23 +1013,23 @@ pattern_or
 // (i.e. when the input does not match the wrapped pattern).
 // Render returns a default-constructed input_type.  Rewrite
 // returns the input unchanged.
-template<typename _Pattern>
+template<typename Pattern>
 class pattern_not_combinator
-    : public pattern<pattern_not_combinator<_Pattern>>
+    : public pattern<pattern_not_combinator<Pattern>>
 {
 public:
-    using input_type       = typename _Pattern::input_type;
-    using key_type         = typename _Pattern::key_type;
-    using value_type       = typename _Pattern::value_type;
+    using input_type       = typename Pattern::input_type;
+    using key_type         = typename Pattern::key_type;
+    using value_type       = typename Pattern::value_type;
     using capture_map_type = pattern_capture_map<key_type, value_type>;
     using match_result_type =
         pattern_match_result<key_type, value_type>;
 
-    template<typename _PFwd>
+    template<typename PFwd>
     explicit pattern_not_combinator(
-        _PFwd&& _p
+        PFwd&& _p
     )
-        : m_p(std::forward<_PFwd>(_p))
+        : m_p(std::forward<PFwd>(_p))
     {}
 
     D_NODISCARD bool
@@ -1046,29 +1071,29 @@ public:
         return _in;
     }
 
-    D_NODISCARD const _Pattern& 
+    D_NODISCARD const Pattern&
     inner() const
-    { 
-        return m_p; 
+    {
+        return m_p;
     }
 
 private:
-    _Pattern m_p;
+    Pattern m_p;
 };
 
 
 // pattern_not
 //   function: constructs a pattern_not_combinator.
-template<typename _Pattern>
-D_NODISCARD pattern_not_combinator<typename std::decay<_Pattern>::type>
+template<typename Pattern>
+D_NODISCARD pattern_not_combinator<typename std::decay<Pattern>::type>
 pattern_not
 (
-    _Pattern&& _p
+    Pattern&& _p
 )
 {
     return pattern_not_combinator<
-        typename std::decay<_Pattern>::type>(
-            std::forward<_Pattern>(_p));
+        typename std::decay<Pattern>::type>(
+            std::forward<Pattern>(_p));
 }
 
 
@@ -1083,13 +1108,15 @@ pattern_not
 //   concept: constrains types that satisfy the full pattern
 // protocol - input/key/value typedefs plus the four do_*
 // member functions.
-template<typename _Type>
-concept pattern_type = is_pattern<_Type>::value;
+template<typename Type>
+concept pattern_type = is_pattern<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARADIGM_PATTERN_
+
+#endif  // DJINTERP_PARADIGM_PATTERN_PATTERN_HPP

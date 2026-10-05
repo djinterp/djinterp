@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                   star_3d.hpp
+/*******************************************************************************
+* djinterp [math]                                                    star_3d.hpp
 *
 * 3D star polyhedra: face-erection and named instances.
 *   Provides two complementary tools for "spiky" polyhedra:
@@ -38,21 +38,25 @@
 *       a working mesh plus correct analytic measurements in the
 *       meantime.
 *
+*
 * path:      /inc/djinterp/math/geometry/star_3d.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_STAR_3D_
-#define DJINTERP_MATH_GEOMETRY_STAR_3D_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_STAR_3D_HPP
+#define DJINTERP_MATH_GEOMETRY_STAR_3D_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <type_traits>
+// djinterp
 #include "../../djinterp.hpp"
-#include "../coordinate.hpp"
+#include "../coordinate/coordinate.hpp"
 #include "./geometry_common.hpp"
 #include "./solid.hpp"
 
@@ -1292,4 +1296,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_STAR_3D_
+#endif  // DJINTERP_MATH_GEOMETRY_STAR_3D_HPP

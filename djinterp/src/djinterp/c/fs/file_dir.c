@@ -12,13 +12,12 @@
 * path:      /src/djinterp/c/fs/file_dir.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.03
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/fs/file_dir.h"  // corresponding header
 // std
 #include <errno.h>   // errno, EEXIST, EINVAL, ENAMETOOLONG, ENOENT, ENOTDIR
 #include <stddef.h>  // NULL, size_t
-#include <stdint.h>  // uint8_t, uint32_t, uint64_t
 #include <stdlib.h>  // realpath
 #include <string.h>  // memcpy, memset, strlen
 // djinterp
@@ -26,6 +25,9 @@
 #include "../../../../inc/djinterp/c/fs/file_path.h"    // d_path_join, d_path_root_length
 #include "../../../../inc/djinterp/c/fs/file_stat.h"    // d_file_stat_nofollow, d_dir_exists
 #include "../../../../inc/djinterp/config/c/fs/cfg_file_dir.h"  // D_INTERNAL_FILE_DIR_*
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint32_t,
+                                                     // uint64_t
 
 
 //==============================================================================

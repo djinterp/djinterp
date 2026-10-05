@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                        alternative.hpp
+/*******************************************************************************
+* djinterp [core]                                                alternative.hpp
 *
 * Alternative protocol: a monoid on a functor -- empty and choice (C++).
 *   An Alternative is a context F<A> that carries a monoid structure at every
@@ -44,33 +44,44 @@
 *   std::vector<maybe<int> > opts{ nothing<int>(), just(3), just(9) };
 *   maybe<int> first = asum(opts);                  // just(3)
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/alternative.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    ALTERNATIVE PROTOCOL
-      1.  alternative_traits<F>                   (primary, undefined)
-      2.  is_alternative<T>                       (detection trait)
+      --------------------
+      1.    alternative_traits<F>                   (primary, undefined)
+      2.    is_alternative<T>                       (detection trait)
+
 II.   GENERIC ALTERNATIVE OPERATIONS
-      1.  aempty<F>                               (the empty / failure)
-      2.  alt                                     (associative choice, <|>)
-      3.  asum                                    (choose across a foldable)
+      ------------------------------
+      1.    aempty<F>                               (the empty / failure)
+      2.    alt                                     (associative choice, <|>)
+      3.    asum                                    (choose across a foldable)
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_ALTERNATIVE_
-#define DJINTERP_FUNCTIONAL_ALTERNATIVE_ 1
+#ifndef DJINTERP_FUNCTIONAL_ALTERNATIVE_HPP
+#define DJINTERP_FUNCTIONAL_ALTERNATIVE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // void_t
 #include "./foldable.hpp"
 
 
@@ -93,8 +104,8 @@ NS_DJINTERP
 //   The second parameter is a SFINAE hook used by the family instances
 // (view, producer) that key on a structural trait. The primary is left
 // undefined so a use on a non-alternative produces a clean resolution error.
-template<typename _Alternative,
-         typename _Enable = void>
+template<typename Alternative,
+         typename Enable = void>
 struct alternative_traits;
 
 
@@ -104,52 +115,52 @@ NS_INTERNAL
     //   helper: SFINAE detector for whether alternative_traits<T> is
     // specialized. Looks for the is_specialized marker that every
     // specialization provides.
-    template<typename _Type>
+    template<typename Type>
     struct is_alternative_helper
     {
     private:
-        template<typename _T>
+        template<typename T>
         static auto test(int)
             -> decltype(
-                typename alternative_traits<_T>::is_specialized{},
+                typename alternative_traits<T>::is_specialized{},
                 std::true_type{});
 
         template<typename>
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 
 // is_alternative
-//   trait: true if _Type has a specialization of alternative_traits (after
+//   trait: true if Type has a specialization of alternative_traits (after
 // cv-ref stripping). Used to SFINAE-constrain generic operations.
-template<typename _Type>
+template<typename Type>
 struct is_alternative
-    : internal::is_alternative_helper<typename std::decay<_Type>::type>::type
+    : internal::is_alternative_helper<typename std::decay<Type>::type>::type
 {
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // is_alternative_v
-//   value: convenience alias for is_alternative<_Type>::value.
-template<typename _Type>
-static constexpr bool is_alternative_v = is_alternative<_Type>::value;
+//   value: convenience alias for is_alternative<Type>::value.
+template<typename Type>
+static constexpr bool is_alternative_v = is_alternative<Type>::value;
 #endif
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // Alternative
-    //   concept: satisfied when _Type is a specialized alternative. The
+    //   concept: satisfied when Type is a specialized alternative. The
     // PascalCase typeclass face, alongside Functor / Applicative / Foldable /
     // Monoid. (Conceptually a refinement of Applicative; see the header note.)
-    template<typename _Type>
-    concept Alternative = is_alternative<_Type>::value;
+    template<typename Type>
+    concept Alternative = is_alternative<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -165,17 +176,17 @@ NS_INTERNAL
 
     // alternative_value_type_helper
     //   helper: SFINAE extractor for alternative_traits<F>::value_type.
-    template<typename _AlwaysVoid,
-             typename _Alternative>
+    template<typename AlwaysVoid,
+             typename Alternative>
     struct alternative_value_type_helper
     {};
 
-    template<typename _Alternative>
+    template<typename Alternative>
     struct alternative_value_type_helper<
-        void_t<typename alternative_traits<_Alternative>::value_type>,
-        _Alternative>
+        void_t<typename alternative_traits<Alternative>::value_type>,
+        Alternative>
     {
-        using type = typename alternative_traits<_Alternative>::value_type;
+        using type = typename alternative_traits<Alternative>::value_type;
     };
 
 NS_END  // internal
@@ -183,18 +194,18 @@ NS_END  // internal
 
 // alternative_value_type
 //   trait: the inner value type A of an alternative F. SFINAE-friendly.
-template<typename _Alternative>
+template<typename Alternative>
 struct alternative_value_type
 {
     using type = typename internal::alternative_value_type_helper<
-        void, typename std::decay<_Alternative>::type>::type;
+        void, typename std::decay<Alternative>::type>::type;
 };
 
 // alternative_value_type_t
 //   type: convenience alias for alternative_value_type<F>::type.
-template<typename _Alternative>
+template<typename Alternative>
 using alternative_value_type_t =
-    typename alternative_value_type<_Alternative>::type;
+    typename alternative_value_type<Alternative>::type;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -206,17 +217,17 @@ using alternative_value_type_t =
 
 // aempty
 //   function: the empty / failure element of an alternative. The type
-// _Alternative must be supplied explicitly (it cannot be deduced), as with
+// Alternative must be supplied explicitly (it cannot be deduced), as with
 // mempty. For maybe this is nothing; for a sequence it is the empty sequence.
 //
 //   Example: aempty<maybe<int>>() -> nothing
-template<typename _Alternative>
+template<typename Alternative>
 D_NODISCARD
 D_CONSTEXPR
 auto aempty()
--> decltype(alternative_traits<_Alternative>::empty())
+-> decltype(alternative_traits<Alternative>::empty())
 {
-    return alternative_traits<_Alternative>::empty();
+    return alternative_traits<Alternative>::empty();
 }
 
 
@@ -228,22 +239,22 @@ auto aempty()
 // concat context with the same value_type.
 //
 //   Example: alt(nothing<int>(), just(7)) -> just(7)
-template<typename _AlternativeA,
-         typename _AlternativeB>
+template<typename AlternativeA,
+         typename AlternativeB>
 D_NODISCARD
 D_CONSTEXPR
 auto alt
 (
-    _AlternativeA&& _a,
-    _AlternativeB&& _b
+    AlternativeA&& _a,
+    AlternativeB&& _b
 )
--> decltype(alternative_traits<typename std::decay<_AlternativeA>::type>::choice(
-       std::forward<_AlternativeA>(_a),
-       std::forward<_AlternativeB>(_b)))
+-> decltype(alternative_traits<typename std::decay<AlternativeA>::type>::choice(
+       std::forward<AlternativeA>(_a),
+       std::forward<AlternativeB>(_b)))
 {
-    return alternative_traits<typename std::decay<_AlternativeA>::type>::choice(
-        std::forward<_AlternativeA>(_a),
-        std::forward<_AlternativeB>(_b));
+    return alternative_traits<typename std::decay<AlternativeA>::type>::choice(
+        std::forward<AlternativeA>(_a),
+        std::forward<AlternativeB>(_b));
 }
 
 
@@ -255,13 +266,13 @@ NS_INTERNAL
     // A named functor keeps it usable on every floor. Intended for a uniform
     // alternative, whose alt returns the same type (so the fold accumulator is
     // stable).
-    template<typename _Alternative>
+    template<typename Alternative>
     struct alternative_choice_helper
     {
         D_CONSTEXPR
-        _Alternative operator()(
-            _Alternative        _acc,
-            const _Alternative& _option
+        Alternative operator()(
+            Alternative         _acc,
+            const Alternative& _option
         ) const
         {
             return ::djinterp::alt(_acc, _option);
@@ -278,16 +289,16 @@ NS_END  // internal
 // foldable is empty. The Alternative counterpart of mconcat.
 //
 //   Example: asum(vector<maybe<int>>{ nothing, just(3), just(9) }) -> just(3)
-template<typename _Foldable>
+template<typename Foldable>
 D_NODISCARD
 D_CONSTEXPR
-foldable_value_type_t<_Foldable>
+foldable_value_type_t<Foldable>
 asum
 (
-    const _Foldable& _fa
+    const Foldable& _fa
 )
 {
-    using alternative_t = foldable_value_type_t<_Foldable>;
+    using alternative_t = foldable_value_type_t<Foldable>;
 
     return ::djinterp::fold_left(
         _fa,
@@ -298,5 +309,7 @@ asum
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_ALTERNATIVE_
+
+#endif  // DJINTERP_FUNCTIONAL_ALTERNATIVE_HPP

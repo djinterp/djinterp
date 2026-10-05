@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                       registry_common.h
+/*******************************************************************************
+* djinterp [c]                                                 registry_common.h
 *
 *   Shared types/utilities for:
 *     1) in-memory djinterp cvar registry (Source-style cvars)
@@ -9,30 +9,48 @@
 *   with the general-purpose `d_registry` in registry.h.  Both headers may
 *   be included in the same translation unit.
 *
-* path:      /inc/c/container/registry/registry_common.h
+*
+* path:      /inc/djinterp/c/container/registry/registry_common.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_CONTAINER_REGISTRY_COMMON_
-#define DJINTERP_C_CONTAINER_REGISTRY_COMMON_ 1
+#ifndef DJINTERP_C_CONTAINER_REGISTRY_REGISTRY_COMMON_H
+#define DJINTERP_C_CONTAINER_REGISTRY_REGISTRY_COMMON_H 1
 
+// std
 #include <stddef.h>
-#include <stdint.h>
-#include "..\..\djinterp.h"
-#include "..\..\type_info.h"
+// djinterp
+#include "../../djinterp.h"
+#include "../../meta/type_info.h"
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // uint16_t, uint32_t
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
 
 
-// `d_cvar_registry` flags
+// D_CVAR_REGISTRY_FLAG_<NONE-OWNS_VALUES>
+//   macro: bit positions of the `flags` member of `d_cvar_registry`. They
+// describe the registry as a whole: how keys are matched, and whether the
+// registry frees the values it holds.
 #define D_CVAR_REGISTRY_FLAG_NONE              0x00000000u
 #define D_CVAR_REGISTRY_FLAG_CASE_SENSITIVE    0x00000001u
 #define D_CVAR_REGISTRY_FLAG_OWNS_VALUES       0x00000002u
 
-// `d_registry_value` flags
+// D_REGISTRY_VALUE_FLAG_<NONE-INITIALIZED>
+//   macro: bit positions of the `flags` member of `d_registry_value`. They
+// describe one slot: whether it currently holds a value, whether that value's
+// memory belongs to the registry, and whether the schema has assigned it a
+// type and default.
 #define D_REGISTRY_VALUE_FLAG_NONE             0x00000000u
-#define D_REGISTRY_VALUE_FLAG_HAS_VALUE        0x00000001u  // current value set
-#define D_REGISTRY_VALUE_FLAG_OWNED            0x00000002u  // registry owns current value memory
-#define D_REGISTRY_VALUE_FLAG_INITIALIZED      0x00000004u  // schema assigned type/default
+#define D_REGISTRY_VALUE_FLAG_HAS_VALUE        0x00000001u
+#define D_REGISTRY_VALUE_FLAG_OWNED            0x00000002u
+#define D_REGISTRY_VALUE_FLAG_INITIALIZED      0x00000004u
 
 
 //==============================================================================
@@ -51,7 +69,7 @@ struct d_registry_schema_row
     const char*   abbreviation;   // optional short key (or alias), may be NULL
     uint16_t      enum_key;       // dense enum index (preferred)
     d_type_info64 type;           // D_TYPE_INFO_*
-    const void*   default_value;  // pointer-typed default (or address of scalar default)
+    const void*   default_value;  // pointer default, or address of a scalar
     const char*   description;    // optional help text
 };
 
@@ -59,7 +77,8 @@ struct d_registry_schema_row
 //   type: mutable value slot keyed by enum_key.
 //   notes:
 //     - default_value is kept const
-//     - current value may be owned by registry (OWNED flag) and freed by free_fn.
+//     - the current value may be owned by the registry (the OWNED flag), in
+//       which case free_fn releases it.
 struct d_registry_value
 {
     d_type_info64  type;
@@ -91,14 +110,19 @@ struct d_cvar_registry
 // Convenience schema initializer
 //==============================================================================
 
+// D_REGISTRY_SCHEMA_ROW
+//   macro: brace initializer for one `d_registry_schema_row`. Casts each field
+// to its declared type so a schema table can be written as a list of rows
+// without a cast at every entry. Alias rows repeat `_enum_key` to share a
+// single value slot.
 #define D_REGISTRY_SCHEMA_ROW(_key, _abbr, _enum_key, _type, _default, _desc) \
-    {                                                                        \
-        (_key),                                                              \
-        (_abbr),                                                             \
-        (uint16_t)(_enum_key),                                               \
-        (d_type_info64)(_type),                                              \
-        (const void*)(_default),                                             \
-        (_desc)                                                              \
+    {                                                                         \
+        (_key),                                                               \
+        (_abbr),                                                              \
+        (uint16_t)(_enum_key),                                                \
+        (d_type_info64)(_type),                                               \
+        (const void*)(_default),                                              \
+        (_desc)                                                               \
     }
 
 
@@ -106,9 +130,15 @@ struct d_cvar_registry
 // Shared function declarations (implemented in registry_common.c)
 //==============================================================================
 
-int      d_registry_strcmp(const char* _a, const char* _b, bool _case_sensitive);
+int d_registry_strcmp(const char* _a,
+                      const char* _b,
+                      bool        _case_sensitive);
 
-uint16_t d_registry_schema_max_enum_key(const struct d_registry_schema_row* _schema, size_t _schema_count);
+uint16_t d_registry_schema_max_enum_key(
+    const struct d_registry_schema_row* _schema,
+    size_t                              _schema_count);
 
 
-#endif // DJINTERP_C_CONTAINER_REGISTRY_COMMON_
+#endif  // defined(INT64_MAX)
+
+#endif // DJINTERP_C_CONTAINER_REGISTRY_REGISTRY_COMMON_H

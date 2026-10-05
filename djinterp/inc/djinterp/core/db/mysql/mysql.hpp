@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                                mysql.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                                      mysql.hpp
+*
 * djinterp Oracle MySQL connection module:
 *   This header provides the Oracle MySQL-specific connection
 * implementation and associated infrastructure for the djinterp database
@@ -36,25 +36,35 @@
 *           -> connection_template<mysql_connection, database_type::mysql>
 *             -> connection<mysql_connection>
 *
-* 
+*
 *   DETECTION:
 *   Also carries this database's capability-detection traits and C++20 concepts
 * (trailing sections), folded in from mysql_traits.hpp and the matching *_concepts.hpp;
 * detection now lives with the connection. Concepts gated on concept support.
 *
+*
 * path:      /inc/djinterp/core/db/mysql/mysql.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_MYSQL_
-#define DJINTERP_DATABASE_MYSQL_
+#ifndef DJINTERP_DB_MYSQL_MYSQL_HPP
+#define DJINTERP_DB_MYSQL_MYSQL_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint32_t,
+                                                   // uint16_t, uint8_t, int64_t
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // djinterp
 #include "../../../djinterp.hpp"
+#include "../../meta/type_utility.hpp"  // clean_t, self
 #include "../../../env/db/mysql/env_mysql.h"
 #include "./mysql_common.hpp"
-#include "../database_traits.hpp"
 
 
 NS_DJINTERP
@@ -78,86 +88,86 @@ struct mysql_type_support
 
     static constexpr bool has_json_type =
     #if D_ENV_MYSQL_HAS_JSON_TYPE
-        true;  
+        true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_JSON_TYPE
 
     static constexpr bool has_json_table =
     #if D_ENV_MYSQL_HAS_JSON_TABLE
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_JSON_TABLE
 
     static constexpr bool has_json_schema_validation =
     #if D_ENV_MYSQL_HAS_JSON_SCHEMA_VALIDATION
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_JSON_SCHEMA_VALIDATION
 
     static constexpr bool has_json_value =
     #if D_ENV_MYSQL_HAS_JSON_VALUE
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_JSON_VALUE
 
     static constexpr bool has_json_arrayagg =
     #if D_ENV_MYSQL_HAS_JSON_ARRAYAGG
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_JSON_ARRAYAGG
 
     static constexpr bool has_multi_value_index =
     #if D_ENV_MYSQL_HAS_MULTI_VALUE_INDEX
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_MULTI_VALUE_INDEX
 
     static constexpr bool has_generated_columns =
     #if D_ENV_MYSQL_HAS_GENERATED_COLUMNS
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_DESCENDING_INDEX
 
     static constexpr bool has_check_constraints =
     #if D_ENV_MYSQL_HAS_CHECK_CONSTRAINTS
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_CHECK_CONSTRAINTS
 
     static constexpr bool has_invisible_columns =
     #if D_ENV_MYSQL_HAS_INVISIBLE_COLUMNS
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_INVISIBLE_COLUMNS
 
     static constexpr bool has_functional_index =
     #if D_ENV_MYSQL_HAS_FUNCTIONAL_INDEX
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_FUNCTIONAL_INDEX
 
     static constexpr bool has_descending_index =
     #if D_ENV_MYSQL_HAS_DESCENDING_INDEX
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_DESCENDING_INDEX
 
     static constexpr bool has_srid_support =
     #if D_ENV_MYSQL_HAS_SRID_SUPPORT
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_SRID_SUPPORT
 
 #else
@@ -192,42 +202,42 @@ struct mysql_feature_support
     #if D_ENV_MYSQL_HAS_WINDOW_FUNCTIONS
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_WINDOW_FUNCTIONS
 
     static constexpr bool has_cte =
     #if D_ENV_MYSQL_HAS_CTE
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_CTE
 
     static constexpr bool has_lateral_derived =
     #if D_ENV_MYSQL_HAS_LATERAL_DERIVED
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_LATERAL_DERIVED
 
     static constexpr bool has_hash_join =
     #if D_ENV_MYSQL_HAS_HASH_JOIN
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_HASH_JOIN
 
     static constexpr bool has_histograms =
     #if D_ENV_MYSQL_HAS_HISTOGRAMS
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_HISTOGRAMS
 
     static constexpr bool has_explain_analyze =
     #if D_ENV_MYSQL_HAS_EXPLAIN_ANALYZE
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_EXPLAIN_ANALYZE
 
 
@@ -236,7 +246,7 @@ struct mysql_feature_support
     #if D_ENV_MYSQL_HAS_X_PROTOCOL
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_X_PROTOCOL
 
     // replication and HA
@@ -244,14 +254,14 @@ struct mysql_feature_support
     #if D_ENV_MYSQL_HAS_GROUP_REPLICATION
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_GROUP_REPLICATION
 
     static constexpr bool has_innodb_cluster =
     #if D_ENV_MYSQL_HAS_INNODB_CLUSTER
         true;
     #else
-        false;  
+        false;
     #endif  // D_ENV_MYSQL_HAS_INNODB_CLUSTER
 
     static constexpr bool has_clone_plugin =
@@ -443,17 +453,17 @@ struct mysql_version_info
 {
 #if D_ENV_MYSQL_DETECTED
     static constexpr bool          detected = true;
-    static constexpr std::uint32_t id       = D_ENV_MYSQL_VERSION_ID;
-    static constexpr std::uint16_t major    = D_ENV_MYSQL_VERSION_MAJOR;
-    static constexpr std::uint16_t minor    = D_ENV_MYSQL_VERSION_MINOR;
-    static constexpr std::uint16_t patch    = D_ENV_MYSQL_VERSION_PATCH;
+    static constexpr re_std::uint32_t id       = D_ENV_MYSQL_VERSION_ID;
+    static constexpr re_std::uint16_t major    = D_ENV_MYSQL_VERSION_MAJOR;
+    static constexpr re_std::uint16_t minor    = D_ENV_MYSQL_VERSION_MINOR;
+    static constexpr re_std::uint16_t patch    = D_ENV_MYSQL_VERSION_PATCH;
     static constexpr const char*   string   = D_ENV_MYSQL_VERSION_STRING;
 #else
     static constexpr bool          detected = false;
-    static constexpr std::uint32_t id       = 0;
-    static constexpr std::uint16_t major    = 0;
-    static constexpr std::uint16_t minor    = 0;
-    static constexpr std::uint16_t patch    = 0;
+    static constexpr re_std::uint32_t id       = 0;
+    static constexpr re_std::uint16_t major    = 0;
+    static constexpr re_std::uint16_t minor    = 0;
+    static constexpr re_std::uint16_t patch    = 0;
     static constexpr const char*   string   = "not detected";
 #endif
 
@@ -461,9 +471,9 @@ struct mysql_version_info
     //   function: returns true if the detected MySQL version is at
     // least (major, minor, patch).
     static constexpr bool at_least(
-        std::uint16_t _major,
-        std::uint16_t _minor,
-        std::uint16_t _patch) noexcept
+        re_std::uint16_t _major,
+        re_std::uint16_t _minor,
+        re_std::uint16_t _patch) noexcept
     {
         return id >= (_major * 10000u + _minor * 100u + _patch);
     }
@@ -476,7 +486,7 @@ struct mysql_version_info
 
 // mysql_ssl_mode
 //   enum: MySQL SSL connection modes (mysql_ssl_mode from mysql.h).
-enum class mysql_ssl_mode : std::uint8_t
+enum class mysql_ssl_mode : re_std::uint8_t
 {
     disabled       = 1,     // SSL_MODE_DISABLED
     preferred      = 2,     // SSL_MODE_PREFERRED
@@ -495,7 +505,7 @@ struct oracle_mysql_connect_config
     std::string          auth_plugin;
     std::string          tls_version;
     std::string          tls_ciphersuites;
-    std::uint16_t        x_protocol_port;
+    re_std::uint16_t        x_protocol_port;
     bool                 use_x_protocol;
     bool                 enable_session_tracking;
     bool                 enable_cleartext_plugin;
@@ -683,7 +693,7 @@ public:
     auto        execute_query_helper(const std::string& _query)
                     -> std::unique_ptr<
                         result_set<struct mysql_result_set_helper>>;
-    std::int64_t execute_update_helper(const std::string& _query);
+    re_std::int64_t execute_update_helper(const std::string& _query);
     bool        execute_helper(const std::string& _query);
 
     auto        prepare_helper(const std::string& _query)
@@ -693,8 +703,8 @@ public:
     std::string  get_server_version_helper() const;
     std::string  get_last_error_helper() const;
     int          get_last_error_code_helper() const;
-    std::int64_t get_last_insert_id_helper() const;
-    std::int64_t get_affected_rows_helper() const;
+    re_std::int64_t get_last_insert_id_helper() const;
+    re_std::int64_t get_affected_rows_helper() const;
 
     // MySQL-family common _helper methods
     void          set_charset_helper(const std::string& _charset);
@@ -814,9 +824,9 @@ struct mysql_statement_helper;
 // note: MariaDB has the same function but at a different version gate
 // (10.2.4); the detector expression is identical but the version-gated
 // availability differs.
-template<typename _Type>
+template<typename Type>
 using mysql_ora_reset_connection_t =
-    decltype(std::declval<_Type&>().reset_connection());
+    decltype(std::declval<Type&>().reset_connection());
 
 // -------------------------------------------------------------------------
 // B.  asynchronous C API
@@ -825,24 +835,24 @@ using mysql_ora_reset_connection_t =
 // mysql_ora_async_query_start_t
 //   detector: async_query_start(const std::string&) method.
 // wraps mysql_real_query_nonblocking() introduced in Oracle MySQL 8.0.16.
-template<typename _Type>
+template<typename Type>
 using mysql_ora_async_query_start_t =
-    decltype(std::declval<_Type&>().async_query_start(
+    decltype(std::declval<Type&>().async_query_start(
         std::declval<const std::string&>()));
 
 // mysql_ora_async_query_cont_t
 //   detector: async_query_cont() method.
 // wraps mysql_real_query_nonblocking() continuation.
-template<typename _Type>
+template<typename Type>
 using mysql_ora_async_query_cont_t =
-    decltype(std::declval<_Type&>().async_query_cont());
+    decltype(std::declval<Type&>().async_query_cont());
 
 // mysql_ora_async_connect_start_t
 //   detector: async_connect_start() method.
 // wraps mysql_real_connect_nonblocking().
-template<typename _Type>
+template<typename Type>
 using mysql_ora_async_connect_start_t =
-    decltype(std::declval<_Type&>().async_connect_start());
+    decltype(std::declval<Type&>().async_connect_start());
 
 // -------------------------------------------------------------------------
 // C.  session tracking
@@ -851,9 +861,9 @@ using mysql_ora_async_connect_start_t =
 // mysql_ora_get_session_track_info_t
 //   detector: get_session_track_info(int) const method.
 // wraps mysql_session_track_get_first/next() introduced in 5.7.4.
-template<typename _Type>
+template<typename Type>
 using mysql_ora_get_session_track_info_t =
-    decltype(std::declval<const _Type&>().get_session_track_info(
+    decltype(std::declval<const Type&>().get_session_track_info(
         std::declval<int>()));
 
 // -------------------------------------------------------------------------
@@ -864,9 +874,9 @@ using mysql_ora_get_session_track_info_t =
 //   detector: set_query_attribute(const std::string&,
 // const std::string&) method.
 // wraps mysql_bind_param() for query attributes introduced in 8.0.25.
-template<typename _Type>
+template<typename Type>
 using mysql_ora_set_query_attribute_t =
-    decltype(std::declval<_Type&>().set_query_attribute(
+    decltype(std::declval<Type&>().set_query_attribute(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
@@ -876,9 +886,9 @@ using mysql_ora_set_query_attribute_t =
 
 // mysql_ora_has_x_protocol_t
 //   detector: supports_x_protocol() const method.
-template<typename _Type>
+template<typename Type>
 using mysql_ora_has_x_protocol_t =
-    decltype(std::declval<const _Type&>().supports_x_protocol());
+    decltype(std::declval<const Type&>().supports_x_protocol());
 
 // -------------------------------------------------------------------------
 // F.  schema introspection
@@ -886,16 +896,16 @@ using mysql_ora_has_x_protocol_t =
 
 // mysql_ora_table_exists_t
 //   detector: table_exists(const std::string&) const method.
-template<typename _Type>
+template<typename Type>
 using mysql_ora_table_exists_t =
-    decltype(std::declval<const _Type&>().table_exists(
+    decltype(std::declval<const Type&>().table_exists(
         std::declval<const std::string&>()));
 
 // mysql_ora_get_table_names_t
 //   detector: get_table_names() const method.
-template<typename _Type>
+template<typename Type>
 using mysql_ora_get_table_names_t =
-    decltype(std::declval<const _Type&>().get_table_names());
+    decltype(std::declval<const Type&>().get_table_names());
 
 
 // ===========================================================================
@@ -903,87 +913,87 @@ using mysql_ora_get_table_names_t =
 // ===========================================================================
 
 // has_mysql_ora_reset
-//   trait: checks if type _Type supports connection reset.
-template<typename _Type>
+//   trait: checks if type Type supports connection reset.
+template<typename Type>
 struct has_mysql_ora_reset
-    : is_detected<mysql_ora_reset_connection_t, clean_t<_Type>>
+    : is_detected<mysql_ora_reset_connection_t, clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_mysql_ora_reset_v =
-        has_mysql_ora_reset<clean_t<_Type>>::value;
+        has_mysql_ora_reset<clean_t<Type>>::value;
 #endif
 
 // has_mysql_ora_async
-//   trait: checks if type _Type supports the Oracle MySQL async API.
-template<typename _Type>
+//   trait: checks if type Type supports the Oracle MySQL async API.
+template<typename Type>
 struct has_mysql_ora_async : djinterp::conjunction<
-    is_detected<mysql_ora_async_query_start_t, clean_t<_Type>>,
-    is_detected<mysql_ora_async_query_cont_t, clean_t<_Type>>,
-    is_detected<mysql_ora_async_connect_start_t, clean_t<_Type>>>
+    is_detected<mysql_ora_async_query_start_t, clean_t<Type>>,
+    is_detected<mysql_ora_async_query_cont_t, clean_t<Type>>,
+    is_detected<mysql_ora_async_connect_start_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_mysql_ora_async_v =
-        has_mysql_ora_async<clean_t<_Type>>::value;
+        has_mysql_ora_async<clean_t<Type>>::value;
 #endif
 
 // has_mysql_ora_session_tracking
-//   trait: checks if type _Type supports session tracking.
-template<typename _Type>
+//   trait: checks if type Type supports session tracking.
+template<typename Type>
 struct has_mysql_ora_session_tracking
-    : is_detected<mysql_ora_get_session_track_info_t, clean_t<_Type>>
+    : is_detected<mysql_ora_get_session_track_info_t, clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_mysql_ora_session_tracking_v =
-        has_mysql_ora_session_tracking<clean_t<_Type>>::value;
+        has_mysql_ora_session_tracking<clean_t<Type>>::value;
 #endif
 
 // has_mysql_ora_query_attributes
-//   trait: checks if type _Type supports query attributes.
-template<typename _Type>
+//   trait: checks if type Type supports query attributes.
+template<typename Type>
 struct has_mysql_ora_query_attributes
-    : is_detected<mysql_ora_set_query_attribute_t, clean_t<_Type>>
+    : is_detected<mysql_ora_set_query_attribute_t, clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_mysql_ora_query_attributes_v =
-        has_mysql_ora_query_attributes<clean_t<_Type>>::value;
+        has_mysql_ora_query_attributes<clean_t<Type>>::value;
 #endif
 
 // has_mysql_ora_schema_query
-//   trait: checks if type _Type supports schema introspection.
-template<typename _Type>
+//   trait: checks if type Type supports schema introspection.
+template<typename Type>
 struct has_mysql_ora_schema_query : djinterp::conjunction<
-    is_detected<mysql_ora_table_exists_t, clean_t<_Type>>,
-    is_detected<mysql_ora_get_table_names_t, clean_t<_Type>>>
+    is_detected<mysql_ora_table_exists_t, clean_t<Type>>,
+    is_detected<mysql_ora_get_table_names_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_mysql_ora_schema_query_v =
-        has_mysql_ora_schema_query<clean_t<_Type>>::value;
+        has_mysql_ora_schema_query<clean_t<Type>>::value;
 #endif
 
 // is_mysql_ora_connection
-//   trait: compound trait verifying type _Type implements an Oracle MySQL
+//   trait: compound trait verifying type Type implements an Oracle MySQL
 // connection interface. Extends is_mysql_connection with schema query
 // support.
-template<typename _Type>
+template<typename Type>
 struct is_mysql_ora_connection : djinterp::conjunction<
-    is_mysql_connection<clean_t<_Type>>,
-    has_mysql_ora_schema_query<clean_t<_Type>>>
+    is_mysql_connection<clean_t<Type>>,
+    has_mysql_ora_schema_query<clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_mysql_ora_connection_v =
-        is_mysql_ora_connection<clean_t<_Type>>::value;
+        is_mysql_ora_connection<clean_t<Type>>::value;
 #endif
 
 
@@ -996,89 +1006,89 @@ struct is_mysql_ora_connection : djinterp::conjunction<
 // -------------------------------------------------------------------------
 
 // mysql_ora_can_reset_connection
-//   tagless trait: true if _Type has reset_connection().
-template<typename _Type,
+//   tagless trait: true if Type has reset_connection().
+template<typename Type,
          typename = void>
 constexpr bool mysql_ora_can_reset_connection = false;
 
-template<typename _Type>
-constexpr bool mysql_ora_can_reset_connection<_Type,
-    std::void_t<mysql_ora_reset_connection_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_ora_can_reset_connection<Type,
+    std::void_t<mysql_ora_reset_connection_t<Type>>> = true;
 
 // mysql_ora_can_async_query
-//   tagless trait: true if _Type has async_query_start().
-template<typename _Type,
+//   tagless trait: true if Type has async_query_start().
+template<typename Type,
          typename = void>
 constexpr bool mysql_ora_can_async_query = false;
 
-template<typename _Type>
-constexpr bool mysql_ora_can_async_query<_Type,
-    std::void_t<mysql_ora_async_query_start_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_ora_can_async_query<Type,
+    std::void_t<mysql_ora_async_query_start_t<Type>>> = true;
 
 // mysql_ora_can_track_session
-//   tagless trait: true if _Type has get_session_track_info().
-template<typename _Type,
+//   tagless trait: true if Type has get_session_track_info().
+template<typename Type,
          typename = void>
 constexpr bool mysql_ora_can_track_session = false;
 
-template<typename _Type>
-constexpr bool mysql_ora_can_track_session<_Type,
-    std::void_t<mysql_ora_get_session_track_info_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_ora_can_track_session<Type,
+    std::void_t<mysql_ora_get_session_track_info_t<Type>>> = true;
 
 // mysql_ora_can_set_query_attribute
-//   tagless trait: true if _Type has set_query_attribute().
-template<typename _Type,
+//   tagless trait: true if Type has set_query_attribute().
+template<typename Type,
          typename = void>
 constexpr bool mysql_ora_can_set_query_attribute = false;
 
-template<typename _Type>
-constexpr bool mysql_ora_can_set_query_attribute<_Type,
-    std::void_t<mysql_ora_set_query_attribute_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_ora_can_set_query_attribute<Type,
+    std::void_t<mysql_ora_set_query_attribute_t<Type>>> = true;
 
 // mysql_ora_can_query_schema
-//   tagless trait: true if _Type has table_exists().
-template<typename _Type,
+//   tagless trait: true if Type has table_exists().
+template<typename Type,
          typename = void>
 constexpr bool mysql_ora_can_query_schema = false;
 
-template<typename _Type>
-constexpr bool mysql_ora_can_query_schema<_Type,
-    std::void_t<mysql_ora_table_exists_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_ora_can_query_schema<Type,
+    std::void_t<mysql_ora_table_exists_t<Type>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
 // -------------------------------------------------------------------------
 
 // mysql_ora_does_async
-//   tagless trait: true if _Type supports the full Oracle MySQL async API.
-template<typename _Type,
+//   tagless trait: true if Type supports the full Oracle MySQL async API.
+template<typename Type,
          typename = void>
 constexpr bool mysql_ora_does_async = false;
 
-template<typename _Type>
-constexpr bool mysql_ora_does_async<_Type, std::void_t<
-    mysql_ora_async_query_start_t<_Type>,
-    mysql_ora_async_query_cont_t<_Type>,
-    mysql_ora_async_connect_start_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_ora_does_async<Type, std::void_t<
+    mysql_ora_async_query_start_t<Type>,
+    mysql_ora_async_query_cont_t<Type>,
+    mysql_ora_async_connect_start_t<Type>>> = true;
 
 // mysql_ora_does_schema_query
-//   tagless trait: true if _Type supports full schema introspection.
-template<typename _Type,
+//   tagless trait: true if Type supports full schema introspection.
+template<typename Type,
          typename = void>
 constexpr bool mysql_ora_does_schema_query = false;
 
-template<typename _Type>
-constexpr bool mysql_ora_does_schema_query<_Type, std::void_t<
-    mysql_ora_table_exists_t<_Type>,
-    mysql_ora_get_table_names_t<_Type>>> = true;
+template<typename Type>
+constexpr bool mysql_ora_does_schema_query<Type, std::void_t<
+    mysql_ora_table_exists_t<Type>,
+    mysql_ora_get_table_names_t<Type>>> = true;
 
 // mysql_ora_is_full_connection
-//   tagless trait: true if _Type satisfies the complete Oracle MySQL
+//   tagless trait: true if Type satisfies the complete Oracle MySQL
 // connection interface.
-template<typename _Type>
+template<typename Type>
 constexpr bool mysql_ora_is_full_connection =
-    ( mysql_is_full_connection<clean_t<_Type>> &&
-      mysql_ora_can_query_schema<clean_t<_Type>> );
+    ( mysql_is_full_connection<clean_t<Type>> &&
+      mysql_ora_can_query_schema<clean_t<Type>> );
 
 
 // ===========================================================================
@@ -1087,35 +1097,35 @@ constexpr bool mysql_ora_is_full_connection =
 
 // enable_if_mysql_ora_connection
 //   type: SFINAE helper for Oracle MySQL connection constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_mysql_ora_connection =
-    typename std::enable_if<is_mysql_ora_connection<clean_t<_Type>>::value>::type;
+    typename std::enable_if<is_mysql_ora_connection<clean_t<Type>>::value>::type;
 
 // enable_if_has_mysql_ora_reset
 //   type: SFINAE helper for Oracle MySQL reset_connection constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mysql_ora_reset =
-    typename std::enable_if<has_mysql_ora_reset<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_mysql_ora_reset<clean_t<Type>>::value>::type;
 
 // enable_if_has_mysql_ora_async
 //   type: SFINAE helper for Oracle MySQL async API constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mysql_ora_async =
-    typename std::enable_if<has_mysql_ora_async<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_mysql_ora_async<clean_t<Type>>::value>::type;
 
 // enable_if_has_mysql_ora_session_tracking
 //   type: SFINAE helper for Oracle MySQL session tracking constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mysql_ora_session_tracking =
     typename std::enable_if<
-        has_mysql_ora_session_tracking<clean_t<_Type>>::value>::type;
+        has_mysql_ora_session_tracking<clean_t<Type>>::value>::type;
 
 // enable_if_has_mysql_ora_query_attributes
 //   type: SFINAE helper for Oracle MySQL query attribute constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_mysql_ora_query_attributes =
     typename std::enable_if<
-        has_mysql_ora_query_attributes<clean_t<_Type>>::value>::type;
+        has_mysql_ora_query_attributes<clean_t<Type>>::value>::type;
 
 
 // ===========================================================================
@@ -1146,51 +1156,51 @@ using enable_if_has_mysql_ora_query_attributes =
 //   concept: constrains types implementing the Oracle MySQL connection
 // interface.  (The MySQL-family concept is mysql_connection, from
 // mysql_common_traits.hpp.)
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_connection =
-    is_mysql_ora_connection<clean_t<_Type>>::value;
+    is_mysql_ora_connection<clean_t<Type>>::value;
 
 // non_mysql_ora_connection
 //   concept: constrains types that do not implement the Oracle MySQL
 // connection interface.
-template<typename _Type>
+template<typename Type>
 concept non_mysql_ora_connection =
-    !mysql_ora_connection<_Type>;
+    !mysql_ora_connection<Type>;
 
 // mysql_ora_schema_connection
 //   concept: constrains Oracle MySQL connections supporting schema
 // introspection.
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_schema_connection =
-    has_mysql_ora_schema_query<clean_t<_Type>>::value;
+    has_mysql_ora_schema_query<clean_t<Type>>::value;
 
 // mysql_ora_resettable_connection
 //   concept: constrains Oracle MySQL connections supporting connection
 // reset.
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_resettable_connection =
-    has_mysql_ora_reset<clean_t<_Type>>::value;
+    has_mysql_ora_reset<clean_t<Type>>::value;
 
 // mysql_ora_async_connection
 //   concept: constrains Oracle MySQL connections supporting the Oracle
 // MySQL asynchronous API.
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_async_connection =
-    has_mysql_ora_async<clean_t<_Type>>::value;
+    has_mysql_ora_async<clean_t<Type>>::value;
 
 // mysql_ora_session_tracking_connection
 //   concept: constrains Oracle MySQL connections supporting session
 // tracking.
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_session_tracking_connection =
-    has_mysql_ora_session_tracking<clean_t<_Type>>::value;
+    has_mysql_ora_session_tracking<clean_t<Type>>::value;
 
 // mysql_ora_query_attributes_connection
 //   concept: constrains Oracle MySQL connections supporting query
 // attributes.
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_query_attributes_connection =
-    has_mysql_ora_query_attributes<clean_t<_Type>>::value;
+    has_mysql_ora_query_attributes<clean_t<Type>>::value;
 
 
 // -------------------------------------------------------------------------
@@ -1199,57 +1209,57 @@ concept mysql_ora_query_attributes_connection =
 
 // mysql_ora_reset_connection_capable
 //   concept: constrains types exposing reset_connection().
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_reset_connection_capable =
-    mysql_ora_can_reset_connection<clean_t<_Type>>;
+    mysql_ora_can_reset_connection<clean_t<Type>>;
 
 // mysql_ora_async_query_startable
 //   concept: constrains types exposing async_query_start(sql).
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_async_query_startable =
-    mysql_ora_can_async_query<clean_t<_Type>>;
+    mysql_ora_can_async_query<clean_t<Type>>;
 
 // mysql_ora_async_query_continuable
 //   concept: constrains types exposing async_query_cont().
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_async_query_continuable =
-    is_detected<mysql_ora_async_query_cont_t, clean_t<_Type>>::value;
+    is_detected<mysql_ora_async_query_cont_t, clean_t<Type>>::value;
 
 // mysql_ora_async_connect_startable
 //   concept: constrains types exposing async_connect_start().
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_async_connect_startable =
-    is_detected<mysql_ora_async_connect_start_t, clean_t<_Type>>::value;
+    is_detected<mysql_ora_async_connect_start_t, clean_t<Type>>::value;
 
 // mysql_ora_session_trackable
 //   concept: constrains types exposing get_session_track_info(kind).
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_session_trackable =
-    mysql_ora_can_track_session<clean_t<_Type>>;
+    mysql_ora_can_track_session<clean_t<Type>>;
 
 // mysql_ora_query_attribute_settable
 //   concept: constrains types exposing set_query_attribute(name, value).
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_query_attribute_settable =
-    mysql_ora_can_set_query_attribute<clean_t<_Type>>;
+    mysql_ora_can_set_query_attribute<clean_t<Type>>;
 
 // mysql_ora_table_exists_query
 //   concept: constrains types exposing table_exists(name).
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_table_exists_query =
-    mysql_ora_can_query_schema<clean_t<_Type>>;
+    mysql_ora_can_query_schema<clean_t<Type>>;
 
 // mysql_ora_table_names_query
 //   concept: constrains types exposing get_table_names().
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_table_names_query =
-    is_detected<mysql_ora_get_table_names_t, clean_t<_Type>>::value;
+    is_detected<mysql_ora_get_table_names_t, clean_t<Type>>::value;
 
 // mysql_ora_x_protocol_query
 //   concept: constrains types exposing supports_x_protocol().
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_x_protocol_query =
-    is_detected<mysql_ora_has_x_protocol_t, clean_t<_Type>>::value;
+    is_detected<mysql_ora_has_x_protocol_t, clean_t<Type>>::value;
 
 
 // -------------------------------------------------------------------------
@@ -1259,24 +1269,24 @@ concept mysql_ora_x_protocol_query =
 // mysql_ora_async_queryable
 //   concept: constrains types satisfying the full tagless Oracle MySQL
 // async capability set.
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_async_queryable =
-    mysql_ora_does_async<clean_t<_Type>>;
+    mysql_ora_does_async<clean_t<Type>>;
 
 // mysql_ora_schema_queryable
 //   concept: constrains types satisfying the full tagless schema-query
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_schema_queryable =
-    mysql_ora_does_schema_query<clean_t<_Type>>;
+    mysql_ora_does_schema_query<clean_t<Type>>;
 
 // mysql_ora_full_connection
 //   concept: constrains types satisfying the complete tagless Oracle MySQL
 // connection capability set.  (The family concept is mysql_full_connection,
 // from mysql_common_traits.hpp.)
-template<typename _Type>
+template<typename Type>
 concept mysql_ora_full_connection =
-    mysql_ora_is_full_connection<clean_t<_Type>>;
+    mysql_ora_is_full_connection<clean_t<Type>>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -1284,5 +1294,6 @@ concept mysql_ora_full_connection =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_MYSQL_
+#endif  // DJINTERP_DB_MYSQL_MYSQL_HPP

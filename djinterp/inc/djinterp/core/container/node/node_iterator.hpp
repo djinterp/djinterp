@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                       node_iterator.hpp
+/*******************************************************************************
+* djinterp [core]                                              node_iterator.hpp
 *
 * Generic node iterators:
 * Provides constexpr-friendly, trait-driven iterators for polymorphic
@@ -16,21 +16,28 @@
 *   - arena_iterator       — mutable forward iterator over variant arenas
 *   - const_arena_iterator — const forward iterator over variant arenas
 *
-* 
+*
 * path:      /inc/djinterp/core/container/node/node_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.30
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_NODE_ITERATOR_
-#define DJINTERP_CONTAINER_NODE_ITERATOR_ 1
+#ifndef DJINTERP_CONTAINER_NODE_NODE_ITERATOR_HPP
+#define DJINTERP_CONTAINER_NODE_NODE_ITERATOR_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <iterator>
 #include <variant>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "node_common.hpp"
 
 
@@ -41,17 +48,17 @@ NS_DJINTERP
     // =========================================================================
 
     // dfs_policy
-    //   struct: Depth-First Search (pre-order) policy.
-    // State requirement: LIFO stack (std::vector used as stack).
+    //   struct: Depth-First Search (pre-order) policy. State requirement: LIFO
+    // stack (std::vector used as stack).
     struct dfs_policy
     {
-        template<typename _State,
-                 typename _Node>
-        static D_CONSTEXPR void extract(const _Node& _node,
-                                        _State&      _state)
+        template<typename State,
+                 typename Node>
+        static D_CONSTEXPR void extract(const Node& _node,
+                                        State&      _state)
         {
             // At compile-time, we discard leaf nodes entirely.
-            if constexpr (djinterp::is_dynamic_node_v<_Node>)
+            if constexpr (djinterp::is_dynamic_node_v<Node>)
             {
                 const auto& edges = _node.edges();
 
@@ -64,9 +71,9 @@ NS_DJINTERP
             // Future extension: handle tuple_node heterogeneous extraction
         }
 
-        template<typename _State>
-        static D_CONSTEXPR auto pop(_State& _state)
-            -> typename _State::value_type
+        template<typename State>
+        static D_CONSTEXPR auto pop(State& _state)
+            -> typename State::value_type
         {
             auto val = _state.back();
             _state.pop_back();
@@ -76,17 +83,17 @@ NS_DJINTERP
     };
 
     // bfs_policy
-    //   struct: Breadth-First Search (level-order) policy.
-    // State requirement: FIFO queue. Implemented via vector with a
-    // read-head for constexpr safety.
+    //   struct: Breadth-First Search (level-order) policy. State requirement:
+    // FIFO queue. Implemented via vector with a read-head for constexpr
+    // safety.
     struct bfs_policy
     {
-        template<typename _State,
-                 typename _Node>
-        static D_CONSTEXPR void extract(const _Node& _node,
-                                        _State&      _state)
+        template<typename State,
+                 typename Node>
+        static D_CONSTEXPR void extract(const Node& _node,
+                                        State&      _state)
         {
-            if constexpr (djinterp::is_dynamic_node_v<_Node>)
+            if constexpr (djinterp::is_dynamic_node_v<Node>)
             {
                 const auto& edges = _node.edges();
 
@@ -97,9 +104,9 @@ NS_DJINTERP
             }
         }
 
-        template<typename _State>
-        static D_CONSTEXPR auto pop(_State& _state)
-            -> typename _State::value_type
+        template<typename State>
+        static D_CONSTEXPR auto pop(State& _state)
+            -> typename State::value_type
         {
             auto val = _state.queue[_state.head];
             ++_state.head;
@@ -109,18 +116,18 @@ NS_DJINTERP
     };
 
     // post_order_policy
-    //   struct: Depth-First Post-Order policy.
-    // Uses a two-stack approach: push children to a work stack,
-    // transfer to an output stack, then pop from output to yield
-    // nodes in post-order.
+    //   struct: Depth-First Post-Order policy. Uses a two-stack approach: push
+    // children to a work stack,
+    // transfer to an output stack, then pop from output to yield nodes in
+    // post-order.
     struct post_order_policy
     {
-        template<typename _State,
-                 typename _Node>
-        static D_CONSTEXPR void extract(const _Node& _node,
-                                        _State&      _state)
+        template<typename State,
+                 typename Node>
+        static D_CONSTEXPR void extract(const Node& _node,
+                                        State&      _state)
         {
-            if constexpr (djinterp::is_dynamic_node_v<_Node>)
+            if constexpr (djinterp::is_dynamic_node_v<Node>)
             {
                 const auto& edges = _node.edges();
 
@@ -132,12 +139,12 @@ NS_DJINTERP
         }
 
         // build_output
-        //   function: drains the work stack into the output stack,
-        // producing post-order when output is read top-down.
-        template<typename _State,
-                 typename _ArenaType>
-        static D_CONSTEXPR void build_output(_State&          _state,
-                                             const _ArenaType& _arena)
+        //   function: drains the work stack into the output stack, producing
+        // post-order when output is read top-down.
+        template<typename State,
+                 typename ArenaType>
+        static D_CONSTEXPR void build_output(State&          _state,
+                                             const ArenaType& _arena)
         {
             while (!_state.work.empty())
             {
@@ -152,9 +159,9 @@ NS_DJINTERP
             }
         }
 
-        template<typename _State>
-        static D_CONSTEXPR auto pop(_State& _state)
-            -> typename _State::value_type
+        template<typename State>
+        static D_CONSTEXPR auto pop(State& _state)
+            -> typename State::value_type
         {
             auto val = _state.output.back();
             _state.output.pop_back();
@@ -171,14 +178,14 @@ NS_DJINTERP
     NS_INTERNAL
 
         // bfs_state
-        //   struct: BFS requires a read-head to simulate a queue
-        // with a vector.
-        template<typename _IndexType>
+        //   struct: BFS requires a read-head to simulate a queue with a
+        // vector.
+        template<typename IndexType>
         struct bfs_state
         {
-            using value_type = _IndexType;
+            using value_type = IndexType;
 
-            std::vector<_IndexType> queue;
+            std::vector<IndexType> queue;
             std::size_t             head = 0;
 
             D_CONSTEXPR bool empty() const
@@ -188,15 +195,14 @@ NS_DJINTERP
         };
 
         // post_order_state
-        //   struct: post-order uses a work stack and an output
-        // stack.
-        template<typename _IndexType>
+        //   struct: post-order uses a work stack and an output stack.
+        template<typename IndexType>
         struct post_order_state
         {
-            using value_type = _IndexType;
+            using value_type = IndexType;
 
-            std::vector<_IndexType> work;
-            std::vector<_IndexType> output;
+            std::vector<IndexType> work;
+            std::vector<IndexType> output;
 
             D_CONSTEXPR bool empty() const
             {
@@ -216,39 +222,40 @@ NS_DJINTERP
     // of variant nodes using a specified traversal policy.
     //
     // Template parameters:
-    //   _ArenaType  — the container of variant nodes (e.g. std::vector<variant>)
-    //   _ValueType  — the value type yielded on dereference
-    //   _Policy     — traversal policy (dfs_policy, bfs_policy, etc.)
-    //   _IsConst    — when true, yields const references
-    template<typename _ArenaType,
-             typename _ValueType,
-             typename _Policy  = dfs_policy,
-             bool     _IsConst = false>
+    //   ArenaType — the container of variant nodes (e.g.
+    // std::vector<variant>)
+    //   ValueType — the value type yielded on dereference
+    //   Policy — traversal policy (dfs_policy, bfs_policy, etc.)
+    //   IsConst — when true, yields const references
+    template<typename ArenaType,
+             typename ValueType,
+             typename Policy   = dfs_policy,
+             bool     IsConst = false>
     class arena_iterator
     {
     public:
         using iterator_category = std::forward_iterator_tag;
-        using value_type        = _ValueType;
+        using value_type        = ValueType;
         using difference_type   = std::ptrdiff_t;
-        using pointer           = std::conditional_t<_IsConst,
+        using pointer           = std::conditional_t<IsConst,
                                       const value_type*,
                                       value_type*>;
-        using reference         = std::conditional_t<_IsConst,
+        using reference         = std::conditional_t<IsConst,
                                       const value_type&,
                                       value_type&>;
 
-        using arena_ptr         = std::conditional_t<_IsConst,
-                                      const _ArenaType*,
-                                      const _ArenaType*>;
-        using index_type        = typename _ArenaType::size_type;
+        using arena_ptr         = std::conditional_t<IsConst,
+                                      const ArenaType*,
+                                      const ArenaType*>;
+        using index_type        = typename ArenaType::size_type;
 
     private:
         // Resolve state type based on policy
         using state_type = std::conditional_t<
-            std::is_same_v<_Policy, bfs_policy>,
+            std::is_same_v<Policy, bfs_policy>,
             internal::bfs_state<index_type>,
             std::conditional_t<
-                std::is_same_v<_Policy, post_order_policy>,
+                std::is_same_v<Policy, post_order_policy>,
                 internal::post_order_state<index_type>,
                 std::vector<index_type>
             >
@@ -281,7 +288,7 @@ NS_DJINTERP
         {
             if (m_arena && (m_current_id < m_arena->size()))
             {
-                if constexpr (std::is_same_v<_Policy, post_order_policy>)
+                if constexpr (std::is_same_v<Policy, post_order_policy>)
                 {
                     // Post-order: build the entire output stack up front
                     m_state.work.push_back(m_current_id);
@@ -366,11 +373,11 @@ NS_DJINTERP
     private:
         D_CONSTEXPR void push_to_state(index_type _id)
         {
-            if constexpr (std::is_same_v<_Policy, bfs_policy>)
+            if constexpr (std::is_same_v<Policy, bfs_policy>)
             {
                 m_state.queue.push_back(_id);
             }
-            else if constexpr (std::is_same_v<_Policy, post_order_policy>)
+            else if constexpr (std::is_same_v<Policy, post_order_policy>)
             {
                 m_state.work.push_back(_id);
             }
@@ -382,7 +389,7 @@ NS_DJINTERP
 
         D_CONSTEXPR void advance()
         {
-            if constexpr (std::is_same_v<_Policy, post_order_policy>)
+            if constexpr (std::is_same_v<Policy, post_order_policy>)
             {
                 if (m_state.empty())
                 {
@@ -403,11 +410,11 @@ NS_DJINTERP
                 }
 
                 // Pop the next node ID using the policy
-                m_current_id = _Policy::pop(m_state);
+                m_current_id = Policy::pop(m_state);
 
                 // Visit the concrete node and extract children
                 std::visit([this](const auto& concrete_node) {
-                    _Policy::extract(concrete_node, m_state);
+                    Policy::extract(concrete_node, m_state);
                 }, m_arena->at(m_current_id));
             }
         }
@@ -423,14 +430,15 @@ NS_DJINTERP
 
     // const_arena_iterator
     //   type: const variant of arena_iterator.
-    template<typename _ArenaType,
-             typename _ValueType,
-             typename _Policy = dfs_policy>
+    template<typename ArenaType,
+             typename ValueType,
+             typename Policy = dfs_policy>
     using const_arena_iterator =
-        arena_iterator<_ArenaType, _ValueType, _Policy, true>;
+        arena_iterator<ArenaType, ValueType, Policy, true>;
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_NODE_ITERATOR_
+#endif  // DJINTERP_CONTAINER_NODE_NODE_ITERATOR_HPP

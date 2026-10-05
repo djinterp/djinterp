@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                              countl_zero.hpp
 *
 * countl_zero header:
@@ -22,25 +22,27 @@
 *   C++20 in std, back-ported to C++11 and constexpr from C++11.
 *
 *
-* path:      /inc/djinterp/re_std/bit/countl_zero.hpp
+* path:      /inc/re_std/bit/countl_zero.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_COUNTL_ZERO_
-#define DJINTERP_RE_STD_BIT_COUNTL_ZERO_ 1
+#ifndef RE_STD_BIT_COUNTL_ZERO_HPP
+#define RE_STD_BIT_COUNTL_ZERO_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./bit_internal.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -49,20 +51,20 @@ NS_RESTD
 
 // countl_zero
 //   function: leading zero bits. N for a zero operand.
-template<typename _T>
-D_CONSTEXPR typename internal::bit_enable<_T, int>::type
+template<typename T>
+RE_STD_CONSTEXPR typename internal::bit_enable<T, int>::type
 countl_zero(
-    _T _v
-) D_NOEXCEPT
+    T _v
+) RE_STD_NOEXCEPT
 {
-    return internal::bit_digits<_T>::value - internal::bit_width_rec<_T>(_v);
+    return internal::bit_digits<T>::value - internal::bit_width_rec<T>(_v);
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BIT_COUNTL_ZERO_
+#endif  // RE_STD_BIT_COUNTL_ZERO_HPP

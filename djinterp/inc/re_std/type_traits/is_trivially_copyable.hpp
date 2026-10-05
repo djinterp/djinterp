@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                is_trivially_copyable.hpp
+/*******************************************************************************
+* djinterp [re_std]                                    is_trivially_copyable.hpp
 *
 * is_trivially_copyable trait header:
 *   is_trivially_copyable<T>::value is true iff T may be copied by copying
@@ -19,56 +19,58 @@
 *   C++11 baseline. The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_trivially_copyable.hpp
+* path:      /inc/re_std/type_traits/is_trivially_copyable.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIALLY_COPYABLE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIALLY_COPYABLE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_TRIVIALLY_COPYABLE_HPP
+#define RE_STD_TYPE_TRAITS_IS_TRIVIALLY_COPYABLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
 // =============================================================================
-// 0.   D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE  (intrinsic detection)
+// 0.   RE_STD_HAS_IS_TRIVIALLY_COPYABLE  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE
+#ifndef RE_STD_HAS_IS_TRIVIALLY_COPYABLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_trivially_copyable)
-            #define D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE  1
+            #define RE_STD_HAS_IS_TRIVIALLY_COPYABLE  1
         #else
-            #define D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE  0
+            #define RE_STD_HAS_IS_TRIVIALLY_COPYABLE  0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
-            defined(D_ENV_COMPILER_CLANG) ||                                  \
-            defined(D_ENV_COMPILER_MSVC)  ||                                  \
-            defined(D_ENV_COMPILER_INTEL) )
-        #define D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE      1
+    #elif ( defined(RE_STD_COMPILER_GCC)   ||                                  \
+            defined(RE_STD_COMPILER_CLANG) ||                                  \
+            defined(RE_STD_COMPILER_MSVC)  ||                                  \
+            defined(RE_STD_COMPILER_INTEL) )
+        #define RE_STD_HAS_IS_TRIVIALLY_COPYABLE      1
     #else
-        #define D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE      0
+        #define RE_STD_HAS_IS_TRIVIALLY_COPYABLE      0
     #endif
-#endif  // D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE
+#endif  // RE_STD_HAS_IS_TRIVIALLY_COPYABLE
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_TRIVIALLY_COPYABLE
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE
+#if RE_STD_HAS_IS_TRIVIALLY_COPYABLE
 
 // is_trivially_copyable
 //   trait: intrinsic-backed -- the object representation may be copied with memcpy.
-template<typename _Type>
-struct is_trivially_copyable : integral_constant<bool, __is_trivially_copyable(_Type)>
+template<typename Type>
+struct is_trivially_copyable : integral_constant<bool, __is_trivially_copyable(Type)>
 {};
 
 #else
@@ -78,26 +80,26 @@ struct is_trivially_copyable : integral_constant<bool, __is_trivially_copyable(_
 // False is emphatically the safe direction here: a wrong true would
 // authorise memcpy over a type with a non-trivial copy constructor,
 // which corrupts rather than merely slows.
-template<typename _Type>
+template<typename Type>
 struct is_trivially_copyable : false_type
 {};
 
-#endif  // D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE
+#endif  // RE_STD_HAS_IS_TRIVIALLY_COPYABLE
 
 
 // =============================================================================
 // II.  IS_TRIVIALLY_COPYABLE_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool is_trivially_copyable_v = is_trivially_copyable<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool is_trivially_copyable_v = is_trivially_copyable<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIALLY_COPYABLE_
+#endif  // RE_STD_TYPE_TRAITS_IS_TRIVIALLY_COPYABLE_HPP

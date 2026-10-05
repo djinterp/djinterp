@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                       integer_arithmetic.hpp
 *
 * the integer abs and div families (re-exports):
@@ -36,25 +36,27 @@
 * the family's original reason for existing has largely lapsed.
 *
 *
-* path:      /inc/djinterp/re_std/cstdlib/integer_arithmetic.hpp
+* path:      /inc/re_std/cstdlib/integer_arithmetic.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDLIB_INTEGER_ARITHMETIC_
-#define DJINTERP_RE_STD_CSTDLIB_INTEGER_ARITHMETIC_ 1
+#ifndef RE_STD_CSTDLIB_INTEGER_ARITHMETIC_HPP
+#define RE_STD_CSTDLIB_INTEGER_ARITHMETIC_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstdlib>
 
 
-NS_RESTD
+namespace re_std
+{
 
     // div_t / ldiv_t / lldiv_t
     //   struct: quotient and remainder pairs returned by the div family.
@@ -76,10 +78,10 @@ NS_RESTD
     using ::std::ldiv;
     using ::std::lldiv;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CSTDLIB_INTEGER_ARITHMETIC_
+#endif  // RE_STD_CSTDLIB_INTEGER_ARITHMETIC_HPP

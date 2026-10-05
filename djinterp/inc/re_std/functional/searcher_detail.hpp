@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [functional]                                       searcher_detail.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          searcher_detail.hpp
 *
+* searcher_detail exception header:
 *   internal support for the Boyer-Moore searchers.
 *
 *   Not a public header.  Provides two things the searchers need and re_std
@@ -33,47 +34,50 @@
 * table) reaches C++98 while the Boyer-Moore searchers stop at C++11.
 *
 *
-* path:      /inc/djinterp/re_std/functional/searcher_detail.hpp
+* path:      /inc/re_std/functional/searcher_detail.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_SEARCHER_DETAIL_
-#define DJINTERP_RE_STD_FUNCTIONAL_SEARCHER_DETAIL_ 1
+#ifndef RE_STD_FUNCTIONAL_SEARCHER_DETAIL_HPP
+#define RE_STD_FUNCTIONAL_SEARCHER_DETAIL_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./hash.hpp"
 
-NS_RESTD
-NS_INTERNAL
+namespace re_std
+{
+namespace internal
+{
 
 // searcher_buffer
 //   class: a minimal owning dynamic array.  Deliberately not a container -
 // no iterators, no growth, no allocator support.  Sized once at construction,
 // which is all the searchers need.
-template<typename _Type>
+template<typename Type>
 class searcher_buffer
 {
-    _Type* m_data;
+    Type* m_data;
     size_t m_size;
 
 public:
-    searcher_buffer() D_NOEXCEPT : m_data(0), m_size(0) {}
+    searcher_buffer() RE_STD_NOEXCEPT : m_data(0), m_size(0) {}
 
-    explicit searcher_buffer(size_t n, const _Type& fill = _Type())
-        : m_data(n ? new _Type[n] : 0), m_size(n)
+    explicit searcher_buffer(size_t n, const Type& fill = Type())
+        : m_data(n ? new Type[n] : 0), m_size(n)
     {
         for (size_t i = 0; i < m_size; ++i) { m_data[i] = fill; }
         return;
     }
 
     searcher_buffer(const searcher_buffer& other)
-        : m_data(other.m_size ? new _Type[other.m_size] : 0),
+        : m_data(other.m_size ? new Type[other.m_size] : 0),
           m_size(other.m_size)
     {
         for (size_t i = 0; i < m_size; ++i) { m_data[i] = other.m_data[i]; }
@@ -90,7 +94,7 @@ public:
         return *this;
     }
 
-    searcher_buffer(searcher_buffer&& other) D_NOEXCEPT
+    searcher_buffer(searcher_buffer&& other) RE_STD_NOEXCEPT
         : m_data(other.m_data), m_size(other.m_size)
     {
         other.m_data = 0;
@@ -98,7 +102,7 @@ public:
         return;
     }
 
-    searcher_buffer& operator=(searcher_buffer&& other) D_NOEXCEPT
+    searcher_buffer& operator=(searcher_buffer&& other) RE_STD_NOEXCEPT
     {
         if (this != &other)
         {
@@ -113,18 +117,18 @@ public:
 
     ~searcher_buffer() { delete[] m_data; }
 
-    void swap(searcher_buffer& other) D_NOEXCEPT
+    void swap(searcher_buffer& other) RE_STD_NOEXCEPT
     {
-        _Type* d = m_data; m_data = other.m_data; other.m_data = d;
+        Type* d = m_data; m_data = other.m_data; other.m_data = d;
         size_t s = m_size; m_size = other.m_size; other.m_size = s;
         return;
     }
 
-    size_t size()  const D_NOEXCEPT { return m_size; }
-    bool   empty() const D_NOEXCEPT { return m_size == 0; }
+    size_t size()  const RE_STD_NOEXCEPT { return m_size; }
+    bool   empty() const RE_STD_NOEXCEPT { return m_size == 0; }
 
-    _Type&       operator[](size_t i)       { return m_data[i]; }
-    const _Type& operator[](size_t i) const { return m_data[i]; }
+    Type&       operator[](size_t i)       { return m_data[i]; }
+    const Type& operator[](size_t i) const { return m_data[i]; }
 };
 
 
@@ -136,23 +140,23 @@ public:
 //   class: maps a value to the index of its LAST occurrence in the pattern,
 // or -1 when it does not occur.  Primary template is the general (hashed)
 // strategy; the one-byte specialisation follows.
-template<typename _Value,
-         typename _Hash,
-         typename _Pred,
-         bool _Direct = (   is_integral<_Value>::value
-                         && sizeof(_Value) == 1)>
+template<typename Value,
+         typename Hash,
+         typename Pred,
+         bool Direct = (   is_integral<Value>::value
+                         && sizeof(Value) == 1)>
 class bad_char_table
 {
     //   Open-addressed, linear-probed, power-of-two capacity.  Built once and
     // then read-only, so there is no erase and no tombstone handling.
-    searcher_buffer<_Value>    m_keys;
+    searcher_buffer<Value>    m_keys;
     searcher_buffer<ptrdiff_t> m_vals;
     searcher_buffer<char>      m_used;
     size_t                     m_mask;
-    _Hash                      m_hash;
-    _Pred                      m_pred;
+    Hash                      m_hash;
+    Pred                      m_pred;
 
-    size_t slot_for(const _Value& key) const
+    size_t slot_for(const Value& key) const
     {
         size_t i = static_cast<size_t>(m_hash(key)) & m_mask;
         while (m_used[i] && !m_pred(m_keys[i], key))
@@ -163,7 +167,7 @@ class bad_char_table
     }
 
 public:
-    bad_char_table(size_t pattern_size, _Hash h, _Pred p)
+    bad_char_table(size_t pattern_size, Hash h, Pred p)
         : m_keys(), m_vals(), m_used(), m_mask(0), m_hash(h), m_pred(p)
     {
         //   Capacity is the next power of two at least twice the pattern
@@ -172,14 +176,14 @@ public:
         // slot_for has somewhere to land.
         size_t cap = 8;
         while (cap < (pattern_size * 2 + 1)) { cap <<= 1; }
-        m_keys = searcher_buffer<_Value>(cap);
+        m_keys = searcher_buffer<Value>(cap);
         m_vals = searcher_buffer<ptrdiff_t>(cap, -1);
         m_used = searcher_buffer<char>(cap, 0);
         m_mask = cap - 1;
         return;
     }
 
-    void set(const _Value& key, ptrdiff_t index)
+    void set(const Value& key, ptrdiff_t index)
     {
         const size_t i = slot_for(key);
         m_keys[i] = key;
@@ -188,7 +192,7 @@ public:
         return;
     }
 
-    ptrdiff_t get(const _Value& key) const
+    ptrdiff_t get(const Value& key) const
     {
         const size_t i = slot_for(key);
         return m_used[i] ? m_vals[i] : static_cast<ptrdiff_t>(-1);
@@ -198,41 +202,41 @@ public:
 // bad_char_table<..., true>
 //   class: flat-array strategy for one-byte value types.  256 entries, direct
 // indexing, no hashing.  This is the case that actually occurs.
-template<typename _Value, typename _Hash, typename _Pred>
-class bad_char_table<_Value, _Hash, _Pred, true>
+template<typename Value, typename Hash, typename Pred>
+class bad_char_table<Value, Hash, Pred, true>
 {
     ptrdiff_t m_table[256];
 
     //   Index via unsigned char so that a negative signed char maps into
     // [0,256) rather than out of bounds - the classic char-signedness bug in
     // hand-written Boyer-Moore.
-    static size_t index_of(const _Value& v)
+    static size_t index_of(const Value& v)
     {
         return static_cast<size_t>(
             static_cast<unsigned char>(static_cast<char>(v)));
     }
 
 public:
-    bad_char_table(size_t, _Hash, _Pred)
+    bad_char_table(size_t, Hash, Pred)
     {
         for (size_t i = 0; i < 256; ++i) { m_table[i] = -1; }
         return;
     }
 
-    void set(const _Value& key, ptrdiff_t index)
+    void set(const Value& key, ptrdiff_t index)
     {
         m_table[index_of(key)] = index;
         return;
     }
 
-    ptrdiff_t get(const _Value& key) const
+    ptrdiff_t get(const Value& key) const
     {
         return m_table[index_of(key)];
     }
 };
 
-NS_END  // internal
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // internal
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_SEARCHER_DETAIL_
+#endif  // RE_STD_FUNCTIONAL_SEARCHER_DETAIL_HPP

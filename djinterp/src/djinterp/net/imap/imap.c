@@ -13,53 +13,52 @@
 * path:      /src/djinterp/net/imap/imap.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.09.29
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/imap/imap.h"  // corresponding header
 // std
-#include <assert.h>   // static_assert
 #include <stdbool.h>  // bool, true, false
 #include <stddef.h>   // size_t, NULL
 #include <stdint.h>   // fixed-width integers
 #include <string.h>   // memchr, memcmp, memcpy, strchr, strlen
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // D_STATIC
-#include "../../../../inc/djinterp/c/util/sink_common.h"  // d_sink_emit
-#include "../../../../inc/djinterp/env/net/env_imap.h"    // D_ENV_IMAP_*
+#include "../../../../inc/djinterp/c/djinterp.h"             // D_STATIC_ASSERT
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_sink_emit
+#include "../../../../inc/djinterp/env/net/imap/env_imap.h"  // D_ENV_IMAP_*
 
 
 // imap.h restates env_imap.h's backend identifiers rather than include the
 // detection layer; these make the identity a checked fact, not a comment
-static_assert(D_IMAP_BACKEND_NONE == D_ENV_IMAP_BACKEND_NONE,
-              "d_imap_backend must mirror D_ENV_IMAP_BACKEND_NONE");
-static_assert(D_IMAP_BACKEND_NATIVE == D_ENV_IMAP_BACKEND_NATIVE,
-              "d_imap_backend must mirror D_ENV_IMAP_BACKEND_NATIVE");
-static_assert(D_IMAP_BACKEND_CURL == D_ENV_IMAP_BACKEND_CURL,
-              "d_imap_backend must mirror D_ENV_IMAP_BACKEND_CURL");
-static_assert(D_IMAP_BACKEND_LIBETPAN == D_ENV_IMAP_BACKEND_LIBETPAN,
-              "d_imap_backend must mirror D_ENV_IMAP_BACKEND_LIBETPAN");
-static_assert(D_IMAP_BACKEND_MAILUTILS == D_ENV_IMAP_BACKEND_MAILUTILS,
-              "d_imap_backend must mirror D_ENV_IMAP_BACKEND_MAILUTILS");
-static_assert(D_IMAP_BACKEND_VMIME == D_ENV_IMAP_BACKEND_VMIME,
-              "d_imap_backend must mirror D_ENV_IMAP_BACKEND_VMIME");
+D_STATIC_ASSERT(D_IMAP_BACKEND_NONE == D_ENV_IMAP_BACKEND_NONE,
+                "d_imap_backend must mirror D_ENV_IMAP_BACKEND_NONE");
+D_STATIC_ASSERT(D_IMAP_BACKEND_NATIVE == D_ENV_IMAP_BACKEND_NATIVE,
+                "d_imap_backend must mirror D_ENV_IMAP_BACKEND_NATIVE");
+D_STATIC_ASSERT(D_IMAP_BACKEND_CURL == D_ENV_IMAP_BACKEND_CURL,
+                "d_imap_backend must mirror D_ENV_IMAP_BACKEND_CURL");
+D_STATIC_ASSERT(D_IMAP_BACKEND_LIBETPAN == D_ENV_IMAP_BACKEND_LIBETPAN,
+                "d_imap_backend must mirror D_ENV_IMAP_BACKEND_LIBETPAN");
+D_STATIC_ASSERT(D_IMAP_BACKEND_MAILUTILS == D_ENV_IMAP_BACKEND_MAILUTILS,
+                "d_imap_backend must mirror D_ENV_IMAP_BACKEND_MAILUTILS");
+D_STATIC_ASSERT(D_IMAP_BACKEND_VMIME == D_ENV_IMAP_BACKEND_VMIME,
+                "d_imap_backend must mirror D_ENV_IMAP_BACKEND_VMIME");
 
 // every set type holds one bit per enumerator of its vocabulary
-static_assert(D_IMAP_AUTH_COUNT <= 32,
-              "mechanism sets are uint32_t: one bit per mechanism");
-static_assert(D_IMAP_CAPABILITY_COUNT <= 64,
-              "capability sets are uint64_t: one bit per capability");
-static_assert(D_IMAP_FLAG_COUNT <= 32,
-              "flag sets are uint32_t: one bit per flag");
-static_assert(D_IMAP_MAILBOX_ATTRIBUTE_COUNT <= 32,
-              "attribute sets are uint32_t: one bit per attribute");
-static_assert(D_IMAP_STATUS_ITEM_COUNT <= 32,
-              "STATUS item sets are uint32_t: one bit per item");
+D_STATIC_ASSERT(D_IMAP_AUTH_COUNT <= 32,
+                "mechanism sets are uint32_t: one bit per mechanism");
+D_STATIC_ASSERT(D_IMAP_CAPABILITY_COUNT <= 64,
+                "capability sets are uint64_t: one bit per capability");
+D_STATIC_ASSERT(D_IMAP_FLAG_COUNT <= 32,
+                "flag sets are uint32_t: one bit per flag");
+D_STATIC_ASSERT(D_IMAP_MAILBOX_ATTRIBUTE_COUNT <= 32,
+                "attribute sets are uint32_t: one bit per attribute");
+D_STATIC_ASSERT(D_IMAP_STATUS_ITEM_COUNT <= 32,
+                "STATUS item sets are uint32_t: one bit per item");
 
 // the tag and sequence-set code rely on these properties of their constants
-static_assert(D_IMAP_TAG_CAPACITY >= D_IMAP_TAG_PREFIX_MAX + 10 + 1,
-              "a tag needs its prefix, ten counter digits, and a NUL");
-static_assert(D_IMAP_SEQ_STAR == 0,
-              "\"*\" must be the one value no sequence number or UID takes");
+D_STATIC_ASSERT(D_IMAP_TAG_CAPACITY >= D_IMAP_TAG_PREFIX_MAX + 10 + 1,
+                "a tag needs its prefix, ten counter digits, and a NUL");
+D_STATIC_ASSERT(D_IMAP_SEQ_STAR == 0,
+                "\"*\" must be the one value no sequence number or UID takes");
 
 // internal helpers: ASCII
 
@@ -784,9 +783,9 @@ static const char* const d_imap_internal_backend_names[] =
     "none", "native", "libcurl", "libetpan", "GNU Mailutils", "VMime"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_backend_names) ==
-                  D_IMAP_BACKEND_COUNT,
-              "one name per backend");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_backend_names) ==
+                    D_IMAP_BACKEND_COUNT,
+                "one name per backend");
 
 // d_imap_internal_backend_available
 //   table: whether this translation unit's environment could build each
@@ -801,9 +800,9 @@ static const bool d_imap_internal_backend_available[] =
     (D_ENV_IMAP_VMIME_AVAILABLE != 0)
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_backend_available) ==
-                  D_IMAP_BACKEND_COUNT,
-              "one availability answer per backend");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_backend_available) ==
+                    D_IMAP_BACKEND_COUNT,
+                "one availability answer per backend");
 
 /*
 d_imap_backend_name
@@ -865,9 +864,9 @@ static const char* const d_imap_internal_error_names[] =
     "memory", "internal"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_error_names) ==
-                  D_IMAP_ERROR_COUNT,
-              "one name per error");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_error_names) ==
+                    D_IMAP_ERROR_COUNT,
+                "one name per error");
 
 // d_imap_internal_error_messages
 //   table: a short sentence for each error, indexed by d_imap_error.
@@ -900,9 +899,9 @@ static const char* const d_imap_internal_error_messages[] =
     "internal error"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_error_messages) ==
-                  D_IMAP_ERROR_COUNT,
-              "one message per error");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_error_messages) ==
+                    D_IMAP_ERROR_COUNT,
+                "one message per error");
 
 /*
 d_imap_error_name
@@ -969,9 +968,9 @@ static const char* const d_imap_internal_state_names[] =
     "disconnected", "not authenticated", "authenticated", "selected", "logout"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_state_names) ==
-                  D_IMAP_STATE_COUNT,
-              "one name per state");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_state_names) ==
+                    D_IMAP_STATE_COUNT,
+                "one name per state");
 
 // d_imap_internal_command_names
 //   table: the command keywords, indexed by d_imap_command; the empty first
@@ -987,9 +986,9 @@ static const char* const d_imap_internal_command_names[] =
     "COPY", "MOVE", "UID", "SORT", "THREAD"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_command_names) ==
-                  D_IMAP_COMMAND_COUNT,
-              "one keyword per command");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_command_names) ==
+                    D_IMAP_COMMAND_COUNT,
+                "one keyword per command");
 
 /*
 d_imap_state_name
@@ -1243,9 +1242,9 @@ static const char* const d_imap_internal_security_names[] =
     "tls", "starttls", "opportunistic", "none"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_security_names) ==
-                  D_IMAP_SECURITY_COUNT,
-              "one name per security mode");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_security_names) ==
+                    D_IMAP_SECURITY_COUNT,
+                "one name per security mode");
 
 // d_imap_internal_auth_names
 //   table: the SASL mechanism names, indexed by d_imap_auth_mechanism; the
@@ -1257,9 +1256,9 @@ static const char* const d_imap_internal_auth_names[] =
     "XOAUTH2", "OAUTHBEARER", "GSSAPI", "EXTERNAL", "NTLM", "ANONYMOUS"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_auth_names) ==
-                  D_IMAP_AUTH_COUNT,
-              "one name per mechanism");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_auth_names) ==
+                    D_IMAP_AUTH_COUNT,
+                "one name per mechanism");
 
 /*
 d_imap_security_name
@@ -1363,9 +1362,9 @@ static const char* const d_imap_internal_capability_names[] =
     "UNAUTHENTICATE", "LIST-MYRIGHTS", "REPLACE"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_capability_names) ==
-                  D_IMAP_CAPABILITY_COUNT,
-              "one wire name per capability");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_capability_names) ==
+                    D_IMAP_CAPABILITY_COUNT,
+                "one wire name per capability");
 
 /*
 d_imap_capability_name
@@ -1588,9 +1587,9 @@ static const enum d_imap_auth_mechanism d_imap_internal_auth_preference[] =
     D_IMAP_AUTH_ANONYMOUS
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_auth_preference) ==
-                  D_IMAP_AUTH_COUNT,
-              "every mechanism has exactly one rank");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_auth_preference) ==
+                    D_IMAP_AUTH_COUNT,
+                "every mechanism has exactly one rank");
 
 // d_imap_internal_auth_cleartext
 //   constant: the mechanisms that reveal the secret itself to
@@ -1897,9 +1896,9 @@ static const char* const d_imap_internal_flag_names[] =
     "\\*", "$Forwarded", "$MDNSent", "$Junk", "$NotJunk", "$Phishing"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_flag_names) ==
-                  D_IMAP_FLAG_COUNT,
-              "one name per flag");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_flag_names) ==
+                    D_IMAP_FLAG_COUNT,
+                "one name per flag");
 
 // d_imap_internal_mailbox_attribute_names
 //   table: the mailbox attribute names, indexed by d_imap_mailbox_attribute.
@@ -1911,9 +1910,9 @@ static const char* const d_imap_internal_mailbox_attribute_names[] =
     "\\Important"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_mailbox_attribute_names) ==
-                  D_IMAP_MAILBOX_ATTRIBUTE_COUNT,
-              "one name per mailbox attribute");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_mailbox_attribute_names) ==
+                    D_IMAP_MAILBOX_ATTRIBUTE_COUNT,
+                "one name per mailbox attribute");
 
 // d_imap_internal_status_item_names
 //   table: the STATUS item keywords, indexed by d_imap_status_item.
@@ -1923,9 +1922,9 @@ static const char* const d_imap_internal_status_item_names[] =
     "SIZE", "HIGHESTMODSEQ"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_status_item_names) ==
-                  D_IMAP_STATUS_ITEM_COUNT,
-              "one keyword per STATUS item");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_status_item_names) ==
+                    D_IMAP_STATUS_ITEM_COUNT,
+                "one keyword per STATUS item");
 
 /*
 d_imap_flag_name
@@ -2976,8 +2975,8 @@ d_imap_quoted_unescape(
 static const char d_imap_internal_base64[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,";
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_base64) == 64 + 1,
-              "the alphabet has 64 characters and a terminator");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_base64) == 64 + 1,
+                "the alphabet has 64 characters and a terminator");
 
 /*
 d_imap_internal_base64_value
@@ -3865,8 +3864,8 @@ static const char* const d_imap_internal_months[] =
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_months) == 12,
-              "one abbreviation per month");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_months) == 12,
+                "one abbreviation per month");
 
 // d_imap_internal_unix_min, d_imap_internal_unix_max
 //   constants: the Unix times of 0000-01-01T00:00:00 and 9999-12-31T23:59:59,
@@ -4575,9 +4574,9 @@ static const char* const d_imap_internal_condition_names[] =
     "", "OK", "NO", "BAD", "PREAUTH", "BYE"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_condition_names) ==
-                  D_IMAP_CONDITION_COUNT,
-              "one keyword per condition");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_condition_names) ==
+                    D_IMAP_CONDITION_COUNT,
+                "one keyword per condition");
 
 // d_imap_internal_code_names
 //   table: the response-code atoms, indexed by d_imap_code; NONE and OTHER
@@ -4598,9 +4597,9 @@ static const char* const d_imap_internal_code_names[] =
     "USEATTR", "MAILBOXID"
 };
 
-static_assert(D_ARRAY_STATIC_SIZE(d_imap_internal_code_names) ==
-                  D_IMAP_CODE_COUNT,
-              "one atom per response code");
+D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_code_names) ==
+                    D_IMAP_CODE_COUNT,
+                "one atom per response code");
 
 /*
 d_imap_condition_name

@@ -1,8 +1,8 @@
-/******************************************************************************
-* djinterp [re_std]                                                     climits
+/*******************************************************************************
+* djinterp [re_std]                                                      climits
 *
 * <climits> umbrella header:
-*   Aggregates the granular headers under /inc/djinterp/re_std/climits/.
+*   Aggregates the granular headers under /inc/re_std/climits/.
 * Mirrors the standard <climits> convenience header and adds no symbols of
 * its own.
 *
@@ -31,18 +31,19 @@
 * types, which have no macro equivalent here at all.
 *
 *
-* path:      /inc/djinterp/re_std/climits/climits
+* path:      /inc/re_std/climits/climits
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CLIMITS_
-#define DJINTERP_RE_STD_CLIMITS_ 1
+#ifndef RE_STD_CLIMITS_CLIMITS
+#define RE_STD_CLIMITS_CLIMITS 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 #include "./climits.hpp"
 
 
-#endif  // DJINTERP_RE_STD_CLIMITS_
+#endif  // RE_STD_CLIMITS_CLIMITS

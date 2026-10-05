@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                          dss.c
+* djinterp [djinterp]                                                      dss.c
 *
 * DSS front end:
 *   A hand-written recursive-descent parser over the declarative subset of
@@ -11,6 +11,7 @@
 * same jobs better, and swapping to them is mechanical once the env include
 * graph admits them; until then this file stays C11 with no dependency.
 *
+*
 * path:      /src/djinterp/tools/dawk/dss.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
@@ -20,6 +21,8 @@
 // std
 #include <stdlib.h>  // malloc, realloc, free, strtod
 #include <string.h>  // memcpy, memcmp, strlen
+// djinterp
+#include "../../../../inc/djinterp/tools/dawk/dsymbol.h"  // d_symbol_intern
 
 
 //==============================================================================
@@ -69,7 +72,20 @@ struct d_dss_sheet
     struct d_internal_vector  declarations;
     struct d_internal_vector  rules;
     struct d_internal_vector  at_rules;
+    struct d_internal_vector  warnings;
+
+    struct d_symbol_table*    symbols;  // borrowed; NULL until bound
 };
+
+// D_INTERNAL_COMPOUND_MAX, D_INTERNAL_STEP_MAX, D_INTERNAL_LIST_MAX
+//   constant: how many simples a compound, steps a selector and selectors a
+// list may hold.  A compound's simples, a selector's steps and a list's
+// selectors are each gathered here before being stored, because a pseudo-
+// class argument parsed in the middle of one stores records of its own, and
+// each run must stay contiguous in its table.
+#define D_INTERNAL_COMPOUND_MAX 32
+#define D_INTERNAL_STEP_MAX     64
+#define D_INTERNAL_LIST_MAX     32
 
 
 /*
@@ -323,6 +339,7 @@ struct d_internal_parser
     struct d_dss_sheet*  sheet;
     struct d_dss_error*  error;
     bool                 failed;
+    uint8_t              dialect;  // d_dss_dialect
 };
 
 
@@ -408,13 +425,38 @@ d_internal_skip(
             ++_parser->line;
             _parser->line_start = (uint32_t)_parser->at;
         }
-        else if (c == '#')
+        else if ( (c == '#') && (_parser->dialect == D_DSS_DIALECT_DSS) )
         {
             while ( (_parser->at < _parser->length) &&
                     (_parser->text[_parser->at] != '\n') )
             {
                 ++_parser->at;
             }
+        }
+        else if ( (c == '/')                              &&
+                  (_parser->dialect == D_DSS_DIALECT_CSS) &&
+                  (_parser->at + 1u < _parser->length)    &&
+                  (_parser->text[_parser->at + 1u] == '*') )
+        {
+            // a CSS comment, which may span lines
+            _parser->at += 2u;
+
+            while ( (_parser->at + 1u < _parser->length) &&
+                    ( (_parser->text[_parser->at] != '*') ||
+                      (_parser->text[_parser->at + 1u] != '/') ) )
+            {
+                if (_parser->text[_parser->at] == '\n')
+                {
+                    ++_parser->line;
+                    _parser->line_start = (uint32_t)(_parser->at + 1u);
+                }
+
+                ++_parser->at;
+            }
+
+            _parser->at = (_parser->at + 2u <= _parser->length)
+                          ? (_parser->at + 2u)
+                          : _parser->length;
         }
         else
         {
@@ -728,6 +770,17 @@ d_internal_attribute(
     {
         if (d_internal_eat(_parser, operators[which].spelling))
         {
+            // ==, !=, <, <=, > and >= are DSS's; CSS has none of them
+            const bool css_has = ( (which < 5u) ||
+                                   (strcmp(operators[which].spelling, "=")
+                                    == 0) );
+
+            if ( (_parser->dialect == D_DSS_DIALECT_CSS) && (!css_has) )
+            {
+                return d_internal_fail(_parser,
+                                       "attribute operator is not CSS");
+            }
+
             _out_simple->op = operators[which].op;
             matched         = true;
             break;
@@ -783,10 +836,215 @@ d_internal_attribute(
 
 
 /*
+d_internal_warn
+  Records a warning at the parse position.  A warning that cannot be stored is
+dropped: it is advice, and running out of memory for it must not fail the
+sheet.
+*/
+static void
+d_internal_warn(
+    struct d_internal_parser* _parser,
+    const char*               _message
+)
+{
+    struct d_dss_warning warning;
+
+    warning.line    = _parser->line;
+    warning.column  = (uint32_t)(_parser->at - _parser->line_start) + 1u;
+    warning.message = _message;
+
+    (void)d_internal_vector_push(&_parser->sheet->warnings, &warning);
+
+    return;
+}
+
+
+static bool d_internal_selector_list(struct d_internal_parser* _parser,
+                                     bool                      _relative,
+                                     uint32_t*                 _out_first,
+                                     uint32_t*                 _out_count);
+
+
+/*
+d_internal_nth
+  Reads the argument of :nth-child: `odd`, `even`, an integer, or An+B with
+either part optional and spaces around the sign, as Selectors Level 4 writes
+it.  `n` alone is 1n+0.
+*/
+static bool
+d_internal_nth(
+    struct d_internal_parser* _parser,
+    int32_t*                  _out_a,
+    int32_t*                  _out_b
+)
+{
+    long a = 0;
+    long b = 0;
+
+    d_internal_skip(_parser);
+
+    if (d_internal_eat(_parser, "odd"))
+    {
+        *_out_a = 2;
+        *_out_b = 1;
+
+        return true;
+    }
+
+    if (d_internal_eat(_parser, "even"))
+    {
+        *_out_a = 2;
+        *_out_b = 0;
+
+        return true;
+    }
+
+    const char* const text  = _parser->text;
+    long              sign  = 1;
+    bool              has_n = false;
+    bool              digits = false;
+    long              value = 0;
+
+    // the leading sign and number, which is A if an `n` follows, else B
+    if ( (d_internal_peek(_parser) == '+') ||
+         (d_internal_peek(_parser) == '-') )
+    {
+        sign = (text[_parser->at] == '-') ? -1 : 1;
+        ++_parser->at;
+    }
+
+    while ( (_parser->at < _parser->length) &&
+            (text[_parser->at] >= '0') &&
+            (text[_parser->at] <= '9') &&
+            (value < 100000) )
+    {
+        value  = (value * 10) + (text[_parser->at] - '0');
+        digits = true;
+        ++_parser->at;
+    }
+
+    if ( (_parser->at < _parser->length) &&
+         ( (text[_parser->at] == 'n') ||
+           (text[_parser->at] == 'N') ) )
+    {
+        has_n = true;
+        a     = sign * (digits ? value : 1);
+        ++_parser->at;
+    }
+    else if (digits)
+    {
+        b = sign * value;
+    }
+    else
+    {
+        return d_internal_fail(_parser, "An+B expected");
+    }
+
+    // after An, an optional signed B
+    if (has_n)
+    {
+        d_internal_skip(_parser);
+
+        const char op = d_internal_peek(_parser);
+
+        if ( (op == '+') ||
+             (op == '-') )
+        {
+            ++_parser->at;
+            d_internal_skip(_parser);
+
+            value  = 0;
+            digits = false;
+
+            while ( (_parser->at < _parser->length) &&
+                    (text[_parser->at] >= '0') &&
+                    (text[_parser->at] <= '9') &&
+                    (value < 100000) )
+            {
+                value  = (value * 10) + (text[_parser->at] - '0');
+                digits = true;
+                ++_parser->at;
+            }
+
+            if (!digits)
+            {
+                return d_internal_fail(_parser, "B expected after the sign");
+            }
+
+            b = (op == '-') ? -value : value;
+        }
+    }
+
+    *_out_a = (int32_t)a;
+    *_out_b = (int32_t)b;
+
+    return true;
+}
+
+
+/*
+d_internal_pseudo_arguments
+  Reads the parenthesized argument of a functional pseudo-class: a selector
+list for :not and :is, a relative one for :has, An+B for :nth-child and
+:nth-last-child.  Any other name taking an argument is refused here, where
+the sheet's author can see it, rather than matching nothing later.
+*/
+static bool
+d_internal_pseudo_arguments(
+    struct d_internal_parser* _parser,
+    struct d_dss_simple*      _simple
+)
+{
+    const char* const name = d_internal_intern_text(&_parser->sheet->intern,
+                                                    _simple->name);
+    bool              good = false;
+
+    ++_parser->at;
+
+    if ( (strcmp(name, "not") == 0) ||
+         (strcmp(name, "is")  == 0) ||
+         (strcmp(name, "has") == 0) )
+    {
+        good = d_internal_selector_list(_parser,
+                                        (strcmp(name, "has") == 0),
+                                        &_simple->first_argument,
+                                        &_simple->argument_count);
+    }
+    else if ( (strcmp(name, "nth-child")      == 0) ||
+              (strcmp(name, "nth-last-child") == 0) )
+    {
+        good = d_internal_nth(_parser,
+                              &_simple->nth_a,
+                              &_simple->nth_b);
+    }
+    else
+    {
+        return d_internal_fail(_parser, "this pseudo-class takes no argument");
+    }
+
+    if (!good)
+    {
+        return false;
+    }
+
+    d_internal_skip(_parser);
+
+    if (!d_internal_eat(_parser, ")"))
+    {
+        return d_internal_fail(_parser, "`)` expected");
+    }
+
+    return true;
+}
+
+
+/*
 d_internal_compound
   Reads one or more simple selectors with no whitespace between them.  The
 universal selector is only legal first, which the grammar implies by making
-every other simple a suffix.
+every other simple a suffix.  The simples are gathered and stored together at
+the end, because a pseudo-class argument stores simples of its own and a
+compound's must be one contiguous run.
 */
 static bool
 d_internal_compound(
@@ -794,10 +1052,9 @@ d_internal_compound(
     uint32_t*                 _out_compound
 )
 {
+    struct d_dss_simple   gathered[D_INTERNAL_COMPOUND_MAX];
     struct d_dss_compound compound;
-
-    compound.first_simple = (uint32_t)_parser->sheet->simples.count;
-    compound.simple_count = 0;
+    uint32_t              count = 0;
 
     while (!_parser->failed)
     {
@@ -805,8 +1062,9 @@ d_internal_compound(
 
         memset(&simple, 0, sizeof(simple));
 
-        simple.value = D_DSS_NO_INDEX;
-        simple.name  = D_DSS_NO_INDEX;
+        simple.value          = D_DSS_NO_INDEX;
+        simple.name           = D_DSS_NO_INDEX;
+        simple.first_argument = D_DSS_NO_INDEX;
 
         const char lead = d_internal_peek(_parser);
 
@@ -853,6 +1111,14 @@ d_internal_compound(
             {
                 return d_internal_fail(_parser, "pseudo name expected");
             }
+
+            // a functional pseudo-class: its argument follows at once
+            if ( (_parser->at < _parser->length) &&
+                 (_parser->text[_parser->at] == '(') &&
+                 (!d_internal_pseudo_arguments(_parser, &simple)) )
+            {
+                return false;
+            }
         }
         else if (d_internal_is_name_start(lead))
         {
@@ -864,18 +1130,30 @@ d_internal_compound(
             break;
         }
 
-        if (d_internal_vector_push(&_parser->sheet->simples, &simple)
+        if (count == (uint32_t)D_INTERNAL_COMPOUND_MAX)
+        {
+            return d_internal_fail(_parser, "compound too long");
+        }
+
+        gathered[count] = simple;
+        ++count;
+    }
+
+    if (count == 0)
+    {
+        return d_internal_fail(_parser, "selector expected");
+    }
+
+    compound.first_simple = (uint32_t)_parser->sheet->simples.count;
+    compound.simple_count = count;
+
+    for (uint32_t at = 0; at < count; ++at)
+    {
+        if (d_internal_vector_push(&_parser->sheet->simples, &gathered[at])
             == D_DSS_NO_INDEX)
         {
             return d_internal_fail(_parser, "out of memory");
         }
-
-        ++compound.simple_count;
-    }
-
-    if (compound.simple_count == 0)
-    {
-        return d_internal_fail(_parser, "selector expected");
     }
 
     *_out_compound = d_internal_vector_push(&_parser->sheet->compounds,
@@ -889,7 +1167,12 @@ d_internal_compound(
 d_internal_selector
   Reads a chain of compounds joined by combinators.  A run of whitespace is a
 descendant combinator only when a compound follows it, which is what keeps
-`banner > rule {` from reading the brace as a compound.
+`banner > rule {` from reading the brace as a compound.  Steps are gathered
+and stored together, for the same reason as a compound's simples.
+  Whitespace followed by an attribute selector -- `a[x] [y]` -- parses as a
+descendant combinator and asks for a `[y]` inside the `a[x]`, which is almost
+never meant: a compound was broken across a line.  The parser warns; writing
+`*[y]` says the descendant is intended and silences it.
 */
 static bool
 d_internal_selector(
@@ -897,7 +1180,9 @@ d_internal_selector(
     uint32_t*                 _out_selector
 )
 {
+    struct d_dss_step     gathered[D_INTERNAL_STEP_MAX];
     struct d_dss_selector selector;
+    uint32_t              count = 0;
 
     d_internal_skip(_parser);
 
@@ -905,9 +1190,6 @@ d_internal_selector(
     {
         return false;
     }
-
-    selector.first_step = (uint32_t)_parser->sheet->steps.count;
-    selector.step_count = 0;
 
     while (!_parser->failed)
     {
@@ -924,7 +1206,9 @@ d_internal_selector(
         {
             step.combinator = D_DSS_COMBINATOR_CHILD;
         }
-        else if (d_internal_eat(_parser, "..."))
+        else if (d_internal_eat(_parser,
+                                (_parser->dialect == D_DSS_DIALECT_CSS)
+                                ? "~" : "..."))
         {
             step.combinator = D_DSS_COMBINATOR_SIBLING;
         }
@@ -941,13 +1225,24 @@ d_internal_selector(
 
         const char lead = d_internal_peek(_parser);
 
-        // a brace or comma after whitespace ends the selector, not a step
+        // a brace, comma or closing parenthesis after whitespace ends the
+        // selector, not a step
         if ( (step.combinator == D_DSS_COMBINATOR_DESCENDANT) &&
-             ((lead == '{') || (lead == ',') || (lead == '\0')) )
+             ( (lead == '{') || (lead == ',') || (lead == ')') ||
+               (lead == '\0') ) )
         {
             _parser->at   = mark;
             _parser->line = mark_line;
             break;
+        }
+
+        // `a[x] [y]`: a compound broken by whitespace, almost certainly
+        if ( (step.combinator == D_DSS_COMBINATOR_DESCENDANT) &&
+             (lead == '[') )
+        {
+            d_internal_warn(_parser,
+                            "whitespace before `[` is a descendant "
+                            "combinator; write `*[` if that is meant");
         }
 
         if (!d_internal_compound(_parser, &step.compound))
@@ -955,19 +1250,112 @@ d_internal_selector(
             return false;
         }
 
-        if (d_internal_vector_push(&_parser->sheet->steps, &step)
+        if (count == (uint32_t)D_INTERNAL_STEP_MAX)
+        {
+            return d_internal_fail(_parser, "selector too long");
+        }
+
+        gathered[count] = step;
+        ++count;
+    }
+
+    selector.first_step = (uint32_t)_parser->sheet->steps.count;
+    selector.step_count = count;
+    selector.leading    = D_DSS_COMBINATOR_DESCENDANT;
+
+    for (uint32_t at = 0; at < count; ++at)
+    {
+        if (d_internal_vector_push(&_parser->sheet->steps, &gathered[at])
             == D_DSS_NO_INDEX)
         {
             return d_internal_fail(_parser, "out of memory");
         }
-
-        ++selector.step_count;
     }
 
     *_out_selector = d_internal_vector_push(&_parser->sheet->selectors,
                                             &selector);
 
     return (*_out_selector != D_DSS_NO_INDEX);
+}
+
+
+/*
+d_internal_selector_list
+  Reads comma-separated selectors -- relative ones, each with an optional
+leading combinator, inside :has() -- and stores them as one contiguous run.
+Each selector is stored as it is read, and nested lists store theirs in
+between, so the list's records are copied to the end once all are read.
+*/
+static bool
+d_internal_selector_list(
+    struct d_internal_parser* _parser,
+    bool                      _relative,
+    uint32_t*                 _out_first,
+    uint32_t*                 _out_count
+)
+{
+    uint32_t read[D_INTERNAL_LIST_MAX];
+    uint8_t  leading[D_INTERNAL_LIST_MAX];
+    uint32_t count = 0;
+
+    while (!_parser->failed)
+    {
+        uint8_t combinator = D_DSS_COMBINATOR_DESCENDANT;
+
+        d_internal_skip(_parser);
+
+        // a relative selector may open with its combinator
+        if (_relative)
+        {
+            combinator = d_internal_eat(_parser, ">")   ? D_DSS_COMBINATOR_CHILD
+                       : d_internal_eat(_parser,
+                             (_parser->dialect == D_DSS_DIALECT_CSS)
+                             ? "~" : "...")      ? D_DSS_COMBINATOR_SIBLING
+                       : d_internal_eat(_parser, "+")   ? D_DSS_COMBINATOR_ADJACENT
+                                                        : combinator;
+        }
+
+        if (count == (uint32_t)D_INTERNAL_LIST_MAX)
+        {
+            return d_internal_fail(_parser, "selector list too long");
+        }
+
+        if (!d_internal_selector(_parser, &read[count]))
+        {
+            return false;
+        }
+
+        leading[count] = combinator;
+        ++count;
+
+        d_internal_skip(_parser);
+
+        if (!d_internal_eat(_parser, ","))
+        {
+            break;
+        }
+    }
+
+    *_out_first = (uint32_t)_parser->sheet->selectors.count;
+    *_out_count = count;
+
+    for (uint32_t at = 0; at < count; ++at)
+    {
+        struct d_dss_selector copy =
+            *(const struct d_dss_selector*)(_parser->sheet->selectors.data +
+                                            (read[at] *
+                                             _parser->sheet->selectors.stride));
+
+        copy.leading = leading[at];
+
+        if (d_internal_vector_push(&_parser->sheet->selectors, &copy)
+            == D_DSS_NO_INDEX)
+        {
+            return d_internal_fail(_parser, "out of memory");
+        }
+    }
+
+    return !_parser->failed;
 }
 
 
@@ -980,6 +1368,7 @@ bounded by the source's own nesting.
 static bool
 d_internal_value(
     struct d_internal_parser* _parser,
+    struct d_dss_value*       _out_value,
     bool*                     _out_present
 )
 {
@@ -1020,6 +1409,14 @@ d_internal_value(
         if (value.text == D_DSS_NO_INDEX)
         {
             return d_internal_fail(_parser, "flag name expected");
+        }
+
+        // CSS knows one flag
+        if ( (_parser->dialect == D_DSS_DIALECT_CSS) &&
+             (strcmp(d_dss_text(_parser->sheet, value.text), "important")
+              != 0) )
+        {
+            return d_internal_fail(_parser, "only !important is CSS");
         }
     }
     else if ((lead >= '0') && (lead <= '9'))
@@ -1082,8 +1479,12 @@ d_internal_value(
         return true;
     }
 
-    return (d_internal_vector_push(&_parser->sheet->values, &value)
-            != D_DSS_NO_INDEX);
+    // the caller places the record: a function's arguments have already been
+    // appended by the time it returns, so appending it here would interleave
+    // them into the enclosing list's range
+    *_out_value = value;
+
+    return true;
 }
 
 
@@ -1100,8 +1501,9 @@ d_internal_value_list(
     uint32_t*                 _out_count
 )
 {
-    const uint32_t first = (uint32_t)_parser->sheet->values.count;
-    uint32_t       count = 0;
+    struct d_dss_value* terms    = NULL;
+    uint32_t            count    = 0;
+    uint32_t            capacity = 0;
 
     while (!_parser->failed)
     {
@@ -1114,10 +1516,12 @@ d_internal_value_list(
             break;
         }
 
-        bool present = false;
+        bool               present = false;
+        struct d_dss_value term;
 
-        if (!d_internal_value(_parser, &present))
+        if (!d_internal_value(_parser, &term, &present))
         {
+            free(terms);
             return false;
         }
 
@@ -1126,13 +1530,50 @@ d_internal_value_list(
             break;
         }
 
+        if (count == capacity)
+        {
+            const uint32_t grown = (capacity == 0) ? 8u : (capacity * 2u);
+
+            struct d_dss_value* const data =
+                realloc(terms, grown * sizeof(struct d_dss_value));
+
+            if (!data)
+            {
+                free(terms);
+                return d_internal_fail(_parser, "out of memory");
+            }
+
+            terms    = data;
+            capacity = grown;
+        }
+
+        terms[count] = term;
         ++count;
     }
 
     if (count == 0)
     {
+        free(terms);
         return d_internal_fail(_parser, "declaration value expected");
     }
+
+    // Every nested argument is already in the array, so the terms appended
+    // now form one contiguous run.  A declaration's range therefore covers
+    // exactly its own top-level terms, and a function's range exactly its
+    // own arguments, however deeply they nest.
+    const uint32_t first = (uint32_t)_parser->sheet->values.count;
+
+    for (uint32_t at = 0; at < count; ++at)
+    {
+        if (d_internal_vector_push(&_parser->sheet->values, &terms[at])
+            == D_DSS_NO_INDEX)
+        {
+            free(terms);
+            return d_internal_fail(_parser, "out of memory");
+        }
+    }
+
+    free(terms);
 
     *_out_first = first;
     *_out_count = count;
@@ -1377,26 +1818,15 @@ d_internal_style_rule(
     struct d_dss_rule rule;
 
     rule.line           = _parser->line;
-    rule.first_selector = (uint32_t)_parser->sheet->selectors.count;
-    rule.selector_count = 0;
+    rule.layer          = 0;
 
-    while (!_parser->failed)
+    // the list is stored contiguously however its selectors nest
+    if (!d_internal_selector_list(_parser,
+                                  false,
+                                  &rule.first_selector,
+                                  &rule.selector_count))
     {
-        uint32_t selector = D_DSS_NO_INDEX;
-
-        if (!d_internal_selector(_parser, &selector))
-        {
-            return false;
-        }
-
-        ++rule.selector_count;
-
-        d_internal_skip(_parser);
-
-        if (!d_internal_eat(_parser, ","))
-        {
-            break;
-        }
+        return false;
     }
 
     d_internal_skip(_parser);
@@ -1419,15 +1849,255 @@ d_internal_style_rule(
 
 
 /*
+d_internal_pseudo_kind
+  Resolves a pseudo-class name once, at parse, so the matcher switches on an
+integer instead of comparing text for every node.
+*/
+static uint8_t
+d_internal_pseudo_kind(
+    const char* _name
+)
+{
+    static const struct
+    {
+        const char* name;
+        uint8_t     kind;
+    }
+    known[] =
+    {
+        { "first-child",    D_DSS_PSEUDO_FIRST_CHILD    },
+        { "last-child",     D_DSS_PSEUDO_LAST_CHILD     },
+        { "only-child",     D_DSS_PSEUDO_ONLY_CHILD     },
+        { "first-of-type",  D_DSS_PSEUDO_FIRST_OF_TYPE  },
+        { "last-of-type",   D_DSS_PSEUDO_LAST_OF_TYPE   },
+        { "nth-child",      D_DSS_PSEUDO_NTH_CHILD      },
+        { "nth-last-child", D_DSS_PSEUDO_NTH_LAST_CHILD },
+        { "not",            D_DSS_PSEUDO_NOT            },
+        { "is",             D_DSS_PSEUDO_IS             },
+        { "has",            D_DSS_PSEUDO_HAS            }
+    };
+
+    for (size_t at = 0u; at < (sizeof(known) / sizeof(known[0])); ++at)
+    {
+        if (strcmp(_name, known[at].name) == 0)
+        {
+            return known[at].kind;
+        }
+    }
+
+    return D_DSS_PSEUDO_UNKNOWN;
+}
+
+
+/*
+d_internal_specificity
+  CSS specificity of one selector: attributes, classes and pseudo-classes
+count in the middle place, types and pseudo-elements in the last; :is, :not
+and :has count as their most specific argument (Selectors 4).  DSS has no id
+selector, so the first place is always zero.  Each place saturates at 1023.
+*/
+static uint32_t
+d_internal_specificity(
+    const struct d_dss_sheet* _sheet,
+    uint32_t                  _selector,
+    uint32_t                  _depth
+)
+{
+    const struct d_dss_selector* const selector =
+        d_dss_selector_at(_sheet, _selector);
+
+    if ( (!selector) || (_depth > 64u) )
+    {
+        return 0u;
+    }
+
+    uint32_t b = 0u;
+    uint32_t c = 0u;
+
+    for (uint32_t part = 0u; part <= selector->step_count; ++part)
+    {
+        const uint32_t compound_index = (part == 0u)
+            ? selector->head
+            : d_dss_step_at(_sheet, selector->first_step + part - 1u)
+                  ->compound;
+        const struct d_dss_compound* const compound =
+            d_dss_compound_at(_sheet, compound_index);
+
+        for (uint32_t k = 0u; (compound) && (k < compound->simple_count); ++k)
+        {
+            const struct d_dss_simple* const simple =
+                d_dss_simple_at(_sheet, compound->first_simple + k);
+
+            if ( (simple->kind == D_DSS_SIMPLE_TYPE) ||
+                 (simple->kind == D_DSS_SIMPLE_PSEUDO_ELEMENT) )
+            {
+                ++c;
+            }
+            else if (simple->argument_count > 0u)
+            {
+                uint32_t best = 0u;
+
+                // the most specific argument stands for the whole
+                for (uint32_t arg = 0u; arg < simple->argument_count; ++arg)
+                {
+                    const uint32_t inner =
+                        d_internal_specificity(_sheet,
+                                               simple->first_argument + arg,
+                                               _depth + 1u);
+
+                    best = (inner > best) ? inner : best;
+                }
+
+                b += (best >> 10) & 0x3FFu;
+                c += best & 0x3FFu;
+            }
+            else if (simple->kind != D_DSS_SIMPLE_UNIVERSAL)
+            {
+                ++b;
+            }
+        }
+    }
+
+    b = (b > 0x3FFu) ? 0x3FFu : b;
+    c = (c > 0x3FFu) ? 0x3FFu : c;
+
+    return (b << 10) | c;
+}
+
+
+/*
+d_internal_finish
+  The facts a parsed sheet can know without a symbol table: each
+pseudo-class's kind and each selector's specificity.  Symbols start unbound.
+*/
+static void
+d_internal_finish(
+    struct d_dss_sheet* _sheet
+)
+{
+    for (size_t at = 0u; at < _sheet->simples.count; ++at)
+    {
+        struct d_dss_simple* const simple = (struct d_dss_simple*)
+            (_sheet->simples.data + (at * _sheet->simples.stride));
+
+        simple->symbol = D_DSS_NO_INDEX;
+        simple->pseudo = (simple->kind == D_DSS_SIMPLE_PSEUDO_CLASS)
+                         ? d_internal_pseudo_kind(d_dss_text(_sheet,
+                                                             simple->name))
+                         : (uint8_t)D_DSS_PSEUDO_UNKNOWN;
+    }
+
+    for (size_t at = 0u; at < _sheet->declarations.count; ++at)
+    {
+        ((struct d_dss_declaration*)
+            (_sheet->declarations.data +
+             (at * _sheet->declarations.stride)))->symbol = D_DSS_NO_INDEX;
+    }
+
+    for (size_t at = 0u; at < _sheet->selectors.count; ++at)
+    {
+        ((struct d_dss_selector*)
+            (_sheet->selectors.data + (at * _sheet->selectors.stride)))
+            ->specificity = d_internal_specificity(_sheet, (uint32_t)at, 0u);
+    }
+
+    return;
+}
+
+
+/*
+d_dss_bind
+  Every name a matcher or cascade compares -- types, attribute names,
+pseudo-class names, properties -- gets its symbol in the shared table.  A
+sheet binds once; binding again to another table rebinds it.
+*/
+bool
+d_dss_bind(
+    struct d_dss_sheet*    _sheet,
+    struct d_symbol_table* _symbols
+)
+{
+    if ( (!_sheet) || (!_symbols) )
+    {
+        return false;
+    }
+
+    for (size_t at = 0u; at < _sheet->simples.count; ++at)
+    {
+        struct d_dss_simple* const simple = (struct d_dss_simple*)
+            (_sheet->simples.data + (at * _sheet->simples.stride));
+
+        if ( (simple->kind != D_DSS_SIMPLE_UNIVERSAL) &&
+             (simple->name != D_DSS_NO_INDEX) )
+        {
+            const char* const name = d_dss_text(_sheet, simple->name);
+
+            simple->symbol = d_symbol_intern(_symbols, name, strlen(name));
+
+            if (simple->symbol == D_SYMBOL_NONE)
+            {
+                return false;
+            }
+        }
+    }
+
+    for (size_t at = 0u; at < _sheet->declarations.count; ++at)
+    {
+        struct d_dss_declaration* const declaration =
+            (struct d_dss_declaration*)
+            (_sheet->declarations.data + (at * _sheet->declarations.stride));
+        const char* const property = d_dss_text(_sheet, declaration->property);
+
+        declaration->symbol = d_symbol_intern(_symbols, property,
+                                              strlen(property));
+
+        if (declaration->symbol == D_SYMBOL_NONE)
+        {
+            return false;
+        }
+    }
+
+    _sheet->symbols = _symbols;
+
+    return true;
+}
+
+
+struct d_symbol_table*
+d_dss_symbols(
+    const struct d_dss_sheet* _sheet
+)
+{
+    return _sheet ? _sheet->symbols : NULL;
+}
+
+
+/*
 d_dss_parse
-  Parses a sheet.  Returns NULL on failure with `_out_error` filled; the
-partially built sheet is released, so a caller never sees half a parse.
+  The DSS dialect; see d_dss_parse_ex.
 */
 struct d_dss_sheet*
 d_dss_parse(
     const char*         _text,
     size_t              _length,
     struct d_dss_error* _out_error
+)
+{
+    return d_dss_parse_ex(_text, _length, NULL, _out_error);
+}
+
+
+/*
+d_dss_parse
+  Parses a sheet.  Returns NULL on failure with `_out_error` filled; the
+partially built sheet is released, so a caller never sees half a parse.
+*/
+struct d_dss_sheet*
+d_dss_parse_ex(
+    const char*                 _text,
+    size_t                      _length,
+    const struct d_dss_options* _options,
+    struct d_dss_error*         _out_error
 )
 {
     // parameter validation first
@@ -1458,6 +2128,7 @@ d_dss_parse(
     sheet->declarations.stride = sizeof(struct d_dss_declaration);
     sheet->rules.stride        = sizeof(struct d_dss_rule);
     sheet->at_rules.stride     = sizeof(struct d_dss_at_rule);
+    sheet->warnings.stride     = sizeof(struct d_dss_warning);
 
     struct d_internal_parser parser;
 
@@ -1469,6 +2140,8 @@ d_dss_parse(
     parser.sheet      = sheet;
     parser.error      = _out_error;
     parser.failed     = false;
+    parser.dialect    = _options ? _options->dialect
+                                 : (uint8_t)D_DSS_DIALECT_DSS;
 
     while (!parser.failed)
     {
@@ -1476,6 +2149,8 @@ d_dss_parse(
 
         if (parser.at >= parser.length)
         {
+            d_internal_finish(sheet);
+
             return sheet;
         }
 
@@ -1492,6 +2167,40 @@ d_dss_parse(
     d_dss_free(sheet);
 
     return NULL;
+}
+
+
+/*
+d_dss_warning_count
+  Reports how many warnings the parse recorded.
+*/
+size_t
+d_dss_warning_count(
+    const struct d_dss_sheet* _sheet
+)
+{
+    return _sheet ? _sheet->warnings.count : 0u;
+}
+
+
+/*
+d_dss_warning_at
+  Reports one recorded warning, or NULL past the end.
+*/
+const struct d_dss_warning*
+d_dss_warning_at(
+    const struct d_dss_sheet* _sheet,
+    size_t                    _at
+)
+{
+    if ( (!_sheet) ||
+         (_at >= _sheet->warnings.count) )
+    {
+        return NULL;
+    }
+
+    return (const struct d_dss_warning*)(_sheet->warnings.data +
+                                         (_at * _sheet->warnings.stride));
 }
 
 
@@ -1518,6 +2227,7 @@ d_dss_free(
         free(_sheet->declarations.data);
         free(_sheet->rules.data);
         free(_sheet->at_rules.data);
+        free(_sheet->warnings.data);
 
         free(_sheet);
     }
@@ -1604,6 +2314,52 @@ d_dss_value_at(const struct d_dss_sheet* _sheet, uint32_t _at)
 {
     return _sheet ? d_internal_at(&_sheet->values, _at) : NULL;
 }
+
+/*
+d_dss_set_rule_layer
+  Sets a rule's cascade layer rank.  Higher ranks win.
+*/
+bool
+d_dss_set_rule_layer(struct d_dss_sheet* _sheet, size_t _at, uint32_t _layer)
+{
+    if ((!_sheet) || (_at >= _sheet->rules.count))
+    {
+        return false;
+    }
+
+    ((struct d_dss_rule*)_sheet->rules.data)[_at].layer = _layer;
+
+    return true;
+}
+
+
+/*
+d_dss_outranks
+  Reports whether rule `_a` beats rule `_b` for a property both declare: the
+higher layer wins, and within a layer the earlier rule does.  With every
+layer at zero -- which is what the driver leaves them as unless layers are in
+force -- this is exactly first match wins.  Every lookup that picks one
+declaration goes through here, so there is one definition of "wins".
+*/
+bool
+d_dss_outranks(const struct d_dss_sheet* _sheet, size_t _a, size_t _b)
+{
+    const struct d_dss_rule* const a = d_dss_rule_at(_sheet, _a);
+    const struct d_dss_rule* const b = d_dss_rule_at(_sheet, _b);
+
+    if ((!a) || (!b))
+    {
+        return (a != NULL);
+    }
+
+    if (a->layer != b->layer)
+    {
+        return (a->layer > b->layer);
+    }
+
+    return (_a < _b);
+}
+
 
 const char*
 d_dss_text(const struct d_dss_sheet* _sheet, uint32_t _id)

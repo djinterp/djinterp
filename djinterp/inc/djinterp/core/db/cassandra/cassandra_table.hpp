@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                      cassandra_table.hpp
+/*******************************************************************************
+* djinterp [core]                                            cassandra_table.hpp
 *
 * djinterp Apache Cassandra typed table wrapper:
 *   This header provides a thin, typed wrapper over a single Cassandra
@@ -62,10 +62,10 @@
 *   // partition key only (single-column partition)
 *   cassandra_table<> users{ &conn, "app", "users", {"id"}, {} };
 *
-*   row r = { {"id", value{std::int64_t{1}}},
+*   row r = { {"id", value{re_std::int64_t{1}}},
 *             {"name", value{std::string{"teer"}}} };
 *   users.set_row(r);
-*   auto loaded = users.get_row({ {"id", value{std::int64_t{1}}} });
+*   auto loaded = users.get_row({ {"id", value{re_std::int64_t{1}}} });
 *
 *   // partition + clustering (event log)
 *   cassandra_table<> events{
@@ -78,25 +78,35 @@
 *
 *
 * path:      /inc/djinterp/core/db/cassandra/cassandra_table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.28
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.28
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_CASSANDRA_TABLE_
-#define DJINTERP_DATABASE_CASSANDRA_TABLE_
+#ifndef DJINTERP_DB_CASSANDRA_CASSANDRA_TABLE_HPP
+#define DJINTERP_DB_CASSANDRA_CASSANDRA_TABLE_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <cstdint>
+#include <chrono>
 #include <map>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"
 #include "./cassandra.hpp"
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t, int64_t,
+                                                   // uint8_t
 
 
 NS_DJINTERP
@@ -112,82 +122,76 @@ NS_DJINTERP
     // only — it never touches CQL bind variables or the wire format.
     inline std::string cassandra_value_to_key_string(const value& _v)
     {
-        std::ostringstream oss;
-
-        switch (_v.type)
+        // value_to_key
+        //   functor: writes one alternative of value; one overload per
+        // alternative, in the variant's order.
+        struct value_to_key
         {
-            case field_type::null:
+            std::ostringstream& oss;
+
+            void operator()(std::monostate) const
             {
                 oss << "<null>";
 
-                break;
+                return;
             }
 
-            case field_type::boolean:
+            void operator()(bool _b) const
             {
-                oss << (_v.as_bool() ? "true" : "false");
+                oss << (_b ? "true" : "false");
 
-                break;
+                return;
             }
 
-            case field_type::integer:
+            void operator()(re_std::int32_t _i) const
             {
-                oss << _v.as_int();
+                oss << _i;
 
-                break;
+                return;
             }
 
-            case field_type::big_integer:
+            void operator()(re_std::int64_t _i) const
             {
-                oss << _v.as_int64();
+                oss << _i;
 
-                break;
+                return;
             }
 
-            case field_type::floating_point:
+            void operator()(double _d) const
             {
-                oss << _v.as_double();
+                oss << _d;
 
-                break;
+                return;
             }
 
-            case field_type::decimal:
-            case field_type::string:
-            case field_type::json:
-            case field_type::xml:
-            case field_type::uuid:
+            void operator()(const std::string& _s) const
             {
-                oss << _v.as_string();
+                oss << _s;
 
-                break;
+                return;
             }
 
-            case field_type::binary:
+            void operator()(const std::vector<re_std::uint8_t>& _blob) const
             {
-                oss << "<blob:" << _v.as_string().size() << ">";
+                oss << "<blob:" << _blob.size() << ">";
 
-                break;
+                return;
             }
 
-            case field_type::date:
-            case field_type::time:
-            case field_type::datetime:
-            case field_type::timestamp:
+            void operator()(
+                const std::chrono::system_clock::time_point& _time) const
             {
-                oss << _v.as_string();
+                // milliseconds since the epoch, as cql_literal_for writes it
+                oss << std::chrono::duration_cast<std::chrono::milliseconds>(
+                           _time.time_since_epoch()).count();
 
-                break;
+                return;
             }
+        };
 
-            case field_type::array:
-            case field_type::custom:
-            default:
-            {
-                oss << _v.as_string();
+        std::ostringstream oss;
 
-                break;
-            }
-        }
+        std::visit(value_to_key{oss}, _v);
 
         return oss.str();
     }
@@ -199,10 +203,10 @@ NS_DJINTERP
 
     // cassandra_table
     //   class: typed wrapper over one Cassandra keyspace.table. The
-    // _Config template parameter is reserved for future ABI-stable
+    // Config template parameter is reserved for future ABI-stable
     // customization (e.g. row cache policy, alternative key encoders)
     // and is unused by the default instantiation.
-    template<typename _Config = void>
+    template<typename Config = void>
     class cassandra_table
     {
     public:
@@ -1017,93 +1021,99 @@ NS_DJINTERP
         // map to the CQL `NULL` keyword.
         std::string cql_literal_for(const value& _v) const
         {
-            std::ostringstream oss;
-
-            switch (_v.type)
+            // value_to_cql
+            //   functor: writes one alternative of value as a CQL literal;
+            // one overload per alternative, in the variant's order.
+            struct value_to_cql
             {
-                case field_type::null:
+                std::ostringstream& oss;
+
+                void operator()(std::monostate) const
                 {
                     oss << "NULL";
 
-                    break;
+                    return;
                 }
 
-                case field_type::boolean:
+                void operator()(bool _b) const
                 {
-                    oss << (_v.as_bool() ? "true" : "false");
+                    oss << (_b ? "true" : "false");
 
-                    break;
+                    return;
                 }
 
-                case field_type::integer:
+                void operator()(re_std::int32_t _i) const
                 {
-                    oss << _v.as_int();
+                    oss << _i;
 
-                    break;
+                    return;
                 }
 
-                case field_type::big_integer:
+                void operator()(re_std::int64_t _i) const
                 {
-                    oss << _v.as_int64();
+                    oss << _i;
 
-                    break;
+                    return;
                 }
 
-                case field_type::floating_point:
+                void operator()(double _d) const
                 {
-                    oss << _v.as_double();
+                    oss << _d;
 
-                    break;
+                    return;
                 }
 
-                case field_type::decimal:
+                void operator()(const std::string& _s) const
                 {
-                    oss << _v.as_string();
+                    oss << '\'';
 
-                    break;
-                }
-
-                case field_type::binary:
-                {
-                    oss << "0x" << _v.as_string();
-
-                    break;
-                }
-
-                case field_type::string:
-                case field_type::json:
-                case field_type::xml:
-                case field_type::uuid:
-                case field_type::date:
-                case field_type::time:
-                case field_type::datetime:
-                case field_type::timestamp:
-                case field_type::array:
-                case field_type::custom:
-                default:
-                {
-                    std::string s = _v.as_string();
-
-                    std::string escaped;
-                    escaped.reserve(s.size() + 2);
-
-                    for (char c : s)
+                    // a quote inside a CQL string is written twice
+                    for (char c : _s)
                     {
                         if (c == '\'')
                         {
-                            escaped += "''";
+                            oss << "''";
                         }
                         else
                         {
-                            escaped += c;
+                            oss << c;
                         }
                     }
 
-                    oss << "'" << escaped << "'";
+                    oss << '\'';
 
-                    break;
+                    return;
                 }
-            }
+
+                void operator()(const std::vector<re_std::uint8_t>& _blob) const
+                {
+                    static const char digits[] = "0123456789abcdef";
+
+                    oss << "0x";
+
+                    // a CQL blob literal: two hex digits per byte
+                    for (re_std::uint8_t byte : _blob)
+                    {
+                        oss << digits[byte >> 4] << digits[byte & 0x0F];
+                    }
+
+                    return;
+                }
+
+                void operator()(
+                    const std::chrono::system_clock::time_point& _time) const
+                {
+                    // CQL takes a timestamp as milliseconds since the epoch
+                    oss << std::chrono::duration_cast<std::chrono::milliseconds>(
+                               _time.time_since_epoch()).count();
+
+                    return;
+                }
+            };
+
+            std::ostringstream oss;
+
+            std::visit(value_to_cql{oss}, _v);
 
             return oss.str();
         }
@@ -1124,5 +1134,6 @@ NS_DJINTERP
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_CASSANDRA_TABLE_
+#endif  // DJINTERP_DB_CASSANDRA_CASSANDRA_TABLE_HPP

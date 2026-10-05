@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                  range.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                    range.hpp
 *
 * range concept-trait header:
 *   Provides the C++20 range concept as a SFINAE-detection trait.
@@ -22,50 +22,54 @@
 * range_v<T> (C++14+) over the trait form range<T>::value.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/range.hpp
+* path:      /inc/re_std/ranges/range.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_RANGE_
-#define DJINTERP_RE_STD_RANGES_RANGE_ 1
+#ifndef RE_STD_RANGES_RANGE_HPP
+#define RE_STD_RANGES_RANGE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES && \
-      D_ENV_LANG_IS_CPP11_OR_HIGHER )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES && \
+      RE_STD_LANG_IS_CPP11_OR_HIGHER )
 
 #include "../type_traits/type_traits.hpp"
 #include "./iterator_t.hpp"
 #include "./sentinel_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0.   INTERNAL DETECTION
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
 // range_impl
 //   trait: SFINAE-friendly inner. Specialised when the iterator_t /
-// sentinel_t aliases are both well-formed for _Type.
-template<typename _Type,
+// sentinel_t aliases are both well-formed for Type.
+template<typename Type,
          typename = void>
 struct range_impl
     : false_type
 {};
 
-template<typename _Type>
-struct range_impl<_Type,
-                  void_t<iterator_t<_Type>,
-                         sentinel_t<_Type> > >
+template<typename Type>
+struct range_impl<Type,
+                  void_t<iterator_t<Type>,
+                         sentinel_t<Type> > >
     : true_type
 {};
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -74,10 +78,10 @@ NS_END  // internal
 
 // range
 //   trait: true when re_std::begin and re_std::end are well-formed
-// on lvalues of _Type. Matches the C++20 ranges::range concept.
-template<typename _Type>
+// on lvalues of Type. Matches the C++20 ranges::range concept.
+template<typename Type>
 struct range
-    : internal::range_impl<_Type>
+    : internal::range_impl<Type>
 {};
 
 
@@ -85,20 +89,20 @@ struct range
 // II.  RANGE_V (variable template, C++14+)
 // ===========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 // range_v
-//   variable: portable spelling of range<_Type>::value.
-template<typename _Type>
-D_CONSTEXPR bool range_v = range<_Type>::value;
+//   variable: portable spelling of range<Type>::value.
+template<typename Type>
+RE_STD_CONSTEXPR bool range_v = range<Type>::value;
 
 #endif  // variable templates
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RE_STD_RANGES_RANGE_
+#endif  // RE_STD_RANGES_RANGE_HPP

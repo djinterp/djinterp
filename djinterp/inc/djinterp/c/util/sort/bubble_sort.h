@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                             bubble_sort.h
+/*******************************************************************************
+* djinterp [c]                                                     bubble_sort.h
 *
 *   Bubble sort: the sequential driver.
 * In-place, iterative, stable, comparison-based.  A pass sweeps the adjacent
@@ -36,14 +36,14 @@
 * bubble_sort.hpp, whose templates monomorphise.
 *
 *
-* path:      /djinterp/c/util/sort/bubble_sort.h
+* path:      /inc/djinterp/c/util/sort/bubble_sort.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.07
-*                                                         revised: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.07
+*                                                            revised: 2026.08.10
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_BUBBLE_
-#define DJINTERP_UTILITY_SORT_BUBBLE_ 1
+#ifndef DJINTERP_C_UTIL_SORT_BUBBLE_SORT_H
+#define DJINTERP_C_UTIL_SORT_BUBBLE_SORT_H 1
 
 // std
 #include <stddef.h>
@@ -67,4 +67,4 @@ enum d_sort_status d_bubble_sort(void*                           _base,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_UTILITY_SORT_BUBBLE_
+#endif  // DJINTERP_C_UTIL_SORT_BUBBLE_SORT_H

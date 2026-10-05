@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                          document_renderer.hpp
+/*******************************************************************************
+* djinterp [core]                                          document_renderer.hpp
 *
 *   The DIALECT BOUNDARY of the document-template subframework.  A document
 * template (table, title page, table of contents, update section) is a pure
@@ -38,19 +38,30 @@
 * dependency.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    document_renderer            (the abstract semantic sink)
-* II.   plain_document_renderer      (the plain-text reference realisation)
-*
-*
 * path:      /inc/djinterp/core/util/document/templates/document_renderer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_UTIL_DOCUMENT_RENDERER_
-#define DJINTERP_UTIL_DOCUMENT_RENDERER_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    document_renderer            (the abstract semantic sink)
+      ---------------------------------------------------------
+
+II.   plain_document_renderer      (the plain-text reference realisation)
+      -------------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_RENDERER_HPP
+#define DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_RENDERER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -58,23 +69,8 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT
 #include "./document_attributes.hpp"    // doc_attributes, attr_*, text_alignment
-
-
-// D_OVERRIDE
-//   macro: portable `override` specifier.  On C++11 and later `override` is a
-// contextual keyword; pre-C++11 toolchains do not recognise it, so the macro
-// expands to nothing there.  Guarded so it coexists with the identical
-// definition pdf_primitives.hpp introduces.  Pre-definable to override.
-#ifndef D_OVERRIDE
-    #if ( defined(__cplusplus) &&  \
-          D_ENV_LANG_IS_CPP11_OR_HIGHER )
-        #define D_OVERRIDE  override
-    #else
-        #define D_OVERRIDE
-    #endif
-#endif  // D_OVERRIDE
 
 
 NS_DJINTERP
@@ -735,5 +731,6 @@ private:
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_DOCUMENT_RENDERER_
+#endif  // DJINTERP_UTIL_DOCUMENT_TEMPLATES_DOCUMENT_RENDERER_HPP

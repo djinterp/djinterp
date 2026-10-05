@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                system_error.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             system_error.hpp
 *
 * the system_error exception type (re-export):
 *   system_error is the exception thrown for error_code-bearing failures;
@@ -9,31 +9,33 @@
 *   as re_std::runtime_error / re_std::exception.
 *
 *
-* path:      /inc/djinterp/re_std/system_error/system_error.hpp
+* path:      /inc/re_std/system_error/system_error.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_SYSTEM_ERROR_
-#define DJINTERP_RE_STD_SYSTEM_ERROR_SYSTEM_ERROR_ 1
+#ifndef RE_STD_SYSTEM_ERROR_SYSTEM_ERROR_HPP
+#define RE_STD_SYSTEM_ERROR_SYSTEM_ERROR_HPP 1
 
-// djinterp
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <system_error>
 
-NS_RESTD
+namespace re_std
+{
 
     // system_error
     //   class: identity-preserving re-export of std::system_error
     //   (derives from runtime_error; carries an error_code).
     using ::std::system_error;
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_SYSTEM_ERROR_
+#endif  // RE_STD_SYSTEM_ERROR_SYSTEM_ERROR_HPP

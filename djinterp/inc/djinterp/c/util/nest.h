@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [util]                                                      nest.h
+/*******************************************************************************
+* djinterp [c]                                                            nest.h
 *
 * Describing the shape of an n-ary node -- where its payload sits, where its
 * links sit, and what a link means -- so that one walker serves every node
@@ -82,20 +82,28 @@
 *
 * path:      /inc/djinterp/c/util/nest.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.05
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_NEST_
-#define DJINTERP_C_NEST_ 1
+#ifndef DJINTERP_C_UTIL_NEST_H
+#define DJINTERP_C_UTIL_NEST_H 1
 
 // std
-// c
 #include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 // djinterp
 #include "../djinterp.h"
 #include "../meta/kv.h"
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // int64_t, uint16_t, uint32_t,
+                                              // uint64_t, UINT32_MAX
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
 
 
 D_EXTERN_C_BEGIN
@@ -234,7 +242,7 @@ struct d_nest_link
 // padded payload is walked correctly without the caller computing anything.
 #define D_NEST_LINK_OF(record, member, kind)                                   \
 {                                                                              \
-    D_KV_FIELD_OF(record, member, 0), (uint16_t)(kind), 0u                     \
+    D_KV_FIELD_OF(record, member, uint32_t, 0), (uint16_t)(kind), 0u           \
 }
 
 // D_NEST_LINK_OF_SIGNED
@@ -242,7 +250,7 @@ struct d_nest_link
 // and must be sign-extended on the way out of a narrow slot.
 #define D_NEST_LINK_OF_SIGNED(record, member, kind)                            \
 {                                                                              \
-    D_KV_FIELD_OF_SIGNED(record, member, 0), (uint16_t)(kind), 0u              \
+    D_KV_FIELD_OF_SIGNED(record, member, uint32_t, 0), (uint16_t)(kind), 0u    \
 }
 
 // d_nest_link_make
@@ -362,7 +370,7 @@ struct d_nest_desc
 {                                                                              \
     (uint32_t)sizeof(record),                                                  \
     (uint16_t)((node_flags) & D_NEST_FLAG_MASK), 0u,                           \
-    D_KV_FIELD_OF(record, payload_member, payload_info),                       \
+    D_KV_FIELD_OF(record, payload_member, uint32_t, payload_info),             \
     { D_NEST_LINK_OF(record, parent_member, kind),                             \
       D_NEST_LINK_OF(record, first_child_member, kind),                        \
       D_NEST_LINK_INIT,                                                        \
@@ -382,12 +390,12 @@ struct d_nest_desc
 {                                                                              \
     (uint32_t)sizeof(record),                                                  \
     (uint16_t)((node_flags) & D_NEST_FLAG_MASK), 0u,                           \
-    D_KV_FIELD_OF(record, payload_member, payload_info),                       \
+    D_KV_FIELD_OF(record, payload_member, uint32_t, payload_info),             \
     { D_NEST_LINK_OF(record, parent_member, kind),                             \
       D_NEST_LINK_INIT, D_NEST_LINK_INIT,                                      \
       D_NEST_LINK_INIT, D_NEST_LINK_INIT },                                    \
-    { D_KV_FIELD_OF(record, array_member, 0),                                  \
-      D_KV_FIELD_OF(record, count_member, 0),                                  \
+    { D_KV_FIELD_OF(record, array_member, uint32_t, 0),                        \
+      D_KV_FIELD_OF(record, count_member, uint32_t, 0),                        \
       (uint32_t)sizeof(slot_type), (uint16_t)(kind),                           \
       (uint16_t)((node_flags) & D_NEST_FLAG_ARRAY_INDIRECT) }                  \
 }
@@ -1147,4 +1155,6 @@ D_STATIC_ASSERT(( D_NEST_FLAG_PAYLOAD_INDIRECT   |
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_NEST_
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_C_UTIL_NEST_H

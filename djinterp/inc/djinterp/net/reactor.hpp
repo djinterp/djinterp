@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/net/reactor.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.09.29
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_REACTOR_HPP
@@ -41,7 +41,7 @@
 
 // djinterp
 #include "./net.hpp"
-#include "./tcp.hpp"
+#include "./tcp/tcp.hpp"
 #include "../core/container/buffer/byte_buffer.hpp"
 #include "../env/net/env_net.h"
 

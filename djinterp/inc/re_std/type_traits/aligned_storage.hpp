@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [re_std]                                           aligned_storage.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          aligned_storage.hpp
 *
 * aligned_storage trait:
 *   Yields `type` as a POD type suitable for use as uninitialized storage
-* for an object of size at most _Len bytes and alignment at least _Align.
-* When _Align is omitted, the default is the platform's maximum useful
+* for an object of size at most Len bytes and alignment at least Align.
+* When Align is omitted, the default is the platform's maximum useful
 * alignment, computed from a union of fundamental types.
 *
 *   STANDARD STATUS:
@@ -38,34 +38,38 @@
 *   <cstddef> for std::size_t. No re_std traits required.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/aligned_storage.hpp
+* path:      /inc/re_std/type_traits/aligned_storage.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_STORAGE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_STORAGE_ 1
+#ifndef RE_STD_TYPE_TRAITS_ALIGNED_STORAGE_HPP
+#define RE_STD_TYPE_TRAITS_ALIGNED_STORAGE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>  // std::size_t
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // max_align_helper
         //   union: holds one member of each fundamental type whose
         //          alignment can be implementation-extreme. The
         //          alignment of this union (computed via alignof) is
         //          the platform's effective max alignment, used as the
-        //          default for aligned_storage's _Align parameter.
+        //          default for aligned_storage's Align parameter.
         union max_align_helper
         {
             char         m_char;
@@ -80,20 +84,20 @@ NS_RESTD
             void       (*m_func_ptr)();
         };
 
-    NS_END  // internal
+    }  // internal
 
 
     // aligned_storage
     //   trait: yields `type` as a POD struct suitable for use as
-    //          uninitialized storage for an object of at most _Len
-    //          bytes and at least _Align-byte alignment.
-    template<std::size_t _Len,
-             std::size_t _Align = alignof(internal::max_align_helper)>
+    //          uninitialized storage for an object of at most Len
+    //          bytes and at least Align-byte alignment.
+    template<std::size_t Len,
+             std::size_t Align = alignof(internal::max_align_helper)>
     struct aligned_storage
     {
         struct type
         {
-            alignas(_Align) unsigned char m_data[_Len];
+            alignas(Align) unsigned char m_data[Len];
         };
     };
 
@@ -101,16 +105,16 @@ NS_RESTD
     // aligned_storage_t
     //   alias: convenience alias yielding aligned_storage<...>::type
     //          directly. Available wherever alias templates are.
-    #if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-        template<std::size_t _Len,
-                 std::size_t _Align = alignof(internal::max_align_helper)>
-        using aligned_storage_t = typename aligned_storage<_Len, _Align>::type;
+    #if RE_STD_LANG_HAS_ALIAS_TEMPLATES
+        template<std::size_t Len,
+                 std::size_t Align = alignof(internal::max_align_helper)>
+        using aligned_storage_t = typename aligned_storage<Len, Align>::type;
     #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_STORAGE_
+#endif  // RE_STD_TYPE_TRAITS_ALIGNED_STORAGE_HPP

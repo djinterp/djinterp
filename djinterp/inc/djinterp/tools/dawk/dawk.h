@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                       dawk.h
+/*******************************************************************************
+* djinterp [djinterp]                                                     dawk.h
 *
 *   Embedding and extension interface for the dawk interpreter.
 *     dawk is a POSIX awk implementation exposed as a library.  Section 4
@@ -10,9 +10,9 @@
 *
 * path:      /inc/djinterp/tools/dawk/dawk.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.18
-*                                                          revised: 2026.09.18
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.18
+*                                                            revised: 2026.09.29
+*******************************************************************************/
 /*
 TABLE OF CONTENTS
 =================
@@ -59,7 +59,7 @@ TABLE OF CONTENTS
 #include <stddef.h>     // size_t
 #include <stdint.h>     // int64_t
 // djinterp
-#include "../djinterp.h"  // framework root
+#include "../../c/djinterp.h"  // framework root
 
 
 //==============================================================================

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             test_options.hpp
+/*******************************************************************************
+* djinterp [test]                                               test_options.hpp
 *
 *   The configuration vocabulary for the DTest subframework.  Under the option
 * subframework's value-carrying face, a configuration is no longer a hand-rolled
@@ -60,43 +60,67 @@
 *
 * path:      /inc/djinterp/test/test_options.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-PART A - RUNTIME CORE (C++11)
-  A.I.    value enums              (doc type, sink, show, packaging, ...)
-  A.II.   match_context            (the facts a node presents to a route)
-  A.III.  test_predicate           (runtime match IR + evaluate + builders)
-  A.IV.   test_route               (one conditional override + builders)
-  A.V.    test_resolved            (a node's resolved, flat configuration)
-PART B - CONFIGURATION SET
-  B.I.    test_option              (the slot key enum)
-  B.II.   test_option_set          (option_set face | plain-struct face)
-  B.III.  free accessors           (the portable read seam)
-  B.IV.   default_test_options     (the defaults factory)
-  B.V.    resolve                  (free fold: option set + node -> resolved)
 
-PART C - ROUTE AUTHORING (C++20)
-  C.I.    payload carriers         (flag / choice / text via val_t)
-  C.II.   override sugar           (numbering_, show_, destination_, ...)
-  C.III.  test_match + predicates  (any_test, name_is<>, all_of<>, ...)
-  C.IV.   route_                   (one conditional override, type-level)
-  C.V.    lowering + make_routes   (route_ ... -> std::vector<test_route>)
+      PART A - RUNTIME CORE (C++11)
+
+      A.I.    value enums              (doc type, sink, show, packaging, ...)
+
+      A.II.   match_context            (the facts a node presents to a route)
+
+      A.III.  test_predicate           (runtime match IR + evaluate + builders)
+
+      A.IV.   test_route               (one conditional override + builders)
+
+      A.V.    test_resolved            (a node's resolved, flat configuration)
+
+      PART B - CONFIGURATION SET
+
+      B.I.    test_option              (the slot key enum)
+
+      B.II.   test_option_set          (option_set face | plain-struct face)
+
+      B.III.  free accessors           (the portable read seam)
+
+      B.IV.   default_test_options     (the defaults factory)
+
+      B.V.    resolve                  (free fold: option set + node -> resolved)
+
+      PART C - ROUTE AUTHORING (C++20)
+
+      C.I.    payload carriers         (flag / choice / text via val_t)
+
+      C.II.   override sugar           (numbering_, show_, destination_, ...)
+
+      C.III.  test_match + predicates  (any_test, name_is<>, all_of<>, ...)
+
+      C.IV.   route_                   (one conditional override, type-level)
+
+      C.V.    lowering + make_routes   (route_ ... -> std::vector<test_route>)
 */
 
-#ifndef DJINTERP_TEST_OPTIONS_
-#define DJINTERP_TEST_OPTIONS_ 1
+#ifndef DJINTERP_TEST_TEST_OPTIONS_HPP
+#define DJINTERP_TEST_TEST_OPTIONS_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
+#include <regex>
 #include <string>
 #include <vector>
-#include <regex>
 // djinterp
-#include "../core/djinterp.hpp"                // NS_*, D_*, env gating macros
+#include "../djinterp.hpp"                // NS_*, D_*, env gating macros
 #include "../core/meta/fixed_string.hpp"       // fixed_string<> (authoring NTTP)
 #include "../core/meta/carrier.hpp"            // val_t<>
 #include "../core/option/option.hpp"           // option<>
@@ -104,8 +128,8 @@ PART C - ROUTE AUTHORING (C++20)
 #include "../core/option/option_generator.hpp" // make_option_set<>
 #include "../core/util/document/document_format.hpp" // document_format (the single
                                               //   document-format selector)
-#include "../core/util/compress_options.hpp"   // compress_options
-#include "../core/util/archive_options.hpp"    // archive_options
+#include "../core/util/compress/compress_options.hpp"   // compress_options
+#include "../core/util/archive/archive_options.hpp"    // archive_options
 #include "./test_common.hpp"                   // test_type_id, test_status
 
 
@@ -1197,18 +1221,18 @@ resolve(
 
 // flag
 //   alias: a boolean payload (a toggle's state).
-template<bool _B>
-using flag = val_t<_B>;
+template<bool B>
+using flag = val_t<B>;
 
 // choice
 //   alias: an enumerated-value payload (a show mode, a sink, a document type).
-template<auto _Value>
-using choice = val_t<_Value>;
+template<auto Value>
+using choice = val_t<Value>;
 
 // text
 //   alias: a string payload, carried as the authored fixed_string itself.
-template<fixed_string _Str>
-using text = val_t<_Str>;
+template<fixed_string Str>
+using text = val_t<Str>;
 
 
 // ===========================================================================
@@ -1220,47 +1244,47 @@ using text = val_t<_Str>;
 
 // numbering_
 //   type: force numbering on/off for the matching tests.
-template<bool _On = true>
-using numbering_ = option<test_option::numbering, flag<_On>>;
+template<bool On = true>
+using numbering_ = option<test_option::numbering, flag<On>>;
 
 // timing_
 //   type: time only / force-untime the matching tests.
-template<bool _On = true>
-using timing_ = option<test_option::timing, flag<_On>>;
+template<bool On = true>
+using timing_ = option<test_option::timing, flag<On>>;
 
 // color_
 //   type: force colorization on/off for the matching tests.
-template<bool _On = true>
-using color_ = option<test_option::color, flag<_On>>;
+template<bool On = true>
+using color_ = option<test_option::color, flag<On>>;
 
 // show_
 //   type: select which results reach the report for the matching tests.
-template<test_show _Show>
-using show_ = option<test_option::show, choice<_Show>>;
+template<test_show Show>
+using show_ = option<test_option::show, choice<Show>>;
 
 // document_
 //   type: select the document format for the matching tests.
-template<test_doc_type _Doc>
-using document_ = option<test_option::document, choice<_Doc>>;
+template<test_doc_type Doc>
+using document_ = option<test_option::document, choice<Doc>>;
 
 // format_test_
 //   type: set the per-test line template for the matching tests.
-template<fixed_string _Fmt>
-using format_test_ = option<test_option::format_test, text<_Fmt>>;
+template<fixed_string Fmt>
+using format_test_ = option<test_option::format_test, text<Fmt>>;
 
 // destination_
 //   type: REPLACE the inherited destination for the matching tests - route
 // them exclusively there.
-template<test_sink _Sink>
+template<test_sink Sink>
 using destination_ =
-    option<test_option::destination, choice<_Sink>, choice<test_sink_mode::replace>>;
+    option<test_option::destination, choice<Sink>, choice<test_sink_mode::replace>>;
 
 // destination_add_
 //   type: ADD a destination for the matching tests - "also send these here"
 // while everything else continues to its inherited sink(s).
-template<test_sink _Sink>
+template<test_sink Sink>
 using destination_add_ =
-    option<test_option::destination, choice<_Sink>, choice<test_sink_mode::add>>;
+    option<test_option::destination, choice<Sink>, choice<test_sink_mode::add>>;
 
 
 // ===========================================================================
@@ -1294,49 +1318,49 @@ using any_test = option<test_match::any>;
 using no_test = option<test_match::none>;
 
 // name_is
-//   type: matches a node whose name equals _Name.
-template<fixed_string _Name>
-using name_is = option<test_match::name_eq, text<_Name>>;
+//   type: matches a node whose name equals Name.
+template<fixed_string Name>
+using name_is = option<test_match::name_eq, text<Name>>;
 
 // name_has
-//   type: matches a node whose name contains _Needle.
-template<fixed_string _Needle>
-using name_has = option<test_match::name_has, text<_Needle>>;
+//   type: matches a node whose name contains Needle.
+template<fixed_string Needle>
+using name_has = option<test_match::name_has, text<Needle>>;
 
 // name_re
-//   type: matches a node whose name satisfies the regex _Pattern.
-template<fixed_string _Pattern>
-using name_re = option<test_match::name_re, text<_Pattern>>;
+//   type: matches a node whose name satisfies the regex Pattern.
+template<fixed_string Pattern>
+using name_re = option<test_match::name_re, text<Pattern>>;
 
 // kind_is
-//   type: matches a node whose test_type_id equals _Id.
-template<test_type_id _Id>
-using kind_is = option<test_match::kind_is, choice<_Id>>;
+//   type: matches a node whose test_type_id equals Id.
+template<test_type_id Id>
+using kind_is = option<test_match::kind_is, choice<Id>>;
 
 // status_is
-//   type: matches a node whose status equals _Status.
-template<test_status _Status>
-using status_is = option<test_match::status_is, choice<_Status>>;
+//   type: matches a node whose status equals Status.
+template<test_status Status>
+using status_is = option<test_match::status_is, choice<Status>>;
 
 // tag_is
-//   type: matches a node carrying the tag _Tag.
-template<fixed_string _Tag>
-using tag_is = option<test_match::tag_has, text<_Tag>>;
+//   type: matches a node carrying the tag Tag.
+template<fixed_string Tag>
+using tag_is = option<test_match::tag_has, text<Tag>>;
 
 // all_of
-//   type: the conjunction of the child predicates _Predicates.
-template<typename... _Predicates>
-using all_of = option<test_match::all_of, _Predicates...>;
+//   type: the conjunction of the child predicates Predicates.
+template<typename... Predicates>
+using all_of = option<test_match::all_of, Predicates...>;
 
 // any_of
-//   type: the disjunction of the child predicates _Predicates.
-template<typename... _Predicates>
-using any_of = option<test_match::any_of, _Predicates...>;
+//   type: the disjunction of the child predicates Predicates.
+template<typename... Predicates>
+using any_of = option<test_match::any_of, Predicates...>;
 
 // not_
-//   type: the negation of the child predicate _Pred.
-template<typename _Pred>
-using not_ = option<test_match::negate, _Pred>;
+//   type: the negation of the child predicate Pred.
+template<typename Pred>
+using not_ = option<test_match::negate, Pred>;
 
 
 // ===========================================================================
@@ -1354,16 +1378,16 @@ enum class test_route_tag
 
 // route_
 //   type: one conditional override - a predicate followed by override options.
-// _Predicate is a PART C.III predicate and each _Override is a C.II alias (a
+// Predicate is a PART C.III predicate and each Override is a C.II alias (a
 // toggle read as a tristate, or a guarded value).  The args are an opaque,
 // ordered pack.  Lowered to a test_route by make_routes.
 //
 // Usage:
 //   route_<name_has<"perf">, timing_<true>>                  // time only perf
 //   route_<name_is<"login">, destination_add_<test_sink::console>>
-template<typename    _Predicate,
-         typename... _Overrides>
-using route_ = option<test_route_tag::route, _Predicate, _Overrides...>;
+template<typename    Predicate,
+         typename... Overrides>
+using route_ = option<test_route_tag::route, Predicate, Overrides...>;
 
 
 // ===========================================================================
@@ -1377,17 +1401,17 @@ NS_INTERNAL
     // lower_predicate_helper
     //   trait: a type-level predicate (test_match AST) -> test_predicate
     // (specialized per node-kind below).
-    template<typename _Pred>
+    template<typename Pred>
     struct lower_predicate_helper;
 
     // lower_predicate_value_helper
-    //   function: lower_predicate_helper<_Pred>::go() as a callable, so a child
+    //   function: lower_predicate_helper<Pred>::go() as a callable, so a child
     // predicate lowers inline within a combinator's brace-init.
-    template<typename _Pred>
+    template<typename Pred>
     D_NODISCARD test_predicate
     lower_predicate_value_helper()
     {
-        return lower_predicate_helper<_Pred>::go();
+        return lower_predicate_helper<Pred>::go();
     }
 
     template<>
@@ -1402,82 +1426,82 @@ NS_INTERNAL
         static test_predicate go() { return match_none(); }
     };
 
-    template<fixed_string _Name>
-    struct lower_predicate_helper<option<test_match::name_eq, val_t<_Name>>>
+    template<fixed_string Name>
+    struct lower_predicate_helper<option<test_match::name_eq, val_t<Name>>>
     {
         static test_predicate go()
         {
-            return match_name(std::string(_Name.view()));
+            return match_name(std::string(Name.view()));
         }
     };
 
-    template<fixed_string _Needle>
-    struct lower_predicate_helper<option<test_match::name_has, val_t<_Needle>>>
+    template<fixed_string Needle>
+    struct lower_predicate_helper<option<test_match::name_has, val_t<Needle>>>
     {
         static test_predicate go()
         {
-            return match_name_contains(std::string(_Needle.view()));
+            return match_name_contains(std::string(Needle.view()));
         }
     };
 
-    template<fixed_string _Pattern>
-    struct lower_predicate_helper<option<test_match::name_re, val_t<_Pattern>>>
+    template<fixed_string Pattern>
+    struct lower_predicate_helper<option<test_match::name_re, val_t<Pattern>>>
     {
         static test_predicate go()
         {
-            return match_name_regex(std::string(_Pattern.view()));
+            return match_name_regex(std::string(Pattern.view()));
         }
     };
 
-    template<test_type_id _Id>
-    struct lower_predicate_helper<option<test_match::kind_is, val_t<_Id>>>
+    template<test_type_id Id>
+    struct lower_predicate_helper<option<test_match::kind_is, val_t<Id>>>
     {
-        static test_predicate go() { return match_kind(_Id); }
+        static test_predicate go() { return match_kind(Id); }
     };
 
-    template<test_status _Status>
-    struct lower_predicate_helper<option<test_match::status_is, val_t<_Status>>>
+    template<test_status Status>
+    struct lower_predicate_helper<option<test_match::status_is, val_t<Status>>>
     {
-        static test_predicate go() { return match_status(_Status); }
+        static test_predicate go() { return match_status(Status); }
     };
 
-    template<fixed_string _Tag>
-    struct lower_predicate_helper<option<test_match::tag_has, val_t<_Tag>>>
+    template<fixed_string Tag>
+    struct lower_predicate_helper<option<test_match::tag_has, val_t<Tag>>>
     {
         static test_predicate go()
         {
-            return match_tag(std::string(_Tag.view()));
+            return match_tag(std::string(Tag.view()));
         }
     };
 
-    template<typename... _Predicates>
-    struct lower_predicate_helper<option<test_match::all_of, _Predicates...>>
+    template<typename... Predicates>
+    struct lower_predicate_helper<option<test_match::all_of, Predicates...>>
     {
         static test_predicate go()
         {
             return match_all(
                 std::vector<test_predicate>{
-                    lower_predicate_value_helper<_Predicates>()... });
+                    lower_predicate_value_helper<Predicates>()... });
         }
     };
 
-    template<typename... _Predicates>
-    struct lower_predicate_helper<option<test_match::any_of, _Predicates...>>
+    template<typename... Predicates>
+    struct lower_predicate_helper<option<test_match::any_of, Predicates...>>
     {
         static test_predicate go()
         {
             return match_any_of(
                 std::vector<test_predicate>{
-                    lower_predicate_value_helper<_Predicates>()... });
+                    lower_predicate_value_helper<Predicates>()... });
         }
     };
 
-    template<typename _Pred>
-    struct lower_predicate_helper<option<test_match::negate, _Pred>>
+    template<typename Pred>
+    struct lower_predicate_helper<option<test_match::negate, Pred>>
     {
         static test_predicate go()
         {
-            return match_not(lower_predicate_value_helper<_Pred>());
+            return match_not(lower_predicate_value_helper<Pred>());
         }
     };
 
@@ -1488,12 +1512,12 @@ NS_INTERNAL
     //   trait: fold one override option onto a test_route (primary handles the
     // toggles + values the route layer supports; an unsupported key trips the
     // static_assert so it is caught at the authoring boundary).
-    template<typename _Override>
+    template<typename Override>
     struct apply_route_override_helper
     {
         static void to(test_route&)
         {
-            static_assert(sizeof(_Override) == 0,
+            static_assert(sizeof(Override) == 0,
                 "test route: this option is not supported as a route "
                 "override.  Routes honor numbering_/timing_/color_ (as "
                 "tristate toggles), show_, document_, format_test_, and "
@@ -1501,73 +1525,73 @@ NS_INTERNAL
         }
     };
 
-    template<bool _On>
-    struct apply_route_override_helper<option<test_option::numbering, val_t<_On>>>
+    template<bool On>
+    struct apply_route_override_helper<option<test_option::numbering, val_t<On>>>
     {
         static void to(test_route& _r)
         {
-            _r.numbering = _On ? test_tribool::on : test_tribool::off;
+            _r.numbering = On ? test_tribool::on : test_tribool::off;
         }
     };
 
-    template<bool _On>
-    struct apply_route_override_helper<option<test_option::timing, val_t<_On>>>
+    template<bool On>
+    struct apply_route_override_helper<option<test_option::timing, val_t<On>>>
     {
         static void to(test_route& _r)
         {
-            _r.timing = _On ? test_tribool::on : test_tribool::off;
+            _r.timing = On ? test_tribool::on : test_tribool::off;
         }
     };
 
-    template<bool _On>
-    struct apply_route_override_helper<option<test_option::color, val_t<_On>>>
+    template<bool On>
+    struct apply_route_override_helper<option<test_option::color, val_t<On>>>
     {
         static void to(test_route& _r)
         {
-            _r.color = _On ? test_tribool::on : test_tribool::off;
+            _r.color = On ? test_tribool::on : test_tribool::off;
         }
     };
 
-    template<test_show _Show>
-    struct apply_route_override_helper<option<test_option::show, val_t<_Show>>>
+    template<test_show Show>
+    struct apply_route_override_helper<option<test_option::show, val_t<Show>>>
     {
         static void to(test_route& _r)
         {
             _r.has_show = true;
-            _r.show     = _Show;
+            _r.show     = Show;
         }
     };
 
-    template<test_doc_type _Doc>
-    struct apply_route_override_helper<option<test_option::document, val_t<_Doc>>>
+    template<test_doc_type Doc>
+    struct apply_route_override_helper<option<test_option::document, val_t<Doc>>>
     {
         static void to(test_route& _r)
         {
             _r.has_document = true;
-            _r.document     = _Doc;
+            _r.document     = Doc;
         }
     };
 
-    template<fixed_string _Fmt>
-    struct apply_route_override_helper<option<test_option::format_test, val_t<_Fmt>>>
+    template<fixed_string Fmt>
+    struct apply_route_override_helper<option<test_option::format_test, val_t<Fmt>>>
     {
         static void to(test_route& _r)
         {
             _r.has_format = true;
-            _r.format     = std::string(_Fmt.view());
+            _r.format     = std::string(Fmt.view());
         }
     };
 
-    template<test_sink      _Sink,
-             test_sink_mode _Mode>
+    template<test_sink      Sink,
+             test_sink_mode Mode>
     struct apply_route_override_helper<
-        option<test_option::destination, val_t<_Sink>, val_t<_Mode>>>
+        option<test_option::destination, val_t<Sink>, val_t<Mode>>>
     {
         static void to(test_route& _r)
         {
             _r.has_sinks = true;
-            _r.sinks     = _Sink;
-            _r.sink_mode = _Mode;
+            _r.sinks     = Sink;
+            _r.sink_mode = Mode;
         }
     };
 
@@ -1577,23 +1601,23 @@ NS_INTERNAL
     // lower_route_helper
     //   trait: one route_ option -> test_route.  Lowers the predicate child,
     // then folds each override onto the route in order.
-    template<typename _Route>
+    template<typename Route>
     struct lower_route_helper;
 
-    template<typename    _Predicate,
-             typename... _Overrides>
+    template<typename    Predicate,
+             typename... Overrides>
     struct lower_route_helper<
-        option<test_route_tag::route, _Predicate, _Overrides...>>
+        option<test_route_tag::route, Predicate, Overrides...>>
     {
         static test_route go()
         {
             test_route r =
-                make_route(lower_predicate_value_helper<_Predicate>());
+                make_route(lower_predicate_value_helper<Predicate>());
 
             // fold the overrides left to right (pack-expansion over a brace
             // list sequences the side effects)
             int sink[] = { 0,
-                ( apply_route_override_helper<_Overrides>::to(r), 0 )... };
+                ( apply_route_override_helper<Overrides>::to(r), 0 )... };
             (void) sink;
 
             return r;
@@ -1613,12 +1637,12 @@ NS_END  // internal
 //   opts.set<test_option::routes>(make_routes<
 //       route_<name_has<"perf">, timing_<true>>,
 //       route_<name_is<"login">, destination_add_<test_sink::console>> >());
-template<typename... _Routes>
+template<typename... Routes>
 D_NODISCARD std::vector<test_route>
 make_routes()
 {
     return std::vector<test_route>{
-        internal::lower_route_helper<_Routes>::go()... };
+        internal::lower_route_helper<Routes>::go()... };
 }
 
 
@@ -1628,5 +1652,7 @@ make_routes()
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_OPTIONS_
+
+#endif  // DJINTERP_TEST_TEST_OPTIONS_HPP

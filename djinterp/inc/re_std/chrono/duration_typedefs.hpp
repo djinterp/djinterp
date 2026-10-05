@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                        duration_typedefs.hpp
 *
 * the predefined duration typedefs:
@@ -38,82 +38,84 @@
 * nothing C++20 supplies -- a nine-year lead.
 *
 *
-* path:      /inc/djinterp/re_std/chrono/duration_typedefs.hpp
+* path:      /inc/re_std/chrono/duration_typedefs.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CHRONO_DURATION_TYPEDEFS_
-#define DJINTERP_RE_STD_CHRONO_DURATION_TYPEDEFS_ 1
+#ifndef RE_STD_CHRONO_DURATION_TYPEDEFS_HPP
+#define RE_STD_CHRONO_DURATION_TYPEDEFS_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./duration.hpp"
 #include "../ratio/ratio.hpp"
 #include "../ratio/ratio_typedefs.hpp"
 #include "../cstdint/cstdint.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 namespace chrono
 {
 
     // nanoseconds
     //   typedef: 1/1000000000 second. Range at least +/-292 years.
-    typedef duration<std::int_least64_t, nano>              nanoseconds;
+    typedef duration<int_least64_t, nano>                   nanoseconds;
 
     // microseconds
     //   typedef: 1/1000000 second. Range at least +/-292000 years.
-    typedef duration<std::int_least64_t, micro>             microseconds;
+    typedef duration<int_least64_t, micro>                  microseconds;
 
     // milliseconds
     //   typedef: 1/1000 second. Range at least +/-292000000 years.
-    typedef duration<std::int_least64_t, milli>             milliseconds;
+    typedef duration<int_least64_t, milli>                  milliseconds;
 
     // seconds
     //   typedef: one second. Range at least +/-292000000000 years.
-    typedef duration<std::int_least64_t>                    seconds;
+    typedef duration<int_least64_t>                         seconds;
 
     // minutes
     //   typedef: 60 seconds. A 32-bit rep suffices for the required range.
-    typedef duration<std::int_least32_t, ratio<60> >        minutes;
+    typedef duration<int_least32_t, ratio<60> >             minutes;
 
     // hours
     //   typedef: 3600 seconds.
-    typedef duration<std::int_least32_t, ratio<3600> >      hours;
+    typedef duration<int_least32_t, ratio<3600> >           hours;
 
     // days
     //   typedef: exactly 86400 seconds. C++20, back-ported. Not a
     // calendar day -- leap seconds are not modelled.
-    typedef duration<std::int_least32_t, ratio<86400> >     days;
+    typedef duration<int_least32_t, ratio<86400> >          days;
 
     // weeks
     //   typedef: exactly 7 days. C++20, back-ported.
-    typedef duration<std::int_least32_t, ratio<604800> >    weeks;
+    typedef duration<int_least32_t, ratio<604800> >         weeks;
 
     // months
     //   typedef: the AVERAGE Gregorian month, 2629746 seconds -- exactly
     // years/12. C++20, back-ported. See the header comment before using
     // this for date arithmetic.
-    typedef duration<std::int_least32_t, ratio<2629746> >   months;
+    typedef duration<int_least32_t, ratio<2629746> >        months;
 
     // years
     //   typedef: the AVERAGE Gregorian year, 31556952 seconds
     // (365.2425 days). C++20, back-ported. Not a calendar year.
-    typedef duration<std::int_least32_t, ratio<31556952> >  years;
+    typedef duration<int_least32_t, ratio<31556952> >       years;
 
 }  // namespace chrono
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CHRONO_DURATION_TYPEDEFS_
+#endif  // RE_STD_CHRONO_DURATION_TYPEDEFS_HPP

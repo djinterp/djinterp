@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             is_heap_until.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            is_heap_until.hpp
 *
 * is_heap_until algorithm header:
 *   Returns the largest prefix iterator end such that [_first, end) is
@@ -15,16 +15,17 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/is_heap_until.hpp
+* path:      /inc/re_std/algorithm/is_heap_until.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_IS_HEAP_UNTIL_
-#define DJINTERP_RE_STD_ALGORITHM_IS_HEAP_UNTIL_ 1
+#ifndef RE_STD_ALGORITHM_IS_HEAP_UNTIL_HPP
+#define RE_STD_ALGORITHM_IS_HEAP_UNTIL_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "../iterator/iterator_traits.hpp"
 
@@ -33,16 +34,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -53,14 +47,14 @@ NS_RESTD
 //   function: walks indices i = 1..N-1 and returns _first + i for the
 // first index whose parent (at (i - 1) / 2) compares less than it.
 // Returns _last if every parent-child pair upholds the heap property.
-template<typename _RandomIt>
-D_CONSTEXPR_CPP14 _RandomIt
+template<typename RandomIt>
+RE_STD_CONSTEXPR_CPP14 RandomIt
 is_heap_until(
-    _RandomIt _first,
-    _RandomIt _last
+    RandomIt _first,
+    RandomIt _last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _length = _last - _first;
     for (_Diff _i = 1; _i < _length; ++_i)
@@ -81,16 +75,16 @@ is_heap_until(
 
 // is_heap_until (comparator)
 //   function: as above but parent-child comparison is via _comp.
-template<typename _RandomIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 _RandomIt
+template<typename RandomIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 RandomIt
 is_heap_until(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _length = _last - _first;
     for (_Diff _i = 1; _i < _length; ++_i)
@@ -105,7 +99,7 @@ is_heap_until(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_IS_HEAP_UNTIL_
+#endif  // RE_STD_ALGORITHM_IS_HEAP_UNTIL_HPP

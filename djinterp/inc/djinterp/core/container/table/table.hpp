@@ -1,10 +1,13 @@
-/******************************************************************************
-* djinterp [container]                                               table.hpp
+/*******************************************************************************
+* djinterp [core]                                                      table.hpp
 *
 *   table -- the fully dynamic member of the table trio.  A rank-2,
-* rectangular, cell-homogeneous table whose two extents are read and changed at
-* runtime: cells may be overwritten, and whole rows and columns may be added or
-* removed.  It is the table analogue of `std::vector` lifted to two coordinates,
+* rectangular, cell-homogeneous table whose two extents are read and changed
+* at
+* runtime: cells may be overwritten, and whole rows and columns may be added
+* or
+* removed. It is the table analogue of `std::vector` lifted to two
+* coordinates,
 * kept rectangular (every row the same width).
 *
 *   ITS PLACE ON THE FIRST FEW AXES (Part I, in order):
@@ -12,18 +15,22 @@
 *   - Storage   : dynamic_storage  -- a heap-backed std::vector; a table whose
 *                                     row count is read at runtime is dynamic.
 *   - Mutability: fully_mutable    -- both capabilities: element mutation
-*                                     overwrites a cell value with I_T fixed, and
+*                                     overwrites a cell value with I_T fixed,
+*                                   and
 *                                     structural mutation changes I_T itself
-*                                     (appending a row alters a bound function,
+*                                     (appending a row alters a bound
+*                                   function,
 *                                     hence the domain), which dynamic storage
 *                                     and spare capacity allow.
 *   It is ordered (row-major = lexicographic on multi-indices), unbounded (|T|
 * is capped only by available capacity), and iterable.
 *
 *   RECTANGULARITY:
-*   The domain is kept a box I_T = {0..rows-1} x {0..cols-1}: every inserted row
-* must match the current width and every inserted column the current height.  A
-* jagged table (rows of differing widths) is a distinct, planned container; this
+*   The domain is kept a box I_T = {0..rows-1} x {0..cols-1}: every inserted
+* row
+* must match the current width and every inserted column the current height. A
+* jagged table (rows of differing widths) is a distinct, planned container;
+* this
 * one holds the rectangular invariant  cells.size() == rows * cols.  An empty
 * table remembers its width, so rows may be appended to a 0-row table of known
 * column count.
@@ -45,28 +52,40 @@
 *
 * path:      /inc/djinterp/core/container/table/table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    is_table (detection trait)
+      --------------------------
+
 II.   table (class)
-      1. member types and axis positions
-      2. construction
-      3. table_base hooks
-      4. element access (writable)
-      5. subtable / projection (writable)
-      6. cell / row iteration (writable)
-      7. row structural operations
-      8. column structural operations
-      9. reshape / capacity / whole-grid
+      -------------
+      1.    member types and axis positions
+      2.    construction
+      3.    table_base hooks
+      4.    element access (writable)
+      5.    subtable / projection (writable)
+      6.    cell / row iteration (writable)
+      7.    row structural operations
+      8.    column structural operations
+      9.    reshape / capacity / whole-grid
+
 III.  equality / swap
+      ---------------
 */
 
-#ifndef DJINTERP_CONTAINER_TABLE_
-#define DJINTERP_CONTAINER_TABLE_ 1
+#ifndef DJINTERP_CONTAINER_TABLE_TABLE_HPP
+#define DJINTERP_CONTAINER_TABLE_TABLE_HPP 1
+
+// FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // std
 #include <algorithm>
@@ -78,12 +97,14 @@ III.  equality / swap
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
+#include "../../../djinterp.hpp"                     // NS_*, D_CONSTEXPR, clean_t
 #include "./table_base.hpp"                        // table_base, row/column views
 #include "../container_options.hpp"                // axis enums, options base
 #include "../traits/mutable_container_traits.hpp"  // mutability grade
-#include "../serial/encode_options.hpp"             // enc_tau<E>, put_length<L,E>, serial enums
-#include "../serial/decode_options.hpp"             // dec_tau<E>, get_length<L,E>
+#include "../../binary/encode_options.hpp"             // enc_tau<E>, put_length<L,E>, serial enums
+#include "../../binary/decode_options.hpp"             // dec_tau<E>, get_length<L,E>
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint64_t
 
 
 NS_DJINTERP
@@ -95,44 +116,44 @@ NS_DJINTERP
 
 // table (fwd)
 //   class: forward declaration for the detection trait below.
-template<typename    _Type,
-         typename    _DifferenceType,
-         typename    _SizeType,
-         typename    _Iterator,
-         typename    _ConstIterator,
-         typename... _Options>
+template<typename    Type,
+         typename    DifferenceType,
+         typename    SizeType,
+         typename    Iterator,
+         typename    ConstIterator,
+         typename... Options>
 class table;
 
 // is_table
-//   trait: true when _Type (after stripping cv/ref) is a specialization of
+//   trait: true when Type (after stripping cv/ref) is a specialization of
 // table.
 NS_INTERNAL
 
-    template<typename _Type>
+    template<typename Type>
     struct is_table_impl : std::false_type
     {};
 
-    template<typename    _T,
-             typename    _D,
-             typename    _S,
-             typename    _I,
-             typename    _CI,
-             typename... _O>
-    struct is_table_impl<table<_T, _D, _S, _I, _CI, _O...>>
+    template<typename    T,
+             typename    D,
+             typename    S,
+             typename    I,
+             typename    CI,
+             typename... O>
+    struct is_table_impl<table<T, D, S, I, CI, O...>>
         : std::true_type
     {};
 
 NS_END  // internal
 
-template<typename _Type>
-struct is_table : internal::is_table_impl<clean_t<_Type>>
+template<typename Type>
+struct is_table : internal::is_table_impl<clean_t<Type>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 // is_table_v
-//   value: variable-template shorthand for is_table<_Type>::value.
-template<typename _Type>
-inline constexpr bool is_table_v = is_table<_Type>::value;
+//   value: variable-template shorthand for is_table<Type>::value.
+template<typename Type>
+inline constexpr bool is_table_v = is_table<Type>::value;
 #endif
 
 
@@ -141,55 +162,56 @@ inline constexpr bool is_table_v = is_table<_Type>::value;
 // ===========================================================================
 
 // table
-//   class: a dynamic, fully-mutable rank-2 cell-homogeneous table, cells stored
-// row-major in a std::vector.  Inherits the const surface from table_base and
+//   class: a dynamic, fully-mutable rank-2 cell-homogeneous table, cells
+// stored row-major in a std::vector. Inherits the const surface from
+// table_base and
 // adds element mutation plus row and column structural operations, holding the
-// rectangular invariant  cells.size() == rows * cols.
-template<typename    _Type,
-         typename    _DifferenceType = std::ptrdiff_t,
-         typename    _SizeType       = std::size_t,
-         typename    _Iterator       = _Type*,
-         typename    _ConstIterator  = const _Type*,
-         typename... _Options>
+// rectangular invariant cells.size() == rows * cols.
+template<typename    Type,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename    SizeType        = std::size_t,
+         typename    Iterator        = Type*,
+         typename    ConstIterator   = const Type*,
+         typename... Options>
 class table
-    : public table_base<table<_Type,
-                              _DifferenceType,
-                              _SizeType,
-                              _Iterator,
-                              _ConstIterator,
-                              _Options...>,
-                        _Type,
-                        _SizeType,
-                        _DifferenceType>,
-      public options_container_base<_Options...>
+    : public table_base<table<Type,
+                              DifferenceType,
+                              SizeType,
+                              Iterator,
+                              ConstIterator,
+                              Options...>,
+                        Type,
+                        SizeType,
+                        DifferenceType>,
+      public options_container_base<Options...>
 {
 private:
     using base_type    = table_base<table,
-                                    _Type,
-                                    _SizeType,
-                                    _DifferenceType>;
-    using storage_type = std::vector<_Type>;
+                                    Type,
+                                    SizeType,
+                                    DifferenceType>;
+    using storage_type = std::vector<Type>;
 
 public:
     // --- 1. member types and axis positions ---
 
-    using value_type      = _Type;
-    using cell_type       = _Type;
-    using size_type       = _SizeType;
-    using difference_type = _DifferenceType;
-    using reference       = _Type&;
-    using const_reference = const _Type&;
-    using pointer         = _Type*;
-    using const_pointer   = const _Type*;
+    using value_type      = Type;
+    using cell_type       = Type;
+    using size_type       = SizeType;
+    using difference_type = DifferenceType;
+    using reference       = Type&;
+    using const_reference = const Type&;
+    using pointer         = Type*;
+    using const_pointer   = const Type*;
 
-    using iterator        = _Iterator;
-    using const_iterator  = _ConstIterator;
+    using iterator        = Iterator;
+    using const_iterator  = ConstIterator;
 
-    using row_type           = internal::basic_row_view<_Type>;
+    using row_type           = internal::basic_row_view<Type>;
     using const_row_type     = typename base_type::const_row_type;
-    using column_type        = internal::basic_column_view<_Type>;
+    using column_type        = internal::basic_column_view<Type>;
     using const_column_type  = typename base_type::const_column_type;
-    using row_iterator       = internal::row_cursor<_Type>;
+    using row_iterator       = internal::row_cursor<Type>;
     using const_row_iterator = typename base_type::const_row_iterator;
 
     static constexpr container_lifetime      lifetime      =
@@ -234,11 +256,12 @@ public:
           m_cols(_cols)
     {}
 
-    // dimensioned + fill: a _rows x _cols table with every cell equal to _value.
+    // dimensioned + fill: a _rows x _cols table with every cell equal to
+    // _value.
     table(
         size_type     _rows,
         size_type     _cols,
-        const _Type&  _value
+        const Type&  _value
     )
         : m_cells(static_cast<std::size_t>(_rows) * static_cast<std::size_t>(_cols),
                   _value),
@@ -246,9 +269,9 @@ public:
           m_cols(_cols)
     {}
 
-    // nested rows: table<int>{ {1,2,3}, {4,5,6} }.  Every row must share the
+    // nested rows: table<int>{ {1,2,3}, {4,5,6} }. Every row must share the
     // first row's width, or the rectangular invariant is violated.
-    table(std::initializer_list<std::initializer_list<_Type>> _rows)
+    table(std::initializer_list<std::initializer_list<Type>> _rows)
         : m_cells(),
           m_rows(0),
           m_cols(0)
@@ -260,7 +283,7 @@ public:
         }
 
         // append each row, checking it against the fixed width
-        for (const std::initializer_list<_Type>& r : _rows)
+        for (const std::initializer_list<Type>& r : _rows)
         {
             if (static_cast<size_type>(r.size()) != m_cols)
             {
@@ -280,7 +303,7 @@ public:
     ~table()                       = default;
 
     // from_flat
-    //   factory: adopts a row-major cell buffer, split into _rows x _cols.  The
+    //   factory: adopts a row-major cell buffer, split into _rows x _cols. The
     // buffer size must equal _rows * _cols.
     static table from_flat(
         storage_type _flat,
@@ -304,7 +327,8 @@ public:
         return t;
     }
 
-    // --- 3. table_base hooks (contiguous row-major buffer + the two extents) ---
+    // --- 3. table_base hooks (contiguous row-major buffer + the two extents)
+    // ---
 
     D_NODISCARD pointer data() noexcept
     {
@@ -339,9 +363,10 @@ public:
                                       static_cast<std::size_t>(m_cols));
     }
 
-    // --- boundedness accessors (unbounded: capacity is spare buffer, not a cap) ---
+    // --- boundedness accessors (unbounded: capacity is spare buffer, not a
+    // cap) ---
 
-    // capacity -- cells the buffer holds without reallocating.  This is spare
+    // capacity -- cells the buffer holds without reallocating. This is spare
     // room, not a fixed cap: a table grows past it, so it is NOT a bounding
     // signal (the paired reserve() below is the framework's growability tell).
     D_NODISCARD size_type capacity() const noexcept
@@ -439,9 +464,9 @@ public:
     // --- 7. row structural operations (structural mutation: I_T changes) ---
 
     // push_row (initializer list)
-    //   appends a row at the bottom.  On the first row of a width-less table the
-    // width is adopted; otherwise the row must match the current width.
-    void push_row(std::initializer_list<_Type> _row)
+    //   appends a row at the bottom. On the first row of a width-less table
+    // the width is adopted; otherwise the row must match the current width.
+    void push_row(std::initializer_list<Type> _row)
     {
         push_row(_row.begin(), _row.end());
 
@@ -450,10 +475,10 @@ public:
 
     // push_row (range)
     //   appends the row [_first, _last).
-    template<typename _InputIt>
+    template<typename InputIt>
     void push_row(
-        _InputIt _first,
-        _InputIt _last
+        InputIt _first,
+        InputIt _last
     )
     {
         const std::size_t width =
@@ -471,7 +496,7 @@ public:
     //   inserts a row before index _at (0 <= _at <= rows).
     void insert_row(
         size_type                    _at,
-        std::initializer_list<_Type> _row)
+        std::initializer_list<Type> _row)
     {
         // an insertion point past the end is out of range
         if (_at > m_rows)
@@ -492,7 +517,7 @@ public:
     }
 
     // erase_row
-    //   removes the row at index _at.  The width is retained, so the emptied
+    //   removes the row at index _at. The width is retained, so the emptied
     // table can still take new rows.
     void erase_row(size_type _at)
     {
@@ -530,11 +555,11 @@ public:
     // --- 8. column structural operations (rebuild the row-major buffer) ---
 
     // insert_column
-    //   inserts a column before index _at (0 <= _at <= cols).  The supplied
+    //   inserts a column before index _at (0 <= _at <= cols). The supplied
     // cells run top-to-bottom and must number exactly rows (one per row).
     void insert_column(
         size_type                    _at,
-        std::initializer_list<_Type> _column)
+        std::initializer_list<Type> _column)
     {
         // an insertion point past the end is out of range
         if (_at > m_cols)
@@ -564,7 +589,7 @@ public:
         storage_type rebuilt;
         rebuilt.reserve(static_cast<std::size_t>(m_rows) * new_cols);
 
-        const _Type* col_src = _column.begin();
+        const Type* col_src = _column.begin();
 
         // rebuild row by row, splicing the new cell in at _at
         for (std::size_t r = 0; r < static_cast<std::size_t>(m_rows); ++r)
@@ -595,7 +620,7 @@ public:
 
     // push_column
     //   appends a column on the right.
-    void push_column(std::initializer_list<_Type> _column)
+    void push_column(std::initializer_list<Type> _column)
     {
         insert_column(m_cols, _column);
 
@@ -672,7 +697,7 @@ public:
     void resize(
         size_type    _rows,
         size_type    _cols,
-        const _Type& _value = _Type())
+        const Type& _value = Type())
     {
         // a no-op reshape avoids the rebuild
         if ( (_rows == m_rows) &&
@@ -713,10 +738,11 @@ public:
     }
 
     // reserve
-    //   reserves buffer capacity for _cells cells.  This is the framework's
+    //   reserves buffer capacity for _cells cells. This is the framework's
     // growability signal (a reserve(size_type) accessor): together with a
     // capacity() that is spare room rather than a cap, it marks the table
-    // unbounded, distinguishing it from the fixed-capacity static/fixed tables.
+    // unbounded, distinguishing it from the fixed-capacity static/fixed
+    // tables.
     void reserve(size_type _cells)
     {
         m_cells.reserve(static_cast<std::size_t>(_cells));
@@ -743,10 +769,10 @@ public:
 
     // fill
     //   writes _value into every cell, leaving the shape fixed.
-    void fill(const _Type& _value)
+    void fill(const Type& _value)
     {
         // overwrite every cell
-        for (_Type& cell : m_cells)
+        for (Type& cell : m_cells)
         {
             cell = _value;
         }
@@ -793,12 +819,12 @@ public:
 
     // sort_rows
     //   stably reorders the rows so consecutive rows are non-decreasing under
-    // _cmp(const_row_type a, const_row_type b) -- the sorted overlay on the row
-    // dimension (relational ORDER BY).  It permutes which values sit at existing
-    // positions and leaves I_T fixed, so despite this table's full mutability it
-    // is a pure element mutation, not a structural one.
-    template<typename _RowCompare>
-    void sort_rows(_RowCompare _cmp)
+    // _cmp(const_row_type a, const_row_type b) -- the sorted overlay on the
+    // row dimension (relational ORDER BY). It permutes which values sit at
+    // existing positions and leaves I_T fixed, so despite this table's full
+    // mutability it is a pure element mutation, not a structural one.
+    template<typename RowCompare>
+    void sort_rows(RowCompare _cmp)
     {
         // a table with no rows or a single row is trivially in order
         if (m_rows < 2)
@@ -845,23 +871,24 @@ public:
 
     // map
     //   the functorial mapping mu_f: applies _fn to every cell and returns a
-    // same-shape table over the image type sigma = f(tau).  Size and arrangement
-    // are preserved exactly; a non-monotone or non-injective _fn may break
-    // sortedness or uniqueness.  When sigma differs from tau the result is a
-    // fresh table<sigma> (a transform source builds the retyped image elsewhere).
-    template<typename _Fn>
+    // same-shape table over the image type sigma = f(tau). Size and
+    // arrangement are preserved exactly; a non-monotone or non-injective _fn
+    // may break sortedness or uniqueness. When sigma differs from tau the
+    // result is a fresh table<sigma> (a transform source builds the retyped
+    // image elsewhere).
+    template<typename Fn>
     D_NODISCARD
-    table<clean_t<decltype(std::declval<_Fn&>()(std::declval<const _Type&>()))>>
-    map(_Fn _fn) const
+    table<clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>>
+    map(Fn _fn) const
     {
         using mapped_cell =
-            clean_t<decltype(std::declval<_Fn&>()(std::declval<const _Type&>()))>;
+            clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>;
 
         std::vector<mapped_cell> out;
         out.reserve(m_cells.size());
 
         // rewrite each cell by its image, row-major
-        for (const _Type& cell : m_cells)
+        for (const Type& cell : m_cells)
         {
             out.push_back(_fn(cell));
         }
@@ -871,14 +898,15 @@ public:
     }
 
     // map_inplace
-    //   the element-preserving mapping (sigma = tau) applied in place: each cell
-    // is overwritten by its image, leaving I_T fixed.  Size and shape preserved.
-    template<typename _Fn>
-    void map_inplace(_Fn _fn)
+    //   the element-preserving mapping (sigma = tau) applied in place: each
+    // cell is overwritten by its image, leaving I_T fixed. Size and shape
+    // preserved.
+    template<typename Fn>
+    void map_inplace(Fn _fn)
     {
-        for (_Type& cell : m_cells)
+        for (Type& cell : m_cells)
         {
-            cell = static_cast<_Type>(_fn(cell));
+            cell = static_cast<Type>(_fn(cell));
         }
 
         return;
@@ -888,12 +916,13 @@ public:
 
     // filter_rows
     //   the selection sigma_phi over rows: returns a fresh table of the rows
-    // whose row view satisfies _pred, each keeping its cells and relative order.
+    // whose row view satisfies _pred, each keeping its cells and relative
+    // order.
     // Row selection preserves rectangularity (a sub-table is a table), so it is
     // closed; |result| <= |this|, and the constant-false predicate yields the
     // empty (0-row) table -- the one bound selection may break.
-    template<typename _Pred>
-    D_NODISCARD table filter_rows(_Pred _pred) const
+    template<typename Pred>
+    D_NODISCARD table filter_rows(Pred _pred) const
     {
         table out;
 
@@ -912,12 +941,12 @@ public:
     }
 
     // filter_rows_inplace
-    //   the same selection performed in place: rows failing _pred are removed and
-    // the buffer rebuilt from the survivors.  This is the closed, build-capable
-    // selection that makes the dynamic table filterable at the row level; the
-    // width is retained even when no row survives.
-    template<typename _Pred>
-    void filter_rows_inplace(_Pred _pred)
+    //   the same selection performed in place: rows failing _pred are removed
+    // and the buffer rebuilt from the survivors. This is the closed,
+    // build-capable selection that makes the dynamic table filterable at the
+    // row level; the width is retained even when no row survives.
+    template<typename Pred>
+    void filter_rows_inplace(Pred _pred)
     {
         const table& cself = *this;
 
@@ -949,42 +978,46 @@ public:
         return;
     }
 
-    // --- serialization (Serialization: shape + cells, under the serial options) ---
+    // --- serialization (Serialization: shape + cells, under the serial
+    // options) ---
 
     // encode_into_e / decode_e
     //   the parameterised member enc_tau / dec_tau: the SHAPE (rows then cols,
-    // each a length field per <_L,_E>) and the cells (each a leaf under
-    // enc_tau<_E>).  This is where the container-serial options reach the table's
-    // own bytes; the reservation on decode is capped by the reader's remaining
-    // bytes, so a corrupt oversized count cannot force a runaway allocation.
-    template<serial_endian _E,
-             serial_length  _L,
-             typename       _Sink>
-    void encode_into_e(_Sink& _sink) const
+    // each a length field per <L,E>) and the cells (each a leaf under
+    // enc_tau<E>). This is where the container-serial options reach the
+    // table's own bytes; the reservation on decode is capped by the reader's
+    // remaining bytes, so a corrupt oversized count cannot force a runaway
+    // allocation.
+    template<serial_endian E,
+             serial_length  L,
+             typename       Sink>
+    void encode_into_e(Sink& _sink) const
     {
-        internal::put_length<_L, _E>(_sink, static_cast<std::uint64_t>(m_rows));
-        internal::put_length<_L, _E>(_sink, static_cast<std::uint64_t>(m_cols));
+        internal::put_length<L, E>(_sink,
+                                   static_cast<re_std::uint64_t>(m_rows));
+        internal::put_length<L, E>(_sink,
+                                   static_cast<re_std::uint64_t>(m_cols));
 
         for (const_pointer p = data(); p != (data() + this->size()); ++p)
         {
-            encode_leaf_into<_E>(_sink, *p);
+            encode_leaf_into<E>(_sink, *p);
         }
 
         return;
     }
 
-    template<serial_endian _E,
-             serial_length  _L>
+    template<serial_endian E,
+             serial_length  L>
     static decode_result<table> decode_e(byte_reader& _reader)
     {
-        std::uint64_t _rr = 0;
-        std::uint64_t _cc = 0;
+        re_std::uint64_t _rr = 0;
+        re_std::uint64_t _cc = 0;
 
-        if (!internal::get_length<_L, _E>(_reader, _rr))
+        if (!internal::get_length<L, E>(_reader, _rr))
         {
             return decode_failure<table>();
         }
-        if (!internal::get_length<_L, _E>(_reader, _cc))
+        if (!internal::get_length<L, E>(_reader, _cc))
         {
             return decode_failure<table>();
         }
@@ -1001,10 +1034,10 @@ public:
 
         for (std::size_t i = 0; i < _count; ++i)
         {
-            decode_result<_Type> _cell = decode_leaf<_E, _Type>(_reader);
+            decode_result<Type> _cell = decode_leaf<E, Type>(_reader);
             if (!_cell.ok) { return decode_failure<table>(); }
 
-            _cells.push_back(static_cast<_Type&&>(_cell.value));
+            _cells.push_back(static_cast<Type&&>(_cell.value));
         }
 
         return decode_success(
@@ -1014,11 +1047,12 @@ public:
     }
 
     // encode_into / decode
-    //   the foundational member surface: the default (big-endian, 8-byte count)
-    // delegating to the parameterised pair.  This is what the option front ends
-    // observe; call encode_into_e<E,L> directly for another (endian, length).
-    template<typename _Sink>
-    void encode_into(_Sink& _sink) const
+    //   the foundational member surface: the default (big-endian, 8-byte
+    // count) delegating to the parameterised pair. This is what the option
+    // front ends observe; call encode_into_e<E,L> directly for another
+    // (endian, length).
+    template<typename Sink>
+    void encode_into(Sink& _sink) const
     {
         this->template encode_into_e<serial_endian::big,
                                      serial_length::u64>(_sink);
@@ -1089,7 +1123,8 @@ namespace table_axis_conformance
                       == multiplicity_kind::sequence,
                   "table must classify as a sequence (m = infinity).");
 
-    // Sortedness / Ordering: ordered, and order-dependent (not sorted in itself).
+    // Sortedness / Ordering: ordered, and order-dependent (not sorted in
+    // itself).
     static_assert(is_ordered_container_v<table_probe>,
                   "table must classify as ordered.");
     static_assert(sortedness_of<table_probe>::value
@@ -1106,11 +1141,12 @@ namespace table_axis_conformance
                   "table structure_kind must be hierarchical.");
 
     // Filterability and Transformability (composite, detection-only): at the
-    // CELL level a filter/transform SOURCE -- it grows by rows, not cells, so it
-    // has no cell-level build (push_back) and a re-typed image or cell-selection
-    // is a fresh container.  Its filterability/transformability is at the ROW
-    // level (filter_rows_inplace / map_inplace), which the element-level trait
-    // does not measure.  Verified out-of-band (see the note in static_table.hpp).
+    // CELL level a filter/transform SOURCE -- it grows by rows, not cells, so
+    // it has no cell-level build (push_back) and a re-typed image or
+    // cell-selection is a fresh container. Its filterability/transformability
+    // is at the ROW level (filter_rows_inplace / map_inplace), which the
+    // element-level trait does not measure. Verified out-of-band (see the note
+    // in static_table.hpp).
 }
 
 
@@ -1119,44 +1155,45 @@ namespace table_axis_conformance
 // ===========================================================================
 
 // operator== / operator!=
-//   compares two tables cell-by-cell after a shape check (positional identity).
-template<typename    _Type,
-         typename    _D,
-         typename    _S,
-         typename    _I,
-         typename    _CI,
-         typename... _O>
+//   compares two tables cell-by-cell after a shape check (positional
+// identity).
+template<typename    Type,
+         typename    D,
+         typename    S,
+         typename    I,
+         typename    CI,
+         typename... O>
 D_NODISCARD bool operator==(
-    const table<_Type, _D, _S, _I, _CI, _O...>& _a,
-    const table<_Type, _D, _S, _I, _CI, _O...>& _b)
+    const table<Type, D, S, I, CI, O...>& _a,
+    const table<Type, D, S, I, CI, O...>& _b)
 {
     return _a.content_equals(_b);
 }
 
-template<typename    _Type,
-         typename    _D,
-         typename    _S,
-         typename    _I,
-         typename    _CI,
-         typename... _O>
+template<typename    Type,
+         typename    D,
+         typename    S,
+         typename    I,
+         typename    CI,
+         typename... O>
 D_NODISCARD bool operator!=(
-    const table<_Type, _D, _S, _I, _CI, _O...>& _a,
-    const table<_Type, _D, _S, _I, _CI, _O...>& _b)
+    const table<Type, D, S, I, CI, O...>& _a,
+    const table<Type, D, S, I, CI, O...>& _b)
 {
     return !(_a == _b);
 }
 
 // swap
 //   free swap for two tables.
-template<typename    _Type,
-         typename    _D,
-         typename    _S,
-         typename    _I,
-         typename    _CI,
-         typename... _O>
+template<typename    Type,
+         typename    D,
+         typename    S,
+         typename    I,
+         typename    CI,
+         typename... O>
 void swap(
-    table<_Type, _D, _S, _I, _CI, _O...>& _a,
-    table<_Type, _D, _S, _I, _CI, _O...>& _b) noexcept
+    table<Type, D, S, I, CI, O...>& _a,
+    table<Type, D, S, I, CI, O...>& _b) noexcept
 {
     _a.swap(_b);
 
@@ -1165,22 +1202,22 @@ void swap(
 
 
 // select_rows
-//   the external selection strategy: builds a fresh table<element_type> from the
-// rows of any table-like source whose row view satisfies _pred.  This is how a
-// filter SOURCE (static_table, fixed_table -- fixed-shape, so unable to receive
-// an arbitrary sub-selection in place) feeds a selection: the survivors are
-// gathered into the filterable table type.  Arrangement and per-row cells are
-// preserved; the row order carries over unchanged.
-template<typename _Src,
-         typename _Pred>
-D_NODISCARD table<typename _Src::element_type>
+//   the external selection strategy: builds a fresh table<element_type> from
+// the rows of any table-like source whose row view satisfies _pred. This is
+// how a filter SOURCE (static_table, fixed_table -- fixed-shape, so unable to
+// receive an arbitrary sub-selection in place) feeds a selection: the
+// survivors are gathered into the filterable table type. Arrangement and
+// per-row cells are preserved; the row order carries over unchanged.
+template<typename Src,
+         typename Pred>
+D_NODISCARD table<typename Src::element_type>
 select_rows(
-    const _Src& _src,
-    _Pred       _pred)
+    const Src& _src,
+    Pred        _pred)
 {
-    table<typename _Src::element_type> out;
+    table<typename Src::element_type> out;
 
-    using src_size = typename _Src::size_type;
+    using src_size = typename Src::size_type;
 
     // gather rows of the source that satisfy the predicate
     for (src_size r = 0; r < _src.row_count(); ++r)
@@ -1199,5 +1236,6 @@ select_rows(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_TABLE_
+#endif  // DJINTERP_CONTAINER_TABLE_TABLE_HPP

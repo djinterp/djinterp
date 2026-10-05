@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                        dnode.h
+* djinterp [djinterp]                                                    dnode.h
 *
 * Node tree:
 *   The tree a selector matches against.  A node carries an interned type, a
@@ -10,6 +10,7 @@
 * origin field is that identity: assigned once at build, never reassigned, so
 * a defect found after a rewrite still names a place in the original file.
 *   The tree is host-agnostic.  Nothing here knows what a banner is.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dnode.h
 * link(s):   TBA
@@ -26,7 +27,8 @@
 #include <stdint.h>   // uint32_t
 
 // djinterp
-#include "./dss.h"  // D_DSS_NO_INDEX, interned identifiers
+#include "./dss.h"      // D_DSS_NO_INDEX
+#include "./dsymbol.h"  // d_symbol_table: types and attribute names
 
 
 //==============================================================================
@@ -59,6 +61,7 @@ struct d_node
 
     uint32_t  parent;
     uint32_t  first_child;
+    uint32_t  last_child;       // so an append is O(1), not a sibling walk
     uint32_t  next_sibling;
     uint32_t  index_in_parent;
 
@@ -88,6 +91,9 @@ struct d_node_tree;
 // 2.1    Lifecycle
 //------------------------------------------------------------------------------
 struct d_node_tree* d_node_tree_new(void);
+// a tree naming its types and attributes in a table it does not own, so
+// a sheet bound to the same table compares names as integers
+struct d_node_tree* d_node_tree_new_shared(struct d_symbol_table* _symbols);
 void                d_node_tree_free(struct d_node_tree* _tree);
 void                d_node_tree_clear(struct d_node_tree* _tree);
 
@@ -118,8 +124,17 @@ const struct d_node_attribute*
                                         uint32_t                  _at);
 const char*         d_node_text(const struct d_node_tree* _tree,
                                 uint32_t                  _id);
+// a type's or attribute name's symbol; D_DSS_NO_INDEX when never seen
 uint32_t            d_node_find_id(const struct d_node_tree* _tree,
                                    const char*               _text);
+// a text's or attribute value's id, as node->text and attribute->value hold
+uint32_t            d_node_find_text(const struct d_node_tree* _tree,
+                                     const char*               _text);
+// a type's or attribute name's text: node->type, attribute->name
+const char*         d_node_name(const struct d_node_tree* _tree,
+                                uint32_t                  _symbol);
+struct d_symbol_table*
+                    d_node_tree_symbols(const struct d_node_tree* _tree);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DNODE_H

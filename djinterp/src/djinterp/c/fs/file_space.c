@@ -10,16 +10,17 @@
 * path:      /src/djinterp/c/fs/file_space.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.03
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/fs/file_space.h"  // corresponding header
 // std
 #include <errno.h>   // errno, EINVAL, ENOENT, ENOSYS
-#include <stdint.h>  // uint64_t
 #include <string.h>  // memset
 // djinterp
 #include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*
 #include "../../../../inc/djinterp/config/c/fs/cfg_file_space.h"  // D_CFG_FILE_HAS_STATVFS
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint64_t
 // posix
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_STATVFS)
     #include <sys/statvfs.h>  // statvfs, struct statvfs

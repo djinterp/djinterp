@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                             integer_sequence.hpp
+/*******************************************************************************
+* djinterp [re_std]                                         integer_sequence.hpp
 *
 * compile-time integer pack:
 *   integer_sequence<T, Is...> wraps a parameter pack of compile-time
@@ -23,39 +23,43 @@
 * index_sequence) alias templates. Both are C++11+ features.
 *
 *
-* path:      /inc/djinterp/re_std/utility/integer_sequence.hpp
+* path:      /inc/re_std/utility/integer_sequence.hpp
 * link(s):   TBA
-* author(s): re_std team                                 date: 2026.05.02
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_INTEGER_SEQUENCE_
-#define DJINTERP_RE_STD_UTILITY_INTEGER_SEQUENCE_ 1
+#ifndef RE_STD_UTILITY_INTEGER_SEQUENCE_HPP
+#define RE_STD_UTILITY_INTEGER_SEQUENCE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#if RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
+// std
 #include <cstddef>  // std::size_t
 
-NS_RESTD
+namespace re_std
+{
 
 // =============================================================================
 // INTEGER_SEQUENCE
 // =============================================================================
 
 // integer_sequence
-//   class: holds a compile-time pack of integer values of type _Type.
+//   class: holds a compile-time pack of integer values of type Type.
 //   The size() function is constexpr-eligible from C++11 (single
 //   return statement of a sizeof... expression).
-template<typename _Type, _Type... _Values>
+template<typename Type, Type... Values>
 struct integer_sequence
 {
-    typedef _Type value_type;
+    typedef Type value_type;
 
     // size: number of values in the pack.
-    static D_CONSTEXPR std::size_t size() noexcept
+    static RE_STD_CONSTEXPR std::size_t size() noexcept
     {
-        return sizeof...(_Values);
+        return sizeof...(Values);
     }
 };
 
@@ -67,15 +71,15 @@ struct integer_sequence
 //   alias: integer_sequence specialised on std::size_t. Available
 //   only when alias templates are; the generators in
 //   make_integer_sequence.hpp are gated the same way.
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
-    template<std::size_t... _Indices>
-    using index_sequence = integer_sequence<std::size_t, _Indices...>;
+    template<std::size_t... Indices>
+    using index_sequence = integer_sequence<std::size_t, Indices...>;
 
 #endif
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#endif  // RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
-#endif  // DJINTERP_RE_STD_UTILITY_INTEGER_SEQUENCE_
+#endif  // RE_STD_UTILITY_INTEGER_SEQUENCE_HPP

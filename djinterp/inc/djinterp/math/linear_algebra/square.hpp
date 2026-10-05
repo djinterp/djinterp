@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                   square.hpp
+/*******************************************************************************
+* djinterp [math]                                                     square.hpp
 *
 * Square-matrix operations for the linear-algebra subframework.
 *   Free function templates over matrix<_T, _N, _N>: the determinant, the
@@ -37,13 +37,15 @@
 *     compose directly with the core fluent members, e.g.
 *       inverse(a).transposed()        determinant(a.transposed())
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/square.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.22
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_SQUARE_
-#define DJINTERP_MATH_LINALG_SQUARE_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_SQUARE_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_SQUARE_HPP 1
 
 // std
 #include <cstddef>
@@ -407,4 +409,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_SQUARE_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_SQUARE_HPP

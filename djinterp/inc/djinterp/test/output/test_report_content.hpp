@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                        test_report_content.hpp
 *
 *   The CONTENT half of the layout-driven report render: what a body_ref leaf
@@ -45,28 +45,44 @@
 * or interpreter layers.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    KEYS                        (mint / match the content-reference names)
-* II.   FORMATTING                  (status text, figures)
-* III.  EMITTERS                    (unit table / module + run summary)
-* IV.   BINDING                     (report_binds_content /
-*                                   resolve_report_content)
-*
-*
 * path:      /inc/djinterp/test/output/test_report_content.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_REPORT_CONTENT_
-#define DJINTERP_TEST_REPORT_CONTENT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    KEYS                        (mint / match the content-reference names)
+      ----------------------------------------------------------------------
+
+II.   FORMATTING                  (status text, figures)
+      --------------------------------------------------
+
+III.  EMITTERS                    (unit table / module + run summary)
+      ---------------------------------------------------------------
+
+IV.   BINDING                     (report_binds_content /
+      ---------------------------------------------------
+
+      resolve_report_content)
+*/
+
+#ifndef DJINTERP_TEST_OUTPUT_TEST_REPORT_CONTENT_HPP
+#define DJINTERP_TEST_OUTPUT_TEST_REPORT_CONTENT_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <string>
 // djinterp
-#include "../../core/djinterp.hpp"                  // NS_*, D_NODISCARD, gates
+#include "../../djinterp.hpp"                  // NS_*, D_NODISCARD, gates
 #include "../../core/util/document/templates/document_renderer.hpp"
                                                     // document_renderer
 #include "../../core/util/document/templates/document_attributes.hpp"
@@ -414,5 +430,7 @@ resolve_report_content(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_REPORT_CONTENT_
+
+#endif  // DJINTERP_TEST_OUTPUT_TEST_REPORT_CONTENT_HPP

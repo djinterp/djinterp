@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std [functional]                               is_reference_wrapper.hpp
+/*******************************************************************************
+* djinterp [re_std]                                     is_reference_wrapper.hpp
 *
+* is_reference_wrapper trait header:
 *   The reference_wrapper DETECTION TRAIT, split out of
 * reference_wrapper.hpp so that invoke.hpp can dispatch on it without
 * pulling in the class definition.
@@ -25,14 +26,18 @@
 *
 * path:      /inc/re_std/functional/is_reference_wrapper.hpp
 * link(s):   TBA
-* author(s): re_std
-***********************************************************************/
+* author(s): re_std                                                 created: TBA
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_IS_REFERENCE_WRAPPER_
-#define DJINTERP_RE_STD_FUNCTIONAL_IS_REFERENCE_WRAPPER_ 1
+#ifndef RE_STD_FUNCTIONAL_IS_REFERENCE_WRAPPER_HPP
+#define RE_STD_FUNCTIONAL_IS_REFERENCE_WRAPPER_HPP 1
 
-#include "djinterp.hpp"
-#include "re_std/type_traits/type_traits.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
+#include "../type_traits/false_type.hpp"  // false_type
+#include "../type_traits/remove_cv.hpp"   // remove_cv
+#include "../type_traits/true_type.hpp"   // true_type
 
 namespace re_std
 {
@@ -40,40 +45,40 @@ namespace re_std
 // reference_wrapper
 //   class: forward declaration only -- the trait below needs the name, not
 // the definition.  reference_wrapper.hpp supplies the definition.
-template<typename _Type>
+template<typename Type>
 class reference_wrapper;
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_reference_wrapper_helper
     //   trait: primary -- false for arbitrary types.
-    template<typename _Type>
+    template<typename Type>
     struct is_reference_wrapper_helper : false_type
     {};
 
     // is_reference_wrapper_helper<reference_wrapper<U>>
     //   trait: specialization -- true for reference_wrapper.
-    template<typename _U>
-    struct is_reference_wrapper_helper< reference_wrapper<_U> > : true_type
+    template<typename U>
+    struct is_reference_wrapper_helper< reference_wrapper<U> > : true_type
     {};
 
-NS_END  // internal
+}  // internal
 
 // is_reference_wrapper
 //   trait: detects reference_wrapper.  Cv-stripped.
-template<typename _Type>
+template<typename Type>
 struct is_reference_wrapper
-    : internal::is_reference_wrapper_helper<typename remove_cv<_Type>::type>
+    : internal::is_reference_wrapper_helper<typename remove_cv<Type>::type>
 {};
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-template<typename _Type>
-D_CONSTEXPR bool is_reference_wrapper_v
-    = is_reference_wrapper<_Type>::value;
+template<typename Type>
+RE_STD_CONSTEXPR bool is_reference_wrapper_v
+    = is_reference_wrapper<Type>::value;
 
 #endif
 
-} // namespace re_std
-
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_IS_REFERENCE_WRAPPER_
+}  // re_std
+#endif  // RE_STD_FUNCTIONAL_IS_REFERENCE_WRAPPER_HPP

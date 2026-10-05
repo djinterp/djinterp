@@ -1,4 +1,15 @@
-#include "../../../../inc/c/container/vector/ptr_vector.h"
+/*******************************************************************************
+* djinterp [c]                                                      ptr_vector.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/container/vector/ptr_vector.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.20
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/container/vector/ptr_vector.h"
 
 
 // =============================================================================
@@ -134,8 +145,8 @@ d_ptr_vector_new_from_args
   Creates a new pointer vector initialized with variadic pointer arguments.
 
 Parameter(s):
-  _arg_count: number of pointer arguments that follow
-  ...:        variadic pointer arguments to initialize the vector with
+  _arg_count: number of pointer arguments that follow ...: variadic pointer
+              arguments to initialize the vector with
 Return:
   A pointer to either:
   - a newly allocated `d_ptr_vector` structure, or
@@ -295,8 +306,8 @@ d_ptr_vector_new_merge
   Creates a new pointer vector by merging multiple pointer vectors.
 
 Parameter(s):
-  _count: number of `d_ptr_vector` arguments that follow
-  ...:    variadic `d_ptr_vector*` arguments to merge together
+  _count: number of `d_ptr_vector` arguments that follow ...: variadic
+          `d_ptr_vector*` arguments to merge together
 Return:
   A pointer to either:
   - a newly allocated `d_ptr_vector` structure containing all pointers from all
@@ -895,7 +906,7 @@ d_ptr_vector_clear
 Parameter(s):
   _ptr_vector: pointer to the `d_ptr_vector` to clear
 Return:
-  none
+  none.
 */
 void
 d_ptr_vector_clear
@@ -1184,7 +1195,7 @@ d_ptr_vector_at
 {
     size_t actual_idx;
 
-    if ( (!_ptr_vector)            ||
+    if ( (!_ptr_vector) ||
          (_ptr_vector->count == 0) )
     {
         return NULL;
@@ -1213,7 +1224,7 @@ d_ptr_vector_front
     const struct d_ptr_vector* _ptr_vector
 )
 {
-    if ( (!_ptr_vector)            ||
+    if ( (!_ptr_vector) ||
          (_ptr_vector->count == 0) )
     {
         return NULL;
@@ -1237,7 +1248,7 @@ d_ptr_vector_back
     const struct d_ptr_vector* _ptr_vector
 )
 {
-    if ( (!_ptr_vector)            ||
+    if ( (!_ptr_vector) ||
          (_ptr_vector->count == 0) )
     {
         return NULL;
@@ -1704,7 +1715,7 @@ Parameter(s):
   _ptr_vector: pointer to the `d_ptr_vector` to sort
   _comparator: function to compare pointed-to values
 Return:
-  none
+  none.
 */
 void
 d_ptr_vector_sort
@@ -1774,7 +1785,7 @@ Parameter(s):
   _ptr_vector: pointer to the `d_ptr_vector` to iterate
   _apply_fn:   function to apply to each pointer
 Return:
-  none
+  none.
 */
 void
 d_ptr_vector_foreach
@@ -1812,7 +1823,7 @@ pointed-to objects.
 Parameter(s):
   _ptr_vector: pointer to the `d_ptr_vector` to deallocate
 Return:
-  none
+  none.
 */
 void
 d_ptr_vector_free
@@ -1842,7 +1853,7 @@ Parameter(s):
   _ptr_vector: pointer to the `d_ptr_vector` to deallocate
   _free_fn:    function to use for freeing each pointed-to object
 Return:
-  none
+  none.
 */
 void
 d_ptr_vector_free_deep
@@ -1884,7 +1895,7 @@ Parameter(s):
   _ptr_vector: pointer to the `d_ptr_vector` to clear
   _free_fn:    function to use for freeing each pointed-to object
 Return:
-  none
+  none.
 */
 void
 d_ptr_vector_clear_deep

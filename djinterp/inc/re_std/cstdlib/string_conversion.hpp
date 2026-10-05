@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                       string_conversion.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        string_conversion.hpp
 *
 * the string-to-number conversions (re-exports):
 *   atof / atoi / atol / atoll and the strto* family, surfaced in re_std::
@@ -27,25 +27,27 @@
 * so all eleven are surfaced unconditionally.
 *
 *
-* path:      /inc/djinterp/re_std/cstdlib/string_conversion.hpp
+* path:      /inc/re_std/cstdlib/string_conversion.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDLIB_STRING_CONVERSION_
-#define DJINTERP_RE_STD_CSTDLIB_STRING_CONVERSION_ 1
+#ifndef RE_STD_CSTDLIB_STRING_CONVERSION_HPP
+#define RE_STD_CSTDLIB_STRING_CONVERSION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstdlib>
 
 
-NS_RESTD
+namespace re_std
+{
 
     // atof / atoi / atol / atoll
     //   function: parse a numeric prefix, with no error reporting. See the
@@ -70,10 +72,10 @@ NS_RESTD
     using ::std::strtoul;
     using ::std::strtoull;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_CSTDLIB_STRING_CONVERSION_
+#endif  // RE_STD_CSTDLIB_STRING_CONVERSION_HPP

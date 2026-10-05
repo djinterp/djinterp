@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                          insertion_sort.h
+/*******************************************************************************
+* djinterp [c]                                                  insertion_sort.h
 *
 *   Insertion sort: the sequential driver.
 * In-place, iterative, stable, comparison-based.  Each element is placed into
@@ -38,13 +38,14 @@
 * insertion_sort.hpp, whose templates monomorphise.
 *
 *
-* path:      /djinterp/c/util/sort/insertion_sort.h
+* path:      /inc/djinterp/c/util/sort/insertion_sort.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.08.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_INSERTION_
-#define DJINTERP_UTILITY_SORT_INSERTION_ 1
+#ifndef DJINTERP_C_UTIL_SORT_INSERTION_SORT_H
+#define DJINTERP_C_UTIL_SORT_INSERTION_SORT_H 1
 
 // std
 #include <stddef.h>
@@ -68,4 +69,4 @@ enum d_sort_status d_insertion_sort(void*                           _base,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_UTILITY_SORT_INSERTION_
+#endif  // DJINTERP_C_UTIL_SORT_INSERTION_SORT_H

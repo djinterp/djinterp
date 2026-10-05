@@ -7,9 +7,9 @@
 * path:      /src/djinterp/parse/diagnostic.c
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
+*                                                          revised: 2026.09.30
 ******************************************************************************/
-#include "../../../inc/djinterp/parse/diagnostic.h"  // corresponding header
+#include "../../../inc/djinterp/parse/c/diagnostic.h"  // corresponding header
 // std
 #include <stdio.h>    // printf, snprintf, vsnprintf
 #include <string.h>   // memset, memcpy, strlen

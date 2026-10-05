@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                     dregex.c
+/*******************************************************************************
+* djinterp [djinterp]                                                   dregex.c
 *
 *   Definitions for the non-inline declarations in dregex.h.
 *     A pattern is parsed to an index-addressed tree, lowered by Thompson
@@ -18,9 +18,9 @@
 *
 * path:      /src/djinterp/tools/dawk/dregex.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dregex.h"  // corresponding header
 // std
 #include <ctype.h>   // isalpha, isdigit, isspace and the other class tests

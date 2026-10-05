@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           is_reference.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             is_reference.hpp
 *
 * is_reference trait header:
 *   Detects whether a type is any reference type - either an lvalue
@@ -13,21 +13,23 @@
 *   Equivalent to is_lvalue_reference<T>::value || is_rvalue_reference<T>::value.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_reference.hpp
+* path:      /inc/re_std/type_traits/is_reference.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_REFERENCE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_REFERENCE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_REFERENCE_HPP
+#define RE_STD_TYPE_TRAITS_IS_REFERENCE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -36,42 +38,42 @@ NS_RESTD
 
 // is_reference
 //   trait: false (primary template).
-template<typename _Type>
+template<typename Type>
 struct is_reference : false_type
 {};
 
-// is_reference<_Type&>
+// is_reference<Type&>
 //   trait: true for lvalue reference types.
-template<typename _Type>
-struct is_reference<_Type&> : true_type
+template<typename Type>
+struct is_reference<Type&> : true_type
 {};
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#if RE_STD_LANG_HAS_RVALUE_REFERENCES
 
-    // is_reference<_Type&&>
+    // is_reference<Type&&>
     //   trait: true for rvalue reference types (C++11+).
-    template<typename _Type>
-    struct is_reference<_Type&&> : true_type
+    template<typename Type>
+    struct is_reference<Type&&> : true_type
     {};
 
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // RE_STD_LANG_HAS_RVALUE_REFERENCES
 
 
 // =============================================================================
 // II.  IS_REFERENCE_V (C++14+ variable)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // is_reference_v
-    //   variable: convenience for is_reference<_Type>::value.
-    template<typename _Type>
-    D_CONSTEXPR bool is_reference_v = is_reference<_Type>::value;
+    //   variable: convenience for is_reference<Type>::value.
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_reference_v = is_reference<Type>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_REFERENCE_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_IS_REFERENCE_HPP

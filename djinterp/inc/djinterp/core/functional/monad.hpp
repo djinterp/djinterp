@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                              monad.hpp
+/*******************************************************************************
+* djinterp [core]                                                      monad.hpp
 *
 * Monad protocol and generic monadic operations (C++).
 *   Defines a trait-based protocol that maybe<T>, result<T, E>, and any
@@ -32,50 +32,67 @@
 *          | or_else_with(0);                                     // int
 *
 *   // Generic over any monad: works on maybe, result, future, ...
-*   template<typename _Monad>
-*   _Monad pure_chain(_Monad _m)
+*   template<typename Monad>
+*   Monad pure_chain(Monad _m)
 *   {
 *       return monad_map(_m, [](auto v) { return v + 1; });
 *   }
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/monad.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS
+      ---------------------------------------------
+
 I.    MONAD PROTOCOL
-      1.  monad_traits<M>                         (primary, undefined)
-      2.  is_monad<T>                             (detection trait)
+      --------------
+      1.    monad_traits<M>                         (primary, undefined)
+      2.    is_monad<T>                             (detection trait)
+
 II.   GENERIC MONADIC OPERATIONS
-      1.  monad_unit<M, T>                        (lift value to M<T>)
-      2.  monad_bind                              (>>= in Haskell)
-      3.  monad_map                               (fmap, functorial)
-      4.  monad_join                              (flatten one layer)
-      5.  monad_then                              (>> -- sequence, discard)
-      6.  kleisli_compose                         (>=> -- f then g)
-      7.  lift_m2                                 (binary applicative lift)
+      --------------------------
+      1.    monad_unit<M, T>                        (lift value to M<T>)
+      2.    monad_bind                              (>>= in Haskell)
+      3.    monad_map                               (fmap, functorial)
+      4.    monad_join                              (flatten one layer)
+      5.    monad_then                              (>> -- sequence, discard)
+      6.    kleisli_compose                         (>=> -- f then g)
+      7.    lift_m2                                 (binary applicative lift)
+
 III.  PIPELINE COMBINATORS
-      1.  bind_with(f)                            (RHS of operator|)
-      2.  map_with(f)
-      3.  then_with(other)
+      --------------------
+      1.    bind_with(f)                            (RHS of operator|)
+      2.    map_with(f)
+      3.    then_with(other)
+
 IV.   PIPELINE OPERATORS
-      1.  operator|(monad, combinator)
+      ------------------
+      1.    operator|(monad, combinator)
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_MONAD_
-#define DJINTERP_FUNCTIONAL_MONAD_ 1
+#ifndef DJINTERP_FUNCTIONAL_MONAD_HPP
+#define DJINTERP_FUNCTIONAL_MONAD_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // void_t
 #include "../meta/type_traits.hpp"
 
 
@@ -101,7 +118,7 @@ NS_DJINTERP
 // (maybe.hpp, result.hpp, future.hpp, ...). The primary is left
 // undefined so that uses with non-monad types produce a clean
 // template-resolution error.
-template<typename _Monad>
+template<typename Monad>
 struct monad_traits;
 
 
@@ -111,40 +128,40 @@ NS_INTERNAL
     //   helper: SFINAE detector for whether monad_traits<T> is
     // specialized. Looks for the is_specialized marker that all
     // specializations are required to provide.
-    template<typename _Type>
+    template<typename Type>
     struct is_monad_helper
     {
     private:
-        template<typename _T>
+        template<typename T>
         static auto test(int)
             -> decltype(
-                typename monad_traits<_T>::is_specialized{},
+                typename monad_traits<T>::is_specialized{},
                 std::true_type{});
 
         template<typename>
         static std::false_type test(...);
 
     public:
-        using type = decltype(test<_Type>(0));
+        using type = decltype(test<Type>(0));
     };
 
 NS_END  // internal
 
 
 // is_monad
-//   trait: true if _Type has a specialization of monad_traits.
+//   trait: true if Type has a specialization of monad_traits.
 // Used to SFINAE-constrain generic monadic operations.
-template<typename _Type>
+template<typename Type>
 struct is_monad
     : internal::is_monad_helper<
-          typename std::decay<_Type>::type>::type
+          typename std::decay<Type>::type>::type
 {
 };
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-template<typename _Type>
-static constexpr bool is_monad_v = is_monad<_Type>::value;
+template<typename Type>
+static constexpr bool is_monad_v = is_monad<Type>::value;
 #endif
 
 
@@ -168,103 +185,103 @@ NS_INTERNAL
     // monad_value_type_helper
     //   helper: SFINAE extractor for monad_traits<M>::value_type
     // (primary: no `type`, soft failure).
-    template<typename _AlwaysVoid,
-             typename _Monad>
+    template<typename AlwaysVoid,
+             typename Monad>
     struct monad_value_type_helper
     {};
 
     // monad_value_type_helper (well-formed specialization)
     //   helper: yields monad_traits<M>::value_type when present.
-    template<typename _Monad>
+    template<typename Monad>
     struct monad_value_type_helper<
-        void_t<typename monad_traits<_Monad>::value_type>,
-        _Monad>
+        void_t<typename monad_traits<Monad>::value_type>,
+        Monad>
     {
-        using type = typename monad_traits<_Monad>::value_type;
+        using type = typename monad_traits<Monad>::value_type;
     };
 
     // monad_rebind_helper
     //   helper: SFINAE extractor for monad_traits<M>::rebind<U>
     // (primary: no `type`, soft failure).
-    template<typename _AlwaysVoid,
-             typename _Monad,
-             typename _To>
+    template<typename AlwaysVoid,
+             typename Monad,
+             typename To>
     struct monad_rebind_helper
     {};
 
     // monad_rebind_helper (well-formed specialization)
     //   helper: yields monad_traits<M>::rebind<U> when present.
-    template<typename _Monad,
-             typename _To>
+    template<typename Monad,
+             typename To>
     struct monad_rebind_helper<
-        void_t<typename monad_traits<_Monad>::template rebind<_To>>,
-        _Monad,
-        _To>
+        void_t<typename monad_traits<Monad>::template rebind<To>>,
+        Monad,
+        To>
     {
-        using type = typename monad_traits<_Monad>::template rebind<_To>;
+        using type = typename monad_traits<Monad>::template rebind<To>;
     };
 
-    // call_result_helper
+    // monad_call_result_helper
     //   helper: SFINAE extractor for the call expression
-    // _Function(_Arg) (primary: no `type`, soft failure).
-    template<typename _AlwaysVoid,
-             typename _Function,
-             typename _Arg>
-    struct call_result_helper
+    // Function(Arg) (primary: no `type`, soft failure).
+    template<typename AlwaysVoid,
+             typename Function,
+             typename Arg>
+    struct monad_call_result_helper
     {};
 
-    // call_result_helper (well-formed specialization)
-    //   helper: yields the result of _Function(const _Arg&) when the
+    // monad_call_result_helper (well-formed specialization)
+    //   helper: yields the result of Function(const Arg&) when the
     // call expression is well-formed.
-    template<typename _Function,
-             typename _Arg>
-    struct call_result_helper<
-        void_t<decltype(std::declval<const _Function&>()(
-            std::declval<const _Arg&>()))>,
-        _Function,
-        _Arg>
+    template<typename Function,
+             typename Arg>
+    struct monad_call_result_helper<
+        void_t<decltype(std::declval<const Function&>()(
+            std::declval<const Arg&>()))>,
+        Function,
+        Arg>
     {
-        using type = decltype(std::declval<const _Function&>()(
-            std::declval<const _Arg&>()));
+        using type = decltype(std::declval<const Function&>()(
+            std::declval<const Arg&>()));
     };
 
     // is_bindable_helper
     //   helper: detection sink for a well-formed monad_bind(M, F)
     // (primary: false).
-    template<typename _AlwaysVoid,
-             typename _Monad,
-             typename _Function>
+    template<typename AlwaysVoid,
+             typename Monad,
+             typename Function>
     struct is_bindable_helper : std::false_type
     {};
 
     // is_mappable_helper
     //   helper: detection sink for a well-formed monad_map(M, F)
     // (primary: false).
-    template<typename _AlwaysVoid,
-             typename _Monad,
-             typename _Function>
+    template<typename AlwaysVoid,
+             typename Monad,
+             typename Function>
     struct is_mappable_helper : std::false_type
     {};
 
     // is_monad_combinator_helper
     //   helper: detection sink for "c.apply(m) is well-formed" --
-    // i.e. _Combinator is a pipeline combinator accepting a _Monad
+    // i.e. Combinator is a pipeline combinator accepting a Monad
     // (primary: false).
-    template<typename _AlwaysVoid,
-             typename _Combinator,
-             typename _Monad>
+    template<typename AlwaysVoid,
+             typename Combinator,
+             typename Monad>
     struct is_monad_combinator_helper : std::false_type
     {};
 
     // is_monadic_function_helper
     //   helper: detection sink for the Kleisli-arrow shape -- true
-    // when _Function is callable on _ValueType and the (decayed)
+    // when Function is callable on ValueType and the (decayed)
     // result is itself a monad.  Primary: false.  All ill-formed
     // sub-expressions are confined to the specialization's match,
     // so the primary is reached cleanly for any non-arrow case.
-    template<typename _AlwaysVoid,
-             typename _Function,
-             typename _Monad>
+    template<typename AlwaysVoid,
+             typename Function,
+             typename Monad>
     struct is_monadic_function_helper : std::false_type
     {};
 
@@ -274,142 +291,142 @@ NS_END  // internal
 //   trait: the inner value type T of a monad M, i.e.
 // monad_traits<M>::value_type.  SFINAE-friendly: has a `::type` only
 // when M is a specialized monad.
-template<typename _Monad>
+template<typename Monad>
 struct monad_value_type
 {
     using type = typename internal::monad_value_type_helper<
-        void, typename std::decay<_Monad>::type>::type;
+        void, typename std::decay<Monad>::type>::type;
 };
 
 // monad_value_type_t
 //   type: convenience alias for monad_value_type<M>::type.
-template<typename _Monad>
-using monad_value_type_t = typename monad_value_type<_Monad>::type;
+template<typename Monad>
+using monad_value_type_t = typename monad_value_type<Monad>::type;
 
 // monad_rebind
 //   trait: the monad M re-parameterized over a new inner type U, i.e.
 // monad_traits<M>::rebind<U>.  SFINAE-friendly.
-template<typename _Monad,
-         typename _To>
+template<typename Monad,
+         typename To>
 struct monad_rebind
 {
     using type = typename internal::monad_rebind_helper<
-        void, typename std::decay<_Monad>::type, _To>::type;
+        void, typename std::decay<Monad>::type, To>::type;
 };
 
 // monad_rebind_t
 //   type: convenience alias for monad_rebind<M, U>::type.
-template<typename _Monad,
-         typename _To>
-using monad_rebind_t = typename monad_rebind<_Monad, _To>::type;
+template<typename Monad,
+         typename To>
+using monad_rebind_t = typename monad_rebind<Monad, To>::type;
 
 // is_monadic_function
-//   trait: true when _Function is a valid Kleisli arrow for _Monad --
+//   trait: true when Function is a valid Kleisli arrow for Monad --
 // callable with the monad's value type and yielding a (decayed)
 // result that is itself a monad.  SFINAE-safe for every argument: a
-// non-monad _Monad, a non-callable _Function, or a non-monad result
+// non-monad Monad, a non-callable Function, or a non-monad result
 // all resolve cleanly to false.
-template<typename _Function,
-         typename _Monad>
+template<typename Function,
+         typename Monad>
 struct is_monadic_function
     : internal::is_monadic_function_helper<
-          void, _Function, typename std::decay<_Monad>::type>
+          void, Function, typename std::decay<Monad>::type>
 {};
 
 // is_bindable
 //   trait: true when monad_bind(declval<M>(), declval<F>()) is a
 // well-formed expression.
-template<typename _Monad,
-         typename _Function>
+template<typename Monad,
+         typename Function>
 struct is_bindable
-    : internal::is_bindable_helper<void, _Monad, _Function>
+    : internal::is_bindable_helper<void, Monad, Function>
 {};
 
 // is_mappable
 //   trait: true when monad_map(declval<M>(), declval<F>()) is a
 // well-formed expression.
-template<typename _Monad,
-         typename _Function>
+template<typename Monad,
+         typename Function>
 struct is_mappable
-    : internal::is_mappable_helper<void, _Monad, _Function>
+    : internal::is_mappable_helper<void, Monad, Function>
 {};
 
 // is_monad_combinator
-//   trait: true when _Combinator exposes an apply(_Monad) member that
+//   trait: true when Combinator exposes an apply(Monad) member that
 // is callable -- the structural shape every pipeline combinator
 // (bind_combinator, map_combinator, then_combinator) satisfies.
-template<typename _Combinator,
-         typename _Monad>
+template<typename Combinator,
+         typename Monad>
 struct is_monad_combinator
-    : internal::is_monad_combinator_helper<void, _Combinator, _Monad>
+    : internal::is_monad_combinator_helper<void, Combinator, Monad>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     // is_monadic_function_v
     //   value: convenience alias for is_monadic_function<...>::value.
-    template<typename _Function,
-             typename _Monad>
+    template<typename Function,
+             typename Monad>
     constexpr bool is_monadic_function_v =
-        is_monadic_function<_Function, _Monad>::value;
+        is_monadic_function<Function, Monad>::value;
 
     // is_bindable_v
     //   value: convenience alias for is_bindable<...>::value.
-    template<typename _Monad,
-             typename _Function>
-    constexpr bool is_bindable_v = is_bindable<_Monad, _Function>::value;
+    template<typename Monad,
+             typename Function>
+    constexpr bool is_bindable_v = is_bindable<Monad, Function>::value;
 
     // is_mappable_v
     //   value: convenience alias for is_mappable<...>::value.
-    template<typename _Monad,
-             typename _Function>
-    constexpr bool is_mappable_v = is_mappable<_Monad, _Function>::value;
+    template<typename Monad,
+             typename Function>
+    constexpr bool is_mappable_v = is_mappable<Monad, Function>::value;
 
     // is_monad_combinator_v
     //   value: convenience alias for is_monad_combinator<...>::value.
-    template<typename _Combinator,
-             typename _Monad>
+    template<typename Combinator,
+             typename Monad>
     constexpr bool is_monad_combinator_v =
-        is_monad_combinator<_Combinator, _Monad>::value;
+        is_monad_combinator<Combinator, Monad>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // monad
-    //   concept: satisfied when _Type is a specialized monad.
-    template<typename _Type>
-    concept monad = is_monad<_Type>::value;
+    //   concept: satisfied when Type is a specialized monad.
+    template<typename Type>
+    concept monad = is_monad<Type>::value;
 
     // monadic_function_for
-    //   concept: satisfied when _Function is a Kleisli arrow for the
-    // monad _Monad (callable on its value type, returning a monad).
-    template<typename _Function,
-             typename _Monad>
+    //   concept: satisfied when Function is a Kleisli arrow for the
+    // monad Monad (callable on its value type, returning a monad).
+    template<typename Function,
+             typename Monad>
     concept monadic_function_for =
-        is_monadic_function<_Function, _Monad>::value;
+        is_monadic_function<Function, Monad>::value;
 
     // bindable_with
-    //   concept: satisfied when monad_bind(_Monad, _Function) is
+    //   concept: satisfied when monad_bind(Monad, Function) is
     // well-formed.
-    template<typename _Monad,
-             typename _Function>
-    concept bindable_with = is_bindable<_Monad, _Function>::value;
+    template<typename Monad,
+             typename Function>
+    concept bindable_with = is_bindable<Monad, Function>::value;
 
     // mappable_with
-    //   concept: satisfied when monad_map(_Monad, _Function) is
+    //   concept: satisfied when monad_map(Monad, Function) is
     // well-formed.
-    template<typename _Monad,
-             typename _Function>
-    concept mappable_with = is_mappable<_Monad, _Function>::value;
+    template<typename Monad,
+             typename Function>
+    concept mappable_with = is_mappable<Monad, Function>::value;
 
     // monad_combinator_for
-    //   concept: satisfied when _Combinator can be applied to _Monad
+    //   concept: satisfied when Combinator can be applied to Monad
     // (the operator| pipeline RHS shape).
-    template<typename _Combinator,
-             typename _Monad>
+    template<typename Combinator,
+             typename Monad>
     concept monad_combinator_for =
-        is_monad_combinator<_Combinator, _Monad>::value;
+        is_monad_combinator<Combinator, Monad>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -429,21 +446,21 @@ struct is_monad_combinator
 
 // monad_unit
 //   function: lifts a plain value into a monadic context. The
-// monad type _Monad must be supplied explicitly because there is
+// monad type Monad must be supplied explicitly because there is
 // no way to deduce M<T> from T alone.
 //
 //   Example: monad_unit<maybe<int>>(5) -> just(5)
-template<typename _Monad,
-         typename _Value>
+template<typename Monad,
+         typename Value>
 D_NODISCARD
 D_CONSTEXPR
 auto monad_unit
 (
-    _Value&& _value
+    Value&& _value
 )
--> decltype(monad_traits<_Monad>::unit(std::forward<_Value>(_value)))
+-> decltype(monad_traits<Monad>::unit(std::forward<Value>(_value)))
 {
-    return monad_traits<_Monad>::unit(std::forward<_Value>(_value));
+    return monad_traits<Monad>::unit(std::forward<Value>(_value));
 }
 
 
@@ -453,20 +470,20 @@ auto monad_unit
 //   bind(m, f) = if m is empty/failed, return that; else return f(m.value()).
 //
 //   The specific behavior is delegated to monad_traits<M>::bind.
-template<typename _Monad,
-         typename _Function>
-D_NODISCARD D_CONSTEXPR auto 
+template<typename Monad,
+         typename Function>
+D_NODISCARD D_CONSTEXPR auto
 monad_bind(
-    _Monad&&    _monad,
-    _Function&& _function
+    Monad&&    _monad,
+    Function&& _function
 )
--> decltype(monad_traits<typename std::decay<_Monad>::type>::bind(
-       std::forward<_Monad>(_monad),
-       std::forward<_Function>(_function)))
+-> decltype(monad_traits<typename std::decay<Monad>::type>::bind(
+       std::forward<Monad>(_monad),
+       std::forward<Function>(_function)))
 {
-    return monad_traits<typename std::decay<_Monad>::type>::bind(
-        std::forward<_Monad>(_monad),
-        std::forward<_Function>(_function));
+    return monad_traits<typename std::decay<Monad>::type>::bind(
+        std::forward<Monad>(_monad),
+        std::forward<Function>(_function));
 }
 
 
@@ -475,30 +492,30 @@ monad_bind(
 // value inside the monad, yielding a monad of U with the same
 // shape (just/nothing or ok/err). Implemented in terms of bind
 // and unit so concrete monads need only provide those two.
-template<typename _Monad,
-         typename _Function>
+template<typename Monad,
+         typename Function>
 D_NODISCARD
 D_CONSTEXPR
 auto monad_map
 (
-    _Monad&&    _monad,
-    _Function&& _function
+    Monad&&    _monad,
+    Function&& _function
 )
--> typename monad_traits<typename std::decay<_Monad>::type>::template rebind<
+-> typename monad_traits<typename std::decay<Monad>::type>::template rebind<
        typename std::decay<decltype(
-           std::declval<_Function&>()(
+           std::declval<Function&>()(
                std::declval<const typename monad_traits<
-                   typename std::decay<_Monad>::type>::value_type&>()))>::type>
+                   typename std::decay<Monad>::type>::value_type&>()))>::type>
 {
-    using monad_t      = typename std::decay<_Monad>::type;
+    using monad_t      = typename std::decay<Monad>::type;
     using traits       = monad_traits<monad_t>;
     using inner_t      = typename traits::value_type;
     using mapped_t     = typename std::decay<decltype(
-        std::declval<_Function&>()(std::declval<const inner_t&>()))>::type;
+        std::declval<Function&>()(std::declval<const inner_t&>()))>::type;
     using rebound_t    = typename traits::template rebind<mapped_t>;
 
     return monad_bind(
-        std::forward<_Monad>(_monad),
+        std::forward<Monad>(_monad),
         [_function](const inner_t& _v) {
             return monad_traits<rebound_t>::unit(_function(_v));
         });
@@ -514,21 +531,21 @@ auto monad_map
 // passed a value_type *value* as bind's function argument inside the
 // trailing return type, which is ill-formed for any monad whose bind
 // requires a callable; the body's identity lambda was always correct.)
-template<typename _OuterMonad>
+template<typename OuterMonad>
 D_NODISCARD
 D_CONSTEXPR
 auto monad_join
 (
-    _OuterMonad&& _monad
+    OuterMonad&& _monad
 )
 -> typename monad_traits<
-       typename std::decay<_OuterMonad>::type>::value_type
+       typename std::decay<OuterMonad>::type>::value_type
 {
     using inner_monad_t = typename monad_traits<
-        typename std::decay<_OuterMonad>::type>::value_type;
+        typename std::decay<OuterMonad>::type>::value_type;
 
     return monad_bind(
-        std::forward<_OuterMonad>(_monad),
+        std::forward<OuterMonad>(_monad),
         [](const inner_monad_t& _inner) { return _inner; });
 }
 
@@ -540,28 +557,28 @@ auto monad_join
 // successful intermediate values.
 //
 //   The return type is the decayed second monad type.  (The previous
-// spelling passed a _Monad2 *value* as bind's function argument inside
+// spelling passed a Monad2 *value* as bind's function argument inside
 // the trailing return type, which is ill-formed for any monad whose
 // bind requires a callable; the body's capture lambda was correct.)
-template<typename _Monad1,
-         typename _Monad2>
+template<typename Monad1,
+         typename Monad2>
 D_NODISCARD
-D_CONSTEXPR
+D_CONSTEXPR_CPP14
 auto monad_then
 (
-    _Monad1&& _first,
-    _Monad2&& _second
+    Monad1&& _first,
+    Monad2&& _second
 )
--> typename std::decay<_Monad2>::type
+-> typename std::decay<Monad2>::type
 {
     using inner_t = typename monad_traits<
-        typename std::decay<_Monad1>::type>::value_type;
-    using second_t = typename std::decay<_Monad2>::type;
+        typename std::decay<Monad1>::type>::value_type;
+    using second_t = typename std::decay<Monad2>::type;
 
     second_t second_copy = _second;
 
     return monad_bind(
-        std::forward<_Monad1>(_first),
+        std::forward<Monad1>(_first),
         [second_copy](const inner_t&) { return second_copy; });
 }
 
@@ -572,37 +589,37 @@ NS_INTERNAL
     //   helper: stores two monadic functions and threads a value
     // through both via monad_bind. Used by kleisli_compose to
     // avoid the C++14 generic-lambda formulation.
-    template<typename _F,
-             typename _G>
+    template<typename F,
+             typename G>
     class kleisli_helper
     {
     public:
-        template<typename _FFwd,
-                 typename _GFwd>
+        template<typename FFwd,
+                 typename GFwd>
         D_CONSTEXPR
         kleisli_helper(
-            _FFwd&& _f,
-            _GFwd&& _g
+            FFwd&& _f,
+            GFwd&& _g
         )
-            : m_f(std::forward<_FFwd>(_f))
-            , m_g(std::forward<_GFwd>(_g))
+            : m_f(std::forward<FFwd>(_f))
+            , m_g(std::forward<GFwd>(_g))
         {}
 
-        template<typename _Input>
+        template<typename Input>
         D_CONSTEXPR
         auto operator()(
-            _Input&& _input
+            Input&& _input
         ) const
         -> decltype(monad_bind(
-               std::declval<const _F&>()(std::forward<_Input>(_input)),
-               std::declval<const _G&>()))
+               std::declval<const F&>()(std::forward<Input>(_input)),
+               std::declval<const G&>()))
         {
-            return monad_bind(m_f(std::forward<_Input>(_input)), m_g);
+            return monad_bind(m_f(std::forward<Input>(_input)), m_g);
         }
 
     private:
-        _F m_f;
-        _G m_g;
+        F m_f;
+        G m_g;
     };
 
 NS_END  // internal
@@ -615,23 +632,23 @@ NS_END  // internal
 //
 //   Returns a callable object that, on each application, binds
 // the result of f into g. Both functions are captured by value.
-template<typename _F,
-         typename _G>
+template<typename F,
+         typename G>
 D_NODISCARD
 D_CONSTEXPR
-internal::kleisli_helper<typename std::decay<_F>::type,
-                         typename std::decay<_G>::type>
+internal::kleisli_helper<typename std::decay<F>::type,
+                         typename std::decay<G>::type>
 kleisli_compose
 (
-    _F&& _f,
-    _G&& _g
+    F&& _f,
+    G&& _g
 )
 {
     return internal::kleisli_helper<
-        typename std::decay<_F>::type,
-        typename std::decay<_G>::type>(
-            std::forward<_F>(_f),
-            std::forward<_G>(_g));
+        typename std::decay<F>::type,
+        typename std::decay<G>::type>(
+            std::forward<F>(_f),
+            std::forward<G>(_g));
 }
 
 
@@ -648,42 +665,42 @@ kleisli_compose
 //
 //   The return type is M<C> = rebind<C> of the first monad, where C
 // is the result of f(A, B).  (The previous spelling passed the binary
-// _Function as bind's unary function argument inside the trailing
+// Function as bind's unary function argument inside the trailing
 // return type, which is ill-formed: bind expects a unary A -> M<U>.)
-template<typename _MonadA,
-         typename _MonadB,
-         typename _Function>
+template<typename MonadA,
+         typename MonadB,
+         typename Function>
 D_NODISCARD
-D_CONSTEXPR
+D_CONSTEXPR_CPP14
 auto lift_m2
 (
-    _MonadA&&   _ma,
-    _MonadB&&   _mb,
-    _Function&& _function
+    MonadA&&   _ma,
+    MonadB&&   _mb,
+    Function&& _function
 )
--> typename monad_traits<typename std::decay<_MonadA>::type>::template rebind<
+-> typename monad_traits<typename std::decay<MonadA>::type>::template rebind<
        typename std::decay<decltype(
-           std::declval<_Function&>()(
+           std::declval<Function&>()(
                std::declval<const typename monad_traits<
-                   typename std::decay<_MonadA>::type>::value_type&>(),
+                   typename std::decay<MonadA>::type>::value_type&>(),
                std::declval<const typename monad_traits<
-                   typename std::decay<_MonadB>::type>::value_type&>()))>::type>
+                   typename std::decay<MonadB>::type>::value_type&>()))>::type>
 {
-    using ma_t    = typename std::decay<_MonadA>::type;
-    using mb_t    = typename std::decay<_MonadB>::type;
+    using ma_t    = typename std::decay<MonadA>::type;
+    using mb_t    = typename std::decay<MonadB>::type;
     using a_t     = typename monad_traits<ma_t>::value_type;
     using b_t     = typename monad_traits<mb_t>::value_type;
     using c_t     = typename std::decay<decltype(
-        std::declval<_Function&>()(
+        std::declval<Function&>()(
             std::declval<const a_t&>(),
             std::declval<const b_t&>()))>::type;
     using rebound = typename monad_traits<ma_t>::template rebind<c_t>;
 
     mb_t      mb_copy = _mb;
-    _Function fn_copy = _function;
+    Function fn_copy = _function;
 
     return monad_bind(
-        std::forward<_MonadA>(_ma),
+        std::forward<MonadA>(_ma),
         [mb_copy, fn_copy](const a_t& _a) {
             return monad_bind(
                 mb_copy,
@@ -702,38 +719,38 @@ NS_INTERNAL
 
     // bind_combinator
     //   helper: stores a monadic function for later application
-    // via operator|. The function type _Function is captured by
+    // via operator|. The function type Function is captured by
     // value; copy semantics depend on the function's own.
-    template<typename _Function>
+    template<typename Function>
     class bind_combinator
     {
     public:
-        template<typename _FnFwd>
+        template<typename FnFwd>
         D_CONSTEXPR
         explicit bind_combinator(
-            _FnFwd&& _function
+            FnFwd&& _function
         )
-            : m_function(std::forward<_FnFwd>(_function))
+            : m_function(std::forward<FnFwd>(_function))
         {}
 
         // apply
         //   forwards the monadic value to monad_bind with the
         // stored function.
-        template<typename _Monad>
+        template<typename Monad>
         D_CONSTEXPR
         auto apply(
-            _Monad&& _monad
+            Monad&& _monad
         ) const
         -> decltype(monad_bind(
-               std::forward<_Monad>(_monad),
-               std::declval<const _Function&>()))
+               std::forward<Monad>(_monad),
+               std::declval<const Function&>()))
         {
             return monad_bind(
-                std::forward<_Monad>(_monad), m_function);
+                std::forward<Monad>(_monad), m_function);
         }
 
     private:
-        _Function m_function;
+        Function m_function;
     };
 
 
@@ -741,120 +758,120 @@ NS_INTERNAL
     //   helper: as bind_combinator, but invokes monad_map. Used
     // when the function does not produce a monad and only the
     // inner value needs transformation.
-    template<typename _Function>
+    template<typename Function>
     class map_combinator
     {
     public:
-        template<typename _FnFwd>
+        template<typename FnFwd>
         D_CONSTEXPR
         explicit map_combinator(
-            _FnFwd&& _function
+            FnFwd&& _function
         )
-            : m_function(std::forward<_FnFwd>(_function))
+            : m_function(std::forward<FnFwd>(_function))
         {}
 
-        template<typename _Monad>
+        template<typename Monad>
         D_CONSTEXPR
         auto apply(
-            _Monad&& _monad
+            Monad&& _monad
         ) const
         -> decltype(monad_map(
-               std::forward<_Monad>(_monad),
-               std::declval<const _Function&>()))
+               std::forward<Monad>(_monad),
+               std::declval<const Function&>()))
         {
             return monad_map(
-                std::forward<_Monad>(_monad), m_function);
+                std::forward<Monad>(_monad), m_function);
         }
 
     private:
-        _Function m_function;
+        Function m_function;
     };
 
 
     // then_combinator
     //   helper: stores a second monad to be sequenced after the
     // LHS via monad_then.
-    template<typename _Monad>
+    template<typename Monad>
     class then_combinator
     {
     public:
-        template<typename _MFwd>
+        template<typename MFwd>
         D_CONSTEXPR
         explicit then_combinator(
-            _MFwd&& _monad
+            MFwd&& _monad
         )
-            : m_monad(std::forward<_MFwd>(_monad))
+            : m_monad(std::forward<MFwd>(_monad))
         {}
 
-        template<typename _OtherMonad>
+        template<typename OtherMonad>
         D_CONSTEXPR
         auto apply(
-            _OtherMonad&& _other
+            OtherMonad&& _other
         ) const
         -> decltype(monad_then(
-               std::forward<_OtherMonad>(_other),
-               std::declval<const _Monad&>()))
+               std::forward<OtherMonad>(_other),
+               std::declval<const Monad&>()))
         {
-            return monad_then(std::forward<_OtherMonad>(_other), m_monad);
+            return monad_then(std::forward<OtherMonad>(_other), m_monad);
         }
 
     private:
-        _Monad m_monad;
+        Monad m_monad;
     };
 
     // is_bindable_helper (well-formed specialization)
     //   helper: true when monad_bind(M, F) is a valid expression.
-    template<typename _Monad,
-             typename _Function>
+    template<typename Monad,
+             typename Function>
     struct is_bindable_helper<
         void_t<decltype(::djinterp::monad_bind(
-            std::declval<_Monad>(), std::declval<_Function>()))>,
-        _Monad,
-        _Function> : std::true_type
+            std::declval<Monad>(), std::declval<Function>()))>,
+        Monad,
+        Function> : std::true_type
     {};
 
     // is_mappable_helper (well-formed specialization)
     //   helper: true when monad_map(M, F) is a valid expression.
-    template<typename _Monad,
-             typename _Function>
+    template<typename Monad,
+             typename Function>
     struct is_mappable_helper<
         void_t<decltype(::djinterp::monad_map(
-            std::declval<_Monad>(), std::declval<_Function>()))>,
-        _Monad,
-        _Function> : std::true_type
+            std::declval<Monad>(), std::declval<Function>()))>,
+        Monad,
+        Function> : std::true_type
     {};
 
     // is_monad_combinator_helper (well-formed specialization)
-    //   helper: true when _Combinator.apply(_Monad) is a valid
+    //   helper: true when Combinator.apply(Monad) is a valid
     // expression (the pipeline combinator shape).
-    template<typename _Combinator,
-             typename _Monad>
+    template<typename Combinator,
+             typename Monad>
     struct is_monad_combinator_helper<
-        void_t<decltype(std::declval<const _Combinator&>().apply(
-            std::declval<_Monad>()))>,
-        _Combinator,
-        _Monad> : std::true_type
+        void_t<decltype(std::declval<const Combinator&>().apply(
+            std::declval<Monad>()))>,
+        Combinator,
+        Monad> : std::true_type
     {};
 
     // is_monadic_function_helper (well-formed specialization)
-    //   helper: matches when _Function is callable on _Monad's value
+    //   helper: matches when Function is callable on Monad's value
     // type AND that (decayed) result is itself a monad.  Both
     // conditions live inside the void_t, so failure of either falls
     // back to the false primary.
-    template<typename _Function,
-             typename _Monad>
+    template<typename Function,
+             typename Monad>
     struct is_monadic_function_helper<
         typename std::enable_if<
             ::djinterp::is_monad<
                 typename std::decay<
-                    typename call_result_helper<
+                    typename monad_call_result_helper<
                         void,
-                        _Function,
+                        Function,
                         typename monad_value_type_helper<
-                            void, _Monad>::type>::type>::type>::value
+                            void, Monad>::type>::type>::type>::value
         >::type,
-        _Function,
-        _Monad> : std::true_type
+        Function,
+        Monad> : std::true_type
     {};
 
 NS_END  // internal
@@ -865,18 +882,18 @@ NS_END  // internal
 // monad, threads the monad's value through _function (which
 // must return a monad of the same kind).
 //   Usage:  m | bind_with([](int x) { return just(x + 1); })
-template<typename _Function>
+template<typename Function>
 D_NODISCARD
 D_CONSTEXPR
-internal::bind_combinator<typename std::decay<_Function>::type>
+internal::bind_combinator<typename std::decay<Function>::type>
 bind_with
 (
-    _Function&& _function
+    Function&& _function
 )
 {
     return internal::bind_combinator<
-        typename std::decay<_Function>::type>(
-            std::forward<_Function>(_function));
+        typename std::decay<Function>::type>(
+            std::forward<Function>(_function));
 }
 
 
@@ -884,15 +901,15 @@ bind_with
 //   function: builds a combinator that, when piped against a
 // monad, applies _function to the inner value via monad_map.
 //   Usage:  m | map_with([](int x) { return x * 2; })
-template<typename _Function>
-D_NODISCARD D_CONSTEXPR internal::map_combinator<typename std::decay<_Function>::type>
+template<typename Function>
+D_NODISCARD D_CONSTEXPR internal::map_combinator<typename std::decay<Function>::type>
 map_with(
-    _Function&& _function
+    Function&& _function
 )
 {
     return internal::map_combinator<
-        typename std::decay<_Function>::type>(
-            std::forward<_Function>(_function));
+        typename std::decay<Function>::type>(
+            std::forward<Function>(_function));
 }
 
 
@@ -900,15 +917,15 @@ map_with(
 //   function: builds a combinator that sequences the LHS monad
 // with _other (discarding the LHS value).
 //   Usage:  m1 | then_with(m2)
-template<typename _Monad>
-D_NODISCARD D_CONSTEXPR internal::then_combinator<typename std::decay<_Monad>::type>
+template<typename Monad>
+D_NODISCARD D_CONSTEXPR internal::then_combinator<typename std::decay<Monad>::type>
 then_with(
-    _Monad&& _other
+    Monad&& _other
 )
 {
     return internal::then_combinator<
-        typename std::decay<_Monad>::type>(
-            std::forward<_Monad>(_other));
+        typename std::decay<Monad>::type>(
+            std::forward<Monad>(_other));
 }
 
 
@@ -922,24 +939,26 @@ then_with(
 // method accepting a monad of that kind. This guards against
 // accidentally firing on unrelated types that may already
 // overload operator|.
-template<typename _Monad,
-         typename _Combinator,
-         typename std::enable_if<is_monad<_Monad>::value,
+template<typename Monad,
+         typename Combinator,
+         typename std::enable_if<is_monad<Monad>::value,
                                  int>::type = 0,
-         typename = decltype(std::declval<const _Combinator&>().apply(
-                             std::declval<_Monad>()))>
+         typename = decltype(std::declval<const Combinator&>().apply(
+                             std::declval<Monad>()))>
 D_CONSTEXPR auto
 operator|(
-    _Monad&&      _monad,
-    _Combinator&& _combinator
+    Monad&&      _monad,
+    Combinator&& _combinator
 )
--> decltype(_combinator.apply(std::forward<_Monad>(_monad)))
+-> decltype(_combinator.apply(std::forward<Monad>(_monad)))
 {
-    return _combinator.apply(std::forward<_Monad>(_monad));
+    return _combinator.apply(std::forward<Monad>(_monad));
 }
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_MONAD_
+
+#endif  // DJINTERP_FUNCTIONAL_MONAD_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [option]                                             option_set.hpp
+/*******************************************************************************
+* djinterp [core]                                                 option_set.hpp
 *
 *   The option_set<> core type plus the structural machinery needed to
 * CONSTRUCT one safely.
@@ -42,23 +42,42 @@
 *
 * path:      /inc/djinterp/core/option/option_set.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.25
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    expand_option              (structural per-entry expansion)
+      -----------------------------------------------------------
+
 II.   flatten helpers            (tuple_cat at the type level)
+      --------------------------------------------------------
+
 III.  set checks                 (all-options + uniformity + uniqueness)
+      ------------------------------------------------------------------
+
 IV.   option_set                 (type-level pack form)
+      -------------------------------------------------
+
 V.    field marker + values      (field<>, value-carrying option_set)
+      ---------------------------------------------------------------
+
 VI.   queries                    (is_option_set, key_type, contains, find)
+      --------------------------------------------------------------------
+
 VII.  concepts                   (C++20 analogs)
+      ------------------------------------------
 */
 
-#ifndef DJINTERP_OPTION_SET_
-#define DJINTERP_OPTION_SET_ 1
+#ifndef DJINTERP_OPTION_OPTION_SET_HPP
+#define DJINTERP_OPTION_OPTION_SET_HPP 1
+
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -66,7 +85,8 @@ VII.  concepts                   (C++20 analogs)
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // clean_t
 #include "../util/lookup/lookup.hpp"    // contains_key, find_by_key
 #include "./option.hpp"                 // option<>, is_option_v
 
@@ -96,21 +116,21 @@ NS_DJINTERP
 //   {
 //       using expanded_t = std::tuple<>;
 //   };
-template<typename _Entry,
+template<typename Entry,
          typename = void>
 struct expand_option
 {
-    using type = std::tuple<_Entry>;
+    using type = std::tuple<Entry>;
 };
 
-template<typename _Entry>
-struct expand_option<_Entry, std::void_t<typename _Entry::expanded_t>>
+template<typename Entry>
+struct expand_option<Entry, std::void_t<typename Entry::expanded_t>>
 {
-    using type = typename _Entry::expanded_t;
+    using type = typename Entry::expanded_t;
 };
 
-template<typename _Entry>
-using expand_option_t = typename expand_option<_Entry>::type;
+template<typename Entry>
+using expand_option_t = typename expand_option<Entry>::type;
 
 
 // ===========================================================================
@@ -119,8 +139,8 @@ using expand_option_t = typename expand_option<_Entry>::type;
 
 // flatten_tuples_t
 //   trait: tuple_cat-style flattening at the type level.
-template<typename... _Tuples>
-using flatten_tuples_t = decltype(std::tuple_cat(std::declval<_Tuples>()...));
+template<typename... Tuples>
+using flatten_tuples_t = decltype(std::tuple_cat(std::declval<Tuples>()...));
 
 
 // ===========================================================================
@@ -137,12 +157,12 @@ NS_INTERNAL
     struct are_all_options : std::true_type
     {};
 
-    template<typename    _First,
-             typename... _Rest>
-    struct are_all_options<_First, _Rest...>
+    template<typename    First,
+             typename... Rest>
+    struct are_all_options<First, Rest...>
         : std::integral_constant<bool,
-            ( is_option_v<_First> &&
-              are_all_options<_Rest...>::value )>
+            ( is_option_v<First> &&
+              are_all_options<Rest...>::value )>
     {};
 
     // all_same_type
@@ -151,17 +171,17 @@ NS_INTERNAL
     struct all_same_type : std::true_type
     {};
 
-    template<typename _First>
-    struct all_same_type<_First> : std::true_type
+    template<typename First>
+    struct all_same_type<First> : std::true_type
     {};
 
-    template<typename    _First,
-             typename    _Second,
-             typename... _Rest>
-    struct all_same_type<_First, _Second, _Rest...>
+    template<typename    First,
+             typename    Second,
+             typename... Rest>
+    struct all_same_type<First, Second, Rest...>
         : std::integral_constant<bool,
-            ( std::is_same<_First, _Second>::value &&
-              all_same_type<_Second, _Rest...>::value )>
+            ( std::is_same<First, Second>::value &&
+              all_same_type<Second, Rest...>::value )>
     {};
 
     // run_set_checks
@@ -170,7 +190,7 @@ NS_INTERNAL
     // uniformity + uniqueness static_asserts.  Exposes
     // ::value so callers can force instantiation by depending
     // on it.
-    template<typename _Tuple>
+    template<typename Tuple>
     struct run_set_checks;
 
     // empty flat tuple (e.g. an option_set of passthroughs only)
@@ -180,11 +200,11 @@ NS_INTERNAL
         static D_CONSTEXPR bool value = true;
     };
 
-    template<typename    _First,
-             typename... _Rest>
-    struct run_set_checks<std::tuple<_First, _Rest...>>
+    template<typename    First,
+             typename... Rest>
+    struct run_set_checks<std::tuple<First, Rest...>>
     {
-        static_assert(are_all_options<_First, _Rest...>::value,
+        static_assert(are_all_options<First, Rest...>::value,
             "option_set: every entry (after expansion through "
             "::expanded_t) must be an option<...> instantiation "
             "per is_option_v.  The previous structural "
@@ -194,14 +214,14 @@ NS_INTERNAL
             "std::tuple of option<>s (or an empty tuple for "
             "passthrough markers).");
 
-        static_assert(all_same_type<typename _First::key_type,
-                                    typename _Rest::key_type...>::value,
+        static_assert(all_same_type<typename First::key_type,
+                                    typename Rest::key_type...>::value,
             "option_set: all options (after expansion) must "
             "share the same key_type.  Use a single enum / "
             "class / scope for every key in the set.");
 
-        static_assert(value_pack_unique<_First::key,
-                                        _Rest::key...>::value,
+        static_assert(value_pack_unique<First::key,
+                                        Rest::key...>::value,
             "option_set: all keys (after expansion) must be "
             "unique.  Multi-expanding entries (those exposing "
             "::expanded_t) emit ALL of their inner keys - any "
@@ -220,7 +240,7 @@ NS_END  // internal
 
 NS_INTERNAL
 
-template<typename... _Entries>
+template<typename... Entries>
 struct option_set_pack
 {
 private:
@@ -228,7 +248,7 @@ private:
     //    convention.
     // 2. flatten the per-entry tuples into one normalized
     //    tuple.
-    using flat_tuple = flatten_tuples_t<expand_option_t<_Entries>...>;
+    using flat_tuple = flatten_tuples_t<expand_option_t<Entries>...>;
 
     // 3. force the checks to fire by depending on ::value.
     //    Accessing the member instantiates run_set_checks,
@@ -253,8 +273,8 @@ public:
 
     // option_at
     //   type: positional access into the flat list.
-    template<std::size_t _I>
-    using option_at = std::tuple_element_t<_I, flat_tuple>;
+    template<std::size_t I>
+    using option_at = std::tuple_element_t<I, flat_tuple>;
 };
 
 NS_END  // internal
@@ -281,10 +301,10 @@ NS_END  // internal
 //   marker: as an option's first arg, field<T> declares "this key's slot stores
 // a runtime T".  Sibling of carrier.hpp's val_t<V> (a compile-time value);
 // field<T> carries a runtime value's TYPE.
-template<typename _Type>
+template<typename Type>
 struct field
 {
-    using type = _Type;
+    using type = Type;
 };
 
 // unit
@@ -296,11 +316,11 @@ struct unit
 };
 
 // unary_option
-//   type: a presence-only flag - sugar for option<_Key, field<unit> >.  Keeps
+//   type: a presence-only flag - sugar for option<Key, field<unit> >.  Keeps
 // the option<->slot 1:1 mapping (an empty unit slot); query it with
-// contains<_Key>().
-template<auto _Key>
-using unary_option = option<_Key, field<unit> >;
+// contains<Key>().
+template<auto Key>
+using unary_option = option<Key, field<unit> >;
 
 
 NS_INTERNAL
@@ -310,46 +330,46 @@ NS_INTERNAL
     // as field<T> (-> T); unit otherwise (a val_t<> schema option, a unary
     // option<K>, or any non-field arg).  THE defaults / value seam: re-point at
     // extract_default_t (option_set_compare.hpp) to source explicit defaults.
-    template<typename _Opt,
+    template<typename Opt,
              typename = void>
     struct option_field
     {
         using type = unit;
     };
 
-    template<auto        _Key,
-             typename    _Type,
-             typename... _Rest>
-    struct option_field<option<_Key, field<_Type>, _Rest...>, void>
+    template<auto        Key,
+             typename    Type,
+             typename... Rest>
+    struct option_field<option<Key, field<Type>, Rest...>, void>
     {
-        using type = _Type;
+        using type = Type;
     };
 
     // store_values
     //   trait: tuple<option...> -> tuple<option_field<option>::type...> over the
     // normalized (post-expansion) flat option list.  All-unit for a pure schema.
-    template<typename _Flat>
+    template<typename Flat>
     struct store_values;
 
-    template<typename... _Opts>
-    struct store_values<std::tuple<_Opts...> >
+    template<typename... Opts>
+    struct store_values<std::tuple<Opts...> >
     {
-        using type = std::tuple<typename option_field<_Opts>::type...>;
+        using type = std::tuple<typename option_field<Opts>::type...>;
     };
 
     // os_slot
     //   trait: key -> slot index over a flat option tuple, via find_by_key (the
     // same primitive option_set_find uses) - not a re-rolled scan.
-    template<auto     _Key,
-             typename _Flat>
+    template<auto     Key,
+             typename Flat>
     struct os_slot;
 
-    template<auto        _Key,
-             typename... _Opts>
-    struct os_slot<_Key, std::tuple<_Opts...> >
+    template<auto        Key,
+             typename... Opts>
+    struct os_slot<Key, std::tuple<Opts...> >
     {
-        static D_CONSTEXPR bool        found = find_by_key<_Key, _Opts...>::found;
-        static D_CONSTEXPR std::size_t index = find_by_key<_Key, _Opts...>::index;
+        static D_CONSTEXPR bool        found = find_by_key<Key, Opts...>::found;
+        static D_CONSTEXPR std::size_t index = find_by_key<Key, Opts...>::index;
     };
 
 NS_END  // internal
@@ -358,8 +378,8 @@ NS_END  // internal
 // option_field_t
 //   type: the runtime field type bound to an option (its value's type); unit
 // when the option carries no runtime value.
-template<typename _Opt>
-using option_field_t = typename internal::option_field<_Opt>::type;
+template<typename Opt>
+using option_field_t = typename internal::option_field<Opt>::type;
 
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
@@ -372,19 +392,19 @@ using option_field_t = typename internal::option_field<_Opt>::type;
 // is inferred per option from its key (option<Key,...>::key_type ==
 // decltype(Key)); the head option's key_type is available via
 // option_set_key_type (Section VI).
-template<typename... _Entries>
+template<typename... Entries>
 struct option_set
-    : internal::option_set_pack<_Entries...>
+    : internal::option_set_pack<Entries...>
 {
 private:
-    using base = internal::option_set_pack<_Entries...>;
+    using base = internal::option_set_pack<Entries...>;
 
     // slot_of: key -> slot index, via find_by_key.  Clamped to 0 when absent so
     // the friendly static_assert in get/set is the first diagnostic.
-    template<auto _Key>
+    template<auto Key>
     static D_CONSTEXPR std::size_t slot_of =
-        ( internal::os_slot<_Key, typename base::flat_options_t>::found
-              ? internal::os_slot<_Key, typename base::flat_options_t>::index
+        ( internal::os_slot<Key, typename base::flat_options_t>::found
+              ? internal::os_slot<Key, typename base::flat_options_t>::index
               : std::size_t(0) );
 
 public:
@@ -404,72 +424,72 @@ public:
     // entries ARE the flat options (no multi-expanders), as generated instances
     // are.
     D_CONSTEXPR explicit option_set(
-        option_field_t<_Entries>... _values
+        option_field_t<Entries>... _values
     )
-        requires (sizeof...(_Entries) > 0)
-        : m_values{ static_cast<option_field_t<_Entries>&&>(_values)... }
+        requires (sizeof...(Entries) > 0)
+        : m_values{ static_cast<option_field_t<Entries>&&>(_values)... }
     {}
 
     // contains
-    //   function: whether _Key is one of the set's keys (compile time).
-    template<auto _Key>
+    //   function: whether Key is one of the set's keys (compile time).
+    template<auto Key>
     static D_CONSTEXPR bool
     contains()
     D_NOEXCEPT
     {
-        return internal::os_slot<_Key, typename base::flat_options_t>::found;
+        return internal::os_slot<Key, typename base::flat_options_t>::found;
     }
 
     // get
-    //   function: a reference to the field bound to _Key, at its exact declared
+    //   function: a reference to the field bound to Key, at its exact declared
     // type.  Rejected for a unit slot (a unary or compile-time-only option).
-    template<auto _Key>
+    template<auto Key>
     D_NODISCARD D_CONSTEXPR auto&
     get()
     {
-        static_assert(contains<_Key>(),
-            "option_set::get: _Key is not one of this set's keys.");
+        static_assert(contains<Key>(),
+            "option_set::get: Key is not one of this set's keys.");
         static_assert(
-            !std::is_same<std::tuple_element_t<slot_of<_Key>, values_type>,
+            !std::is_same<std::tuple_element_t<slot_of<Key>, values_type>,
                           unit>::value,
-            "option_set::get: _Key carries no runtime value (a unary flag or a "
-            "compile-time val_t<> option); query it with contains<_Key>().");
+            "option_set::get: Key carries no runtime value (a unary flag or a "
+            "compile-time val_t<> option); query it with contains<Key>().");
 
-        return std::get<slot_of<_Key> >(m_values);
+        return std::get<slot_of<Key> >(m_values);
     }
 
-    template<auto _Key>
+    template<auto Key>
     D_NODISCARD D_CONSTEXPR const auto&
     get() const
     {
-        static_assert(contains<_Key>(),
-            "option_set::get: _Key is not one of this set's keys.");
+        static_assert(contains<Key>(),
+            "option_set::get: Key is not one of this set's keys.");
         static_assert(
-            !std::is_same<std::tuple_element_t<slot_of<_Key>, values_type>,
+            !std::is_same<std::tuple_element_t<slot_of<Key>, values_type>,
                           unit>::value,
-            "option_set::get: _Key carries no runtime value (a unary flag or a "
-            "compile-time val_t<> option); query it with contains<_Key>().");
+            "option_set::get: Key carries no runtime value (a unary flag or a "
+            "compile-time val_t<> option); query it with contains<Key>().");
 
-        return std::get<slot_of<_Key> >(m_values);
+        return std::get<slot_of<Key> >(m_values);
     }
 
     // set
-    //   function: assign the field bound to _Key.  Rejected for a unit slot.
-    template<auto     _Key,
-             typename _Value>
+    //   function: assign the field bound to Key.  Rejected for a unit slot.
+    template<auto     Key,
+             typename Value>
     D_CONSTEXPR void
     set(
-        const _Value& _value
+        const Value& _value
     )
     {
-        static_assert(contains<_Key>(),
-            "option_set::set: _Key is not one of this set's keys.");
+        static_assert(contains<Key>(),
+            "option_set::set: Key is not one of this set's keys.");
         static_assert(
-            !std::is_same<std::tuple_element_t<slot_of<_Key>, values_type>,
+            !std::is_same<std::tuple_element_t<slot_of<Key>, values_type>,
                           unit>::value,
-            "option_set::set: _Key carries no runtime value.");
+            "option_set::set: Key carries no runtime value.");
 
-        std::get<slot_of<_Key> >(m_values) = _value;
+        std::get<slot_of<Key> >(m_values) = _value;
 
         return;
     }
@@ -490,9 +510,9 @@ private:
 #else  // pre-C++20: type-level-only option_set (the value-carrying face needs
        // the requires-guarded constructor and is unavailable here)
 
-template<typename... _Entries>
+template<typename... Entries>
 struct option_set
-    : internal::option_set_pack<_Entries...>
+    : internal::option_set_pack<Entries...>
 {};
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
@@ -509,17 +529,17 @@ struct option_set
 // value-extraction traits remain in option_set_compare.hpp.
 
 // is_option_set
-//   trait: true iff _Type is some option_set<...> specialization.
-template<typename _Type>
+//   trait: true iff Type is some option_set<...> specialization.
+template<typename Type>
 struct is_option_set : std::false_type
 {};
 
-template<typename... _Options>
-struct is_option_set<option_set<_Options...>> : std::true_type
+template<typename... Options>
+struct is_option_set<option_set<Options...>> : std::true_type
 {};
 
-template<typename _Type>
-inline constexpr bool is_option_set_v = is_option_set<clean_t<_Type>>::value;
+template<typename Type>
+D_CONSTEXPR bool is_option_set_v = is_option_set<clean_t<Type>>::value;
 
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -528,75 +548,75 @@ inline constexpr bool is_option_set_v = is_option_set<clean_t<_Type>>::value;
 // of its normalized option tuple.  Uses a constrained partial
 // specialization (requires-clause), so it is available only where the
 // toolchain supports concepts; the rest of this section is unconstrained.
-template<typename _Set>
+template<typename Set>
 struct option_set_key_type;
 
-template<typename... _Options>
-    requires (option_set<_Options...>::size > 0)
-struct option_set_key_type<option_set<_Options...>>
+template<typename... Options>
+    requires (option_set<Options...>::size > 0)
+struct option_set_key_type<option_set<Options...>>
 {
 private:
     using head_option =
-        typename option_set<_Options...>::template option_at<0>;
+        typename option_set<Options...>::template option_at<0>;
 public:
     using type = typename head_option::key_type;
 };
 
-template<typename _Set>
-using option_set_key_type_t = typename option_set_key_type<_Set>::type;
+template<typename Set>
+using option_set_key_type_t = typename option_set_key_type<Set>::type;
 #endif  // C++20 (constrained option_set_key_type)
 
 
 // option_set_contains
-//   trait: true iff the set has an option with key _Key.  Walks the
+//   trait: true iff the set has an option with key Key.  Walks the
 // flat (post-expansion) tuple.
-template<typename _Set, auto _Key>
+template<typename Set, auto Key>
 struct option_set_contains;
 
-template<typename... _Options, auto _Key>
-struct option_set_contains<option_set<_Options...>, _Key>
+template<typename... Options, auto Key>
+struct option_set_contains<option_set<Options...>, Key>
 {
 private:
-    using flat = typename option_set<_Options...>::flat_options_t;
+    using flat = typename option_set<Options...>::flat_options_t;
 
-    template<typename _Tuple>
+    template<typename Tuple>
     struct apply;
 
-    template<typename... _Opts>
-    struct apply<std::tuple<_Opts...>>
+    template<typename... Opts>
+    struct apply<std::tuple<Opts...>>
         : std::integral_constant<bool,
-            contains_key<_Key, _Opts...>::value>
+            contains_key<Key, Opts...>::value>
     {};
 
 public:
     static constexpr bool value = apply<flat>::value;
 };
 
-template<typename _Set, auto _Key>
-inline constexpr bool option_set_contains_v =
-    option_set_contains<_Set, _Key>::value;
+template<typename Set, auto Key>
+D_CONSTEXPR bool option_set_contains_v =
+    option_set_contains<Set, Key>::value;
 
 
 // option_set_find
-//   trait: yields the option with key _Key, or lookup_not_found.
-template<typename _Set, auto _Key>
+//   trait: yields the option with key Key, or lookup_not_found.
+template<typename Set, auto Key>
 struct option_set_find;
 
-template<typename... _Options, auto _Key>
-struct option_set_find<option_set<_Options...>, _Key>
+template<typename... Options, auto Key>
+struct option_set_find<option_set<Options...>, Key>
 {
 private:
-    using flat = typename option_set<_Options...>::flat_options_t;
+    using flat = typename option_set<Options...>::flat_options_t;
 
-    template<typename _Tuple>
+    template<typename Tuple>
     struct apply;
 
-    template<typename... _Opts>
-    struct apply<std::tuple<_Opts...>>
+    template<typename... Opts>
+    struct apply<std::tuple<Opts...>>
     {
-        using type  = find_by_key_t<_Key, _Opts...>;
-        static constexpr bool        found = find_by_key<_Key, _Opts...>::found;
-        static constexpr std::size_t index = find_by_key<_Key, _Opts...>::index;
+        using type  = find_by_key_t<Key, Opts...>;
+        static constexpr bool        found = find_by_key<Key, Opts...>::found;
+        static constexpr std::size_t index = find_by_key<Key, Opts...>::index;
     };
 
 public:
@@ -606,8 +626,8 @@ public:
     static constexpr std::size_t index = apply<flat>::index;
 };
 
-template<typename _Set, auto _Key>
-using option_set_find_t = typename option_set_find<_Set, _Key>::type;
+template<typename Set, auto Key>
+using option_set_find_t = typename option_set_find<Set, Key>::type;
 
 
 // ===========================================================================
@@ -622,68 +642,68 @@ using option_set_find_t = typename option_set_find<_Set, _Key>::type;
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 // Keyed
-//   concept: satisfied iff _Type exposes the keyed shape - a nested
+//   concept: satisfied iff Type exposes the keyed shape - a nested
 // ::key_type alias and a static ::key member.  This is a standalone
 // shape check: the old loose is_keyed_v contract has been retired, and
 // option_set itself now requires the stricter is_option_v.  Keyed
 // remains useful for constraining your own helpers against the bare key
 // shape.
-template<typename _Type>
+template<typename Type>
 concept Keyed = requires
 {
-    typename _Type::key_type;
-    _Type::key;
+    typename Type::key_type;
+    Type::key;
 };
 
 // OptionSet
-//   concept: satisfied iff _Type is some option_set<...> specialization.
+//   concept: satisfied iff Type is some option_set<...> specialization.
 // Parallels is_option_set_v.
-template<typename _Type>
-concept OptionSet = is_option_set_v<_Type>;
+template<typename Type>
+concept OptionSet = is_option_set_v<Type>;
 
 // OptionSetContains
-//   concept: satisfied iff _Set is an option_set that contains the key
-// _Key.  Parameterized over the NTTP key for use in requires-clauses.
+//   concept: satisfied iff Set is an option_set that contains the key
+// Key.  Parameterized over the NTTP key for use in requires-clauses.
 // Parallels option_set_contains_v.
 //
 // Example:
-//   template<typename _Set>
-//     requires OptionSetContains<_Set, cli::verbose>
+//   template<typename Set>
+//     requires OptionSetContains<Set, cli::verbose>
 //   void enable_verbosity();
-template<typename _Set,
-         auto     _Key>
+template<typename Set,
+         auto     Key>
 concept OptionSetContains =
-    OptionSet<_Set> &&
+    OptionSet<Set> &&
     requires
     {
-        requires option_set_contains_v<_Set, _Key>;
+        requires option_set_contains_v<Set, Key>;
     };
 
 
 // OptionSetFindable
-//   concept: satisfied iff _Set is an option_set and the find trait
-// reports `found` for _Key.  Functionally identical to
+//   concept: satisfied iff Set is an option_set and the find trait
+// reports `found` for Key.  Functionally identical to
 // OptionSetContains, but speaks in find vocabulary - useful where a
 // downstream constraint wants a paired find_t<> alias to be meaningful.
-template<typename _Set, 
-         auto     _Key>
+template<typename Set,
+         auto     Key>
 concept OptionSetFindable =
-    OptionSet<_Set> &&
+    OptionSet<Set> &&
     requires
     {
-        requires option_set_find<_Set, _Key>::found;
+        requires option_set_find<Set, Key>::found;
     };
 
 
 // OptionSetNonEmpty
-//   concept: satisfied iff _Set is a non-empty option_set.  Pairs
+//   concept: satisfied iff Set is a non-empty option_set.  Pairs
 // naturally with option_set_key_type_t (which requires non-emptiness for
 // its single-key-type extraction).
-template<typename _Set>
-concept OptionSetNonEmpty = OptionSet<_Set> &&
+template<typename Set>
+concept OptionSetNonEmpty = OptionSet<Set> &&
     requires
     {
-        requires (_Set::size > 0);
+        requires (Set::size > 0);
     };
 
 #endif  // C++20 concepts available
@@ -691,5 +711,6 @@ concept OptionSetNonEmpty = OptionSet<_Set> &&
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_OPTION_SET_
+#endif  // DJINTERP_OPTION_OPTION_SET_HPP

@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [re_std]                                         is_destructible.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          is_destructible.hpp
 *
 * is_destructible trait header:
-*   Yields true_type if `_Type` can be destroyed (the expression
-* `t.~_U()` is well-formed for an lvalue `t` of type `_U`, where `_U`
-* is `_Type` with all array dimensions removed), false_type otherwise.
+*   Yields true_type if `Type` can be destroyed (the expression
+* `t.~U()` is well-formed for an lvalue `t` of type `U`, where `U`
+* is `Type` with all array dimensions removed), false_type otherwise.
 * Per [meta.unary.prop]:
 *   - void / function / unbounded-array          -> false
 *   - reference type                              -> true (vacuously)
@@ -26,25 +26,26 @@
 * `__is_destructible` is available.
 *
 *   DETECTION MACRO:
-*   D_RE_STD_HAS_IS_DESTRUCTIBLE.
+*   RE_STD_HAS_IS_DESTRUCTIBLE.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_destructible.hpp
+* path:      /inc/re_std/type_traits/is_destructible.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_DESTRUCTIBLE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_DESTRUCTIBLE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_DESTRUCTIBLE_HPP
+#define RE_STD_TYPE_TRAITS_IS_DESTRUCTIBLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+// re_std
 #include "./integral_constant.hpp"
 #include "./true_type.hpp"
 #include "./false_type.hpp"
@@ -55,123 +56,125 @@
 #include "./remove_all_extents.hpp"
 
 
-#ifndef D_RE_STD_HAS_IS_DESTRUCTIBLE
+#ifndef RE_STD_HAS_IS_DESTRUCTIBLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_destructible)
-            #define D_RE_STD_HAS_IS_DESTRUCTIBLE     1
+            #define RE_STD_HAS_IS_DESTRUCTIBLE     1
         #else
-            #define D_RE_STD_HAS_IS_DESTRUCTIBLE     0
+            #define RE_STD_HAS_IS_DESTRUCTIBLE     0
         #endif
-    #elif defined(D_ENV_COMPILER_MSVC)
-        #define D_RE_STD_HAS_IS_DESTRUCTIBLE         1
+    #elif defined(RE_STD_COMPILER_MSVC)
+        #define RE_STD_HAS_IS_DESTRUCTIBLE         1
     #else
-        #define D_RE_STD_HAS_IS_DESTRUCTIBLE         0
+        #define RE_STD_HAS_IS_DESTRUCTIBLE         0
     #endif
 #endif
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IS_DESTRUCTIBLE
 // =============================================================================
 
-#if D_RE_STD_HAS_IS_DESTRUCTIBLE
+#if RE_STD_HAS_IS_DESTRUCTIBLE
 
-    template<typename _Type>
+    template<typename Type>
     struct is_destructible
-        : integral_constant<bool, __is_destructible(_Type)>
+        : integral_constant<bool, __is_destructible(Type)>
     {};
 
 #else
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // declval-style lvalue maker (private to this header).
-        template<typename _T>
-        _T& is_destruct_lref() D_NOEXCEPT;
+        template<typename T>
+        T& is_destruct_lref() RE_STD_NOEXCEPT;
 
         // is_destruct_probe
-        //   helper: SFINAE on `lref().~_U()`.
-        template<typename _U>
+        //   trait: SFINAE on `lref().~U()`.
+        template<typename U>
         struct is_destruct_probe
         {
         private:
-            template<typename _T>
+            template<typename T>
             static auto test(int) ->
-                decltype(is_destruct_lref<_T>().~_T(), true_type{});
+                decltype(is_destruct_lref<T>().~T(), true_type{});
 
             template<typename>
             static false_type test(...);
 
         public:
-            typedef decltype(test<_U>(0)) type;
-            D_STATIC_CONSTEXPR bool value = type::value;
+            typedef decltype(test<U>(0)) type;
+            RE_STD_STATIC_CONSTEXPR bool value = type::value;
         };
 
         // is_destructible_dispatch
-        //   helper: routes to the four cases per [meta.unary.prop].
-        template<typename _Type,
-                 bool     _IsExcluded =
-                     ( is_void<_Type>::value           ||
-                       is_function<_Type>::value       ||
-                       is_unbounded_array<_Type>::value ),
-                 bool     _IsRef = is_reference<_Type>::value>
+        //   function: routes to the four cases per [meta.unary.prop].
+        template<typename Type,
+                 bool     IsExcluded =
+                     ( is_void<Type>::value           ||
+                       is_function<Type>::value       ||
+                       is_unbounded_array<Type>::value ),
+                 bool     IsRef = is_reference<Type>::value>
         struct is_destructible_dispatch;
 
         // void / function / unbounded array -> false
-        template<typename _Type,
-                 bool     _IsRef>
-        struct is_destructible_dispatch<_Type, true, _IsRef>
+        template<typename Type,
+                 bool     IsRef>
+        struct is_destructible_dispatch<Type, true, IsRef>
             : false_type
         {};
 
         // reference -> true
-        template<typename _Type>
-        struct is_destructible_dispatch<_Type, false, true>
+        template<typename Type>
+        struct is_destructible_dispatch<Type, false, true>
             : true_type
         {};
 
         // ordinary object -> probe destructor on innermost element type
-        template<typename _Type>
-        struct is_destructible_dispatch<_Type, false, false>
+        template<typename Type>
+        struct is_destructible_dispatch<Type, false, false>
             : integral_constant<bool,
                   is_destruct_probe<
-                      typename remove_all_extents<_Type>::type
+                      typename remove_all_extents<Type>::type
                   >::value>
         {};
 
-    NS_END  // internal
+    }  // internal
 
 
-    template<typename _Type>
+    template<typename Type>
     struct is_destructible
         : integral_constant<bool,
-              internal::is_destructible_dispatch<_Type>::value>
+              internal::is_destructible_dispatch<Type>::value>
     {};
 
 
-#endif  // D_RE_STD_HAS_IS_DESTRUCTIBLE
+#endif  // RE_STD_HAS_IS_DESTRUCTIBLE
 
 
 // =============================================================================
 // II.  IS_DESTRUCTIBLE_V
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
-    template<typename _Type>
-    D_CONSTEXPR bool is_destructible_v = is_destructible<_Type>::value;
+    template<typename Type>
+    RE_STD_CONSTEXPR bool is_destructible_v = is_destructible<Type>::value;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_DESTRUCTIBLE_
+#endif  // RE_STD_TYPE_TRAITS_IS_DESTRUCTIBLE_HPP

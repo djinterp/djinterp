@@ -1,9 +1,9 @@
-/***********************************************************************
-* re_std                                                uses_allocator.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           uses_allocator.hpp
 *
 * trait detecting allocator-aware types:
-*   uses_allocator<_T, _Alloc>::value is true iff _T defines a nested
-* type _T::allocator_type and _Alloc is convertible to that type. When
+*   uses_allocator<T, Alloc>::value is true iff T defines a nested
+* type T::allocator_type and Alloc is convertible to that type. When
 * either condition fails, the trait is false_type.
 *
 * the trait drives uses-allocator construction in pair, tuple,
@@ -17,18 +17,20 @@
 * empty; code that needs uses_allocator must itself be gated.
 *
 *
-* path:      /inc/djinterp/re_std/memory/uses_allocator.hpp
+* path:      /inc/re_std/memory/uses_allocator.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.01
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.01
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_USES_ALLOCATOR_
-#define DJINTERP_RE_STD_MEMORY_USES_ALLOCATOR_ 1
+#ifndef RE_STD_MEMORY_USES_ALLOCATOR_HPP
+#define RE_STD_MEMORY_USES_ALLOCATOR_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/type_traits/integral_constant.hpp"
     #include "re_std/type_traits/is_convertible.hpp"
@@ -39,72 +41,81 @@ namespace re_std
 {
 
 // =============================================================================
-// internal: detect _T::allocator_type
+// internal: detect T::allocator_type
 // =============================================================================
 
 namespace internal
 {
 
-    // has_allocator_type<_T>
-    //   trait: true_type if _T::allocator_type is a valid nested type.
-    template<typename _T, typename = void>
+    // has_allocator_type<T>
+    //   trait: true_type if T::allocator_type is a valid nested type.
+    template<typename T, typename = void>
     struct has_allocator_type
         : false_type
     {
     };
 
-    template<typename _T>
+    template<typename T>
     struct has_allocator_type
     <
-        _T,
-        typename void_t<typename _T::allocator_type>::type
+        T,
+        void_t<typename T::allocator_type>
     >
         : true_type
     {
     };
 
-}  // namespace internal
+    // uses_allocator_helper<T, Alloc>
+    //   trait: the default answer, dispatched on has_allocator_type so that
+    // T::allocator_type is named only when it exists.
+    template
+    <
+        typename T,
+        typename Alloc,
+        bool = has_allocator_type<T>::value
+    >
+    struct uses_allocator_helper
+        : false_type
+    {
+    };
 
+    template<typename T, typename Alloc>
+    struct uses_allocator_helper<T, Alloc, true>
+        : integral_constant
+          <
+              bool,
+              is_convertible<Alloc, typename T::allocator_type>::value
+          >
+    {
+    };
 
+}  // internal
 // =============================================================================
 // uses_allocator
 // =============================================================================
 
-// uses_allocator<_T, _Alloc>
-//   trait: true iff _T::allocator_type is defined and _Alloc is
-//          convertible to it. Three-parameter primary template uses a
-//          bool dispatcher to select a fully-defined specialisation.
-template
-<
-    typename _T,
-    typename _Alloc,
-    bool = internal::has_allocator_type<_T>::value
->
+// uses_allocator<T, Alloc>
+//   trait: true iff T::allocator_type is defined and Alloc is
+//          convertible to it. Exactly two parameters, as std's: it is a
+//          customisation point, and a third (defaulted) parameter would turn
+//          every user's uses_allocator<X, A> partial specialisation into
+//          one whose implicit third argument depends on its parameters,
+//          which is ill-formed. The dispatch lives in an internal helper.
+template<typename T, typename Alloc>
 struct uses_allocator
-    : false_type
-{
-};
-
-template<typename _T, typename _Alloc>
-struct uses_allocator<_T, _Alloc, true>
-    : integral_constant
-      <
-          bool,
-          is_convertible<_Alloc, typename _T::allocator_type>::value
-      >
+    : internal::uses_allocator_helper<T, Alloc>
 {
 };
 
 
 // uses_allocator_v
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _T, typename _Alloc>
-    D_CONSTEXPR bool uses_allocator_v = uses_allocator<_T, _Alloc>::value;
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+    template<typename T, typename Alloc>
+    RE_STD_CONSTEXPR bool uses_allocator_v = uses_allocator<T, Alloc>::value;
 #endif
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_USES_ALLOCATOR_
+#endif  // RE_STD_MEMORY_USES_ALLOCATOR_HPP

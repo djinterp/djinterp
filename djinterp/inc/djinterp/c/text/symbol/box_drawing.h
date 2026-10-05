@@ -1,15 +1,17 @@
-/******************************************************************************
-* djinterp [text]                                                box_drawing.h
+/*******************************************************************************
+* djinterp [c]                                                     box_drawing.h
 *
-* 
+* TBA
 *
-* path:      \inc\text\box_drawing.h        
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.10.07
-******************************************************************************/
+*
+* path:      /inc/djinterp/c/text/symbol/box_drawing.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.07
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_TEXT_BOX_DRAWING_
-#define DJINTERP_TEXT_BOX_DRAWING_
+#ifndef DJINTERP_C_TEXT_SYMBOL_BOX_DRAWING_H
+#define DJINTERP_C_TEXT_SYMBOL_BOX_DRAWING_H 1
 
 
 #ifndef D_BOX_ASCII
@@ -19,28 +21,28 @@
 // Canonical names: codepoint-based (unique across Unicode)
 #if defined(D_BOX_ASCII)
   // ASCII fallbacks
-  #define D_UTF8_U2500 "-"  
-  #define D_UTF8_U2502 "|"  
-  #define D_UTF8_U250C "+"  
-  #define D_UTF8_U2510 "+"  
-  #define D_UTF8_U2514 "+"  
-  #define D_UTF8_U2518 "+"  
-  #define D_UTF8_U251C "+"  
-  #define D_UTF8_U2524 "+"  
-  #define D_UTF8_U252C "+"  
-  #define D_UTF8_U2534 "+"  
-  #define D_UTF8_U253C "+"  
-  #define D_UTF8_U2550 "="  
-  #define D_UTF8_U2551 "||" 
-  #define D_UTF8_U2554 "+"  
-  #define D_UTF8_U2557 "+"  
-  #define D_UTF8_U255A "+"  
-  #define D_UTF8_U255D "+"  
-  #define D_UTF8_U2560 "+"  
-  #define D_UTF8_U2563 "+"  
-  #define D_UTF8_U2566 "+"  
-  #define D_UTF8_U2569 "+"  
-  #define D_UTF8_U256C "+"  
+  #define D_UTF8_U2500 "-"
+  #define D_UTF8_U2502 "|"
+  #define D_UTF8_U250C "+"
+  #define D_UTF8_U2510 "+"
+  #define D_UTF8_U2514 "+"
+  #define D_UTF8_U2518 "+"
+  #define D_UTF8_U251C "+"
+  #define D_UTF8_U2524 "+"
+  #define D_UTF8_U252C "+"
+  #define D_UTF8_U2534 "+"
+  #define D_UTF8_U253C "+"
+  #define D_UTF8_U2550 "="
+  #define D_UTF8_U2551 "||"
+  #define D_UTF8_U2554 "+"
+  #define D_UTF8_U2557 "+"
+  #define D_UTF8_U255A "+"
+  #define D_UTF8_U255D "+"
+  #define D_UTF8_U2560 "+"
+  #define D_UTF8_U2563 "+"
+  #define D_UTF8_U2566 "+"
+  #define D_UTF8_U2569 "+"
+  #define D_UTF8_U256C "+"
 #else
   // UTF-8 byte escapes (source stays ASCII)
   #define D_UTF8_U2500 u8"\xE2\x94\x80"
@@ -76,11 +78,11 @@
 #define D_CHAR_BOX_CORNER_LL          D_UTF8_U2514
 #define D_CHAR_BOX_CORNER_LR          D_UTF8_U2518
 #define D_CHAR_BOX_T_RIGHT            D_UTF8_U251C  // connects rightwards
-#define D_CHAR_BOX_T_LEFT             D_UTF8_U2524  // connects leftwards 
-#define D_CHAR_BOX_T_DOWN             D_UTF8_U252C  // connects downward  
-#define D_CHAR_BOX_T_UP               D_UTF8_U2534  // connects upward    
+#define D_CHAR_BOX_T_LEFT             D_UTF8_U2524  // connects leftwards
+#define D_CHAR_BOX_T_DOWN             D_UTF8_U252C  // connects downward
+#define D_CHAR_BOX_T_UP               D_UTF8_U2534  // connects upward
 #define D_CHAR_BOX_CROSS              D_UTF8_U253C
-			
+
 #define D_CHAR_BOX_DOUBLE_HORIZONTAL  D_UTF8_U2550
 #define D_CHAR_BOX_DOUBLE_VERTICAL    D_UTF8_U2551
 #define D_CHAR_BOX_DOUBLE_UL          D_UTF8_U2554
@@ -94,4 +96,4 @@
 #define D_CHAR_BOX_DOUBLE_CROSS       D_UTF8_U256C
 
 
-#endif	// DJINTERP_TEXT_BOX_DRAWING_
+#endif  // DJINTERP_C_TEXT_SYMBOL_BOX_DRAWING_H

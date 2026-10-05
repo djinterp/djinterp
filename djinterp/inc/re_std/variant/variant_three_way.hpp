@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [variant]                                       variant_three_way.hpp
+/*******************************************************************************
+* djinterp [re_std]                                        variant_three_way.hpp
 *
+* variant_three_way support header:
 *   operator<=> for variant.
 *
 *   THE ORDERING IS INDEX-FIRST, THEN VALUE, and the valueless state sorts
@@ -25,83 +26,90 @@
 *   STD IS C++20; re_std IS C++20 - hard ceiling, operator<=> is a core
 * language feature.
 *
-* path:      /inc/djinterp/re_std/variant/variant_three_way.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+*
+* path:      /inc/re_std/variant/variant_three_way.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_VARIANT_THREE_WAY_
-#define DJINTERP_RE_STD_VARIANT_THREE_WAY_ 1
+#ifndef RE_STD_VARIANT_VARIANT_THREE_WAY_HPP
+#define RE_STD_VARIANT_VARIANT_THREE_WAY_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../compare/compare"
 #include "./variant.hpp"
+#include "./variant_get.hpp"
 
-NS_RESTD
-NS_INTERNAL
+namespace re_std
+{
+namespace internal
+{
 
-    template<typename _Category, size_t _Index, size_t _Size>
+    template<typename Category, size_t Index, size_t Size>
     struct variant_cmp_dispatch
     {
-        template<typename _Variant>
-        static _Category apply(const _Variant& a, const _Variant& b,
+        template<typename Variant>
+        static Category apply(const Variant& a, const Variant& b,
                                size_t index)
         {
-            if (index == _Index)
+            if (index == Index)
             {
-                return static_cast<_Category>(
-                    re_std::get<_Index>(a) <=> re_std::get<_Index>(b));
+                return static_cast<Category>(
+                    re_std::get<Index>(a) <=> re_std::get<Index>(b));
             }
-            return variant_cmp_dispatch<_Category, _Index + 1, _Size>::apply(
+            return variant_cmp_dispatch<Category, Index + 1, Size>::apply(
                 a, b, index);
         }
     };
 
-    template<typename _Category, size_t _Size>
-    struct variant_cmp_dispatch<_Category, _Size, _Size>
+    template<typename Category, size_t Size>
+    struct variant_cmp_dispatch<Category, Size, Size>
     {
-        template<typename _Variant>
-        static _Category apply(const _Variant&, const _Variant&, size_t)
+        template<typename Variant>
+        static Category apply(const Variant&, const Variant&, size_t)
         {
             //   Unreachable: valueless is handled before dispatch.
-            return static_cast<_Category>(strong_ordering::equal);
+            return static_cast<Category>(strong_ordering::equal);
         }
     };
 
-NS_END  // internal
+}  // internal
 
 // operator<=>
 //   function: index-first ordering with valueless sorting below everything.
-template<typename... _Types>
-D_CONSTEXPR typename common_comparison_category<
-    typename compare_three_way_result<_Types, _Types>::type...>::type
-operator<=>(const variant<_Types...>& a, const variant<_Types...>& b)
+template<typename... Types>
+RE_STD_CONSTEXPR typename common_comparison_category<
+    typename compare_three_way_result<Types, Types>::type...>::type
+operator<=>(const variant<Types...>& a, const variant<Types...>& b)
 {
     typedef typename common_comparison_category<
-        typename compare_three_way_result<_Types, _Types>::type...>::type
-        _Category;
+        typename compare_three_way_result<Types, Types>::type...>::type
+        Category;
 
     //   Valueless first - its index is variant_npos and would otherwise sort
     // above every real alternative.
     if (a.valueless_by_exception() && b.valueless_by_exception())
-    { return static_cast<_Category>(strong_ordering::equal); }
+    { return static_cast<Category>(strong_ordering::equal); }
     if (a.valueless_by_exception())
-    { return static_cast<_Category>(strong_ordering::less); }
+    { return static_cast<Category>(strong_ordering::less); }
     if (b.valueless_by_exception())
-    { return static_cast<_Category>(strong_ordering::greater); }
+    { return static_cast<Category>(strong_ordering::greater); }
 
     if (a.index() != b.index())
-    { return static_cast<_Category>(a.index() <=> b.index()); }
+    { return static_cast<Category>(a.index() <=> b.index()); }
 
     return internal::variant_cmp_dispatch<
-        _Category, 0, sizeof...(_Types)>::apply(a, b, a.index());
+        Category, 0, sizeof...(Types)>::apply(a, b, a.index());
 }
 
-NS_END
+}
 
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_VARIANT_THREE_WAY_
+#endif  // RE_STD_VARIANT_VARIANT_THREE_WAY_HPP

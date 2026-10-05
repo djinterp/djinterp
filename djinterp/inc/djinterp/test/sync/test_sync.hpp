@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                                test_sync.hpp
+/*******************************************************************************
+* djinterp [test]                                                  test_sync.hpp
 *
 *   Synchronization primitives for the DTest multithreading test
 * harness: portable barriers, latches, gates, and rendezvous points
@@ -33,27 +33,48 @@
 * fallback path uses portable_condvar from condvar.hpp.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    TEST LATCH
-* II.   TEST BARRIER
-* III.  TEST GATE
-* IV.   TEST RENDEZVOUS
-* V.    SIMULTANEOUS START HELPER
-*
-*
 * path:      /inc/djinterp/test/sync/test_sync.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_SYNC_
-#define DJINTERP_TEST_SYNC_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    TEST LATCH
+      ----------
+
+II.   TEST BARRIER
+      ------------
+
+III.  TEST GATE
+      ---------
+
+IV.   TEST RENDEZVOUS
+      ---------------
+
+V.    SIMULTANEOUS START HELPER
+      -------------------------
+*/
+
+#ifndef DJINTERP_TEST_SYNC_TEST_SYNC_HPP
+#define DJINTERP_TEST_SYNC_TEST_SYNC_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 
+// djinterp
+#include "../../djinterp.hpp"  // framework root: env, read by the gates below
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>
     #include <chrono>
     #include <condition_variable>
@@ -64,15 +85,16 @@
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     #if D_ENV_CPP_FEATURE_STL_LATCH
+        // std
         #include <latch>
     #endif
     #if D_ENV_CPP_FEATURE_STL_BARRIER
+        // std
         #include <barrier>
     #endif
 #endif
 
 // djinterp
-#include "../../core/djinterp.hpp"
 #include "../../core/sync/atomic.hpp"
 #include "../../core/sync/condvar.hpp"
 #include "../test_common.hpp"
@@ -211,11 +233,11 @@ public:
     //   blocks until the latch reaches zero or the timeout
     // expires.  Returns true if the latch opened, false on
     // timeout.
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     bool
     wait_for(
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     ) const
     {
         std::unique_lock<std::mutex> lk(m_mutex);
@@ -556,11 +578,11 @@ public:
     //   blocks while the gate is closed up to _timeout.
     // Returns true if the gate was open within the
     // timeout, false otherwise.
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     bool
     wait_for(
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     )
     {
         std::unique_lock<std::mutex> lk(m_mutex);
@@ -626,13 +648,13 @@ private:
 // CSP-style protocols.
 //
 // Template parameter:
-//   _Payload: the value type exchanged.  Defaults to
+//   Payload: the value type exchanged.  Defaults to
 //             a tag struct for "signal-only" rendezvous.
-template<typename _Payload = std::nullptr_t>
+template<typename Payload = std::nullptr_t>
 class test_rendezvous
 {
 public:
-    using payload_type = _Payload;
+    using payload_type = Payload;
 
     test_rendezvous()
         : m_value(),
@@ -853,11 +875,11 @@ public:
     // wait_until_ready_for
     //   bounded variant of wait_until_ready.  Returns true
     // if all workers reported ready within _timeout.
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     bool
     wait_until_ready_for(
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     )
     {
         std::unique_lock<std::mutex> lk(m_mutex);
@@ -1016,5 +1038,7 @@ private:
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_SYNC_
+
+#endif  // DJINTERP_TEST_SYNC_TEST_SYNC_HPP

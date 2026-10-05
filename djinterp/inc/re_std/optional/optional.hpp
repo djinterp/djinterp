@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [optional]                                               optional.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 optional.hpp
 *
+* optional class header:
 *   optional<T> - a value that may or may not be there, with no allocation and
 * no sentinel value stolen from T's range.
 *
@@ -40,18 +41,19 @@
 * on every iteration.
 *
 *
-* path:      /inc/djinterp/re_std/optional/optional.hpp
+* path:      /inc/re_std/optional/optional.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_OPTIONAL_OPTIONAL_
-#define DJINTERP_RE_STD_OPTIONAL_OPTIONAL_ 1
+#ifndef RE_STD_OPTIONAL_OPTIONAL_HPP
+#define RE_STD_OPTIONAL_OPTIONAL_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
@@ -59,153 +61,155 @@
 #include "./nullopt.hpp"
 #include "./bad_optional_access.hpp"
 
-NS_RESTD
+
+namespace re_std
+{
 
 // optional
-//   class: holds either a value of _Type or nothing.
-template<typename _Type>
-class optional : private internal::optional_base<_Type>
+//   class: holds either a value of Type or nothing.
+template<typename Type>
+class optional : private internal::optional_base<Type>
 {
-    typedef internal::optional_base<_Type> _Base;
+    typedef internal::optional_base<Type> _Base;
 
     //   Guard for the perfect-forwarding value constructor.  Without it that
     // template is a better match than the copy constructor for a non-const
     // optional lvalue, and optional<T> b(a) would try to build a T from an
     // optional<T>.  This is the classic greedy-forwarding-constructor trap.
-    template<typename _Other>
+    template<typename Other>
     struct allows_value_ctor
     {
         typedef typename remove_cv<
-            typename remove_reference<_Other>::type>::type _Bare;
+            typename remove_reference<Other>::type>::type _Bare;
         static const bool value =
                !is_same<_Bare, optional>::value
             && !is_same<_Bare, in_place_t>::value
             && !is_same<_Bare, nullopt_t>::value
-            &&  is_constructible<_Type, _Other&&>::value;
+            &&  is_constructible<Type, Other&&>::value;
     };
 
 public:
-    typedef _Type value_type;
+    typedef Type value_type;
 
     // ---- construction ------------------------------------------------
-    D_CONSTEXPR optional() D_NOEXCEPT {}
+    RE_STD_CONSTEXPR optional() RE_STD_NOEXCEPT {}
 
-    D_CONSTEXPR optional(nullopt_t) D_NOEXCEPT {}
+    RE_STD_CONSTEXPR optional(nullopt_t) RE_STD_NOEXCEPT {}
 
     //   Copy / move constructors and assignments are DELIBERATELY not
     // declared; see the header note.
 
-    template<typename... _Args>
-    D_CONSTEXPR explicit optional(in_place_t, _Args&&... args)
-        : _Base(in_place, static_cast<_Args&&>(args)...)
+    template<typename... Args>
+    RE_STD_CONSTEXPR explicit optional(in_place_t, Args&&... args)
+        : _Base(in_place, static_cast<Args&&>(args)...)
     {}
 
-    template<typename _Other = _Type,
-             typename enable_if<allows_value_ctor<_Other>::value, int>::type = 0>
-    D_CONSTEXPR optional(_Other&& value)
-        : _Base(in_place, static_cast<_Other&&>(value))
+    template<typename Other = Type,
+             typename enable_if<allows_value_ctor<Other>::value, int>::type = 0>
+    RE_STD_CONSTEXPR optional(Other&& value)
+        : _Base(in_place, static_cast<Other&&>(value))
     {}
 
     // ---- assignment --------------------------------------------------
-    optional& operator=(nullopt_t) D_NOEXCEPT
+    optional& operator=(nullopt_t) RE_STD_NOEXCEPT
     {
         this->destroy();
         return *this;
     }
 
-    template<typename _Other = _Type,
-             typename enable_if<allows_value_ctor<_Other>::value, int>::type = 0>
-    optional& operator=(_Other&& value)
+    template<typename Other = Type,
+             typename enable_if<allows_value_ctor<Other>::value, int>::type = 0>
+    optional& operator=(Other&& value)
     {
         if (this->m_engaged)
         {
-            this->m_value = static_cast<_Other&&>(value);
+            this->m_value = static_cast<Other&&>(value);
         }
         else
         {
-            this->construct(static_cast<_Other&&>(value));
+            this->construct(static_cast<Other&&>(value));
         }
         return *this;
     }
 
     // ---- observers ---------------------------------------------------
-    D_CONSTEXPR bool has_value() const D_NOEXCEPT { return this->m_engaged; }
+    RE_STD_CONSTEXPR bool has_value() const RE_STD_NOEXCEPT { return this->m_engaged; }
 
-    D_CONSTEXPR explicit operator bool() const D_NOEXCEPT
+    RE_STD_CONSTEXPR explicit operator bool() const RE_STD_NOEXCEPT
     { return this->m_engaged; }
 
     //   Unchecked. Undefined when disengaged - see the header note.
-    D_CONSTEXPR const _Type* operator->() const
+    RE_STD_CONSTEXPR const Type* operator->() const
     { return re_std::addressof(this->m_value); }
 
-    D_CONSTEXPR_CPP14 _Type* operator->()
+    RE_STD_CONSTEXPR_CPP14 Type* operator->()
     { return re_std::addressof(this->m_value); }
 
-    D_CONSTEXPR const _Type&  operator*() const&  { return this->m_value; }
-    D_CONSTEXPR_CPP14 _Type&  operator*() &       { return this->m_value; }
+    RE_STD_CONSTEXPR const Type&  operator*() const&  { return this->m_value; }
+    RE_STD_CONSTEXPR_CPP14 Type&  operator*() &       { return this->m_value; }
 
-    D_CONSTEXPR_CPP14 _Type&& operator*() &&
-    { return static_cast<_Type&&>(this->m_value); }
+    RE_STD_CONSTEXPR_CPP14 Type&& operator*() &&
+    { return static_cast<Type&&>(this->m_value); }
 
-    D_CONSTEXPR const _Type&& operator*() const&&
-    { return static_cast<const _Type&&>(this->m_value); }
+    RE_STD_CONSTEXPR const Type&& operator*() const&&
+    { return static_cast<const Type&&>(this->m_value); }
 
     //   Checked. Throws bad_optional_access when disengaged.
-    D_CONSTEXPR const _Type& value() const&
+    RE_STD_CONSTEXPR const Type& value() const&
     {
         return this->m_engaged
                    ? this->m_value
                    : (internal::throw_bad_optional_access(), this->m_value);
     }
 
-    D_CONSTEXPR_CPP14 _Type& value() &
+    RE_STD_CONSTEXPR_CPP14 Type& value() &
     {
         if (!this->m_engaged) { internal::throw_bad_optional_access(); }
         return this->m_value;
     }
 
-    D_CONSTEXPR_CPP14 _Type&& value() &&
+    RE_STD_CONSTEXPR_CPP14 Type&& value() &&
     {
         if (!this->m_engaged) { internal::throw_bad_optional_access(); }
-        return static_cast<_Type&&>(this->m_value);
+        return static_cast<Type&&>(this->m_value);
     }
 
-    template<typename _Other>
-    D_CONSTEXPR _Type value_or(_Other&& fallback) const&
+    template<typename Other>
+    RE_STD_CONSTEXPR Type value_or(Other&& fallback) const&
     {
         return this->m_engaged
                    ? this->m_value
-                   : static_cast<_Type>(static_cast<_Other&&>(fallback));
+                   : static_cast<Type>(static_cast<Other&&>(fallback));
     }
 
-    template<typename _Other>
-    D_CONSTEXPR_CPP14 _Type value_or(_Other&& fallback) &&
+    template<typename Other>
+    RE_STD_CONSTEXPR_CPP14 Type value_or(Other&& fallback) &&
     {
         return this->m_engaged
-                   ? static_cast<_Type&&>(this->m_value)
-                   : static_cast<_Type>(static_cast<_Other&&>(fallback));
+                   ? static_cast<Type&&>(this->m_value)
+                   : static_cast<Type>(static_cast<Other&&>(fallback));
     }
 
     // ---- modifiers ---------------------------------------------------
-    void reset() D_NOEXCEPT
+    void reset() RE_STD_NOEXCEPT
     {
         this->destroy();
         return;
     }
 
-    template<typename... _Args>
-    _Type& emplace(_Args&&... args)
+    template<typename... Args>
+    Type& emplace(Args&&... args)
     {
         //   Destroy first: emplace is specified to replace whatever is there,
         // and constructing over a live object would leak it.
         this->destroy();
-        this->construct(static_cast<_Args&&>(args)...);
+        this->construct(static_cast<Args&&>(args)...);
         return this->m_value;
     }
 
     void swap(optional& other)
-        D_NOEXCEPT_IF(   is_nothrow_move_constructible<_Type>::value
-                      && is_nothrow_swappable<_Type>::value)
+        RE_STD_NOEXCEPT_IF(   is_nothrow_move_constructible<Type>::value
+                      && is_nothrow_swappable<Type>::value)
     {
         if (this->m_engaged && other.m_engaged)
         {
@@ -213,19 +217,19 @@ public:
         }
         else if (this->m_engaged)
         {
-            other.construct(static_cast<_Type&&>(this->m_value));
+            other.construct(static_cast<Type&&>(this->m_value));
             this->destroy();
         }
         else if (other.m_engaged)
         {
-            this->construct(static_cast<_Type&&>(other.m_value));
+            this->construct(static_cast<Type&&>(other.m_value));
             other.destroy();
         }
         return;
     }
 };
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_OPTIONAL_OPTIONAL_
+#endif  // RE_STD_OPTIONAL_OPTIONAL_HPP

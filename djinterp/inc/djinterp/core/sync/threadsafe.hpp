@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [sync]                                               threadsafe.hpp
+/*******************************************************************************
+* djinterp [core]                                                 threadsafe.hpp
 *
 * Umbrella header for the thread-safe foundation module.
 * Includes all container-agnostic threadsafe submodules:
@@ -26,20 +26,28 @@
 *
 *   All types live in namespace threadsafe.
 *   Users who need only a subset can include the individual
-* submodule headers directly.  Existing code that includes
+* submodule headers directly. Existing code that includes
 * this umbrella header continues to work unchanged.
 *
 *
 * path:      /inc/djinterp/core/sync/threadsafe.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.23
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_THREADSAFE_
-#define DJINTERP_THREADSAFE_ 1
+#ifndef DJINTERP_SYNC_THREADSAFE_HPP
+#define DJINTERP_SYNC_THREADSAFE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // --- container-agnostic threadsafe submodules ---
 
+// djinterp
 #include "./lock_policy.hpp"
 #include "./lock_guard.hpp"
 #include "./lock_policy_c.hpp"
@@ -49,5 +57,7 @@
 #include "./hazard_pointer.hpp"
 #include "./rcu.hpp"
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_THREADSAFE_
+
+#endif  // DJINTERP_SYNC_THREADSAFE_HPP

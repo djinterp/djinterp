@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/env/cpp/env_cpp_features.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 /*
@@ -158,6 +158,7 @@ TABLE OF CONTENTS
          27. D_ENV_CPP_FEATURE_STL_SPAN
          28. D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON
          29. D_ENV_CPP_FEATURE_STL_TO_ARRAY
+         30. D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED
     4.  C++23 library features
          1.  D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR
          2.  D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE
@@ -2074,6 +2075,25 @@ TABLE OF CONTENTS
 #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_NAME "__cpp_lib_to_array"
 #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_DESC "std::to_array"
 #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_VERS "(C++20)"
+
+// 2.3.30
+// D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED
+//   feature: 1 if __cpp_lib_is_constant_evaluated is defined, 0 otherwise.
+// math/ and parse/ test it, and it was missing, so their #if read an
+// undefined name as 0 at every level (-Wundef).
+#ifdef __cpp_lib_is_constant_evaluated
+    #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED     1
+    #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VAL                    \
+        __cpp_lib_is_constant_evaluated
+#else
+    #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED     0
+    #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VAL 0L
+#endif  // __cpp_lib_is_constant_evaluated
+#define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_NAME                       \
+    "__cpp_lib_is_constant_evaluated"
+#define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_DESC                       \
+    "std::is_constant_evaluated"
+#define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VERS "(C++20)"
 
 // 2.4    C++23 library features
 //------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                        errc.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                     errc.hpp
 *
 * the errc scoped enumeration (re-export):
 *   errc is a C++11 scoped enumeration whose enumerators mirror the POSIX
@@ -9,30 +9,32 @@
 *   struct-wrapper enum to C++98.
 *
 *
-* path:      /inc/djinterp/re_std/system_error/errc.hpp
+* path:      /inc/re_std/system_error/errc.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_ERRC_
-#define DJINTERP_RE_STD_SYSTEM_ERROR_ERRC_ 1
+#ifndef RE_STD_SYSTEM_ERROR_ERRC_HPP
+#define RE_STD_SYSTEM_ERROR_ERRC_HPP 1
 
-// djinterp
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <system_error>
 
-NS_RESTD
+namespace re_std
+{
 
     // errc
     //   enum: identity-preserving re-export of the std::errc scoped enum.
     using ::std::errc;
 
-NS_END  // re_std
+}  // re_std
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_ERRC_
+#endif  // RE_STD_SYSTEM_ERROR_ERRC_HPP

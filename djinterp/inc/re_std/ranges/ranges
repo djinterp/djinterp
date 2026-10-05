@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                    ranges
+/*******************************************************************************
+* djinterp [re_std]                                                       ranges
 *
 * ranges umbrella header:
 *   Pulls in every public symbol of the <ranges> module that is
@@ -91,112 +91,121 @@
 * (needs concepts + concrete container types).
 *
 *
-* path:      /inc/djinterp/re_std/ranges
+* path:      /inc/re_std/ranges/ranges
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_UMBRELLA_
-#define DJINTERP_RE_STD_RANGES_UMBRELLA_ 1
+#ifndef RE_STD_RANGES_RANGES
+#define RE_STD_RANGES_RANGES 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // I.    foundations (no concept dependencies, available C++98+)
-#include "./ranges/dangling.hpp"
-#include "./ranges/view_base.hpp"
-#include "./ranges/enable_view.hpp"
-#include "./ranges/enable_borrowed_range.hpp"
-#include "./ranges/subrange_kind.hpp"
-#include "./ranges/unreachable_sentinel_t.hpp"
+#include "./dangling.hpp"
+#include "./view_base.hpp"
+#include "./enable_view.hpp"
+#include "./enable_borrowed_range.hpp"
+#include "./subrange_kind.hpp"
+#include "./unreachable_sentinel_t.hpp"
 
 // II.   range type aliases (C++11+)
-#include "./ranges/iterator_t.hpp"
-#include "./ranges/sentinel_t.hpp"
-#include "./ranges/range_value_t.hpp"
-#include "./ranges/range_difference_t.hpp"
-#include "./ranges/range_reference_t.hpp"
-#include "./ranges/range_size_t.hpp"
+#include "./iterator_t.hpp"
+#include "./sentinel_t.hpp"
+#include "./range_value_t.hpp"
+#include "./range_difference_t.hpp"
+#include "./range_reference_t.hpp"
+#include "./range_size_t.hpp"
 
 // II.b  range type aliases unblocked by R22 (depend on iter_move CPO / basic_const_iterator)
-#include "./ranges/range_rvalue_reference_t.hpp"  // R23
-#include "./ranges/range_const_reference_t.hpp"   // R23
+#include "./range_rvalue_reference_t.hpp"  // R23
+#include "./range_const_reference_t.hpp"   // R23
 
 // III.  core types (C++11+)
-#include "./ranges/view_interface.hpp"
-#include "./ranges/subrange.hpp"
+#include "./view_interface.hpp"
+#include "./subrange.hpp"
 
 // IV.   borrowed-range helpers (C++11+)
-#include "./ranges/borrowed_iterator_t.hpp"
-#include "./ranges/borrowed_subrange_t.hpp"
+#include "./borrowed_iterator_t.hpp"
+#include "./borrowed_subrange_t.hpp"
 
 // V.    range concept layer (Phase R2)
-#include "./ranges/range.hpp"
-#include "./ranges/sized_range.hpp"
-#include "./ranges/common_range.hpp"
-#include "./ranges/borrowed_range.hpp"
-#include "./ranges/view.hpp"
+#include "./range.hpp"
+#include "./sized_range.hpp"
+#include "./common_range.hpp"
+#include "./borrowed_range.hpp"
+#include "./view.hpp"
 
 // VI.   iterator-category-based range concepts (Phase R2)
-#include "./ranges/input_range.hpp"
-#include "./ranges/forward_range.hpp"
-#include "./ranges/bidirectional_range.hpp"
-#include "./ranges/random_access_range.hpp"
-#include "./ranges/contiguous_range.hpp"  // C++20+ only
+#include "./input_range.hpp"
+#include "./forward_range.hpp"
+#include "./bidirectional_range.hpp"
+#include "./random_access_range.hpp"
+#include "./contiguous_range.hpp"  // C++20+ only
 
 // VI.b  additional concept traits (Phase R21)
-#include "./ranges/output_range.hpp"     // R21 (two-parameter trait)
-#include "./ranges/viewable_range.hpp"   // R21 (disjunction trait)
-#include "./ranges/constant_range.hpp"   // R23 (depends on range_const_reference_t)
+#include "./output_range.hpp"     // R21 (two-parameter trait)
+#include "./viewable_range.hpp"   // R21 (disjunction trait)
+#include "./constant_range.hpp"   // R23 (depends on range_const_reference_t)
 
 // VII.  pipe infrastructure (Phase R10)
-#include "./ranges/range_adaptor_closure.hpp"
+#include "./range_adaptor_closure.hpp"
 
 // VII.b R22 internal utilities (exposition-only in std, re_std::internal::)
-#include "./ranges/non_propagating_cache.hpp"
-#include "./ranges/movable_box.hpp"
+#include "./non_propagating_cache.hpp"
+#include "./movable_box.hpp"
 
 // VII.c ranges:: niebloid CPOs (Phase R24) — 13 customisation point
 //       objects in re_std::ranges:: sub-namespace
-#include "./ranges/ranges_access.hpp"
+#include "./ranges_access.hpp"
 
 // VIII. view factories (Phase R3; iota_view extended in Phase R9)
-#include "./ranges/empty_view.hpp"
-#include "./ranges/single_view.hpp"
-#include "./ranges/iota_view.hpp"
+#include "./empty_view.hpp"
+#include "./single_view.hpp"
+#include "./iota_view.hpp"
 
 // IX.   range-wrapping adaptors + views::all closure (Phase R4 / R10)
-#include "./ranges/ref_view.hpp"
-#include "./ranges/owning_view.hpp"
-#include "./ranges/all.hpp"
+#include "./ref_view.hpp"
+#include "./owning_view.hpp"
+#include "./all.hpp"
 
 // X.    substantive view adaptors (Phase R5; pipe-enabled R10)
-#include "./ranges/take_view.hpp"
-#include "./ranges/drop_view.hpp"
-#include "./ranges/transform_view.hpp"
+#include "./take_view.hpp"
+#include "./drop_view.hpp"
+#include "./transform_view.hpp"
 
 // XI.   filter + reverse (Phase R6; pipe-enabled R10)
-#include "./ranges/filter_view.hpp"
-#include "./ranges/reverse_view.hpp"
+#include "./filter_view.hpp"
+#include "./reverse_view.hpp"
 
 // XII.  predicate-driven slicing (Phase R7; pipe-enabled R10)
-#include "./ranges/take_while_view.hpp"
-#include "./ranges/drop_while_view.hpp"
+#include "./take_while_view.hpp"
+#include "./drop_while_view.hpp"
 
 // XIII. range-of-ranges flattening (Phase R8; pipe-enabled R10)
-#include "./ranges/join_view.hpp"
+#include "./join_view.hpp"
 
 // XIII.b lazy_split_view (Phase R21) — input-friendly split, complements R16's split_view
-#include "./ranges/lazy_split_view.hpp"
+#include "./lazy_split_view.hpp"
 
 // XIV.  C++23 adaptors (Phases R11+)
-#include "./ranges/as_rvalue_view.hpp"   // R11
-#include "./ranges/stride_view.hpp"      // R12 (forward category only)
-#include "./ranges/chunk_view.hpp"       // R13 (forward category only)
-#include "./ranges/chunk_by_view.hpp"    // R14 (forward category only)
-#include "./ranges/slide_view.hpp"       // R15 (forward category only)
-#include "./ranges/split_view.hpp"       // R16 (single delimiter, forward category)
-#include "./ranges/repeat_view.hpp"      // R17 (bounded + unbounded)
-#include "./ranges/join_with_view.hpp"   // R18 (single separator)
-#include "./ranges/as_const_view.hpp"    // R19 (simplified)
+#include "./as_rvalue_view.hpp"   // R11
+#include "./stride_view.hpp"      // R12 (forward category only)
+#include "./chunk_view.hpp"       // R13 (forward category only)
+#include "./chunk_by_view.hpp"    // R14 (forward category only)
+#include "./slide_view.hpp"       // R15 (forward category only)
+#include "./split_view.hpp"       // R16 (single delimiter, forward category)
+#include "./repeat_view.hpp"      // R17 (bounded + unbounded)
+#include "./join_with_view.hpp"   // R18 (single separator)
+#include "./as_const_view.hpp"    // R19 (simplified)
+
+#endif  // floor, for now
 
 
-#endif  // DJINTERP_RE_STD_RANGES_UMBRELLA_
+#endif  // RE_STD_RANGES_RANGES

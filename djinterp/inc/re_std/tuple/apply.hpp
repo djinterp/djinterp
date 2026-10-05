@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                                   apply.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                    apply.hpp
 *
 * apply function header:
 *   Invokes a callable with the elements of a tuple-like object as
@@ -29,25 +29,26 @@
 *   Requires variadic templates and rvalue references (C++11+).
 *
 *
-* path:      /inc/djinterp/re_std/tuple/apply.hpp
+* path:      /inc/re_std/tuple/apply.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_APPLY_
-#define DJINTERP_RE_STD_TUPLE_APPLY_ 1
+#ifndef RE_STD_TUPLE_APPLY_HPP
+#define RE_STD_TUPLE_APPLY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
-      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
+#if ( RE_STD_LANG_HAS_VARIADIC_TEMPLATES &&                            \
+      RE_STD_LANG_HAS_RVALUE_REFERENCES )
 
 
 // std
 #include <cstddef>
-// djinterp
+// re_std
 #include "./tuple.hpp"
 #include "./tuple_size.hpp"
 #include "./tuple_get.hpp"
@@ -58,69 +59,71 @@
 #include "../functional/invoke.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   APPLY
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // apply_impl
-    //   helper: expands the index pack and hands the elements to
+    //   function: expands the index pack and hands the elements to
     // re_std::invoke, which selects the right INVOKE form for the
     // callable (ordinary call, pointer-to-member-function, or
     // pointer-to-member-data).
-    template<typename       _F,
-             typename       _Tup,
-             std::size_t... _Is>
-    D_CONSTEXPR
+    template<typename       F,
+             typename       Tup,
+             std::size_t... Is>
+    RE_STD_CONSTEXPR
     auto
     apply_impl(
-        _F&&    _f,
-        _Tup&&  _t,
-        re_std::index_sequence<_Is...>
-    ) -> decltype(re_std::invoke(re_std::forward<_F>(_f),
-                                 get<_Is>(static_cast<_Tup&&>(_t))...))
+        F&&    _f,
+        Tup&&  _t,
+        re_std::index_sequence<Is...>
+    ) -> decltype(re_std::invoke(re_std::forward<F>(_f),
+                                 get<Is>(static_cast<Tup&&>(_t))...))
     {
-        return re_std::invoke(re_std::forward<_F>(_f),
-                              get<_Is>(static_cast<_Tup&&>(_t))...);
+        return re_std::invoke(re_std::forward<F>(_f),
+                              get<Is>(static_cast<Tup&&>(_t))...);
     }
 
-NS_END  // internal
+}  // internal
 
 
 // apply
 //   function: invokes _f with the elements of _t as arguments.
-template<typename _F,
-         typename _Tup>
-D_CONSTEXPR
+template<typename F,
+         typename Tup>
+RE_STD_CONSTEXPR
 auto
 apply(
-    _F&&    _f,
-    _Tup&&  _t
+    F&&    _f,
+    Tup&&  _t
 )
     -> decltype(internal::apply_impl(
-        static_cast<_F&&>(_f),
-        static_cast<_Tup&&>(_t),
+        static_cast<F&&>(_f),
+        static_cast<Tup&&>(_t),
         re_std::make_index_sequence<
-            tuple_size<typename remove_reference<_Tup>::type>::value
+            tuple_size<typename remove_reference<Tup>::type>::value
         >()))
 {
     return internal::apply_impl(
-        static_cast<_F&&>(_f),
-        static_cast<_Tup&&>(_t),
+        static_cast<F&&>(_f),
+        static_cast<Tup&&>(_t),
         re_std::make_index_sequence<
-            tuple_size<typename remove_reference<_Tup>::type>::value
+            tuple_size<typename remove_reference<Tup>::type>::value
         >());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_APPLY_
+#endif  // RE_STD_TUPLE_APPLY_HPP

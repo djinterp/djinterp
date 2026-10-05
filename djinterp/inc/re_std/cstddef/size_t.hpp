@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   size_t.hpp
 *
 * size_t typedef (identity-preserving re-export):
@@ -18,30 +18,31 @@
 * of this: the fundamental types cannot be reimplemented, only surfaced.
 *
 *
-* path:      /inc/djinterp/re_std/cstddef/size_t.hpp
+* path:      /inc/re_std/cstddef/size_t.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CSTDDEF_SIZE_T_
-#define DJINTERP_RE_STD_CSTDDEF_SIZE_T_ 1
-
-// djinterp
-#include "../../core/djinterp.hpp"
+#ifndef RE_STD_CSTDDEF_SIZE_T_HPP
+#define RE_STD_CSTDDEF_SIZE_T_HPP 1
 
 // std
 //   permitted: fundamental types only.
 #include <cstddef>
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
     // size_t
     //   typedef: identity-preserving re-export of std::size_t. The result
     // type of sizeof; the implementation, not the library, fixes its width.
     using ::std::size_t;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_CSTDDEF_SIZE_T_
+#endif  // RE_STD_CSTDDEF_SIZE_T_HPP

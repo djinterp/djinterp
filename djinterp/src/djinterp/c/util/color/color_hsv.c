@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                               color_hsv.c
+/*******************************************************************************
+* djinterp [c]                                                       color_hsv.c
 *
 *   External-definition unit for color_hsv.h. The HSV bodies live in the
 * header as `inline`; this unit re-declares their prototypes so one out-of-
@@ -7,10 +7,11 @@
 * effect under D_COLOR_HEADER_ONLY). See color_common.c for the rationale.
 *
 *
-* path:      /inc/djinterp/c/util/color/color_hsv.c
+* path:      /src/djinterp/c/util/color/color_hsv.c
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 #include "../../../../../inc/djinterp/c/util/color/color_hsv.h"
 
 

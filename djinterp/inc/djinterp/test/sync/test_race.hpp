@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                                test_race.hpp
+/*******************************************************************************
+* djinterp [test]                                                  test_race.hpp
 *
 *   Race-condition probing and linearization recording for the DTest
 * multithreading harness.
@@ -40,29 +40,52 @@
 *   Requires C++11 or later.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    RACE PROBE
-* II.   ATOMICITY OBSERVER
-* III.  LINEARIZATION LOG
-* IV.   CONSISTENCY CHECK
-* V.    FACTORY HELPERS
-*
-*
 * path:      /inc/djinterp/test/sync/test_race.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_RACE_
-#define DJINTERP_TEST_RACE_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    RACE PROBE
+      ----------
+
+II.   ATOMICITY OBSERVER
+      ------------------
+
+III.  LINEARIZATION LOG
+      -----------------
+
+IV.   CONSISTENCY CHECK
+      -----------------
+
+V.    FACTORY HELPERS
+      ---------------
+*/
+
+#ifndef DJINTERP_TEST_SYNC_TEST_RACE_HPP
+#define DJINTERP_TEST_SYNC_TEST_RACE_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but math/interval/closed_interval.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <string>
 
+// djinterp
+#include "../../djinterp.hpp"  // framework root: env, read by the gates below
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // fixed-width integers
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>
     #include <chrono>
     #include <functional>
@@ -72,7 +95,6 @@
 #endif
 
 // djinterp
-#include "../../core/djinterp.hpp"
 #include "../../core/sync/atomic.hpp"
 #include "../test_common.hpp"
 #include "../test_object.hpp"
@@ -196,6 +218,8 @@ public:
 
     race_probe(const race_probe&)            = delete;
     race_probe& operator=(const race_probe&) = delete;
+    race_probe(race_probe&&)                 = default;
+    race_probe& operator=(race_probe&&)      = default;
 
     // -----------------------------------------------------------------
     //  configuration
@@ -235,11 +259,11 @@ public:
         return;
     }
 
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_join_timeout(
-        const std::chrono::duration<_Rep, _Period>& _t
+        const std::chrono::duration<Rep, Period>& _t
     )
     {
         m_join_timeout =
@@ -399,26 +423,26 @@ struct atomicity_observer_report
 // non-atomicity.
 //
 // Template parameters:
-//   _Snapshot: the snapshot type returned by the reader.
+//   Snapshot: the snapshot type returned by the reader.
 //
 // Example: testing torn writes on a 64-bit field.
 //
-//   std::uint64_t field = 0;
-//   atomicity_observer<std::uint64_t> obs;
+//   re_std::uint64_t field = 0;
+//   atomicity_observer<re_std::uint64_t> obs;
 //   obs.set_observer_count(4);
 //   obs.set_observation_count(100000);
 //   obs.set_reader([&field]() { return field; });
-//   obs.set_allowed([](std::uint64_t v) {
+//   obs.set_allowed([](re_std::uint64_t v) {
 //       return (v == 0 || v == 0xAAAA'AAAA'AAAA'AAAAull);
 //   });
 //   // ... a writer thread alternates field between the two values ...
 //   auto report = obs.run_observers();
-template<typename _Snapshot>
+template<typename Snapshot>
 class atomicity_observer
 {
 public:
     using size_type     = std::size_t;
-    using snapshot_type = _Snapshot;
+    using snapshot_type = Snapshot;
     using reader_fn     = std::function<snapshot_type()>;
     using allowed_fn    = std::function<bool(const snapshot_type&)>;
 
@@ -460,11 +484,11 @@ public:
         return;
     }
 
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_join_timeout(
-        const std::chrono::duration<_Rep, _Period>& _t
+        const std::chrono::duration<Rep, Period>& _t
     )
     {
         m_join_timeout =
@@ -871,15 +895,15 @@ public:
 
 // make_race_probe
 //   factory: returns a configured race_probe.
-template<typename _Op,
-         typename _Inv>
+template<typename Op,
+         typename Inv>
 inline race_probe
 make_race_probe(
     std::size_t _thread_count,
     std::size_t _iterations,
     std::size_t _runs,
-    _Op&&       _operation,
-    _Inv&&      _invariant
+    Op&&       _operation,
+    Inv&&      _invariant
 )
 {
     race_probe probe;
@@ -887,9 +911,9 @@ make_race_probe(
     probe.set_iterations_per_thread(_iterations);
     probe.set_runs(_runs);
     probe.set_operation(race_probe::operation_fn(
-        static_cast<_Op&&>(_operation)));
+        static_cast<Op&&>(_operation)));
     probe.set_invariant(race_probe::invariant_fn(
-        static_cast<_Inv&&>(_invariant)));
+        static_cast<Inv&&>(_invariant)));
 
     return probe;
 }
@@ -900,5 +924,7 @@ make_race_probe(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_RACE_
+
+#endif  // DJINTERP_TEST_SYNC_TEST_RACE_HPP

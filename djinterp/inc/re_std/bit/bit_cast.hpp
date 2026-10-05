@@ -1,8 +1,8 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 bit_cast.hpp
 *
 * bit_cast header:
-*   Reinterprets the object representation of _From as a _To of the
+*   Reinterprets the object representation of From as a To of the
 * same size. The defined way to do what a reinterpret_cast or a union
 * punning trick only appears to do:
 *
@@ -22,7 +22,7 @@
 * and cannot be made so from library code -- reading one object's bytes
 * as another's is precisely what the constant evaluator forbids. So
 * bit_cast is constexpr exactly when __builtin_bit_cast exists, and
-* D_RE_STD_HAS_BUILTIN_BIT_CAST reports which. This is unusual for
+* RE_STD_HAS_BUILTIN_BIT_CAST reports which. This is unusual for
 * re_std, which normally reaches the same constexpr-ness on every
 * platform; it is not achievable here.
 *
@@ -41,60 +41,62 @@
 *   std added bit_cast in C++20; re_std back-ports it to C++11.
 *
 *
-* path:      /inc/djinterp/re_std/bit/bit_cast.hpp
+* path:      /inc/re_std/bit/bit_cast.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_BIT_CAST_
-#define DJINTERP_RE_STD_BIT_BIT_CAST_ 1
+#ifndef RE_STD_BIT_BIT_CAST_HPP
+#define RE_STD_BIT_BIT_CAST_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstring>
 
-// djinterp
+// re_std
 #include "../type_traits/enable_if.hpp"
 #include "../type_traits/remove_cv.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0.   DETECTION
 // ===========================================================================
 
-#ifndef D_RE_STD_HAS_BUILTIN_BIT_CAST
+#ifndef RE_STD_HAS_BUILTIN_BIT_CAST
     #if defined(__has_builtin)
         #if __has_builtin(__builtin_bit_cast)
-            #define D_RE_STD_HAS_BUILTIN_BIT_CAST   1
+            #define RE_STD_HAS_BUILTIN_BIT_CAST   1
         #else
-            #define D_RE_STD_HAS_BUILTIN_BIT_CAST   0
+            #define RE_STD_HAS_BUILTIN_BIT_CAST   0
         #endif
     #else
-        #define D_RE_STD_HAS_BUILTIN_BIT_CAST       0
+        #define RE_STD_HAS_BUILTIN_BIT_CAST       0
     #endif
 #endif
 
 // Local stand-in for re_std::is_trivially_copyable, which is catalogued
 // but not implemented. Delete this block when that trait ships.
-#ifndef D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC
+#ifndef RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC
     #if defined(__has_builtin)
         #if __has_builtin(__is_trivially_copyable)
-            #define D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC 1
+            #define RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC 1
         #else
-            #define D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC 0
+            #define RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC 0
         #endif
-    #elif ( defined(D_ENV_COMPILER_GCC) || defined(D_ENV_COMPILER_MSVC) )
-        #define D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC     1
+    #elif ( defined(RE_STD_COMPILER_GCC) || defined(RE_STD_COMPILER_MSVC) )
+        #define RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC     1
     #else
-        #define D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC     0
+        #define RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC     0
     #endif
 #endif
 
@@ -103,25 +105,25 @@ NS_RESTD
 // I.   BIT_CAST
 // ===========================================================================
 
-#if D_RE_STD_HAS_BUILTIN_BIT_CAST
+#if RE_STD_HAS_BUILTIN_BIT_CAST
 
 // bit_cast
 //   function: constexpr object-representation reinterpretation.
-template<typename _To,
-         typename _From>
-D_CONSTEXPR _To
+template<typename To,
+         typename From>
+RE_STD_CONSTEXPR To
 bit_cast(
-    const _From& _from
-) D_NOEXCEPT
+    const From& _from
+) RE_STD_NOEXCEPT
 {
-    static_assert(sizeof(_To) == sizeof(_From),
+    static_assert(sizeof(To) == sizeof(From),
         "re_std::bit_cast: source and destination must be the same size");
-#if D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC
-    static_assert(__is_trivially_copyable(_To) &&
-                  __is_trivially_copyable(_From),
+#if RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC
+    static_assert(__is_trivially_copyable(To) &&
+                  __is_trivially_copyable(From),
         "re_std::bit_cast: both types must be trivially copyable");
 #endif
-    return __builtin_bit_cast(_To, _from);
+    return __builtin_bit_cast(To, _from);
 }
 
 #else
@@ -129,32 +131,32 @@ bit_cast(
 // bit_cast
 //   function: memcpy fallback. Correct, but NOT constexpr -- see the
 // header note; this is not a limitation library code can lift.
-template<typename _To,
-         typename _From>
-inline _To
+template<typename To,
+         typename From>
+inline To
 bit_cast(
-    const _From& _from
-) D_NOEXCEPT
+    const From& _from
+) RE_STD_NOEXCEPT
 {
-    static_assert(sizeof(_To) == sizeof(_From),
+    static_assert(sizeof(To) == sizeof(From),
         "re_std::bit_cast: source and destination must be the same size");
-#if D_RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC
-    static_assert(__is_trivially_copyable(_To) &&
-                  __is_trivially_copyable(_From),
+#if RE_STD_HAS_IS_TRIVIALLY_COPYABLE_INTRINSIC
+    static_assert(__is_trivially_copyable(To) &&
+                  __is_trivially_copyable(From),
         "re_std::bit_cast: both types must be trivially copyable");
 #endif
-    _To _to;
-    std::memcpy(&_to, &_from, sizeof(_To));
+    To _to;
+    std::memcpy(&_to, &_from, sizeof(To));
     return _to;
 }
 
-#endif  // D_RE_STD_HAS_BUILTIN_BIT_CAST
+#endif  // RE_STD_HAS_BUILTIN_BIT_CAST
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BIT_BIT_CAST_
+#endif  // RE_STD_BIT_BIT_CAST_HPP

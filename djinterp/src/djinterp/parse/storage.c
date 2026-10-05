@@ -7,9 +7,9 @@
 * path:      /src/djinterp/parse/storage.c
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
+*                                                          revised: 2026.09.30
 ******************************************************************************/
-#include "../../../inc/djinterp/parse/storage.h"  // corresponding header
+#include "../../../inc/djinterp/parse/c/storage.h"  // corresponding header
 
 
 #if (D_INTERNAL_PARSE_HEAP == 1)

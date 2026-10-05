@@ -1,3 +1,30 @@
+/*******************************************************************************
+* djinterp [core]                                          radix_tree_traits.hpp
+*
+* Compile-time classification traits for radix (prefix) trees.
+*   Detects the properties a radix tree exposes -- its key and edge-label
+* types, whether nodes are path-compressed, and the branching factor -- so
+* generic code can be constrained on them without naming a concrete tree.
+*
+*   PORTABILITY:
+*   C++11 baseline; `_v` aliases are gated behind variable-template support,
+* as elsewhere in this subtree.
+*
+*
+* path:      /inc/djinterp/core/container/tree/radix/radix_tree_traits.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.02
+*                                                            revised: 2026.10.02
+*******************************************************************************/
+
+#ifndef DJINTERP_CONTAINER_TREE_RADIX_RADIX_TREE_TRAITS_HPP
+#define DJINTERP_CONTAINER_TREE_RADIX_RADIX_TREE_TRAITS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 /*
 radix_tree_traits.hpp
   Standalone detection traits for radix tree key types, node shape, and
@@ -21,8 +48,8 @@ radix_tree_traits.hpp
 */
 
 #pragma once
+// std
 #include <cstddef>
-#include <cstdint>
 #include <string_view>
 #include <type_traits>
 
@@ -38,6 +65,15 @@ namespace djinterp
 template<typename...>
 using void_t = void;
 
+// clean_t
+//   type: cv/reference-stripped form of T, matching the project-wide
+// `clean_t` convention. Locally defined here so this header stays standalone
+// (no dependency on djinterp.hpp / meta/type_traits.hpp).
+template<typename T>
+using clean_t =
+    typename std::remove_cv<
+        typename std::remove_reference<T>::type>::type;
+
 // --------------------------------------------------------------------------
 // Text key detection
 // --------------------------------------------------------------------------
@@ -47,7 +83,7 @@ namespace internal
 
 // is_text_key_helper
 //   trait: primary template (failure case) for text key detection.
-template<typename _T,
+template<typename T,
          typename = void>
 struct is_text_key_helper
 {
@@ -55,11 +91,11 @@ struct is_text_key_helper
 };
 
 // is_text_key_helper (success case)
-//   trait: specialization when _T is constructible as std::string_view.
-template<typename _T>
+//   trait: specialization when T is constructible as std::string_view.
+template<typename T>
 struct is_text_key_helper<
-    _T,
-    void_t<decltype(std::string_view(std::declval<const _T&>()))>>
+    T,
+    void_t<decltype(std::string_view(std::declval<const T&>()))>>
 {
     static constexpr bool value = true;
 };
@@ -70,16 +106,15 @@ struct is_text_key_helper<
 //   trait: detects key types valid for text radix tree traversal.
 //   A type qualifies when it is implicitly convertible to
 //   std::string_view (e.g. std::string, const char*, string literals).
-template<typename _T>
+template<typename T>
 struct is_text_key
-    : std::bool_constant<internal::is_text_key_helper<_T>::value>
-{
-};
+    : std::bool_constant<internal::is_text_key_helper<T>::value>
+{};
 
 // is_text_key_v
-//   value: convenience alias for is_text_key<_T>::value.
-template<typename _T>
-inline constexpr bool is_text_key_v = is_text_key<_T>::value;
+//   value: convenience alias for is_text_key<T>::value.
+template<typename T>
+inline constexpr bool is_text_key_v = is_text_key<T>::value;
 
 // --------------------------------------------------------------------------
 // Binary key detection
@@ -89,19 +124,18 @@ inline constexpr bool is_text_key_v = is_text_key<_T>::value;
 //   trait: detects key types valid for binary (bitwise) radix tree
 //   traversal. A type qualifies when it is a trivially-copyable integral
 //   or pointer scalar on which bitwise shift and AND are defined.
-template<typename _T>
+template<typename T>
 struct is_binary_key
     : std::bool_constant<
-        ( ( std::is_integral<_T>::value ||
-            std::is_pointer<_T>::value ) &&
-          std::is_trivially_copyable<_T>::value )>
-{
-};
+        ( ( std::is_integral<T>::value ||
+            std::is_pointer<T>::value ) &&
+          std::is_trivially_copyable<T>::value )>
+{};
 
 // is_binary_key_v
-//   value: convenience alias for is_binary_key<_T>::value.
-template<typename _T>
-inline constexpr bool is_binary_key_v = is_binary_key<_T>::value;
+//   value: convenience alias for is_binary_key<T>::value.
+template<typename T>
+inline constexpr bool is_binary_key_v = is_binary_key<T>::value;
 
 // --------------------------------------------------------------------------
 // Key bit width
@@ -112,7 +146,7 @@ namespace internal
 
 // key_bit_width_helper
 //   trait: primary template (failure case) for bit-width deduction.
-template<typename _T,
+template<typename T,
          typename = void>
 struct key_bit_width_helper
 {
@@ -121,30 +155,30 @@ struct key_bit_width_helper
 
 // key_bit_width_helper (success case)
 //   trait: specialization for integral and pointer binary key types.
-template<typename _T>
+template<typename T>
 struct key_bit_width_helper<
-    _T,
-    typename std::enable_if<is_binary_key<_T>::value>::type>
+    T,
+    typename std::enable_if<is_binary_key<T>::value>::type>
 {
-    static constexpr std::size_t value = sizeof(_T) * 8u;
+    static constexpr std::size_t value = sizeof(T) * 8u;
 };
 
 }   // internal
 
 // key_bit_width
-//   trait: yields the bit width of a binary key type _T.
+//   trait: yields the bit width of a binary key type T.
 //   Yields 0 for non-binary-key types.
-template<typename _T>
+template<typename T>
 struct key_bit_width
 {
     static constexpr std::size_t value =
-        internal::key_bit_width_helper<_T>::value;
+        internal::key_bit_width_helper<T>::value;
 };
 
 // key_bit_width_v
-//   value: convenience alias for key_bit_width<_T>::value.
-template<typename _T>
-inline constexpr std::size_t key_bit_width_v = key_bit_width<_T>::value;
+//   value: convenience alias for key_bit_width<T>::value.
+template<typename T>
+inline constexpr std::size_t key_bit_width_v = key_bit_width<T>::value;
 
 // --------------------------------------------------------------------------
 // Node shape detection
@@ -155,7 +189,7 @@ namespace internal
 
 // has_radix_value_helper
 //   trait: primary template (failure case) for value_type detection.
-template<typename _T,
+template<typename T,
          typename = void>
 struct has_radix_value_helper
 {
@@ -163,11 +197,11 @@ struct has_radix_value_helper
 };
 
 // has_radix_value_helper (success case)
-//   trait: specialization when _T exposes a ::value_type member alias.
-template<typename _T>
+//   trait: specialization when T exposes a ::value_type member alias.
+template<typename T>
 struct has_radix_value_helper<
-    _T,
-    void_t<typename _T::value_type>>
+    T,
+    void_t<typename clean_t<T>::value_type>>
 {
     static constexpr bool value = true;
 };
@@ -177,23 +211,22 @@ struct has_radix_value_helper<
 // has_radix_value
 //   trait: detects node-like types that expose a ::value_type member
 //   alias, which is required by the container interface.
-template<typename _T>
+template<typename T>
 struct has_radix_value
-    : std::bool_constant<internal::has_radix_value_helper<_T>::value>
-{
-};
+    : std::bool_constant<internal::has_radix_value_helper<T>::value>
+{};
 
 // has_radix_value_v
-//   value: convenience alias for has_radix_value<_T>::value.
-template<typename _T>
-inline constexpr bool has_radix_value_v = has_radix_value<_T>::value;
+//   value: convenience alias for has_radix_value<T>::value.
+template<typename T>
+inline constexpr bool has_radix_value_v = has_radix_value<T>::value;
 
 namespace internal
 {
 
 // has_radix_children_helper
 //   trait: primary template (failure case) for .children detection.
-template<typename _T,
+template<typename T,
          typename = void>
 struct has_radix_children_helper
 {
@@ -201,11 +234,11 @@ struct has_radix_children_helper
 };
 
 // has_radix_children_helper (success case)
-//   trait: specialization when _T exposes a .children data member.
-template<typename _T>
+//   trait: specialization when T exposes a .children data member.
+template<typename T>
 struct has_radix_children_helper<
-    _T,
-    void_t<decltype(std::declval<_T>().children)>>
+    T,
+    void_t<decltype(std::declval<T>().children)>>
 {
     static constexpr bool value = true;
 };
@@ -215,33 +248,31 @@ struct has_radix_children_helper<
 // has_radix_children
 //   trait: detects node-like types that expose a .children array or
 //   equivalent member, used to navigate to descendant nodes.
-template<typename _T>
+template<typename T>
 struct has_radix_children
-    : std::bool_constant<internal::has_radix_children_helper<_T>::value>
-{
-};
+    : std::bool_constant<internal::has_radix_children_helper<T>::value>
+{};
 
 // has_radix_children_v
-//   value: convenience alias for has_radix_children<_T>::value.
-template<typename _T>
-inline constexpr bool has_radix_children_v = has_radix_children<_T>::value;
+//   value: convenience alias for has_radix_children<T>::value.
+template<typename T>
+inline constexpr bool has_radix_children_v = has_radix_children<T>::value;
 
 // is_radix_node
 //   trait: composite — detects a valid radix tree node shape.
 //   A type satisfies this trait when it exposes both ::value_type and
 //   a .children member (text or binary child array).
-template<typename _T>
+template<typename T>
 struct is_radix_node
     : std::bool_constant<
-        ( has_radix_value<_T>::value    &&
-          has_radix_children<_T>::value )>
-{
-};
+        ( has_radix_value<T>::value    &&
+          has_radix_children<T>::value )>
+{};
 
 // is_radix_node_v
-//   value: convenience alias for is_radix_node<_T>::value.
-template<typename _T>
-inline constexpr bool is_radix_node_v = is_radix_node<_T>::value;
+//   value: convenience alias for is_radix_node<T>::value.
+template<typename T>
+inline constexpr bool is_radix_node_v = is_radix_node<T>::value;
 
 // --------------------------------------------------------------------------
 // Key category discriminant
@@ -262,7 +293,7 @@ namespace internal
 
 // radix_key_category_helper
 //   trait: primary template, maps unknown types to custom.
-template<typename _T,
+template<typename T,
          typename = void>
 struct radix_key_category_helper
 {
@@ -270,24 +301,24 @@ struct radix_key_category_helper
 };
 
 // radix_key_category_helper (text case)
-//   trait: specialization when _T is a valid text radix key.
-template<typename _T>
+//   trait: specialization when T is a valid text radix key.
+template<typename T>
 struct radix_key_category_helper<
-    _T,
-    typename std::enable_if<is_text_key<_T>::value>::type>
+    T,
+    typename std::enable_if<is_text_key<T>::value>::type>
 {
     static constexpr DRadixKeyCategory value = DRadixKeyCategory::text;
 };
 
 // radix_key_category_helper (binary case)
-//   trait: specialization when _T is a binary key and not a text key.
+//   trait: specialization when T is a binary key and not a text key.
 //   Integer types that are also text-convertible prefer text.
-template<typename _T>
+template<typename T>
 struct radix_key_category_helper<
-    _T,
+    T,
     typename std::enable_if<
-        (  is_binary_key<_T>::value &&
-          !is_text_key<_T>::value   )>::type>
+        (  is_binary_key<T>::value &&
+          !is_text_key<T>::value   )>::type>
 {
     static constexpr DRadixKeyCategory value = DRadixKeyCategory::binary;
 };
@@ -295,21 +326,21 @@ struct radix_key_category_helper<
 }   // internal
 
 // radix_key_category
-//   trait: maps key type _T to its DRadixKeyCategory discriminant.
+//   trait: maps key type T to its DRadixKeyCategory discriminant.
 //   Text-convertible types take the text branch; raw integral/pointer
 //   types (not text-convertible) take the binary branch.
-template<typename _T>
+template<typename T>
 struct radix_key_category
 {
     static constexpr DRadixKeyCategory value =
-        internal::radix_key_category_helper<_T>::value;
+        internal::radix_key_category_helper<T>::value;
 };
 
 // radix_key_category_v
-//   value: convenience alias for radix_key_category<_T>::value.
-template<typename _T>
+//   value: convenience alias for radix_key_category<T>::value.
+template<typename T>
 inline constexpr DRadixKeyCategory radix_key_category_v =
-    radix_key_category<_T>::value;
+    radix_key_category<T>::value;
 
 // --------------------------------------------------------------------------
 // Container option interface detection
@@ -320,7 +351,7 @@ namespace internal
 
 // has_options_type_helper
 //   trait: primary template (failure case) for ::options_type detection.
-template<typename _T,
+template<typename T,
          typename = void>
 struct has_options_type_helper
 {
@@ -328,11 +359,11 @@ struct has_options_type_helper
 };
 
 // has_options_type_helper (success case)
-//   trait: specialization when _T exposes a ::options_type member alias.
-template<typename _T>
+//   trait: specialization when T exposes a ::options_type member alias.
+template<typename T>
 struct has_options_type_helper<
-    _T,
-    void_t<typename _T::options_type>>
+    T,
+    void_t<typename clean_t<T>::options_type>>
 {
     static constexpr bool value = true;
 };
@@ -342,23 +373,22 @@ struct has_options_type_helper<
 // has_options_type
 //   trait: detects T::options_type alias, required by the djinterp
 //   option system for CLI trait detection and option resolution.
-template<typename _T>
+template<typename T>
 struct has_options_type
-    : std::bool_constant<internal::has_options_type_helper<_T>::value>
-{
-};
+    : std::bool_constant<internal::has_options_type_helper<T>::value>
+{};
 
 // has_options_type_v
-//   value: convenience alias for has_options_type<_T>::value.
-template<typename _T>
-inline constexpr bool has_options_type_v = has_options_type<_T>::value;
+//   value: convenience alias for has_options_type<T>::value.
+template<typename T>
+inline constexpr bool has_options_type_v = has_options_type<T>::value;
 
 namespace internal
 {
 
 // has_option_flags_helper
 //   trait: primary template (failure case) for ::option_flags detection.
-template<typename _T,
+template<typename T,
          typename = void>
 struct has_option_flags_helper
 {
@@ -366,11 +396,11 @@ struct has_option_flags_helper
 };
 
 // has_option_flags_helper (success case)
-//   trait: specialization when _T exposes a ::option_flags static member.
-template<typename _T>
+//   trait: specialization when T exposes a ::option_flags static member.
+template<typename T>
 struct has_option_flags_helper<
-    _T,
-    void_t<decltype(_T::option_flags)>>
+    T,
+    void_t<decltype(clean_t<T>::option_flags)>>
 {
     static constexpr bool value = true;
 };
@@ -380,51 +410,53 @@ struct has_option_flags_helper<
 // has_option_flags
 //   trait: detects T::option_flags static member, required by the
 //   djinterp option system and cli_traits.hpp detection machinery.
-template<typename _T>
+template<typename T>
 struct has_option_flags
-    : std::bool_constant<internal::has_option_flags_helper<_T>::value>
-{
-};
+    : std::bool_constant<internal::has_option_flags_helper<T>::value>
+{};
 
 // has_option_flags_v
-//   value: convenience alias for has_option_flags<_T>::value.
-template<typename _T>
-inline constexpr bool has_option_flags_v = has_option_flags<_T>::value;
+//   value: convenience alias for has_option_flags<T>::value.
+template<typename T>
+inline constexpr bool has_option_flags_v = has_option_flags<T>::value;
 
 // is_radix_tree_base
 //   trait: composite — detects a type satisfying the radix tree
 //   container interface. Requires: options_type alias, option_flags
 //   static member, and value_type alias (via has_radix_value).
-template<typename _T>
+template<typename T>
 struct is_radix_tree_base
     : std::bool_constant<
-        ( has_options_type<_T>::value &&
-          has_option_flags<_T>::value &&
-          has_radix_value<_T>::value  )>
-{
-};
+        ( has_options_type<T>::value &&
+          has_option_flags<T>::value &&
+          has_radix_value<T>::value  )>
+{};
 
 // is_radix_tree_base_v
-//   value: convenience alias for is_radix_tree_base<_T>::value.
-template<typename _T>
-inline constexpr bool is_radix_tree_base_v = is_radix_tree_base<_T>::value;
+//   value: convenience alias for is_radix_tree_base<T>::value.
+template<typename T>
+inline constexpr bool is_radix_tree_base_v = is_radix_tree_base<T>::value;
 
 // --------------------------------------------------------------------------
 // SFINAE guards
 // --------------------------------------------------------------------------
 
 // enable_if_text_key
-//   type: SFINAE guard that enables a template only when _T is a valid
+//   type: SFINAE guard that enables a template only when T is a valid
 //   text radix key (convertible to std::string_view).
-template<typename _T>
+template<typename T>
 using enable_if_text_key =
-    typename std::enable_if<is_text_key<_T>::value>::type;
+    typename std::enable_if<is_text_key<T>::value>::type;
 
 // enable_if_binary_key
-//   type: SFINAE guard that enables a template only when _T is a valid
+//   type: SFINAE guard that enables a template only when T is a valid
 //   binary radix key (integral or pointer scalar).
-template<typename _T>
+template<typename T>
 using enable_if_binary_key =
-    typename std::enable_if<is_binary_key<_T>::value>::type;
+    typename std::enable_if<is_binary_key<T>::value>::type;
 
 }   // djinterp
+
+#endif  // floor, for now
+
+#endif  // DJINTERP_CONTAINER_TREE_RADIX_RADIX_TREE_TRAITS_HPP

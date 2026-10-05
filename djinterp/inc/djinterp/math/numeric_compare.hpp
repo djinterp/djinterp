@@ -1,18 +1,28 @@
+/*******************************************************************************
+* djinterp [math]                                            numeric_compare.hpp
+*
+*
+* path:      /inc/djinterp/math/numeric_compare.hpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // numeric_compare.hpp
 //   Arbitrary-precision numeric string comparison supporting integers, decimals,
 //   fractions (proper and mixed), and scientific notation.
 
-#ifndef NUMERIC_COMPARE_HPP
-#define NUMERIC_COMPARE_HPP
+#ifndef DJINTERP_MATH_NUMERIC_COMPARE_HPP
+#define DJINTERP_MATH_NUMERIC_COMPARE_HPP
 
-#include <string>
-#include <string_view>
-#include <utility>
+// std
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
+#include <string>
+#include <string_view>
+#include <utility>
 // djinterp
-#include "..\djinterp.h"
+#include "../c/djinterp.h"
 
 
 NS_DJINTERP  // djinterp
@@ -56,7 +66,7 @@ public:
 
 private:
     void m_normalize();
-    
+
     std::string m_digits;  // stored in reverse order (least significant first)
 };
 
@@ -112,4 +122,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // NUMERIC_COMPARE_HPP
+#endif  // DJINTERP_MATH_NUMERIC_COMPARE_HPP

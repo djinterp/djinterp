@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                             sentinel_t.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               sentinel_t.hpp
 *
 * sentinel_t alias template header:
 *   Yields the sentinel type of a range: the return type of end()
@@ -10,24 +10,27 @@
 *   Requires alias templates AND decltype. Available C++11+ only.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/sentinel_t.hpp
+* path:      /inc/re_std/ranges/sentinel_t.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_SENTINEL_T_
-#define DJINTERP_RE_STD_RANGES_SENTINEL_T_ 1
+#ifndef RE_STD_RANGES_SENTINEL_T_HPP
+#define RE_STD_RANGES_SENTINEL_T_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES && \
-      D_ENV_LANG_IS_CPP11_OR_HIGHER )
+#if ( RE_STD_LANG_HAS_ALIAS_TEMPLATES && \
+      RE_STD_LANG_IS_CPP11_OR_HIGHER )
 
 #include "../utility/declval.hpp"
 #include "../iterator/end.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -35,18 +38,18 @@ NS_RESTD
 // ===========================================================================
 
 // sentinel_t
-//   alias: the sentinel type of _Range, deduced as the return type
-// of re_std::end on an lvalue of _Range.
+//   alias: the sentinel type of Range, deduced as the return type
+// of re_std::end on an lvalue of Range.
 // note: for legacy ranges (where end() returns the iterator type)
 // sentinel_t<R> is the same as iterator_t<R>.
-template<typename _Range>
-using sentinel_t = decltype(re_std::end(declval<_Range&>()));
+template<typename Range>
+using sentinel_t = decltype(re_std::end(declval<Range&>()));
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RE_STD_RANGES_SENTINEL_T_
+#endif  // RE_STD_RANGES_SENTINEL_T_HPP

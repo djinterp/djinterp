@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                 common_comparison_category.hpp
+/*******************************************************************************
+* djinterp [re_std]                               common_comparison_category.hpp
 *
 * common_comparison_category meta-function header:
 *   Per [cmp.common]: yields the weakest common comparison category
@@ -32,23 +32,24 @@
 *   C++11+ (variadic templates + the three category classes).
 *
 *
-* path:      /inc/djinterp/re_std/compare/common_comparison_category.hpp
+* path:      /inc/re_std/compare/common_comparison_category.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_COMPARE_COMMON_COMPARISON_CATEGORY_
-#define DJINTERP_RE_STD_COMPARE_COMMON_COMPARISON_CATEGORY_ 1
+#ifndef RE_STD_COMPARE_COMMON_COMPARISON_CATEGORY_HPP
+#define RE_STD_COMPARE_COMMON_COMPARISON_CATEGORY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if ( D_ENV_LANG_IS_CPP11_OR_HIGHER &&                                        \
-      D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES )
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-// djinterp
+#if ( RE_STD_LANG_IS_CPP11_OR_HIGHER &&                                        \
+      RE_STD_LANG_HAS_VARIADIC_TEMPLATES )
+
+
+// re_std
 #include "./partial_ordering.hpp"
 #include "./weak_ordering.hpp"
 #include "./strong_ordering.hpp"
@@ -57,25 +58,27 @@
 #include "../type_traits/is_same.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   INTERNAL CATEGORY-DETECTION + WEAKNESS RANK
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // is_cmp_category
-    //   trait: true iff _T is one of the three comparison category
+    //   trait: true iff T is one of the three comparison category
     // classes. Used to gate the common_comparison_category trait —
     // non-category inputs yield void.
-    template<typename _T>
+    template<typename T>
     struct is_cmp_category
         : integral_constant<bool,
-              is_same<_T, partial_ordering>::value ||
-              is_same<_T, weak_ordering>::value    ||
-              is_same<_T, strong_ordering>::value>
+              is_same<T, partial_ordering>::value ||
+              is_same<T, weak_ordering>::value    ||
+              is_same<T, strong_ordering>::value>
     {};
 
 
@@ -86,7 +89,7 @@ NS_INTERNAL
     //     partial_ordering -> 2  (weakest)
     // Higher rank = weaker. Not specialised for non-categories;
     // is_cmp_category is the gate.
-    template<typename _T>
+    template<typename T>
     struct cmp_rank;
 
     template<>
@@ -108,25 +111,25 @@ NS_INTERNAL
     // pick_weaker
     //   trait: returns the weaker of two categories, or void if
     // either argument is void (sticky-void propagation).
-    template<typename _T, typename _U>
+    template<typename T, typename U>
     struct pick_weaker
     {
         typedef typename conditional<
-                              (cmp_rank<_T>::value >= cmp_rank<_U>::value),
-                              _T,
-                              _U
+                              (cmp_rank<T>::value >= cmp_rank<U>::value),
+                              T,
+                              U
                           >::type type;
     };
 
     // void as either operand: result is void.
-    template<typename _T>
-    struct pick_weaker<void, _T>
+    template<typename T>
+    struct pick_weaker<void, T>
     {
         typedef void type;
     };
 
-    template<typename _T>
-    struct pick_weaker<_T, void>
+    template<typename T>
+    struct pick_weaker<T, void>
     {
         typedef void type;
     };
@@ -137,7 +140,7 @@ NS_INTERNAL
         typedef void type;
     };
 
-NS_END  // internal
+}  // internal
 
 
 // =============================================================================
@@ -145,7 +148,7 @@ NS_END  // internal
 // =============================================================================
 
 // Primary template — undefined; matched by the partial specs below.
-template<typename... _Ts>
+template<typename... Ts>
 struct common_comparison_category;
 
 // Empty pack: result is strong_ordering per [cmp.common]/3.
@@ -155,25 +158,25 @@ struct common_comparison_category<>
     typedef strong_ordering type;
 };
 
-// One-arg: result is _T iff _T is a category, else void.
-template<typename _T>
-struct common_comparison_category<_T>
+// One-arg: result is T iff T is a category, else void.
+template<typename T>
+struct common_comparison_category<T>
 {
     typedef typename conditional<
-                          internal::is_cmp_category<_T>::value,
-                          _T,
+                          internal::is_cmp_category<T>::value,
+                          T,
                           void
                       >::type type;
 };
 
 // N-arg (N >= 2): recursive fold via pick_weaker.
-template<typename _T,
-         typename... _Rest>
-struct common_comparison_category<_T, _Rest...>
+template<typename T,
+         typename... Rest>
+struct common_comparison_category<T, Rest...>
 {
     typedef typename internal::pick_weaker<
-                          typename common_comparison_category<_T>::type,
-                          typename common_comparison_category<_Rest...>::type
+                          typename common_comparison_category<T>::type,
+                          typename common_comparison_category<Rest...>::type
                       >::type type;
 };
 
@@ -182,19 +185,19 @@ struct common_comparison_category<_T, _Rest...>
 // III. COMMON_COMPARISON_CATEGORY_T (C++14+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
-    template<typename... _Ts>
+    template<typename... Ts>
     using common_comparison_category_t
-        = typename common_comparison_category<_Ts...>::type;
+        = typename common_comparison_category<Ts...>::type;
 
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
 #endif  // C++11+ && variadic templates
 
 
-#endif  // DJINTERP_RE_STD_COMPARE_COMMON_COMPARISON_CATEGORY_
+#endif  // RE_STD_COMPARE_COMMON_COMPARISON_CATEGORY_HPP

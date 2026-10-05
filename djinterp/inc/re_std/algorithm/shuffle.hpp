@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                  shuffle.hpp
 *
 * shuffle algorithm header:
@@ -31,22 +31,24 @@
 *     subtracted from each draw to normalise.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/shuffle.hpp
+* path:      /inc/re_std/algorithm/shuffle.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_SHUFFLE_
-#define DJINTERP_RE_STD_ALGORITHM_SHUFFLE_ 1
+#ifndef RE_STD_ALGORITHM_SHUFFLE_HPP
+#define RE_STD_ALGORITHM_SHUFFLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -54,22 +56,22 @@ NS_RESTD
 // ===========================================================================
 
 // _shuffle_uniform_index_
-//   internal helper: returns an integer uniformly distributed in
+//   function: internal helper: returns an integer uniformly distributed in
 // [0, _bound) using rejection sampling against _g. Assumes
-// _URBG::min() == 0 (see header note); a non-zero min is folded out
+// URBG::min() == 0 (see header note); a non-zero min is folded out
 // at the call site by subtraction.
 // note: bound must be > 0. Caller is responsible for guarding _bound == 0.
-template<typename _URBG>
-typename _URBG::result_type
+template<typename URBG>
+typename URBG::result_type
 _shuffle_uniform_index_(
-    _URBG&                         _g,
-    typename _URBG::result_type    _bound
+    URBG&                         _g,
+    typename URBG::result_type    _bound
 )
 {
-    typedef typename _URBG::result_type _R;
+    typedef typename URBG::result_type _R;
 
-    const _R _u_min = _URBG::min();
-    const _R _u_max = _URBG::max();
+    const _R _u_min = URBG::min();
+    const _R _u_max = URBG::max();
 
     // shift the URBG range to [0, span]
     const _R _span = _u_max - _u_min;  // M = size - 1
@@ -99,17 +101,17 @@ _shuffle_uniform_index_(
 // shuffle
 //   function: permutes the elements of [_first, _last) uniformly at
 // random using _g as the source of randomness. O(N) draws from _g.
-template<typename _RandomIt,
-         typename _URBG>
+template<typename RandomIt,
+         typename URBG>
 void
 shuffle(
-    _RandomIt _first,
-    _RandomIt _last,
-    _URBG&    _g
+    RandomIt _first,
+    RandomIt _last,
+    URBG&    _g
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
-    typedef typename _URBG::result_type                          _R;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
+    typedef typename URBG::result_type                          _R;
 
     _Diff _n = _last - _first;
     if (_n <= 1)
@@ -129,7 +131,7 @@ shuffle(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_SHUFFLE_
+#endif  // RE_STD_ALGORITHM_SHUFFLE_HPP

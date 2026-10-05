@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               negation.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 negation.hpp
 *
 * negation trait header:
 *   Logical NOT of a type trait. Yields a bool integral_constant whose
@@ -18,53 +18,55 @@
 * feature macro.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/negation.hpp
+* path:      /inc/re_std/type_traits/negation.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_NEGATION_
-#define DJINTERP_RE_STD_TYPE_TRAITS_NEGATION_ 1
+#ifndef RE_STD_TYPE_TRAITS_NEGATION_HPP
+#define RE_STD_TYPE_TRAITS_NEGATION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./bool_constant.hpp"
 #include "./integral_constant.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   NEGATION
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // negation
-    //   trait: bool_constant<!_Trait::value>.
-    template<typename _Trait>
-    struct negation : bool_constant<!static_cast<bool>(_Trait::value)>
+    //   trait: bool_constant<!Trait::value>.
+    template<typename Trait>
+    struct negation : bool_constant<!static_cast<bool>(Trait::value)>
     {};
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
 // =============================================================================
 // II.  NEGATION_V (C++14+ variable template)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
     // negation_v
-    //   variable: convenience for negation<_Trait>::value.
-    template<typename _Trait>
-    D_CONSTEXPR bool negation_v = negation<_Trait>::value;
+    //   variable: convenience for negation<Trait>::value.
+    template<typename Trait>
+    RE_STD_CONSTEXPR bool negation_v = negation<Trait>::value;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_VARIABLE_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_NEGATION_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_NEGATION_HPP

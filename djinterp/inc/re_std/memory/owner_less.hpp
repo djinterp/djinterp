@@ -1,16 +1,17 @@
-/***********************************************************************
-* re_std                                                    owner_less.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               owner_less.hpp
 *
+* owner_less class header:
 * control-block-based strict-weak ordering predicate for shared_ptr
 * and weak_ptr. Use as the comparator in associative containers when
 * you want pointers that share ownership to compare equal even if
 * their element pointers differ (e.g. via the aliasing constructor).
 *
 * layout:
-*   The primary template `owner_less<_T>` is intentionally undefined
+*   The primary template `owner_less<T>` is intentionally undefined
 *   (matches std). Specialisations are provided for:
-*     owner_less<shared_ptr<_T>>
-*     owner_less<weak_ptr<_T>>
+*     owner_less<shared_ptr<T>>
+*     owner_less<weak_ptr<T>>
 *     owner_less<void>           (heterogeneous; std added in C++17,
 *                                 re_std back-ports unconditionally)
 *
@@ -26,18 +27,20 @@
 *   does the rest.
 *
 *
-* path:      /inc/djinterp/re_std/memory/owner_less.hpp
+* path:      /inc/re_std/memory/owner_less.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.02
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_OWNER_LESS_
-#define DJINTERP_RE_STD_MEMORY_OWNER_LESS_ 1
+#ifndef RE_STD_MEMORY_OWNER_LESS_HPP
+#define RE_STD_MEMORY_OWNER_LESS_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     #include "re_std/memory/shared_ptr.hpp"
     #include "re_std/memory/weak_ptr.hpp"
@@ -47,52 +50,52 @@ namespace re_std
 {
 
 // Primary template: intentionally undefined. Matches std.
-template<typename _T = void>
+template<typename T = void>
 struct owner_less;
 
 
-// owner_less<shared_ptr<_T>>
-template<typename _T>
-struct owner_less<shared_ptr<_T> >
+// owner_less<shared_ptr<T>>
+template<typename T>
+struct owner_less<shared_ptr<T> >
 {
-    bool operator()(const shared_ptr<_T>& _a,
-                    const shared_ptr<_T>& _b) const D_NOEXCEPT
+    bool operator()(const shared_ptr<T>& _a,
+                    const shared_ptr<T>& _b) const RE_STD_NOEXCEPT
     {
         return _a.owner_before(_b);
     }
 
-    bool operator()(const shared_ptr<_T>& _a,
-                    const weak_ptr<_T>&   _b) const D_NOEXCEPT
+    bool operator()(const shared_ptr<T>& _a,
+                    const weak_ptr<T>&   _b) const RE_STD_NOEXCEPT
     {
         return _a.owner_before(_b);
     }
 
-    bool operator()(const weak_ptr<_T>&   _a,
-                    const shared_ptr<_T>& _b) const D_NOEXCEPT
+    bool operator()(const weak_ptr<T>&   _a,
+                    const shared_ptr<T>& _b) const RE_STD_NOEXCEPT
     {
         return _a.owner_before(_b);
     }
 };
 
 
-// owner_less<weak_ptr<_T>>
-template<typename _T>
-struct owner_less<weak_ptr<_T> >
+// owner_less<weak_ptr<T>>
+template<typename T>
+struct owner_less<weak_ptr<T> >
 {
-    bool operator()(const weak_ptr<_T>&   _a,
-                    const weak_ptr<_T>&   _b) const D_NOEXCEPT
+    bool operator()(const weak_ptr<T>&   _a,
+                    const weak_ptr<T>&   _b) const RE_STD_NOEXCEPT
     {
         return _a.owner_before(_b);
     }
 
-    bool operator()(const shared_ptr<_T>& _a,
-                    const weak_ptr<_T>&   _b) const D_NOEXCEPT
+    bool operator()(const shared_ptr<T>& _a,
+                    const weak_ptr<T>&   _b) const RE_STD_NOEXCEPT
     {
         return _a.owner_before(_b);
     }
 
-    bool operator()(const weak_ptr<_T>&   _a,
-                    const shared_ptr<_T>& _b) const D_NOEXCEPT
+    bool operator()(const weak_ptr<T>&   _a,
+                    const shared_ptr<T>& _b) const RE_STD_NOEXCEPT
     {
         return _a.owner_before(_b);
     }
@@ -105,16 +108,15 @@ struct owner_less<void>
 {
     typedef void is_transparent;
 
-    template<typename _A, typename _B>
-    bool operator()(const _A& _a, const _B& _b) const D_NOEXCEPT
+    template<typename A, typename B>
+    bool operator()(const A& _a, const B& _b) const RE_STD_NOEXCEPT
     {
         return _a.owner_before(_b);
     }
 };
 
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_OWNER_LESS_
+#endif  // RE_STD_MEMORY_OWNER_LESS_HPP

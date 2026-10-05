@@ -1,64 +1,61 @@
-/******************************************************************************
-* djinterp [re_std]                                         bad_variant_access.hpp
+/*******************************************************************************
+* djinterp [re_std]                                       bad_variant_access.hpp
 *
 * bad_variant_access exception header:
 *   Thrown by get<I>/get<T> when the requested alternative is not
 * the active one, and by visit when called on a valueless variant.
 *
-*   INHERITANCE FALLBACKS (mirrors bad_any_cast / bad_expected_access):
-*     <typeinfo>  available -> inherits std::bad_cast (-> std::exception)
-*     <exception> available -> inherits std::exception
+*   INHERITANCE FALLBACKS:
+*     exceptions on  -> inherits std::exception, as [variant.bad.access]
+*                       specifies (not std::bad_cast: a catch of bad_cast
+*                       must not catch it)
 *     neither               -> standalone class (no base, non-virtual what())
 *
 *
-* path:      /inc/djinterp/re_std/variant/bad_variant_access.hpp
+* path:      /inc/re_std/variant/bad_variant_access.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.05.20
-******************************************************************************/
+* author(s): TBA                                             created: 2026.05.20
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BAD_VARIANT_ACCESS_
-#define DJINTERP_RE_STD_BAD_VARIANT_ACCESS_ 1
+#ifndef RE_STD_VARIANT_BAD_VARIANT_ACCESS_HPP
+#define RE_STD_VARIANT_BAD_VARIANT_ACCESS_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // ===========================================================================
 // 0.   CONDITIONAL INCLUDES
 // ===========================================================================
 
-#if D_ENV_CPP98_HAS_TYPEINFO
-    #include <typeinfo>
-#elif D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
+    // std
     #include <exception>
 #endif
 
+#if !RE_STD_HAS_EXCEPTIONS
+    // std
+    #include <cstdlib>  // std::abort, a failed access's only outcome
+#endif
 
-NS_RESTD
+
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   BAD_VARIANT_ACCESS
 // ===========================================================================
 
-#if D_ENV_CPP98_HAS_TYPEINFO
-
-class bad_variant_access : public std::bad_cast
-{
-public:
-    const char* what() const D_NOEXCEPT override
-    {
-        return "bad variant access";
-    }
-};
-
-#elif D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
 
 class bad_variant_access : public std::exception
 {
 public:
-    const char* what() const D_NOEXCEPT override
+    const char* what() const RE_STD_NOEXCEPT override
     {
         return "bad variant access";
     }
@@ -69,19 +66,40 @@ public:
 class bad_variant_access
 {
 public:
-    const char* what() const D_NOEXCEPT
+    const char* what() const RE_STD_NOEXCEPT
     {
         return "bad variant access";
     }
 };
 
-#endif  // D_ENV_CPP98_HAS_TYPEINFO / D_ENV_CPP98_HAS_EXCEPTION
+#endif  // RE_STD_HAS_EXCEPTIONS
 
 
-NS_END  // re_std
+namespace internal
+{
+
+    // throw_bad_variant_access
+    //   function: raise bad_variant_access, for the visit paths that reach a
+    // valueless variant. variant_visit.hpp called it and nothing defined it.
+    // With exceptions off there is no alternative to hand back, so it aborts,
+    // as std's variant does in that mode. [[noreturn]] lets a caller's
+    // unreachable tail end without a dummy return or throw.
+    [[noreturn]] RE_STD_INLINE void throw_bad_variant_access()
+    {
+    #if RE_STD_HAS_EXCEPTIONS
+        throw bad_variant_access();
+    #else
+        ::std::abort();
+    #endif
+    }
+
+}  // internal
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_BAD_VARIANT_ACCESS_
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+#endif  // RE_STD_VARIANT_BAD_VARIANT_ACCESS_HPP

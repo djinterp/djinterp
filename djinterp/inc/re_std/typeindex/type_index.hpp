@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                  type_index.hpp
+/*******************************************************************************
+* djinterp [re_std]                                               type_index.hpp
 *
 * class type_index:
 *   Copyable, assignable wrapper around a std::type_info reference, so a
@@ -9,7 +9,7 @@
 * copyable and assignable where a bare type_info is not.
 *
 *   re_std has no <typeinfo> re-export module; type_index uses std::type_info
-* directly behind D_ENV_CPP98_HAS_TYPEINFO (the same RTTI gate
+* directly behind RE_STD_HAS_RTTI (the same RTTI gate
 * any/bad_any_cast uses). The whole class is unavailable when RTTI /
 * <typeinfo> is absent — type_index is meaningless without it.
 *
@@ -22,24 +22,27 @@
 * name are not constant expressions (true of std::type_index too).
 *
 *
-* path:      /inc/djinterp/re_std/typeindex/type_index.hpp
+* path:      /inc/re_std/typeindex/type_index.hpp
 * link(s):   TBA
-* author(s): re_std contributors                       date: 2026.06.05
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.05
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPEINDEX_TYPE_INDEX_
-#define DJINTERP_RE_STD_TYPEINDEX_TYPE_INDEX_ 1
+#ifndef RE_STD_TYPEINDEX_TYPE_INDEX_HPP
+#define RE_STD_TYPEINDEX_TYPE_INDEX_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_HAS_RTTI
 
-#include <typeinfo>  // std::type_info
+// std
 #include <cstddef>   // size_t
+#include <typeinfo>  // std::type_info
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
-#include "re_std/compare/strong_ordering.hpp"  // strong_ordering (C++20 op<=>)
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
+#include "re_std/compare/strong_ordering.hpp"           // strong_ordering (C++20 op<=>)
 #endif
 
 namespace re_std
@@ -65,7 +68,7 @@ namespace re_std
         operator==(const type_index& _rhs) const noexcept
         { return *m_target == *_rhs.m_target; }
 
-#if !D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if !RE_STD_LANG_IS_CPP20_OR_HIGHER
         // legacy relational operators (C++11–C++17). On C++20 these are
         // synthesised from operator<=> / operator==, so they are gated out
         // to avoid redundant explicit candidates.
@@ -90,7 +93,7 @@ namespace re_std
         { return m_target->before(*_rhs.m_target) == 0; }
 #endif  // !C++20
 
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
         // operator<=>
         //   function: three-way comparison (C++20). Returns
         //   re_std::strong_ordering, built from type_info::before. The
@@ -126,9 +129,8 @@ namespace re_std
         const std::type_info* m_target;
     };
 
-}  // namespace re_std
+}  // re_std
+#endif  // RE_STD_HAS_RTTI
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_CPP98_HAS_TYPEINFO
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_TYPEINDEX_TYPE_INDEX_
+#endif  // RE_STD_TYPEINDEX_TYPE_INDEX_HPP

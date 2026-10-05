@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                        closed_interval.hpp
+/*******************************************************************************
+* djinterp [math]                                            closed_interval.hpp
 *
 * Compile-time closed interval [lower, upper].
 *   Both endpoints are inclusive. The value type, bounds, and size type are
@@ -13,13 +13,15 @@
 *   - static constexpr bool is_left_open  = false
 *   - static constexpr bool is_right_open = false
 *
+*
 * path:      /inc/djinterp/math/interval/closed_interval.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2024.04.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_CLOSED_INTERVAL_
-#define DJINTERP_MATH_CLOSED_INTERVAL_ 1
+#ifndef DJINTERP_MATH_INTERVAL_CLOSED_INTERVAL_HPP
+#define DJINTERP_MATH_INTERVAL_CLOSED_INTERVAL_HPP 1
 
 // std
 #include <cstddef>
@@ -28,7 +30,7 @@
 #include <string>
 #include <type_traits>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -328,4 +330,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_CLOSED_INTERVAL_
+#endif  // DJINTERP_MATH_INTERVAL_CLOSED_INTERVAL_HPP

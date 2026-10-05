@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                bad_exception.hpp
+/*******************************************************************************
+* djinterp [re_std]                                            bad_exception.hpp
 *
 * the bad_exception type:
 *   re_std::bad_exception is thrown by the runtime when exception
@@ -10,19 +10,22 @@
 * re_std::exception otherwise.
 *
 *
-* path:      /inc/djinterp/re_std/exception/bad_exception.hpp
+* path:      /inc/re_std/exception/bad_exception.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.06.04
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_EXCEPTION_BAD_EXCEPTION_
-#define DJINTERP_RE_STD_EXCEPTION_BAD_EXCEPTION_ 1
+#ifndef RE_STD_EXCEPTION_BAD_EXCEPTION_HPP
+#define RE_STD_EXCEPTION_BAD_EXCEPTION_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "exception.hpp"
 
-#if D_ENV_CPP98_HAS_EXCEPTION
+#if RE_STD_HAS_EXCEPTIONS
 
+    // std
     #include <exception>
 
 namespace re_std
@@ -31,8 +34,7 @@ namespace re_std
     //   class: using-declaration from std::bad_exception.
     using std::bad_exception;
 
-} // namespace re_std
-
+}  // re_std
 #else // freestanding fallback
 
 namespace re_std
@@ -42,20 +44,19 @@ namespace re_std
     class bad_exception : public exception
     {
     public:
-        bad_exception() D_NOEXCEPT
+        bad_exception() RE_STD_NOEXCEPT
         {}
 
-        virtual ~bad_exception() D_NOEXCEPT
+        virtual ~bad_exception() RE_STD_NOEXCEPT
         {}
 
-        virtual const char* what() const D_NOEXCEPT
+        virtual const char* what() const RE_STD_NOEXCEPT
         {
             return "bad_exception";
         }
     };
 
-} // namespace re_std
+}  // re_std
+#endif // RE_STD_HAS_EXCEPTIONS
 
-#endif // D_ENV_CPP98_HAS_EXCEPTION
-
-#endif  // DJINTERP_RE_STD_EXCEPTION_BAD_EXCEPTION_
+#endif  // RE_STD_EXCEPTION_BAD_EXCEPTION_HPP

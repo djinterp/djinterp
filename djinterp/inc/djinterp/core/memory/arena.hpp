@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/core/memory/arena.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 /*
@@ -51,6 +51,12 @@ II.   arena_scope
 
 #ifndef DJINTERP_MEMORY_ARENA_HPP
 #define DJINTERP_MEMORY_ARENA_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <new>
@@ -204,74 +210,74 @@ public:
     }
 
     // allocate_object
-    //   operation: raw storage for one _Type, correctly sized and aligned.
+    //   operation: raw storage for one Type, correctly sized and aligned.
     // NO CONSTRUCTOR RUNS -- use create for that.
-    template<typename _Type>
-    D_INLINE _Type*
+    template<typename Type>
+    D_INLINE Type*
     allocate_object()
     {
-        return static_cast<_Type*>(
+        return static_cast<Type*>(
             ::d_arena_allocate(this,
-                               size_of<_Type>::value,
-                               align_of<_Type>::value));
+                               size_of<Type>::value,
+                               align_of<Type>::value));
     }
 
     // allocate_array
-    //   operation: raw storage for _count objects of _Type. The product is
+    //   operation: raw storage for _count objects of Type. The product is
     // guarded against overflow by the kernel, which is the reason to route
     // through it rather than multiply here.
-    template<typename _Type>
-    D_INLINE _Type*
+    template<typename Type>
+    D_INLINE Type*
     allocate_array(
         size_type _count
     )
     {
-        return static_cast<_Type*>(
+        return static_cast<Type*>(
             ::d_arena_allocate_array(this,
                                      _count,
-                                     size_of<_Type>::value,
-                                     align_of<_Type>::value));
+                                     size_of<Type>::value,
+                                     align_of<Type>::value));
     }
 
     // create
-    //   operation: allocates and CONSTRUCTS one _Type from _args.
+    //   operation: allocates and CONSTRUCTS one Type from _args.
     //   THE OBJECT IS NEVER DESTROYED BY THE ARENA. An arena has no record of
     // what it handed out, so it cannot run destructors, and reset simply
     // forgets. Use it for types whose destruction is a no-op, or destroy them
     // yourself before rewinding. This is the arena's central trade and the
     // wrapper does not paper over it.
-    template<typename _Type,
-             typename... _Args>
-    D_INLINE _Type*
+    template<typename Type,
+             typename... Args>
+    D_INLINE Type*
     create(
-        _Args&&... _args
+        Args&&... _args
     )
     {
         void* storage = ::d_arena_allocate(this,
-                                           size_of<_Type>::value,
-                                           align_of<_Type>::value);
+                                           size_of<Type>::value,
+                                           align_of<Type>::value);
 
         if (!storage)
         {
             return nullptr;
         }
 
-        return new (storage) _Type(std::forward<_Args>(_args)...);
+        return new (storage) Type(std::forward<Args>(_args)...);
     }
 
     // create_array
-    //   operation: allocates and default-constructs _count objects of _Type.
+    //   operation: allocates and default-constructs _count objects of Type.
     // Subject to the same no-destruction caveat as create.
-    template<typename _Type>
-    D_INLINE _Type*
+    template<typename Type>
+    D_INLINE Type*
     create_array(
         size_type _count
     )
     {
-        _Type*    array;
+        Type*    array;
         size_type index;
 
-        array = allocate_array<_Type>(_count);
+        array = allocate_array<Type>(_count);
 
         if (!array)
         {
@@ -280,7 +286,7 @@ public:
 
         for (index = 0; index < _count; ++index)
         {
-            new (static_cast<void*>(array + index)) _Type();
+            new (static_cast<void*>(array + index)) Type();
         }
 
         return array;
@@ -499,5 +505,6 @@ D_STATIC_ASSERT(std::is_standard_layout< ::d_arena>::value,
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
 #endif  // DJINTERP_MEMORY_ARENA_HPP

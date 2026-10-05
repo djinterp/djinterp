@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                   jit_s390x.c
+/*******************************************************************************
+* djinterp [jit]                                                     jit_s390x.c
 *
 * djinterp s390x (IBM z/Architecture) JIT encoder -- implementation.
 *   Instructions are variable length (2/4/6 bytes) and big-endian, so each form
@@ -10,13 +10,14 @@
 * -- ri16 for the RI relative branches, ril32 for the RIL ones -- a signed
 * count of halfwords from the branch, with a big-endian read-modify-write.
 *
-* path:      /inc/djinterp/jit/jit_s390x.c
+*
+* path:      /src/djinterp/jit/jit_s390x.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-// djinterp
-#include "jit_s390x.h"
+#include "../../../inc/djinterp/jit/jit_s390x.h"
 
 
 // ===========================================================================

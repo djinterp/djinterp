@@ -1,41 +1,44 @@
-/***********************************************************************
-* re_std                                                default_delete.hpp
+/*******************************************************************************
+* djinterp [re_std]                                           default_delete.hpp
 *
 * the default deleter for unique_ptr:
-*   default_delete<_T>     -  calls `delete _p` on its argument.
-*   default_delete<_T[]>   -  calls `delete[] _p` on its argument,
+*   default_delete<T>     -  calls `delete _p` on its argument.
+*   default_delete<T[]>   -  calls `delete[] _p` on its argument,
 *                             SFINAE-restricted to convertible types.
 *
 * both specialisations:
 *   - are default-constructible and trivially copyable;
-*   - require _T to be a complete type at the point operator() is
+*   - require T to be a complete type at the point operator() is
 *     instantiated (this is not optional - deleting an incomplete-type
 *     pointer is undefined behaviour, and the static_assert here
 *     catches it at compile time);
 *   - have a templated converting constructor on C++11+, gated on
 *     re_std::is_convertible. The array specialisation's converting
 *     constructor uses the array-of-pointer-to-array form
-*     (_U(*)[] -> _T(*)[]) per [unique.ptr.dltr.dflt1]/2.
+*     (U(*)[] -> T(*)[]) per [unique.ptr.dltr.dflt1]/2.
 *
-* path:      /inc/djinterp/re_std/memory/default_delete.hpp
+*
+* path:      /inc/re_std/memory/default_delete.hpp
 *   The class itself ships, but the converting constructor is omitted
 * (it requires is_convertible, which is C++11+ in re_std). This is
 * sufficient for unique_ptr's basic use; covariant deleter conversions
 * are a C++11+ feature.
 *
 *
-* path:      /inc/djinterp/re_std/memory/default_delete.hpp
+* path:      /inc/re_std/memory/default_delete.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.01
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.01
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_DEFAULT_DELETE_
-#define DJINTERP_RE_STD_MEMORY_DEFAULT_DELETE_ 1
+#ifndef RE_STD_MEMORY_DEFAULT_DELETE_HPP
+#define RE_STD_MEMORY_DEFAULT_DELETE_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     #include "re_std/type_traits/enable_if.hpp"
     #include "re_std/type_traits/is_convertible.hpp"
 #endif
@@ -48,44 +51,44 @@ namespace re_std
 // default_delete  -  scalar specialisation
 // =============================================================================
 
-// default_delete<_T>
+// default_delete<T>
 //   class: invokes `delete _p` on its argument.
-template<typename _T>
+template<typename T>
 struct default_delete
 {
     // Default ctor.
-    D_CONSTEXPR default_delete() D_NOEXCEPT
+    RE_STD_CONSTEXPR default_delete() RE_STD_NOEXCEPT
     {
     }
 
-    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-        // Converting ctor: enabled when _U* is convertible to _T*.
+        // Converting ctor: enabled when U* is convertible to T*.
         // This is what lets you build a default_delete<Base> from a
         // default_delete<Derived>.
-        template<typename _U>
+        template<typename U>
         default_delete
         (
-            const default_delete<_U>&,
+            const default_delete<U>&,
             typename enable_if
             <
-                is_convertible<_U*, _T*>::value,
+                is_convertible<U*, T*>::value,
                 int
             >::type = 0
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
         {
         }
 
     #endif
 
     // operator()
-    //   function: calls `delete _p`. _T must be complete here.
-    void operator()(_T* _p) const
+    //   function: calls `delete _p`. T must be complete here.
+    void operator()(T* _p) const
     {
-        // Force a hard error if _T is incomplete. The sizeof check
+        // Force a hard error if T is incomplete. The sizeof check
         // is the canonical idiom: incomplete types have no size, so
         // the array-bound expression is ill-formed.
-        typedef char _T_must_be_complete_type[sizeof(_T) ? 1 : -1];
+        typedef char _T_must_be_complete_type[sizeof(T) ? 1 : -1];
         (void)sizeof(_T_must_be_complete_type);
 
         delete _p;
@@ -94,47 +97,47 @@ struct default_delete
 
 
 // =============================================================================
-// default_delete<_T[]>  -  array specialisation
+// default_delete<T[]>  -  array specialisation
 // =============================================================================
 
-// default_delete<_T[]>
+// default_delete<T[]>
 //   class: invokes `delete[] _p` on its argument. The converting
 //   ctor and operator() are SFINAE-restricted to types that are
-//   array-of-pointer-to-array convertible to _T[], not merely
-//   convertible to _T*. This is what makes the array form refuse
+//   array-of-pointer-to-array convertible to T[], not merely
+//   convertible to T*. This is what makes the array form refuse
 //   covariant Derived[] -> Base[] conversion (which would be a
 //   violation of C-style array layout invariants).
-template<typename _T>
-struct default_delete<_T[]>
+template<typename T>
+struct default_delete<T[]>
 {
-    D_CONSTEXPR default_delete() D_NOEXCEPT
+    RE_STD_CONSTEXPR default_delete() RE_STD_NOEXCEPT
     {
     }
 
-    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-        template<typename _U>
+        template<typename U>
         default_delete
         (
-            const default_delete<_U[]>&,
+            const default_delete<U[]>&,
             typename enable_if
             <
-                is_convertible<_U(*)[], _T(*)[]>::value,
+                is_convertible<U(*)[], T(*)[]>::value,
                 int
             >::type = 0
-        ) D_NOEXCEPT
+        ) RE_STD_NOEXCEPT
         {
         }
 
-        template<typename _U>
+        template<typename U>
         typename enable_if
         <
-            is_convertible<_U(*)[], _T(*)[]>::value,
+            is_convertible<U(*)[], T(*)[]>::value,
             void
         >::type
-        operator()(_U* _p) const
+        operator()(U* _p) const
         {
-            typedef char _U_must_be_complete_type[sizeof(_U) ? 1 : -1];
+            typedef char _U_must_be_complete_type[sizeof(U) ? 1 : -1];
             (void)sizeof(_U_must_be_complete_type);
 
             delete[] _p;
@@ -144,9 +147,9 @@ struct default_delete<_T[]>
 
         // C++98/03 fallback: only the same-type operator() is provided.
         // No covariant array delete.
-        void operator()(_T* _p) const
+        void operator()(T* _p) const
         {
-            typedef char _T_must_be_complete_type[sizeof(_T) ? 1 : -1];
+            typedef char _T_must_be_complete_type[sizeof(T) ? 1 : -1];
             (void)sizeof(_T_must_be_complete_type);
 
             delete[] _p;
@@ -156,6 +159,5 @@ struct default_delete<_T[]>
 };
 
 
-}  // namespace re_std
-
-#endif  // DJINTERP_RE_STD_MEMORY_DEFAULT_DELETE_
+}  // re_std
+#endif  // RE_STD_MEMORY_DEFAULT_DELETE_HPP

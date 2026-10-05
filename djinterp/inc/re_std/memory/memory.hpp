@@ -1,6 +1,7 @@
-/***********************************************************************
-* re_std                                                           memory
+/*******************************************************************************
+* djinterp [re_std]                                                   memory.hpp
 *
+* memory support header:
 * umbrella header for re_std::memory. Includes every granular module in
 * the memory group. Users may include this file to mirror the
 * `#include <memory>` ergonomic of the standard library, or include
@@ -49,14 +50,22 @@
 *   shared_ptr<T[N]> <-> shared_ptr<U[N]> qualification-only conversions.
 *
 *
-* path:      /inc/djinterp/re_std/memory/memory.hpp
+* path:      /inc/re_std/memory/memory.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.01
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.01
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_
-#define DJINTERP_RE_STD_MEMORY_ 1
+#ifndef RE_STD_MEMORY_MEMORY_HPP
+#define RE_STD_MEMORY_MEMORY_HPP 1
 
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+// re_std
 #include "re_std/memory/addressof.hpp"
 #include "re_std/memory/pointer_traits.hpp"
 #include "re_std/memory/construct_at.hpp"
@@ -66,20 +75,16 @@
 #include "re_std/memory/allocator_arg.hpp"
 #include "re_std/memory/uses_allocator.hpp"
 #include "re_std/memory/bad_weak_ptr.hpp"
-
 #include "re_std/memory/allocator.hpp"
 #include "re_std/memory/allocator_traits.hpp"
-
 #include "re_std/memory/unique_ptr.hpp"
 #include "re_std/memory/unique_ptr_swap.hpp"
 #include "re_std/memory/make_unique.hpp"
-
 #include "re_std/memory/shared_ptr.hpp"
 #include "re_std/memory/weak_ptr.hpp"
 #include "re_std/memory/enable_shared_from_this.hpp"
 #include "re_std/memory/make_shared.hpp"
 #include "re_std/memory/allocate_shared.hpp"
-
 #include "re_std/memory/static_pointer_cast.hpp"
 #include "re_std/memory/dynamic_pointer_cast.hpp"
 #include "re_std/memory/const_pointer_cast.hpp"
@@ -88,7 +93,6 @@
 #include "re_std/memory/get_deleter.hpp"
 #include "re_std/memory/shared_ptr_swap.hpp"
 #include "re_std/memory/weak_ptr_swap.hpp"
-
 #include "re_std/memory/uninitialized_copy.hpp"
 #include "re_std/memory/uninitialized_copy_n.hpp"
 #include "re_std/memory/uninitialized_fill.hpp"
@@ -99,12 +103,13 @@
 #include "re_std/memory/uninitialized_value_construct_n.hpp"
 #include "re_std/memory/uninitialized_move.hpp"
 #include "re_std/memory/uninitialized_move_n.hpp"
-
 #include "re_std/memory/make_shared_for_overwrite.hpp"
 #include "re_std/memory/allocate_shared_for_overwrite.hpp"
-
 #include "re_std/memory/align.hpp"
 #include "re_std/memory/to_address.hpp"
 #include "re_std/memory/assume_aligned.hpp"
 
-#endif  // DJINTERP_RE_STD_MEMORY_
+#endif  // floor, for now
+
+
+#endif  // RE_STD_MEMORY_MEMORY_HPP

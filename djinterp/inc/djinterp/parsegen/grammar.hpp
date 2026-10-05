@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parsegen]                                               grammar.hpp
+* djinterp [parsegen]                                                grammar.hpp
 *
 *   The C++ face of the neutral grammar declared in grammar.h.
 *   `node` and `rule` are ALIASES rather than derived types, because a grammar
@@ -17,25 +17,34 @@
 * `unordered()` are the only spellings, because the difference is the language
 * the grammar denotes and a default would let a frontend get it wrong silently.
 *
+*
 * path:      /inc/djinterp/parsegen/grammar.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSEGEN_GRAMMAR_HPP_
-#define DJINTERP_PARSEGEN_GRAMMAR_HPP_ 1
+#ifndef DJINTERP_PARSEGEN_GRAMMAR_HPP
+#define DJINTERP_PARSEGEN_GRAMMAR_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>                      // std::size_t
-#include <cstdint>                      // std::int32_t, std::uint32_t
-#include <initializer_list>             // std::initializer_list
-#include <type_traits>                  // std::is_standard_layout
+#include <cstddef>                  // std::size_t
+#include <initializer_list>         // std::initializer_list
+#include <type_traits>              // std::is_standard_layout
 // djinterp
-#include "../parse/charset.hpp"         // parse::charset
-#include "../parse/diagnostic.hpp"      // parse::diagnostics
-#include "./grammar.h"                  // the C grammar this layer faces
-#include "./registry.hpp"               // parsegen::feature_set, NS_PARSEGEN
+#include "../parse/charset.hpp"     // parse::charset
+#include "../parse/diagnostic.hpp"  // parse::diagnostics
+#include "./c/grammar.h"            // the C grammar this layer faces
+#include "./registry.hpp"           // parsegen::feature_set, NS_PARSEGEN
+// re_std
+#include "../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t, uint32_t,
+                                             // int32_t, uint64_t
 
 
 NS_DJINTERP
@@ -55,7 +64,7 @@ using rule = ::d_parsegen_rule;
 // node_kind
 //   enum: what an expression node is.  Ordered and unordered choice are
 // separate kinds, so there is no neutral spelling to reach for by accident.
-enum class node_kind : std::uint16_t
+enum class node_kind : re_std::uint16_t
 {
     empty            = D_PARSEGEN_NODE_EMPTY,
     any              = D_PARSEGEN_NODE_ANY,
@@ -74,11 +83,11 @@ enum class node_kind : std::uint16_t
 
 // unbounded
 //   constant: the repetition maximum meaning no limit.
-constexpr std::uint32_t unbounded = D_PARSEGEN_UNBOUNDED;
+constexpr re_std::uint32_t unbounded = D_PARSEGEN_UNBOUNDED;
 
 // no_node
 //   constant: the node index meaning none.
-constexpr std::int32_t no_node = D_PARSEGEN_NO_NODE;
+constexpr re_std::int32_t no_node = D_PARSEGEN_NO_NODE;
 
 
 // grammar
@@ -101,8 +110,8 @@ public:
         // previous one.
         origin_scope(
             d_parsegen_grammar& _grammar,
-            std::uint32_t       _offset,
-            std::uint32_t       _length
+            re_std::uint32_t       _offset,
+            re_std::uint32_t       _length
         ) noexcept
             : m_grammar(&_grammar),
               m_offset(_grammar.origin_offset),
@@ -114,17 +123,35 @@ public:
         origin_scope(const origin_scope&)            = delete;
         origin_scope& operator=(const origin_scope&) = delete;
 
+        // origin_scope (move)
+        //   constructor: hands the restore over; the moved-from guard
+        // restores nothing. at() returns a guard by value, which before
+        // C++17 needs this constructor even where the move is elided.
+        origin_scope(
+            origin_scope&& _other
+        ) noexcept
+            : m_grammar(_other.m_grammar),
+              m_offset(_other.m_offset),
+              m_length(_other.m_length)
+        {
+            _other.m_grammar = D_NULLPTR;
+        }
+
         // ~origin_scope
-        //   destructor: restores the previous cursor.
+        //   destructor: restores the previous cursor, unless moved from.
         ~origin_scope() noexcept
         {
-            d_parsegen_grammar_at(m_grammar, m_offset, m_length);
+            // a moved-from guard has nothing to restore
+            if (m_grammar)
+            {
+                d_parsegen_grammar_at(m_grammar, m_offset, m_length);
+            }
         }
 
     private:
         d_parsegen_grammar* m_grammar;
-        std::uint32_t       m_offset;
-        std::uint32_t       m_length;
+        re_std::uint32_t       m_offset;
+        re_std::uint32_t       m_length;
     };
 
     // grammar
@@ -180,8 +207,8 @@ public:
     // and owns, which then grows on demand.
     D_NODISCARD bool
     reserve(
-        std::uint32_t _nodes = 0u,
-        std::uint32_t _rules = 0u
+        re_std::uint32_t _nodes = 0u,
+        re_std::uint32_t _rules = 0u
     ) noexcept
     {
         d_parsegen_grammar_release(this);
@@ -195,8 +222,8 @@ public:
     // the returned guard lives.
     D_NODISCARD origin_scope
     at(
-        std::uint32_t _offset,
-        std::uint32_t _length
+        re_std::uint32_t _offset,
+        re_std::uint32_t _length
     ) noexcept
     {
         return origin_scope(*this, _offset, _length);
@@ -214,7 +241,7 @@ public:
 
     // empty_expr
     //   function: the expression matching nothing at all.
-    std::int32_t
+    re_std::int32_t
     empty_expr() noexcept
     {
         return d_parsegen_empty(this);
@@ -222,7 +249,7 @@ public:
 
     // any
     //   function: the expression matching any one symbol.
-    std::int32_t
+    re_std::int32_t
     any() noexcept
     {
         return d_parsegen_any(this);
@@ -230,7 +257,7 @@ public:
 
     // klass
     //   function: the expression matching one symbol from a set.
-    std::int32_t
+    re_std::int32_t
     klass(
         const d_parse_charset& _set
     ) noexcept
@@ -240,7 +267,7 @@ public:
 
     // literal
     //   function: the expression matching an exact sequence of symbols.
-    std::int32_t
+    re_std::int32_t
     literal(
         const char* _text
     ) noexcept
@@ -250,7 +277,7 @@ public:
 
     // ref
     //   function: a reference to a rule by name, bound later by resolve().
-    std::int32_t
+    re_std::int32_t
     ref(
         const char* _name
     ) noexcept
@@ -260,51 +287,51 @@ public:
 
     // sequence
     //   function: the expression matching each child in order.
-    std::int32_t
+    re_std::int32_t
     sequence(
-        std::initializer_list<std::int32_t> _children
+        std::initializer_list<re_std::int32_t> _children
     ) noexcept
     {
         return d_parsegen_sequence(this,
                                    _children.begin(),
-                                   static_cast<std::uint32_t>(
+                                   static_cast<re_std::uint32_t>(
                                        _children.size()));
     }
 
     // ordered
     //   function: PEG's `/` -- the FIRST child that matches wins and commits.
-    std::int32_t
+    re_std::int32_t
     ordered(
-        std::initializer_list<std::int32_t> _children
+        std::initializer_list<re_std::int32_t> _children
     ) noexcept
     {
         return d_parsegen_ordered(this,
                                   _children.begin(),
-                                  static_cast<std::uint32_t>(
+                                  static_cast<re_std::uint32_t>(
                                       _children.size()));
     }
 
     // unordered
     //   function: BNF's `|` -- ANY child may match and the order carries no
     // meaning.  A grammar using this may be ambiguous.
-    std::int32_t
+    re_std::int32_t
     unordered(
-        std::initializer_list<std::int32_t> _children
+        std::initializer_list<re_std::int32_t> _children
     ) noexcept
     {
         return d_parsegen_unordered(this,
                                     _children.begin(),
-                                    static_cast<std::uint32_t>(
+                                    static_cast<re_std::uint32_t>(
                                         _children.size()));
     }
 
     // repeat
     //   function: the expression matching its child between two bounds.
-    std::int32_t
+    re_std::int32_t
     repeat(
-        std::int32_t  _child,
-        std::uint32_t _minimum,
-        std::uint32_t _maximum
+        re_std::int32_t  _child,
+        re_std::uint32_t _minimum,
+        re_std::uint32_t _maximum
     ) noexcept
     {
         return d_parsegen_repeat(this, _child, _minimum, _maximum);
@@ -312,9 +339,9 @@ public:
 
     // optional
     //   function: `?` -- {0, 1}.
-    std::int32_t
+    re_std::int32_t
     optional(
-        std::int32_t _child
+        re_std::int32_t _child
     ) noexcept
     {
         return repeat(_child, 0u, 1u);
@@ -322,9 +349,9 @@ public:
 
     // star
     //   function: `*` -- {0, unbounded}.
-    std::int32_t
+    re_std::int32_t
     star(
-        std::int32_t _child
+        re_std::int32_t _child
     ) noexcept
     {
         return repeat(_child, 0u, unbounded);
@@ -332,9 +359,9 @@ public:
 
     // plus
     //   function: `+` -- {1, unbounded}.
-    std::int32_t
+    re_std::int32_t
     plus(
-        std::int32_t _child
+        re_std::int32_t _child
     ) noexcept
     {
         return repeat(_child, 1u, unbounded);
@@ -342,10 +369,10 @@ public:
 
     // capture
     //   function: tags a subexpression so what it matched can be recovered.
-    std::int32_t
+    re_std::int32_t
     capture(
-        std::int32_t _child,
-        std::int32_t _tag,
+        re_std::int32_t _child,
+        re_std::int32_t _tag,
         const char*  _name = nullptr
     ) noexcept
     {
@@ -354,9 +381,9 @@ public:
 
     // require
     //   function: `&` -- asserts the child matches here, consuming nothing.
-    std::int32_t
+    re_std::int32_t
     require(
-        std::int32_t _child
+        re_std::int32_t _child
     ) noexcept
     {
         return d_parsegen_predicate(this, _child, 0);
@@ -365,9 +392,9 @@ public:
     // forbid
     //   function: `!` -- asserts the child does NOT match here, consuming
     // nothing.
-    std::int32_t
+    re_std::int32_t
     forbid(
-        std::int32_t _child
+        re_std::int32_t _child
     ) noexcept
     {
         return d_parsegen_predicate(this, _child, 1);
@@ -375,9 +402,9 @@ public:
 
     // action
     //   function: attaches host-language code to a subexpression.
-    std::int32_t
+    re_std::int32_t
     action(
-        std::int32_t _child,
+        re_std::int32_t _child,
         const char*  _code
     ) noexcept
     {
@@ -390,8 +417,8 @@ public:
     D_NODISCARD bool
     define(
         const char*   _name,
-        std::int32_t  _body,
-        std::uint16_t _flags = 0u
+        re_std::int32_t  _body,
+        re_std::uint16_t _flags = 0u
     ) noexcept
     {
         return (d_parsegen_rule_add(this, _name, _body, _flags) == 0);
@@ -401,7 +428,7 @@ public:
     //   accessor: the node at an index, or null.
     const node*
     node_at(
-        std::int32_t _index
+        re_std::int32_t _index
     ) const noexcept
     {
         return d_parsegen_node_at(this, _index);
@@ -411,7 +438,7 @@ public:
     //   accessor: the rule at an index, or null.
     const rule*
     rule_at(
-        std::uint32_t _index
+        re_std::uint32_t _index
     ) const noexcept
     {
         return d_parsegen_rule_at(this, _index);
@@ -421,7 +448,7 @@ public:
     //   accessor: the name of a rule, or "".  Never null.
     const char*
     name_of(
-        std::uint32_t _index
+        re_std::uint32_t _index
     ) const noexcept
     {
         return d_parsegen_rule_name(this, _index);
@@ -429,7 +456,7 @@ public:
 
     // index_of
     //   accessor: the index of a rule by name, or -1.
-    std::int32_t
+    re_std::int32_t
     index_of(
         const char* _name
     ) const noexcept
@@ -461,7 +488,7 @@ public:
 
     // resolved
     //   accessor: whether every reference has been bound since the last edit.
-    constexpr bool
+    D_CONSTEXPR_CPP14 bool
     resolved() const noexcept
     {
         return ((flags & D_PARSEGEN_GRAMMAR_RESOLVED) != 0u);
@@ -469,7 +496,7 @@ public:
 
     // verified
     //   accessor: whether structure has been checked since the last edit.
-    constexpr bool
+    D_CONSTEXPR_CPP14 bool
     verified() const noexcept
     {
         return ((flags & D_PARSEGEN_GRAMMAR_VERIFIED) != 0u);
@@ -487,7 +514,7 @@ public:
     // digest
     //   accessor: a 64-bit key over the structure, the rules, and the pool --
     // not over source positions, so two spellings of one grammar agree.
-    std::uint64_t
+    re_std::uint64_t
     digest() const noexcept
     {
         return d_parsegen_grammar_hash(this);
@@ -509,7 +536,7 @@ public:
     //   function: writes one expression in the canonical notation.
     std::size_t
     render_expr(
-        std::int32_t _node,
+        re_std::int32_t _node,
         char*        _out,
         std::size_t  _size
     ) const noexcept
@@ -519,7 +546,7 @@ public:
 
     // size
     //   accessor: how many rules the grammar declares.
-    constexpr std::uint32_t
+    D_CONSTEXPR_CPP14 re_std::uint32_t
     size() const noexcept
     {
         return rule_count;
@@ -527,7 +554,7 @@ public:
 
     // nodes_used
     //   accessor: how many expression nodes the grammar holds.
-    constexpr std::uint32_t
+    D_CONSTEXPR_CPP14 re_std::uint32_t
     nodes_used() const noexcept
     {
         return node_count;
@@ -535,7 +562,7 @@ public:
 
     // begin
     //   accessor: a pointer to the first rule.
-    constexpr const_iterator
+    D_CONSTEXPR_CPP14 const_iterator
     begin() const noexcept
     {
         return rules;
@@ -543,7 +570,7 @@ public:
 
     // end
     //   accessor: a pointer one past the last rule.
-    constexpr const_iterator
+    D_CONSTEXPR_CPP14 const_iterator
     end() const noexcept
     {
         return (rules != nullptr) ? (rules + rule_count) : nullptr;
@@ -556,10 +583,10 @@ public:
 // frontend that must not allocate -- a build with no allocator, or one that
 // caps how large a grammar it will accept.  The same shape every other
 // container here offers.
-template<std::uint32_t _Nodes,
-         std::uint32_t _Rules,
-         std::uint32_t _PoolBytes   = 1024u,
-         std::uint32_t _PoolEntries = 64u>
+template<re_std::uint32_t Nodes,
+         re_std::uint32_t Rules,
+         re_std::uint32_t PoolBytes    = 1024u,
+         re_std::uint32_t PoolEntries = 64u>
 class fixed_grammar : public grammar
 {
 public:
@@ -570,22 +597,22 @@ public:
         d_parsegen_grammar_init(this);
 
         this->nodes         = m_nodes;
-        this->node_capacity = _Nodes;
+        this->node_capacity = Nodes;
         this->rules         = m_rules;
-        this->rule_capacity = _Rules;
+        this->rule_capacity = Rules;
 
         d_parse_pool_init(&this->pool,
                           m_bytes,
-                          _PoolBytes,
+                          PoolBytes,
                           m_entries,
-                          _PoolEntries);
+                          PoolEntries);
     }
 
 private:
-    node               m_nodes[_Nodes];
-    rule               m_rules[_Rules];
-    char               m_bytes[_PoolBytes];
-    d_parse_pool_entry m_entries[_PoolEntries];
+    node               m_nodes[Nodes];
+    rule               m_rules[Rules];
+    char               m_bytes[PoolBytes];
+    d_parse_pool_entry m_entries[PoolEntries];
 };
 
 
@@ -609,5 +636,7 @@ static_assert(std::is_standard_layout<grammar>::value,
 NS_END  // parsegen
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSEGEN_GRAMMAR_HPP_
+
+#endif  // DJINTERP_PARSEGEN_GRAMMAR_HPP

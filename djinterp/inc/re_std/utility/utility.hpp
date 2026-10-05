@@ -1,5 +1,5 @@
-/***********************************************************************
-* re_std                                                         utility.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                  utility.hpp
 *
 * umbrella header for re_std's <utility> implementation.
 *
@@ -28,16 +28,17 @@
 *     in_place_type / in_place_index are here.
 *
 *
-* path:      /inc/djinterp/re_std/utility/utility.hpp
+* path:      /inc/re_std/utility/utility.hpp
 * link(s):   TBA
-* author(s): re_std team                                date: 2026.05.09
-***********************************************************************/
+* author(s): re_std team                                     created: 2026.05.09
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_UTILITY_
-#define DJINTERP_RE_STD_UTILITY_ 1
+#ifndef RE_STD_UTILITY_UTILITY_HPP
+#define RE_STD_UTILITY_UTILITY_HPP 1
 
-#include "djinterp.hpp"
-
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // ---- foundational ----
 #include "re_std/utility/swap.hpp"
 #include "re_std/utility/move.hpp"
@@ -45,7 +46,6 @@
 #include "re_std/utility/declval.hpp"
 #include "re_std/utility/pair.hpp"
 #include "re_std/utility/make_pair.hpp"
-
 // ---- tail (Phase 9, 2026-05-09) ----
 #include "re_std/utility/exchange.hpp"
 #include "re_std/utility/as_const.hpp"
@@ -56,4 +56,4 @@
 #include "re_std/utility/forward_like.hpp"
 #include "re_std/utility/in_place_type.hpp"
 
-#endif  // DJINTERP_RE_STD_UTILITY_
+#endif  // RE_STD_UTILITY_UTILITY_HPP

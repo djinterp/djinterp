@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                          test_concurrent.hpp
+/*******************************************************************************
+* djinterp [test]                                            test_concurrent.hpp
 *
 *   The DTest concurrent runner: a workhorse for executing a callable
 * concurrently from N threads under controlled conditions.
@@ -51,28 +51,48 @@
 * they just can't exercise concurrency.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    RUN REPORT
-* II.   CONCURRENT RUNNER
-* III.  EXECUTION PATTERN HELPERS
-* IV.   FACTORY HELPERS
-*
-*
 * path:      /inc/djinterp/test/sync/test_concurrent.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.27
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_CONCURRENT_
-#define DJINTERP_TEST_CONCURRENT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    RUN REPORT
+      ----------
+
+II.   CONCURRENT RUNNER
+      -----------------
+
+III.  EXECUTION PATTERN HELPERS
+      -------------------------
+
+IV.   FACTORY HELPERS
+      ---------------
+*/
+
+#ifndef DJINTERP_TEST_SYNC_TEST_CONCURRENT_HPP
+#define DJINTERP_TEST_SYNC_TEST_CONCURRENT_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (README
+// rule 5); its module's floor is C++11, but math/interval/closed_interval.hpp,
+// which it reaches, needs C++17. The owner's ruling: compile at every level
+// first; port down only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <exception>
 #include <string>
 
+// djinterp
+#include "../../djinterp.hpp"  // framework root: env, read by the gates below
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>
     #include <chrono>
     #include <functional>
@@ -81,7 +101,6 @@
 #endif
 
 // djinterp
-#include "../../core/djinterp.hpp"
 #include "../../core/sync/condvar.hpp"
 #include "../test_common.hpp"
 #include "../test_object.hpp"
@@ -265,6 +284,8 @@ public:
 
     concurrent_runner(const concurrent_runner&)            = delete;
     concurrent_runner& operator=(const concurrent_runner&) = delete;
+    concurrent_runner(concurrent_runner&&)                 = default;
+    concurrent_runner& operator=(concurrent_runner&&)      = default;
 
     // -----------------------------------------------------------------
     //  configuration
@@ -340,11 +361,11 @@ public:
     //   sets the maximum wall-clock duration to wait for
     // threads to join after the start signal.  Zero means
     // wait indefinitely.
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_join_timeout(
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     )
     {
         m_join_timeout =
@@ -553,16 +574,16 @@ private:
 //   function: convenience pattern.  Runs _worker on
 // _thread_count threads with simultaneous start, no
 // timeout, returning the report.
-template<typename _Worker>
+template<typename Worker>
 inline concurrent_run_report
 run_simultaneous(
     std::size_t _thread_count,
-    _Worker&&   _worker
+    Worker&&   _worker
 )
 {
     concurrent_runner runner(_thread_count);
     runner.set_worker(test_thread::worker_fn(
-        static_cast<_Worker&&>(_worker)));
+        static_cast<Worker&&>(_worker)));
 
     return runner.run();
 }
@@ -570,20 +591,20 @@ run_simultaneous(
 // run_simultaneous_with_timeout
 //   function: like run_simultaneous but enforces a
 // per-run join timeout.
-template<typename _Worker,
-         typename _Rep,
-         typename _Period>
+template<typename Worker,
+         typename Rep,
+         typename Period>
 inline concurrent_run_report
 run_simultaneous_with_timeout(
     std::size_t                                 _thread_count,
-    const std::chrono::duration<_Rep, _Period>& _timeout,
-    _Worker&&                                   _worker
+    const std::chrono::duration<Rep, Period>& _timeout,
+    Worker&&                                   _worker
 )
 {
     concurrent_runner runner(_thread_count);
 
     runner.set_worker(test_thread::worker_fn(
-        static_cast<_Worker&&>(_worker)));
+        static_cast<Worker&&>(_worker)));
     runner.set_join_timeout(_timeout);
 
     return runner.run();
@@ -596,22 +617,22 @@ run_simultaneous_with_timeout(
 //
 // Reader threads are assigned ids [0 .. _readers - 1];
 // writer threads are assigned ids [_readers .. total - 1].
-template<typename _ReaderFn,
-         typename _WriterFn>
+template<typename ReaderFn,
+         typename WriterFn>
 inline concurrent_run_report
 run_reader_writer(
     std::size_t _readers,
     std::size_t _writers,
-    _ReaderFn&& _reader,
-    _WriterFn&& _writer
+    ReaderFn&& _reader,
+    WriterFn&& _writer
 )
 {
     concurrent_runner runner;
 
     test_thread::worker_fn reader_w =
-        test_thread::worker_fn(static_cast<_ReaderFn&&>(_reader));
+        test_thread::worker_fn(static_cast<ReaderFn&&>(_reader));
     test_thread::worker_fn writer_w =
-        test_thread::worker_fn(static_cast<_WriterFn&&>(_writer));
+        test_thread::worker_fn(static_cast<WriterFn&&>(_writer));
 
     for (std::size_t i = 0; i < _readers; ++i)
     {
@@ -688,11 +709,11 @@ public:
     }
 
     // set_join_timeout
-    template<typename _Rep,
-             typename _Period>
+    template<typename Rep,
+             typename Period>
     void
     set_join_timeout(
-        const std::chrono::duration<_Rep, _Period>& _timeout
+        const std::chrono::duration<Rep, Period>& _timeout
     )
     {
         m_join_timeout =
@@ -747,16 +768,16 @@ private:
 // make_concurrent_runner
 //   factory: returns a configured concurrent_runner ready
 // to run.
-template<typename _Worker>
+template<typename Worker>
 inline concurrent_runner
 make_concurrent_runner(
     std::size_t _thread_count,
-    _Worker&&   _worker
+    Worker&&   _worker
 )
 {
     concurrent_runner runner(_thread_count);
     runner.set_worker(test_thread::worker_fn(
-        static_cast<_Worker&&>(_worker)));
+        static_cast<Worker&&>(_worker)));
 
     return runner;
 }
@@ -781,5 +802,7 @@ struct concurrent_run_report
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_TEST_CONCURRENT_
+
+#endif  // DJINTERP_TEST_SYNC_TEST_CONCURRENT_HPP

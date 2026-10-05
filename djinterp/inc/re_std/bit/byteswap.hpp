@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                 byteswap.hpp
 *
 * byteswap header:
@@ -24,21 +24,22 @@
 * constexpr from C++11, where std is constexpr from C++23.
 *
 *
-* path:      /inc/djinterp/re_std/bit/byteswap.hpp
+* path:      /inc/re_std/bit/byteswap.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_BIT_BYTESWAP_
-#define DJINTERP_RE_STD_BIT_BYTESWAP_ 1
+#ifndef RE_STD_BIT_BYTESWAP_HPP
+#define RE_STD_BIT_BYTESWAP_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./bit_internal.hpp"
 #include "../type_traits/is_integral.hpp"
 #include "../type_traits/make_unsigned.hpp"
@@ -46,51 +47,53 @@
 #include "../type_traits/remove_cv.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   INTERNAL
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // bit_byte_bits / bit_byte_mask
-    //   constants: a byte is CHAR_BIT bits, taken from numeric_limits
+    //   constant: a byte is CHAR_BIT bits, taken from numeric_limits
     // rather than assumed to be 8, so the walk is correct on a platform
     // where it is not.
     const int bit_byte_bits = numeric_limits<unsigned char>::digits;
 
-    template<typename _U>
+    template<typename U>
     struct bit_byte_mask
     {
-        static const _U value =
-            static_cast<_U>( (static_cast<_U>(1) << bit_byte_bits)
-                             - static_cast<_U>(1) );
+        static const U value =
+            static_cast<U>( (static_cast<U>(1) << bit_byte_bits)
+                             - static_cast<U>(1) );
     };
 
     // byteswap_rec
-    //   helper: pulls the low byte off _v and pushes it onto _acc, so the
+    //   function: pulls the low byte off _v and pushes it onto _acc, so the
     // first byte out becomes the most significant byte in. Recursive
     // rather than looped, to stay constexpr at C++11.
-    template<typename _U>
-    D_CONSTEXPR _U
+    template<typename U>
+    RE_STD_CONSTEXPR U
     byteswap_rec(
-        _U  _v,
-        _U  _acc,
+        U  _v,
+        U  _acc,
         int _n
     )
     {
         return (_n == 0)
             ? _acc
-            : byteswap_rec<_U>(
-                  static_cast<_U>(_v >> bit_byte_bits),
-                  static_cast<_U>( static_cast<_U>(_acc << bit_byte_bits)
-                                 | static_cast<_U>(_v & bit_byte_mask<_U>::value) ),
+            : byteswap_rec<U>(
+                  static_cast<U>(_v >> bit_byte_bits),
+                  static_cast<U>( static_cast<U>(_acc << bit_byte_bits)
+                                 | static_cast<U>(_v & bit_byte_mask<U>::value) ),
                   _n - 1);
     }
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -100,25 +103,25 @@ NS_END  // internal
 // byteswap
 //   function: reverses the bytes of an integral value. Accepts signed
 // and character types too, unlike the rest of this module.
-template<typename _T>
-D_CONSTEXPR typename enable_if<
-    is_integral<typename remove_cv<_T>::type>::value, _T >::type
+template<typename T>
+RE_STD_CONSTEXPR typename enable_if<
+    is_integral<typename remove_cv<T>::type>::value, T >::type
 byteswap(
-    _T _v
-) D_NOEXCEPT
+    T _v
+) RE_STD_NOEXCEPT
 {
-    typedef typename make_unsigned<typename remove_cv<_T>::type>::type _U;
-    return static_cast<_T>(
-        internal::byteswap_rec<_U>(static_cast<_U>(_v),
-                                   static_cast<_U>(0),
-                                   static_cast<int>(sizeof(_T))));
+    typedef typename make_unsigned<typename remove_cv<T>::type>::type U;
+    return static_cast<T>(
+        internal::byteswap_rec<U>(static_cast<U>(_v),
+                                   static_cast<U>(0),
+                                   static_cast<int>(sizeof(T))));
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_BIT_BYTESWAP_
+#endif  // RE_STD_BIT_BYTESWAP_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                              test_report.hpp
+/*******************************************************************************
+* djinterp [test]                                                test_report.hpp
 *
 *   The presentation-side data model for a DTest run.  Where test_tree /
 * test_session model EXECUTION (a forest of evaluable nodes walked by a
@@ -49,45 +49,58 @@
 * {time} placeholders.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    REPORT VERDICT
-* II.   REPORT CHECK        (one assertion)
-* III.  REPORT UNIT         (one unit test)
-* IV.   REPORT MODULE       (one module)
-* V.    TEST REPORT         (the whole run)
-* VI.   PASS-RATE HELPERS
-* VII.  FILE-NAME EXPANSION
-*
-*
 * path:      /inc/djinterp/test/output/test_report.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.26
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.26
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_REPORT_
-#define DJINTERP_TEST_REPORT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    REPORT VERDICT
+      --------------
 
-#ifndef __cplusplus
-    #error "test_report.hpp requires C++ compilation"
-#endif
+II.   REPORT CHECK        (one assertion)
+      -----------------------------------
+
+III.  REPORT UNIT         (one unit test)
+      -----------------------------------
+
+IV.   REPORT MODULE       (one module)
+      --------------------------------
+
+V.    TEST REPORT         (the whole run)
+      -----------------------------------
+
+VI.   PASS-RATE HELPERS
+      -----------------
+
+VII.  FILE-NAME EXPANSION
+      -------------------
+*/
+
+#ifndef DJINTERP_TEST_OUTPUT_TEST_REPORT_HPP
+#define DJINTERP_TEST_OUTPUT_TEST_REPORT_HPP 1
+
+// djinterp
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP11_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 
 // std
 #include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <ctime>
 #include <string>
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../test_common.hpp"   // test_status
-
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "test_report.hpp requires C++11 or higher"
-#endif
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 
 NS_DJINTERP
@@ -267,7 +280,7 @@ struct report_unit
     std::string               description;
     std::vector<report_check> checks;
     report_verdict            verdict;
-    std::int64_t              elapsed_ns;
+    re_std::int64_t              elapsed_ns;
 
     // report_unit
     //   constructor: an empty, pending unit.
@@ -1165,5 +1178,6 @@ expand_report_file_name(
 NS_END  // test
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_TEST_REPORT_
+#endif  // DJINTERP_TEST_OUTPUT_TEST_REPORT_HPP

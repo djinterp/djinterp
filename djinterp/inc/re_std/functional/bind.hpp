@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [functional]                                                    bind.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                     bind.hpp
 *
+* bind class header:
 *   bind(f, args...) and bind<R>(f, args...) - partial application with
 * argument reordering.
 *
@@ -32,186 +33,191 @@
 * tuple holding the bound arguments.
 *
 *
-* path:      /inc/djinterp/re_std/functional/bind.hpp
+* path:      /inc/re_std/functional/bind.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_FUNCTIONAL_BIND_
-#define DJINTERP_RE_STD_FUNCTIONAL_BIND_ 1
+#ifndef RE_STD_FUNCTIONAL_BIND_HPP
+#define RE_STD_FUNCTIONAL_BIND_HPP 1
 
 // re_std
-#include "../../core/djinterp.hpp"
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../utility/utility.hpp"
 #include "../tuple/tuple.hpp"
+#include "../tuple/forward_as_tuple.hpp"
 #include "./invoke.hpp"
 #include "./placeholders.hpp"
 #include "./is_bind_expression.hpp"
 
-NS_RESTD
 
-NS_INTERNAL
+namespace re_std
+{
+
+namespace internal
+{
 
     // bind_apply
     //   function: expand the stored bound arguments, resolve each against the
     // call arguments, and invoke.  Free rather than a member so that the const
-    // and non-const operator() overloads share one definition - _BoundTuple
+    // and non-const operator() overloads share one definition - BoundTuple
     // deduces as const when the bind object is.
-    template<typename _Func, typename _BoundTuple,
-             typename _CallTuple, size_t... _Index>
-    D_CONSTEXPR_CPP14 auto bind_apply(_Func& func, _BoundTuple& bound,
-                                      _CallTuple&& call,
-                                      index_sequence<_Index...>)
+    template<typename Func, typename BoundTuple,
+             typename CallTuple, size_t... Index>
+    RE_STD_CONSTEXPR_CPP14 auto bind_apply(Func& func, BoundTuple& bound,
+                                      CallTuple&& call,
+                                      index_sequence<Index...>)
         -> decltype(re_std::invoke(
                func,
                bind_resolve(
                    typename bind_kind<typename tuple_element<
-                       _Index, _BoundTuple>::type>::type(),
-                   re_std::get<_Index>(bound),
-                   static_cast<_CallTuple&&>(call))...))
+                       Index, BoundTuple>::type>::type(),
+                   re_std::get<Index>(bound),
+                   static_cast<CallTuple&&>(call))...))
     {
         return re_std::invoke(
             func,
             bind_resolve(
                 typename bind_kind<typename tuple_element<
-                    _Index, _BoundTuple>::type>::type(),
-                re_std::get<_Index>(bound),
-                static_cast<_CallTuple&&>(call))...);
+                    Index, BoundTuple>::type>::type(),
+                re_std::get<Index>(bound),
+                static_cast<CallTuple&&>(call))...);
     }
 
     // bind_expression
     //   class: the object returned by bind().  Deduced return type.
-    template<typename _Func, typename... _Bound>
+    template<typename Func, typename... Bound>
     class bind_expression
     {
-        typedef tuple<_Bound...>                       _BoundTuple;
-        typedef make_index_sequence<sizeof...(_Bound)> _Indices;
+        typedef tuple<Bound...>                       BoundTuple;
+        typedef make_index_sequence<sizeof...(Bound)> _Indices;
 
-        _Func       m_func;
-        _BoundTuple m_bound;
+        Func       m_func;
+        BoundTuple m_bound;
 
     public:
-        template<typename _F2, typename... _B2>
-        D_CONSTEXPR explicit bind_expression(_F2&& f, _B2&&... b)
-            : m_func(static_cast<_F2&&>(f)),
-              m_bound(static_cast<_B2&&>(b)...)
+        template<typename F2, typename... B2>
+        RE_STD_CONSTEXPR explicit bind_expression(F2&& f, B2&&... b)
+            : m_func(static_cast<F2&&>(f)),
+              m_bound(static_cast<B2&&>(b)...)
         {}
 
-        template<typename... _Args>
-        D_CONSTEXPR_CPP14 auto operator()(_Args&&... args)
+        template<typename... Args>
+        RE_STD_CONSTEXPR_CPP14 auto operator()(Args&&... args)
             -> decltype(bind_apply(
                    m_func, m_bound,
-                   re_std::forward_as_tuple(static_cast<_Args&&>(args)...),
+                   re_std::forward_as_tuple(static_cast<Args&&>(args)...),
                    _Indices()))
         {
             return bind_apply(
                 m_func, m_bound,
-                re_std::forward_as_tuple(static_cast<_Args&&>(args)...),
+                re_std::forward_as_tuple(static_cast<Args&&>(args)...),
                 _Indices());
         }
 
-        template<typename... _Args>
-        D_CONSTEXPR auto operator()(_Args&&... args) const
+        template<typename... Args>
+        RE_STD_CONSTEXPR auto operator()(Args&&... args) const
             -> decltype(bind_apply(
                    m_func, m_bound,
-                   re_std::forward_as_tuple(static_cast<_Args&&>(args)...),
+                   re_std::forward_as_tuple(static_cast<Args&&>(args)...),
                    _Indices()))
         {
             return bind_apply(
                 m_func, m_bound,
-                re_std::forward_as_tuple(static_cast<_Args&&>(args)...),
+                re_std::forward_as_tuple(static_cast<Args&&>(args)...),
                 _Indices());
         }
     };
 
     // bind_expression_r
     //   class: the object returned by bind<R>().  Return type is fixed, so
-    // the result of the invocation is converted to _Result at the boundary.
-    template<typename _Result, typename _Func, typename... _Bound>
+    // the result of the invocation is converted to Result at the boundary.
+    template<typename Result, typename Func, typename... Bound>
     class bind_expression_r
     {
-        typedef tuple<_Bound...>                       _BoundTuple;
-        typedef make_index_sequence<sizeof...(_Bound)> _Indices;
+        typedef tuple<Bound...>                       BoundTuple;
+        typedef make_index_sequence<sizeof...(Bound)> _Indices;
 
-        _Func       m_func;
-        _BoundTuple m_bound;
+        Func       m_func;
+        BoundTuple m_bound;
 
     public:
-        typedef _Result result_type;
+        typedef Result result_type;
 
-        template<typename _F2, typename... _B2>
-        D_CONSTEXPR explicit bind_expression_r(_F2&& f, _B2&&... b)
-            : m_func(static_cast<_F2&&>(f)),
-              m_bound(static_cast<_B2&&>(b)...)
+        template<typename F2, typename... B2>
+        RE_STD_CONSTEXPR explicit bind_expression_r(F2&& f, B2&&... b)
+            : m_func(static_cast<F2&&>(f)),
+              m_bound(static_cast<B2&&>(b)...)
         {}
 
-        template<typename... _Args>
-        D_CONSTEXPR_CPP14 _Result operator()(_Args&&... args)
+        template<typename... Args>
+        RE_STD_CONSTEXPR_CPP14 Result operator()(Args&&... args)
         {
-            return static_cast<_Result>(bind_apply(
+            return static_cast<Result>(bind_apply(
                 m_func, m_bound,
-                re_std::forward_as_tuple(static_cast<_Args&&>(args)...),
+                re_std::forward_as_tuple(static_cast<Args&&>(args)...),
                 _Indices()));
         }
 
-        template<typename... _Args>
-        D_CONSTEXPR _Result operator()(_Args&&... args) const
+        template<typename... Args>
+        RE_STD_CONSTEXPR Result operator()(Args&&... args) const
         {
-            return static_cast<_Result>(bind_apply(
+            return static_cast<Result>(bind_apply(
                 m_func, m_bound,
-                re_std::forward_as_tuple(static_cast<_Args&&>(args)...),
+                re_std::forward_as_tuple(static_cast<Args&&>(args)...),
                 _Indices()));
         }
     };
 
-NS_END  // internal
+}  // internal
 
 
 // is_bind_expression<...>
 //   trait: marks both bind result types, so a nested bind is recognised by
 // the resolver rather than being stored and passed through as a functor.
-template<typename _Func, typename... _Bound>
-struct is_bind_expression<internal::bind_expression<_Func, _Bound...> >
+template<typename Func, typename... Bound>
+struct is_bind_expression<internal::bind_expression<Func, Bound...> >
     : true_type
 {};
 
-template<typename _Result, typename _Func, typename... _Bound>
-struct is_bind_expression<internal::bind_expression_r<_Result, _Func, _Bound...> >
+template<typename Result, typename Func, typename... Bound>
+struct is_bind_expression<internal::bind_expression_r<Result, Func, Bound...> >
     : true_type
 {};
 
 
 // bind
 //   function: partially apply func, deducing the return type at each call.
-template<typename _Func, typename... _Bound>
-D_CONSTEXPR internal::bind_expression<typename decay<_Func>::type,
-                                      typename decay<_Bound>::type...>
-bind(_Func&& func, _Bound&&... bound)
+template<typename Func, typename... Bound>
+RE_STD_CONSTEXPR internal::bind_expression<typename decay<Func>::type,
+                                      typename decay<Bound>::type...>
+bind(Func&& func, Bound&&... bound)
 {
-    return internal::bind_expression<typename decay<_Func>::type,
-                                     typename decay<_Bound>::type...>(
-        static_cast<_Func&&>(func), static_cast<_Bound&&>(bound)...);
+    return internal::bind_expression<typename decay<Func>::type,
+                                     typename decay<Bound>::type...>(
+        static_cast<Func&&>(func), static_cast<Bound&&>(bound)...);
 }
 
 // bind
-//   function: partially apply func with a fixed return type _Result.
-template<typename _Result, typename _Func, typename... _Bound>
-D_CONSTEXPR internal::bind_expression_r<_Result,
-                                        typename decay<_Func>::type,
-                                        typename decay<_Bound>::type...>
-bind(_Func&& func, _Bound&&... bound)
+//   function: partially apply func with a fixed return type Result.
+template<typename Result, typename Func, typename... Bound>
+RE_STD_CONSTEXPR internal::bind_expression_r<Result,
+                                        typename decay<Func>::type,
+                                        typename decay<Bound>::type...>
+bind(Func&& func, Bound&&... bound)
 {
-    return internal::bind_expression_r<_Result,
-                                       typename decay<_Func>::type,
-                                       typename decay<_Bound>::type...>(
-        static_cast<_Func&&>(func), static_cast<_Bound&&>(bound)...);
+    return internal::bind_expression_r<Result,
+                                       typename decay<Func>::type,
+                                       typename decay<Bound>::type...>(
+        static_cast<Func&&>(func), static_cast<Bound&&>(bound)...);
 }
 
-NS_END  // re_std
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+}  // re_std
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_FUNCTIONAL_BIND_
+#endif  // RE_STD_FUNCTIONAL_BIND_HPP

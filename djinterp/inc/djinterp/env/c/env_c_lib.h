@@ -13,16 +13,16 @@
 *     - threading, networking, file I/O, and memory management
 *     - SIMD intrinsic detection (SSE, AVX, NEON)
 *   Naming: D_ENV_C_HAS_<FEATURE> is 1 if available, 0 otherwise.
-*   It is an internal component of env.h, which includes it after all other
-* environment detection is complete: it reads the D_ENV_LANG_*, D_ENV_OS_*,
-* D_ENV_ARCH_*, D_ENV_COMPILER_*, and D_ENV_IS_OS_POSIX_LIKE* families. Do not
-* include it directly.
+*   It reads the D_ENV_LANG_*, D_ENV_OS_*, D_ENV_ARCH_*, D_ENV_COMPILER_*, and
+* D_ENV_IS_OS_POSIX_LIKE* families, and includes the four sections that define
+* them as well as cfg_env.h, so it gives the same answers whether a unit
+* includes it directly or through env.h.
 *
 *
 * path:      /inc/djinterp/env/c/env_c_lib.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.08
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.30
 *******************************************************************************/
 
 /*
@@ -111,6 +111,14 @@ TABLE OF CONTENTS
 #ifndef DJINTERP_ENV_C_ENV_C_LIB_H
 #define DJINTERP_ENV_C_ENV_C_LIB_H 1
 
+// djinterp
+#include "../../config/core/env/cfg_env.h"  // D_CFG_ENV_ISO_STRICT
+#include "../env_lang.h"                    // D_ENV_LANG_IS_*_OR_HIGHER
+#include "../env_arch.h"                    // D_ENV_ARCH_TYPE
+#include "../env_os.h"                      // D_ENV_OS_ID, D_ENV_IS_OS_*
+#include "../env_compiler.h"                // D_ENV_COMPILER_*
+
+
 #ifdef __STDC_HOSTED__
 
 //==============================================================================
@@ -197,9 +205,26 @@ TABLE OF CONTENTS
 
 // 2.1.2
 // D_ENV_C_HAS_STDINT_H
-//   feature: detect if stdint.h is available (C99+)
+//   feature: detect if stdint.h is available. It is part of C99 and C++11,
+// freestanding implementations included. Below those it is a platform header:
+// found with __has_include where the preprocessor has it, and assumed on GCC
+// and on MSVC from Visual Studio 2010, which ship one. D_CFG_ENV_ISO_STRICT
+// reports it absent below C99 and C++11, where it is not ISO.
 #ifndef D_ENV_C_HAS_STDINT_H
-    #if D_ENV_LANG_IS_C99_OR_HIGHER
+    #if ( (D_ENV_LANG_IS_C99_OR_HIGHER) ||                                     \
+          (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
+        #define D_ENV_C_HAS_STDINT_H 1
+    #elif D_CFG_IS_ON(D_CFG_ENV_ISO_STRICT)
+        #define D_ENV_C_HAS_STDINT_H 0
+    #elif defined(__has_include)
+        #if __has_include(<stdint.h>)
+            #define D_ENV_C_HAS_STDINT_H 1
+        #else
+            #define D_ENV_C_HAS_STDINT_H 0
+        #endif
+    #elif ( (defined(D_ENV_COMPILER_GCC))     ||                               \
+            ( (defined(D_ENV_COMPILER_MSVC)) &&                                \
+              (D_ENV_COMPILER_MAJOR >= 10) ) )
         #define D_ENV_C_HAS_STDINT_H 1
     #else
         #define D_ENV_C_HAS_STDINT_H 0
@@ -208,9 +233,30 @@ TABLE OF CONTENTS
 
 // 2.1.3
 // D_ENV_C_HAS_INTTYPES_H
-//   feature: detect if inttypes.h is available (C99+)
+//   feature: detect if inttypes.h is available, on the same terms as
+// D_ENV_C_HAS_STDINT_H, except that no freestanding implementation has to
+// provide it, so none is taken to; pre-define this to 1 for one that does.
+// __has_include cannot settle that case: Clang's own <inttypes.h> is found
+// even where the C library's, which it includes in turn, is missing. MSVC
+// ships the header from Visual Studio 2013.
 #ifndef D_ENV_C_HAS_INTTYPES_H
-    #if D_ENV_LANG_IS_C99_OR_HIGHER
+    #if ( (defined(__STDC_HOSTED__)) &&                                        \
+          (__STDC_HOSTED__ == 0) )
+        #define D_ENV_C_HAS_INTTYPES_H 0
+    #elif ( (D_ENV_LANG_IS_C99_OR_HIGHER) ||                                   \
+            (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
+        #define D_ENV_C_HAS_INTTYPES_H 1
+    #elif D_CFG_IS_ON(D_CFG_ENV_ISO_STRICT)
+        #define D_ENV_C_HAS_INTTYPES_H 0
+    #elif defined(__has_include)
+        #if __has_include(<inttypes.h>)
+            #define D_ENV_C_HAS_INTTYPES_H 1
+        #else
+            #define D_ENV_C_HAS_INTTYPES_H 0
+        #endif
+    #elif ( (defined(D_ENV_COMPILER_GCC))     ||                               \
+            ( (defined(D_ENV_COMPILER_MSVC)) &&                                \
+              (D_ENV_COMPILER_MAJOR >= 12) ) )
         #define D_ENV_C_HAS_INTTYPES_H 1
     #else
         #define D_ENV_C_HAS_INTTYPES_H 0

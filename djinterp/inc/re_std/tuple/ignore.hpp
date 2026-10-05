@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   ignore.hpp
 *
 * ignore object header:
@@ -19,62 +19,65 @@
 * form below is fine across all tiers >= C++11).
 *
 *
-* path:      /inc/djinterp/re_std/tuple/ignore.hpp
+* path:      /inc/re_std/tuple/ignore.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TUPLE_IGNORE_
-#define DJINTERP_RE_STD_TUPLE_IGNORE_ 1
+#ifndef RE_STD_TUPLE_IGNORE_HPP
+#define RE_STD_TUPLE_IGNORE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+
+
+namespace re_std
+{
 
 
 // =============================================================================
 // I.   IGNORE
 // =============================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // ignore_t
     //   class: discard sink. Accepts any value via operator= and does
     // nothing with it. Constexpr-friendly on C++14+.
     struct ignore_t
     {
-        template<typename _T>
-        D_CONSTEXPR const ignore_t&
+        template<typename T>
+        RE_STD_CONSTEXPR const ignore_t&
         operator=(
-            const _T&
-        ) const D_NOEXCEPT
+            const T&
+        ) const RE_STD_NOEXCEPT
         {
             return *this;
         }
     };
 
-NS_END  // internal
+}  // internal
 
 
 // ignore
 //   variable: a const ignore_t instance for use with tie(). Discards
 // any value assigned to it.
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    inline D_CONSTEXPR internal::ignore_t ignore = {};
+#if RE_STD_LANG_IS_CPP17_OR_HIGHER
+    inline RE_STD_CONSTEXPR internal::ignore_t ignore = {};
 #else
     static const internal::ignore_t ignore = internal::ignore_t();
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_TUPLE_IGNORE_
+#endif  // RE_STD_TUPLE_IGNORE_HPP

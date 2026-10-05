@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                           ratio_multiply.hpp
 *
 * ratio_multiply header:
@@ -23,68 +23,71 @@
 *   C++11, matching std.
 *
 *
-* path:      /inc/djinterp/re_std/ratio/ratio_multiply.hpp
+* path:      /inc/re_std/ratio/ratio_multiply.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RATIO_RATIO_MULTIPLY_
-#define DJINTERP_RE_STD_RATIO_RATIO_MULTIPLY_ 1
+#ifndef RE_STD_RATIO_RATIO_MULTIPLY_HPP
+#define RE_STD_RATIO_RATIO_MULTIPLY_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-// djinterp
+// re_std
 #include "./ratio.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   RATIO_MULTIPLY
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
     // ratio_multiply_impl
-    //   helper: cross-reduces before multiplying. Split out so the public
+    //   trait: cross-reduces before multiplying. Split out so the public
     // alias below stays a one-liner.
-    template<typename _R1,
-             typename _R2>
+    template<typename R1,
+             typename R2>
     struct ratio_multiply_impl
     {
     private:
-        static const std::intmax_t _s_g1 =
-            ratio_gcd< ratio_abs<_R1::num>::value,
-                       ratio_abs<_R2::den>::value >::value;
-        static const std::intmax_t _s_g2 =
-            ratio_gcd< ratio_abs<_R2::num>::value,
-                       ratio_abs<_R1::den>::value >::value;
+        static const intmax_t _s_g1 =
+            ratio_gcd< ratio_abs<R1::num>::value,
+                       ratio_abs<R2::den>::value >::value;
+        static const intmax_t _s_g2 =
+            ratio_gcd< ratio_abs<R2::num>::value,
+                       ratio_abs<R1::den>::value >::value;
 
     public:
-        typedef ratio< (_R1::num / _s_g1) * (_R2::num / _s_g2),
-                       (_R1::den / _s_g2) * (_R2::den / _s_g1) > type;
+        typedef ratio< (R1::num / _s_g1) * (R2::num / _s_g2),
+                       (R1::den / _s_g2) * (R2::den / _s_g1) > type;
     };
 
-NS_END  // internal
+}  // internal
 
 // ratio_multiply
 //   alias: the reduced product of two ratios.
-template<typename _R1,
-         typename _R2>
+template<typename R1,
+         typename R2>
 struct ratio_multiply
-    : internal::ratio_multiply_impl<_R1, _R2>::type
+    : internal::ratio_multiply_impl<R1, R2>::type
 {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RATIO_RATIO_MULTIPLY_
+#endif  // RE_STD_RATIO_RATIO_MULTIPLY_HPP

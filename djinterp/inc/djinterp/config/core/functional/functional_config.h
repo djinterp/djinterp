@@ -1,18 +1,19 @@
-/******************************************************************************
-* djinterp [functional]                                    functional_config.h
+/*******************************************************************************
+* djinterp [config]                                          functional_config.h
 *
 * Feature configuration for the djinterp functional module.
 *
-* 
-* path:      /inc/c/core/config/functional/functional_config.h
+*
+* path:      /inc/djinterp/config/core/functional/functional_config.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.02.22
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.22
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_C_CONFIG_FUNCTIONAL_
-#define DJINTERP_C_CONFIG_FUNCTIONAL_ 1
+#ifndef DJINTERP_CONFIG_CORE_FUNCTIONAL_FUNCTIONAL_CONFIG_H
+#define DJINTERP_CONFIG_CORE_FUNCTIONAL_FUNCTIONAL_CONFIG_H 1
 
-#include "../../../../dconfig.h"
+#include "../../cfg_common.h"  // D_CFG_* helpers, user overrides
 
 
-#endif  // DJINTERP_C_CONFIG_FUNCTIONAL_
+#endif  // DJINTERP_CONFIG_CORE_FUNCTIONAL_FUNCTIONAL_CONFIG_H

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           movable_box.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              movable_box.hpp
 *
 * movable_box header:
 *   Provides the C++20/23 exposition-only "movable-box" utility.
@@ -30,76 +30,80 @@
 *     the destroy-and-reconstruct path uniformly.
 *
 *
-* path:      /inc/djinterp/re_std/ranges/movable_box.hpp
+* path:      /inc/re_std/ranges/movable_box.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_MOVABLE_BOX_
-#define DJINTERP_RE_STD_RANGES_MOVABLE_BOX_ 1
+#ifndef RE_STD_RANGES_MOVABLE_BOX_HPP
+#define RE_STD_RANGES_MOVABLE_BOX_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../optional/optional.hpp"
 #include "../type_traits/type_traits.hpp"
 
 
-NS_RESTD
-NS_INTERNAL
+namespace re_std
+{
+namespace internal
+{
 
 
 // ===========================================================================
 // I.   MOVABLE_BOX
 // ===========================================================================
 
-// movable_box<_T>
-//   class: holds an optional _T. Provides default ctor, copy/move
+// movable_box<T>
+//   class: holds an optional T. Provides default ctor, copy/move
 // ctor, and copy/move assignment by destroying and reconstructing
 // the held value as needed.
-template<typename _T>
+template<typename T>
 class movable_box
 {
 private:
-    optional<_T>    m_value;
+    optional<T>    m_value;
 
 
 public:
     // -------- ctors --------
 
-    // default ctor — leaves the box empty UNLESS _T is default-
-    // constructible, in which case the contained _T is created.
+    // default ctor — leaves the box empty UNLESS T is default-
+    // constructible, in which case the contained T is created.
     // The dispatch is SFINAE-lazy (well-formed only when valid).
-    // D_CONSTEXPR_CPP14, not D_CONSTEXPR: C++11 requires a constexpr
+    // RE_STD_CONSTEXPR_CPP14, not RE_STD_CONSTEXPR: C++11 requires a constexpr
     // constructor to have an EMPTY body, and this one dispatches
     // through _default_init(). Relaxed constexpr from C++14 permits it.
-    D_CONSTEXPR_CPP14
+    RE_STD_CONSTEXPR_CPP14
     movable_box()
         : m_value()
     {
         _default_init(0);
     }
 
-    // value ctor — copies _T in.
-    D_CONSTEXPR
+    // value ctor — copies T in.
+    RE_STD_CONSTEXPR
     movable_box(
-        _T const&  _t
+        T const&  _t
     )
         : m_value(_t)
     {}
 
-    // value ctor — moves _T in.
-    D_CONSTEXPR
+    // value ctor — moves T in.
+    RE_STD_CONSTEXPR
     movable_box(
-        _T&&  _t
+        T&&  _t
     )
-        : m_value(static_cast<_T&&>(_t))
+        : m_value(static_cast<T&&>(_t))
     {}
 
     // copy ctor: copies the underlying optional (which copies the
-    // contained _T iff present).
-    D_CONSTEXPR
+    // contained T iff present).
+    RE_STD_CONSTEXPR
     movable_box(
         movable_box const&  _other
     )
@@ -110,14 +114,14 @@ public:
     movable_box(
         movable_box&&  _other
     )
-        : m_value(static_cast<optional<_T>&&>(_other.m_value))
+        : m_value(static_cast<optional<T>&&>(_other.m_value))
     {}
 
 
     // -------- assignment via destroy + reconstruct --------
 
     // copy assign — if other has a value, replace ours with a copy;
-    // otherwise clear ours. This works for non-assignable _T because
+    // otherwise clear ours. This works for non-assignable T because
     // we go through the optional's emplace (which uses placement
     // new internally).
     movable_box&
@@ -149,7 +153,7 @@ public:
         {
             if (_other.m_value.has_value())
             {
-                m_value.emplace(static_cast<_T&&>(*_other.m_value));
+                m_value.emplace(static_cast<T&&>(*_other.m_value));
             }
             else
             {
@@ -161,40 +165,40 @@ public:
 
 
     // -------- accessors --------
-    D_CONSTEXPR bool
+    RE_STD_CONSTEXPR bool
     has_value() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return m_value.has_value();
     }
 
-    _T&
+    T&
     operator*()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return *m_value;
     }
 
-    _T const&
+    T const&
     operator*() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return *m_value;
     }
 
 
     // -------- mutators --------
-    template<typename _A1>
-    _T&
+    template<typename A1>
+    T&
     emplace(
-        _A1&&  _a1
+        A1&&  _a1
     )
     {
-        m_value.emplace(static_cast<_A1&&>(_a1));
+        m_value.emplace(static_cast<A1&&>(_a1));
         return *m_value;
     }
 
-    _T&
+    T&
     emplace()
     {
         m_value.emplace();
@@ -203,7 +207,7 @@ public:
 
     void
     reset()
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         m_value.reset();
     }
@@ -211,22 +215,22 @@ public:
 
 private:
     // _default_init
-    //   helper: default-constructs the held _T when _T allows it.
+    //   function: default-constructs the held T when T allows it.
     // The unused int parameter creates a SFINAE ranking — the
-    // pointer-overload wins iff _T is default-constructible,
+    // pointer-overload wins iff T is default-constructible,
     // otherwise the ellipsis catch-all does nothing.
-    template<typename _U>
+    template<typename U>
     typename enable_if<
-                  is_default_constructible<_U>::value
+                  is_default_constructible<U>::value
               >::type
     _default_init_impl()
     {
         m_value.emplace();
     }
 
-    template<typename _U>
+    template<typename U>
     typename enable_if<
-                  !is_default_constructible<_U>::value
+                  !is_default_constructible<U>::value
               >::type
     _default_init_impl()
     {
@@ -238,16 +242,16 @@ private:
         int /* dummy */
     )
     {
-        _default_init_impl<_T>();
+        _default_init_impl<T>();
     }
 };
 
 
-NS_END  // internal
-NS_END  // re_std
+}  // internal
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_MOVABLE_BOX_
+#endif  // RE_STD_RANGES_MOVABLE_BOX_HPP

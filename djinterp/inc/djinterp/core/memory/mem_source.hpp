@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/core/memory/mem_source.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.01
 *******************************************************************************/
 
 /*
@@ -49,6 +49,12 @@ IV.   THE COST LAW
 
 #ifndef DJINTERP_MEMORY_MEM_SOURCE_HPP
 #define DJINTERP_MEMORY_MEM_SOURCE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -204,17 +210,17 @@ public:
     // buffer_source (array)
     //   constructor: prepares a source over a whole array, so the size cannot
     // disagree with the storage.
-    template<typename _Type,
-             std::size_t _Count>
+    template<typename Type,
+             std::size_t Count>
     explicit D_INLINE
     buffer_source(
-        _Type (&_array)[_Count]
+        Type (&_array)[Count]
     )
     {
         ::d_mem_buffer_source_init(
             &m_state,
             static_cast<void*>(_array),
-            static_cast<mem_size>(sizeof(_Type) * _Count));
+            static_cast<mem_size>(sizeof(Type) * Count));
     }
 
     buffer_source(const buffer_source&)            = delete;
@@ -336,5 +342,6 @@ D_STATIC_ASSERT((std::is_base_of< ::d_mem_source, memory_source>::value),
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
 #endif  // DJINTERP_MEMORY_MEM_SOURCE_HPP

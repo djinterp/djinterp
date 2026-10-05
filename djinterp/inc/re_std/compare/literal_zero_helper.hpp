@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                      literal_zero_helper.hpp
 *
 * literal_zero_helper internal type:
@@ -32,27 +32,30 @@
 * requires C++11+.
 *
 *
-* path:      /inc/djinterp/re_std/compare/literal_zero_helper.hpp
+* path:      /inc/re_std/compare/literal_zero_helper.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_COMPARE_LITERAL_ZERO_HELPER_
-#define DJINTERP_RE_STD_COMPARE_LITERAL_ZERO_HELPER_ 1
+#ifndef RE_STD_COMPARE_LITERAL_ZERO_HELPER_HPP
+#define RE_STD_COMPARE_LITERAL_ZERO_HELPER_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // gate: the ordering category classes that use this helper need
 // constexpr ctors and rvalue-friendly machinery (C++11+).
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-NS_INTERNAL
+namespace internal
+{
 
 
 // =============================================================================
@@ -69,21 +72,21 @@ public:
     // ctor: takes a pointer to literal_zero_helper. The only way to
     // produce such a pointer from a non-pointer-typed expression in
     // C++ is via the literal 0 → null-pointer-literal conversion.
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     literal_zero_helper(
         literal_zero_helper*
-    ) D_NOEXCEPT
+    ) RE_STD_NOEXCEPT
     {}
 };
 
 
-NS_END  // internal
+}  // internal
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_COMPARE_LITERAL_ZERO_HELPER_
+#endif  // RE_STD_COMPARE_LITERAL_ZERO_HELPER_HPP

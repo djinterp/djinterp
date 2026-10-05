@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               make_any.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                 make_any.hpp
 *
 * make_any factory header:
 *   Provides factory functions for constructing re_std::any objects
@@ -12,24 +12,28 @@
 * use direct construction via the any value constructors instead.
 *
 *
-* path:      /inc/djinterp/re_std/any/make_any.hpp
+* path:      /inc/re_std/any/make_any.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.10
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MAKE_ANY_
-#define DJINTERP_RE_STD_MAKE_ANY_ 1
+#ifndef RE_STD_ANY_MAKE_ANY_HPP
+#define RE_STD_ANY_MAKE_ANY_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "./any.hpp"
 
 // gate: requires variadic templates
-#if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#if RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
+// std
 #include <initializer_list>
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -37,45 +41,45 @@ NS_RESTD
 // ===========================================================================
 
 // make_any (forwarding)
-//   function: constructs an any containing a value of type _Type,
-// forwarding _args to the _Type constructor.
-template<typename    _Type,
-         typename... _Args>
+//   function: constructs an any containing a value of type Type,
+// forwarding _args to the Type constructor.
+template<typename    Type,
+         typename... Args>
 any
 make_any(
-    _Args&&... _args
+    Args&&... _args
 )
 {
     any result;
-    result.template emplace<_Type>(static_cast<_Args&&>(_args)...);
+    result.template emplace<Type>(static_cast<Args&&>(_args)...);
 
     return result;
 }
 
 // make_any (initializer_list)
-//   function: constructs an any containing a value of type _Type,
-// forwarding an initializer_list and additional _args to the _Type
+//   function: constructs an any containing a value of type Type,
+// forwarding an initializer_list and additional _args to the Type
 // constructor.
-template<typename    _Type,
-         typename    _U,
-         typename... _Args>
+template<typename    Type,
+         typename    U,
+         typename... Args>
 any
 make_any(
-    std::initializer_list<_U> _il,
-    _Args&&...                _args
+    std::initializer_list<U> _il,
+    Args&&...                _args
 )
 {
     any result;
-    result.template emplace<_Type>(_il, static_cast<_Args&&>(_args)...);
+    result.template emplace<Type>(_il, static_cast<Args&&>(_args)...);
 
     return result;
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#endif  // RE_STD_LANG_HAS_VARIADIC_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_MAKE_ANY_
+#endif  // RE_STD_ANY_MAKE_ANY_HPP

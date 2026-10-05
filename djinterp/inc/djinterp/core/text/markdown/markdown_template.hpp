@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [markdown]                                    markdown_template.hpp
+/*******************************************************************************
+* djinterp [core]                                          markdown_template.hpp
 *
 *   Templated Markdown block / inline / document facades and the
 * bundled default backend. Mirrors the templating pattern of
@@ -17,9 +17,9 @@
 * distinct types -- the trait layer detects them structurally.
 *
 *   FACADES:
-*   - `markdown_block<_Backend>`    wraps `_Backend::block_type`
-*   - `markdown_inline<_Backend>`   wraps `_Backend::inline_type`
-*   - `markdown_document<_Backend>` holds a `_Backend::document_type`
+*   - `markdown_block<Backend>`    wraps `Backend::block_type`
+*   - `markdown_inline<Backend>`   wraps `Backend::inline_type`
+*   - `markdown_document<Backend>` holds a `Backend::document_type`
 *     by value and exposes the four render targets.
 *
 *   ZERO OVERHEAD:
@@ -37,25 +37,45 @@
 * override or rely on the default emission walking the AST.
 *
 *
-* path:      /inc/djinterp/core/util/markdown/markdown_template.hpp
+* path:      /inc/djinterp/core/text/markdown/markdown_template.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    DEFAULT BACKEND STORAGE
-II.   markdown_block<_Backend>
-III.  markdown_inline<_Backend>
+      -----------------------
+
+II.   markdown_block<Backend>
+      ------------------------
+
+III.  markdown_inline<Backend>
+      -------------------------
+
 IV.   INTERNAL EMISSION HELPERS
-V.    markdown_document<_Backend>
+      -------------------------
+
+V.    markdown_document<Backend>
+      ---------------------------
+
 VI.   markdown_default_backend
+      ------------------------
+
 VII.  FREE HELPERS / FACTORIES
+      ------------------------
 */
 
-#ifndef DJINTERP_MARKDOWN_TEMPLATE_
-#define DJINTERP_MARKDOWN_TEMPLATE_ 1
+#ifndef DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_HPP
+#define DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -66,7 +86,9 @@ VII.  FREE HELPERS / FACTORIES
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"
+#include "../../../djinterp.hpp"  // framework root
+#include "./markdown.hpp"          // markdown_block_kind, markdown_inline_kind,
+                                  // the markdown vocabulary
 
 
 NS_DJINTERP
@@ -151,19 +173,19 @@ namespace markdown {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   markdown_block<_Backend>                           ///
+///                II.   markdown_block<Backend>                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // markdown_block
 //   class: thin facade over a backend block storage node. Holds
 // only a raw pointer to the node; does not own the storage.
-template<typename _Backend>
+template<typename Backend>
 class markdown_block
 {
 public:
     // node_type
     //   type: the backend's block storage type.
-    using node_type = typename _Backend::block_type;
+    using node_type = typename Backend::block_type;
 
 
     /// constructors
@@ -341,16 +363,16 @@ public:
     //   function: returns a facade for the child at `_index`.
     // The returned facade may be a block or an inline depending
     // on this block's kind; check `child.is_block` if needed.
-    markdown_block<_Backend>
+    markdown_block<Backend>
     block_child_at(
         std::size_t     _index
     )   const
     {
         if ((m_node == nullptr) || (_index >= m_node->children.size()))
         {
-            return markdown_block<_Backend>();
+            return markdown_block<Backend>();
         }
-        return markdown_block<_Backend>(m_node->children[_index].get());
+        return markdown_block<Backend>(m_node->children[_index].get());
     }
 
     // add_block
@@ -358,7 +380,7 @@ public:
     // block, appending it as a child of this block.
     void
     add_block(
-        markdown_block<_Backend>&&  _child
+        markdown_block<Backend>&&  _child
     )
     {
         if ((m_node == nullptr) || (!_child.valid()))
@@ -397,18 +419,18 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III.   markdown_inline<_Backend>                         ///
+///                III.   markdown_inline<Backend>                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // markdown_inline
 //   class: thin facade over a backend inline storage node.
 // Same shape as `markdown_block` but exposes inline-specific
 // accessors.
-template<typename _Backend>
+template<typename Backend>
 class markdown_inline
 {
 public:
-    using node_type = typename _Backend::inline_type;
+    using node_type = typename Backend::inline_type;
 
 
     markdown_inline()
@@ -529,21 +551,21 @@ public:
         return (m_node != nullptr) ? m_node->children.size() : 0;
     }
 
-    markdown_inline<_Backend>
+    markdown_inline<Backend>
     inline_child_at(
         std::size_t     _index
     )   const
     {
         if ((m_node == nullptr) || (_index >= m_node->children.size()))
         {
-            return markdown_inline<_Backend>();
+            return markdown_inline<Backend>();
         }
-        return markdown_inline<_Backend>(m_node->children[_index].get());
+        return markdown_inline<Backend>(m_node->children[_index].get());
     }
 
     void
     add_inline(
-        markdown_inline<_Backend>&& _child
+        markdown_inline<Backend>&& _child
     )
     {
         if ((m_node == nullptr) || (!_child.valid()))
@@ -1415,34 +1437,34 @@ namespace markdown {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                V.   markdown_document<_Backend>                         ///
+///                V.   markdown_document<Backend>                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // markdown_document
 //   class: facade over the backend's storage document type plus
 // flavor metadata. Owns the storage by value and exposes the
 // four render targets.
-template<typename _Backend>
+template<typename Backend>
 class markdown_document
 {
 public:
-    using backend_type  = _Backend;
-    using document_type = typename _Backend::document_type;
-    using node_type     = typename _Backend::block_type;
-    using block_facade  = markdown_block<_Backend>;
+    using backend_type  = Backend;
+    using document_type = typename Backend::document_type;
+    using node_type     = typename Backend::block_type;
+    using block_facade  = markdown_block<Backend>;
 
 
     /// constructors
 
     markdown_document()
-    :   m_doc(_Backend::make_markdown_document())
+    :   m_doc(Backend::make_markdown_document())
     {}
 
     explicit
     markdown_document(
         markdown_flavor     _flavor
     )
-    :   m_doc(_Backend::make_markdown_document())
+    :   m_doc(Backend::make_markdown_document())
     {
         m_doc.flavor = _flavor;
     }
@@ -1654,269 +1676,270 @@ struct markdown_default_backend
 // make_markdown_document
 //   function: factory returning a freshly-built document
 // facade for the given backend.
-template<typename _Backend>
-inline markdown_document<_Backend>
+template<typename Backend>
+inline markdown_document<Backend>
 make_markdown_document(
     markdown_flavor     _flavor = markdown_flavor::commonmark
 )
 {
-    return markdown_document<_Backend>(_flavor);
+    return markdown_document<Backend>(_flavor);
 }
 
 
 // make_paragraph
 //   function: returns a new freestanding paragraph block.
-template<typename _Backend>
-inline markdown_block<_Backend>
+template<typename Backend>
+inline markdown_block<Backend>
 make_paragraph()
 {
-    using node_t = typename _Backend::block_type;
+    using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block   = true;
     n->block_kind = markdown_block_kind::paragraph;
-    return markdown_block<_Backend>(n);
+    return markdown_block<Backend>(n);
 }
 
 
 // make_heading
 //   function: returns a new freestanding heading block of the
 // given level (1..6; clamped).
-template<typename _Backend>
-inline markdown_block<_Backend>
+template<typename Backend>
+inline markdown_block<Backend>
 make_heading(
     int     _level
 )
 {
     if (_level < 1) { _level = 1; }
     if (_level > 6) { _level = 6; }
-    using node_t = typename _Backend::block_type;
+    using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block      = true;
     n->block_kind    = heading_kind_from_level(_level);
     n->heading_level = _level;
-    return markdown_block<_Backend>(n);
+    return markdown_block<Backend>(n);
 }
 
 
 // make_fenced_code_block
 //   function: returns a new freestanding fenced code block
 // with the given language tag and code body.
-template<typename _Backend>
-inline markdown_block<_Backend>
+template<typename Backend>
+inline markdown_block<Backend>
 make_fenced_code_block(
     const markdown_string_t&    _code,
     const markdown_string_t&    _language = markdown_string_t()
 )
 {
-    using node_t = typename _Backend::block_type;
+    using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block    = true;
     n->block_kind  = markdown_block_kind::fenced_code_block;
     n->text        = _code;
     n->language    = _language;
     n->info_string = _language;
-    return markdown_block<_Backend>(n);
+    return markdown_block<Backend>(n);
 }
 
 
 // make_thematic_break
 //   function: returns a new freestanding thematic break block.
-template<typename _Backend>
-inline markdown_block<_Backend>
+template<typename Backend>
+inline markdown_block<Backend>
 make_thematic_break()
 {
-    using node_t = typename _Backend::block_type;
+    using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block   = true;
     n->block_kind = markdown_block_kind::thematic_break;
-    return markdown_block<_Backend>(n);
+    return markdown_block<Backend>(n);
 }
 
 
 // make_block_quote
 //   function: returns a new freestanding block quote.
-template<typename _Backend>
-inline markdown_block<_Backend>
+template<typename Backend>
+inline markdown_block<Backend>
 make_block_quote()
 {
-    using node_t = typename _Backend::block_type;
+    using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block   = true;
     n->block_kind = markdown_block_kind::block_quote;
-    return markdown_block<_Backend>(n);
+    return markdown_block<Backend>(n);
 }
 
 
 // make_list
 //   function: returns a new freestanding list block.
-template<typename _Backend>
-inline markdown_block<_Backend>
+template<typename Backend>
+inline markdown_block<Backend>
 make_list(
     bool    _ordered = false,
     int     _start   = 1
 )
 {
-    using node_t = typename _Backend::block_type;
+    using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block     = true;
     n->block_kind   = _ordered ? markdown_block_kind::ordered_list
                                : markdown_block_kind::unordered_list;
     n->list_ordered = _ordered;
     n->list_start   = _start;
-    return markdown_block<_Backend>(n);
+    return markdown_block<Backend>(n);
 }
 
 
 // make_list_item
 //   function: returns a new freestanding list item block.
-template<typename _Backend>
-inline markdown_block<_Backend>
+template<typename Backend>
+inline markdown_block<Backend>
 make_list_item()
 {
-    using node_t = typename _Backend::block_type;
+    using node_t = typename Backend::block_type;
     node_t* n = new node_t;
     n->is_block    = true;
     n->block_kind  = markdown_block_kind::list_item;
     n->list_bullet = D_MARKDOWN_DEFAULT_BULLET;
-    return markdown_block<_Backend>(n);
+    return markdown_block<Backend>(n);
 }
 
 
 // make_text
 //   function: returns a new freestanding text inline.
-template<typename _Backend>
-inline markdown_inline<_Backend>
+template<typename Backend>
+inline markdown_inline<Backend>
 make_text(
     const markdown_string_t&    _text
 )
 {
-    using node_t = typename _Backend::inline_type;
+    using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
     n->inline_kind = markdown_inline_kind::text;
     n->text        = _text;
-    return markdown_inline<_Backend>(n);
+    return markdown_inline<Backend>(n);
 }
 
 
 // make_emphasis
 //   function: returns a new freestanding emphasis inline.
-template<typename _Backend>
-inline markdown_inline<_Backend>
+template<typename Backend>
+inline markdown_inline<Backend>
 make_emphasis()
 {
-    using node_t = typename _Backend::inline_type;
+    using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
     n->inline_kind = markdown_inline_kind::emphasis;
-    return markdown_inline<_Backend>(n);
+    return markdown_inline<Backend>(n);
 }
 
 
 // make_strong
 //   function: returns a new freestanding strong inline.
-template<typename _Backend>
-inline markdown_inline<_Backend>
+template<typename Backend>
+inline markdown_inline<Backend>
 make_strong()
 {
-    using node_t = typename _Backend::inline_type;
+    using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
     n->inline_kind = markdown_inline_kind::strong;
-    return markdown_inline<_Backend>(n);
+    return markdown_inline<Backend>(n);
 }
 
 
 // make_code_span
 //   function: returns a new freestanding code span inline.
-template<typename _Backend>
-inline markdown_inline<_Backend>
+template<typename Backend>
+inline markdown_inline<Backend>
 make_code_span(
     const markdown_string_t&    _code
 )
 {
-    using node_t = typename _Backend::inline_type;
+    using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
     n->inline_kind = markdown_inline_kind::code_span;
     n->text        = _code;
-    return markdown_inline<_Backend>(n);
+    return markdown_inline<Backend>(n);
 }
 
 
 // make_link
 //   function: returns a new freestanding link inline.
-template<typename _Backend>
-inline markdown_inline<_Backend>
+template<typename Backend>
+inline markdown_inline<Backend>
 make_link(
     const markdown_string_t&    _url,
     const markdown_string_t&    _title = markdown_string_t()
 )
 {
-    using node_t = typename _Backend::inline_type;
+    using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
     n->inline_kind = markdown_inline_kind::link;
     n->url         = _url;
     n->title       = _title;
-    return markdown_inline<_Backend>(n);
+    return markdown_inline<Backend>(n);
 }
 
 
 // make_image
 //   function: returns a new freestanding image inline.
-template<typename _Backend>
-inline markdown_inline<_Backend>
+template<typename Backend>
+inline markdown_inline<Backend>
 make_image(
     const markdown_string_t&    _url,
     const markdown_string_t&    _alt   = markdown_string_t(),
     const markdown_string_t&    _title = markdown_string_t()
 )
 {
-    using node_t = typename _Backend::inline_type;
+    using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
     n->inline_kind = markdown_inline_kind::image;
     n->url         = _url;
     n->alt_text    = _alt;
     n->title       = _title;
-    return markdown_inline<_Backend>(n);
+    return markdown_inline<Backend>(n);
 }
 
 
 // make_autolink
 //   function: returns a new freestanding autolink inline.
-template<typename _Backend>
-inline markdown_inline<_Backend>
+template<typename Backend>
+inline markdown_inline<Backend>
 make_autolink(
     const markdown_string_t&    _url
 )
 {
-    using node_t = typename _Backend::inline_type;
+    using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
     n->inline_kind = markdown_inline_kind::autolink;
     n->url         = _url;
-    return markdown_inline<_Backend>(n);
+    return markdown_inline<Backend>(n);
 }
 
 
 // make_hard_break
 //   function: returns a new freestanding hard line break.
-template<typename _Backend>
-inline markdown_inline<_Backend>
+template<typename Backend>
+inline markdown_inline<Backend>
 make_hard_break()
 {
-    using node_t = typename _Backend::inline_type;
+    using node_t = typename Backend::inline_type;
     node_t* n = new node_t;
     n->is_block    = false;
     n->inline_kind = markdown_inline_kind::hard_break;
-    return markdown_inline<_Backend>(n);
+    return markdown_inline<Backend>(n);
 }
 
 
 }   // namespace markdown
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_MARKDOWN_TEMPLATE_
+#endif  // DJINTERP_TEXT_MARKDOWN_MARKDOWN_TEMPLATE_HPP

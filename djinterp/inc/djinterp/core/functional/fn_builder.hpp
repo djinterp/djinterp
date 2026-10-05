@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                         fn_builder.hpp
+/*******************************************************************************
+* djinterp [core]                                                 fn_builder.hpp
 *
 * Template fluent builder for constructing function chains (C++11+).
 *   A type-safe builder that accumulates transformers and predicates,
@@ -8,7 +8,7 @@
 *   REFACTORED 2026-05-27: the chain is no longer a
 * std::function<vector(vector)>. Each operation now wraps its
 * predecessor in a stored-by-value typed step functor, so the builder
-* carries a third template parameter, _Chain, naming the concrete
+* carries a third template parameter, Chain, naming the concrete
 * composed chain type. This removes the std::function indirection
 * (heap allocation + indirect call per chain) and lets the compiler
 * inline the whole pipeline.
@@ -30,14 +30,21 @@
 *       .map([](int x) { return std::to_string(x); })
 *       .execute(input_vector);
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/fn_builder.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_FN_BUILDER_
-#define DJINTERP_FUNCTIONAL_FN_BUILDER_ 1
+#ifndef DJINTERP_FUNCTIONAL_FN_BUILDER_HPP
+#define DJINTERP_FUNCTIONAL_FN_BUILDER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <algorithm>
@@ -47,8 +54,8 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
-#include "./functional_traits.hpp"
+#include "../../djinterp.hpp"
+#include "./functional_common.hpp"  // callable_result_t
 
 
 NS_DJINTERP
@@ -75,33 +82,33 @@ NS_INTERNAL
 
     // identity_chain
     //   the seed of every builder: returns its input vector unchanged.
-    template<typename _InputType>
+    template<typename InputType>
     struct identity_chain
     {
-        std::vector<_InputType>
-        operator()(const std::vector<_InputType>& _in) const
+        std::vector<InputType>
+        operator()(const std::vector<InputType>& _in) const
         {
             return _in;
         }
     };
 
     // map_chain
-    //   applies _Fn to each element produced by the predecessor.
-    template<typename _Prev,
-             typename _Fn,
-             typename _ResultType>
+    //   applies Fn to each element produced by the predecessor.
+    template<typename Prev,
+             typename Fn,
+             typename ResultType>
     class map_chain
     {
     public:
-        map_chain(const _Prev& _prev, const _Fn& _fn)
+        map_chain(const Prev& _prev, const Fn& _fn)
             : m_prev(_prev), m_fn(_fn) {}
 
-        template<typename _InputType>
-        std::vector<_ResultType>
-        operator()(const std::vector<_InputType>& _in) const
+        template<typename InputType>
+        std::vector<ResultType>
+        operator()(const std::vector<InputType>& _in) const
         {
             auto intermediate = m_prev(_in);
-            std::vector<_ResultType> result;
+            std::vector<ResultType> result;
 
             result.reserve(intermediate.size());
 
@@ -114,27 +121,27 @@ NS_INTERNAL
         }
 
     private:
-        _Prev m_prev;
-        _Fn   m_fn;
+        Prev m_prev;
+        Fn    m_fn;
     };
 
     // filter_chain_step
-    //   keeps elements satisfying _Pred.
-    template<typename _Prev,
-             typename _Pred,
-             typename _CurrentType>
+    //   keeps elements satisfying Pred.
+    template<typename Prev,
+             typename Pred,
+             typename CurrentType>
     class filter_chain_step
     {
     public:
-        filter_chain_step(const _Prev& _prev, const _Pred& _pred)
+        filter_chain_step(const Prev& _prev, const Pred& _pred)
             : m_prev(_prev), m_pred(_pred) {}
 
-        template<typename _InputType>
-        std::vector<_CurrentType>
-        operator()(const std::vector<_InputType>& _in) const
+        template<typename InputType>
+        std::vector<CurrentType>
+        operator()(const std::vector<InputType>& _in) const
         {
             auto intermediate = m_prev(_in);
-            std::vector<_CurrentType> result;
+            std::vector<CurrentType> result;
 
             for (const auto& element : intermediate)
             {
@@ -145,85 +152,85 @@ NS_INTERNAL
         }
 
     private:
-        _Prev m_prev;
-        _Pred m_pred;
+        Prev m_prev;
+        Pred m_pred;
     };
 
     // take_chain
-    template<typename _Prev,
-             typename _CurrentType>
+    template<typename Prev,
+             typename CurrentType>
     class take_chain
     {
     public:
-        take_chain(const _Prev& _prev, std::size_t _n)
+        take_chain(const Prev& _prev, std::size_t _n)
             : m_prev(_prev), m_n(_n) {}
 
-        template<typename _InputType>
-        std::vector<_CurrentType>
-        operator()(const std::vector<_InputType>& _in) const
+        template<typename InputType>
+        std::vector<CurrentType>
+        operator()(const std::vector<InputType>& _in) const
         {
             auto intermediate = m_prev(_in);
             std::size_t count = (m_n < intermediate.size())
                               ? m_n : intermediate.size();
 
-            return std::vector<_CurrentType>(
+            return std::vector<CurrentType>(
                 intermediate.begin(),
                 intermediate.begin() +
                     static_cast<typename
-                        std::vector<_CurrentType>::difference_type>(count));
+                        std::vector<CurrentType>::difference_type>(count));
         }
 
     private:
-        _Prev       m_prev;
+        Prev        m_prev;
         std::size_t m_n;
     };
 
     // skip_chain
-    template<typename _Prev,
-             typename _CurrentType>
+    template<typename Prev,
+             typename CurrentType>
     class skip_chain
     {
     public:
-        skip_chain(const _Prev& _prev, std::size_t _n)
+        skip_chain(const Prev& _prev, std::size_t _n)
             : m_prev(_prev), m_n(_n) {}
 
-        template<typename _InputType>
-        std::vector<_CurrentType>
-        operator()(const std::vector<_InputType>& _in) const
+        template<typename InputType>
+        std::vector<CurrentType>
+        operator()(const std::vector<InputType>& _in) const
         {
             auto intermediate = m_prev(_in);
 
             if (m_n >= intermediate.size())
             {
-                return std::vector<_CurrentType>();
+                return std::vector<CurrentType>();
             }
 
-            return std::vector<_CurrentType>(
+            return std::vector<CurrentType>(
                 intermediate.begin() +
                     static_cast<typename
-                        std::vector<_CurrentType>::difference_type>(m_n),
+                        std::vector<CurrentType>::difference_type>(m_n),
                 intermediate.end());
         }
 
     private:
-        _Prev       m_prev;
+        Prev        m_prev;
         std::size_t m_n;
     };
 
     // distinct_chain
-    template<typename _Prev,
-             typename _CurrentType>
+    template<typename Prev,
+             typename CurrentType>
     class distinct_chain
     {
     public:
-        explicit distinct_chain(const _Prev& _prev) : m_prev(_prev) {}
+        explicit distinct_chain(const Prev& _prev) : m_prev(_prev) {}
 
-        template<typename _InputType>
-        std::vector<_CurrentType>
-        operator()(const std::vector<_InputType>& _in) const
+        template<typename InputType>
+        std::vector<CurrentType>
+        operator()(const std::vector<InputType>& _in) const
         {
             auto intermediate = m_prev(_in);
-            std::vector<_CurrentType> result;
+            std::vector<CurrentType> result;
 
             for (const auto& element : intermediate)
             {
@@ -241,20 +248,20 @@ NS_INTERNAL
         }
 
     private:
-        _Prev m_prev;
+        Prev m_prev;
     };
 
     // reversed_chain
-    template<typename _Prev,
-             typename _CurrentType>
+    template<typename Prev,
+             typename CurrentType>
     class reversed_chain
     {
     public:
-        explicit reversed_chain(const _Prev& _prev) : m_prev(_prev) {}
+        explicit reversed_chain(const Prev& _prev) : m_prev(_prev) {}
 
-        template<typename _InputType>
-        std::vector<_CurrentType>
-        operator()(const std::vector<_InputType>& _in) const
+        template<typename InputType>
+        std::vector<CurrentType>
+        operator()(const std::vector<InputType>& _in) const
         {
             auto intermediate = m_prev(_in);
 
@@ -264,22 +271,22 @@ NS_INTERNAL
         }
 
     private:
-        _Prev m_prev;
+        Prev m_prev;
     };
 
     // sorted_chain
-    template<typename _Prev,
-             typename _Compare,
-             typename _CurrentType>
+    template<typename Prev,
+             typename Compare,
+             typename CurrentType>
     class sorted_chain
     {
     public:
-        sorted_chain(const _Prev& _prev, const _Compare& _cmp)
+        sorted_chain(const Prev& _prev, const Compare& _cmp)
             : m_prev(_prev), m_cmp(_cmp) {}
 
-        template<typename _InputType>
-        std::vector<_CurrentType>
-        operator()(const std::vector<_InputType>& _in) const
+        template<typename InputType>
+        std::vector<CurrentType>
+        operator()(const std::vector<InputType>& _in) const
         {
             auto intermediate = m_prev(_in);
 
@@ -289,26 +296,26 @@ NS_INTERNAL
         }
 
     private:
-        _Prev    m_prev;
-        _Compare m_cmp;
+        Prev     m_prev;
+        Compare m_cmp;
     };
 
     // flat_map_chain
-    template<typename _Prev,
-             typename _Fn,
-             typename _ResultType>
+    template<typename Prev,
+             typename Fn,
+             typename ResultType>
     class flat_map_chain
     {
     public:
-        flat_map_chain(const _Prev& _prev, const _Fn& _fn)
+        flat_map_chain(const Prev& _prev, const Fn& _fn)
             : m_prev(_prev), m_fn(_fn) {}
 
-        template<typename _InputType>
-        std::vector<_ResultType>
-        operator()(const std::vector<_InputType>& _in) const
+        template<typename InputType>
+        std::vector<ResultType>
+        operator()(const std::vector<InputType>& _in) const
         {
             auto intermediate = m_prev(_in);
-            std::vector<_ResultType> result;
+            std::vector<ResultType> result;
 
             for (const auto& element : intermediate)
             {
@@ -324,8 +331,8 @@ NS_INTERNAL
         }
 
     private:
-        _Prev m_prev;
-        _Fn   m_fn;
+        Prev m_prev;
+        Fn    m_fn;
     };
 
 NS_END  // internal
@@ -336,19 +343,19 @@ NS_END  // internal
 ///////////////////////////////////////////////////////////////////////////////
 
 // fn_builder
-//   class: fluent builder for typed function chains. _InputType is the
-// original input element type; _CurrentType is the element type after
-// all accumulated operations; _Chain is the concrete composed chain
-// functor type (vector<_InputType> -> vector<_CurrentType>).
-template<typename _InputType,
-         typename _CurrentType = _InputType,
-         typename _Chain = internal::identity_chain<_InputType> >
+//   class: fluent builder for typed function chains. InputType is the
+// original input element type; CurrentType is the element type after
+// all accumulated operations; Chain is the concrete composed chain
+// functor type (vector<InputType> -> vector<CurrentType>).
+template<typename InputType,
+         typename CurrentType = InputType,
+         typename Chain = internal::identity_chain<InputType> >
 class fn_builder
 {
 public:
-    typedef _Chain chain_type;
+    typedef Chain chain_type;
 
-    explicit fn_builder(_Chain _chain)
+    explicit fn_builder(Chain _chain)
         : m_chain(std::move(_chain))
     {}
 
@@ -358,13 +365,13 @@ public:
 
     // create
     //   static: a new empty builder seeded with the identity chain.
-    static fn_builder<_InputType, _InputType,
-                      internal::identity_chain<_InputType> >
+    static fn_builder<InputType, InputType,
+                      internal::identity_chain<InputType> >
     create()
     {
-        return fn_builder<_InputType, _InputType,
-                          internal::identity_chain<_InputType> >(
-            internal::identity_chain<_InputType>());
+        return fn_builder<InputType, InputType,
+                          internal::identity_chain<InputType> >(
+            internal::identity_chain<InputType>());
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -372,144 +379,144 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     // map
-    template<typename _Fn,
-             typename _ResultType = callable_result_t<_Fn, const _CurrentType&>,
+    template<typename Fn,
+             typename ResultType = callable_result_t<Fn, const CurrentType&>,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _CurrentType&>::value>::type>
+                 is_callable<Fn, const CurrentType&>::value>::type>
     D_NODISCARD
-    fn_builder<_InputType, _ResultType,
-               internal::map_chain<_Chain, _Fn, _ResultType> >
-    map(_Fn _fn) const
+    fn_builder<InputType, ResultType,
+               internal::map_chain<Chain, Fn, ResultType> >
+    map(Fn _fn) const
     {
-        typedef internal::map_chain<_Chain, _Fn, _ResultType> new_chain;
+        typedef internal::map_chain<Chain, Fn, ResultType> new_chain;
 
-        return fn_builder<_InputType, _ResultType, new_chain>(
+        return fn_builder<InputType, ResultType, new_chain>(
             new_chain(m_chain, _fn));
     }
 
     // and_then (alias for map)
-    template<typename _Fn,
-             typename _ResultType = callable_result_t<_Fn, const _CurrentType&>,
+    template<typename Fn,
+             typename ResultType = callable_result_t<Fn, const CurrentType&>,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _CurrentType&>::value>::type>
+                 is_callable<Fn, const CurrentType&>::value>::type>
     D_NODISCARD
-    fn_builder<_InputType, _ResultType,
-               internal::map_chain<_Chain, _Fn, _ResultType> >
-    and_then(_Fn _fn) const
+    fn_builder<InputType, ResultType,
+               internal::map_chain<Chain, Fn, ResultType> >
+    and_then(Fn _fn) const
     {
         return map(std::move(_fn));
     }
 
     // filter
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _CurrentType&>::value>::type>
+                 is_predicate<Pred, const CurrentType&>::value>::type>
     D_NODISCARD
-    fn_builder<_InputType, _CurrentType,
-               internal::filter_chain_step<_Chain, _Pred, _CurrentType> >
-    filter(_Pred _pred) const
+    fn_builder<InputType, CurrentType,
+               internal::filter_chain_step<Chain, Pred, CurrentType> >
+    filter(Pred _pred) const
     {
-        typedef internal::filter_chain_step<_Chain, _Pred, _CurrentType>
+        typedef internal::filter_chain_step<Chain, Pred, CurrentType>
             new_chain;
 
-        return fn_builder<_InputType, _CurrentType, new_chain>(
+        return fn_builder<InputType, CurrentType, new_chain>(
             new_chain(m_chain, _pred));
     }
 
     // where (alias for filter)
-    template<typename _Pred,
+    template<typename Pred,
              typename = typename std::enable_if<
-                 is_predicate<_Pred, const _CurrentType&>::value>::type>
+                 is_predicate<Pred, const CurrentType&>::value>::type>
     D_NODISCARD
-    fn_builder<_InputType, _CurrentType,
-               internal::filter_chain_step<_Chain, _Pred, _CurrentType> >
-    where(_Pred _pred) const
+    fn_builder<InputType, CurrentType,
+               internal::filter_chain_step<Chain, Pred, CurrentType> >
+    where(Pred _pred) const
     {
         return filter(std::move(_pred));
     }
 
     // take
     D_NODISCARD
-    fn_builder<_InputType, _CurrentType,
-               internal::take_chain<_Chain, _CurrentType> >
+    fn_builder<InputType, CurrentType,
+               internal::take_chain<Chain, CurrentType> >
     take(std::size_t _n) const
     {
-        typedef internal::take_chain<_Chain, _CurrentType> new_chain;
+        typedef internal::take_chain<Chain, CurrentType> new_chain;
 
-        return fn_builder<_InputType, _CurrentType, new_chain>(
+        return fn_builder<InputType, CurrentType, new_chain>(
             new_chain(m_chain, _n));
     }
 
     // skip
     D_NODISCARD
-    fn_builder<_InputType, _CurrentType,
-               internal::skip_chain<_Chain, _CurrentType> >
+    fn_builder<InputType, CurrentType,
+               internal::skip_chain<Chain, CurrentType> >
     skip(std::size_t _n) const
     {
-        typedef internal::skip_chain<_Chain, _CurrentType> new_chain;
+        typedef internal::skip_chain<Chain, CurrentType> new_chain;
 
-        return fn_builder<_InputType, _CurrentType, new_chain>(
+        return fn_builder<InputType, CurrentType, new_chain>(
             new_chain(m_chain, _n));
     }
 
     // distinct
     D_NODISCARD
-    fn_builder<_InputType, _CurrentType,
-               internal::distinct_chain<_Chain, _CurrentType> >
+    fn_builder<InputType, CurrentType,
+               internal::distinct_chain<Chain, CurrentType> >
     distinct() const
     {
-        typedef internal::distinct_chain<_Chain, _CurrentType> new_chain;
+        typedef internal::distinct_chain<Chain, CurrentType> new_chain;
 
-        return fn_builder<_InputType, _CurrentType, new_chain>(
+        return fn_builder<InputType, CurrentType, new_chain>(
             new_chain(m_chain));
     }
 
     // reversed
     D_NODISCARD
-    fn_builder<_InputType, _CurrentType,
-               internal::reversed_chain<_Chain, _CurrentType> >
+    fn_builder<InputType, CurrentType,
+               internal::reversed_chain<Chain, CurrentType> >
     reversed() const
     {
-        typedef internal::reversed_chain<_Chain, _CurrentType> new_chain;
+        typedef internal::reversed_chain<Chain, CurrentType> new_chain;
 
-        return fn_builder<_InputType, _CurrentType, new_chain>(
+        return fn_builder<InputType, CurrentType, new_chain>(
             new_chain(m_chain));
     }
 
     // sorted
-    template<typename _Compare,
+    template<typename Compare,
              typename = typename std::enable_if<
-                 is_callable<_Compare,
-                     const _CurrentType&, const _CurrentType&>::value>::type>
+                 is_callable<Compare,
+                     const CurrentType&, const CurrentType&>::value>::type>
     D_NODISCARD
-    fn_builder<_InputType, _CurrentType,
-               internal::sorted_chain<_Chain, _Compare, _CurrentType> >
-    sorted(_Compare _cmp) const
+    fn_builder<InputType, CurrentType,
+               internal::sorted_chain<Chain, Compare, CurrentType> >
+    sorted(Compare _cmp) const
     {
-        typedef internal::sorted_chain<_Chain, _Compare, _CurrentType>
+        typedef internal::sorted_chain<Chain, Compare, CurrentType>
             new_chain;
 
-        return fn_builder<_InputType, _CurrentType, new_chain>(
+        return fn_builder<InputType, CurrentType, new_chain>(
             new_chain(m_chain, _cmp));
     }
 
     // flat_map
-    template<typename _Fn,
-             typename _InnerContainer = callable_result_t<
-                 _Fn, const _CurrentType&>,
-             typename _ResultType = typename std::decay<
+    template<typename Fn,
+             typename InnerContainer = callable_result_t<
+                 Fn, const CurrentType&>,
+             typename ResultType = typename std::decay<
                  decltype(*std::begin(
-                     std::declval<const _InnerContainer&>()))>::type,
+                     std::declval<const InnerContainer&>()))>::type,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _CurrentType&>::value>::type>
+                 is_callable<Fn, const CurrentType&>::value>::type>
     D_NODISCARD
-    fn_builder<_InputType, _ResultType,
-               internal::flat_map_chain<_Chain, _Fn, _ResultType> >
-    flat_map(_Fn _fn) const
+    fn_builder<InputType, ResultType,
+               internal::flat_map_chain<Chain, Fn, ResultType> >
+    flat_map(Fn _fn) const
     {
-        typedef internal::flat_map_chain<_Chain, _Fn, _ResultType> new_chain;
+        typedef internal::flat_map_chain<Chain, Fn, ResultType> new_chain;
 
-        return fn_builder<_InputType, _ResultType, new_chain>(
+        return fn_builder<InputType, ResultType, new_chain>(
             new_chain(m_chain, _fn));
     }
 
@@ -519,65 +526,65 @@ public:
 
     // execute (vector)
     D_NODISCARD
-    std::vector<_CurrentType>
-    execute(const std::vector<_InputType>& _input) const
+    std::vector<CurrentType>
+    execute(const std::vector<InputType>& _input) const
     {
         return m_chain(_input);
     }
 
     // execute (container)
-    template<typename _Container,
+    template<typename Container,
              typename = typename std::enable_if<
                  std::is_convertible<
                      typename std::decay<decltype(*std::begin(
-                         std::declval<const _Container&>()))>::type,
-                     _InputType>::value>::type>
+                         std::declval<const Container&>()))>::type,
+                     InputType>::value>::type>
     D_NODISCARD
-    std::vector<_CurrentType>
-    execute(const _Container& _input) const
+    std::vector<CurrentType>
+    execute(const Container& _input) const
     {
-        std::vector<_InputType> vec(std::begin(_input), std::end(_input));
+        std::vector<InputType> vec(std::begin(_input), std::end(_input));
 
         return m_chain(vec);
     }
 
     // execute (raw array)
     D_NODISCARD
-    std::vector<_CurrentType>
-    execute(const _InputType* _data, std::size_t _count) const
+    std::vector<CurrentType>
+    execute(const InputType* _data, std::size_t _count) const
     {
-        std::vector<_InputType> vec(_data, _data + _count);
+        std::vector<InputType> vec(_data, _data + _count);
 
         return m_chain(vec);
     }
 
     // operator() (shorthand for execute)
-    template<typename _Container>
+    template<typename Container>
     D_NODISCARD
-    std::vector<_CurrentType>
-    operator()(const _Container& _input) const
+    std::vector<CurrentType>
+    operator()(const Container& _input) const
     {
         return execute(_input);
     }
 
     // fold (terminal)
-    template<typename _Acc,
-             typename _Fn,
+    template<typename Acc,
+             typename Fn,
              typename = typename std::enable_if<
-                 is_callable<_Fn, const _Acc&,
-                     const _CurrentType&>::value>::type>
+                 is_callable<Fn, const Acc&,
+                     const CurrentType&>::value>::type>
     D_NODISCARD
-    _Acc
-    fold(const std::vector<_InputType>& _input,
-         _Acc                           _init,
-         _Fn&&                          _fn) const
+    Acc
+    fold(const std::vector<InputType>& _input,
+         Acc                            _init,
+         Fn&&                          _fn) const
     {
         auto data = m_chain(_input);
 
         for (const auto& element : data)
         {
-            _init = std::forward<_Fn>(_fn)(
-                static_cast<const _Acc&>(_init), element);
+            _init = std::forward<Fn>(_fn)(
+                static_cast<const Acc&>(_init), element);
         }
 
         return _init;
@@ -586,7 +593,7 @@ public:
     // count (terminal)
     D_NODISCARD
     std::size_t
-    count(const std::vector<_InputType>& _input) const
+    count(const std::vector<InputType>& _input) const
     {
         return m_chain(_input).size();
     }
@@ -594,7 +601,7 @@ public:
     // any (terminal)
     D_NODISCARD
     bool
-    any(const std::vector<_InputType>& _input) const
+    any(const std::vector<InputType>& _input) const
     {
         return !m_chain(_input).empty();
     }
@@ -603,14 +610,14 @@ public:
     //   method: const access to the composed chain functor (for
     // introspection / boxing).
     D_NODISCARD
-    const _Chain& chain() const { return m_chain; }
+    const Chain& chain() const { return m_chain; }
 
     // Grant access to private members for type-changing operations.
-    template<typename _I, typename _C, typename _Ch>
+    template<typename I, typename C, typename Ch>
     friend class fn_builder;
 
 private:
-    _Chain m_chain;
+    Chain m_chain;
 };
 
 
@@ -620,13 +627,13 @@ private:
 
 // make_builder
 //   function: creates a new function chain builder for the given type.
-template<typename _Type>
+template<typename Type>
 D_NODISCARD
-fn_builder<_Type, _Type, internal::identity_chain<_Type> >
+fn_builder<Type, Type, internal::identity_chain<Type> >
 make_builder()
 {
-    return fn_builder<_Type, _Type,
-                      internal::identity_chain<_Type> >::create();
+    return fn_builder<Type, Type,
+                      internal::identity_chain<Type> >::create();
 }
 
 
@@ -640,36 +647,36 @@ make_builder()
 // concrete type, regardless of how it was composed. Use for
 // heterogeneous storage, ABI boundaries, or runtime selection. Comes
 // with the usual std::function overhead.
-template<typename _InputType,
-         typename _OutputType>
+template<typename InputType,
+         typename OutputType>
 class boxed_fn_builder
 {
 public:
-    typedef std::function<std::vector<_OutputType>(
-        const std::vector<_InputType>&)> chain_fn;
+    typedef std::function<std::vector<OutputType>(
+        const std::vector<InputType>&)> chain_fn;
 
     // construct from any typed fn_builder whose CurrentType is
-    // _OutputType.
-    template<typename _Chain>
+    // OutputType.
+    template<typename Chain>
     explicit boxed_fn_builder(
-        const fn_builder<_InputType, _OutputType, _Chain>& _b
+        const fn_builder<InputType, OutputType, Chain>& _b
     )
         : m_chain(_b.chain())
     {}
 
     D_NODISCARD
-    std::vector<_OutputType>
-    execute(const std::vector<_InputType>& _input) const
+    std::vector<OutputType>
+    execute(const std::vector<InputType>& _input) const
     {
         return m_chain(_input);
     }
 
-    template<typename _Container>
+    template<typename Container>
     D_NODISCARD
-    std::vector<_OutputType>
-    operator()(const _Container& _input) const
+    std::vector<OutputType>
+    operator()(const Container& _input) const
     {
-        std::vector<_InputType> vec(std::begin(_input), std::end(_input));
+        std::vector<InputType> vec(std::begin(_input), std::end(_input));
 
         return m_chain(vec);
     }
@@ -682,14 +689,14 @@ private:
 // box_builder
 //   function: erases a typed fn_builder into a boxed_fn_builder.
 // Input/Output types are taken from the builder.
-template<typename _InputType,
-         typename _OutputType,
-         typename _Chain>
+template<typename InputType,
+         typename OutputType,
+         typename Chain>
 D_NODISCARD
-boxed_fn_builder<_InputType, _OutputType>
-box_builder(const fn_builder<_InputType, _OutputType, _Chain>& _b)
+boxed_fn_builder<InputType, OutputType>
+box_builder(const fn_builder<InputType, OutputType, Chain>& _b)
 {
-    return boxed_fn_builder<_InputType, _OutputType>(_b);
+    return boxed_fn_builder<InputType, OutputType>(_b);
 }
 
 
@@ -701,7 +708,7 @@ box_builder(const fn_builder<_InputType, _OutputType, _Chain>& _b)
 // current (output) element types a builder carries, and whether a callable is
 // a valid mapper / predicate for a builder over a given element type. The
 // mapper / predicate traits are expressed in terms of the shared is_callable /
-// is_predicate detectors (const _Type& is exactly how the builder's fluent
+// is_predicate detectors (const Type& is exactly how the builder's fluent
 // operations invoke their callables). Each predicate reduces to a `static
 // constexpr bool value`; the extractors yield a `::type`. The C++20 concepts
 // close the section.
@@ -711,130 +718,130 @@ NS_INTERNAL
     // is_fn_builder_helper
     //   helper: primary is std::false_type; the fn_builder<...> partial
     // specialization lifts it to std::true_type.
-    template<typename _Type>
+    template<typename Type>
     struct is_fn_builder_helper
         : std::false_type
-(};
+{};
 
-    template<typename _InputType,
-             typename _CurrentType,
-             typename _Chain>
+    template<typename InputType,
+             typename CurrentType,
+             typename Chain>
     struct is_fn_builder_helper<
-        fn_builder<_InputType, _CurrentType, _Chain> >
+        fn_builder<InputType, CurrentType, Chain> >
         : std::true_type
-(};
+{};
 
     // fn_builder_decompose_helper
     //   helper: primary exposes no members (soft failure for non-builders);
     // the fn_builder<...> specialization exposes the input and current
     // element types. fn_builder publishes only chain_type, so the element
     // types are recovered here by decomposition.
-    template<typename _Type>
+    template<typename Type>
     struct fn_builder_decompose_helper
-(};
+{};
 
-    template<typename _InputType,
-             typename _CurrentType,
-             typename _Chain>
+    template<typename InputType,
+             typename CurrentType,
+             typename Chain>
     struct fn_builder_decompose_helper<
-        fn_builder<_InputType, _CurrentType, _Chain> >
+        fn_builder<InputType, CurrentType, Chain> >
     {
-        using input_type   = _InputType;
-        using current_type = _CurrentType;
+        using input_type   = InputType;
+        using current_type = CurrentType;
     };
 
     // is_boxed_fn_builder_helper
     //   helper: detects the type-erased boxed_fn_builder<...>.
-    template<typename _Type>
+    template<typename Type>
     struct is_boxed_fn_builder_helper
         : std::false_type
-(};
+{};
 
-    template<typename _InputType,
-             typename _OutputType>
+    template<typename InputType,
+             typename OutputType>
     struct is_boxed_fn_builder_helper<
-        boxed_fn_builder<_InputType, _OutputType> >
+        boxed_fn_builder<InputType, OutputType> >
         : std::true_type
-(};
+{};
 
 NS_END  // internal
 
 
 // is_fn_builder
-//   trait: true if _Type is a fn_builder<...> specialization, after
+//   trait: true if Type is a fn_builder<...> specialization, after
 // stripping cv-qualifiers and references. False for every other type.
-template<typename _Type>
+template<typename Type>
 struct is_fn_builder
-    : internal::is_fn_builder_helper<typename std::decay<_Type>::type>::type
+    : internal::is_fn_builder_helper<typename std::decay<Type>::type>::type
 {
 };
 
 
 // is_boxed_fn_builder
-//   trait: true if _Type is a boxed_fn_builder<...> specialization (the
+//   trait: true if Type is a boxed_fn_builder<...> specialization (the
 // type-erased escape hatch), cv/ref stripped.
-template<typename _Type>
+template<typename Type>
 struct is_boxed_fn_builder
     : internal::is_boxed_fn_builder_helper<
-          typename std::decay<_Type>::type>::type
+          typename std::decay<Type>::type>::type
 {
 };
 
 
 // fn_builder_input_type
-//   trait: the original input element type _InputType of a builder.
-// SFINAE-friendly: has a `::type` only when _Builder is a fn_builder.
-template<typename _Builder>
+//   trait: the original input element type InputType of a builder.
+// SFINAE-friendly: has a `::type` only when Builder is a fn_builder.
+template<typename Builder>
 struct fn_builder_input_type
 {
     using type = typename internal::fn_builder_decompose_helper<
-        typename std::decay<_Builder>::type>::input_type;
+        typename std::decay<Builder>::type>::input_type;
 };
 
 // fn_builder_input_type_t
-//   alias: shorthand for fn_builder_input_type<_Builder>::type.
-template<typename _Builder>
+//   alias: shorthand for fn_builder_input_type<Builder>::type.
+template<typename Builder>
 using fn_builder_input_type_t =
-    typename fn_builder_input_type<_Builder>::type;
+    typename fn_builder_input_type<Builder>::type;
 
 
 // fn_builder_current_type
-//   trait: the current (output) element type _CurrentType of a builder --
+//   trait: the current (output) element type CurrentType of a builder --
 // the element type its execute() yields. SFINAE-friendly.
-template<typename _Builder>
+template<typename Builder>
 struct fn_builder_current_type
 {
     using type = typename internal::fn_builder_decompose_helper<
-        typename std::decay<_Builder>::type>::current_type;
+        typename std::decay<Builder>::type>::current_type;
 };
 
 // fn_builder_current_type_t
-//   alias: shorthand for fn_builder_current_type<_Builder>::type.
-template<typename _Builder>
+//   alias: shorthand for fn_builder_current_type<Builder>::type.
+template<typename Builder>
 using fn_builder_current_type_t =
-    typename fn_builder_current_type<_Builder>::type;
+    typename fn_builder_current_type<Builder>::type;
 
 
 // is_fn_builder_mapper
-//   trait: true if _Fn is callable as _Fn(const _Type&) -- the value-side
+//   trait: true if Fn is callable as Fn(const Type&) -- the value-side
 // shape accepted by fn_builder::map, and_then, and flat_map. The return
 // type is unconstrained.
-template<typename _Fn,
-         typename _Type>
+template<typename Fn,
+         typename Type>
 struct is_fn_builder_mapper
-    : is_callable<_Fn, const _Type&>
+    : is_callable<Fn, const Type&>
 {
 };
 
 
 // is_fn_builder_predicate
-//   trait: true if _Pred is callable as _Pred(const _Type&) with a
+//   trait: true if Pred is callable as Pred(const Type&) with a
 // bool-convertible result -- the shape accepted by fn_builder::filter and
 // where.
-template<typename _Pred,
-         typename _Type>
+template<typename Pred,
+         typename Type>
 struct is_fn_builder_predicate
-    : is_predicate<_Pred, const _Type&>
+    : is_predicate<Pred, const Type&>
 {
 };
 
@@ -843,26 +850,26 @@ struct is_fn_builder_predicate
 // is_fn_builder_v / is_boxed_fn_builder_v
 //   variables: shorthands for the structural detectors. Available only when
 // variable templates are supported (C++14+).
-template<typename _Type>
-static constexpr bool is_fn_builder_v = is_fn_builder<_Type>::value;
+template<typename Type>
+static constexpr bool is_fn_builder_v = is_fn_builder<Type>::value;
 
-template<typename _Type>
+template<typename Type>
 static constexpr bool is_boxed_fn_builder_v =
-    is_boxed_fn_builder<_Type>::value;
+    is_boxed_fn_builder<Type>::value;
 
 // is_fn_builder_mapper_v
-//   variable: shorthand for is_fn_builder_mapper<_Fn, _Type>::value.
-template<typename _Fn,
-         typename _Type>
+//   variable: shorthand for is_fn_builder_mapper<Fn, Type>::value.
+template<typename Fn,
+         typename Type>
 static constexpr bool is_fn_builder_mapper_v =
-    is_fn_builder_mapper<_Fn, _Type>::value;
+    is_fn_builder_mapper<Fn, Type>::value;
 
 // is_fn_builder_predicate_v
-//   variable: shorthand for is_fn_builder_predicate<_Pred, _Type>::value.
-template<typename _Pred,
-         typename _Type>
+//   variable: shorthand for is_fn_builder_predicate<Pred, Type>::value.
+template<typename Pred,
+         typename Type>
 static constexpr bool is_fn_builder_predicate_v =
-    is_fn_builder_predicate<_Pred, _Type>::value;
+    is_fn_builder_predicate<Pred, Type>::value;
 #endif
 
 
@@ -870,33 +877,35 @@ static constexpr bool is_fn_builder_predicate_v =
 // fn_builder_type
 //   concept: satisfied by any fn_builder<...> specialization (cv-ref
 // stripped). The C++20 parallel of is_fn_builder.
-template<typename _Type>
-concept fn_builder_type = is_fn_builder<_Type>::value;
+template<typename Type>
+concept fn_builder_type = is_fn_builder<Type>::value;
 
 // boxed_fn_builder_type
 //   concept: satisfied by any boxed_fn_builder<...> specialization. The
 // C++20 parallel of is_boxed_fn_builder.
-template<typename _Type>
-concept boxed_fn_builder_type = is_boxed_fn_builder<_Type>::value;
+template<typename Type>
+concept boxed_fn_builder_type = is_boxed_fn_builder<Type>::value;
 
 // fn_builder_mapper_for
-//   concept: satisfied when _Fn is a valid mapper over _Type. The C++20
+//   concept: satisfied when Fn is a valid mapper over Type. The C++20
 // parallel of is_fn_builder_mapper.
-template<typename _Fn,
-         typename _Type>
-concept fn_builder_mapper_for = is_fn_builder_mapper<_Fn, _Type>::value;
+template<typename Fn,
+         typename Type>
+concept fn_builder_mapper_for = is_fn_builder_mapper<Fn, Type>::value;
 
 // fn_builder_predicate_for
-//   concept: satisfied when _Pred is a valid predicate over _Type. The
+//   concept: satisfied when Pred is a valid predicate over Type. The
 // C++20 parallel of is_fn_builder_predicate.
-template<typename _Pred,
-         typename _Type>
+template<typename Pred,
+         typename Type>
 concept fn_builder_predicate_for =
-    is_fn_builder_predicate<_Pred, _Type>::value;
+    is_fn_builder_predicate<Pred, Type>::value;
 #endif
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_FN_BUILDER_
+
+#endif  // DJINTERP_FUNCTIONAL_FN_BUILDER_HPP

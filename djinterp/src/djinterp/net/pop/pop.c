@@ -11,7 +11,7 @@
 * path:      /src/djinterp/net/pop/pop.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.25
-*                                                            revised: 2026.09.25
+*                                                            revised: 2026.09.29
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/pop/pop.h"  // corresponding header
 // std
@@ -19,7 +19,7 @@
 #include <stdio.h>     // snprintf
 #include <string.h>    // memchr, memcpy, memmove, strlen
 // djinterp
-#include "../../../../inc/djinterp/env/net/env_pop.h"  // D_ENV_POP_CAN_PLAIN
+#include "../../../../inc/djinterp/env/net/pop/env_pop.h"  // D_ENV_POP_CAN_PLAIN
 
 
 //==============================================================================

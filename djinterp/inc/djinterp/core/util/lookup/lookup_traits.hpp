@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                           lookup_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                              lookup_traits.hpp
 *
 * Row classification and column access traits for lookup tables.
 *
@@ -13,7 +13,7 @@
 *   ROW SHAPES:
 *   Exactly two are recognized.
 *
-*   - TUPLE-LIKE - _Row is a std::tuple specialization (detected via
+*   - TUPLE-LIKE - Row is a std::tuple specialization (detected via
 *                  is_tuple).  Columns are accessed positionally via
 *                  std::get / tuple_type_at_value.  Multi-column rows
 *                  carry a key column (default index 0) and, if the
@@ -63,38 +63,56 @@
 * tuple-facing accessor; it never indexes a raw pack directly.
 *
 *
-* path:      /inc/djinterp/core/lookup_traits.hpp
+* path:      /inc/djinterp/core/util/lookup/lookup_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    Row Classification
-      1. is_tuple_row                    (+ _v)
-      2. is_singular_row                 (+ _v)
-      3. lookup_row_arity                (+ _v)
+      ------------------
+      1.    is_tuple_row                    (+ _v)
+      2.    is_singular_row                 (+ _v)
+      3.    lookup_row_arity                (+ _v)
+
 II.   Column Index Customization
-      1. has_key_column_member           (+ _v)
-      2. has_value_column_member         (+ _v)
-      3. lookup_row_key_column           (+ _v)
-      4. lookup_row_value_column         (+ _v)
+      --------------------------
+      1.    has_key_column_member           (+ _v)
+      2.    has_value_column_member         (+ _v)
+      3.    lookup_row_key_column           (+ _v)
+      4.    lookup_row_value_column         (+ _v)
+
 III.  Value Column Presence
-      1. has_value_column                (+ _v)
+      ---------------------
+      1.    has_value_column                (+ _v)
+
 IV.   Column Type Resolution
-      1. lookup_row_column_type          (+ _t)
-      2. lookup_row_key_type             (+ _t)
-      3. lookup_row_value_type           (+ _t)
+      ----------------------
+      1.    lookup_row_column_type          (+ _t)
+      2.    lookup_row_key_type             (+ _t)
+      3.    lookup_row_value_type           (+ _t)
+
 V.    Column Extraction (runtime)
-      1. lookup_key_of
-      2. lookup_value_of
-      3. lookup_column_of
+      ---------------------------
+      1.    lookup_key_of
+      2.    lookup_value_of
+      3.    lookup_column_of
+
 VI.   Convenience _v / _t Aliases
+      ---------------------------
 */
 
-#ifndef DJINTERP_LOOKUP_TRAITS_
-#define DJINTERP_LOOKUP_TRAITS_ 1
+#ifndef DJINTERP_UTIL_LOOKUP_LOOKUP_TRAITS_HPP
+#define DJINTERP_UTIL_LOOKUP_LOOKUP_TRAITS_HPP 1
+
+// FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -102,9 +120,9 @@ VI.   Convenience _v / _t Aliases
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
-#include "../meta/type_traits.hpp"
-#include "../meta/dtuple.hpp"
+#include "../../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "../../meta/dtuple.hpp"
 
 
 NS_DJINTERP
@@ -119,12 +137,12 @@ NS_DJINTERP
 // ---------------------------------------------------------------------------
 
 // is_tuple_row
-//   trait: true iff _Row is a std::tuple specialization.  Delegates to
+//   trait: true iff Row is a std::tuple specialization.  Delegates to
 // `is_tuple` from type_traits.hpp.  Tuple rows are the only multi-
 // column shape recognized by lookup_traits.
-template<typename _Row>
+template<typename Row>
 struct is_tuple_row
-    : is_tuple<clean_t<_Row>>
+    : is_tuple<clean_t<Row>>
 {};
 
 
@@ -133,12 +151,12 @@ struct is_tuple_row
 // ---------------------------------------------------------------------------
 
 // is_singular_row
-//   trait: true iff _Row is NOT a tuple.  In this case the row IS the
+//   trait: true iff Row is NOT a tuple.  In this case the row IS the
 // key and there is no value column.  Used for flag-only sets and bare-
 // key tables.
-template<typename _Row>
+template<typename Row>
 struct is_singular_row
-    : std::integral_constant<bool, !is_tuple_row<_Row>::value>
+    : std::integral_constant<bool, !is_tuple_row<Row>::value>
 {};
 
 
@@ -147,19 +165,19 @@ struct is_singular_row
 // ---------------------------------------------------------------------------
 
 // lookup_row_arity
-//   trait: number of columns in _Row.
+//   trait: number of columns in Row.
 //   - singular rows: 1.
-//   - tuple rows:    std::tuple_size<_Row>::value.
-template<typename _Row,
-         bool     _IsTuple = is_tuple_row<_Row>::value>
+//   - tuple rows:    std::tuple_size<Row>::value.
+template<typename Row,
+         bool     IsTuple = is_tuple_row<Row>::value>
 struct lookup_row_arity
     : std::integral_constant<std::size_t, 1>
 {};
 
-template<typename _Row>
-struct lookup_row_arity<_Row, true>
+template<typename Row>
+struct lookup_row_arity<Row, true>
     : std::integral_constant<std::size_t,
-                             std::tuple_size<clean_t<_Row>>::value>
+                             std::tuple_size<clean_t<Row>>::value>
 {};
 
 
@@ -172,27 +190,27 @@ struct lookup_row_arity<_Row, true>
 // ---------------------------------------------------------------------------
 
 // has_key_column_member
-//   trait: true iff _Row exposes a static constexpr std::size_t
+//   trait: true iff Row exposes a static constexpr std::size_t
 // key_column member.  Tuple rows can override the default key column
 // (0) via this mechanism.  Singular rows ignore it.
 NS_INTERNAL
 
-    template<typename _Row,
+    template<typename Row,
              typename = void>
     struct has_key_column_member_helper : std::false_type
     {};
 
-    template<typename _Row>
-    struct has_key_column_member_helper<_Row,
-        D_VOID_T<decltype(_Row::key_column)>>
+    template<typename Row>
+    struct has_key_column_member_helper<Row,
+        D_VOID_T<decltype(Row::key_column)>>
         : std::true_type
     {};
 
 NS_END  // internal
 
-template<typename _Row>
+template<typename Row>
 struct has_key_column_member
-    : internal::has_key_column_member_helper<clean_t<_Row>>
+    : internal::has_key_column_member_helper<clean_t<Row>>
 {};
 
 
@@ -201,27 +219,27 @@ struct has_key_column_member
 // ---------------------------------------------------------------------------
 
 // has_value_column_member
-//   trait: true iff _Row exposes a static constexpr std::size_t
+//   trait: true iff Row exposes a static constexpr std::size_t
 // value_column member.  Tuple rows can override the default value
 // column (1) via this mechanism.  Singular rows ignore it.
 NS_INTERNAL
 
-    template<typename _Row,
+    template<typename Row,
              typename = void>
     struct has_value_column_member_helper : std::false_type
     {};
 
-    template<typename _Row>
-    struct has_value_column_member_helper<_Row,
-        D_VOID_T<decltype(_Row::value_column)>>
+    template<typename Row>
+    struct has_value_column_member_helper<Row,
+        D_VOID_T<decltype(Row::value_column)>>
         : std::true_type
     {};
 
 NS_END  // internal
 
-template<typename _Row>
+template<typename Row>
 struct has_value_column_member
-    : internal::has_value_column_member_helper<clean_t<_Row>>
+    : internal::has_value_column_member_helper<clean_t<Row>>
 {};
 
 
@@ -230,7 +248,7 @@ struct has_value_column_member
 // ---------------------------------------------------------------------------
 
 // lookup_row_key_column
-//   trait: tuple index of the key column in _Row.
+//   trait: tuple index of the key column in Row.
 //   - defaults to 0.
 //   - picks up `static constexpr std::size_t key_column = N;` if
 //     present on the row type.
@@ -238,16 +256,16 @@ struct has_value_column_member
 //
 //   Meaningful only for tuple rows.  Querying it on singular rows
 // yields 0; harmless but not useful.
-template<typename _Row,
-         bool     _HasMember = has_key_column_member<_Row>::value>
+template<typename Row,
+         bool     HasMember = has_key_column_member<Row>::value>
 struct lookup_row_key_column
     : std::integral_constant<std::size_t, 0>
 {};
 
-template<typename _Row>
-struct lookup_row_key_column<_Row, true>
+template<typename Row>
+struct lookup_row_key_column<Row, true>
     : std::integral_constant<std::size_t,
-                             clean_t<_Row>::key_column>
+                             clean_t<Row>::key_column>
 {};
 
 
@@ -256,7 +274,7 @@ struct lookup_row_key_column<_Row, true>
 // ---------------------------------------------------------------------------
 
 // lookup_row_value_column
-//   trait: tuple index of the value column in _Row.
+//   trait: tuple index of the value column in Row.
 //   - defaults to 1.
 //   - picks up `static constexpr std::size_t value_column = N;` if
 //     present on the row type.
@@ -264,16 +282,16 @@ struct lookup_row_key_column<_Row, true>
 //
 //   Meaningful only for tuple rows with arity > value_column.  See
 // has_value_column.
-template<typename _Row,
-         bool     _HasMember = has_value_column_member<_Row>::value>
+template<typename Row,
+         bool     HasMember = has_value_column_member<Row>::value>
 struct lookup_row_value_column
     : std::integral_constant<std::size_t, 1>
 {};
 
-template<typename _Row>
-struct lookup_row_value_column<_Row, true>
+template<typename Row>
+struct lookup_row_value_column<Row, true>
     : std::integral_constant<std::size_t,
-                             clean_t<_Row>::value_column>
+                             clean_t<Row>::value_column>
 {};
 
 
@@ -282,20 +300,20 @@ struct lookup_row_value_column<_Row, true>
 // ===========================================================================
 
 // has_value_column
-//   trait: true iff _Row is a tuple with arity strictly greater than
-// lookup_row_value_column<_Row>.  Singular rows always yield false.
+//   trait: true iff Row is a tuple with arity strictly greater than
+// lookup_row_value_column<Row>.  Singular rows always yield false.
 // This is the gate consumers should check before accessing value-
 // related traits and extractors.
-template<typename _Row,
-         bool     _IsTuple = is_tuple_row<_Row>::value>
+template<typename Row,
+         bool     IsTuple = is_tuple_row<Row>::value>
 struct has_value_column : std::false_type
 {};
 
-template<typename _Row>
-struct has_value_column<_Row, true>
+template<typename Row>
+struct has_value_column<Row, true>
     : std::integral_constant<bool,
-        ( lookup_row_arity<_Row>::value >
-          lookup_row_value_column<_Row>::value )>
+        ( lookup_row_arity<Row>::value >
+          lookup_row_value_column<Row>::value )>
 {};
 
 
@@ -308,41 +326,41 @@ struct has_value_column<_Row, true>
 // ---------------------------------------------------------------------------
 
 // lookup_row_column_type
-//   trait: type of the _I-th column of _Row.
-//   - singular rows: only _I == 0 is valid; type is clean_t<_Row>.
-//   - tuple rows:    delegates to dtuple::tuple_type_at<_I, _Row>.
+//   trait: type of the I-th column of Row.
+//   - singular rows: only I == 0 is valid; type is clean_t<Row>.
+//   - tuple rows:    delegates to dtuple::tuple_type_at<I, Row>.
 //
 //   Provided primarily so table_index can address arbitrary columns;
 // lookup itself only ever resolves the key and value columns.
-template<typename    _Row,
-         std::size_t _I,
-         bool        _IsTuple = is_tuple_row<_Row>::value>
+template<typename    Row,
+         std::size_t I,
+         bool        IsTuple = is_tuple_row<Row>::value>
 struct lookup_row_column_type;
 
-template<typename _Row>
-struct lookup_row_column_type<_Row, 0, false>
+template<typename Row>
+struct lookup_row_column_type<Row, 0, false>
 {
-    using type = clean_t<_Row>;
+    using type = clean_t<Row>;
 };
 
-template<typename    _Row,
-         std::size_t _I>
-struct lookup_row_column_type<_Row, _I, true>
+template<typename    Row,
+         std::size_t I>
+struct lookup_row_column_type<Row, I, true>
 {
     static_assert(
-        (_I < std::tuple_size<clean_t<_Row>>::value),
-        "Non-type parameter `_I` exceeds tuple arity of `_Row`.");
+        (I < std::tuple_size<clean_t<Row>>::value),
+        "Non-type parameter `I` exceeds tuple arity of `Row`.");
 
     using type =
-        tuple_type_at_t<_I, clean_t<_Row>>;
+        tuple_type_at_t<I, clean_t<Row>>;
 };
 
 // lookup_row_column_type_t
 //   type: convenience alias for lookup_row_column_type<...>::type.
-template<typename    _Row,
-         std::size_t _I>
+template<typename    Row,
+         std::size_t I>
 using lookup_row_column_type_t =
-    typename lookup_row_column_type<_Row, _I>::type;
+    typename lookup_row_column_type<Row, I>::type;
 
 
 // ---------------------------------------------------------------------------
@@ -350,22 +368,22 @@ using lookup_row_column_type_t =
 // ---------------------------------------------------------------------------
 
 // lookup_row_key_type
-//   trait: type of the key column in _Row.
-//   - singular rows: clean_t<_Row> (the row itself).
-//   - tuple rows:    column type at lookup_row_key_column<_Row>.
-template<typename _Row>
+//   trait: type of the key column in Row.
+//   - singular rows: clean_t<Row> (the row itself).
+//   - tuple rows:    column type at lookup_row_key_column<Row>.
+template<typename Row>
 struct lookup_row_key_type
 {
     using type =
-        lookup_row_column_type_t<_Row,
-                                 lookup_row_key_column<_Row>::value>;
+        lookup_row_column_type_t<Row,
+                                 lookup_row_key_column<Row>::value>;
 };
 
 // lookup_row_key_type_t
 //   type: convenience alias for lookup_row_key_type<...>::type.
-template<typename _Row>
+template<typename Row>
 using lookup_row_key_type_t =
-    typename lookup_row_key_type<_Row>::type;
+    typename lookup_row_key_type<Row>::type;
 
 
 // ---------------------------------------------------------------------------
@@ -373,26 +391,26 @@ using lookup_row_key_type_t =
 // ---------------------------------------------------------------------------
 
 // lookup_row_value_type
-//   trait: type of the value column in _Row.  Only defined when
-// has_value_column<_Row>::value is true.  Consumers must gate on
+//   trait: type of the value column in Row.  Only defined when
+// has_value_column<Row>::value is true.  Consumers must gate on
 // has_value_column before naming this trait.
-template<typename _Row,
-         bool     _HasValue = has_value_column<_Row>::value>
+template<typename Row,
+         bool     HasValue = has_value_column<Row>::value>
 struct lookup_row_value_type;
 
-template<typename _Row>
-struct lookup_row_value_type<_Row, true>
+template<typename Row>
+struct lookup_row_value_type<Row, true>
 {
     using type =
-        lookup_row_column_type_t<_Row,
-                                 lookup_row_value_column<_Row>::value>;
+        lookup_row_column_type_t<Row,
+                                 lookup_row_value_column<Row>::value>;
 };
 
 // lookup_row_value_type_t
 //   type: convenience alias for lookup_row_value_type<...>::type.
-template<typename _Row>
+template<typename Row>
 using lookup_row_value_type_t =
-    typename lookup_row_value_type<_Row>::type;
+    typename lookup_row_value_type<Row>::type;
 
 
 // ===========================================================================
@@ -409,42 +427,42 @@ using lookup_row_value_type_t =
 //   - tuple rows:    returns std::get<key_column>(_row).
 NS_INTERNAL
 
-    template<typename _Row>
-    D_CONSTEXPR const clean_t<_Row>&
+    template<typename Row>
+    D_CONSTEXPR const clean_t<Row>&
     lookup_key_of_dispatch(
-        const _Row&     _row,
+        const Row&     _row,
         std::false_type /*is_tuple*/
     )
     {
         return _row;
     }
 
-    template<typename _Row>
+    template<typename Row>
     D_CONSTEXPR auto
     lookup_key_of_dispatch(
-        const _Row&    _row,
+        const Row&    _row,
         std::true_type /*is_tuple*/
     ) -> decltype(
-        std::get<lookup_row_key_column<_Row>::value>(_row))
+        std::get<lookup_row_key_column<Row>::value>(_row))
     {
-        return std::get<lookup_row_key_column<_Row>::value>(_row);
+        return std::get<lookup_row_key_column<Row>::value>(_row);
     }
 
 NS_END  // internal
 
-template<typename _Row>
+template<typename Row>
 D_CONSTEXPR auto
 lookup_key_of(
-    const _Row& _row
+    const Row& _row
 ) -> decltype(internal::lookup_key_of_dispatch(
         _row,
         std::integral_constant<bool,
-                               is_tuple_row<_Row>::value>{}))
+                               is_tuple_row<Row>::value>{}))
 {
     return internal::lookup_key_of_dispatch(
         _row,
         std::integral_constant<bool,
-                               is_tuple_row<_Row>::value>{});
+                               is_tuple_row<Row>::value>{});
 }
 
 
@@ -454,21 +472,21 @@ lookup_key_of(
 
 // lookup_value_of
 //   function: extracts the value column from a row instance.  Only
-// well-formed when has_value_column<_Row>::value is true; consumers
+// well-formed when has_value_column<Row>::value is true; consumers
 // must gate on that trait before calling.
-template<typename _Row>
+template<typename Row>
 D_CONSTEXPR auto
 lookup_value_of(
-    const _Row& _row
+    const Row& _row
 ) -> decltype(
-    std::get<lookup_row_value_column<_Row>::value>(_row))
+    std::get<lookup_row_value_column<Row>::value>(_row))
 {
-    static_assert(has_value_column<_Row>::value,
-                  "lookup_value_of requires _Row to expose a value "
-                  "column; check has_value_column<_Row>::value first "
+    static_assert(has_value_column<Row>::value,
+                  "lookup_value_of requires Row to expose a value "
+                  "column; check has_value_column<Row>::value first "
                   "or use lookup_key_of for singular rows.");
 
-    return std::get<lookup_row_value_column<_Row>::value>(_row);
+    return std::get<lookup_row_value_column<Row>::value>(_row);
 }
 
 
@@ -477,56 +495,56 @@ lookup_value_of(
 // ---------------------------------------------------------------------------
 
 // lookup_column_of
-//   function: extracts the _I-th column from a row instance.  Used
+//   function: extracts the I-th column from a row instance.  Used
 // primarily by table_index to address arbitrary columns; lookup itself
 // only ever calls lookup_key_of / lookup_value_of.
 //
-//   For singular rows only _I == 0 is well-formed (returns the row).
-// For tuple rows _I must satisfy _I < std::tuple_size<_Row>::value.
+//   For singular rows only I == 0 is well-formed (returns the row).
+// For tuple rows I must satisfy I < std::tuple_size<Row>::value.
 NS_INTERNAL
 
-    template<std::size_t _I,
-             typename    _Row>
-    D_CONSTEXPR const clean_t<_Row>&
+    template<std::size_t I,
+             typename    Row>
+    D_CONSTEXPR const clean_t<Row>&
     lookup_column_of_dispatch(
-        const _Row&     _row,
+        const Row&     _row,
         std::false_type /*is_tuple*/
     )
     {
-        static_assert((_I == 0),
-                      "Non-type parameter `_I` must be 0 for "
+        static_assert((I == 0),
+                      "Non-type parameter `I` must be 0 for "
                       "singular (non-tuple) rows.");
 
         return _row;
     }
 
-    template<std::size_t _I,
-             typename    _Row>
+    template<std::size_t I,
+             typename    Row>
     D_CONSTEXPR auto
     lookup_column_of_dispatch(
-        const _Row&    _row,
+        const Row&    _row,
         std::true_type /*is_tuple*/
-    ) -> decltype(std::get<_I>(_row))
+    ) -> decltype(std::get<I>(_row))
     {
-        return std::get<_I>(_row);
+        return std::get<I>(_row);
     }
 
 NS_END  // internal
 
-template<std::size_t _I,
-         typename    _Row>
+template<std::size_t I,
+         typename    Row>
 D_CONSTEXPR auto
 lookup_column_of(
-    const _Row& _row
-) -> decltype(internal::lookup_column_of_dispatch<_I>(
+    const Row& _row
+) -> decltype(internal::lookup_column_of_dispatch<I>(
         _row,
         std::integral_constant<bool,
-                               is_tuple_row<_Row>::value>{}))
+                               is_tuple_row<Row>::value>{}))
 {
-    return internal::lookup_column_of_dispatch<_I>(
+    return internal::lookup_column_of_dispatch<I>(
         _row,
         std::integral_constant<bool,
-                               is_tuple_row<_Row>::value>{});
+                               is_tuple_row<Row>::value>{});
 }
 
 
@@ -534,40 +552,41 @@ lookup_column_of(
 // VI.  Convenience _v / _t Aliases
 // ===========================================================================
 
-template<typename _Row>
+template<typename Row>
 inline constexpr bool is_tuple_row_v =
-    is_tuple_row<_Row>::value;
+    is_tuple_row<Row>::value;
 
-template<typename _Row>
+template<typename Row>
 inline constexpr bool is_singular_row_v =
-    is_singular_row<_Row>::value;
+    is_singular_row<Row>::value;
 
-template<typename _Row>
+template<typename Row>
 inline constexpr std::size_t lookup_row_arity_v =
-    lookup_row_arity<_Row>::value;
+    lookup_row_arity<Row>::value;
 
-template<typename _Row>
+template<typename Row>
 inline constexpr bool has_key_column_member_v =
-    has_key_column_member<_Row>::value;
+    has_key_column_member<Row>::value;
 
-template<typename _Row>
+template<typename Row>
 inline constexpr bool has_value_column_member_v =
-    has_value_column_member<_Row>::value;
+    has_value_column_member<Row>::value;
 
-template<typename _Row>
+template<typename Row>
 inline constexpr std::size_t lookup_row_key_column_v =
-    lookup_row_key_column<_Row>::value;
+    lookup_row_key_column<Row>::value;
 
-template<typename _Row>
+template<typename Row>
 inline constexpr std::size_t lookup_row_value_column_v =
-    lookup_row_value_column<_Row>::value;
+    lookup_row_value_column<Row>::value;
 
-template<typename _Row>
+template<typename Row>
 inline constexpr bool has_value_column_v =
-    has_value_column<_Row>::value;
+    has_value_column<Row>::value;
 
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_LOOKUP_TRAITS_
+#endif  // DJINTERP_UTIL_LOOKUP_LOOKUP_TRAITS_HPP

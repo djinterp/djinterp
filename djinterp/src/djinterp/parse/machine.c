@@ -7,13 +7,13 @@
 * path:      /src/djinterp/parse/machine.c
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                          created: 2026.09.19
-*                                                          revised: 2026.09.19
+*                                                          revised: 2026.09.30
 ******************************************************************************/
-#include "../../../inc/djinterp/parse/machine.h"  // corresponding header
+#include "../../../inc/djinterp/parse/c/machine.h"  // corresponding header
 // std
 #include <string.h>  // memset
 // djinterp
-#include "../../../inc/djinterp/parse/storage.h"  // d_parse_grow, the shared
+#include "../../../inc/djinterp/parse/c/storage.h"  // d_parse_grow, the shared
                                                   // growth policy
 #if (D_INTERNAL_PARSE_OP_SET_HEAP == 1)
 #include <stdlib.h>  // malloc, free

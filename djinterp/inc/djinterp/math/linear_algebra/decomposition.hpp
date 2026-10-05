@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                            decomposition.hpp
+/*******************************************************************************
+* djinterp [math]                                              decomposition.hpp
 *
 * Matrix factorizations for the linear-algebra subframework.
 *   Three classic decompositions, each as a small value-type object that
@@ -33,13 +33,15 @@
 *   - The objects' methods chain with the core fluent members, e.g.
 *       qr(A).q().transposed()        lu(A).inverse().times(b)
 *
+*
 * path:      /inc/djinterp/math/linear_algebra/decomposition.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.22
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_LINALG_DECOMPOSITION_
-#define DJINTERP_MATH_LINALG_DECOMPOSITION_ 1
+#ifndef DJINTERP_MATH_LINEAR_ALGEBRA_DECOMPOSITION_HPP
+#define DJINTERP_MATH_LINEAR_ALGEBRA_DECOMPOSITION_HPP 1
 
 // std
 #include <cstddef>
@@ -635,4 +637,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_LINALG_DECOMPOSITION_
+#endif  // DJINTERP_MATH_LINEAR_ALGEBRA_DECOMPOSITION_HPP

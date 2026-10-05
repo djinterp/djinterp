@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                            filter_view.hpp
+/*******************************************************************************
+* djinterp [re_std]                                              filter_view.hpp
 *
 * filter_view header:
 *   Provides the C++20 lazy-filtering adaptor. filter_view<V, Pred>
@@ -29,17 +29,19 @@
 *   re_std::views::filter(r, pred).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/filter_view.hpp
+* path:      /inc/re_std/ranges/filter_view.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_FILTER_VIEW_
-#define DJINTERP_RE_STD_RANGES_FILTER_VIEW_ 1
+#ifndef RE_STD_RANGES_FILTER_VIEW_HPP
+#define RE_STD_RANGES_FILTER_VIEW_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -51,14 +53,16 @@
 #include "./range_adaptor_closure.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // 0.   INTERNAL: ITERATOR-CATEGORY CLAMP
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
 // filter_iter_cat
 //   trait: clamps the underlying iterator_category to at-most
@@ -66,43 +70,43 @@ NS_INTERNAL
 // the underlying iterator is — operator-- scans backward past
 // failing elements until one passes — but it can never be
 // random-access regardless of the underlying.
-template<typename _UnderlyingCat>
+template<typename UnderlyingCat>
 struct filter_iter_cat
 {
     // Forward / input / output unchanged; bidi or stronger clamps to
     // bidirectional_iterator_tag.
     typedef typename conditional<
                          is_base_of<bidirectional_iterator_tag,
-                                    _UnderlyingCat>::value,
+                                    UnderlyingCat>::value,
                          bidirectional_iterator_tag,
-                         _UnderlyingCat
+                         UnderlyingCat
                      >::type type;
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
 // I.   FILTER_VIEW
 // ===========================================================================
 
-// filter_view<_View, _Pred>
-//   class: lazy filter of _View by predicate _Pred. Only elements
-// satisfying _Pred(*it) appear in the resulting view.
-template<typename _View,
-         typename _Pred>
-class filter_view : public view_interface<filter_view<_View, _Pred> >
+// filter_view<View, Pred>
+//   class: lazy filter of View by predicate Pred. Only elements
+// satisfying Pred(*it) appear in the resulting view.
+template<typename View,
+         typename Pred>
+class filter_view : public view_interface<filter_view<View, Pred> >
 {
 public:
-    typedef _View   base_view;
-    typedef _Pred   predicate_type;
+    typedef View   base_view;
+    typedef Pred   predicate_type;
 
 
 private:
-    _View                           m_base;
-    internal::movable_box<_Pred>    m_pred;
+    View                           m_base;
+    internal::movable_box<Pred>    m_pred;
     mutable bool                m_cache_init;
-    mutable iterator_t<_View>   m_cache;
+    mutable iterator_t<View>   m_cache;
 
 
     // find_first
@@ -115,8 +119,8 @@ private:
         {
             return;
         }
-        iterator_t<_View> it = re_std::begin(m_base);
-        sentinel_t<_View> e  = re_std::end(m_base);
+        iterator_t<View> it = re_std::begin(m_base);
+        sentinel_t<View> e  = re_std::end(m_base);
         while (it != e && !(*m_pred)(*it))
         {
             ++it;
@@ -132,7 +136,7 @@ public:
     // =======================================================
 
     // iterator
-    //   class: wraps iterator_t<_View> + parent back-pointer.
+    //   class: wraps iterator_t<View> + parent back-pointer.
     // operator++ scans forward past failing elements; operator--
     // scans backward past failing elements (bidi only).
     class iterator
@@ -140,59 +144,59 @@ public:
     public:
         typedef typename internal::filter_iter_cat<
                     typename iterator_traits<
-                                  iterator_t<_View>
+                                  iterator_t<View>
                               >::iterator_category
                 >::type                            iterator_category;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::value_type            value_type;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::difference_type       difference_type;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::pointer               pointer;
 
         typedef typename iterator_traits<
-                              iterator_t<_View>
+                              iterator_t<View>
                           >::reference             reference;
 
 
     private:
-        iterator_t<_View>           m_it;
+        iterator_t<View>           m_it;
         filter_view const*          m_parent;
 
 
     public:
         // default ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator()
             : m_it(),
-              m_parent(D_NULLPTR)
+              m_parent(RE_STD_NULLPTR)
         {}
 
         // value ctor
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         iterator(
             filter_view const*  _parent,
-            iterator_t<_View>   _it
+            iterator_t<View>   _it
         )
             : m_it(_it),
               m_parent(_parent)
         {}
 
 
-        D_CONSTEXPR iterator_t<_View>
+        RE_STD_CONSTEXPR iterator_t<View>
         base() const
         {
             return m_it;
         }
 
 
-        D_CONSTEXPR reference
+        RE_STD_CONSTEXPR reference
         operator*() const
         {
             return *m_it;
@@ -206,7 +210,7 @@ public:
         iterator&
         operator++()
         {
-            sentinel_t<_View> e = re_std::end(m_parent->m_base);
+            sentinel_t<View> e = re_std::end(m_parent->m_base);
             ++m_it;
             while (m_it != e && !(*(m_parent->m_pred))(*m_it))
             {
@@ -249,7 +253,7 @@ public:
 
 
         // == / !=
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator==(
             iterator const& _rhs
         ) const
@@ -257,7 +261,7 @@ public:
             return (m_it == _rhs.m_it);
         }
 
-        D_CONSTEXPR bool
+        RE_STD_CONSTEXPR bool
         operator!=(
             iterator const& _rhs
         ) const
@@ -274,31 +278,31 @@ public:
     class sentinel
     {
     private:
-        sentinel_t<_View>  m_end;
+        sentinel_t<View>  m_end;
 
 
     public:
-        D_CONSTEXPR
+        RE_STD_CONSTEXPR
         sentinel()
             : m_end()
         {}
 
-        D_CONSTEXPR explicit
+        RE_STD_CONSTEXPR explicit
         sentinel(
-            sentinel_t<_View>  _e
+            sentinel_t<View>  _e
         )
             : m_end(_e)
         {}
 
 
-        D_CONSTEXPR sentinel_t<_View>
+        RE_STD_CONSTEXPR sentinel_t<View>
         base() const
         {
             return m_end;
         }
 
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             iterator const&  _it,
             sentinel const&  _s
@@ -307,7 +311,7 @@ public:
             return (_it.base() == _s.m_end);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             iterator const&  _it,
             sentinel const&  _s
@@ -316,7 +320,7 @@ public:
             return !(_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator==(
             sentinel const&  _s,
             iterator const&  _it
@@ -325,7 +329,7 @@ public:
             return (_it == _s);
         }
 
-        friend D_CONSTEXPR bool
+        friend RE_STD_CONSTEXPR bool
         operator!=(
             sentinel const&  _s,
             iterator const&  _it
@@ -338,7 +342,7 @@ public:
 
 public:
     // default ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     filter_view()
         : m_base(),
           m_pred(),
@@ -347,20 +351,20 @@ public:
     {}
 
     // value ctor
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     filter_view(
-        _View  _base,
-        _Pred  _pred
+        View  _base,
+        Pred  _pred
     )
-        : m_base(static_cast<_View&&>(_base)),
-          m_pred(static_cast<_Pred&&>(_pred)),
+        : m_base(static_cast<View&&>(_base)),
+          m_pred(static_cast<Pred&&>(_pred)),
           m_cache_init(false),
           m_cache()
     {}
 
 
     // base
-    D_CONSTEXPR _View
+    RE_STD_CONSTEXPR View
     base() const
     {
         return m_base;
@@ -370,9 +374,9 @@ public:
     //   function: returns a const reference to the stored predicate.
     // Non-standard accessor; useful for diagnostic / introspective
     // code.
-    D_CONSTEXPR _Pred const&
+    RE_STD_CONSTEXPR Pred const&
     pred() const
-    D_NOEXCEPT
+    RE_STD_NOEXCEPT
     {
         return *m_pred;
     }
@@ -401,44 +405,45 @@ public:
 // II.  FILTER_CLOSURE (bound form for pipe syntax)
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
 // filter_closure
 //   class: the bound form of views::filter. Holds a predicate
 // and, when invoked, constructs a filter_view directly.
-template<typename _Pred>
-struct filter_closure : range_adaptor_closure<filter_closure<_Pred> >
+template<typename Pred>
+struct filter_closure : range_adaptor_closure<filter_closure<Pred> >
 {
-    _Pred pred;
+    Pred pred;
 
-    D_CONSTEXPR
+    RE_STD_CONSTEXPR
     filter_closure()
         : pred()
     {}
 
-    D_CONSTEXPR explicit
+    RE_STD_CONSTEXPR explicit
     filter_closure(
-        _Pred _p
+        Pred _p
     )
-        : pred(static_cast<_Pred&&>(_p))
+        : pred(static_cast<Pred&&>(_p))
     {}
 
-    template<typename _R>
-    D_CONSTEXPR_INLINE
-    filter_view<typename internal::all_dispatch<_R>::type, _Pred>
+    template<typename R>
+    RE_STD_CONSTEXPR_INLINE
+    filter_view<typename internal::all_dispatch<R>::type, Pred>
     operator()(
-        _R&&  _r
+        R&&  _r
     ) const
     {
-        typedef typename internal::all_dispatch<_R>::type view_type;
-        return filter_view<view_type, _Pred>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
+        typedef typename internal::all_dispatch<R>::type view_type;
+        return filter_view<view_type, Pred>(
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
             pred
         );
     }
 };
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
@@ -448,43 +453,43 @@ NS_END  // internal
 namespace views
 {
     // views::filter(_r, _pred)  [direct form]
-    template<typename _R,
-             typename _Pred>
-    D_CONSTEXPR_INLINE
-    filter_view<typename internal::all_dispatch<_R>::type,
-                typename decay<_Pred>::type>
+    template<typename R,
+             typename Pred>
+    RE_STD_CONSTEXPR_INLINE
+    filter_view<typename internal::all_dispatch<R>::type,
+                typename decay<Pred>::type>
     filter(
-        _R&&    _r,
-        _Pred&& _pred
+        R&&    _r,
+        Pred&& _pred
     )
     {
-        typedef typename internal::all_dispatch<_R>::type  view_type;
-        typedef typename decay<_Pred>::type                pred_type;
+        typedef typename internal::all_dispatch<R>::type  view_type;
+        typedef typename decay<Pred>::type                pred_type;
         return filter_view<view_type, pred_type>(
-            internal::all_dispatch<_R>::call(static_cast<_R&&>(_r)),
-            static_cast<_Pred&&>(_pred)
+            internal::all_dispatch<R>::call(static_cast<R&&>(_r)),
+            static_cast<Pred&&>(_pred)
         );
     }
 
     // views::filter(_pred)  [bound form]
-    template<typename _Pred>
-    D_CONSTEXPR_INLINE
-    internal::filter_closure<typename decay<_Pred>::type>
+    template<typename Pred>
+    RE_STD_CONSTEXPR_INLINE
+    internal::filter_closure<typename decay<Pred>::type>
     filter(
-        _Pred&& _pred
+        Pred&& _pred
     )
     {
-        return internal::filter_closure<typename decay<_Pred>::type>(
-            static_cast<_Pred&&>(_pred)
+        return internal::filter_closure<typename decay<Pred>::type>(
+            static_cast<Pred&&>(_pred)
         );
     }
 }  // namespace views
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_FILTER_VIEW_
+#endif  // RE_STD_RANGES_FILTER_VIEW_HPP

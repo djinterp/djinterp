@@ -1,9 +1,9 @@
-/***********************************************************************
-* re_std                                                  construct_at.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             construct_at.hpp
 *
 * placement-new wrapper, normalised to look like a function call:
 *   re_std::construct_at(_p, _args...) is equivalent to
-*   ::new (static_cast<void*>(_p)) _T(re_std::forward<_Args>(_args)...).
+*   ::new (static_cast<void*>(_p)) T(re_std::forward<Args>(_args)...).
 * The C++20 std introduces this so that constexpr-allocator code can
 * construct objects at known addresses without writing the placement-new
 * expression directly (which is not constexpr until C++20).
@@ -21,20 +21,22 @@
 * placement-new directly.
 *
 *
-* path:      /inc/djinterp/re_std/memory/construct_at.hpp
+* path:      /inc/re_std/memory/construct_at.hpp
 * link(s):   TBA
-* author(s): re_std contributors                         date: 2026.05.01
-***********************************************************************/
+* author(s): re_std contributors                             created: 2026.05.01
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_MEMORY_CONSTRUCT_AT_
-#define DJINTERP_RE_STD_MEMORY_CONSTRUCT_AT_ 1
+#ifndef RE_STD_MEMORY_CONSTRUCT_AT_HPP
+#define RE_STD_MEMORY_CONSTRUCT_AT_HPP 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-    #if !D_ENV_CPP98_HAS_NEW
+    #if !RE_STD_HAS_HEADER_NEW
         // Without <new>, placement-new is not declared. Skip the entire
         // body rather than emitting a hard error.
     #else
@@ -51,34 +53,33 @@ namespace re_std
 // =============================================================================
 
 // construct_at
-//   function: in-place construct a _T at _p, forwarding _args.
+//   function: in-place construct a T at _p, forwarding _args.
 //   Returns _p. constexpr only on C++20+ (placement-new in constexpr
 //   contexts is a C++20 feature).
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if RE_STD_LANG_IS_CPP20_OR_HIGHER
 
-    template<typename _T, typename... _Args>
-    constexpr _T* construct_at(_T* _p, _Args&&... _args)
+    template<typename T, typename... Args>
+    constexpr T* construct_at(T* _p, Args&&... _args)
     {
         return ::new (static_cast<void*>(_p))
-            _T(re_std::forward<_Args>(_args)...);
+            T(re_std::forward<Args>(_args)...);
     }
 
 #else
 
-    template<typename _T, typename... _Args>
-    _T* construct_at(_T* _p, _Args&&... _args)
+    template<typename T, typename... Args>
+    T* construct_at(T* _p, Args&&... _args)
     {
         return ::new (static_cast<void*>(_p))
-            _T(re_std::forward<_Args>(_args)...);
+            T(re_std::forward<Args>(_args)...);
     }
 
 #endif
 
 
-}  // namespace re_std
+}  // re_std
+    #endif  // RE_STD_HAS_HEADER_NEW
 
-    #endif  // D_ENV_CPP98_HAS_NEW
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-#endif  // DJINTERP_RE_STD_MEMORY_CONSTRUCT_AT_
+#endif  // RE_STD_MEMORY_CONSTRUCT_AT_HPP

@@ -1,6 +1,7 @@
-/******************************************************************************
-* re_std [streambuf]                                          basic_streambuf.hpp
+/*******************************************************************************
+* djinterp [re_std]                                          basic_streambuf.hpp
 *
+* basic_streambuf class header:
 *   basic_streambuf - the buffer abstraction every stream sits on.
 *
 *   THE SHAPE IS SIX POINTERS, and understanding them is understanding the
@@ -47,34 +48,41 @@
 *   STD IS C++98; re_std IS C++98.
 *
 *
-* path:      /inc/djinterp/re_std/streambuf/basic_streambuf.hpp
+* path:      /inc/re_std/streambuf/basic_streambuf.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_STREAMBUF_BASIC_STREAMBUF_
-#define DJINTERP_RE_STD_STREAMBUF_BASIC_STREAMBUF_ 1
+#ifndef RE_STD_STREAMBUF_BASIC_STREAMBUF_HPP
+#define RE_STD_STREAMBUF_BASIC_STREAMBUF_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
+// (README rule 5; re_std omits rather than degrades). The owner's ruling:
+// compile at every level first; port to C++98 only where something needs it.
+#include "../config.hpp"  // RE_STD_* configuration
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
-#include "../../core/djinterp.hpp"
 #include "../type_traits/type_traits.hpp"
 #include "../ios/ios_base.hpp"
 #include "../ios/stream_types.hpp"
 #include "../string_view/char_traits.hpp"
 
-NS_RESTD
+namespace re_std
+{
 
 // basic_streambuf
 //   class: abstract buffer over a character sequence.
-template<typename _CharT, typename _Traits = char_traits<_CharT> >
+template<typename CharT, typename Traits = char_traits<CharT> >
 class basic_streambuf
 {
 public:
-    typedef _CharT                    char_type;
-    typedef _Traits                   traits_type;
-    typedef typename _Traits::int_type int_type;
-    typedef typename _Traits::pos_type pos_type;
-    typedef typename _Traits::off_type off_type;
+    typedef CharT                    char_type;
+    typedef Traits                   traits_type;
+    typedef typename Traits::int_type int_type;
+    typedef typename Traits::pos_type pos_type;
+    typedef typename Traits::off_type off_type;
 
     virtual ~basic_streambuf() {}
 
@@ -265,7 +273,7 @@ protected:
         return c;
     }
 
-    virtual int_type pbackfail(int_type = _Traits::eof())
+    virtual int_type pbackfail(int_type = Traits::eof())
     { return traits_type::eof(); }
 
     virtual streamsize xsputn(const char_type* s, streamsize n)
@@ -283,7 +291,7 @@ protected:
         return count;
     }
 
-    virtual int_type overflow(int_type = _Traits::eof())
+    virtual int_type overflow(int_type = Traits::eof())
     { return traits_type::eof(); }
 
 private:
@@ -303,5 +311,9 @@ private:
 typedef basic_streambuf<char>    streambuf;
 typedef basic_streambuf<wchar_t> wstreambuf;
 
-NS_END  // re_std
-#endif  // DJINTERP_RE_STD_STREAMBUF_BASIC_STREAMBUF_
+}  // re_std
+
+#endif  // floor, for now
+
+
+#endif  // RE_STD_STREAMBUF_BASIC_STREAMBUF_HPP

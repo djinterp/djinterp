@@ -1,27 +1,32 @@
-#include "../../../inc/c/functional/compose.h"
+/*******************************************************************************
+* djinterp [c]                                                         compose.c
+*
+* Transformer composition and partial consumers, as compose.h declares.
+*   A composed transformer owns one scratch block for the intermediate value,
+* so applying one is not reentrant: two threads, or a transformer that
+* applies its own composition, need a composition each.
+*
+*
+* path:      /src/djinterp/c/functional/compose.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.30
+*                                                            revised: 2026.09.30
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/functional/compose.h"  // corresponding header
+// std
+#include <stdbool.h>  // bool
+#include <stddef.h>   // size_t, NULL
+#include <stdlib.h>   // malloc, free
 
 
 /*
 d_functional_compose_new
-  Creates a heap-allocated composed transformer that applies two transformers
-in sequence: first (g), then second (f), implementing f(g(x)).
-  Allocates an internal temporary buffer of _temp_size bytes for the
-intermediate result.
-
-Parameter(s):
-  _first:     the transformer to apply first (g).
-  _context1:  context forwarded to _first; may be NULL.
-  _second:    the transformer to apply second (f).
-  _context2:  context forwarded to _second; may be NULL.
-  _temp_size: size in bytes of the intermediate result between _first and
-              _second.
-Return:
-  A pointer to a newly allocated d_composed_transformer, or NULL if _first
-was NULL, _second was NULL, _temp_size was 0, or allocation failed.
+  Composes `_second` after `_first`: apply(x) is second(first(x)). The
+intermediate value lives in a block of `_temp_size` bytes, which must hold
+whatever `_first` writes.
 */
 struct d_composed_transformer*
-d_functional_compose_new
-(
+d_functional_compose_new(
     fn_transformer _first,
     void*          _context1,
     fn_transformer _second,
@@ -29,221 +34,122 @@ d_functional_compose_new
     size_t         _temp_size
 )
 {
-    struct d_composed_transformer* result;
-    void*                          temp_buf;
-
-    // validate parameters
+    // both stages, and room for what passes between them
     if ( (!_first)  ||
          (!_second) ||
-         (_temp_size == 0) )
+         (_temp_size == 0u) )
     {
         return NULL;
     }
 
-    result = malloc(sizeof(struct d_composed_transformer));
+    struct d_composed_transformer* const composed = malloc(sizeof(*composed));
 
-    // ensure that memory allocation was successful
-    if (!result)
+    if (!composed)
     {
         return NULL;
     }
 
-    temp_buf = malloc(_temp_size);
+    composed->temp_buf = malloc(_temp_size);
 
-    // ensure that memory allocation was successful
-    if (!temp_buf)
+    if (!composed->temp_buf)
     {
-        free(result);
+        free(composed);
 
         return NULL;
     }
 
-    result->first     = _first;
-    result->second    = _second;
-    result->context1  = _context1;
-    result->context2  = _context2;
-    result->temp_size = _temp_size;
-    result->temp_buf  = temp_buf;
+    composed->first     = _first;
+    composed->second    = _second;
+    composed->context1  = _context1;
+    composed->context2  = _context2;
+    composed->temp_size = _temp_size;
 
-    return result;
+    return composed;
 }
 
-/*
-d_functional_compose_apply
-  Applies a composed transformer to an input, writing the final result to
-_output. Internally applies the first transformer to _input, stores the
-intermediate result in the composed transformer's temporary buffer, then
-applies the second transformer to produce _output.
-
-Parameter(s):
-  _composed: pointer to the composed transformer.
-  _input:    pointer to the input element.
-  _output:   pointer to the output destination.
-Return:
-  A boolean value corresponding to either:
-  - true, if both transformations succeeded, or
-  - false, if _composed was NULL, any internal pointer was NULL, or either
-    transformation failed.
-*/
 bool
-d_functional_compose_apply
-(
+d_functional_compose_apply(
     const struct d_composed_transformer* _composed,
     const void*                          _input,
     void*                                _output
 )
 {
-    // validate parameters
-    if ( (!_composed)           ||
-         (!_composed->first)    ||
-         (!_composed->second)   ||
-         (!_composed->temp_buf) ||
-         (!_input)              ||
-         (!_output) )
+    // nothing to apply
+    if (!_composed)
     {
         return false;
     }
 
-    // zero the temp buffer before use
-    memset(_composed->temp_buf, 0, _composed->temp_size);
-
-    // apply first transformer: input -> temp
-    if (!_composed->first(_input,
-                          _composed->temp_buf,
-                          _composed->context1))
-    {
-        return false;
-    }
-
-    // apply second transformer: temp -> output
-    if (!_composed->second(_composed->temp_buf,
-                           _output,
-                           _composed->context2))
-    {
-        return false;
-    }
-
-    return true;
+    // the second stage runs only on a first stage that succeeded
+    return ( (_composed->first(_input,
+                               _composed->temp_buf,
+                               _composed->context1)) &&
+             (_composed->second(_composed->temp_buf,
+                                _output,
+                                _composed->context2)) );
 }
 
-/*
-d_functional_compose_free
-  Frees a composed transformer and its internal temporary buffer.
-
-Parameter(s):
-  _composed: pointer to the composed transformer to free; may be NULL.
-Return:
-  none.
-*/
 void
-d_functional_compose_free
-(
+d_functional_compose_free(
     struct d_composed_transformer* _composed
 )
 {
-    if (_composed)
+    // nothing to release
+    if (!_composed)
     {
-        if (_composed->temp_buf)
-        {
-            free(_composed->temp_buf);
-        }
-
-        free(_composed);
+        return;
     }
+
+    free(_composed->temp_buf);
+    free(_composed);
 
     return;
 }
 
-/*
-d_functional_partial_consumer_new
-  Creates a heap-allocated partial consumer that binds a context value to a
-consumer function. When applied, the bound context is passed to the consumer
-as its second argument.
-
-Parameter(s):
-  _consumer: the consumer function to partially apply.
-  _context:  context to bind to the consumer; may be NULL.
-Return:
-  A pointer to a newly allocated d_partial_consumer, or NULL if _consumer
-was NULL or allocation failed.
-*/
 struct d_partial_consumer*
-d_functional_partial_consumer_new
-(
+d_functional_partial_consumer_new(
     fn_consumer _consumer,
-    void*      _context
+    void*       _context
 )
 {
-    struct d_partial_consumer* result;
-
-    // validate parameters
+    // the consumer is required
     if (!_consumer)
     {
         return NULL;
     }
 
-    result = malloc(sizeof(struct d_partial_consumer));
+    struct d_partial_consumer* const partial = malloc(sizeof(*partial));
 
-    // ensure that memory allocation was successful
-    if (!result)
+    if (partial)
     {
-        return NULL;
+        partial->consumer = _consumer;
+        partial->context  = _context;
     }
 
-    result->consumer = _consumer;
-    result->context  = _context;
-
-    return result;
+    return partial;
 }
 
-/*
-d_functional_partial_consumer_apply
-  Applies a partial consumer to an element, forwarding the bound context.
-
-Parameter(s):
-  _partial: pointer to the partial consumer.
-  _element: pointer to the element to consume.
-Return:
-  none.
-*/
 void
-d_functional_partial_consumer_apply
-(
+d_functional_partial_consumer_apply(
     const struct d_partial_consumer* _partial,
     void*                            _element
 )
 {
-    // validate parameters
-    if ( (!_partial) ||
-         (!_partial->consumer) )
+    // apply the bound consumer with its bound context
+    if (_partial)
     {
-        return;
+        _partial->consumer(_element, _partial->context);
     }
-
-    _partial->consumer(_element, _partial->context);
 
     return;
 }
 
-/*
-d_functional_partial_consumer_free
-  Frees a partial consumer. Does not free the bound context.
-
-Parameter(s):
-  _partial: pointer to the partial consumer to free; may be NULL.
-Return:
-  none.
-*/
 void
-d_functional_partial_consumer_free
-(
+d_functional_partial_consumer_free(
     struct d_partial_consumer* _partial
 )
 {
-    if (_partial)
-    {
-        free(_partial);
-    }
+    free(_partial);
 
     return;
 }

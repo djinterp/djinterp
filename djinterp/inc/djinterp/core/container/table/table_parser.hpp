@@ -1,74 +1,106 @@
-/******************************************************************************
-* djinterp [container]                                         table_parser.hpp
+/*******************************************************************************
+* djinterp [core]                                               table_parser.hpp
 *
-*   The TEXT DSL -- the front end that reads a table written as a grid, and the
-* PARSE leg of the prism (ch-parsing.tex).  Its opposite leg, render, lives on the
+*   The TEXT DSL -- the front end that reads a table written as a grid, and
+* the
+* PARSE leg of the prism (ch-parsing.tex). Its opposite leg, render, lives on
+* the
 * model (table_model.hpp), and the two are inverse on the recognised language:
 *
-*       parse(render(m)) = m                (a model survives being written down)
+*       parse(render(m)) = m (a model survives being written down)
 *       render(parse(s)) = s                for every s the grammar accepts
 *
 *   That pair is the whole point.  table_builder folds C++ types into a
-* table_model; this folds TEXT into the same table_model; so anything expressible
-* in one front end is expressible in the other, not by parallel maintenance but
+* table_model; this folds TEXT into the same table_model; so anything
+* expressible
+* in one front end is expressible in the other, not by parallel maintenance
+* but
 * because both name one carrier and the text leg is invertible.
 *
-*   ALIGNMENT CARRIES THE SPANS.  A merged cell is not announced in the text -- it
+*   ALIGNMENT CARRIES THE SPANS. A merged cell is not announced in the text --
+* it
 * is SEEN.  Its span is read from where the delimiters fall:
 *
 *         |     |   something   |  something else |     <- 3 cells
 *         | foo | bar  | alpha  | beta  | gamma   |     <- 5 cells
-*         |---------------------------------------|     <- the header separator
+*         |---------------------------------------| <- the header separator
 *         | 1   | 2    | 3      | 4     | 5       |
 *
-* "something" spans bar and alpha because it COVERS their columns.  So the parse
-* is: collect every line's delimiter offsets; take the finest line's offsets as
-* the column BOUNDARIES; then a cell running from one delimiter to the next spans
-* however many boundaries it covers.  A cell that covers no interior boundary is
-* atomic; one that covers k of them is a merge of k+1 columns, registered in the
+* "something" spans bar and alpha because it COVERS their columns. So the
+* parse
+* is: collect every line's delimiter offsets; take the finest line's offsets
+* as
+* the column BOUNDARIES; then a cell running from one delimiter to the next
+* spans
+* however many boundaries it covers. A cell that covers no interior boundary
+* is
+* atomic; one that covers k of them is a merge of k+1 columns, registered in
+* the
 * model's cover Gamma at its anchor -- the lex-least position it covers.
 *
 *   THE SEPARATOR names the header block: the rows above it are header levels
 * (which stack, outermost first, and may group -- an outer label spanning the
-* finer ones beneath), the rows below are the body.  With no separator the whole
+* finer ones beneath), the rows below are the body. With no separator the
+* whole
 * grid is body.
 *
-*   STRICTNESS is the option surface's (table_options.hpp).  A row whose cells do
+*   STRICTNESS is the option surface's (table_options.hpp). A row whose cells
+* do
 * not cover the boundaries exactly is an error under `exact`, tolerated under
 * truncate / pad / lenient, in the direction each names.
 *
 *   PORTABILITY:
-*   C++11 baseline.  Built on parse.hpp's parse_state / parse_result / parse_error
+*   C++11 baseline. Built on parse.hpp's parse_state / parse_result /
+* parse_error
 * vocabulary (which lives in djinterp::parse, hence the parse:: qualification
-* throughout), so a failure reports the offset and a message like any other parse
+* throughout), so a failure reports the offset and a message like any other
+* parse
 * in the framework.
 *
 *
 * path:      /inc/djinterp/core/container/table/table_parser.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    parse_grid_options          (the dialect's knobs)
+      -------------------------------------------------
+
 II.   grid_line                   (one scanned line: its delimiter offsets)
+      ---------------------------------------------------------------------
+
 III.  scanning                    (text -> grid_lines; separator detection)
+      ---------------------------------------------------------------------
+
 IV.   boundaries                  (the column boundaries; span_of)
+      ------------------------------------------------------------
+
 V.    parse_table                 (grid -> table_model_value)
+      -------------------------------------------------------
+
 VI.   round_trip                  (the prism laws, as checkable predicates)
+      ---------------------------------------------------------------------
 */
 
-#ifndef DJINTERP_CONTAINER_TABLE_PARSER_
-#define DJINTERP_CONTAINER_TABLE_PARSER_ 1
+#ifndef DJINTERP_CONTAINER_TABLE_TABLE_PARSER_HPP
+#define DJINTERP_CONTAINER_TABLE_TABLE_PARSER_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
+// 2's rule). The owner's ruling: compile at every level first; port down only
+// where something needs it.
+#include "../../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <string>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"        // NS_*, D_CONSTEXPR, D_NODISCARD
+#include "../../../djinterp.hpp"        // NS_*, D_CONSTEXPR, D_NODISCARD
 #include "../../../parse/parse.hpp"      // parse_state, parse_result, parse_error,
                                       // parse_status + DParseStatus* codes
 #include "./table_model.hpp"          // table_model_value, render, render_options
@@ -84,9 +116,10 @@ NS_DJINTERP
 // ===========================================================================
 
 // parse_grid_options
-//   struct: the text dialect's knobs -- the runtime face of the policy surface.
-// The option pack fixes these at compile time (table_options.hpp); this carries
-// the same grades for text whose strictness is only known when it is read.
+//   struct: the text dialect's knobs -- the runtime face of the policy
+// surface. The option pack fixes these at compile time (table_options.hpp);
+// this carries the same grades for text whose strictness is only known when it
+// is read.
 struct parse_grid_options
 {
     char             delimiter;       // the cell delimiter
@@ -96,8 +129,8 @@ struct parse_grid_options
     bool             skip_blank;      // ignore blank lines between rows
 
     //   Every field is READ from the resolved config: the characters so render
-    // and parse cannot drift apart, and the grades so the runtime dialect starts
-    // where the compile-time defaults do.  One knob, one home.
+    // and parse cannot drift apart, and the grades so the runtime dialect
+    // starts where the compile-time defaults do. One knob, one home.
     parse_grid_options()
         : delimiter(D_INTERNAL_TABLE_DELIMITER),
           separator_fill(D_INTERNAL_TABLE_SEPARATOR_FILL),
@@ -114,7 +147,7 @@ struct parse_grid_options
 
 // grid_line
 //   struct: one scanned line of the grid -- where its delimiters fell and what
-// lay between them.  The delimiter OFFSETS are the load-bearing part: they are
+// lay between them. The delimiter OFFSETS are the load-bearing part: they are
 // what the spans are read from.
 struct grid_line
 {
@@ -175,8 +208,9 @@ NS_INTERNAL
     }
 
     // looks_like_separator
-    //   function: whether a line is a RULE -- delimiters and fill only, with at
-    // least one fill character.  This is what marks the rows above it as headers.
+    //   function: whether a line is a RULE -- delimiters and fill only, with
+    // at least one fill character. This is what marks the rows above it as
+    // headers.
     inline bool
     looks_like_separator(
         const std::string&       _line,
@@ -208,9 +242,9 @@ NS_INTERNAL
 NS_END  // internal
 
 // scan_line
-//   function: one line of the grid -- its delimiter offsets and the text between
-// them.  The offsets are recorded RELATIVE TO THE LINE, which is the coordinate
-// the spans are read in.
+//   function: one line of the grid -- its delimiter offsets and the text
+// between them. The offsets are recorded RELATIVE TO THE LINE, which is the
+// coordinate the spans are read in.
 D_NODISCARD inline grid_line
 scan_line(
     const std::string&        _line,
@@ -251,7 +285,7 @@ scan_line(
 }
 
 // scan_grid
-//   function: the input's lines, scanned.  Blank lines are skipped when the
+//   function: the input's lines, scanned. Blank lines are skipped when the
 // dialect says so; every other line becomes a grid_line, separator or not.
 D_NODISCARD inline std::vector<grid_line>
 scan_grid(
@@ -310,14 +344,16 @@ scan_grid(
 // ===========================================================================
 
 // column_boundaries
-//   function: the grid's column boundaries -- the delimiter offsets of its FINEST
-// line, the one that resolves the most columns.  Every other line's cells are read
-// against these: a cell that covers interior boundaries is a merge of the columns
-// they separate.
+//   function: the grid's column boundaries -- the delimiter offsets of its
+// FINEST line, the one that resolves the most columns. Every other line's
+// cells are
+// read
+// against these: a cell that covers interior boundaries is a merge of the
+// columns they separate.
 //
 //   The finest line is the right reference because a merge can only ever be
-// COARSER than the atomic grid; no line can resolve more columns than the atomic
-// table has.  Separator lines are ignored -- a rule resolves nothing.
+// COARSER than the atomic grid; no line can resolve more columns than the
+// atomic table has. Separator lines are ignored -- a rule resolves nothing.
 D_NODISCARD inline std::vector<std::size_t>
 column_boundaries(const std::vector<grid_line>& _lines)
 {
@@ -341,7 +377,7 @@ column_boundaries(const std::vector<grid_line>& _lines)
 
 // span_of
 //   function: how many columns a cell running from delimiter offset _begin to
-// _end covers -- one, plus every INTERIOR boundary it swallows.  This is the
+// _end covers -- one, plus every INTERIOR boundary it swallows. This is the
 // whole span inference: an atomic cell covers no interior boundary; a cell
 // covering k of them merges k+1 columns.
 D_NODISCARD inline std::size_t
@@ -381,8 +417,8 @@ NS_INTERNAL
 
     // row_span_ok
     //   function: whether a row covering _covered of _required columns is
-    // admissible under _s -- the runtime twin of table_builder's row_width_ok, so
-    // the two front ends enforce one rule.
+    // admissible under _s -- the runtime twin of table_builder's row_width_ok,
+    // so the two front ends enforce one rule.
     inline bool
     row_span_ok(
         table_strictness _s,
@@ -396,14 +432,15 @@ NS_INTERNAL
     }
 
     // fill_row
-    //   function: lay one scanned line's cells onto row _r of the model, reading
-    // each cell's span off the boundaries and registering a merge for any cell
-    // that covers more than one column.  Returns the columns the row covered.
-    template<typename _Cell,
-             typename _Metadata>
+    //   function: lay one scanned line's cells onto row _r of the model,
+    // reading each cell's span off the boundaries and registering a merge for
+    // any cell that covers more than one column. Returns the columns the row
+    // covered.
+    template<typename Cell,
+             typename Metadata>
     inline std::size_t
     fill_row(
-        table_model_value<_Cell, _Metadata>& _model,
+        table_model_value<Cell, Metadata>& _model,
         const grid_line&                     _line,
         const std::vector<std::size_t>&      _boundaries,
         std::size_t                          _r)
@@ -427,7 +464,8 @@ NS_INTERNAL
             const std::size_t _fit =
                 ((_c + _span) > _width) ? (_width - _c) : _span;
 
-            // a cell covering more than one column IS a merge; it is written once,
+            // a cell covering more than one column IS a merge; it is written
+            // once,
             // at its anchor, and the covered positions defer to it
             if (_fit > 1)
             {
@@ -446,9 +484,9 @@ NS_INTERNAL
 
     // header_level_of
     //   function: one scanned line as a header LEVEL -- each cell a labelled,
-    // spannable header_cell, its span read off the boundaries exactly as a body
-    // cell's is.  This is what makes a grouped header ("coordinate" over x, y, z)
-    // survive the round trip.
+    // spannable header_cell, its span read off the boundaries exactly as a
+    // body cell's is. This is what makes a grouped header ("coordinate" over
+    // x, y, z) survive the round trip.
     inline header_level<std::string>
     header_level_of(
         const grid_line&                _line,
@@ -485,27 +523,27 @@ NS_INTERNAL
 NS_END  // internal
 
 // parse_table
-//   function: text -> the model.  The PARSE leg: scan the grid, take the finest
+//   function: text -> the model. The PARSE leg: scan the grid, take the finest
 // line's delimiters as the column boundaries, read every other line's spans
 // against them, and fill a table_model_value -- the same carrier table_builder
 // folds a type declaration into.
 //
-//   The rows above a separator become the column-header stack (outermost first);
-// the rows below become the body.  A cell spanning several columns becomes a
-// merge in the model's cover, anchored where it starts.
+//   The rows above a separator become the column-header stack (outermost
+// first); the rows below become the body. A cell spanning several columns
+// becomes a merge in the model's cover, anchored where it starts.
 //
 // Example:
 //   parse::parse_state<char> st(text.data(), text.size());
 //   parse::parse_result<table_model_value<>> r = parse_table(st);
 //   if (r.ok()) { const auto& m = r.value(); ... }
-template<typename _Cell     = std::string,
-         typename _Metadata = table_metadata<>>
-D_NODISCARD parse::parse_result<table_model_value<_Cell, _Metadata>>
+template<typename Cell      = std::string,
+         typename Metadata = table_metadata<>>
+D_NODISCARD parse::parse_result<table_model_value<Cell, Metadata>>
 parse_table(
     parse::parse_state<char>&        _state,
     const parse_grid_options& _opts = parse_grid_options())
 {
-    using model_type  = table_model_value<_Cell, _Metadata>;
+    using model_type  = table_model_value<Cell, Metadata>;
     using result_type = parse::parse_result<model_type>;
 
     const std::size_t _origin = _state.offset;
@@ -602,30 +640,32 @@ parse_table(
 // parse_table_text
 //   function: parse_table over a std::string -- the convenience face, for when
 // there is no residual to thread.
-template<typename _Cell     = std::string,
-         typename _Metadata = table_metadata<>>
-D_NODISCARD parse::parse_result<table_model_value<_Cell, _Metadata>>
+template<typename Cell      = std::string,
+         typename Metadata = table_metadata<>>
+D_NODISCARD parse::parse_result<table_model_value<Cell, Metadata>>
 parse_table_text(
     const std::string&        _text,
     const parse_grid_options& _opts = parse_grid_options())
 {
     parse::parse_state<char> _state(_text.data(), _text.size());
 
-    return parse_table<_Cell, _Metadata>(_state, _opts);
+    return parse_table<Cell, Metadata>(_state, _opts);
 }
 
 
 // ===========================================================================
 // VI.  round_trip
 // ===========================================================================
-//   The prism laws, as things a caller (or a test) can actually check.  They are
-// the reason the two front ends are one DSL rather than two that happen to agree.
+//   The prism laws, as things a caller (or a test) can actually check. They are
+// the reason the two front ends are one DSL rather than two that happen to
+// agree.
 
 // renders_to_same_text
-//   function: render . parse = id, at _text -- the law that says the text surface
-// loses nothing.  True when _text is canonical (as render writes it); a grid that
-// is merely EQUIVALENT (differently padded) parses to the same model but renders
-// to the canonical spelling, which is the point of a canonical form.
+//   function: render . parse = id, at _text -- the law that says the text
+// surface loses nothing. True when _text is canonical (as render writes it); a
+// grid that is merely EQUIVALENT (differently padded) parses to the same model
+// but renders to the canonical spelling, which is the point of a canonical
+// form.
 D_NODISCARD inline bool
 renders_to_same_text(
     const std::string&        _text,
@@ -643,15 +683,16 @@ renders_to_same_text(
 
 // models_equal
 //   function: whether two runtime models agree -- same domain, same cover, and
-// the same value at every position READ THROUGH the overlay (so two models that
-// differ only in the dead storage under a merge still agree, as they should:
-// a covered position has no value of its own).
-template<typename _Cell,
-         typename _Metadata>
+// the same value at every position READ THROUGH the overlay (so two models
+// that
+// differ only in the dead storage under a merge still agree, as they should: a
+// covered position has no value of its own).
+template<typename Cell,
+         typename Metadata>
 D_NODISCARD bool
 models_equal(
-    const table_model_value<_Cell, _Metadata>& _a,
-    const table_model_value<_Cell, _Metadata>& _b)
+    const table_model_value<Cell, Metadata>& _a,
+    const table_model_value<Cell, Metadata>& _b)
 {
     if ((_a.rows() != _b.rows()) || (_a.cols() != _b.cols()))
     {
@@ -689,23 +730,24 @@ models_equal(
 }
 
 // survives_round_trip
-//   function: parse . render = id, at _model -- the law that says a model can be
-// written down and read back unchanged.  The direction that matters for the two
-// front ends: a model table_builder folds from types renders to text that parses
-// back to the same model.
-template<typename _Cell,
-         typename _Metadata>
+//   function: parse . render = id, at _model -- the law that says a model can
+// be written down and read back unchanged. The direction that matters for the
+// two
+// front ends: a model table_builder folds from types renders to text that
+// parses back to the same model.
+template<typename Cell,
+         typename Metadata>
 D_NODISCARD bool
 survives_round_trip(
-    const table_model_value<_Cell, _Metadata>& _model,
+    const table_model_value<Cell, Metadata>& _model,
     const parse_grid_options&                  _opts = parse_grid_options())
 {
     const std::string _text = render(_model);
 
     parse::parse_state<char> _state(_text.data(), _text.size());
 
-    parse::parse_result<table_model_value<_Cell, _Metadata>> _r =
-        parse_table<_Cell, _Metadata>(_state, _opts);
+    parse::parse_result<table_model_value<Cell, Metadata>> _r =
+        parse_table<Cell, Metadata>(_state, _opts);
 
     if (!_r.ok())
     {
@@ -718,5 +760,6 @@ survives_round_trip(
 
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_CONTAINER_TABLE_PARSER_
+#endif  // DJINTERP_CONTAINER_TABLE_TABLE_PARSER_HPP

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                   cfloat.hpp
 *
 * the floating-point limit macros:
@@ -36,20 +36,20 @@
 * here. These macros are for preprocessor conditionals.
 *
 *
-* path:      /inc/djinterp/re_std/cfloat/cfloat.hpp
+* path:      /inc/re_std/cfloat/cfloat.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.25
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_CFLOAT_CFLOAT_
-#define DJINTERP_RE_STD_CFLOAT_CFLOAT_ 1
-
-// djinterp
-#include "../../core/djinterp.hpp"
+#ifndef RE_STD_CFLOAT_CFLOAT_HPP
+#define RE_STD_CFLOAT_CFLOAT_HPP 1
 
 // std
 //   the macros themselves -- the whole payload of the header.
 #include <cfloat>
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
 // ===========================================================================
@@ -151,4 +151,4 @@
 #endif
 
 
-#endif  // DJINTERP_RE_STD_CFLOAT_CFLOAT_
+#endif  // RE_STD_CFLOAT_CFLOAT_HPP

@@ -1,24 +1,24 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                   is_nothrow_convertible.hpp
 *
 * is_nothrow_convertible trait:
-*   true_type if _From is implicitly convertible to _To AND the conversion
+*   true_type if From is implicitly convertible to To AND the conversion
 * does not throw; false_type otherwise. Standardized in C++20, but provided
 * here on C++11 and later (the implementation does not require any feature
 * introduced after C++11).
 *
 *   IMPLEMENTATION TECHNIQUE:
 *   The classic noexcept-of-conversion probe. We declare an internal helper
-* function `void implicit_takes(_To) noexcept;` and check
-* `noexcept(implicit_takes(declval<_From>()))`. Because the function itself
+* function `void implicit_takes(To) noexcept;` and check
+* `noexcept(implicit_takes(declval<From>()))`. Because the function itself
 * is marked noexcept, the only operation in the call expression that could
-* throw is the implicit conversion of the argument from _From to _To. Hence
+* throw is the implicit conversion of the argument from From to To. Hence
 * the noexcept-operator's result is the noexceptness of the conversion.
 *
 *   The trait short-circuits via the same two-step pattern used by
-* is_nothrow_swappable_with: first check is_convertible<_From, _To>, and
+* is_nothrow_swappable_with: first check is_convertible<From, To>, and
 * only when convertibility holds does it instantiate the noexcept probe.
-* This avoids spurious hard errors when _From cannot be converted to _To
+* This avoids spurious hard errors when From cannot be converted to To
 * at all (e.g. unrelated class types).
 *
 *   PORTABILITY:
@@ -29,19 +29,20 @@
 *   is_convertible, integral_constant, false_type, re_std::declval.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/is_nothrow_convertible.hpp
+* path:      /inc/re_std/type_traits/is_nothrow_convertible.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_ 1
+#ifndef RE_STD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_HPP
+#define RE_STD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // re_std
 #include "./true_type.hpp"
@@ -51,10 +52,12 @@
 #include "../utility/declval.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
-    NS_INTERNAL
+    namespace internal
+    {
 
         // implicit_takes
         //   function: declaration-only noexcept function used as a probe.
@@ -62,62 +65,62 @@ NS_RESTD
         //             called; it appears only inside an unevaluated noexcept
         //             operand. Because the function itself is noexcept, the
         //             call expression's noexceptness equals the noexceptness
-        //             of the implicit conversion of the argument to _To.
-        template<typename _To>
-        void implicit_takes(_To) D_NOEXCEPT;
+        //             of the implicit conversion of the argument to To.
+        template<typename To>
+        void implicit_takes(To) RE_STD_NOEXCEPT;
 
         // is_nothrow_convertible_helper
-        //   trait: primary; gated by the boolean parameter _Convertible.
+        //   trait: primary; gated by the boolean parameter Convertible.
         //          When false, short-circuits to false_type without
         //          instantiating the noexcept probe.
-        template<typename _From,
-                 typename _To,
-                 bool     _Convertible>
+        template<typename From,
+                 typename To,
+                 bool     Convertible>
         struct is_nothrow_convertible_helper
             : false_type
         {};
 
-        // is_nothrow_convertible_helper<_From, _To, true>
+        // is_nothrow_convertible_helper<From, To, true>
         //   trait: specialization; selected when the conversion is known
         //          well-formed. Wraps the noexcept probe in an
         //          integral_constant<bool, ...>.
-        template<typename _From,
-                 typename _To>
-        struct is_nothrow_convertible_helper<_From, _To, true>
+        template<typename From,
+                 typename To>
+        struct is_nothrow_convertible_helper<From, To, true>
             : integral_constant<
                   bool,
-                  noexcept( implicit_takes<_To>(
-                                re_std::declval<_From>() ) ) >
+                  noexcept( implicit_takes<To>(
+                                re_std::declval<From>() ) ) >
         {};
 
-    NS_END  // internal
+    }  // internal
 
 
     // is_nothrow_convertible
-    //   trait: true_type if _From is implicitly convertible to _To and the
+    //   trait: true_type if From is implicitly convertible to To and the
     //          conversion is noexcept, false_type otherwise.
-    template<typename _From,
-             typename _To>
+    template<typename From,
+             typename To>
     struct is_nothrow_convertible
         : internal::is_nothrow_convertible_helper<
-              _From,
-              _To,
-              is_convertible<_From, _To>::value >
+              From,
+              To,
+              is_convertible<From, To>::value >
     {};
 
 
     // is_nothrow_convertible_v (C++14+)
-    #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-        template<typename _From,
-                 typename _To>
-        D_CONSTEXPR bool is_nothrow_convertible_v
-            = is_nothrow_convertible<_From, _To>::value;
+    #if RE_STD_LANG_HAS_VARIABLE_TEMPLATES
+        template<typename From,
+                 typename To>
+        RE_STD_CONSTEXPR bool is_nothrow_convertible_v
+            = is_nothrow_convertible<From, To>::value;
     #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_
+#endif  // RE_STD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [database]                                                redis.hpp
+/*******************************************************************************
+* djinterp [core]                                                      redis.hpp
 *
 * djinterp Redis connection module:
 *   This header provides the Redis-specific connection implementation and
@@ -43,17 +43,23 @@
 * (trailing sections), folded in from redis_traits.hpp and the matching *_concepts.hpp;
 * detection now lives with the connection. Concepts gated on concept support.
 *
+*
 * path:      /inc/djinterp/core/db/redis/redis.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.27
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.27
+*                                                            revised: 2026.10.02
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_REDIS_
-#define DJINTERP_DATABASE_REDIS_
+#ifndef DJINTERP_DB_REDIS_REDIS_HPP
+#define DJINTERP_DB_REDIS_REDIS_HPP
+
+// djinterp
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
 #include <chrono>
-#include <cstdint>
 #include <map>
 #include <memory>
 #include <optional>
@@ -61,9 +67,13 @@
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"
+#include "../../meta/type_utility.hpp"  // clean_t, self
 #include "../../../env/db/redis/env_redis.h"
 #include "../database_connection.hpp"
-#include "../database_traits.hpp"
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t,
+                                                   // uint32_t, uint8_t,
+                                                   // int64_t
 
 
 NS_DJINTERP
@@ -80,7 +90,7 @@ NS_DJINTERP
 
 // redis_type
 //   enumeration: canonical Redis value types as returned by TYPE.
-enum class redis_type : std::uint16_t
+enum class redis_type : re_std::uint16_t
 {
     // -----------------------------------------------------------------
     // none / missing
@@ -572,26 +582,26 @@ struct redis_version_info
 {
 #if D_ENV_REDIS_DETECTED
     static constexpr bool          detected = true;
-    static constexpr std::uint32_t id       = D_ENV_REDIS_VERSION_ID;
-    static constexpr std::uint16_t major    = D_ENV_REDIS_VERSION_MAJOR;
-    static constexpr std::uint16_t minor    = D_ENV_REDIS_VERSION_MINOR;
-    static constexpr std::uint16_t patch    = D_ENV_REDIS_VERSION_PATCH;
+    static constexpr re_std::uint32_t id       = D_ENV_REDIS_VERSION_ID;
+    static constexpr re_std::uint16_t major    = D_ENV_REDIS_VERSION_MAJOR;
+    static constexpr re_std::uint16_t minor    = D_ENV_REDIS_VERSION_MINOR;
+    static constexpr re_std::uint16_t patch    = D_ENV_REDIS_VERSION_PATCH;
     static constexpr const char*   string   = D_ENV_REDIS_VERSION_STRING;
 #else
     static constexpr bool          detected = false;
-    static constexpr std::uint32_t id       = 0;
-    static constexpr std::uint16_t major    = 0;
-    static constexpr std::uint16_t minor    = 0;
-    static constexpr std::uint16_t patch    = 0;
+    static constexpr re_std::uint32_t id       = 0;
+    static constexpr re_std::uint16_t major    = 0;
+    static constexpr re_std::uint16_t minor    = 0;
+    static constexpr re_std::uint16_t patch    = 0;
     static constexpr const char*   string   = "not detected";
 #endif
 
     // at_least
     //   function: returns true if the detected Redis version is at
     // least (major, minor, patch).
-    static constexpr bool at_least(std::uint16_t _major,
-                                   std::uint16_t _minor,
-                                   std::uint16_t _patch) noexcept
+    static constexpr bool at_least(re_std::uint16_t _major,
+                                   re_std::uint16_t _minor,
+                                   re_std::uint16_t _patch) noexcept
     {
         return id >= (_major * 10000u + _minor * 100u + _patch);
     }
@@ -604,7 +614,7 @@ struct redis_version_info
 
 // redis_connection_mode
 //   enumeration: deployment topology the connection talks to.
-enum class redis_connection_mode : std::uint8_t
+enum class redis_connection_mode : re_std::uint8_t
 {
     standalone = 0,     // single-node Redis
     sentinel   = 1,     // Redis Sentinel-managed master
@@ -613,7 +623,7 @@ enum class redis_connection_mode : std::uint8_t
 
 // redis_resp_version
 //   enumeration: wire protocol version to negotiate via HELLO.
-enum class redis_resp_version : std::uint8_t
+enum class redis_resp_version : re_std::uint8_t
 {
     auto_negotiate = 0,     // let the client decide
     resp2          = 2,     // legacy RESP2
@@ -622,7 +632,7 @@ enum class redis_resp_version : std::uint8_t
 
 // redis_tls_mode
 //   enumeration: TLS negotiation modes.
-enum class redis_tls_mode : std::uint8_t
+enum class redis_tls_mode : re_std::uint8_t
 {
     disable     = 0,        // no TLS
     enable      = 1,        // TLS required, no peer verification
@@ -797,7 +807,7 @@ public:
     //   function: PING the server; returns true on PONG.
     bool ping() const
     {
-        return self().ping_impl();
+        return self().ping_helper();
     }
 
 
@@ -837,7 +847,7 @@ public:
 
     // publish
     //   function: publishes a message. PUBLISH <channel> <message>.
-    std::int64_t publish(const std::string& _channel,
+    re_std::int64_t publish(const std::string& _channel,
                          const std::string& _message)
     {
         this->ensure_connected();
@@ -984,7 +994,7 @@ public:
 
     // del
     //   function: DEL <key>; returns number of keys removed.
-    std::int64_t del(const std::string& _key)
+    re_std::int64_t del(const std::string& _key)
     {
         this->ensure_connected();
 
@@ -1001,7 +1011,7 @@ public:
     // expire
     //   function: EXPIRE <key> <seconds>.
     bool expire(const std::string& _key,
-                std::int64_t       _seconds)
+                re_std::int64_t       _seconds)
     {
         this->ensure_connected();
 
@@ -1010,7 +1020,7 @@ public:
 
     // ttl
     //   function: TTL <key>. Returns -1 for no TTL, -2 for missing.
-    std::int64_t ttl(const std::string& _key) const
+    re_std::int64_t ttl(const std::string& _key) const
     {
         return self().ttl_impl(_key);
     }
@@ -1026,7 +1036,7 @@ public:
     // scan
     //   function: SCAN <cursor> [MATCH <pattern>] — cursor-based
     // iteration. Returns (next_cursor, keys).
-    auto scan(std::int64_t       _cursor,
+    auto scan(re_std::int64_t       _cursor,
               const std::string& _pattern)
     {
         this->ensure_connected();
@@ -1050,7 +1060,7 @@ public:
 
     // hset
     //   function: HSET <key> <field> <value>.
-    std::int64_t hset(const std::string& _key,
+    re_std::int64_t hset(const std::string& _key,
                       const std::string& _field,
                       const std::string& _value)
     {
@@ -1061,7 +1071,7 @@ public:
 
     // hdel
     //   function: HDEL <key> <field>.
-    std::int64_t hdel(const std::string& _key,
+    re_std::int64_t hdel(const std::string& _key,
                       const std::string& _field)
     {
         this->ensure_connected();
@@ -1091,7 +1101,7 @@ public:
 
     // lpush
     //   function: LPUSH <key> <value>.
-    std::int64_t lpush(const std::string& _key,
+    re_std::int64_t lpush(const std::string& _key,
                        const std::string& _value)
     {
         this->ensure_connected();
@@ -1101,7 +1111,7 @@ public:
 
     // rpush
     //   function: RPUSH <key> <value>.
-    std::int64_t rpush(const std::string& _key,
+    re_std::int64_t rpush(const std::string& _key,
                        const std::string& _value)
     {
         this->ensure_connected();
@@ -1130,8 +1140,8 @@ public:
     // lrange
     //   function: LRANGE <key> <start> <stop>.
     std::vector<std::string> lrange(const std::string& _key,
-                                    std::int64_t       _start,
-                                    std::int64_t       _stop) const
+                                    re_std::int64_t       _start,
+                                    re_std::int64_t       _stop) const
     {
         return self().lrange_impl(_key, _start, _stop);
     }
@@ -1143,7 +1153,7 @@ public:
 
     // sadd
     //   function: SADD <key> <member>.
-    std::int64_t sadd(const std::string& _key,
+    re_std::int64_t sadd(const std::string& _key,
                       const std::string& _member)
     {
         this->ensure_connected();
@@ -1153,7 +1163,7 @@ public:
 
     // srem
     //   function: SREM <key> <member>.
-    std::int64_t srem(const std::string& _key,
+    re_std::int64_t srem(const std::string& _key,
                       const std::string& _member)
     {
         this->ensure_connected();
@@ -1175,7 +1185,7 @@ public:
 
     // zadd
     //   function: ZADD <key> <score> <member>.
-    std::int64_t zadd(const std::string& _key,
+    re_std::int64_t zadd(const std::string& _key,
                       double             _score,
                       const std::string& _member)
     {
@@ -1186,7 +1196,7 @@ public:
 
     // zrem
     //   function: ZREM <key> <member>.
-    std::int64_t zrem(const std::string& _key,
+    re_std::int64_t zrem(const std::string& _key,
                       const std::string& _member)
     {
         this->ensure_connected();
@@ -1197,8 +1207,8 @@ public:
     // zrange
     //   function: ZRANGE <key> <start> <stop>.
     std::vector<std::string> zrange(const std::string& _key,
-                                    std::int64_t       _start,
-                                    std::int64_t       _stop) const
+                                    re_std::int64_t       _start,
+                                    re_std::int64_t       _stop) const
     {
         return self().zrange_impl(_key, _start, _stop);
     }
@@ -1223,7 +1233,7 @@ public:
     //   function: XREAD COUNT <count> STREAMS <key> <last_id>.
     auto xread(const std::string& _key,
                const std::string& _last_id,
-               std::int64_t       _count) const
+               re_std::int64_t       _count) const
     {
         return self().xread_impl(_key, _last_id, _count);
     }
@@ -1242,14 +1252,14 @@ public:
 
     // client_id
     //   function: CLIENT ID — the connection's unique identifier.
-    std::int64_t client_id() const
+    re_std::int64_t client_id() const
     {
         return self().client_id_impl();
     }
 
     // dbsize
     //   function: DBSIZE — number of keys in the current database.
-    std::int64_t dbsize() const
+    re_std::int64_t dbsize() const
     {
         return self().dbsize_impl();
     }
@@ -1320,7 +1330,7 @@ public:
 
     // lastsave
     //   function: LASTSAVE — Unix timestamp of last successful RDB.
-    std::int64_t lastsave() const
+    re_std::int64_t lastsave() const
     {
         return self().lastsave_impl();
     }
@@ -1431,13 +1441,13 @@ public:
     // _impl methods (defined in redis.cpp)
     // -----------------------------------------------------------------
 
-    void         connect_impl();
-    void         disconnect_impl();
-    bool         is_connected_impl() const;
-    bool         ping_impl() const;
-    std::string  get_server_version_impl() const;
-    std::string  get_last_error_impl() const;
-    int          get_last_error_code_impl() const;
+    void         connect_helper();
+    void         disconnect_helper();
+    bool         is_connected_helper() const;
+    bool         ping_helper() const;
+    std::string  get_server_version_helper() const;
+    std::string  get_last_error_helper() const;
+    int          get_last_error_code_helper() const;
 
     // command dispatch
     bool         send_command_impl(const std::string& _command);
@@ -1453,7 +1463,7 @@ public:
     void         unsubscribe_impl(const std::string& _channel);
     void         psubscribe_impl(const std::string& _pattern);
     void         punsubscribe_impl(const std::string& _pattern);
-    std::int64_t publish_impl(const std::string& _channel,
+    re_std::int64_t publish_impl(const std::string& _channel,
                               const std::string& _message);
     auto         get_message_impl()
                      -> std::optional<std::string>;
@@ -1491,26 +1501,26 @@ public:
                  get_impl(const std::string& _key);
     bool         set_impl(const std::string& _key,
                           const std::string& _value);
-    std::int64_t del_impl(const std::string& _key);
+    re_std::int64_t del_impl(const std::string& _key);
     bool         key_exists_impl(const std::string& _key) const;
     bool         expire_impl(const std::string& _key,
-                             std::int64_t       _seconds);
-    std::int64_t ttl_impl(const std::string& _key) const;
+                             re_std::int64_t       _seconds);
+    re_std::int64_t ttl_impl(const std::string& _key) const;
     std::vector<std::string>
                  keys_impl(const std::string& _pattern) const;
-    auto         scan_impl(std::int64_t       _cursor,
+    auto         scan_impl(re_std::int64_t       _cursor,
                            const std::string& _pattern)
-                     -> std::pair<std::int64_t,
+                     -> std::pair<re_std::int64_t,
                                   std::vector<std::string>>;
 
     // hashes
     std::optional<std::string>
                  hget_impl(const std::string& _key,
                            const std::string& _field) const;
-    std::int64_t hset_impl(const std::string& _key,
+    re_std::int64_t hset_impl(const std::string& _key,
                            const std::string& _field,
                            const std::string& _value);
-    std::int64_t hdel_impl(const std::string& _key,
+    re_std::int64_t hdel_impl(const std::string& _key,
                            const std::string& _field);
     std::map<std::string, std::string>
                  hgetall_impl(const std::string& _key) const;
@@ -1518,9 +1528,9 @@ public:
                  hkeys_impl(const std::string& _key) const;
 
     // lists
-    std::int64_t lpush_impl(const std::string& _key,
+    re_std::int64_t lpush_impl(const std::string& _key,
                             const std::string& _value);
-    std::int64_t rpush_impl(const std::string& _key,
+    re_std::int64_t rpush_impl(const std::string& _key,
                             const std::string& _value);
     std::optional<std::string>
                  lpop_impl(const std::string& _key);
@@ -1528,27 +1538,27 @@ public:
                  rpop_impl(const std::string& _key);
     std::vector<std::string>
                  lrange_impl(const std::string& _key,
-                             std::int64_t       _start,
-                             std::int64_t       _stop) const;
+                             re_std::int64_t       _start,
+                             re_std::int64_t       _stop) const;
 
     // sets
-    std::int64_t sadd_impl(const std::string& _key,
+    re_std::int64_t sadd_impl(const std::string& _key,
                            const std::string& _member);
-    std::int64_t srem_impl(const std::string& _key,
+    re_std::int64_t srem_impl(const std::string& _key,
                            const std::string& _member);
     std::vector<std::string>
                  smembers_impl(const std::string& _key) const;
 
     // sorted sets
-    std::int64_t zadd_impl(const std::string& _key,
+    re_std::int64_t zadd_impl(const std::string& _key,
                            double             _score,
                            const std::string& _member);
-    std::int64_t zrem_impl(const std::string& _key,
+    re_std::int64_t zrem_impl(const std::string& _key,
                            const std::string& _member);
     std::vector<std::string>
                  zrange_impl(const std::string& _key,
-                             std::int64_t       _start,
-                             std::int64_t       _stop) const;
+                             re_std::int64_t       _start,
+                             re_std::int64_t       _stop) const;
 
     // streams
     std::string  xadd_impl(const std::string&              _key,
@@ -1556,15 +1566,15 @@ public:
                            const std::vector<std::string>& _fields);
     auto         xread_impl(const std::string& _key,
                             const std::string& _last_id,
-                            std::int64_t       _count) const
+                            re_std::int64_t       _count) const
                      -> std::vector<std::pair<
                          std::string,
                          std::map<std::string, std::string>>>;
 
     // diagnostics
     std::string  info_impl() const;
-    std::int64_t client_id_impl() const;
-    std::int64_t dbsize_impl() const;
+    re_std::int64_t client_id_impl() const;
+    re_std::int64_t dbsize_impl() const;
     void         select_db_impl(int _index);
 
     // cluster
@@ -1576,7 +1586,7 @@ public:
     void         save_impl();
     void         bgsave_impl();
     void         bgrewriteaof_impl();
-    std::int64_t lastsave_impl() const;
+    re_std::int64_t lastsave_impl() const;
 
 
     // -----------------------------------------------------------------
@@ -1652,33 +1662,33 @@ struct redis_result_set_impl;
 //   detector: send_command(const std::string&) method.
 // wraps redisAppendCommand() / redisCommand() — the basic command
 // dispatcher.
-template<typename _Type>
+template<typename Type>
 using redis_send_command_t =
-    decltype(std::declval<_Type&>().send_command(
+    decltype(std::declval<Type&>().send_command(
         std::declval<const std::string&>()));
 
 // redis_execute_command_t
 //   detector: execute_command(const std::string&) method.
 // synchronous round-trip variant.
-template<typename _Type>
+template<typename Type>
 using redis_execute_command_t =
-    decltype(std::declval<_Type&>().execute_command(
+    decltype(std::declval<Type&>().execute_command(
         std::declval<const std::string&>()));
 
 // redis_get_reply_t
 //   detector: get_reply() method.
 // wraps redisGetReply() — pulls the next reply from the receive
 // buffer.
-template<typename _Type>
+template<typename Type>
 using redis_get_reply_t =
-    decltype(std::declval<_Type&>().get_reply());
+    decltype(std::declval<Type&>().get_reply());
 
 // redis_ping_t
 //   detector: ping() const method.
 // wraps the PING command.
-template<typename _Type>
+template<typename Type>
 using redis_ping_t =
-    decltype(std::declval<const _Type&>().ping());
+    decltype(std::declval<const Type&>().ping());
 
 
 // -------------------------------------------------------------------------
@@ -1688,50 +1698,50 @@ using redis_ping_t =
 // redis_subscribe_t
 //   detector: subscribe(const std::string&) method.
 // SUBSCRIBE <channel>.
-template<typename _Type>
+template<typename Type>
 using redis_subscribe_t =
-    decltype(std::declval<_Type&>().subscribe(
+    decltype(std::declval<Type&>().subscribe(
         std::declval<const std::string&>()));
 
 // redis_unsubscribe_t
 //   detector: unsubscribe(const std::string&) method.
 // UNSUBSCRIBE <channel>.
-template<typename _Type>
+template<typename Type>
 using redis_unsubscribe_t =
-    decltype(std::declval<_Type&>().unsubscribe(
+    decltype(std::declval<Type&>().unsubscribe(
         std::declval<const std::string&>()));
 
 // redis_psubscribe_t
 //   detector: psubscribe(const std::string&) method.
 // PSUBSCRIBE <pattern>.
-template<typename _Type>
+template<typename Type>
 using redis_psubscribe_t =
-    decltype(std::declval<_Type&>().psubscribe(
+    decltype(std::declval<Type&>().psubscribe(
         std::declval<const std::string&>()));
 
 // redis_punsubscribe_t
 //   detector: punsubscribe(const std::string&) method.
 // PUNSUBSCRIBE <pattern>.
-template<typename _Type>
+template<typename Type>
 using redis_punsubscribe_t =
-    decltype(std::declval<_Type&>().punsubscribe(
+    decltype(std::declval<Type&>().punsubscribe(
         std::declval<const std::string&>()));
 
 // redis_publish_t
 //   detector: publish(channel, message) method.
 // PUBLISH <channel> <message>.
-template<typename _Type>
+template<typename Type>
 using redis_publish_t =
-    decltype(std::declval<_Type&>().publish(
+    decltype(std::declval<Type&>().publish(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // redis_get_message_t
 //   detector: get_message() method.
 // retrieves the next pub/sub message.
-template<typename _Type>
+template<typename Type>
 using redis_get_message_t =
-    decltype(std::declval<_Type&>().get_message());
+    decltype(std::declval<Type&>().get_message());
 
 
 // -------------------------------------------------------------------------
@@ -1741,38 +1751,38 @@ using redis_get_message_t =
 // redis_multi_t
 //   detector: multi() method.
 // begins a transaction block (MULTI).
-template<typename _Type>
+template<typename Type>
 using redis_multi_t =
-    decltype(std::declval<_Type&>().multi());
+    decltype(std::declval<Type&>().multi());
 
 // redis_exec_t
 //   detector: exec() method.
 // executes the queued transaction (EXEC).
-template<typename _Type>
+template<typename Type>
 using redis_exec_t =
-    decltype(std::declval<_Type&>().exec());
+    decltype(std::declval<Type&>().exec());
 
 // redis_discard_t
 //   detector: discard() method.
 // aborts the queued transaction (DISCARD).
-template<typename _Type>
+template<typename Type>
 using redis_discard_t =
-    decltype(std::declval<_Type&>().discard());
+    decltype(std::declval<Type&>().discard());
 
 // redis_watch_t
 //   detector: watch(const std::string&) method.
 // optimistic lock on a key (WATCH).
-template<typename _Type>
+template<typename Type>
 using redis_watch_t =
-    decltype(std::declval<_Type&>().watch(
+    decltype(std::declval<Type&>().watch(
         std::declval<const std::string&>()));
 
 // redis_unwatch_t
 //   detector: unwatch() method.
 // clears all watched keys (UNWATCH).
-template<typename _Type>
+template<typename Type>
 using redis_unwatch_t =
-    decltype(std::declval<_Type&>().unwatch());
+    decltype(std::declval<Type&>().unwatch());
 
 
 // -------------------------------------------------------------------------
@@ -1782,23 +1792,23 @@ using redis_unwatch_t =
 // redis_pipeline_start_t
 //   detector: pipeline_start() method.
 // begins a pipeline batch.
-template<typename _Type>
+template<typename Type>
 using redis_pipeline_start_t =
-    decltype(std::declval<_Type&>().pipeline_start());
+    decltype(std::declval<Type&>().pipeline_start());
 
 // redis_pipeline_exec_t
 //   detector: pipeline_exec() method.
 // flushes the pipeline batch and gathers replies.
-template<typename _Type>
+template<typename Type>
 using redis_pipeline_exec_t =
-    decltype(std::declval<_Type&>().pipeline_exec());
+    decltype(std::declval<Type&>().pipeline_exec());
 
 // redis_pipeline_discard_t
 //   detector: pipeline_discard() method.
 // drops the pipeline batch without dispatching.
-template<typename _Type>
+template<typename Type>
 using redis_pipeline_discard_t =
-    decltype(std::declval<_Type&>().pipeline_discard());
+    decltype(std::declval<Type&>().pipeline_discard());
 
 
 // -------------------------------------------------------------------------
@@ -1808,9 +1818,9 @@ using redis_pipeline_discard_t =
 // redis_eval_t
 //   detector: eval(script, keys, args) method.
 // EVAL <script> <numkeys> <key...> <arg...>.
-template<typename _Type>
+template<typename Type>
 using redis_eval_t =
-    decltype(std::declval<_Type&>().eval(
+    decltype(std::declval<Type&>().eval(
         std::declval<const std::string&>(),
         std::declval<const std::vector<std::string>&>(),
         std::declval<const std::vector<std::string>&>()));
@@ -1818,9 +1828,9 @@ using redis_eval_t =
 // redis_evalsha_t
 //   detector: evalsha(sha1, keys, args) method.
 // EVALSHA <sha1> <numkeys> <key...> <arg...>.
-template<typename _Type>
+template<typename Type>
 using redis_evalsha_t =
-    decltype(std::declval<_Type&>().evalsha(
+    decltype(std::declval<Type&>().evalsha(
         std::declval<const std::string&>(),
         std::declval<const std::vector<std::string>&>(),
         std::declval<const std::vector<std::string>&>()));
@@ -1828,9 +1838,9 @@ using redis_evalsha_t =
 // redis_script_load_t
 //   detector: script_load(const std::string&) method.
 // SCRIPT LOAD <script> — caches a script and returns its SHA1.
-template<typename _Type>
+template<typename Type>
 using redis_script_load_t =
-    decltype(std::declval<_Type&>().script_load(
+    decltype(std::declval<Type&>().script_load(
         std::declval<const std::string&>()));
 
 
@@ -1841,68 +1851,68 @@ using redis_script_load_t =
 // redis_get_t
 //   detector: get(key) method.
 // GET <key>.
-template<typename _Type>
+template<typename Type>
 using redis_get_t =
-    decltype(std::declval<_Type&>().get(
+    decltype(std::declval<Type&>().get(
         std::declval<const std::string&>()));
 
 // redis_set_t
 //   detector: set(key, value) method.
 // SET <key> <value>.
-template<typename _Type>
+template<typename Type>
 using redis_set_t =
-    decltype(std::declval<_Type&>().set(
+    decltype(std::declval<Type&>().set(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // redis_del_t
 //   detector: del(key) method.
 // DEL <key>.
-template<typename _Type>
+template<typename Type>
 using redis_del_t =
-    decltype(std::declval<_Type&>().del(
+    decltype(std::declval<Type&>().del(
         std::declval<const std::string&>()));
 
 // redis_exists_t
 //   detector: key_exists(key) const method.
 // EXISTS <key>.
-template<typename _Type>
+template<typename Type>
 using redis_exists_t =
-    decltype(std::declval<const _Type&>().key_exists(
+    decltype(std::declval<const Type&>().key_exists(
         std::declval<const std::string&>()));
 
 // redis_expire_t
 //   detector: expire(key, seconds) method.
 // EXPIRE <key> <seconds>.
-template<typename _Type>
+template<typename Type>
 using redis_expire_t =
-    decltype(std::declval<_Type&>().expire(
+    decltype(std::declval<Type&>().expire(
         std::declval<const std::string&>(),
-        std::declval<std::int64_t>()));
+        std::declval<re_std::int64_t>()));
 
 // redis_ttl_t
 //   detector: ttl(key) const method.
 // TTL <key>.
-template<typename _Type>
+template<typename Type>
 using redis_ttl_t =
-    decltype(std::declval<const _Type&>().ttl(
+    decltype(std::declval<const Type&>().ttl(
         std::declval<const std::string&>()));
 
 // redis_keys_t
 //   detector: keys(pattern) const method.
 // KEYS <pattern>.
-template<typename _Type>
+template<typename Type>
 using redis_keys_t =
-    decltype(std::declval<const _Type&>().keys(
+    decltype(std::declval<const Type&>().keys(
         std::declval<const std::string&>()));
 
 // redis_scan_t
 //   detector: scan(cursor, pattern) method.
 // SCAN <cursor> [MATCH <pattern>] — cursor-based iteration.
-template<typename _Type>
+template<typename Type>
 using redis_scan_t =
-    decltype(std::declval<_Type&>().scan(
-        std::declval<std::int64_t>(),
+    decltype(std::declval<Type&>().scan(
+        std::declval<re_std::int64_t>(),
         std::declval<const std::string&>()));
 
 
@@ -1913,18 +1923,18 @@ using redis_scan_t =
 // redis_hget_t
 //   detector: hget(key, field) const method.
 // HGET <key> <field>.
-template<typename _Type>
+template<typename Type>
 using redis_hget_t =
-    decltype(std::declval<const _Type&>().hget(
+    decltype(std::declval<const Type&>().hget(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // redis_hset_t
 //   detector: hset(key, field, value) method.
 // HSET <key> <field> <value>.
-template<typename _Type>
+template<typename Type>
 using redis_hset_t =
-    decltype(std::declval<_Type&>().hset(
+    decltype(std::declval<Type&>().hset(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
@@ -1932,26 +1942,26 @@ using redis_hset_t =
 // redis_hdel_t
 //   detector: hdel(key, field) method.
 // HDEL <key> <field>.
-template<typename _Type>
+template<typename Type>
 using redis_hdel_t =
-    decltype(std::declval<_Type&>().hdel(
+    decltype(std::declval<Type&>().hdel(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // redis_hgetall_t
 //   detector: hgetall(key) const method.
 // HGETALL <key>.
-template<typename _Type>
+template<typename Type>
 using redis_hgetall_t =
-    decltype(std::declval<const _Type&>().hgetall(
+    decltype(std::declval<const Type&>().hgetall(
         std::declval<const std::string&>()));
 
 // redis_hkeys_t
 //   detector: hkeys(key) const method.
 // HKEYS <key>.
-template<typename _Type>
+template<typename Type>
 using redis_hkeys_t =
-    decltype(std::declval<const _Type&>().hkeys(
+    decltype(std::declval<const Type&>().hkeys(
         std::declval<const std::string&>()));
 
 
@@ -1962,46 +1972,46 @@ using redis_hkeys_t =
 // redis_lpush_t
 //   detector: lpush(key, value) method.
 // LPUSH <key> <value>.
-template<typename _Type>
+template<typename Type>
 using redis_lpush_t =
-    decltype(std::declval<_Type&>().lpush(
+    decltype(std::declval<Type&>().lpush(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // redis_rpush_t
 //   detector: rpush(key, value) method.
 // RPUSH <key> <value>.
-template<typename _Type>
+template<typename Type>
 using redis_rpush_t =
-    decltype(std::declval<_Type&>().rpush(
+    decltype(std::declval<Type&>().rpush(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // redis_lpop_t
 //   detector: lpop(key) method.
 // LPOP <key>.
-template<typename _Type>
+template<typename Type>
 using redis_lpop_t =
-    decltype(std::declval<_Type&>().lpop(
+    decltype(std::declval<Type&>().lpop(
         std::declval<const std::string&>()));
 
 // redis_rpop_t
 //   detector: rpop(key) method.
 // RPOP <key>.
-template<typename _Type>
+template<typename Type>
 using redis_rpop_t =
-    decltype(std::declval<_Type&>().rpop(
+    decltype(std::declval<Type&>().rpop(
         std::declval<const std::string&>()));
 
 // redis_lrange_t
 //   detector: lrange(key, start, stop) const method.
 // LRANGE <key> <start> <stop>.
-template<typename _Type>
+template<typename Type>
 using redis_lrange_t =
-    decltype(std::declval<const _Type&>().lrange(
+    decltype(std::declval<const Type&>().lrange(
         std::declval<const std::string&>(),
-        std::declval<std::int64_t>(),
-        std::declval<std::int64_t>()));
+        std::declval<re_std::int64_t>(),
+        std::declval<re_std::int64_t>()));
 
 
 // -------------------------------------------------------------------------
@@ -2011,27 +2021,27 @@ using redis_lrange_t =
 // redis_sadd_t
 //   detector: sadd(key, member) method.
 // SADD <key> <member>.
-template<typename _Type>
+template<typename Type>
 using redis_sadd_t =
-    decltype(std::declval<_Type&>().sadd(
+    decltype(std::declval<Type&>().sadd(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // redis_srem_t
 //   detector: srem(key, member) method.
 // SREM <key> <member>.
-template<typename _Type>
+template<typename Type>
 using redis_srem_t =
-    decltype(std::declval<_Type&>().srem(
+    decltype(std::declval<Type&>().srem(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // redis_smembers_t
 //   detector: smembers(key) const method.
 // SMEMBERS <key>.
-template<typename _Type>
+template<typename Type>
 using redis_smembers_t =
-    decltype(std::declval<const _Type&>().smembers(
+    decltype(std::declval<const Type&>().smembers(
         std::declval<const std::string&>()));
 
 
@@ -2042,9 +2052,9 @@ using redis_smembers_t =
 // redis_zadd_t
 //   detector: zadd(key, score, member) method.
 // ZADD <key> <score> <member>.
-template<typename _Type>
+template<typename Type>
 using redis_zadd_t =
-    decltype(std::declval<_Type&>().zadd(
+    decltype(std::declval<Type&>().zadd(
         std::declval<const std::string&>(),
         std::declval<double>(),
         std::declval<const std::string&>()));
@@ -2052,21 +2062,21 @@ using redis_zadd_t =
 // redis_zrem_t
 //   detector: zrem(key, member) method.
 // ZREM <key> <member>.
-template<typename _Type>
+template<typename Type>
 using redis_zrem_t =
-    decltype(std::declval<_Type&>().zrem(
+    decltype(std::declval<Type&>().zrem(
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
 // redis_zrange_t
 //   detector: zrange(key, start, stop) const method.
 // ZRANGE <key> <start> <stop>.
-template<typename _Type>
+template<typename Type>
 using redis_zrange_t =
-    decltype(std::declval<const _Type&>().zrange(
+    decltype(std::declval<const Type&>().zrange(
         std::declval<const std::string&>(),
-        std::declval<std::int64_t>(),
-        std::declval<std::int64_t>()));
+        std::declval<re_std::int64_t>(),
+        std::declval<re_std::int64_t>()));
 
 
 // -------------------------------------------------------------------------
@@ -2076,9 +2086,9 @@ using redis_zrange_t =
 // redis_xadd_t
 //   detector: xadd(key, id, fields) method.
 // XADD <key> <id> <field value...>.
-template<typename _Type>
+template<typename Type>
 using redis_xadd_t =
-    decltype(std::declval<_Type&>().xadd(
+    decltype(std::declval<Type&>().xadd(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<const std::vector<std::string>&>()));
@@ -2086,12 +2096,12 @@ using redis_xadd_t =
 // redis_xread_t
 //   detector: xread(key, last_id, count) const method.
 // XREAD COUNT <count> STREAMS <key> <last_id>.
-template<typename _Type>
+template<typename Type>
 using redis_xread_t =
-    decltype(std::declval<const _Type&>().xread(
+    decltype(std::declval<const Type&>().xread(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
-        std::declval<std::int64_t>()));
+        std::declval<re_std::int64_t>()));
 
 
 // -------------------------------------------------------------------------
@@ -2101,30 +2111,30 @@ using redis_xread_t =
 // redis_info_t
 //   detector: info() const method.
 // INFO — returns server status block.
-template<typename _Type>
+template<typename Type>
 using redis_info_t =
-    decltype(std::declval<const _Type&>().info());
+    decltype(std::declval<const Type&>().info());
 
 // redis_client_id_t
 //   detector: client_id() const method.
 // CLIENT ID — the connection's unique identifier.
-template<typename _Type>
+template<typename Type>
 using redis_client_id_t =
-    decltype(std::declval<const _Type&>().client_id());
+    decltype(std::declval<const Type&>().client_id());
 
 // redis_dbsize_t
 //   detector: dbsize() const method.
 // DBSIZE — number of keys in the current database.
-template<typename _Type>
+template<typename Type>
 using redis_dbsize_t =
-    decltype(std::declval<const _Type&>().dbsize());
+    decltype(std::declval<const Type&>().dbsize());
 
 // redis_select_db_t
 //   detector: select_db(int) method.
 // SELECT <index> — switches the logical database (0–15 by default).
-template<typename _Type>
+template<typename Type>
 using redis_select_db_t =
-    decltype(std::declval<_Type&>().select_db(
+    decltype(std::declval<Type&>().select_db(
         std::declval<int>()));
 
 
@@ -2135,23 +2145,23 @@ using redis_select_db_t =
 // redis_cluster_info_t
 //   detector: cluster_info() const method.
 // CLUSTER INFO — returns cluster status.
-template<typename _Type>
+template<typename Type>
 using redis_cluster_info_t =
-    decltype(std::declval<const _Type&>().cluster_info());
+    decltype(std::declval<const Type&>().cluster_info());
 
 // redis_cluster_slots_t
 //   detector: cluster_slots() const method.
 // CLUSTER SLOTS — returns slot-to-node mapping.
-template<typename _Type>
+template<typename Type>
 using redis_cluster_slots_t =
-    decltype(std::declval<const _Type&>().cluster_slots());
+    decltype(std::declval<const Type&>().cluster_slots());
 
 // redis_cluster_nodes_t
 //   detector: cluster_nodes() const method.
 // CLUSTER NODES — returns the cluster node list.
-template<typename _Type>
+template<typename Type>
 using redis_cluster_nodes_t =
-    decltype(std::declval<const _Type&>().cluster_nodes());
+    decltype(std::declval<const Type&>().cluster_nodes());
 
 
 // -------------------------------------------------------------------------
@@ -2161,30 +2171,30 @@ using redis_cluster_nodes_t =
 // redis_save_t
 //   detector: save() method.
 // SAVE — synchronous RDB snapshot.
-template<typename _Type>
+template<typename Type>
 using redis_save_t =
-    decltype(std::declval<_Type&>().save());
+    decltype(std::declval<Type&>().save());
 
 // redis_bgsave_t
 //   detector: bgsave() method.
 // BGSAVE — background RDB snapshot.
-template<typename _Type>
+template<typename Type>
 using redis_bgsave_t =
-    decltype(std::declval<_Type&>().bgsave());
+    decltype(std::declval<Type&>().bgsave());
 
 // redis_bgrewriteaof_t
 //   detector: bgrewriteaof() method.
 // BGREWRITEAOF — background AOF rewrite.
-template<typename _Type>
+template<typename Type>
 using redis_bgrewriteaof_t =
-    decltype(std::declval<_Type&>().bgrewriteaof());
+    decltype(std::declval<Type&>().bgrewriteaof());
 
 // redis_lastsave_t
 //   detector: lastsave() const method.
 // LASTSAVE — Unix timestamp of last successful RDB snapshot.
-template<typename _Type>
+template<typename Type>
 using redis_lastsave_t =
-    decltype(std::declval<const _Type&>().lastsave());
+    decltype(std::declval<const Type&>().lastsave());
 
 
 // =============================================================================
@@ -2192,330 +2202,330 @@ using redis_lastsave_t =
 // =============================================================================
 
 // has_redis_command_dispatch
-//   trait: checks if type _Type supports core command dispatch
+//   trait: checks if type Type supports core command dispatch
 // (send_command + execute_command + get_reply).
-template<typename _Type>
+template<typename Type>
 struct has_redis_command_dispatch : djinterp::conjunction<
-    is_detected<redis_send_command_t, clean_t<_Type>>,
-    is_detected<redis_execute_command_t, clean_t<_Type>>,
-    is_detected<redis_get_reply_t, clean_t<_Type>>>
+    is_detected<redis_send_command_t, clean_t<Type>>,
+    is_detected<redis_execute_command_t, clean_t<Type>>,
+    is_detected<redis_get_reply_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_command_dispatch_v =
-        has_redis_command_dispatch<clean_t<_Type>>::value;
+        has_redis_command_dispatch<clean_t<Type>>::value;
 #endif
 
 // has_redis_pubsub
-//   trait: checks if type _Type supports the PUB/SUB surface
+//   trait: checks if type Type supports the PUB/SUB surface
 // (subscribe + unsubscribe + publish + get_message).
-template<typename _Type>
+template<typename Type>
 struct has_redis_pubsub : djinterp::conjunction<
-    is_detected<redis_subscribe_t, clean_t<_Type>>,
-    is_detected<redis_unsubscribe_t, clean_t<_Type>>,
-    is_detected<redis_publish_t, clean_t<_Type>>,
-    is_detected<redis_get_message_t, clean_t<_Type>>>
+    is_detected<redis_subscribe_t, clean_t<Type>>,
+    is_detected<redis_unsubscribe_t, clean_t<Type>>,
+    is_detected<redis_publish_t, clean_t<Type>>,
+    is_detected<redis_get_message_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_pubsub_v =
-        has_redis_pubsub<clean_t<_Type>>::value;
+        has_redis_pubsub<clean_t<Type>>::value;
 #endif
 
 // has_redis_pattern_pubsub
-//   trait: checks if type _Type supports pattern-based PUB/SUB
+//   trait: checks if type Type supports pattern-based PUB/SUB
 // (psubscribe + punsubscribe).
-template<typename _Type>
+template<typename Type>
 struct has_redis_pattern_pubsub : djinterp::conjunction<
-    is_detected<redis_psubscribe_t, clean_t<_Type>>,
-    is_detected<redis_punsubscribe_t, clean_t<_Type>>>
+    is_detected<redis_psubscribe_t, clean_t<Type>>,
+    is_detected<redis_punsubscribe_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_pattern_pubsub_v =
-        has_redis_pattern_pubsub<clean_t<_Type>>::value;
+        has_redis_pattern_pubsub<clean_t<Type>>::value;
 #endif
 
 // has_redis_transactions
-//   trait: checks if type _Type supports multi-key transactions
+//   trait: checks if type Type supports multi-key transactions
 // (multi + exec + discard + watch + unwatch).
-template<typename _Type>
+template<typename Type>
 struct has_redis_transactions : djinterp::conjunction<
-    is_detected<redis_multi_t, clean_t<_Type>>,
-    is_detected<redis_exec_t, clean_t<_Type>>,
-    is_detected<redis_discard_t, clean_t<_Type>>,
-    is_detected<redis_watch_t, clean_t<_Type>>,
-    is_detected<redis_unwatch_t, clean_t<_Type>>>
+    is_detected<redis_multi_t, clean_t<Type>>,
+    is_detected<redis_exec_t, clean_t<Type>>,
+    is_detected<redis_discard_t, clean_t<Type>>,
+    is_detected<redis_watch_t, clean_t<Type>>,
+    is_detected<redis_unwatch_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_transactions_v =
-        has_redis_transactions<clean_t<_Type>>::value;
+        has_redis_transactions<clean_t<Type>>::value;
 #endif
 
 // has_redis_pipelining
-//   trait: checks if type _Type supports pipelining
+//   trait: checks if type Type supports pipelining
 // (pipeline_start + pipeline_exec).
-template<typename _Type>
+template<typename Type>
 struct has_redis_pipelining : djinterp::conjunction<
-    is_detected<redis_pipeline_start_t, clean_t<_Type>>,
-    is_detected<redis_pipeline_exec_t, clean_t<_Type>>>
+    is_detected<redis_pipeline_start_t, clean_t<Type>>,
+    is_detected<redis_pipeline_exec_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_pipelining_v =
-        has_redis_pipelining<clean_t<_Type>>::value;
+        has_redis_pipelining<clean_t<Type>>::value;
 #endif
 
 // has_redis_scripting
-//   trait: checks if type _Type supports Lua scripting
+//   trait: checks if type Type supports Lua scripting
 // (eval + evalsha + script_load).
-template<typename _Type>
+template<typename Type>
 struct has_redis_scripting : djinterp::conjunction<
-    is_detected<redis_eval_t, clean_t<_Type>>,
-    is_detected<redis_evalsha_t, clean_t<_Type>>,
-    is_detected<redis_script_load_t, clean_t<_Type>>>
+    is_detected<redis_eval_t, clean_t<Type>>,
+    is_detected<redis_evalsha_t, clean_t<Type>>,
+    is_detected<redis_script_load_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_scripting_v =
-        has_redis_scripting<clean_t<_Type>>::value;
+        has_redis_scripting<clean_t<Type>>::value;
 #endif
 
 // has_redis_key_ops
-//   trait: checks if type _Type supports core key-space operations
+//   trait: checks if type Type supports core key-space operations
 // (get + set + del + key_exists).
-template<typename _Type>
+template<typename Type>
 struct has_redis_key_ops : djinterp::conjunction<
-    is_detected<redis_get_t, clean_t<_Type>>,
-    is_detected<redis_set_t, clean_t<_Type>>,
-    is_detected<redis_del_t, clean_t<_Type>>,
-    is_detected<redis_exists_t, clean_t<_Type>>>
+    is_detected<redis_get_t, clean_t<Type>>,
+    is_detected<redis_set_t, clean_t<Type>>,
+    is_detected<redis_del_t, clean_t<Type>>,
+    is_detected<redis_exists_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_key_ops_v =
-        has_redis_key_ops<clean_t<_Type>>::value;
+        has_redis_key_ops<clean_t<Type>>::value;
 #endif
 
 // has_redis_expiration
-//   trait: checks if type _Type supports key expiration
+//   trait: checks if type Type supports key expiration
 // (expire + ttl).
-template<typename _Type>
+template<typename Type>
 struct has_redis_expiration : djinterp::conjunction<
-    is_detected<redis_expire_t, clean_t<_Type>>,
-    is_detected<redis_ttl_t, clean_t<_Type>>>
+    is_detected<redis_expire_t, clean_t<Type>>,
+    is_detected<redis_ttl_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_expiration_v =
-        has_redis_expiration<clean_t<_Type>>::value;
+        has_redis_expiration<clean_t<Type>>::value;
 #endif
 
 // has_redis_key_iteration
-//   trait: checks if type _Type supports key-space iteration
+//   trait: checks if type Type supports key-space iteration
 // (keys + scan).
-template<typename _Type>
+template<typename Type>
 struct has_redis_key_iteration : djinterp::conjunction<
-    is_detected<redis_keys_t, clean_t<_Type>>,
-    is_detected<redis_scan_t, clean_t<_Type>>>
+    is_detected<redis_keys_t, clean_t<Type>>,
+    is_detected<redis_scan_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_key_iteration_v =
-        has_redis_key_iteration<clean_t<_Type>>::value;
+        has_redis_key_iteration<clean_t<Type>>::value;
 #endif
 
 // has_redis_hash_ops
-//   trait: checks if type _Type supports hash operations
+//   trait: checks if type Type supports hash operations
 // (hget + hset + hdel + hgetall).
-template<typename _Type>
+template<typename Type>
 struct has_redis_hash_ops : djinterp::conjunction<
-    is_detected<redis_hget_t, clean_t<_Type>>,
-    is_detected<redis_hset_t, clean_t<_Type>>,
-    is_detected<redis_hdel_t, clean_t<_Type>>,
-    is_detected<redis_hgetall_t, clean_t<_Type>>>
+    is_detected<redis_hget_t, clean_t<Type>>,
+    is_detected<redis_hset_t, clean_t<Type>>,
+    is_detected<redis_hdel_t, clean_t<Type>>,
+    is_detected<redis_hgetall_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_hash_ops_v =
-        has_redis_hash_ops<clean_t<_Type>>::value;
+        has_redis_hash_ops<clean_t<Type>>::value;
 #endif
 
 // has_redis_list_ops
-//   trait: checks if type _Type supports list operations
+//   trait: checks if type Type supports list operations
 // (lpush + rpush + lpop + rpop + lrange).
-template<typename _Type>
+template<typename Type>
 struct has_redis_list_ops : djinterp::conjunction<
-    is_detected<redis_lpush_t, clean_t<_Type>>,
-    is_detected<redis_rpush_t, clean_t<_Type>>,
-    is_detected<redis_lpop_t, clean_t<_Type>>,
-    is_detected<redis_rpop_t, clean_t<_Type>>,
-    is_detected<redis_lrange_t, clean_t<_Type>>>
+    is_detected<redis_lpush_t, clean_t<Type>>,
+    is_detected<redis_rpush_t, clean_t<Type>>,
+    is_detected<redis_lpop_t, clean_t<Type>>,
+    is_detected<redis_rpop_t, clean_t<Type>>,
+    is_detected<redis_lrange_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_list_ops_v =
-        has_redis_list_ops<clean_t<_Type>>::value;
+        has_redis_list_ops<clean_t<Type>>::value;
 #endif
 
 // has_redis_set_ops
-//   trait: checks if type _Type supports set operations
+//   trait: checks if type Type supports set operations
 // (sadd + srem + smembers).
-template<typename _Type>
+template<typename Type>
 struct has_redis_set_ops : djinterp::conjunction<
-    is_detected<redis_sadd_t, clean_t<_Type>>,
-    is_detected<redis_srem_t, clean_t<_Type>>,
-    is_detected<redis_smembers_t, clean_t<_Type>>>
+    is_detected<redis_sadd_t, clean_t<Type>>,
+    is_detected<redis_srem_t, clean_t<Type>>,
+    is_detected<redis_smembers_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_set_ops_v =
-        has_redis_set_ops<clean_t<_Type>>::value;
+        has_redis_set_ops<clean_t<Type>>::value;
 #endif
 
 // has_redis_sorted_set_ops
-//   trait: checks if type _Type supports sorted set operations
+//   trait: checks if type Type supports sorted set operations
 // (zadd + zrem + zrange).
-template<typename _Type>
+template<typename Type>
 struct has_redis_sorted_set_ops : djinterp::conjunction<
-    is_detected<redis_zadd_t, clean_t<_Type>>,
-    is_detected<redis_zrem_t, clean_t<_Type>>,
-    is_detected<redis_zrange_t, clean_t<_Type>>>
+    is_detected<redis_zadd_t, clean_t<Type>>,
+    is_detected<redis_zrem_t, clean_t<Type>>,
+    is_detected<redis_zrange_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_sorted_set_ops_v =
-        has_redis_sorted_set_ops<clean_t<_Type>>::value;
+        has_redis_sorted_set_ops<clean_t<Type>>::value;
 #endif
 
 // has_redis_stream_ops
-//   trait: checks if type _Type supports stream operations
+//   trait: checks if type Type supports stream operations
 // (xadd + xread).
-template<typename _Type>
+template<typename Type>
 struct has_redis_stream_ops : djinterp::conjunction<
-    is_detected<redis_xadd_t, clean_t<_Type>>,
-    is_detected<redis_xread_t, clean_t<_Type>>>
+    is_detected<redis_xadd_t, clean_t<Type>>,
+    is_detected<redis_xread_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_stream_ops_v =
-        has_redis_stream_ops<clean_t<_Type>>::value;
+        has_redis_stream_ops<clean_t<Type>>::value;
 #endif
 
 // has_redis_diagnostics
-//   trait: checks if type _Type supports server diagnostics
+//   trait: checks if type Type supports server diagnostics
 // (info + client_id + dbsize + ping).
-template<typename _Type>
+template<typename Type>
 struct has_redis_diagnostics : djinterp::conjunction<
-    is_detected<redis_info_t, clean_t<_Type>>,
-    is_detected<redis_client_id_t, clean_t<_Type>>,
-    is_detected<redis_dbsize_t, clean_t<_Type>>,
-    is_detected<redis_ping_t, clean_t<_Type>>>
+    is_detected<redis_info_t, clean_t<Type>>,
+    is_detected<redis_client_id_t, clean_t<Type>>,
+    is_detected<redis_dbsize_t, clean_t<Type>>,
+    is_detected<redis_ping_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_diagnostics_v =
-        has_redis_diagnostics<clean_t<_Type>>::value;
+        has_redis_diagnostics<clean_t<Type>>::value;
 #endif
 
 // has_redis_cluster_ops
-//   trait: checks if type _Type supports cluster operations
+//   trait: checks if type Type supports cluster operations
 // (cluster_info + cluster_slots + cluster_nodes).
-template<typename _Type>
+template<typename Type>
 struct has_redis_cluster_ops : djinterp::conjunction<
-    is_detected<redis_cluster_info_t, clean_t<_Type>>,
-    is_detected<redis_cluster_slots_t, clean_t<_Type>>,
-    is_detected<redis_cluster_nodes_t, clean_t<_Type>>>
+    is_detected<redis_cluster_info_t, clean_t<Type>>,
+    is_detected<redis_cluster_slots_t, clean_t<Type>>,
+    is_detected<redis_cluster_nodes_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_cluster_ops_v =
-        has_redis_cluster_ops<clean_t<_Type>>::value;
+        has_redis_cluster_ops<clean_t<Type>>::value;
 #endif
 
 // has_redis_persistence
-//   trait: checks if type _Type supports persistence operations
+//   trait: checks if type Type supports persistence operations
 // (save + bgsave + bgrewriteaof + lastsave).
-template<typename _Type>
+template<typename Type>
 struct has_redis_persistence : djinterp::conjunction<
-    is_detected<redis_save_t, clean_t<_Type>>,
-    is_detected<redis_bgsave_t, clean_t<_Type>>,
-    is_detected<redis_bgrewriteaof_t, clean_t<_Type>>,
-    is_detected<redis_lastsave_t, clean_t<_Type>>>
+    is_detected<redis_save_t, clean_t<Type>>,
+    is_detected<redis_bgsave_t, clean_t<Type>>,
+    is_detected<redis_bgrewriteaof_t, clean_t<Type>>,
+    is_detected<redis_lastsave_t, clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_persistence_v =
-        has_redis_persistence<clean_t<_Type>>::value;
+        has_redis_persistence<clean_t<Type>>::value;
 #endif
 
 // has_redis_db_selection
-//   trait: checks if type _Type supports logical database selection
+//   trait: checks if type Type supports logical database selection
 // (select_db).
-template<typename _Type>
+template<typename Type>
 struct has_redis_db_selection
-    : is_detected<redis_select_db_t, clean_t<_Type>>
+    : is_detected<redis_select_db_t, clean_t<Type>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool has_redis_db_selection_v =
-        has_redis_db_selection<clean_t<_Type>>::value;
+        has_redis_db_selection<clean_t<Type>>::value;
 #endif
 
 // is_redis_connection
-//   trait: compound trait verifying type _Type implements a Redis
+//   trait: compound trait verifying type Type implements a Redis
 // connection interface (command dispatch + key ops + hash ops +
 // diagnostics).
-template<typename _Type>
+template<typename Type>
 struct is_redis_connection : djinterp::conjunction<
-    has_redis_command_dispatch<clean_t<_Type>>,
-    has_redis_key_ops<clean_t<_Type>>,
-    has_redis_hash_ops<clean_t<_Type>>,
-    has_redis_diagnostics<clean_t<_Type>>>
+    has_redis_command_dispatch<clean_t<Type>>,
+    has_redis_key_ops<clean_t<Type>>,
+    has_redis_hash_ops<clean_t<Type>>,
+    has_redis_diagnostics<clean_t<Type>>>
 {
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_redis_connection_v =
-        is_redis_connection<clean_t<_Type>>::value;
+        is_redis_connection<clean_t<Type>>::value;
 #endif
 
 
@@ -2528,154 +2538,154 @@ struct is_redis_connection : djinterp::conjunction<
 // -------------------------------------------------------------------------
 
 // redis_can_send_command
-//   tagless trait: true if _Type has send_command().
-template<typename _Type,
+//   tagless trait: true if Type has send_command().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_send_command = false;
 
-template<typename _Type>
-constexpr bool redis_can_send_command<_Type,
-    std::void_t<redis_send_command_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_send_command<Type,
+    std::void_t<redis_send_command_t<Type>>> = true;
 
 // redis_can_publish
-//   tagless trait: true if _Type has publish().
-template<typename _Type,
+//   tagless trait: true if Type has publish().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_publish = false;
 
-template<typename _Type>
-constexpr bool redis_can_publish<_Type,
-    std::void_t<redis_publish_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_publish<Type,
+    std::void_t<redis_publish_t<Type>>> = true;
 
 // redis_can_subscribe
-//   tagless trait: true if _Type has subscribe().
-template<typename _Type,
+//   tagless trait: true if Type has subscribe().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_subscribe = false;
 
-template<typename _Type>
-constexpr bool redis_can_subscribe<_Type,
-    std::void_t<redis_subscribe_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_subscribe<Type,
+    std::void_t<redis_subscribe_t<Type>>> = true;
 
 // redis_can_multi
-//   tagless trait: true if _Type has multi().
-template<typename _Type,
+//   tagless trait: true if Type has multi().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_multi = false;
 
-template<typename _Type>
-constexpr bool redis_can_multi<_Type,
-    std::void_t<redis_multi_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_multi<Type,
+    std::void_t<redis_multi_t<Type>>> = true;
 
 // redis_can_watch
-//   tagless trait: true if _Type has watch().
-template<typename _Type,
+//   tagless trait: true if Type has watch().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_watch = false;
 
-template<typename _Type>
-constexpr bool redis_can_watch<_Type,
-    std::void_t<redis_watch_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_watch<Type,
+    std::void_t<redis_watch_t<Type>>> = true;
 
 // redis_can_pipeline
-//   tagless trait: true if _Type has pipeline_start().
-template<typename _Type,
+//   tagless trait: true if Type has pipeline_start().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_pipeline = false;
 
-template<typename _Type>
-constexpr bool redis_can_pipeline<_Type,
-    std::void_t<redis_pipeline_start_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_pipeline<Type,
+    std::void_t<redis_pipeline_start_t<Type>>> = true;
 
 // redis_can_eval
-//   tagless trait: true if _Type has eval().
-template<typename _Type,
+//   tagless trait: true if Type has eval().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_eval = false;
 
-template<typename _Type>
-constexpr bool redis_can_eval<_Type,
-    std::void_t<redis_eval_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_eval<Type,
+    std::void_t<redis_eval_t<Type>>> = true;
 
 // redis_can_get
-//   tagless trait: true if _Type has get().
-template<typename _Type,
+//   tagless trait: true if Type has get().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_get = false;
 
-template<typename _Type>
-constexpr bool redis_can_get<_Type,
-    std::void_t<redis_get_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_get<Type,
+    std::void_t<redis_get_t<Type>>> = true;
 
 // redis_can_set
-//   tagless trait: true if _Type has set().
-template<typename _Type,
+//   tagless trait: true if Type has set().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_set = false;
 
-template<typename _Type>
-constexpr bool redis_can_set<_Type,
-    std::void_t<redis_set_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_set<Type,
+    std::void_t<redis_set_t<Type>>> = true;
 
 // redis_can_expire
-//   tagless trait: true if _Type has expire().
-template<typename _Type,
+//   tagless trait: true if Type has expire().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_expire = false;
 
-template<typename _Type>
-constexpr bool redis_can_expire<_Type,
-    std::void_t<redis_expire_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_expire<Type,
+    std::void_t<redis_expire_t<Type>>> = true;
 
 // redis_can_scan
-//   tagless trait: true if _Type has scan().
-template<typename _Type,
+//   tagless trait: true if Type has scan().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_scan = false;
 
-template<typename _Type>
-constexpr bool redis_can_scan<_Type,
-    std::void_t<redis_scan_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_scan<Type,
+    std::void_t<redis_scan_t<Type>>> = true;
 
 // redis_can_hset
-//   tagless trait: true if _Type has hset().
-template<typename _Type,
+//   tagless trait: true if Type has hset().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_hset = false;
 
-template<typename _Type>
-constexpr bool redis_can_hset<_Type,
-    std::void_t<redis_hset_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_hset<Type,
+    std::void_t<redis_hset_t<Type>>> = true;
 
 // redis_can_xadd
-//   tagless trait: true if _Type has xadd().
-template<typename _Type,
+//   tagless trait: true if Type has xadd().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_xadd = false;
 
-template<typename _Type>
-constexpr bool redis_can_xadd<_Type,
-    std::void_t<redis_xadd_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_xadd<Type,
+    std::void_t<redis_xadd_t<Type>>> = true;
 
 // redis_can_cluster_query
-//   tagless trait: true if _Type has cluster_info().
-template<typename _Type,
+//   tagless trait: true if Type has cluster_info().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_cluster_query = false;
 
-template<typename _Type>
-constexpr bool redis_can_cluster_query<_Type,
-    std::void_t<redis_cluster_info_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_cluster_query<Type,
+    std::void_t<redis_cluster_info_t<Type>>> = true;
 
 // redis_can_select_db
-//   tagless trait: true if _Type has select_db().
-template<typename _Type,
+//   tagless trait: true if Type has select_db().
+template<typename Type,
          typename = void>
 constexpr bool redis_can_select_db = false;
 
-template<typename _Type>
-constexpr bool redis_can_select_db<_Type,
-    std::void_t<redis_select_db_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_can_select_db<Type,
+    std::void_t<redis_select_db_t<Type>>> = true;
 
 
 // -------------------------------------------------------------------------
@@ -2683,204 +2693,204 @@ constexpr bool redis_can_select_db<_Type,
 // -------------------------------------------------------------------------
 
 // redis_does_command_dispatch
-//   tagless trait: true if _Type supports the full command-dispatch
+//   tagless trait: true if Type supports the full command-dispatch
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_command_dispatch = false;
 
-template<typename _Type>
-constexpr bool redis_does_command_dispatch<_Type, std::void_t<
-    redis_send_command_t<_Type>,
-    redis_execute_command_t<_Type>,
-    redis_get_reply_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_command_dispatch<Type, std::void_t<
+    redis_send_command_t<Type>,
+    redis_execute_command_t<Type>,
+    redis_get_reply_t<Type>>> = true;
 
 // redis_does_pubsub
-//   tagless trait: true if _Type supports the full PUB/SUB surface.
-template<typename _Type,
+//   tagless trait: true if Type supports the full PUB/SUB surface.
+template<typename Type,
          typename = void>
 constexpr bool redis_does_pubsub = false;
 
-template<typename _Type>
-constexpr bool redis_does_pubsub<_Type, std::void_t<
-    redis_subscribe_t<_Type>,
-    redis_unsubscribe_t<_Type>,
-    redis_publish_t<_Type>,
-    redis_get_message_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_pubsub<Type, std::void_t<
+    redis_subscribe_t<Type>,
+    redis_unsubscribe_t<Type>,
+    redis_publish_t<Type>,
+    redis_get_message_t<Type>>> = true;
 
 // redis_does_transactions
-//   tagless trait: true if _Type supports the full multi-key
+//   tagless trait: true if Type supports the full multi-key
 // transaction surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_transactions = false;
 
-template<typename _Type>
-constexpr bool redis_does_transactions<_Type, std::void_t<
-    redis_multi_t<_Type>,
-    redis_exec_t<_Type>,
-    redis_discard_t<_Type>,
-    redis_watch_t<_Type>,
-    redis_unwatch_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_transactions<Type, std::void_t<
+    redis_multi_t<Type>,
+    redis_exec_t<Type>,
+    redis_discard_t<Type>,
+    redis_watch_t<Type>,
+    redis_unwatch_t<Type>>> = true;
 
 // redis_does_pipelining
-//   tagless trait: true if _Type supports the full pipelining
+//   tagless trait: true if Type supports the full pipelining
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_pipelining = false;
 
-template<typename _Type>
-constexpr bool redis_does_pipelining<_Type, std::void_t<
-    redis_pipeline_start_t<_Type>,
-    redis_pipeline_exec_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_pipelining<Type, std::void_t<
+    redis_pipeline_start_t<Type>,
+    redis_pipeline_exec_t<Type>>> = true;
 
 // redis_does_scripting
-//   tagless trait: true if _Type supports the full Lua scripting
+//   tagless trait: true if Type supports the full Lua scripting
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_scripting = false;
 
-template<typename _Type>
-constexpr bool redis_does_scripting<_Type, std::void_t<
-    redis_eval_t<_Type>,
-    redis_evalsha_t<_Type>,
-    redis_script_load_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_scripting<Type, std::void_t<
+    redis_eval_t<Type>,
+    redis_evalsha_t<Type>,
+    redis_script_load_t<Type>>> = true;
 
 // redis_does_key_ops
-//   tagless trait: true if _Type supports the full key-space
+//   tagless trait: true if Type supports the full key-space
 // operation surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_key_ops = false;
 
-template<typename _Type>
-constexpr bool redis_does_key_ops<_Type, std::void_t<
-    redis_get_t<_Type>,
-    redis_set_t<_Type>,
-    redis_del_t<_Type>,
-    redis_exists_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_key_ops<Type, std::void_t<
+    redis_get_t<Type>,
+    redis_set_t<Type>,
+    redis_del_t<Type>,
+    redis_exists_t<Type>>> = true;
 
 // redis_does_hash_ops
-//   tagless trait: true if _Type supports the full hash operation
+//   tagless trait: true if Type supports the full hash operation
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_hash_ops = false;
 
-template<typename _Type>
-constexpr bool redis_does_hash_ops<_Type, std::void_t<
-    redis_hget_t<_Type>,
-    redis_hset_t<_Type>,
-    redis_hdel_t<_Type>,
-    redis_hgetall_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_hash_ops<Type, std::void_t<
+    redis_hget_t<Type>,
+    redis_hset_t<Type>,
+    redis_hdel_t<Type>,
+    redis_hgetall_t<Type>>> = true;
 
 // redis_does_list_ops
-//   tagless trait: true if _Type supports the full list operation
+//   tagless trait: true if Type supports the full list operation
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_list_ops = false;
 
-template<typename _Type>
-constexpr bool redis_does_list_ops<_Type, std::void_t<
-    redis_lpush_t<_Type>,
-    redis_rpush_t<_Type>,
-    redis_lpop_t<_Type>,
-    redis_rpop_t<_Type>,
-    redis_lrange_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_list_ops<Type, std::void_t<
+    redis_lpush_t<Type>,
+    redis_rpush_t<Type>,
+    redis_lpop_t<Type>,
+    redis_rpop_t<Type>,
+    redis_lrange_t<Type>>> = true;
 
 // redis_does_set_ops
-//   tagless trait: true if _Type supports the full set operation
+//   tagless trait: true if Type supports the full set operation
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_set_ops = false;
 
-template<typename _Type>
-constexpr bool redis_does_set_ops<_Type, std::void_t<
-    redis_sadd_t<_Type>,
-    redis_srem_t<_Type>,
-    redis_smembers_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_set_ops<Type, std::void_t<
+    redis_sadd_t<Type>,
+    redis_srem_t<Type>,
+    redis_smembers_t<Type>>> = true;
 
 // redis_does_sorted_set_ops
-//   tagless trait: true if _Type supports the full sorted-set
+//   tagless trait: true if Type supports the full sorted-set
 // operation surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_sorted_set_ops = false;
 
-template<typename _Type>
-constexpr bool redis_does_sorted_set_ops<_Type, std::void_t<
-    redis_zadd_t<_Type>,
-    redis_zrem_t<_Type>,
-    redis_zrange_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_sorted_set_ops<Type, std::void_t<
+    redis_zadd_t<Type>,
+    redis_zrem_t<Type>,
+    redis_zrange_t<Type>>> = true;
 
 // redis_does_stream_ops
-//   tagless trait: true if _Type supports the full stream operation
+//   tagless trait: true if Type supports the full stream operation
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_stream_ops = false;
 
-template<typename _Type>
-constexpr bool redis_does_stream_ops<_Type, std::void_t<
-    redis_xadd_t<_Type>,
-    redis_xread_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_stream_ops<Type, std::void_t<
+    redis_xadd_t<Type>,
+    redis_xread_t<Type>>> = true;
 
 // redis_does_diagnostics
-//   tagless trait: true if _Type supports the full diagnostics
+//   tagless trait: true if Type supports the full diagnostics
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_diagnostics = false;
 
-template<typename _Type>
-constexpr bool redis_does_diagnostics<_Type, std::void_t<
-    redis_info_t<_Type>,
-    redis_client_id_t<_Type>,
-    redis_dbsize_t<_Type>,
-    redis_ping_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_diagnostics<Type, std::void_t<
+    redis_info_t<Type>,
+    redis_client_id_t<Type>,
+    redis_dbsize_t<Type>,
+    redis_ping_t<Type>>> = true;
 
 // redis_does_cluster_ops
-//   tagless trait: true if _Type supports the full cluster operation
+//   tagless trait: true if Type supports the full cluster operation
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_cluster_ops = false;
 
-template<typename _Type>
-constexpr bool redis_does_cluster_ops<_Type, std::void_t<
-    redis_cluster_info_t<_Type>,
-    redis_cluster_slots_t<_Type>,
-    redis_cluster_nodes_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_cluster_ops<Type, std::void_t<
+    redis_cluster_info_t<Type>,
+    redis_cluster_slots_t<Type>,
+    redis_cluster_nodes_t<Type>>> = true;
 
 // redis_does_persistence
-//   tagless trait: true if _Type supports the full persistence
+//   tagless trait: true if Type supports the full persistence
 // surface.
-template<typename _Type,
+template<typename Type,
          typename = void>
 constexpr bool redis_does_persistence = false;
 
-template<typename _Type>
-constexpr bool redis_does_persistence<_Type, std::void_t<
-    redis_save_t<_Type>,
-    redis_bgsave_t<_Type>,
-    redis_bgrewriteaof_t<_Type>,
-    redis_lastsave_t<_Type>>> = true;
+template<typename Type>
+constexpr bool redis_does_persistence<Type, std::void_t<
+    redis_save_t<Type>,
+    redis_bgsave_t<Type>,
+    redis_bgrewriteaof_t<Type>,
+    redis_lastsave_t<Type>>> = true;
 
 // redis_is_full_connection
-//   tagless trait: true if _Type satisfies the complete Redis
+//   tagless trait: true if Type satisfies the complete Redis
 // connection interface (command dispatch + key ops + hash ops +
 // diagnostics + expiration).
-template<typename _Type>
+template<typename Type>
 constexpr bool redis_is_full_connection =
-    ( redis_does_command_dispatch<clean_t<_Type>> &&
-      redis_does_key_ops<clean_t<_Type>>          &&
-      redis_does_hash_ops<clean_t<_Type>>         &&
-      redis_does_diagnostics<clean_t<_Type>>      &&
-      redis_can_expire<clean_t<_Type>> );
+    ( redis_does_command_dispatch<clean_t<Type>> &&
+      redis_does_key_ops<clean_t<Type>>          &&
+      redis_does_hash_ops<clean_t<Type>>         &&
+      redis_does_diagnostics<clean_t<Type>>      &&
+      redis_can_expire<clean_t<Type>> );
 
 
 // =============================================================================
@@ -2889,39 +2899,39 @@ constexpr bool redis_is_full_connection =
 
 // enable_if_redis_connection
 //   type: SFINAE helper for Redis connection constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_redis_connection =
-    typename std::enable_if<is_redis_connection<clean_t<_Type>>::value>::type;
+    typename std::enable_if<is_redis_connection<clean_t<Type>>::value>::type;
 
 // enable_if_has_redis_pubsub
 //   type: SFINAE helper for Redis PUB/SUB constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_redis_pubsub =
-    typename std::enable_if<has_redis_pubsub<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_redis_pubsub<clean_t<Type>>::value>::type;
 
 // enable_if_has_redis_transactions
 //   type: SFINAE helper for Redis transaction constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_redis_transactions =
-    typename std::enable_if<has_redis_transactions<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_redis_transactions<clean_t<Type>>::value>::type;
 
 // enable_if_has_redis_pipelining
 //   type: SFINAE helper for Redis pipelining constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_redis_pipelining =
-    typename std::enable_if<has_redis_pipelining<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_redis_pipelining<clean_t<Type>>::value>::type;
 
 // enable_if_has_redis_scripting
 //   type: SFINAE helper for Redis Lua scripting constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_redis_scripting =
-    typename std::enable_if<has_redis_scripting<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_redis_scripting<clean_t<Type>>::value>::type;
 
 // enable_if_has_redis_cluster_ops
 //   type: SFINAE helper for Redis cluster operation constraints.
-template<typename _Type>
+template<typename Type>
 using enable_if_has_redis_cluster_ops =
-    typename std::enable_if<has_redis_cluster_ops<clean_t<_Type>>::value>::type;
+    typename std::enable_if<has_redis_cluster_ops<clean_t<Type>>::value>::type;
 
 
 // ===========================================================================
@@ -2943,138 +2953,138 @@ using enable_if_has_redis_cluster_ops =
 //   concept: constrains types implementing the Redis connection
 // interface. Suffixed with `_c` to avoid clashing with the
 // `redis_connection` class type.
-template<typename _Type>
+template<typename Type>
 concept Redis_connection =
-    is_redis_connection<clean_t<_Type>>::value;
+    is_redis_connection<clean_t<Type>>::value;
 
 // non_redis_connection
 //   concept: constrains types that do not implement the Redis
 // connection interface.
-template<typename _Type>
+template<typename Type>
 concept non_redis_connection =
-    !Redis_connection<_Type>;
+    !Redis_connection<Type>;
 
 // redis_command_dispatch_connection
 //   concept: constrains Redis connections supporting core command
 // dispatch (send_command + execute_command + get_reply).
-template<typename _Type>
+template<typename Type>
 concept redis_command_dispatch_connection =
-    has_redis_command_dispatch<clean_t<_Type>>::value;
+    has_redis_command_dispatch<clean_t<Type>>::value;
 
 // redis_pubsub_connection
 //   concept: constrains Redis connections supporting PUB/SUB
 // messaging.
-template<typename _Type>
+template<typename Type>
 concept redis_pubsub_connection =
-    has_redis_pubsub<clean_t<_Type>>::value;
+    has_redis_pubsub<clean_t<Type>>::value;
 
 // redis_pattern_pubsub_connection
 //   concept: constrains Redis connections supporting pattern-based
 // PUB/SUB (PSUBSCRIBE / PUNSUBSCRIBE).
-template<typename _Type>
+template<typename Type>
 concept redis_pattern_pubsub_connection =
-    has_redis_pattern_pubsub<clean_t<_Type>>::value;
+    has_redis_pattern_pubsub<clean_t<Type>>::value;
 
 // redis_transactional_connection
 //   concept: constrains Redis connections supporting multi-key
 // transactions (MULTI / EXEC / DISCARD / WATCH / UNWATCH).
-template<typename _Type>
+template<typename Type>
 concept redis_transactional_connection =
-    has_redis_transactions<clean_t<_Type>>::value;
+    has_redis_transactions<clean_t<Type>>::value;
 
 // redis_pipelined_connection
 //   concept: constrains Redis connections supporting pipelining.
-template<typename _Type>
+template<typename Type>
 concept redis_pipelined_connection =
-    has_redis_pipelining<clean_t<_Type>>::value;
+    has_redis_pipelining<clean_t<Type>>::value;
 
 // redis_scripting_connection
 //   concept: constrains Redis connections supporting Lua scripting
 // (EVAL / EVALSHA / SCRIPT LOAD).
-template<typename _Type>
+template<typename Type>
 concept redis_scripting_connection =
-    has_redis_scripting<clean_t<_Type>>::value;
+    has_redis_scripting<clean_t<Type>>::value;
 
 // redis_key_ops_connection
 //   concept: constrains Redis connections supporting core key-space
 // operations (GET / SET / DEL / EXISTS).
-template<typename _Type>
+template<typename Type>
 concept redis_key_ops_connection =
-    has_redis_key_ops<clean_t<_Type>>::value;
+    has_redis_key_ops<clean_t<Type>>::value;
 
 // redis_expiration_connection
 //   concept: constrains Redis connections supporting key expiration
 // (EXPIRE / TTL).
-template<typename _Type>
+template<typename Type>
 concept redis_expiration_connection =
-    has_redis_expiration<clean_t<_Type>>::value;
+    has_redis_expiration<clean_t<Type>>::value;
 
 // redis_iterable_connection
 //   concept: constrains Redis connections supporting key-space
 // iteration (KEYS / SCAN).
-template<typename _Type>
+template<typename Type>
 concept redis_iterable_connection =
-    has_redis_key_iteration<clean_t<_Type>>::value;
+    has_redis_key_iteration<clean_t<Type>>::value;
 
 // redis_hash_connection
 //   concept: constrains Redis connections supporting hash operations.
-template<typename _Type>
+template<typename Type>
 concept redis_hash_connection =
-    has_redis_hash_ops<clean_t<_Type>>::value;
+    has_redis_hash_ops<clean_t<Type>>::value;
 
 // redis_list_connection
 //   concept: constrains Redis connections supporting list operations.
-template<typename _Type>
+template<typename Type>
 concept redis_list_connection =
-    has_redis_list_ops<clean_t<_Type>>::value;
+    has_redis_list_ops<clean_t<Type>>::value;
 
 // redis_set_connection
 //   concept: constrains Redis connections supporting set operations.
-template<typename _Type>
+template<typename Type>
 concept redis_set_connection =
-    has_redis_set_ops<clean_t<_Type>>::value;
+    has_redis_set_ops<clean_t<Type>>::value;
 
 // redis_sorted_set_connection
 //   concept: constrains Redis connections supporting sorted set
 // operations.
-template<typename _Type>
+template<typename Type>
 concept redis_sorted_set_connection =
-    has_redis_sorted_set_ops<clean_t<_Type>>::value;
+    has_redis_sorted_set_ops<clean_t<Type>>::value;
 
 // redis_stream_connection
 //   concept: constrains Redis connections supporting stream
 // operations (Redis 5.0+).
-template<typename _Type>
+template<typename Type>
 concept redis_stream_connection =
-    has_redis_stream_ops<clean_t<_Type>>::value;
+    has_redis_stream_ops<clean_t<Type>>::value;
 
 // redis_diagnostics_connection
 //   concept: constrains Redis connections supporting server
 // diagnostics (INFO / CLIENT ID / DBSIZE / PING).
-template<typename _Type>
+template<typename Type>
 concept redis_diagnostics_connection =
-    has_redis_diagnostics<clean_t<_Type>>::value;
+    has_redis_diagnostics<clean_t<Type>>::value;
 
 // redis_cluster_connection
 //   concept: constrains Redis connections supporting cluster
 // operations (CLUSTER INFO / SLOTS / NODES).
-template<typename _Type>
+template<typename Type>
 concept redis_cluster_connection =
-    has_redis_cluster_ops<clean_t<_Type>>::value;
+    has_redis_cluster_ops<clean_t<Type>>::value;
 
 // redis_persistent_connection
 //   concept: constrains Redis connections supporting persistence
 // operations (SAVE / BGSAVE / BGREWRITEAOF / LASTSAVE).
-template<typename _Type>
+template<typename Type>
 concept redis_persistent_connection =
-    has_redis_persistence<clean_t<_Type>>::value;
+    has_redis_persistence<clean_t<Type>>::value;
 
 // redis_db_selectable_connection
 //   concept: constrains Redis connections supporting logical
 // database selection (SELECT).
-template<typename _Type>
+template<typename Type>
 concept redis_db_selectable_connection =
-    has_redis_db_selection<clean_t<_Type>>::value;
+    has_redis_db_selection<clean_t<Type>>::value;
 
 
 // =============================================================================
@@ -3083,93 +3093,93 @@ concept redis_db_selectable_connection =
 
 // redis_send_command_connection
 //   concept: constrains types exposing send_command(string).
-template<typename _Type>
+template<typename Type>
 concept redis_send_command_connection =
-    redis_can_send_command<clean_t<_Type>>;
+    redis_can_send_command<clean_t<Type>>;
 
 // redis_publishable_connection
 //   concept: constrains types exposing publish(channel, message).
-template<typename _Type>
+template<typename Type>
 concept redis_publishable_connection =
-    redis_can_publish<clean_t<_Type>>;
+    redis_can_publish<clean_t<Type>>;
 
 // redis_subscribable_connection
 //   concept: constrains types exposing subscribe(channel).
-template<typename _Type>
+template<typename Type>
 concept redis_subscribable_connection =
-    redis_can_subscribe<clean_t<_Type>>;
+    redis_can_subscribe<clean_t<Type>>;
 
 // redis_multi_capable_connection
 //   concept: constrains types exposing multi().
-template<typename _Type>
+template<typename Type>
 concept redis_multi_capable_connection =
-    redis_can_multi<clean_t<_Type>>;
+    redis_can_multi<clean_t<Type>>;
 
 // redis_watchable_connection
 //   concept: constrains types exposing watch(key).
-template<typename _Type>
+template<typename Type>
 concept redis_watchable_connection =
-    redis_can_watch<clean_t<_Type>>;
+    redis_can_watch<clean_t<Type>>;
 
 // redis_pipelineable_connection
 //   concept: constrains types exposing pipeline_start().
-template<typename _Type>
+template<typename Type>
 concept redis_pipelineable_connection =
-    redis_can_pipeline<clean_t<_Type>>;
+    redis_can_pipeline<clean_t<Type>>;
 
 // redis_eval_capable_connection
 //   concept: constrains types exposing eval(script, keys, args).
-template<typename _Type>
+template<typename Type>
 concept redis_eval_capable_connection =
-    redis_can_eval<clean_t<_Type>>;
+    redis_can_eval<clean_t<Type>>;
 
 // redis_get_capable_connection
 //   concept: constrains types exposing get(key).
-template<typename _Type>
+template<typename Type>
 concept redis_get_capable_connection =
-    redis_can_get<clean_t<_Type>>;
+    redis_can_get<clean_t<Type>>;
 
 // redis_set_capable_connection
 //   concept: constrains types exposing set(key, value).
-template<typename _Type>
+template<typename Type>
 concept redis_set_capable_connection =
-    redis_can_set<clean_t<_Type>>;
+    redis_can_set<clean_t<Type>>;
 
 // redis_expirable_connection
 //   concept: constrains types exposing expire(key, seconds).
-template<typename _Type>
+template<typename Type>
 concept redis_expirable_connection =
-    redis_can_expire<clean_t<_Type>>;
+    redis_can_expire<clean_t<Type>>;
 
 // redis_scannable_connection
 //   concept: constrains types exposing scan(cursor, pattern).
-template<typename _Type>
+template<typename Type>
 concept redis_scannable_connection =
-    redis_can_scan<clean_t<_Type>>;
+    redis_can_scan<clean_t<Type>>;
 
 // redis_hset_capable_connection
 //   concept: constrains types exposing hset(key, field, value).
-template<typename _Type>
+template<typename Type>
 concept redis_hset_capable_connection =
-    redis_can_hset<clean_t<_Type>>;
+    redis_can_hset<clean_t<Type>>;
 
 // redis_xadd_capable_connection
 //   concept: constrains types exposing xadd(key, id, fields).
-template<typename _Type>
+template<typename Type>
 concept redis_xadd_capable_connection =
-    redis_can_xadd<clean_t<_Type>>;
+    redis_can_xadd<clean_t<Type>>;
 
 // redis_cluster_queryable_connection
 //   concept: constrains types exposing cluster_info().
-template<typename _Type>
+template<typename Type>
 concept redis_cluster_queryable_connection =
-    redis_can_cluster_query<clean_t<_Type>>;
+    redis_can_cluster_query<clean_t<Type>>;
 
 // redis_db_switch_connection
 //   concept: constrains types exposing select_db(index).
-template<typename _Type>
+template<typename Type>
 concept redis_db_switch_connection =
-    redis_can_select_db<clean_t<_Type>>;
+    redis_can_select_db<clean_t<Type>>;
 
 
 // =============================================================================
@@ -3179,107 +3189,107 @@ concept redis_db_switch_connection =
 // redis_command_dispatchable
 //   concept: constrains types satisfying the full tagless command-
 // dispatch capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_command_dispatchable =
-    redis_does_command_dispatch<clean_t<_Type>>;
+    redis_does_command_dispatch<clean_t<Type>>;
 
 // redis_pubsub_capable
 //   concept: constrains types satisfying the full tagless PUB/SUB
 // capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_pubsub_capable =
-    redis_does_pubsub<clean_t<_Type>>;
+    redis_does_pubsub<clean_t<Type>>;
 
 // redis_transactional
 //   concept: constrains types satisfying the full tagless
 // multi-key transaction capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_transactional =
-    redis_does_transactions<clean_t<_Type>>;
+    redis_does_transactions<clean_t<Type>>;
 
 // redis_pipelinable
 //   concept: constrains types satisfying the full tagless
 // pipelining capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_pipelinable =
-    redis_does_pipelining<clean_t<_Type>>;
+    redis_does_pipelining<clean_t<Type>>;
 
 // redis_scriptable
 //   concept: constrains types satisfying the full tagless Lua
 // scripting capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_scriptable =
-    redis_does_scripting<clean_t<_Type>>;
+    redis_does_scripting<clean_t<Type>>;
 
 // redis_key_addressable
 //   concept: constrains types satisfying the full tagless key-space
 // operation capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_key_addressable =
-    redis_does_key_ops<clean_t<_Type>>;
+    redis_does_key_ops<clean_t<Type>>;
 
 // redis_hash_addressable
 //   concept: constrains types satisfying the full tagless hash
 // operation capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_hash_addressable =
-    redis_does_hash_ops<clean_t<_Type>>;
+    redis_does_hash_ops<clean_t<Type>>;
 
 // redis_list_addressable
 //   concept: constrains types satisfying the full tagless list
 // operation capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_list_addressable =
-    redis_does_list_ops<clean_t<_Type>>;
+    redis_does_list_ops<clean_t<Type>>;
 
 // redis_set_addressable
 //   concept: constrains types satisfying the full tagless set
 // operation capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_set_addressable =
-    redis_does_set_ops<clean_t<_Type>>;
+    redis_does_set_ops<clean_t<Type>>;
 
 // redis_sorted_set_addressable
 //   concept: constrains types satisfying the full tagless sorted-set
 // operation capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_sorted_set_addressable =
-    redis_does_sorted_set_ops<clean_t<_Type>>;
+    redis_does_sorted_set_ops<clean_t<Type>>;
 
 // redis_stream_addressable
 //   concept: constrains types satisfying the full tagless stream
 // operation capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_stream_addressable =
-    redis_does_stream_ops<clean_t<_Type>>;
+    redis_does_stream_ops<clean_t<Type>>;
 
 // redis_diagnostic_capable
 //   concept: constrains types satisfying the full tagless
 // diagnostics capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_diagnostic_capable =
-    redis_does_diagnostics<clean_t<_Type>>;
+    redis_does_diagnostics<clean_t<Type>>;
 
 // redis_cluster_aware
 //   concept: constrains types satisfying the full tagless cluster
 // operation capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_cluster_aware =
-    redis_does_cluster_ops<clean_t<_Type>>;
+    redis_does_cluster_ops<clean_t<Type>>;
 
 // redis_persistent
 //   concept: constrains types satisfying the full tagless
 // persistence operation capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_persistent =
-    redis_does_persistence<clean_t<_Type>>;
+    redis_does_persistence<clean_t<Type>>;
 
 // redis_full_connection
 //   concept: constrains types satisfying the complete tagless
 // Redis connection capability set.
-template<typename _Type>
+template<typename Type>
 concept redis_full_connection =
-    redis_is_full_connection<clean_t<_Type>>;
+    redis_is_full_connection<clean_t<Type>>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -3287,5 +3297,6 @@ concept redis_full_connection =
 
 NS_END  // djinterp
 
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // DJINTERP_DATABASE_REDIS_
+#endif  // DJINTERP_DB_REDIS_REDIS_HPP

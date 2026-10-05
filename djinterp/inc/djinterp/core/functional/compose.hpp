@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                            compose.hpp
+/*******************************************************************************
+* djinterp [core]                                                    compose.hpp
 *
 * Template function composition and partial application (C++).
 *   SFINAE-constrained composed transformers, partial application
@@ -19,9 +19,10 @@
 * (parameter packs / generic lambdas / concepts) and are therefore
 * C++11+ only. See the `cpp98 roadmap` workbook.
 *
-*   SELF-CONTAINED RESULT TYPE: callable_result / callable_result_t are
-* defined here directly in djinterp:: (Section 0) so this header carries
-* no dependency on a separate functional-traits aggregator.
+*   RESULT TYPE: callable_result / callable_result_t come from
+* functional_common.hpp, the module's one definition (SFINAE-friendly, as
+* std::invoke_result is); this header once carried its own copy, which no
+* unit could include beside the common header's.
 *
 *   DUAL-DOMAIN (compile-time + runtime): the composition path is constexpr
 * over by-value (decayed) literal storage, so a single compose body forwards
@@ -37,24 +38,35 @@
 * live at the call site.  The sole non-constexpr factory is memoize, whose
 * std::map result cache is inherently a runtime construct.
 *
-* 
+*
 * path:      /inc/djinterp/core/functional/compose.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.19
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_COMPOSE_
-#define DJINTERP_FUNCTIONAL_COMPOSE_ 1
+#ifndef DJINTERP_FUNCTIONAL_COMPOSE_HPP
+#define DJINTERP_FUNCTIONAL_COMPOSE_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
 #include <map>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../meta/type_utility.hpp"  // void_t, self
+#include "../meta/type_traits.hpp"   // is_invocable, is_invocable_r
+#include "./functional_common.hpp"   // callable_result, callable_result_t
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 // std (C++11+ primary path)
+// std
 #  include <functional>
 #  include <type_traits>
 #endif
@@ -79,345 +91,229 @@ NS_DJINTERP
 
 NS_INTERNAL
 
-    // callable_result_helper
-    //   trait: SFINAE result-type extractor (primary: no `type`,
-    // so substitution into callable_result_t is a soft failure).
-    template<typename    _AlwaysVoid,
-             typename    _Function,
-             typename... _Args>
-    struct callable_result_helper
-    {};
-
-    // callable_result_helper (well-formed specialization)
-    //   trait: yields the result type of _Function(_Args...) when the
-    // call expression is well-formed.
-    template<typename    _Function,
-             typename... _Args>
-    struct callable_result_helper<
-        void_t<decltype(std::declval<_Function>()(
-            std::declval<_Args>()...))>,
-        _Function,
-        _Args...>
-    {
-        using type = decltype(std::declval<_Function>()(
-            std::declval<_Args>()...));
-    };
-
-    // is_invocable_helper
-    //   trait: detection sink for the _Function(_Args...) call
-    // expression (primary: false).
-    template<typename    _AlwaysVoid,
-             typename    _Function,
-             typename... _Args>
-    struct is_invocable_helper : std::false_type
-    {};
-
-    // is_invocable_helper (well-formed specialization)
-    //   trait: true when _Function(_Args...) is a valid call.
-    template<typename    _Function,
-             typename... _Args>
-    struct is_invocable_helper<
-        void_t<decltype(std::declval<_Function>()(
-            std::declval<_Args>()...))>,
-        _Function,
-        _Args...> : std::true_type
-    {};
-
     // is_composable_helper
     //   trait: detection sink for the composed call expression
-    // _Outer(_Inner(_Input)) (primary: false).
-    template<typename _AlwaysVoid,
-             typename _Outer,
-             typename _Inner,
-             typename _Input>
+    // Outer(Inner(Input)) (primary: false).
+    template<typename AlwaysVoid,
+             typename Outer,
+             typename Inner,
+             typename Input>
     struct is_composable_helper : std::false_type
     {};
 
     // is_composable_helper (well-formed specialization)
-    //   trait: true when _Outer(_Inner(_Input)) is a valid call
+    //   trait: true when Outer(Inner(Input)) is a valid call
     // chain.
-    template<typename _Outer,
-             typename _Inner,
-             typename _Input>
+    template<typename Outer,
+             typename Inner,
+             typename Input>
     struct is_composable_helper<
-        void_t<decltype(std::declval<_Outer>()(
-            std::declval<_Inner>()(std::declval<_Input>())))>,
-        _Outer,
-        _Inner,
-        _Input> : std::true_type
+        void_t<decltype(std::declval<Outer>()(
+            std::declval<Inner>()(std::declval<Input>())))>,
+        Outer,
+        Inner,
+        Input> : std::true_type
     {};
 
     // is_composed_transformer_helper
     //   trait: detection sink for the .first() / .second() const
     // accessor surface of composed_transformer_helper (primary:
     // false).
-    template<typename _AlwaysVoid,
-             typename _Type>
+    template<typename AlwaysVoid,
+             typename Type>
     struct is_composed_transformer_helper : std::false_type
     {};
 
     // is_composed_transformer_helper (well-formed specialization)
-    //   trait: true when _Type exposes both .first() and .second()
+    //   trait: true when Type exposes both .first() and .second()
     // const accessors.
-    template<typename _Type>
+    template<typename Type>
     struct is_composed_transformer_helper<
-        void_t<decltype(std::declval<const _Type&>().first()),
-               decltype(std::declval<const _Type&>().second())>,
-        _Type> : std::true_type
+        void_t<decltype(std::declval<const Type&>().first()),
+               decltype(std::declval<const Type&>().second())>,
+        Type> : std::true_type
     {};
 
     // is_memoized_helper
     //   trait: detection sink for the .clear_cache() / .cache_size()
     // const surface of memoize_helper (primary: false).
-    template<typename _AlwaysVoid,
-             typename _Type>
+    template<typename AlwaysVoid,
+             typename Type>
     struct is_memoized_helper : std::false_type
     {};
 
     // is_memoized_helper (well-formed specialization)
-    //   trait: true when _Type exposes both .clear_cache() and
+    //   trait: true when Type exposes both .clear_cache() and
     // .cache_size() const accessors.
-    template<typename _Type>
+    template<typename Type>
     struct is_memoized_helper<
-        void_t<decltype(std::declval<const _Type&>().clear_cache()),
-               decltype(std::declval<const _Type&>().cache_size())>,
-        _Type> : std::true_type
+        void_t<decltype(std::declval<const Type&>().clear_cache()),
+               decltype(std::declval<const Type&>().cache_size())>,
+        Type> : std::true_type
     {};
 
 NS_END  // internal
 
-// callable_result
-//   trait: result type of invoking _Function with _Args... . Has a
-// `::type` member only when the call expression is well-formed,
-// making callable_result_t SFINAE-friendly as a default argument.
-template<typename    _Function,
-         typename... _Args>
-struct callable_result
-{
-    using type =
-        typename internal::callable_result_helper<void,
-                                                  _Function,
-                                                  _Args...>::type;
-};
 
-// callable_result_t
-//   type: convenience alias for callable_result<...>::type.
-template<typename    _Function,
-         typename... _Args>
-using callable_result_t = typename callable_result<_Function, _Args...>::type;
-
-// is_invocable
-//   trait: true when _Function is callable with _Args... .
-template<typename    _Function,
-         typename... _Args>
-struct is_invocable
-    : internal::is_invocable_helper<void, _Function, _Args...>
-{};
+// is_invocable, is_invocable_r
+//   The callable traits are core/meta/type_traits.hpp's: std::is_invocable and
+// std::is_invocable_r from C++17, its own C++11 forms below that. This header
+// used to define both itself, which no translation unit could include beside
+// core/meta/type_traits.hpp (math/functional.hpp, which includes both,
+// failed on it).
 
 NS_INTERNAL
 
-    // is_invocable_r_helper
-    //   trait: convertibility branch of is_invocable_r, selected by the
-    // _Invocable flag. Primary (false flag): not invocable, so the
-    // result type is never named -- guarantees SFINAE-safety.
-    template<bool        _Invocable,
-             typename    _Result,
-             typename    _Function,
-             typename... _Args>
-    struct is_invocable_r_helper : std::false_type
-    {};
-
-    // is_invocable_r_helper (invocable branch)
-    //   trait: when invocable, the value is whether the call result is
-    // convertible to _Result.
-    template<typename    _Result,
-             typename    _Function,
-             typename... _Args>
-    struct is_invocable_r_helper<true, _Result, _Function, _Args...>
-    {
-        static constexpr bool value =
-            std::is_convertible<
-                callable_result_t<_Function, _Args...>, _Result>::value;
-    };
-
     // is_unary_transformer_helper
     //   trait: non-void branch of is_unary_transformer, selected by the
-    // _Invocable flag. Primary (false flag): not invocable, so the
+    // Invocable flag. Primary (false flag): not invocable, so the
     // result type is never named -- guarantees SFINAE-safety.
-    template<bool     _Invocable,
-             typename _Function,
-             typename _Input>
+    template<bool     Invocable,
+             typename Function,
+             typename Input>
     struct is_unary_transformer_helper : std::false_type
     {};
 
     // is_unary_transformer_helper (invocable branch)
     //   trait: when invocable, the value is whether the result is
     // non-void.
-    template<typename _Function,
-             typename _Input>
-    struct is_unary_transformer_helper<true, _Function, _Input>
+    template<typename Function,
+             typename Input>
+    struct is_unary_transformer_helper<true, Function, Input>
     {
         static constexpr bool value =
             !std::is_void<
-                callable_result_t<_Function, _Input>>::value;
+                callable_result_t<Function, Input>>::value;
     };
 
 NS_END  // internal
 
-// is_invocable_r
-//   trait: true when _Function is callable with _Args... and the
-// result is convertible to _Result. The convertibility check is gated
-// behind invocability so the result type is never named in the
-// non-invocable case (SFINAE-safe).
-template<typename    _Result,
-         typename    _Function,
-         typename... _Args>
-struct is_invocable_r
-    : internal::is_invocable_r_helper<
-          is_invocable<_Function, _Args...>::value,
-          _Result, _Function, _Args...>
-{};
-
 // is_unary_transformer
-//   trait: true when _Function is callable with a single _Input and
+//   trait: true when Function is callable with a single Input and
 // produces a non-void result (the shape a composition stage expects).
 // The non-void check is gated behind invocability so the result type
 // is never named in the non-invocable case (SFINAE-safe).
-template<typename _Function,
-         typename _Input>
+template<typename Function,
+         typename Input>
 struct is_unary_transformer
     : internal::is_unary_transformer_helper<
-          is_invocable<_Function, _Input>::value,
-          _Function, _Input>
+          is_invocable<Function, Input>::value,
+          Function, Input>
 {};
 
 // is_composable
-//   trait: true when the call chain _Outer(_Inner(_Input)) is
-// well-formed -- i.e. _Inner accepts _Input and _Outer accepts the
-// result of _Inner.
-template<typename _Outer,
-         typename _Inner,
-         typename _Input>
+//   trait: true when the call chain Outer(Inner(Input)) is
+// well-formed -- i.e. Inner accepts Input and Outer accepts the
+// result of Inner.
+template<typename Outer,
+         typename Inner,
+         typename Input>
 struct is_composable
-    : internal::is_composable_helper<void, _Outer, _Inner, _Input>
+    : internal::is_composable_helper<void, Outer, Inner, Input>
 {};
 
 // composition_result
-//   trait: result type of _Outer(_Inner(_Input)).
-template<typename _Outer,
-         typename _Inner,
-         typename _Input>
+//   trait: result type of Outer(Inner(Input)).
+template<typename Outer,
+         typename Inner,
+         typename Input>
 struct composition_result
 {
     using type =
-        callable_result_t<_Outer, callable_result_t<_Inner, _Input>>;
+        callable_result_t<Outer, callable_result_t<Inner, Input>>;
 };
 
 // composition_result_t
 //   type: convenience alias for composition_result<...>::type.
-template<typename _Outer,
-         typename _Inner,
-         typename _Input>
+template<typename Outer,
+         typename Inner,
+         typename Input>
 using composition_result_t =
-    typename composition_result<_Outer, _Inner, _Input>::type;
+    typename composition_result<Outer, Inner, Input>::type;
 
 // is_composed_transformer
-//   trait: structural predicate -- true when _Type exposes the
+//   trait: structural predicate -- true when Type exposes the
 // .first() / .second() introspection surface produced by
 // compose / pipe / compose_transformer.
-template<typename _Type>
+template<typename Type>
 struct is_composed_transformer
-    : internal::is_composed_transformer_helper<void, _Type>
+    : internal::is_composed_transformer_helper<void, Type>
 {};
 
 // is_memoized
-//   trait: structural predicate -- true when _Type exposes the
+//   trait: structural predicate -- true when Type exposes the
 // .clear_cache() / .cache_size() surface produced by memoize.
-template<typename _Type>
+template<typename Type>
 struct is_memoized
-    : internal::is_memoized_helper<void, _Type>
+    : internal::is_memoized_helper<void, Type>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    // is_invocable_v
-    //   value: convenience alias for is_invocable<...>::value.
-    template<typename    _Function,
-             typename... _Args>
-    constexpr bool is_invocable_v = is_invocable<_Function, _Args...>::value;
-
-    // is_invocable_r_v
-    //   value: convenience alias for is_invocable_r<...>::value.
-    template<typename    _Result,
-             typename    _Function,
-             typename... _Args>
-    constexpr bool is_invocable_r_v =
-        is_invocable_r<_Result, _Function, _Args...>::value;
-
     // is_unary_transformer_v
     //   value: convenience alias for is_unary_transformer<...>::value.
-    template<typename _Function,
-             typename _Input>
+    template<typename Function,
+             typename Input>
     constexpr bool is_unary_transformer_v =
-        is_unary_transformer<_Function, _Input>::value;
+        is_unary_transformer<Function, Input>::value;
 
     // is_composable_v
     //   value: convenience alias for is_composable<...>::value.
-    template<typename _Outer,
-             typename _Inner,
-             typename _Input>
+    template<typename Outer,
+             typename Inner,
+             typename Input>
     constexpr bool is_composable_v =
-        is_composable<_Outer, _Inner, _Input>::value;
+        is_composable<Outer, Inner, Input>::value;
 
     // is_composed_transformer_v
     //   value: convenience alias for is_composed_transformer<...>::value.
-    template<typename _Type>
+    template<typename Type>
     constexpr bool is_composed_transformer_v =
-        is_composed_transformer<_Type>::value;
+        is_composed_transformer<Type>::value;
 
     // is_memoized_v
     //   value: convenience alias for is_memoized<...>::value.
-    template<typename _Type>
-    constexpr bool is_memoized_v = is_memoized<_Type>::value;
+    template<typename Type>
+    constexpr bool is_memoized_v = is_memoized<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // invocable_with
-    //   concept: satisfied when _Function is callable with _Args... .
+    //   concept: satisfied when Function is callable with Args... .
     // Named to avoid colliding with the std::invocable re-export in
     // concepts.hpp.
-    template<typename    _Function,
-             typename... _Args>
-    concept invocable_with = is_invocable<_Function, _Args...>::value;
+    template<typename    Function,
+             typename... Args>
+    concept invocable_with = is_invocable<Function, Args...>::value;
 
     // unary_transformer
-    //   concept: satisfied when _Function maps a single _Input to a
+    //   concept: satisfied when Function maps a single Input to a
     // non-void result.
-    template<typename _Function,
-             typename _Input>
-    concept unary_transformer = is_unary_transformer<_Function, _Input>::value;
+    template<typename Function,
+             typename Input>
+    concept unary_transformer = is_unary_transformer<Function, Input>::value;
 
     // composable
-    //   concept: satisfied when _Outer(_Inner(_Input)) is a valid call
+    //   concept: satisfied when Outer(Inner(Input)) is a valid call
     // chain.
-    template<typename _Outer,
-             typename _Inner,
-             typename _Input>
-    concept composable = is_composable<_Outer, _Inner, _Input>::value;
+    template<typename Outer,
+             typename Inner,
+             typename Input>
+    concept composable = is_composable<Outer, Inner, Input>::value;
 
     // composed_transformer_like
-    //   concept: satisfied when _Type exposes the .first() / .second()
+    //   concept: satisfied when Type exposes the .first() / .second()
     // composed-transformer surface.
-    template<typename _Type>
-    concept composed_transformer_like = is_composed_transformer<_Type>::value;
+    template<typename Type>
+    concept composed_transformer_like = is_composed_transformer<Type>::value;
 
     // memoized_like
-    //   concept: satisfied when _Type exposes the .clear_cache() /
+    //   concept: satisfied when Type exposes the .clear_cache() /
     // .cache_size() memoize surface.
-    template<typename _Type>
-    concept memoized_like = is_memoized<_Type>::value;
+    template<typename Type>
+    concept memoized_like = is_memoized<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -430,86 +326,86 @@ NS_INTERNAL
     // composed_transformer_helper
     //   helper: composition of two transformers with optional contexts.
     // Mirrors d_composed_transformer from compose.h but is fully typed.
-    // compose(f, g)(x) = f(g(x)), so _Second is applied first.
-    template<typename _First,
-             typename _Second>
+    // compose(f, g)(x) = f(g(x)), so Second is applied first.
+    template<typename First,
+             typename Second>
     class composed_transformer_helper
     {
     public:
-        template<typename _F1Fwd,
-                 typename _F2Fwd>
+        template<typename F1Fwd,
+                 typename F2Fwd>
         D_CONSTEXPR
         composed_transformer_helper
         (
-            _F1Fwd&& _first,
-            _F2Fwd&& _second
-        ) : m_first(std::forward<_F1Fwd>(_first))
-          , m_second(std::forward<_F2Fwd>(_second))
+            F1Fwd&& _first,
+            F2Fwd&& _second
+        ) : m_first(std::forward<F1Fwd>(_first))
+          , m_second(std::forward<F2Fwd>(_second))
         {}
 
-        template<typename _Input>
+        template<typename Input>
         D_CONSTEXPR
-        auto operator()(const _Input& _input) const
-            -> decltype(std::declval<const _Second&>()(
-                std::declval<const _First&>()(_input)))
+        auto operator()(const Input& _input) const
+            -> decltype(std::declval<const Second&>()(
+                std::declval<const First&>()(_input)))
         {
             return m_second(m_first(_input));
         }
 
-        template<typename _Input>
+        template<typename Input>
         D_CONSTEXPR
-        auto operator()(_Input&& _input) const
-            -> decltype(std::declval<const _Second&>()(
-                std::declval<const _First&>()(
-                    std::forward<_Input>(_input))))
+        auto operator()(Input&& _input) const
+            -> decltype(std::declval<const Second&>()(
+                std::declval<const First&>()(
+                    std::forward<Input>(_input))))
         {
-            return m_second(m_first(std::forward<_Input>(_input)));
+            return m_second(m_first(std::forward<Input>(_input)));
         }
 
         // accessors for introspection
-        D_CONSTEXPR const _First&  first()  const { return m_first; }
-        D_CONSTEXPR const _Second& second() const { return m_second; }
+        D_CONSTEXPR const First&  first()  const { return m_first; }
+        D_CONSTEXPR const Second& second() const { return m_second; }
 
     private:
-        _First  m_first;   // applied first (g in f(g(x)))
-        _Second m_second;  // applied second (f in f(g(x)))
+        First   m_first;   // applied first (g in f(g(x)))
+        Second m_second;  // applied second (f in f(g(x)))
     };
 
     // partial_consumer_helper
     //   helper: partially applied consumer with bound context.
     // Mirrors d_partial_consumer from compose.h.
-    template<typename _Function,
-             typename _BoundArg>
+    template<typename Function,
+             typename BoundArg>
     class partial_consumer_helper
     {
     public:
-        template<typename _FunctionFwd,
-                 typename _ArgFwd>
+        template<typename FunctionFwd,
+                 typename ArgFwd>
         D_CONSTEXPR
-        partial_consumer_helper(_FunctionFwd&& _function, _ArgFwd&& _arg)
-            : m_fn(std::forward<_FunctionFwd>(_function))
-            , m_bound(std::forward<_ArgFwd>(_arg))
+        partial_consumer_helper(FunctionFwd&& _function, ArgFwd&& _arg)
+            : m_fn(std::forward<FunctionFwd>(_function))
+            , m_bound(std::forward<ArgFwd>(_arg))
         {}
 
-        template<typename... _Args>
+        template<typename... Args>
         D_CONSTEXPR
-        auto operator()(_Args&&... _args) const
-            -> decltype(std::declval<const _Function&>()(
-                std::forward<_Args>(_args)...,
-                std::declval<const _BoundArg&>()))
+        auto operator()(Args&&... _args) const
+            -> decltype(std::declval<const Function&>()(
+                std::forward<Args>(_args)...,
+                std::declval<const BoundArg&>()))
         {
-            return m_fn(std::forward<_Args>(_args)..., m_bound);
+            return m_fn(std::forward<Args>(_args)..., m_bound);
         }
 
     private:
-        _Function m_fn;
-        _BoundArg m_bound;
+        Function m_fn;
+        BoundArg m_bound;
     };
 
     // tap_helper
     //   helper: passes value through a side-effect function, returning
     // the original value unchanged.
-    template<typename _Function>
+    template<typename Function>
     class tap_helper
     {
     public:
@@ -517,19 +413,19 @@ NS_INTERNAL
         // argument is itself a tap_helper, so the compiler-generated
         // copy / move constructors are not hijacked (which would
         // otherwise try to store a tap_helper into m_fn).
-        template<typename _FunctionFwd,
+        template<typename FunctionFwd,
                  typename = typename std::enable_if<
                      !std::is_same<
-                         typename std::decay<_FunctionFwd>::type,
+                         typename std::decay<FunctionFwd>::type,
                          tap_helper>::value>::type>
         explicit D_CONSTEXPR
-        tap_helper(_FunctionFwd&& _function)
-            : m_fn(std::forward<_FunctionFwd>(_function))
+        tap_helper(FunctionFwd&& _function)
+            : m_fn(std::forward<FunctionFwd>(_function))
         {}
 
-        template<typename _Type>
-        D_CONSTEXPR
-        _Type operator()(_Type _value) const
+        template<typename Type>
+        D_CONSTEXPR_CPP14
+        Type operator()(Type _value) const
         {
             m_fn(_value);
 
@@ -537,23 +433,23 @@ NS_INTERNAL
         }
 
     private:
-        _Function m_fn;
+        Function m_fn;
     };
 
     // memoize_helper
     //   helper: caches results of a pure function.
-    template<typename _Function,
-             typename _Input,
-             typename _Output>
+    template<typename Function,
+             typename Input,
+             typename Output>
     class memoize_helper
     {
     public:
-        template<typename _FunctionFwd>
-        explicit memoize_helper(_FunctionFwd&& _function)
-            : m_fn(std::forward<_FunctionFwd>(_function))
+        template<typename FunctionFwd>
+        explicit memoize_helper(FunctionFwd&& _function)
+            : m_fn(std::forward<FunctionFwd>(_function))
         {}
 
-        _Output operator()(const _Input& _input) const
+        Output operator()(const Input& _input) const
         {
             auto it = m_cache.find(_input);
 
@@ -562,7 +458,7 @@ NS_INTERNAL
                 return it->second;
             }
 
-            _Output result = m_fn(_input);
+            Output result = m_fn(_input);
 
             m_cache[_input] = result;
 
@@ -582,8 +478,8 @@ NS_INTERNAL
         }
 
     private:
-        _Function                           m_fn;
-        mutable std::map<_Input, _Output>   m_cache;
+        Function                            m_fn;
+        mutable std::map<Input, Output>   m_cache;
     };
 
 NS_END  // internal
@@ -597,65 +493,65 @@ NS_END  // internal
 //   function: creates a composed transformer that applies _first then
 // _second. compose_transformer(g, f)(x) = f(g(x))
 // This is left-to-right composition (pipe order).
-template<typename _First,
-         typename _Second>
+template<typename First,
+         typename Second>
 D_CONSTEXPR
-internal::composed_transformer_helper<typename std::decay<_First>::type,
-                                      typename std::decay<_Second>::type>
+internal::composed_transformer_helper<typename std::decay<First>::type,
+                                      typename std::decay<Second>::type>
 compose_transformer
 (
-    _First&&  _first,
-    _Second&& _second
+    First&&  _first,
+    Second&& _second
 )
 {
     return internal::composed_transformer_helper<
-        typename std::decay<_First>::type,
-        typename std::decay<_Second>::type>(
-            std::forward<_First>(_first),
-            std::forward<_Second>(_second));
+        typename std::decay<First>::type,
+        typename std::decay<Second>::type>(
+            std::forward<First>(_first),
+            std::forward<Second>(_second));
 }
 
 // compose
 //   function: math-order composition. compose(f, g)(x) = f(g(x)).
 // _inner (g) is applied first, _outer (f) second.
-template<typename _Outer,
-         typename _Inner>
+template<typename Outer,
+         typename Inner>
 D_CONSTEXPR
-internal::composed_transformer_helper<typename std::decay<_Inner>::type,
-                                      typename std::decay<_Outer>::type>
+internal::composed_transformer_helper<typename std::decay<Inner>::type,
+                                      typename std::decay<Outer>::type>
 compose
 (
-    _Outer&& _outer,
-    _Inner&& _inner
+    Outer&& _outer,
+    Inner&& _inner
 )
 {
     return internal::composed_transformer_helper<
-        typename std::decay<_Inner>::type,
-        typename std::decay<_Outer>::type>(
-            std::forward<_Inner>(_inner),
-            std::forward<_Outer>(_outer));
+        typename std::decay<Inner>::type,
+        typename std::decay<Outer>::type>(
+            std::forward<Inner>(_inner),
+            std::forward<Outer>(_outer));
 }
 
 // pipe
 //   function: left-to-right composition. pipe(f, g)(x) = g(f(x)).
 // _first (f) is applied first, _second (g) second. Equivalent in shape
 // to compose_transformer.
-template<typename _First,
-         typename _Second>
+template<typename First,
+         typename Second>
 D_CONSTEXPR
-internal::composed_transformer_helper<typename std::decay<_First>::type,
-                                      typename std::decay<_Second>::type>
+internal::composed_transformer_helper<typename std::decay<First>::type,
+                                      typename std::decay<Second>::type>
 pipe
 (
-    _First&&  _first,
-    _Second&& _second
+    First&&  _first,
+    Second&& _second
 )
 {
     return internal::composed_transformer_helper<
-        typename std::decay<_First>::type,
-        typename std::decay<_Second>::type>(
-            std::forward<_First>(_first),
-            std::forward<_Second>(_second));
+        typename std::decay<First>::type,
+        typename std::decay<Second>::type>(
+            std::forward<First>(_first),
+            std::forward<Second>(_second));
 }
 
 
@@ -674,87 +570,87 @@ NS_INTERNAL
     // compose_all_fold
     //   helper: right-to-left fold of compose over a function pack
     // (primary template; specialized below).
-    template<typename... _Functions>
+    template<typename... Functions>
     struct compose_all_fold;
 
-    // compose_all_fold<_Function>
+    // compose_all_fold<Function>
     //   helper: base case -- a single function folds to itself.
-    template<typename _Function>
-    struct compose_all_fold<_Function>
+    template<typename Function>
+    struct compose_all_fold<Function>
     {
-        using type = typename std::decay<_Function>::type;
+        using type = typename std::decay<Function>::type;
 
-        template<typename _Fwd>
-        static D_CONSTEXPR type apply(_Fwd&& _function)
+        template<typename Fwd>
+        static D_CONSTEXPR type apply(Fwd&& _function)
         {
-            return std::forward<_Fwd>(_function);
+            return std::forward<Fwd>(_function);
         }
     };
 
-    // compose_all_fold<_Function1, _Function2, _Rest...>
+    // compose_all_fold<Function1, Function2, Rest...>
     //   helper: recursive case -- compose(f1, fold(f2, rest...)).
-    template<typename    _Function1,
-             typename    _Function2,
-             typename... _Rest>
-    struct compose_all_fold<_Function1, _Function2, _Rest...>
+    template<typename    Function1,
+             typename    Function2,
+             typename... Rest>
+    struct compose_all_fold<Function1, Function2, Rest...>
     {
-        using tail = compose_all_fold<_Function2, _Rest...>;
+        using tail = compose_all_fold<Function2, Rest...>;
         using type = decltype(djinterp::compose(
-            std::declval<_Function1>(),
+            std::declval<Function1>(),
             std::declval<typename tail::type>()));
 
-        template<typename    _F1,
-                 typename    _F2,
-                 typename... _R>
-        static D_CONSTEXPR type apply(_F1&& _f1, _F2&& _f2, _R&&... _rest)
+        template<typename    F1,
+                 typename    F2,
+                 typename... R>
+        static D_CONSTEXPR type apply(F1&& _f1, F2&& _f2, R&&... _rest)
         {
             return djinterp::compose(
-                std::forward<_F1>(_f1),
-                tail::apply(std::forward<_F2>(_f2),
-                            std::forward<_R>(_rest)...));
+                std::forward<F1>(_f1),
+                tail::apply(std::forward<F2>(_f2),
+                            std::forward<R>(_rest)...));
         }
     };
 
     // pipe_all_fold
     //   helper: left-to-right fold of pipe over a function pack
     // (primary template; specialized below).
-    template<typename... _Functions>
+    template<typename... Functions>
     struct pipe_all_fold;
 
-    // pipe_all_fold<_Function>
+    // pipe_all_fold<Function>
     //   helper: base case -- a single function folds to itself.
-    template<typename _Function>
-    struct pipe_all_fold<_Function>
+    template<typename Function>
+    struct pipe_all_fold<Function>
     {
-        using type = typename std::decay<_Function>::type;
+        using type = typename std::decay<Function>::type;
 
-        template<typename _Fwd>
-        static D_CONSTEXPR type apply(_Fwd&& _function)
+        template<typename Fwd>
+        static D_CONSTEXPR type apply(Fwd&& _function)
         {
-            return std::forward<_Fwd>(_function);
+            return std::forward<Fwd>(_function);
         }
     };
 
-    // pipe_all_fold<_Function1, _Function2, _Rest...>
+    // pipe_all_fold<Function1, Function2, Rest...>
     //   helper: recursive case -- fold(pipe(f1, f2), rest...).
-    template<typename    _Function1,
-             typename    _Function2,
-             typename... _Rest>
-    struct pipe_all_fold<_Function1, _Function2, _Rest...>
+    template<typename    Function1,
+             typename    Function2,
+             typename... Rest>
+    struct pipe_all_fold<Function1, Function2, Rest...>
     {
-        using piped = decltype(djinterp::pipe(std::declval<_Function1>(),
-                                              std::declval<_Function2>()));
-        using tail  = pipe_all_fold<piped, _Rest...>;
+        using piped = decltype(djinterp::pipe(std::declval<Function1>(),
+                                              std::declval<Function2>()));
+        using tail  = pipe_all_fold<piped, Rest...>;
         using type  = typename tail::type;
 
-        template<typename    _F1,
-                 typename    _F2,
-                 typename... _R>
-        static D_CONSTEXPR type apply(_F1&& _f1, _F2&& _f2, _R&&... _rest)
+        template<typename    F1,
+                 typename    F2,
+                 typename... R>
+        static D_CONSTEXPR type apply(F1&& _f1, F2&& _f2, R&&... _rest)
         {
-            return tail::apply(djinterp::pipe(std::forward<_F1>(_f1),
-                                              std::forward<_F2>(_f2)),
-                               std::forward<_R>(_rest)...);
+            return tail::apply(djinterp::pipe(std::forward<F1>(_f1),
+                                              std::forward<F2>(_f2)),
+                               std::forward<R>(_rest)...);
         }
     };
 
@@ -763,31 +659,31 @@ NS_END  // internal
 // compose_all (right-to-left)
 //   function: composes N functions right-to-left.
 // compose_all(f, g, h)(x) = f(g(h(x)))
-template<typename... _Functions>
+template<typename... Functions>
 D_CONSTEXPR
-typename internal::compose_all_fold<_Functions...>::type
+typename internal::compose_all_fold<Functions...>::type
 compose_all
 (
-    _Functions&&... _functions
+    Functions&&... _functions
 )
 {
-    return internal::compose_all_fold<_Functions...>::apply(
-        std::forward<_Functions>(_functions)...);
+    return internal::compose_all_fold<Functions...>::apply(
+        std::forward<Functions>(_functions)...);
 }
 
 // pipe_all (left-to-right)
 //   function: composes N functions left-to-right.
 // pipe_all(f, g, h)(x) = h(g(f(x)))
-template<typename... _Functions>
+template<typename... Functions>
 D_CONSTEXPR
-typename internal::pipe_all_fold<_Functions...>::type
+typename internal::pipe_all_fold<Functions...>::type
 pipe_all
 (
-    _Functions&&... _functions
+    Functions&&... _functions
 )
 {
-    return internal::pipe_all_fold<_Functions...>::apply(
-        std::forward<_Functions>(_functions)...);
+    return internal::pipe_all_fold<Functions...>::apply(
+        std::forward<Functions>(_functions)...);
 }
 
 
@@ -798,22 +694,22 @@ pipe_all
 // partial_back
 //   function: partially applies the last argument of a function.
 // partial_back(f, z)(x, y) = f(x, y, z)
-template<typename _Function,
-         typename _Arg>
+template<typename Function,
+         typename Arg>
 D_CONSTEXPR
-internal::partial_consumer_helper<typename std::decay<_Function>::type,
-                                  typename std::decay<_Arg>::type>
+internal::partial_consumer_helper<typename std::decay<Function>::type,
+                                  typename std::decay<Arg>::type>
 partial_back
 (
-    _Function&& _function,
-    _Arg&&      _arg
+    Function&& _function,
+    Arg&&      _arg
 )
 {
     return internal::partial_consumer_helper<
-        typename std::decay<_Function>::type,
-        typename std::decay<_Arg>::type>(
-            std::forward<_Function>(_function),
-            std::forward<_Arg>(_arg)
+        typename std::decay<Function>::type,
+        typename std::decay<Arg>::type>(
+            std::forward<Function>(_function),
+            std::forward<Arg>(_arg)
         );
 }
 
@@ -829,13 +725,13 @@ partial_back
 //   function: creates a pass-through function that executes a side-effect.
 // tap(f)(x) calls f(x) then returns x unchanged.
 // Useful for debugging in composition chains.
-template<typename _Function>
+template<typename Function>
 D_CONSTEXPR
-internal::tap_helper<typename std::decay<_Function>::type>
-tap(_Function&& _function)
+internal::tap_helper<typename std::decay<Function>::type>
+tap(Function&& _function)
 {
-    return internal::tap_helper<typename std::decay<_Function>::type>(
-        std::forward<_Function>(_function));
+    return internal::tap_helper<typename std::decay<Function>::type>(
+        std::forward<Function>(_function));
 }
 
 
@@ -847,18 +743,18 @@ tap(_Function&& _function)
 //   function: wraps a pure function with a cache.
 // The function must be deterministic (same input -> same output).
 // The input type must be comparable (for use as map key).
-template<typename _Function,
-         typename _Input,
-         typename _Output = callable_result_t<_Function, const _Input&>>
-internal::memoize_helper<typename std::decay<_Function>::type, _Input, _Output>
+template<typename Function,
+         typename Input,
+         typename Output = callable_result_t<Function, const Input&>>
+internal::memoize_helper<typename std::decay<Function>::type, Input, Output>
 memoize
 (
-    _Function&& _function
+    Function&& _function
 )
 {
     return internal::memoize_helper<
-        typename std::decay<_Function>::type, _Input, _Output>(
-            std::forward<_Function>(_function)
+        typename std::decay<Function>::type, Input, Output>(
+            std::forward<Function>(_function)
         );
 }
 
@@ -870,35 +766,35 @@ memoize
 NS_INTERNAL
     // fix_helper
     //   helper: Y combinator for expressing recursive lambdas.
-    template<typename _Function>
+    template<typename Function>
     class fix_helper
     {
     public:
         // the forwarding constructor is constrained out when the
         // argument is itself a fix_helper, so the compiler-generated
         // copy / move constructors are not hijacked.
-        template<typename _FunctionFwd,
+        template<typename FunctionFwd,
                  typename = typename std::enable_if<
                      !std::is_same<
-                         typename std::decay<_FunctionFwd>::type,
+                         typename std::decay<FunctionFwd>::type,
                          fix_helper>::value>::type>
         explicit D_CONSTEXPR
-        fix_helper(_FunctionFwd&& _function)
-            : m_fn(std::forward<_FunctionFwd>(_function))
+        fix_helper(FunctionFwd&& _function)
+            : m_fn(std::forward<FunctionFwd>(_function))
         {}
 
-        template<typename... _Args>
+        template<typename... Args>
         D_CONSTEXPR
-        auto operator()(_Args&&... _args) const
-            -> decltype(std::declval<const _Function&>()(
+        auto operator()(Args&&... _args) const
+            -> decltype(std::declval<const Function&>()(
                 std::declval<const fix_helper&>(),
-                std::forward<_Args>(_args)...))
+                std::forward<Args>(_args)...))
         {
-            return m_fn(*this, std::forward<_Args>(_args)...);
+            return m_fn(*this, std::forward<Args>(_args)...);
         }
 
     private:
-        _Function m_fn;
+        Function m_fn;
     };
 
 NS_END  // internal
@@ -910,14 +806,14 @@ NS_END  // internal
 //       return n <= 1 ? 1 : n * self(n - 1);
 //   });
 //   factorial(5);  // 120
-template<typename _Function>
-D_CONSTEXPR internal::fix_helper<typename std::decay<_Function>::type>
+template<typename Function>
+D_CONSTEXPR internal::fix_helper<typename std::decay<Function>::type>
 fix(
-    _Function&& _function
+    Function&& _function
 )
 {
-    return internal::fix_helper<typename std::decay<_Function>::type>(
-        std::forward<_Function>(_function));
+    return internal::fix_helper<typename std::decay<Function>::type>(
+        std::forward<Function>(_function));
 }
 
 
@@ -941,45 +837,45 @@ NS_DJINTERP
 NS_INTERNAL
 
     // composed_transformer_helper
-    //   helper: composition of two transformers. Applies _First
-    // first, then _Second to the result. operator()(x) yields
+    //   helper: composition of two transformers. Applies First
+    // first, then Second to the result. operator()(x) yields
     // m_second(m_first(x)).
     //
-    //   Return type is _Second::result_type, taken from the
-    // Adaptable Function Object convention. _Second must expose
-    // a result_type typedef. _First's result type need not be
+    //   Return type is Second::result_type, taken from the
+    // Adaptable Function Object convention. Second must expose
+    // a result_type typedef. First's result type need not be
     // exposed; it is computed at the call site by the compiler
     // and fed straight into m_second.
-    template<typename _First,
-             typename _Second>
+    template<typename First,
+             typename Second>
     class composed_transformer_helper
     {
     public:
-        typedef typename _Second::result_type result_type;
+        typedef typename Second::result_type result_type;
 
         composed_transformer_helper(
-            const _First&  _first,
-            const _Second& _second
+            const First&  _first,
+            const Second& _second
         )
             : m_first(_first)
             , m_second(_second)
         {}
 
-        template<typename _Input>
+        template<typename Input>
         result_type operator()(
-            const _Input& _input
+            const Input& _input
         ) const
         {
             return m_second(m_first(_input));
         }
 
         // accessors for introspection
-        const _First&  first()  const { return m_first;  }
-        const _Second& second() const { return m_second; }
+        const First&  first()  const { return m_first;  }
+        const Second& second() const { return m_second; }
 
     private:
-        _First  m_first;
-        _Second m_second;
+        First   m_first;
+        Second m_second;
     };
 
 NS_END  // internal
@@ -993,15 +889,15 @@ NS_END  // internal
 //   function: builds a composed transformer that applies _first
 // then _second. compose_transformer(g, f)(x) = f(g(x)).
 // This is the pipe-order form: arguments read in execution order.
-template<typename _First,
-         typename _Second>
-internal::composed_transformer_helper<_First, _Second>
+template<typename First,
+         typename Second>
+internal::composed_transformer_helper<First, Second>
 compose_transformer(
-    const _First&  _first,
-    const _Second& _second
+    const First&  _first,
+    const Second& _second
 )
 {
-    return internal::composed_transformer_helper<_First, _Second>(_first,
+    return internal::composed_transformer_helper<First, Second>(_first,
                                                                   _second);
 }
 
@@ -1009,15 +905,15 @@ compose_transformer(
 // compose
 //   function: math-order composition. compose(f, g)(x) = f(g(x)).
 // _g is applied first (inner), _f second (outer).
-template<typename _F,
-         typename _G>
-internal::composed_transformer_helper<_G, _F>
+template<typename F,
+         typename G>
+internal::composed_transformer_helper<G, F>
 compose(
-    const _F& _f,
-    const _G& _g
+    const F& _f,
+    const G& _g
 )
 {
-    return internal::composed_transformer_helper<_G, _F>(_g, _f);
+    return internal::composed_transformer_helper<G, F>(_g, _f);
 }
 
 
@@ -1025,15 +921,15 @@ compose(
 //   function: left-to-right composition. pipe(f, g)(x) = g(f(x)).
 // _f is applied first, _g second. Equivalent in shape to
 // compose_transformer.
-template<typename _F,
-         typename _G>
-internal::composed_transformer_helper<_F, _G>
+template<typename F,
+         typename G>
+internal::composed_transformer_helper<F, G>
 pipe(
-    const _F& _f,
-    const _G& _g
+    const F& _f,
+    const G& _g
 )
 {
-    return internal::composed_transformer_helper<_F, _G>(_f, _g);
+    return internal::composed_transformer_helper<F, G>(_f, _g);
 }
 
 
@@ -1044,33 +940,33 @@ pipe(
 NS_INTERNAL
 
     // memoize_helper
-    //   helper: caches results of a pure unary function. _Input
+    //   helper: caches results of a pure unary function. Input
     // must be LessThanComparable (required for std::map keys).
     //
     //   The cache is mutable; operator() is const so memoize_helper
     // satisfies the const-callable convention required by the
     // composition helpers above.
-    template<typename _Function,
-             typename _Input,
-             typename _Output>
+    template<typename Function,
+             typename Input,
+             typename Output>
     class memoize_helper
     {
     public:
-        typedef _Output result_type;
-        typedef _Input  argument_type;
+        typedef Output result_type;
+        typedef Input   argument_type;
 
         explicit memoize_helper(
-            const _Function& _function
+            const Function& _function
         )
             : m_fn(_function)
             , m_cache()
         {}
 
-        _Output operator()(
-            const _Input& _input
+        Output operator()(
+            const Input& _input
         ) const
         {
-            typename std::map<_Input, _Output>::iterator it
+            typename std::map<Input, Output>::iterator it
                 = m_cache.find(_input);
 
             if (it != m_cache.end())
@@ -1078,7 +974,7 @@ NS_INTERNAL
                 return it->second;
             }
 
-            _Output result = m_fn(_input);
+            Output result = m_fn(_input);
 
             m_cache[_input] = result;
 
@@ -1101,8 +997,8 @@ NS_INTERNAL
         }
 
     private:
-        _Function                          m_fn;
-        mutable std::map<_Input, _Output>  m_cache;
+        Function                           m_fn;
+        mutable std::map<Input, Output>  m_cache;
     };
 
 NS_END  // internal
@@ -1111,28 +1007,28 @@ NS_END  // internal
 // memoize
 //   function: wraps a pure unary function with a cache. Because
 // C++98 cannot deduce the return type from the function via
-// decltype, _Input and _Output are explicit template parameters;
-// _Function is deduced from the argument.
+// decltype, Input and Output are explicit template parameters;
+// Function is deduced from the argument.
 //
 //   The wrapped function must be deterministic (same input ->
-// same output) for the cache to be sound, and _Input must support
+// same output) for the cache to be sound, and Input must support
 // operator< (it is used as a std::map key).
 //
 //   Usage:
 //     int slow(int);
 //     ...
 //     djinterp::memoize<int, int>(&slow)  -> memoize_helper<...>
-template<typename _Input,
-         typename _Output,
-         typename _Function>
-internal::memoize_helper<_Function, _Input, _Output>
+template<typename Input,
+         typename Output,
+         typename Function>
+internal::memoize_helper<Function, Input, Output>
 memoize(
-    const _Function& _function
+    const Function& _function
 )
 {
-    return internal::memoize_helper<_Function,
-                                    _Input,
-                                    _Output>(_function);
+    return internal::memoize_helper<Function,
+                                    Input,
+                                    Output>(_function);
 }
 
 
@@ -1140,5 +1036,7 @@ NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_FUNCTIONAL_COMPOSE_
+
+#endif  // DJINTERP_FUNCTIONAL_COMPOSE_HPP

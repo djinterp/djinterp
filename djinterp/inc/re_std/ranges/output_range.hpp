@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                           output_range.hpp
+/*******************************************************************************
+* djinterp [re_std]                                             output_range.hpp
 *
 * output_range header:
 *   Provides the C++20 output_range concept as a SFINAE trait. The
@@ -24,71 +24,75 @@
 *     form catches the cases that matter).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/output_range.hpp
+* path:      /inc/re_std/ranges/output_range.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_OUTPUT_RANGE_
-#define DJINTERP_RE_STD_RANGES_OUTPUT_RANGE_ 1
+#ifndef RE_STD_RANGES_OUTPUT_RANGE_HPP
+#define RE_STD_RANGES_OUTPUT_RANGE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./range.hpp"
 #include "./iterator_t.hpp"
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
 // I.   INDIRECTLY_WRITABLE-LIKE DETECTOR (internal)
 // ===========================================================================
 
-NS_INTERNAL
+namespace internal
+{
 
 // output_assignable
-//   trait: detects whether *declval<_I&>() = declval<_T&&>() is a
+//   trait: detects whether *declval<I&>() = declval<T&&>() is a
 // valid expression. Mirrors a simplified form of C++20's
 // indirectly_writable concept.
-template<typename _I, typename _T, typename = void>
+template<typename I, typename T, typename = void>
 struct output_assignable : false_type
 {};
 
-template<typename _I, typename _T>
+template<typename I, typename T>
 struct output_assignable<
-    _I, _T,
-    typename void_t<
-        decltype(*declval<_I&>() = declval<_T&&>())
-    >::type
+    I, T,
+    void_t<
+        decltype(*declval<I&>() = declval<T&&>())
+    >
 > : true_type
 {};
 
-NS_END  // internal
+}  // internal
 
 
 // ===========================================================================
 // II.  OUTPUT_RANGE
 // ===========================================================================
 
-// output_range<_R, _T>
-//   trait: true iff _R is a range AND its iterator type supports
-// the assignment *it = _T-value.
-template<typename _R, typename _T, typename = void>
+// output_range<R, T>
+//   trait: true iff R is a range AND its iterator type supports
+// the assignment *it = T-value.
+template<typename R, typename T, typename = void>
 struct output_range : false_type
 {};
 
-template<typename _R, typename _T>
+template<typename R, typename T>
 struct output_range<
-    _R, _T,
+    R, T,
     typename enable_if<
-        range<_R>::value
+        range<R>::value
         && internal::output_assignable<
-               iterator_t<_R>,
-               _T
+               iterator_t<R>,
+               T
            >::value,
         void
     >::type
@@ -96,16 +100,16 @@ struct output_range<
 {};
 
 
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
-template<typename _R, typename _T>
-D_CONSTEXPR bool output_range_v = output_range<_R, _T>::value;
+#if RE_STD_LANG_IS_CPP14_OR_HIGHER
+template<typename R, typename T>
+RE_STD_CONSTEXPR bool output_range_v = output_range<R, T>::value;
 #endif
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RE_STD_RANGES_OUTPUT_RANGE_
+#endif  // RE_STD_RANGES_OUTPUT_RANGE_HPP

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                         prev_permutation.hpp
 *
 * prev_permutation algorithm header:
@@ -19,16 +19,17 @@
 *   - Bidirectional iterators suffice.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/prev_permutation.hpp
+* path:      /inc/re_std/algorithm/prev_permutation.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.08.24
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.24
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_PREV_PERMUTATION_
-#define DJINTERP_RE_STD_ALGORITHM_PREV_PERMUTATION_ 1
+#ifndef RE_STD_ALGORITHM_PREV_PERMUTATION_HPP
+#define RE_STD_ALGORITHM_PREV_PERMUTATION_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "./reverse.hpp"
@@ -38,16 +39,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -57,11 +51,11 @@ NS_RESTD
 // prev_permutation
 //   function: steps back to the previous lexicographic permutation.
 // False (and a rewind to descending order) when the input was the first.
-template<typename _BidirIt>
-D_CONSTEXPR_CPP14 bool
+template<typename BidirIt>
+RE_STD_CONSTEXPR_CPP14 bool
 prev_permutation(
-    _BidirIt _first,
-    _BidirIt _last
+    BidirIt _first,
+    BidirIt _last
 )
 {
     if (_first == _last)
@@ -69,7 +63,7 @@ prev_permutation(
         return false;
     }
 
-    _BidirIt _i = _last;
+    BidirIt _i = _last;
     --_i;
     if (_first == _i)
     {
@@ -78,13 +72,13 @@ prev_permutation(
 
     for (;;)
     {
-        _BidirIt _descent = _i;
+        BidirIt _descent = _i;
         --_i;
 
         if (*_descent < *_i)
         {
             // rightmost element less than *_i
-            _BidirIt _j = _last;
+            BidirIt _j = _last;
             while (!(*--_j < *_i))
             {
                 // empty
@@ -110,13 +104,13 @@ prev_permutation(
 
 // prev_permutation (comparator)
 //   function: as above but ordering is decided by _comp.
-template<typename _BidirIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 bool
+template<typename BidirIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 bool
 prev_permutation(
-    _BidirIt _first,
-    _BidirIt _last,
-    _Compare _comp
+    BidirIt _first,
+    BidirIt _last,
+    Compare _comp
 )
 {
     if (_first == _last)
@@ -124,7 +118,7 @@ prev_permutation(
         return false;
     }
 
-    _BidirIt _i = _last;
+    BidirIt _i = _last;
     --_i;
     if (_first == _i)
     {
@@ -133,12 +127,12 @@ prev_permutation(
 
     for (;;)
     {
-        _BidirIt _descent = _i;
+        BidirIt _descent = _i;
         --_i;
 
         if (_comp(*_descent, *_i))
         {
-            _BidirIt _j = _last;
+            BidirIt _j = _last;
             while (!_comp(*--_j, *_i))
             {
                 // empty
@@ -157,7 +151,7 @@ prev_permutation(
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_PREV_PERMUTATION_
+#endif  // RE_STD_ALGORITHM_PREV_PERMUTATION_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                            pdf_primitives.h
+/*******************************************************************************
+* djinterp [c]                                                  pdf_primitives.h
 *
 * The leaf of the PDF kernel: geometry, page sizes, device colour and the
 * standard-14 face enumeration.
@@ -32,18 +32,27 @@
 * out-of-range colour, silently, with the C side "more correct" -- which is
 * still a divergence. If clamping is wanted it belongs in both, as a ruling.
 *
+*   PDF LIBRARY DETECTION LOADS WITH THIS FILE. It includes env_pdf.h, so the
+* D_ENV_PDF_* probes load with the kernel's leaf -- that is, only where PDF is
+* used -- and every pdf module sees them without including env_pdf.h itself.
 *
-* path:      \inc\djinterp\c\util\pdf\pdf_primitives.h
+*
+* path:      /inc/djinterp/c/util/pdf/pdf_primitives.h
 * link(s):   ch-pdf.tex
-* author(s): TBA                                            created: 2026.08.09
-******************************************************************************/
+* author(s): TBA                                             created: 2026.08.09
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_UTIL_PDF_PRIMITIVES_
-#define DJINTERP_C_UTIL_PDF_PRIMITIVES_ 1
+#ifndef DJINTERP_C_UTIL_PDF_PDF_PRIMITIVES_H
+#define DJINTERP_C_UTIL_PDF_PDF_PRIMITIVES_H 1
 
-#include <stddef.h>
-#include <stdint.h>
-#include "../../djinterp.h"
+// std
+#include <stddef.h>                    // size_t, offsetof
+// djinterp
+#include "../../djinterp.h"            // framework root
+#include "../../../env/env_pdf.h"  // D_ENV_PDF_*, for every pdf module
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // int32_t
 
 
 D_EXTERN_C_BEGIN
@@ -243,4 +252,4 @@ D_STATIC_ASSERT(offsetof(struct d_pdf_color, b) ==
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_UTIL_PDF_PRIMITIVES_
+#endif  // DJINTERP_C_UTIL_PDF_PDF_PRIMITIVES_H

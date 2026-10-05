@@ -1,14 +1,18 @@
-/******************************************************************************
-* djinterp [container]                                         circular_array.c
+/*******************************************************************************
+* djinterp [c]                                                  circular_array.c
 *
 *   Implementation of the circular array (ring buffer) data structure.
 *
 *
-* path:      \src\container\array\circular_array.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.05.08
-******************************************************************************/
-#include "../../../../inc/c/container/array/circular_array.h"
+* path:      /src/djinterp/c/container/array/circular_array.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.10.03
+*******************************************************************************/
+#include "../../../../../inc/djinterp/c/container/array/circular_array.h"
+
+// re_std
+#include "../../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
 
 
 // =============================================================================
@@ -46,8 +50,8 @@ d_circular_array_new
 for the specified capacity and element size.
 
 Parameter(s):
-  _capacity:     maximum number of elements the circular array can contain.
-                 Must be greater than 0.
+  _capacity:     maximum number of elements the circular array can contain. Must
+                 be greater than 0.
   _element_size: size in bytes of each element. Must be > 0.
 Return:
   - Pointer to new `d_circular_array` on success
@@ -196,8 +200,8 @@ d_circular_array_new_from_args
 Parameter(s):
   _capacity:     maximum number of elements the buffer can contain. Must be > 0.
   _element_size: size in bytes of each element. Must be > 0.
-  _arg_count:    number of variadic arguments to process.
-  ...:           variadic arguments containing the element data.
+  _arg_count:    number of variadic arguments to process. ...: variadic
+                 arguments containing the element data.
 Return:
   - Pointer to new d_circular_array on success
   - NULL if allocation fails or parameters are invalid
@@ -403,9 +407,9 @@ d_circular_array_new_fill
   Creates a new circular array filled with a specified value.
 
 Parameter(s):
-  _capacity:   capacity of the new circular array
+  _capacity:     capacity of the new circular array
   _element_size: size of each element
-  _fill_value: pointer to the value to fill with
+  _fill_value:   pointer to the value to fill with
 Return:
   - Pointer to new d_circular_array filled with the value
   - NULL if parameters are invalid or memory allocation fails
@@ -590,7 +594,7 @@ d_circular_array_back
     }
 
     // tail points to next write position, so back is one before
-    back_index = (_circular_array->tail == 0) 
+    back_index = (_circular_array->tail == 0)
                  ? _circular_array->capacity - 1
                  : _circular_array->tail - 1;
 
@@ -1994,7 +1998,7 @@ Parameter(s):
   _circular_array: pointer to circular array
   _apply_fn:       function to apply to each element
 Return:
-  none
+  none.
 */
 void
 d_circular_array_foreach
@@ -2034,7 +2038,7 @@ Parameter(s):
   _circular_array: pointer to circular array
   _apply_fn:       function to apply to each element
 Return:
-  none
+  none.
 */
 void
 d_circular_array_foreach_reverse
@@ -2079,7 +2083,7 @@ Parameter(s):
   _circular_array: pointer to circular array
   _comparator:     comparison function
 Return:
-  none
+  none.
 */
 void
 d_circular_array_sort
@@ -2196,7 +2200,7 @@ d_circular_array_free
 Parameter(s):
   _circular_array: pointer to circular array to free. May be NULL.
 Return:
-  none
+  none.
 */
 void
 d_circular_array_free
@@ -2225,7 +2229,7 @@ Parameter(s):
   _circular_array: pointer to circular array to free. May be NULL.
   _free_fn:        function to call for each element. May be NULL.
 Return:
-  none
+  none.
 */
 void
 d_circular_array_free_deep

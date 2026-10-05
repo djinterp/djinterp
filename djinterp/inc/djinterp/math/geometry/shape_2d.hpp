@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [math]                                                  shape_2d.hpp
+/*******************************************************************************
+* djinterp [math]                                                   shape_2d.hpp
 *
 * General-purpose 2D shape composers.
 *   Provides the four ways a user can describe an arbitrary planar
@@ -12,22 +12,26 @@
 * geometry_common.hpp; measurement (area, perimeter, centroid) is
 * handled separately in measure_2d.hpp.
 *
+*
 * path:      /inc/djinterp/math/geometry/shape_2d.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MATH_GEOMETRY_SHAPE_2D_
-#define DJINTERP_MATH_GEOMETRY_SHAPE_2D_ 1
+#ifndef DJINTERP_MATH_GEOMETRY_SHAPE_2D_HPP
+#define DJINTERP_MATH_GEOMETRY_SHAPE_2D_HPP 1
 
+// std
+#include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <array>
 #include <tuple>
 #include <type_traits>
+// djinterp
 #include "../../djinterp.hpp"
-#include "../coordinate.hpp"
+#include "../coordinate/coordinate.hpp"
 #include "./geometry_common.hpp"
 #include "./edge.hpp"
 
@@ -580,4 +584,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_GEOMETRY_SHAPE_2D_
+#endif  // DJINTERP_MATH_GEOMETRY_SHAPE_2D_HPP

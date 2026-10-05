@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse]                                       parser/primitives.hpp
+/*******************************************************************************
+* djinterp [parse]                                                primitives.hpp
 *
 * Atomic parsers — the leaves of every CRTP composition tree.
 *   Each primitive is a concrete class inheriting from parser_expr,
@@ -33,11 +33,18 @@
 *
 * path:      /inc/djinterp/parse/primitives.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_PARSER_PRIMITIVES_
-#define DJINTERP_PARSE_PARSER_PRIMITIVES_ 1
+#ifndef DJINTERP_PARSE_PRIMITIVES_HPP
+#define DJINTERP_PARSE_PRIMITIVES_HPP 1
+
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
 #include <cstddef>
@@ -64,23 +71,23 @@ NS_PARSE
 //   class: a parser that always succeeds with a stored value and
 // consumes no input.  The CRTP form of monad_traits::unit /
 // applicative pure for the parser carrier.
-template<typename _Result,
-         typename _Element = char>
+template<typename Result,
+         typename Element = char>
 class succeed_parser
-    : public parser_expr<succeed_parser<_Result, _Element>>
+    : public parser_expr<succeed_parser<Result, Element>>
 {
 public:
-    using input_type   = _Element;
-    using element_type = _Element;
-    using result_type  = _Result;
-    using value_type   = _Result;
-    using state_type   = parse_state<_Element>;
-    using output_type  = parse_result<_Result>;
+    using input_type   = Element;
+    using element_type = Element;
+    using result_type  = Result;
+    using value_type   = Result;
+    using state_type   = parse_state<Element>;
+    using output_type  = parse_result<Result>;
 
     explicit succeed_parser(
-        _Result _value
+        Result _value
     )
-        : m_value(static_cast<_Result&&>(_value))
+        : m_value(static_cast<Result&&>(_value))
     {}
 
     // parse_impl
@@ -94,21 +101,21 @@ public:
     }
 
 private:
-    _Result m_value;
+    Result m_value;
 };
 
 // succeed
 //   factory: builds a succeed_parser by deducing the value type.
-template<typename _Result,
-         typename _Element = char>
+template<typename Result,
+         typename Element = char>
 D_NODISCARD
-succeed_parser<_Result, _Element>
+succeed_parser<Result, Element>
 succeed(
-    _Result _value
+    Result _value
 )
 {
-    return succeed_parser<_Result, _Element>(
-        static_cast<_Result&&>(_value));
+    return succeed_parser<Result, Element>(
+        static_cast<Result&&>(_value));
 }
 
 
@@ -116,18 +123,18 @@ succeed(
 //   class: a parser that always fails with a stored message and
 // status code.  alternative_traits::empty is the no-message form;
 // fail labels the failure explicitly.
-template<typename _Result,
-         typename _Element = char>
+template<typename Result,
+         typename Element = char>
 class fail_parser
-    : public parser_expr<fail_parser<_Result, _Element>>
+    : public parser_expr<fail_parser<Result, Element>>
 {
 public:
-    using input_type   = _Element;
-    using element_type = _Element;
-    using result_type  = _Result;
-    using value_type   = _Result;
-    using state_type   = parse_state<_Element>;
-    using output_type  = parse_result<_Result>;
+    using input_type   = Element;
+    using element_type = Element;
+    using result_type  = Result;
+    using value_type   = Result;
+    using state_type   = parse_state<Element>;
+    using output_type  = parse_result<Result>;
 
     fail_parser(
         const std::string& _message,
@@ -154,18 +161,18 @@ private:
 };
 
 // fail
-//   factory: builds a fail_parser.  _Result must be supplied
+//   factory: builds a fail_parser.  Result must be supplied
 // explicitly since it can't be deduced.
-template<typename _Result,
-         typename _Element = char>
+template<typename Result,
+         typename Element = char>
 D_NODISCARD
-fail_parser<_Result, _Element>
+fail_parser<Result, Element>
 fail(
     const std::string& _message = std::string("fail"),
     parse_status       _status  = DParseStatusFailure
 )
 {
-    return fail_parser<_Result, _Element>(_message, _status);
+    return fail_parser<Result, Element>(_message, _status);
 }
 
 
@@ -177,16 +184,16 @@ fail(
 //   class: succeeds with `true` iff the state is at end of input.
 // The natural terminator for a grammar that must consume its whole
 // input.
-template<typename _Element = char>
+template<typename Element = char>
 class eof_parser
-    : public parser_expr<eof_parser<_Element>>
+    : public parser_expr<eof_parser<Element>>
 {
 public:
-    using input_type   = _Element;
-    using element_type = _Element;
+    using input_type   = Element;
+    using element_type = Element;
     using result_type  = bool;
     using value_type   = bool;
-    using state_type   = parse_state<_Element>;
+    using state_type   = parse_state<Element>;
     using output_type  = parse_result<bool>;
 
     eof_parser() = default;
@@ -210,27 +217,27 @@ public:
 
 // eof
 //   factory: builds an eof_parser.
-template<typename _Element = char>
+template<typename Element = char>
 D_NODISCARD
-eof_parser<_Element>
+eof_parser<Element>
 eof()
 {
-    return eof_parser<_Element>();
+    return eof_parser<Element>();
 }
 
 
 // position_parser
 //   class: succeeds with the current offset, consuming nothing.
-template<typename _Element = char>
+template<typename Element = char>
 class position_parser
-    : public parser_expr<position_parser<_Element>>
+    : public parser_expr<position_parser<Element>>
 {
 public:
-    using input_type   = _Element;
-    using element_type = _Element;
+    using input_type   = Element;
+    using element_type = Element;
     using result_type  = std::size_t;
     using value_type   = std::size_t;
-    using state_type   = parse_state<_Element>;
+    using state_type   = parse_state<Element>;
     using output_type  = parse_result<std::size_t>;
 
     position_parser() = default;
@@ -246,27 +253,27 @@ public:
 
 // position
 //   factory: builds a position_parser.
-template<typename _Element = char>
+template<typename Element = char>
 D_NODISCARD
-position_parser<_Element>
+position_parser<Element>
 position()
 {
-    return position_parser<_Element>();
+    return position_parser<Element>();
 }
 
 
 // remaining_parser
 //   class: succeeds with the count of unconsumed elements.
-template<typename _Element = char>
+template<typename Element = char>
 class remaining_parser
-    : public parser_expr<remaining_parser<_Element>>
+    : public parser_expr<remaining_parser<Element>>
 {
 public:
-    using input_type   = _Element;
-    using element_type = _Element;
+    using input_type   = Element;
+    using element_type = Element;
     using result_type  = std::size_t;
     using value_type   = std::size_t;
-    using state_type   = parse_state<_Element>;
+    using state_type   = parse_state<Element>;
     using output_type  = parse_result<std::size_t>;
 
     remaining_parser() = default;
@@ -282,12 +289,12 @@ public:
 
 // remaining
 //   factory: builds a remaining_parser.
-template<typename _Element = char>
+template<typename Element = char>
 D_NODISCARD
-remaining_parser<_Element>
+remaining_parser<Element>
 remaining()
 {
-    return remaining_parser<_Element>();
+    return remaining_parser<Element>();
 }
 
 
@@ -298,17 +305,17 @@ remaining()
 // any_parser
 //   class: consumes one element and returns it.  Fails at end of
 // input.
-template<typename _Element = char>
+template<typename Element = char>
 class any_parser
-    : public parser_expr<any_parser<_Element>>
+    : public parser_expr<any_parser<Element>>
 {
 public:
-    using input_type   = _Element;
-    using element_type = _Element;
-    using result_type  = _Element;
-    using value_type   = _Element;
-    using state_type   = parse_state<_Element>;
-    using output_type  = parse_result<_Element>;
+    using input_type   = Element;
+    using element_type = Element;
+    using result_type  = Element;
+    using value_type   = Element;
+    using state_type   = parse_state<Element>;
+    using output_type  = parse_result<Element>;
 
     any_parser() = default;
 
@@ -317,7 +324,7 @@ public:
         state_type& _state
     ) const
     {
-        _Element e;
+        Element e;
 
         if (_state.at_end())
         {
@@ -336,12 +343,12 @@ public:
 
 // any
 //   factory: builds an any_parser.
-template<typename _Element = char>
+template<typename Element = char>
 D_NODISCARD
-any_parser<_Element>
+any_parser<Element>
 any()
 {
-    return any_parser<_Element>();
+    return any_parser<Element>();
 }
 
 
@@ -350,24 +357,24 @@ any()
 // otherwise (and on end of input).  The atomic conditional
 // consumer — every text-class shorthand below is satisfy with a
 // different predicate.
-template<typename _Predicate,
-         typename _Element = char>
+template<typename Predicate,
+         typename Element = char>
 class satisfy_parser
-    : public parser_expr<satisfy_parser<_Predicate, _Element>>
+    : public parser_expr<satisfy_parser<Predicate, Element>>
 {
 public:
-    using input_type   = _Element;
-    using element_type = _Element;
-    using result_type  = _Element;
-    using value_type   = _Element;
-    using state_type   = parse_state<_Element>;
-    using output_type  = parse_result<_Element>;
+    using input_type   = Element;
+    using element_type = Element;
+    using result_type  = Element;
+    using value_type   = Element;
+    using state_type   = parse_state<Element>;
+    using output_type  = parse_result<Element>;
 
     satisfy_parser(
-        _Predicate         _predicate,
+        Predicate          _predicate,
         const std::string& _label
     )
-        : m_predicate(static_cast<_Predicate&&>(_predicate)),
+        : m_predicate(static_cast<Predicate&&>(_predicate)),
           m_label    (_label)
     {}
 
@@ -376,7 +383,7 @@ public:
         state_type& _state
     ) const
     {
-        _Element e;
+        Element e;
 
         if (_state.at_end())
         {
@@ -402,23 +409,23 @@ public:
     }
 
 private:
-    _Predicate  m_predicate;
+    Predicate   m_predicate;
     std::string m_label;
 };
 
 // satisfy
 //   factory: builds a satisfy_parser, deducing the predicate type.
-template<typename _Predicate,
-         typename _Element = char>
+template<typename Predicate,
+         typename Element = char>
 D_NODISCARD
-satisfy_parser<_Predicate, _Element>
+satisfy_parser<Predicate, Element>
 satisfy(
-    _Predicate         _predicate,
+    Predicate          _predicate,
     const std::string& _label = std::string("satisfy")
 )
 {
-    return satisfy_parser<_Predicate, _Element>(
-        static_cast<_Predicate&&>(_predicate),
+    return satisfy_parser<Predicate, Element>(
+        static_cast<Predicate&&>(_predicate),
         _label);
 }
 
@@ -428,22 +435,22 @@ satisfy(
 // fails otherwise.  Named with `_set_` to disambiguate from the
 // combinator `one_of_parser` factory (n-ary ordered choice) in
 // combinators.hpp.
-template<typename _Element = char>
+template<typename Element = char>
 class one_of_set_parser
-    : public parser_expr<one_of_set_parser<_Element>>
+    : public parser_expr<one_of_set_parser<Element>>
 {
 public:
-    using input_type   = _Element;
-    using element_type = _Element;
-    using result_type  = _Element;
-    using value_type   = _Element;
-    using state_type   = parse_state<_Element>;
-    using output_type  = parse_result<_Element>;
+    using input_type   = Element;
+    using element_type = Element;
+    using result_type  = Element;
+    using value_type   = Element;
+    using state_type   = parse_state<Element>;
+    using output_type  = parse_result<Element>;
 
     explicit one_of_set_parser(
-        std::vector<_Element> _set
+        std::vector<Element> _set
     )
-        : m_set(static_cast<std::vector<_Element>&&>(_set))
+        : m_set(static_cast<std::vector<Element>&&>(_set))
     {}
 
     output_type
@@ -451,7 +458,7 @@ public:
         state_type& _state
     ) const
     {
-        _Element    e;
+        Element     e;
         std::size_t i;
 
         if (_state.at_end())
@@ -480,42 +487,42 @@ public:
     }
 
 private:
-    std::vector<_Element> m_set;
+    std::vector<Element> m_set;
 };
 
 // one_of
 //   factory: builds a one_of_set_parser from an initializer list.
-template<typename _Element = char>
+template<typename Element = char>
 D_NODISCARD
-one_of_set_parser<_Element>
+one_of_set_parser<Element>
 one_of(
-    std::initializer_list<_Element> _set
+    std::initializer_list<Element> _set
 )
 {
-    return one_of_set_parser<_Element>(
-        std::vector<_Element>(_set.begin(), _set.end()));
+    return one_of_set_parser<Element>(
+        std::vector<Element>(_set.begin(), _set.end()));
 }
 
 
 // none_of_set_parser
 //   class: consumes one element NOT in a stored set; fails on a
 // member of the set and on end of input.
-template<typename _Element = char>
+template<typename Element = char>
 class none_of_set_parser
-    : public parser_expr<none_of_set_parser<_Element>>
+    : public parser_expr<none_of_set_parser<Element>>
 {
 public:
-    using input_type   = _Element;
-    using element_type = _Element;
-    using result_type  = _Element;
-    using value_type   = _Element;
-    using state_type   = parse_state<_Element>;
-    using output_type  = parse_result<_Element>;
+    using input_type   = Element;
+    using element_type = Element;
+    using result_type  = Element;
+    using value_type   = Element;
+    using state_type   = parse_state<Element>;
+    using output_type  = parse_result<Element>;
 
     explicit none_of_set_parser(
-        std::vector<_Element> _set
+        std::vector<Element> _set
     )
-        : m_set(static_cast<std::vector<_Element>&&>(_set))
+        : m_set(static_cast<std::vector<Element>&&>(_set))
     {}
 
     output_type
@@ -523,7 +530,7 @@ public:
         state_type& _state
     ) const
     {
-        _Element    e;
+        Element     e;
         std::size_t i;
 
         if (_state.at_end())
@@ -553,20 +560,20 @@ public:
     }
 
 private:
-    std::vector<_Element> m_set;
+    std::vector<Element> m_set;
 };
 
 // none_of
 //   factory: builds a none_of_set_parser.
-template<typename _Element = char>
+template<typename Element = char>
 D_NODISCARD
-none_of_set_parser<_Element>
+none_of_set_parser<Element>
 none_of(
-    std::initializer_list<_Element> _set
+    std::initializer_list<Element> _set
 )
 {
-    return none_of_set_parser<_Element>(
-        std::vector<_Element>(_set.begin(), _set.end()));
+    return none_of_set_parser<Element>(
+        std::vector<Element>(_set.begin(), _set.end()));
 }
 
 
@@ -735,5 +742,7 @@ space()
 NS_END  // parse
 NS_END  // djinterp
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_PARSE_PARSER_PRIMITIVES_
+
+#endif  // DJINTERP_PARSE_PRIMITIVES_HPP

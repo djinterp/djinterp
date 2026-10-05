@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [re_std]                                                sort_heap.hpp
 *
 * sort_heap algorithm header:
@@ -17,16 +17,17 @@
 *     are observably equivalent.
 *
 *
-* path:      /inc/djinterp/re_std/algorithm/sort_heap.hpp
+* path:      /inc/re_std/algorithm/sort_heap.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_ALGORITHM_SORT_HEAP_
-#define DJINTERP_RE_STD_ALGORITHM_SORT_HEAP_ 1
+#ifndef RE_STD_ALGORITHM_SORT_HEAP_HPP
+#define RE_STD_ALGORITHM_SORT_HEAP_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 // re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -37,16 +38,9 @@
 // 0.   COMPATIBILITY MACROS
 // ===========================================================================
 
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
-#endif
 
-
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -54,23 +48,23 @@ NS_RESTD
 // ===========================================================================
 
 // _sort_heap_sift_down_
-//   max-heap sift-down. Identical in shape to the helpers in the
+//   function: max-heap sift-down. Identical in shape to the helpers in the
 // other heap files; duplicated to keep this file standalone.
-template<typename _RandomIt,
-         typename _Distance,
-         typename _Compare>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt,
+         typename Distance,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 void
 _sort_heap_sift_down_(
-    _RandomIt _first,
-    _Distance _start,
-    _Distance _length,
-    _Compare  _comp
+    RandomIt _first,
+    Distance _start,
+    Distance _length,
+    Compare  _comp
 )
 {
-    _Distance _parent = _start;
+    Distance _parent = _start;
     while (true)
     {
-        _Distance _child = static_cast<_Distance>(2 * _parent + 1);
+        Distance _child = static_cast<Distance>(2 * _parent + 1);
         if (_child >= _length)
         {
             break;
@@ -99,16 +93,16 @@ _sort_heap_sift_down_(
 // range. Each iteration: swap root with last-active, decrement the
 // active size, sift the new root down. After N - 1 iterations the
 // range is non-descending under _comp.
-template<typename _RandomIt,
-         typename _Compare>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt,
+         typename Compare>
+RE_STD_CONSTEXPR_CPP14 void
 sort_heap(
-    _RandomIt _first,
-    _RandomIt _last,
-    _Compare  _comp
+    RandomIt _first,
+    RandomIt _last,
+    Compare  _comp
 )
 {
-    typedef typename iterator_traits<_RandomIt>::difference_type _Diff;
+    typedef typename iterator_traits<RandomIt>::difference_type _Diff;
 
     _Diff _length = _last - _first;
     if (_length < 2)
@@ -119,7 +113,7 @@ sort_heap(
     for (_Diff _i = _length - 1; _i > 0; --_i)
     {
         iter_swap(_first, _first + _i);
-        _sort_heap_sift_down_<_RandomIt, _Diff, _Compare>(
+        _sort_heap_sift_down_<RandomIt, _Diff, Compare>(
             _first, static_cast<_Diff>(0), _i, _comp);
     }
 }
@@ -127,19 +121,19 @@ sort_heap(
 
 // sort_heap (default operator<)
 //   function: as above with re_std::less<value_type>().
-template<typename _RandomIt>
-D_CONSTEXPR_CPP14 void
+template<typename RandomIt>
+RE_STD_CONSTEXPR_CPP14 void
 sort_heap(
-    _RandomIt _first,
-    _RandomIt _last
+    RandomIt _first,
+    RandomIt _last
 )
 {
-    typedef typename iterator_traits<_RandomIt>::value_type _Value;
+    typedef typename iterator_traits<RandomIt>::value_type _Value;
     sort_heap(_first, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_ALGORITHM_SORT_HEAP_
+#endif  // RE_STD_ALGORITHM_SORT_HEAP_HPP

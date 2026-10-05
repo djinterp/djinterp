@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [event]                                                  events.hpp
+/*******************************************************************************
+* djinterp [core]                                                      event.hpp
 *
 * The event submodule umbrella:
 *   Single include for the entire event system. The submodule was refactored
@@ -46,36 +46,32 @@
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26
 *
-* 
-* path:      /inc/djinterp/core/event/events.hpp
+*
+* path:      /inc/djinterp/core/event/event.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.11
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_EVENT_ALL_
-#define DJINTERP_EVENT_ALL_ 1
+#ifndef DJINTERP_EVENT_EVENT_HPP
+#define DJINTERP_EVENT_EVENT_HPP 1
 
-// require the C++ framework header
-#ifndef DJINTERP_
-    #error "events.hpp requires djinterp.h to be included first"
-#endif
+// FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
+// rule 5). The owner's ruling: compile at every level first; port to C++98
+// only where something needs it.
+#include "../../env/env.h"  // D_ENV_LANG_*
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#ifndef __cplusplus
-    #error "events.hpp can only be used in C++ compilation mode"
-#endif
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "events.hpp requires C++11 or higher"
-#endif
-
+// djinterp
 // the whole submodule, pulled via the top of the dependency chain
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./event_common.hpp"
-#include "./event_listener.hpp"
 #include "./event_registry.hpp"
 #include "./event_table.hpp"
 #include "./event_handler.hpp"
 #include "./event_dispatcher.hpp"
 
+#endif  // floor, for now
 
-#endif  // DJINTERP_EVENT_ALL_
+
+#endif  // DJINTERP_EVENT_EVENT_HPP

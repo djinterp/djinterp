@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [utility]                                               color_rgb.c
+/*******************************************************************************
+* djinterp [c]                                                       color_rgb.c
 *
 *   External-definition unit for color_rgb.h. The RGB-family bodies live in the
 * header as `inline`; this unit re-declares their prototypes so one out-of-
@@ -7,10 +7,11 @@
 * effect under D_COLOR_HEADER_ONLY). See color_common.c for the rationale.
 *
 *
-* path:      /inc/djinterp/c/util/color/color_rgb.c
+* path:      /src/djinterp/c/util/color/color_rgb.c
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                         created: 2026.06.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
+*                                                            revised: 2026.09.29
+*******************************************************************************/
 #include "../../../../../inc/djinterp/c/util/color/color_rgb.h"
 
 
@@ -39,13 +40,13 @@ struct d_color_rgb d_color_rgb_from_u8(struct d_color_rgb_u8 _u8);
 struct d_color_rgb_u8 d_color_rgb_to_u8(struct d_color_rgb _rgb);
 struct d_color_rgba d_color_rgba_from_u8(struct d_color_rgba_u8 _u8);
 struct d_color_rgba_u8 d_color_rgba_to_u8(struct d_color_rgba _rgba);
-struct d_color_rgb d_color_rgb_from_hex(struct d_color_rgb_hex _hex);
-struct d_color_rgb_hex d_color_rgb_to_hex(struct d_color_rgb _rgb);
-struct d_color_rgba d_color_rgba_from_hex(struct d_color_rgba_hex _hex);
-struct d_color_rgba_hex d_color_rgba_to_hex(struct d_color_rgba _rgba);
+struct d_color_rgb d_color_rgb_from_hex(d_color_rgb_hex _hex);
+d_color_rgb_hex d_color_rgb_to_hex(struct d_color_rgb _rgb);
+struct d_color_rgba d_color_rgba_from_hex(d_color_rgba_hex _hex);
+d_color_rgba_hex d_color_rgba_to_hex(struct d_color_rgba _rgba);
 bool d_color_rgb_from_hex_string(const char* _str, struct d_color_rgb* _out_rgb);
 bool d_color_rgba_from_hex_string(const char* _str, struct d_color_rgba* _out_rgba);
-struct d_color_rgb_hex d_color_rgb_hex_from_string(const char* _str);
+d_color_rgb_hex d_color_rgb_hex_from_string(const char* _str);
 float d_color_rgb_luminance(struct d_color_rgb _rgb);
 float d_color_rgba_luminance(struct d_color_rgba _rgba);
 float d_color_rgb_contrast_ratio(struct d_color_rgb _a, struct d_color_rgb _b);

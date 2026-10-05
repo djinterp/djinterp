@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [re_std]                                  add_lvalue_reference.hpp
+/*******************************************************************************
+* djinterp [re_std]                                     add_lvalue_reference.hpp
 *
 * add_lvalue_reference trait header:
-*   Yields the lvalue-reference form of _Type. If _Type is `void` (any
-* cv-qualification), the trait is a no-op and yields _Type unchanged.
-* If _Type is already an lvalue or rvalue reference, reference collapsing
+*   Yields the lvalue-reference form of Type. If Type is `void` (any
+* cv-qualification), the trait is a no-op and yields Type unchanged.
+* If Type is already an lvalue or rvalue reference, reference collapsing
 * (C++11+) or natural template-argument substitution (C++98/03) yields
 * the appropriate lvalue reference.
 *
@@ -17,23 +17,25 @@
 *   PORTABILITY:
 *   The four cv-qualified forms of `void` are handled by explicit
 * specializations to avoid forming the ill-formed type `void&`. All
-* other types use the primary template, where `_Type&` is well-formed
+* other types use the primary template, where `Type&` is well-formed
 * by the language rules.
 *
 *
-* path:      /inc/djinterp/re_std/type_traits/add_lvalue_reference.hpp
+* path:      /inc/re_std/type_traits/add_lvalue_reference.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ADD_LVALUE_REFERENCE_
-#define DJINTERP_RE_STD_TYPE_TRAITS_ADD_LVALUE_REFERENCE_ 1
+#ifndef RE_STD_TYPE_TRAITS_ADD_LVALUE_REFERENCE_HPP
+#define RE_STD_TYPE_TRAITS_ADD_LVALUE_REFERENCE_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // =============================================================================
@@ -41,14 +43,14 @@ NS_RESTD
 // =============================================================================
 
 // add_lvalue_reference
-//   trait: yields _Type& for any referenceable _Type. Reference collapsing
-// (C++11+) handles the case where _Type is already a reference; pre-C++11
-// the only reference form is lvalue, and `_Type&` with _Type = U& folds
+//   trait: yields Type& for any referenceable Type. Reference collapsing
+// (C++11+) handles the case where Type is already a reference; pre-C++11
+// the only reference form is lvalue, and `Type&` with Type = U& folds
 // to U& by the deduction rules.
-template<typename _Type>
+template<typename Type>
 struct add_lvalue_reference
 {
-    typedef _Type& type;
+    typedef Type& type;
 };
 
 // void specializations: forming `void&` is ill-formed, so the four
@@ -83,18 +85,18 @@ struct add_lvalue_reference<const volatile void>
 // II.  ADD_LVALUE_REFERENCE_T (C++11+ alias)
 // =============================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+#if RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
     // add_lvalue_reference_t
-    //   alias: convenience alias for add_lvalue_reference<_Type>::type.
-    template<typename _Type>
+    //   alias: convenience alias for add_lvalue_reference<Type>::type.
+    template<typename Type>
     using add_lvalue_reference_t =
-        typename add_lvalue_reference<_Type>::type;
+        typename add_lvalue_reference<Type>::type;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-
-
-NS_END  // re_std
+#endif  // RE_STD_LANG_HAS_ALIAS_TEMPLATES
 
 
-#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ADD_LVALUE_REFERENCE_
+}  // re_std
+
+
+#endif  // RE_STD_TYPE_TRAITS_ADD_LVALUE_REFERENCE_HPP

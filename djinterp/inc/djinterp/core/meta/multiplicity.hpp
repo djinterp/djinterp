@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                              multiplicity.hpp
+/*******************************************************************************
+* djinterp [core]                                               multiplicity.hpp
 *
 *   Programming-agnostic vocabulary for the MULTIPLICITY axis - the bound a
 * container places on mutually interchangeable occurrences (the spec,
@@ -34,16 +34,18 @@
 *
 * path:      /inc/djinterp/core/meta/multiplicity.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_META_MULTIPLICITY_
-#define DJINTERP_META_MULTIPLICITY_ 1
+#ifndef DJINTERP_META_MULTIPLICITY_HPP
+#define DJINTERP_META_MULTIPLICITY_HPP 1
+
 
 // std
 #include <cstddef>
 // djinterp
-#include "../djinterp.hpp"   // NS_*
+#include "../../djinterp.hpp"   // NS_*
 
 
 NS_DJINTERP
@@ -56,17 +58,17 @@ NS_DJINTERP
 // unbounded_multiplicity
 //   constant: the sentinel for m = inf (the top of the value space - "no finite
 // upper bound").  Distinct from the floor and from the excluded 0.
-constexpr std::size_t unbounded_multiplicity =
+D_CONSTEXPR_VAR std::size_t unbounded_multiplicity =
     static_cast<std::size_t>(-1);
 
 // unique_multiplicity
 //   constant: the floor m = 1 (set semantics - each class at most once).
-constexpr std::size_t unique_multiplicity = 1;
+D_CONSTEXPR_VAR std::size_t unique_multiplicity = 1;
 
 // is_finite_multiplicity
 //   function: true iff a bound is finite (not the inf sentinel).
-constexpr bool
-is_finite_multiplicity(std::size_t _m) noexcept
+D_CONSTEXPR_REQ bool
+is_finite_multiplicity(std::size_t _m) D_NOEXCEPT
 {
     return _m != unbounded_multiplicity;
 }
@@ -75,14 +77,14 @@ is_finite_multiplicity(std::size_t _m) noexcept
 //   functions: the chain operations on N-bar_{>=1}, inf as the sentinel top.
 // Join is the more-permissive bound (max), meet the less-permissive (min); since
 // the inf sentinel is the largest representable value, plain max / min suffice.
-constexpr std::size_t
-multiplicity_join(std::size_t _a, std::size_t _b) noexcept
+D_CONSTEXPR_REQ std::size_t
+multiplicity_join(std::size_t _a, std::size_t _b) D_NOEXCEPT
 {
     return ( _a > _b ? _a : _b );
 }
 
-constexpr std::size_t
-multiplicity_meet(std::size_t _a, std::size_t _b) noexcept
+D_CONSTEXPR_REQ std::size_t
+multiplicity_meet(std::size_t _a, std::size_t _b) D_NOEXCEPT
 {
     return ( _a < _b ? _a : _b );
 }
@@ -95,19 +97,22 @@ multiplicity_meet(std::size_t _a, std::size_t _b) noexcept
 // multiplicity_kind
 //   enum: a container's qualitative multiplicity, the equivalence folded in so
 // the two infinities stay distinct.
-enum class multiplicity_kind
+struct multiplicity_kind
 {
-    unknown,             // not a container / indeterminate
-    sequence,            // no equivalence (identity default); m = inf, copies by position
-    unique,              // m = 1 under a genuine equivalence (set semantics)
-    bounded_multiset,    // 1 < m < inf under a genuine equivalence
-    unbounded_multiset   // m = inf under a genuine equivalence (multiset)
+    enum value
+    {
+        unknown,            // not a container / indeterminate
+        sequence,           // no equivalence (identity default); m = inf, copies by position
+        unique,             // m = 1 under a genuine equivalence (set semantics)
+        bounded_multiset,   // 1 < m < inf under a genuine equivalence
+        unbounded_multiset  // m = inf under a genuine equivalence (multiset)
+    };
 };
 
 // multiplicity_kind_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
-constexpr const char*
-multiplicity_kind_name(multiplicity_kind _k) noexcept
+D_CONSTEXPR_REQ const char*
+multiplicity_kind_name(multiplicity_kind::value _k) D_NOEXCEPT
 {
     return ( _k == multiplicity_kind::unknown            ? "unknown"
            : _k == multiplicity_kind::sequence           ? "sequence"
@@ -122,8 +127,8 @@ multiplicity_kind_name(multiplicity_kind _k) noexcept
 // with one, the bound selects unique (1), unbounded_multiset (inf), or
 // bounded_multiset (1 < m < inf).  A bound of 0 is below the working floor and
 // maps to unknown.
-constexpr multiplicity_kind
-make_multiplicity_kind(bool _has_equivalence, std::size_t _m) noexcept
+D_CONSTEXPR_REQ multiplicity_kind::value
+make_multiplicity_kind(bool _has_equivalence, std::size_t _m) D_NOEXCEPT
 {
     return ( !_has_equivalence
                  ? multiplicity_kind::sequence
@@ -142,8 +147,8 @@ make_multiplicity_kind(bool _has_equivalence, std::size_t _m) noexcept
 // is not recoverable from the kind alone (the kind is qualitative); inf is
 // returned as its permissive upper envelope, the concrete k being carried
 // alongside by whoever produced the kind.
-constexpr std::size_t
-multiplicity_bound_of_kind(multiplicity_kind _k) noexcept
+D_CONSTEXPR_REQ std::size_t
+multiplicity_bound_of_kind(multiplicity_kind::value _k) D_NOEXCEPT
 {
     return ( _k == multiplicity_kind::unique ? unique_multiplicity
                                              : unbounded_multiplicity );
@@ -156,16 +161,16 @@ multiplicity_bound_of_kind(multiplicity_kind _k) noexcept
 
 // is_unique_kind
 //   function: true for the set-semantics kind (m = 1).
-constexpr bool
-is_unique_kind(multiplicity_kind _k) noexcept
+D_CONSTEXPR_REQ bool
+is_unique_kind(multiplicity_kind::value _k) D_NOEXCEPT
 {
     return _k == multiplicity_kind::unique;
 }
 
 // is_multiset_kind
 //   function: true for either multiset kind (a genuine equivalence with m > 1).
-constexpr bool
-is_multiset_kind(multiplicity_kind _k) noexcept
+D_CONSTEXPR_REQ bool
+is_multiset_kind(multiplicity_kind::value _k) D_NOEXCEPT
 {
     return (    _k == multiplicity_kind::bounded_multiset
              || _k == multiplicity_kind::unbounded_multiset );
@@ -173,8 +178,8 @@ is_multiset_kind(multiplicity_kind _k) noexcept
 
 // is_sequence_kind
 //   function: true for the comparator-less kind (identity default).
-constexpr bool
-is_sequence_kind(multiplicity_kind _k) noexcept
+D_CONSTEXPR_REQ bool
+is_sequence_kind(multiplicity_kind::value _k) D_NOEXCEPT
 {
     return _k == multiplicity_kind::sequence;
 }
@@ -185,8 +190,8 @@ is_sequence_kind(multiplicity_kind _k) noexcept
 // unbounded_multiset share the top).  unknown sits below the working floor.
 // The companion COMPARISON axis consumes this; the equivalence distinction
 // between the two top kinds is meaning, not magnitude, so they rank equal.
-constexpr int
-multiplicity_kind_rank(multiplicity_kind _k) noexcept
+D_CONSTEXPR_REQ int
+multiplicity_kind_rank(multiplicity_kind::value _k) D_NOEXCEPT
 {
     return ( _k == multiplicity_kind::unknown            ? -1
            : _k == multiplicity_kind::unique             ?  0
@@ -198,4 +203,5 @@ multiplicity_kind_rank(multiplicity_kind _k) noexcept
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_META_MULTIPLICITY_
+
+#endif  // DJINTERP_META_MULTIPLICITY_HPP

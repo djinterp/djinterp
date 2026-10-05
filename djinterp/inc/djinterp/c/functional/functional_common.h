@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                    functional_common.h
+/*******************************************************************************
+* djinterp [c]                                               functional_common.h
 *
 * Common types, macros, and utilities for the functional programming module.
 *   Provides function pointer type definitions (predicates, transformers,
@@ -16,17 +16,20 @@
 *   fn_comparator        - function comparing two values
 *   fn_accumulator       - function combining accumulated value with element
 *
-* 
-* path:      /inc/functional/functional_common.h
+*
+* path:      /inc/djinterp/c/functional/functional_common.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.09
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_COMMON_
-#define DJINTERP_FUNCTIONAL_COMMON_ 1
+#ifndef DJINTERP_C_FUNCTIONAL_FUNCTIONAL_COMMON_H
+#define DJINTERP_C_FUNCTIONAL_FUNCTIONAL_COMMON_H 1
 
+// std
 #include <stddef.h>
 #include <string.h>
+// djinterp
 #include "../djinterp.h"
 
 
@@ -410,15 +413,15 @@ bool     d_functional_is_not_null(const void* _element, void* _context);
 
 // i.    map
 bool     d_functional_map(const void* _input, void* _output, size_t _count, size_t _element_size, fn_transformer _transform, void* _context);
-         
+
 // ii.     fold
 bool     d_functional_fold_left(const void* _input, size_t _count, size_t _element_size, void* _accumulator, fn_accumulator _combine, void* _context);
 bool     d_functional_fold_right(const void* _input, size_t _count, size_t _element_size, void* _accumulator, fn_accumulator _combine, void* _context);
-         
+
 // iii.    iteration
 void     d_functional_for_each(void* _input, size_t _count, size_t _element_size, fn_consumer _apply, void* _context);
 void     d_functional_for_each_const(const void* _input, size_t _count, size_t _element_size, fn_consumer_const _apply, void* _context);
-         
+
 // iv.     quantifiers
 bool     d_functional_any(const void* _input, size_t _count, size_t _element_size, fn_predicate _test, void* _context);
 bool     d_functional_all(const void* _input, size_t _count, size_t _element_size, fn_predicate _test, void* _context);
@@ -427,4 +430,4 @@ size_t   d_functional_count_if(const void* _input, size_t _count, size_t _elemen
 void*    d_functional_find_if(const void* _input, size_t _count, size_t _element_size, fn_predicate _test, void* _context);
 
 
-#endif  // DJINTERP_FUNCTIONAL_COMMON_
+#endif  // DJINTERP_C_FUNCTIONAL_FUNCTIONAL_COMMON_H

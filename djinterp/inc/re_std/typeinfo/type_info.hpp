@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               type_info.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                type_info.hpp
 *
 * run-time type information header:
 *   Surfaces re_std::type_info as a using-declaration for std::type_info.
@@ -21,31 +21,34 @@
 * too; both come straight from the std type with no re_std involvement.
 *
 *   PORTABILITY:
-*   Gated on D_ENV_CPP98_HAS_TYPEINFO (RTTI / <typeinfo> availability). On
+*   Gated on RE_STD_HAS_RTTI (RTTI / <typeinfo> availability). On
 * a build with RTTI disabled (e.g. -fno-rtti) the symbol is not surfaced,
 * matching re_std's policy of not exposing RTTI types when RTTI is off.
 *
 *
-* path:      /inc/djinterp/re_std/typeinfo/type_info.hpp
+* path:      /inc/re_std/typeinfo/type_info.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
+*                                                            revised: 2026.10.01
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_TYPEINFO_TYPE_INFO_
-#define DJINTERP_RE_STD_TYPEINFO_TYPE_INFO_ 1
+#ifndef RE_STD_TYPEINFO_TYPE_INFO_HPP
+#define RE_STD_TYPEINFO_TYPE_INFO_HPP 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-#if D_ENV_CPP98_HAS_TYPEINFO
+#if RE_STD_HAS_RTTI
 
 
 // std (runtime-provided RTTI types)
+// std
 #include <typeinfo>
 
 
-NS_RESTD
+namespace re_std
+{
 
 // type_info
 //   class: re-export of std::type_info. typeid yields a const reference
@@ -54,10 +57,10 @@ NS_RESTD
 // assignable, exactly as std specifies.
 using ::std::type_info;
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // D_ENV_CPP98_HAS_TYPEINFO
+#endif  // RE_STD_HAS_RTTI
 
 
-#endif  // DJINTERP_RE_STD_TYPEINFO_TYPE_INFO_
+#endif  // RE_STD_TYPEINFO_TYPE_INFO_HPP

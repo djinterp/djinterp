@@ -1,37 +1,71 @@
-/******************************************************************************
-* djinterp [functional]                                           functional.h
+/*******************************************************************************
+* djinterp [c]                                                      functional.h
 *
 *   Root header for the functional programming module.
-*   Includes all functional sub-modules and provides convenience macros
-* for type-inferred operations, predicate/transformer/accumulator generation,
-* compound operations, array queries, pipeline shorthands, predicate algebra,
-* and guarded execution.
-*
-* TABLE OF CONTENTS
-* =================
-* i-v.      Sub-module includes
-* VI.       Type-inferred operation macros (no-context)
-* VII.      Type-inferred operation macros (with context)
-* VIII.     Predicate generator macros (compile-time threshold)
-* IX.       Predicate generator macros (context-based threshold)
-* X.        Transformer generator macros (compile-time operand)
-* XI.       Transformer generator macros (context-based operand)
-* XII.      Accumulator generator macros
-* XIII.     Inline predicate algebra
-* XIV.      Compound operation macros
-* XV.       Array query macros
-* XVI.      Pipeline shorthand macros
-* XVII.     Guarded execution macros
+*   Includes five of the module's headers -- functional_common.h,
+* predicate.h, compose.h, fn_builder.h and pipeline.h -- and provides
+* convenience macros for type-inferred operations, predicate/transformer/
+* accumulator generation, compound operations, array queries, pipeline
+* shorthands, predicate algebra, and guarded execution.
+*   The module's fourteen other headers are included by name where they are
+* used: extractor.h, filter.h, foldable.h, free.h, functor.h, interpolate.h,
+* maybe.h, monoid.h, producer.h, reducer.h, result.h, semigroup.h,
+* sequence.h and transducer.h.
 *
 *
-* path:      /inc/functional/functional.h
+* path:      /inc/djinterp/c/functional/functional.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.10
+*                                                            revised: 2026.10.03
+*******************************************************************************/
 
-#ifndef DJINTERP_C_FUNCTIONAL_
-#define DJINTERP_C_FUNCTIONAL_ 1
+/*
+TABLE OF CONTENTS
+=================
 
+      i-v.      Sub-module includes
+
+VI.   Type-inferred operation macros (no-context)
+      -------------------------------------------
+
+VII.  Type-inferred operation macros (with context)
+      ---------------------------------------------
+
+VIII. Predicate generator macros (compile-time threshold)
+      ---------------------------------------------------
+
+IX.   Predicate generator macros (context-based threshold)
+      ----------------------------------------------------
+
+X.    Transformer generator macros (compile-time operand)
+      ---------------------------------------------------
+
+XI.   Transformer generator macros (context-based operand)
+      ----------------------------------------------------
+
+XII.  Accumulator generator macros
+      ----------------------------
+
+XIII. Inline predicate algebra
+      ------------------------
+
+XIV.  Compound operation macros
+      -------------------------
+
+XV.   Array query macros
+      ------------------
+
+XVI.  Pipeline shorthand macros
+      -------------------------
+
+XVII. Guarded execution macros
+      ------------------------
+*/
+
+#ifndef DJINTERP_C_FUNCTIONAL_FUNCTIONAL_H
+#define DJINTERP_C_FUNCTIONAL_FUNCTIONAL_H 1
+
+// djinterp
 #include "../djinterp.h"
 #include "./functional_common.h"
 #include "./predicate.h"
@@ -62,7 +96,7 @@
                      (out),                                                 \
                      (count),                                               \
                      sizeof(type),                                          \
-                     (fn),                                                  \
+                     (func),                                                \
                      NULL)
 
 // D_FUNCTIONAL_FOLD_LEFT
@@ -547,7 +581,7 @@
 
 // D_GEN_FUNCTIONAL_PREDICATE_ODD
 //   macro: generates a predicate returning true when element is
-// odd.  TYPE must be an integral type.                                     
+// odd.  TYPE must be an integral type.
 #define D_GEN_FUNCTIONAL_PREDICATE_ODD(name,                                \
                                        type)                                \
     D_INLINE bool                                                           \
@@ -1665,7 +1699,7 @@ struct d_acc_mean_state
     }
 
 // D_GEN_FUNCTIONAL_PREDICATE_IMPLIES
-//   macro: generates a predicate for logical implication (!PRED1 || PRED2), 
+//   macro: generates a predicate for logical implication (!PRED1 || PRED2),
 // i.e. PRED1 => PRED2.
 #define D_GEN_FUNCTIONAL_PREDICATE_IMPLIES(name,                            \
                                            predicate1,                      \
@@ -1778,11 +1812,11 @@ struct d_acc_mean_state
                               (tmp),                                        \
                               (count),                                      \
                               (acc),                                        \
-                              (combine)) )                                  
-                                                                            
-// D_FUNCTIONAL_MAP_ANY                                                     
-//   macro: true if any element, after transformation to _tmp,              
-// satisfies _test.                                                         
+                              (combine)) )
+
+// D_FUNCTIONAL_MAP_ANY
+//   macro: true if any element, after transformation to _tmp,
+// satisfies _test.
 #define D_FUNCTIONAL_MAP_ANY(type,                                          \
                              in,                                            \
                              tmp,                                           \
@@ -1912,7 +1946,7 @@ struct d_acc_mean_state
                                   (test)) )
 
 // D_FUNCTIONAL_IS_EMPTY
-//   macro: true if no element satisfies the predicate. Equivalent to 
+//   macro: true if no element satisfies the predicate. Equivalent to
 // D_FUNCTIONAL_NONE; provided for readability.
 #define D_FUNCTIONAL_IS_EMPTY(type,                                         \
                               in,                                           \
@@ -2257,7 +2291,7 @@ size_t d_functional_last_index_of(const void* _input, size_t _count, size_t _ele
     }
 
 // D_GEN_FUNCTIONAL_DEFINE_XFORM_CHAIN
-//   macro: generates a transformer that applies `first`, then applies 
+//   macro: generates a transformer that applies `first`, then applies
 // `second` to the intermediate result.  Both transformers operate on `type`.
 #define D_GEN_FUNCTIONAL_DEFINE_XFORM_CHAIN(name,                           \
                                             type,                           \
@@ -2312,4 +2346,4 @@ size_t d_functional_last_index_of(const void* _input, size_t _count, size_t _ele
     }
 
 
-#endif  // DJINTERP_C_FUNCTIONAL_
+#endif  // DJINTERP_C_FUNCTIONAL_FUNCTIONAL_H

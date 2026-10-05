@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [re_std]                                               view_base.hpp
+/*******************************************************************************
+* djinterp [re_std]                                                view_base.hpp
 *
 * view_base tag header:
 *   Provides the empty marker class historically used to opt a type
@@ -15,18 +15,21 @@
 * enable_view.hpp).
 *
 *
-* path:      /inc/djinterp/re_std/ranges/view_base.hpp
+* path:      /inc/re_std/ranges/view_base.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_RE_STD_RANGES_VIEW_BASE_
-#define DJINTERP_RE_STD_RANGES_VIEW_BASE_ 1
+#ifndef RE_STD_RANGES_VIEW_BASE_HPP
+#define RE_STD_RANGES_VIEW_BASE_HPP 1
 
-#include "../../core/djinterp.hpp"
+// re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 
-NS_RESTD
+namespace re_std
+{
 
 
 // ===========================================================================
@@ -44,7 +47,7 @@ class view_base
 {};
 
 
-NS_END  // re_std
+}  // re_std
 
 
-#endif  // DJINTERP_RE_STD_RANGES_VIEW_BASE_
+#endif  // RE_STD_RANGES_VIEW_BASE_HPP
