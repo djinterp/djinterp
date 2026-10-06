@@ -1,0 +1,4 @@
+tests/dawk/fixtures/c_style/spacing/macros.h:9:1: no empty line after a subsection delimiter
+tests/dawk/fixtures/c_style/spacing/macros.h:13:1: a #define carries a // NAME comment above it
+tests/dawk/fixtures/c_style/spacing/macros.h:29:1: a function-like macro outside c/util/macro/ needs a reason
+tests/dawk/fixtures/c_style/spacing/macros.h:37:1: no blank line inside a declaration group

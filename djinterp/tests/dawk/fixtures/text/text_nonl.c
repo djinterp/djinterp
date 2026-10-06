@@ -1,0 +1,1 @@
+int d_no_final_newline;

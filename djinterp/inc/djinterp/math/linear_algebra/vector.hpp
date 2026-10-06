@@ -2,11 +2,12 @@
 * djinterp [math]                                                     vector.hpp
 *
 * Fixed-size column vector for the linear-algebra subframework.
-*   vector<_T, _N> stores its components by value in a std::array and every
-* constructor, accessor, and operation is D_CONSTEXPR, so the same objects work
-* at compile time and at runtime. Vectors are immutable in use: every operation
-* returns a new vector rather than mutating in place, which is what lets them
-* chain.
+*   vector<Type, N> stores its components by value in an array, and every
+* operation returns a new vector rather than mutating in place, which is
+* what lets them chain. A face over the C core, c/math/vec.h: for float,
+* double and long double each operation is one of its kernels over the
+* vector's own array, which the constant dimension unrolls; for any other
+* element type, the generic path (linalg_common.hpp).
 *
 * TWO SPELLINGS (see linalg_common.hpp):
 *   fluent      v.normalized().scaled(2.0).dot(w)
@@ -17,130 +18,263 @@
 * so component-wise pipelines read the same as container pipelines:
 *   v.map([](double c){ return c * c; }).sum()  ==  squared-magnitude.
 *
-* NOTE (C++14):
-*   The constexpr bodies use loops and local mutation (relaxed constexpr), the
-* same baseline expression.hpp relies on.
+* LEVELS:
+*   Everything compiles from C++98. Operations are constexpr from C++14,
+* where loops may be; those that take a root are too, on the C core's
+* correctly rounded constant-expression root, the C library's bit for bit.
+* An angle is the library's arc-cosine at run time at every level and a
+* constant expression from C++20. A vector of up to four components is
+* built from them at every level, of more from C++11 (or from an array at
+* every level); std::array interoperates from C++11.
 *
 *
 * path:      /inc/djinterp/math/linear_algebra/vector.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.04
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  VECTOR
+    ------
+    1.  vector
+2.  FREE FUNCTIONS
+    --------------
+    1.  Operators
+    2.  Procedural spellings
+3.  CONVENIENCE ALIASES
+    -------------------
+*/
 
 #ifndef DJINTERP_MATH_LINEAR_ALGEBRA_VECTOR_HPP
 #define DJINTERP_MATH_LINEAR_ALGEBRA_VECTOR_HPP 1
 
 // std
-#include <array>
-#include <cstddef>
-#include <type_traits>
+#include <cstddef>                     // std::size_t
 // djinterp
-#include "../../djinterp.hpp"
-#include "./linalg_common.hpp"
+#include "../../djinterp.hpp"          // framework root
+#include "./linalg_common.hpp"         // internal::linalg_kernel,
+                                       // default_tolerance
+// re_std
+#include "../../../re_std/type_traits/enable_if.hpp"      // enable_if
+#include "../../../re_std/type_traits/is_arithmetic.hpp"  // is_arithmetic
+// std, from C++11 (the level is known only once the root is in)
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #include <array>                   // std::array
+#endif
 
 
 NS_DJINTERP
 NS_MATH
-
 namespace linalg
 {
 
-// ===========================================================================
-// I.   VECTOR
-// ===========================================================================
 
+//==============================================================================
+// 1.  VECTOR
+//==============================================================================
+
+
+// 1.1    vector
+//------------------------------------------------------------------------------
 // vector
-//   class: fixed-size column vector of _N components of type _T.
-template<typename    _T,
-         std::size_t _N>
+//   class: fixed-size column vector of N components of Type.
+template<typename    Type,
+         std::size_t N>
 class vector
 {
-    static_assert((_N > 0), "vector: dimension must be at least 1.");
+private:
+    typedef internal::linalg_kernel<Type> kernel;
 
 public:
-    using value_type = _T;
-    using size_type  = std::size_t;
-    using array_type = std::array<_T, _N>;
+    typedef Type        value_type;
+    typedef std::size_t size_type;
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    typedef std::array<Type, N> array_type;
+#endif
+
+    D_STATIC_ASSERT((N > 0), "vector: dimension must be at least 1.");
 
     // ---- construction -----------------------------------------------------
 
     // default: the zero vector.
     D_CONSTEXPR
-    vector() noexcept
-        : m_data{}
-    {
-    }
+    vector() D_NOEXCEPT
+        : m_data()
+    {}
 
-    // from an array of components. Reads the (const) std::array element-wise
-    // -- const std::array::operator[] is constexpr even pre-C++17, while the
-    // raw storage write is constexpr from C++14, so this stays compile-time.
-    D_CONSTEXPR explicit
+    // from an array of N components (every level).
+    D_CONSTEXPR_CPP14 explicit
     vector(
-        const array_type& _components
-    ) noexcept
-        : m_data{}
+        const Type (&_components)[N]
+    ) D_NOEXCEPT
+        : m_data()
     {
-        for (size_type i = 0; i < _N; ++i)
+        for (size_type i = 0; i < N; ++i)
         {
             m_data[i] = _components[i];
         }
     }
 
-    // from exactly _N scalar components, e.g. vector<double,3>(1.0, 2.0, 3.0).
-    // constrained to arithmetic arguments so it never shadows copy/array forms.
-    template<typename... _Args,
-             typename std::enable_if<
-                 ( (sizeof...(_Args) == _N) &&
-                   internal::all_arithmetic<_Args...>::value ),
-                 int>::type = 0>
-    D_CONSTEXPR
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // from a std::array of N components (C++11).
+    D_CONSTEXPR_CPP14 explicit
     vector(
-        _Args... _args
-    ) noexcept
-        : m_data{ static_cast<_T>(_args)... }
+        const array_type& _components
+    ) D_NOEXCEPT
+        : m_data()
     {
+        for (size_type i = 0; i < N; ++i)
+        {
+            m_data[i] = _components[i];
+        }
     }
+#endif
+
+    // from exactly N arithmetic components, each converted to Type: one to
+    // four at every level, as templates so a count that is not N, or a
+    // component that is not arithmetic, removes them rather than failing.
+    template<typename A0>
+    D_CONSTEXPR_CPP14
+    vector(
+        A0 _x,
+        typename re_std::enable_if<( (N == 1) &&
+                                     re_std::is_arithmetic<A0>::value ),
+                                   int>::type = 0
+    ) D_NOEXCEPT
+        : m_data()
+    {
+        m_data[0] = static_cast<Type>(_x);
+    }
+
+    template<typename A0,
+             typename A1>
+    D_CONSTEXPR_CPP14
+    vector(
+        A0 _x,
+        A1 _y,
+        typename re_std::enable_if<( (N == 2) &&
+                                     re_std::is_arithmetic<A0>::value &&
+                                     re_std::is_arithmetic<A1>::value ),
+                                   int>::type = 0
+    ) D_NOEXCEPT
+        : m_data()
+    {
+        m_data[0] = static_cast<Type>(_x);
+        m_data[1] = static_cast<Type>(_y);
+    }
+
+    template<typename A0,
+             typename A1,
+             typename A2>
+    D_CONSTEXPR_CPP14
+    vector(
+        A0 _x,
+        A1 _y,
+        A2 _z,
+        typename re_std::enable_if<( (N == 3) &&
+                                     re_std::is_arithmetic<A0>::value &&
+                                     re_std::is_arithmetic<A1>::value &&
+                                     re_std::is_arithmetic<A2>::value ),
+                                   int>::type = 0
+    ) D_NOEXCEPT
+        : m_data()
+    {
+        m_data[0] = static_cast<Type>(_x);
+        m_data[1] = static_cast<Type>(_y);
+        m_data[2] = static_cast<Type>(_z);
+    }
+
+    template<typename A0,
+             typename A1,
+             typename A2,
+             typename A3>
+    D_CONSTEXPR_CPP14
+    vector(
+        A0 _x,
+        A1 _y,
+        A2 _z,
+        A3 _w,
+        typename re_std::enable_if<( (N == 4) &&
+                                     re_std::is_arithmetic<A0>::value &&
+                                     re_std::is_arithmetic<A1>::value &&
+                                     re_std::is_arithmetic<A2>::value &&
+                                     re_std::is_arithmetic<A3>::value ),
+                                   int>::type = 0
+    ) D_NOEXCEPT
+        : m_data()
+    {
+        m_data[0] = static_cast<Type>(_x);
+        m_data[1] = static_cast<Type>(_y);
+        m_data[2] = static_cast<Type>(_z);
+        m_data[3] = static_cast<Type>(_w);
+    }
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // from exactly N arithmetic components, N above four (C++11).
+    template<typename... Args,
+             typename re_std::enable_if<
+                 ( (sizeof...(Args) == N) &&
+                   (N > 4) &&
+                   internal::all_arithmetic<Args...>::value ),
+                 int>::type = 0>
+    D_CONSTEXPR_CPP14
+    vector(
+        Args... _args
+    ) D_NOEXCEPT
+        : m_data()
+    {
+        const Type values[] = { static_cast<Type>(_args)... };
+
+        for (size_type i = 0; i < N; ++i)
+        {
+            m_data[i] = values[i];
+        }
+    }
+#endif
 
     // ---- named factories --------------------------------------------------
 
     // zeros: the zero vector.
     static D_CONSTEXPR vector
-    zeros() noexcept
+    zeros() D_NOEXCEPT
     {
         return vector();
     }
 
     // filled: every component equal to _value.
-    static D_CONSTEXPR vector
-    filled(_T _value) noexcept
+    static D_CONSTEXPR_CPP14 vector
+    filled(Type _value) D_NOEXCEPT
     {
         vector v;
 
-        for (size_type i = 0; i < _N; ++i)
-        {
-            v.m_data[i] = _value;
-        }
+        kernel::fill(v.m_data, N, _value);
 
         return v;
     }
 
-    // from_array: build from a std::array of components.
-    static D_CONSTEXPR vector
-    from_array(const array_type& _components) noexcept
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // from_array: build from a std::array of components (C++11).
+    static D_CONSTEXPR_CPP14 vector
+    from_array(const array_type& _components) D_NOEXCEPT
     {
         return vector(_components);
     }
+#endif
 
-    // basis: the _I-th standard basis vector (1 at _I, 0 elsewhere).
-    template<std::size_t _I>
-    static D_CONSTEXPR vector
-    basis() noexcept
+    // basis: the I-th standard basis vector (1 at I, 0 elsewhere).
+    template<std::size_t I>
+    static D_CONSTEXPR_CPP14 vector
+    basis() D_NOEXCEPT
     {
-        static_assert((_I < _N), "vector::basis: index out of range.");
+        // vector::basis: the index must be below the dimension
+        (void)internal::linalg_requires<(I < N)>::check();
 
         vector v;
-        v.m_data[_I] = static_cast<_T>(1);
+
+        v.m_data[I] = static_cast<Type>(1);
 
         return v;
     }
@@ -148,302 +282,301 @@ public:
     // ---- size / access ----------------------------------------------------
 
     static D_CONSTEXPR size_type
-    size() noexcept
+    size() D_NOEXCEPT
     {
-        return _N;
+        return N;
     }
 
-    D_CONSTEXPR const _T&
-    operator[](size_type _i) const noexcept
-    {
-        return m_data[_i];
-    }
-
-    D_CONSTEXPR _T&
-    operator[](size_type _i) noexcept
+    D_CONSTEXPR const Type&
+    operator[](size_type _i) const D_NOEXCEPT
     {
         return m_data[_i];
     }
 
-    D_CONSTEXPR const _T*
-    data() const noexcept
+    D_CONSTEXPR_CPP14 Type&
+    operator[](size_type _i) D_NOEXCEPT
+    {
+        return m_data[_i];
+    }
+
+    D_CONSTEXPR const Type*
+    data() const D_NOEXCEPT
     {
         return m_data;
     }
 
     // named component accessors (only valid for sufficiently wide vectors).
-    D_CONSTEXPR _T
-    x() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    x() const D_NOEXCEPT
     {
-        static_assert((_N >= 1), "vector::x: requires dimension >= 1.");
+        // vector::x: requires dimension >= 1
+        (void)internal::linalg_requires<(N >= 1)>::check();
 
         return m_data[0];
     }
 
-    D_CONSTEXPR _T
-    y() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    y() const D_NOEXCEPT
     {
-        static_assert((_N >= 2), "vector::y: requires dimension >= 2.");
+        // vector::y: requires dimension >= 2
+        (void)internal::linalg_requires<(N >= 2)>::check();
 
         return m_data[1];
     }
 
-    D_CONSTEXPR _T
-    z() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    z() const D_NOEXCEPT
     {
-        static_assert((_N >= 3), "vector::z: requires dimension >= 3.");
+        // vector::z: requires dimension >= 3
+        (void)internal::linalg_requires<(N >= 3)>::check();
 
         return m_data[2];
     }
 
-    D_CONSTEXPR _T
-    w() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    w() const D_NOEXCEPT
     {
-        static_assert((_N >= 4), "vector::w: requires dimension >= 4.");
+        // vector::w: requires dimension >= 4
+        (void)internal::linalg_requires<(N >= 4)>::check();
 
         return m_data[3];
     }
 
     // with: a copy with component _i replaced by _value (immutable set).
-    D_CONSTEXPR vector
+    D_CONSTEXPR_CPP14 vector
     with(
         size_type _i,
-        _T        _value
-    ) const noexcept
+        Type      _value
+    ) const D_NOEXCEPT
     {
-        vector v       = *this;
-        v.m_data[_i]   = _value;
+        vector v = *this;
+
+        v.m_data[_i] = _value;
 
         return v;
     }
 
     // ---- element-wise arithmetic (fluent) ---------------------------------
 
-    D_CONSTEXPR vector
-    plus(const vector& _o) const noexcept
+    D_CONSTEXPR_CPP14 vector
+    plus(const vector& _o) const D_NOEXCEPT
     {
         vector v;
 
-        for (size_type i = 0; i < _N; ++i)
-        {
-            v.m_data[i] = m_data[i] + _o.m_data[i];
-        }
+        kernel::add(v.m_data, m_data, _o.m_data, N);
 
         return v;
     }
 
-    D_CONSTEXPR vector
-    minus(const vector& _o) const noexcept
+    D_CONSTEXPR_CPP14 vector
+    minus(const vector& _o) const D_NOEXCEPT
     {
         vector v;
 
-        for (size_type i = 0; i < _N; ++i)
-        {
-            v.m_data[i] = m_data[i] - _o.m_data[i];
-        }
+        kernel::sub(v.m_data, m_data, _o.m_data, N);
 
         return v;
     }
 
-    D_CONSTEXPR vector
-    scaled(_T _s) const noexcept
+    D_CONSTEXPR_CPP14 vector
+    scaled(Type _s) const D_NOEXCEPT
     {
         vector v;
 
-        for (size_type i = 0; i < _N; ++i)
-        {
-            v.m_data[i] = m_data[i] * _s;
-        }
+        kernel::scale(v.m_data, m_data, _s, N);
 
         return v;
     }
 
-    D_CONSTEXPR vector
-    divided(_T _s) const noexcept
+    D_CONSTEXPR_CPP14 vector
+    divided(Type _s) const D_NOEXCEPT
     {
         vector v;
 
-        for (size_type i = 0; i < _N; ++i)
-        {
-            v.m_data[i] = m_data[i] / _s;
-        }
+        kernel::divide(v.m_data, m_data, _s, N);
 
         return v;
     }
 
-    D_CONSTEXPR vector
-    negated() const noexcept
+    D_CONSTEXPR_CPP14 vector
+    negated() const D_NOEXCEPT
     {
         vector v;
 
-        for (size_type i = 0; i < _N; ++i)
-        {
-            v.m_data[i] = -m_data[i];
-        }
+        kernel::negate(v.m_data, m_data, N);
 
         return v;
     }
 
     // hadamard: component-wise (Schur) product.
-    D_CONSTEXPR vector
-    hadamard(const vector& _o) const noexcept
+    D_CONSTEXPR_CPP14 vector
+    hadamard(const vector& _o) const D_NOEXCEPT
     {
         vector v;
 
-        for (size_type i = 0; i < _N; ++i)
-        {
-            v.m_data[i] = m_data[i] * _o.m_data[i];
-        }
+        kernel::hadamard(v.m_data, m_data, _o.m_data, N);
 
         return v;
     }
 
     // ---- products, norms, geometry ----------------------------------------
 
-    D_CONSTEXPR _T
-    dot(const vector& _o) const noexcept
+    D_CONSTEXPR_CPP14 Type
+    dot(const vector& _o) const D_NOEXCEPT
     {
-        _T acc = static_cast<_T>(0);
-
-        for (size_type i = 0; i < _N; ++i)
-        {
-            acc += m_data[i] * _o.m_data[i];
-        }
-
-        return acc;
+        return kernel::dot(m_data, _o.m_data, N);
     }
 
-    // cross: 3-vector cross product (compile error if _N != 3).
-    D_CONSTEXPR vector
-    cross(const vector& _o) const noexcept
+    // cross: 3-vector cross product (compile error if N != 3).
+    D_CONSTEXPR_CPP14 vector
+    cross(const vector& _o) const D_NOEXCEPT
     {
-        static_assert((_N == 3), "vector::cross: only defined for 3-vectors.");
+        // vector::cross: only defined for 3-vectors
+        (void)internal::linalg_requires<(N == 3)>::check();
 
-        return vector(
-            m_data[1] * _o.m_data[2] - m_data[2] * _o.m_data[1],
-            m_data[2] * _o.m_data[0] - m_data[0] * _o.m_data[2],
-            m_data[0] * _o.m_data[1] - m_data[1] * _o.m_data[0]);
+        vector v;
+
+        kernel::cross(v.m_data, m_data, _o.m_data);
+
+        return v;
     }
 
-    D_CONSTEXPR _T
-    norm_squared() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    norm_squared() const D_NOEXCEPT
     {
-        return dot(*this);
+        return kernel::norm_squared(m_data, N);
     }
 
-    // norm / length: Euclidean magnitude (constexpr via the local kernel).
-    D_CONSTEXPR _T
-    norm() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    norm() const D_NOEXCEPT
     {
-        return static_cast<_T>(
-            internal::sqrt_c(static_cast<double>(norm_squared())));
+        return kernel::norm(m_data, N);
     }
 
-    D_CONSTEXPR _T
-    length() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    length() const D_NOEXCEPT
     {
         return norm();
     }
 
-    // normalized: unit vector in the same direction (zero vector -> zeros).
-    D_CONSTEXPR vector
-    normalized() const noexcept
+    // normalized: this vector over its norm; the zero vector stays zero.
+    D_CONSTEXPR_CPP14 vector
+    normalized() const D_NOEXCEPT
     {
-        const _T n = norm();
+        const Type n = norm();
 
-        return (n > static_cast<_T>(0)) ? divided(n) : zeros();
+        return (n > static_cast<Type>(0)) ? divided(n) : zeros();
     }
 
-    D_CONSTEXPR bool
-    is_unit(_T _tol = default_tolerance<_T>()) const noexcept
+    D_CONSTEXPR_CPP14 bool
+    is_unit(Type _tol = default_tolerance<Type>()) const D_NOEXCEPT
     {
-        return ( internal::abs_c(norm() - static_cast<_T>(1)) <= _tol );
+        return (internal::abs_c(norm() - static_cast<Type>(1)) <= _tol);
     }
 
-    D_CONSTEXPR _T
-    distance_squared(const vector& _o) const noexcept
+    D_CONSTEXPR_CPP14 Type
+    distance_squared(const vector& _o) const D_NOEXCEPT
     {
-        return minus(_o).norm_squared();
+        return kernel::distance_squared(m_data, _o.m_data, N);
     }
 
-    D_CONSTEXPR _T
-    distance(const vector& _o) const noexcept
+    D_CONSTEXPR_CPP14 Type
+    distance(const vector& _o) const D_NOEXCEPT
     {
-        return minus(_o).norm();
+        return kernel::distance(m_data, _o.m_data, N);
     }
 
-    // projected_onto: component of *this along _o.
-    D_CONSTEXPR vector
-    projected_onto(const vector& _o) const noexcept
-    {
-        const _T d = _o.norm_squared();
-
-        return (d > static_cast<_T>(0)) ? _o.scaled(dot(_o) / d) : zeros();
-    }
-
-    // rejected_from: component of *this orthogonal to _o.
-    D_CONSTEXPR vector
-    rejected_from(const vector& _o) const noexcept
-    {
-        return minus(projected_onto(_o));
-    }
-
-    // cos_angle: cosine of the angle to _o (exact; no transcendental needed).
-    D_CONSTEXPR _T
-    cos_angle(const vector& _o) const noexcept
-    {
-        const _T d = norm() * _o.norm();
-
-        return (d > static_cast<_T>(0)) ? (dot(_o) / d) : static_cast<_T>(0);
-    }
-
-    // angle_to: angle to _o in radians (uses the approximate constexpr acos).
-    D_CONSTEXPR _T
-    angle_to(const vector& _o) const noexcept
-    {
-        return static_cast<_T>(
-            internal::acos_c(static_cast<double>(cos_angle(_o))));
-    }
-
-    // lerp: linear interpolation, (1 - _t) * this + _t * _o.
-    D_CONSTEXPR vector
-    lerp(
-        const vector& _o,
-        _T            _t
-    ) const noexcept
-    {
-        return scaled(static_cast<_T>(1) - _t).plus(_o.scaled(_t));
-    }
-
-    // ---- functional-style reductions / maps -------------------------------
-
-    // map: a new vector with _fn applied to each component.
-    template<typename _Fn>
-    D_CONSTEXPR vector
-    map(_Fn _fn) const
+    // projected_onto: the component along _o; onto the zero vector, zero.
+    D_CONSTEXPR_CPP14 vector
+    projected_onto(const vector& _o) const D_NOEXCEPT
     {
         vector v;
 
-        for (size_type i = 0; i < _N; ++i)
+        kernel::project(v.m_data, m_data, _o.m_data, N);
+
+        return v;
+    }
+
+    // rejected_from: what is left once the component along _o is removed.
+    D_CONSTEXPR_CPP14 vector
+    rejected_from(const vector& _o) const D_NOEXCEPT
+    {
+        vector v;
+
+        kernel::reject(v.m_data, m_data, _o.m_data, N);
+
+        return v;
+    }
+
+    // cos_angle: the cosine of the angle to _o; 0 when either is zero.
+    D_CONSTEXPR_CPP14 Type
+    cos_angle(const vector& _o) const D_NOEXCEPT
+    {
+        const Type d = norm() * _o.norm();
+
+        return (d > static_cast<Type>(0)) ? (dot(_o) / d)
+                                          : static_cast<Type>(0);
+    }
+
+    // angle_to: the angle to _o, in radians, its cosine clamped into [-1,
+    // 1] so rounding past 1 gives 0. The C library's arc-cosine at run time,
+    // a constant expression from C++20.
+    D_CONSTEXPR_CPP20 Type
+    angle_to(const vector& _o) const D_NOEXCEPT
+    {
+        const Type c = cos_angle(_o);
+
+        return static_cast<Type>(
+            internal::linalg_elementary<typename kernel::root_type>::acos(
+                static_cast<typename kernel::root_type>(
+                    (c > static_cast<Type>(1))  ? static_cast<Type>(1)  :
+                    (c < static_cast<Type>(-1)) ? static_cast<Type>(-1) :
+                                                  c)));
+    }
+
+    // lerp: (1 - t) this + t _o, each product rounded apart.
+    D_CONSTEXPR_CPP14 vector
+    lerp(
+        const vector& _o,
+        Type          _t
+    ) const D_NOEXCEPT
+    {
+        vector v;
+
+        kernel::lerp(v.m_data, m_data, _o.m_data, _t, N);
+
+        return v;
+    }
+
+    // ---- functional bridge -----------------------------------------------
+
+    // map: a new vector with _fn applied to each component.
+    template<typename Fn>
+    D_CONSTEXPR_CPP14 vector
+    map(Fn _fn) const
+    {
+        vector v;
+
+        for (size_type i = 0; i < N; ++i)
         {
-            v.m_data[i] = static_cast<_T>(_fn(m_data[i]));
+            v.m_data[i] = static_cast<Type>(_fn(m_data[i]));
         }
 
         return v;
     }
 
-    // reduce: left fold of _fn over the components starting from _init.
-    template<typename _Acc,
-             typename _Fn>
-    D_CONSTEXPR _Acc
+    // reduce: a left fold of the components from _init.
+    template<typename Acc,
+             typename Fn>
+    D_CONSTEXPR_CPP14 Acc
     reduce(
-        _Acc _init,
-        _Fn  _fn
+        Acc _init,
+        Fn  _fn
     ) const
     {
-        _Acc acc = _init;
+        Acc acc = _init;
 
-        for (size_type i = 0; i < _N; ++i)
+        for (size_type i = 0; i < N; ++i)
         {
             acc = _fn(acc, m_data[i]);
         }
@@ -451,382 +584,303 @@ public:
         return acc;
     }
 
-    D_CONSTEXPR _T
-    sum() const noexcept
+    // ---- reductions --------------------------------------------------------
+
+    D_CONSTEXPR_CPP14 Type
+    sum() const D_NOEXCEPT
     {
-        _T acc = static_cast<_T>(0);
-
-        for (size_type i = 0; i < _N; ++i)
-        {
-            acc += m_data[i];
-        }
-
-        return acc;
+        return kernel::sum(m_data, N);
     }
 
-    D_CONSTEXPR _T
-    product() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    product() const D_NOEXCEPT
     {
-        _T acc = static_cast<_T>(1);
-
-        for (size_type i = 0; i < _N; ++i)
-        {
-            acc *= m_data[i];
-        }
-
-        return acc;
+        return kernel::product(m_data, N);
     }
 
-    D_CONSTEXPR _T
-    min_coeff() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    min_coeff() const D_NOEXCEPT
     {
-        _T m = m_data[0];
-
-        for (size_type i = 1; i < _N; ++i)
-        {
-            if (m_data[i] < m)
-            {
-                m = m_data[i];
-            }
-        }
-
-        return m;
+        return kernel::min(m_data, N);
     }
 
-    D_CONSTEXPR _T
-    max_coeff() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    max_coeff() const D_NOEXCEPT
     {
-        _T m = m_data[0];
-
-        for (size_type i = 1; i < _N; ++i)
-        {
-            if (m_data[i] > m)
-            {
-                m = m_data[i];
-            }
-        }
-
-        return m;
+        return kernel::max(m_data, N);
     }
 
-    // ---- comparison -------------------------------------------------------
-
-    // equals: component-wise within _tol.
-    D_CONSTEXPR bool
+    // equals: every component within _tol of _o's.
+    D_CONSTEXPR_CPP14 bool
     equals(
         const vector& _o,
-        _T            _tol = default_tolerance<_T>()
-    ) const noexcept
+        Type          _tol = default_tolerance<Type>()
+    ) const D_NOEXCEPT
     {
-        for (size_type i = 0; i < _N; ++i)
-        {
-            if (internal::abs_c(m_data[i] - _o.m_data[i]) > _tol)
-            {
-                return false;
-            }
-        }
+        return kernel::equals(m_data, _o.m_data, _tol, N);
+    }
 
-        return true;
+    // equal_to: every component == _o's (operator== spells it).
+    D_CONSTEXPR_CPP14 bool
+    equal_to(const vector& _o) const D_NOEXCEPT
+    {
+        return kernel::equal(m_data, _o.m_data, N);
     }
 
 private:
-    // raw array storage: a built-in subscript write is a constant expression
-    // from C++14, unlike std::array::operator[] (non-const), which is only
-    // constexpr from C++17. array_type (std::array) is retained above purely as
-    // the ergonomic component type for the factories/operators.
-    _T m_data[_N];
+    Type m_data[N];
 };
 
 
-// ===========================================================================
-// II.  OPERATORS
-// ===========================================================================
+//==============================================================================
+// 2.  FREE FUNCTIONS
+//==============================================================================
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR vector<_T, _N>
+
+// 2.1    Operators
+//------------------------------------------------------------------------------
+// A scalar factor is any arithmetic type, converted to Type; the constraint
+// is on the return type, which C++98 can spell.
+
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14 vector<Type, N>
 operator+(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b
-) noexcept
+    const vector<Type, N>& _a,
+    const vector<Type, N>& _b
+) D_NOEXCEPT
 {
     return _a.plus(_b);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR vector<_T, _N>
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14 vector<Type, N>
 operator-(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b
-) noexcept
+    const vector<Type, N>& _a,
+    const vector<Type, N>& _b
+) D_NOEXCEPT
 {
     return _a.minus(_b);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR vector<_T, _N>
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14 vector<Type, N>
 operator-(
-    const vector<_T, _N>& _a
-) noexcept
+    const vector<Type, N>& _a
+) D_NOEXCEPT
 {
     return _a.negated();
 }
 
-// scalar on the right: v * s.
-template<typename    _T,
-         std::size_t _N,
-         typename    _S,
-         typename std::enable_if<std::is_arithmetic<_S>::value, int>::type = 0>
-D_CONSTEXPR vector<_T, _N>
+template<typename    Type,
+         std::size_t N,
+         typename    Scalar>
+D_CONSTEXPR_CPP14
+typename re_std::enable_if<re_std::is_arithmetic<Scalar>::value,
+                           vector<Type, N> >::type
 operator*(
-    const vector<_T, _N>& _v,
-    _S                    _s
-) noexcept
+    const vector<Type, N>& _v,
+    Scalar                 _s
+) D_NOEXCEPT
 {
-    return _v.scaled(static_cast<_T>(_s));
+    return _v.scaled(static_cast<Type>(_s));
 }
 
-// scalar on the left: s * v.
-template<typename    _S,
-         typename    _T,
-         std::size_t _N,
-         typename std::enable_if<std::is_arithmetic<_S>::value, int>::type = 0>
-D_CONSTEXPR vector<_T, _N>
+template<typename    Scalar,
+         typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14
+typename re_std::enable_if<re_std::is_arithmetic<Scalar>::value,
+                           vector<Type, N> >::type
 operator*(
-    _S                    _s,
-    const vector<_T, _N>& _v
-) noexcept
+    Scalar                 _s,
+    const vector<Type, N>& _v
+) D_NOEXCEPT
 {
-    return _v.scaled(static_cast<_T>(_s));
+    return _v.scaled(static_cast<Type>(_s));
 }
 
-template<typename    _T,
-         std::size_t _N,
-         typename    _S,
-         typename std::enable_if<std::is_arithmetic<_S>::value, int>::type = 0>
-D_CONSTEXPR vector<_T, _N>
+template<typename    Type,
+         std::size_t N,
+         typename    Scalar>
+D_CONSTEXPR_CPP14
+typename re_std::enable_if<re_std::is_arithmetic<Scalar>::value,
+                           vector<Type, N> >::type
 operator/(
-    const vector<_T, _N>& _v,
-    _S                    _s
-) noexcept
+    const vector<Type, N>& _v,
+    Scalar                 _s
+) D_NOEXCEPT
 {
-    return _v.divided(static_cast<_T>(_s));
+    return _v.divided(static_cast<Type>(_s));
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR bool
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14 bool
 operator==(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b
-) noexcept
+    const vector<Type, N>& _a,
+    const vector<Type, N>& _b
+) D_NOEXCEPT
 {
-    for (std::size_t i = 0; i < _N; ++i)
-    {
-        if (!(_a[i] == _b[i]))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return _a.equal_to(_b);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR bool
+template<typename    Type,
+         std::size_t N>
+D_CONSTEXPR_CPP14 bool
 operator!=(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b
-) noexcept
+    const vector<Type, N>& _a,
+    const vector<Type, N>& _b
+) D_NOEXCEPT
 {
     return !(_a == _b);
 }
 
+// 2.2    Procedural spellings
+//------------------------------------------------------------------------------
+// Each delegates to its member; see the member for the meaning.
 
-// ===========================================================================
-// III. FREE FUNCTIONS  (procedural spelling; delegate to the members)
-// ===========================================================================
-
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR _T
-dot(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b
-) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+dot(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.dot(_b);
 }
 
-template<typename _T>
-D_CONSTEXPR vector<_T, 3>
-cross(
-    const vector<_T, 3>& _a,
-    const vector<_T, 3>& _b
-) noexcept
+template<typename Type>
+D_CONSTEXPR_CPP14 vector<Type, 3>
+cross(const vector<Type, 3>& _a, const vector<Type, 3>& _b) D_NOEXCEPT
 {
     return _a.cross(_b);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR _T
-norm(const vector<_T, _N>& _v) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+norm(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.norm();
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR _T
-length(const vector<_T, _N>& _v) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+length(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.norm();
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR _T
-norm_squared(const vector<_T, _N>& _v) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+norm_squared(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.norm_squared();
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR vector<_T, _N>
-normalize(const vector<_T, _N>& _v) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 vector<Type, N>
+normalize(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.normalized();
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR vector<_T, _N>
-scale(
-    const vector<_T, _N>& _v,
-    _T                    _s
-) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 vector<Type, N>
+scale(const vector<Type, N>& _v, Type _s) D_NOEXCEPT
 {
     return _v.scaled(_s);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR _T
-distance(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b
-) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+distance(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.distance(_b);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR _T
-angle(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b
-) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP20 Type
+angle(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.angle_to(_b);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR _T
-cos_angle(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b
-) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+cos_angle(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.cos_angle(_b);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR vector<_T, _N>
-project(
-    const vector<_T, _N>& _v,
-    const vector<_T, _N>& _onto
-) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 vector<Type, N>
+project(const vector<Type, N>& _v, const vector<Type, N>& _onto) D_NOEXCEPT
 {
     return _v.projected_onto(_onto);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR vector<_T, _N>
-reject(
-    const vector<_T, _N>& _v,
-    const vector<_T, _N>& _from
-) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 vector<Type, N>
+reject(const vector<Type, N>& _v, const vector<Type, N>& _from) D_NOEXCEPT
 {
     return _v.rejected_from(_from);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR vector<_T, _N>
-hadamard(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b
-) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 vector<Type, N>
+hadamard(const vector<Type, N>& _a, const vector<Type, N>& _b) D_NOEXCEPT
 {
     return _a.hadamard(_b);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR vector<_T, _N>
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 vector<Type, N>
 lerp(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b,
-    _T                    _t
-) noexcept
+    const vector<Type, N>& _a,
+    const vector<Type, N>& _b,
+    Type                   _t
+) D_NOEXCEPT
 {
     return _a.lerp(_b, _t);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR _T
-sum(const vector<_T, _N>& _v) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+sum(const vector<Type, N>& _v) D_NOEXCEPT
 {
     return _v.sum();
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR bool
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 bool
 approx_equal(
-    const vector<_T, _N>& _a,
-    const vector<_T, _N>& _b,
-    _T                    _tol = default_tolerance<_T>()
-) noexcept
+    const vector<Type, N>& _a,
+    const vector<Type, N>& _b,
+    Type                   _tol = default_tolerance<Type>()
+) D_NOEXCEPT
 {
     return _a.equals(_b, _tol);
 }
 
 
-// ===========================================================================
-// IV.  CONVENIENCE ALIASES
-// ===========================================================================
+//==============================================================================
+// 3.  CONVENIENCE ALIASES
+//==============================================================================
+// The alias templates are C++11's; the double ones are types at every level.
 
-template<typename _T = double> using vector2 = vector<_T, 2>;
-template<typename _T = double> using vector3 = vector<_T, 3>;
-template<typename _T = double> using vector4 = vector<_T, 4>;
 
-using vec2d = vector<double, 2>;
-using vec3d = vector<double, 3>;
-using vec4d = vector<double, 4>;
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+template<typename Type = double> using vector2 = vector<Type, 2>;
+template<typename Type = double> using vector3 = vector<Type, 3>;
+template<typename Type = double> using vector4 = vector<Type, 4>;
+#endif
+
+typedef vector<double, 2> vec2d;
+typedef vector<double, 3> vec3d;
+typedef vector<double, 4> vec4d;
+
 
 }  // linalg
-
 NS_END  // math
 NS_END  // djinterp
 

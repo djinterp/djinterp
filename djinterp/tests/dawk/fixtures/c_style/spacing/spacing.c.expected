@@ -1,0 +1,7 @@
+tests/dawk/fixtures/c_style/spacing/spacing.c:18:5: a return statement is preceded by an empty line
+tests/dawk/fixtures/c_style/spacing/spacing.c:37:5: a return statement is preceded by an empty line
+tests/dawk/fixtures/c_style/spacing/spacing.c:56:5: an if-statement is followed by an empty line
+tests/dawk/fixtures/c_style/spacing/spacing.c:71:1: two consecutive empty lines only after the last #include
+tests/dawk/fixtures/c_style/spacing/spacing.c:80:9: a variable is initialized in its declaration
+tests/dawk/fixtures/c_style/spacing/spacing.c:83:5: two consecutive empty lines only after the last #include
+tests/dawk/fixtures/c_style/spacing/spacing.c:88:1: a definition carries a comment opening with its name

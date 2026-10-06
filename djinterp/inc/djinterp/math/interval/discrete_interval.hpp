@@ -8,509 +8,420 @@
 * sampled ranges, and strided index sets.
 *
 * VALUES IN THE INTERVAL:
-*   { _Lower, _Lower + _Step, _Lower + 2*_Step, ... }
-*   up to and including _Upper (if _Upper is reachable by the stride).
+*   { Lower, Lower + Step, Lower + 2*Step, ... }
+*   up to and including Upper (if Upper is reachable by the stride).
+*
+*   A face over the C core (c/math/interval.h), as closed_interval.hpp is.
+* Everything compiles from C++98; the operations are constexpr from C++14.
 *
 * STRUCTURAL INTERFACE (for interval_traits):
 *   - value_type, size_type
-*   - static constexpr lower_bound, upper_bound
-*   - static constexpr bool is_left_open  = false
-*   - static constexpr bool is_right_open = false
+*   - static lower_bound, upper_bound, step
+*   - static bool is_left_open  = false
+*   - static bool is_right_open = false
 *
 *
 * path:      /inc/djinterp/math/interval/discrete_interval.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.04
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  DISCRETE INTERVAL
+    -----------------
+    1.  discrete_interval
+    2.  Static member definitions
+2.  TYPE ALIASES (C++11)
+    --------------------
+*/
 
 #ifndef DJINTERP_MATH_INTERVAL_DISCRETE_INTERVAL_HPP
 #define DJINTERP_MATH_INTERVAL_DISCRETE_INTERVAL_HPP 1
 
 // std
-#include <cstddef>
-#include <cstdint>
-#include <limits>
-#include <string>
-#include <type_traits>
+#include <cstddef>                     // std::size_t
+#include <string>                      // std::string
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../djinterp.hpp"          // framework root
+#include "./interval_common.hpp"       // internal::interval_kernel,
+                                       // interval_iterator
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int16_t ... uint64_t
 
 
 NS_DJINTERP
 NS_MATH
 
-// ============================================================================
-// I.    DISCRETE INTERVAL
-// ============================================================================
 
+//==============================================================================
+// 1.  DISCRETE INTERVAL
+//==============================================================================
+
+
+// 1.1    discrete_interval
+//------------------------------------------------------------------------------
 // discrete_interval
-//   struct: compile-time discrete interval [_Lower, _Upper] with stride
-// _Step over _Type. Endpoints are inclusive (closed). The interval
-// generates values {_Lower, _Lower+_Step, _Lower+2*_Step, ...} up to
-// and including _Upper.
-template<typename _Type,
-         _Type    _Lower,
-         _Type    _Upper,
-         _Type    _Step     = static_cast<_Type>(1),
-         typename _SizeType = std::size_t>
+//   struct: compile-time discrete interval [Lower, Upper] with stride Step
+// over Type. Endpoints are inclusive (closed). The members are Lower,
+// Lower + Step, Lower + 2*Step, ..., up to and including Upper.
+template<typename Type,
+         Type     Lower,
+         Type     Upper,
+         Type     Step     = static_cast<Type>(1),
+         typename SizeType = std::size_t>
 struct discrete_interval
 {
-    // ---- type aliases -------------------------------------------------------
+private:
+    typedef internal::interval_kernel<Type> kernel;
+    typedef typename kernel::core_type      core_type;
 
-    using value_type = _Type;
-    using size_type  = _SizeType;
+public:
+    typedef Type                                 value_type;
+    typedef SizeType                             size_type;
+    typedef interval_iterator<discrete_interval> iterator;
 
-    // ---- static constants ---------------------------------------------------
+    static D_CONSTEXPR_VAR value_type lower_bound   = Lower;
+    static D_CONSTEXPR_VAR value_type upper_bound   = Upper;
+    static D_CONSTEXPR_VAR value_type step          = Step;
+    static D_CONSTEXPR_VAR bool       is_left_open  = false;
+    static D_CONSTEXPR_VAR bool       is_right_open = false;
 
-    static constexpr value_type lower_bound   = _Lower;
-    static constexpr value_type upper_bound   = _Upper;
-    static constexpr value_type step          = _Step;
-    static constexpr bool       is_left_open  = false;
-    static constexpr bool       is_right_open = false;
-
-    static_assert(_Lower <= _Upper,
-                  "discrete_interval: _Lower must be <= _Upper.");
-    static_assert(_Step > static_cast<_Type>(0),
-                  "discrete_interval: _Step must be > 0.");
-
-    // ---- static member functions --------------------------------------------
+    D_STATIC_ASSERT((!(Upper < Lower)),
+                    "discrete_interval: Lower must be <= Upper.");
+    D_STATIC_ASSERT((static_cast<Type>(0) < Step),
+                    "discrete_interval: Step must be > 0.");
 
     // size
-    //   returns the number of discrete values in the interval.
-    // Computed as floor((upper - lower) / step) + 1.
-    static constexpr size_type
-    size
-    () noexcept
+    //   query: the number of members, floor((upper - lower) / step) + 1.
+    static D_CONSTEXPR_CPP14 size_type
+    size() D_NOEXCEPT
     {
-        return static_cast<size_type>(
-            (_Upper - _Lower) / _Step + 1
-        );
+        return static_cast<size_type>(kernel::count(m_core()));
     }
 
     // contains
-    //   checks whether _value lies within [_Lower, _Upper] AND is
-    // reachable from _Lower by an integral number of steps.
-    static constexpr bool
-    contains
-    (
-        const value_type& _value
-    ) noexcept
+    //   query: whether _value lies within [Lower, Upper] AND is a whole
+    // number of steps past Lower.
+    static D_CONSTEXPR_CPP14 bool
+    contains(const value_type& _value) D_NOEXCEPT
     {
-        // bounds check
-        if ( (_value < _Lower) ||
-             (_value > _Upper) )
-        {
-            return false;
-        }
-
-        // stride alignment check
-        return ((_value - _Lower) % _Step == 0);
+        return kernel::contains(m_core(), _value);
     }
 
     // contains_in_range
-    //   checks whether _value lies within [_Lower, _Upper] without
-    // requiring stride alignment. Useful for general range queries.
-    static constexpr bool
-    contains_in_range
-    (
-        const value_type& _value
-    ) noexcept
+    //   query: whether _value lies within [Lower, Upper], on a step or not.
+    static D_CONSTEXPR_CPP14 bool
+    contains_in_range(const value_type& _value) D_NOEXCEPT
     {
-        return ( (_value >= _Lower) &&
-                 (_value <= _Upper) );
+        return kernel::contains_in_range(m_core(), _value);
     }
 
     // clamp
-    //   constrains _value to the nearest discrete value in the interval.
-    // Rounds down to the nearest step-aligned value.
-    static constexpr value_type
-    clamp
-    (
-        const value_type& _value
-    ) noexcept
+    //   transform: _value constrained to a member, rounding down to a step.
+    static D_CONSTEXPR_CPP14 value_type
+    clamp(const value_type& _value) D_NOEXCEPT
     {
-        // below range
-        if (_value < _Lower)
-        {
-            return _Lower;
-        }
-
-        // above range: find the largest step-aligned value <= _Upper
-        if (_value > _Upper)
-        {
-            value_type steps = (_Upper - _Lower) / _Step;
-
-            return static_cast<value_type>(_Lower + steps * _Step);
-        }
-
-        // within range: snap to nearest step-aligned value (round down)
-        value_type offset = (_value - _Lower) / _Step;
-
-        return static_cast<value_type>(_Lower + offset * _Step);
+        return kernel::clamp(m_core(), _value);
     }
 
     // clamp_nearest
-    //   constrains _value to the nearest discrete value, rounding to
-    // whichever step-aligned value is closer.
-    static constexpr value_type
-    clamp_nearest
-    (
-        const value_type& _value
-    ) noexcept
+    //   transform: _value constrained to the nearer member, a tie going down.
+    static D_CONSTEXPR_CPP14 value_type
+    clamp_nearest(const value_type& _value) D_NOEXCEPT
     {
-        // below range
-        if (_value < _Lower)
-        {
-            return _Lower;
-        }
-
-        // above range
-        value_type max_steps = (_Upper - _Lower) / _Step;
-        value_type max_val   = static_cast<value_type>(
-            _Lower + max_steps * _Step
-        );
-
-        if (_value > max_val)
-        {
-            return max_val;
-        }
-
-        // within range: find nearest
-        value_type offset    = (_value - _Lower) / _Step;
-        value_type low_snap  = static_cast<value_type>(
-            _Lower + offset * _Step
-        );
-        value_type high_snap = static_cast<value_type>(
-            low_snap + _Step
-        );
-
-        // choose the closer snap point (if high_snap is still in range)
-        if ( (high_snap <= _Upper) &&
-             ((_value - low_snap) > (high_snap - _value)) )
-        {
-            return high_snap;
-        }
-
-        return low_snap;
+        return kernel::clamp_nearest(m_core(), _value);
     }
 
     // is_valid
-    //   returns true if the interval is well-formed.
-    static constexpr bool
-    is_valid
-    () noexcept
+    //   query: whether the interval is well-formed (Lower <= Upper, Step > 0).
+    static D_CONSTEXPR_CPP14 bool
+    is_valid() D_NOEXCEPT
     {
-        return ( (_Lower <= _Upper) &&
-                 (_Step > static_cast<_Type>(0)) );
+        return ( (kernel::is_valid(m_core())) &&
+                 (kernel::is_discrete(m_core())) );
     }
 
     // normalize
-    //   maps _value to [0.0, 1.0] relative to the full span.
-    template<typename _FloatType = double>
-    static constexpr _FloatType
-    normalize
-    (
-        const value_type& _value
-    ) noexcept
+    //   transform: _value mapped to [0, 1] over the full span, as a double;
+    // normalize<FloatType> in another precision.
+    static D_CONSTEXPR_CPP14 double
+    normalize(const value_type& _value) D_NOEXCEPT
     {
-        if constexpr (_Lower == _Upper)
-        {
-            return _FloatType{0};
-        }
-        else
-        {
-            return ( static_cast<_FloatType>(_value - _Lower) /
-                     static_cast<_FloatType>(_Upper - _Lower) );
-        }
+        return normalize<double>(_value);
+    }
+
+    template<typename FloatType>
+    static D_CONSTEXPR_CPP14 FloatType
+    normalize(const value_type& _value) D_NOEXCEPT
+    {
+        const struct d_math_ratio terms =
+            kernel::normalize_terms(m_core(), _value);
+
+        return ( static_cast<FloatType>(terms.numerator) /
+                 static_cast<FloatType>(terms.denominator) );
     }
 
     // normalize_discrete
-    //   maps _value to [0.0, 1.0] relative to the discrete step count.
-    // Step index 0 maps to 0.0; the last step maps to 1.0.
-    template<typename _FloatType = double>
-    static constexpr _FloatType
-    normalize_discrete
-    (
-        const value_type& _value
-    ) noexcept
+    //   transform: _value's step index mapped to [0, 1]: the first member is
+    // 0, the last 1; as a double, or normalize_discrete<FloatType>.
+    static D_CONSTEXPR_CPP14 double
+    normalize_discrete(const value_type& _value) D_NOEXCEPT
     {
-        constexpr size_type count = size();
+        return normalize_discrete<double>(_value);
+    }
 
-        if constexpr (count <= 1)
-        {
-            return _FloatType{0};
-        }
-        else
-        {
-            value_type step_index = (_value - _Lower) / _Step;
+    template<typename FloatType>
+    static D_CONSTEXPR_CPP14 FloatType
+    normalize_discrete(const value_type& _value) D_NOEXCEPT
+    {
+        const struct d_math_ratio terms =
+            kernel::normalize_discrete_terms(m_core(), _value);
 
-            return ( static_cast<_FloatType>(step_index) /
-                     static_cast<_FloatType>(count - 1) );
-        }
+        return ( static_cast<FloatType>(terms.numerator) /
+                 static_cast<FloatType>(terms.denominator) );
     }
 
     // at
-    //   returns the discrete value at the given step index.
-    // Index 0 returns _Lower, index 1 returns _Lower+_Step, etc.
-    static constexpr value_type
-    at
-    (
-        size_type _index
-    ) noexcept
+    //   access: the member _index steps past Lower.
+    static D_CONSTEXPR_CPP14 value_type
+    at(size_type _index) D_NOEXCEPT
     {
-        return static_cast<value_type>(
-            _Lower + static_cast<_Type>(_index) * _Step
-        );
+        return kernel::at(m_core(), static_cast<d_math_umax>(_index));
     }
 
     // index_of
-    //   returns the step index of _value, or size() if _value is not
-    // a member of the discrete interval.
-    static constexpr size_type
-    index_of
-    (
-        const value_type& _value
-    ) noexcept
+    //   query: _value's step index, or size() if it is not a member.
+    static D_CONSTEXPR_CPP14 size_type
+    index_of(const value_type& _value) D_NOEXCEPT
     {
-        if (!contains(_value))
-        {
-            return size();
-        }
-
-        return static_cast<size_type>((_value - _Lower) / _Step);
+        return static_cast<size_type>(kernel::index_of(m_core(), _value));
     }
 
     // last
-    //   returns the largest discrete value in the interval.
-    static constexpr value_type
-    last
-    () noexcept
+    //   query: the largest member.
+    static D_CONSTEXPR_CPP14 value_type
+    last() D_NOEXCEPT
     {
-        value_type steps = (_Upper - _Lower) / _Step;
-
-        return static_cast<value_type>(_Lower + steps * _Step);
+        return kernel::last(m_core());
     }
 
     // overlaps
-    //   checks whether the ranges [_Lower, _Upper] and
-    // [_OtherLower, _OtherUpper] overlap (ignoring step alignment).
-    template<_Type _OtherLower,
-             _Type _OtherUpper,
-             _Type _OtherStep>
-    static constexpr bool
-    overlaps
-    (
-        const discrete_interval<_Type,
-                                _OtherLower,
-                                _OtherUpper,
-                                _OtherStep,
-                                _SizeType>&
-    ) noexcept
+    //   query: whether the ranges [Lower, Upper] and [OtherLower,
+    // OtherUpper] overlap; the strides are not considered.
+    template<Type OtherLower,
+             Type OtherUpper,
+             Type OtherStep>
+    static D_CONSTEXPR_CPP14 bool
+    overlaps(
+        const discrete_interval<Type,
+                                OtherLower,
+                                OtherUpper,
+                                OtherStep,
+                                SizeType>& _other
+    ) D_NOEXCEPT
     {
-        return !( (_Upper < _OtherLower) ||
-                  (_Lower > _OtherUpper) );
+        (void)_other;
+
+        return kernel::overlaps(m_core(),
+                                kernel::make(OtherLower,
+                                             OtherUpper,
+                                             D_INTERVAL_CLOSED,
+                                             OtherStep));
+    }
+
+    // intersects
+    //   query: whether the two intervals share a member: a value on both
+    // strides within both ranges, found by the Chinese remainder theorem for
+    // an integer type.
+    template<Type OtherLower,
+             Type OtherUpper,
+             Type OtherStep>
+    static D_CONSTEXPR_CPP14 bool
+    intersects(
+        const discrete_interval<Type,
+                                OtherLower,
+                                OtherUpper,
+                                OtherStep,
+                                SizeType>& _other
+    ) D_NOEXCEPT
+    {
+        (void)_other;
+
+        return kernel::intersects(m_core(),
+                                  kernel::make(OtherLower,
+                                               OtherUpper,
+                                               D_INTERVAL_CLOSED,
+                                               OtherStep));
     }
 
     // to_string
-    //   returns a string representation: "[lower:step:upper]".
+    //   format: the interval as text, "[lower:step:upper]".
     static std::string
-    to_string
-    ()
+    to_string()
     {
-        return ( "[" + std::to_string(_Lower) +
-                 ":" + std::to_string(_Step)  +
-                 ":" + std::to_string(_Upper) + "]" );
+        return kernel::to_string(m_core());
     }
 
-    // ---- iterator -----------------------------------------------------------
-
-    // iterator
-    //   struct: forward iterator that advances by _Step.
-    struct iterator
+    // begin / end
+    //   iteration: over the members, by index.
+    static D_CONSTEXPR iterator
+    begin() D_NOEXCEPT
     {
-        using iterator_category = std::forward_iterator_tag;
-        using difference_type   = std::ptrdiff_t;
-        using value_type        = _Type;
-        using pointer           = const _Type*;
-        using reference         = const _Type&;
-
-        value_type m_current;
-
-        constexpr explicit iterator(value_type _val)
-            : m_current(_val)
-        {
-        }
-
-        constexpr value_type operator*() const noexcept
-        {
-            return m_current;
-        }
-
-        constexpr iterator& operator++() noexcept
-        {
-            m_current = static_cast<value_type>(
-                m_current + _Step
-            );
-
-            return *this;
-        }
-
-        constexpr iterator operator++(int) noexcept
-        {
-            iterator tmp = *this;
-            m_current = static_cast<value_type>(
-                m_current + _Step
-            );
-
-            return tmp;
-        }
-
-        constexpr bool
-        operator==
-        (
-            const iterator& _other
-        ) const noexcept
-        {
-            return (m_current == _other.m_current);
-        }
-
-        constexpr bool
-        operator!=
-        (
-            const iterator& _other
-        ) const noexcept
-        {
-            // use >= to catch overshoot past the sentinel
-            return (m_current < _other.m_current);
-        }
-    };
-
-    static constexpr iterator begin() noexcept
-    {
-        return iterator(_Lower);
+        return iterator(0);
     }
 
-    static constexpr iterator end() noexcept
+    static D_CONSTEXPR_CPP14 iterator
+    end() D_NOEXCEPT
     {
-        // sentinel: one step past the last valid value
-        value_type steps   = (_Upper - _Lower) / _Step;
-        value_type past_end = static_cast<value_type>(
-            _Lower + (steps + 1) * _Step
-        );
+        return iterator(size());
+    }
 
-        return iterator(past_end);
+private:
+    // m_core
+    //   the interval as its kernel takes it.
+    static D_CONSTEXPR_CPP14 core_type
+    m_core() D_NOEXCEPT
+    {
+        return kernel::make(Lower, Upper, D_INTERVAL_CLOSED, Step);
     }
 };
 
+// 1.2    Static member definitions
+//------------------------------------------------------------------------------
+// As closed_interval.hpp's: definitions below C++17, redeclarations from it.
+template<typename Type, Type Lower, Type Upper, Type Step, typename SizeType>
+D_CONSTEXPR_VAR Type
+    discrete_interval<Type, Lower, Upper, Step, SizeType>::lower_bound;
+template<typename Type, Type Lower, Type Upper, Type Step, typename SizeType>
+D_CONSTEXPR_VAR Type
+    discrete_interval<Type, Lower, Upper, Step, SizeType>::upper_bound;
+template<typename Type, Type Lower, Type Upper, Type Step, typename SizeType>
+D_CONSTEXPR_VAR Type
+    discrete_interval<Type, Lower, Upper, Step, SizeType>::step;
+template<typename Type, Type Lower, Type Upper, Type Step, typename SizeType>
+D_CONSTEXPR_VAR bool
+    discrete_interval<Type, Lower, Upper, Step, SizeType>::is_left_open;
+template<typename Type, Type Lower, Type Upper, Type Step, typename SizeType>
+D_CONSTEXPR_VAR bool
+    discrete_interval<Type, Lower, Upper, Step, SizeType>::is_right_open;
 
-// ============================================================================
-// II.   TYPE ALIASES
-// ============================================================================
+
+//==============================================================================
+// 2.  TYPE ALIASES (C++11)
+//==============================================================================
+// Alias templates are C++11's; below it, spell discrete_interval<int, ...>.
+
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // int_discrete_interval
 //   type: discrete_interval over int.
-template<int _Lower,
-         int _Upper,
-         int _Step = 1>
+template<int Lower,
+         int Upper,
+         int Step = 1>
 using int_discrete_interval =
-    discrete_interval<int, _Lower, _Upper, _Step>;
+    discrete_interval<int, Lower, Upper, Step>;
 
 // index_discrete_interval
 //   type: discrete_interval over std::size_t.
-template<std::size_t _Lower,
-         std::size_t _Upper,
-         std::size_t _Step = 1>
+template<std::size_t Lower,
+         std::size_t Upper,
+         std::size_t Step = 1>
 using index_discrete_interval =
-    discrete_interval<std::size_t, _Lower, _Upper, _Step>;
+    discrete_interval<std::size_t, Lower, Upper, Step>;
 
 // char_discrete_interval
 //   type: discrete_interval over char.
-template<char _Lower,
-         char _Upper,
-         char _Step = 1>
+template<char Lower,
+         char Upper,
+         char Step = 1>
 using char_discrete_interval =
-    discrete_interval<char, _Lower, _Upper, _Step>;
+    discrete_interval<char, Lower, Upper, Step>;
 
 // uint8_discrete_interval
 //   type: discrete_interval over uint8_t.
-template<std::uint8_t _Lower,
-         std::uint8_t _Upper,
-         std::uint8_t _Step = 1>
+template<re_std::uint8_t Lower,
+         re_std::uint8_t Upper,
+         re_std::uint8_t Step = 1>
 using uint8_discrete_interval =
-    discrete_interval<std::uint8_t, _Lower, _Upper, _Step>;
+    discrete_interval<re_std::uint8_t, Lower, Upper, Step>;
 
 // int64_discrete_interval
 //   type: discrete_interval over int64_t.
-template<std::int64_t _Lower,
-         std::int64_t _Upper,
-         std::int64_t _Step = 1>
+template<re_std::int64_t Lower,
+         re_std::int64_t Upper,
+         re_std::int64_t Step = 1>
 using int64_discrete_interval =
-    discrete_interval<std::int64_t, _Lower, _Upper, _Step>;
+    discrete_interval<re_std::int64_t, Lower, Upper, Step>;
 
 // uint64_discrete_interval
 //   type: discrete_interval over uint64_t.
-template<std::uint64_t _Lower,
-         std::uint64_t _Upper,
-         std::uint64_t _Step = 1>
+template<re_std::uint64_t Lower,
+         re_std::uint64_t Upper,
+         re_std::uint64_t Step = 1>
 using uint64_discrete_interval =
-    discrete_interval<std::uint64_t, _Lower, _Upper, _Step>;
+    discrete_interval<re_std::uint64_t, Lower, Upper, Step>;
 
 // int32_discrete_interval
 //   type: discrete_interval over int32_t.
-template<std::int32_t _Lower,
-         std::int32_t _Upper,
-         std::int32_t _Step = 1>
+template<re_std::int32_t Lower,
+         re_std::int32_t Upper,
+         re_std::int32_t Step = 1>
 using int32_discrete_interval =
-    discrete_interval<std::int32_t, _Lower, _Upper, _Step>;
+    discrete_interval<re_std::int32_t, Lower, Upper, Step>;
 
 // uint32_discrete_interval
 //   type: discrete_interval over uint32_t.
-template<std::uint32_t _Lower,
-         std::uint32_t _Upper,
-         std::uint32_t _Step = 1>
+template<re_std::uint32_t Lower,
+         re_std::uint32_t Upper,
+         re_std::uint32_t Step = 1>
 using uint32_discrete_interval =
-    discrete_interval<std::uint32_t, _Lower, _Upper, _Step>;
+    discrete_interval<re_std::uint32_t, Lower, Upper, Step>;
 
 // int16_discrete_interval
 //   type: discrete_interval over int16_t.
-template<std::int16_t _Lower,
-         std::int16_t _Upper,
-         std::int16_t _Step = 1>
+template<re_std::int16_t Lower,
+         re_std::int16_t Upper,
+         re_std::int16_t Step = 1>
 using int16_discrete_interval =
-    discrete_interval<std::int16_t, _Lower, _Upper, _Step>;
+    discrete_interval<re_std::int16_t, Lower, Upper, Step>;
 
 // uint16_discrete_interval
 //   type: discrete_interval over uint16_t.
-template<std::uint16_t _Lower,
-         std::uint16_t _Upper,
-         std::uint16_t _Step = 1>
+template<re_std::uint16_t Lower,
+         re_std::uint16_t Upper,
+         re_std::uint16_t Step = 1>
 using uint16_discrete_interval =
-    discrete_interval<std::uint16_t, _Lower, _Upper, _Step>;
+    discrete_interval<re_std::uint16_t, Lower, Upper, Step>;
 
 // short_discrete_interval
 //   type: discrete_interval over short.
-template<short _Lower,
-         short _Upper,
-         short _Step = 1>
+template<short Lower,
+         short Upper,
+         short Step = 1>
 using short_discrete_interval =
-    discrete_interval<short, _Lower, _Upper, _Step>;
+    discrete_interval<short, Lower, Upper, Step>;
 
 // long_discrete_interval
 //   type: discrete_interval over long.
-template<long _Lower,
-         long _Upper,
-         long _Step = 1>
+template<long Lower,
+         long Upper,
+         long Step = 1>
 using long_discrete_interval =
-    discrete_interval<long, _Lower, _Upper, _Step>;
+    discrete_interval<long, Lower, Upper, Step>;
 
 // long_long_discrete_interval
 //   type: discrete_interval over long long.
-template<long long _Lower,
-         long long _Upper,
-         long long _Step = 1>
+template<long long Lower,
+         long long Upper,
+         long long Step = 1>
 using long_long_discrete_interval =
-    discrete_interval<long long, _Lower, _Upper, _Step>;
+    discrete_interval<long long, Lower, Upper, Step>;
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
 NS_END  // math

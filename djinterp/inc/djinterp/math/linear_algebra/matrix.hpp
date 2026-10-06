@@ -2,10 +2,12 @@
 * djinterp [math]                                                     matrix.hpp
 *
 * Fixed-size, row-major matrix for the linear-algebra subframework.
-*   matrix<_T, _Rows, _Cols> stores its entries by value in a flat std::array
-* (row-major: entry (i, j) lives at i * _Cols + j) and every operation is
-* D_CONSTEXPR and returns a new value, so matrices chain the same way vectors
-* do and evaluate at compile time or runtime unchanged.
+*   matrix<Type, Rows, Cols> stores its entries by value in a flat array
+* (row-major: entry (i, j) lives at i * Cols + j), and every operation returns
+* a new value, so matrices chain the same way vectors do. A face over the C
+* core: for float, double and long double each operation is one of
+* c/math/mat.h's kernels, or vec.h's over the entries, on the matrix's own
+* array; for any other element type, the generic path (linalg_common.hpp).
 *
 * TWO SPELLINGS (see linalg_common.hpp):
 *   fluent      a.transposed().times(a).trace()
@@ -26,133 +28,184 @@
 * LU/QR/Cholesky decompositions, linear-system solvers, and the eigen routines
 * live in their own headers and build on this one.
 *
+* LEVELS:
+*   Everything compiles from C++98. Operations are constexpr from C++14 --
+* the norm too, on the C core's correctly rounded root -- built from an array
+* of Rows * Cols entries at every level, from std::array from C++11.
+*
 *
 * path:      /inc/djinterp/math/linear_algebra/matrix.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.04
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  MATRIX
+    ------
+    1.  matrix
+2.  FREE FUNCTIONS
+    --------------
+    1.  Operators
+    2.  Procedural spellings
+3.  CONVENIENCE ALIASES
+    -------------------
+*/
 
 #ifndef DJINTERP_MATH_LINEAR_ALGEBRA_MATRIX_HPP
 #define DJINTERP_MATH_LINEAR_ALGEBRA_MATRIX_HPP 1
 
 // std
-#include <array>
-#include <cstddef>
-#include <type_traits>
+#include <cstddef>                     // std::size_t
 // djinterp
-#include "../../djinterp.hpp"
-#include "./linalg_common.hpp"
-#include "./vector.hpp"
+#include "../../djinterp.hpp"          // framework root
+#include "./linalg_common.hpp"         // internal::linalg_kernel,
+                                       // default_tolerance
+#include "./vector.hpp"                // vector
+// re_std
+#include "../../../re_std/type_traits/enable_if.hpp"      // enable_if
+#include "../../../re_std/type_traits/is_arithmetic.hpp"  // is_arithmetic
+// std, from C++11 (the level is known only once the root is in)
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #include <array>                   // std::array
+#endif
 
 
 NS_DJINTERP
 NS_MATH
-
 namespace linalg
 {
 
-// ===========================================================================
-// I.   MATRIX
-// ===========================================================================
 
+//==============================================================================
+// 1.  MATRIX
+//==============================================================================
+
+
+// 1.1    matrix
+//------------------------------------------------------------------------------
 // matrix
-//   class: fixed-size, row-major matrix of _Rows x _Cols entries of type _T.
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
+//   class: fixed-size, row-major matrix of Rows x Cols entries of Type.
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols>
 class matrix
 {
-    static_assert(((_Rows > 0) && (_Cols > 0)),
-                  "matrix: dimensions must be at least 1x1.");
+private:
+    typedef internal::linalg_kernel<Type> kernel;
+
+    // the other shapes write this one's storage (transposed, times)
+    template<typename,
+             std::size_t,
+             std::size_t>
+    friend class matrix;
 
 public:
-    using value_type  = _T;
-    using size_type   = std::size_t;
-    using array_type  = std::array<_T, _Rows * _Cols>;
-    using row_vector  = vector<_T, _Cols>;
-    using column_vector = vector<_T, _Rows>;
+    typedef Type                 value_type;
+    typedef std::size_t          size_type;
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    typedef std::array<Type, Rows * Cols> array_type;
+#endif
+    typedef vector<Type, Cols>   row_vector;
+    typedef vector<Type, Rows>   column_vector;
+
+    D_STATIC_ASSERT(((Rows > 0) && (Cols > 0)),
+                    "matrix: dimensions must be at least 1x1.");
 
     // ---- construction -----------------------------------------------------
 
     // default: the zero matrix.
     D_CONSTEXPR
-    matrix() noexcept
-        : m_data{}
-    {
-    }
+    matrix() D_NOEXCEPT
+        : m_data()
+    {}
 
-    // from a flat, row-major array of entries (element-wise copy keeps this
-    // constexpr from C++14; see the storage note at the bottom of the class).
-    D_CONSTEXPR explicit
+    // from a flat, row-major array of entries (every level).
+    D_CONSTEXPR_CPP14 explicit
     matrix(
-        const array_type& _entries
-    ) noexcept
-        : m_data{}
+        const Type (&_entries)[Rows * Cols]
+    ) D_NOEXCEPT
+        : m_data()
     {
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
+        for (size_type i = 0; i < (Rows * Cols); ++i)
         {
             m_data[i] = _entries[i];
         }
     }
 
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // from a flat, row-major std::array of entries (C++11).
+    D_CONSTEXPR_CPP14 explicit
+    matrix(
+        const array_type& _entries
+    ) D_NOEXCEPT
+        : m_data()
+    {
+        for (size_type i = 0; i < (Rows * Cols); ++i)
+        {
+            m_data[i] = _entries[i];
+        }
+    }
+#endif
+
     // ---- named factories --------------------------------------------------
 
     static D_CONSTEXPR matrix
-    zeros() noexcept
+    zeros() D_NOEXCEPT
     {
         return matrix();
     }
 
-    static D_CONSTEXPR matrix
-    filled(_T _value) noexcept
+    static D_CONSTEXPR_CPP14 matrix
+    filled(Type _value) D_NOEXCEPT
     {
         matrix m;
 
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
-        {
-            m.m_data[i] = _value;
-        }
+        kernel::fill(m.m_data, Rows * Cols, _value);
 
         return m;
     }
 
-    static D_CONSTEXPR matrix
-    from_row_major(const array_type& _entries) noexcept
+    static D_CONSTEXPR_CPP14 matrix
+    from_row_major(const Type (&_entries)[Rows * Cols]) D_NOEXCEPT
     {
         return matrix(_entries);
     }
 
-    // identity: the identity matrix (square only).
-    static D_CONSTEXPR matrix
-    identity() noexcept
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    static D_CONSTEXPR_CPP14 matrix
+    from_row_major(const array_type& _entries) D_NOEXCEPT
     {
-        static_assert((_Rows == _Cols),
-                      "matrix::identity: only defined for square matrices.");
+        return matrix(_entries);
+    }
+#endif
+
+    // identity: the identity matrix (square only).
+    static D_CONSTEXPR_CPP14 matrix
+    identity() D_NOEXCEPT
+    {
+        // matrix::identity: only defined for square matrices
+        (void)internal::linalg_requires<(Rows == Cols)>::check();
 
         matrix m;
 
-        for (size_type i = 0; i < _Rows; ++i)
-        {
-            m.m_data[i * _Cols + i] = static_cast<_T>(1);
-        }
+        kernel::identity(m.m_data, Rows);
 
         return m;
     }
 
     // diagonal: square matrix with _d on the main diagonal (square only).
-    static D_CONSTEXPR matrix
-    diagonal(const vector<_T, _Rows>& _d) noexcept
+    static D_CONSTEXPR_CPP14 matrix
+    diagonal(const vector<Type, Rows>& _d) D_NOEXCEPT
     {
-        static_assert((_Rows == _Cols),
-                      "matrix::diagonal: only defined for square matrices.");
+        // matrix::diagonal: only defined for square matrices
+        (void)internal::linalg_requires<(Rows == Cols)>::check();
 
         matrix m;
 
-        for (size_type i = 0; i < _Rows; ++i)
-        {
-            m.m_data[i * _Cols + i] = _d[i];
-        }
+        kernel::diagonal(m.m_data, _d.data(), Rows);
 
         return m;
     }
@@ -160,233 +213,190 @@ public:
     // ---- shape / access ---------------------------------------------------
 
     static D_CONSTEXPR size_type
-    rows() noexcept
+    rows() D_NOEXCEPT
     {
-        return _Rows;
+        return Rows;
     }
 
     static D_CONSTEXPR size_type
-    cols() noexcept
+    cols() D_NOEXCEPT
     {
-        return _Cols;
+        return Cols;
     }
 
     static D_CONSTEXPR size_type
-    size() noexcept
+    size() D_NOEXCEPT
     {
-        return _Rows * _Cols;
+        return Rows * Cols;
     }
 
     static D_CONSTEXPR bool
-    is_square() noexcept
+    is_square() D_NOEXCEPT
     {
-        return (_Rows == _Cols);
+        return (Rows == Cols);
     }
 
     // entry access (i, j).
-    D_CONSTEXPR const _T&
+    D_CONSTEXPR const Type&
     operator()(
         size_type _i,
         size_type _j
-    ) const noexcept
+    ) const D_NOEXCEPT
     {
-        return m_data[_i * _Cols + _j];
+        return m_data[(_i * Cols) + _j];
     }
 
-    D_CONSTEXPR _T&
+    D_CONSTEXPR_CPP14 Type&
     operator()(
         size_type _i,
         size_type _j
-    ) noexcept
+    ) D_NOEXCEPT
     {
-        return m_data[_i * _Cols + _j];
+        return m_data[(_i * Cols) + _j];
     }
 
-    D_CONSTEXPR const _T*
-    data() const noexcept
+    D_CONSTEXPR const Type*
+    data() const D_NOEXCEPT
     {
         return m_data;
     }
 
-    // row: the _i-th row as a vector<_T, _Cols>.
-    D_CONSTEXPR row_vector
-    row(size_type _i) const noexcept
+    // row: the _i-th row as a vector<Type, Cols>.
+    D_CONSTEXPR_CPP14 row_vector
+    row(size_type _i) const D_NOEXCEPT
     {
         row_vector r;
 
-        for (size_type j = 0; j < _Cols; ++j)
-        {
-            r[j] = m_data[_i * _Cols + j];
-        }
+        kernel::row(&r[0], m_data, _i, Cols);
 
         return r;
     }
 
-    // col: the _j-th column as a vector<_T, _Rows>.
-    D_CONSTEXPR column_vector
-    col(size_type _j) const noexcept
+    // col: the _j-th column as a vector<Type, Rows>.
+    D_CONSTEXPR_CPP14 column_vector
+    col(size_type _j) const D_NOEXCEPT
     {
         column_vector c;
 
-        for (size_type i = 0; i < _Rows; ++i)
-        {
-            c[i] = m_data[i * _Cols + _j];
-        }
+        kernel::col(&c[0], m_data, _j, Rows, Cols);
 
         return c;
     }
 
     // with: a copy with entry (i, j) replaced (immutable set).
-    D_CONSTEXPR matrix
+    D_CONSTEXPR_CPP14 matrix
     with(
         size_type _i,
         size_type _j,
-        _T        _value
-    ) const noexcept
+        Type      _value
+    ) const D_NOEXCEPT
     {
-        matrix m                     = *this;
-        m.m_data[_i * _Cols + _j]    = _value;
+        matrix m = *this;
+
+        m.m_data[(_i * Cols) + _j] = _value;
 
         return m;
     }
 
     // ---- additive / scalar arithmetic (fluent) ----------------------------
 
-    D_CONSTEXPR matrix
-    plus(const matrix& _o) const noexcept
+    D_CONSTEXPR_CPP14 matrix
+    plus(const matrix& _o) const D_NOEXCEPT
     {
         matrix m;
 
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
-        {
-            m.m_data[i] = m_data[i] + _o.m_data[i];
-        }
+        kernel::add(m.m_data, m_data, _o.m_data, Rows * Cols);
 
         return m;
     }
 
-    D_CONSTEXPR matrix
-    minus(const matrix& _o) const noexcept
+    D_CONSTEXPR_CPP14 matrix
+    minus(const matrix& _o) const D_NOEXCEPT
     {
         matrix m;
 
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
-        {
-            m.m_data[i] = m_data[i] - _o.m_data[i];
-        }
+        kernel::sub(m.m_data, m_data, _o.m_data, Rows * Cols);
 
         return m;
     }
 
-    D_CONSTEXPR matrix
-    scaled(_T _s) const noexcept
+    D_CONSTEXPR_CPP14 matrix
+    scaled(Type _s) const D_NOEXCEPT
     {
         matrix m;
 
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
-        {
-            m.m_data[i] = m_data[i] * _s;
-        }
+        kernel::scale(m.m_data, m_data, _s, Rows * Cols);
 
         return m;
     }
 
-    D_CONSTEXPR matrix
-    negated() const noexcept
+    D_CONSTEXPR_CPP14 matrix
+    negated() const D_NOEXCEPT
     {
         matrix m;
 
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
-        {
-            m.m_data[i] = -m_data[i];
-        }
+        kernel::negate(m.m_data, m_data, Rows * Cols);
 
         return m;
     }
 
     // hadamard: entry-wise product.
-    D_CONSTEXPR matrix
-    hadamard(const matrix& _o) const noexcept
+    D_CONSTEXPR_CPP14 matrix
+    hadamard(const matrix& _o) const D_NOEXCEPT
     {
         matrix m;
 
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
-        {
-            m.m_data[i] = m_data[i] * _o.m_data[i];
-        }
+        kernel::hadamard(m.m_data, m_data, _o.m_data, Rows * Cols);
 
         return m;
     }
 
     // ---- transpose --------------------------------------------------------
 
-    D_CONSTEXPR matrix<_T, _Cols, _Rows>
-    transposed() const noexcept
+    D_CONSTEXPR_CPP14 matrix<Type, Cols, Rows>
+    transposed() const D_NOEXCEPT
     {
-        matrix<_T, _Cols, _Rows> result;
+        matrix<Type, Cols, Rows> result;
 
-        for (size_type i = 0; i < _Rows; ++i)
-        {
-            for (size_type j = 0; j < _Cols; ++j)
-            {
-                result(j, i) = m_data[i * _Cols + j];
-            }
-        }
+        kernel::transpose(result.m_data, m_data, Rows, Cols);
 
         return result;
     }
 
     // ---- products ---------------------------------------------------------
 
-    // times (matrix): the matrix product (*this) * _rhs.
-    template<std::size_t _OtherCols>
-    D_CONSTEXPR matrix<_T, _Rows, _OtherCols>
-    times(const matrix<_T, _Cols, _OtherCols>& _rhs) const noexcept
+    // times (matrix): the matrix product (*this) * _rhs, each entry its dot
+    // product in order of k.
+    template<std::size_t OtherCols>
+    D_CONSTEXPR_CPP14 matrix<Type, Rows, OtherCols>
+    times(const matrix<Type, Cols, OtherCols>& _rhs) const D_NOEXCEPT
     {
-        matrix<_T, _Rows, _OtherCols> result;
+        matrix<Type, Rows, OtherCols> result;
 
-        for (size_type i = 0; i < _Rows; ++i)
-        {
-            for (size_type j = 0; j < _OtherCols; ++j)
-            {
-                _T acc = static_cast<_T>(0);
-
-                for (size_type k = 0; k < _Cols; ++k)
-                {
-                    acc += (*this)(i, k) * _rhs(k, j);
-                }
-
-                result(i, j) = acc;
-            }
-        }
+        kernel::multiply(result.m_data,
+                         m_data,
+                         _rhs.m_data,
+                         Rows,
+                         Cols,
+                         OtherCols);
 
         return result;
     }
 
     // times (vector): the matrix-vector product (*this) * _v.
-    D_CONSTEXPR column_vector
-    times(const row_vector& _v) const noexcept
+    D_CONSTEXPR_CPP14 column_vector
+    times(const row_vector& _v) const D_NOEXCEPT
     {
         column_vector result;
 
-        for (size_type i = 0; i < _Rows; ++i)
-        {
-            _T acc = static_cast<_T>(0);
-
-            for (size_type j = 0; j < _Cols; ++j)
-            {
-                acc += m_data[i * _Cols + j] * _v[j];
-            }
-
-            result[i] = acc;
-        }
+        kernel::multiply_vector(&result[0], m_data, _v.data(), Rows, Cols);
 
         return result;
     }
 
     // operator(): apply the matrix as a linear map (functional bridge).
-    D_CONSTEXPR column_vector
-    operator()(const row_vector& _v) const noexcept
+    D_CONSTEXPR_CPP14 column_vector
+    operator()(const row_vector& _v) const D_NOEXCEPT
     {
         return times(_v);
     }
@@ -394,117 +404,78 @@ public:
     // ---- square-only operations -------------------------------------------
 
     // trace: sum of the main-diagonal entries (square only).
-    D_CONSTEXPR _T
-    trace() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    trace() const D_NOEXCEPT
     {
-        static_assert((_Rows == _Cols),
-                      "matrix::trace: only defined for square matrices.");
+        // matrix::trace: only defined for square matrices
+        (void)internal::linalg_requires<(Rows == Cols)>::check();
 
-        _T acc = static_cast<_T>(0);
-
-        for (size_type i = 0; i < _Rows; ++i)
-        {
-            acc += m_data[i * _Cols + i];
-        }
-
-        return acc;
+        return kernel::trace(m_data, Rows);
     }
 
-    // power: integer matrix power (square only). _n == 0 yields the identity.
-    // Expressed recursively (A^n = A * A^(n-1)) so it needs no whole-matrix
-    // copy-assignment, which is not a constant expression before C++17.
-    D_CONSTEXPR matrix
-    power(std::size_t _n) const noexcept
+    // power: integer matrix power (square only); _n == 0 yields the
+    // identity, and A^k = A * A^(k-1).
+    D_CONSTEXPR_CPP14 matrix
+    power(std::size_t _n) const D_NOEXCEPT
     {
-        static_assert((_Rows == _Cols),
-                      "matrix::power: only defined for square matrices.");
+        // matrix::power: only defined for square matrices
+        (void)internal::linalg_requires<(Rows == Cols)>::check();
 
-        return (_n == 0) ? matrix::identity() : times(power(_n - 1));
+        matrix result;
+        matrix scratch;
+
+        kernel::power(result.m_data, scratch.m_data, m_data, Rows, _n);
+
+        return result;
     }
 
     // is_symmetric: true when (*this) equals its transpose within _tol
     // (square only).
-    D_CONSTEXPR bool
-    is_symmetric(_T _tol = default_tolerance<_T>()) const noexcept
+    D_CONSTEXPR_CPP14 bool
+    is_symmetric(Type _tol = default_tolerance<Type>()) const D_NOEXCEPT
     {
-        static_assert((_Rows == _Cols),
-                      "matrix::is_symmetric: only defined for square "
-                      "matrices.");
+        // matrix::is_symmetric: only defined for square matrices
+        (void)internal::linalg_requires<(Rows == Cols)>::check();
 
-        for (size_type i = 0; i < _Rows; ++i)
-        {
-            for (size_type j = i + 1; j < _Cols; ++j)
-            {
-                const _T a = m_data[i * _Cols + j];
-                const _T b = m_data[j * _Cols + i];
-
-                if (internal::abs_c(a - b) > _tol)
-                {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return kernel::is_symmetric(m_data, Rows, _tol);
     }
 
-    D_CONSTEXPR bool
-    is_identity(_T _tol = default_tolerance<_T>()) const noexcept
+    // is_identity: true when every entry is within _tol of the identity's
+    // (square only).
+    D_CONSTEXPR_CPP14 bool
+    is_identity(Type _tol = default_tolerance<Type>()) const D_NOEXCEPT
     {
-        static_assert((_Rows == _Cols),
-                      "matrix::is_identity: only defined for square "
-                      "matrices.");
+        // matrix::is_identity: only defined for square matrices
+        (void)internal::linalg_requires<(Rows == Cols)>::check();
 
-        for (size_type i = 0; i < _Rows; ++i)
-        {
-            for (size_type j = 0; j < _Cols; ++j)
-            {
-                const _T expected =
-                    (i == j) ? static_cast<_T>(1) : static_cast<_T>(0);
-
-                if (internal::abs_c(m_data[i * _Cols + j] - expected) > _tol)
-                {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return kernel::is_identity(m_data, Rows, _tol);
     }
 
     // ---- norm / functional-style maps -------------------------------------
 
-    D_CONSTEXPR _T
-    norm_squared() const noexcept
+    D_CONSTEXPR_CPP14 Type
+    norm_squared() const D_NOEXCEPT
     {
-        _T acc = static_cast<_T>(0);
-
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
-        {
-            acc += m_data[i] * m_data[i];
-        }
-
-        return acc;
+        return kernel::norm_squared(m_data, Rows * Cols);
     }
 
-    // frobenius_norm / norm: square root of the sum of squared entries.
-    D_CONSTEXPR _T
-    norm() const noexcept
+    // norm: the Frobenius norm, the root of the sum of squared entries.
+    D_CONSTEXPR_CPP14 Type
+    norm() const D_NOEXCEPT
     {
-        return static_cast<_T>(
-            internal::sqrt_c(static_cast<double>(norm_squared())));
+        return kernel::norm(m_data, Rows * Cols);
     }
 
     // map: a new matrix with _fn applied to each entry.
-    template<typename _Fn>
-    D_CONSTEXPR matrix
-    map(_Fn _fn) const
+    template<typename Fn>
+    D_CONSTEXPR_CPP14 matrix
+    map(Fn _fn) const
     {
         matrix m;
 
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
+        for (size_type i = 0; i < (Rows * Cols); ++i)
         {
-            m.m_data[i] = static_cast<_T>(_fn(m_data[i]));
+            m.m_data[i] = static_cast<Type>(_fn(m_data[i]));
         }
 
         return m;
@@ -512,309 +483,268 @@ public:
 
     // ---- comparison -------------------------------------------------------
 
-    D_CONSTEXPR bool
+    // equals: every entry within _tol of _o's.
+    D_CONSTEXPR_CPP14 bool
     equals(
         const matrix& _o,
-        _T            _tol = default_tolerance<_T>()
-    ) const noexcept
+        Type          _tol = default_tolerance<Type>()
+    ) const D_NOEXCEPT
     {
-        for (size_type i = 0; i < (_Rows * _Cols); ++i)
-        {
-            if (internal::abs_c(m_data[i] - _o.m_data[i]) > _tol)
-            {
-                return false;
-            }
-        }
+        return kernel::equals(m_data, _o.m_data, _tol, Rows * Cols);
+    }
 
-        return true;
+    // equal_to: every entry == _o's (operator== spells it).
+    D_CONSTEXPR_CPP14 bool
+    equal_to(const matrix& _o) const D_NOEXCEPT
+    {
+        return kernel::equal(m_data, _o.m_data, Rows * Cols);
     }
 
 private:
-    // raw, flat, row-major storage. A built-in subscript write is a constant
-    // expression from C++14, unlike std::array::operator[] (non-const), which
-    // is only constexpr from C++17. array_type (std::array) is retained above
-    // purely as the ergonomic entry type for the factories/operators.
-    _T m_data[_Rows * _Cols];
+    // raw, flat, row-major storage: the array the C core's kernels take.
+    Type m_data[Rows * Cols];
 };
 
 
-// ===========================================================================
-// II.  OPERATORS
-// ===========================================================================
+//==============================================================================
+// 2.  FREE FUNCTIONS
+//==============================================================================
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+
+// 2.1    Operators
+//------------------------------------------------------------------------------
+// A scalar factor is any arithmetic type, converted to Type; the constraint
+// is on the return type, which C++98 can spell.
+
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 operator+(
-    const matrix<_T, _Rows, _Cols>& _a,
-    const matrix<_T, _Rows, _Cols>& _b
-) noexcept
+    const matrix<Type, Rows, Cols>& _a,
+    const matrix<Type, Rows, Cols>& _b
+) D_NOEXCEPT
 {
     return _a.plus(_b);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 operator-(
-    const matrix<_T, _Rows, _Cols>& _a,
-    const matrix<_T, _Rows, _Cols>& _b
-) noexcept
+    const matrix<Type, Rows, Cols>& _a,
+    const matrix<Type, Rows, Cols>& _b
+) D_NOEXCEPT
 {
     return _a.minus(_b);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 operator-(
-    const matrix<_T, _Rows, _Cols>& _a
-) noexcept
+    const matrix<Type, Rows, Cols>& _a
+) D_NOEXCEPT
 {
     return _a.negated();
 }
 
-// scalar on the right: m * s.
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename    _S,
-         typename std::enable_if<std::is_arithmetic<_S>::value, int>::type = 0>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename Type, std::size_t Rows, std::size_t Cols, typename Scalar>
+D_CONSTEXPR_CPP14
+typename re_std::enable_if<re_std::is_arithmetic<Scalar>::value,
+                           matrix<Type, Rows, Cols> >::type
 operator*(
-    const matrix<_T, _Rows, _Cols>& _m,
-    _S                              _s
-) noexcept
+    const matrix<Type, Rows, Cols>& _m,
+    Scalar                          _s
+) D_NOEXCEPT
 {
-    return _m.scaled(static_cast<_T>(_s));
+    return _m.scaled(static_cast<Type>(_s));
 }
 
-// scalar on the left: s * m.
-template<typename    _S,
-         typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols,
-         typename std::enable_if<std::is_arithmetic<_S>::value, int>::type = 0>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename Scalar, typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14
+typename re_std::enable_if<re_std::is_arithmetic<Scalar>::value,
+                           matrix<Type, Rows, Cols> >::type
 operator*(
-    _S                              _s,
-    const matrix<_T, _Rows, _Cols>& _m
-) noexcept
+    Scalar                          _s,
+    const matrix<Type, Rows, Cols>& _m
+) D_NOEXCEPT
 {
-    return _m.scaled(static_cast<_T>(_s));
+    return _m.scaled(static_cast<Type>(_s));
 }
 
-// matrix * matrix.
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Inner,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Inner,
+         std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 operator*(
-    const matrix<_T, _Rows, _Inner>& _a,
-    const matrix<_T, _Inner, _Cols>& _b
-) noexcept
+    const matrix<Type, Rows, Inner>& _a,
+    const matrix<Type, Inner, Cols>& _b
+) D_NOEXCEPT
 {
     return _a.times(_b);
 }
 
-// matrix * vector.
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR vector<_T, _Rows>
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 vector<Type, Rows>
 operator*(
-    const matrix<_T, _Rows, _Cols>& _m,
-    const vector<_T, _Cols>&        _v
-) noexcept
+    const matrix<Type, Rows, Cols>& _m,
+    const vector<Type, Cols>&       _v
+) D_NOEXCEPT
 {
     return _m.times(_v);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR bool
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 bool
 operator==(
-    const matrix<_T, _Rows, _Cols>& _a,
-    const matrix<_T, _Rows, _Cols>& _b
-) noexcept
+    const matrix<Type, Rows, Cols>& _a,
+    const matrix<Type, Rows, Cols>& _b
+) D_NOEXCEPT
 {
-    for (std::size_t i = 0; i < (_Rows * _Cols); ++i)
-    {
-        if (!(_a.data()[i] == _b.data()[i]))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return _a.equal_to(_b);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR bool
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 bool
 operator!=(
-    const matrix<_T, _Rows, _Cols>& _a,
-    const matrix<_T, _Rows, _Cols>& _b
-) noexcept
+    const matrix<Type, Rows, Cols>& _a,
+    const matrix<Type, Rows, Cols>& _b
+) D_NOEXCEPT
 {
     return !(_a == _b);
 }
 
+// 2.2    Procedural spellings
+//------------------------------------------------------------------------------
+// Each delegates to its member; see the member for the meaning.
 
-// ===========================================================================
-// III. FREE FUNCTIONS  (procedural spelling; delegate to the members)
-// ===========================================================================
-
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Cols, _Rows>
-transpose(const matrix<_T, _Rows, _Cols>& _m) noexcept
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Cols, Rows>
+transpose(const matrix<Type, Rows, Cols>& _m) D_NOEXCEPT
 {
     return _m.transposed();
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Inner,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Inner,
+         std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 multiply(
-    const matrix<_T, _Rows, _Inner>& _a,
-    const matrix<_T, _Inner, _Cols>& _b
-) noexcept
+    const matrix<Type, Rows, Inner>& _a,
+    const matrix<Type, Inner, Cols>& _b
+) D_NOEXCEPT
 {
     return _a.times(_b);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR vector<_T, _Rows>
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 vector<Type, Rows>
 multiply(
-    const matrix<_T, _Rows, _Cols>& _m,
-    const vector<_T, _Cols>&        _v
-) noexcept
+    const matrix<Type, Rows, Cols>& _m,
+    const vector<Type, Cols>&       _v
+) D_NOEXCEPT
 {
     return _m.times(_v);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 add(
-    const matrix<_T, _Rows, _Cols>& _a,
-    const matrix<_T, _Rows, _Cols>& _b
-) noexcept
+    const matrix<Type, Rows, Cols>& _a,
+    const matrix<Type, Rows, Cols>& _b
+) D_NOEXCEPT
 {
     return _a.plus(_b);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 subtract(
-    const matrix<_T, _Rows, _Cols>& _a,
-    const matrix<_T, _Rows, _Cols>& _b
-) noexcept
+    const matrix<Type, Rows, Cols>& _a,
+    const matrix<Type, Rows, Cols>& _b
+) D_NOEXCEPT
 {
     return _a.minus(_b);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 scale(
-    const matrix<_T, _Rows, _Cols>& _m,
-    _T                              _s
-) noexcept
+    const matrix<Type, Rows, Cols>& _m,
+    Type                            _s
+) D_NOEXCEPT
 {
     return _m.scaled(_s);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR matrix<_T, _Rows, _Cols>
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 matrix<Type, Rows, Cols>
 hadamard(
-    const matrix<_T, _Rows, _Cols>& _a,
-    const matrix<_T, _Rows, _Cols>& _b
-) noexcept
+    const matrix<Type, Rows, Cols>& _a,
+    const matrix<Type, Rows, Cols>& _b
+) D_NOEXCEPT
 {
     return _a.hadamard(_b);
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR _T
-trace(const matrix<_T, _N, _N>& _m) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 Type
+trace(const matrix<Type, N, N>& _m) D_NOEXCEPT
 {
     return _m.trace();
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR _T
-frobenius_norm(const matrix<_T, _Rows, _Cols>& _m) noexcept
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 Type
+frobenius_norm(const matrix<Type, Rows, Cols>& _m) D_NOEXCEPT
 {
     return _m.norm();
 }
 
-// identity<T, N>(): the N x N identity matrix.
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR matrix<_T, _N, _N>
-identity() noexcept
+// identity<Type, N>(): the N x N identity matrix.
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 matrix<Type, N, N>
+identity() D_NOEXCEPT
 {
-    return matrix<_T, _N, _N>::identity();
+    return matrix<Type, N, N>::identity();
 }
 
-template<typename    _T,
-         std::size_t _N>
-D_CONSTEXPR matrix<_T, _N, _N>
-diagonal(const vector<_T, _N>& _d) noexcept
+template<typename Type, std::size_t N>
+D_CONSTEXPR_CPP14 matrix<Type, N, N>
+diagonal(const vector<Type, N>& _d) D_NOEXCEPT
 {
-    return matrix<_T, _N, _N>::diagonal(_d);
+    return matrix<Type, N, N>::diagonal(_d);
 }
 
-template<typename    _T,
-         std::size_t _Rows,
-         std::size_t _Cols>
-D_CONSTEXPR bool
+template<typename Type, std::size_t Rows, std::size_t Cols>
+D_CONSTEXPR_CPP14 bool
 approx_equal(
-    const matrix<_T, _Rows, _Cols>& _a,
-    const matrix<_T, _Rows, _Cols>& _b,
-    _T                              _tol = default_tolerance<_T>()
-) noexcept
+    const matrix<Type, Rows, Cols>& _a,
+    const matrix<Type, Rows, Cols>& _b,
+    Type                            _tol = default_tolerance<Type>()
+) D_NOEXCEPT
 {
     return _a.equals(_b, _tol);
 }
 
 
-// ===========================================================================
-// IV.  CONVENIENCE ALIASES
-// ===========================================================================
+//==============================================================================
+// 3.  CONVENIENCE ALIASES
+//==============================================================================
+// The alias templates are C++11's; the double ones are types at every level.
 
-template<typename _T = double> using matrix2 = matrix<_T, 2, 2>;
-template<typename _T = double> using matrix3 = matrix<_T, 3, 3>;
-template<typename _T = double> using matrix4 = matrix<_T, 4, 4>;
 
-using mat2d = matrix<double, 2, 2>;
-using mat3d = matrix<double, 3, 3>;
-using mat4d = matrix<double, 4, 4>;
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+template<typename Type = double> using matrix2 = matrix<Type, 2, 2>;
+template<typename Type = double> using matrix3 = matrix<Type, 3, 3>;
+template<typename Type = double> using matrix4 = matrix<Type, 4, 4>;
+#endif
+
+typedef matrix<double, 2, 2> mat2d;
+typedef matrix<double, 3, 3> mat3d;
+typedef matrix<double, 4, 4> mat4d;
+
 
 }  // linalg
-
 NS_END  // math
 NS_END  // djinterp
 

@@ -1,0 +1,1 @@
+tests/dawk/fixtures/c_style/spacing/one_blank.c:4:1: exactly two empty lines follow the last #include

@@ -1,0 +1,10 @@
+tests/dawk/fixtures/text/text_bad.c:1:1: LF line endings; do not commit CRLF
+tests/dawk/fixtures/text/text_bad.c:1:1: UTF-8 with no byte-order mark
+tests/dawk/fixtures/text/text_bad.c:1:1: every file ends with exactly one newline
+tests/dawk/fixtures/text/text_bad.c:2:1: no tab characters, for indentation or alignment
+tests/dawk/fixtures/text/text_bad.c:3:1: no trailing whitespace at the end of a line
+tests/dawk/fixtures/text/text_bad.c:4:1: a line should not exceed 80 characters
+tests/dawk/fixtures/text/text_bad.c:5:1: every character occupies one display column
+tests/dawk/fixtures/text/text_bad.c:6:1: every character occupies one display column
+tests/dawk/fixtures/text/text_bad.c:7:1: every character occupies one display column
+tests/dawk/fixtures/text/text_bad.c:8:1: every source file decodes as valid UTF-8
