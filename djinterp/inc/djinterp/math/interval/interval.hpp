@@ -8,27 +8,41 @@
 * open_interval, and discrete_interval into one template and exposes
 * compile-time conversion aliases between all interval configurations.
 *
+*   A face over the C core (c/math/interval.h, interval_float.h), as
+* closed_interval.hpp is: every operation forwards to
+* internal::interval_kernel<Type>. An interval's members are the values its
+* type holds within its bounds: integers, or for a floating-point bound
+* (C++20) every representable value, an open bound moving to the
+* neighbouring one. overlaps compares ranges; intersects asks for a shared
+* member. Everything compiles from C++98; the operations are constexpr from
+* C++14, the alias templates exist from C++11 (with_step and its kin have
+* C++98 forms, rebind_step and its kin), and the _v variable templates from
+* C++14.
+*
 * TEMPLATE PARAMETERS:
-*   _Type      - the value/element type (any arithmetic or ordered type)
-*   _Lower     - the lower bound
-*   _Upper     - the upper bound
-*   _LeftOpen  - true if the left endpoint is excluded  (default: false)
-*   _RightOpen - true if the right endpoint is excluded (default: false)
-*   _Step      - discrete stride; 0 means continuous    (default: 0)
-*   _SizeType  - unsigned type used for counts/indices  (default: size_t)
+*   Type      - the value/element type (any arithmetic or ordered type)
+*   Lower     - the lower bound
+*   Upper     - the upper bound
+*   LeftOpen  - true if the left endpoint is excluded  (default: false)
+*   RightOpen - true if the right endpoint is excluded (default: false)
+*   Step      - discrete stride; 0 means continuous    (default: 0)
+*   SizeType  - unsigned type used for counts/indices  (default: size_t)
 * BOUNDARY CONFIGURATIONS:
-*   [a, b]   closed        _LeftOpen=false, _RightOpen=false  (default)
-*   (a, b)   open          _LeftOpen=true,  _RightOpen=true
-*   [a, b)   half-open-R   _LeftOpen=false, _RightOpen=true
-*   (a, b]   half-open-L   _LeftOpen=true,  _RightOpen=false
+*   [a, b]   closed        LeftOpen=false, RightOpen=false  (default)
+*   (a, b)   open          LeftOpen=true,  RightOpen=true
+*   [a, b)   half-open-R   LeftOpen=false, RightOpen=true
+*   (a, b]   half-open-L   LeftOpen=true,  RightOpen=false
 * DISCRETE vs CONTINUOUS:
-*   _Step == 0  => continuous (unit-stride iteration for integral types)
-*   _Step >  0  => discrete   (stride-_Step iteration, alignment checks)
-* CONVERSION TYPE ALIASES (nested):
+*   Step == 0  => continuous (unit-stride iteration for integral types)
+*   Step >  0  => discrete   (stride-Step iteration, alignment checks)
+* CONVERSION TYPES (nested):
 *   as_closed, as_open, as_half_open_left, as_half_open_right,
-*   as_continuous, with_step<S>, with_bounds<L,U>, with_size_type<S>
-* FREE-STANDING CONVERSION METAFUNCTION:
-*   interval_cast<_Target, _Source> - converts between interval configs
+*   as_continuous, rebind_step<S>::type, rebind_bounds<L,U>::type,
+*   rebind_size_type<S>::type; from C++11 with_step<S>, with_bounds<L,U>,
+*   with_size_type<S>
+* FREE-STANDING CONVERSION METAFUNCTIONS:
+*   internal::interval_cast_to_closed<Source>::type and its kin; from C++11
+*   to_closed_interval_t<Source> and its kin
 * STRUCTURAL INTERFACE (for interval_traits):
 *   value_type, size_type, lower_bound, upper_bound, step,
 *   is_left_open, is_right_open
@@ -37,1957 +51,1645 @@
 * path:      /inc/djinterp/math/interval/interval.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.04.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.04
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  UNIFIED INTERVAL
+    ----------------
+    1.  interval
+    2.  Static member definitions
+2.  INTER-TYPE CONVERSION METAFUNCTIONS
+    -----------------------------------
+3.  CONVENIENCE TYPE ALIASES (C++11)
+    --------------------------------
+4.  INTERVAL TRAITS
+    ---------------
+    1.  Detection helpers
+    2.  Interval detection
+    3.  Boundary type detection
+    4.  Endpoint detection
+    5.  Interval property detection
+    6.  Interval type extraction
+    7.  Interval relationship traits
+    8.  Variable templates (C++14)
+*/
 
 #ifndef DJINTERP_MATH_INTERVAL_INTERVAL_HPP
 #define DJINTERP_MATH_INTERVAL_INTERVAL_HPP 1
 
 // std
-#include <cstddef>
-#include <cstdint>
-#include <limits>
-#include <string>
-#include <type_traits>
+#include <cstddef>                         // std::size_t
+#include <string>                          // std::string
 // djinterp
-#include "../../djinterp.hpp"
-#include "./closed_interval.hpp"
-#include "./open_interval.hpp"
-#include "./discrete_interval.hpp"
+#include "../../djinterp.hpp"              // framework root
+#include "../../core/meta/trait_detect.hpp"  // D_TYPE_TRAIT_HAS_STATIC_MEMBER,
+                                             // D_TYPE_TRAIT_HAS_TYPE
+#include "./interval_common.hpp"           // internal::interval_kernel,
+                                           // interval_iterator
+#include "./closed_interval.hpp"           // closed_interval
+#include "./open_interval.hpp"             // open_interval
+#include "./discrete_interval.hpp"         // discrete_interval
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int8_t ... uint64_t
+#include "../../../re_std/type_traits/integral_constant.hpp"  // integral_
+                                                              // constant
+#include "../../../re_std/type_traits/is_same.hpp"            // is_same
 
 
 NS_DJINTERP
 NS_MATH
 
-// ============================================================================
-// I.    UNIFIED INTERVAL
-// ============================================================================
 
+//==============================================================================
+// 1.  UNIFIED INTERVAL
+//==============================================================================
+
+
+// 1.1    interval
+//------------------------------------------------------------------------------
 // interval
-//   struct: compile-time interval over _Type with configurable bounds,
-// boundary openness, discrete step, and size type. When _Step is 0 the
-// interval is continuous; when _Step > 0 it is discrete. All member
-// functions adapt their semantics to the boundary configuration
-// automatically via if-constexpr dispatch.
-template<typename _Type,
-         _Type    _Lower,
-         _Type    _Upper,
-         bool     _LeftOpen  = false,
-         bool     _RightOpen = false,
-         _Type    _Step      = static_cast<_Type>(0),
-         typename _SizeType  = std::size_t>
+//   struct: compile-time interval over Type with configurable bounds,
+// boundary openness, discrete step, and size type. When Step is 0 the
+// interval is continuous; when Step > 0 it is discrete.
+template<typename Type,
+         Type     Lower,
+         Type     Upper,
+         bool     LeftOpen  = false,
+         bool     RightOpen = false,
+         Type     Step      = static_cast<Type>(0),
+         typename SizeType  = std::size_t>
 struct interval
 {
 private:
-    // ---- internal constants -------------------------------------------------
+    typedef internal::interval_kernel<Type> kernel;
+    typedef typename kernel::core_type      core_type;
 
-    // effective inclusive lower bound
-    static constexpr _Type m_eff_lower =
-        _LeftOpen
-            ? static_cast<_Type>(_Lower + 1)
-            : _Lower;
-
-    // effective inclusive upper bound
-    static constexpr _Type m_eff_upper =
-        _RightOpen
-            ? static_cast<_Type>(_Upper - 1)
-            : _Upper;
-
-    // whether this is a discrete interval
-    static constexpr bool m_is_discrete =
-        (_Step > static_cast<_Type>(0));
+    // the inclusive bounds and the kind, as constants: the conversion types
+    // below name them as template arguments, so they come before them
+    static D_CONSTEXPR_VAR Type m_eff_lower =
+        LeftOpen ? internal::interval_bound_step<Type, Lower>::up : Lower;
+    static D_CONSTEXPR_VAR Type m_eff_upper =
+        RightOpen ? internal::interval_bound_step<Type, Upper>::down : Upper;
+    static D_CONSTEXPR_VAR bool m_is_discrete = (static_cast<Type>(0) < Step);
 
 public:
-    // ---- type aliases -------------------------------------------------------
+    typedef Type                         value_type;
+    typedef SizeType                     size_type;
+    typedef interval_iterator<interval>  iterator;
 
-    using value_type = _Type;
-    using size_type  = _SizeType;
+    static D_CONSTEXPR_VAR value_type lower_bound   = Lower;
+    static D_CONSTEXPR_VAR value_type upper_bound   = Upper;
+    static D_CONSTEXPR_VAR value_type step          = Step;
+    static D_CONSTEXPR_VAR bool       is_left_open  = LeftOpen;
+    static D_CONSTEXPR_VAR bool       is_right_open = RightOpen;
+    static D_CONSTEXPR_VAR bool       is_discrete   = m_is_discrete;
 
-    // ---- static constants ---------------------------------------------------
+    D_STATIC_ASSERT((!(Upper < Lower)),
+                    "interval: Lower must be <= Upper.");
+    D_STATIC_ASSERT((!(Step < static_cast<Type>(0))),
+                    "interval: Step must be >= 0 "
+                    "(0 = continuous, > 0 = discrete).");
 
-    static constexpr value_type lower_bound   = _Lower;
-    static constexpr value_type upper_bound   = _Upper;
-    static constexpr value_type step          = _Step;
-    static constexpr bool       is_left_open  = _LeftOpen;
-    static constexpr bool       is_right_open = _RightOpen;
-    static constexpr bool       is_discrete   = m_is_discrete;
-
-    static_assert(_Lower <= _Upper,
-                  "interval: _Lower must be <= _Upper.");
-    static_assert( (_Step == static_cast<_Type>(0)) ||
-                   (_Step > static_cast<_Type>(0)),
-                  "interval: _Step must be >= 0 "
-                  "(0 = continuous, > 0 = discrete).");
-
-
-    // =========================================================================
-    // II.   CONVERSION TYPE ALIASES
-    // =========================================================================
+    // ---- conversion types --------------------------------------------------
 
     // as_closed
-    //   type: this interval with both endpoints closed.
-    // For integral types, adjusts bounds inward to match the effective
-    // inclusive range. e.g. open (2,8) becomes closed [3,7].
-    using as_closed = interval<_Type,
-                               m_eff_lower,
-                               m_eff_upper,
-                               false,
-                               false,
-                               _Step,
-                               _SizeType>;
+    //   type: this interval with both endpoints closed, over the inclusive
+    // bounds: open (2, 8) becomes closed [3, 7].
+    typedef interval<Type,
+                     m_eff_lower,
+                     m_eff_upper,
+                     false,
+                     false,
+                     Step,
+                     SizeType> as_closed;
 
     // as_open
-    //   type: this interval with both endpoints open.
-    // Widens bounds outward by one unit so that the interior matches.
-    // e.g. closed [3,7] becomes open (2,8).
-    using as_open = interval<_Type,
-                             static_cast<_Type>(m_eff_lower - 1),
-                             static_cast<_Type>(m_eff_upper + 1),
-                             true,
-                             true,
-                             _Step,
-                             _SizeType>;
+    //   type: this interval with both endpoints open, the bounds widened one
+    // unit outward: closed [3, 7] becomes open (2, 8).
+    typedef interval<Type,
+                     internal::interval_bound_step<Type, m_eff_lower>::down,
+                     internal::interval_bound_step<Type, m_eff_upper>::up,
+                     true,
+                     true,
+                     Step,
+                     SizeType> as_open;
 
     // as_half_open_right
-    //   type: this interval as [effective_lower, effective_upper + 1).
-    using as_half_open_right = interval<_Type,
-                                        m_eff_lower,
-                                        static_cast<_Type>(
-                                            m_eff_upper + 1),
-                                        false,
-                                        true,
-                                        _Step,
-                                        _SizeType>;
+    //   type: this interval as [inclusive lower, inclusive upper + 1).
+    typedef interval<Type,
+                     m_eff_lower,
+                     internal::interval_bound_step<Type, m_eff_upper>::up,
+                     false,
+                     true,
+                     Step,
+                     SizeType> as_half_open_right;
 
     // as_half_open_left
-    //   type: this interval as (effective_lower - 1, effective_upper].
-    using as_half_open_left = interval<_Type,
-                                       static_cast<_Type>(
-                                           m_eff_lower - 1),
-                                       m_eff_upper,
-                                       true,
-                                       false,
-                                       _Step,
-                                       _SizeType>;
+    //   type: this interval as (inclusive lower - 1, inclusive upper].
+    typedef interval<Type,
+                     internal::interval_bound_step<Type, m_eff_lower>::down,
+                     m_eff_upper,
+                     true,
+                     false,
+                     Step,
+                     SizeType> as_half_open_left;
 
     // as_continuous
-    //   type: this interval with step removed (continuous).
-    using as_continuous = interval<_Type,
-                                   _Lower,
-                                   _Upper,
-                                   _LeftOpen,
-                                   _RightOpen,
-                                   static_cast<_Type>(0),
-                                   _SizeType>;
-
-    // with_step
-    //   type: this interval with a specified discrete step.
-    template<_Type _NewStep>
-    using with_step = interval<_Type,
-                               _Lower,
-                               _Upper,
-                               _LeftOpen,
-                               _RightOpen,
-                               _NewStep,
-                               _SizeType>;
-
-    // with_bounds
-    //   type: this interval with different bounds but same configuration.
-    template<_Type _NewLower,
-             _Type _NewUpper>
-    using with_bounds = interval<_Type,
-                                 _NewLower,
-                                 _NewUpper,
-                                 _LeftOpen,
-                                 _RightOpen,
-                                 _Step,
-                                 _SizeType>;
-
-    // with_size_type
-    //   type: this interval with a different size type.
-    template<typename _NewSizeType>
-    using with_size_type = interval<_Type,
-                                    _Lower,
-                                    _Upper,
-                                    _LeftOpen,
-                                    _RightOpen,
-                                    _Step,
-                                    _NewSizeType>;
+    //   type: this interval with its step removed.
+    typedef interval<Type,
+                     Lower,
+                     Upper,
+                     LeftOpen,
+                     RightOpen,
+                     static_cast<Type>(0),
+                     SizeType> as_continuous;
 
     // to_closed_interval
-    //   type: equivalent closed_interval from closed_interval.hpp.
-    using to_closed_interval = closed_interval<_Type,
-                                               m_eff_lower,
-                                               m_eff_upper,
-                                               _SizeType>;
+    //   type: the equivalent closed_interval.
+    typedef closed_interval<Type,
+                            m_eff_lower,
+                            m_eff_upper,
+                            SizeType> to_closed_interval;
 
     // to_open_interval
-    //   type: equivalent open_interval from open_interval.hpp.
-    using to_open_interval = open_interval<_Type,
-                                           static_cast<_Type>(
-                                               m_eff_lower - 1),
-                                           static_cast<_Type>(
-                                               m_eff_upper + 1),
-                                           _SizeType>;
+    //   type: the equivalent open_interval.
+    typedef open_interval<
+                Type,
+                internal::interval_bound_step<Type, m_eff_lower>::down,
+                internal::interval_bound_step<Type, m_eff_upper>::up,
+                SizeType> to_open_interval;
 
     // to_discrete_interval
-    //   type: equivalent discrete_interval from discrete_interval.hpp.
-    // Uses _Step if discrete, otherwise defaults to step of 1.
-    using to_discrete_interval = discrete_interval<
-        _Type,
-        m_eff_lower,
-        m_eff_upper,
-        m_is_discrete
-            ? _Step
-            : static_cast<_Type>(1),
-        _SizeType>;
+    //   type: the equivalent discrete_interval: Step if discrete, else 1.
+    typedef discrete_interval<Type,
+                              m_eff_lower,
+                              m_eff_upper,
+                              (m_is_discrete ? Step
+                                             : static_cast<Type>(1)),
+                              SizeType> to_discrete_interval;
 
+    // rebind_step
+    //   trait: this interval with another step, as ::type (every level).
+    template<Type NewStep>
+    struct rebind_step
+    {
+        typedef interval<Type,
+                         Lower,
+                         Upper,
+                         LeftOpen,
+                         RightOpen,
+                         NewStep,
+                         SizeType> type;
+    };
 
-    // =========================================================================
-    // III.  SIZE / ELEMENT COUNT
-    // =========================================================================
+    // rebind_bounds
+    //   trait: this interval with other bounds, as ::type (every level).
+    template<Type NewLower,
+             Type NewUpper>
+    struct rebind_bounds
+    {
+        typedef interval<Type,
+                         NewLower,
+                         NewUpper,
+                         LeftOpen,
+                         RightOpen,
+                         Step,
+                         SizeType> type;
+    };
+
+    // rebind_size_type
+    //   trait: this interval with another size type, as ::type (every level).
+    template<typename NewSizeType>
+    struct rebind_size_type
+    {
+        typedef interval<Type,
+                         Lower,
+                         Upper,
+                         LeftOpen,
+                         RightOpen,
+                         Step,
+                         NewSizeType> type;
+    };
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // with_step / with_bounds / with_size_type
+    //   type: the rebind_* traits' types, as alias templates (C++11).
+    template<Type NewStep>
+    using with_step = typename rebind_step<NewStep>::type;
+
+    template<Type NewLower,
+             Type NewUpper>
+    using with_bounds = typename rebind_bounds<NewLower, NewUpper>::type;
+
+    template<typename NewSizeType>
+    using with_size_type = typename rebind_size_type<NewSizeType>::type;
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+    // ---- size and emptiness ------------------------------------------------
 
     // size
-    //   returns the number of values in the interval.
-    // Adapts to boundary openness and discrete step automatically.
-    // For continuous intervals, counts integral positions.
-    // For discrete intervals, counts step-aligned positions.
-    static constexpr size_type
-    size
-    () noexcept
+    //   query: the number of values; step-aligned ones when discrete.
+    static D_CONSTEXPR_CPP14 size_type
+    size() D_NOEXCEPT
     {
-        // empty check
-        if constexpr (m_eff_lower > m_eff_upper)
-        {
-            return size_type{0};
-        }
-        else if constexpr (m_is_discrete)
-        {
-            // discrete: floor((eff_upper - eff_lower) / step) + 1
-            return static_cast<size_type>(
-                (m_eff_upper - m_eff_lower) / _Step + 1
-            );
-        }
-        else
-        {
-            // continuous integral count
-            return static_cast<size_type>(
-                m_eff_upper - m_eff_lower + 1
-            );
-        }
+        return static_cast<size_type>(kernel::count(m_core()));
     }
 
     // is_empty
-    //   returns true if the interval contains no values.
-    static constexpr bool
-    is_empty
-    () noexcept
+    //   query: whether the interval holds no value.
+    static D_CONSTEXPR_CPP14 bool
+    is_empty() D_NOEXCEPT
     {
-        return (m_eff_lower > m_eff_upper);
+        return kernel::is_empty(m_core());
     }
 
-
-    // =========================================================================
-    // IV.   CONTAINMENT
-    // =========================================================================
+    // ---- containment -------------------------------------------------------
 
     // contains
-    //   checks whether _value lies within the interval respecting
-    // boundary openness and, for discrete intervals, step alignment.
-    static constexpr bool
-    contains
-    (
-        const value_type& _value
-    ) noexcept
+    //   query: whether _value lies within the interval, respecting openness
+    // and, when discrete, the stride from the first member.
+    static D_CONSTEXPR_CPP14 bool
+    contains(const value_type& _value) D_NOEXCEPT
     {
-        // left bound check
-        if constexpr (_LeftOpen)
-        {
-            if (_value <= _Lower)
-            {
-                return false;
-            }
-        }
-        else
-        {
-            if (_value < _Lower)
-            {
-                return false;
-            }
-        }
-
-        // right bound check
-        if constexpr (_RightOpen)
-        {
-            if (_value >= _Upper)
-            {
-                return false;
-            }
-        }
-        else
-        {
-            if (_value > _Upper)
-            {
-                return false;
-            }
-        }
-
-        // discrete alignment check
-        if constexpr (m_is_discrete)
-        {
-            return ((_value - m_eff_lower) % _Step == 0);
-        }
-
-        return true;
+        return kernel::contains(m_core(), _value);
     }
 
     // contains_in_range
-    //   checks whether _value lies within the bounds without requiring
-    // step alignment. Equivalent to contains() for continuous intervals.
-    static constexpr bool
-    contains_in_range
-    (
-        const value_type& _value
-    ) noexcept
+    //   query: whether _value lies within the bounds, on a step or not.
+    static D_CONSTEXPR_CPP14 bool
+    contains_in_range(const value_type& _value) D_NOEXCEPT
     {
-        // left bound check
-        bool left_ok = _LeftOpen
-            ? (_value > _Lower)
-            : (_value >= _Lower);
-
-        // right bound check
-        bool right_ok = _RightOpen
-            ? (_value < _Upper)
-            : (_value <= _Upper);
-
-        return (left_ok && right_ok);
+        return kernel::contains_in_range(m_core(), _value);
     }
 
-
-    // =========================================================================
-    // V.    CLAMPING
-    // =========================================================================
+    // ---- clamping ----------------------------------------------------------
 
     // clamp
-    //   constrains _value to the nearest valid value in the interval.
-    // For discrete intervals, snaps down to the nearest step-aligned
-    // value within bounds.
-    static constexpr value_type
-    clamp
-    (
-        const value_type& _value
-    ) noexcept
+    //   transform: _value constrained to the interval; when discrete, down to
+    // a whole step.
+    static D_CONSTEXPR_CPP14 value_type
+    clamp(const value_type& _value) D_NOEXCEPT
     {
-        // below effective lower
-        if (_value < m_eff_lower)
-        {
-            return m_eff_lower;
-        }
-
-        // above effective upper
-        if (_value > m_eff_upper)
-        {
-            if constexpr (m_is_discrete)
-            {
-                // snap to largest step-aligned value
-                value_type steps = (m_eff_upper - m_eff_lower) / _Step;
-
-                return static_cast<value_type>(
-                    m_eff_lower + steps * _Step
-                );
-            }
-            else
-            {
-                return m_eff_upper;
-            }
-        }
-
-        // within range
-        if constexpr (m_is_discrete)
-        {
-            // snap down to nearest step-aligned value
-            value_type offset = (_value - m_eff_lower) / _Step;
-
-            return static_cast<value_type>(
-                m_eff_lower + offset * _Step
-            );
-        }
-
-        return _value;
+        return kernel::clamp(m_core(), _value);
     }
 
     // clamp_nearest
-    //   constrains _value to the nearest discrete value, rounding to
-    // whichever step-aligned value is closer. For continuous intervals,
-    // behaves identically to clamp().
-    static constexpr value_type
-    clamp_nearest
-    (
-        const value_type& _value
-    ) noexcept
+    //   transform: _value constrained to the nearer member, a tie going down;
+    // clamp() for a continuous interval.
+    static D_CONSTEXPR_CPP14 value_type
+    clamp_nearest(const value_type& _value) D_NOEXCEPT
     {
-        if constexpr (!m_is_discrete)
-        {
-            return clamp(_value);
-        }
-        else
-        {
-            // below range
-            if (_value < m_eff_lower)
-            {
-                return m_eff_lower;
-            }
-
-            // find the max step-aligned value
-            value_type max_steps = (m_eff_upper - m_eff_lower) / _Step;
-            value_type max_val   = static_cast<value_type>(
-                m_eff_lower + max_steps * _Step
-            );
-
-            // above range
-            if (_value > max_val)
-            {
-                return max_val;
-            }
-
-            // within range: find nearest
-            value_type idx       = (_value - m_eff_lower) / _Step;
-            value_type low_snap  = static_cast<value_type>(
-                m_eff_lower + idx * _Step
-            );
-            value_type high_snap = static_cast<value_type>(
-                low_snap + _Step
-            );
-
-            // choose the closer snap point
-            if ( (high_snap <= m_eff_upper)               &&
-                 ((_value - low_snap) > (high_snap - _value)) )
-            {
-                return high_snap;
-            }
-
-            return low_snap;
-        }
+        return kernel::clamp_nearest(m_core(), _value);
     }
 
+    // ---- normalization -----------------------------------------------------
+    // Each maps _value to [0, 1], as a double or, as <FloatType>, in another
+    // precision: normalize over [Lower, Upper], normalize_effective over the
+    // inclusive bounds, normalize_discrete over the step indices.
 
-    // =========================================================================
-    // VI.   NORMALIZATION
-    // =========================================================================
-
-    // normalize
-    //   maps _value to [0.0, 1.0] relative to the full span.
-    // Returns 0 for degenerate intervals where lower == upper.
-    template<typename _FloatType = double>
-    static constexpr _FloatType
-    normalize
-    (
-        const value_type& _value
-    ) noexcept
+    static D_CONSTEXPR_CPP14 double
+    normalize(const value_type& _value) D_NOEXCEPT
     {
-        if constexpr (_Lower == _Upper)
-        {
-            return _FloatType{0};
-        }
-        else
-        {
-            return ( static_cast<_FloatType>(_value - _Lower) /
-                     static_cast<_FloatType>(_Upper - _Lower) );
-        }
+        return normalize<double>(_value);
     }
 
-    // normalize_effective
-    //   maps _value to [0.0, 1.0] relative to the effective inclusive
-    // span [m_eff_lower, m_eff_upper].
-    template<typename _FloatType = double>
-    static constexpr _FloatType
-    normalize_effective
-    (
-        const value_type& _value
-    ) noexcept
+    template<typename FloatType>
+    static D_CONSTEXPR_CPP14 FloatType
+    normalize(const value_type& _value) D_NOEXCEPT
     {
-        if constexpr (m_eff_lower == m_eff_upper)
-        {
-            return _FloatType{0};
-        }
-        else
-        {
-            return ( static_cast<_FloatType>(
-                         _value - m_eff_lower) /
-                     static_cast<_FloatType>(
-                         m_eff_upper - m_eff_lower) );
-        }
+        return m_divide<FloatType>(kernel::normalize_terms(m_core(), _value));
     }
 
-    // normalize_discrete
-    //   maps _value to [0.0, 1.0] relative to the discrete step count.
-    // Step index 0 maps to 0.0; the last step maps to 1.0.
-    // Falls back to normalize_effective for continuous intervals.
-    template<typename _FloatType = double>
-    static constexpr _FloatType
-    normalize_discrete
-    (
-        const value_type& _value
-    ) noexcept
+    static D_CONSTEXPR_CPP14 double
+    normalize_effective(const value_type& _value) D_NOEXCEPT
     {
-        if constexpr (!m_is_discrete)
-        {
-            return normalize_effective<_FloatType>(_value);
-        }
-        else
-        {
-            constexpr size_type count = size();
-
-            if constexpr (count <= 1)
-            {
-                return _FloatType{0};
-            }
-            else
-            {
-                value_type step_index =
-                    (_value - m_eff_lower) / _Step;
-
-                return ( static_cast<_FloatType>(step_index) /
-                         static_cast<_FloatType>(count - 1) );
-            }
-        }
+        return normalize_effective<double>(_value);
     }
 
+    template<typename FloatType>
+    static D_CONSTEXPR_CPP14 FloatType
+    normalize_effective(const value_type& _value) D_NOEXCEPT
+    {
+        return m_divide<FloatType>(
+            kernel::normalize_effective_terms(m_core(), _value));
+    }
 
-    // =========================================================================
-    // VII.  DISCRETE ACCESS (enabled when _Step > 0)
-    // =========================================================================
+    static D_CONSTEXPR_CPP14 double
+    normalize_discrete(const value_type& _value) D_NOEXCEPT
+    {
+        return normalize_discrete<double>(_value);
+    }
+
+    template<typename FloatType>
+    static D_CONSTEXPR_CPP14 FloatType
+    normalize_discrete(const value_type& _value) D_NOEXCEPT
+    {
+        return m_divide<FloatType>(
+            kernel::normalize_discrete_terms(m_core(), _value));
+    }
+
+    // ---- discrete access ---------------------------------------------------
 
     // at
-    //   returns the discrete value at the given step index.
-    // Index 0 returns the effective lower bound.
-    static constexpr value_type
-    at
-    (
-        size_type _index
-    ) noexcept
+    //   access: the member _index steps past the first (a continuous
+    // interval steps by 1).
+    static D_CONSTEXPR_CPP14 value_type
+    at(size_type _index) D_NOEXCEPT
     {
-        if constexpr (m_is_discrete)
-        {
-            return static_cast<value_type>(
-                m_eff_lower +
-                static_cast<_Type>(_index) * _Step
-            );
-        }
-        else
-        {
-            // continuous: treat as unit-stride
-            return static_cast<value_type>(
-                m_eff_lower + static_cast<_Type>(_index)
-            );
-        }
+        return kernel::at(m_core(), static_cast<d_math_umax>(_index));
     }
 
     // index_of
-    //   returns the step index of _value, or size() if _value is not
-    // a member of the interval.
-    static constexpr size_type
-    index_of
-    (
-        const value_type& _value
-    ) noexcept
+    //   query: _value's index, or size() if it is not a member.
+    static D_CONSTEXPR_CPP14 size_type
+    index_of(const value_type& _value) D_NOEXCEPT
     {
-        if (!contains(_value))
-        {
-            return size();
-        }
-
-        if constexpr (m_is_discrete)
-        {
-            return static_cast<size_type>(
-                (_value - m_eff_lower) / _Step
-            );
-        }
-        else
-        {
-            return static_cast<size_type>(
-                _value - m_eff_lower
-            );
-        }
-    }
-
-    // last
-    //   returns the largest valid value in the interval.
-    // For discrete intervals, the largest step-aligned value.
-    static constexpr value_type
-    last
-    () noexcept
-    {
-        if constexpr (m_is_discrete)
-        {
-            value_type steps =
-                (m_eff_upper - m_eff_lower) / _Step;
-
-            return static_cast<value_type>(
-                m_eff_lower + steps * _Step
-            );
-        }
-        else
-        {
-            return m_eff_upper;
-        }
+        return static_cast<size_type>(kernel::index_of(m_core(), _value));
     }
 
     // first
-    //   returns the smallest valid value in the interval.
-    static constexpr value_type
-    first
-    () noexcept
+    //   query: the smallest member.
+    static D_CONSTEXPR_CPP14 value_type
+    first() D_NOEXCEPT
     {
-        return m_eff_lower;
+        return kernel::first(m_core());
     }
 
-
-    // =========================================================================
-    // VIII. OVERLAP DETECTION
-    // =========================================================================
-
-    // overlaps
-    //   checks whether this interval overlaps with another interval
-    // of the same value type. Compares effective inclusive ranges.
-    template<_Type    _OtherLower,
-             _Type    _OtherUpper,
-             bool     _OtherLeftOpen  = false,
-             bool     _OtherRightOpen = false,
-             _Type    _OtherStep      = static_cast<_Type>(0),
-             typename _OtherSizeType  = std::size_t>
-    static constexpr bool
-    overlaps
-    (
-        const interval<_Type,
-                       _OtherLower,
-                       _OtherUpper,
-                       _OtherLeftOpen,
-                       _OtherRightOpen,
-                       _OtherStep,
-                       _OtherSizeType>&
-    ) noexcept
+    // last
+    //   query: the largest member; when discrete, the last whole step.
+    static D_CONSTEXPR_CPP14 value_type
+    last() D_NOEXCEPT
     {
-        // compute effective bounds of the other interval
-        constexpr _Type other_eff_lower =
-            _OtherLeftOpen
-                ? static_cast<_Type>(_OtherLower + 1)
-                : _OtherLower;
-
-        constexpr _Type other_eff_upper =
-            _OtherRightOpen
-                ? static_cast<_Type>(_OtherUpper - 1)
-                : _OtherUpper;
-
-        return !( (m_eff_upper < other_eff_lower) ||
-                  (m_eff_lower > other_eff_upper) );
+        return kernel::last(m_core());
     }
 
-    // overlaps (closed_interval interop)
-    //   checks overlap with a closed_interval from closed_interval.hpp.
-    template<_Type _OtherLower,
-             _Type _OtherUpper>
-    static constexpr bool
-    overlaps
-    (
-        const closed_interval<_Type,
-                              _OtherLower,
-                              _OtherUpper,
-                              _SizeType>&
-    ) noexcept
+    // ---- overlap detection -------------------------------------------------
+    // Each compares inclusive ranges, ignoring strides; an empty interval
+    // overlaps nothing.
+
+    template<Type     OtherLower,
+             Type     OtherUpper,
+             bool     OtherLeftOpen,
+             bool     OtherRightOpen,
+             Type     OtherStep,
+             typename OtherSizeType>
+    static D_CONSTEXPR_CPP14 bool
+    overlaps(
+        const interval<Type,
+                       OtherLower,
+                       OtherUpper,
+                       OtherLeftOpen,
+                       OtherRightOpen,
+                       OtherStep,
+                       OtherSizeType>& _other
+    ) D_NOEXCEPT
     {
-        return !( (m_eff_upper < _OtherLower) ||
-                  (m_eff_lower > _OtherUpper) );
+        (void)_other;
+
+        return kernel::overlaps(
+            m_core(),
+            kernel::make(OtherLower,
+                         OtherUpper,
+                         internal::interval_bounds(OtherLeftOpen,
+                                                   OtherRightOpen),
+                         OtherStep));
     }
 
-    // overlaps (open_interval interop)
-    //   checks overlap with an open_interval from open_interval.hpp.
-    template<_Type _OtherLower,
-             _Type _OtherUpper>
-    static constexpr bool
-    overlaps
-    (
-        const open_interval<_Type,
-                            _OtherLower,
-                            _OtherUpper,
-                            _SizeType>&
-    ) noexcept
+    template<Type OtherLower,
+             Type OtherUpper>
+    static D_CONSTEXPR_CPP14 bool
+    overlaps(
+        const closed_interval<Type,
+                              OtherLower,
+                              OtherUpper,
+                              SizeType>& _other
+    ) D_NOEXCEPT
     {
-        constexpr _Type other_eff_lower =
-            static_cast<_Type>(_OtherLower + 1);
-        constexpr _Type other_eff_upper =
-            static_cast<_Type>(_OtherUpper - 1);
+        (void)_other;
 
-        return !( (m_eff_upper < other_eff_lower) ||
-                  (m_eff_lower > other_eff_upper) );
+        return kernel::overlaps(m_core(),
+                                kernel::make(OtherLower,
+                                             OtherUpper,
+                                             D_INTERVAL_CLOSED,
+                                             static_cast<Type>(0)));
     }
 
-    // overlaps (discrete_interval interop)
-    //   checks overlap with a discrete_interval from
-    // discrete_interval.hpp.
-    template<_Type _OtherLower,
-             _Type _OtherUpper,
-             _Type _OtherStep>
-    static constexpr bool
-    overlaps
-    (
-        const discrete_interval<_Type,
-                                _OtherLower,
-                                _OtherUpper,
-                                _OtherStep,
-                                _SizeType>&
-    ) noexcept
+    template<Type OtherLower,
+             Type OtherUpper>
+    static D_CONSTEXPR_CPP14 bool
+    overlaps(
+        const open_interval<Type,
+                            OtherLower,
+                            OtherUpper,
+                            SizeType>& _other
+    ) D_NOEXCEPT
     {
-        return !( (m_eff_upper < _OtherLower) ||
-                  (m_eff_lower > _OtherUpper) );
+        (void)_other;
+
+        return kernel::overlaps(m_core(),
+                                kernel::make(OtherLower,
+                                             OtherUpper,
+                                             D_INTERVAL_OPEN,
+                                             static_cast<Type>(0)));
     }
 
+    template<Type OtherLower,
+             Type OtherUpper,
+             Type OtherStep>
+    static D_CONSTEXPR_CPP14 bool
+    overlaps(
+        const discrete_interval<Type,
+                                OtherLower,
+                                OtherUpper,
+                                OtherStep,
+                                SizeType>& _other
+    ) D_NOEXCEPT
+    {
+        (void)_other;
 
-    // =========================================================================
-    // IX.   VALIDATION
-    // =========================================================================
+        return kernel::overlaps(m_core(),
+                                kernel::make(OtherLower,
+                                             OtherUpper,
+                                             D_INTERVAL_CLOSED,
+                                             OtherStep));
+    }
+
+    // ---- shared members ----------------------------------------------------
+    // Each is true when the intervals share a member: a value both hold,
+    // strides and openness considered -- for two discrete intervals over an
+    // integer type, a value on both strides, by the Chinese remainder
+    // theorem. Two continuous intervals share a member where they overlap.
+
+    template<Type     OtherLower,
+             Type     OtherUpper,
+             bool     OtherLeftOpen,
+             bool     OtherRightOpen,
+             Type     OtherStep,
+             typename OtherSizeType>
+    static D_CONSTEXPR_CPP14 bool
+    intersects(
+        const interval<Type,
+                       OtherLower,
+                       OtherUpper,
+                       OtherLeftOpen,
+                       OtherRightOpen,
+                       OtherStep,
+                       OtherSizeType>& _other
+    ) D_NOEXCEPT
+    {
+        (void)_other;
+
+        return kernel::intersects(
+            m_core(),
+            kernel::make(OtherLower,
+                         OtherUpper,
+                         internal::interval_bounds(OtherLeftOpen,
+                                                   OtherRightOpen),
+                         OtherStep));
+    }
+
+    template<Type OtherLower,
+             Type OtherUpper>
+    static D_CONSTEXPR_CPP14 bool
+    intersects(
+        const closed_interval<Type,
+                              OtherLower,
+                              OtherUpper,
+                              SizeType>& _other
+    ) D_NOEXCEPT
+    {
+        (void)_other;
+
+        return kernel::intersects(m_core(),
+                                  kernel::make(OtherLower,
+                                               OtherUpper,
+                                               D_INTERVAL_CLOSED,
+                                               static_cast<Type>(0)));
+    }
+
+    template<Type OtherLower,
+             Type OtherUpper>
+    static D_CONSTEXPR_CPP14 bool
+    intersects(
+        const open_interval<Type,
+                            OtherLower,
+                            OtherUpper,
+                            SizeType>& _other
+    ) D_NOEXCEPT
+    {
+        (void)_other;
+
+        return kernel::intersects(m_core(),
+                                  kernel::make(OtherLower,
+                                               OtherUpper,
+                                               D_INTERVAL_OPEN,
+                                               static_cast<Type>(0)));
+    }
+
+    template<Type OtherLower,
+             Type OtherUpper,
+             Type OtherStep>
+    static D_CONSTEXPR_CPP14 bool
+    intersects(
+        const discrete_interval<Type,
+                                OtherLower,
+                                OtherUpper,
+                                OtherStep,
+                                SizeType>& _other
+    ) D_NOEXCEPT
+    {
+        (void)_other;
+
+        return kernel::intersects(m_core(),
+                                  kernel::make(OtherLower,
+                                               OtherUpper,
+                                               D_INTERVAL_CLOSED,
+                                               OtherStep));
+    }
+
+    // ---- validation --------------------------------------------------------
 
     // is_valid
-    //   returns true if the interval is well-formed.
-    static constexpr bool
-    is_valid
-    () noexcept
+    //   query: whether the interval is well-formed (Lower <= Upper, Step >=
+    // 0).
+    static D_CONSTEXPR_CPP14 bool
+    is_valid() D_NOEXCEPT
     {
-        if constexpr (m_is_discrete)
-        {
-            return ( (_Lower <= _Upper) &&
-                     (_Step > static_cast<_Type>(0)) );
-        }
-        else
-        {
-            return (_Lower <= _Upper);
-        }
+        return kernel::is_valid(m_core());
     }
 
     // is_degenerate
-    //   returns true if the interval contains exactly one value.
-    static constexpr bool
-    is_degenerate
-    () noexcept
+    //   query: whether the interval holds exactly one value.
+    static D_CONSTEXPR_CPP14 bool
+    is_degenerate() D_NOEXCEPT
     {
-        return (size() == 1);
+        return (kernel::count(m_core()) == 1u);
     }
 
-
-    // =========================================================================
-    // X.    STRING REPRESENTATION
-    // =========================================================================
+    // ---- string representation ---------------------------------------------
 
     // to_string
-    //   returns a human-readable representation of the interval.
-    // Closed: [a, b], Open: (a, b), Half: [a, b) / (a, b]
-    // Discrete: appends :step, e.g. [a:s:b]
+    //   format: "[a, b]", "(a, b)", "[a, b)", "(a, b]", or with the step,
+    // "[a:s:b]".
     static std::string
-    to_string
-    ()
+    to_string()
     {
-        std::string result;
-
-        // left bracket
-        result += _LeftOpen ? "(" : "[";
-
-        // body
-        if constexpr (m_is_discrete)
-        {
-            result += std::to_string(_Lower);
-            result += ":";
-            result += std::to_string(_Step);
-            result += ":";
-            result += std::to_string(_Upper);
-        }
-        else
-        {
-            result += std::to_string(_Lower);
-            result += ", ";
-            result += std::to_string(_Upper);
-        }
-
-        // right bracket
-        result += _RightOpen ? ")" : "]";
-
-        return result;
+        return kernel::to_string(m_core());
     }
 
+    // ---- iteration ---------------------------------------------------------
 
-    // =========================================================================
-    // XI.   ITERATOR
-    // =========================================================================
-
-    // iterator
-    //   struct: forward iterator over the values in the interval.
-    // Advances by _Step for discrete intervals, by 1 for continuous.
-    struct iterator
+    // begin / end
+    //   iteration: over the members, by index.
+    static D_CONSTEXPR iterator
+    begin() D_NOEXCEPT
     {
-        using iterator_category = std::forward_iterator_tag;
-        using difference_type   = std::ptrdiff_t;
-        using value_type        = _Type;
-        using pointer           = const _Type*;
-        using reference         = const _Type&;
-
-        value_type m_current;
-
-        constexpr explicit iterator(value_type _val)
-            : m_current(_val)
-        {
-        }
-
-        constexpr value_type operator*() const noexcept
-        {
-            return m_current;
-        }
-
-        constexpr iterator& operator++() noexcept
-        {
-            if constexpr (m_is_discrete)
-            {
-                m_current = static_cast<value_type>(
-                    m_current + _Step
-                );
-            }
-            else
-            {
-                ++m_current;
-            }
-
-            return *this;
-        }
-
-        constexpr iterator operator++(int) noexcept
-        {
-            iterator tmp = *this;
-
-            if constexpr (m_is_discrete)
-            {
-                m_current = static_cast<value_type>(
-                    m_current + _Step
-                );
-            }
-            else
-            {
-                ++m_current;
-            }
-
-            return tmp;
-        }
-
-        constexpr bool
-        operator==
-        (
-            const iterator& _other
-        ) const noexcept
-        {
-            return (m_current == _other.m_current);
-        }
-
-        constexpr bool
-        operator!=
-        (
-            const iterator& _other
-        ) const noexcept
-        {
-            if constexpr (m_is_discrete)
-            {
-                // use < to catch overshoot past sentinel
-                return (m_current < _other.m_current);
-            }
-            else
-            {
-                return (m_current != _other.m_current);
-            }
-        }
-    };
-
-    // begin
-    //   returns an iterator to the first valid value.
-    static constexpr iterator begin() noexcept
-    {
-        return iterator(m_eff_lower);
+        return iterator(0);
     }
 
-    // end
-    //   returns a past-the-end sentinel iterator.
-    static constexpr iterator end() noexcept
+    static D_CONSTEXPR_CPP14 iterator
+    end() D_NOEXCEPT
     {
-        if constexpr (m_is_discrete)
-        {
-            value_type steps =
-                (m_eff_upper - m_eff_lower) / _Step;
-            value_type past_end = static_cast<value_type>(
-                m_eff_lower + (steps + 1) * _Step
-            );
+        return iterator(size());
+    }
 
-            return iterator(past_end);
-        }
-        else
-        {
-            return iterator(
-                static_cast<value_type>(m_eff_upper + 1)
-            );
-        }
+private:
+    // m_core
+    //   the interval as its kernel takes it.
+    static D_CONSTEXPR_CPP14 core_type
+    m_core() D_NOEXCEPT
+    {
+        return kernel::make(Lower,
+                            Upper,
+                            internal::interval_bounds(LeftOpen, RightOpen),
+                            Step);
+    }
+
+    // m_divide
+    //   a normalization's terms divided in FloatType.
+    template<typename FloatType>
+    static D_CONSTEXPR_CPP14 FloatType
+    m_divide(const struct d_math_ratio& _terms) D_NOEXCEPT
+    {
+        return ( static_cast<FloatType>(_terms.numerator) /
+                 static_cast<FloatType>(_terms.denominator) );
     }
 };
 
+// 1.2    Static member definitions
+//------------------------------------------------------------------------------
+// As closed_interval.hpp's: definitions below C++17, redeclarations from it.
+#define D_INTERNAL_MATH_INTERVAL_STATIC(TYPE, NAME)                            \
+    template<typename Type,                                                    \
+             Type     Lower,                                                   \
+             Type     Upper,                                                   \
+             bool     LeftOpen,                                                \
+             bool     RightOpen,                                               \
+             Type     Step,                                                    \
+             typename SizeType>                                                \
+    D_CONSTEXPR_VAR TYPE interval<Type,                                        \
+                                  Lower,                                       \
+                                  Upper,                                       \
+                                  LeftOpen,                                    \
+                                  RightOpen,                                   \
+                                  Step,                                        \
+                                  SizeType>::NAME;
 
-// ============================================================================
-// XII.  INTER-TYPE CONVERSION METAFUNCTION
-// ============================================================================
+D_INTERNAL_MATH_INTERVAL_STATIC(Type, m_eff_lower)
+D_INTERNAL_MATH_INTERVAL_STATIC(Type, m_eff_upper)
+D_INTERNAL_MATH_INTERVAL_STATIC(bool, m_is_discrete)
+D_INTERNAL_MATH_INTERVAL_STATIC(Type, lower_bound)
+D_INTERNAL_MATH_INTERVAL_STATIC(Type, upper_bound)
+D_INTERNAL_MATH_INTERVAL_STATIC(Type, step)
+D_INTERNAL_MATH_INTERVAL_STATIC(bool, is_left_open)
+D_INTERNAL_MATH_INTERVAL_STATIC(bool, is_right_open)
+D_INTERNAL_MATH_INTERVAL_STATIC(bool, is_discrete)
+
+#undef D_INTERNAL_MATH_INTERVAL_STATIC
+
+
+//==============================================================================
+// 2.  INTER-TYPE CONVERSION METAFUNCTIONS
+//==============================================================================
+// Each converts any interval-like type -- one with value_type, size_type and
+// the structural constants -- to one of the four templates, as ::type.
+
 
 NS_INTERNAL
 
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
     // interval_cast_helper
-    //   helper: primary template (undefined).
-    template<template<typename, auto, auto, auto...> typename _Target,
-             typename                                        _Source>
+    //   helper: primary template, declared and never defined (C++17: `auto`
+    // template parameters).
+    template<template<typename, auto, auto, auto...> typename Target,
+             typename                                         Source>
     struct interval_cast_helper;
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-    // interval_cast_helper => closed_interval
+    // interval_cast_to_closed
     //   helper: converts any interval to closed_interval.
-    template<typename _Source>
+    template<typename Source>
     struct interval_cast_to_closed
     {
     private:
-        using vt = typename _Source::value_type;
-        using st = typename _Source::size_type;
+        typedef typename Source::value_type vt;
+        typedef typename Source::size_type  st;
 
-        static constexpr vt eff_lo =
-            _Source::is_left_open
-                ? static_cast<vt>(_Source::lower_bound + 1)
-                : _Source::lower_bound;
-
-        static constexpr vt eff_hi =
-            _Source::is_right_open
-                ? static_cast<vt>(_Source::upper_bound - 1)
-                : _Source::upper_bound;
+        static D_CONSTEXPR_VAR vt eff_lo =
+            Source::is_left_open
+                ? interval_bound_step<vt, Source::lower_bound>::up
+                : Source::lower_bound;
+        static D_CONSTEXPR_VAR vt eff_hi =
+            Source::is_right_open
+                ? interval_bound_step<vt, Source::upper_bound>::down
+                : Source::upper_bound;
 
     public:
-        using type = closed_interval<vt, eff_lo, eff_hi, st>;
+        typedef closed_interval<vt, eff_lo, eff_hi, st> type;
     };
 
     // interval_cast_to_open
     //   helper: converts any interval to open_interval.
-    template<typename _Source>
+    template<typename Source>
     struct interval_cast_to_open
     {
     private:
-        using vt = typename _Source::value_type;
-        using st = typename _Source::size_type;
+        typedef typename Source::value_type vt;
+        typedef typename Source::size_type  st;
 
-        static constexpr vt eff_lo =
-            _Source::is_left_open
-                ? static_cast<vt>(_Source::lower_bound + 1)
-                : _Source::lower_bound;
-
-        static constexpr vt eff_hi =
-            _Source::is_right_open
-                ? static_cast<vt>(_Source::upper_bound - 1)
-                : _Source::upper_bound;
+        static D_CONSTEXPR_VAR vt eff_lo =
+            Source::is_left_open
+                ? interval_bound_step<vt, Source::lower_bound>::up
+                : Source::lower_bound;
+        static D_CONSTEXPR_VAR vt eff_hi =
+            Source::is_right_open
+                ? interval_bound_step<vt, Source::upper_bound>::down
+                : Source::upper_bound;
 
     public:
-        using type = open_interval<vt,
-                                   static_cast<vt>(eff_lo - 1),
-                                   static_cast<vt>(eff_hi + 1),
-                                   st>;
+        typedef open_interval<vt,
+                              interval_bound_step<vt, eff_lo>::down,
+                              interval_bound_step<vt, eff_hi>::up,
+                              st> type;
     };
 
     // interval_cast_to_discrete
-    //   helper: converts any interval to discrete_interval with a
-    // given step. If the source has a step > 0, it is preserved;
-    // otherwise defaults to 1.
-    template<typename _Source>
+    //   helper: converts any interval to discrete_interval, keeping a
+    // positive step and otherwise using 1.
+    template<typename Source>
     struct interval_cast_to_discrete
     {
     private:
-        using vt = typename _Source::value_type;
-        using st = typename _Source::size_type;
+        typedef typename Source::value_type vt;
+        typedef typename Source::size_type  st;
 
-        static constexpr vt eff_lo =
-            _Source::is_left_open
-                ? static_cast<vt>(_Source::lower_bound + 1)
-                : _Source::lower_bound;
-
-        static constexpr vt eff_hi =
-            _Source::is_right_open
-                ? static_cast<vt>(_Source::upper_bound - 1)
-                : _Source::upper_bound;
-
-        static constexpr vt src_step = _Source::step;
-
-        static constexpr vt resolved_step =
-            (src_step > static_cast<vt>(0))
-                ? src_step
-                : static_cast<vt>(1);
+        static D_CONSTEXPR_VAR vt eff_lo =
+            Source::is_left_open
+                ? interval_bound_step<vt, Source::lower_bound>::up
+                : Source::lower_bound;
+        static D_CONSTEXPR_VAR vt eff_hi =
+            Source::is_right_open
+                ? interval_bound_step<vt, Source::upper_bound>::down
+                : Source::upper_bound;
+        static D_CONSTEXPR_VAR vt resolved_step =
+            (static_cast<vt>(0) < Source::step) ? Source::step
+                                                : static_cast<vt>(1);
 
     public:
-        using type = discrete_interval<vt,
-                                       eff_lo,
-                                       eff_hi,
-                                       resolved_step,
-                                       st>;
+        typedef discrete_interval<vt, eff_lo, eff_hi, resolved_step, st> type;
     };
 
     // interval_cast_to_interval
-    //   helper: converts any sub-module interval back to unified
-    // interval, preserving all properties.
-    template<typename _Source>
+    //   helper: converts any interval to the unified interval, keeping every
+    // property.
+    template<typename Source>
     struct interval_cast_to_interval
     {
     private:
-        using vt = typename _Source::value_type;
-        using st = typename _Source::size_type;
-
-        static constexpr vt src_step = _Source::step;
+        typedef typename Source::value_type vt;
+        typedef typename Source::size_type  st;
 
     public:
-        using type = interval<vt,
-                              _Source::lower_bound,
-                              _Source::upper_bound,
-                              _Source::is_left_open,
-                              _Source::is_right_open,
-                              src_step,
-                              st>;
+        typedef interval<vt,
+                         Source::lower_bound,
+                         Source::upper_bound,
+                         Source::is_left_open,
+                         Source::is_right_open,
+                         Source::step,
+                         st> type;
     };
 
 NS_END  // internal
 
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 // to_closed_interval_t
 //   type: converts any interval-like type to closed_interval.
-template<typename _Source>
+template<typename Source>
 using to_closed_interval_t =
-    typename internal::interval_cast_to_closed<_Source>::type;
+    typename internal::interval_cast_to_closed<Source>::type;
 
 // to_open_interval_t
 //   type: converts any interval-like type to open_interval.
-template<typename _Source>
+template<typename Source>
 using to_open_interval_t =
-    typename internal::interval_cast_to_open<_Source>::type;
+    typename internal::interval_cast_to_open<Source>::type;
 
 // to_discrete_interval_t
 //   type: converts any interval-like type to discrete_interval.
-template<typename _Source>
+template<typename Source>
 using to_discrete_interval_t =
-    typename internal::interval_cast_to_discrete<_Source>::type;
+    typename internal::interval_cast_to_discrete<Source>::type;
 
 // to_interval_t
-//   type: converts any sub-module interval to the unified interval.
-template<typename _Source>
+//   type: converts any interval-like type to the unified interval.
+template<typename Source>
 using to_interval_t =
-    typename internal::interval_cast_to_interval<_Source>::type;
+    typename internal::interval_cast_to_interval<Source>::type;
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-// ============================================================================
-// XIII. CONVENIENCE TYPE ALIASES
-// ============================================================================
+//==============================================================================
+// 3.  CONVENIENCE TYPE ALIASES (C++11)
+//==============================================================================
+// Alias templates are C++11's; below it, spell interval<int, L, U, ...>.
+
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // --- closed (default) -------------------------------------------------------
 
 // int_interval
 //   type: closed continuous interval over int.
-template<int _Lower,
-         int _Upper>
-using int_interval = interval<int, _Lower, _Upper>;
+template<int Lower,
+         int Upper>
+using int_interval = interval<int, Lower, Upper>;
 
 // index_interval
 //   type: closed continuous interval over std::size_t.
-template<std::size_t _Lower,
-         std::size_t _Upper>
-using index_interval = interval<std::size_t, _Lower, _Upper>;
+template<std::size_t Lower,
+         std::size_t Upper>
+using index_interval = interval<std::size_t, Lower, Upper>;
 
 // char_interval
 //   type: closed continuous interval over char.
-template<char _Lower,
-         char _Upper>
-using char_interval = interval<char, _Lower, _Upper>;
+template<char Lower,
+         char Upper>
+using char_interval = interval<char, Lower, Upper>;
 
 // uint8_interval
 //   type: closed continuous interval over uint8_t.
-template<std::uint8_t _Lower,
-         std::uint8_t _Upper>
-using uint8_interval = interval<std::uint8_t, _Lower, _Upper>;
+template<re_std::uint8_t Lower,
+         re_std::uint8_t Upper>
+using uint8_interval = interval<re_std::uint8_t, Lower, Upper>;
 
 // int8_interval
 //   type: closed continuous interval over int8_t.
-template<std::int8_t _Lower,
-         std::int8_t _Upper>
-using int8_interval = interval<std::int8_t, _Lower, _Upper>;
+template<re_std::int8_t Lower,
+         re_std::int8_t Upper>
+using int8_interval = interval<re_std::int8_t, Lower, Upper>;
 
 // uint16_interval
 //   type: closed continuous interval over uint16_t.
-template<std::uint16_t _Lower,
-         std::uint16_t _Upper>
-using uint16_interval = interval<std::uint16_t, _Lower, _Upper>;
+template<re_std::uint16_t Lower,
+         re_std::uint16_t Upper>
+using uint16_interval = interval<re_std::uint16_t, Lower, Upper>;
 
 // int16_interval
 //   type: closed continuous interval over int16_t.
-template<std::int16_t _Lower,
-         std::int16_t _Upper>
-using int16_interval = interval<std::int16_t, _Lower, _Upper>;
+template<re_std::int16_t Lower,
+         re_std::int16_t Upper>
+using int16_interval = interval<re_std::int16_t, Lower, Upper>;
 
 // uint32_interval
 //   type: closed continuous interval over uint32_t.
-template<std::uint32_t _Lower,
-         std::uint32_t _Upper>
-using uint32_interval = interval<std::uint32_t, _Lower, _Upper>;
+template<re_std::uint32_t Lower,
+         re_std::uint32_t Upper>
+using uint32_interval = interval<re_std::uint32_t, Lower, Upper>;
 
 // int32_interval
 //   type: closed continuous interval over int32_t.
-template<std::int32_t _Lower,
-         std::int32_t _Upper>
-using int32_interval = interval<std::int32_t, _Lower, _Upper>;
+template<re_std::int32_t Lower,
+         re_std::int32_t Upper>
+using int32_interval = interval<re_std::int32_t, Lower, Upper>;
 
 // uint64_interval
 //   type: closed continuous interval over uint64_t.
-template<std::uint64_t _Lower,
-         std::uint64_t _Upper>
-using uint64_interval = interval<std::uint64_t, _Lower, _Upper>;
+template<re_std::uint64_t Lower,
+         re_std::uint64_t Upper>
+using uint64_interval = interval<re_std::uint64_t, Lower, Upper>;
 
 // int64_interval
 //   type: closed continuous interval over int64_t.
-template<std::int64_t _Lower,
-         std::int64_t _Upper>
-using int64_interval = interval<std::int64_t, _Lower, _Upper>;
+template<re_std::int64_t Lower,
+         re_std::int64_t Upper>
+using int64_interval = interval<re_std::int64_t, Lower, Upper>;
 
 // short_interval
 //   type: closed continuous interval over short.
-template<short _Lower,
-         short _Upper>
-using short_interval = interval<short, _Lower, _Upper>;
+template<short Lower,
+         short Upper>
+using short_interval = interval<short, Lower, Upper>;
 
 // long_interval
 //   type: closed continuous interval over long.
-template<long _Lower,
-         long _Upper>
-using long_interval = interval<long, _Lower, _Upper>;
+template<long Lower,
+         long Upper>
+using long_interval = interval<long, Lower, Upper>;
 
 // long_long_interval
 //   type: closed continuous interval over long long.
-template<long long _Lower,
-         long long _Upper>
-using long_long_interval = interval<long long, _Lower, _Upper>;
+template<long long Lower,
+         long long Upper>
+using long_long_interval = interval<long long, Lower, Upper>;
 
 // bool_interval
 //   type: closed continuous interval over bool.
-template<bool _Lower,
-         bool _Upper>
-using bool_interval = interval<bool, _Lower, _Upper>;
+template<bool Lower,
+         bool Upper>
+using bool_interval = interval<bool, Lower, Upper>;
 
 // --- open -------------------------------------------------------------------
 
 // int_open
 //   type: open continuous interval over int.
-template<int _Lower,
-         int _Upper>
-using int_open = interval<int, _Lower, _Upper, true, true>;
+template<int Lower,
+         int Upper>
+using int_open = interval<int, Lower, Upper, true, true>;
 
 // index_open
 //   type: open continuous interval over std::size_t.
-template<std::size_t _Lower,
-         std::size_t _Upper>
-using index_open = interval<std::size_t, _Lower, _Upper, true, true>;
+template<std::size_t Lower,
+         std::size_t Upper>
+using index_open = interval<std::size_t, Lower, Upper, true, true>;
 
 // char_open
 //   type: open continuous interval over char.
-template<char _Lower,
-         char _Upper>
-using char_open = interval<char, _Lower, _Upper, true, true>;
+template<char Lower,
+         char Upper>
+using char_open = interval<char, Lower, Upper, true, true>;
 
 // int32_open
 //   type: open continuous interval over int32_t.
-template<std::int32_t _Lower,
-         std::int32_t _Upper>
-using int32_open = interval<std::int32_t, _Lower, _Upper, true, true>;
+template<re_std::int32_t Lower,
+         re_std::int32_t Upper>
+using int32_open = interval<re_std::int32_t, Lower, Upper, true, true>;
 
 // uint32_open
 //   type: open continuous interval over uint32_t.
-template<std::uint32_t _Lower,
-         std::uint32_t _Upper>
+template<re_std::uint32_t Lower,
+         re_std::uint32_t Upper>
 using uint32_open =
-    interval<std::uint32_t, _Lower, _Upper, true, true>;
+    interval<re_std::uint32_t, Lower, Upper, true, true>;
 
 // int64_open
 //   type: open continuous interval over int64_t.
-template<std::int64_t _Lower,
-         std::int64_t _Upper>
+template<re_std::int64_t Lower,
+         re_std::int64_t Upper>
 using int64_open =
-    interval<std::int64_t, _Lower, _Upper, true, true>;
+    interval<re_std::int64_t, Lower, Upper, true, true>;
 
 // uint64_open
 //   type: open continuous interval over uint64_t.
-template<std::uint64_t _Lower,
-         std::uint64_t _Upper>
+template<re_std::uint64_t Lower,
+         re_std::uint64_t Upper>
 using uint64_open =
-    interval<std::uint64_t, _Lower, _Upper, true, true>;
+    interval<re_std::uint64_t, Lower, Upper, true, true>;
 
 // --- half-open [a, b) -------------------------------------------------------
 
 // int_half_open
 //   type: half-open-right continuous interval over int.
-template<int _Lower,
-         int _Upper>
-using int_half_open = interval<int, _Lower, _Upper, false, true>;
+template<int Lower,
+         int Upper>
+using int_half_open = interval<int, Lower, Upper, false, true>;
 
 // index_half_open
 //   type: half-open-right continuous interval over std::size_t.
-template<std::size_t _Lower,
-         std::size_t _Upper>
+template<std::size_t Lower,
+         std::size_t Upper>
 using index_half_open =
-    interval<std::size_t, _Lower, _Upper, false, true>;
+    interval<std::size_t, Lower, Upper, false, true>;
 
 // int32_half_open
 //   type: half-open-right continuous interval over int32_t.
-template<std::int32_t _Lower,
-         std::int32_t _Upper>
+template<re_std::int32_t Lower,
+         re_std::int32_t Upper>
 using int32_half_open =
-    interval<std::int32_t, _Lower, _Upper, false, true>;
+    interval<re_std::int32_t, Lower, Upper, false, true>;
 
 // int64_half_open
 //   type: half-open-right continuous interval over int64_t.
-template<std::int64_t _Lower,
-         std::int64_t _Upper>
+template<re_std::int64_t Lower,
+         re_std::int64_t Upper>
 using int64_half_open =
-    interval<std::int64_t, _Lower, _Upper, false, true>;
+    interval<re_std::int64_t, Lower, Upper, false, true>;
 
 // --- discrete ---------------------------------------------------------------
 
 // int_stepped
 //   type: closed discrete interval over int.
-template<int _Lower,
-         int _Upper,
-         int _Step = 1>
+template<int Lower,
+         int Upper,
+         int Step = 1>
 using int_stepped =
-    interval<int, _Lower, _Upper, false, false, _Step>;
+    interval<int, Lower, Upper, false, false, Step>;
 
 // index_stepped
 //   type: closed discrete interval over std::size_t.
-template<std::size_t _Lower,
-         std::size_t _Upper,
-         std::size_t _Step = 1>
+template<std::size_t Lower,
+         std::size_t Upper,
+         std::size_t Step = 1>
 using index_stepped =
-    interval<std::size_t, _Lower, _Upper, false, false, _Step>;
+    interval<std::size_t, Lower, Upper, false, false, Step>;
 
 // int32_stepped
 //   type: closed discrete interval over int32_t.
-template<std::int32_t _Lower,
-         std::int32_t _Upper,
-         std::int32_t _Step = 1>
+template<re_std::int32_t Lower,
+         re_std::int32_t Upper,
+         re_std::int32_t Step = 1>
 using int32_stepped =
-    interval<std::int32_t, _Lower, _Upper, false, false, _Step>;
+    interval<re_std::int32_t, Lower, Upper, false, false, Step>;
 
 // int64_stepped
 //   type: closed discrete interval over int64_t.
-template<std::int64_t _Lower,
-         std::int64_t _Upper,
-         std::int64_t _Step = 1>
+template<re_std::int64_t Lower,
+         re_std::int64_t Upper,
+         re_std::int64_t Step = 1>
 using int64_stepped =
-    interval<std::int64_t, _Lower, _Upper, false, false, _Step>;
+    interval<re_std::int64_t, Lower, Upper, false, false, Step>;
 
 // uint32_stepped
 //   type: closed discrete interval over uint32_t.
-template<std::uint32_t _Lower,
-         std::uint32_t _Upper,
-         std::uint32_t _Step = 1>
+template<re_std::uint32_t Lower,
+         re_std::uint32_t Upper,
+         re_std::uint32_t Step = 1>
 using uint32_stepped =
-    interval<std::uint32_t, _Lower, _Upper, false, false, _Step>;
+    interval<re_std::uint32_t, Lower, Upper, false, false, Step>;
 
 // uint64_stepped
 //   type: closed discrete interval over uint64_t.
-template<std::uint64_t _Lower,
-         std::uint64_t _Upper,
-         std::uint64_t _Step = 1>
+template<re_std::uint64_t Lower,
+         re_std::uint64_t Upper,
+         re_std::uint64_t Step = 1>
 using uint64_stepped =
-    interval<std::uint64_t, _Lower, _Upper, false, false, _Step>;
+    interval<re_std::uint64_t, Lower, Upper, false, false, Step>;
 
 // char_stepped
 //   type: closed discrete interval over char.
-template<char _Lower,
-         char _Upper,
-         char _Step = 1>
+template<char Lower,
+         char Upper,
+         char Step = 1>
 using char_stepped =
-    interval<char, _Lower, _Upper, false, false, _Step>;
+    interval<char, Lower, Upper, false, false, Step>;
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
+//==============================================================================
+// 4.  INTERVAL TRAITS
+//==============================================================================
+// Structural detection of interval types and their properties, at every
+// level: presence by core/meta's detection engine (its sizeof engine below
+// C++11), then a pointer probe for what presence cannot tell -- that a
+// member is static, and of type bool -- which gives the same answer at every
+// level, a non-static member counting as absent.
 
 
-// ============================================================================
-// XIV.  INTERVAL TRAITS   (folded in from interval_traits.hpp -- task #1)
-// ============================================================================
-// Structural SFINAE detection of interval types and their properties. These
-// previously lived in a standalone interval_traits.hpp; they now reside in the
-// interval primary. The unqualified project void_t is resolved to std::void_t
-// (this module already requires C++17 through its use of if constexpr).
-
-// ============================================================================
-// I.    DETECTION HELPERS
-// ============================================================================
-
+// 4.1    Detection helpers
+//------------------------------------------------------------------------------
 NS_INTERNAL
 
+    // interval_probe_yes / interval_probe_no
+    //   type: the two answers a probe can give, told apart by size.
+    typedef char interval_probe_yes;
+
+    struct interval_probe_no
+    {
+        char answer[2];
+    };
+
+    // interval_static_probe / interval_bool_probe
+    //   function: declared only, for sizeof: a pointer to an object (or to a
+    // function) answers yes, a pointer to member no; the bool probe answers
+    // yes only for a pointer to a bool.
+    template<typename Pointee>
+    interval_probe_yes interval_static_probe(Pointee*);
+    interval_probe_no  interval_static_probe(...);
+    interval_probe_yes interval_bool_probe(const bool*);
+    interval_probe_no  interval_bool_probe(...);
+
+    D_TYPE_TRAIT_HAS_STATIC_MEMBER(interval_names_lower_bound, lower_bound)
+    D_TYPE_TRAIT_HAS_STATIC_MEMBER(interval_names_upper_bound, upper_bound)
+    D_TYPE_TRAIT_HAS_STATIC_MEMBER(interval_names_is_left_open, is_left_open)
+    D_TYPE_TRAIT_HAS_STATIC_MEMBER(interval_names_is_right_open,
+                                   is_right_open)
+    D_TYPE_TRAIT_HAS_STATIC_MEMBER(interval_names_step, step)
+    D_TYPE_TRAIT_HAS_TYPE(interval_names_value_type, value_type)
+    D_TYPE_TRAIT_HAS_TYPE(interval_names_size_type, size_type)
+
     // has_lower_bound
-    //   helper: detects lower_bound static member.
-    template<typename _Type,
-             typename = void>
-    struct has_lower_bound : std::false_type
+    //   helper: detects a static lower_bound member.
+    template<typename Type,
+             bool     Named = interval_names_lower_bound<Type>::value>
+    struct has_lower_bound
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct has_lower_bound<_Type, std::void_t<decltype(_Type::lower_bound)>>
-        : std::true_type
+    template<typename Type>
+    struct has_lower_bound<Type, true>
+        : re_std::integral_constant<bool,
+              ( sizeof(interval_static_probe(&Type::lower_bound)) ==
+                sizeof(interval_probe_yes) )>
     {};
 
     // has_upper_bound
-    //   helper: detects upper_bound static member.
-    template<typename _Type,
-             typename = void>
-    struct has_upper_bound : std::false_type
+    //   helper: detects a static upper_bound member.
+    template<typename Type,
+             bool     Named = interval_names_upper_bound<Type>::value>
+    struct has_upper_bound
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct has_upper_bound<_Type, std::void_t<decltype(_Type::upper_bound)>>
-        : std::true_type
+    template<typename Type>
+    struct has_upper_bound<Type, true>
+        : re_std::integral_constant<bool,
+              ( sizeof(interval_static_probe(&Type::upper_bound)) ==
+                sizeof(interval_probe_yes) )>
     {};
 
     // has_is_left_open
-    //   helper: detects is_left_open static bool member.
-    template<typename _Type,
-             typename = void>
-    struct has_is_left_open : std::false_type
+    //   helper: detects a static bool is_left_open member.
+    template<typename Type,
+             bool     Named = interval_names_is_left_open<Type>::value>
+    struct has_is_left_open
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct has_is_left_open<_Type, std::enable_if_t<
-        ( std::is_same<decltype(_Type::is_left_open),
-                       const bool>::value ||
-          std::is_same<decltype(_Type::is_left_open),
-                       bool>::value )
-    >> : std::true_type
+    template<typename Type>
+    struct has_is_left_open<Type, true>
+        : re_std::integral_constant<bool,
+              ( sizeof(interval_bool_probe(&Type::is_left_open)) ==
+                sizeof(interval_probe_yes) )>
     {};
 
     // has_is_right_open
-    //   helper: detects is_right_open static bool member.
-    template<typename _Type,
-             typename = void>
-    struct has_is_right_open : std::false_type
+    //   helper: detects a static bool is_right_open member.
+    template<typename Type,
+             bool     Named = interval_names_is_right_open<Type>::value>
+    struct has_is_right_open
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct has_is_right_open<_Type, std::enable_if_t<
-        ( std::is_same<decltype(_Type::is_right_open),
-                       const bool>::value ||
-          std::is_same<decltype(_Type::is_right_open),
-                       bool>::value )
-    >> : std::true_type
+    template<typename Type>
+    struct has_is_right_open<Type, true>
+        : re_std::integral_constant<bool,
+              ( sizeof(interval_bool_probe(&Type::is_right_open)) ==
+                sizeof(interval_probe_yes) )>
     {};
 
     // has_step
-    //   helper: detects step static member (present on all interval types;
-    // a zero step denotes a continuous interval, so presence alone does not
-    // imply discreteness -- see has_discrete_step).
-    template<typename _Type,
-             typename = void>
-    struct has_step : std::false_type
+    //   helper: detects a static step member (present on every interval
+    // type; a zero step is a continuous interval, so presence alone does not
+    // mean discreteness -- see has_discrete_step).
+    template<typename Type,
+             bool     Named = interval_names_step<Type>::value>
+    struct has_step
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct has_step<_Type, std::void_t<decltype(_Type::step)>>
-        : std::true_type
+    template<typename Type>
+    struct has_step<Type, true>
+        : re_std::integral_constant<bool,
+              ( sizeof(interval_static_probe(&Type::step)) ==
+                sizeof(interval_probe_yes) )>
     {};
 
     // has_discrete_step
-    //   helper: detects a step static member whose value is non-zero. This is
-    // what distinguishes a discrete interval from a continuous one: continuous
-    // intervals (closed, open, half-open, and the unified interval with
-    // _Step == 0) all expose step == 0, while a discrete interval carries a
-    // positive step. Mirrors the unified interval's own m_is_discrete test.
-    template<typename _Type,
-             typename = void>
-    struct has_discrete_step : std::false_type
+    //   helper: detects a static step member whose value is positive: what
+    // tells a discrete interval from a continuous one.
+    template<typename Type,
+             bool     Stepped = has_step<Type>::value>
+    struct has_discrete_step
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct has_discrete_step<_Type, std::enable_if_t<
-        ( _Type::step > static_cast<decltype(_Type::step)>(0) )
-    >> : std::true_type
+    template<typename Type>
+    struct has_discrete_step<Type, true>
+        : re_std::integral_constant<bool, (Type::step > 0)>
     {};
 
     // interval_structural_check
-    //   helper: combines all structural requirements for interval
-    // detection.
-    template<typename _Type,
-             typename = void>
-    struct interval_structural_check : std::false_type
-    {};
-
-    template<typename _Type>
-    struct interval_structural_check<_Type, std::enable_if_t<
-        ( has_lower_bound<_Type>::value  &&
-          has_upper_bound<_Type>::value  &&
-          has_is_left_open<_Type>::value &&
-          has_is_right_open<_Type>::value )
-    >> : std::true_type
+    //   helper: every structural requirement of an interval type.
+    template<typename Type>
+    struct interval_structural_check
+        : re_std::integral_constant<bool,
+              ( has_lower_bound<Type>::value  &&
+                has_upper_bound<Type>::value  &&
+                has_is_left_open<Type>::value &&
+                has_is_right_open<Type>::value )>
     {};
 
     // discrete_interval_structural_check
-    //   helper: combines structural requirements for discrete interval
-    // detection.
-    template<typename _Type,
-             typename = void>
-    struct discrete_interval_structural_check : std::false_type
-    {};
-
-    template<typename _Type>
-    struct discrete_interval_structural_check<_Type, std::enable_if_t<
-        ( interval_structural_check<_Type>::value &&
-          has_discrete_step<_Type>::value )
-    >> : std::true_type
+    //   helper: the structural requirements of a discrete interval type.
+    template<typename Type>
+    struct discrete_interval_structural_check
+        : re_std::integral_constant<bool,
+              ( interval_structural_check<Type>::value &&
+                has_discrete_step<Type>::value )>
     {};
 
 NS_END  // internal
 
-
-// ============================================================================
-// II.   INTERVAL DETECTION
-// ============================================================================
+// 4.2    Interval detection
+//------------------------------------------------------------------------------
 
 // is_interval
-//   trait: checks if _Type is an interval type.
-// An interval type must have lower_bound, upper_bound, is_left_open,
-// and is_right_open static members.
-template<typename _Type,
-         typename = void>
-struct is_interval : std::false_type
-{};
-
-template<typename _Type>
-struct is_interval<_Type, std::enable_if_t<
-    internal::interval_structural_check<_Type>::value
->> : std::true_type
+//   trait: whether Type is an interval type: static lower_bound and
+// upper_bound members, and static bool is_left_open and is_right_open.
+template<typename Type,
+         typename Enable = void>
+struct is_interval
+    : re_std::integral_constant<bool,
+          internal::interval_structural_check<Type>::value>
 {};
 
 // is_discrete_interval
-//   trait: checks if _Type is a discrete interval type.
-// A discrete interval is an interval that additionally has a step
-// static member.
-template<typename _Type,
-         typename = void>
-struct is_discrete_interval : std::false_type
-{};
-
-template<typename _Type>
-struct is_discrete_interval<_Type, std::enable_if_t<
-    internal::discrete_interval_structural_check<_Type>::value
->> : std::true_type
+//   trait: whether Type is an interval type with a positive step.
+template<typename Type,
+         typename Enable = void>
+struct is_discrete_interval
+    : re_std::integral_constant<bool,
+          internal::discrete_interval_structural_check<Type>::value>
 {};
 
 // is_continuous_interval
-//   trait: checks if _Type is a non-discrete interval.
-template<typename _Type,
-         typename = void>
-struct is_continuous_interval : std::false_type
+//   trait: whether Type is an interval type without a positive step.
+template<typename Type,
+         typename Enable = void>
+struct is_continuous_interval
+    : re_std::integral_constant<bool,
+          ( is_interval<Type>::value &&
+            !is_discrete_interval<Type>::value )>
 {};
 
-template<typename _Type>
-struct is_continuous_interval<_Type, std::enable_if_t<
-    ( is_interval<_Type>::value &&
-      !is_discrete_interval<_Type>::value )
->> : std::true_type
-{};
-
-
-// ============================================================================
-// III.  BOUNDARY TYPE DETECTION
-// ============================================================================
-
+// 4.3    Boundary type detection
+//------------------------------------------------------------------------------
 NS_INTERNAL
 
-    // is_closed_check
-    //   helper: checks closed boundary condition.
-    template<typename _Type,
-             typename = void>
-    struct is_closed_check : std::false_type
+    // is_closed_check / is_open_check / is_half_open_check
+    //   helper: the boundary conditions, for an interval type.
+    template<typename Type,
+             bool     IsInterval = is_interval<Type>::value>
+    struct is_closed_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct is_closed_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value &&
-          (!_Type::is_left_open)    &&
-          (!_Type::is_right_open) )
-    >> : std::true_type
+    template<typename Type>
+    struct is_closed_check<Type, true>
+        : re_std::integral_constant<bool,
+              ( (!Type::is_left_open) &&
+                (!Type::is_right_open) )>
     {};
 
-    // is_open_check
-    //   helper: checks open boundary condition.
-    template<typename _Type,
-             typename = void>
-    struct is_open_check : std::false_type
+    template<typename Type,
+             bool     IsInterval = is_interval<Type>::value>
+    struct is_open_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct is_open_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value &&
-          _Type::is_left_open       &&
-          _Type::is_right_open )
-    >> : std::true_type
+    template<typename Type>
+    struct is_open_check<Type, true>
+        : re_std::integral_constant<bool,
+              ( (Type::is_left_open) &&
+                (Type::is_right_open) )>
     {};
 
-    // is_half_open_check
-    //   helper: checks half-open boundary condition.
-    template<typename _Type,
-             typename = void>
-    struct is_half_open_check : std::false_type
+    template<typename Type,
+             bool     IsInterval = is_interval<Type>::value>
+    struct is_half_open_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct is_half_open_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value &&
-          (_Type::is_left_open != _Type::is_right_open) )
-    >> : std::true_type
+    template<typename Type>
+    struct is_half_open_check<Type, true>
+        : re_std::integral_constant<bool,
+              (Type::is_left_open != Type::is_right_open)>
     {};
 
 NS_END  // internal
 
 // is_closed
-//   trait: checks if interval has both endpoints closed (inclusive).
-template<typename _Type>
-struct is_closed : internal::is_closed_check<_Type>
+//   trait: whether an interval has both endpoints closed (inclusive).
+template<typename Type>
+struct is_closed : internal::is_closed_check<Type>
 {};
 
 // is_open
-//   trait: checks if interval has both endpoints open (exclusive).
-template<typename _Type>
-struct is_open : internal::is_open_check<_Type>
+//   trait: whether an interval has both endpoints open (exclusive).
+template<typename Type>
+struct is_open : internal::is_open_check<Type>
 {};
 
 // is_half_open
-//   trait: checks if interval has exactly one open endpoint.
-template<typename _Type>
-struct is_half_open : internal::is_half_open_check<_Type>
+//   trait: whether an interval has exactly one open endpoint.
+template<typename Type>
+struct is_half_open : internal::is_half_open_check<Type>
 {};
 
-
-// ============================================================================
-// IV.   ENDPOINT DETECTION
-// ============================================================================
-
+// 4.4    Endpoint detection
+//------------------------------------------------------------------------------
 NS_INTERNAL
 
-    // left_open_check
-    //   helper: checks left endpoint is open.
-    template<typename _Type,
-             typename = void>
-    struct left_open_check : std::false_type
+    // left_open_check / right_open_check
+    //   helper: whether an interval type's left (right) endpoint is open.
+    template<typename Type,
+             bool     IsInterval = is_interval<Type>::value>
+    struct left_open_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct left_open_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value &&
-          _Type::is_left_open )
-    >> : std::true_type
+    template<typename Type>
+    struct left_open_check<Type, true>
+        : re_std::integral_constant<bool, Type::is_left_open>
     {};
 
-    // right_open_check
-    //   helper: checks right endpoint is open.
-    template<typename _Type,
-             typename = void>
-    struct right_open_check : std::false_type
+    template<typename Type,
+             bool     IsInterval = is_interval<Type>::value>
+    struct right_open_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct right_open_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value &&
-          _Type::is_right_open )
-    >> : std::true_type
+    template<typename Type>
+    struct right_open_check<Type, true>
+        : re_std::integral_constant<bool, Type::is_right_open>
     {};
 
-    // left_closed_check
-    //   helper: checks left endpoint is closed.
-    template<typename _Type,
-             typename = void>
-    struct left_closed_check : std::false_type
+    // left_closed_check / right_closed_check
+    //   helper: whether an interval type's left (right) endpoint is closed.
+    template<typename Type,
+             bool     IsInterval = is_interval<Type>::value>
+    struct left_closed_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct left_closed_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value &&
-          (!_Type::is_left_open) )
-    >> : std::true_type
+    template<typename Type>
+    struct left_closed_check<Type, true>
+        : re_std::integral_constant<bool, (!Type::is_left_open)>
     {};
 
-    // right_closed_check
-    //   helper: checks right endpoint is closed.
-    template<typename _Type,
-             typename = void>
-    struct right_closed_check : std::false_type
+    template<typename Type,
+             bool     IsInterval = is_interval<Type>::value>
+    struct right_closed_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct right_closed_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value &&
-          (!_Type::is_right_open) )
-    >> : std::true_type
+    template<typename Type>
+    struct right_closed_check<Type, true>
+        : re_std::integral_constant<bool, (!Type::is_right_open)>
     {};
 
 NS_END  // internal
 
 // is_left_open
-//   trait: checks if interval has left endpoint open.
-template<typename _Type>
-struct is_left_open : internal::left_open_check<_Type>
+//   trait: whether an interval has its left endpoint open.
+template<typename Type>
+struct is_left_open : internal::left_open_check<Type>
 {};
 
 // is_right_open
-//   trait: checks if interval has right endpoint open.
-template<typename _Type>
-struct is_right_open : internal::right_open_check<_Type>
+//   trait: whether an interval has its right endpoint open.
+template<typename Type>
+struct is_right_open : internal::right_open_check<Type>
 {};
 
 // is_left_closed
-//   trait: checks if interval has left endpoint closed.
-template<typename _Type>
-struct is_left_closed : internal::left_closed_check<_Type>
+//   trait: whether an interval has its left endpoint closed.
+template<typename Type>
+struct is_left_closed : internal::left_closed_check<Type>
 {};
 
 // is_right_closed
-//   trait: checks if interval has right endpoint closed.
-template<typename _Type>
-struct is_right_closed : internal::right_closed_check<_Type>
+//   trait: whether an interval has its right endpoint closed.
+template<typename Type>
+struct is_right_closed : internal::right_closed_check<Type>
 {};
 
-
-// ============================================================================
-// V.    INTERVAL PROPERTY DETECTION
-// ============================================================================
+// 4.5    Interval property detection
+//------------------------------------------------------------------------------
 
 // is_bounded_interval
-//   trait: checks if interval has finite bounds.
-// Note: true for all compile-time intervals (bounds must be specified).
-template<typename _Type>
-struct is_bounded_interval : is_interval<_Type>
+//   trait: whether an interval has finite bounds: every compile-time
+// interval, whose bounds are template arguments.
+template<typename Type>
+struct is_bounded_interval : is_interval<Type>
 {};
 
 NS_INTERNAL
 
     // empty_interval_check
-    //   helper: checks if interval is empty.
-    template<typename _Type,
-             typename = void>
-    struct empty_interval_check : std::false_type
+    //   helper: whether an interval type is empty by its bounds: lower >
+    // upper, or lower == upper with either endpoint open.
+    template<typename Type,
+             bool     IsInterval = is_interval<Type>::value>
+    struct empty_interval_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct empty_interval_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value                         &&
-          ((_Type::lower_bound > _Type::upper_bound)        ||
-           ((_Type::lower_bound == _Type::upper_bound)      &&
-            (_Type::is_left_open || _Type::is_right_open))) )
-    >> : std::true_type
+    template<typename Type>
+    struct empty_interval_check<Type, true>
+        : re_std::integral_constant<bool,
+              ( (Type::upper_bound < Type::lower_bound)        ||
+                ( (!(Type::lower_bound < Type::upper_bound)) &&
+                  (Type::is_left_open || Type::is_right_open) ) )>
     {};
 
     // degenerate_interval_check
-    //   helper: checks if interval contains exactly one element.
-    template<typename _Type,
-             typename = void>
-    struct degenerate_interval_check : std::false_type
+    //   helper: whether an interval type holds exactly one element by its
+    // bounds: lower == upper with both endpoints closed.
+    template<typename Type,
+             bool     IsInterval = is_interval<Type>::value>
+    struct degenerate_interval_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Type>
-    struct degenerate_interval_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value                       &&
-          (_Type::lower_bound == _Type::upper_bound)      &&
-          (!_Type::is_left_open)                          &&
-          (!_Type::is_right_open) )
-    >> : std::true_type
+    template<typename Type>
+    struct degenerate_interval_check<Type, true>
+        : re_std::integral_constant<bool,
+              ( (!(Type::lower_bound < Type::upper_bound)) &&
+                (!(Type::upper_bound < Type::lower_bound)) &&
+                (!Type::is_left_open)                      &&
+                (!Type::is_right_open) )>
     {};
 
 NS_END  // internal
 
 // is_empty_interval
-//   trait: checks if interval contains no elements.
-// Empty when: lower > upper, or lower == upper and either endpoint
-// is open.
-template<typename _Type>
-struct is_empty_interval : internal::empty_interval_check<_Type>
+//   trait: whether an interval contains no elements, by its bounds.
+template<typename Type>
+struct is_empty_interval : internal::empty_interval_check<Type>
 {};
 
 // is_degenerate_interval
-//   trait: checks if interval contains exactly one element.
-// Degenerate when: lower == upper and both endpoints are closed.
-template<typename _Type>
+//   trait: whether an interval contains exactly one element, by its bounds.
+template<typename Type>
 struct is_degenerate_interval
-    : internal::degenerate_interval_check<_Type>
+    : internal::degenerate_interval_check<Type>
 {};
-
-NS_INTERNAL
-
-    // proper_interval_check
-    //   helper: checks if interval is non-empty.
-    template<typename _Type,
-             typename = void>
-    struct proper_interval_check : std::false_type
-    {};
-
-    template<typename _Type>
-    struct proper_interval_check<_Type, std::enable_if_t<
-        ( is_interval<_Type>::value       &&
-          !is_empty_interval<_Type>::value )
-    >> : std::true_type
-    {};
-
-NS_END  // internal
 
 // is_proper_interval
-//   trait: checks if interval is non-empty.
-template<typename _Type>
-struct is_proper_interval : internal::proper_interval_check<_Type>
+//   trait: whether an interval type is non-empty.
+template<typename Type>
+struct is_proper_interval
+    : re_std::integral_constant<bool,
+          ( is_interval<Type>::value &&
+            !is_empty_interval<Type>::value )>
 {};
 
-
-// ============================================================================
-// VI.   INTERVAL TYPE EXTRACTION
-// ============================================================================
-
+// 4.6    Interval type extraction
+//------------------------------------------------------------------------------
 NS_INTERNAL
 
-    // interval_value_type_helper
-    //   helper: extracts value_type from interval if present.
-    template<typename _Type,
-             typename = void>
+    // interval_value_type_helper / interval_size_type_helper
+    //   helper: Type's value_type (size_type) if it has one, else void.
+    template<typename Type,
+             bool     Named = interval_names_value_type<Type>::value>
     struct interval_value_type_helper
     {
-        using type = void;
+        typedef void type;
     };
 
-    template<typename _Type>
-    struct interval_value_type_helper<_Type,
-                                     std::void_t<typename _Type::value_type>>
+    template<typename Type>
+    struct interval_value_type_helper<Type, true>
     {
-        using type = typename _Type::value_type;
+        typedef typename Type::value_type type;
     };
 
-    // interval_size_type_helper
-    //   helper: extracts size_type from interval if present.
-    template<typename _Type,
-             typename = void>
+    template<typename Type,
+             bool     Named = interval_names_size_type<Type>::value>
     struct interval_size_type_helper
     {
-        using type = void;
+        typedef void type;
     };
 
-    template<typename _Type>
-    struct interval_size_type_helper<_Type,
-                                    std::void_t<typename _Type::size_type>>
+    template<typename Type>
+    struct interval_size_type_helper<Type, true>
     {
-        using type = typename _Type::size_type;
+        typedef typename Type::size_type type;
     };
 
 NS_END  // internal
 
 // interval_value_type
-//   trait: extracts the value type from an interval type.
-template<typename _Type>
+//   trait: the value type of an interval type, or void.
+template<typename Type>
 struct interval_value_type
 {
-    using type = typename internal::interval_value_type_helper<_Type>::type;
+    typedef typename internal::interval_value_type_helper<Type>::type type;
 };
-
-// interval_value_type_t
-//   type: shorthand for interval_value_type<_Type>::type.
-template<typename _Type>
-using interval_value_type_t =
-    typename interval_value_type<_Type>::type;
 
 // interval_size_type
-//   trait: extracts the size type from an interval type.
-template<typename _Type>
+//   trait: the size type of an interval type, or void.
+template<typename Type>
 struct interval_size_type
 {
-    using type = typename internal::interval_size_type_helper<_Type>::type;
+    typedef typename internal::interval_size_type_helper<Type>::type type;
 };
 
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// interval_value_type_t
+//   type: shorthand for interval_value_type<Type>::type.
+template<typename Type>
+using interval_value_type_t =
+    typename interval_value_type<Type>::type;
+
 // interval_size_type_t
-//   type: shorthand for interval_size_type<_Type>::type.
-template<typename _Type>
+//   type: shorthand for interval_size_type<Type>::type.
+template<typename Type>
 using interval_size_type_t =
-    typename interval_size_type<_Type>::type;
+    typename interval_size_type<Type>::type;
 
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// ============================================================================
-// VII.  INTERVAL RELATIONSHIP TRAITS
-// ============================================================================
-
+// 4.7    Interval relationship traits
+//------------------------------------------------------------------------------
 NS_INTERNAL
 
     // intervals_same_type_check
-    //   helper: checks if two intervals have compatible value types.
-    template<typename _Interval1,
-             typename _Interval2,
-             typename = void>
-    struct intervals_same_type_check : std::false_type
+    //   helper: whether two interval types have the same value type.
+    template<typename Interval1,
+             typename Interval2,
+             bool     BothIntervals = ( is_interval<Interval1>::value &&
+                                        is_interval<Interval2>::value )>
+    struct intervals_same_type_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Interval1,
-             typename _Interval2>
-    struct intervals_same_type_check<_Interval1,
-                                    _Interval2,
-                                    std::enable_if_t<
-        ( is_interval<_Interval1>::value &&
-          is_interval<_Interval2>::value &&
-          std::is_same<
-              interval_value_type_t<_Interval1>,
-              interval_value_type_t<_Interval2>
-          >::value )
-    >> : std::true_type
+    template<typename Interval1,
+             typename Interval2>
+    struct intervals_same_type_check<Interval1, Interval2, true>
+        : re_std::integral_constant<bool,
+              re_std::is_same<
+                  typename interval_value_type<Interval1>::type,
+                  typename interval_value_type<Interval2>::type>::value>
     {};
 
     // intervals_same_boundary_check
-    //   helper: checks if two intervals have same boundary
-    // configuration.
-    template<typename _Interval1,
-             typename _Interval2,
-             typename = void>
-    struct intervals_same_boundary_check : std::false_type
+    //   helper: whether two interval types have the same boundary kind.
+    template<typename Interval1,
+             typename Interval2,
+             bool     BothIntervals = ( is_interval<Interval1>::value &&
+                                        is_interval<Interval2>::value )>
+    struct intervals_same_boundary_check
+        : re_std::integral_constant<bool, false>
     {};
 
-    template<typename _Interval1,
-             typename _Interval2>
-    struct intervals_same_boundary_check<_Interval1,
-                                        _Interval2,
-                                        std::enable_if_t<
-        ( is_interval<_Interval1>::value                                 &&
-          is_interval<_Interval2>::value                                 &&
-          (_Interval1::is_left_open  == _Interval2::is_left_open)       &&
-          (_Interval1::is_right_open == _Interval2::is_right_open) )
-    >> : std::true_type
+    template<typename Interval1,
+             typename Interval2>
+    struct intervals_same_boundary_check<Interval1, Interval2, true>
+        : re_std::integral_constant<bool,
+              ( (Interval1::is_left_open  == Interval2::is_left_open) &&
+                (Interval1::is_right_open == Interval2::is_right_open) )>
     {};
 
 NS_END  // internal
 
 // intervals_same_type
-//   trait: checks if two intervals have the same value type.
-template<typename _Interval1,
-         typename _Interval2>
+//   trait: whether two intervals have the same value type.
+template<typename Interval1,
+         typename Interval2>
 struct intervals_same_type
-    : internal::intervals_same_type_check<_Interval1, _Interval2>
+    : internal::intervals_same_type_check<Interval1, Interval2>
 {};
 
 // intervals_same_boundary_type
-//   trait: checks if two intervals have the same boundary type
-// (open/closed).
-template<typename _Interval1,
-         typename _Interval2>
+//   trait: whether two intervals have the same boundary kind (open/closed).
+template<typename Interval1,
+         typename Interval2>
 struct intervals_same_boundary_type
-    : internal::intervals_same_boundary_check<_Interval1, _Interval2>
+    : internal::intervals_same_boundary_check<Interval1, Interval2>
 {};
 
-
-// ============================================================================
-// VIII. VARIABLE TEMPLATES
-// ============================================================================
-
+// 4.8    Variable templates (C++14)
+//------------------------------------------------------------------------------
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    // is_interval_v
-    //   variable template: value helper for is_interval.
-    template<typename _Type>
-    inline constexpr bool is_interval_v =
-        is_interval<_Type>::value;
+    // is_interval_v ... intervals_same_boundary_type_v
+    //   variable template: the value of each trait above.
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_interval_v =
+        is_interval<Type>::value;
 
-    // is_discrete_interval_v
-    //   variable template: value helper for is_discrete_interval.
-    template<typename _Type>
-    inline constexpr bool is_discrete_interval_v =
-        is_discrete_interval<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_discrete_interval_v =
+        is_discrete_interval<Type>::value;
 
-    // is_continuous_interval_v
-    //   variable template: value helper for is_continuous_interval.
-    template<typename _Type>
-    inline constexpr bool is_continuous_interval_v =
-        is_continuous_interval<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_continuous_interval_v =
+        is_continuous_interval<Type>::value;
 
-    // is_closed_v
-    //   variable template: value helper for is_closed.
-    template<typename _Type>
-    inline constexpr bool is_closed_v =
-        is_closed<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_closed_v =
+        is_closed<Type>::value;
 
-    // is_open_v
-    //   variable template: value helper for is_open.
-    template<typename _Type>
-    inline constexpr bool is_open_v =
-        is_open<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_open_v =
+        is_open<Type>::value;
 
-    // is_half_open_v
-    //   variable template: value helper for is_half_open.
-    template<typename _Type>
-    inline constexpr bool is_half_open_v =
-        is_half_open<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_half_open_v =
+        is_half_open<Type>::value;
 
-    // is_left_open_v
-    //   variable template: value helper for is_left_open.
-    template<typename _Type>
-    inline constexpr bool is_left_open_v =
-        is_left_open<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_left_open_v =
+        is_left_open<Type>::value;
 
-    // is_right_open_v
-    //   variable template: value helper for is_right_open.
-    template<typename _Type>
-    inline constexpr bool is_right_open_v =
-        is_right_open<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_right_open_v =
+        is_right_open<Type>::value;
 
-    // is_left_closed_v
-    //   variable template: value helper for is_left_closed.
-    template<typename _Type>
-    inline constexpr bool is_left_closed_v =
-        is_left_closed<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_left_closed_v =
+        is_left_closed<Type>::value;
 
-    // is_right_closed_v
-    //   variable template: value helper for is_right_closed.
-    template<typename _Type>
-    inline constexpr bool is_right_closed_v =
-        is_right_closed<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_right_closed_v =
+        is_right_closed<Type>::value;
 
-    // is_bounded_interval_v
-    //   variable template: value helper for is_bounded_interval.
-    template<typename _Type>
-    inline constexpr bool is_bounded_interval_v =
-        is_bounded_interval<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_bounded_interval_v =
+        is_bounded_interval<Type>::value;
 
-    // is_empty_interval_v
-    //   variable template: value helper for is_empty_interval.
-    template<typename _Type>
-    inline constexpr bool is_empty_interval_v =
-        is_empty_interval<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_empty_interval_v =
+        is_empty_interval<Type>::value;
 
-    // is_degenerate_interval_v
-    //   variable template: value helper for is_degenerate_interval.
-    template<typename _Type>
-    inline constexpr bool is_degenerate_interval_v =
-        is_degenerate_interval<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_degenerate_interval_v =
+        is_degenerate_interval<Type>::value;
 
-    // is_proper_interval_v
-    //   variable template: value helper for is_proper_interval.
-    template<typename _Type>
-    inline constexpr bool is_proper_interval_v =
-        is_proper_interval<_Type>::value;
+    template<typename Type>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool is_proper_interval_v =
+        is_proper_interval<Type>::value;
 
-    // intervals_same_type_v
-    //   variable template: value helper for intervals_same_type.
-    template<typename _Interval1,
-             typename _Interval2>
-    inline constexpr bool intervals_same_type_v =
-        intervals_same_type<_Interval1, _Interval2>::value;
+    template<typename Interval1,
+             typename Interval2>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool intervals_same_type_v =
+        intervals_same_type<Interval1, Interval2>::value;
 
-    // intervals_same_boundary_type_v
-    //   variable template: value helper for intervals_same_boundary_type.
-    template<typename _Interval1,
-             typename _Interval2>
-    inline constexpr bool intervals_same_boundary_type_v =
-        intervals_same_boundary_type<_Interval1, _Interval2>::value;
+    template<typename Interval1,
+             typename Interval2>
+    D_INLINE_VAR D_CONSTEXPR_VAR bool intervals_same_boundary_type_v =
+        intervals_same_boundary_type<Interval1, Interval2>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+
+
 NS_END  // math
 NS_END  // djinterp
 

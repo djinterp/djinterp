@@ -1,0 +1,5 @@
+tests/dawk/fixtures/c_style/closures.h:7:5: a #define carries a // NAME comment above it
+tests/dawk/fixtures/c_style/closures.h:13:1: an #endif closing #ifdef or #ifndef names its symbol
+tests/dawk/fixtures/c_style/closures.h:17:5: a #define carries a // NAME comment above it
+tests/dawk/fixtures/c_style/closures.h:18:1: an #endif closing #ifdef or #ifndef names its symbol
+tests/dawk/fixtures/c_style/closures.h:22:5: a #define carries a // NAME comment above it

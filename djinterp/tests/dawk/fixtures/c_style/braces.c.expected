@@ -1,0 +1,13 @@
+tests/dawk/fixtures/c_style/braces.c:6:1: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/braces.c:12:9: an if-statement's body is braced
+tests/dawk/fixtures/c_style/braces.c:18:9: an if-statement's body is braced
+tests/dawk/fixtures/c_style/braces.c:24:1: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/braces.c:27:3: an opening brace is on its own line
+tests/dawk/fixtures/c_style/braces.c:32:23: an opening brace is on its own line
+tests/dawk/fixtures/c_style/braces.c:37:1: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/braces.c:42:21: an opening brace is on its own line
+tests/dawk/fixtures/c_style/braces.c:46:17: an opening brace is on its own line
+tests/dawk/fixtures/c_style/braces.c:57:1: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/braces.c:71:1: a conditional inside a function body
+tests/dawk/fixtures/c_style/braces.c:71:1: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/braces.c:82:9: start-column

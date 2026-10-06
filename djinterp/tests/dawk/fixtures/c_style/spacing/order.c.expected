@@ -1,0 +1,2 @@
+tests/dawk/fixtures/c_style/spacing/order.c:2:1: a source's first include is its corresponding header
+tests/dawk/fixtures/c_style/spacing/order.c:3:1: the corresponding header is summarized // corresponding header

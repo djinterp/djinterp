@@ -9,12 +9,19 @@
 * is the identity rotation.
 *   CONVENTION: matching linalg::matrix and linalg::transform_point, the
 * matrices are row-major for column vectors -- a point is rotated as M * p.
+*   A face over the C core, c/math/quat.h, for float, double and long double
+* (internal::linalg_kernel, which copies the four members in and out); any
+* other element type takes the generic path. Everything compiles from C++98.
+* The algebra, the norm and the rotations are constant expressions from
+* C++14; from_axis_angle and slerp, which need a sine and a cosine, take the
+* C library's at run time at every level and are constant expressions from
+* C++20.
 *
 *
 * path:      /inc/djinterp/math/linear_algebra/quaternion.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.23
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.10.05
 *******************************************************************************/
 
 /*
@@ -44,11 +51,12 @@ TABLE OF CONTENTS
 #define DJINTERP_MATH_LINEAR_ALGEBRA_QUATERNION_HPP 1
 
 // std
-#include <cmath>  // std::sqrt, std::sin, std::cos, std::acos
+#include <cstddef>                 // std::size_t
 // djinterp
-#include "../../djinterp.hpp"  // framework root
-#include "./matrix.hpp"        // matrix<T, 3, 3>, matrix<T, 4, 4>
-#include "./vector.hpp"        // vector<T, 3>, cross
+#include "../../djinterp.hpp"      // framework root
+#include "./linalg_common.hpp"     // internal::linalg_kernel
+#include "./matrix.hpp"            // matrix<T, 3, 3>, matrix<T, 4, 4>
+#include "./vector.hpp"            // vector<T, 3>
 
 
 NS_DJINTERP
@@ -70,15 +78,15 @@ namespace linalg
 template<typename T = double>
 struct quaternion
 {
-    using value_type  = T;
-    using vector_type = vector<T, 3>;
+    typedef T            value_type;
+    typedef vector<T, 3> vector_type;
 
     T m_x;
     T m_y;
     T m_z;
     T m_w;
 
-    D_CONSTEXPR quaternion() noexcept
+    D_CONSTEXPR quaternion() D_NOEXCEPT
         : m_x(static_cast<T>(0)),
           m_y(static_cast<T>(0)),
           m_z(static_cast<T>(0)),
@@ -90,7 +98,7 @@ struct quaternion
         T _y,
         T _z,
         T _w
-    ) noexcept
+    ) D_NOEXCEPT
         : m_x(_x),
           m_y(_y),
           m_z(_z),
@@ -100,19 +108,45 @@ struct quaternion
     // identity
     //   the rotation that leaves every vector unchanged.
     D_NODISCARD static D_CONSTEXPR quaternion
-    identity() noexcept
+    identity() D_NOEXCEPT
     {
         return quaternion();
     }
 
     // vector_part
     //   (x, y, z) as a linalg vector.
-    D_NODISCARD D_CONSTEXPR vector_type
-    vector_part() const noexcept
+    D_NODISCARD D_CONSTEXPR_CPP14 vector_type
+    vector_part() const D_NOEXCEPT
     {
         return vector_type(m_x, m_y, m_z);
     }
 };
+
+NS_INTERNAL
+
+    // quat_in, quat_out
+    //   function: a quaternion as the C core's array [x, y, z, w], and back.
+    template<typename T>
+    D_CONSTEXPR_CPP14 void
+    quat_in(
+        const quaternion<T>& _q,
+        T*                   _out
+    ) D_NOEXCEPT
+    {
+        _out[0] = _q.m_x;
+        _out[1] = _q.m_y;
+        _out[2] = _q.m_z;
+        _out[3] = _q.m_w;
+    }
+
+    template<typename T>
+    D_CONSTEXPR_CPP14 quaternion<T>
+    quat_out(const T* _q) D_NOEXCEPT
+    {
+        return quaternion<T>(_q[0], _q[1], _q[2], _q[3]);
+    }
+
+NS_END  // internal
 
 
 //==============================================================================
@@ -128,29 +162,20 @@ struct quaternion
 // normalized here, so any non-zero length will do; a zero axis gives the
 // identity.
 template<typename T>
-D_NODISCARD quaternion<T>
+D_NODISCARD D_CONSTEXPR_CPP20 quaternion<T>
 from_axis_angle(
     const vector<T, 3>& _axis,
     T                   _angle
-) noexcept
+) D_NOEXCEPT
 {
-    const T length = _axis.length();
+    T q[4] = { T(), T(), T(), T() };
 
-    // a zero axis names no rotation
-    if (length == static_cast<T>(0))
-    {
-        return quaternion<T>::identity();
-    }
+    internal::linalg_kernel<T>::quat_from_axis_angle(q,
+                                                     _axis.data(),
+                                                     _angle);
 
-    const T half = _angle / static_cast<T>(2);
-    const T s    = std::sin(half) / length;
-
-    return quaternion<T>(_axis[0] * s,
-                          _axis[1] * s,
-                          _axis[2] * s,
-                          std::cos(half));
+    return internal::quat_out(q);
 }
-
 
 // 2.2    Algebra
 //------------------------------------------------------------------------------
@@ -158,21 +183,20 @@ from_axis_angle(
 // operator*
 //   function: the Hamilton product; _a * _b rotates by _b, then by _a.
 template<typename T>
-D_NODISCARD D_CONSTEXPR quaternion<T>
+D_NODISCARD D_CONSTEXPR_CPP14 quaternion<T>
 operator*(
     const quaternion<T>& _a,
     const quaternion<T>& _b
-) noexcept
+) D_NOEXCEPT
 {
-    return quaternion<T>(
-        (_a.m_w * _b.m_x) + (_a.m_x * _b.m_w) + (_a.m_y * _b.m_z) -
-            (_a.m_z * _b.m_y),
-        (_a.m_w * _b.m_y) - (_a.m_x * _b.m_z) + (_a.m_y * _b.m_w) +
-            (_a.m_z * _b.m_x),
-        (_a.m_w * _b.m_z) + (_a.m_x * _b.m_y) - (_a.m_y * _b.m_x) +
-            (_a.m_z * _b.m_w),
-        (_a.m_w * _b.m_w) - (_a.m_x * _b.m_x) - (_a.m_y * _b.m_y) -
-            (_a.m_z * _b.m_z));
+    T a[4] = { T(), T(), T(), T() };
+    T b[4] = { T(), T(), T(), T() };
+
+    internal::quat_in(_a, a);
+    internal::quat_in(_b, b);
+    internal::linalg_kernel<T>::quat_multiply(a, a, b);
+
+    return internal::quat_out(a);
 }
 
 // 2.2.2
@@ -182,91 +206,80 @@ template<typename T>
 D_NODISCARD D_CONSTEXPR quaternion<T>
 conjugate(
     const quaternion<T>& _q
-) noexcept
+) D_NOEXCEPT
 {
     return quaternion<T>(-_q.m_x, -_q.m_y, -_q.m_z, _q.m_w);
 }
 
 // 2.2.3
 // norm
-//   function: the Euclidean norm of (x, y, z, w).
+//   function: the Euclidean norm of (x, y, z, w), correctly rounded.
 template<typename T>
-D_NODISCARD T
+D_NODISCARD D_CONSTEXPR_CPP14 T
 norm(
     const quaternion<T>& _q
-) noexcept
+) D_NOEXCEPT
 {
-    return std::sqrt((_q.m_x * _q.m_x) + (_q.m_y * _q.m_y) +
-                     (_q.m_z * _q.m_z) + (_q.m_w * _q.m_w));
+    T q[4] = { T(), T(), T(), T() };
+
+    internal::quat_in(_q, q);
+
+    return internal::linalg_kernel<T>::norm(q, 4);
 }
 
 // 2.2.4
 // normalize
 //   function: _q scaled to unit norm; a zero quaternion is returned as is.
 template<typename T>
-D_NODISCARD quaternion<T>
+D_NODISCARD D_CONSTEXPR_CPP14 quaternion<T>
 normalize(
     const quaternion<T>& _q
-) noexcept
+) D_NOEXCEPT
 {
-    const T n = norm(_q);
+    T q[4] = { T(), T(), T(), T() };
 
-    // there is no direction to keep in a zero quaternion
-    if (n == static_cast<T>(0))
-    {
-        return _q;
-    }
+    internal::quat_in(_q, q);
+    internal::linalg_kernel<T>::quat_normalize(q, q);
 
-    return quaternion<T>(_q.m_x / n, _q.m_y / n, _q.m_z / n, _q.m_w / n);
+    return internal::quat_out(q);
 }
-
 
 // 2.3    Rotation
 //------------------------------------------------------------------------------
 // 2.3.1
 // rotate
-//   function: _v rotated by the unit quaternion _q.
+//   function: _v rotated by the unit quaternion _q, v + w t + u x t with t =
+// 2 u x v, without building a matrix.
 template<typename T>
-D_NODISCARD D_CONSTEXPR vector<T, 3>
+D_NODISCARD D_CONSTEXPR_CPP14 vector<T, 3>
 rotate(
     const quaternion<T>& _q,
     const vector<T, 3>&  _v
-) noexcept
+) D_NOEXCEPT
 {
-    // v + 2w (u x v) + 2 u x (u x v), without building a matrix
-    const vector<T, 3> u = _q.vector_part();
-    const vector<T, 3> t = cross(u, _v) * static_cast<T>(2);
+    T            q[4] = { T(), T(), T(), T() };
+    vector<T, 3> r;
 
-    return _v + (t * _q.m_w) + cross(u, t);
+    internal::quat_in(_q, q);
+    internal::linalg_kernel<T>::quat_rotate(&r[0], q, _v.data());
+
+    return r;
 }
 
 // 2.3.2
 // to_matrix3
 //   function: the 3x3 rotation matrix of the unit quaternion _q.
 template<typename T>
-D_NODISCARD D_CONSTEXPR matrix<T, 3, 3>
+D_NODISCARD D_CONSTEXPR_CPP14 matrix<T, 3, 3>
 to_matrix3(
     const quaternion<T>& _q
-) noexcept
+) D_NOEXCEPT
 {
-    const T x   = _q.m_x;
-    const T y   = _q.m_y;
-    const T z   = _q.m_z;
-    const T w   = _q.m_w;
-    const T one = static_cast<T>(1);
-    const T two = static_cast<T>(2);
+    T               q[4] = { T(), T(), T(), T() };
+    matrix<T, 3, 3> r;
 
-    matrix<T, 3, 3> r = matrix<T, 3, 3>::identity();
-
-    r(0, 0) = one - (two * ((y * y) + (z * z)));
-    r(0, 1) = two * ((x * y) - (w * z));
-    r(0, 2) = two * ((x * z) + (w * y));
-    r(1, 0) = two * ((x * y) + (w * z));
-    r(1, 1) = one - (two * ((x * x) + (z * z)));
-    r(1, 2) = two * ((y * z) - (w * x));
-    r(2, 0) = two * ((x * z) - (w * y));
-    r(2, 1) = two * ((y * z) + (w * x));
-    r(2, 2) = one - (two * ((x * x) + (y * y)));
+    internal::quat_in(_q, q);
+    internal::linalg_kernel<T>::quat_to_matrix3(&r(0, 0), q);
 
     return r;
 }
@@ -275,25 +288,19 @@ to_matrix3(
 // to_matrix4
 //   function: the 4x4 homogeneous rotation matrix of the unit quaternion _q.
 template<typename T>
-D_NODISCARD D_CONSTEXPR matrix<T, 4, 4>
+D_NODISCARD D_CONSTEXPR_CPP14 matrix<T, 4, 4>
 to_matrix4(
     const quaternion<T>& _q
-) noexcept
+) D_NOEXCEPT
 {
-    const matrix<T, 3, 3> r3 = to_matrix3(_q);
-    matrix<T, 4, 4>       r  = matrix<T, 4, 4>::identity();
+    T               q[4] = { T(), T(), T(), T() };
+    matrix<T, 4, 4> r;
 
-    for (std::size_t i = 0; i < 3; ++i)
-    {
-        for (std::size_t j = 0; j < 3; ++j)
-        {
-            r(i, j) = r3(i, j);
-        }
-    }
+    internal::quat_in(_q, q);
+    internal::linalg_kernel<T>::quat_to_matrix4(&r(0, 0), q);
 
     return r;
 }
-
 
 // 2.4    Interpolation
 //------------------------------------------------------------------------------
@@ -302,44 +309,24 @@ to_matrix4(
 //   function: spherical linear interpolation from _a (t = 0) to _b (t = 1)
 // along the shorter arc; both are unit quaternions.
 template<typename T>
-D_NODISCARD quaternion<T>
+D_NODISCARD D_CONSTEXPR_CPP20 quaternion<T>
 slerp(
     const quaternion<T>& _a,
     const quaternion<T>& _b,
     T                    _t
-) noexcept
+) D_NOEXCEPT
 {
-    T d = (_a.m_x * _b.m_x) + (_a.m_y * _b.m_y) +
-           (_a.m_z * _b.m_z) + (_a.m_w * _b.m_w);
-    quaternion<T> b = _b;
+    T a[4] = { T(), T(), T(), T() };
+    T b[4] = { T(), T(), T(), T() };
+    T r[4] = { T(), T(), T(), T() };
 
-    // q and -q are the same rotation; take the one on the shorter arc
-    if (d < static_cast<T>(0))
-    {
-        b = quaternion<T>(-_b.m_x, -_b.m_y, -_b.m_z, -_b.m_w);
-        d = -d;
-    }
+    internal::quat_in(_a, a);
+    internal::quat_in(_b, b);
+    internal::linalg_kernel<T>::quat_slerp(r, a, b, _t);
 
-    // nearly parallel: the arc is a line, and sin(theta) would vanish
-    if (d > static_cast<T>(0.9995))
-    {
-        return normalize(quaternion<T>(_a.m_x + (_t * (b.m_x - _a.m_x)),
-                                        _a.m_y + (_t * (b.m_y - _a.m_y)),
-                                        _a.m_z + (_t * (b.m_z - _a.m_z)),
-                                        _a.m_w + (_t * (b.m_w - _a.m_w))));
-    }
-
-    const T theta_0 = std::acos(d);
-    const T theta   = theta_0 * _t;
-    const T sin_0   = std::sin(theta_0);
-    const T s_a     = std::sin(theta_0 - theta) / sin_0;
-    const T s_b     = std::sin(theta) / sin_0;
-
-    return quaternion<T>((s_a * _a.m_x) + (s_b * b.m_x),
-                          (s_a * _a.m_y) + (s_b * b.m_y),
-                          (s_a * _a.m_z) + (s_b * b.m_z),
-                          (s_a * _a.m_w) + (s_b * b.m_w));
+    return internal::quat_out(r);
 }
+
 
 }  // namespace linalg
 NS_END  // math

@@ -1,0 +1,2 @@
+tests/dawk/fixtures/c_style/includes.c:4:1: an include of djinterp.h is summarized // framework root
+tests/dawk/fixtures/c_style/includes.c:5:1: an include of djinterp.h is summarized // framework root

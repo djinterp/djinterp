@@ -1,0 +1,7 @@
+tests/dawk/fixtures/c_style/reserved.c:2:1: a #define carries a // NAME comment above it
+tests/dawk/fixtures/c_style/reserved.c:3:9: a macro djinterp defines is not reserved
+tests/dawk/fixtures/c_style/reserved.c:4:9: a macro djinterp defines is not reserved
+tests/dawk/fixtures/c_style/reserved.c:8:9: a name djinterp declares is not reserved
+tests/dawk/fixtures/c_style/reserved.c:9:9: a name djinterp declares is not reserved
+tests/dawk/fixtures/c_style/reserved.c:10:9: a name djinterp declares is not reserved
+tests/dawk/fixtures/c_style/reserved.c:14:1: a definition carries a comment opening with its name
