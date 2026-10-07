@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/c/dtime.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.21
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -32,8 +32,7 @@ TABLE OF CONTENTS
 2.  TYPES AND CONSTANTS
     -------------------
     1.  Portable types
-         1.  struct timespec
-         2.  clockid_t
+         1.  clockid_t
     2.  Clock identifiers
          1.  POSIX clock identifiers
          2.  TIME_UTC
@@ -139,14 +138,14 @@ TABLE OF CONTENTS
 
 // 1.2.3
 // D_TIME_HAS_TIMESPEC_GET
-//   feature: detect C11 timespec_get availability.
+//   feature: 1 where the C library has C11's timespec_get, which it says by
+// defining TIME_UTC in <time.h> (C11 7.27.1): glibc and musl in C11 mode,
+// Microsoft's UCRT in any. Read here, before 2.2.2 supplies TIME_UTC where it
+// is missing. It replaces a C11-or-MSVC-2015 test (decision 27 of the
+// register): MinGW over msvcrt passes the first and has no timespec_get, and
+// the second read D_ENV_MSC_VER, which nothing defines, so MSVC never had it.
 #ifndef D_TIME_HAS_TIMESPEC_GET
-    #if D_ENV_LANG_IS_C11_OR_HIGHER
-        #define D_TIME_HAS_TIMESPEC_GET 1
-    #elif ( (defined(D_ENV_CRT_MSVC)) &&                                       \
-            (D_ENV_CRT_MSVC)          &&                                       \
-            (defined(D_ENV_MSC_VER))  &&                                       \
-            (D_ENV_MSC_VER >= 1900) )
+    #if defined(TIME_UTC)
         #define D_TIME_HAS_TIMESPEC_GET 1
     #else
         #define D_TIME_HAS_TIMESPEC_GET 0
@@ -166,12 +165,23 @@ TABLE OF CONTENTS
 
 // 1.2.5
 // D_TIME_HAS_TIMEGM
-//   feature: detect timegm availability (GNU/BSD extension).
+//   feature: 1 where <time.h> declares timegm, a BSD and GNU extension, under
+// the build's feature-test macros (decision 25 of the register). glibc and
+// musl declare it for _DEFAULT_SOURCE, _GNU_SOURCE or _BSD_SOURCE, which they
+// define themselves where the build asks for no standard, but not for
+// _XOPEN_SOURCE alone; macOS and the BSDs declare it unless the build asks
+// for a standard with _POSIX_C_SOURCE or _XOPEN_SOURCE. Elsewhere d_timegm
+// has a portable fallback, and on Windows _mkgmtime. The old test answered 0
+// on Linux and macOS, and 1 on FreeBSD even where timegm was hidden.
 #ifndef D_TIME_HAS_TIMEGM
-    #if ( ( defined(D_ENV_PLATFORM_LINUX) ||                                  \
-            defined(D_ENV_PLATFORM_MACOS) ||                                  \
-            defined(D_ENV_OS_ID) )                          &&                \
-          (D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)) )
+    #if ( (defined(D_TIME_PLATFORM_POSIX))   &&                                \
+          ( (defined(_DEFAULT_SOURCE))     ||                                  \
+            (defined(_GNU_SOURCE))         ||                                  \
+            (defined(_BSD_SOURCE))         ||                                  \
+            ( ( (defined(D_ENV_PLATFORM_MACOS)) ||                             \
+                (defined(D_ENV_PLATFORM_UNIX)) )  &&                           \
+              (!defined(_POSIX_C_SOURCE))         &&                           \
+              (!defined(_XOPEN_SOURCE)) ) ) )
         #define D_TIME_HAS_TIMEGM 1
     #else
         #define D_TIME_HAS_TIMEGM 0
@@ -187,26 +197,6 @@ TABLE OF CONTENTS
 // 2.1    Portable types
 //------------------------------------------------------------------------------
 // 2.1.1
-// struct timespec
-//   type: high-resolution time structure, defined here only for MSVC
-// before Visual Studio 2015 (_MSC_VER 1900), whose <time.h> lacks it.
-#if defined(D_TIME_PLATFORM_WINDOWS)
-    #if !defined(_TIMESPEC_DEFINED) && !defined(HAVE_STRUCT_TIMESPEC)
-        #ifndef _CRT_NO_TIME_T
-            #if (_MSC_VER < 1900)
-                #define _TIMESPEC_DEFINED 1
-                #define HAVE_STRUCT_TIMESPEC 1
-                struct timespec
-                {
-                    time_t tv_sec;      // seconds
-                    long   tv_nsec;     // nanoseconds
-                };
-            #endif  // _MSC_VER < 1900
-        #endif  // _CRT_NO_TIME_T
-    #endif  // !_TIMESPEC_DEFINED
-#endif  // D_TIME_PLATFORM_WINDOWS
-
-// 2.1.2
 // clockid_t
 //   type: clock identifier type, defined here on Windows, which has none.
 #if defined(D_TIME_PLATFORM_WINDOWS)
@@ -399,14 +389,17 @@ int              d_timespec_get(struct timespec* _ts,
  * @brief Sleeps for a high-resolution interval (POSIX nanosleep equivalent).
  *
  * @note Windows sleeps at millisecond resolution, raising a nonzero sub-
- *       millisecond request to 1 ms; the portable fallback sleeps whole
- *       seconds, rounding up.
+ *       millisecond request to 1 ms. Where neither POSIX nanosleep nor
+ *       Windows is available, it uses C11's thrd_sleep where threads exist;
+ *       else POSIX sleep(), whole seconds rounded up, on a POSIX platform;
+ *       else it fails with ENOSYS.
  *
  * @param[in]  _req  the interval; tv_nsec must be in [0, 999999999].
  * @param[out] _rem  receives the unslept time if the sleep is cut short; may be
  *                   `NULL`.
  * @return `0` on success, or `-1` with errno set: EINVAL for a `NULL` or out-
- *         of-range `_req`, or, from POSIX nanosleep, EINTR when interrupted.
+ *         of-range `_req`; EINTR when interrupted (nanosleep, thrd_sleep);
+ *         ENOSYS where the platform cannot sleep.
  */
 int              d_nanosleep(const struct timespec* _req,
                              struct timespec*       _rem);
@@ -437,9 +430,8 @@ int              d_sleep_ms(unsigned long _milliseconds);
  * @brief Converts a broken-down UTC time to a time_t, the inverse of gmtime
  *        (timegm equivalent).
  *
- * @param[in,out] _tm  the UTC time. The native timegm and _mkgmtime may
- *                     normalize its fields; the portable fallback leaves it
- *                     unchanged.
+ * @param[in,out] _tm  the UTC time, its fields normalized on return, as timegm
+ *                     does: the portable fallback normalizes them too.
  * @return the time, or `(time_t)-1` on failure, including a `NULL` `_tm`.
  */
 time_t           d_timegm(struct tm* _tm);
@@ -533,8 +525,9 @@ void             d_timespec_sub(const struct timespec* _a,
  * @param[in] _a  the first value.
  * @param[in] _b  the second value.
  * @return a value less than, equal to, or greater than zero as `_a` is earlier
- *         than, equal to, or later than `_b`; `0` if both are `NULL`, and `-1`
- *         if either one alone is.
+ *         than, equal to, or later than `_b`. `NULL` orders before every
+ *         value: `0` if both are `NULL`, `-1` if `_a` alone is, `1` if `_b`
+ *         alone is.
  */
 int              d_timespec_cmp(const struct timespec* _a,
                                 const struct timespec* _b);
@@ -562,7 +555,8 @@ int64_t          d_timespec_to_us(const struct timespec* _ts);
  *
  * @param[in] _ts  the value to convert.
  * @pre    |tv_sec| is below about 9.2e9 (292 years); beyond that the nanosecond
- *         total overflows int64_t, which is undefined.
+ *         total overflows int64_t, which is undefined. Debug builds assert
+ *         it; with NDEBUG nothing checks.
  * @return the total in nanoseconds; `0` for a `NULL` `_ts`.
  */
 int64_t          d_timespec_to_ns(const struct timespec* _ts);

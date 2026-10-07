@@ -7,9 +7,11 @@
 * path:      /src/djinterp/env/env.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
-#include "../../../inc/djinterp/env/env.h"
+#include "../../../inc/djinterp/env/env.h"  // corresponding header
+// std
+#include <stdio.h>  // printf
 
 
 #ifdef D_DEBUG

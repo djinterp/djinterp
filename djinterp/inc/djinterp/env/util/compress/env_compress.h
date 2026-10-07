@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/env/util/compress/env_compress.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -35,7 +35,7 @@ TABLE OF CONTENTS
          1.  D_CFG_ENV_COMPRESSION_ENABLED
     2.  Probing
          1.  D_ENV_HAS_INCLUDE
-         2.  D_INTERNAL_COMPRESSION_PROBE
+         2.  D_INTERNAL_ENV_COMPRESSION_PROBE
 2.  ZLIB FAMILY
     -----------
     1.  zlib
@@ -149,13 +149,13 @@ TABLE OF CONTENTS
 #endif  // D_ENV_HAS_INCLUDE
 
 // 1.2.2
-// D_INTERNAL_COMPRESSION_PROBE
+// D_INTERNAL_ENV_COMPRESSION_PROBE
 //   macro: internal helper. yields the __has_include result for `header`
 // when detection is enabled, and 0 when the master toggle is off.
 #if D_CFG_ENV_COMPRESSION_ENABLED
-    #define D_INTERNAL_COMPRESSION_PROBE(header) D_ENV_HAS_INCLUDE(header)
+    #define D_INTERNAL_ENV_COMPRESSION_PROBE(header) D_ENV_HAS_INCLUDE(header)
 #else
-    #define D_INTERNAL_COMPRESSION_PROBE(header) 0
+    #define D_INTERNAL_ENV_COMPRESSION_PROBE(header) 0
 #endif
 
 
@@ -171,7 +171,7 @@ TABLE OF CONTENTS
 // D_ENV_COMPRESSION_HAVE_ZLIB
 //   feature: detect if zlib (<zlib.h>) is available.
 #ifndef D_ENV_COMPRESSION_HAVE_ZLIB
-    #if D_INTERNAL_COMPRESSION_PROBE(<zlib.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<zlib.h>)
         #define D_ENV_COMPRESSION_HAVE_ZLIB     1
     #else
         #define D_ENV_COMPRESSION_HAVE_ZLIB     0
@@ -211,7 +211,7 @@ TABLE OF CONTENTS
 //   feature: detect if zlib-ng is available, in either its native (<zlib-ng.h>,
 // zng_ prefixed) or compat (masquerades as zlib) configuration.
 #ifndef D_ENV_COMPRESSION_HAVE_ZLIBNG
-    #if ( (D_INTERNAL_COMPRESSION_PROBE(<zlib-ng.h>)) ||                       \
+    #if ( (D_INTERNAL_ENV_COMPRESSION_PROBE(<zlib-ng.h>)) ||                   \
           (defined(ZLIBNG_VERSION))                   ||                       \
           (defined(ZLIBNG_VER_STRING)) )
         #define D_ENV_COMPRESSION_HAVE_ZLIBNG       1
@@ -238,7 +238,7 @@ TABLE OF CONTENTS
 // D_ENV_COMPRESSION_HAVE_MINIZ
 //   feature: detect if miniz (<miniz.h>) is available.
 #ifndef D_ENV_COMPRESSION_HAVE_MINIZ
-    #if D_INTERNAL_COMPRESSION_PROBE(<miniz.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<miniz.h>)
         #define D_ENV_COMPRESSION_HAVE_MINIZ        1
     #else
         #define D_ENV_COMPRESSION_HAVE_MINIZ        0
@@ -264,7 +264,7 @@ TABLE OF CONTENTS
 // and does not provide a streaming gz* file API, so it is folded into the
 // DEFLATE roll-up but not into the streaming-gzip roll-up below.
 #ifndef D_ENV_COMPRESSION_HAVE_LIBDEFLATE
-    #if D_INTERNAL_COMPRESSION_PROBE(<libdeflate.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<libdeflate.h>)
         #define D_ENV_COMPRESSION_HAVE_LIBDEFLATE   1
     #else
         #define D_ENV_COMPRESSION_HAVE_LIBDEFLATE   0
@@ -296,7 +296,7 @@ TABLE OF CONTENTS
 // note: bzip2 exposes its version only at runtime via BZ2_bzlibVersion();
 // there is no compile-time version macro.
 #ifndef D_ENV_COMPRESSION_HAVE_BZIP2
-    #if D_INTERNAL_COMPRESSION_PROBE(<bzlib.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<bzlib.h>)
         #define D_ENV_COMPRESSION_HAVE_BZIP2        1
     #else
         #define D_ENV_COMPRESSION_HAVE_BZIP2        0
@@ -310,7 +310,7 @@ TABLE OF CONTENTS
 //   feature: detect if liblzma (<lzma.h>) is available. liblzma provides the
 // xz container, the legacy .lzma format, and raw LZMA1/LZMA2 streams.
 #ifndef D_ENV_COMPRESSION_HAVE_LZMA
-    #if D_INTERNAL_COMPRESSION_PROBE(<lzma.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<lzma.h>)
         #define D_ENV_COMPRESSION_HAVE_LZMA         1
     #else
         #define D_ENV_COMPRESSION_HAVE_LZMA         0
@@ -340,7 +340,7 @@ TABLE OF CONTENTS
 // D_ENV_COMPRESSION_HAVE_ZSTD
 //   feature: detect if zstd (<zstd.h>) is available.
 #ifndef D_ENV_COMPRESSION_HAVE_ZSTD
-    #if D_INTERNAL_COMPRESSION_PROBE(<zstd.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<zstd.h>)
         #define D_ENV_COMPRESSION_HAVE_ZSTD         1
     #else
         #define D_ENV_COMPRESSION_HAVE_ZSTD         0
@@ -379,7 +379,7 @@ TABLE OF CONTENTS
 // D_ENV_COMPRESSION_HAVE_LZ4
 //   feature: detect if lz4 (<lz4.h>) is available.
 #ifndef D_ENV_COMPRESSION_HAVE_LZ4
-    #if D_INTERNAL_COMPRESSION_PROBE(<lz4.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<lz4.h>)
         #define D_ENV_COMPRESSION_HAVE_LZ4          1
     #else
         #define D_ENV_COMPRESSION_HAVE_LZ4          0
@@ -391,7 +391,7 @@ TABLE OF CONTENTS
 //   feature: detect if the lz4 frame API (<lz4frame.h>) is available. the
 // frame format is required for interoperable .lz4 files.
 #ifndef D_ENV_COMPRESSION_HAVE_LZ4_FRAME
-    #if D_INTERNAL_COMPRESSION_PROBE(<lz4frame.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<lz4frame.h>)
         #define D_ENV_COMPRESSION_HAVE_LZ4_FRAME    1
     #else
         #define D_ENV_COMPRESSION_HAVE_LZ4_FRAME    0
@@ -421,7 +421,7 @@ TABLE OF CONTENTS
 // D_ENV_COMPRESSION_HAVE_BROTLI_ENCODE
 //   feature: detect if the brotli encoder (<brotli/encode.h>) is available.
 #ifndef D_ENV_COMPRESSION_HAVE_BROTLI_ENCODE
-    #if D_INTERNAL_COMPRESSION_PROBE(<brotli/encode.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<brotli/encode.h>)
         #define D_ENV_COMPRESSION_HAVE_BROTLI_ENCODE 1
     #else
         #define D_ENV_COMPRESSION_HAVE_BROTLI_ENCODE 0
@@ -432,7 +432,7 @@ TABLE OF CONTENTS
 // D_ENV_COMPRESSION_HAVE_BROTLI_DECODE
 //   feature: detect if the brotli decoder (<brotli/decode.h>) is available.
 #ifndef D_ENV_COMPRESSION_HAVE_BROTLI_DECODE
-    #if D_INTERNAL_COMPRESSION_PROBE(<brotli/decode.h>)
+    #if D_INTERNAL_ENV_COMPRESSION_PROBE(<brotli/decode.h>)
         #define D_ENV_COMPRESSION_HAVE_BROTLI_DECODE 1
     #else
         #define D_ENV_COMPRESSION_HAVE_BROTLI_DECODE 0
@@ -468,7 +468,7 @@ TABLE OF CONTENTS
           ( (D_ENV_OS_ID == D_ENV_OS_FLAG_MACOS) ||                            \
             (D_ENV_OS_ID == D_ENV_OS_FLAG_IOS)   ||                            \
             (D_ENV_OS_ID == D_ENV_OS_FLAG_APPLE) )  &&                         \
-          (D_INTERNAL_COMPRESSION_PROBE(<compress.h>)) )
+          (D_INTERNAL_ENV_COMPRESSION_PROBE(<compress.h>)) )
         #define D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION 1
     #else
         #define D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION 0
@@ -484,7 +484,7 @@ TABLE OF CONTENTS
 #ifndef D_ENV_COMPRESSION_HAVE_WIN_COMPRESSION_API
     #if ( (defined(D_ENV_OS_ID))             &&                                \
           (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) &&                                \
-          (D_INTERNAL_COMPRESSION_PROBE(<compressapi.h>)) )
+          (D_INTERNAL_ENV_COMPRESSION_PROBE(<compressapi.h>)) )
         #define D_ENV_COMPRESSION_HAVE_WIN_COMPRESSION_API 1
     #else
         #define D_ENV_COMPRESSION_HAVE_WIN_COMPRESSION_API 0

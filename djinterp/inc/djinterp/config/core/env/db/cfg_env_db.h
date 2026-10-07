@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/config/core/env/db/cfg_env_db.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CORE_ENV_DB_CFG_ENV_DB_H
@@ -54,6 +54,11 @@
       defined(D_ENV_DB_DETECTED_UNKNOWN) )
     #undef  D_CFG_ENV_DB_CUSTOM
     #define D_CFG_ENV_DB_CUSTOM 1
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_DB_CUSTOM)
+    #error "D_CFG_ENV_DB_CUSTOM must be 0 or 1"
 #endif
 
 

@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/config/core/env/db/mysql/cfg_env_mysql.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CORE_ENV_DB_MYSQL_CFG_ENV_MYSQL_H
@@ -34,6 +34,11 @@
 // and no vendor-symbol references.
 #ifndef D_CFG_ENV_USING_MYSQL
     #define D_CFG_ENV_USING_MYSQL 0
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_USING_MYSQL)
+    #error "D_CFG_ENV_USING_MYSQL must be 0 or 1"
 #endif
 
 // D_CFG_ENV_MYSQL_C_PATH
@@ -78,6 +83,11 @@
       defined(D_ENV_MYSQL_DETECTED_9_1) )
     #undef  D_CFG_ENV_MYSQL_CUSTOM
     #define D_CFG_ENV_MYSQL_CUSTOM 1
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_MYSQL_CUSTOM)
+    #error "D_CFG_ENV_MYSQL_CUSTOM must be 0 or 1"
 #endif
 
 

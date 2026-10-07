@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/env/db/sqlite/env_sqlite.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -227,7 +227,7 @@ TABLE OF CONTENTS
 // is off. D_CFG_ENV_SQLITE_C_PATH is tried first, then <sqlite3.h>; without
 // __has_include, the configured path is included as is, and with none found,
 // #error. D_ENV_DB_HAS_SQLITE_CLIENT_C follows it unless pre-defined.
-#if (D_CFG_ENV_USING_SQLITE == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_SQLITE)
 
     #if defined(__has_include)
         #if __has_include(D_CFG_ENV_SQLITE_C_PATH)
@@ -353,7 +353,7 @@ TABLE OF CONTENTS
 // Automatic mode needs sqlite3.h in scope and reads SQLITE_VERSION_NUMBER;
 // manual mode (D_CFG_ENV_SQLITE_CUSTOM) reads D_ENV_SQLITE_DETECTED_VERSION, or
 // a D_ENV_SQLITE_DETECTED_<MAJOR>_<MINOR> flag.
-#if (D_CFG_ENV_SQLITE_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_SQLITE_CUSTOM)
 
     // automatic detection requires sqlite3.h to be in scope; if
     // D_CFG_ENV_USING_SQLITE was not enabled the sentinel is 0 and we skip

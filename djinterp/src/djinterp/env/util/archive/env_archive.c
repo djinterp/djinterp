@@ -10,7 +10,7 @@
 * path:      /src/djinterp/env/util/archive/env_archive.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 #include "../../../../../inc/djinterp/env/util/archive/env_archive.h"
 #include "../../../../../inc/djinterp/env/util/compress/env_compress_link.h"
@@ -78,7 +78,7 @@ internal_tool_exists_at(const char* dir,
     }
 
     memcpy(path, dir, dir_len);
-    path[dir_len] = D_INTERNAL_DIR_SEP;
+    path[dir_len] = D_INTERNAL_ENV_ARCHIVE_DIR_SEP;
     memcpy(path + dir_len + 1u, tool, tool_len);
     if (suf_len > 0u)
     {
@@ -86,7 +86,7 @@ internal_tool_exists_at(const char* dir,
     }
     path[dir_len + 1u + tool_len + suf_len] = '\0';
 
-    return (D_INTERNAL_ACCESS(path) == 0) ? 1 : 0;
+    return (D_INTERNAL_ENV_ARCHIVE_ACCESS(path) == 0) ? 1 : 0;
 }
 
 // d_env_archive_has_tool
@@ -108,7 +108,7 @@ d_env_archive_has_tool(const char* tool_name)
     if (strchr(tool_name, '/') != NULL ||
         strchr(tool_name, '\\') != NULL)
     {
-        return (D_INTERNAL_ACCESS(tool_name) == 0) ? 1 : 0;
+        return (D_INTERNAL_ENV_ARCHIVE_ACCESS(tool_name) == 0) ? 1 : 0;
     }
 
     path_env = getenv("PATH");
@@ -120,13 +120,13 @@ d_env_archive_has_tool(const char* tool_name)
     cursor = path_env;
     while (*cursor != '\0')
     {
-        const char* end = strchr(cursor, D_INTERNAL_PATH_SEP);
+        const char* end = strchr(cursor, D_INTERNAL_ENV_ARCHIVE_PATH_SEP);
         size_t      len = (end != NULL) ? (size_t)(end - cursor)
                                         : strlen(cursor);
 
         if (len > 0u)
         {
-#if D_INTERNAL_ARCHIVE_OS_WINDOWS
+#if D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
             /* try bare name, then .exe / .com / .bat */
             if (internal_tool_exists_at(cursor, len, tool_name, NULL)    ||
                 internal_tool_exists_at(cursor, len, tool_name, ".exe")  ||

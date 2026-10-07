@@ -3,16 +3,20 @@
 *
 * Cross-platform variants of certain `stdio.h` functions.
 *   Portable, safer wrappers for standard I/O: the secure formatted-input and
-* formatted-output variants, bounded line input, 64-bit stream positioning,
-* and the stream error state. The secure variants map to Annex K or MSVC's
-* implementations where D_STUDIO_HAS_SCANF_S is set, and to the standard
-* functions otherwise; see each contract for where the two differ.
+* formatted-output variants, bounded line input, and the stream error state.
+* Stream positioning is c/fs's: d_file_tell_stream and d_file_seek_stream, in
+* fs/file_seek.h, which d_fgetpos and d_fsetpos only wrapped (decision 39 of
+* the register). The checked scanf family is the framework's
+* own and the same everywhere. The secure printf and gets variants map to
+* Annex K or MSVC's implementations where D_ENV_C_HAS_SCANF_S is set, and to
+* the standard functions otherwise; see each contract for where the two
+* differ.
 *
 *
 * path:      /inc/djinterp/c/dio.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.05.19
-*                                                            revised: 2026.09.24
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -27,10 +31,7 @@ TABLE OF CONTENTS
 3.  CHARACTER AND STRING I/O
     ------------------------
     1.  Line and string I/O
-4.  STREAM POSITIONING
-    ------------------
-    1.  Large-file positioning
-5.  ERROR HANDLING
+4.  ERROR HANDLING
     --------------
     1.  Stream error state
 */
@@ -43,7 +44,6 @@ TABLE OF CONTENTS
 #include <stdio.h>         // FILE, size_t
 // djinterp
 #include "./djinterp.h"    // framework root
-#include "./fs/dfile.h"    // d_off_t
 // re_std
 #include "../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's floor
 
@@ -80,20 +80,35 @@ int     d_sscanf(const char* _buffer,
                  const char* _format,
                  ...);
 /**
- * @brief Reads formatted data from a string (sscanf_s equivalent).
+ * @brief Reads formatted data from a string, with the C11 Annex K checks
+ *        (sscanf_s equivalent).
  *
- * @warning where D_STUDIO_HAS_SCANF_S is not set, this falls back to the plain
- *          function, which does not take the buffer-size argument the _s
- *          convention adds after each %s, %c, and %[ argument. A call written
- *          for the _s convention then misreads its arguments and can write
- *          through a size as if it were a pointer.
+ * @note The framework's own implementation, the same on every platform: each
+ *       directive goes alone to the C library's vsscanf, so the conversions'
+ *       syntax and locale are the library's, and the checks are this
+ *       function's. Each %c, %s and %[ that is not suppressed takes two
+ *       arguments: its buffer, then the buffer's size in elements as a size_t
+ *       (Annex K's rsize_t). Microsoft's own sscanf_s takes an unsigned int
+ *       there; a call written for it passes a size_t here instead.
+ * @note A field its buffer cannot hold, terminator included, is a matching
+ *       failure, never a truncation, and a %s or %[ buffer of nonzero size is
+ *       left holding the empty string. A %c that meets the end of input before
+ *       its width is an input failure. A suppressed conversion counts as a
+ *       conversion before an input failure, as the standard has it: "5"
+ *       against "%*d%d" returns 0, where glibc's sscanf returns EOF. A wide
+ *       conversion's width counts what the library counts: characters on
+ *       glibc, bytes on musl.
+ * @warning A null _buffer, _format or target, and a conversion specification
+ *          the standard leaves undefined, are runtime-constraint violations:
+ *          the call returns EOF and reads no further. No constraint handler
+ *          is called.
  *
  * @param[in]  _buffer  the string to read.
  * @param[in]  _format  the format.
- * @param[out] ...      the objects receiving the fields, each %s, %c, and %[
- *                      followed by its buffer size.
- * @return the number of fields converted and assigned, or EOF on an input
- *         failure before the first conversion.
+ * @param[out] ...      the objects receiving the fields, each %c, %s and %[
+ *                      followed by its buffer's size in elements, a size_t.
+ * @return the number of fields assigned; EOF on a runtime-constraint
+ *         violation, or on an input failure before the first conversion.
  */
 int     d_sscanf_s(const char* _buffer,
                    const char* _format,
@@ -112,17 +127,17 @@ int     d_vsscanf(const char* _buffer,
                   const char* _format,
                   va_list     _argptr);
 /**
- * @brief Reads formatted data from a string with a va_list (vsscanf_s
- *        equivalent).
+ * @brief Reads formatted data from a string with a va_list, with the C11
+ *        Annex K checks (vsscanf_s equivalent).
  *
- * @warning the fallback caveat at d_sscanf_s() applies.
+ * @note Everything noted at d_sscanf_s() applies.
  *
  * @param[in] _buffer  the string to read.
  * @param[in] _format  the format.
  * @param[in] _argptr  the objects receiving the fields, with buffer sizes as
  *                     for d_sscanf_s().
- * @return the number of fields converted and assigned, or EOF on an input
- *         failure before the first conversion.
+ * @return the number of fields assigned; EOF on a runtime-constraint
+ *         violation, or on an input failure before the first conversion.
  */
 int     d_vsscanf_s(const char* _buffer,
                     const char* _format,
@@ -140,16 +155,23 @@ int     d_fscanf(FILE*       _stream,
                  const char* _format,
                  ...);
 /**
- * @brief Reads formatted data from a stream (fscanf_s equivalent).
+ * @brief Reads formatted data from a stream, with the C11 Annex K checks
+ *        (fscanf_s equivalent).
  *
- * @warning the fallback caveat at d_sscanf_s() applies.
+ * @note Everything noted at d_sscanf_s() applies, over vfscanf. A stream is
+ *       read once, so a %s or %[ is read with its width capped at its
+ *       buffer's size less one, then checked for going on: a field that does
+ *       has had that many characters consumed when the matching failure is
+ *       reported. Where the library counts a wide conversion's width in
+ *       bytes, as musl does, the cap is conservative: a multibyte field that
+ *       would fit its buffer can fail.
  *
  * @param[in,out] _stream  the stream to read.
  * @param[in]     _format  the format.
  * @param[out]    ...      the objects receiving the fields, with buffer sizes
  *                         as for d_sscanf_s().
- * @return the number of fields converted and assigned, or EOF on an input
- *         failure before the first conversion.
+ * @return the number of fields assigned; EOF on a runtime-constraint
+ *         violation, or on an input failure before the first conversion.
  */
 int     d_fscanf_s(FILE*       _stream,
                    const char* _format,
@@ -180,7 +202,7 @@ int     d_sprintf_s(char*       _buffer,
  * @brief Writes formatted data to a bounded buffer with a va_list (vsprintf_s
  *        equivalent).
  *
- * @note where D_STUDIO_HAS_SCANF_S is not set this is vsnprintf, which
+ * @note where D_ENV_C_HAS_SCANF_S is not set this is vsnprintf, which
  *       truncates the output where vsprintf_s would report the overflow.
  *
  * @param[out] _buffer  the buffer to write.
@@ -238,7 +260,7 @@ int     d_vsnprintf(char*       _buffer,
 /**
  * @brief Reads a line from stdin into a bounded buffer (gets_s equivalent).
  *
- * @note where D_STUDIO_HAS_SCANF_S is not set this reads with fgets: a line
+ * @note where D_ENV_C_HAS_SCANF_S is not set this reads with fgets: a line
  *       longer than the buffer is then returned in parts rather than failing,
  *       the rest remaining in stdin.
  *
@@ -272,45 +294,11 @@ char*   d_fgets(char* _str,
 
 
 //==============================================================================
-// 4.  STREAM POSITIONING
+// 4.  ERROR HANDLING
 //==============================================================================
 
 
-// 4.1    Large-file positioning
-//------------------------------------------------------------------------------
-//   d_file_rewind_stream lives in c/fs/file_seek.h, and returns int rather than
-// void, because it can fail: seeking a pipe does. It was once declared here as
-// well, which gave one symbol two incompatible declarations.
-/**
- * @brief Reads a stream's position as a 64-bit offset.
- *
- * @note unlike fgetpos, the position is a plain d_off_t, so it can be stored
- *       and compared as a number.
- *
- * @param[in]  _stream  the stream.
- * @param[out] _pos     receives the offset from the start of the stream.
- * @return `0` on success, or `-1` for a `NULL` `_pos` or a failed read.
- */
-int     d_fgetpos(FILE*    _stream,
-                  d_off_t* _pos);
-/**
- * @brief Moves a stream to a 64-bit offset from its start.
- *
- * @param[in,out] _stream  the stream.
- * @param[in]     _pos     the offset from the start of the stream.
- * @return `0` on success, `-1` for a `NULL` `_pos`, or d_file_seek_stream()'s
- *         nonzero result on failure.
- */
-int     d_fsetpos(FILE*          _stream,
-                  const d_off_t* _pos);
-
-
-//==============================================================================
-// 5.  ERROR HANDLING
-//==============================================================================
-
-
-// 5.1    Stream error state
+// 4.1    Stream error state
 //------------------------------------------------------------------------------
 /**
  * @brief Prints a prefix and the description of errno to stderr (perror

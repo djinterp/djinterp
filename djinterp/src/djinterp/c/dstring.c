@@ -9,7 +9,7 @@
 * path:      /src/djinterp/c/dstring.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dstring.h"  // corresponding header
 // std
@@ -25,6 +25,8 @@
 #include "../../../inc/djinterp/c/djinterp.h"        // framework root
 #include "../../../inc/djinterp/c/memory/dmemory.h"  // d_memcpy, d_memset
 #include "../../../inc/djinterp/c/string_fn.h"       // d_str* primitives
+// re_std
+#include "../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
 
 
 // internal helpers
@@ -983,10 +985,11 @@ d_string_substr(
         return NULL;
     }
 
-    // clamp length to available characters
+    // clamp length to available characters; compared against what is left,
+    // so a count near SIZE_MAX cannot wrap the sum (decision 22)
     size_t actual_len = _length;
 
-    if (start_pos + actual_len > _string->size)
+    if (actual_len > _string->size - start_pos)
     {
         actual_len = (_string->size - start_pos);
     }
@@ -2023,6 +2026,12 @@ d_string_assign(
         return false;
     }
 
+    // assigning a string to itself leaves it as it is (decision 23)
+    if (_other == _string)
+    {
+        return true;
+    }
+
     return (d_string_copy_s(_string,
                             _other) == 0);
 }
@@ -2127,6 +2136,28 @@ d_string_append(
          (_other == NULL) )
     {
         return false;
+    }
+
+    // a string appended to itself: d_string_cat_s's operands may not alias,
+    // so the copy comes from the string's own first half (decision 23)
+    if (_other == _string)
+    {
+        const size_t size = _string->size;
+
+        if ( (size > (SIZE_MAX - 1) / 2) ||
+             (!d_string_internal_grow(_string,
+                                      (2 * size) + 1)) )
+        {
+            return false;
+        }
+
+        d_memcpy(_string->text + size,
+                 _string->text,
+                 size);
+        _string->text[2 * size] = '\0';
+        _string->size           = 2 * size;
+
+        return true;
     }
 
     return (d_string_cat_s(_string,
@@ -2426,7 +2457,8 @@ d_string_insert(
         return false;
     }
 
-    const size_t new_size = _string->size + _other->size;
+    const size_t size     = _string->size;
+    const size_t new_size = size + _other->size;
 
     if (!d_string_internal_grow(_string,
                                 new_size + 1))
@@ -2437,12 +2469,28 @@ d_string_insert(
     // shift content after insertion point
     memmove(_string->text + pos + _other->size,
             _string->text + pos,
-            _string->size - pos + 1);
+            size - pos + 1);
 
-    // insert new content
-    d_memcpy(_string->text + pos,
-             _other->text,
-             _other->size);
+    // a string inserted into itself: the shift moved the tail its copy
+    // needs, so the copy comes from [0, pos) and from the moved tail, each
+    // into a range it does not overlap (decision 23)
+    if (_other == _string)
+    {
+        d_memcpy(_string->text + pos,
+                 _string->text,
+                 pos);
+        d_memcpy(_string->text + (2 * pos),
+                 _string->text + pos + size,
+                 size - pos);
+    }
+    else
+    {
+        // insert new content
+        d_memcpy(_string->text + pos,
+                 _other->text,
+                 _other->size);
+    }
+
     _string->size = new_size;
 
     return true;
@@ -2585,10 +2633,11 @@ d_string_erase(
         return false;
     }
 
-    // clamp count to available characters
+    // clamp count to available characters, against what is left so a count
+    // near SIZE_MAX cannot wrap the sum (decision 22)
     size_t actual_count = _count;
 
-    if (pos + actual_count > _string->size)
+    if (actual_count > _string->size - pos)
     {
         actual_count = _string->size - pos;
     }
@@ -2674,10 +2723,10 @@ d_string_replace(
         return false;
     }
 
-    // clamp count
+    // clamp count, against what is left (decision 22)
     size_t actual_count = _count;
 
-    if (pos + actual_count > _string->size)
+    if (actual_count > _string->size - pos)
     {
         actual_count = _string->size - pos;
     }
@@ -2734,9 +2783,10 @@ d_string_replace_cstr(
         return false;
     }
 
+    // clamp count, against what is left (decision 22)
     size_t actual_count = _count;
 
-    if (pos + actual_count > _string->size)
+    if (actual_count > _string->size - pos)
     {
         actual_count = _string->size - pos;
     }
@@ -3385,10 +3435,18 @@ d_string_tokenize(
     char* start = (_string != NULL)
         ? _string->text
         : NULL;
+    char* token = d_strtok_r(start,
+                             _delim,
+                             _saveptr);
 
-    return d_strtok_r(start,
-                      _delim,
-                      _saveptr);
+    // the first call ends the text after its first token; the size follows
+    // the text (decision 13 of the register)
+    if (_string != NULL)
+    {
+        _string->size = strlen(_string->text);
+    }
+
+    return token;
 }
 
 /*
@@ -3513,6 +3571,13 @@ d_string_split(
     }
 
     free(copy);
+
+    // only delimiters: no token, so no array (decision 24)
+    if (count == 0)
+    {
+        free(result);
+        result = NULL;
+    }
 
     *_tokens = result;
 

@@ -15,6 +15,10 @@
 * other sections it reads, so it gives the same answers whether a unit includes
 * it directly or through this header. The order below is the order of those
 * dependencies, but nothing relies on it.
+*   The detail headers are opt-in, and this header includes none of them: a
+* unit that wants one platform's detail includes it -- env/os/env_apple.h,
+* env_ios.h, env_linux.h, env_bsd.h or env_windows.h -- as it does env/db,
+* env/net, env/ui and env/util (decision 3 of the register).
 *   Custom environments can be simulated through D_CFG_ENV_CUSTOM (cfg_env.h):
 * switching a detection section off and pre-defining D_ENV_DETECTED_* macros
 * selects the result that section reports, for testing code against environments
@@ -24,7 +28,7 @@
 * path:      /inc/djinterp/env/env.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_ENV_ENV_H

@@ -26,7 +26,9 @@
 *     #if D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)
 *         #include "./os/env_bsd.h"
 *     #endif
-*   Version detection reads <sys/param.h>'s macros; see section 2.
+*   Version detection reads each variant's version header, which this header
+* includes: <osreldate.h> on FreeBSD, <sys/param.h> on the others (decision
+* 42 of the register); see section 2.
 *   Naming: D_ENV_BSD_<CATEGORY>_<FEATURE> is common across the variants,
 * while D_ENV_FBSD_, D_ENV_OBSD_, D_ENV_NBSD_, and D_ENV_DBSD_ prefixes are
 * FreeBSD-, OpenBSD-, NetBSD-, and DragonFly-specific.
@@ -35,7 +37,7 @@
 * path:      /inc/djinterp/env/os/env_bsd.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -232,6 +234,18 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../env.h"  // D_ENV_OS_ID, D_ENV_OS_FLAG_BSD_*, D_ENV_LANG_USING_CPP
+// bsd: each variant's version header, where it exists
+#if defined(__has_include)
+    #if ( (defined(__FreeBSD__)) &&                                           \
+          (__has_include(<osreldate.h>)) )
+        #include <osreldate.h>   // __FreeBSD_version
+    #elif ( ( (defined(__NetBSD__))  ||                                       \
+              (defined(__OpenBSD__)) ||                                       \
+              (defined(__DragonFly__)) ) &&                                   \
+            (__has_include(<sys/param.h>)) )
+        #include <sys/param.h>   // the version: NetBSD, OpenBSD, DragonFly
+    #endif
+#endif
 
 
 //==============================================================================
@@ -314,12 +328,13 @@ TABLE OF CONTENTS
 //==============================================================================
 // 2.  VARIANT VERSIONS
 //==============================================================================
-// Each variant encodes its version differently, and each version comes from
-// <sys/param.h>, which this header does not include. FreeBSD alone falls back
-// to the compiler's __FreeBSD__ major version; for the others, unless
-// <sys/param.h> was included first, the version reads 0 and each *_AT_LEAST
-// gate as not met. Most feature flags assume availability when the version is
-// unknown; a few, NetBSD's especially, read 0 instead.
+// Each variant encodes its version differently. This header includes the one
+// header that defines it: <osreldate.h> on FreeBSD, which defines only
+// __FreeBSD_version, and <sys/param.h> on the others, which also defines MIN,
+// MAX, nitems, howmany and the like. Where neither exists, FreeBSD falls back
+// to the compiler's __FreeBSD__ major version, and for the others the version
+// reads 0, each *_AT_LEAST gate as not met; most feature flags then assume
+// availability, a few, NetBSD's especially, 0.
 
 
 // 2.1    FreeBSD version constants

@@ -58,7 +58,7 @@
 * path:      /inc/djinterp/core/util/archive/archive.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_ARCHIVE_ARCHIVE_HPP
@@ -83,6 +83,7 @@
 // djinterp
 #include "../../../djinterp.hpp"
 #include "../../../env/util/archive/env_archive.h"
+#include "../../../env/util/compress/env_compress.h"  // D_ENV_COMPRESSION_*
 #include "../../../c/util/archive/archive_common.h"       // format_id, the entry model, transforms
 #include "./archive_options.hpp"    // archive_options (full, format-aware)
 #include "../compress/compress.hpp"

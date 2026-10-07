@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/env/env_lang.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -382,14 +382,16 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 3.2.1
 // D_ENV_LANG_USING_C
-//   constant: 1 when D_ENV_LANG_C_STANDARD is nonzero. It is nonzero under C++
-// as well (199000L), so this does not distinguish C from C++; use
-// D_ENV_LANG_USING_CPP for that.
-#if D_ENV_LANG_C_STANDARD
+//   constant: 1 when compiling as C, 0 when compiling as C++, as its name
+// says; always defined. D_ENV_LANG_C_STANDARD stays nonzero under C++
+// (199000L), so it was this flag's old test and is no longer (decision 7 of
+// the register).
+#if ( (!D_ENV_LANG_USING_CPP) &&                                             \
+      (D_ENV_LANG_C_STANDARD) )
     #define D_ENV_LANG_USING_C 1
 #else
     #define D_ENV_LANG_USING_C 0
-#endif  // D_ENV_LANG_C_STANDARD
+#endif
 
 // 3.2.2
 // D_ENV_LANG_IS_C95_OR_HIGHER

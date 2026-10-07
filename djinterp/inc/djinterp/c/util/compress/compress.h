@@ -55,16 +55,15 @@
 * here; this header reads D_CFG_* and defines none.
 *
 *   DETECTION:
-*   Codec detection enters at this face, not at the core: this header includes
-* env_compress.h, so its D_ENV_COMPRESSION_* probes load only where
-* compression is actually used. compress_common.h, which other modules share,
-* does not include it.
+*   This header reads no D_ENV_COMPRESSION_* fact, so it does not include
+* env_compress.h: a file that reads one includes env_compress.h itself
+* (decision 2 of the register).
 *
 *
 * path:      /inc/djinterp/c/util/compress/compress.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.29
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -96,8 +95,7 @@ VI.   AVAILABLE-CODEC ITERATION
 // c
 #include <stddef.h>
 // djinterp
-#include "./compress_common.h"                        // kernel this is notation over
-#include "../../../env/util/compress/env_compress.h"  // D_ENV_COMPRESSION_HAVE_*
+#include "./compress_common.h"  // kernel this is notation over
 // re_std
 #include "../../../../re_std/cstdint/dstdint.h"  // int32_t
 

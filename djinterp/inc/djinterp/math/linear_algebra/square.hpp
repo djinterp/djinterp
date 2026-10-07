@@ -2,24 +2,20 @@
 * djinterp [math]                                                     square.hpp
 *
 * Square-matrix operations for the linear-algebra subframework.
-*   Free function templates over matrix<Type, N, N>: the determinant, the
+*   Free function templates over matrix<_T, _N, _N>: the determinant, the
 * inverse, invertibility tests, the submatrix / minor / cofactor family, the
-* adjugate, and an orthogonality test. A face over the C core: for float,
-* double and long double each routine is one of c/math/mat.h's kernels on
-* the matrix's own array, with its scratch on the stack; for any other
-* element type the generic path (linalg_common.hpp) runs the same
-* algorithms in the type's arithmetic. Everything compiles from C++98, and
-* every routine is a constant expression from C++14.
+* adjugate, and an orthogonality test. Every routine is D_CONSTEXPR, so each
+* evaluates at compile time or at runtime unchanged.
 *
 * PROVIDED FUNCTIONS:
 *   determinant(m) / det(m)         - determinant (fraction-free elimination)
 *   is_invertible(m [, tol])        - nonzero-determinant test
 *   is_singular(m [, tol])          - complement of is_invertible
 *   inverse(m) / inv(m)             - inverse (Gauss-Jordan, partial pivoting)
-*   submatrix(m, i, j)              - (N-1)x(N-1) block, row i and col j gone
+*   submatrix(m, i, j)              - (N-1)x(N-1) block with row i, col j removed
 *   minor(m, i, j)                  - determinant of that block
-*   cofactor(m, i, j)               - signed minor (-1)^(i+j) * minor
-*   cofactor_matrix(m)              - matrix of cofactors
+*   cofactor(m, i, j)              - signed minor (-1)^(i+j) * minor
+*   cofactor_matrix(m)             - matrix of cofactors
 *   adjugate(m)                     - transpose of the cofactor matrix
 *   is_orthogonal(m [, tol])        - test M^T M == I
 *
@@ -35,9 +31,7 @@
 *   - inverse requires a floating-point element type (an integer matrix has no
 *     integer inverse in general) and returns the zero matrix for a singular
 *     input -- pair it with is_invertible to guard. It pivots on the
-*     largest-magnitude entry for numerical stability; in floating point a
-*     singular matrix's last pivot can round to a tiny non-zero, so a
-*     near-singular result is the caller's to recognize, as it always was.
+*     largest-magnitude entry for numerical stability.
 *   - submatrix / minor / cofactor / cofactor_matrix / adjugate require N >= 2.
 *   - These are free functions (mirroring the geometry measure headers) but
 *     compose directly with the core fluent members, e.g.
@@ -47,266 +41,370 @@
 * path:      /inc/djinterp/math/linear_algebra/square.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.22
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.09.21
 *******************************************************************************/
-
-/*
-TABLE OF CONTENTS
-=================
-1.  DETERMINANT AND INVERSE
-    -----------------------
-2.  MINORS AND COFACTORS
-    --------------------
-3.  ORTHOGONALITY
-    -------------
-*/
 
 #ifndef DJINTERP_MATH_LINEAR_ALGEBRA_SQUARE_HPP
 #define DJINTERP_MATH_LINEAR_ALGEBRA_SQUARE_HPP 1
 
 // std
-#include <cstddef>                 // std::size_t
+#include <cstddef>
+#include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"      // framework root
-#include "./linalg_common.hpp"     // internal::linalg_kernel,
-                                   // internal::linalg_requires
-#include "./matrix.hpp"            // matrix
-#include "./vector.hpp"            // vector
-// re_std
-#include "../../../re_std/type_traits/is_floating_point.hpp"  // is_floating_
-                                                              // point
+#include "../../djinterp.hpp"
+#include "./linalg_common.hpp"
+#include "./vector.hpp"
+#include "./matrix.hpp"
 
 
 NS_DJINTERP
 NS_MATH
+
 namespace linalg
 {
 
-
-//==============================================================================
-// 1.  DETERMINANT AND INVERSE
-//==============================================================================
-
+// ===========================================================================
+// I.   DETERMINANT
+// ===========================================================================
 
 // determinant
-//   function: det(_m), by Bareiss's fraction-free elimination.
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 Type
-determinant(const matrix<Type, N, N>& _m) D_NOEXCEPT
+//   the determinant of a square matrix, via the Bareiss fraction-free
+// elimination (exact for integral types; correct for floating-point types).
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR _T
+determinant(const matrix<_T, _N, _N>& _m) noexcept
 {
-    Type scratch[N * N] = { Type() };
+    matrix<_T, _N, _N> a    = _m;
+    _T                 prev = static_cast<_T>(1);
+    _T                 sign = static_cast<_T>(1);
 
-    return internal::linalg_kernel<Type>::determinant(_m.data(), scratch, N);
+    for (std::size_t k = 0; k < _N; ++k)
+    {
+        // ensure a nonzero pivot at (k, k), swapping in a lower row if needed.
+        if (a(k, k) == static_cast<_T>(0))
+        {
+            std::size_t swap_row = k;
+
+            // search the rows below for a nonzero entry in this column.
+            for (std::size_t r = k + 1; r < _N; ++r)
+            {
+                if (a(r, k) != static_cast<_T>(0))
+                {
+                    swap_row = r;
+                    break;
+                }
+            }
+
+            // an all-zero pivot column means the matrix is singular.
+            if (swap_row == k)
+            {
+                return static_cast<_T>(0);
+            }
+
+            // swap the two rows; each swap negates the determinant.
+            for (std::size_t c = 0; c < _N; ++c)
+            {
+                constexpr_swap(a(k, c), a(swap_row, c));
+            }
+
+            sign = -sign;
+        }
+
+        // fraction-free (Bareiss) update of the trailing submatrix. The
+        // division by the previous pivot is exact in integer arithmetic.
+        for (std::size_t i = k + 1; i < _N; ++i)
+        {
+            for (std::size_t j = k + 1; j < _N; ++j)
+            {
+                a(i, j) =
+                    ( a(k, k) * a(i, j) - a(i, k) * a(k, j) ) / prev;
+            }
+        }
+
+        prev = a(k, k);
+    }
+
+    return sign * prev;
 }
 
 // det
-//   function: short alias for determinant.
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 Type
-det(const matrix<Type, N, N>& _m) D_NOEXCEPT
+//   short alias for determinant.
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR _T
+det(const matrix<_T, _N, _N>& _m) noexcept
 {
     return determinant(_m);
 }
 
+
+// ===========================================================================
+// II.  INVERTIBILITY
+// ===========================================================================
+
 // is_invertible
-//   function: true when |det(_m)| exceeds _tol.
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 bool
+//   true when the determinant is nonzero (within _tol). For an integral
+// element type the default tolerance is 0, so this is an exact nonzero test.
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR bool
 is_invertible(
-    const matrix<Type, N, N>& _m,
-    Type                      _tol = default_tolerance<Type>()
-) D_NOEXCEPT
+    const matrix<_T, _N, _N>& _m,
+    _T                        _tol = default_tolerance<_T>()
+) noexcept
 {
-    return (internal::abs_c(determinant(_m)) > _tol);
+    return ( internal::abs_c(determinant(_m)) > _tol );
 }
 
 // is_singular
-//   function: complement of is_invertible.
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 bool
+//   complement of is_invertible.
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR bool
 is_singular(
-    const matrix<Type, N, N>& _m,
-    Type                      _tol = default_tolerance<Type>()
-) D_NOEXCEPT
+    const matrix<_T, _N, _N>& _m,
+    _T                        _tol = default_tolerance<_T>()
+) noexcept
 {
     return !is_invertible(_m, _tol);
 }
 
+
+// ===========================================================================
+// III. INVERSE
+// ===========================================================================
+
 // inverse
-//   function: _m^-1 by Gauss-Jordan with partial pivoting; the zero matrix
-// when no pivot can be found. Floating-point element types only.
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 matrix<Type, N, N>
-inverse(const matrix<Type, N, N>& _m) D_NOEXCEPT
+//   the matrix inverse by Gauss-Jordan elimination with partial pivoting.
+// Requires a floating-point element type; returns the zero matrix when the
+// input is singular (guard with is_invertible).
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR matrix<_T, _N, _N>
+inverse(const matrix<_T, _N, _N>& _m) noexcept
 {
-    // inverse: requires a floating-point element type (an integer matrix
-    // has no integer inverse in general)
-    (void)internal::linalg_requires<
-        re_std::is_floating_point<Type>::value>::check();
+    static_assert(std::is_floating_point<_T>::value,
+                  "inverse: requires a floating-point element type (an "
+                  "integer matrix has no integer inverse in general).");
 
-    matrix<Type, N, N> result;
-    Type               scratch[N * N] = { Type() };
+    matrix<_T, _N, _N> a   = _m;
+    matrix<_T, _N, _N> inv = matrix<_T, _N, _N>::identity();
 
-    (void)internal::linalg_kernel<Type>::inverse(&result(0, 0),
-                                                 scratch,
-                                                 _m.data(),
-                                                 N);
+    for (std::size_t col = 0; col < _N; ++col)
+    {
+        // partial pivot: pick the largest-magnitude entry on/below the
+        // diagonal in this column for numerical stability.
+        std::size_t pivot = col;
+        _T          maxv  = internal::abs_c(a(col, col));
 
-    return result;
+        for (std::size_t r = col + 1; r < _N; ++r)
+        {
+            const _T v = internal::abs_c(a(r, col));
+
+            if (v > maxv)
+            {
+                maxv  = v;
+                pivot = r;
+            }
+        }
+
+        // a zero pivot column means the matrix is singular.
+        if (a(pivot, col) == static_cast<_T>(0))
+        {
+            return matrix<_T, _N, _N>::zeros();
+        }
+
+        // move the pivot row into place in both matrices.
+        if (pivot != col)
+        {
+            for (std::size_t c = 0; c < _N; ++c)
+            {
+                constexpr_swap(a(col, c), a(pivot, c));
+                constexpr_swap(inv(col, c), inv(pivot, c));
+            }
+        }
+
+        // scale the pivot row so that a(col, col) becomes 1.
+        const _T d = a(col, col);
+
+        for (std::size_t c = 0; c < _N; ++c)
+        {
+            a(col, c)   = a(col, c) / d;
+            inv(col, c) = inv(col, c) / d;
+        }
+
+        // eliminate this column from every other row.
+        for (std::size_t r = 0; r < _N; ++r)
+        {
+            if (r != col)
+            {
+                const _T f = a(r, col);
+
+                for (std::size_t c = 0; c < _N; ++c)
+                {
+                    a(r, c)   = a(r, c) - f * a(col, c);
+                    inv(r, c) = inv(r, c) - f * inv(col, c);
+                }
+            }
+        }
+    }
+
+    return inv;
 }
 
 // inv
-//   function: short alias for inverse.
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 matrix<Type, N, N>
-inv(const matrix<Type, N, N>& _m) D_NOEXCEPT
+//   short alias for inverse.
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR matrix<_T, _N, _N>
+inv(const matrix<_T, _N, _N>& _m) noexcept
 {
     return inverse(_m);
 }
 
 
-//==============================================================================
-// 2.  MINORS AND COFACTORS
-//==============================================================================
-// Each needs N >= 2; the minors are determinants, so integer-exact.
-
+// ===========================================================================
+// IV.  SUBMATRIX / MINORS / COFACTORS
+// ===========================================================================
 
 // submatrix
-//   function: the (N-1)x(N-1) block with row _row and column _col removed.
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 matrix<Type, N - 1, N - 1>
+//   the (N-1) x (N-1) block obtained by deleting row _row and column _col.
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR matrix<_T, _N - 1, _N - 1>
 submatrix(
-    const matrix<Type, N, N>& _m,
+    const matrix<_T, _N, _N>& _m,
     std::size_t               _row,
     std::size_t               _col
-) D_NOEXCEPT
+) noexcept
 {
-    // submatrix: requires dimension >= 2
-    (void)internal::linalg_requires<(N >= 2)>::check();
+    static_assert((_N >= 2), "submatrix: requires dimension >= 2.");
 
-    matrix<Type, N - 1, N - 1> s;
+    matrix<_T, _N - 1, _N - 1> s;
+    std::size_t                rr = 0;
 
-    internal::linalg_kernel<Type>::submatrix(&s(0, 0),
-                                             _m.data(),
-                                             N,
-                                             _row,
-                                             _col);
+    for (std::size_t r = 0; r < _N; ++r)
+    {
+        // copy every row except the deleted one.
+        if (r != _row)
+        {
+            std::size_t cc = 0;
+
+            for (std::size_t c = 0; c < _N; ++c)
+            {
+                // copy every column except the deleted one.
+                if (c != _col)
+                {
+                    s(rr, cc) = _m(r, c);
+                    ++cc;
+                }
+            }
+
+            ++rr;
+        }
+    }
 
     return s;
 }
 
 // minor
-//   function: the determinant of submatrix(_m, _row, _col).
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 Type
+//   the (i, j) minor: the determinant of the submatrix with row i, col j
+// removed.
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR _T
 minor(
-    const matrix<Type, N, N>& _m,
+    const matrix<_T, _N, _N>& _m,
     std::size_t               _row,
     std::size_t               _col
-) D_NOEXCEPT
+) noexcept
 {
-    // minor: requires dimension >= 2
-    (void)internal::linalg_requires<(N >= 2)>::check();
+    static_assert((_N >= 2), "minor: requires dimension >= 2.");
 
     return determinant(submatrix(_m, _row, _col));
 }
 
 // cofactor
-//   function: (-1)^(_row + _col) * minor(_m, _row, _col).
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 Type
+//   the (i, j) cofactor: (-1)^(i+j) times the (i, j) minor.
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR _T
 cofactor(
-    const matrix<Type, N, N>& _m,
+    const matrix<_T, _N, _N>& _m,
     std::size_t               _row,
     std::size_t               _col
-) D_NOEXCEPT
+) noexcept
 {
-    // cofactor: requires dimension >= 2
-    (void)internal::linalg_requires<(N >= 2)>::check();
+    static_assert((_N >= 2), "cofactor: requires dimension >= 2.");
 
-    Type scratch[2 * N * N] = { Type() };
+    const _T sign =
+        ( ((_row + _col) % 2) == 0 ) ? static_cast<_T>(1)
+                                     : static_cast<_T>(-1);
 
-    return internal::linalg_kernel<Type>::cofactor(_m.data(),
-                                                   scratch,
-                                                   N,
-                                                   _row,
-                                                   _col);
+    return sign * minor(_m, _row, _col);
 }
 
 // cofactor_matrix
-//   function: the matrix whose (i, j) entry is cofactor(_m, i, j).
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 matrix<Type, N, N>
-cofactor_matrix(const matrix<Type, N, N>& _m) D_NOEXCEPT
+//   the matrix whose (i, j) entry is the (i, j) cofactor.
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR matrix<_T, _N, _N>
+cofactor_matrix(const matrix<_T, _N, _N>& _m) noexcept
 {
-    // cofactor_matrix: requires dimension >= 2
-    (void)internal::linalg_requires<(N >= 2)>::check();
+    static_assert((_N >= 2), "cofactor_matrix: requires dimension >= 2.");
 
-    matrix<Type, N, N> c;
-    Type               scratch[2 * N * N] = { Type() };
+    matrix<_T, _N, _N> c;
 
-    internal::linalg_kernel<Type>::cofactor_matrix(&c(0, 0),
-                                                   _m.data(),
-                                                   scratch,
-                                                   N,
-                                                   false);
+    for (std::size_t i = 0; i < _N; ++i)
+    {
+        for (std::size_t j = 0; j < _N; ++j)
+        {
+            c(i, j) = cofactor(_m, i, j);
+        }
+    }
 
     return c;
 }
 
+
+// ===========================================================================
+// V.   ADJUGATE
+// ===========================================================================
+
 // adjugate
-//   function: the transpose of the cofactor matrix; A * adj(A) = det(A) * I.
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 matrix<Type, N, N>
-adjugate(const matrix<Type, N, N>& _m) D_NOEXCEPT
+//   the classical adjoint: the transpose of the cofactor matrix. Satisfies
+// A * adjugate(A) == determinant(A) * I (exactly, for integral types).
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR matrix<_T, _N, _N>
+adjugate(const matrix<_T, _N, _N>& _m) noexcept
 {
-    // adjugate: requires dimension >= 2
-    (void)internal::linalg_requires<(N >= 2)>::check();
+    static_assert((_N >= 2), "adjugate: requires dimension >= 2.");
 
-    matrix<Type, N, N> a;
-    Type               scratch[2 * N * N] = { Type() };
-
-    internal::linalg_kernel<Type>::cofactor_matrix(&a(0, 0),
-                                                   _m.data(),
-                                                   scratch,
-                                                   N,
-                                                   true);
-
-    return a;
+    return cofactor_matrix(_m).transposed();
 }
 
 
-//==============================================================================
-// 3.  ORTHOGONALITY
-//==============================================================================
-
+// ===========================================================================
+// VI.  ORTHOGONALITY
+// ===========================================================================
 
 // is_orthogonal
-//   function: true when _m^T * _m equals the identity within _tol.
-template<typename    Type,
-         std::size_t N>
-D_CONSTEXPR_CPP14 bool
+//   true when M^T M equals the identity within _tol (columns orthonormal).
+template<typename    _T,
+         std::size_t _N>
+D_CONSTEXPR bool
 is_orthogonal(
-    const matrix<Type, N, N>& _m,
-    Type                      _tol = default_tolerance<Type>()
-) D_NOEXCEPT
+    const matrix<_T, _N, _N>& _m,
+    _T                        _tol = default_tolerance<_T>()
+) noexcept
 {
     return _m.transposed().times(_m).is_identity(_tol);
 }
 
-
 }  // linalg
+
 NS_END  // math
 NS_END  // djinterp
 

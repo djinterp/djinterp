@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/config/core/env/db/mariadb/cfg_env_mariadb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CORE_ENV_DB_MARIADB_CFG_ENV_MARIADB_H
@@ -34,6 +34,11 @@
 // and no vendor-symbol references.
 #ifndef D_CFG_ENV_USING_MARIADB
     #define D_CFG_ENV_USING_MARIADB 0
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_USING_MARIADB)
+    #error "D_CFG_ENV_USING_MARIADB must be 0 or 1"
 #endif
 
 // D_CFG_ENV_MARIADB_C_PATH
@@ -85,6 +90,11 @@
       defined(D_ENV_MARIADB_DETECTED_11_4) )
     #undef  D_CFG_ENV_MARIADB_CUSTOM
     #define D_CFG_ENV_MARIADB_CUSTOM 1
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_MARIADB_CUSTOM)
+    #error "D_CFG_ENV_MARIADB_CUSTOM must be 0 or 1"
 #endif
 
 

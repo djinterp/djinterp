@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/config/core/env/db/oracle/cfg_env_oracle.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CORE_ENV_DB_ORACLE_CFG_ENV_ORACLE_H
@@ -32,6 +32,11 @@
 //   configuration: 1 to enable Oracle DB header inclusion and detection.
 #ifndef D_CFG_ENV_USING_ORACLE
     #define D_CFG_ENV_USING_ORACLE 0
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_USING_ORACLE)
+    #error "D_CFG_ENV_USING_ORACLE must be 0 or 1"
 #endif
 
 // D_CFG_ENV_ORACLE_C_PATH
@@ -74,6 +79,11 @@
       defined(D_ENV_ORA_DETECTED_23) )
     #undef  D_CFG_ENV_ORA_CUSTOM
     #define D_CFG_ENV_ORA_CUSTOM 1
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_ORA_CUSTOM)
+    #error "D_CFG_ENV_ORA_CUSTOM must be 0 or 1"
 #endif
 
 

@@ -37,7 +37,7 @@
 * path:      /inc/djinterp/env/env_pdf.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -47,7 +47,7 @@ TABLE OF CONTENTS
     --------------------
     1.  Probing
          1.  D_ENV_PDF_HAS_INCLUDE_PROBE
-         2.  D_INTERNAL_PDF_PROBE
+         2.  D_INTERNAL_ENV_PDF_PROBE
 2.  GENERATION LIBRARIES
     --------------------
     1.  libHaru
@@ -128,14 +128,14 @@ TABLE OF CONTENTS
 #endif  // D_ENV_PDF_HAS_INCLUDE_PROBE
 
 // 1.1.2
-// D_INTERNAL_PDF_PROBE
+// D_INTERNAL_ENV_PDF_PROBE
 //   helper: (header) expands to 1 if `header` is includable, else 0.  When the
 // compiler lacks __has_include the probe is conservatively 0 (callers may
 // still pre-define a specific D_ENV_PDF_HAS_* macro to override).
 #if D_ENV_PDF_HAS_INCLUDE_PROBE
-    #define D_INTERNAL_PDF_PROBE(header) __has_include(header)
+    #define D_INTERNAL_ENV_PDF_PROBE(header) __has_include(header)
 #else
-    #define D_INTERNAL_PDF_PROBE(header) 0
+    #define D_INTERNAL_ENV_PDF_PROBE(header) 0
 #endif
 
 
@@ -155,7 +155,7 @@ TABLE OF CONTENTS
 // hpdf_version.h, but some master builds stopped propagating it, so the version
 // is probed from hpdf_version.h independently of presence detection.
 #ifndef D_ENV_PDF_HAS_LIBHARU
-    #if D_INTERNAL_PDF_PROBE(<hpdf.h>)
+    #if D_INTERNAL_ENV_PDF_PROBE(<hpdf.h>)
         #define D_ENV_PDF_HAS_LIBHARU 1
     #else
         #define D_ENV_PDF_HAS_LIBHARU 0
@@ -218,8 +218,8 @@ TABLE OF CONTENTS
 // unknown under header-only detection; integrators can pre-define the version
 // macros if they track it.
 #ifndef D_ENV_PDF_HAS_PDFHUMMUS
-    #if ( (D_INTERNAL_PDF_PROBE(<PDFWriter.h>)) ||                             \
-          (D_INTERNAL_PDF_PROBE(<PDFWriter/PDFWriter.h>)) )
+    #if ( (D_INTERNAL_ENV_PDF_PROBE(<PDFWriter.h>)) ||                         \
+          (D_INTERNAL_ENV_PDF_PROBE(<PDFWriter/PDFWriter.h>)) )
         #define D_ENV_PDF_HAS_PDFHUMMUS 1
     #else
         #define D_ENV_PDF_HAS_PDFHUMMUS 0
@@ -263,8 +263,8 @@ TABLE OF CONTENTS
 // Modern PoDoFo (0.10+) requires C++17. License: LGPL-2.0+/MPL-2.0 (library);
 // GPL (tools).
 #ifndef D_ENV_PDF_HAS_PODOFO
-    #if ( (D_INTERNAL_PDF_PROBE(<podofo/podofo.h>)) ||                         \
-          (D_INTERNAL_PDF_PROBE(<podofo/base/PdfDefines.h>)) )
+    #if ( (D_INTERNAL_ENV_PDF_PROBE(<podofo/podofo.h>)) ||                     \
+          (D_INTERNAL_ENV_PDF_PROBE(<podofo/base/PdfDefines.h>)) )
         #define D_ENV_PDF_HAS_PODOFO 1
     #else
         #define D_ENV_PDF_HAS_PODOFO 0
@@ -325,7 +325,7 @@ TABLE OF CONTENTS
 // Version macros: CAIRO_VERSION_MAJOR / MINOR / MICRO and CAIRO_VERSION_STRING.
 // License: LGPL-2.1 / MPL-1.1.
 #ifndef D_ENV_PDF_HAS_CAIRO_PDF
-    #if D_INTERNAL_PDF_PROBE(<cairo-pdf.h>)
+    #if D_INTERNAL_ENV_PDF_PROBE(<cairo-pdf.h>)
         #define D_ENV_PDF_HAS_CAIRO_PDF 1
     #else
         #define D_ENV_PDF_HAS_CAIRO_PDF 0
@@ -405,8 +405,8 @@ TABLE OF CONTENTS
 // under "poppler/PDFDoc.h"). Version: POPPLER_VERSION / _MAJOR / _MINOR /
 // _MICRO from poppler/cpp/poppler-version.h. License: GPL-2.0+.
 #ifndef D_ENV_PDF_HAS_POPPLER
-    #if ( (D_INTERNAL_PDF_PROBE(<poppler/cpp/poppler-document.h>)) ||          \
-          (D_INTERNAL_PDF_PROBE(<poppler/PDFDoc.h>)) )
+    #if ( (D_INTERNAL_ENV_PDF_PROBE(<poppler/cpp/poppler-document.h>)) ||      \
+          (D_INTERNAL_ENV_PDF_PROBE(<poppler/PDFDoc.h>)) )
         #define D_ENV_PDF_HAS_POPPLER 1
     #else
         #define D_ENV_PDF_HAS_POPPLER 0
@@ -469,7 +469,7 @@ TABLE OF CONTENTS
 // is reported unknown under header-only detection. License: AGPL-3.0 (or
 // commercial).
 #ifndef D_ENV_PDF_HAS_MUPDF
-    #if D_INTERNAL_PDF_PROBE(<mupdf/fitz.h>)
+    #if D_INTERNAL_ENV_PDF_PROBE(<mupdf/fitz.h>)
         #define D_ENV_PDF_HAS_MUPDF 1
     #else
         #define D_ENV_PDF_HAS_MUPDF 0
@@ -516,8 +516,8 @@ TABLE OF CONTENTS
 // stable public compile-time version macro; version is reported unknown under
 // header-only detection. License: BSD-3-Clause / Apache-2.0.
 #ifndef D_ENV_PDF_HAS_PDFIUM
-    #if ( (D_INTERNAL_PDF_PROBE(<fpdfview.h>)) ||                              \
-          (D_INTERNAL_PDF_PROBE(<public/fpdfview.h>)) )
+    #if ( (D_INTERNAL_ENV_PDF_PROBE(<fpdfview.h>)) ||                          \
+          (D_INTERNAL_ENV_PDF_PROBE(<public/fpdfview.h>)) )
         #define D_ENV_PDF_HAS_PDFIUM 1
     #else
         #define D_ENV_PDF_HAS_PDFIUM 0

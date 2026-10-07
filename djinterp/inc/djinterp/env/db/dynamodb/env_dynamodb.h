@@ -16,7 +16,7 @@
 * target. Sections 4 onward exist only when the SDK is detected or its
 * inclusion is enabled; the last of them publishes the D_ENV_DYNAMODB_*
 * vocabulary that dynamodb.hpp consumes.
-*   Settings live in env_dynamodb_config.h: D_CFG_ENV_USING_DYNAMODB includes
+*   Settings live in cfg_env_dynamodb.h: D_CFG_ENV_USING_DYNAMODB includes
 * the SDK header (C++ only), D_CFG_ENV_DYNAMODB_CUSTOM switches the SDK to
 * manual detection, and D_CFG_ENV_DYNAMODB_TARGET names the deployment target.
 * This header also includes env_db.h, for the base database detection.
@@ -25,7 +25,7 @@
 * path:      /inc/djinterp/env/db/dynamodb/env_dynamodb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -142,14 +142,14 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_DYNAMODB_ENV_DYNAMODB_H 1
 
 // djinterp
-#include "./env_dynamodb_config.h"  // D_CFG_ENV_*
-#include "../env_db.h"              // base database detection (D_ENV_DB_*)
+#include "../../../config/core/env/db/dynamodb/cfg_env_dynamodb.h"  // D_CFG_ENV_*
+#include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 
 //==============================================================================
 // 1.  VENDOR HEADER INCLUSION
 //==============================================================================
-// Driven by D_CFG_ENV_USING_DYNAMODB, from env_dynamodb_config.h. The AWS SDK
+// Driven by D_CFG_ENV_USING_DYNAMODB, from cfg_env_dynamodb.h. The AWS SDK
 // for C++ is a C++-only API, so this section engages only in C++ builds, and
 // a C build with the setting on is an #error: DynamoDB is consumed over HTTPS,
 // with no C client. Detection below is gated on
@@ -166,7 +166,7 @@ TABLE OF CONTENTS
 // setting on, a C build or a missing header is an #error. The SDK's
 // aws/core/VersionConfig.h, when present, is included first, for its
 // version macros.
-#if (D_CFG_ENV_USING_DYNAMODB == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_DYNAMODB)
 
     #ifdef __cplusplus
 
@@ -222,8 +222,8 @@ TABLE OF CONTENTS
 // separate library, is found at its conventional path and included; 0
 // otherwise, and always 0 unless D_CFG_ENV_USING_DYNAMODB is on in a C++
 // build with __has_include.
-#if ( (D_CFG_ENV_USING_DYNAMODB == 1) &&                                       \
-      (defined(__cplusplus))          &&                                       \
+#if ( (D_CFG_IS_ON(D_CFG_ENV_USING_DYNAMODB)) &&                               \
+      (defined(__cplusplus))                  &&                               \
       (defined(__has_include)) )
     #if __has_include(<aws/dax/DaxClient.h>)
         // aws
@@ -285,7 +285,7 @@ TABLE OF CONTENTS
 // known, and D_ENV_DDB_SDK_VERSION_ID, _MAJOR, _MINOR and _PATCH then describe
 // it. Automatic mode reads AWS_SDK_VERSION_MAJOR, _MINOR and _PATCH; manual
 // mode (D_CFG_ENV_DYNAMODB_CUSTOM) reads D_ENV_DYNAMODB_DETECTED_SDK_VERSION.
-#if (D_CFG_ENV_DYNAMODB_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_DYNAMODB_CUSTOM)
 
     #if ( (D_ENV_DYNAMODB_HEADER_INCLUDED) &&                                  \
           (defined(AWS_SDK_VERSION_MAJOR)) )
@@ -332,7 +332,7 @@ TABLE OF CONTENTS
 // capability profile counts.
 #define D_ENV_DDB_DETECTED                                                     \
     ( (D_ENV_DDB_SDK_DETECTED) ||                                              \
-      (D_CFG_ENV_USING_DYNAMODB == 1) )
+      (D_CFG_IS_ON(D_CFG_ENV_USING_DYNAMODB)) )
 
 
 // sections 4 to 17 exist only when D_ENV_DDB_DETECTED is 1; see 3.1.3
@@ -367,7 +367,7 @@ TABLE OF CONTENTS
 // 5.  DEPLOYMENT TARGET
 //==============================================================================
 // The deployment target is supplied via D_CFG_ENV_DYNAMODB_TARGET (see
-// env_dynamodb_config.h). These convenience macros expose it as boolean
+// cfg_env_dynamodb.h). These convenience macros expose it as boolean
 // flags. Several capability flags below differ between CLOUD and LOCAL.
 
 

@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/env/os/env_apple.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -186,6 +186,11 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../env.h"  // TARGET_OS_* (<TargetConditionals.h>), D_ENV_LANG_*
+#include "../../config/core/env/os/cfg_env_apple.h"  // D_CFG_ENV_APPLE_*
+// apple
+#if defined(__APPLE__)
+    #include <Availability.h>  // __MAC_OS_X_VERSION_MIN_REQUIRED, _MAX_ALLOWED
+#endif
 
 
 //==============================================================================
@@ -207,19 +212,41 @@ TABLE OF CONTENTS
     #define D_ENV_APPLE_IS_APPLE        0
 #endif
 
+// D_INTERNAL_ENV_APPLE_VISION
+//   macro: 1 when the target is visionOS, by Xcode 15's TARGET_OS_VISION or
+// by the compiler itself: clang's own TARGET_OS_* values, which an SDK's
+// <TargetConditionals.h> defers to, have no visionOS before clang 19, and
+// there only __is_target_os(xros) says it (decision 43 of the register).
+#if ( (defined(TARGET_OS_VISION)) &&                                           \
+      (TARGET_OS_VISION) )
+    #define D_INTERNAL_ENV_APPLE_VISION 1
+#elif defined(__is_target_os)
+    #if __is_target_os(xros)
+        #define D_INTERNAL_ENV_APPLE_VISION 1
+    #else
+        #define D_INTERNAL_ENV_APPLE_VISION 0
+    #endif
+#else
+    #define D_INTERNAL_ENV_APPLE_VISION 0
+#endif
+
 // 1.1.2
 // D_ENV_APPLE_IS_MACOS
-//   feature: detect if building for macOS.
+//   feature: detect if building for macOS. The fallbacks, for SDKs without
+// TARGET_OS_OSX, leave visionOS out: it has TARGET_OS_IPHONE 0 where the
+// compiler predates it.
 #if ( (defined(TARGET_OS_OSX)) &&                                              \
       (TARGET_OS_OSX) )
     #define D_ENV_APPLE_IS_MACOS        1
-#elif ( (defined(__APPLE__)) &&                                                \
-        (!defined(TARGET_OS_IPHONE)) )
+#elif ( (defined(__APPLE__))           &&                                      \
+        (!defined(TARGET_OS_IPHONE))   &&                                      \
+        (!D_INTERNAL_ENV_APPLE_VISION) )
     // fallback for older SDKs
     #define D_ENV_APPLE_IS_MACOS        1
-#elif ( (defined(__APPLE__))        &&                                         \
-        (defined(TARGET_OS_IPHONE)) &&                                         \
-        (!TARGET_OS_IPHONE) )
+#elif ( (defined(__APPLE__))           &&                                      \
+        (defined(TARGET_OS_IPHONE))    &&                                      \
+        (!TARGET_OS_IPHONE)            &&                                      \
+        (!D_INTERNAL_ENV_APPLE_VISION) )
     #define D_ENV_APPLE_IS_MACOS        1
 #else
     #define D_ENV_APPLE_IS_MACOS        0
@@ -231,10 +258,14 @@ TABLE OF CONTENTS
 #if ( (defined(TARGET_OS_IOS)) &&                                              \
       (TARGET_OS_IOS) )
     #define D_ENV_APPLE_IS_IOS          1
-#elif ( (defined(TARGET_OS_IPHONE))                &&                          \
-        (TARGET_OS_IPHONE)                         &&                          \
-        (!(defined(TARGET_OS_TV) && TARGET_OS_TV)) &&                          \
-        (!(defined(TARGET_OS_WATCH) && TARGET_OS_WATCH)) )
+#elif ( (!defined(TARGET_OS_IOS))                      &&                      \
+        (defined(TARGET_OS_IPHONE))                    &&                      \
+        (TARGET_OS_IPHONE)                             &&                      \
+        (!(defined(TARGET_OS_TV) && TARGET_OS_TV))     &&                      \
+        (!(defined(TARGET_OS_WATCH) && TARGET_OS_WATCH)) &&                    \
+        (!D_INTERNAL_ENV_APPLE_VISION) )
+    // fallback for SDKs without TARGET_OS_IOS: an iPhone-family target that
+    // is not tvOS, watchOS or visionOS (decision 43 of the register)
     #define D_ENV_APPLE_IS_IOS          1
 #else
     #define D_ENV_APPLE_IS_IOS          0
@@ -262,9 +293,9 @@ TABLE OF CONTENTS
 
 // 1.1.6
 // D_ENV_APPLE_IS_VISIONOS
-//   feature: detect if building for visionOS (Xcode 15+).
-#if ( (defined(TARGET_OS_VISION)) &&                                           \
-      (TARGET_OS_VISION) )
+//   feature: detect if building for visionOS, by TARGET_OS_VISION (Xcode 15+)
+// or the compiler's own word (see D_INTERNAL_ENV_APPLE_VISION).
+#if D_INTERNAL_ENV_APPLE_VISION
     #define D_ENV_APPLE_IS_VISIONOS     1
 #else
     #define D_ENV_APPLE_IS_VISIONOS     0
@@ -415,9 +446,9 @@ TABLE OF CONTENTS
 //   constant: the deployment target and SDK version, from <Availability.h>'s
 // __MAC_OS_X_VERSION_MIN_REQUIRED and __MAC_OS_X_VERSION_MAX_ALLOWED, with
 // D_ENV_MACOS_DEPLOY_DETECTED and D_ENV_MACOS_SDK_DETECTED set to 1 when each
-// is found. This header does not include <Availability.h>, so both are found
-// only when the translation unit included it first; otherwise every value is
-// 0.
+// is found. This header includes <Availability.h> on Apple platforms, so both
+// are found whatever the unit included before it; they used to depend on
+// <unistd.h> having pulled it in (decision 4 of the register).
 #if ( (D_ENV_APPLE_IS_MACOS) ||                                                \
       (D_ENV_APPLE_IS_MACCATALYST) )
     #ifdef __MAC_OS_X_VERSION_MIN_REQUIRED
@@ -1165,8 +1196,9 @@ TABLE OF CONTENTS
 // multiple architectures).
 // note: this is a heuristic. universal binaries are built by lipo
 // after separate compilations; each slice compiles with one arch.
-// this detects if the build system has indicated universal intent.
-#if defined(D_CFG_APPLE_UNIVERSAL)
+// this reports what the build says, through D_CFG_ENV_APPLE_UNIVERSAL
+// (cfg_env_apple.h).
+#if D_CFG_IS_ON(D_CFG_ENV_APPLE_UNIVERSAL)
     #define D_ENV_APPLE_IS_UNIVERSAL    1
 #else
     #define D_ENV_APPLE_IS_UNIVERSAL    0

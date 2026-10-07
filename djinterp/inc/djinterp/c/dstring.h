@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/c/dstring.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.09.22
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -1020,7 +1020,7 @@ char*            d_string_pbrk(const struct d_string* _string,
  *
  * @param[in,out] _string  the string to modify.
  * @param[in]     _other   the source `d_string`.
- * @pre    `_other` is not `_string` itself.
+ * @note   `_other` may be `_string` itself (decision 23 of the register).
  * @post   pointers previously obtained into `_string`'s buffer may be
  *         invalidated.
  * @return `true` on success, or `false` if either argument is `NULL` or
@@ -1080,7 +1080,7 @@ bool             d_string_assign_char(struct d_string* _string,
  *
  * @param[in,out] _string  the string to modify.
  * @param[in]     _other   the string to append.
- * @pre    `_other` is not `_string` itself.
+ * @note   `_other` may be `_string` itself (decision 23 of the register).
  * @post   pointers previously obtained into `_string`'s buffer may be
  *         invalidated.
  * @return `true` on success, or `false` if either argument is `NULL` or
@@ -1199,7 +1199,7 @@ bool             d_string_prepend_char(struct d_string* _string,
  * @param[in,out] _string  the string to modify.
  * @param[in]     _index   insertion point.
  * @param[in]     _other   the string to insert.
- * @pre    `_other` is not `_string` itself.
+ * @note   `_other` may be `_string` itself (decision 23 of the register).
  * @post   pointers previously obtained into `_string`'s buffer may be
  *         invalidated.
  * @return `true` on success, or `false` if either argument is `NULL`, `_index`
@@ -1491,8 +1491,10 @@ struct d_string* d_string_trimmed_right(const struct d_string* _string);
  * @brief Returns the next token (POSIX `strtok_r` equivalent).
  *
  * @warning tokenizes in place: delimiters in `_string`'s buffer are overwritten
- *          with '\0' while its size is left unchanged, so tokenize a copy if
- *          the string must stay intact.
+ *          with '\0', so tokenize a copy if the string must stay intact.
+ * @post    after a first call (a non-`NULL` `_string`), its size is the length
+ *          of what its text now holds: the first token and any delimiters
+ *          before it. Later calls (`NULL`) write only past that.
  * @note    the result points into the string's own buffer, and is invalidated
  *          by any call that grows, shrinks, or frees it.
  *
@@ -1510,7 +1512,8 @@ char*            d_string_tokenize(struct d_string* _string,
  * @brief Splits a string into newly allocated tokens.
  *
  * @note runs of delimiters produce no empty tokens, and an empty `_string`
- *       yields a single empty token.
+ *       yields a single empty token; a `_string` of delimiters only yields
+ *       none, and `*_tokens` is `NULL`.
  *
  * @param[in]  _string  the string to split.
  * @param[in]  _delim   delimiter characters.

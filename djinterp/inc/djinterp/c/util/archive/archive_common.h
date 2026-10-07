@@ -56,15 +56,15 @@
 * between them must stay a switch and never become a cast.
 *
 *   PORTABILITY:
-*   C99 / C++11 and upward.  Presence-only backend detection through
-* env_archive.h; no third-party header is included and no link dependency is
-* added.
+*   C99 / C++11 and upward. No third-party header is included and no link
+* dependency is added. Backend detection is env_archive.h's, which a file
+* that reads D_ENV_ARCHIVE_* includes itself (decision 2 of the register).
 *
 *
 * path:      /inc/djinterp/c/util/archive/archive_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.29
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -108,9 +108,8 @@ X.    TRANSFORM LEAVES          (create / measure / extract)
 // c
 #include <stddef.h>
 // djinterp
-#include "../../djinterp.h"       // D_STATIC_ASSERT, D_EXTERN_C_*
-#include "../compress/compress_common.h"       // status, sink, d_compress_options
-#include "../../../env/util/archive/env_archive.h"      // D_ENV_ARCHIVE_CAN_*
+#include "../../djinterp.h"                  // D_STATIC_ASSERT, D_EXTERN_C_*
+#include "../compress/compress_common.h"  // status, sink, d_compress_options
 // re_std
 #include "../../../../re_std/cstdint/dstdint.h"  // int32_t, int64_t, uint32_t
 

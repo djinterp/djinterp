@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/env/util/compress/env_compress_link.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -47,7 +47,7 @@ TABLE OF CONTENTS
     1.  Master switch
          1.  D_CFG_ENV_AUTOLINK
     2.  MSVC gate and link-request helper
-         1.  D_INTERNAL_AUTOLINK_LIB
+         1.  D_INTERNAL_ENV_AUTOLINK_LIB
 2.  LIBRARY NAME DEFAULTS
     ---------------------
     1.  Debug builds
@@ -100,11 +100,11 @@ TABLE OF CONTENTS
       (D_CFG_ENV_AUTOLINK) )
 
     // 1.2.1
-    // D_INTERNAL_AUTOLINK_LIB
+    // D_INTERNAL_ENV_AUTOLINK_LIB
     //   macro: emit a link request for the library named by `name`, a string
     // literal (or a macro expanding to one). __pragma is used, not #pragma, so
     // that `name` undergoes macro replacement.
-    #define D_INTERNAL_AUTOLINK_LIB(name) __pragma(comment(lib, name))
+    #define D_INTERNAL_ENV_AUTOLINK_LIB(name) __pragma(comment(lib, name))
 
 
 //==============================================================================
@@ -225,33 +225,33 @@ TABLE OF CONTENTS
 
         // 3.1.2
         // Codec link requests
-        //   one D_INTERNAL_AUTOLINK_LIB per detected codec.
+        //   one D_INTERNAL_ENV_AUTOLINK_LIB per detected codec.
         #if D_ENV_COMPRESSION_HAVE_ZLIB
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_ZLIB_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_ZLIB_LIB)
         #endif
 
         #if D_ENV_COMPRESSION_HAVE_LZMA
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_LZMA_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_LZMA_LIB)
         #endif
 
         #if D_ENV_COMPRESSION_HAVE_BZIP2
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_BZIP2_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_BZIP2_LIB)
         #endif
 
         #if D_ENV_COMPRESSION_HAVE_ZSTD
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_ZSTD_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_ZSTD_LIB)
         #endif
 
         #if D_ENV_COMPRESSION_HAVE_LZ4
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_LZ4_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_LZ4_LIB)
         #endif
 
         #if D_ENV_COMPRESSION_HAVE_BROTLI
             // brotli ships as three libraries: encoder, decoder, and a shared
             // common core that the other two depend on.
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_BROTLIENC_LIB)
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_BROTLIDEC_LIB)
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_BROTLICOMMON_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_BROTLIENC_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_BROTLIDEC_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_BROTLICOMMON_LIB)
         #endif
 
     #endif  // DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_H
@@ -273,13 +273,13 @@ TABLE OF CONTENTS
 
         // 4.1.1
         // Archive link requests
-        //   one D_INTERNAL_AUTOLINK_LIB per detected archive backend.
+        //   one D_INTERNAL_ENV_AUTOLINK_LIB per detected archive backend.
         #if D_ENV_ARCHIVE_HAVE_LIBARCHIVE
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_LIBARCHIVE_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_LIBARCHIVE_LIB)
         #endif
 
         #if D_ENV_ARCHIVE_HAVE_LIBZIP
-            D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_LIBZIP_LIB)
+            D_INTERNAL_ENV_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_LIBZIP_LIB)
         #endif
 
     #endif  // DJINTERP_ENV_UTIL_ARCHIVE_ENV_ARCHIVE_H

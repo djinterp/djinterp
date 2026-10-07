@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/env/env_posix.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -79,7 +79,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_ENV_POSIX_H 1
 
 // djinterp
-#include "../config/core/env/cfg_env_posix.h"  // D_CFG_ENV_POSIX_ENABLED
+#include "../config/core/env/cfg_env_posix.h"  // D_CFG_ENV_POSIX_*
 
 
 //==============================================================================
@@ -203,9 +203,10 @@ TABLE OF CONTENTS
 //==============================================================================
 // 2.  POSIX DETECTION
 //==============================================================================
-// Reads the POSIX and X/Open macros from <unistd.h>, which item 2.1.1
-// includes wherever it exists, so the result does not depend on what the
-// translation unit included before env.h.
+// Reads the POSIX and X/Open macros from <unistd.h> where the build opts in
+// with D_CFG_ENV_POSIX_UNISTD, which item 2.1.1 then includes wherever it
+// exists, so the result does not depend on what the translation unit
+// included before env.h. Without it, detection reads what is already visible.
 
 
 #if D_CFG_IS_ON(D_CFG_ENV_POSIX_ENABLED)
@@ -215,11 +216,13 @@ TABLE OF CONTENTS
     // 2.1.1
     // <unistd.h>
     //   the macros read below -- _POSIX_VERSION, _XOPEN_VERSION, and the
-    // _POSIX_* feature options -- are defined by <unistd.h>, so it is included
-    // here wherever it exists. Without it, the result would depend on whether
-    // the translation unit happened to include <unistd.h> first. Compilers
-    // without __has_include fall back to the Unix-family predefines.
-    #if defined(__has_include)
+    // _POSIX_* feature options -- are defined by <unistd.h>, so where the
+    // build opts in (D_CFG_ENV_POSIX_UNISTD) it is included here wherever it
+    // exists, and the result does not depend on what the unit included first.
+    // Compilers without __has_include fall back to the Unix-family predefines.
+    #if !D_CFG_IS_ON(D_CFG_ENV_POSIX_UNISTD)
+        // opted out: read what is already visible
+    #elif defined(__has_include)
         #if __has_include(<unistd.h>)
             // posix
             #include <unistd.h>  // _POSIX_VERSION, _XOPEN_VERSION, _POSIX_*

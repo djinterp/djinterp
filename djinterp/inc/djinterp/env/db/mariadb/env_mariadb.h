@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/env/db/mariadb/env_mariadb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -263,7 +263,7 @@ TABLE OF CONTENTS
 // MARIADB_VERSION_ID. Manual mode (D_CFG_ENV_MARIADB_CUSTOM) reads
 // D_ENV_MARIADB_DETECTED_VERSION, or one of D_ENV_MARIADB_DETECTED_5_5 to
 // _11_4.
-#if (D_CFG_ENV_MARIADB_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_MARIADB_CUSTOM)
 
     // automatic detection requires the MariaDB header to be in scope;
     // if D_CFG_ENV_USING_MARIADB was not enabled the sentinel is 0 and we

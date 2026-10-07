@@ -8,12 +8,15 @@
 *   The interface supports recursive mutexes, timed operations, condition
 * variables, and thread-local storage. Native implementations are used
 * whenever available, with fallback support for older systems.
+*   Where the C library hides POSIX in a strict ISO mode, every file that
+* includes this header builds with -D_XOPEN_SOURCE=700 (the C guide's rule):
+* glibc declares pthread_rwlock_t only then.
 *
 *
 * path:      /inc/djinterp/c/sync/dmutex.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.06
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*

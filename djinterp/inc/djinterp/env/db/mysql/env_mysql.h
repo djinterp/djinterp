@@ -24,7 +24,7 @@
 * path:      /inc/djinterp/env/db/mysql/env_mysql.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -193,7 +193,7 @@ TABLE OF CONTENTS
 // isn't MariaDB's, and reads MYSQL_VERSION_ID. Manual mode
 // (D_CFG_ENV_MYSQL_CUSTOM) reads D_ENV_MYSQL_DETECTED_VERSION or one of the
 // D_ENV_MYSQL_DETECTED_<MAJOR>_<MINOR> series flags.
-#if (D_CFG_ENV_MYSQL_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_MYSQL_CUSTOM)
 
     // automatic detection requires the MySQL header to be in scope; if
     // D_CFG_ENV_USING_MYSQL was not enabled the sentinel is 0 and we skip

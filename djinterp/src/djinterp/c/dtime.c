@@ -5,15 +5,19 @@
 *   Each platform-dependent function is defined once per platform -- Windows,
 * POSIX, and a portable fallback -- with the implementation selected at the
 * function level rather than by conditionals inside one body.
+*   Build it with -D_XOPEN_SOURCE=700 where the C library hides POSIX in a
+* strict ISO mode (the C guide's rule). timegm, where D_TIME_HAS_TIMEGM
+* selects it, needs _DEFAULT_SOURCE as well on glibc.
 *
 *
 * path:      /src/djinterp/c/dtime.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.21
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dtime.h"      // corresponding header
 // std
+#include <assert.h>                               // assert
 #include <errno.h>                                // errno, EINVAL
 #include <stddef.h>                               // size_t, NULL
 #include <string.h>                               // strlen
@@ -30,8 +34,36 @@
     #endif  // WIN32_LEAN_AND_MEAN
     #include <windows.h>  // QueryPerformanceCounter, Sleep, FILETIME, ...
 #endif
-#if defined(D_TIME_PLATFORM_POSIX)
-    #include <unistd.h>   // sleep, for the d_nanosleep fallback
+
+// D_INTERNAL_TIME_SLEEP_FALLBACK
+//   macro: the d_nanosleep compiled where neither POSIX nanosleep nor Windows
+// is available (decision 15 of the register): 1, C11's thrd_sleep, where the
+// implementation has threads; 2, POSIX sleep(), whole seconds, on a POSIX
+// platform without nanosleep; 3, none, failing with ENOSYS. 0 where the
+// fallback is not compiled. sleep() used to be the fallback everywhere,
+// including where POSIX is missing.
+#if ( ( (D_TIME_HAS_NANOSLEEP) &&                                              \
+        (defined(D_TIME_PLATFORM_POSIX)) ) ||                                  \
+      (defined(D_TIME_PLATFORM_WINDOWS)) )
+    #define D_INTERNAL_TIME_SLEEP_FALLBACK 0
+#elif ( (D_ENV_LANG_IS_C11_OR_HIGHER) &&                                       \
+        (!defined(__STDC_NO_THREADS__)) )
+    #define D_INTERNAL_TIME_SLEEP_FALLBACK 1
+    #include <threads.h>  // thrd_sleep
+#elif defined(D_TIME_PLATFORM_POSIX)
+    #define D_INTERNAL_TIME_SLEEP_FALLBACK 2
+    #include <unistd.h>   // sleep
+#else
+    #define D_INTERNAL_TIME_SLEEP_FALLBACK 3
+#endif
+
+// D_INTERNAL_TIME_ENOSYS
+//   constant: ENOSYS, POSIX's "not supported", where <errno.h> has it, and
+// EINVAL elsewhere; C itself names neither.
+#if defined(ENOSYS)
+    #define D_INTERNAL_TIME_ENOSYS ENOSYS
+#else
+    #define D_INTERNAL_TIME_ENOSYS EINVAL
 #endif
 
 
@@ -451,10 +483,10 @@ d_clock_gettime(
     }
 
     // Windows implementation using QueryPerformanceCounter
+    // the counter's frequency is fixed at boot, so it is read once and kept
+    // (decision 26 of the register: it was reset on every call)
     static LARGE_INTEGER frequency;
     static int           frequency_initialized;
-
-    frequency_initialized = 0;
 
     if (_clock_id == CLOCK_MONOTONIC)
     {
@@ -528,11 +560,17 @@ d_clock_gettime(
             return -1;
         }
 
-        // combine kernel and user time
-        ULARGE_INTEGER uli = {0};
+        // combine kernel and user time, as whole 64-bit counts: adding the
+        // halves apart dropped the carry out of the low one (decision 26)
+        ULARGE_INTEGER user   = {0};
+        ULARGE_INTEGER kernel = {0};
+        ULARGE_INTEGER uli    = {0};
 
-        uli.LowPart  = user_time.dwLowDateTime + kernel_time.dwLowDateTime;
-        uli.HighPart = user_time.dwHighDateTime + kernel_time.dwHighDateTime;
+        user.LowPart    = user_time.dwLowDateTime;
+        user.HighPart   = user_time.dwHighDateTime;
+        kernel.LowPart  = kernel_time.dwLowDateTime;
+        kernel.HighPart = kernel_time.dwHighDateTime;
+        uli.QuadPart    = user.QuadPart + kernel.QuadPart;
 
         _tp->tv_sec  = (time_t)(uli.QuadPart / 10000000ULL);
         _tp->tv_nsec = (long)((uli.QuadPart % 10000000ULL) * 100);
@@ -631,10 +669,10 @@ d_clock_getres(
     }
 
     // Windows implementation
+    // the counter's frequency is fixed at boot, so it is read once and kept
+    // (decision 26 of the register: it was reset on every call)
     static LARGE_INTEGER frequency;
     static int           frequency_initialized;
-
-    frequency_initialized = 0;
 
     if (_clock_id == CLOCK_MONOTONIC)
     {
@@ -891,12 +929,13 @@ d_nanosleep(
     return 0;
 }
 
-#else
+#elif (D_INTERNAL_TIME_SLEEP_FALLBACK == 1)
 
 /*
 d_nanosleep
-  Fallback: sleep(), with any fractional second rounded up to a whole one, and
-no remaining time reported.
+  Fallback with C11 threads: thrd_sleep, which takes and reports the same
+timespec. It returns 0, -1 when a signal cut the sleep short (the remainder is
+in _rem), or another negative value on an error.
 */
 int
 d_nanosleep(
@@ -921,16 +960,61 @@ d_nanosleep(
         return -1;
     }
 
-    // minimal fallback using sleep()
+    const int result = thrd_sleep(_req,
+                                  _rem);
+
+    // slept
+    if (result == 0)
+    {
+        return 0;
+    }
+
+    errno = (result == -1) ? EINTR : EINVAL;
+
+    return -1;
+}
+
+#elif (D_INTERNAL_TIME_SLEEP_FALLBACK == 2)
+
+/*
+d_nanosleep
+  Fallback on a POSIX platform without nanosleep: sleep(), with any
+fractional second rounded up to a whole one, and no remaining time reported.
+*/
+int
+d_nanosleep(
+    const struct timespec* _req,
+    struct timespec*       _rem
+)
+{
+    // parameter validation
+    if (!_req)
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    // validate timespec values
+    if ( (_req->tv_nsec < 0)                  ||
+         (_req->tv_nsec >= D_TIME_NSEC_PER_SEC) )
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     unsigned int seconds = (unsigned int)_req->tv_sec;
+
+    // round a fractional second up
     if (_req->tv_nsec > 0)
     {
-        seconds += 1;  // round up
+        seconds += 1;
     }
 
     if (seconds > 0)
     {
-        sleep(seconds);
+        (void)sleep(seconds);
     }
 
     if (_rem)
@@ -942,6 +1026,41 @@ d_nanosleep(
     return 0;
 }
 
+#else
+
+/*
+d_nanosleep
+  Fallback with no way to sleep: the arguments are checked as everywhere,
+then it fails with ENOSYS (EINVAL where <errno.h> has no ENOSYS).
+*/
+int
+d_nanosleep(
+    const struct timespec* _req,
+    struct timespec*       _rem
+)
+{
+    // parameter validation
+    if (!_req)
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    // validate timespec values
+    if ( (_req->tv_nsec < 0)                  ||
+         (_req->tv_nsec >= D_TIME_NSEC_PER_SEC) )
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    (void)_rem;
+    errno = D_INTERNAL_TIME_ENOSYS;
+
+    return -1;
+}
 #endif
 
 /*
@@ -1033,8 +1152,10 @@ d_timegm
   Portable fallback: counts whole days from the epoch -- year by year, then
 month by month under the Gregorian leap rule -- and adds the time of day.
 Months outside 0..11 are folded into the year first; days, hours, minutes, and
-seconds are used as given, so out-of-range values carry naturally. Unlike
-timegm, it leaves _tm unmodified.
+seconds are used as given, so out-of-range values carry naturally. Then, as
+timegm does, it writes the normalized time back into _tm, tm_wday and
+tm_yday included (decision 25 of the register; it used to leave _tm as
+given).
 */
 time_t
 d_timegm(
@@ -1117,6 +1238,15 @@ d_timegm(
     result += _tm->tm_hour * 3600;
     result += _tm->tm_min * 60;
     result += _tm->tm_sec;
+
+    // normalize _tm as timegm does: the broken-down form of the result
+    struct tm normalized;
+
+    if (d_gmtime(&result,
+                 &normalized) != NULL)
+    {
+        *_tm = normalized;
+    }
 
     return result;
 }
@@ -1236,8 +1366,9 @@ d_strptime(
                 break;
             }
 
-            int value  = 0;
-            int digits = 0;
+            int value   = 0;
+            int digits  = 0;
+            int matched = 0;  // the name conversions' result: %b, %B, %a, %A
 
             switch (*fp)
             {
@@ -1282,7 +1413,7 @@ d_strptime(
 
                 case 'b':  // abbreviated month name (Jan, Feb, ...)
                 case 'h':  // same as %b
-                    int matched = 0;
+                    matched = 0;
 
                     for (int i = 0; i < 12; i++)
                     {
@@ -1632,8 +1763,10 @@ d_strptime(
 d_strftime_s
   On an invalid argument the buffer is emptied whenever it has room for a
 terminator, so a caller that ignores the 0 still reads a terminated string.
-strftime_s is used where D_ENV_CRT_MSVC is set and strftime elsewhere, and its
-size_t count is narrowed to int.
+It is strftime everywhere: the branch that called strftime_s, which no C
+runtime has, behind D_ENV_CRT_MSVC, which only simulated-environment builds
+define, is gone (decision 27 of the register). The size_t count is narrowed
+to int.
 */
 int
 d_strftime_s(
@@ -1658,18 +1791,10 @@ d_strftime_s(
         return 0;
     }
 
-#if ( (defined(D_ENV_CRT_MSVC)) &&                                             \
-      (D_ENV_CRT_MSVC) )
-    const size_t result = strftime_s(_s,
-                                     _maxsize,
-                                     _format,
-                                     _tm);
-#else
     const size_t result = strftime(_s,
                                    _maxsize,
                                    _format,
                                    _tm);
-#endif
 
     return (int)result;
 }
@@ -1744,8 +1869,9 @@ d_timespec_sub(
 
 /*
 d_timespec_cmp
-  Compares seconds, then nanoseconds. Either argument alone being NULL yields
--1, whichever it is, so the ordering is not symmetric around NULL.
+  Compares seconds, then nanoseconds. NULL orders before every value, on
+either side, so swapping the arguments negates the result (decision 28 of
+the register: either one alone used to yield -1).
 */
 int
 d_timespec_cmp(
@@ -1753,17 +1879,21 @@ d_timespec_cmp(
     const struct timespec* _b
 )
 {
-    // parameter validation - treat NULL as zero
+    // NULL orders first
     if ( (!_a) &&
          (!_b) )
     {
         return 0;
     }
 
-    if ( (!_a) ||
-         (!_b) )
+    if (!_a)
     {
         return -1;
+    }
+
+    if (!_b)
+    {
+        return 1;
     }
 
     // compare seconds first
@@ -1826,7 +1956,9 @@ d_timespec_to_us(
 /*
 d_timespec_to_ns
   Widens the seconds to int64_t before scaling, so a 32-bit time_t cannot
-overflow the multiply.
+overflow the multiply. The precondition, a seconds count whose nanosecond
+total fits int64_t, is asserted in debug builds (decision 14 of the
+register); with NDEBUG, breaking it is undefined, as the contract says.
 */
 int64_t
 d_timespec_to_ns(
@@ -1837,6 +1969,11 @@ d_timespec_to_ns(
     {
         return 0;
     }
+
+    assert( ( (int64_t)_ts->tv_sec >= (INT64_MIN / D_TIME_NSEC_PER_SEC) ) &&
+            ( (int64_t)_ts->tv_sec <=
+              ( (INT64_MAX - (D_TIME_NSEC_PER_SEC - 1)) /
+                D_TIME_NSEC_PER_SEC ) ) );
 
     return ((int64_t)_ts->tv_sec * D_TIME_NSEC_PER_SEC) + _ts->tv_nsec;
 }

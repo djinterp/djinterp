@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -29,6 +29,21 @@
 #include "djinterp/config/core/env/cfg_env_os.h"        // env: OS
 #include "djinterp/config/core/env/cfg_env_compiler.h"  // env: compiler
 #include "djinterp/config/core/env/cfg_env_build.h"     // env: build type
+#include "djinterp/config/core/env/os/cfg_env_apple.h"  // env: Apple (env/os)
+#include "djinterp/config/core/env/os/cfg_env_linux.h"  // env: Linux (env/os)
+// env/db: the database family's switches, then each database's
+#include "djinterp/config/core/env/db/cfg_env_db.h"
+#include "djinterp/config/core/env/db/arangodb/cfg_env_arangodb.h"
+#include "djinterp/config/core/env/db/cassandra/cfg_env_cassandra.h"
+#include "djinterp/config/core/env/db/db2/cfg_env_db2.h"
+#include "djinterp/config/core/env/db/dynamodb/cfg_env_dynamodb.h"
+#include "djinterp/config/core/env/db/mariadb/cfg_env_mariadb.h"
+#include "djinterp/config/core/env/db/mongodb/cfg_env_mongodb.h"
+#include "djinterp/config/core/env/db/mysql/cfg_env_mysql.h"
+#include "djinterp/config/core/env/db/oracle/cfg_env_oracle.h"
+#include "djinterp/config/core/env/db/postgres/cfg_env_postgres.h"
+#include "djinterp/config/core/env/db/redis/cfg_env_redis.h"
+#include "djinterp/config/core/env/db/sqlite/cfg_env_sqlite.h"
 #include "cfg_qualifiers.h"      // storage / linkage qualifiers
 #include "djinterp/config/core/container/table/cfg_table.h"  // the table DSL subframework
 #include "djinterp/config/parse/cfg_parse.h"        // the parse substrate

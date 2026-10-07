@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/config/core/env/db/postgres/cfg_env_postgres.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CORE_ENV_DB_POSTGRES_CFG_ENV_POSTGRES_H
@@ -32,6 +32,11 @@
 //   configuration: 1 to enable PostgreSQL header inclusion and detection.
 #ifndef D_CFG_ENV_USING_POSTGRESQL
     #define D_CFG_ENV_USING_POSTGRESQL 0
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_USING_POSTGRESQL)
+    #error "D_CFG_ENV_USING_POSTGRESQL must be 0 or 1"
 #endif
 
 // D_CFG_ENV_POSTGRESQL_C_PATH
@@ -78,6 +83,11 @@
       defined(D_ENV_PG_DETECTED_17) )
     #undef  D_CFG_ENV_PG_CUSTOM
     #define D_CFG_ENV_PG_CUSTOM 1
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_PG_CUSTOM)
+    #error "D_CFG_ENV_PG_CUSTOM must be 0 or 1"
 #endif
 
 

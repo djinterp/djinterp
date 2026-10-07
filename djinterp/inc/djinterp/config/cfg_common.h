@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/config/cfg_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CFG_COMMON_H
@@ -81,8 +81,12 @@ TABLE OF CONTENTS
 // spelling lands on a pad -- 1 where it is the literal asked about, 0 where it
 // is the other one -- and anything else lands on nothing, which #if reads as
 // 0. Because a well-formed knob always lands on a pad, validating one
-// evaluates no undefined identifier and stays -Wundef-clean; only a malformed
-// value reaches an undefined name, on its way to the #error.
+// evaluates no undefined identifier and stays -Wundef-clean. A malformed
+// NUMBER never reaches one either: the value is tested as a number first,
+// and && skips the probes for any number without a pad, so the knob's own
+// #error speaks (GCC and Clang keep -Wundef quiet in a skipped operand).
+// Only a value that is not a number at all reaches an undefined name, and
+// that name is the value itself: `yes`, or a misspelled value name.
 //
 //   THREE THINGS THIS COSTS, all load-bearing:
 //
@@ -143,7 +147,8 @@ TABLE OF CONTENTS
 //     #   error "D_CFG_FOO must be 0 or 1"
 //     #endif
 #define D_CFG_IS_BOOL(x)                                                      \
-    (D_CFG_IS_LITERAL_1(x) || D_CFG_IS_LITERAL_0(x))
+    ( ( (D_CFG_NORM(x) == 0) || (D_CFG_NORM(x) == 1) ) &&                     \
+      ( (D_CFG_IS_LITERAL_1(x)) || (D_CFG_IS_LITERAL_0(x)) ) )
 
 // D_INTERNAL_CFG_INT_PROBE(x)
 //   internal: as the literal probes, onto the integer marker prefix.
@@ -176,6 +181,14 @@ TABLE OF CONTENTS
 #define D_INTERNAL_CFG_INT_32             1
 #define D_INTERNAL_CFG_INT_64             1
 
+// D_INTERNAL_CFG_INT_PADDED(v)
+//   internal: 1 when the number v has a landing pad above, so the probe runs
+// only for those. A family that adds a pad adds its value here too.
+#define D_INTERNAL_CFG_INT_PADDED(v)                                          \
+    ( ( ((v) >= 0) && ((v) <= 16) ) ||                                        \
+      ((v) == 32)                   ||                                        \
+      ((v) == 64) )
+
 // D_CFG_IS_INT_LITERAL(x)
 //   brief: 1 when x is (or expands to) one of the integer literals above. #if
 // only. Validate every ENUMERATED knob with it after defaulting it: a range
@@ -185,7 +198,8 @@ TABLE OF CONTENTS
 //     #   error "D_CFG_FOO_BACKEND must name one of its values"
 //     #endif
 #define D_CFG_IS_INT_LITERAL(x)                                               \
-    D_CFG_NORM(D_INTERNAL_CFG_INT_PROBE(x))
+    ( (D_INTERNAL_CFG_INT_PADDED(D_CFG_NORM(x))) &&                           \
+      (D_CFG_NORM(D_INTERNAL_CFG_INT_PROBE(x))) )
 
 
 // --- 0.4  Custom overrides (highest priority; seen before any default) ---

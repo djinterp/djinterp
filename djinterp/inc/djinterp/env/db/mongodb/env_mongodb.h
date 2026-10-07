@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/env/db/mongodb/env_mongodb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -270,7 +270,7 @@ TABLE OF CONTENTS
 // <mongoc/mongoc.h> and <mongoc.h>; without __has_include, the configured path
 // is included as is, and with none found, #error. D_ENV_DB_HAS_MONGODB_CLIENT_C
 // follows it unless pre-defined.
-#if (D_CFG_ENV_USING_MONGODB == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_MONGODB)
 
     #if defined(__has_include)
         #if __has_include(D_CFG_ENV_MONGODB_C_PATH)
@@ -308,7 +308,7 @@ TABLE OF CONTENTS
 //   detection: 1 once the optional mongocxx header, D_CFG_ENV_MONGODB_CPP_PATH,
 // is found and included; C++ only, and only where __has_include can find it.
 // D_ENV_DB_HAS_MONGODB_CLIENT_CPP follows it unless pre-defined.
-#if ( (D_CFG_ENV_USING_MONGODB == 1) &&                                        \
+#if ( (D_CFG_IS_ON(D_CFG_ENV_USING_MONGODB)) &&                                \
       (defined(__cplusplus)) )
 
     #if defined(__has_include)
@@ -409,7 +409,7 @@ TABLE OF CONTENTS
 // (D_CFG_ENV_MONGO_CUSTOM) takes the driver from
 // D_ENV_MONGO_DETECTED_DRIVER_VERSION, and libbson reads 0 unless
 // D_ENV_MONGO_BSON_DETECTED is pre-defined.
-#if (D_CFG_ENV_MONGO_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_MONGO_CUSTOM)
 
     // automatic detection requires mongoc.h to be in scope; if
     // D_CFG_ENV_USING_MONGODB was not enabled the sentinel is 0 and we skip

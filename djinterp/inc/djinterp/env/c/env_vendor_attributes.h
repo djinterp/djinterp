@@ -18,12 +18,15 @@
 * thread-local storage; D_THREAD_LOCAL_AVAILABLE says which.
 *   It requires env.h, for the D_ENV_LANG_* and D_ENV_COMPILER_* families it
 * reads, and includes it itself.
+*   It is opt-in: the framework root includes env_attributes.h, not this
+* header, so a file that uses one of these macros includes it itself
+* (decision 64 of the register, 2026.10.04).
 *
 *
 * path:      /inc/djinterp/env/c/env_vendor_attributes.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*

@@ -10,11 +10,10 @@
 * path:      /src/djinterp/c/string_fn.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 #include "../../../inc/djinterp/c/string_fn.h"  // corresponding header
 // std
-#include <ctype.h>                                // tolower, isdigit, ...
 #include <errno.h>                                // EINVAL, ERANGE
 #include <stdbool.h>                              // bool
 #include <stddef.h>                               // size_t, NULL
@@ -23,6 +22,92 @@
 // djinterp
 #include "../../../inc/djinterp/c/djinterp.h"        // framework root
 #include "../../../inc/djinterp/c/memory/dmemory.h"  // d_memcpy
+
+
+// ASCII character classes
+//   string_fn classifies and folds case in ASCII only (decision 12 of the
+// register): the C library's tolower and isalpha follow the current C
+// locale, so the same bytes above 0x7F answered differently from one
+// machine, or one setlocale call, to the next. Bytes outside ASCII are never
+// letters, digits or white space here, and keep their case.
+
+/*
+d_internal_ascii_tolower
+  'A' to 'Z' to 'a' to 'z'; every other value as it is.
+*/
+static int
+d_internal_ascii_tolower(
+    int _c
+)
+{
+    return ( (_c >= 'A') &&
+             (_c <= 'Z') ) ? (_c - 'A' + 'a') : _c;
+}
+
+/*
+d_internal_ascii_toupper
+  'a' to 'z' to 'A' to 'Z'; every other value as it is.
+*/
+static int
+d_internal_ascii_toupper(
+    int _c
+)
+{
+    return ( (_c >= 'a') &&
+             (_c <= 'z') ) ? (_c - 'a' + 'A') : _c;
+}
+
+/*
+d_internal_ascii_isalpha
+  An ASCII letter.
+*/
+static int
+d_internal_ascii_isalpha(
+    int _c
+)
+{
+    return ( ( (_c >= 'a') && (_c <= 'z') ) ||
+             ( (_c >= 'A') && (_c <= 'Z') ) );
+}
+
+/*
+d_internal_ascii_isdigit
+  An ASCII decimal digit, as isdigit is in every locale.
+*/
+static int
+d_internal_ascii_isdigit(
+    int _c
+)
+{
+    return ( (_c >= '0') &&
+             (_c <= '9') );
+}
+
+/*
+d_internal_ascii_isalnum
+  An ASCII letter or decimal digit.
+*/
+static int
+d_internal_ascii_isalnum(
+    int _c
+)
+{
+    return ( (d_internal_ascii_isalpha(_c)) ||
+             (d_internal_ascii_isdigit(_c)) );
+}
+
+/*
+d_internal_ascii_isspace
+  The six white-space characters of the C locale: space, and \t through \r.
+*/
+static int
+d_internal_ascii_isspace(
+    int _c
+)
+{
+    return ( (_c == ' ') ||
+             ( (_c >= '\t') && (_c <= '\r') ) );
+}
 
 
 // safe copy and concatenation
@@ -312,8 +397,8 @@ d_strcasecmp(
     while ( (*_s1) &&
             (*_s2) )
     {
-        const int c1 = tolower((unsigned char)*_s1);
-        const int c2 = tolower((unsigned char)*_s2);
+        const int c1 = d_internal_ascii_tolower((unsigned char)*_s1);
+        const int c2 = d_internal_ascii_tolower((unsigned char)*_s2);
 
         if (c1 != c2)
         {
@@ -324,7 +409,8 @@ d_strcasecmp(
         _s2++;
     }
 
-    return tolower((unsigned char)*_s1) - tolower((unsigned char)*_s2);
+    return ( d_internal_ascii_tolower((unsigned char)*_s1) -
+             d_internal_ascii_tolower((unsigned char)*_s2) );
 }
 
 /*
@@ -364,8 +450,8 @@ d_strncasecmp(
             (*_s1)   &&
             (*_s2) )
     {
-        const int c1 = tolower((unsigned char)*_s1);
-        const int c2 = tolower((unsigned char)*_s2);
+        const int c1 = d_internal_ascii_tolower((unsigned char)*_s1);
+        const int c2 = d_internal_ascii_tolower((unsigned char)*_s2);
 
         if (c1 != c2)
         {
@@ -382,7 +468,8 @@ d_strncasecmp(
         return 0;
     }
 
-    return tolower((unsigned char)*_s1) - tolower((unsigned char)*_s2);
+    return ( d_internal_ascii_tolower((unsigned char)*_s1) -
+             d_internal_ascii_tolower((unsigned char)*_s2) );
 }
 
 // tokenization
@@ -532,7 +619,7 @@ d_strlwr(
 
     while (*_str != '\0')
     {
-        *_str = (char)tolower((unsigned char)*_str);
+        *_str = (char)d_internal_ascii_tolower((unsigned char)*_str);
         _str++;
     }
 
@@ -558,7 +645,7 @@ d_strupr(
 
     while (*_str != '\0')
     {
-        *_str = (char)toupper((unsigned char)*_str);
+        *_str = (char)d_internal_ascii_toupper((unsigned char)*_str);
         _str++;
     }
 
@@ -629,11 +716,89 @@ d_strchrnul(
 }
 
 // error strings
+// D_INTERNAL_STRING_FN_STRERROR
+//   macro: where d_strerror_r gets a description: 1, strerror_s (the Windows
+// C runtimes); 2, POSIX's strerror_r, which returns an int; 3, glibc's GNU
+// strerror_r, which returns a char* and replaces the POSIX one when the
+// build defines _GNU_SOURCE; 0, none, and d_strerror_r keeps its own table.
+// glibc and musl declare strerror_r only where the build's feature-test
+// macros make POSIX.1-2001 names visible (the C guide's rule): glibc says so
+// in _POSIX_C_SOURCE, musl only in the macros the build defined. macOS and
+// the BSDs always declare it.
+#if defined(D_ENV_PLATFORM_WINDOWS)
+    #define D_INTERNAL_STRING_FN_STRERROR 1
+#elif ( ( (defined(_POSIX_C_SOURCE)) &&                                        \
+          (_POSIX_C_SOURCE >= 200112L) )     ||                                \
+        ( (defined(_XOPEN_SOURCE)) &&                                          \
+          (_XOPEN_SOURCE >= 600) )           ||                                \
+        (defined(_GNU_SOURCE))               ||                                \
+        (defined(_DEFAULT_SOURCE))           ||                                \
+        (defined(_BSD_SOURCE))               ||                                \
+        (defined(D_ENV_PLATFORM_MACOS))      ||                                \
+        (defined(D_ENV_PLATFORM_UNIX)) )
+    #if ( (defined(__GLIBC__)) &&                                              \
+          (defined(_GNU_SOURCE)) )
+        #define D_INTERNAL_STRING_FN_STRERROR 3
+    #else
+        #define D_INTERNAL_STRING_FN_STRERROR 2
+    #endif
+#else
+    #define D_INTERNAL_STRING_FN_STRERROR 0
+#endif
+
+/*
+d_internal_strerror_platform
+  The platform's description of _errnum, written to _local (_size bytes) or
+returned from the C library's own storage; NULL where the platform has none,
+or none for this number.
+*/
+static const char*
+d_internal_strerror_platform(
+    int    _errnum,
+    char*  _local,
+    size_t _size
+)
+{
+#if (D_INTERNAL_STRING_FN_STRERROR == 1)
+    return (strerror_s(_local, _size, _errnum) == 0) ? _local : NULL;
+#elif (D_INTERNAL_STRING_FN_STRERROR == 2)
+    return (strerror_r(_errnum, _local, _size) == 0) ? _local : NULL;
+#elif (D_INTERNAL_STRING_FN_STRERROR == 3)
+    return strerror_r(_errnum, _local, _size);
+#else
+    (void)_errnum;
+    (void)_local;
+    (void)_size;
+
+    return NULL;
+#endif
+}
+
+/*
+d_internal_strerror_table
+  The fallback, where the platform describes nothing: 0, EINVAL and ERANGE,
+and "Unknown error" for every other number.
+*/
+static const char*
+d_internal_strerror_table(
+    int _errnum
+)
+{
+    switch (_errnum)
+    {
+        case 0:      return "success";
+        case EINVAL: return "Invalid argument";
+        case ERANGE: return "Result too large";
+        default:     return "Unknown error";
+    }
+}
+
 /*
 d_strerror_r
-  A fixed table of three messages, not the platform's strerror_r: 0, EINVAL,
-and ERANGE are described, and every other number reads "Unknown error". The
-buffer is untouched when the message does not fit.
+  Delegates to the platform (decision 11 of the register), through a local
+buffer, so the caller's buffer is written only with a whole description and
+is untouched when that does not fit. The local buffer holds any message a C
+library writes; a number the platform does not know falls back to the table.
 */
 int
 d_strerror_r(
@@ -648,16 +813,15 @@ d_strerror_r(
         return EINVAL;
     }
 
-    // simplified implementation;
-    // a full implementation would have a proper error message table
-    const char* msg = "Unknown error";
+    char        local[256];
+    const char* msg = d_internal_strerror_platform(_errnum,
+                                                   local,
+                                                   sizeof(local));
 
-    switch (_errnum)
+    // the platform has no description for it
+    if (msg == NULL)
     {
-        case 0:        msg = "success";          break;
-        case EINVAL:   msg = "Invalid argument"; break;
-        case ERANGE:   msg = "Result too large"; break;
-        default:       msg = "Unknown error";    break;
+        msg = d_internal_strerror_table(_errnum);
     }
 
     const size_t msg_len = strlen(msg);
@@ -835,8 +999,8 @@ d_strcasecmp_n(
 
     for (size_t i = 0; i < min_len; i++)
     {
-        const int c1 = tolower((unsigned char)_s1[i]);
-        const int c2 = tolower((unsigned char)_s2[i]);
+        const int c1 = d_internal_ascii_tolower((unsigned char)_s1[i]);
+        const int c2 = d_internal_ascii_tolower((unsigned char)_s2[i]);
 
         if (c1 != c2)
         {
@@ -901,8 +1065,8 @@ d_strncasecmp_n(
 
     for (size_t i = 0; i < min_len; i++)
     {
-        const int c1 = tolower((unsigned char)_s1[i]);
-        const int c2 = tolower((unsigned char)_s2[i]);
+        const int c1 = d_internal_ascii_tolower((unsigned char)_s1[i]);
+        const int c2 = d_internal_ascii_tolower((unsigned char)_s2[i]);
 
         if (c1 != c2)
         {
@@ -995,8 +1159,8 @@ d_strequals_nocase(
 
     for (size_t i = 0; i < _s1_len; i++)
     {
-        if (tolower((unsigned char)_s1[i]) !=
-            tolower((unsigned char)_s2[i]))
+        if (d_internal_ascii_tolower((unsigned char)_s1[i]) !=
+            d_internal_ascii_tolower((unsigned char)_s2[i]))
         {
             return false;
         }
@@ -1081,7 +1245,7 @@ d_str_is_numeric(
 
     for (size_t i = 0; i < _length; i++)
     {
-        if (!isdigit((unsigned char)_text[i]))
+        if (!d_internal_ascii_isdigit((unsigned char)_text[i]))
         {
             return false;
         }
@@ -1109,7 +1273,7 @@ d_str_is_alpha(
 
     for (size_t i = 0; i < _length; i++)
     {
-        if (!isalpha((unsigned char)_text[i]))
+        if (!d_internal_ascii_isalpha((unsigned char)_text[i]))
         {
             return false;
         }
@@ -1137,7 +1301,7 @@ d_str_is_alnum(
 
     for (size_t i = 0; i < _length; i++)
     {
-        if (!isalnum((unsigned char)_text[i]))
+        if (!d_internal_ascii_isalnum((unsigned char)_text[i]))
         {
             return false;
         }
@@ -1165,7 +1329,7 @@ d_str_is_whitespace(
 
     for (size_t i = 0; i < _length; i++)
     {
-        if (!isspace((unsigned char)_text[i]))
+        if (!d_internal_ascii_isspace((unsigned char)_text[i]))
         {
             return false;
         }
@@ -1660,8 +1824,10 @@ d_strrstr_index(
 
 /*
 d_strcasestr_index
-  Slides a d_strncasecmp window forward. d_strncasecmp stops at a '\0', so
-unlike the case-sensitive searches this one does not honor embedded NULs.
+  Slides a d_strncasecmp_n window forward. Like the case-sensitive searches,
+it compares exactly _substr_len characters at each position, embedded NULs
+included (decision 30 of the register; it went through d_strncasecmp, which
+stops at a '\0').
 */
 d_index
 d_strcasestr_index(
@@ -1691,9 +1857,11 @@ d_strcasestr_index(
 
     for (size_t i = 0; i < limit; i++)
     {
-        if (d_strncasecmp(_str + i,
-                          _substr,
-                          _substr_len) == 0)
+        if (d_strncasecmp_n(_str + i,
+                            _substr_len,
+                            _substr,
+                            _substr_len,
+                            _substr_len) == 0)
         {
             return (d_index)i;
         }

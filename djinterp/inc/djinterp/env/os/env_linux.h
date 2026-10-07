@@ -22,15 +22,16 @@
 *     #if (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)
 *         #include "./os/env_linux.h"
 *     #endif
-*   Kernel-version detection reads LINUX_VERSION_CODE, which comes from
-* <linux/version.h>; see 1.2.
+*   Kernel-version detection reads LINUX_VERSION_CODE from <linux/version.h>,
+* which this header includes where it exists, so the result does not depend
+* on what the unit included first (decision 40 of the register); see 1.2.
 *   Naming: D_ENV_LINUX_<CATEGORY>_<FEATURE> is 1 if available, 0 otherwise.
 *
 *
 * path:      /inc/djinterp/env/os/env_linux.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -226,6 +227,14 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../env.h"  // D_ENV_OS_ID, D_ENV_LANG_USING_CPP
+#include "../../config/core/env/os/cfg_env_linux.h"  // D_CFG_ENV_LINUX_MUSL
+// linux
+#if ( (defined(__linux__)) &&                                                  \
+      (defined(__has_include)) )
+    #if __has_include(<linux/version.h>)
+        #include <linux/version.h>  // LINUX_VERSION_CODE, KERNEL_VERSION
+    #endif
+#endif
 
 
 //==============================================================================
@@ -512,10 +521,9 @@ TABLE OF CONTENTS
 // 2.2.1
 // D_ENV_LINUX_LIBC_MUSL
 //   feature: detect if musl libc is in use. musl defines no identifying
-// macro, so this reads a __MUSL__ the build defines; without one, musl reads
-// as 0.
-#if defined(__MUSL__)
-    // user/build-system defined
+// macro, so the build says so with D_CFG_ENV_LINUX_MUSL (cfg_env_linux.h);
+// without it, musl reads as 0.
+#if D_CFG_IS_ON(D_CFG_ENV_LINUX_MUSL)
     #define D_ENV_LINUX_LIBC_MUSL       1
     #ifndef D_ENV_LINUX_LIBC_NAME
         #define D_ENV_LINUX_LIBC_NAME   "musl"
