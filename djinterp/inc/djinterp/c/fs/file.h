@@ -13,12 +13,14 @@
 *   file_link.h and file_pipe.h are always safe to include: each publishes
 * nothing on a platform without the capability. Guard USES with
 * D_FILE_LINK_IS_AVAILABLE and D_FILE_PIPE_IS_AVAILABLE.
+*   The c/fs sources build with -D_XOPEN_SOURCE=700 where the C library hides
+* POSIX in a strict ISO mode (the C guide's rule).
 *
 *
 * path:      /inc/djinterp/c/fs/file.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_C_FS_FILE_H

@@ -19,7 +19,7 @@
 * release series. Sections 5 onward exist only when a driver or a server
 * version is known; the last of them publishes the flattened D_ENV_CASSANDRA_*
 * vocabulary that cassandra.hpp consumes.
-*   Settings live in env_cassandra_config.h: D_CFG_ENV_USING_CASSANDRA includes
+*   Settings live in cfg_env_cassandra.h: D_CFG_ENV_USING_CASSANDRA includes
 * the driver header, and D_CFG_ENV_CASS_CUSTOM switches the driver to manual
 * detection. This header also includes env_db.h, for the base database
 * detection.
@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/env/db/cassandra/env_cassandra.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -184,14 +184,14 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_CASSANDRA_ENV_CASSANDRA_H 1
 
 // djinterp
-#include "./env_cassandra_config.h"  // D_CFG_ENV_*
-#include "../env_db.h"               // base database detection (D_ENV_DB_*)
+#include "../../../config/core/env/db/cassandra/cfg_env_cassandra.h"  // D_CFG_ENV_*
+#include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 
 //==============================================================================
 // 1.  VENDOR HEADER INCLUSION
 //==============================================================================
-// Driven by D_CFG_ENV_USING_CASSANDRA, from env_cassandra_config.h. When on,
+// Driven by D_CFG_ENV_USING_CASSANDRA, from cfg_env_cassandra.h. When on,
 // this section includes the DataStax C/C++ driver header (cassandra.h), a C
 // API usable from C and C++ alike. Detection below is gated on
 // D_ENV_CASSANDRA_HEADER_INCLUDED, so that no cassandra symbol is referenced
@@ -206,7 +206,7 @@ TABLE OF CONTENTS
 // when D_CFG_ENV_USING_CASSANDRA is off; D_ENV_DB_HAS_CASSANDRA_CLIENT_C
 // follows it unless pre-defined. With the setting on, a missing header is
 // an #error.
-#if (D_CFG_ENV_USING_CASSANDRA == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_CASSANDRA)
 
     #if defined(__has_include)
         #if __has_include(D_CFG_ENV_CASSANDRA_C_PATH)
@@ -302,7 +302,7 @@ TABLE OF CONTENTS
 // _VERSION_SUFFIX then describe it. Automatic mode reads CASS_VERSION_MAJOR,
 // _MINOR, _PATCH and _SUFFIX from cassandra.h; manual mode
 // (D_CFG_ENV_CASS_CUSTOM) reads D_ENV_CASS_DETECTED_DRIVER_VERSION.
-#if (D_CFG_ENV_CASS_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_CASS_CUSTOM)
 
     // automatic detection requires cassandra.h to be in scope; if
     // D_CFG_ENV_USING_CASSANDRA was not enabled the sentinel is 0 and we

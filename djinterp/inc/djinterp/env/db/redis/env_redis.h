@@ -19,7 +19,7 @@
 * distribution and release series. Sections 5 onward exist only when a client
 * or a server version is known; the last of them publishes the extra names the
 * connection layer uses.
-*   Settings live in env_redis_config.h: D_CFG_ENV_USING_REDIS includes the
+*   Settings live in cfg_env_redis.h: D_CFG_ENV_USING_REDIS includes the
 * hiredis headers, and D_CFG_ENV_REDIS_CUSTOM switches the client to manual
 * detection. This header also includes env_db.h, for the base database
 * detection.
@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/env/db/redis/env_redis.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -178,14 +178,14 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_REDIS_ENV_REDIS_H 1
 
 // djinterp
-#include "./env_redis_config.h"  // D_CFG_ENV_*
-#include "../env_db.h"           // base database detection (D_ENV_DB_*)
+#include "../../../config/core/env/db/redis/cfg_env_redis.h"  // D_CFG_ENV_*
+#include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 
 //==============================================================================
 // 1.  VENDOR HEADER INCLUSION
 //==============================================================================
-// Driven by D_CFG_ENV_USING_REDIS, from env_redis_config.h. When on, this
+// Driven by D_CFG_ENV_USING_REDIS, from cfg_env_redis.h. When on, this
 // section includes the hiredis client header and, when present, its SSL
 // header; hiredis is a C API usable from C and C++ alike. Detection below is
 // gated on D_ENV_REDIS_HEADER_INCLUDED, so that no hiredis symbol is
@@ -201,7 +201,7 @@ TABLE OF CONTENTS
 // <hiredis/hiredis.h> and <hiredis.h>; without __has_include, the configured
 // path is included as is, and with none found, #error.
 // D_ENV_DB_HAS_REDIS_CLIENT_C follows it unless pre-defined.
-#if (D_CFG_ENV_USING_REDIS == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_REDIS)
 
     #if defined(__has_include)
         #if __has_include(D_CFG_ENV_REDIS_C_PATH)
@@ -240,7 +240,7 @@ TABLE OF CONTENTS
 // <hiredis/hiredis_ssl.h> or <hiredis_ssl.h>, is found and included; 0
 // otherwise, and always 0 unless D_CFG_ENV_USING_REDIS is on where
 // __has_include is available.
-#if (D_CFG_ENV_USING_REDIS == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_REDIS)
 
     #if defined(__has_include)
         #if __has_include(<hiredis/hiredis_ssl.h>)
@@ -330,7 +330,7 @@ TABLE OF CONTENTS
 // HIREDIS_SONAME. Automatic mode reads HIREDIS_MAJOR, HIREDIS_MINOR and
 // HIREDIS_PATCH; manual mode (D_CFG_ENV_REDIS_CUSTOM) reads
 // D_ENV_REDIS_DETECTED_CLIENT_VERSION.
-#if (D_CFG_ENV_REDIS_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_REDIS_CUSTOM)
 
     // automatic detection requires hiredis.h to be in scope; if
     // D_CFG_ENV_USING_REDIS was not enabled the sentinel is 0 and we skip

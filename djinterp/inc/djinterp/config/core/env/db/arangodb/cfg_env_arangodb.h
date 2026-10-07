@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/config/core/env/db/arangodb/cfg_env_arangodb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.22
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_CORE_ENV_DB_ARANGODB_CFG_ENV_ARANGODB_H
@@ -36,6 +36,11 @@
 // (C++ only; raises #error in C builds).
 #ifndef D_CFG_ENV_USING_ARANGODB
     #define D_CFG_ENV_USING_ARANGODB 0
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_USING_ARANGODB)
+    #error "D_CFG_ENV_USING_ARANGODB must be 0 or 1"
 #endif
 
 // D_CFG_ENV_ARANGODB_CPP_PATH
@@ -74,6 +79,11 @@
       defined(D_ENV_ARANGO_DETECTED_ENTERPRISE) )
     #undef  D_CFG_ENV_ARANGO_CUSTOM
     #define D_CFG_ENV_ARANGO_CUSTOM 1
+#endif
+
+// validation: #if reads the switch as a number, so it must be 0 or 1
+#if !D_CFG_IS_BOOL(D_CFG_ENV_ARANGO_CUSTOM)
+    #error "D_CFG_ENV_ARANGO_CUSTOM must be 0 or 1"
 #endif
 
 

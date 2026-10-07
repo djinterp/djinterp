@@ -45,7 +45,7 @@
 * path:      /src/djinterp/c/util/archive/archive_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -84,6 +84,7 @@ X.    TRANSFORMS
 #include <string.h>
 // djinterp
 #include "../../../../../inc/djinterp/c/util/archive/archive_common.h"
+#include "../../../../../inc/djinterp/env/util/archive/env_archive.h"  // D_ENV_ARCHIVE_CAN_*
 
 
 // D_ARCHIVE_EPOCH_DEFAULT

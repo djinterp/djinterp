@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/env/db/oracle/env_oracle.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -290,7 +290,7 @@ TABLE OF CONTENTS
 // <oracle/oci.h> and <oci.h>; without __has_include, the configured path is
 // included as is, and with none found, #error. D_ENV_DB_HAS_ORACLE_CLIENT_C
 // follows it unless pre-defined.
-#if (D_CFG_ENV_USING_ORACLE == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_ORACLE)
 
     #if defined(__has_include)
         #if __has_include(D_CFG_ENV_ORACLE_C_PATH)
@@ -328,7 +328,7 @@ TABLE OF CONTENTS
 //   detection: 1 once the optional OCCI header, D_CFG_ENV_ORACLE_CPP_PATH, is
 // found and included; C++ only, and only where __has_include can find it.
 // D_ENV_DB_HAS_ORACLE_CLIENT_CPP follows it unless pre-defined.
-#if ( (D_CFG_ENV_USING_ORACLE == 1) &&                                         \
+#if ( (D_CFG_IS_ON(D_CFG_ENV_USING_ORACLE)) &&                                 \
       (defined(__cplusplus)) )
 
     #if defined(__has_include)
@@ -435,7 +435,7 @@ TABLE OF CONTENTS
 // header in scope and reads OCI_MAJOR_VERSION and OCI_MINOR_VERSION; with
 // ORACLE_VERSION alone, the version reads 0. Manual mode (D_CFG_ENV_ORA_CUSTOM)
 // reads D_ENV_ORA_DETECTED_VERSION, or a D_ENV_ORA_DETECTED_<RELEASE> flag.
-#if (D_CFG_ENV_ORA_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_ORA_CUSTOM)
 
     // automatic detection via OCI headers
     // requires oci.h to be in scope; if D_CFG_ENV_USING_ORACLE was not

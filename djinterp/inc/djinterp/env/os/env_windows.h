@@ -20,15 +20,17 @@
 *     #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
 *         #include "./os/env_windows.h"
 *     #endif
-*   Target-version detection reads _WIN32_WINNT and NTDDI_VERSION, which come
-* from the build or from <windows.h>; see 1.3.
+*   Target-version detection reads _WIN32_WINNT and NTDDI_VERSION, which the
+* build defines, as the guides ask (decision 34 of the register). This
+* header never sets them; without them, only a <windows.h> the unit included
+* first supplies a default, and otherwise every version gate reads 0. See 1.3.
 *   Naming: D_ENV_WIN_<CATEGORY>_<FEATURE> is 1 if available, 0 otherwise.
 *
 *
 * path:      /inc/djinterp/env/os/env_windows.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.22
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -467,11 +469,17 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 3.1.1
 // D_ENV_WIN_IS_64BIT / D_ENV_WIN_IS_32BIT
-//   feature: detect if compiling for 64-bit or 32-bit Windows.
-#if defined(_WIN64)
+//   feature: detect if compiling for 64-bit or 32-bit Windows. Cygwin counts:
+// this header treats it as Windows, and a Cygwin program is a Windows
+// process, so its bitness is the GNU spellings', since Cygwin's compilers
+// define neither _WIN64 nor _WIN32 (decision 37 of the register).
+#if ( (defined(_WIN64))         ||                                             \
+      ( (defined(__CYGWIN__)) &&                                               \
+        ( (defined(__x86_64__)) || (defined(__aarch64__)) ) ) )
     #define D_ENV_WIN_IS_64BIT  1
     #define D_ENV_WIN_IS_32BIT  0
-#elif defined(_WIN32)
+#elif ( (defined(_WIN32)) ||                                                   \
+        (defined(__CYGWIN__)) )
     #define D_ENV_WIN_IS_64BIT  0
     #define D_ENV_WIN_IS_32BIT  1
 #else
@@ -495,9 +503,15 @@ TABLE OF CONTENTS
 
 // 3.1.3
 // D_ENV_WIN_IS_ARM
-//   feature: detect if targeting Windows on ARM.
-#if ( (defined(_M_ARM)) ||                                                     \
-      (defined(_M_ARM64)) )
+//   feature: detect if targeting Windows on ARM. _M_ARM and _M_ARM64 are
+// MSVC's spellings; MinGW and Clang targeting Windows spell it __arm__ and
+// __aarch64__ (decision 37 of the register).
+#if ( (defined(_M_ARM))                       ||                               \
+      (defined(_M_ARM64))                     ||                               \
+      ( ( (defined(_WIN32)) ||                                                 \
+          (defined(__CYGWIN__)) )             &&                               \
+        ( (defined(__arm__)) ||                                                \
+          (defined(__aarch64__)) ) ) )
     #define D_ENV_WIN_IS_ARM    1
 #else
     #define D_ENV_WIN_IS_ARM    0
@@ -505,12 +519,16 @@ TABLE OF CONTENTS
 
 // 3.1.4
 // D_ENV_WIN_IS_ARM64
-//   feature: detect if targeting Windows on ARM64 specifically.
-#ifdef _M_ARM64
+//   feature: detect if targeting Windows on ARM64 specifically, by MSVC's
+// spelling or the GNU one.
+#if ( (defined(_M_ARM64))                     ||                               \
+      ( ( (defined(_WIN32)) ||                                                 \
+          (defined(__CYGWIN__)) )             &&                               \
+        (defined(__aarch64__)) ) )
     #define D_ENV_WIN_IS_ARM64  1
 #else
     #define D_ENV_WIN_IS_ARM64  0
-#endif  // _M_ARM64
+#endif
 
 // 3.2    Unicode / ANSI configuration
 //------------------------------------------------------------------------------
@@ -723,10 +741,22 @@ TABLE OF CONTENTS
 
 // 6.1.5
 // D_ENV_WIN_HAS_CPPWINRT
-//   feature: detect if C++/WinRT headers are available.
-#if ( (defined(__cpp_lib_coroutine)) ||                                        \
+//   feature: detect if C++/WinRT is available: a Windows C++ build that has
+// C++/WinRT's own header, winrt/base.h, either included (WINRT_BASE_H) or
+// there to include (decision 36 of the register). It used to key on
+// __cpp_lib_coroutine alone, which any C++20 <version> defines, Linux's too.
+#if ( (defined(_WIN32))       &&                                               \
+      (defined(__cplusplus))  &&                                               \
       (defined(WINRT_BASE_H)) )
     #define D_ENV_WIN_HAS_CPPWINRT  1
+#elif ( (defined(_WIN32))        &&                                            \
+        (defined(__cplusplus))   &&                                            \
+        (defined(__has_include)) )
+    #if __has_include(<winrt/base.h>)
+        #define D_ENV_WIN_HAS_CPPWINRT  1
+    #else
+        #define D_ENV_WIN_HAS_CPPWINRT  0
+    #endif
 #else
     #define D_ENV_WIN_HAS_CPPWINRT  0
 #endif
@@ -743,10 +773,12 @@ TABLE OF CONTENTS
 
 // 6.1.7
 // D_ENV_WIN_HAS_DESKTOP
-//   feature: detect if compiling for the desktop API partition.
+//   feature: detect if compiling for the desktop API partition. Only
+// WINAPI_FAMILY_DESKTOP_APP counts: current SDKs make WINAPI_FAMILY_PC_APP
+// equal to WINAPI_FAMILY_APP, so counting it read every store app as desktop
+// too (decision 35 of the register), and MinGW does not define it at all.
 #if defined(WINAPI_FAMILY)
-    #if ( (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP) ||                      \
-          (WINAPI_FAMILY == WINAPI_FAMILY_PC_APP) )
+    #if (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
         #define D_ENV_WIN_HAS_DESKTOP 1
     #else
         #define D_ENV_WIN_HAS_DESKTOP 0

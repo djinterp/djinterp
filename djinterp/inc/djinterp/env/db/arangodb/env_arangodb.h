@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/env/db/arangodb/env_arangodb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -245,7 +245,7 @@ TABLE OF CONTENTS
 // included the velocypack header, and 0 when D_CFG_ENV_USING_ARANGODB is off;
 // D_ENV_DB_HAS_ARANGODB_CLIENT_CPP follows it unless pre-defined. With the
 // setting on, a C build or a missing header is an #error.
-#if (D_CFG_ENV_USING_ARANGODB == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_ARANGODB)
 
     #ifdef __cplusplus
         #if defined(__has_include)
@@ -355,7 +355,7 @@ TABLE OF CONTENTS
 // or the ARANGODB_VERSION string alone, which leaves the version at 0.
 // Manual mode (D_CFG_ENV_ARANGO_CUSTOM) reads D_ENV_ARANGO_DETECTED_VERSION,
 // or one of D_ENV_ARANGO_DETECTED_3_4 to _3_12.
-#if (D_CFG_ENV_ARANGO_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_ARANGO_CUSTOM)
 
     // automatic detection via ArangoDB-provided version macros.
     // ArangoDB server headers define ARANGODB_VERSION as a string

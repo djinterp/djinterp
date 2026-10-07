@@ -20,7 +20,7 @@
 * release series. Sections 6 onward exist only when a client or a server
 * version is known; the last of them publishes the extra names the connection
 * layer uses.
-*   Settings live in env_db2_config.h: D_CFG_ENV_USING_DB2 includes the CLI
+*   Settings live in cfg_env_db2.h: D_CFG_ENV_USING_DB2 includes the CLI
 * header, D_CFG_ENV_DB2_CUSTOM switches the client to manual detection, and
 * D_CFG_ENV_DB2_PLATFORM names the platform family. This header also includes
 * env_db.h, for the base database detection.
@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/env/db/db2/env_db2.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -163,14 +163,14 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_DB_DB2_ENV_DB2_H 1
 
 // djinterp
-#include "./env_db2_config.h"  // D_CFG_ENV_*
-#include "../env_db.h"         // base database detection (D_ENV_DB_*)
+#include "../../../config/core/env/db/db2/cfg_env_db2.h"  // D_CFG_ENV_*
+#include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 
 //==============================================================================
 // 1.  VENDOR HEADER INCLUSION
 //==============================================================================
-// Driven by D_CFG_ENV_USING_DB2, from env_db2_config.h. When on, this section
+// Driven by D_CFG_ENV_USING_DB2, from cfg_env_db2.h. When on, this section
 // includes the Db2 CLI/ODBC client header (sqlcli1.h), a C API usable from C
 // and C++ alike. Detection below is gated on D_ENV_DB2_HEADER_INCLUDED, so
 // that no Db2 symbol is referenced unless the header is in scope.
@@ -183,7 +183,7 @@ TABLE OF CONTENTS
 //   detection: 1 once this section has included the CLI header, and 0 when
 // D_CFG_ENV_USING_DB2 is off; D_ENV_DB_HAS_DB2_CLIENT_C follows it unless
 // pre-defined. With the setting on, a missing header is an #error.
-#if (D_CFG_ENV_USING_DB2 == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_DB2)
 
     #if defined(__has_include)
         #if __has_include(D_CFG_ENV_DB2_C_PATH)
@@ -283,7 +283,7 @@ TABLE OF CONTENTS
 // defined, as D_ENV_DB2_CLIENT_VERSION_RAW. Manual mode (D_CFG_ENV_DB2_CUSTOM)
 // takes D_ENV_DB2_DETECTED_CLIENT_VERSION, and also defines
 // D_ENV_DB2_CLIENT_VERSION_ID, _MAJOR, _MINOR and _PATCH.
-#if (D_CFG_ENV_DB2_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_DB2_CUSTOM)
 
     #if D_ENV_DB2_HEADER_INCLUDED
         #define D_ENV_DB2_CLIENT_DETECTED      1
@@ -393,7 +393,7 @@ TABLE OF CONTENTS
 // 5.  PLATFORM FAMILY
 //==============================================================================
 // The platform family is supplied via D_CFG_ENV_DB2_PLATFORM (see
-// env_db2_config.h). These convenience macros expose it as boolean flags.
+// cfg_env_db2.h). These convenience macros expose it as boolean flags.
 
 
 // 5.1    Platform flags
@@ -931,7 +931,7 @@ TABLE OF CONTENTS
             D_ENV_DB2_DECODE_PATCH(D_ENV_DB2_SERVER_VERSION_ID)
     #elif ( (D_ENV_DB2_CLIENT_DETECTED)      &&                                \
             (D_ENV_DB2_CLIENT_VERSION_KNOWN) &&                                \
-            (D_CFG_ENV_DB2_CUSTOM == 1) )
+            (D_CFG_IS_ON(D_CFG_ENV_DB2_CUSTOM)) )
         #define D_ENV_DB2_VERSION_ID    D_ENV_DB2_CLIENT_VERSION_ID
         #define D_ENV_DB2_VERSION_MAJOR D_ENV_DB2_CLIENT_MAJOR
         #define D_ENV_DB2_VERSION_MINOR D_ENV_DB2_CLIENT_MINOR

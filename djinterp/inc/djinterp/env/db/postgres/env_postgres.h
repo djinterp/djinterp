@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/env/db/postgres/env_postgres.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -276,7 +276,7 @@ TABLE OF CONTENTS
 // first, then <postgresql/libpq-fe.h> and <libpq-fe.h>; without __has_include,
 // the configured path is included as is, and with none found, #error.
 // D_ENV_DB_HAS_POSTGRESQL_CLIENT_C follows it unless pre-defined.
-#if (D_CFG_ENV_USING_POSTGRESQL == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_POSTGRESQL)
 
     #if defined(__has_include)
         #if __has_include(D_CFG_ENV_POSTGRESQL_C_PATH)
@@ -315,7 +315,7 @@ TABLE OF CONTENTS
 // D_CFG_ENV_POSTGRESQL_CPP_PATH, is found and included; C++ only, and only
 // where __has_include can find it. D_ENV_DB_HAS_POSTGRESQL_CLIENT_CPP follows
 // it unless pre-defined.
-#if ( (D_CFG_ENV_USING_POSTGRESQL == 1) &&                                     \
+#if ( (D_CFG_IS_ON(D_CFG_ENV_USING_POSTGRESQL)) &&                             \
       (defined(__cplusplus)) )
 
     #if defined(__has_include)
@@ -429,7 +429,7 @@ TABLE OF CONTENTS
 // the libpq header in scope and reads PG_VERSION_NUM; manual mode
 // (D_CFG_ENV_PG_CUSTOM) reads D_ENV_PG_DETECTED_VERSION, or one of
 // D_ENV_PG_DETECTED_9_4 to _17.
-#if (D_CFG_ENV_PG_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_PG_CUSTOM)
 
     // automatic detection requires the libpq header to be in scope; if
     // D_CFG_ENV_USING_POSTGRESQL was not enabled the sentinel is 0 and we

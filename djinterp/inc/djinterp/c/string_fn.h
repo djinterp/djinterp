@@ -5,12 +5,15 @@
 *   Provides fundamental string operations on raw `const char*` buffers with
 * explicit lengths, suitable for use both standalone and as the underlying
 * implementation layer for higher-level string types such as `d_string`.
+*   Character classes and case folding are ASCII only, the same in every
+* locale: the case-insensitive comparisons and searches, the case
+* conversions and the class tests leave a byte above 0x7F as it is.
 *
 *
 * path:      /inc/djinterp/c/string_fn.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -505,8 +508,8 @@ d_index          d_strrstr_index(const char* _str,
 /**
  * @brief Finds the first occurrence of a substring in a buffer, ignoring case.
  *
- * @note the comparison stops at a null character, so a match can be reported
- *       between buffers that differ only after an embedded '\0'.
+ * @note compares `_substr_len` characters at each position, embedded '\0'
+ *       included, as the case-sensitive searches do; case is folded in ASCII.
  *
  * @param[in] _str         the buffer to search.
  * @param[in] _str_len     the length of `_str`.
@@ -652,7 +655,8 @@ bool             d_str_is_numeric(const char* _text,
 /**
  * @brief Tests whether every character is alphabetic.
  *
- * @note classified by isalpha, which follows the current C locale.
+ * @note ASCII only: letters; a byte above 0x7F is never one, whatever
+ *       the locale (decision 12 of the register).
  *
  * @param[in] _text    the buffer to check; may be `NULL`.
  * @param[in] _length  the number of characters to check.
@@ -664,7 +668,8 @@ bool             d_str_is_alpha(const char* _text,
 /**
  * @brief Tests whether every character is alphanumeric.
  *
- * @note classified by isalnum, which follows the current C locale.
+ * @note ASCII only: letters and decimal digits; a byte above 0x7F is never one, whatever
+ *       the locale (decision 12 of the register).
  *
  * @param[in] _text    the buffer to check; may be `NULL`.
  * @param[in] _length  the number of characters to check.
@@ -676,7 +681,8 @@ bool             d_str_is_alnum(const char* _text,
 /**
  * @brief Tests whether every character is whitespace.
  *
- * @note classified by isspace, which follows the current C locale.
+ * @note ASCII only: white space (' ' and \\t to \\r); a byte above 0x7F is never one, whatever
+ *       the locale (decision 12 of the register).
  *
  * @param[in] _text    the buffer to check; may be `NULL`.
  * @param[in] _length  the number of characters to check.
@@ -736,8 +742,11 @@ size_t           d_strhash(const char* _str,
  * @brief Describes an error number into a buffer (POSIX strerror_r
  *        counterpart).
  *
- * @note only 0, EINVAL, and ERANGE are described; every other number reads
- *       "Unknown error". This is a fixed table, not the platform's strerror_r.
+ * @note the description is the platform's: strerror_r (POSIX, or glibc's GNU
+ *       variant), or strerror_s on Windows, so its text varies by platform.
+ *       Where neither is available, or the platform does not know the
+ *       number, only 0, EINVAL and ERANGE are described and every other
+ *       number reads "Unknown error".
  *
  * @param[in]  _errnum  the error number to describe.
  * @param[out] _buf     receives the description.

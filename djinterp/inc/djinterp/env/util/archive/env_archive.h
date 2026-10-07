@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/env/util/archive/env_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -29,15 +29,13 @@ TABLE OF CONTENTS
 1.  PLATFORM SUPPORT
     ----------------
     1.  PATH-probe helpers
-         1.  D_INTERNAL_ARCHIVE_OS_WINDOWS
-         2.  D_INTERNAL_ACCESS / D_INTERNAL_PATH_SEP / D_INTERNAL_DIR_SEP
-    2.  libarchive header
-         1.  <archive.h>
+         1.  D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
+         2.  D_INTERNAL_ENV_ARCHIVE_ACCESS / _PATH_SEP / _DIR_SEP
 2.  CONFIGURATION AND PROBING
     -------------------------
     1.  Configuration and probing
          1.  D_CFG_ENV_ARCHIVE_ENABLED
-         2.  D_INTERNAL_ARCHIVE_PROBE
+         2.  D_INTERNAL_ENV_ARCHIVE_PROBE
          3.  D_ENV_ARCHIVE_HAVE_BUILTIN_TAR / _ZIP
 3.  ARCHIVE LIBRARIES
     -----------------
@@ -134,44 +132,32 @@ TABLE OF CONTENTS
 // 1.1    PATH-probe helpers
 //------------------------------------------------------------------------------
 // 1.1.1
-// D_INTERNAL_ARCHIVE_OS_WINDOWS
+// D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
 //   constant: 1 when the target is Windows, selecting the Windows spellings in
 // 1.1.2; 0 otherwise.
 #if ( (defined(D_ENV_OS_ID)) &&                                                \
       (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) )
-    #define D_INTERNAL_ARCHIVE_OS_WINDOWS 1
+    #define D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS 1
 #else
-    #define D_INTERNAL_ARCHIVE_OS_WINDOWS 0
+    #define D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS 0
 #endif
 
 // 1.1.2
-// D_INTERNAL_ACCESS / D_INTERNAL_PATH_SEP / D_INTERNAL_DIR_SEP
+// D_INTERNAL_ENV_ARCHIVE_ACCESS / _PATH_SEP / _DIR_SEP
 //   macro: the executable-access test, PATH-list separator, and directory
 // separator the external-tool probe (d_env_archive_has_tool) uses.
-#if D_INTERNAL_ARCHIVE_OS_WINDOWS
+#if D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
     // windows
     #include <io.h>          // _access
-    #define D_INTERNAL_ACCESS(p)      _access((p), 0)
-    #define D_INTERNAL_PATH_SEP       ';'
-    #define D_INTERNAL_DIR_SEP        '\\'
+    #define D_INTERNAL_ENV_ARCHIVE_ACCESS(p)  _access((p), 0)
+    #define D_INTERNAL_ENV_ARCHIVE_PATH_SEP   ';'
+    #define D_INTERNAL_ENV_ARCHIVE_DIR_SEP    '\\'
 #else
     // posix
     #include <unistd.h>      // access, X_OK
-    #define D_INTERNAL_ACCESS(p)      access((p), X_OK)
-    #define D_INTERNAL_PATH_SEP       ':'
-    #define D_INTERNAL_DIR_SEP        '/'
-#endif
-
-// 1.2    libarchive header
-//------------------------------------------------------------------------------
-// 1.2.1
-// <archive.h>
-//   included only when the build pre-defines D_ENV_ARCHIVE_HAVE_LIBARCHIVE to
-// a nonzero value: the macro is not detected until section 3, below this.
-#if ( (defined(D_ENV_ARCHIVE_HAVE_LIBARCHIVE)) &&                              \
-      (D_ENV_ARCHIVE_HAVE_LIBARCHIVE) )
-    // libarchive
-    #include <archive.h>  // ARCHIVE_VERSION_NUMBER, ARCHIVE_VERSION_STRING
+    #define D_INTERNAL_ENV_ARCHIVE_ACCESS(p)  access((p), X_OK)
+    #define D_INTERNAL_ENV_ARCHIVE_PATH_SEP   ':'
+    #define D_INTERNAL_ENV_ARCHIVE_DIR_SEP    '/'
 #endif
 
 
@@ -191,13 +177,13 @@ TABLE OF CONTENTS
 #endif  // D_CFG_ENV_ARCHIVE_ENABLED
 
 // 2.1.2
-// D_INTERNAL_ARCHIVE_PROBE
+// D_INTERNAL_ENV_ARCHIVE_PROBE
 //   macro: internal helper. yields the __has_include result for `header`
 // when detection is enabled, and 0 when the master toggle is off.
 #if D_CFG_ENV_ARCHIVE_ENABLED
-    #define D_INTERNAL_ARCHIVE_PROBE(header) D_ENV_HAS_INCLUDE(header)
+    #define D_INTERNAL_ENV_ARCHIVE_PROBE(header) D_ENV_HAS_INCLUDE(header)
 #else
-    #define D_INTERNAL_ARCHIVE_PROBE(header) 0
+    #define D_INTERNAL_ENV_ARCHIVE_PROBE(header) 0
 #endif
 
 // 2.1.3
@@ -231,7 +217,7 @@ TABLE OF CONTENTS
 // the broadest backend, reading and writing zip, tar (and tar.* variants),
 // gzip, 7z, cpio, iso9660, and others through a unified streaming API.
 #ifndef D_ENV_ARCHIVE_HAVE_LIBARCHIVE
-    #if D_INTERNAL_ARCHIVE_PROBE(<archive.h>)
+    #if D_INTERNAL_ENV_ARCHIVE_PROBE(<archive.h>)
         #define D_ENV_ARCHIVE_HAVE_LIBARCHIVE       1
     #else
         #define D_ENV_ARCHIVE_HAVE_LIBARCHIVE       0
@@ -243,7 +229,7 @@ TABLE OF CONTENTS
 //   feature: detect the companion <archive_entry.h> header, required for
 // per-entry metadata when writing archives.
 #ifndef D_ENV_ARCHIVE_HAVE_LIBARCHIVE_ENTRY
-    #if D_INTERNAL_ARCHIVE_PROBE(<archive_entry.h>)
+    #if D_INTERNAL_ENV_ARCHIVE_PROBE(<archive_entry.h>)
         #define D_ENV_ARCHIVE_HAVE_LIBARCHIVE_ENTRY 1
     #else
         #define D_ENV_ARCHIVE_HAVE_LIBARCHIVE_ENTRY 0
@@ -253,8 +239,9 @@ TABLE OF CONTENTS
 // 3.1.3
 // libarchive version metadata
 //   constant: D_ENV_ARCHIVE_LIBARCHIVE_VERNUM and _VERSION_STR, from
-// ARCHIVE_VERSION_NUMBER / ARCHIVE_VERSION_STRING; populated only when
-// <archive.h> has been included, and otherwise 0 and "unknown".
+// ARCHIVE_VERSION_NUMBER / ARCHIVE_VERSION_STRING; populated only when the
+// unit included <archive.h> before this header, which never includes it
+// (decision 31 of the register), and otherwise 0 and "unknown".
 #if defined(ARCHIVE_VERSION_NUMBER)
     #define D_ENV_ARCHIVE_LIBARCHIVE_VERNUM     ARCHIVE_VERSION_NUMBER
 #else
@@ -283,7 +270,7 @@ TABLE OF CONTENTS
 //   feature: detect if libzip (<zip.h>) is available. libzip supports both
 // reading and writing of zip archives.
 #ifndef D_ENV_ARCHIVE_HAVE_LIBZIP
-    #if D_INTERNAL_ARCHIVE_PROBE(<zip.h>)
+    #if D_INTERNAL_ENV_ARCHIVE_PROBE(<zip.h>)
         #define D_ENV_ARCHIVE_HAVE_LIBZIP           1
     #else
         #define D_ENV_ARCHIVE_HAVE_LIBZIP           0
@@ -307,7 +294,7 @@ TABLE OF CONTENTS
 //   feature: detect minizip-ng (<mz.h>), the modern rewrite supporting zip
 // read / write with pluggable codecs and encryption.
 #ifndef D_ENV_ARCHIVE_HAVE_MINIZIP_NG
-    #if D_INTERNAL_ARCHIVE_PROBE(<mz.h>)
+    #if D_INTERNAL_ENV_ARCHIVE_PROBE(<mz.h>)
         #define D_ENV_ARCHIVE_HAVE_MINIZIP_NG       1
     #else
         #define D_ENV_ARCHIVE_HAVE_MINIZIP_NG       0
@@ -319,8 +306,8 @@ TABLE OF CONTENTS
 //   feature: detect the classic zlib-contrib minizip via its split
 // <minizip/zip.h> / <minizip/unzip.h> headers.
 #ifndef D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC
-    #if ( (D_INTERNAL_ARCHIVE_PROBE(<minizip/zip.h>)) &&                       \
-          (D_INTERNAL_ARCHIVE_PROBE(<minizip/unzip.h>)) )
+    #if ( (D_INTERNAL_ENV_ARCHIVE_PROBE(<minizip/zip.h>)) &&                   \
+          (D_INTERNAL_ENV_ARCHIVE_PROBE(<minizip/unzip.h>)) )
         #define D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC  1
     #else
         #define D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC  0
@@ -341,7 +328,7 @@ TABLE OF CONTENTS
 //   feature: detect if libtar (<libtar.h>) is available. libtar reads and
 // writes uncompressed tar; compression is layered separately (e.g. gzip).
 #ifndef D_ENV_ARCHIVE_HAVE_LIBTAR
-    #if D_INTERNAL_ARCHIVE_PROBE(<libtar.h>)
+    #if D_INTERNAL_ENV_ARCHIVE_PROBE(<libtar.h>)
         #define D_ENV_ARCHIVE_HAVE_LIBTAR           1
     #else
         #define D_ENV_ARCHIVE_HAVE_LIBTAR           0
@@ -355,10 +342,10 @@ TABLE OF CONTENTS
 //   feature: detect the 7-Zip / LZMA SDK C headers. several layouts exist in
 // the wild; any of the probed headers implies the SDK is present.
 #ifndef D_ENV_ARCHIVE_HAVE_LZMA_SDK
-    #if ( (D_INTERNAL_ARCHIVE_PROBE(<7z.h>))      ||                           \
-          (D_INTERNAL_ARCHIVE_PROBE(<7zTypes.h>)) ||                           \
-          (D_INTERNAL_ARCHIVE_PROBE(<LzmaLib.h>)) ||                           \
-          (D_INTERNAL_ARCHIVE_PROBE(<Lzma2Enc.h>)) )
+    #if ( (D_INTERNAL_ENV_ARCHIVE_PROBE(<7z.h>))      ||                       \
+          (D_INTERNAL_ENV_ARCHIVE_PROBE(<7zTypes.h>)) ||                       \
+          (D_INTERNAL_ENV_ARCHIVE_PROBE(<LzmaLib.h>)) ||                       \
+          (D_INTERNAL_ENV_ARCHIVE_PROBE(<Lzma2Enc.h>)) )
         #define D_ENV_ARCHIVE_HAVE_LZMA_SDK         1
     #else
         #define D_ENV_ARCHIVE_HAVE_LZMA_SDK         0
@@ -372,8 +359,8 @@ TABLE OF CONTENTS
 // note: bit7z is C++ only.
 #ifndef D_ENV_ARCHIVE_HAVE_BIT7Z
     #if ( (D_ENV_LANG_USING_CPP) &&                                            \
-          ( (D_INTERNAL_ARCHIVE_PROBE(<bit7z/bittypes.hpp>)) ||                \
-            (D_INTERNAL_ARCHIVE_PROBE(<bit7z/bit7z.hpp>)) ) )
+          ( (D_INTERNAL_ENV_ARCHIVE_PROBE(<bit7z/bittypes.hpp>)) ||            \
+            (D_INTERNAL_ENV_ARCHIVE_PROBE(<bit7z/bit7z.hpp>)) ) )
         #define D_ENV_ARCHIVE_HAVE_BIT7Z            1
     #else
         #define D_ENV_ARCHIVE_HAVE_BIT7Z            0
@@ -399,8 +386,8 @@ TABLE OF CONTENTS
 //   feature: detect the RARLAB UnRAR library (<unrar.h>, or the C++ SDK header
 // <unrar/dll.hpp>). extraction only; UnRAR cannot create archives.
 #ifndef D_ENV_ARCHIVE_HAVE_UNRAR
-    #if ( (D_INTERNAL_ARCHIVE_PROBE(<unrar.h>)) ||                             \
-          (D_INTERNAL_ARCHIVE_PROBE(<unrar/dll.hpp>)) )
+    #if ( (D_INTERNAL_ENV_ARCHIVE_PROBE(<unrar.h>)) ||                         \
+          (D_INTERNAL_ENV_ARCHIVE_PROBE(<unrar/dll.hpp>)) )
         #define D_ENV_ARCHIVE_HAVE_UNRAR            1
     #else
         #define D_ENV_ARCHIVE_HAVE_UNRAR            0
@@ -479,7 +466,7 @@ TABLE OF CONTENTS
 #ifndef D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP
     #if ( (defined(D_ENV_OS_ID))             &&                                \
           (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) &&                                \
-          (D_INTERNAL_ARCHIVE_PROBE(<shldisp.h>)) )
+          (D_INTERNAL_ENV_ARCHIVE_PROBE(<shldisp.h>)) )
         #define D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP    1
     #else
         #define D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP    0

@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/env/db/env_db.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.10
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -250,7 +250,7 @@ TABLE OF CONTENTS
 // feature bits. Where the vendor's headers give a version, automatic mode also
 // defines the D_ENV_DB_VERSION_* values: _ID, _MAJOR, _MINOR and _PATCH.
 // MariaDB is tested before MySQL, since MariaDB defines MySQL's macros too.
-#if (D_CFG_ENV_DB_CUSTOM == 0)
+#if D_CFG_IS_OFF(D_CFG_ENV_DB_CUSTOM)
     // automatic detection based on vendor-specific preprocessor macros
 
     // MariaDB detection (check before MySQL as MariaDB defines MySQL macros)

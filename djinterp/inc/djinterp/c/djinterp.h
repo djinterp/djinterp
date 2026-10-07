@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/c/djinterp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -306,7 +306,9 @@ TABLE OF CONTENTS
 // runtime has none, it is declared here as the same type as the Windows SDK's
 // SSIZE_T (`long long` on 64-bit Windows, `long` on 32-bit); everywhere else,
 // MinGW included, it comes from <sys/types.h>. SSIZE_MAX is supplied where
-// <limits.h> left it out, as POSIX does unless POSIX names are enabled.
+// <limits.h> left it out, as POSIX does unless POSIX names are enabled. Both
+// test D_ENV_OS_USING_WINDOWS64 with defined(): env_os.h defines it on 64-bit
+// Windows only, so a bare #if reads an undefined name everywhere else.
 //   D_SSIZE_T_DEFINED guards the block and is set once ssize_t is available by
 // either route; pre-define it to supply ssize_t some other way. It stands in
 // for the C libraries' own guards (_SSIZE_T_DEFINED, __ssize_t_defined, ...),
@@ -316,7 +318,7 @@ TABLE OF CONTENTS
 
     #if D_ENV_COMPILER_MSVC_FAMILY
         #ifndef ssize_t
-            #if D_ENV_OS_USING_WINDOWS64
+            #if defined(D_ENV_OS_USING_WINDOWS64)
                 typedef long long ssize_t;
             #else
                 typedef long ssize_t;
@@ -328,7 +330,7 @@ TABLE OF CONTENTS
     #endif
 
     #ifndef SSIZE_MAX
-        #if D_ENV_OS_USING_WINDOWS64
+        #if defined(D_ENV_OS_USING_WINDOWS64)
             #define SSIZE_MAX LLONG_MAX
         #else
             #define SSIZE_MAX LONG_MAX
@@ -851,30 +853,27 @@ D_EXTERN_C_END
 // 5.2.2
 // D_INDEX_IN_BOUNDS
 //   macro: alias for D_IS_VALID_INDEX_N for compatibility.
-//   note: evaluates each argument more than once.
 #define D_INDEX_IN_BOUNDS(_index, _arr_size)                                  \
     D_IS_VALID_INDEX_N((_index),                                              \
                        (_arr_size))
 
 // 5.2.3
 // D_IS_VALID_INDEX
-//   macro: validates that an `_index` is within bounds for an array of given
-// `_count`.
-//   note: evaluates each argument more than once.
+//   macro: whether `_index` addresses one of `_count` elements, by
+// d_index_is_valid: each argument is evaluated once, and nothing is negated,
+// so the most negative index gets an answer, not undefined behavior
+// (decision 21 of the register).
 #define D_IS_VALID_INDEX(_index, _count)                                      \
-    ( ((_count) > 0) &&                                                       \
-      ( ( ((_index) >= 0) &&                                                  \
-          ((_index) < (ssize_t)(_count)) ) ||                                 \
-        ( ((_index) < 0) &&                                                   \
-          ((-(_index)) <= (ssize_t)(_count)) ) ) )
+    d_index_is_valid((d_index)(_index),                                       \
+                     (size_t)(_count))
 
 // 5.2.4
 // D_IS_VALID_INDEX_N
-//   macro: validates `_index` against the symmetric negative-index range.
-//   note: evaluates each argument more than once.
+//   macro: the same test as D_IS_VALID_INDEX: d_index_is_valid's range, -
+// `_count` to `_count` - 1, is the symmetric negative-index range this named.
 #define D_IS_VALID_INDEX_N(_index, _count)                                    \
-    ( ((_index) >= -(ssize_t)(_count)) &&                                     \
-      ((_index) < (ssize_t)(_count)) )
+    d_index_is_valid((d_index)(_index),                                       \
+                     (size_t)(_count))
 
 // 5.3    Negative-index access macros
 //------------------------------------------------------------------------------

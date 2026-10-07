@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/env/db/mysql/env_mysql_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -171,7 +171,7 @@ TABLE OF CONTENTS
 // <mariadb/mysql.h>, <mysql/mysql.h> and <mysql.h>; without __has_include, the
 // configured path is included as is, and with none found, #error.
 // D_ENV_DB_HAS_MARIADB_CONNECTOR_C follows it unless pre-defined.
-#if (D_CFG_ENV_USING_MARIADB == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_MARIADB)
 
     #if defined(__has_include)
         #if __has_include(D_CFG_ENV_MARIADB_C_PATH)
@@ -216,7 +216,7 @@ TABLE OF CONTENTS
 // __has_include can find it, so that libmariadbcpp is never pulled in
 // unexpectedly. D_ENV_DB_HAS_MARIADB_CONNECTOR_CPP follows it unless
 // pre-defined.
-#if ( (D_CFG_ENV_USING_MARIADB == 1) &&                                        \
+#if ( (D_CFG_IS_ON(D_CFG_ENV_USING_MARIADB)) &&                                \
       (defined(__cplusplus)) )
 
     #if defined(__has_include)
@@ -258,7 +258,7 @@ TABLE OF CONTENTS
 // <mysql/mysql.h> and <mysql.h>; without __has_include, the configured path
 // is included as is, and with none found, #error.
 // D_ENV_DB_HAS_MYSQL_CONNECTOR_C follows it unless pre-defined.
-#if (D_CFG_ENV_USING_MYSQL == 1)
+#if D_CFG_IS_ON(D_CFG_ENV_USING_MYSQL)
 
     #if defined(__has_include)
         #if __has_include(D_CFG_ENV_MYSQL_C_PATH)
@@ -296,7 +296,7 @@ TABLE OF CONTENTS
 //   detection: 1 once the MySQL X DevAPI C++ header, D_CFG_ENV_MYSQL_CPP_PATH,
 // is found and included; C++ only, and only where __has_include can find it.
 // D_ENV_DB_HAS_MYSQL_CONNECTOR_CPP follows it unless pre-defined.
-#if ( (D_CFG_ENV_USING_MYSQL == 1) &&                                          \
+#if ( (D_CFG_IS_ON(D_CFG_ENV_USING_MYSQL)) &&                                  \
       (defined(__cplusplus)) )
 
     #if defined(__has_include)
