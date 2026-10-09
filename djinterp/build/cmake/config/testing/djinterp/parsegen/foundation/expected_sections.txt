@@ -1,0 +1,35 @@
+# djinterp [parsegen]                                      expected_sections.txt
+#
+# How many sections the parse/parsegen foundation's suites run at each
+# language level, in the default configuration (testing mode, every knob at
+# its default).
+#   A suite is a table of sections, and a section is the unit a language
+# level or a configuration knob removes. So the number run is not one number:
+# the C++ suites gain a section at C++17 (operators registered by address)
+# and another at C++20 (a captureless lambda as an operator). A section that
+# silently stopped being compiled would otherwise read as a smaller pass;
+# these are the counts that make it a failure instead.
+#   Both builds read this file -- CMakeLists.txt and run_foundation_tests.sh,
+# beside it -- so there is one place to change when a section is added. A
+# line is `<level> <sections>`; anything else is a comment.
+#   A build under a configuration knob runs fewer sections, by design, and is
+# not held to these counts: see the matrix in run_foundation_tests.sh, and
+# DJINTERP_FOUNDATION_EXPECT_COUNTS in CMakeLists.txt.
+#
+# path:      /build/cmake/config/testing/djinterp/parsegen/foundation/expected_sections.txt
+# link(s):   TBA
+# author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
+#                                                            revised: 2026.10.04
+
+# the C++ suites: substrate, program, registry, grammar, analysis
+c++11 56
+c++14 56
+c++17 57
+c++20 58
+c++23 58
+
+# the C suites: the substrate and parsegen, called from C
+c99 12
+c11 12
+c17 12
+c23 12
