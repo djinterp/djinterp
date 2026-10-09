@@ -31,6 +31,7 @@
 #include "djinterp/config/core/env/cfg_env_build.h"     // env: build type
 #include "djinterp/config/core/env/os/cfg_env_apple.h"  // env: Apple (env/os)
 #include "djinterp/config/core/env/os/cfg_env_linux.h"  // env: Linux (env/os)
+#include "djinterp/config/core/env/ui/cfg_env_qt.h"  // env: Qt (env/ui)
 // env/db: the database family's switches, then each database's
 #include "djinterp/config/core/env/db/cfg_env_db.h"
 #include "djinterp/config/core/env/db/arangodb/cfg_env_arangodb.h"

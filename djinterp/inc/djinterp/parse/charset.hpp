@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/parse/charset.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_CHARSET_HPP
@@ -125,7 +125,8 @@ struct charset : d_parse_charset
         unsigned char _value
     ) noexcept
     {
-        bits[_value >> 3] &= static_cast<re_std::uint8_t>(~(1u << (_value & 7u)));
+        bits[_value >> 3] &=
+            static_cast<re_std::uint8_t>(~(1u << (_value & 7u)));
 
         return *this;
     }

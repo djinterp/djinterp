@@ -9,9 +9,10 @@
 * __declspec, or a language keyword -- and otherwise to a fallback that is safe
 * to use.
 *   It does not redefine macros that live in other headers: D_INLINE,
-* D_NOINLINE, and D_RESTRICT belong to djinterp.h, and the standard attributes
-* with vendor fallbacks (D_NORETURN, D_DEPRECATED, D_NODISCARD, and the rest) to
-* env_attributes.h.
+* D_NOINLINE, and D_RESTRICT belong to djinterp.h, which takes their vendor
+* spellings from env_compiler.h (decision 6 of the register), and the standard
+* attributes with vendor fallbacks (D_NORETURN, D_DEPRECATED, D_NODISCARD, and
+* the rest) to env_attributes.h.
 *   Every macro is pre-definable: #define it before including this header to
 * override the detected value. Every macro is always defined except
 * D_THREAD_LOCAL, which is left undefined where the compiler has no
@@ -103,6 +104,32 @@ TABLE OF CONTENTS
 // djinterp
 #include "../env.h"  // D_ENV_LANG_*, D_ENV_COMPILER_*
 
+// D_INTERNAL_ENV_ATTR_GCC / _CLANG / _MSVC
+//   macro (internal): the compiler actually compiling, from its own
+// predefines, which choose this header's spellings. They follow the real
+// toolchain, not D_ENV_COMPILER_*, which a build may simulate (cfg_env.h):
+// a simulated MSVC on GCC got __declspec spellings GCC rejects (decision 87
+// of the register). Everything else in the env layer still follows
+// simulation.
+#if ( (defined(__GNUC__)) &&                                                   \
+      (!defined(__clang__)) )
+    #ifndef D_INTERNAL_ENV_ATTR_GCC
+        #define D_INTERNAL_ENV_ATTR_GCC 1
+    #endif  // D_INTERNAL_ENV_ATTR_GCC
+#endif
+#if defined(__clang__)
+    #ifndef D_INTERNAL_ENV_ATTR_CLANG
+        #define D_INTERNAL_ENV_ATTR_CLANG 1
+    #endif  // D_INTERNAL_ENV_ATTR_CLANG
+#endif
+#if ( (defined(_MSC_VER))     &&                                               \
+      (!defined(__clang__))   &&                                               \
+      (!defined(__GNUC__)) )
+    #ifndef D_INTERNAL_ENV_ATTR_MSVC
+        #define D_INTERNAL_ENV_ATTR_MSVC 1
+    #endif  // D_INTERNAL_ENV_ATTR_MSVC
+#endif
+
 
 //==============================================================================
 // 1.  COMPILER FAMILY
@@ -120,8 +147,8 @@ TABLE OF CONTENTS
 // __attribute__ and __builtin_* spellings: GCC, and Clang on every target.
 // clang-cl counts as Clang (see D_ENV_COMPILER_MSVC_FAMILY), so it takes these
 // spellings rather than MSVC's.
-#if ( (defined(D_ENV_COMPILER_GCC)) ||                                         \
-      (defined(D_ENV_COMPILER_CLANG)) )
+#if ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                                    \
+      (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
     #define D_INTERNAL_ENV_GCC_COMPAT 1
 #endif
 
@@ -241,7 +268,7 @@ TABLE OF CONTENTS
 #ifndef D_MALLOC
     #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_MALLOC __attribute__((malloc))
-    #elif defined(D_ENV_COMPILER_MSVC)
+    #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
         #define D_MALLOC __declspec(restrict)
     #else
         #define D_MALLOC
@@ -316,7 +343,7 @@ TABLE OF CONTENTS
 #ifndef D_ALIGNED
     #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_ALIGNED(n) __attribute__((aligned(n)))
-    #elif defined(D_ENV_COMPILER_MSVC)
+    #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
         #define D_ALIGNED(n) __declspec(align(n))
     #else
         #define D_ALIGNED(n)
@@ -485,7 +512,7 @@ TABLE OF CONTENTS
 //     2. GCC 4+ / Clang - __attribute__((visibility("default"))).
 //     3. No-op fallback.
 #ifndef D_EXPORT
-    #if ( (defined(D_ENV_COMPILER_MSVC)) ||                                    \
+    #if ( (defined(D_INTERNAL_ENV_ATTR_MSVC)) ||                               \
           (defined(_WIN32)) )
         #define D_EXPORT __declspec(dllexport)
     #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
@@ -506,7 +533,7 @@ TABLE OF CONTENTS
 //        not distinguish import from export at the symbol level.
 //     3. No-op fallback.
 #ifndef D_IMPORT
-    #if ( (defined(D_ENV_COMPILER_MSVC)) ||                                    \
+    #if ( (defined(D_INTERNAL_ENV_ATTR_MSVC)) ||                               \
           (defined(_WIN32)) )
         #define D_IMPORT __declspec(dllimport)
     #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
@@ -542,16 +569,17 @@ TABLE OF CONTENTS
 //
 //   resolution order:
 //     1. GCC / Clang - __attribute__((weak)).
-//     2. MSVC - __declspec(selectany), the closest equivalent for data.
-//     3. No-op fallback.
+//     2. No-op fallback, MSVC included.
 //
-//   note: MSVC accepts selectany only on data with external linkage, so
-// D_WEAK on a function does not compile with MSVC.
+//   note: MSVC has no weak linkage. Its nearest spelling, selectany, compiles
+// only on data with external linkage -- D_WEAK on a function failed there --
+// and means "any one of several identical definitions", not "a strong one
+// wins". So on MSVC D_WEAK is empty, as for an unknown compiler, and a
+// replaced default shows up, if at all, as a duplicate symbol at link time
+// (decision 86 of the register).
 #ifndef D_WEAK
     #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_WEAK __attribute__((weak))
-    #elif defined(D_ENV_COMPILER_MSVC)
-        #define D_WEAK __declspec(selectany)
     #else
         #define D_WEAK
     #endif
@@ -580,7 +608,7 @@ TABLE OF CONTENTS
 #ifndef D_SECTION
     #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_SECTION(name) __attribute__((section(name)))
-    #elif defined(D_ENV_COMPILER_MSVC)
+    #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
         #define D_SECTION(name) __declspec(allocate(name))
     #else
         #define D_SECTION(name)
@@ -696,15 +724,18 @@ TABLE OF CONTENTS
 //     3. MSVC - __assume(0).
 //     4. Infinite-loop fallback.
 //
-//   note: this header does not include <utility>, so a C++23 translation unit
-// that uses D_UNREACHABLE must include it itself.
+//   note: the C++23 tier includes <utility> itself, so the macro works in any
+// file that uses it, and keeps libstdc++'s debug-build check (decision 85 of
+// the register). Every C++23 file that includes this header pulls it in.
 #ifndef D_UNREACHABLE
     #if ( (defined(__cplusplus)) &&                                            \
           (D_ENV_LANG_IS_CPP23_OR_HIGHER) )
+        // std
+        #include <utility>  // std::unreachable
         #define D_UNREACHABLE std::unreachable()
     #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_UNREACHABLE __builtin_unreachable()
-    #elif defined(D_ENV_COMPILER_MSVC)
+    #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
         #define D_UNREACHABLE __assume(0)
     #else
         #define D_UNREACHABLE do { for(;;); } while(0)
@@ -754,7 +785,7 @@ TABLE OF CONTENTS
             #define D_THREAD_LOCAL thread_local
         #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
             #define D_THREAD_LOCAL __thread
-        #elif defined(D_ENV_COMPILER_MSVC)
+        #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
             #define D_THREAD_LOCAL __declspec(thread)
         #endif
     #else
@@ -764,7 +795,7 @@ TABLE OF CONTENTS
             #define D_THREAD_LOCAL _Thread_local
         #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
             #define D_THREAD_LOCAL __thread
-        #elif defined(D_ENV_COMPILER_MSVC)
+        #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
             #define D_THREAD_LOCAL __declspec(thread)
         #endif
     #endif
@@ -797,7 +828,7 @@ TABLE OF CONTENTS
 #ifndef D_NAKED
     #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_NAKED __attribute__((naked))
-    #elif defined(D_ENV_COMPILER_MSVC)
+    #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
         #define D_NAKED __declspec(naked)
     #else
         #define D_NAKED

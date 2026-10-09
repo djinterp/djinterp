@@ -12,15 +12,22 @@
 * and 0 otherwise; _VAL, that macro's value, or 0L; and _NAME, _DESC and
 * _VERS, the macro's name, a description, and the standard that introduced
 * it, as strings.
+*   Every flag and every _VAL is #ifndef-guarded, and each flag derives from
+* its _VAL, so a build or a test can pin either: a _VAL of 0 turns the
+* feature off and its flag follows, and an older value simulates an older
+* revision of it. The rollups in section 3 are guarded too; the strings are
+* not (decision 90 of the register).
 *   The library feature-test macros come from <version> and from each library
-* header, and this header includes neither, so the D_ENV_CPP_FEATURE_STL_*
-* flags see only what the translation unit included before it.
+* header. This header includes <version> where it exists (C++20, and most
+* C++17 libraries), so the D_ENV_CPP_FEATURE_STL_* flags describe the library
+* whatever the unit included first (decision 89 of the register); without
+* it, they see only what the unit included before this header.
 *
 *
 * path:      /inc/djinterp/env/cpp/env_cpp_features.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.15
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -232,6 +239,14 @@ TABLE OF CONTENTS
 #ifndef DJINTERP_ENV_CPP_ENV_CPP_FEATURES_H
 #define DJINTERP_ENV_CPP_ENV_CPP_FEATURES_H 1
 
+// std
+#if ( (defined(__cplusplus)) &&                                                \
+      (defined(__has_include)) )
+    #if __has_include(<version>)
+        #include <version>  // __cpp_lib_*
+    #endif
+#endif
+
 
 //==============================================================================
 // 1.  LANGUAGE FEATURES
@@ -245,13 +260,20 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 //   feature: 1 if __cpp_alias_templates is defined, 0 otherwise.
-#ifdef __cpp_alias_templates
-    #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES     1
-    #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_VAL __cpp_alias_templates
-#else
-    #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES     0
-    #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_VAL 0L
-#endif  // __cpp_alias_templates
+#ifndef D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_VAL
+    #ifdef __cpp_alias_templates
+        #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_VAL __cpp_alias_templates
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_VAL 0L
+    #endif  // __cpp_alias_templates
+#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
+    #if (D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_NAME "__cpp_alias_templates"
 #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_DESC "Alias templates"
 #define D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES_VERS "(C++11)"
@@ -259,13 +281,20 @@ TABLE OF CONTENTS
 // 1.1.2
 // D_ENV_CPP_FEATURE_LANG_ATTRIBUTES
 //   feature: 1 if __cpp_attributes is defined, 0 otherwise.
-#ifdef __cpp_attributes
-    #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES     1
-    #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_VAL __cpp_attributes
-#else
-    #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES     0
-    #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_VAL 0L
-#endif  // __cpp_attributes
+#ifndef D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_VAL
+    #ifdef __cpp_attributes
+        #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_VAL __cpp_attributes
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_VAL 0L
+    #endif  // __cpp_attributes
+#endif  // D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_ATTRIBUTES
+    #if (D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_ATTRIBUTES
 #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_NAME "__cpp_attributes"
 #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_DESC "Attributes"
 #define D_ENV_CPP_FEATURE_LANG_ATTRIBUTES_VERS "(C++11)"
@@ -273,13 +302,20 @@ TABLE OF CONTENTS
 // 1.1.3
 // D_ENV_CPP_FEATURE_LANG_CONSTEXPR
 //   feature: 1 if __cpp_constexpr is defined, 0 otherwise.
-#ifdef __cpp_constexpr
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR     1
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL __cpp_constexpr
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR     0
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL 0L
-#endif  // __cpp_constexpr
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL
+    #ifdef __cpp_constexpr
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL __cpp_constexpr
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL 0L
+    #endif  // __cpp_constexpr
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEXPR
+    #if (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEXPR
 #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_NAME "__cpp_constexpr"
 #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DESC "constexpr"
 #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VERS "(C++11)"
@@ -287,13 +323,20 @@ TABLE OF CONTENTS
 // 1.1.4
 // D_ENV_CPP_FEATURE_LANG_DECLTYPE
 //   feature: 1 if __cpp_decltype is defined, 0 otherwise.
-#ifdef __cpp_decltype
-    #define D_ENV_CPP_FEATURE_LANG_DECLTYPE     1
-    #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_VAL __cpp_decltype
-#else
-    #define D_ENV_CPP_FEATURE_LANG_DECLTYPE     0
-    #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_VAL 0L
-#endif  // __cpp_decltype
+#ifndef D_ENV_CPP_FEATURE_LANG_DECLTYPE_VAL
+    #ifdef __cpp_decltype
+        #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_VAL __cpp_decltype
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_VAL 0L
+    #endif  // __cpp_decltype
+#endif  // D_ENV_CPP_FEATURE_LANG_DECLTYPE_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_DECLTYPE
+    #if (D_ENV_CPP_FEATURE_LANG_DECLTYPE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_DECLTYPE 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DECLTYPE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_DECLTYPE
 #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_NAME "__cpp_decltype"
 #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_DESC "decltype"
 #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_VERS "(C++11)"
@@ -301,14 +344,21 @@ TABLE OF CONTENTS
 // 1.1.5
 // D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS
 //   feature: 1 if __cpp_delegating_constructors is defined, 0 otherwise.
-#ifdef __cpp_delegating_constructors
-    #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS 1
-    #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS_VAL                 \
-        __cpp_delegating_constructors
-#else
-    #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS 0
-    #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS_VAL 0L
-#endif  // __cpp_delegating_constructors
+#ifndef D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS_VAL
+    #ifdef __cpp_delegating_constructors
+        #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS_VAL             \
+            __cpp_delegating_constructors
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS_VAL 0L
+    #endif  // __cpp_delegating_constructors
+#endif  // D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS
+    #if (D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS
 #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS_NAME                    \
     "__cpp_delegating_constructors"
 #define D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS_DESC                    \
@@ -318,14 +368,21 @@ TABLE OF CONTENTS
 // 1.1.6
 // D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS
 //   feature: 1 if __cpp_inheriting_constructors is defined, 0 otherwise.
-#ifdef __cpp_inheriting_constructors
-    #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS 1
-    #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS_VAL                 \
-        __cpp_inheriting_constructors
-#else
-    #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS 0
-    #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS_VAL 0L
-#endif  // __cpp_inheriting_constructors
+#ifndef D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS_VAL
+    #ifdef __cpp_inheriting_constructors
+        #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS_VAL             \
+            __cpp_inheriting_constructors
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS_VAL 0L
+    #endif  // __cpp_inheriting_constructors
+#endif  // D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS
+    #if (D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS
 #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS_NAME                    \
     "__cpp_inheriting_constructors"
 #define D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS_DESC                    \
@@ -335,13 +392,21 @@ TABLE OF CONTENTS
 // 1.1.7
 // D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS
 //   feature: 1 if __cpp_initializer_lists is defined, 0 otherwise.
-#ifdef __cpp_initializer_lists
-    #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS     1
-    #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS_VAL __cpp_initializer_lists
-#else
-    #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS     0
-    #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS_VAL 0L
-#endif  // __cpp_initializer_lists
+#ifndef D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS_VAL
+    #ifdef __cpp_initializer_lists
+        #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS_VAL                   \
+            __cpp_initializer_lists
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS_VAL 0L
+    #endif  // __cpp_initializer_lists
+#endif  // D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS
+    #if (D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS
 #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS_NAME "__cpp_initializer_lists"
 #define D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS_DESC                          \
     "List-initialization and std::initializer_list"
@@ -350,13 +415,20 @@ TABLE OF CONTENTS
 // 1.1.8
 // D_ENV_CPP_FEATURE_LANG_LAMBDAS
 //   feature: 1 if __cpp_lambdas is defined, 0 otherwise.
-#ifdef __cpp_lambdas
-    #define D_ENV_CPP_FEATURE_LANG_LAMBDAS     1
-    #define D_ENV_CPP_FEATURE_LANG_LAMBDAS_VAL __cpp_lambdas
-#else
-    #define D_ENV_CPP_FEATURE_LANG_LAMBDAS     0
-    #define D_ENV_CPP_FEATURE_LANG_LAMBDAS_VAL 0L
-#endif  // __cpp_lambdas
+#ifndef D_ENV_CPP_FEATURE_LANG_LAMBDAS_VAL
+    #ifdef __cpp_lambdas
+        #define D_ENV_CPP_FEATURE_LANG_LAMBDAS_VAL __cpp_lambdas
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_LAMBDAS_VAL 0L
+    #endif  // __cpp_lambdas
+#endif  // D_ENV_CPP_FEATURE_LANG_LAMBDAS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_LAMBDAS
+    #if (D_ENV_CPP_FEATURE_LANG_LAMBDAS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_LAMBDAS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_LAMBDAS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_LAMBDAS
 #define D_ENV_CPP_FEATURE_LANG_LAMBDAS_NAME "__cpp_lambdas"
 #define D_ENV_CPP_FEATURE_LANG_LAMBDAS_DESC "Lambda expressions"
 #define D_ENV_CPP_FEATURE_LANG_LAMBDAS_VERS "(C++11)"
@@ -364,13 +436,20 @@ TABLE OF CONTENTS
 // 1.1.9
 // D_ENV_CPP_FEATURE_LANG_NSDMI
 //   feature: 1 if __cpp_nsdmi is defined, 0 otherwise.
-#ifdef __cpp_nsdmi
-    #define D_ENV_CPP_FEATURE_LANG_NSDMI     1
-    #define D_ENV_CPP_FEATURE_LANG_NSDMI_VAL __cpp_nsdmi
-#else
-    #define D_ENV_CPP_FEATURE_LANG_NSDMI     0
-    #define D_ENV_CPP_FEATURE_LANG_NSDMI_VAL 0L
-#endif  // __cpp_nsdmi
+#ifndef D_ENV_CPP_FEATURE_LANG_NSDMI_VAL
+    #ifdef __cpp_nsdmi
+        #define D_ENV_CPP_FEATURE_LANG_NSDMI_VAL __cpp_nsdmi
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NSDMI_VAL 0L
+    #endif  // __cpp_nsdmi
+#endif  // D_ENV_CPP_FEATURE_LANG_NSDMI_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_NSDMI
+    #if (D_ENV_CPP_FEATURE_LANG_NSDMI_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_NSDMI 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NSDMI 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_NSDMI
 #define D_ENV_CPP_FEATURE_LANG_NSDMI_NAME "__cpp_nsdmi"
 #define D_ENV_CPP_FEATURE_LANG_NSDMI_DESC "Non-static data member initializers"
 #define D_ENV_CPP_FEATURE_LANG_NSDMI_VERS "(C++11)"
@@ -378,13 +457,20 @@ TABLE OF CONTENTS
 // 1.1.10
 // D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR
 //   feature: 1 if __cpp_range_based_for is defined, 0 otherwise.
-#ifdef __cpp_range_based_for
-    #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR     1
-    #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_VAL __cpp_range_based_for
-#else
-    #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR     0
-    #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_VAL 0L
-#endif  // __cpp_range_based_for
+#ifndef D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_VAL
+    #ifdef __cpp_range_based_for
+        #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_VAL __cpp_range_based_for
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_VAL 0L
+    #endif  // __cpp_range_based_for
+#endif  // D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR
+    #if (D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR
 #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_NAME "__cpp_range_based_for"
 #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_DESC "Range-based for loop"
 #define D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR_VERS "(C++11)"
@@ -392,13 +478,20 @@ TABLE OF CONTENTS
 // 1.1.11
 // D_ENV_CPP_FEATURE_LANG_RAW_STRINGS
 //   feature: 1 if __cpp_raw_strings is defined, 0 otherwise.
-#ifdef __cpp_raw_strings
-    #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS     1
-    #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_VAL __cpp_raw_strings
-#else
-    #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS     0
-    #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_VAL 0L
-#endif  // __cpp_raw_strings
+#ifndef D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_VAL
+    #ifdef __cpp_raw_strings
+        #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_VAL __cpp_raw_strings
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_VAL 0L
+    #endif  // __cpp_raw_strings
+#endif  // D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_RAW_STRINGS
+    #if (D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_RAW_STRINGS
 #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_NAME "__cpp_raw_strings"
 #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_DESC "Raw string literals"
 #define D_ENV_CPP_FEATURE_LANG_RAW_STRINGS_VERS "(C++11)"
@@ -406,13 +499,20 @@ TABLE OF CONTENTS
 // 1.1.12
 // D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS
 //   feature: 1 if __cpp_ref_qualifiers is defined, 0 otherwise.
-#ifdef __cpp_ref_qualifiers
-    #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS     1
-    #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_VAL __cpp_ref_qualifiers
-#else
-    #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS     0
-    #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_VAL 0L
-#endif  // __cpp_ref_qualifiers
+#ifndef D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_VAL
+    #ifdef __cpp_ref_qualifiers
+        #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_VAL __cpp_ref_qualifiers
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_VAL 0L
+    #endif  // __cpp_ref_qualifiers
+#endif  // D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS
+    #if (D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS
 #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_NAME "__cpp_ref_qualifiers"
 #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_DESC "ref-qualifiers"
 #define D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS_VERS "(C++11)"
@@ -420,13 +520,21 @@ TABLE OF CONTENTS
 // 1.1.13
 // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 //   feature: 1 if __cpp_rvalue_references is defined, 0 otherwise.
-#ifdef __cpp_rvalue_references
-    #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES     1
-    #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_VAL __cpp_rvalue_references
-#else
-    #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES     0
-    #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_VAL 0L
-#endif  // __cpp_rvalue_references
+#ifndef D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_VAL
+    #ifdef __cpp_rvalue_references
+        #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_VAL                   \
+            __cpp_rvalue_references
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_VAL 0L
+    #endif  // __cpp_rvalue_references
+#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+    #if (D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_NAME "__cpp_rvalue_references"
 #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_DESC "Rvalue reference"
 #define D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES_VERS "(C++11)"
@@ -434,13 +542,20 @@ TABLE OF CONTENTS
 // 1.1.14
 // D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT
 //   feature: 1 if __cpp_static_assert is defined, 0 otherwise.
-#ifdef __cpp_static_assert
-    #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT     1
-    #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_VAL __cpp_static_assert
-#else
-    #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT     0
-    #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_VAL 0L
-#endif  // __cpp_static_assert
+#ifndef D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_VAL
+    #ifdef __cpp_static_assert
+        #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_VAL __cpp_static_assert
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_VAL 0L
+    #endif  // __cpp_static_assert
+#endif  // D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT
+    #if (D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT
 #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_NAME "__cpp_static_assert"
 #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_DESC "static_assert"
 #define D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT_VERS "(C++11)"
@@ -448,14 +563,21 @@ TABLE OF CONTENTS
 // 1.1.15
 // D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT
 //   feature: 1 if __cpp_threadsafe_static_init is defined, 0 otherwise.
-#ifdef __cpp_threadsafe_static_init
-    #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT 1
-    #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT_VAL                  \
-        __cpp_threadsafe_static_init
-#else
-    #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT 0
-    #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT_VAL 0L
-#endif  // __cpp_threadsafe_static_init
+#ifndef D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT_VAL
+    #ifdef __cpp_threadsafe_static_init
+        #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT_VAL              \
+            __cpp_threadsafe_static_init
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT_VAL 0L
+    #endif  // __cpp_threadsafe_static_init
+#endif  // D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT
+    #if (D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT
 #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT_NAME                     \
     "__cpp_threadsafe_static_init"
 #define D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT_DESC                     \
@@ -465,14 +587,21 @@ TABLE OF CONTENTS
 // 1.1.16
 // D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS
 //   feature: 1 if __cpp_unicode_characters is defined, 0 otherwise.
-#ifdef __cpp_unicode_characters
-    #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS 1
-    #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS_VAL                      \
-        __cpp_unicode_characters
-#else
-    #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS 0
-    #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS_VAL 0L
-#endif  // __cpp_unicode_characters
+#ifndef D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS_VAL
+    #ifdef __cpp_unicode_characters
+        #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS_VAL                  \
+            __cpp_unicode_characters
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS_VAL 0L
+    #endif  // __cpp_unicode_characters
+#endif  // D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS
+    #if (D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS
 #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS_NAME                         \
     "__cpp_unicode_characters"
 #define D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS_DESC                         \
@@ -482,13 +611,21 @@ TABLE OF CONTENTS
 // 1.1.17
 // D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS
 //   feature: 1 if __cpp_unicode_literals is defined, 0 otherwise.
-#ifdef __cpp_unicode_literals
-    #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS     1
-    #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_VAL __cpp_unicode_literals
-#else
-    #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS     0
-    #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_VAL 0L
-#endif  // __cpp_unicode_literals
+#ifndef D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_VAL
+    #ifdef __cpp_unicode_literals
+        #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_VAL                    \
+            __cpp_unicode_literals
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_VAL 0L
+    #endif  // __cpp_unicode_literals
+#endif  // D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS
+    #if (D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS
 #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_NAME "__cpp_unicode_literals"
 #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_DESC "Unicode string literals"
 #define D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS_VERS "(C++11)"
@@ -496,14 +633,21 @@ TABLE OF CONTENTS
 // 1.1.18
 // D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS
 //   feature: 1 if __cpp_user_defined_literals is defined, 0 otherwise.
-#ifdef __cpp_user_defined_literals
-    #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS 1
-    #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS_VAL                   \
-        __cpp_user_defined_literals
-#else
-    #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS 0
-    #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS_VAL 0L
-#endif  // __cpp_user_defined_literals
+#ifndef D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS_VAL
+    #ifdef __cpp_user_defined_literals
+        #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS_VAL               \
+            __cpp_user_defined_literals
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS_VAL 0L
+    #endif  // __cpp_user_defined_literals
+#endif  // D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS
+    #if (D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS
 #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS_NAME                      \
     "__cpp_user_defined_literals"
 #define D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS_DESC                      \
@@ -513,14 +657,21 @@ TABLE OF CONTENTS
 // 1.1.19
 // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 //   feature: 1 if __cpp_variadic_templates is defined, 0 otherwise.
-#ifdef __cpp_variadic_templates
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES 1
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES_VAL                      \
-        __cpp_variadic_templates
-#else
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES 0
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES_VAL 0L
-#endif  // __cpp_variadic_templates
+#ifndef D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES_VAL
+    #ifdef __cpp_variadic_templates
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES_VAL                  \
+            __cpp_variadic_templates
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES_VAL 0L
+    #endif  // __cpp_variadic_templates
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+    #if (D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES_NAME                         \
     "__cpp_variadic_templates"
 #define D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES_DESC "Variadic templates"
@@ -531,13 +682,20 @@ TABLE OF CONTENTS
 // 1.2.1
 // D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI
 //   feature: 1 if __cpp_aggregate_nsdmi is defined, 0 otherwise.
-#ifdef __cpp_aggregate_nsdmi
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI     1
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI_VAL __cpp_aggregate_nsdmi
-#else
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI     0
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI_VAL 0L
-#endif  // __cpp_aggregate_nsdmi
+#ifndef D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI_VAL
+    #ifdef __cpp_aggregate_nsdmi
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI_VAL __cpp_aggregate_nsdmi
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI_VAL 0L
+    #endif  // __cpp_aggregate_nsdmi
+#endif  // D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI
+    #if (D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI
 #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI_NAME "__cpp_aggregate_nsdmi"
 #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI_DESC                            \
     "Aggregate classes with default member initializers"
@@ -546,13 +704,20 @@ TABLE OF CONTENTS
 // 1.2.2
 // D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS
 //   feature: 1 if __cpp_binary_literals is defined, 0 otherwise.
-#ifdef __cpp_binary_literals
-    #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS     1
-    #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_VAL __cpp_binary_literals
-#else
-    #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS     0
-    #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_VAL 0L
-#endif  // __cpp_binary_literals
+#ifndef D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_VAL
+    #ifdef __cpp_binary_literals
+        #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_VAL __cpp_binary_literals
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_VAL 0L
+    #endif  // __cpp_binary_literals
+#endif  // D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS
+    #if (D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS
 #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_NAME "__cpp_binary_literals"
 #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_DESC "Binary literals"
 #define D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS_VERS "(C++14)"
@@ -560,13 +725,20 @@ TABLE OF CONTENTS
 // 1.2.3
 // D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO
 //   feature: 1 if __cpp_decltype_auto is defined, 0 otherwise.
-#ifdef __cpp_decltype_auto
-    #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO     1
-    #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO_VAL __cpp_decltype_auto
-#else
-    #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO     0
-    #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO_VAL 0L
-#endif  // __cpp_decltype_auto
+#ifndef D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO_VAL
+    #ifdef __cpp_decltype_auto
+        #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO_VAL __cpp_decltype_auto
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO_VAL 0L
+    #endif  // __cpp_decltype_auto
+#endif  // D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO
+    #if (D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO
 #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO_NAME "__cpp_decltype_auto"
 #define D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO_DESC                              \
     "Return type deduction for normal functions"
@@ -575,14 +747,21 @@ TABLE OF CONTENTS
 // 1.2.4
 // D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES
 //   feature: 1 if __cpp_enumerator_attributes is defined, 0 otherwise.
-#ifdef __cpp_enumerator_attributes
-    #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES 1
-    #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES_VAL                   \
-        __cpp_enumerator_attributes
-#else
-    #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES 0
-    #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES_VAL 0L
-#endif  // __cpp_enumerator_attributes
+#ifndef D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES_VAL
+    #ifdef __cpp_enumerator_attributes
+        #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES_VAL               \
+            __cpp_enumerator_attributes
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES_VAL 0L
+    #endif  // __cpp_enumerator_attributes
+#endif  // D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES
+    #if (D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES
 #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES_NAME                      \
     "__cpp_enumerator_attributes"
 #define D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES_DESC                      \
@@ -592,13 +771,20 @@ TABLE OF CONTENTS
 // 1.2.5
 // D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS
 //   feature: 1 if __cpp_generic_lambdas is defined, 0 otherwise.
-#ifdef __cpp_generic_lambdas
-    #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS     1
-    #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_VAL __cpp_generic_lambdas
-#else
-    #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS     0
-    #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_VAL 0L
-#endif  // __cpp_generic_lambdas
+#ifndef D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_VAL
+    #ifdef __cpp_generic_lambdas
+        #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_VAL __cpp_generic_lambdas
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_VAL 0L
+    #endif  // __cpp_generic_lambdas
+#endif  // D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS
+    #if (D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS
 #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_NAME "__cpp_generic_lambdas"
 #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_DESC "Generic lambda expressions"
 #define D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS_VERS "(C++14)"
@@ -606,13 +792,20 @@ TABLE OF CONTENTS
 // 1.2.6
 // D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES
 //   feature: 1 if __cpp_init_captures is defined, 0 otherwise.
-#ifdef __cpp_init_captures
-    #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES     1
-    #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_VAL __cpp_init_captures
-#else
-    #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES     0
-    #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_VAL 0L
-#endif  // __cpp_init_captures
+#ifndef D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_VAL
+    #ifdef __cpp_init_captures
+        #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_VAL __cpp_init_captures
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_VAL 0L
+    #endif  // __cpp_init_captures
+#endif  // D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES
+    #if (D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES
 #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_NAME "__cpp_init_captures"
 #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_DESC "Lambda init-capture"
 #define D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES_VERS "(C++14)"
@@ -620,14 +813,21 @@ TABLE OF CONTENTS
 // 1.2.7
 // D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES
 //   feature: 1 if __cpp_namespace_attributes is defined, 0 otherwise.
-#ifdef __cpp_namespace_attributes
-    #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES 1
-    #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES_VAL                    \
-        __cpp_namespace_attributes
-#else
-    #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES 0
-    #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES_VAL 0L
-#endif  // __cpp_namespace_attributes
+#ifndef D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES_VAL
+    #ifdef __cpp_namespace_attributes
+        #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES_VAL                \
+            __cpp_namespace_attributes
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES_VAL 0L
+    #endif  // __cpp_namespace_attributes
+#endif  // D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES
+    #if (D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES
 #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES_NAME                       \
     "__cpp_namespace_attributes"
 #define D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES_DESC                       \
@@ -637,14 +837,21 @@ TABLE OF CONTENTS
 // 1.2.8
 // D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS
 //   feature: 1 if __cpp_nontype_template_args is defined, 0 otherwise.
-#ifdef __cpp_nontype_template_args
-    #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS 1
-    #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS_VAL                   \
-        __cpp_nontype_template_args
-#else
-    #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS 0
-    #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS_VAL 0L
-#endif  // __cpp_nontype_template_args
+#ifndef D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS_VAL
+    #ifdef __cpp_nontype_template_args
+        #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS_VAL               \
+            __cpp_nontype_template_args
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS_VAL 0L
+    #endif  // __cpp_nontype_template_args
+#endif  // D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS
+    #if (D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS
 #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS_NAME                      \
     "__cpp_nontype_template_args"
 #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS_DESC                      \
@@ -654,14 +861,21 @@ TABLE OF CONTENTS
 // 1.2.9
 // D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION
 //   feature: 1 if __cpp_return_type_deduction is defined, 0 otherwise.
-#ifdef __cpp_return_type_deduction
-    #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION 1
-    #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION_VAL                   \
-        __cpp_return_type_deduction
-#else
-    #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION 0
-    #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION_VAL 0L
-#endif  // __cpp_return_type_deduction
+#ifndef D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION_VAL
+    #ifdef __cpp_return_type_deduction
+        #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION_VAL               \
+            __cpp_return_type_deduction
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION_VAL 0L
+    #endif  // __cpp_return_type_deduction
+#endif  // D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION
+    #if (D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION
 #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION_NAME                      \
     "__cpp_return_type_deduction"
 #define D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION_DESC                      \
@@ -671,14 +885,21 @@ TABLE OF CONTENTS
 // 1.2.10
 // D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION
 //   feature: 1 if __cpp_sized_deallocation is defined, 0 otherwise.
-#ifdef __cpp_sized_deallocation
-    #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION 1
-    #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION_VAL                      \
-        __cpp_sized_deallocation
-#else
-    #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION 0
-    #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION_VAL 0L
-#endif  // __cpp_sized_deallocation
+#ifndef D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION_VAL
+    #ifdef __cpp_sized_deallocation
+        #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION_VAL                  \
+            __cpp_sized_deallocation
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION_VAL 0L
+    #endif  // __cpp_sized_deallocation
+#endif  // D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION
+    #if (D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION
 #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION_NAME                         \
     "__cpp_sized_deallocation"
 #define D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION_DESC "Sized deallocation"
@@ -687,14 +908,21 @@ TABLE OF CONTENTS
 // 1.2.11
 // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 //   feature: 1 if __cpp_variable_templates is defined, 0 otherwise.
-#ifdef __cpp_variable_templates
-    #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES 1
-    #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES_VAL                      \
-        __cpp_variable_templates
-#else
-    #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES 0
-    #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES_VAL 0L
-#endif  // __cpp_variable_templates
+#ifndef D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES_VAL
+    #ifdef __cpp_variable_templates
+        #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES_VAL                  \
+            __cpp_variable_templates
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES_VAL 0L
+    #endif  // __cpp_variable_templates
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    #if (D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES_NAME                         \
     "__cpp_variable_templates"
 #define D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES_DESC "Variable templates"
@@ -705,13 +933,20 @@ TABLE OF CONTENTS
 // 1.3.1
 // D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES
 //   feature: 1 if __cpp_aggregate_bases is defined, 0 otherwise.
-#ifdef __cpp_aggregate_bases
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES     1
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES_VAL __cpp_aggregate_bases
-#else
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES     0
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES_VAL 0L
-#endif  // __cpp_aggregate_bases
+#ifndef D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES_VAL
+    #ifdef __cpp_aggregate_bases
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES_VAL __cpp_aggregate_bases
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES_VAL 0L
+    #endif  // __cpp_aggregate_bases
+#endif  // D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES
+    #if (D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES
 #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES_NAME "__cpp_aggregate_bases"
 #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES_DESC                            \
     "Aggregate classes with base classes"
@@ -720,13 +955,20 @@ TABLE OF CONTENTS
 // 1.3.2
 // D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW
 //   feature: 1 if __cpp_aligned_new is defined, 0 otherwise.
-#ifdef __cpp_aligned_new
-    #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW     1
-    #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW_VAL __cpp_aligned_new
-#else
-    #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW     0
-    #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW_VAL 0L
-#endif  // __cpp_aligned_new
+#ifndef D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW_VAL
+    #ifdef __cpp_aligned_new
+        #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW_VAL __cpp_aligned_new
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW_VAL 0L
+    #endif  // __cpp_aligned_new
+#endif  // D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW
+    #if (D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW
 #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW_NAME "__cpp_aligned_new"
 #define D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW_DESC                                \
     "Dynamic memory allocation for over-aligned data"
@@ -735,13 +977,21 @@ TABLE OF CONTENTS
 // 1.3.3
 // D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS
 //   feature: 1 if __cpp_capture_star_this is defined, 0 otherwise.
-#ifdef __cpp_capture_star_this
-    #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS     1
-    #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS_VAL __cpp_capture_star_this
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS     0
-    #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS_VAL 0L
-#endif  // __cpp_capture_star_this
+#ifndef D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS_VAL
+    #ifdef __cpp_capture_star_this
+        #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS_VAL                   \
+            __cpp_capture_star_this
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS_VAL 0L
+    #endif  // __cpp_capture_star_this
+#endif  // D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS
+    #if (D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS
 #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS_NAME "__cpp_capture_star_this"
 #define D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS_DESC                          \
     "Lambda capture of *this by value as [=,*this]"
@@ -750,14 +1000,21 @@ TABLE OF CONTENTS
 // 1.3.4
 // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE
 //   feature: 1 if __cpp_constexpr_in_decltype is defined, 0 otherwise.
-#ifdef __cpp_constexpr_in_decltype
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE 1
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE_VAL                   \
-        __cpp_constexpr_in_decltype
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE 0
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE_VAL 0L
-#endif  // __cpp_constexpr_in_decltype
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE_VAL
+    #ifdef __cpp_constexpr_in_decltype
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE_VAL               \
+            __cpp_constexpr_in_decltype
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE_VAL 0L
+    #endif  // __cpp_constexpr_in_decltype
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE
+    #if (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE
 #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE_NAME                      \
     "__cpp_constexpr_in_decltype"
 #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE_DESC                      \
@@ -767,13 +1024,21 @@ TABLE OF CONTENTS
 // 1.3.5
 // D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES
 //   feature: 1 if __cpp_deduction_guides is defined, 0 otherwise.
-#ifdef __cpp_deduction_guides
-    #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES     1
-    #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES_VAL __cpp_deduction_guides
-#else
-    #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES     0
-    #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES_VAL 0L
-#endif  // __cpp_deduction_guides
+#ifndef D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES_VAL
+    #ifdef __cpp_deduction_guides
+        #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES_VAL                    \
+            __cpp_deduction_guides
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES_VAL 0L
+    #endif  // __cpp_deduction_guides
+#endif  // D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES
+    #if (D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES
 #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES_NAME "__cpp_deduction_guides"
 #define D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES_DESC                           \
     "Template argument deduction for class templates (CTAD)"
@@ -782,13 +1047,21 @@ TABLE OF CONTENTS
 // 1.3.6
 // D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS
 //   feature: 1 if __cpp_fold_expressions is defined, 0 otherwise.
-#ifdef __cpp_fold_expressions
-    #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS     1
-    #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_VAL __cpp_fold_expressions
-#else
-    #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS     0
-    #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_VAL 0L
-#endif  // __cpp_fold_expressions
+#ifndef D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_VAL
+    #ifdef __cpp_fold_expressions
+        #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_VAL                    \
+            __cpp_fold_expressions
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_VAL 0L
+    #endif  // __cpp_fold_expressions
+#endif  // D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS
+    #if (D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS
 #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_NAME "__cpp_fold_expressions"
 #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_DESC "Fold expressions"
 #define D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS_VERS "(C++17)"
@@ -796,14 +1069,21 @@ TABLE OF CONTENTS
 // 1.3.7
 // D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION
 //   feature: 1 if __cpp_guaranteed_copy_elision is defined, 0 otherwise.
-#ifdef __cpp_guaranteed_copy_elision
-    #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION 1
-    #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION_VAL                 \
-        __cpp_guaranteed_copy_elision
-#else
-    #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION 0
-    #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION_VAL 0L
-#endif  // __cpp_guaranteed_copy_elision
+#ifndef D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION_VAL
+    #ifdef __cpp_guaranteed_copy_elision
+        #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION_VAL             \
+            __cpp_guaranteed_copy_elision
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION_VAL 0L
+    #endif  // __cpp_guaranteed_copy_elision
+#endif  // D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION
+    #if (D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION
 #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION_NAME                    \
     "__cpp_guaranteed_copy_elision"
 #define D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION_DESC                    \
@@ -813,13 +1093,20 @@ TABLE OF CONTENTS
 // 1.3.8
 // D_ENV_CPP_FEATURE_LANG_HEX_FLOAT
 //   feature: 1 if __cpp_hex_float is defined, 0 otherwise.
-#ifdef __cpp_hex_float
-    #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT     1
-    #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_VAL __cpp_hex_float
-#else
-    #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT     0
-    #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_VAL 0L
-#endif  // __cpp_hex_float
+#ifndef D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_VAL
+    #ifdef __cpp_hex_float
+        #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_VAL __cpp_hex_float
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_VAL 0L
+    #endif  // __cpp_hex_float
+#endif  // D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_HEX_FLOAT
+    #if (D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_HEX_FLOAT
 #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_NAME "__cpp_hex_float"
 #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_DESC "Hexadecimal floating literals"
 #define D_ENV_CPP_FEATURE_LANG_HEX_FLOAT_VERS "(C++17)"
@@ -827,13 +1114,20 @@ TABLE OF CONTENTS
 // 1.3.9
 // D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR
 //   feature: 1 if __cpp_if_constexpr is defined, 0 otherwise.
-#ifdef __cpp_if_constexpr
-    #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR     1
-    #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_VAL __cpp_if_constexpr
-#else
-    #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR     0
-    #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_VAL 0L
-#endif  // __cpp_if_constexpr
+#ifndef D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_VAL
+    #ifdef __cpp_if_constexpr
+        #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_VAL __cpp_if_constexpr
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_VAL 0L
+    #endif  // __cpp_if_constexpr
+#endif  // D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR
+    #if (D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR
 #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_NAME "__cpp_if_constexpr"
 #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_DESC "if constexpr"
 #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR_VERS "(C++17)"
@@ -841,13 +1135,21 @@ TABLE OF CONTENTS
 // 1.3.10
 // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 //   feature: 1 if __cpp_inline_variables is defined, 0 otherwise.
-#ifdef __cpp_inline_variables
-    #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES     1
-    #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_VAL __cpp_inline_variables
-#else
-    #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES     0
-    #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_VAL 0L
-#endif  // __cpp_inline_variables
+#ifndef D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_VAL
+    #ifdef __cpp_inline_variables
+        #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_VAL                    \
+            __cpp_inline_variables
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_VAL 0L
+    #endif  // __cpp_inline_variables
+#endif  // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+    #if (D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_NAME "__cpp_inline_variables"
 #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_DESC "Inline variables"
 #define D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES_VERS "(C++17)"
@@ -855,14 +1157,21 @@ TABLE OF CONTENTS
 // 1.3.11
 // D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE
 //   feature: 1 if __cpp_noexcept_function_type is defined, 0 otherwise.
-#ifdef __cpp_noexcept_function_type
-    #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE 1
-    #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE_VAL                  \
-        __cpp_noexcept_function_type
-#else
-    #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE 0
-    #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE_VAL 0L
-#endif  // __cpp_noexcept_function_type
+#ifndef D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE_VAL
+    #ifdef __cpp_noexcept_function_type
+        #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE_VAL              \
+            __cpp_noexcept_function_type
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE_VAL 0L
+    #endif  // __cpp_noexcept_function_type
+#endif  // D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE
+    #if (D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE
 #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE_NAME                     \
     "__cpp_noexcept_function_type"
 #define D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE_DESC                     \
@@ -873,14 +1182,21 @@ TABLE OF CONTENTS
 // D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO
 //   feature: 1 if __cpp_nontype_template_parameter_auto is defined, 0
 // otherwise.
-#ifdef __cpp_nontype_template_parameter_auto
-    #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO 1
-    #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO_VAL         \
-        __cpp_nontype_template_parameter_auto
-#else
-    #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO 0
-    #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO_VAL 0L
-#endif  // __cpp_nontype_template_parameter_auto
+#ifndef D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO_VAL
+    #ifdef __cpp_nontype_template_parameter_auto
+        #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO_VAL     \
+            __cpp_nontype_template_parameter_auto
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO_VAL 0L
+    #endif  // __cpp_nontype_template_parameter_auto
+#endif  // D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO
+    #if (D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO
 #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO_NAME            \
     "__cpp_nontype_template_parameter_auto"
 #define D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO_DESC            \
@@ -890,14 +1206,21 @@ TABLE OF CONTENTS
 // 1.3.13
 // D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS
 //   feature: 1 if __cpp_structured_bindings is defined, 0 otherwise.
-#ifdef __cpp_structured_bindings
-    #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS 1
-    #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS_VAL                     \
-        __cpp_structured_bindings
-#else
-    #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS 0
-    #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS_VAL 0L
-#endif  // __cpp_structured_bindings
+#ifndef D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS_VAL
+    #ifdef __cpp_structured_bindings
+        #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS_VAL                 \
+            __cpp_structured_bindings
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS_VAL 0L
+    #endif  // __cpp_structured_bindings
+#endif  // D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS
+    #if (D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS
 #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS_NAME                        \
     "__cpp_structured_bindings"
 #define D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS_DESC "Structured bindings"
@@ -906,14 +1229,21 @@ TABLE OF CONTENTS
 // 1.3.14
 // D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS
 //   feature: 1 if __cpp_template_template_args is defined, 0 otherwise.
-#ifdef __cpp_template_template_args
-    #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS 1
-    #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS_VAL                  \
-        __cpp_template_template_args
-#else
-    #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS 0
-    #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS_VAL 0L
-#endif  // __cpp_template_template_args
+#ifndef D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS_VAL
+    #ifdef __cpp_template_template_args
+        #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS_VAL              \
+            __cpp_template_template_args
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS_VAL 0L
+    #endif  // __cpp_template_template_args
+#endif  // D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS
+    #if (D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS
 #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS_NAME                     \
     "__cpp_template_template_args"
 #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS_DESC                     \
@@ -923,13 +1253,20 @@ TABLE OF CONTENTS
 // 1.3.15
 // D_ENV_CPP_FEATURE_LANG_VARIADIC_USING
 //   feature: 1 if __cpp_variadic_using is defined, 0 otherwise.
-#ifdef __cpp_variadic_using
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING     1
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING_VAL __cpp_variadic_using
-#else
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING     0
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING_VAL 0L
-#endif  // __cpp_variadic_using
+#ifndef D_ENV_CPP_FEATURE_LANG_VARIADIC_USING_VAL
+    #ifdef __cpp_variadic_using
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING_VAL __cpp_variadic_using
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING_VAL 0L
+    #endif  // __cpp_variadic_using
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_USING_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_VARIADIC_USING
+    #if (D_ENV_CPP_FEATURE_LANG_VARIADIC_USING_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_USING
 #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING_NAME "__cpp_variadic_using"
 #define D_ENV_CPP_FEATURE_LANG_VARIADIC_USING_DESC                             \
     "Pack expansions in using-declarations"
@@ -940,14 +1277,21 @@ TABLE OF CONTENTS
 // 1.4.1
 // D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT
 //   feature: 1 if __cpp_aggregate_paren_init is defined, 0 otherwise.
-#ifdef __cpp_aggregate_paren_init
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT 1
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT_VAL                    \
-        __cpp_aggregate_paren_init
-#else
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT 0
-    #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT_VAL 0L
-#endif  // __cpp_aggregate_paren_init
+#ifndef D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT_VAL
+    #ifdef __cpp_aggregate_paren_init
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT_VAL                \
+            __cpp_aggregate_paren_init
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT_VAL 0L
+    #endif  // __cpp_aggregate_paren_init
+#endif  // D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT
+    #if (D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT
 #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT_NAME                       \
     "__cpp_aggregate_paren_init"
 #define D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT_DESC                       \
@@ -957,13 +1301,20 @@ TABLE OF CONTENTS
 // 1.4.2
 // D_ENV_CPP_FEATURE_LANG_CHAR8_T
 //   feature: 1 if __cpp_char8_t is defined, 0 otherwise.
-#ifdef __cpp_char8_t
-    #define D_ENV_CPP_FEATURE_LANG_CHAR8_T     1
-    #define D_ENV_CPP_FEATURE_LANG_CHAR8_T_VAL __cpp_char8_t
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CHAR8_T     0
-    #define D_ENV_CPP_FEATURE_LANG_CHAR8_T_VAL 0L
-#endif  // __cpp_char8_t
+#ifndef D_ENV_CPP_FEATURE_LANG_CHAR8_T_VAL
+    #ifdef __cpp_char8_t
+        #define D_ENV_CPP_FEATURE_LANG_CHAR8_T_VAL __cpp_char8_t
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CHAR8_T_VAL 0L
+    #endif  // __cpp_char8_t
+#endif  // D_ENV_CPP_FEATURE_LANG_CHAR8_T_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CHAR8_T
+    #if (D_ENV_CPP_FEATURE_LANG_CHAR8_T_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CHAR8_T 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CHAR8_T 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CHAR8_T
 #define D_ENV_CPP_FEATURE_LANG_CHAR8_T_NAME "__cpp_char8_t"
 #define D_ENV_CPP_FEATURE_LANG_CHAR8_T_DESC "char8_t"
 #define D_ENV_CPP_FEATURE_LANG_CHAR8_T_VERS "(C++20)"
@@ -973,25 +1324,36 @@ TABLE OF CONTENTS
 //   feature: 1 if __cpp_concepts is defined, 0 otherwise.
 // D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS is 1 when __cpp_concepts == 201507L;
 // D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20 is 1 when __cpp_concepts >= 201907L.
-#ifdef __cpp_concepts
-    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS     1
-    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_VAL __cpp_concepts
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS     0
-    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_VAL 0L
-#endif  // __cpp_concepts
-#if ( (defined(__cpp_concepts)) &&                                             \
-      (__cpp_concepts == 201507L) )
-    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS 1
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS 0
-#endif
-#if ( (defined(__cpp_concepts)) &&                                             \
-      (__cpp_concepts >= 201907L) )
-    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20 1
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20 0
-#endif
+#ifndef D_ENV_CPP_FEATURE_LANG_CONCEPTS_VAL
+    #ifdef __cpp_concepts
+        #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_VAL __cpp_concepts
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_VAL 0L
+    #endif  // __cpp_concepts
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CONCEPTS
+    #if (D_ENV_CPP_FEATURE_LANG_CONCEPTS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CONCEPTS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONCEPTS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+#ifndef D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS
+    #if ( (defined(__cpp_concepts)) &&                                         \
+          (__cpp_concepts == 201507L) )
+        #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS
+#ifndef D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20
+    #if ( (defined(__cpp_concepts)) &&                                         \
+          (__cpp_concepts >= 201907L) )
+        #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20
 #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_NAME "__cpp_concepts"
 #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_DESC "Concepts"
 #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_VERS "(C++20)"
@@ -999,14 +1361,21 @@ TABLE OF CONTENTS
 // 1.4.4
 // D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT
 //   feature: 1 if __cpp_conditional_explicit is defined, 0 otherwise.
-#ifdef __cpp_conditional_explicit
-    #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT 1
-    #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT_VAL                    \
-        __cpp_conditional_explicit
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT 0
-    #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT_VAL 0L
-#endif  // __cpp_conditional_explicit
+#ifndef D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT_VAL
+    #ifdef __cpp_conditional_explicit
+        #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT_VAL                \
+            __cpp_conditional_explicit
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT_VAL 0L
+    #endif  // __cpp_conditional_explicit
+#endif  // D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT
+    #if (D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT
 #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT_NAME                       \
     "__cpp_conditional_explicit"
 #define D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT_DESC "explicit(bool)"
@@ -1015,13 +1384,20 @@ TABLE OF CONTENTS
 // 1.4.5
 // D_ENV_CPP_FEATURE_LANG_CONSTEVAL
 //   feature: 1 if __cpp_consteval is defined, 0 otherwise.
-#ifdef __cpp_consteval
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL     1
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL_VAL __cpp_consteval
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL     0
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL_VAL 0L
-#endif  // __cpp_consteval
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEVAL_VAL
+    #ifdef __cpp_consteval
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL_VAL __cpp_consteval
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL_VAL 0L
+    #endif  // __cpp_consteval
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEVAL_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEVAL
+    #if (D_ENV_CPP_FEATURE_LANG_CONSTEVAL_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEVAL
 #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL_NAME "__cpp_consteval"
 #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL_DESC "Immediate functions"
 #define D_ENV_CPP_FEATURE_LANG_CONSTEVAL_VERS "(C++20)"
@@ -1029,14 +1405,21 @@ TABLE OF CONTENTS
 // 1.4.6
 // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC
 //   feature: 1 if __cpp_constexpr_dynamic_alloc is defined, 0 otherwise.
-#ifdef __cpp_constexpr_dynamic_alloc
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC 1
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC_VAL                 \
-        __cpp_constexpr_dynamic_alloc
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC 0
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC_VAL 0L
-#endif  // __cpp_constexpr_dynamic_alloc
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC_VAL
+    #ifdef __cpp_constexpr_dynamic_alloc
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC_VAL             \
+            __cpp_constexpr_dynamic_alloc
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC_VAL 0L
+    #endif  // __cpp_constexpr_dynamic_alloc
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC
+    #if (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC
 #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC_NAME                    \
     "__cpp_constexpr_dynamic_alloc"
 #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC_DESC                    \
@@ -1046,13 +1429,20 @@ TABLE OF CONTENTS
 // 1.4.7
 // D_ENV_CPP_FEATURE_LANG_CONSTINIT
 //   feature: 1 if __cpp_constinit is defined, 0 otherwise.
-#ifdef __cpp_constinit
-    #define D_ENV_CPP_FEATURE_LANG_CONSTINIT     1
-    #define D_ENV_CPP_FEATURE_LANG_CONSTINIT_VAL __cpp_constinit
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONSTINIT     0
-    #define D_ENV_CPP_FEATURE_LANG_CONSTINIT_VAL 0L
-#endif  // __cpp_constinit
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTINIT_VAL
+    #ifdef __cpp_constinit
+        #define D_ENV_CPP_FEATURE_LANG_CONSTINIT_VAL __cpp_constinit
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTINIT_VAL 0L
+    #endif  // __cpp_constinit
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTINIT_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTINIT
+    #if (D_ENV_CPP_FEATURE_LANG_CONSTINIT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CONSTINIT 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTINIT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTINIT
 #define D_ENV_CPP_FEATURE_LANG_CONSTINIT_NAME "__cpp_constinit"
 #define D_ENV_CPP_FEATURE_LANG_CONSTINIT_DESC "constinit"
 #define D_ENV_CPP_FEATURE_LANG_CONSTINIT_VERS "(C++20)"
@@ -1060,14 +1450,21 @@ TABLE OF CONTENTS
 // 1.4.8
 // D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS
 //   feature: 1 if __cpp_designated_initializers is defined, 0 otherwise.
-#ifdef __cpp_designated_initializers
-    #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS 1
-    #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_VAL                 \
-        __cpp_designated_initializers
-#else
-    #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS 0
-    #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_VAL 0L
-#endif  // __cpp_designated_initializers
+#ifndef D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_VAL
+    #ifdef __cpp_designated_initializers
+        #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_VAL             \
+            __cpp_designated_initializers
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_VAL 0L
+    #endif  // __cpp_designated_initializers
+#endif  // D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS
+    #if (D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS
 #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_NAME                    \
     "__cpp_designated_initializers"
 #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_DESC                    \
@@ -1077,13 +1474,20 @@ TABLE OF CONTENTS
 // 1.4.9
 // D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE
 //   feature: 1 if __cpp_IMPL_coroutine is defined, 0 otherwise.
-#ifdef __cpp_IMPL_coroutine
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE     1
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL __cpp_IMPL_coroutine
-#else
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE     0
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL 0L
-#endif  // __cpp_IMPL_coroutine
+#ifndef D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL
+    #ifdef __cpp_IMPL_coroutine
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL __cpp_IMPL_coroutine
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL 0L
+    #endif  // __cpp_IMPL_coroutine
+#endif  // D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE
+    #if (D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE
 #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_NAME "__cpp_IMPL_coroutine"
 #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_DESC                             \
     "Coroutines (compiler support)"
@@ -1092,14 +1496,21 @@ TABLE OF CONTENTS
 // 1.4.10
 // D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE
 //   feature: 1 if __cpp_IMPL_destroying_delete is defined, 0 otherwise.
-#ifdef __cpp_IMPL_destroying_delete
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE 1
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL                  \
-        __cpp_IMPL_destroying_delete
-#else
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE 0
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL 0L
-#endif  // __cpp_IMPL_destroying_delete
+#ifndef D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL
+    #ifdef __cpp_IMPL_destroying_delete
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL              \
+            __cpp_IMPL_destroying_delete
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL 0L
+    #endif  // __cpp_IMPL_destroying_delete
+#endif  // D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE
+    #if (D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE
 #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_NAME                     \
     "__cpp_IMPL_destroying_delete"
 #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_DESC                     \
@@ -1109,14 +1520,21 @@ TABLE OF CONTENTS
 // 1.4.11
 // D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
 //   feature: 1 if __cpp_IMPL_three_way_comparison is defined, 0 otherwise.
-#ifdef __cpp_IMPL_three_way_comparison
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON 1
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL               \
-        __cpp_IMPL_three_way_comparison
-#else
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON 0
-    #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL 0L
-#endif  // __cpp_IMPL_three_way_comparison
+#ifndef D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL
+    #ifdef __cpp_IMPL_three_way_comparison
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL           \
+            __cpp_IMPL_three_way_comparison
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL 0L
+    #endif  // __cpp_IMPL_three_way_comparison
+#endif  // D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
+    #if (D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
 #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_NAME                  \
     "__cpp_IMPL_three_way_comparison"
 #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_DESC                  \
@@ -1126,13 +1544,20 @@ TABLE OF CONTENTS
 // 1.4.12
 // D_ENV_CPP_FEATURE_LANG_MODULES
 //   feature: 1 if __cpp_modules is defined, 0 otherwise.
-#ifdef __cpp_modules
-    #define D_ENV_CPP_FEATURE_LANG_MODULES     1
-    #define D_ENV_CPP_FEATURE_LANG_MODULES_VAL __cpp_modules
-#else
-    #define D_ENV_CPP_FEATURE_LANG_MODULES     0
-    #define D_ENV_CPP_FEATURE_LANG_MODULES_VAL 0L
-#endif  // __cpp_modules
+#ifndef D_ENV_CPP_FEATURE_LANG_MODULES_VAL
+    #ifdef __cpp_modules
+        #define D_ENV_CPP_FEATURE_LANG_MODULES_VAL __cpp_modules
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_MODULES_VAL 0L
+    #endif  // __cpp_modules
+#endif  // D_ENV_CPP_FEATURE_LANG_MODULES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_MODULES
+    #if (D_ENV_CPP_FEATURE_LANG_MODULES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_MODULES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_MODULES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_MODULES
 #define D_ENV_CPP_FEATURE_LANG_MODULES_NAME "__cpp_modules"
 #define D_ENV_CPP_FEATURE_LANG_MODULES_DESC "Modules"
 #define D_ENV_CPP_FEATURE_LANG_MODULES_VERS "(C++20)"
@@ -1140,13 +1565,20 @@ TABLE OF CONTENTS
 // 1.4.13
 // D_ENV_CPP_FEATURE_LANG_USING_ENUM
 //   feature: 1 if __cpp_using_enum is defined, 0 otherwise.
-#ifdef __cpp_using_enum
-    #define D_ENV_CPP_FEATURE_LANG_USING_ENUM     1
-    #define D_ENV_CPP_FEATURE_LANG_USING_ENUM_VAL __cpp_using_enum
-#else
-    #define D_ENV_CPP_FEATURE_LANG_USING_ENUM     0
-    #define D_ENV_CPP_FEATURE_LANG_USING_ENUM_VAL 0L
-#endif  // __cpp_using_enum
+#ifndef D_ENV_CPP_FEATURE_LANG_USING_ENUM_VAL
+    #ifdef __cpp_using_enum
+        #define D_ENV_CPP_FEATURE_LANG_USING_ENUM_VAL __cpp_using_enum
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_USING_ENUM_VAL 0L
+    #endif  // __cpp_using_enum
+#endif  // D_ENV_CPP_FEATURE_LANG_USING_ENUM_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_USING_ENUM
+    #if (D_ENV_CPP_FEATURE_LANG_USING_ENUM_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_USING_ENUM 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_USING_ENUM 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_USING_ENUM
 #define D_ENV_CPP_FEATURE_LANG_USING_ENUM_NAME "__cpp_using_enum"
 #define D_ENV_CPP_FEATURE_LANG_USING_ENUM_DESC "using enum"
 #define D_ENV_CPP_FEATURE_LANG_USING_ENUM_VERS "(C++20)"
@@ -1156,13 +1588,20 @@ TABLE OF CONTENTS
 // 1.5.1
 // D_ENV_CPP_FEATURE_LANG_AUTO_CAST
 //   feature: 1 if __cpp_auto_cast is defined, 0 otherwise.
-#ifdef __cpp_auto_cast
-    #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST     1
-    #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST_VAL __cpp_auto_cast
-#else
-    #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST     0
-    #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST_VAL 0L
-#endif  // __cpp_auto_cast
+#ifndef D_ENV_CPP_FEATURE_LANG_AUTO_CAST_VAL
+    #ifdef __cpp_auto_cast
+        #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST_VAL __cpp_auto_cast
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST_VAL 0L
+    #endif  // __cpp_auto_cast
+#endif  // D_ENV_CPP_FEATURE_LANG_AUTO_CAST_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_AUTO_CAST
+    #if (D_ENV_CPP_FEATURE_LANG_AUTO_CAST_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_AUTO_CAST
 #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST_NAME "__cpp_auto_cast"
 #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST_DESC "auto(x) and auto{x}"
 #define D_ENV_CPP_FEATURE_LANG_AUTO_CAST_VERS "(C++23)"
@@ -1170,14 +1609,21 @@ TABLE OF CONTENTS
 // 1.5.2
 // D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER
 //   feature: 1 if __cpp_explicit_this_parameter is defined, 0 otherwise.
-#ifdef __cpp_explicit_this_parameter
-    #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER 1
-    #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER_VAL                 \
-        __cpp_explicit_this_parameter
-#else
-    #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER 0
-    #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER_VAL 0L
-#endif  // __cpp_explicit_this_parameter
+#ifndef D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER_VAL
+    #ifdef __cpp_explicit_this_parameter
+        #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER_VAL             \
+            __cpp_explicit_this_parameter
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER_VAL 0L
+    #endif  // __cpp_explicit_this_parameter
+#endif  // D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER
+    #if (D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER
 #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER_NAME                    \
     "__cpp_explicit_this_parameter"
 #define D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER_DESC                    \
@@ -1187,13 +1633,20 @@ TABLE OF CONTENTS
 // 1.5.3
 // D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL
 //   feature: 1 if __cpp_if_consteval is defined, 0 otherwise.
-#ifdef __cpp_if_consteval
-    #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL     1
-    #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_VAL __cpp_if_consteval
-#else
-    #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL     0
-    #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_VAL 0L
-#endif  // __cpp_if_consteval
+#ifndef D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_VAL
+    #ifdef __cpp_if_consteval
+        #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_VAL __cpp_if_consteval
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_VAL 0L
+    #endif  // __cpp_if_consteval
+#endif  // D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL
+    #if (D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL
 #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_NAME "__cpp_if_consteval"
 #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_DESC "if consteval"
 #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_VERS "(C++23)"
@@ -1201,13 +1654,20 @@ TABLE OF CONTENTS
 // 1.5.4
 // D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE
 //   feature: 1 if __cpp_implicit_move is defined, 0 otherwise.
-#ifdef __cpp_implicit_move
-    #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE     1
-    #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL __cpp_implicit_move
-#else
-    #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE     0
-    #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL 0L
-#endif  // __cpp_implicit_move
+#ifndef D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL
+    #ifdef __cpp_implicit_move
+        #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL __cpp_implicit_move
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL 0L
+    #endif  // __cpp_implicit_move
+#endif  // D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE
+    #if (D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE
 #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_NAME "__cpp_implicit_move"
 #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_DESC "Simpler implicit move"
 #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VERS "(C++23)"
@@ -1215,14 +1675,21 @@ TABLE OF CONTENTS
 // 1.5.5
 // D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT
 //   feature: 1 if __cpp_multidimensional_subscript is defined, 0 otherwise.
-#ifdef __cpp_multidimensional_subscript
-    #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT 1
-    #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT_VAL              \
-        __cpp_multidimensional_subscript
-#else
-    #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT 0
-    #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT_VAL 0L
-#endif  // __cpp_multidimensional_subscript
+#ifndef D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT_VAL
+    #ifdef __cpp_multidimensional_subscript
+        #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT_VAL          \
+            __cpp_multidimensional_subscript
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT_VAL 0L
+    #endif  // __cpp_multidimensional_subscript
+#endif  // D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT
+    #if (D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT
 #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT_NAME                 \
     "__cpp_multidimensional_subscript"
 #define D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT_DESC                 \
@@ -1232,14 +1699,21 @@ TABLE OF CONTENTS
 // 1.5.6
 // D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES
 //   feature: 1 if __cpp_named_character_escapes is defined, 0 otherwise.
-#ifdef __cpp_named_character_escapes
-    #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES 1
-    #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES_VAL                 \
-        __cpp_named_character_escapes
-#else
-    #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES 0
-    #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES_VAL 0L
-#endif  // __cpp_named_character_escapes
+#ifndef D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES_VAL
+    #ifdef __cpp_named_character_escapes
+        #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES_VAL             \
+            __cpp_named_character_escapes
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES_VAL 0L
+    #endif  // __cpp_named_character_escapes
+#endif  // D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES
+    #if (D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES
 #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES_NAME                    \
     "__cpp_named_character_escapes"
 #define D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES_DESC                    \
@@ -1249,13 +1723,20 @@ TABLE OF CONTENTS
 // 1.5.7
 // D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX
 //   feature: 1 if __cpp_size_t_suffix is defined, 0 otherwise.
-#ifdef __cpp_size_t_suffix
-    #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX     1
-    #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX_VAL __cpp_size_t_suffix
-#else
-    #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX     0
-    #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX_VAL 0L
-#endif  // __cpp_size_t_suffix
+#ifndef D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX_VAL
+    #ifdef __cpp_size_t_suffix
+        #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX_VAL __cpp_size_t_suffix
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX_VAL 0L
+    #endif  // __cpp_size_t_suffix
+#endif  // D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX
+    #if (D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX
 #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX_NAME "__cpp_size_t_suffix"
 #define D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX_DESC                              \
     "Literal suffixes for std::size_t and its signed version"
@@ -1264,14 +1745,21 @@ TABLE OF CONTENTS
 // 1.5.8
 // D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR
 //   feature: 1 if __cpp_static_call_operator is defined, 0 otherwise.
-#ifdef __cpp_static_call_operator
-    #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR 1
-    #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR_VAL                    \
-        __cpp_static_call_operator
-#else
-    #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR 0
-    #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR_VAL 0L
-#endif  // __cpp_static_call_operator
+#ifndef D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR_VAL
+    #ifdef __cpp_static_call_operator
+        #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR_VAL                \
+            __cpp_static_call_operator
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR_VAL 0L
+    #endif  // __cpp_static_call_operator
+#endif  // D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR
+    #if (D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR
 #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR_NAME                       \
     "__cpp_static_call_operator"
 #define D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR_DESC "Static operator()"
@@ -1282,14 +1770,21 @@ TABLE OF CONTENTS
 // 1.6.1
 // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS
 //   feature: 1 if __cpp_constexpr_exceptions is defined, 0 otherwise.
-#ifdef __cpp_constexpr_exceptions
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS 1
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS_VAL                    \
-        __cpp_constexpr_exceptions
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS 0
-    #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS_VAL 0L
-#endif  // __cpp_constexpr_exceptions
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS_VAL
+    #ifdef __cpp_constexpr_exceptions
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS_VAL                \
+            __cpp_constexpr_exceptions
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS_VAL 0L
+    #endif  // __cpp_constexpr_exceptions
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS
+    #if (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS
 #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS_NAME                       \
     "__cpp_constexpr_exceptions"
 #define D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS_DESC "constexpr exceptions"
@@ -1298,13 +1793,20 @@ TABLE OF CONTENTS
 // 1.6.2
 // D_ENV_CPP_FEATURE_LANG_CONTRACTS
 //   feature: 1 if __cpp_contracts is defined, 0 otherwise.
-#ifdef __cpp_contracts
-    #define D_ENV_CPP_FEATURE_LANG_CONTRACTS     1
-    #define D_ENV_CPP_FEATURE_LANG_CONTRACTS_VAL __cpp_contracts
-#else
-    #define D_ENV_CPP_FEATURE_LANG_CONTRACTS     0
-    #define D_ENV_CPP_FEATURE_LANG_CONTRACTS_VAL 0L
-#endif  // __cpp_contracts
+#ifndef D_ENV_CPP_FEATURE_LANG_CONTRACTS_VAL
+    #ifdef __cpp_contracts
+        #define D_ENV_CPP_FEATURE_LANG_CONTRACTS_VAL __cpp_contracts
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONTRACTS_VAL 0L
+    #endif  // __cpp_contracts
+#endif  // D_ENV_CPP_FEATURE_LANG_CONTRACTS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_CONTRACTS
+    #if (D_ENV_CPP_FEATURE_LANG_CONTRACTS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_CONTRACTS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_CONTRACTS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_CONTRACTS
 #define D_ENV_CPP_FEATURE_LANG_CONTRACTS_NAME "__cpp_contracts"
 #define D_ENV_CPP_FEATURE_LANG_CONTRACTS_DESC "Contracts"
 #define D_ENV_CPP_FEATURE_LANG_CONTRACTS_VERS "(C++26)"
@@ -1312,13 +1814,21 @@ TABLE OF CONTENTS
 // 1.6.3
 // D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION
 //   feature: 1 if __cpp_deleted_function is defined, 0 otherwise.
-#ifdef __cpp_deleted_function
-    #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION     1
-    #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION_VAL __cpp_deleted_function
-#else
-    #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION     0
-    #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION_VAL 0L
-#endif  // __cpp_deleted_function
+#ifndef D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION_VAL
+    #ifdef __cpp_deleted_function
+        #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION_VAL                    \
+            __cpp_deleted_function
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION_VAL 0L
+    #endif  // __cpp_deleted_function
+#endif  // D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION
+    #if (D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION
 #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION_NAME "__cpp_deleted_function"
 #define D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION_DESC                           \
     "Deleted function definitions with messages"
@@ -1327,13 +1837,20 @@ TABLE OF CONTENTS
 // 1.6.4
 // D_ENV_CPP_FEATURE_LANG_PACK_INDEXING
 //   feature: 1 if __cpp_pack_indexing is defined, 0 otherwise.
-#ifdef __cpp_pack_indexing
-    #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING     1
-    #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_VAL __cpp_pack_indexing
-#else
-    #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING     0
-    #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_VAL 0L
-#endif  // __cpp_pack_indexing
+#ifndef D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_VAL
+    #ifdef __cpp_pack_indexing
+        #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_VAL __cpp_pack_indexing
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_VAL 0L
+    #endif  // __cpp_pack_indexing
+#endif  // D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_PACK_INDEXING
+    #if (D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_PACK_INDEXING
 #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_NAME "__cpp_pack_indexing"
 #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_DESC "Pack indexing"
 #define D_ENV_CPP_FEATURE_LANG_PACK_INDEXING_VERS "(C++26)"
@@ -1341,14 +1858,21 @@ TABLE OF CONTENTS
 // 1.6.5
 // D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES
 //   feature: 1 if __cpp_placeholder_variables is defined, 0 otherwise.
-#ifdef __cpp_placeholder_variables
-    #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES 1
-    #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES_VAL                   \
-        __cpp_placeholder_variables
-#else
-    #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES 0
-    #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES_VAL 0L
-#endif  // __cpp_placeholder_variables
+#ifndef D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES_VAL
+    #ifdef __cpp_placeholder_variables
+        #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES_VAL               \
+            __cpp_placeholder_variables
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES_VAL 0L
+    #endif  // __cpp_placeholder_variables
+#endif  // D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES
+    #if (D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES
 #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES_NAME                      \
     "__cpp_placeholder_variables"
 #define D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES_DESC                      \
@@ -1358,13 +1882,20 @@ TABLE OF CONTENTS
 // 1.6.6
 // D_ENV_CPP_FEATURE_LANG_PP_EMBED
 //   feature: 1 if __cpp_pp_embed is defined, 0 otherwise.
-#ifdef __cpp_pp_embed
-    #define D_ENV_CPP_FEATURE_LANG_PP_EMBED     1
-    #define D_ENV_CPP_FEATURE_LANG_PP_EMBED_VAL __cpp_pp_embed
-#else
-    #define D_ENV_CPP_FEATURE_LANG_PP_EMBED     0
-    #define D_ENV_CPP_FEATURE_LANG_PP_EMBED_VAL 0L
-#endif  // __cpp_pp_embed
+#ifndef D_ENV_CPP_FEATURE_LANG_PP_EMBED_VAL
+    #ifdef __cpp_pp_embed
+        #define D_ENV_CPP_FEATURE_LANG_PP_EMBED_VAL __cpp_pp_embed
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_PP_EMBED_VAL 0L
+    #endif  // __cpp_pp_embed
+#endif  // D_ENV_CPP_FEATURE_LANG_PP_EMBED_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_PP_EMBED
+    #if (D_ENV_CPP_FEATURE_LANG_PP_EMBED_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_PP_EMBED 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_PP_EMBED 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_PP_EMBED
 #define D_ENV_CPP_FEATURE_LANG_PP_EMBED_NAME "__cpp_pp_embed"
 #define D_ENV_CPP_FEATURE_LANG_PP_EMBED_DESC "#embed"
 #define D_ENV_CPP_FEATURE_LANG_PP_EMBED_VERS "(C++26)"
@@ -1372,14 +1903,21 @@ TABLE OF CONTENTS
 // 1.6.7
 // D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS
 //   feature: 1 if __cpp_template_parameters is defined, 0 otherwise.
-#ifdef __cpp_template_parameters
-    #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS 1
-    #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS_VAL                     \
-        __cpp_template_parameters
-#else
-    #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS 0
-    #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS_VAL 0L
-#endif  // __cpp_template_parameters
+#ifndef D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS_VAL
+    #ifdef __cpp_template_parameters
+        #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS_VAL                 \
+            __cpp_template_parameters
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS_VAL 0L
+    #endif  // __cpp_template_parameters
+#endif  // D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS
+    #if (D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS
 #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS_NAME                        \
     "__cpp_template_parameters"
 #define D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS_DESC                        \
@@ -1389,14 +1927,21 @@ TABLE OF CONTENTS
 // 1.6.8
 // D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY
 //   feature: 1 if __cpp_trivial_relocatability is defined, 0 otherwise.
-#ifdef __cpp_trivial_relocatability
-    #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY 1
-    #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY_VAL                  \
-        __cpp_trivial_relocatability
-#else
-    #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY 0
-    #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY_VAL 0L
-#endif  // __cpp_trivial_relocatability
+#ifndef D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY_VAL
+    #ifdef __cpp_trivial_relocatability
+        #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY_VAL              \
+            __cpp_trivial_relocatability
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY_VAL 0L
+    #endif  // __cpp_trivial_relocatability
+#endif  // D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY
+    #if (D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY
 #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY_NAME                     \
     "__cpp_trivial_relocatability"
 #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY_DESC                     \
@@ -1406,13 +1951,20 @@ TABLE OF CONTENTS
 // 1.6.9
 // D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION
 //   feature: 1 if __cpp_trivial_union is defined, 0 otherwise.
-#ifdef __cpp_trivial_union
-    #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION     1
-    #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_VAL __cpp_trivial_union
-#else
-    #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION     0
-    #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_VAL 0L
-#endif  // __cpp_trivial_union
+#ifndef D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_VAL
+    #ifdef __cpp_trivial_union
+        #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_VAL __cpp_trivial_union
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_VAL 0L
+    #endif  // __cpp_trivial_union
+#endif  // D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION
+    #if (D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION
 #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_NAME "__cpp_trivial_union"
 #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_DESC "Trivial unions"
 #define D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION_VERS "(C++26)"
@@ -1420,13 +1972,20 @@ TABLE OF CONTENTS
 // 1.6.10
 // D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND
 //   feature: 1 if __cpp_variadic_friend is defined, 0 otherwise.
-#ifdef __cpp_variadic_friend
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND     1
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND_VAL __cpp_variadic_friend
-#else
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND     0
-    #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND_VAL 0L
-#endif  // __cpp_variadic_friend
+#ifndef D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND_VAL
+    #ifdef __cpp_variadic_friend
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND_VAL __cpp_variadic_friend
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND_VAL 0L
+    #endif  // __cpp_variadic_friend
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND_VAL
+#ifndef D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND
+    #if (D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND_VAL > 0)
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND 1
+    #else
+        #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND
 #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND_NAME "__cpp_variadic_friend"
 #define D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND_DESC                            \
     "Variadic friend declarations"
@@ -1444,13 +2003,20 @@ TABLE OF CONTENTS
 // 2.1.1
 // D_ENV_CPP_FEATURE_STL_CHRONO_UDLS
 //   feature: 1 if __cpp_lib_chrono_udls is defined, 0 otherwise.
-#ifdef __cpp_lib_chrono_udls
-    #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS     1
-    #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS_VAL __cpp_lib_chrono_udls
-#else
-    #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS     0
-    #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS_VAL 0L
-#endif  // __cpp_lib_chrono_udls
+#ifndef D_ENV_CPP_FEATURE_STL_CHRONO_UDLS_VAL
+    #ifdef __cpp_lib_chrono_udls
+        #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS_VAL __cpp_lib_chrono_udls
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS_VAL 0L
+    #endif  // __cpp_lib_chrono_udls
+#endif  // D_ENV_CPP_FEATURE_STL_CHRONO_UDLS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CHRONO_UDLS
+    #if (D_ENV_CPP_FEATURE_STL_CHRONO_UDLS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CHRONO_UDLS
 #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS_NAME "__cpp_lib_chrono_udls"
 #define D_ENV_CPP_FEATURE_STL_CHRONO_UDLS_DESC                                 \
     "User-defined literals for time types"
@@ -1459,13 +2025,20 @@ TABLE OF CONTENTS
 // 2.1.2
 // D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS
 //   feature: 1 if __cpp_lib_complex_udls is defined, 0 otherwise.
-#ifdef __cpp_lib_complex_udls
-    #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS     1
-    #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS_VAL __cpp_lib_complex_udls
-#else
-    #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS     0
-    #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS_VAL 0L
-#endif  // __cpp_lib_complex_udls
+#ifndef D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS_VAL
+    #ifdef __cpp_lib_complex_udls
+        #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS_VAL __cpp_lib_complex_udls
+    #else
+        #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS_VAL 0L
+    #endif  // __cpp_lib_complex_udls
+#endif  // D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS
+    #if (D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS
 #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS_NAME "__cpp_lib_complex_udls"
 #define D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS_DESC                                \
     "User-defined Literals for std::complex"
@@ -1476,14 +2049,21 @@ TABLE OF CONTENTS
 // 2.2.1
 // D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR
 //   feature: 1 if __cpp_lib_addressof_constexpr is defined, 0 otherwise.
-#ifdef __cpp_lib_addressof_constexpr
-    #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR 1
-    #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR_VAL                      \
-        __cpp_lib_addressof_constexpr
-#else
-    #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR 0
-    #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR_VAL 0L
-#endif  // __cpp_lib_addressof_constexpr
+#ifndef D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR_VAL
+    #ifdef __cpp_lib_addressof_constexpr
+        #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR_VAL                  \
+            __cpp_lib_addressof_constexpr
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR_VAL 0L
+    #endif  // __cpp_lib_addressof_constexpr
+#endif  // D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR
+    #if (D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR
 #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR_NAME                         \
     "__cpp_lib_addressof_constexpr"
 #define D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR_DESC                         \
@@ -1493,13 +2073,20 @@ TABLE OF CONTENTS
 // 2.2.2
 // D_ENV_CPP_FEATURE_STL_ANY
 //   feature: 1 if __cpp_lib_any is defined, 0 otherwise.
-#ifdef __cpp_lib_any
-    #define D_ENV_CPP_FEATURE_STL_ANY     1
-    #define D_ENV_CPP_FEATURE_STL_ANY_VAL __cpp_lib_any
-#else
-    #define D_ENV_CPP_FEATURE_STL_ANY     0
-    #define D_ENV_CPP_FEATURE_STL_ANY_VAL 0L
-#endif  // __cpp_lib_any
+#ifndef D_ENV_CPP_FEATURE_STL_ANY_VAL
+    #ifdef __cpp_lib_any
+        #define D_ENV_CPP_FEATURE_STL_ANY_VAL __cpp_lib_any
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ANY_VAL 0L
+    #endif  // __cpp_lib_any
+#endif  // D_ENV_CPP_FEATURE_STL_ANY_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ANY
+    #if (D_ENV_CPP_FEATURE_STL_ANY_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ANY 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ANY 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ANY
 #define D_ENV_CPP_FEATURE_STL_ANY_NAME "__cpp_lib_any"
 #define D_ENV_CPP_FEATURE_STL_ANY_DESC "std::any"
 #define D_ENV_CPP_FEATURE_STL_ANY_VERS "(C++17)"
@@ -1507,13 +2094,20 @@ TABLE OF CONTENTS
 // 2.2.3
 // D_ENV_CPP_FEATURE_STL_APPLY
 //   feature: 1 if __cpp_lib_apply is defined, 0 otherwise.
-#ifdef __cpp_lib_apply
-    #define D_ENV_CPP_FEATURE_STL_APPLY     1
-    #define D_ENV_CPP_FEATURE_STL_APPLY_VAL __cpp_lib_apply
-#else
-    #define D_ENV_CPP_FEATURE_STL_APPLY     0
-    #define D_ENV_CPP_FEATURE_STL_APPLY_VAL 0L
-#endif  // __cpp_lib_apply
+#ifndef D_ENV_CPP_FEATURE_STL_APPLY_VAL
+    #ifdef __cpp_lib_apply
+        #define D_ENV_CPP_FEATURE_STL_APPLY_VAL __cpp_lib_apply
+    #else
+        #define D_ENV_CPP_FEATURE_STL_APPLY_VAL 0L
+    #endif  // __cpp_lib_apply
+#endif  // D_ENV_CPP_FEATURE_STL_APPLY_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_APPLY
+    #if (D_ENV_CPP_FEATURE_STL_APPLY_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_APPLY 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_APPLY 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_APPLY
 #define D_ENV_CPP_FEATURE_STL_APPLY_NAME "__cpp_lib_apply"
 #define D_ENV_CPP_FEATURE_STL_APPLY_DESC "std::apply"
 #define D_ENV_CPP_FEATURE_STL_APPLY_VERS "(C++17)"
@@ -1521,13 +2115,21 @@ TABLE OF CONTENTS
 // 2.2.4
 // D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR
 //   feature: 1 if __cpp_lib_array_constexpr is defined, 0 otherwise.
-#ifdef __cpp_lib_array_constexpr
-    #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR     1
-    #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR_VAL __cpp_lib_array_constexpr
-#else
-    #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR     0
-    #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR_VAL 0L
-#endif  // __cpp_lib_array_constexpr
+#ifndef D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR_VAL
+    #ifdef __cpp_lib_array_constexpr
+        #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR_VAL                      \
+            __cpp_lib_array_constexpr
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR_VAL 0L
+    #endif  // __cpp_lib_array_constexpr
+#endif  // D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR
+    #if (D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR
 #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR_NAME "__cpp_lib_array_constexpr"
 #define D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR_DESC                             \
     "Constexpr for std::reverse_iterator, std::move_iterator, std::array"
@@ -1536,13 +2138,20 @@ TABLE OF CONTENTS
 // 2.2.5
 // D_ENV_CPP_FEATURE_STL_AS_CONST
 //   feature: 1 if __cpp_lib_as_const is defined, 0 otherwise.
-#ifdef __cpp_lib_as_const
-    #define D_ENV_CPP_FEATURE_STL_AS_CONST     1
-    #define D_ENV_CPP_FEATURE_STL_AS_CONST_VAL __cpp_lib_as_const
-#else
-    #define D_ENV_CPP_FEATURE_STL_AS_CONST     0
-    #define D_ENV_CPP_FEATURE_STL_AS_CONST_VAL 0L
-#endif  // __cpp_lib_as_const
+#ifndef D_ENV_CPP_FEATURE_STL_AS_CONST_VAL
+    #ifdef __cpp_lib_as_const
+        #define D_ENV_CPP_FEATURE_STL_AS_CONST_VAL __cpp_lib_as_const
+    #else
+        #define D_ENV_CPP_FEATURE_STL_AS_CONST_VAL 0L
+    #endif  // __cpp_lib_as_const
+#endif  // D_ENV_CPP_FEATURE_STL_AS_CONST_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_AS_CONST
+    #if (D_ENV_CPP_FEATURE_STL_AS_CONST_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_AS_CONST 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_AS_CONST 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_AS_CONST
 #define D_ENV_CPP_FEATURE_STL_AS_CONST_NAME "__cpp_lib_as_const"
 #define D_ENV_CPP_FEATURE_STL_AS_CONST_DESC "std::as_const"
 #define D_ENV_CPP_FEATURE_STL_AS_CONST_VERS "(C++17)"
@@ -1550,13 +2159,20 @@ TABLE OF CONTENTS
 // 2.2.6
 // D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT
 //   feature: 1 if __cpp_lib_bool_constant is defined, 0 otherwise.
-#ifdef __cpp_lib_bool_constant
-    #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT     1
-    #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_VAL __cpp_lib_bool_constant
-#else
-    #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT     0
-    #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_VAL 0L
-#endif  // __cpp_lib_bool_constant
+#ifndef D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_VAL
+    #ifdef __cpp_lib_bool_constant
+        #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_VAL __cpp_lib_bool_constant
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_VAL 0L
+    #endif  // __cpp_lib_bool_constant
+#endif  // D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT
+    #if (D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT
 #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_NAME "__cpp_lib_bool_constant"
 #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_DESC "std::bool_constant"
 #define D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT_VERS "(C++17)"
@@ -1564,14 +2180,21 @@ TABLE OF CONTENTS
 // 2.2.7
 // D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER
 //   feature: 1 if __cpp_lib_boyer_moore_searcher is defined, 0 otherwise.
-#ifdef __cpp_lib_boyer_moore_searcher
-    #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER 1
-    #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER_VAL                     \
-        __cpp_lib_boyer_moore_searcher
-#else
-    #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER 0
-    #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER_VAL 0L
-#endif  // __cpp_lib_boyer_moore_searcher
+#ifndef D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER_VAL
+    #ifdef __cpp_lib_boyer_moore_searcher
+        #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER_VAL                 \
+            __cpp_lib_boyer_moore_searcher
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER_VAL 0L
+    #endif  // __cpp_lib_boyer_moore_searcher
+#endif  // D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER
+    #if (D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER
 #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER_NAME                        \
     "__cpp_lib_boyer_moore_searcher"
 #define D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER_DESC "Searchers"
@@ -1580,13 +2203,20 @@ TABLE OF CONTENTS
 // 2.2.8
 // D_ENV_CPP_FEATURE_STL_BYTE
 //   feature: 1 if __cpp_lib_byte is defined, 0 otherwise.
-#ifdef __cpp_lib_byte
-    #define D_ENV_CPP_FEATURE_STL_BYTE     1
-    #define D_ENV_CPP_FEATURE_STL_BYTE_VAL __cpp_lib_byte
-#else
-    #define D_ENV_CPP_FEATURE_STL_BYTE     0
-    #define D_ENV_CPP_FEATURE_STL_BYTE_VAL 0L
-#endif  // __cpp_lib_byte
+#ifndef D_ENV_CPP_FEATURE_STL_BYTE_VAL
+    #ifdef __cpp_lib_byte
+        #define D_ENV_CPP_FEATURE_STL_BYTE_VAL __cpp_lib_byte
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BYTE_VAL 0L
+    #endif  // __cpp_lib_byte
+#endif  // D_ENV_CPP_FEATURE_STL_BYTE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BYTE
+    #if (D_ENV_CPP_FEATURE_STL_BYTE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BYTE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BYTE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BYTE
 #define D_ENV_CPP_FEATURE_STL_BYTE_NAME "__cpp_lib_byte"
 #define D_ENV_CPP_FEATURE_STL_BYTE_DESC "std::byte"
 #define D_ENV_CPP_FEATURE_STL_BYTE_VERS "(C++17)"
@@ -1594,13 +2224,20 @@ TABLE OF CONTENTS
 // 2.2.9
 // D_ENV_CPP_FEATURE_STL_CLAMP
 //   feature: 1 if __cpp_lib_clamp is defined, 0 otherwise.
-#ifdef __cpp_lib_clamp
-    #define D_ENV_CPP_FEATURE_STL_CLAMP     1
-    #define D_ENV_CPP_FEATURE_STL_CLAMP_VAL __cpp_lib_clamp
-#else
-    #define D_ENV_CPP_FEATURE_STL_CLAMP     0
-    #define D_ENV_CPP_FEATURE_STL_CLAMP_VAL 0L
-#endif  // __cpp_lib_clamp
+#ifndef D_ENV_CPP_FEATURE_STL_CLAMP_VAL
+    #ifdef __cpp_lib_clamp
+        #define D_ENV_CPP_FEATURE_STL_CLAMP_VAL __cpp_lib_clamp
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CLAMP_VAL 0L
+    #endif  // __cpp_lib_clamp
+#endif  // D_ENV_CPP_FEATURE_STL_CLAMP_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CLAMP
+    #if (D_ENV_CPP_FEATURE_STL_CLAMP_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CLAMP 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CLAMP 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CLAMP
 #define D_ENV_CPP_FEATURE_STL_CLAMP_NAME "__cpp_lib_clamp"
 #define D_ENV_CPP_FEATURE_STL_CLAMP_DESC "std::clamp"
 #define D_ENV_CPP_FEATURE_STL_CLAMP_VERS "(C++17)"
@@ -1608,13 +2245,20 @@ TABLE OF CONTENTS
 // 2.2.10
 // D_ENV_CPP_FEATURE_STL_FILESYSTEM
 //   feature: 1 if __cpp_lib_filesystem is defined, 0 otherwise.
-#ifdef __cpp_lib_filesystem
-    #define D_ENV_CPP_FEATURE_STL_FILESYSTEM     1
-    #define D_ENV_CPP_FEATURE_STL_FILESYSTEM_VAL __cpp_lib_filesystem
-#else
-    #define D_ENV_CPP_FEATURE_STL_FILESYSTEM     0
-    #define D_ENV_CPP_FEATURE_STL_FILESYSTEM_VAL 0L
-#endif  // __cpp_lib_filesystem
+#ifndef D_ENV_CPP_FEATURE_STL_FILESYSTEM_VAL
+    #ifdef __cpp_lib_filesystem
+        #define D_ENV_CPP_FEATURE_STL_FILESYSTEM_VAL __cpp_lib_filesystem
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FILESYSTEM_VAL 0L
+    #endif  // __cpp_lib_filesystem
+#endif  // D_ENV_CPP_FEATURE_STL_FILESYSTEM_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_FILESYSTEM
+    #if (D_ENV_CPP_FEATURE_STL_FILESYSTEM_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_FILESYSTEM 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FILESYSTEM 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_FILESYSTEM
 #define D_ENV_CPP_FEATURE_STL_FILESYSTEM_NAME "__cpp_lib_filesystem"
 #define D_ENV_CPP_FEATURE_STL_FILESYSTEM_DESC "Filesystem library"
 #define D_ENV_CPP_FEATURE_STL_FILESYSTEM_VERS "(C++17)"
@@ -1622,13 +2266,20 @@ TABLE OF CONTENTS
 // 2.2.11
 // D_ENV_CPP_FEATURE_STL_OPTIONAL
 //   feature: 1 if __cpp_lib_optional is defined, 0 otherwise.
-#ifdef __cpp_lib_optional
-    #define D_ENV_CPP_FEATURE_STL_OPTIONAL     1
-    #define D_ENV_CPP_FEATURE_STL_OPTIONAL_VAL __cpp_lib_optional
-#else
-    #define D_ENV_CPP_FEATURE_STL_OPTIONAL     0
-    #define D_ENV_CPP_FEATURE_STL_OPTIONAL_VAL 0L
-#endif  // __cpp_lib_optional
+#ifndef D_ENV_CPP_FEATURE_STL_OPTIONAL_VAL
+    #ifdef __cpp_lib_optional
+        #define D_ENV_CPP_FEATURE_STL_OPTIONAL_VAL __cpp_lib_optional
+    #else
+        #define D_ENV_CPP_FEATURE_STL_OPTIONAL_VAL 0L
+    #endif  // __cpp_lib_optional
+#endif  // D_ENV_CPP_FEATURE_STL_OPTIONAL_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_OPTIONAL
+    #if (D_ENV_CPP_FEATURE_STL_OPTIONAL_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_OPTIONAL 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_OPTIONAL 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_OPTIONAL
 #define D_ENV_CPP_FEATURE_STL_OPTIONAL_NAME "__cpp_lib_optional"
 #define D_ENV_CPP_FEATURE_STL_OPTIONAL_DESC "std::optional"
 #define D_ENV_CPP_FEATURE_STL_OPTIONAL_VERS "(C++17)"
@@ -1636,13 +2287,20 @@ TABLE OF CONTENTS
 // 2.2.12
 // D_ENV_CPP_FEATURE_STL_VARIANT
 //   feature: 1 if __cpp_lib_variant is defined, 0 otherwise.
-#ifdef __cpp_lib_variant
-    #define D_ENV_CPP_FEATURE_STL_VARIANT     1
-    #define D_ENV_CPP_FEATURE_STL_VARIANT_VAL __cpp_lib_variant
-#else
-    #define D_ENV_CPP_FEATURE_STL_VARIANT     0
-    #define D_ENV_CPP_FEATURE_STL_VARIANT_VAL 0L
-#endif  // __cpp_lib_variant
+#ifndef D_ENV_CPP_FEATURE_STL_VARIANT_VAL
+    #ifdef __cpp_lib_variant
+        #define D_ENV_CPP_FEATURE_STL_VARIANT_VAL __cpp_lib_variant
+    #else
+        #define D_ENV_CPP_FEATURE_STL_VARIANT_VAL 0L
+    #endif  // __cpp_lib_variant
+#endif  // D_ENV_CPP_FEATURE_STL_VARIANT_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_VARIANT
+    #if (D_ENV_CPP_FEATURE_STL_VARIANT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_VARIANT 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_VARIANT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_VARIANT
 #define D_ENV_CPP_FEATURE_STL_VARIANT_NAME "__cpp_lib_variant"
 #define D_ENV_CPP_FEATURE_STL_VARIANT_DESC "std::variant"
 #define D_ENV_CPP_FEATURE_STL_VARIANT_VERS "(C++17)"
@@ -1652,13 +2310,21 @@ TABLE OF CONTENTS
 // 2.3.1
 // D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED
 //   feature: 1 if __cpp_lib_assume_aligned is defined, 0 otherwise.
-#ifdef __cpp_lib_assume_aligned
-    #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED     1
-    #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_VAL __cpp_lib_assume_aligned
-#else
-    #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED     0
-    #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_VAL 0L
-#endif  // __cpp_lib_assume_aligned
+#ifndef D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_VAL
+    #ifdef __cpp_lib_assume_aligned
+        #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_VAL                       \
+            __cpp_lib_assume_aligned
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_VAL 0L
+    #endif  // __cpp_lib_assume_aligned
+#endif  // D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED
+    #if (D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED
 #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_NAME "__cpp_lib_assume_aligned"
 #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_DESC "std::assume_aligned"
 #define D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED_VERS "(C++20)"
@@ -1666,14 +2332,21 @@ TABLE OF CONTENTS
 // 2.3.2
 // D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST
 //   feature: 1 if __cpp_lib_atomic_flag_test is defined, 0 otherwise.
-#ifdef __cpp_lib_atomic_flag_test
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST 1
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_VAL                         \
-        __cpp_lib_atomic_flag_test
-#else
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST 0
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_VAL 0L
-#endif  // __cpp_lib_atomic_flag_test
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_VAL
+    #ifdef __cpp_lib_atomic_flag_test
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_VAL                     \
+            __cpp_lib_atomic_flag_test
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_VAL 0L
+    #endif  // __cpp_lib_atomic_flag_test
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST
+    #if (D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_NAME "__cpp_lib_atomic_flag_test"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_DESC "std::atomic_flag::test"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST_VERS "(C++20)"
@@ -1681,13 +2354,20 @@ TABLE OF CONTENTS
 // 2.3.3
 // D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT
 //   feature: 1 if __cpp_lib_atomic_float is defined, 0 otherwise.
-#ifdef __cpp_lib_atomic_float
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT     1
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_VAL __cpp_lib_atomic_float
-#else
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT     0
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_VAL 0L
-#endif  // __cpp_lib_atomic_float
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_VAL
+    #ifdef __cpp_lib_atomic_float
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_VAL __cpp_lib_atomic_float
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_VAL 0L
+    #endif  // __cpp_lib_atomic_float
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT
+    #if (D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_NAME "__cpp_lib_atomic_float"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_DESC "Floating-point atomic"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT_VERS "(C++20)"
@@ -1695,13 +2375,20 @@ TABLE OF CONTENTS
 // 2.3.4
 // D_ENV_CPP_FEATURE_STL_ATOMIC_REF
 //   feature: 1 if __cpp_lib_atomic_ref is defined, 0 otherwise.
-#ifdef __cpp_lib_atomic_ref
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF     1
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF_VAL __cpp_lib_atomic_ref
-#else
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF     0
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF_VAL 0L
-#endif  // __cpp_lib_atomic_ref
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_REF_VAL
+    #ifdef __cpp_lib_atomic_ref
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF_VAL __cpp_lib_atomic_ref
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF_VAL 0L
+    #endif  // __cpp_lib_atomic_ref
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_REF_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_REF
+    #if (D_ENV_CPP_FEATURE_STL_ATOMIC_REF_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_REF
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF_NAME "__cpp_lib_atomic_ref"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF_DESC "std::atomic_ref"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_REF_VERS "(C++20)"
@@ -1709,13 +2396,20 @@ TABLE OF CONTENTS
 // 2.3.5
 // D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT
 //   feature: 1 if __cpp_lib_atomic_wait is defined, 0 otherwise.
-#ifdef __cpp_lib_atomic_wait
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT     1
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_VAL __cpp_lib_atomic_wait
-#else
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT     0
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_VAL 0L
-#endif  // __cpp_lib_atomic_wait
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_VAL
+    #ifdef __cpp_lib_atomic_wait
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_VAL __cpp_lib_atomic_wait
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_VAL 0L
+    #endif  // __cpp_lib_atomic_wait
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT
+    #if (D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_NAME "__cpp_lib_atomic_wait"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_DESC "Efficient std::atomic waiting"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT_VERS "(C++20)"
@@ -1723,13 +2417,20 @@ TABLE OF CONTENTS
 // 2.3.6
 // D_ENV_CPP_FEATURE_STL_BARRIER
 //   feature: 1 if __cpp_lib_barrier is defined, 0 otherwise.
-#ifdef __cpp_lib_barrier
-    #define D_ENV_CPP_FEATURE_STL_BARRIER     1
-    #define D_ENV_CPP_FEATURE_STL_BARRIER_VAL __cpp_lib_barrier
-#else
-    #define D_ENV_CPP_FEATURE_STL_BARRIER     0
-    #define D_ENV_CPP_FEATURE_STL_BARRIER_VAL 0L
-#endif  // __cpp_lib_barrier
+#ifndef D_ENV_CPP_FEATURE_STL_BARRIER_VAL
+    #ifdef __cpp_lib_barrier
+        #define D_ENV_CPP_FEATURE_STL_BARRIER_VAL __cpp_lib_barrier
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BARRIER_VAL 0L
+    #endif  // __cpp_lib_barrier
+#endif  // D_ENV_CPP_FEATURE_STL_BARRIER_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BARRIER
+    #if (D_ENV_CPP_FEATURE_STL_BARRIER_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BARRIER 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BARRIER 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BARRIER
 #define D_ENV_CPP_FEATURE_STL_BARRIER_NAME "__cpp_lib_barrier"
 #define D_ENV_CPP_FEATURE_STL_BARRIER_DESC "std::barrier"
 #define D_ENV_CPP_FEATURE_STL_BARRIER_VERS "(C++20)"
@@ -1737,13 +2438,20 @@ TABLE OF CONTENTS
 // 2.3.7
 // D_ENV_CPP_FEATURE_STL_BIND_FRONT
 //   feature: 1 if __cpp_lib_bind_front is defined, 0 otherwise.
-#ifdef __cpp_lib_bind_front
-    #define D_ENV_CPP_FEATURE_STL_BIND_FRONT     1
-    #define D_ENV_CPP_FEATURE_STL_BIND_FRONT_VAL __cpp_lib_bind_front
-#else
-    #define D_ENV_CPP_FEATURE_STL_BIND_FRONT     0
-    #define D_ENV_CPP_FEATURE_STL_BIND_FRONT_VAL 0L
-#endif  // __cpp_lib_bind_front
+#ifndef D_ENV_CPP_FEATURE_STL_BIND_FRONT_VAL
+    #ifdef __cpp_lib_bind_front
+        #define D_ENV_CPP_FEATURE_STL_BIND_FRONT_VAL __cpp_lib_bind_front
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BIND_FRONT_VAL 0L
+    #endif  // __cpp_lib_bind_front
+#endif  // D_ENV_CPP_FEATURE_STL_BIND_FRONT_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BIND_FRONT
+    #if (D_ENV_CPP_FEATURE_STL_BIND_FRONT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BIND_FRONT 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BIND_FRONT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BIND_FRONT
 #define D_ENV_CPP_FEATURE_STL_BIND_FRONT_NAME "__cpp_lib_bind_front"
 #define D_ENV_CPP_FEATURE_STL_BIND_FRONT_DESC "std::bind_front"
 #define D_ENV_CPP_FEATURE_STL_BIND_FRONT_VERS "(C++20)"
@@ -1751,13 +2459,20 @@ TABLE OF CONTENTS
 // 2.3.8
 // D_ENV_CPP_FEATURE_STL_BIT_CAST
 //   feature: 1 if __cpp_lib_bit_cast is defined, 0 otherwise.
-#ifdef __cpp_lib_bit_cast
-    #define D_ENV_CPP_FEATURE_STL_BIT_CAST     1
-    #define D_ENV_CPP_FEATURE_STL_BIT_CAST_VAL __cpp_lib_bit_cast
-#else
-    #define D_ENV_CPP_FEATURE_STL_BIT_CAST     0
-    #define D_ENV_CPP_FEATURE_STL_BIT_CAST_VAL 0L
-#endif  // __cpp_lib_bit_cast
+#ifndef D_ENV_CPP_FEATURE_STL_BIT_CAST_VAL
+    #ifdef __cpp_lib_bit_cast
+        #define D_ENV_CPP_FEATURE_STL_BIT_CAST_VAL __cpp_lib_bit_cast
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BIT_CAST_VAL 0L
+    #endif  // __cpp_lib_bit_cast
+#endif  // D_ENV_CPP_FEATURE_STL_BIT_CAST_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BIT_CAST
+    #if (D_ENV_CPP_FEATURE_STL_BIT_CAST_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BIT_CAST 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BIT_CAST 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BIT_CAST
 #define D_ENV_CPP_FEATURE_STL_BIT_CAST_NAME "__cpp_lib_bit_cast"
 #define D_ENV_CPP_FEATURE_STL_BIT_CAST_DESC "std::bit_cast"
 #define D_ENV_CPP_FEATURE_STL_BIT_CAST_VERS "(C++20)"
@@ -1765,13 +2480,20 @@ TABLE OF CONTENTS
 // 2.3.9
 // D_ENV_CPP_FEATURE_STL_BITOPS
 //   feature: 1 if __cpp_lib_bitops is defined, 0 otherwise.
-#ifdef __cpp_lib_bitops
-    #define D_ENV_CPP_FEATURE_STL_BITOPS     1
-    #define D_ENV_CPP_FEATURE_STL_BITOPS_VAL __cpp_lib_bitops
-#else
-    #define D_ENV_CPP_FEATURE_STL_BITOPS     0
-    #define D_ENV_CPP_FEATURE_STL_BITOPS_VAL 0L
-#endif  // __cpp_lib_bitops
+#ifndef D_ENV_CPP_FEATURE_STL_BITOPS_VAL
+    #ifdef __cpp_lib_bitops
+        #define D_ENV_CPP_FEATURE_STL_BITOPS_VAL __cpp_lib_bitops
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BITOPS_VAL 0L
+    #endif  // __cpp_lib_bitops
+#endif  // D_ENV_CPP_FEATURE_STL_BITOPS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BITOPS
+    #if (D_ENV_CPP_FEATURE_STL_BITOPS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BITOPS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BITOPS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BITOPS
 #define D_ENV_CPP_FEATURE_STL_BITOPS_NAME "__cpp_lib_bitops"
 #define D_ENV_CPP_FEATURE_STL_BITOPS_DESC "Bit operations"
 #define D_ENV_CPP_FEATURE_STL_BITOPS_VERS "(C++20)"
@@ -1779,14 +2501,21 @@ TABLE OF CONTENTS
 // 2.3.10
 // D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS
 //   feature: 1 if __cpp_lib_bounded_array_traits is defined, 0 otherwise.
-#ifdef __cpp_lib_bounded_array_traits
-    #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS 1
-    #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS_VAL                     \
-        __cpp_lib_bounded_array_traits
-#else
-    #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS 0
-    #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS_VAL 0L
-#endif  // __cpp_lib_bounded_array_traits
+#ifndef D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS_VAL
+    #ifdef __cpp_lib_bounded_array_traits
+        #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS_VAL                 \
+            __cpp_lib_bounded_array_traits
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS_VAL 0L
+    #endif  // __cpp_lib_bounded_array_traits
+#endif  // D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS
+    #if (D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS
 #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS_NAME                        \
     "__cpp_lib_bounded_array_traits"
 #define D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS_DESC                        \
@@ -1796,13 +2525,20 @@ TABLE OF CONTENTS
 // 2.3.11
 // D_ENV_CPP_FEATURE_STL_CHAR8_T
 //   feature: 1 if __cpp_lib_char8_t is defined, 0 otherwise.
-#ifdef __cpp_lib_char8_t
-    #define D_ENV_CPP_FEATURE_STL_CHAR8_T     1
-    #define D_ENV_CPP_FEATURE_STL_CHAR8_T_VAL __cpp_lib_char8_t
-#else
-    #define D_ENV_CPP_FEATURE_STL_CHAR8_T     0
-    #define D_ENV_CPP_FEATURE_STL_CHAR8_T_VAL 0L
-#endif  // __cpp_lib_char8_t
+#ifndef D_ENV_CPP_FEATURE_STL_CHAR8_T_VAL
+    #ifdef __cpp_lib_char8_t
+        #define D_ENV_CPP_FEATURE_STL_CHAR8_T_VAL __cpp_lib_char8_t
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CHAR8_T_VAL 0L
+    #endif  // __cpp_lib_char8_t
+#endif  // D_ENV_CPP_FEATURE_STL_CHAR8_T_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CHAR8_T
+    #if (D_ENV_CPP_FEATURE_STL_CHAR8_T_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CHAR8_T 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CHAR8_T 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CHAR8_T
 #define D_ENV_CPP_FEATURE_STL_CHAR8_T_NAME "__cpp_lib_char8_t"
 #define D_ENV_CPP_FEATURE_STL_CHAR8_T_DESC "Library support for char8_t"
 #define D_ENV_CPP_FEATURE_STL_CHAR8_T_VERS "(C++20)"
@@ -1810,13 +2546,20 @@ TABLE OF CONTENTS
 // 2.3.12
 // D_ENV_CPP_FEATURE_STL_CONCEPTS
 //   feature: 1 if __cpp_lib_concepts is defined, 0 otherwise.
-#ifdef __cpp_lib_concepts
-    #define D_ENV_CPP_FEATURE_STL_CONCEPTS     1
-    #define D_ENV_CPP_FEATURE_STL_CONCEPTS_VAL __cpp_lib_concepts
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONCEPTS     0
-    #define D_ENV_CPP_FEATURE_STL_CONCEPTS_VAL 0L
-#endif  // __cpp_lib_concepts
+#ifndef D_ENV_CPP_FEATURE_STL_CONCEPTS_VAL
+    #ifdef __cpp_lib_concepts
+        #define D_ENV_CPP_FEATURE_STL_CONCEPTS_VAL __cpp_lib_concepts
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONCEPTS_VAL 0L
+    #endif  // __cpp_lib_concepts
+#endif  // D_ENV_CPP_FEATURE_STL_CONCEPTS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONCEPTS
+    #if (D_ENV_CPP_FEATURE_STL_CONCEPTS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONCEPTS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONCEPTS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONCEPTS
 #define D_ENV_CPP_FEATURE_STL_CONCEPTS_NAME "__cpp_lib_concepts"
 #define D_ENV_CPP_FEATURE_STL_CONCEPTS_DESC "Standard library concepts"
 #define D_ENV_CPP_FEATURE_STL_CONCEPTS_VERS "(C++20)"
@@ -1824,14 +2567,21 @@ TABLE OF CONTENTS
 // 2.3.13
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS
 //   feature: 1 if __cpp_lib_constexpr_algorithms is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_algorithms
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS 1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS_VAL                     \
-        __cpp_lib_constexpr_algorithms
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS 0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS_VAL 0L
-#endif  // __cpp_lib_constexpr_algorithms
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS_VAL
+    #ifdef __cpp_lib_constexpr_algorithms
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS_VAL                 \
+            __cpp_lib_constexpr_algorithms
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS_VAL 0L
+    #endif  // __cpp_lib_constexpr_algorithms
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS_NAME                        \
     "__cpp_lib_constexpr_algorithms"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS_DESC                        \
@@ -1841,14 +2591,21 @@ TABLE OF CONTENTS
 // 2.3.14
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX
 //   feature: 1 if __cpp_lib_constexpr_complex is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_complex
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX 1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX_VAL                        \
-        __cpp_lib_constexpr_complex
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX 0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX_VAL 0L
-#endif  // __cpp_lib_constexpr_complex
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX_VAL
+    #ifdef __cpp_lib_constexpr_complex
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX_VAL                    \
+            __cpp_lib_constexpr_complex
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX_VAL 0L
+    #endif  // __cpp_lib_constexpr_complex
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX_NAME                           \
     "__cpp_lib_constexpr_complex"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX_DESC                           \
@@ -1858,14 +2615,21 @@ TABLE OF CONTENTS
 // 2.3.15
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC
 //   feature: 1 if __cpp_lib_constexpr_dynamic_alloc is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_dynamic_alloc
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC 1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC_VAL                  \
-        __cpp_lib_constexpr_dynamic_alloc
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC 0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC_VAL 0L
-#endif  // __cpp_lib_constexpr_dynamic_alloc
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC_VAL
+    #ifdef __cpp_lib_constexpr_dynamic_alloc
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC_VAL              \
+            __cpp_lib_constexpr_dynamic_alloc
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC_VAL 0L
+    #endif  // __cpp_lib_constexpr_dynamic_alloc
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC_NAME                     \
     "__cpp_lib_constexpr_dynamic_alloc"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC_DESC                     \
@@ -1875,14 +2639,21 @@ TABLE OF CONTENTS
 // 2.3.16
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING
 //   feature: 1 if __cpp_lib_constexpr_string is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_string
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING 1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_VAL                         \
-        __cpp_lib_constexpr_string
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING 0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_VAL 0L
-#endif  // __cpp_lib_constexpr_string
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_VAL
+    #ifdef __cpp_lib_constexpr_string
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_VAL                     \
+            __cpp_lib_constexpr_string
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_VAL 0L
+    #endif  // __cpp_lib_constexpr_string
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_NAME "__cpp_lib_constexpr_string"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_DESC "constexpr std::string"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING_VERS "(C++20)"
@@ -1890,14 +2661,21 @@ TABLE OF CONTENTS
 // 2.3.17
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR
 //   feature: 1 if __cpp_lib_constexpr_vector is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_vector
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR 1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_VAL                         \
-        __cpp_lib_constexpr_vector
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR 0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_VAL 0L
-#endif  // __cpp_lib_constexpr_vector
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_VAL
+    #ifdef __cpp_lib_constexpr_vector
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_VAL                     \
+            __cpp_lib_constexpr_vector
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_VAL 0L
+    #endif  // __cpp_lib_constexpr_vector
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_NAME "__cpp_lib_constexpr_vector"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_DESC "Constexpr for std::vector"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR_VERS "(C++20)"
@@ -1905,13 +2683,20 @@ TABLE OF CONTENTS
 // 2.3.18
 // D_ENV_CPP_FEATURE_STL_COROUTINE
 //   feature: 1 if __cpp_lib_coroutine is defined, 0 otherwise.
-#ifdef __cpp_lib_coroutine
-    #define D_ENV_CPP_FEATURE_STL_COROUTINE     1
-    #define D_ENV_CPP_FEATURE_STL_COROUTINE_VAL __cpp_lib_coroutine
-#else
-    #define D_ENV_CPP_FEATURE_STL_COROUTINE     0
-    #define D_ENV_CPP_FEATURE_STL_COROUTINE_VAL 0L
-#endif  // __cpp_lib_coroutine
+#ifndef D_ENV_CPP_FEATURE_STL_COROUTINE_VAL
+    #ifdef __cpp_lib_coroutine
+        #define D_ENV_CPP_FEATURE_STL_COROUTINE_VAL __cpp_lib_coroutine
+    #else
+        #define D_ENV_CPP_FEATURE_STL_COROUTINE_VAL 0L
+    #endif  // __cpp_lib_coroutine
+#endif  // D_ENV_CPP_FEATURE_STL_COROUTINE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_COROUTINE
+    #if (D_ENV_CPP_FEATURE_STL_COROUTINE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_COROUTINE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_COROUTINE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_COROUTINE
 #define D_ENV_CPP_FEATURE_STL_COROUTINE_NAME "__cpp_lib_coroutine"
 #define D_ENV_CPP_FEATURE_STL_COROUTINE_DESC "Coroutines (library support)"
 #define D_ENV_CPP_FEATURE_STL_COROUTINE_VERS "(C++20)"
@@ -1919,13 +2704,20 @@ TABLE OF CONTENTS
 // 2.3.19
 // D_ENV_CPP_FEATURE_STL_ENDIAN
 //   feature: 1 if __cpp_lib_endian is defined, 0 otherwise.
-#ifdef __cpp_lib_endian
-    #define D_ENV_CPP_FEATURE_STL_ENDIAN     1
-    #define D_ENV_CPP_FEATURE_STL_ENDIAN_VAL __cpp_lib_endian
-#else
-    #define D_ENV_CPP_FEATURE_STL_ENDIAN     0
-    #define D_ENV_CPP_FEATURE_STL_ENDIAN_VAL 0L
-#endif  // __cpp_lib_endian
+#ifndef D_ENV_CPP_FEATURE_STL_ENDIAN_VAL
+    #ifdef __cpp_lib_endian
+        #define D_ENV_CPP_FEATURE_STL_ENDIAN_VAL __cpp_lib_endian
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ENDIAN_VAL 0L
+    #endif  // __cpp_lib_endian
+#endif  // D_ENV_CPP_FEATURE_STL_ENDIAN_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ENDIAN
+    #if (D_ENV_CPP_FEATURE_STL_ENDIAN_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ENDIAN 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ENDIAN 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ENDIAN
 #define D_ENV_CPP_FEATURE_STL_ENDIAN_NAME "__cpp_lib_endian"
 #define D_ENV_CPP_FEATURE_STL_ENDIAN_DESC "std::endian"
 #define D_ENV_CPP_FEATURE_STL_ENDIAN_VERS "(C++20)"
@@ -1933,13 +2725,20 @@ TABLE OF CONTENTS
 // 2.3.20
 // D_ENV_CPP_FEATURE_STL_FORMAT
 //   feature: 1 if __cpp_lib_format is defined, 0 otherwise.
-#ifdef __cpp_lib_format
-    #define D_ENV_CPP_FEATURE_STL_FORMAT     1
-    #define D_ENV_CPP_FEATURE_STL_FORMAT_VAL __cpp_lib_format
-#else
-    #define D_ENV_CPP_FEATURE_STL_FORMAT     0
-    #define D_ENV_CPP_FEATURE_STL_FORMAT_VAL 0L
-#endif  // __cpp_lib_format
+#ifndef D_ENV_CPP_FEATURE_STL_FORMAT_VAL
+    #ifdef __cpp_lib_format
+        #define D_ENV_CPP_FEATURE_STL_FORMAT_VAL __cpp_lib_format
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FORMAT_VAL 0L
+    #endif  // __cpp_lib_format
+#endif  // D_ENV_CPP_FEATURE_STL_FORMAT_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_FORMAT
+    #if (D_ENV_CPP_FEATURE_STL_FORMAT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_FORMAT 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FORMAT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_FORMAT
 #define D_ENV_CPP_FEATURE_STL_FORMAT_NAME "__cpp_lib_format"
 #define D_ENV_CPP_FEATURE_STL_FORMAT_DESC "Text formatting"
 #define D_ENV_CPP_FEATURE_STL_FORMAT_VERS "(C++20)"
@@ -1947,13 +2746,20 @@ TABLE OF CONTENTS
 // 2.3.21
 // D_ENV_CPP_FEATURE_STL_JTHREAD
 //   feature: 1 if __cpp_lib_jthread is defined, 0 otherwise.
-#ifdef __cpp_lib_jthread
-    #define D_ENV_CPP_FEATURE_STL_JTHREAD     1
-    #define D_ENV_CPP_FEATURE_STL_JTHREAD_VAL __cpp_lib_jthread
-#else
-    #define D_ENV_CPP_FEATURE_STL_JTHREAD     0
-    #define D_ENV_CPP_FEATURE_STL_JTHREAD_VAL 0L
-#endif  // __cpp_lib_jthread
+#ifndef D_ENV_CPP_FEATURE_STL_JTHREAD_VAL
+    #ifdef __cpp_lib_jthread
+        #define D_ENV_CPP_FEATURE_STL_JTHREAD_VAL __cpp_lib_jthread
+    #else
+        #define D_ENV_CPP_FEATURE_STL_JTHREAD_VAL 0L
+    #endif  // __cpp_lib_jthread
+#endif  // D_ENV_CPP_FEATURE_STL_JTHREAD_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_JTHREAD
+    #if (D_ENV_CPP_FEATURE_STL_JTHREAD_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_JTHREAD 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_JTHREAD 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_JTHREAD
 #define D_ENV_CPP_FEATURE_STL_JTHREAD_NAME "__cpp_lib_jthread"
 #define D_ENV_CPP_FEATURE_STL_JTHREAD_DESC "Stop token and joining thread"
 #define D_ENV_CPP_FEATURE_STL_JTHREAD_VERS "(C++20)"
@@ -1961,13 +2767,20 @@ TABLE OF CONTENTS
 // 2.3.22
 // D_ENV_CPP_FEATURE_STL_LATCH
 //   feature: 1 if __cpp_lib_latch is defined, 0 otherwise.
-#ifdef __cpp_lib_latch
-    #define D_ENV_CPP_FEATURE_STL_LATCH     1
-    #define D_ENV_CPP_FEATURE_STL_LATCH_VAL __cpp_lib_latch
-#else
-    #define D_ENV_CPP_FEATURE_STL_LATCH     0
-    #define D_ENV_CPP_FEATURE_STL_LATCH_VAL 0L
-#endif  // __cpp_lib_latch
+#ifndef D_ENV_CPP_FEATURE_STL_LATCH_VAL
+    #ifdef __cpp_lib_latch
+        #define D_ENV_CPP_FEATURE_STL_LATCH_VAL __cpp_lib_latch
+    #else
+        #define D_ENV_CPP_FEATURE_STL_LATCH_VAL 0L
+    #endif  // __cpp_lib_latch
+#endif  // D_ENV_CPP_FEATURE_STL_LATCH_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_LATCH
+    #if (D_ENV_CPP_FEATURE_STL_LATCH_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_LATCH 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_LATCH 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_LATCH
 #define D_ENV_CPP_FEATURE_STL_LATCH_NAME "__cpp_lib_latch"
 #define D_ENV_CPP_FEATURE_STL_LATCH_DESC "std::latch"
 #define D_ENV_CPP_FEATURE_STL_LATCH_VERS "(C++20)"
@@ -1975,13 +2788,21 @@ TABLE OF CONTENTS
 // 2.3.23
 // D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS
 //   feature: 1 if __cpp_lib_math_constants is defined, 0 otherwise.
-#ifdef __cpp_lib_math_constants
-    #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS     1
-    #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_VAL __cpp_lib_math_constants
-#else
-    #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS     0
-    #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_VAL 0L
-#endif  // __cpp_lib_math_constants
+#ifndef D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_VAL
+    #ifdef __cpp_lib_math_constants
+        #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_VAL                       \
+            __cpp_lib_math_constants
+    #else
+        #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_VAL 0L
+    #endif  // __cpp_lib_math_constants
+#endif  // D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS
+    #if (D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS
 #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_NAME "__cpp_lib_math_constants"
 #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_DESC "Mathematical constants"
 #define D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS_VERS "(C++20)"
@@ -1989,13 +2810,20 @@ TABLE OF CONTENTS
 // 2.3.24
 // D_ENV_CPP_FEATURE_STL_RANGES
 //   feature: 1 if __cpp_lib_ranges is defined, 0 otherwise.
-#ifdef __cpp_lib_ranges
-    #define D_ENV_CPP_FEATURE_STL_RANGES     1
-    #define D_ENV_CPP_FEATURE_STL_RANGES_VAL __cpp_lib_ranges
-#else
-    #define D_ENV_CPP_FEATURE_STL_RANGES     0
-    #define D_ENV_CPP_FEATURE_STL_RANGES_VAL 0L
-#endif  // __cpp_lib_ranges
+#ifndef D_ENV_CPP_FEATURE_STL_RANGES_VAL
+    #ifdef __cpp_lib_ranges
+        #define D_ENV_CPP_FEATURE_STL_RANGES_VAL __cpp_lib_ranges
+    #else
+        #define D_ENV_CPP_FEATURE_STL_RANGES_VAL 0L
+    #endif  // __cpp_lib_ranges
+#endif  // D_ENV_CPP_FEATURE_STL_RANGES_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_RANGES
+    #if (D_ENV_CPP_FEATURE_STL_RANGES_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_RANGES 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_RANGES 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_RANGES
 #define D_ENV_CPP_FEATURE_STL_RANGES_NAME "__cpp_lib_ranges"
 #define D_ENV_CPP_FEATURE_STL_RANGES_DESC                                      \
     "Ranges library and constrained algorithms"
@@ -2004,13 +2832,20 @@ TABLE OF CONTENTS
 // 2.3.25
 // D_ENV_CPP_FEATURE_STL_SEMAPHORE
 //   feature: 1 if __cpp_lib_semaphore is defined, 0 otherwise.
-#ifdef __cpp_lib_semaphore
-    #define D_ENV_CPP_FEATURE_STL_SEMAPHORE     1
-    #define D_ENV_CPP_FEATURE_STL_SEMAPHORE_VAL __cpp_lib_semaphore
-#else
-    #define D_ENV_CPP_FEATURE_STL_SEMAPHORE     0
-    #define D_ENV_CPP_FEATURE_STL_SEMAPHORE_VAL 0L
-#endif  // __cpp_lib_semaphore
+#ifndef D_ENV_CPP_FEATURE_STL_SEMAPHORE_VAL
+    #ifdef __cpp_lib_semaphore
+        #define D_ENV_CPP_FEATURE_STL_SEMAPHORE_VAL __cpp_lib_semaphore
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SEMAPHORE_VAL 0L
+    #endif  // __cpp_lib_semaphore
+#endif  // D_ENV_CPP_FEATURE_STL_SEMAPHORE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_SEMAPHORE
+    #if (D_ENV_CPP_FEATURE_STL_SEMAPHORE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_SEMAPHORE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SEMAPHORE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_SEMAPHORE
 #define D_ENV_CPP_FEATURE_STL_SEMAPHORE_NAME "__cpp_lib_semaphore"
 #define D_ENV_CPP_FEATURE_STL_SEMAPHORE_DESC                                   \
     "std::counting_semaphore, std::binary_semaphore"
@@ -2019,13 +2854,21 @@ TABLE OF CONTENTS
 // 2.3.26
 // D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION
 //   feature: 1 if __cpp_lib_source_location is defined, 0 otherwise.
-#ifdef __cpp_lib_source_location
-    #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION     1
-    #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION_VAL __cpp_lib_source_location
-#else
-    #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION     0
-    #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION_VAL 0L
-#endif  // __cpp_lib_source_location
+#ifndef D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION_VAL
+    #ifdef __cpp_lib_source_location
+        #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION_VAL                      \
+            __cpp_lib_source_location
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION_VAL 0L
+    #endif  // __cpp_lib_source_location
+#endif  // D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION
+    #if (D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION
 #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION_NAME "__cpp_lib_source_location"
 #define D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION_DESC                             \
     "Source-code information capture"
@@ -2034,13 +2877,20 @@ TABLE OF CONTENTS
 // 2.3.27
 // D_ENV_CPP_FEATURE_STL_SPAN
 //   feature: 1 if __cpp_lib_span is defined, 0 otherwise.
-#ifdef __cpp_lib_span
-    #define D_ENV_CPP_FEATURE_STL_SPAN     1
-    #define D_ENV_CPP_FEATURE_STL_SPAN_VAL __cpp_lib_span
-#else
-    #define D_ENV_CPP_FEATURE_STL_SPAN     0
-    #define D_ENV_CPP_FEATURE_STL_SPAN_VAL 0L
-#endif  // __cpp_lib_span
+#ifndef D_ENV_CPP_FEATURE_STL_SPAN_VAL
+    #ifdef __cpp_lib_span
+        #define D_ENV_CPP_FEATURE_STL_SPAN_VAL __cpp_lib_span
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SPAN_VAL 0L
+    #endif  // __cpp_lib_span
+#endif  // D_ENV_CPP_FEATURE_STL_SPAN_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_SPAN
+    #if (D_ENV_CPP_FEATURE_STL_SPAN_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_SPAN 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SPAN 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_SPAN
 #define D_ENV_CPP_FEATURE_STL_SPAN_NAME "__cpp_lib_span"
 #define D_ENV_CPP_FEATURE_STL_SPAN_DESC "std::span"
 #define D_ENV_CPP_FEATURE_STL_SPAN_VERS "(C++20)"
@@ -2048,14 +2898,21 @@ TABLE OF CONTENTS
 // 2.3.28
 // D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON
 //   feature: 1 if __cpp_lib_three_way_comparison is defined, 0 otherwise.
-#ifdef __cpp_lib_three_way_comparison
-    #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON 1
-    #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON_VAL                     \
-        __cpp_lib_three_way_comparison
-#else
-    #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON 0
-    #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON_VAL 0L
-#endif  // __cpp_lib_three_way_comparison
+#ifndef D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON_VAL
+    #ifdef __cpp_lib_three_way_comparison
+        #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON_VAL                 \
+            __cpp_lib_three_way_comparison
+    #else
+        #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON_VAL 0L
+    #endif  // __cpp_lib_three_way_comparison
+#endif  // D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON
+    #if (D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON
 #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON_NAME                        \
     "__cpp_lib_three_way_comparison"
 #define D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON_DESC                        \
@@ -2065,13 +2922,20 @@ TABLE OF CONTENTS
 // 2.3.29
 // D_ENV_CPP_FEATURE_STL_TO_ARRAY
 //   feature: 1 if __cpp_lib_to_array is defined, 0 otherwise.
-#ifdef __cpp_lib_to_array
-    #define D_ENV_CPP_FEATURE_STL_TO_ARRAY     1
-    #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_VAL __cpp_lib_to_array
-#else
-    #define D_ENV_CPP_FEATURE_STL_TO_ARRAY     0
-    #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_VAL 0L
-#endif  // __cpp_lib_to_array
+#ifndef D_ENV_CPP_FEATURE_STL_TO_ARRAY_VAL
+    #ifdef __cpp_lib_to_array
+        #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_VAL __cpp_lib_to_array
+    #else
+        #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_VAL 0L
+    #endif  // __cpp_lib_to_array
+#endif  // D_ENV_CPP_FEATURE_STL_TO_ARRAY_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_TO_ARRAY
+    #if (D_ENV_CPP_FEATURE_STL_TO_ARRAY_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_TO_ARRAY 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_TO_ARRAY 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_TO_ARRAY
 #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_NAME "__cpp_lib_to_array"
 #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_DESC "std::to_array"
 #define D_ENV_CPP_FEATURE_STL_TO_ARRAY_VERS "(C++20)"
@@ -2081,14 +2945,21 @@ TABLE OF CONTENTS
 //   feature: 1 if __cpp_lib_is_constant_evaluated is defined, 0 otherwise.
 // math/ and parse/ test it, and it was missing, so their #if read an
 // undefined name as 0 at every level (-Wundef).
-#ifdef __cpp_lib_is_constant_evaluated
-    #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED     1
-    #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VAL                    \
-        __cpp_lib_is_constant_evaluated
-#else
-    #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED     0
-    #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VAL 0L
-#endif  // __cpp_lib_is_constant_evaluated
+#ifndef D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VAL
+    #ifdef __cpp_lib_is_constant_evaluated
+        #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VAL                \
+            __cpp_lib_is_constant_evaluated
+    #else
+        #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VAL 0L
+    #endif  // __cpp_lib_is_constant_evaluated
+#endif  // D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED
+    #if (D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED
 #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_NAME                       \
     "__cpp_lib_is_constant_evaluated"
 #define D_ENV_CPP_FEATURE_STL_IS_CONSTANT_EVALUATED_DESC                       \
@@ -2101,14 +2972,21 @@ TABLE OF CONTENTS
 // D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR
 //   feature: 1 if __cpp_lib_adaptor_iterator_pair_constructor is defined, 0
 // otherwise.
-#ifdef __cpp_lib_adaptor_iterator_pair_constructor
-    #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR 1
-    #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR_VAL        \
-        __cpp_lib_adaptor_iterator_pair_constructor
-#else
-    #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR 0
-    #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR_VAL 0L
-#endif  // __cpp_lib_adaptor_iterator_pair_constructor
+#ifndef D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR_VAL
+    #ifdef __cpp_lib_adaptor_iterator_pair_constructor
+        #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR_VAL    \
+            __cpp_lib_adaptor_iterator_pair_constructor
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR_VAL 0L
+    #endif  // __cpp_lib_adaptor_iterator_pair_constructor
+#endif  // D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR
+    #if (D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR
 #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR_NAME           \
     "__cpp_lib_adaptor_iterator_pair_constructor"
 #define D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR_DESC           \
@@ -2119,14 +2997,21 @@ TABLE OF CONTENTS
 // D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE
 //   feature: 1 if __cpp_lib_associative_heterogeneous_erasure is defined, 0
 // otherwise.
-#ifdef __cpp_lib_associative_heterogeneous_erasure
-    #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE 1
-    #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE_VAL        \
-        __cpp_lib_associative_heterogeneous_erasure
-#else
-    #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE 0
-    #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE_VAL 0L
-#endif  // __cpp_lib_associative_heterogeneous_erasure
+#ifndef D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE_VAL
+    #ifdef __cpp_lib_associative_heterogeneous_erasure
+        #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE_VAL    \
+            __cpp_lib_associative_heterogeneous_erasure
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE_VAL 0L
+    #endif  // __cpp_lib_associative_heterogeneous_erasure
+#endif  // D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE
+    #if (D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE
 #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE_NAME           \
     "__cpp_lib_associative_heterogeneous_erasure"
 #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE_DESC           \
@@ -2136,13 +3021,20 @@ TABLE OF CONTENTS
 // 2.4.3
 // D_ENV_CPP_FEATURE_STL_BIND_BACK
 //   feature: 1 if __cpp_lib_bind_back is defined, 0 otherwise.
-#ifdef __cpp_lib_bind_back
-    #define D_ENV_CPP_FEATURE_STL_BIND_BACK     1
-    #define D_ENV_CPP_FEATURE_STL_BIND_BACK_VAL __cpp_lib_bind_back
-#else
-    #define D_ENV_CPP_FEATURE_STL_BIND_BACK     0
-    #define D_ENV_CPP_FEATURE_STL_BIND_BACK_VAL 0L
-#endif  // __cpp_lib_bind_back
+#ifndef D_ENV_CPP_FEATURE_STL_BIND_BACK_VAL
+    #ifdef __cpp_lib_bind_back
+        #define D_ENV_CPP_FEATURE_STL_BIND_BACK_VAL __cpp_lib_bind_back
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BIND_BACK_VAL 0L
+    #endif  // __cpp_lib_bind_back
+#endif  // D_ENV_CPP_FEATURE_STL_BIND_BACK_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BIND_BACK
+    #if (D_ENV_CPP_FEATURE_STL_BIND_BACK_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BIND_BACK 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BIND_BACK 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BIND_BACK
 #define D_ENV_CPP_FEATURE_STL_BIND_BACK_NAME "__cpp_lib_bind_back"
 #define D_ENV_CPP_FEATURE_STL_BIND_BACK_DESC "std::bind_back"
 #define D_ENV_CPP_FEATURE_STL_BIND_BACK_VERS "(C++23)"
@@ -2150,13 +3042,20 @@ TABLE OF CONTENTS
 // 2.4.4
 // D_ENV_CPP_FEATURE_STL_BYTESWAP
 //   feature: 1 if __cpp_lib_byteswap is defined, 0 otherwise.
-#ifdef __cpp_lib_byteswap
-    #define D_ENV_CPP_FEATURE_STL_BYTESWAP     1
-    #define D_ENV_CPP_FEATURE_STL_BYTESWAP_VAL __cpp_lib_byteswap
-#else
-    #define D_ENV_CPP_FEATURE_STL_BYTESWAP     0
-    #define D_ENV_CPP_FEATURE_STL_BYTESWAP_VAL 0L
-#endif  // __cpp_lib_byteswap
+#ifndef D_ENV_CPP_FEATURE_STL_BYTESWAP_VAL
+    #ifdef __cpp_lib_byteswap
+        #define D_ENV_CPP_FEATURE_STL_BYTESWAP_VAL __cpp_lib_byteswap
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BYTESWAP_VAL 0L
+    #endif  // __cpp_lib_byteswap
+#endif  // D_ENV_CPP_FEATURE_STL_BYTESWAP_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_BYTESWAP
+    #if (D_ENV_CPP_FEATURE_STL_BYTESWAP_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_BYTESWAP 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_BYTESWAP 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_BYTESWAP
 #define D_ENV_CPP_FEATURE_STL_BYTESWAP_NAME "__cpp_lib_byteswap"
 #define D_ENV_CPP_FEATURE_STL_BYTESWAP_DESC "std::byteswap"
 #define D_ENV_CPP_FEATURE_STL_BYTESWAP_VERS "(C++23)"
@@ -2164,14 +3063,21 @@ TABLE OF CONTENTS
 // 2.4.5
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET
 //   feature: 1 if __cpp_lib_constexpr_bitset is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_bitset
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET 1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET_VAL                         \
-        __cpp_lib_constexpr_bitset
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET 0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET_VAL 0L
-#endif  // __cpp_lib_constexpr_bitset
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET_VAL
+    #ifdef __cpp_lib_constexpr_bitset
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET_VAL                     \
+            __cpp_lib_constexpr_bitset
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET_VAL 0L
+    #endif  // __cpp_lib_constexpr_bitset
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET_NAME "__cpp_lib_constexpr_bitset"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET_DESC                            \
     "A more constexpr std::bitset"
@@ -2180,14 +3086,21 @@ TABLE OF CONTENTS
 // 2.4.6
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV
 //   feature: 1 if __cpp_lib_constexpr_charconv is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_charconv
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV 1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV_VAL                       \
-        __cpp_lib_constexpr_charconv
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV 0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV_VAL 0L
-#endif  // __cpp_lib_constexpr_charconv
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV_VAL
+    #ifdef __cpp_lib_constexpr_charconv
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV_VAL                   \
+            __cpp_lib_constexpr_charconv
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV_VAL 0L
+    #endif  // __cpp_lib_constexpr_charconv
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV_NAME                          \
     "__cpp_lib_constexpr_charconv"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV_DESC                          \
@@ -2197,13 +3110,21 @@ TABLE OF CONTENTS
 // 2.4.7
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH
 //   feature: 1 if __cpp_lib_constexpr_cmath is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_cmath
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH     1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH_VAL __cpp_lib_constexpr_cmath
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH     0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH_VAL 0L
-#endif  // __cpp_lib_constexpr_cmath
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH_VAL
+    #ifdef __cpp_lib_constexpr_cmath
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH_VAL                      \
+            __cpp_lib_constexpr_cmath
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH_VAL 0L
+    #endif  // __cpp_lib_constexpr_cmath
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH_NAME "__cpp_lib_constexpr_cmath"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH_DESC                             \
     "Constexpr for mathematical functions in <cmath>"
@@ -2212,13 +3133,20 @@ TABLE OF CONTENTS
 // 2.4.8
 // D_ENV_CPP_FEATURE_STL_EXPECTED
 //   feature: 1 if __cpp_lib_expected is defined, 0 otherwise.
-#ifdef __cpp_lib_expected
-    #define D_ENV_CPP_FEATURE_STL_EXPECTED     1
-    #define D_ENV_CPP_FEATURE_STL_EXPECTED_VAL __cpp_lib_expected
-#else
-    #define D_ENV_CPP_FEATURE_STL_EXPECTED     0
-    #define D_ENV_CPP_FEATURE_STL_EXPECTED_VAL 0L
-#endif  // __cpp_lib_expected
+#ifndef D_ENV_CPP_FEATURE_STL_EXPECTED_VAL
+    #ifdef __cpp_lib_expected
+        #define D_ENV_CPP_FEATURE_STL_EXPECTED_VAL __cpp_lib_expected
+    #else
+        #define D_ENV_CPP_FEATURE_STL_EXPECTED_VAL 0L
+    #endif  // __cpp_lib_expected
+#endif  // D_ENV_CPP_FEATURE_STL_EXPECTED_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_EXPECTED
+    #if (D_ENV_CPP_FEATURE_STL_EXPECTED_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_EXPECTED 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_EXPECTED 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_EXPECTED
 #define D_ENV_CPP_FEATURE_STL_EXPECTED_NAME "__cpp_lib_expected"
 #define D_ENV_CPP_FEATURE_STL_EXPECTED_DESC "class template std::expected"
 #define D_ENV_CPP_FEATURE_STL_EXPECTED_VERS "(C++23)"
@@ -2226,13 +3154,20 @@ TABLE OF CONTENTS
 // 2.4.9
 // D_ENV_CPP_FEATURE_STL_FLAT_MAP
 //   feature: 1 if __cpp_lib_flat_map is defined, 0 otherwise.
-#ifdef __cpp_lib_flat_map
-    #define D_ENV_CPP_FEATURE_STL_FLAT_MAP     1
-    #define D_ENV_CPP_FEATURE_STL_FLAT_MAP_VAL __cpp_lib_flat_map
-#else
-    #define D_ENV_CPP_FEATURE_STL_FLAT_MAP     0
-    #define D_ENV_CPP_FEATURE_STL_FLAT_MAP_VAL 0L
-#endif  // __cpp_lib_flat_map
+#ifndef D_ENV_CPP_FEATURE_STL_FLAT_MAP_VAL
+    #ifdef __cpp_lib_flat_map
+        #define D_ENV_CPP_FEATURE_STL_FLAT_MAP_VAL __cpp_lib_flat_map
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FLAT_MAP_VAL 0L
+    #endif  // __cpp_lib_flat_map
+#endif  // D_ENV_CPP_FEATURE_STL_FLAT_MAP_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_FLAT_MAP
+    #if (D_ENV_CPP_FEATURE_STL_FLAT_MAP_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_FLAT_MAP 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FLAT_MAP 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_FLAT_MAP
 #define D_ENV_CPP_FEATURE_STL_FLAT_MAP_NAME "__cpp_lib_flat_map"
 #define D_ENV_CPP_FEATURE_STL_FLAT_MAP_DESC                                    \
     "std::flat_map and std::flat_multimap"
@@ -2241,13 +3176,20 @@ TABLE OF CONTENTS
 // 2.4.10
 // D_ENV_CPP_FEATURE_STL_FLAT_SET
 //   feature: 1 if __cpp_lib_flat_set is defined, 0 otherwise.
-#ifdef __cpp_lib_flat_set
-    #define D_ENV_CPP_FEATURE_STL_FLAT_SET     1
-    #define D_ENV_CPP_FEATURE_STL_FLAT_SET_VAL __cpp_lib_flat_set
-#else
-    #define D_ENV_CPP_FEATURE_STL_FLAT_SET     0
-    #define D_ENV_CPP_FEATURE_STL_FLAT_SET_VAL 0L
-#endif  // __cpp_lib_flat_set
+#ifndef D_ENV_CPP_FEATURE_STL_FLAT_SET_VAL
+    #ifdef __cpp_lib_flat_set
+        #define D_ENV_CPP_FEATURE_STL_FLAT_SET_VAL __cpp_lib_flat_set
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FLAT_SET_VAL 0L
+    #endif  // __cpp_lib_flat_set
+#endif  // D_ENV_CPP_FEATURE_STL_FLAT_SET_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_FLAT_SET
+    #if (D_ENV_CPP_FEATURE_STL_FLAT_SET_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_FLAT_SET 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FLAT_SET 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_FLAT_SET
 #define D_ENV_CPP_FEATURE_STL_FLAT_SET_NAME "__cpp_lib_flat_set"
 #define D_ENV_CPP_FEATURE_STL_FLAT_SET_DESC                                    \
     "std::flat_set and std::flat_multiset"
@@ -2256,13 +3198,20 @@ TABLE OF CONTENTS
 // 2.4.11
 // D_ENV_CPP_FEATURE_STL_GENERATOR
 //   feature: 1 if __cpp_lib_generator is defined, 0 otherwise.
-#ifdef __cpp_lib_generator
-    #define D_ENV_CPP_FEATURE_STL_GENERATOR     1
-    #define D_ENV_CPP_FEATURE_STL_GENERATOR_VAL __cpp_lib_generator
-#else
-    #define D_ENV_CPP_FEATURE_STL_GENERATOR     0
-    #define D_ENV_CPP_FEATURE_STL_GENERATOR_VAL 0L
-#endif  // __cpp_lib_generator
+#ifndef D_ENV_CPP_FEATURE_STL_GENERATOR_VAL
+    #ifdef __cpp_lib_generator
+        #define D_ENV_CPP_FEATURE_STL_GENERATOR_VAL __cpp_lib_generator
+    #else
+        #define D_ENV_CPP_FEATURE_STL_GENERATOR_VAL 0L
+    #endif  // __cpp_lib_generator
+#endif  // D_ENV_CPP_FEATURE_STL_GENERATOR_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_GENERATOR
+    #if (D_ENV_CPP_FEATURE_STL_GENERATOR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_GENERATOR 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_GENERATOR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_GENERATOR
 #define D_ENV_CPP_FEATURE_STL_GENERATOR_NAME "__cpp_lib_generator"
 #define D_ENV_CPP_FEATURE_STL_GENERATOR_DESC                                   \
     "std::generator: Synchronous coroutine generator for ranges"
@@ -2271,13 +3220,20 @@ TABLE OF CONTENTS
 // 2.4.12
 // D_ENV_CPP_FEATURE_STL_MDSPAN
 //   feature: 1 if __cpp_lib_mdspan is defined, 0 otherwise.
-#ifdef __cpp_lib_mdspan
-    #define D_ENV_CPP_FEATURE_STL_MDSPAN     1
-    #define D_ENV_CPP_FEATURE_STL_MDSPAN_VAL __cpp_lib_mdspan
-#else
-    #define D_ENV_CPP_FEATURE_STL_MDSPAN     0
-    #define D_ENV_CPP_FEATURE_STL_MDSPAN_VAL 0L
-#endif  // __cpp_lib_mdspan
+#ifndef D_ENV_CPP_FEATURE_STL_MDSPAN_VAL
+    #ifdef __cpp_lib_mdspan
+        #define D_ENV_CPP_FEATURE_STL_MDSPAN_VAL __cpp_lib_mdspan
+    #else
+        #define D_ENV_CPP_FEATURE_STL_MDSPAN_VAL 0L
+    #endif  // __cpp_lib_mdspan
+#endif  // D_ENV_CPP_FEATURE_STL_MDSPAN_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_MDSPAN
+    #if (D_ENV_CPP_FEATURE_STL_MDSPAN_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_MDSPAN 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_MDSPAN 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_MDSPAN
 #define D_ENV_CPP_FEATURE_STL_MDSPAN_NAME "__cpp_lib_mdspan"
 #define D_ENV_CPP_FEATURE_STL_MDSPAN_DESC "std::mdspan"
 #define D_ENV_CPP_FEATURE_STL_MDSPAN_VERS "(C++23)"
@@ -2285,14 +3241,21 @@ TABLE OF CONTENTS
 // 2.4.13
 // D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION
 //   feature: 1 if __cpp_lib_move_only_function is defined, 0 otherwise.
-#ifdef __cpp_lib_move_only_function
-    #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION 1
-    #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION_VAL                       \
-        __cpp_lib_move_only_function
-#else
-    #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION 0
-    #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION_VAL 0L
-#endif  // __cpp_lib_move_only_function
+#ifndef D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION_VAL
+    #ifdef __cpp_lib_move_only_function
+        #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION_VAL                   \
+            __cpp_lib_move_only_function
+    #else
+        #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION_VAL 0L
+    #endif  // __cpp_lib_move_only_function
+#endif  // D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION
+    #if (D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION
 #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION_NAME                          \
     "__cpp_lib_move_only_function"
 #define D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION_DESC "std::move_only_function"
@@ -2301,13 +3264,20 @@ TABLE OF CONTENTS
 // 2.4.14
 // D_ENV_CPP_FEATURE_STL_PRINT
 //   feature: 1 if __cpp_lib_print is defined, 0 otherwise.
-#ifdef __cpp_lib_print
-    #define D_ENV_CPP_FEATURE_STL_PRINT     1
-    #define D_ENV_CPP_FEATURE_STL_PRINT_VAL __cpp_lib_print
-#else
-    #define D_ENV_CPP_FEATURE_STL_PRINT     0
-    #define D_ENV_CPP_FEATURE_STL_PRINT_VAL 0L
-#endif  // __cpp_lib_print
+#ifndef D_ENV_CPP_FEATURE_STL_PRINT_VAL
+    #ifdef __cpp_lib_print
+        #define D_ENV_CPP_FEATURE_STL_PRINT_VAL __cpp_lib_print
+    #else
+        #define D_ENV_CPP_FEATURE_STL_PRINT_VAL 0L
+    #endif  // __cpp_lib_print
+#endif  // D_ENV_CPP_FEATURE_STL_PRINT_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_PRINT
+    #if (D_ENV_CPP_FEATURE_STL_PRINT_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_PRINT 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_PRINT 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_PRINT
 #define D_ENV_CPP_FEATURE_STL_PRINT_NAME "__cpp_lib_print"
 #define D_ENV_CPP_FEATURE_STL_PRINT_DESC "Formatted output"
 #define D_ENV_CPP_FEATURE_STL_PRINT_VERS "(C++23)"
@@ -2315,14 +3285,21 @@ TABLE OF CONTENTS
 // 2.4.15
 // D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER
 //   feature: 1 if __cpp_lib_ranges_to_container is defined, 0 otherwise.
-#ifdef __cpp_lib_ranges_to_container
-    #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER 1
-    #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER_VAL                      \
-        __cpp_lib_ranges_to_container
-#else
-    #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER 0
-    #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER_VAL 0L
-#endif  // __cpp_lib_ranges_to_container
+#ifndef D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER_VAL
+    #ifdef __cpp_lib_ranges_to_container
+        #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER_VAL                  \
+            __cpp_lib_ranges_to_container
+    #else
+        #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER_VAL 0L
+    #endif  // __cpp_lib_ranges_to_container
+#endif  // D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER
+    #if (D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER
 #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER_NAME                         \
     "__cpp_lib_ranges_to_container"
 #define D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER_DESC "std::ranges::to"
@@ -2331,13 +3308,20 @@ TABLE OF CONTENTS
 // 2.4.16
 // D_ENV_CPP_FEATURE_STL_SPANSTREAM
 //   feature: 1 if __cpp_lib_spanstream is defined, 0 otherwise.
-#ifdef __cpp_lib_spanstream
-    #define D_ENV_CPP_FEATURE_STL_SPANSTREAM     1
-    #define D_ENV_CPP_FEATURE_STL_SPANSTREAM_VAL __cpp_lib_spanstream
-#else
-    #define D_ENV_CPP_FEATURE_STL_SPANSTREAM     0
-    #define D_ENV_CPP_FEATURE_STL_SPANSTREAM_VAL 0L
-#endif  // __cpp_lib_spanstream
+#ifndef D_ENV_CPP_FEATURE_STL_SPANSTREAM_VAL
+    #ifdef __cpp_lib_spanstream
+        #define D_ENV_CPP_FEATURE_STL_SPANSTREAM_VAL __cpp_lib_spanstream
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SPANSTREAM_VAL 0L
+    #endif  // __cpp_lib_spanstream
+#endif  // D_ENV_CPP_FEATURE_STL_SPANSTREAM_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_SPANSTREAM
+    #if (D_ENV_CPP_FEATURE_STL_SPANSTREAM_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_SPANSTREAM 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SPANSTREAM 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_SPANSTREAM
 #define D_ENV_CPP_FEATURE_STL_SPANSTREAM_NAME "__cpp_lib_spanstream"
 #define D_ENV_CPP_FEATURE_STL_SPANSTREAM_DESC "std::spanbuf, std::spanstream"
 #define D_ENV_CPP_FEATURE_STL_SPANSTREAM_VERS "(C++23)"
@@ -2345,13 +3329,20 @@ TABLE OF CONTENTS
 // 2.4.17
 // D_ENV_CPP_FEATURE_STL_STACKTRACE
 //   feature: 1 if __cpp_lib_stacktrace is defined, 0 otherwise.
-#ifdef __cpp_lib_stacktrace
-    #define D_ENV_CPP_FEATURE_STL_STACKTRACE     1
-    #define D_ENV_CPP_FEATURE_STL_STACKTRACE_VAL __cpp_lib_stacktrace
-#else
-    #define D_ENV_CPP_FEATURE_STL_STACKTRACE     0
-    #define D_ENV_CPP_FEATURE_STL_STACKTRACE_VAL 0L
-#endif  // __cpp_lib_stacktrace
+#ifndef D_ENV_CPP_FEATURE_STL_STACKTRACE_VAL
+    #ifdef __cpp_lib_stacktrace
+        #define D_ENV_CPP_FEATURE_STL_STACKTRACE_VAL __cpp_lib_stacktrace
+    #else
+        #define D_ENV_CPP_FEATURE_STL_STACKTRACE_VAL 0L
+    #endif  // __cpp_lib_stacktrace
+#endif  // D_ENV_CPP_FEATURE_STL_STACKTRACE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_STACKTRACE
+    #if (D_ENV_CPP_FEATURE_STL_STACKTRACE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_STACKTRACE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_STACKTRACE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_STACKTRACE
 #define D_ENV_CPP_FEATURE_STL_STACKTRACE_NAME "__cpp_lib_stacktrace"
 #define D_ENV_CPP_FEATURE_STL_STACKTRACE_DESC "Stacktrace library"
 #define D_ENV_CPP_FEATURE_STL_STACKTRACE_VERS "(C++23)"
@@ -2359,13 +3350,20 @@ TABLE OF CONTENTS
 // 2.4.18
 // D_ENV_CPP_FEATURE_STL_STDATOMIC_H
 //   feature: 1 if __cpp_lib_stdatomic_h is defined, 0 otherwise.
-#ifdef __cpp_lib_stdatomic_h
-    #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H     1
-    #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H_VAL __cpp_lib_stdatomic_h
-#else
-    #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H     0
-    #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H_VAL 0L
-#endif  // __cpp_lib_stdatomic_h
+#ifndef D_ENV_CPP_FEATURE_STL_STDATOMIC_H_VAL
+    #ifdef __cpp_lib_stdatomic_h
+        #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H_VAL __cpp_lib_stdatomic_h
+    #else
+        #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H_VAL 0L
+    #endif  // __cpp_lib_stdatomic_h
+#endif  // D_ENV_CPP_FEATURE_STL_STDATOMIC_H_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_STDATOMIC_H
+    #if (D_ENV_CPP_FEATURE_STL_STDATOMIC_H_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_STDATOMIC_H
 #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H_NAME "__cpp_lib_stdatomic_h"
 #define D_ENV_CPP_FEATURE_STL_STDATOMIC_H_DESC                                 \
     "Compatibility header for C atomic operations"
@@ -2374,13 +3372,21 @@ TABLE OF CONTENTS
 // 2.4.19
 // D_ENV_CPP_FEATURE_STL_STRING_CONTAINS
 //   feature: 1 if __cpp_lib_string_contains is defined, 0 otherwise.
-#ifdef __cpp_lib_string_contains
-    #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS     1
-    #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS_VAL __cpp_lib_string_contains
-#else
-    #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS     0
-    #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS_VAL 0L
-#endif  // __cpp_lib_string_contains
+#ifndef D_ENV_CPP_FEATURE_STL_STRING_CONTAINS_VAL
+    #ifdef __cpp_lib_string_contains
+        #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS_VAL                      \
+            __cpp_lib_string_contains
+    #else
+        #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS_VAL 0L
+    #endif  // __cpp_lib_string_contains
+#endif  // D_ENV_CPP_FEATURE_STL_STRING_CONTAINS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_STRING_CONTAINS
+    #if (D_ENV_CPP_FEATURE_STL_STRING_CONTAINS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_STRING_CONTAINS
 #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS_NAME "__cpp_lib_string_contains"
 #define D_ENV_CPP_FEATURE_STL_STRING_CONTAINS_DESC                             \
     "contains() for std::basic_string and std::basic_string_view"
@@ -2390,14 +3396,21 @@ TABLE OF CONTENTS
 // D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE
 //   feature: 1 if __cpp_lib_string_resize_and_overwrite is defined, 0
 // otherwise.
-#ifdef __cpp_lib_string_resize_and_overwrite
-    #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE 1
-    #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE_VAL              \
-        __cpp_lib_string_resize_and_overwrite
-#else
-    #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE 0
-    #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE_VAL 0L
-#endif  // __cpp_lib_string_resize_and_overwrite
+#ifndef D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE_VAL
+    #ifdef __cpp_lib_string_resize_and_overwrite
+        #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE_VAL          \
+            __cpp_lib_string_resize_and_overwrite
+    #else
+        #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE_VAL 0L
+    #endif  // __cpp_lib_string_resize_and_overwrite
+#endif  // D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE
+    #if (D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE
 #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE_NAME                 \
     "__cpp_lib_string_resize_and_overwrite"
 #define D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE_DESC                 \
@@ -2407,13 +3420,20 @@ TABLE OF CONTENTS
 // 2.4.21
 // D_ENV_CPP_FEATURE_STL_UNREACHABLE
 //   feature: 1 if __cpp_lib_unreachable is defined, 0 otherwise.
-#ifdef __cpp_lib_unreachable
-    #define D_ENV_CPP_FEATURE_STL_UNREACHABLE     1
-    #define D_ENV_CPP_FEATURE_STL_UNREACHABLE_VAL __cpp_lib_unreachable
-#else
-    #define D_ENV_CPP_FEATURE_STL_UNREACHABLE     0
-    #define D_ENV_CPP_FEATURE_STL_UNREACHABLE_VAL 0L
-#endif  // __cpp_lib_unreachable
+#ifndef D_ENV_CPP_FEATURE_STL_UNREACHABLE_VAL
+    #ifdef __cpp_lib_unreachable
+        #define D_ENV_CPP_FEATURE_STL_UNREACHABLE_VAL __cpp_lib_unreachable
+    #else
+        #define D_ENV_CPP_FEATURE_STL_UNREACHABLE_VAL 0L
+    #endif  // __cpp_lib_unreachable
+#endif  // D_ENV_CPP_FEATURE_STL_UNREACHABLE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_UNREACHABLE
+    #if (D_ENV_CPP_FEATURE_STL_UNREACHABLE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_UNREACHABLE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_UNREACHABLE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_UNREACHABLE
 #define D_ENV_CPP_FEATURE_STL_UNREACHABLE_NAME "__cpp_lib_unreachable"
 #define D_ENV_CPP_FEATURE_STL_UNREACHABLE_DESC "std::unreachable"
 #define D_ENV_CPP_FEATURE_STL_UNREACHABLE_VERS "(C++23)"
@@ -2424,14 +3444,21 @@ TABLE OF CONTENTS
 // D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE
 //   feature: 1 if __cpp_lib_algorithm_default_value_type is defined, 0
 // otherwise.
-#ifdef __cpp_lib_algorithm_default_value_type
-    #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE 1
-    #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE_VAL             \
-        __cpp_lib_algorithm_default_value_type
-#else
-    #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE 0
-    #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE_VAL 0L
-#endif  // __cpp_lib_algorithm_default_value_type
+#ifndef D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE_VAL
+    #ifdef __cpp_lib_algorithm_default_value_type
+        #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE_VAL         \
+            __cpp_lib_algorithm_default_value_type
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE_VAL 0L
+    #endif  // __cpp_lib_algorithm_default_value_type
+#endif  // D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE
+    #if (D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE
 #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE_NAME                \
     "__cpp_lib_algorithm_default_value_type"
 #define D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE_DESC                \
@@ -2442,14 +3469,21 @@ TABLE OF CONTENTS
 // D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION
 //   feature: 1 if __cpp_lib_associative_heterogeneous_insertion is defined, 0
 // otherwise.
-#ifdef __cpp_lib_associative_heterogeneous_insertion
-    #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION 1
-    #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION_VAL      \
-        __cpp_lib_associative_heterogeneous_insertion
-#else
-    #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION 0
-    #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION_VAL 0L
-#endif  // __cpp_lib_associative_heterogeneous_insertion
+#ifndef D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION_VAL
+    #ifdef __cpp_lib_associative_heterogeneous_insertion
+        #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION_VAL  \
+            __cpp_lib_associative_heterogeneous_insertion
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION_VAL 0L
+    #endif  // __cpp_lib_associative_heterogeneous_insertion
+#endif  // D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION
+    #if (D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION
 #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION_NAME         \
     "__cpp_lib_associative_heterogeneous_insertion"
 #define D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION_DESC         \
@@ -2459,13 +3493,21 @@ TABLE OF CONTENTS
 // 2.5.3
 // D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX
 //   feature: 1 if __cpp_lib_atomic_min_max is defined, 0 otherwise.
-#ifdef __cpp_lib_atomic_min_max
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX     1
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_VAL __cpp_lib_atomic_min_max
-#else
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX     0
-    #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_VAL 0L
-#endif  // __cpp_lib_atomic_min_max
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_VAL
+    #ifdef __cpp_lib_atomic_min_max
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_VAL                       \
+            __cpp_lib_atomic_min_max
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_VAL 0L
+    #endif  // __cpp_lib_atomic_min_max
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX
+    #if (D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_NAME "__cpp_lib_atomic_min_max"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_DESC "Atomic minimum/maximum"
 #define D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX_VERS "(C++26)"
@@ -2473,14 +3515,21 @@ TABLE OF CONTENTS
 // 2.5.4
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC
 //   feature: 1 if __cpp_lib_constexpr_atomic is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_atomic
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC 1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC_VAL                         \
-        __cpp_lib_constexpr_atomic
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC 0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC_VAL 0L
-#endif  // __cpp_lib_constexpr_atomic
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC_VAL
+    #ifdef __cpp_lib_constexpr_atomic
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC_VAL                     \
+            __cpp_lib_constexpr_atomic
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC_VAL 0L
+    #endif  // __cpp_lib_constexpr_atomic
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC_NAME "__cpp_lib_constexpr_atomic"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC_DESC                            \
     "constexpr std::atomic and std::atomic_ref"
@@ -2489,13 +3538,21 @@ TABLE OF CONTENTS
 // 2.5.5
 // D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE
 //   feature: 1 if __cpp_lib_constexpr_deque is defined, 0 otherwise.
-#ifdef __cpp_lib_constexpr_deque
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE     1
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_VAL __cpp_lib_constexpr_deque
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE     0
-    #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_VAL 0L
-#endif  // __cpp_lib_constexpr_deque
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_VAL
+    #ifdef __cpp_lib_constexpr_deque
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_VAL                      \
+            __cpp_lib_constexpr_deque
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_VAL 0L
+    #endif  // __cpp_lib_constexpr_deque
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE
+    #if (D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_NAME "__cpp_lib_constexpr_deque"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_DESC "constexpr std::deque"
 #define D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE_VERS "(C++26)"
@@ -2503,13 +3560,20 @@ TABLE OF CONTENTS
 // 2.5.6
 // D_ENV_CPP_FEATURE_STL_CONTRACTS
 //   feature: 1 if __cpp_lib_contracts is defined, 0 otherwise.
-#ifdef __cpp_lib_contracts
-    #define D_ENV_CPP_FEATURE_STL_CONTRACTS     1
-    #define D_ENV_CPP_FEATURE_STL_CONTRACTS_VAL __cpp_lib_contracts
-#else
-    #define D_ENV_CPP_FEATURE_STL_CONTRACTS     0
-    #define D_ENV_CPP_FEATURE_STL_CONTRACTS_VAL 0L
-#endif  // __cpp_lib_contracts
+#ifndef D_ENV_CPP_FEATURE_STL_CONTRACTS_VAL
+    #ifdef __cpp_lib_contracts
+        #define D_ENV_CPP_FEATURE_STL_CONTRACTS_VAL __cpp_lib_contracts
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONTRACTS_VAL 0L
+    #endif  // __cpp_lib_contracts
+#endif  // D_ENV_CPP_FEATURE_STL_CONTRACTS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_CONTRACTS
+    #if (D_ENV_CPP_FEATURE_STL_CONTRACTS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_CONTRACTS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_CONTRACTS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_CONTRACTS
 #define D_ENV_CPP_FEATURE_STL_CONTRACTS_NAME "__cpp_lib_contracts"
 #define D_ENV_CPP_FEATURE_STL_CONTRACTS_DESC "<contracts>: Contracts support"
 #define D_ENV_CPP_FEATURE_STL_CONTRACTS_VERS "(C++26)"
@@ -2517,14 +3581,21 @@ TABLE OF CONTENTS
 // 2.5.7
 // D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION
 //   feature: 1 if __cpp_lib_copyable_function is defined, 0 otherwise.
-#ifdef __cpp_lib_copyable_function
-    #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION 1
-    #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION_VAL                        \
-        __cpp_lib_copyable_function
-#else
-    #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION 0
-    #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION_VAL 0L
-#endif  // __cpp_lib_copyable_function
+#ifndef D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION_VAL
+    #ifdef __cpp_lib_copyable_function
+        #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION_VAL                    \
+            __cpp_lib_copyable_function
+    #else
+        #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION_VAL 0L
+    #endif  // __cpp_lib_copyable_function
+#endif  // D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION
+    #if (D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION
 #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION_NAME                           \
     "__cpp_lib_copyable_function"
 #define D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION_DESC "std::copyable_function"
@@ -2533,13 +3604,20 @@ TABLE OF CONTENTS
 // 2.5.8
 // D_ENV_CPP_FEATURE_STL_DEBUGGING
 //   feature: 1 if __cpp_lib_debugging is defined, 0 otherwise.
-#ifdef __cpp_lib_debugging
-    #define D_ENV_CPP_FEATURE_STL_DEBUGGING     1
-    #define D_ENV_CPP_FEATURE_STL_DEBUGGING_VAL __cpp_lib_debugging
-#else
-    #define D_ENV_CPP_FEATURE_STL_DEBUGGING     0
-    #define D_ENV_CPP_FEATURE_STL_DEBUGGING_VAL 0L
-#endif  // __cpp_lib_debugging
+#ifndef D_ENV_CPP_FEATURE_STL_DEBUGGING_VAL
+    #ifdef __cpp_lib_debugging
+        #define D_ENV_CPP_FEATURE_STL_DEBUGGING_VAL __cpp_lib_debugging
+    #else
+        #define D_ENV_CPP_FEATURE_STL_DEBUGGING_VAL 0L
+    #endif  // __cpp_lib_debugging
+#endif  // D_ENV_CPP_FEATURE_STL_DEBUGGING_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_DEBUGGING
+    #if (D_ENV_CPP_FEATURE_STL_DEBUGGING_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_DEBUGGING 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_DEBUGGING 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_DEBUGGING
 #define D_ENV_CPP_FEATURE_STL_DEBUGGING_NAME "__cpp_lib_debugging"
 #define D_ENV_CPP_FEATURE_STL_DEBUGGING_DESC "<debugging>: Debugging support"
 #define D_ENV_CPP_FEATURE_STL_DEBUGGING_VERS "(C++26)"
@@ -2547,13 +3625,20 @@ TABLE OF CONTENTS
 // 2.5.9
 // D_ENV_CPP_FEATURE_STL_FORMAT_PATH
 //   feature: 1 if __cpp_lib_format_path is defined, 0 otherwise.
-#ifdef __cpp_lib_format_path
-    #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH     1
-    #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH_VAL __cpp_lib_format_path
-#else
-    #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH     0
-    #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH_VAL 0L
-#endif  // __cpp_lib_format_path
+#ifndef D_ENV_CPP_FEATURE_STL_FORMAT_PATH_VAL
+    #ifdef __cpp_lib_format_path
+        #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH_VAL __cpp_lib_format_path
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH_VAL 0L
+    #endif  // __cpp_lib_format_path
+#endif  // D_ENV_CPP_FEATURE_STL_FORMAT_PATH_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_FORMAT_PATH
+    #if (D_ENV_CPP_FEATURE_STL_FORMAT_PATH_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_FORMAT_PATH
 #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH_NAME "__cpp_lib_format_path"
 #define D_ENV_CPP_FEATURE_STL_FORMAT_PATH_DESC                                 \
     "Formatting of std::filesystem::path"
@@ -2562,13 +3647,20 @@ TABLE OF CONTENTS
 // 2.5.10
 // D_ENV_CPP_FEATURE_STL_FUNCTION_REF
 //   feature: 1 if __cpp_lib_function_ref is defined, 0 otherwise.
-#ifdef __cpp_lib_function_ref
-    #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF     1
-    #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF_VAL __cpp_lib_function_ref
-#else
-    #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF     0
-    #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF_VAL 0L
-#endif  // __cpp_lib_function_ref
+#ifndef D_ENV_CPP_FEATURE_STL_FUNCTION_REF_VAL
+    #ifdef __cpp_lib_function_ref
+        #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF_VAL __cpp_lib_function_ref
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF_VAL 0L
+    #endif  // __cpp_lib_function_ref
+#endif  // D_ENV_CPP_FEATURE_STL_FUNCTION_REF_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_FUNCTION_REF
+    #if (D_ENV_CPP_FEATURE_STL_FUNCTION_REF_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_FUNCTION_REF
 #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF_NAME "__cpp_lib_function_ref"
 #define D_ENV_CPP_FEATURE_STL_FUNCTION_REF_DESC                                \
     "std::function_ref: A type-erased callable reference"
@@ -2577,13 +3669,21 @@ TABLE OF CONTENTS
 // 2.5.11
 // D_ENV_CPP_FEATURE_STL_HAZARD_POINTER
 //   feature: 1 if __cpp_lib_hazard_pointer is defined, 0 otherwise.
-#ifdef __cpp_lib_hazard_pointer
-    #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER     1
-    #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER_VAL __cpp_lib_hazard_pointer
-#else
-    #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER     0
-    #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER_VAL 0L
-#endif  // __cpp_lib_hazard_pointer
+#ifndef D_ENV_CPP_FEATURE_STL_HAZARD_POINTER_VAL
+    #ifdef __cpp_lib_hazard_pointer
+        #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER_VAL                       \
+            __cpp_lib_hazard_pointer
+    #else
+        #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER_VAL 0L
+    #endif  // __cpp_lib_hazard_pointer
+#endif  // D_ENV_CPP_FEATURE_STL_HAZARD_POINTER_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_HAZARD_POINTER
+    #if (D_ENV_CPP_FEATURE_STL_HAZARD_POINTER_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_HAZARD_POINTER
 #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER_NAME "__cpp_lib_hazard_pointer"
 #define D_ENV_CPP_FEATURE_STL_HAZARD_POINTER_DESC                              \
     "<hazard_pointer>: Hazard pointers"
@@ -2592,13 +3692,20 @@ TABLE OF CONTENTS
 // 2.5.12
 // D_ENV_CPP_FEATURE_STL_HIVE
 //   feature: 1 if __cpp_lib_hive is defined, 0 otherwise.
-#ifdef __cpp_lib_hive
-    #define D_ENV_CPP_FEATURE_STL_HIVE     1
-    #define D_ENV_CPP_FEATURE_STL_HIVE_VAL __cpp_lib_hive
-#else
-    #define D_ENV_CPP_FEATURE_STL_HIVE     0
-    #define D_ENV_CPP_FEATURE_STL_HIVE_VAL 0L
-#endif  // __cpp_lib_hive
+#ifndef D_ENV_CPP_FEATURE_STL_HIVE_VAL
+    #ifdef __cpp_lib_hive
+        #define D_ENV_CPP_FEATURE_STL_HIVE_VAL __cpp_lib_hive
+    #else
+        #define D_ENV_CPP_FEATURE_STL_HIVE_VAL 0L
+    #endif  // __cpp_lib_hive
+#endif  // D_ENV_CPP_FEATURE_STL_HIVE_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_HIVE
+    #if (D_ENV_CPP_FEATURE_STL_HIVE_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_HIVE 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_HIVE 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_HIVE
 #define D_ENV_CPP_FEATURE_STL_HIVE_NAME "__cpp_lib_hive"
 #define D_ENV_CPP_FEATURE_STL_HIVE_DESC "<hive>: a bucket-based container"
 #define D_ENV_CPP_FEATURE_STL_HIVE_VERS "(C++26)"
@@ -2606,13 +3713,21 @@ TABLE OF CONTENTS
 // 2.5.13
 // D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR
 //   feature: 1 if __cpp_lib_inplace_vector is defined, 0 otherwise.
-#ifdef __cpp_lib_inplace_vector
-    #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR     1
-    #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_VAL __cpp_lib_inplace_vector
-#else
-    #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR     0
-    #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_VAL 0L
-#endif  // __cpp_lib_inplace_vector
+#ifndef D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_VAL
+    #ifdef __cpp_lib_inplace_vector
+        #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_VAL                       \
+            __cpp_lib_inplace_vector
+    #else
+        #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_VAL 0L
+    #endif  // __cpp_lib_inplace_vector
+#endif  // D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR
+    #if (D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR
 #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_NAME "__cpp_lib_inplace_vector"
 #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_DESC "std::inplace_vector"
 #define D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR_VERS "(C++26)"
@@ -2620,13 +3735,20 @@ TABLE OF CONTENTS
 // 2.5.14
 // D_ENV_CPP_FEATURE_STL_LINALG
 //   feature: 1 if __cpp_lib_linalg is defined, 0 otherwise.
-#ifdef __cpp_lib_linalg
-    #define D_ENV_CPP_FEATURE_STL_LINALG     1
-    #define D_ENV_CPP_FEATURE_STL_LINALG_VAL __cpp_lib_linalg
-#else
-    #define D_ENV_CPP_FEATURE_STL_LINALG     0
-    #define D_ENV_CPP_FEATURE_STL_LINALG_VAL 0L
-#endif  // __cpp_lib_linalg
+#ifndef D_ENV_CPP_FEATURE_STL_LINALG_VAL
+    #ifdef __cpp_lib_linalg
+        #define D_ENV_CPP_FEATURE_STL_LINALG_VAL __cpp_lib_linalg
+    #else
+        #define D_ENV_CPP_FEATURE_STL_LINALG_VAL 0L
+    #endif  // __cpp_lib_linalg
+#endif  // D_ENV_CPP_FEATURE_STL_LINALG_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_LINALG
+    #if (D_ENV_CPP_FEATURE_STL_LINALG_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_LINALG 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_LINALG 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_LINALG
 #define D_ENV_CPP_FEATURE_STL_LINALG_NAME "__cpp_lib_linalg"
 #define D_ENV_CPP_FEATURE_STL_LINALG_DESC                                      \
     "A free function linear algebra interface based on the BLAS"
@@ -2635,13 +3757,20 @@ TABLE OF CONTENTS
 // 2.5.15
 // D_ENV_CPP_FEATURE_STL_POLYMORPHIC
 //   feature: 1 if __cpp_lib_polymorphic is defined, 0 otherwise.
-#ifdef __cpp_lib_polymorphic
-    #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC     1
-    #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC_VAL __cpp_lib_polymorphic
-#else
-    #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC     0
-    #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC_VAL 0L
-#endif  // __cpp_lib_polymorphic
+#ifndef D_ENV_CPP_FEATURE_STL_POLYMORPHIC_VAL
+    #ifdef __cpp_lib_polymorphic
+        #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC_VAL __cpp_lib_polymorphic
+    #else
+        #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC_VAL 0L
+    #endif  // __cpp_lib_polymorphic
+#endif  // D_ENV_CPP_FEATURE_STL_POLYMORPHIC_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_POLYMORPHIC
+    #if (D_ENV_CPP_FEATURE_STL_POLYMORPHIC_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_POLYMORPHIC
 #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC_NAME "__cpp_lib_polymorphic"
 #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC_DESC "std::polymorphic"
 #define D_ENV_CPP_FEATURE_STL_POLYMORPHIC_VERS "(C++26)"
@@ -2649,13 +3778,20 @@ TABLE OF CONTENTS
 // 2.5.16
 // D_ENV_CPP_FEATURE_STL_RCU
 //   feature: 1 if __cpp_lib_rcu is defined, 0 otherwise.
-#ifdef __cpp_lib_rcu
-    #define D_ENV_CPP_FEATURE_STL_RCU     1
-    #define D_ENV_CPP_FEATURE_STL_RCU_VAL __cpp_lib_rcu
-#else
-    #define D_ENV_CPP_FEATURE_STL_RCU     0
-    #define D_ENV_CPP_FEATURE_STL_RCU_VAL 0L
-#endif  // __cpp_lib_rcu
+#ifndef D_ENV_CPP_FEATURE_STL_RCU_VAL
+    #ifdef __cpp_lib_rcu
+        #define D_ENV_CPP_FEATURE_STL_RCU_VAL __cpp_lib_rcu
+    #else
+        #define D_ENV_CPP_FEATURE_STL_RCU_VAL 0L
+    #endif  // __cpp_lib_rcu
+#endif  // D_ENV_CPP_FEATURE_STL_RCU_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_RCU
+    #if (D_ENV_CPP_FEATURE_STL_RCU_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_RCU 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_RCU 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_RCU
 #define D_ENV_CPP_FEATURE_STL_RCU_NAME "__cpp_lib_rcu"
 #define D_ENV_CPP_FEATURE_STL_RCU_DESC "<rcu>: Read-Copy Update (RCU)"
 #define D_ENV_CPP_FEATURE_STL_RCU_VERS "(C++26)"
@@ -2663,14 +3799,21 @@ TABLE OF CONTENTS
 // 2.5.17
 // D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC
 //   feature: 1 if __cpp_lib_saturation_arithmetic is defined, 0 otherwise.
-#ifdef __cpp_lib_saturation_arithmetic
-    #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC 1
-    #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC_VAL                    \
-        __cpp_lib_saturation_arithmetic
-#else
-    #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC 0
-    #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC_VAL 0L
-#endif  // __cpp_lib_saturation_arithmetic
+#ifndef D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC_VAL
+    #ifdef __cpp_lib_saturation_arithmetic
+        #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC_VAL                \
+            __cpp_lib_saturation_arithmetic
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC_VAL 0L
+    #endif  // __cpp_lib_saturation_arithmetic
+#endif  // D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC
+    #if (D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC
 #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC_NAME                       \
     "__cpp_lib_saturation_arithmetic"
 #define D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC_DESC "Saturation arithmetic"
@@ -2679,13 +3822,20 @@ TABLE OF CONTENTS
 // 2.5.18
 // D_ENV_CPP_FEATURE_STL_SENDERS
 //   feature: 1 if __cpp_lib_senders is defined, 0 otherwise.
-#ifdef __cpp_lib_senders
-    #define D_ENV_CPP_FEATURE_STL_SENDERS     1
-    #define D_ENV_CPP_FEATURE_STL_SENDERS_VAL __cpp_lib_senders
-#else
-    #define D_ENV_CPP_FEATURE_STL_SENDERS     0
-    #define D_ENV_CPP_FEATURE_STL_SENDERS_VAL 0L
-#endif  // __cpp_lib_senders
+#ifndef D_ENV_CPP_FEATURE_STL_SENDERS_VAL
+    #ifdef __cpp_lib_senders
+        #define D_ENV_CPP_FEATURE_STL_SENDERS_VAL __cpp_lib_senders
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SENDERS_VAL 0L
+    #endif  // __cpp_lib_senders
+#endif  // D_ENV_CPP_FEATURE_STL_SENDERS_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_SENDERS
+    #if (D_ENV_CPP_FEATURE_STL_SENDERS_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_SENDERS 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SENDERS 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_SENDERS
 #define D_ENV_CPP_FEATURE_STL_SENDERS_NAME "__cpp_lib_senders"
 #define D_ENV_CPP_FEATURE_STL_SENDERS_DESC                                     \
     "std::execution: Sender-receiver model"
@@ -2694,13 +3844,20 @@ TABLE OF CONTENTS
 // 2.5.19
 // D_ENV_CPP_FEATURE_STL_SIMD
 //   feature: 1 if __cpp_lib_simd is defined, 0 otherwise.
-#ifdef __cpp_lib_simd
-    #define D_ENV_CPP_FEATURE_STL_SIMD     1
-    #define D_ENV_CPP_FEATURE_STL_SIMD_VAL __cpp_lib_simd
-#else
-    #define D_ENV_CPP_FEATURE_STL_SIMD     0
-    #define D_ENV_CPP_FEATURE_STL_SIMD_VAL 0L
-#endif  // __cpp_lib_simd
+#ifndef D_ENV_CPP_FEATURE_STL_SIMD_VAL
+    #ifdef __cpp_lib_simd
+        #define D_ENV_CPP_FEATURE_STL_SIMD_VAL __cpp_lib_simd
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SIMD_VAL 0L
+    #endif  // __cpp_lib_simd
+#endif  // D_ENV_CPP_FEATURE_STL_SIMD_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_SIMD
+    #if (D_ENV_CPP_FEATURE_STL_SIMD_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_SIMD 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_SIMD 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_SIMD
 #define D_ENV_CPP_FEATURE_STL_SIMD_NAME "__cpp_lib_simd"
 #define D_ENV_CPP_FEATURE_STL_SIMD_DESC "<simd>: Data-parallel types"
 #define D_ENV_CPP_FEATURE_STL_SIMD_VERS "(C++26)"
@@ -2708,13 +3865,20 @@ TABLE OF CONTENTS
 // 2.5.20
 // D_ENV_CPP_FEATURE_STL_TEXT_ENCODING
 //   feature: 1 if __cpp_lib_text_encoding is defined, 0 otherwise.
-#ifdef __cpp_lib_text_encoding
-    #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING     1
-    #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_VAL __cpp_lib_text_encoding
-#else
-    #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING     0
-    #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_VAL 0L
-#endif  // __cpp_lib_text_encoding
+#ifndef D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_VAL
+    #ifdef __cpp_lib_text_encoding
+        #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_VAL __cpp_lib_text_encoding
+    #else
+        #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_VAL 0L
+    #endif  // __cpp_lib_text_encoding
+#endif  // D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_VAL
+#ifndef D_ENV_CPP_FEATURE_STL_TEXT_ENCODING
+    #if (D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_VAL > 0)
+        #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING 1
+    #else
+        #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING 0
+    #endif
+#endif  // D_ENV_CPP_FEATURE_STL_TEXT_ENCODING
 #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_NAME "__cpp_lib_text_encoding"
 #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_DESC "std::text_encoding"
 #define D_ENV_CPP_FEATURE_STL_TEXT_ENCODING_VERS "(C++26)"
@@ -2731,268 +3895,302 @@ TABLE OF CONTENTS
 // 3.1.1
 // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP11
 //   feature: 1 if all C++11 language features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP11                                   \
-    ( (D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES)         &&                      \
-      (D_ENV_CPP_FEATURE_LANG_ATTRIBUTES)              &&                      \
-      (D_ENV_CPP_FEATURE_LANG_CONSTEXPR)               &&                      \
-      (D_ENV_CPP_FEATURE_LANG_DECLTYPE)                &&                      \
-      (D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS) &&                      \
-      (D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS) &&                      \
-      (D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS)       &&                      \
-      (D_ENV_CPP_FEATURE_LANG_LAMBDAS)                 &&                      \
-      (D_ENV_CPP_FEATURE_LANG_NSDMI)                   &&                      \
-      (D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR)         &&                      \
-      (D_ENV_CPP_FEATURE_LANG_RAW_STRINGS)             &&                      \
-      (D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS)          &&                      \
-      (D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES)       &&                      \
-      (D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT)           &&                      \
-      (D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT)  &&                      \
-      (D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS)      &&                      \
-      (D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS)        &&                      \
-      (D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS)   &&                      \
-      (D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP11
+    #define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP11                               \
+        ( (D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES)         &&                  \
+          (D_ENV_CPP_FEATURE_LANG_ATTRIBUTES)              &&                  \
+          (D_ENV_CPP_FEATURE_LANG_CONSTEXPR)               &&                  \
+          (D_ENV_CPP_FEATURE_LANG_DECLTYPE)                &&                  \
+          (D_ENV_CPP_FEATURE_LANG_DELEGATING_CONSTRUCTORS) &&                  \
+          (D_ENV_CPP_FEATURE_LANG_INHERITING_CONSTRUCTORS) &&                  \
+          (D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS)       &&                  \
+          (D_ENV_CPP_FEATURE_LANG_LAMBDAS)                 &&                  \
+          (D_ENV_CPP_FEATURE_LANG_NSDMI)                   &&                  \
+          (D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR)         &&                  \
+          (D_ENV_CPP_FEATURE_LANG_RAW_STRINGS)             &&                  \
+          (D_ENV_CPP_FEATURE_LANG_REF_QUALIFIERS)          &&                  \
+          (D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES)       &&                  \
+          (D_ENV_CPP_FEATURE_LANG_STATIC_ASSERT)           &&                  \
+          (D_ENV_CPP_FEATURE_LANG_THREADSAFE_STATIC_INIT)  &&                  \
+          (D_ENV_CPP_FEATURE_LANG_UNICODE_CHARACTERS)      &&                  \
+          (D_ENV_CPP_FEATURE_LANG_UNICODE_LITERALS)        &&                  \
+          (D_ENV_CPP_FEATURE_LANG_USER_DEFINED_LITERALS)   &&                  \
+          (D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP11
 
 // 3.1.2
 // D_ENV_CPP_FEATURE_HAS_ALL_CPP11
 //   feature: 1 if all C++11 features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_CPP11                                        \
-    (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP11)
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_CPP11
+    #define D_ENV_CPP_FEATURE_HAS_ALL_CPP11                                    \
+        (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP11)
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_CPP11
 
 // 3.2    C++14
 //------------------------------------------------------------------------------
 // 3.2.1
 // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP14
 //   feature: 1 if all C++14 language features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP14                                   \
-    ( (D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI)       &&                        \
-      (D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS)       &&                        \
-      (D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO)         &&                        \
-      (D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES) &&                        \
-      (D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS)       &&                        \
-      (D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES)         &&                        \
-      (D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES)  &&                        \
-      (D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS) &&                        \
-      (D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION) &&                        \
-      (D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION)    &&                        \
-      (D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP14
+    #define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP14                               \
+        ( (D_ENV_CPP_FEATURE_LANG_AGGREGATE_NSDMI)       &&                    \
+          (D_ENV_CPP_FEATURE_LANG_BINARY_LITERALS)       &&                    \
+          (D_ENV_CPP_FEATURE_LANG_DECLTYPE_AUTO)         &&                    \
+          (D_ENV_CPP_FEATURE_LANG_ENUMERATOR_ATTRIBUTES) &&                    \
+          (D_ENV_CPP_FEATURE_LANG_GENERIC_LAMBDAS)       &&                    \
+          (D_ENV_CPP_FEATURE_LANG_INIT_CAPTURES)         &&                    \
+          (D_ENV_CPP_FEATURE_LANG_NAMESPACE_ATTRIBUTES)  &&                    \
+          (D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS) &&                    \
+          (D_ENV_CPP_FEATURE_LANG_RETURN_TYPE_DEDUCTION) &&                    \
+          (D_ENV_CPP_FEATURE_LANG_SIZED_DEALLOCATION)    &&                    \
+          (D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP14
 
 // 3.2.2
 // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP14
 //   feature: 1 if all C++14 library features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP14                                    \
-    ( (D_ENV_CPP_FEATURE_STL_CHRONO_UDLS) &&                                   \
-      (D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP14
+    #define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP14                                \
+        ( (D_ENV_CPP_FEATURE_STL_CHRONO_UDLS) &&                               \
+          (D_ENV_CPP_FEATURE_STL_COMPLEX_UDLS) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP14
 
 // 3.2.3
 // D_ENV_CPP_FEATURE_HAS_ALL_CPP14
 //   feature: 1 if all C++14 features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_CPP14                                        \
-    ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP14) &&                                \
-      (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP14) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_CPP14
+    #define D_ENV_CPP_FEATURE_HAS_ALL_CPP14                                    \
+        ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP14) &&                            \
+          (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP14) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_CPP14
 
 // 3.3    C++17
 //------------------------------------------------------------------------------
 // 3.3.1
 // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP17
 //   feature: 1 if all C++17 language features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP17                                   \
-    ( (D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES)                 &&              \
-      (D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW)                     &&              \
-      (D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS)               &&              \
-      (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE)           &&              \
-      (D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES)                &&              \
-      (D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS)                &&              \
-      (D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION)         &&              \
-      (D_ENV_CPP_FEATURE_LANG_HEX_FLOAT)                       &&              \
-      (D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR)                    &&              \
-      (D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES)                &&              \
-      (D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE)          &&              \
-      (D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO) &&              \
-      (D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS)             &&              \
-      (D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS)          &&              \
-      (D_ENV_CPP_FEATURE_LANG_VARIADIC_USING) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP17
+    #define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP17                               \
+        ( (D_ENV_CPP_FEATURE_LANG_AGGREGATE_BASES)                 &&          \
+          (D_ENV_CPP_FEATURE_LANG_ALIGNED_NEW)                     &&          \
+          (D_ENV_CPP_FEATURE_LANG_CAPTURE_STAR_THIS)               &&          \
+          (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_IN_DECLTYPE)           &&          \
+          (D_ENV_CPP_FEATURE_LANG_DEDUCTION_GUIDES)                &&          \
+          (D_ENV_CPP_FEATURE_LANG_FOLD_EXPRESSIONS)                &&          \
+          (D_ENV_CPP_FEATURE_LANG_GUARANTEED_COPY_ELISION)         &&          \
+          (D_ENV_CPP_FEATURE_LANG_HEX_FLOAT)                       &&          \
+          (D_ENV_CPP_FEATURE_LANG_IF_CONSTEXPR)                    &&          \
+          (D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES)                &&          \
+          (D_ENV_CPP_FEATURE_LANG_NOEXCEPT_FUNCTION_TYPE)          &&          \
+          (D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_PARAMETER_AUTO) &&          \
+          (D_ENV_CPP_FEATURE_LANG_STRUCTURED_BINDINGS)             &&          \
+          (D_ENV_CPP_FEATURE_LANG_TEMPLATE_TEMPLATE_ARGS)          &&          \
+          (D_ENV_CPP_FEATURE_LANG_VARIADIC_USING) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP17
 
 // 3.3.2
 // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP17
 //   feature: 1 if all C++17 library features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP17                                    \
-    ( (D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR)  &&                          \
-      (D_ENV_CPP_FEATURE_STL_ANY)                  &&                          \
-      (D_ENV_CPP_FEATURE_STL_APPLY)                &&                          \
-      (D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR)      &&                          \
-      (D_ENV_CPP_FEATURE_STL_AS_CONST)             &&                          \
-      (D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT)        &&                          \
-      (D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER) &&                          \
-      (D_ENV_CPP_FEATURE_STL_BYTE)                 &&                          \
-      (D_ENV_CPP_FEATURE_STL_CLAMP)                &&                          \
-      (D_ENV_CPP_FEATURE_STL_FILESYSTEM)           &&                          \
-      (D_ENV_CPP_FEATURE_STL_OPTIONAL)             &&                          \
-      (D_ENV_CPP_FEATURE_STL_VARIANT) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP17
+    #define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP17                                \
+        ( (D_ENV_CPP_FEATURE_STL_ADDRESSOF_CONSTEXPR)  &&                      \
+          (D_ENV_CPP_FEATURE_STL_ANY)                  &&                      \
+          (D_ENV_CPP_FEATURE_STL_APPLY)                &&                      \
+          (D_ENV_CPP_FEATURE_STL_ARRAY_CONSTEXPR)      &&                      \
+          (D_ENV_CPP_FEATURE_STL_AS_CONST)             &&                      \
+          (D_ENV_CPP_FEATURE_STL_BOOL_CONSTANT)        &&                      \
+          (D_ENV_CPP_FEATURE_STL_BOYER_MOORE_SEARCHER) &&                      \
+          (D_ENV_CPP_FEATURE_STL_BYTE)                 &&                      \
+          (D_ENV_CPP_FEATURE_STL_CLAMP)                &&                      \
+          (D_ENV_CPP_FEATURE_STL_FILESYSTEM)           &&                      \
+          (D_ENV_CPP_FEATURE_STL_OPTIONAL)             &&                      \
+          (D_ENV_CPP_FEATURE_STL_VARIANT) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP17
 
 // 3.3.3
 // D_ENV_CPP_FEATURE_HAS_ALL_CPP17
 //   feature: 1 if all C++17 features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_CPP17                                        \
-    ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP17) &&                                \
-      (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP17) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_CPP17
+    #define D_ENV_CPP_FEATURE_HAS_ALL_CPP17                                    \
+        ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP17) &&                            \
+          (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP17) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_CPP17
 
 // 3.4    C++20
 //------------------------------------------------------------------------------
 // 3.4.1
 // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP20
 //   feature: 1 if all C++20 language features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP20                                   \
-    ( (D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT)      &&                    \
-      (D_ENV_CPP_FEATURE_LANG_CHAR8_T)                   &&                    \
-      (D_ENV_CPP_FEATURE_LANG_CONCEPTS)                  &&                    \
-      (D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT)      &&                    \
-      (D_ENV_CPP_FEATURE_LANG_CONSTEVAL)                 &&                    \
-      (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC)   &&                    \
-      (D_ENV_CPP_FEATURE_LANG_CONSTINIT)                 &&                    \
-      (D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS)   &&                    \
-      (D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE)            &&                    \
-      (D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE)    &&                    \
-      (D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON) &&                    \
-      (D_ENV_CPP_FEATURE_LANG_MODULES)                   &&                    \
-      (D_ENV_CPP_FEATURE_LANG_USING_ENUM) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP20
+    #define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP20                               \
+        ( (D_ENV_CPP_FEATURE_LANG_AGGREGATE_PAREN_INIT)      &&                \
+          (D_ENV_CPP_FEATURE_LANG_CHAR8_T)                   &&                \
+          (D_ENV_CPP_FEATURE_LANG_CONCEPTS)                  &&                \
+          (D_ENV_CPP_FEATURE_LANG_CONDITIONAL_EXPLICIT)      &&                \
+          (D_ENV_CPP_FEATURE_LANG_CONSTEVAL)                 &&                \
+          (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC)   &&                \
+          (D_ENV_CPP_FEATURE_LANG_CONSTINIT)                 &&                \
+          (D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS)   &&                \
+          (D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE)            &&                \
+          (D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE)    &&                \
+          (D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON) &&                \
+          (D_ENV_CPP_FEATURE_LANG_MODULES)                   &&                \
+          (D_ENV_CPP_FEATURE_LANG_USING_ENUM) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP20
 
 // 3.4.2
 // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP20
 //   feature: 1 if all C++20 library features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP20                                    \
-    ( (D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED)          &&                       \
-      (D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST)        &&                       \
-      (D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT)            &&                       \
-      (D_ENV_CPP_FEATURE_STL_ATOMIC_REF)              &&                       \
-      (D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT)             &&                       \
-      (D_ENV_CPP_FEATURE_STL_BARRIER)                 &&                       \
-      (D_ENV_CPP_FEATURE_STL_BIND_FRONT)              &&                       \
-      (D_ENV_CPP_FEATURE_STL_BIT_CAST)                &&                       \
-      (D_ENV_CPP_FEATURE_STL_BITOPS)                  &&                       \
-      (D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS)    &&                       \
-      (D_ENV_CPP_FEATURE_STL_CHAR8_T)                 &&                       \
-      (D_ENV_CPP_FEATURE_STL_CONCEPTS)                &&                       \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS)    &&                       \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX)       &&                       \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC) &&                       \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING)        &&                       \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR)        &&                       \
-      (D_ENV_CPP_FEATURE_STL_COROUTINE)               &&                       \
-      (D_ENV_CPP_FEATURE_STL_ENDIAN)                  &&                       \
-      (D_ENV_CPP_FEATURE_STL_FORMAT)                  &&                       \
-      (D_ENV_CPP_FEATURE_STL_JTHREAD)                 &&                       \
-      (D_ENV_CPP_FEATURE_STL_LATCH)                   &&                       \
-      (D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS)          &&                       \
-      (D_ENV_CPP_FEATURE_STL_RANGES)                  &&                       \
-      (D_ENV_CPP_FEATURE_STL_SEMAPHORE)               &&                       \
-      (D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION)         &&                       \
-      (D_ENV_CPP_FEATURE_STL_SPAN)                    &&                       \
-      (D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON)    &&                       \
-      (D_ENV_CPP_FEATURE_STL_TO_ARRAY) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP20
+    #define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP20                                \
+        ( (D_ENV_CPP_FEATURE_STL_ASSUME_ALIGNED)          &&                   \
+          (D_ENV_CPP_FEATURE_STL_ATOMIC_FLAG_TEST)        &&                   \
+          (D_ENV_CPP_FEATURE_STL_ATOMIC_FLOAT)            &&                   \
+          (D_ENV_CPP_FEATURE_STL_ATOMIC_REF)              &&                   \
+          (D_ENV_CPP_FEATURE_STL_ATOMIC_WAIT)             &&                   \
+          (D_ENV_CPP_FEATURE_STL_BARRIER)                 &&                   \
+          (D_ENV_CPP_FEATURE_STL_BIND_FRONT)              &&                   \
+          (D_ENV_CPP_FEATURE_STL_BIT_CAST)                &&                   \
+          (D_ENV_CPP_FEATURE_STL_BITOPS)                  &&                   \
+          (D_ENV_CPP_FEATURE_STL_BOUNDED_ARRAY_TRAITS)    &&                   \
+          (D_ENV_CPP_FEATURE_STL_CHAR8_T)                 &&                   \
+          (D_ENV_CPP_FEATURE_STL_CONCEPTS)                &&                   \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_ALGORITHMS)    &&                   \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_COMPLEX)       &&                   \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_DYNAMIC_ALLOC) &&                   \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_STRING)        &&                   \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_VECTOR)        &&                   \
+          (D_ENV_CPP_FEATURE_STL_COROUTINE)               &&                   \
+          (D_ENV_CPP_FEATURE_STL_ENDIAN)                  &&                   \
+          (D_ENV_CPP_FEATURE_STL_FORMAT)                  &&                   \
+          (D_ENV_CPP_FEATURE_STL_JTHREAD)                 &&                   \
+          (D_ENV_CPP_FEATURE_STL_LATCH)                   &&                   \
+          (D_ENV_CPP_FEATURE_STL_MATH_CONSTANTS)          &&                   \
+          (D_ENV_CPP_FEATURE_STL_RANGES)                  &&                   \
+          (D_ENV_CPP_FEATURE_STL_SEMAPHORE)               &&                   \
+          (D_ENV_CPP_FEATURE_STL_SOURCE_LOCATION)         &&                   \
+          (D_ENV_CPP_FEATURE_STL_SPAN)                    &&                   \
+          (D_ENV_CPP_FEATURE_STL_THREE_WAY_COMPARISON)    &&                   \
+          (D_ENV_CPP_FEATURE_STL_TO_ARRAY) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP20
 
 // 3.4.3
 // D_ENV_CPP_FEATURE_HAS_ALL_CPP20
 //   feature: 1 if all C++20 features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_CPP20                                        \
-    ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP20) &&                                \
-      (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP20) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_CPP20
+    #define D_ENV_CPP_FEATURE_HAS_ALL_CPP20                                    \
+        ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP20) &&                            \
+          (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP20) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_CPP20
 
 // 3.5    C++23
 //------------------------------------------------------------------------------
 // 3.5.1
 // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP23
 //   feature: 1 if all C++23 language features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP23                                   \
-    ( (D_ENV_CPP_FEATURE_LANG_AUTO_CAST)                  &&                   \
-      (D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER)    &&                   \
-      (D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL)               &&                   \
-      (D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE)              &&                   \
-      (D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT) &&                   \
-      (D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES)    &&                   \
-      (D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX)              &&                   \
-      (D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP23
+    #define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP23                               \
+        ( (D_ENV_CPP_FEATURE_LANG_AUTO_CAST)                  &&               \
+          (D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER)    &&               \
+          (D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL)               &&               \
+          (D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE)              &&               \
+          (D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT) &&               \
+          (D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES)    &&               \
+          (D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX)              &&               \
+          (D_ENV_CPP_FEATURE_LANG_STATIC_CALL_OPERATOR) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP23
 
 // 3.5.2
 // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP23
 //   feature: 1 if all C++23 library features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP23                                    \
-    ( (D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR) &&             \
-      (D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE) &&             \
-      (D_ENV_CPP_FEATURE_STL_BIND_BACK)                         &&             \
-      (D_ENV_CPP_FEATURE_STL_BYTESWAP)                          &&             \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET)                  &&             \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV)                &&             \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH)                   &&             \
-      (D_ENV_CPP_FEATURE_STL_EXPECTED)                          &&             \
-      (D_ENV_CPP_FEATURE_STL_FLAT_MAP)                          &&             \
-      (D_ENV_CPP_FEATURE_STL_FLAT_SET)                          &&             \
-      (D_ENV_CPP_FEATURE_STL_GENERATOR)                         &&             \
-      (D_ENV_CPP_FEATURE_STL_MDSPAN)                            &&             \
-      (D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION)                &&             \
-      (D_ENV_CPP_FEATURE_STL_PRINT)                             &&             \
-      (D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER)               &&             \
-      (D_ENV_CPP_FEATURE_STL_SPANSTREAM)                        &&             \
-      (D_ENV_CPP_FEATURE_STL_STACKTRACE)                        &&             \
-      (D_ENV_CPP_FEATURE_STL_STDATOMIC_H)                       &&             \
-      (D_ENV_CPP_FEATURE_STL_STRING_CONTAINS)                   &&             \
-      (D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE)       &&             \
-      (D_ENV_CPP_FEATURE_STL_UNREACHABLE) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP23
+    #define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP23                                \
+        ( (D_ENV_CPP_FEATURE_STL_ADAPTOR_ITERATOR_PAIR_CONSTRUCTOR) &&         \
+          (D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_ERASURE) &&         \
+          (D_ENV_CPP_FEATURE_STL_BIND_BACK)                         &&         \
+          (D_ENV_CPP_FEATURE_STL_BYTESWAP)                          &&         \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_BITSET)                  &&         \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_CHARCONV)                &&         \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_CMATH)                   &&         \
+          (D_ENV_CPP_FEATURE_STL_EXPECTED)                          &&         \
+          (D_ENV_CPP_FEATURE_STL_FLAT_MAP)                          &&         \
+          (D_ENV_CPP_FEATURE_STL_FLAT_SET)                          &&         \
+          (D_ENV_CPP_FEATURE_STL_GENERATOR)                         &&         \
+          (D_ENV_CPP_FEATURE_STL_MDSPAN)                            &&         \
+          (D_ENV_CPP_FEATURE_STL_MOVE_ONLY_FUNCTION)                &&         \
+          (D_ENV_CPP_FEATURE_STL_PRINT)                             &&         \
+          (D_ENV_CPP_FEATURE_STL_RANGES_TO_CONTAINER)               &&         \
+          (D_ENV_CPP_FEATURE_STL_SPANSTREAM)                        &&         \
+          (D_ENV_CPP_FEATURE_STL_STACKTRACE)                        &&         \
+          (D_ENV_CPP_FEATURE_STL_STDATOMIC_H)                       &&         \
+          (D_ENV_CPP_FEATURE_STL_STRING_CONTAINS)                   &&         \
+          (D_ENV_CPP_FEATURE_STL_STRING_RESIZE_AND_OVERWRITE)       &&         \
+          (D_ENV_CPP_FEATURE_STL_UNREACHABLE) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP23
 
 // 3.5.3
 // D_ENV_CPP_FEATURE_HAS_ALL_CPP23
 //   feature: 1 if all C++23 features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_CPP23                                        \
-    ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP23) &&                                \
-      (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP23) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_CPP23
+    #define D_ENV_CPP_FEATURE_HAS_ALL_CPP23                                    \
+        ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP23) &&                            \
+          (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP23) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_CPP23
 
 // 3.6    C++26
 //------------------------------------------------------------------------------
 // 3.6.1
 // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP26
 //   feature: 1 if all C++26 language features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP26                                   \
-    ( (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS)   &&                       \
-      (D_ENV_CPP_FEATURE_LANG_CONTRACTS)              &&                       \
-      (D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION)       &&                       \
-      (D_ENV_CPP_FEATURE_LANG_PACK_INDEXING)          &&                       \
-      (D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES)  &&                       \
-      (D_ENV_CPP_FEATURE_LANG_PP_EMBED)               &&                       \
-      (D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS)    &&                       \
-      (D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY) &&                       \
-      (D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION)          &&                       \
-      (D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP26
+    #define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP26                               \
+        ( (D_ENV_CPP_FEATURE_LANG_CONSTEXPR_EXCEPTIONS)   &&                   \
+          (D_ENV_CPP_FEATURE_LANG_CONTRACTS)              &&                   \
+          (D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION)       &&                   \
+          (D_ENV_CPP_FEATURE_LANG_PACK_INDEXING)          &&                   \
+          (D_ENV_CPP_FEATURE_LANG_PLACEHOLDER_VARIABLES)  &&                   \
+          (D_ENV_CPP_FEATURE_LANG_PP_EMBED)               &&                   \
+          (D_ENV_CPP_FEATURE_LANG_TEMPLATE_PARAMETERS)    &&                   \
+          (D_ENV_CPP_FEATURE_LANG_TRIVIAL_RELOCATABILITY) &&                   \
+          (D_ENV_CPP_FEATURE_LANG_TRIVIAL_UNION)          &&                   \
+          (D_ENV_CPP_FEATURE_LANG_VARIADIC_FRIEND) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP26
 
 // 3.6.2
 // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP26
 //   feature: 1 if all C++26 library features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP26                                    \
-    ( (D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE)        &&           \
-      (D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION) &&           \
-      (D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX)                      &&           \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC)                    &&           \
-      (D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE)                     &&           \
-      (D_ENV_CPP_FEATURE_STL_CONTRACTS)                           &&           \
-      (D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION)                   &&           \
-      (D_ENV_CPP_FEATURE_STL_DEBUGGING)                           &&           \
-      (D_ENV_CPP_FEATURE_STL_FORMAT_PATH)                         &&           \
-      (D_ENV_CPP_FEATURE_STL_FUNCTION_REF)                        &&           \
-      (D_ENV_CPP_FEATURE_STL_HAZARD_POINTER)                      &&           \
-      (D_ENV_CPP_FEATURE_STL_HIVE)                                &&           \
-      (D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR)                      &&           \
-      (D_ENV_CPP_FEATURE_STL_LINALG)                              &&           \
-      (D_ENV_CPP_FEATURE_STL_POLYMORPHIC)                         &&           \
-      (D_ENV_CPP_FEATURE_STL_RCU)                                 &&           \
-      (D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC)               &&           \
-      (D_ENV_CPP_FEATURE_STL_SENDERS)                             &&           \
-      (D_ENV_CPP_FEATURE_STL_SIMD)                                &&           \
-      (D_ENV_CPP_FEATURE_STL_TEXT_ENCODING) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP26
+    #define D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP26                                \
+        ( (D_ENV_CPP_FEATURE_STL_ALGORITHM_DEFAULT_VALUE_TYPE)        &&       \
+          (D_ENV_CPP_FEATURE_STL_ASSOCIATIVE_HETEROGENEOUS_INSERTION) &&       \
+          (D_ENV_CPP_FEATURE_STL_ATOMIC_MIN_MAX)                      &&       \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_ATOMIC)                    &&       \
+          (D_ENV_CPP_FEATURE_STL_CONSTEXPR_DEQUE)                     &&       \
+          (D_ENV_CPP_FEATURE_STL_CONTRACTS)                           &&       \
+          (D_ENV_CPP_FEATURE_STL_COPYABLE_FUNCTION)                   &&       \
+          (D_ENV_CPP_FEATURE_STL_DEBUGGING)                           &&       \
+          (D_ENV_CPP_FEATURE_STL_FORMAT_PATH)                         &&       \
+          (D_ENV_CPP_FEATURE_STL_FUNCTION_REF)                        &&       \
+          (D_ENV_CPP_FEATURE_STL_HAZARD_POINTER)                      &&       \
+          (D_ENV_CPP_FEATURE_STL_HIVE)                                &&       \
+          (D_ENV_CPP_FEATURE_STL_INPLACE_VECTOR)                      &&       \
+          (D_ENV_CPP_FEATURE_STL_LINALG)                              &&       \
+          (D_ENV_CPP_FEATURE_STL_POLYMORPHIC)                         &&       \
+          (D_ENV_CPP_FEATURE_STL_RCU)                                 &&       \
+          (D_ENV_CPP_FEATURE_STL_SATURATION_ARITHMETIC)               &&       \
+          (D_ENV_CPP_FEATURE_STL_SENDERS)                             &&       \
+          (D_ENV_CPP_FEATURE_STL_SIMD)                                &&       \
+          (D_ENV_CPP_FEATURE_STL_TEXT_ENCODING) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP26
 
 // 3.6.3
 // D_ENV_CPP_FEATURE_HAS_ALL_CPP26
 //   feature: 1 if all C++26 features are available.
-#define D_ENV_CPP_FEATURE_HAS_ALL_CPP26                                        \
-    ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP26) &&                                \
-      (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP26) )
+#ifndef D_ENV_CPP_FEATURE_HAS_ALL_CPP26
+    #define D_ENV_CPP_FEATURE_HAS_ALL_CPP26                                    \
+        ( (D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP26) &&                            \
+          (D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP26) )
+#endif  // D_ENV_CPP_FEATURE_HAS_ALL_CPP26
 
 
 #endif  // DJINTERP_ENV_CPP_ENV_CPP_FEATURES_H

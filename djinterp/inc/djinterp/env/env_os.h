@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/env/env_os.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -100,8 +100,11 @@ TABLE OF CONTENTS
          1.  D_ENV_IS_OS_MOBILE
          2.  D_ENV_IS_OS_MSDOS
          3.  D_ENV_IS_OS_WINDOWS
-         4.  D_ENV_IS_OS_DISCONTINUED
-         5.  D_ENV_IS_OS_UNSUPPORTED
+         4.  D_ENV_IS_OS_LINUX
+         5.  D_ENV_IS_OS_MACOS
+         6.  D_ENV_IS_OS_BSD
+         7.  D_ENV_IS_OS_DISCONTINUED
+         8.  D_ENV_IS_OS_UNSUPPORTED
     3.  POSIX tests
          1.  D_ENV_IS_OS_POSIX_COMPLIANT
          2.  D_ENV_IS_OS_POSIX_LIKE
@@ -522,13 +525,35 @@ TABLE OF CONTENTS
       ((OS_FLAG) <= D_ENV_OS_FLAG_WIN_LAST) )
 
 // 2.2.4
+// D_ENV_IS_OS_LINUX
+//   macro: 1 for Linux; 0 otherwise. Android is not Linux here: it has its own
+// flag, outside the Unix block, and D_ENV_IS_OS_MOBILE answers for it
+// (decision 50 of the register).
+#define D_ENV_IS_OS_LINUX(OS_FLAG)                                             \
+    ( (OS_FLAG) == D_ENV_OS_FLAG_LINUX )
+
+// 2.2.5
+// D_ENV_IS_OS_MACOS
+//   macro: 1 for macOS; 0 otherwise, iOS included. A Mac Catalyst build is a
+// macOS build: section 3 detects no separate flag for it.
+#define D_ENV_IS_OS_MACOS(OS_FLAG)                                             \
+    ( (OS_FLAG) == D_ENV_OS_FLAG_MACOS )
+
+// 2.2.6
+// D_ENV_IS_OS_BSD
+//   macro: 1 for the BSD block: FreeBSD, NetBSD, OpenBSD, DragonFly BSD and
+// BSD/OS; 0 otherwise, macOS included.
+#define D_ENV_IS_OS_BSD(OS_FLAG)                                               \
+    ( D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x4) )
+
+// 2.2.7
 // D_ENV_IS_OS_DISCONTINUED
 //   macro: 1 for a discontinued system; 0 otherwise.
 #define D_ENV_IS_OS_DISCONTINUED(OS_FLAG)                                      \
     ( ((OS_FLAG) >= D_ENV_OS_FLAG_DISCONTINUED_FIRST) &&                       \
       ((OS_FLAG) <= D_ENV_OS_FLAG_DISCONTINUED_LAST) )
 
-// 2.2.5
+// 2.2.8
 // D_ENV_IS_OS_UNSUPPORTED
 //   macro: 1 for a system the framework does not support; 0 otherwise.
 #define D_ENV_IS_OS_UNSUPPORTED(OS_FLAG)                                       \

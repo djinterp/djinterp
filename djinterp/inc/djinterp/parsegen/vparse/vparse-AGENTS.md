@@ -72,7 +72,8 @@ tests/djinterp/parsegen/vparse/
 
 build/cmake/config/testing/djinterp/parsegen/vparse/
   vparse_tests_runner.cpp       main(): runs each tests_* section, prints PASS/FAIL
-  CMakeLists.txt                djinterp_add_test_executable leaf
+  CMakeLists.txt                djinterp_add_test_executable leaf; plain CMake,
+                                one build per C++ level, where the helper is absent
 ```
 
 Headers are declaration-only; the banners carry design intent (read them). The
@@ -232,34 +233,45 @@ Notation syntax the meta-grammar accepts: `Name = alt | alt ;`, terms are `'x'`
 
 ## 6. Build & test
 
+**The environment.** The module's floor is C++11: below it every vparse header
+and source compiles to nothing (never an `#error`), so each unit compiles at
+every level the tree's ladder runs, strict C++98 to C++23. From C++11 up the
+suite must pass whole, at every level. Headers include each other by paths
+relative to themselves; the sources reach their headers through `inc/`, which
+is the one include directory a build needs. The tests and the runner use
+relative paths throughout, so they need none of their own.
+
 The subsystem builds with the project's CMake helper
-(`djinterp_add_test_executable`, which adds `inc/` + the test leaf and defines
-`D_TESTING=1`). The equivalent raw invocation — useful for a quick agent loop —
-mirrors exactly the include dirs that helper sets:
+(`djinterp_add_test_executable`, which adds `inc/` and defines `D_TESTING=1`).
+Where that helper is not defined, the same leaf builds with plain CMake
+instead -- one executable per level, each held to 15 sections:
 
 ```bash
-g++ -std=c++20 -DD_TESTING=1 -O2 -Wall -Wextra \
-  -Iinc -Iinc/djinterp/parsegen/vparse -Itests/djinterp/parsegen/vparse \
-  src/djinterp/parsegen/vparse/peg.cpp \
-  src/djinterp/parsegen/vparse/gen.cpp \
-  src/djinterp/parsegen/vparse/notation.cpp \
-  src/djinterp/parsegen/vparse/adapter.cpp \
-  src/djinterp/parsegen/vparse/lr.cpp \
-  src/djinterp/parsegen/vparse/ebnf.cpp \
-  tests/djinterp/parsegen/vparse/vparse_tests_captures.cpp \
-  tests/djinterp/parsegen/vparse/vparse_tests_generate.cpp \
-  tests/djinterp/parsegen/vparse/vparse_tests_notation.cpp \
-  tests/djinterp/parsegen/vparse/vparse_tests_rebase.cpp \
-  tests/djinterp/parsegen/vparse/vparse_tests_lr.cpp \
-  tests/djinterp/parsegen/vparse/vparse_tests_ebnf.cpp \
-  build/cmake/config/testing/djinterp/parsegen/vparse/vparse_tests_runner.cpp \
-  -o vparse_tests && ./vparse_tests
+cmake -S build/cmake/config/testing/djinterp/parsegen/vparse -B out
+cmake --build out && ctest --test-dir out
 ```
 
-Expected: `passed: 15   failed: 0`. Discipline for any change: **everything
-compiles + all 15 pass** before moving on. When editing a `.cpp`, rebuild from a
-removed binary (`rm -f vparse_tests`) so a stale executable never masks a failed
-build.
+The equivalent raw invocation -- useful for a quick agent loop -- with the
+flags the ladder uses, at every level:
+
+```bash
+for std in c++11 c++14 c++17 c++20 c++23; do
+  g++ -std=$std -O1 -Wall -Wextra -pedantic-errors -Werror=undef \
+    -D_XOPEN_SOURCE=700 -DD_TESTING=1 -DRE_STD_CFG_TESTING=1 -Iinc \
+    src/djinterp/parsegen/vparse/*.cpp \
+    tests/djinterp/parsegen/vparse/vparse_tests_*.cpp \
+    build/cmake/config/testing/djinterp/parsegen/vparse/vparse_tests_runner.cpp \
+    -o vparse_tests && ./vparse_tests | tail -n 1
+done
+```
+
+Expected: `passed: 15   failed: 0`, five times. Discipline for any change:
+**everything compiles at every level + all 15 pass** before moving on, with
+`clang++` as well as `g++`. When editing a `.cpp`, rebuild from a removed
+binary (`rm -f vparse_tests`) so a stale executable never masks a failed
+build. A change to a header or a source should also go through the ladder
+(`ci/check_cpp_standards.sh`, with `UNIT_FILTER='parsegen/vparse'` to keep it
+to this module), which is what catches a construct a lower level lacks.
 
 ---
 
@@ -277,6 +289,26 @@ build.
   it advances `offset` and returns the consumed span as the `std::string` value;
   on failure it leaves `offset` put and returns `parse_error(DParseStatusFailure)`.
   The `op_set` is built once and captured in the handle.
+- **`peg::instr` is not an aggregate at C++11.** It has default member
+  initializers (`arg = -1`, `ch = 0`), and until C++14 a class with those is not
+  an aggregate, so `instr{ CHAR, -1, 'a', "" }` compiles from C++14 and fails at
+  the floor. Build one by assigning its fields, as `gen.cpp` does and as the
+  tests' `ins(op, arg, ch, set)` helper does. `term` has them too, which is one
+  more reason to build terms with `lit` / `cls` / `ref` / `any_ch`; `rule` and
+  `lr::action` have none and brace-initialize at every level.
+- **An empty program is a failed run, not a crash.** `peg::run` on a program
+  with no instructions fails with `m.error == "empty program"`. `ebnf::compile`
+  returns an empty program when it fails -- an undefined start rule, say -- so
+  check its `ok` rather than running what came back.
+- **`<windows.h>` and opcode names.** `wingdi.h` defines `ERROR` as a macro,
+  so a translation unit that includes `<windows.h>` and then `lr.hpp` fails at
+  the LR family's opcode of that name ("expected identifier before numeric
+  constant"). `NOGDI` defined before `<windows.h>` avoids it;
+  `WIN32_LEAN_AND_MEAN` does not. Open: the cure is the opcode's name, and
+  branch `vparse/lr-reject` renames it. `CHAR` is a typedef there, so in such
+  a unit `peg::CHAR` is written qualified: after `using namespace peg` the
+  bare name is ambiguous. Every other vparse header, and every header of the
+  parse/parsegen foundation, compiles after `<windows.h>`.
 
 ### Built against the real framework — no stand-ins
 

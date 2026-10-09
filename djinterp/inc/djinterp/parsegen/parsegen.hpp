@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/parsegen/parsegen.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.13
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSEGEN_PARSEGEN_HPP
@@ -30,7 +30,7 @@
 // be opened, closed, and qualified at every boundary.
 #ifndef NS_PARSEGEN
     #define NS_PARSEGEN                 D_NAMESPACE(D_KEYWORD_PARSEGEN)
-#endif
+#endif  // NS_PARSEGEN
 
 
 #endif  // DJINTERP_PARSEGEN_PARSEGEN_HPP

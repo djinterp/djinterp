@@ -286,17 +286,12 @@ TABLE OF CONTENTS
 // D_RESTRICT
 //   qualifier: portable restrict/no-alias spelling for C and C++.
 // `restrict` is a C keyword but not a C++ keyword. C uses the standard keyword;
-// C++ uses the compiler extension when one is available.
+// C++ uses the compiler's extension, env_compiler.h's D_ENV_COMPILER_RESTRICT,
+// which is empty for an unknown compiler: correct but not optimal.
 #if !D_ENV_LANG_USING_CPP
     #define D_RESTRICT restrict
-#elif ( defined(D_ENV_COMPILER_GCC) ||                                        \
-        defined(D_ENV_COMPILER_CLANG) )
-    #define D_RESTRICT __restrict__
-#elif defined(D_ENV_COMPILER_MSVC)
-    #define D_RESTRICT __restrict
 #else
-    // unknown C++ compiler: no alias qualifier; correct but not optimal.
-    #define D_RESTRICT
+    #define D_RESTRICT D_ENV_COMPILER_RESTRICT
 #endif  // !D_ENV_LANG_USING_CPP
 
 // 2.1.3
@@ -440,16 +435,16 @@ TABLE OF CONTENTS
 // D_INTERNAL_INLINE_QUAL
 //   macro (internal): the inline keyword, plus a force-inline hint outside
 // testing; never contains `static`. Resolved by compiler, then language, then
-// testing mode.
+// testing mode; the vendor spellings are env_compiler.h's D_ENV_COMPILER_*.
 // D_INTERNAL_INLINE_NEEDS_STATIC
 //   macro (internal): 1 when a header-defined function needs `static` for
 // linker safety (C's inline), otherwise 0.
 #if defined(D_ENV_COMPILER_MSVC)
     // MSVC inline (C or C++) is COMDAT-merged -> linker-safe, no `static`.
     #if D_INTERNAL_QUAL_TESTING
-        #define D_INTERNAL_INLINE_QUAL      __inline
+        #define D_INTERNAL_INLINE_QUAL      D_ENV_COMPILER_INLINE
     #else
-        #define D_INTERNAL_INLINE_QUAL      __forceinline
+        #define D_INTERNAL_INLINE_QUAL      D_ENV_COMPILER_FORCEINLINE
     #endif
     #define D_INTERNAL_INLINE_NEEDS_STATIC  0
 
@@ -462,17 +457,17 @@ TABLE OF CONTENTS
             #define D_INTERNAL_INLINE_QUAL  inline
         #else
             #define D_INTERNAL_INLINE_QUAL                                    \
-                inline __attribute__((always_inline))
+                inline D_ENV_COMPILER_ALWAYS_INLINE
         #endif
         #define D_INTERNAL_INLINE_NEEDS_STATIC 0
     #else
         // C: `__inline__` is accepted in every C mode (incl. -std=c89
         // -pedantic) with no diagnostic, unlike bare `inline`.
         #if D_INTERNAL_QUAL_TESTING
-            #define D_INTERNAL_INLINE_QUAL  __inline__
+            #define D_INTERNAL_INLINE_QUAL  D_ENV_COMPILER_INLINE
         #else
             #define D_INTERNAL_INLINE_QUAL                                    \
-                __inline__ __attribute__((always_inline))
+                D_ENV_COMPILER_INLINE D_ENV_COMPILER_ALWAYS_INLINE
         #endif
         #define D_INTERNAL_INLINE_NEEDS_STATIC 1
     #endif
@@ -644,15 +639,9 @@ TABLE OF CONTENTS
 
 // 2.3.8
 // D_NOINLINE
-//   qualifier: prevents inlining for debugging and profiling.
-#if defined(D_ENV_COMPILER_MSVC)
-    #define D_NOINLINE          __declspec(noinline)
-#elif ( defined(D_ENV_COMPILER_GCC) ||                                        \
-        defined(D_ENV_COMPILER_CLANG) )
-    #define D_NOINLINE          __attribute__((noinline))
-#else
-    #define D_NOINLINE
-#endif
+//   qualifier: prevents inlining for debugging and profiling, by
+// env_compiler.h's D_ENV_COMPILER_NOINLINE; empty for an unknown compiler.
+#define D_NOINLINE          D_ENV_COMPILER_NOINLINE
 
 // 2.4    Function pointers
 //------------------------------------------------------------------------------

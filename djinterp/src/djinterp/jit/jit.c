@@ -11,7 +11,7 @@
 * path:      /src/djinterp/jit/jit.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #include "../../../inc/djinterp/jit/jit.h"
@@ -76,7 +76,9 @@ int d_jit_buffer_init(d_jit_buffer* _buf, size_t _capacity)
     _buf->code = NULL; _buf->size = 0; _buf->capacity = 0; _buf->finalized = 0;
 
 #if !D_ENV_JIT_CAN_ALLOCATE_EXEC
-    /* platform cannot hand out executable memory (e.g. JIT prohibited) */
+    /* no executable memory: no backend, or JIT prohibited -- which an App
+       Store build for iOS, iPadOS, tvOS, watchOS or visionOS declares with
+       D_ENV_JIT_PROHIBITED, the store forbidding JIT there */
     (void)_capacity;
     return -1;
 #else

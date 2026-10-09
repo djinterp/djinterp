@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/env/env_compiler.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -43,6 +43,11 @@ TABLE OF CONTENTS
          1.  D_ENV_COMPILER_HAS_ATOMIC_BUILTINS
     6.  Keyword extensions
          1.  D_ENV_COMPILER_HAS_RESTRICT_EXTENSION
+         2.  D_ENV_COMPILER_RESTRICT
+         3.  D_ENV_COMPILER_INLINE
+         4.  D_ENV_COMPILER_FORCEINLINE
+         5.  D_ENV_COMPILER_ALWAYS_INLINE
+         6.  D_ENV_COMPILER_NOINLINE
 2.  PREPROCESSOR FEATURES
     ---------------------
     1.  Variadic macros
@@ -362,6 +367,72 @@ TABLE OF CONTENTS
         #define D_ENV_COMPILER_HAS_RESTRICT_EXTENSION 0
     #endif
 #endif  // D_ENV_COMPILER_HAS_RESTRICT_EXTENSION
+
+// The compiler's own spellings of the qualifiers djinterp.h's public kit
+// names (D_RESTRICT, D_INLINE and its kin, D_NOINLINE): vendor extensions
+// live in the env layer, and the root keeps only the public names (decision 6
+// of the register). Each is empty for a compiler without the spelling.
+
+// 1.6.2
+// D_ENV_COMPILER_RESTRICT
+//   keyword: `restrict` where the language has no keyword for it (C++):
+// `__restrict__` on GCC and Clang, `__restrict` on MSVC.
+#if ( (defined(D_ENV_COMPILER_GCC)) ||                                         \
+      (defined(D_ENV_COMPILER_CLANG)) )
+    #define D_ENV_COMPILER_RESTRICT         __restrict__
+#elif defined(D_ENV_COMPILER_MSVC)
+    #define D_ENV_COMPILER_RESTRICT         __restrict
+#else
+    #define D_ENV_COMPILER_RESTRICT
+#endif
+
+// 1.6.3
+// D_ENV_COMPILER_INLINE
+//   keyword: an inline keyword every C mode accepts without a diagnostic, C89
+// and MSVC's default C included: `__inline__` on GCC and Clang, `__inline` on
+// MSVC, and the standard `inline` elsewhere.
+#if ( (defined(D_ENV_COMPILER_GCC)) ||                                         \
+      (defined(D_ENV_COMPILER_CLANG)) )
+    #define D_ENV_COMPILER_INLINE           __inline__
+#elif defined(D_ENV_COMPILER_MSVC)
+    #define D_ENV_COMPILER_INLINE           __inline
+#else
+    #define D_ENV_COMPILER_INLINE           inline
+#endif
+
+// 1.6.4
+// D_ENV_COMPILER_FORCEINLINE
+//   keyword: MSVC's `__forceinline`, which replaces the inline keyword; empty
+// elsewhere, where D_ENV_COMPILER_ALWAYS_INLINE is the attribute added to it.
+#if defined(D_ENV_COMPILER_MSVC)
+    #define D_ENV_COMPILER_FORCEINLINE      __forceinline
+#else
+    #define D_ENV_COMPILER_FORCEINLINE
+#endif
+
+// 1.6.5
+// D_ENV_COMPILER_ALWAYS_INLINE
+//   attribute: GCC's and Clang's `__attribute__((always_inline))`, written
+// after an inline keyword; empty elsewhere.
+#if ( (defined(D_ENV_COMPILER_GCC)) ||                                         \
+      (defined(D_ENV_COMPILER_CLANG)) )
+    #define D_ENV_COMPILER_ALWAYS_INLINE    __attribute__((always_inline))
+#else
+    #define D_ENV_COMPILER_ALWAYS_INLINE
+#endif
+
+// 1.6.6
+// D_ENV_COMPILER_NOINLINE
+//   attribute: keeps a function out of line: `__declspec(noinline)` on MSVC,
+// `__attribute__((noinline))` on GCC and Clang; empty elsewhere.
+#if defined(D_ENV_COMPILER_MSVC)
+    #define D_ENV_COMPILER_NOINLINE         __declspec(noinline)
+#elif ( (defined(D_ENV_COMPILER_GCC)) ||                                       \
+        (defined(D_ENV_COMPILER_CLANG)) )
+    #define D_ENV_COMPILER_NOINLINE         __attribute__((noinline))
+#else
+    #define D_ENV_COMPILER_NOINLINE
+#endif
 
 
 //==============================================================================

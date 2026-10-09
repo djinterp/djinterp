@@ -16,6 +16,10 @@
 * (POSIX mmap+mprotect, Windows VirtualAlloc+VirtualProtect, or Apple MAP_JIT);
 * callers never name a backend. If D_ENV_JIT_CAN_ALLOCATE_EXEC is 0, init fails
 * cleanly.
+*   App Store note: the App Store forbids JIT to general apps on iOS, iPadOS,
+* tvOS, watchOS and visionOS. Nothing here detects that; a build for those
+* stores pre-defines D_ENV_JIT_PROHIBITED as 1, which turns init into a clean
+* failure, as it does on any platform without executable memory.
 *
 *   Requires:  djinterp.h (qualifier kit + scalar types) and env/jit/env_jit.h
 *              (backend, policy, and cache-coherency detection).
@@ -24,7 +28,7 @@
 * path:      /inc/djinterp/jit/jit.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_JIT_JIT_H
@@ -111,7 +115,8 @@ typedef struct d_jit_buffer
 //   function: reserve at least _capacity bytes of writable, executable-capable
 // memory (page-rounded) and initialise _buf to an empty, non-finalized buffer.
 //   returns: 0 on success; -1 on failure (allocation refused, or the platform
-// cannot allocate executable memory -- see D_ENV_JIT_CAN_ALLOCATE_EXEC).
+// cannot allocate executable memory -- see D_ENV_JIT_CAN_ALLOCATE_EXEC, and
+// for App Store targets, D_ENV_JIT_PROHIBITED).
 D_NODISCARD int   d_jit_buffer_init(d_jit_buffer* _buf, size_t _capacity);
 
 // d_jit_emit

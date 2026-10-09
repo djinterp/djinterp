@@ -7,19 +7,23 @@
 * its header exists in any C++ build, except where a platform or a compiler
 * switch is known to remove it: <locale> on AVR and Android, <typeinfo>
 * without RTTI, and <exception> and <stdexcept> without exception support. In
-* C, every flag is 0.
+* C, every flag is 0. A header a freestanding implementation need not
+* provide reads 0 unless __STDC_HOSTED__ says hosted; <new>, <typeinfo>,
+* <exception> and <limits>, which every C++98 implementation has, do not
+* depend on it.
 *   D_ENV_CPP98_HAS_<HEADER> is 1 if <header> is available and 0 otherwise;
 * D_ENV_CPP98_HAS_ALL_* and D_ENV_CPP98_HAS_FULL_STL combine them.
 *   Every D_ENV_CPP98_HAS_<HEADER> flag is pre-definable: #define it before
 * including this header to override the detected value, for instance to test a
 * partial library, to simulate another platform, or to switch exceptions off.
-*   It reads only the compiler's own predefined macros, and includes nothing.
+*   It reads only the compiler's own predefined macros, __STDC_HOSTED__
+* among them, and includes nothing.
 *
 *
 * path:      /inc/djinterp/env/cpp/env_cpp98.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.08
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -81,6 +85,21 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_CPP_ENV_CPP98_H 1
 
 
+// D_INTERNAL_ENV_CPP98_HOSTED
+//   macro: 1 where the implementation says it is hosted (__STDC_HOSTED__ 1),
+// and 0 where it says it is freestanding -- and where it says nothing: this
+// header assumes no library it has no word for (decision 91 of the register).
+// Every header a freestanding implementation need not provide reads 0 where
+// this is 0; <new>, <typeinfo>, <exception> and <limits>, which C++98
+// requires even of freestanding implementations, do not depend on it.
+#if ( (defined(__STDC_HOSTED__)) &&                                            \
+      (__STDC_HOSTED__) )
+    #define D_INTERNAL_ENV_CPP98_HOSTED 1
+#else
+    #define D_INTERNAL_ENV_CPP98_HOSTED 0
+#endif
+
+
 //==============================================================================
 // 1.  C++98 STANDARD LIBRARY HEADERS
 //==============================================================================
@@ -97,7 +116,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_VECTOR
 //   feature: 1 if <vector> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_VECTOR
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_VECTOR 1
     #else
         #define D_ENV_CPP98_HAS_VECTOR 0
@@ -108,7 +128,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_LIST
 //   feature: 1 if <list> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_LIST
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_LIST 1
     #else
         #define D_ENV_CPP98_HAS_LIST 0
@@ -119,7 +140,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_DEQUE
 //   feature: 1 if <deque> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_DEQUE
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_DEQUE 1
     #else
         #define D_ENV_CPP98_HAS_DEQUE 0
@@ -130,7 +152,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_QUEUE
 //   feature: 1 if <queue> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_QUEUE
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_QUEUE 1
     #else
         #define D_ENV_CPP98_HAS_QUEUE 0
@@ -141,7 +164,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_STACK
 //   feature: 1 if <stack> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_STACK
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_STACK 1
     #else
         #define D_ENV_CPP98_HAS_STACK 0
@@ -152,7 +176,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_MAP
 //   feature: 1 if <map> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_MAP
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_MAP 1
     #else
         #define D_ENV_CPP98_HAS_MAP 0
@@ -163,7 +188,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_SET
 //   feature: 1 if <set> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_SET
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_SET 1
     #else
         #define D_ENV_CPP98_HAS_SET 0
@@ -174,7 +200,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_BITSET
 //   feature: 1 if <bitset> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_BITSET
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_BITSET 1
     #else
         #define D_ENV_CPP98_HAS_BITSET 0
@@ -187,7 +214,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_ALGORITHM
 //   feature: 1 if <algorithm> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_ALGORITHM
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_ALGORITHM 1
     #else
         #define D_ENV_CPP98_HAS_ALGORITHM 0
@@ -198,7 +226,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_ITERATOR
 //   feature: 1 if <iterator> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_ITERATOR
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_ITERATOR 1
     #else
         #define D_ENV_CPP98_HAS_ITERATOR 0
@@ -209,7 +238,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_FUNCTIONAL
 //   feature: 1 if <functional> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_FUNCTIONAL
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_FUNCTIONAL 1
     #else
         #define D_ENV_CPP98_HAS_FUNCTIONAL 0
@@ -220,7 +250,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_NUMERIC
 //   feature: 1 if <numeric> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_NUMERIC
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_NUMERIC 1
     #else
         #define D_ENV_CPP98_HAS_NUMERIC 0
@@ -233,7 +264,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_STRING
 //   feature: 1 if <string> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_STRING
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_STRING 1
     #else
         #define D_ENV_CPP98_HAS_STRING 0
@@ -245,7 +277,8 @@ TABLE OF CONTENTS
 //   feature: 1 if <locale> is available (C++98), 0 otherwise. Assumed
 // absent on AVR and Android, where locale support may be missing.
 #ifndef D_ENV_CPP98_HAS_LOCALE
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #if ( (!defined(__AVR__)) &&                                           \
               (!defined(__ANDROID__)) )
             #define D_ENV_CPP98_HAS_LOCALE 1
@@ -263,7 +296,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_IOSTREAM
 //   feature: 1 if <iostream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_IOSTREAM
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_IOSTREAM 1
     #else
         #define D_ENV_CPP98_HAS_IOSTREAM 0
@@ -274,7 +308,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_ISTREAM
 //   feature: 1 if <istream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_ISTREAM
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_ISTREAM 1
     #else
         #define D_ENV_CPP98_HAS_ISTREAM 0
@@ -285,7 +320,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_OSTREAM
 //   feature: 1 if <ostream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_OSTREAM
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_OSTREAM 1
     #else
         #define D_ENV_CPP98_HAS_OSTREAM 0
@@ -296,7 +332,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_FSTREAM
 //   feature: 1 if <fstream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_FSTREAM
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_FSTREAM 1
     #else
         #define D_ENV_CPP98_HAS_FSTREAM 0
@@ -307,7 +344,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_SSTREAM
 //   feature: 1 if <sstream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_SSTREAM
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_SSTREAM 1
     #else
         #define D_ENV_CPP98_HAS_SSTREAM 0
@@ -318,7 +356,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_IOMANIP
 //   feature: 1 if <iomanip> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_IOMANIP
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_IOMANIP 1
     #else
         #define D_ENV_CPP98_HAS_IOMANIP 0
@@ -329,7 +368,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_IOS
 //   feature: 1 if <ios> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_IOS
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_IOS 1
     #else
         #define D_ENV_CPP98_HAS_IOS 0
@@ -340,7 +380,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_IOSFWD
 //   feature: 1 if <iosfwd> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_IOSFWD
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_IOSFWD 1
     #else
         #define D_ENV_CPP98_HAS_IOSFWD 0
@@ -351,7 +392,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_STREAMBUF
 //   feature: 1 if <streambuf> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_STREAMBUF
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_STREAMBUF 1
     #else
         #define D_ENV_CPP98_HAS_STREAMBUF 0
@@ -364,7 +406,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_UTILITY
 //   feature: 1 if <utility> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_UTILITY
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_UTILITY 1
     #else
         #define D_ENV_CPP98_HAS_UTILITY 0
@@ -376,7 +419,8 @@ TABLE OF CONTENTS
 //   feature: 1 if <memory> is available (C++98, in its limited C++98
 // form), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_MEMORY
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_MEMORY 1
     #else
         #define D_ENV_CPP98_HAS_MEMORY 0
@@ -437,7 +481,8 @@ TABLE OF CONTENTS
 //   feature: 1 if <stdexcept> is available (C++98) and exceptions are on, 0
 // otherwise, as for D_ENV_CPP98_HAS_EXCEPTION.
 #ifndef D_ENV_CPP98_HAS_STDEXCEPT
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #if ( (!defined(__cpp_exceptions)) &&                                  \
               (!defined(__EXCEPTIONS))     &&                                  \
               (!defined(_CPPUNWIND)) )
@@ -467,7 +512,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_COMPLEX
 //   feature: 1 if <complex> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_COMPLEX
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_COMPLEX 1
     #else
         #define D_ENV_CPP98_HAS_COMPLEX 0
@@ -478,7 +524,8 @@ TABLE OF CONTENTS
 // D_ENV_CPP98_HAS_VALARRAY
 //   feature: 1 if <valarray> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_VALARRAY
-    #if defined(__cplusplus)
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_INTERNAL_ENV_CPP98_HOSTED) )
         #define D_ENV_CPP98_HAS_VALARRAY 1
     #else
         #define D_ENV_CPP98_HAS_VALARRAY 0
