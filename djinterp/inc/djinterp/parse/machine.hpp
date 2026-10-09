@@ -12,10 +12,11 @@
 * keeps the registry a POD and callable from either language; writing one by
 * hand means spelling out the C signature and casting the context back.  The
 * def() overloads below take an ordinary callable instead and generate that
-* trampoline as a template, so a stateless handler registers as a lambda over
-* `machine&` and still costs exactly one indirect call to a function that
-* inlines its body.  No std::function, no allocation, no type erasure beyond
-* the function pointer the C ABI already required.
+* trampoline as a template, so a stateless handler registers as an empty
+* functor over `machine&` -- from C++20, where a lambda first has a default
+* constructor, as a captureless lambda -- and still costs exactly one indirect
+* call to a function that inlines its body.  No std::function, no allocation,
+* no type erasure beyond the function pointer the C ABI already required.
 *
 *   ONE CAST, DOCUMENTED.  The trampolines receive d_parse_machine* and hand
 * the handler a machine&.  That is valid because machine is standard-layout
@@ -29,7 +30,7 @@
 * path:      /inc/djinterp/parse/machine.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -463,9 +464,12 @@ public:
     }
 
     // def
-    //   function: registers a callable that carries nothing -- a captureless
-    // lambda or an empty functor.  No context pointer is stored and the
-    // trampoline inlines away.
+    //   function: registers a callable that carries nothing: an empty functor
+    // at every level and, from C++20, a captureless lambda.  The trampoline
+    // constructs its callable on the spot, and before C++20 a lambda has no
+    // default constructor; below it, def_raw() takes a captureless lambda of
+    // the C signature, as the function pointer it converts to.  No context
+    // pointer is stored and the trampoline inlines away.
     template<D_INTERNAL_PARSE_VOP_STATELESS Fn>
     D_NODISCARD bool
     def(
@@ -478,6 +482,11 @@ public:
                       "this def() takes a callable that captures nothing; use "
                       "def_object for one that owns state, or def_raw for a "
                       "plain C-ABI operator");
+        static_assert(std::is_default_constructible<Fn>::value,
+                      "this def() constructs its callable on the spot, and a "
+                      "lambda has no default constructor before C++20; below "
+                      "it pass an empty functor, or use def_object or "
+                      "def_raw");
 
         return def_raw(_code, _name, &internal::stateless_thunk<Fn>, nullptr);
     }

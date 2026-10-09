@@ -1,75 +1,154 @@
 # parse / parsegen foundation — steps 1 through 6
 
-## Install
+## Build and test
 
-Unzip at the **repository root** (the directory containing `inc/`, `src/`,
-`tests/` and `build/`). Every path in the archive is relative to that root.
+The foundation's C sources build as C, at the C floor, into one library, and
+the suites link against it at every language level. From anywhere, with a
+compiler and nothing else:
 
 ```bash
-cd <repo-root>
-unzip -o vparse.zip
 build/cmake/config/testing/djinterp/parsegen/foundation/run_foundation_tests.sh
 ```
 
-It builds and runs two suites against the same library, and expects
-`passed: 18   failed: 0` from the C++ tests and `passed: 5   failed: 0` from the
-C tests. Add `--matrix` to run both under every configuration knob. The consolidated vparse builds as
-`parsegen/vparse/vparse-AGENTS.md` describes, expecting `passed: 14   failed: 0`.
+It builds the library once (C99) and runs the C++ suites at C++11, 14, 17, 20
+and 23 and the C suites at C99, C11, C17 and C23, with `gcc` and `g++` unless
+`CC` and `CXX` say otherwise. A level the compiler cannot select is left out,
+and named. Each run must print its level's count:
 
-The archive carries three things: this foundation, the consolidated vparse, and
-five framework files with fixes or registrations applied. **Eight existing files
-are replaced:**
-
-| file | why |
+| level | sections |
 |---|---|
-| `inc/djinterp/djinterp.hpp` | `NS_DJINTERP` fix; the `djinterp::functional` alias |
-| `inc/djinterp/env/env.h` | `env_c_lib.h` include order |
-| `inc/djinterp/parse/parser/parser.hpp` | `parser_expr` return-type deduction |
-| `inc/djinterp/config/dconfig.h` | registers `cfg_parse.h` and `cfg_parsegen.h` |
-| `inc/djinterp/config/cfg_testing.h` | the parse machine trace's test-build default |
-| `inc/djinterp/parsegen/parsegen.hpp` | the C / C++ umbrella split |
-| `inc/djinterp/parsegen/vparse/machine.hpp` | consolidated vparse, on the real root |
-| `inc/djinterp/parsegen/vparse/peg.hpp` | consolidated vparse |
+| C++11, C++14 | `passed: 56   failed: 0` |
+| C++17 | `passed: 57   failed: 0` |
+| C++20, C++23 | `passed: 58   failed: 0` |
+| C99, C11, C17, C23 | `passed: 12   failed: 0` |
 
-If your copies of the first five have changed since the snapshot this was built
-against, merge the changes rather than overwriting.
+`--matrix` then rebuilds everything under each of the fourteen configuration
+knobs, at the lowest and highest C++ level and at the C floor, and prints how
+many sections each ran. `--verbose` prints every section as it runs. The
+consolidated vparse builds as `parsegen/vparse/vparse-AGENTS.md` describes,
+expecting `passed: 15   failed: 0` at every level.
 
-**Delete by hand, since a zip cannot remove files:** `inc/djinterp/parse/vparse/`.
-Its six headers are an older generation of vparse that nothing references;
-`parsegen/vparse/` supersedes them.
+### Why the count differs by level
 
-**If you unzipped an earlier version of this archive,** also delete the C
-layer's old locations: this version moves it into `c/` (see Layout), and a
-build that globs `src/djinterp/parse/*.c` would otherwise compile both copies
-and fail on duplicate symbols. None of these files is in the original tree, so
-the command removes nothing of yours:
+A suite is a table of sections. Each suite's source defines its sections and,
+beside them, the table that lists them (`d_tests_parse_substrate[]` and its
+`_count`, and so on); the runners are loops over those tables with no
+condition of their own. A section is therefore the unit a language level or a
+configuration knob removes, and the condition that removes it is written
+once, at namespace scope, in the suite's own source -- never as an `#if`
+inside a function body.
 
-```bash
-cd <repo-root>
-rm -f inc/djinterp/parse/{charset,diagnostic,machine,pool,program,storage}.h \
-      src/djinterp/parse/{charset,diagnostic,machine,pool,program,storage}.c \
-      inc/djinterp/parsegen/{parsegen,feature,registry,grammar,analysis}.h \
-      src/djinterp/parsegen/{feature,registry,grammar,analysis}.c
-```
+Two sections exist only from a level up, because the registration shape they
+test does:
+
+| section | from | what it registers |
+|---|---|---|
+| `parse_machine_by_address` | C++17 | `def<&fn>` and `def_state<&fn>`: a `template<auto>` parameter |
+| `parse_machine_lambda` | C++20 | `def` with a captureless lambda: a lambda first has a default constructor there |
+
+Sections that need the heap forms, the transport or the digest drop out under
+the knob that removes those, which is what the matrix shows.
+
+A section that silently stopped being compiled would read as a smaller pass.
+So `expected_sections.txt`, beside the script, records the count each level
+has in the default configuration; the script and the CMake leaf both read it,
+and a run that prints any other count fails. Adding a section means changing
+that file, once. A build under a knob is not held to those counts.
 
 ### CMake
 
 `build/cmake/config/testing/djinterp/parsegen/foundation/CMakeLists.txt` is a
-plain-CMake leaf. Wire it with `add_subdirectory()` wherever your other test
-leaves are added. It builds the library and both test executables, and registers both with
-CTest. It does not use `djinterp_add_test_executable`, because that
-helper's source was not available; swapping to it is mechanical.
+plain-CMake leaf that does what the script does: one library, then one test
+executable per level (`djinterp_foundation_tests_cxx11` ... `_cxx23`,
+`djinterp_foundation_c_tests_c99` ... `_c23`), each registered with CTest and
+held to its count. It stands alone,
 
-### Framework fixes, and one open issue
+```bash
+cmake -S build/cmake/config/testing/djinterp/parsegen/foundation -B out
+cmake --build out && ctest --test-dir out
+```
+
+or is added with `add_subdirectory()` wherever the other test leaves are; the
+enclosing project must enable both C and CXX. Under a cl-style driver (MSVC,
+clang-cl) C++11 is left out, since the lowest level those select is C++14;
+under cl so is C23, since the switch a current CMake gives it for that level
+is `/std:clatest`, a draft and not the level. Every target is given `/utf-8`
+there: the tree's sources are UTF-8 with no byte-order mark, which cl
+otherwise reads in the system code page. It does
+not use `djinterp_add_test_executable`: that helper belongs to the
+framework's CMake, which is being rewritten.
+
+| cache variable | default | |
+|---|---|---|
+| `DJINTERP_FOUNDATION_CXX_LEVELS` | `11;14;17;20;23` | C++ levels to build the suites at |
+| `DJINTERP_FOUNDATION_C_LEVELS` | `99;11;17;23` | C levels to build the suites at |
+| `DJINTERP_FOUNDATION_EXPECT_COUNTS` | `ON` | hold each test to its count; turn off under a knob |
+| `DJINTERP_FOUNDATION_STRICT` | `ON` | `-Wall -Wextra -pedantic-errors -Werror=undef`, on GCC and Clang |
+
+### The environment the down-port set
+
+What changed here when the tree was ported down (2026.10), and what any new
+file in these two modules has to follow:
+
+- **Floors.** C is C99. The C++ faces of `parse` and `parsegen` have a module
+  floor of C++11: below it a header or a source compiles to nothing, never to
+  an `#error`, so every unit compiles at every level from strict C++98 up.
+  The suites carry the same floor.
+- **Fixed-width integers come from re_std.** C includes
+  `re_std/cstdint/dstdint.h`; C++ includes `re_std/cstdint/cstdint.hpp` and
+  spells `re_std::uint32_t`, never `std::`. The library therefore links
+  re_std's one C source, `src/djinterp/c/re_std/dstdint.c`.
+- **Includes are paths relative to the file**, each with a summary of what it
+  is for. So the only include directory any target here has is `inc/`, which
+  the sources still use; the suites and runners need none of their own.
+- **Testing mode is two definitions.** `D_TESTING=1` changes the layout of
+  `struct d_parse_machine`, so the library and every consumer take it alike;
+  `RE_STD_CFG_TESTING=1` is set beside it so that neither depends on include
+  order.
+- **The ladder's flags.** `-pedantic-errors -Werror=undef
+  -D_XOPEN_SOURCE=700`: an `#if` on a macro nobody defined is an error, and a
+  strict ISO mode otherwise hides the POSIX names the framework uses.
+
+Verified at the port: the suites in all 16 ladder configurations (g++ and
+clang++, strict C++98 to C++23), plain and testing; every level's count above
+with both compilers, no warning; the matrix with both; and the same counts
+on a 64-bit Windows target (MinGW-w64, run under Wine), where `long` is 32
+bits. Since 2026.10.06 the C layer, the suites and the runners have also been
+compiled along the branches `env` takes under cl -- its identity given to
+another compiler -- in cl's default C mode, C11 and C17, and at C++14, 17, 20
+and 23, with no failure; and both leaves have been configured as CMake
+configures them for cl 19.51, through a stand-in for it, and built and run
+that way on the Windows target: 7 of 7 tests, and vparse's 4 of 4. Not
+verified: cl itself, its parser and its library.
+
+### Stale copies
+
+The C layer once sat directly under `parse/` and `parsegen/`; it moved into
+`c/` (see Layout). The copies the move left behind are retired -- the headers
+and six sources to `_retired/cpp98_floors_2026.09.30/`, the last four sources
+(`src/djinterp/parse/{diagnostic,machine,program,storage}.c`) to
+`_retired/vparse_suites_2026.10.04/`. A tree that still has files at the old
+paths has two definitions of every function in them, and a build that globs
+`src/djinterp/parse/` will fail to link.
+
+A working tree that was only ever unzipped over is such a tree: an unzip adds
+and overwrites, and never deletes, so every retired copy is still live in it.
+`_retired/parse_leftovers_2026.10.06/retire.cmake` applies the repository's
+record to one -- `cmake -P` it from the root -- moving each file that is byte
+for byte the retired copy to `_retired/<step>/`, and reporting any other, and
+any include, in a file that stays, of one it moved.
+
+### Framework fixes
 
 Building against your real headers, rather than stand-ins, surfaced four
-framework issues. The three files above fix them, so nothing here needs a build
-flag or a force-include to compile:
+framework issues. `djinterp.hpp`, `env/env.h` and `parse/parser/parser.hpp`
+carry the fixes, so nothing here needs a build flag or a force-include to
+compile:
 
-- **`D_FRAMEWORK_NAME` was used but never defined.** The C root defines
-  `D_FRAMEWORK_NAME`; the C++ root's `NS_DJINTERP` expanded through the other
-  name, so every `NS_DJINTERP` opened a namespace literally called
-  `D_FRAMEWORK_NAME`. It now uses `D_FRAMEWORK_NAME`.
+- **`NS_DJINTERP` named a macro nothing defined.** The C root defines
+  `D_FRAMEWORK_NAME`; the C++ root's `NS_DJINTERP` expanded through
+  `D_KEYWORD_FRAMEWORK_NAME`, so every `NS_DJINTERP` opened a namespace
+  literally called that. It now uses `D_FRAMEWORK_NAME`.
 - **`functional` was never declared.** `parse.hpp`, `core/functional` and
   `core/event` spell the functional API `functional::` (32 uses in 7 files), and
   only the old sandbox stand-in declared the alias. `djinterp.hpp` now declares
@@ -83,15 +162,11 @@ flag or a force-include to compile:
   g++. It now deduces at the point of use — your own fix from the corrected copy,
   which had not carried over when `parser.hpp` moved to the real root.
 
-**Still open, by your choice:** the C-side attribute macros in
-`env/c/env_attributes.h` select C23 `[[...]]` syntax under `-std=c11`, which
-`-Wpedantic` reports. The script leaves `-Wpedantic` off by default;
-`PEDANTIC=1` turns it on. A fix ships *beside* this archive rather than in it,
-so adopting it stays a separate decision: `env_attributes.h` gates the C23 probe
-on `__STDC_VERSION__ > 201710L` at all six sites. That takes a pedantic C11 or
-C17 build of this foundation from 62 warnings to 0, leaves every attribute in
-effect (a discarded `D_NODISCARD` result and a `D_DEPRECATED` call still warn),
-and changes nothing in C++.
+**Closed since:** the C-side attribute macros in `env/c/env_attributes.h`
+once selected C23 `[[...]]` syntax under `-std=c11`, which `-Wpedantic`
+reported 62 times across this foundation. The down-port fixed it at the
+source, and the foundation now builds at C99, C11 and C17 under
+`-pedantic-errors` with no diagnostic at all.
 
 ## Layout
 
@@ -126,12 +201,14 @@ defers to `D_CFG_PARSE_ALL` there, so relocating it changed nothing except one
 case: a testing build that sets `D_CFG_NO_TESTING_PRESET` now gets the trace
 off, as suppressing the preset is documented to do.
 
-Applying the rule to existing code is deferred, but needs no further decision:
-`c/test/` moves to `test/c/`; the C headers in `parse/parsers/{bnf,abnf,ebnf}/`
-move to `parse/c/parsers/...`; `jit/` becomes `jit/c/` if the rule is held
-strictly; and `env/c/` and `env/cpp/`, which hold detection *of* C and C++
-features, move under a role directory such as `env/lang/`, so that `c/` keeps
-one meaning.
+Applying the rule to existing code was deferred, and needs no further decision.
+Since then `c/test/` has moved to `test/c/`, and the C headers in
+`parse/parsers/{bnf,abnf,ebnf}/` were retired rather than moved
+(`_retired/c99_2026.09.30/`); should they return, they belong in
+`parse/c/parsers/...`. Still deferred: `jit/` becomes `jit/c/` if the rule is
+held strictly; and `env/c/` and `env/cpp/`, which hold detection *of* C and
+C++ features, move under a role directory such as `env/lang/`, so that `c/`
+keeps one meaning.
 
 ## Files
 
@@ -145,9 +222,10 @@ one meaning.
 | `inc/djinterp/parse/c/program.h` | C: `d_parse_instr`, `d_parse_program`, verify/hash/transport |
 | `inc/djinterp/parse/c/storage.h` | C: `d_parse_grow`, the one growth policy |
 | `inc/djinterp/parse/substrate.hpp` | C++: the substrate's one guarded `NS_PARSE` |
-| `tests/djinterp/parse/c/parse_c_tests.{h,c}` | C tests: diagnostics, machine, program |
-| `tests/djinterp/parsegen/c/parsegen_c_tests.{h,c}` | C tests: grammar, analysis and routing |
-| `.../parsegen/foundation/foundation_c_tests_runner.c` | the C suite's entry point |
+| `tests/djinterp/parse/c/tests_section.h` | `d_tests_section`: a section's name and function, shared by every suite, C and C++ |
+| `tests/djinterp/parse/c/parse_c_tests.{h,c}` | C tests: diagnostics, machine, program -- 7 sections |
+| `tests/djinterp/parsegen/c/parsegen_c_tests.{h,c}` | C tests: grammar, analysis and routing -- 5 sections |
+| `.../parsegen/foundation/foundation_c_tests_runner.c` | the C suites' entry point |
 | `inc/djinterp/parsegen/vparse/` | the consolidated vparse; see its `vparse-AGENTS.md` |
 | `inc/djinterp/parsegen/c/feature.h` | C: `d_parsegen_features`, the capability vocabulary |
 | `inc/djinterp/parsegen/c/registry.h` | C: `d_parsegen_stage`, `d_parsegen_registry`, selection |
@@ -166,12 +244,14 @@ one meaning.
 | `inc/djinterp/parsegen/parsegen.hpp` | C++ face: `NS_PARSEGEN` and nothing else |
 | `src/djinterp/parse/c/{diagnostic,machine,charset,pool,program,storage}.c` | definitions |
 | `src/djinterp/parsegen/c/{feature,registry,grammar,analysis}.c` | definitions |
-| `tests/djinterp/parse/parse_substrate_tests.{hpp,cpp}` | 3 sections |
-| `tests/djinterp/parse/parse_program_tests.cpp` | 3 sections |
-| `tests/djinterp/parsegen/parsegen_registry_tests.cpp` | 3 sections |
-| `tests/djinterp/parsegen/parsegen_grammar_tests.cpp` | 5 sections |
-| `tests/djinterp/parsegen/parsegen_analysis_tests.cpp` | 4 sections |
-| `build/cmake/config/testing/djinterp/parsegen/foundation/` | runner, CMake leaf, build script |
+| `tests/djinterp/parse/parse_substrate_tests.{hpp,cpp}` | diagnostics, machine, interop -- 7 sections, 8 from C++17, 9 from C++20 |
+| `tests/djinterp/parse/parse_program_tests.{hpp,cpp}` | charset, pool, program -- 12 sections |
+| `tests/djinterp/parsegen/parsegen_registry_tests.{hpp,cpp}` | features, registry, storage -- 11 sections |
+| `tests/djinterp/parsegen/parsegen_grammar_tests.{hpp,cpp}` | the neutral grammar -- 13 sections |
+| `tests/djinterp/parsegen/parsegen_analysis_tests.{hpp,cpp}` | analysis and routing -- 13 sections |
+| `.../parsegen/foundation/foundation_tests_runner.cpp` | the C++ suites' entry point |
+| `.../parsegen/foundation/CMakeLists.txt`, `run_foundation_tests.sh` | the CMake leaf and its script twin |
+| `.../parsegen/foundation/expected_sections.txt` | the section count each level must run |
 
 ## The namespace rule, as applied
 
@@ -223,6 +303,14 @@ Three registration shapes: `def` (captureless callable, no context stored),
 `def_state<&fn>` (free function plus family state), `def_object` (a functor
 the caller owns), plus `def_raw` for the plain C form.
 
+Each has the level its language feature has. The lambda above is C++20: `def`
+constructs its callable on the spot, and a lambda has no default constructor
+before that. At C++11 to 17 the same registration takes an empty functor --
+identical code generated -- and `def` says so in a static assertion rather
+than failing inside the trampoline. `def_state<&fn>` and `def<&fn>` take a
+`template<auto>` parameter, so they are C++17. `def_object` and `def_raw` are
+C++11, and `def_raw` takes a captureless lambda of the C signature there.
+
 **`unordered_map` → dense table.** An opcode space is family-private and
 dense from zero by construction, so `find` is a bounds check and a load.
 This is the interpreter-baseline work from the earlier plan, done here
@@ -252,7 +340,8 @@ because the substrate was being rewritten anyway.
 1. `parsegen/vparse/machine.hpp` is superseded by `parse/machine.hpp`;
    delete it. `djinterp::parsegen::machine` → `djinterp::parse::machine`.
 2. `op_set::def(code, name, fn)` → same call, but the lambda must capture
-   nothing (use `def_object` or `def_state` if it does).
+   nothing (use `def_object` or `def_state` if it does), and below C++20 it
+   must be an empty functor rather than a lambda.
 3. `ops.find(code)` returns `const op*`; handlers now take
    `(d_parse_machine*, void*)` at the ABI and `machine&` through `def`.
 4. A family's private state moves from the old `machine` fields into its own
@@ -340,7 +429,7 @@ indices resolve, for any family, forever.
 
 `def` rejected a plain free function (not an empty type), which is the shape
 most C++ handlers take. Added `def<&fn>(code, name)` — the function is a
-template argument, so the shim is a direct call.
+template argument, so the shim is a direct call. It is there from C++17.
 
 ## Step 4, and a correction to how it was framed
 
@@ -693,27 +782,36 @@ subframework" gotcha in the config README.
 
 ## Build by hand
 
-What the script does, for reference:
+What the script does at one level, for reference:
 
 ```bash
 ROOT=<repo-root>
-FIX="-include djinterp/env/env_os.h"
-INC="-I$ROOT/inc -I$ROOT/tests/djinterp/parse -I$ROOT/tests/djinterp/parsegen"
+FLAGS="-pedantic-errors -Werror=undef -Wall -Wextra -D_XOPEN_SOURCE=700"
+MODE="-DD_TESTING=1 -DRE_STD_CFG_TESTING=1"
+LEAF=$ROOT/build/cmake/config/testing/djinterp/parsegen/foundation
 
-for c in $ROOT/src/djinterp/parse/c/*.c $ROOT/src/djinterp/parsegen/c/*.c; do
-  gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -DD_TESTING=1 $FIX $INC \
-      -c "$c" -o "$(basename "${c%.c}").o"
+for c in $ROOT/src/djinterp/parse/c/*.c $ROOT/src/djinterp/parsegen/c/*.c \
+         $ROOT/src/djinterp/c/re_std/dstdint.c; do
+  gcc -std=c99 -O1 $FLAGS $MODE -I$ROOT/inc -c "$c" \
+      -o "$(basename "${c%.c}").o"
 done
-ar rcs libdjinterp_parse_foundation.a *.o
+ar rcs foundation.a *.o
 
-g++ -std=c++20 -O2 -Wall -Wextra -Wpedantic -DD_TESTING=1 $FIX $INC \
+g++ -std=c++17 -O1 $FLAGS $MODE -I$ROOT/inc \
     $ROOT/tests/djinterp/parse/*.cpp $ROOT/tests/djinterp/parsegen/*.cpp \
-    $ROOT/build/cmake/config/testing/djinterp/parsegen/foundation/foundation_tests_runner.cpp \
-    libdjinterp_parse_foundation.a -o foundation_tests && ./foundation_tests
+    $LEAF/foundation_tests_runner.cpp foundation.a \
+    -o foundation_tests && ./foundation_tests          # passed: 57
+
+gcc -std=c99 -O1 $FLAGS $MODE -I$ROOT/inc \
+    $ROOT/tests/djinterp/parse/c/*.c $ROOT/tests/djinterp/parsegen/c/*.c \
+    $LEAF/foundation_c_tests_runner.c foundation.a \
+    -o foundation_c_tests && ./foundation_c_tests      # passed: 12
 ```
 
 `D_TESTING` must be the same for the library and the tests: it turns on the
 machine's trace hook, which changes the layout of `struct d_parse_machine`.
+`-D_XOPEN_SOURCE=700` is not optional beside `-Werror=undef` on glibc: see
+the open item on `c/djinterp.h` below.
 
 ## Open: a grammar has no fixed-storage initializer in C
 
@@ -723,4 +821,20 @@ caller-supplied storage; a grammar does not, so C code binds its fields by hand
 (`parsegen_c_tests.c` does, in one helper) -- the same fields `fixed_grammar`
 binds in C++. A `d_parsegen_grammar_init_fixed` would close it and let
 `fixed_grammar` use it too.
+
+## Open: `-Werror=undef` passes only because of `_XOPEN_SOURCE`
+
+`c/djinterp.h` supplies `SSIZE_MAX` where `<limits.h>` left it out, and
+chooses its value with `#if D_ENV_OS_USING_WINDOWS64`. `env_os.h` defines
+that macro only on 64-bit Windows, so everywhere else the `#if` reads a macro
+nobody defined: under `-Werror=undef`, an error. glibc leaves `SSIZE_MAX` out
+of a strict ISO mode unless POSIX names are enabled, so `gcc -std=c99
+-Werror=undef` fails on the root header itself -- and the ladder never sees
+it, because every compile there defines `_XOPEN_SOURCE=700`, which makes
+glibc define `SSIZE_MAX` and skips the block. The same test sits a few lines
+above it, inside the cl-only branch.
+
+The root is not this foundation's file, so it is reported rather than
+changed. `#if defined(D_ENV_OS_USING_WINDOWS64)` at both sites, or a `0`
+definition of the macro in `env_os.h` for every other system, closes it.
 

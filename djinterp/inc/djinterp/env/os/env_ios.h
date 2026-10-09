@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/env/os/env_ios.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -1010,6 +1010,15 @@ TABLE OF CONTENTS
 //   feature: detect if JIT compilation is prohibited.
 // App Store apps on iOS cannot use JIT (W^X policy) unless the app
 // uses a JIT entitlement (which is not generally available).
+//   env_jit.h does not read this (decision 61 of the register): a JIT build
+// for these stores pre-defines D_ENV_JIT_PROHIBITED as 1 itself.
+//   Mac Catalyst note: a Catalyst build reads as iOS (D_ENV_APPLE_IS_IOS is 1,
+// with D_ENV_APPLE_IS_MACCATALYST), so this reads 1 there too. But a Catalyst
+// app is a macOS app: under the hardened runtime it may use MAP_JIT with the
+// com.apple.security.cs.allow-jit entitlement, which whether a given app holds
+// is a fact of its signing, not of its build. The flag is left as it is
+// (decision 63 of the register): this header states the policy, and a
+// Catalyst build that JITs knows it does.
 #if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
       (D_ENV_APPLE_IS_TVOS)    ||                                              \
       (D_ENV_APPLE_IS_WATCHOS) ||                                              \
@@ -1023,6 +1032,9 @@ TABLE OF CONTENTS
 // D_ENV_MOBILE_NO_DLOPEN
 //   feature: detect if dlopen of third-party dynamic libraries is
 // prohibited. App Store policy forbids loading non-system dylibs.
+//   Mac Catalyst note: as with D_ENV_MOBILE_NO_JIT, a Catalyst build reads 1
+// here, though a Catalyst app, a macOS app, may load the frameworks it ships
+// and signs; left as it is (decision 63 of the register).
 #if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
       (D_ENV_APPLE_IS_TVOS)    ||                                              \
       (D_ENV_APPLE_IS_WATCHOS) ||                                              \

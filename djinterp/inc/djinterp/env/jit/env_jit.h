@@ -17,8 +17,11 @@
 *     - capability summaries (CAN_ALLOCATE_EXEC, AVAILABLE)             [5]
 *   It derives every answer from the base D_ENV_* families env.h establishes
 * (D_ENV_ARCH_*, D_ENV_OS_*, D_ENV_C_HAS_MMAP, and the D_ENV_COMPILER_*
-* identity), plus the mobile D_ENV_MOBILE_NO_JIT policy flag when env_ios.h
-* has defined it; it does no header probing of its own.
+* identity); it does no header probing of its own.
+*   App Store note: Apple's App Store forbids JIT to general apps on iOS,
+* iPadOS, tvOS, watchOS and visionOS. This header does not decide that for
+* you (decision 61 of the register): a build for those stores pre-defines
+* D_ENV_JIT_PROHIBITED as 1; see 2.1.1.
 *   Naming: D_ENV_JIT_HAS_<FEATURE> is 1 if available, 0 otherwise;
 * D_ENV_JIT_<FEATURE> is a non-boolean detected value or identifier.
 *   Every flag is #ifndef-guarded, so a project may pre-define any D_ENV_JIT_*
@@ -32,7 +35,7 @@
 * path:      /inc/djinterp/env/jit/env_jit.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.16
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -140,9 +143,12 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.2.1
 // D_ENV_JIT_IS_APPLE_FAMILY
-//   macro: internal helper. 1 when the detected OS is an Apple platform
-// (macOS, iOS/iPadOS, or the bare Apple flag), which route executable memory
-// through MAP_JIT rather than plain mmap under the hardened runtime.
+//   feature: 1 when the detected OS is an Apple platform (macOS, iOS/iPadOS,
+// or the bare Apple flag), which route executable memory through MAP_JIT
+// rather than plain mmap under the hardened runtime. Public and guarded, like
+// every flag here, so a test can pin it, for example to simulate an Apple
+// target (decision 62 of the register: it used to call itself an internal
+// helper without the D_INTERNAL_ prefix).
 #ifndef D_ENV_JIT_IS_APPLE_FAMILY
     #define D_ENV_JIT_IS_APPLE_FAMILY                                          \
         ( ((D_ENV_OS_ID) == D_ENV_OS_FLAG_MACOS) ||                            \
@@ -246,17 +252,20 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 2.1.1
 // D_ENV_JIT_PROHIBITED
-//   feature: 1 when the platform forbids JIT for general apps. Consumes the
-// mobile-Apple policy flag D_ENV_MOBILE_NO_JIT when env_ios.h has established
-// it (iOS / tvOS / watchOS / visionOS App Store rules); degrades to 0 on
-// platforms where no such prohibition is known.
+//   feature: 1 when the build declares JIT forbidden for its target, 0, the
+// default, otherwise. This header no longer derives it from a platform
+// policy (decision 61 of the register): it read env_ios.h's
+// D_ENV_MOBILE_NO_JIT, and so answered for iOS only where env_ios.h had been
+// included first.
+//   App Store note: the App Store forbids JIT to general apps on iOS, iPadOS,
+// tvOS, watchOS and visionOS -- executable memory needs an entitlement it
+// does not grant them -- so a build for those stores pre-defines this as 1,
+// and D_ENV_JIT_CAN_ALLOCATE_EXEC follows. env_ios.h's D_ENV_MOBILE_NO_JIT
+// states the same policy for those targets. A macOS app, a Mac Catalyst app
+// among them, may JIT under the hardened runtime with the allow-jit
+// entitlement.
 #ifndef D_ENV_JIT_PROHIBITED
-    #if ( (defined(D_ENV_MOBILE_NO_JIT)) &&                                    \
-          (D_ENV_MOBILE_NO_JIT) )
-        #define D_ENV_JIT_PROHIBITED 1
-    #else
-        #define D_ENV_JIT_PROHIBITED 0
-    #endif
+    #define D_ENV_JIT_PROHIBITED 0
 #endif  // D_ENV_JIT_PROHIBITED
 
 // 2.1.2
@@ -535,7 +544,9 @@ TABLE OF CONTENTS
 // D_ENV_JIT_CAN_ALLOCATE_EXEC
 //   feature: 1 if the platform can obtain executable memory at all -- some
 // backend exists and JIT is not prohibited. The baseline gate for any code
-// generation.
+// generation. App Store note: on iOS, iPadOS, tvOS, watchOS and visionOS this
+// reads 1 unless the build pre-defines D_ENV_JIT_PROHIBITED, and the store
+// then refuses executable memory at run time (see 2.1.1).
 #ifndef D_ENV_JIT_CAN_ALLOCATE_EXEC
     #if ( (D_ENV_JIT_HAS_EXEC_MEM) &&                                          \
           (!D_ENV_JIT_PROHIBITED) )

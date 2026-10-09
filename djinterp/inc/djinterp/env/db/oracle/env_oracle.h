@@ -95,7 +95,7 @@ TABLE OF CONTENTS
          8.  D_ENV_ORA_HAS_OCI_OBJECT
          9.  D_ENV_ORA_HAS_OCI_JSON
          10. D_ENV_ORA_HAS_OCI_SODA
-         11. D_ENV_ORA_HAS_OCI_helperICIT_RESULTS
+         11. D_ENV_ORA_HAS_OCI_IMPLICIT_RESULTS
          12. D_ENV_ORA_HAS_OCI_CLIENT_RESULT_CACHE
 7.  MULTITENANT ARCHITECTURE
     ------------------------
@@ -833,10 +833,10 @@ TABLE OF CONTENTS
         D_ENV_ORA_AT_LEAST(18)
 
     // 6.1.11
-    // D_ENV_ORA_HAS_OCI_helperICIT_RESULTS
+    // D_ENV_ORA_HAS_OCI_IMPLICIT_RESULTS
     //   feature: implicit result sets from PL/SQL
     // (DBMS_SQL.RETURN_RESULT). Introduced in Oracle 12.1.
-    #define D_ENV_ORA_HAS_OCI_helperICIT_RESULTS                               \
+    #define D_ENV_ORA_HAS_OCI_IMPLICIT_RESULTS                                 \
         D_ENV_ORA_VERSION_AT_LEAST(12, 1, 0)
 
     // 6.1.12

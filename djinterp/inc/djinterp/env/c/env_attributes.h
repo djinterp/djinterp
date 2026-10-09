@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/env/c/env_attributes.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -82,6 +82,32 @@ TABLE OF CONTENTS
 // djinterp
 #include "../env.h"  // D_ENV_LANG_*, D_ENV_COMPILER_*
 
+// D_INTERNAL_ENV_ATTR_GCC / _CLANG / _MSVC
+//   macro (internal): the compiler actually compiling, from its own
+// predefines, which choose this header's spellings. They follow the real
+// toolchain, not D_ENV_COMPILER_*, which a build may simulate (cfg_env.h):
+// a simulated MSVC on GCC got __declspec spellings GCC rejects (decision 87
+// of the register). Everything else in the env layer still follows
+// simulation.
+#if ( (defined(__GNUC__)) &&                                                   \
+      (!defined(__clang__)) )
+    #ifndef D_INTERNAL_ENV_ATTR_GCC
+        #define D_INTERNAL_ENV_ATTR_GCC 1
+    #endif  // D_INTERNAL_ENV_ATTR_GCC
+#endif
+#if defined(__clang__)
+    #ifndef D_INTERNAL_ENV_ATTR_CLANG
+        #define D_INTERNAL_ENV_ATTR_CLANG 1
+    #endif  // D_INTERNAL_ENV_ATTR_CLANG
+#endif
+#if ( (defined(_MSC_VER))     &&                                               \
+      (!defined(__clang__))   &&                                               \
+      (!defined(__GNUC__)) )
+    #ifndef D_INTERNAL_ENV_ATTR_MSVC
+        #define D_INTERNAL_ENV_ATTR_MSVC 1
+    #endif  // D_INTERNAL_ENV_ATTR_MSVC
+#endif
+
 
 #if D_ENV_LANG_USING_CPP
 
@@ -112,10 +138,10 @@ TABLE OF CONTENTS
 #ifndef D_NORETURN
     #if D_ENV_LANG_IS_CPP11_OR_HIGHER
         #define D_NORETURN [[noreturn]]
-    #elif ( (defined(D_ENV_COMPILER_GCC)) ||                                   \
-            (defined(D_ENV_COMPILER_CLANG)) )
+    #elif ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                              \
+            (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
         #define D_NORETURN __attribute__((noreturn))
-    #elif defined(D_ENV_COMPILER_MSVC)
+    #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
         #define D_NORETURN __declspec(noreturn)
     #else
         #define D_NORETURN
@@ -134,7 +160,7 @@ TABLE OF CONTENTS
 //     2. No-op fallback (the attribute is purely advisory).
 #ifndef D_CARRIES_DEPENDENCY
     #if ( (D_ENV_LANG_IS_CPP11_OR_HIGHER) &&                                   \
-          (!defined(D_ENV_COMPILER_GCC)) )
+          (!defined(D_INTERNAL_ENV_ATTR_GCC)) )
         #define D_CARRIES_DEPENDENCY [[carries_dependency]]
     #else
         #define D_CARRIES_DEPENDENCY
@@ -158,11 +184,11 @@ TABLE OF CONTENTS
     #if D_ENV_LANG_IS_CPP14_OR_HIGHER
         #define D_DEPRECATED              [[deprecated]]
         #define D_DEPRECATED_MSG(msg)     [[deprecated(msg)]]
-    #elif ( (defined(D_ENV_COMPILER_GCC)) ||                                   \
-            (defined(D_ENV_COMPILER_CLANG)) )
+    #elif ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                              \
+            (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
         #define D_DEPRECATED              __attribute__((deprecated))
         #define D_DEPRECATED_MSG(msg)     __attribute__((deprecated(msg)))
-    #elif defined(D_ENV_COMPILER_MSVC)
+    #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
         #define D_DEPRECATED              __declspec(deprecated)
         #define D_DEPRECATED_MSG(msg)     __declspec(deprecated(msg))
     #else
@@ -190,8 +216,8 @@ TABLE OF CONTENTS
 #ifndef D_FALLTHROUGH
     #if D_ENV_LANG_IS_CPP17_OR_HIGHER
         #define D_FALLTHROUGH [[fallthrough]]
-    #elif ( (defined(D_ENV_COMPILER_GCC)) ||                                   \
-            (defined(D_ENV_COMPILER_CLANG)) )
+    #elif ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                              \
+            (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
         #define D_FALLTHROUGH __attribute__((fallthrough))
     #else
         #define D_FALLTHROUGH
@@ -211,8 +237,8 @@ TABLE OF CONTENTS
 #ifndef D_MAYBE_UNUSED
     #if D_ENV_LANG_IS_CPP17_OR_HIGHER
         #define D_MAYBE_UNUSED [[maybe_unused]]
-    #elif ( (defined(D_ENV_COMPILER_GCC)) ||                                   \
-            (defined(D_ENV_COMPILER_CLANG)) )
+    #elif ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                              \
+            (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
         #define D_MAYBE_UNUSED __attribute__((unused))
     #else
         #define D_MAYBE_UNUSED
@@ -240,7 +266,7 @@ TABLE OF CONTENTS
     #if D_ENV_LANG_IS_CPP20_OR_HIGHER
         #define D_NO_UNIQUE_ADDRESS [[no_unique_address]]
     #elif ( (D_ENV_LANG_IS_CPP11_OR_HIGHER) &&                                 \
-            (defined(D_ENV_COMPILER_MSVC))  &&                                 \
+            (defined(D_INTERNAL_ENV_ATTR_MSVC))  &&                            \
             (defined(__has_cpp_attribute)) )
         #if __has_cpp_attribute(msvc::no_unique_address)
             #define D_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
@@ -295,7 +321,9 @@ TABLE OF CONTENTS
 //     2. MSVC - __assume(…).
 //     3. GCC 13+ - __attribute__((assume(…))).
 //     4. Clang - __builtin_assume(…).
-//     5. No-op fallback (void-cast to suppress unused warnings).
+//     5. Fallback: `expr` in an unevaluated sizeof, so it is type-checked
+//        and, as in every other tier, never evaluated (decision 67 of the
+//        register: a void cast ran its side effects here only).
 #ifndef D_ASSUME
     #if ( (D_ENV_LANG_IS_CPP23_OR_HIGHER) &&                                   \
           (defined(__has_cpp_attribute)) )
@@ -305,15 +333,15 @@ TABLE OF CONTENTS
     #endif
 
     #ifndef D_ASSUME
-        #if defined(D_ENV_COMPILER_MSVC)
+        #if defined(D_INTERNAL_ENV_ATTR_MSVC)
             #define D_ASSUME(expr) __assume(expr)
-        #elif ( (defined(D_ENV_COMPILER_GCC)) &&                               \
+        #elif ( (defined(D_INTERNAL_ENV_ATTR_GCC)) &&                          \
                 (__GNUC__ >= 13) )
             #define D_ASSUME(expr) __attribute__((assume(expr)))
-        #elif defined(D_ENV_COMPILER_CLANG)
+        #elif defined(D_INTERNAL_ENV_ATTR_CLANG)
             #define D_ASSUME(expr) __builtin_assume(expr)
         #else
-            #define D_ASSUME(expr) ((void)(expr))
+            #define D_ASSUME(expr) ((void)sizeof((expr) ? 1 : 0))
         #endif
     #endif  // D_ASSUME
 #endif  // D_ASSUME
@@ -351,10 +379,10 @@ TABLE OF CONTENTS
     #ifndef D_NORETURN
         #if D_ENV_LANG_IS_C11_OR_HIGHER
             #define D_NORETURN _Noreturn
-        #elif ( (defined(D_ENV_COMPILER_GCC)) ||                               \
-                (defined(D_ENV_COMPILER_CLANG)) )
+        #elif ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                          \
+                (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
             #define D_NORETURN __attribute__((noreturn))
-        #elif defined(D_ENV_COMPILER_MSVC)
+        #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
             #define D_NORETURN __declspec(noreturn)
         #else
             #define D_NORETURN
@@ -380,11 +408,11 @@ TABLE OF CONTENTS
     #endif
 
     #ifndef D_DEPRECATED
-        #if ( (defined(D_ENV_COMPILER_GCC)) ||                                 \
-              (defined(D_ENV_COMPILER_CLANG)) )
+        #if ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                            \
+              (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
             #define D_DEPRECATED              __attribute__((deprecated))
             #define D_DEPRECATED_MSG(msg)     __attribute__((deprecated(msg)))
-        #elif defined(D_ENV_COMPILER_MSVC)
+        #elif defined(D_INTERNAL_ENV_ATTR_MSVC)
             #define D_DEPRECATED              __declspec(deprecated)
             #define D_DEPRECATED_MSG(msg)     __declspec(deprecated(msg))
         #else
@@ -413,8 +441,8 @@ TABLE OF CONTENTS
     #endif
 
     #ifndef D_FALLTHROUGH
-        #if ( (defined(D_ENV_COMPILER_GCC)) ||                                 \
-              (defined(D_ENV_COMPILER_CLANG)) )
+        #if ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                            \
+              (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
             #define D_FALLTHROUGH __attribute__((fallthrough))
         #else
             #define D_FALLTHROUGH
@@ -437,8 +465,8 @@ TABLE OF CONTENTS
     #endif
 
     #ifndef D_MAYBE_UNUSED
-        #if ( (defined(D_ENV_COMPILER_GCC)) ||                                 \
-              (defined(D_ENV_COMPILER_CLANG)) )
+        #if ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                            \
+              (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
             #define D_MAYBE_UNUSED __attribute__((unused))
         #else
             #define D_MAYBE_UNUSED
@@ -484,17 +512,19 @@ TABLE OF CONTENTS
 //     1. MSVC - __assume(…).
 //     2. GCC 13+ - __attribute__((assume(…))).
 //     3. Clang - __builtin_assume(…).
-//     4. No-op fallback (void-cast to suppress unused warnings).
+//     4. Fallback: `expr` in an unevaluated sizeof, so it is type-checked
+//        and, as in every other tier, never evaluated (decision 67 of the
+//        register: a void cast ran its side effects here only).
 #ifndef D_ASSUME
-    #if defined(D_ENV_COMPILER_MSVC)
+    #if defined(D_INTERNAL_ENV_ATTR_MSVC)
         #define D_ASSUME(expr) __assume(expr)
-    #elif ( (defined(D_ENV_COMPILER_GCC)) &&                                   \
+    #elif ( (defined(D_INTERNAL_ENV_ATTR_GCC)) &&                              \
             (__GNUC__ >= 13) )
         #define D_ASSUME(expr) __attribute__((assume(expr)))
-    #elif defined(D_ENV_COMPILER_CLANG)
+    #elif defined(D_INTERNAL_ENV_ATTR_CLANG)
         #define D_ASSUME(expr) __builtin_assume(expr)
     #else
-        #define D_ASSUME(expr) ((void)(expr))
+        #define D_ASSUME(expr) ((void)sizeof((expr) ? 1 : 0))
     #endif
 #endif  // D_ASSUME
 
@@ -548,16 +578,16 @@ TABLE OF CONTENTS
     #if ( (D_ENV_LANG_IS_CPP17_OR_HIGHER) ||                                  \
           (D_ENV_LANG_IS_C23_OR_HIGHER) )
         #define D_NODISCARD [[nodiscard]]
-    #elif defined(D_ENV_COMPILER_CLANG)
+    #elif defined(D_INTERNAL_ENV_ATTR_CLANG)
         #define D_NODISCARD __attribute__((warn_unused_result))
     #elif ( (D_ENV_LANG_IS_CPP11_OR_HIGHER) &&                                \
-            (defined(D_ENV_COMPILER_GCC))   &&                                \
+            (defined(D_INTERNAL_ENV_ATTR_GCC))   &&                            \
             (defined(__has_cpp_attribute)) )
         #if __has_cpp_attribute(nodiscard)
             #define D_NODISCARD [[nodiscard]]
         #endif
     #elif ( (!D_ENV_LANG_USING_CPP)       &&                                  \
-            (defined(D_ENV_COMPILER_GCC)) &&                                  \
+            (defined(D_INTERNAL_ENV_ATTR_GCC)) &&                              \
             (defined(__has_c_attribute)) )
         #if __has_c_attribute(nodiscard)
             #define D_NODISCARD __extension__ [[nodiscard]]

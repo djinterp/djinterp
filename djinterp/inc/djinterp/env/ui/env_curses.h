@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/env/ui/env_curses.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.12.26
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -44,10 +44,11 @@ TABLE OF CONTENTS
               5.  D_ENV_CURSES_FEAT_EXTENDED
 2.  COMPILE-TIME DETECTION
     ----------------------
-    1.  Defaults
-         1.  D_ENV_CURSES_TYPE / D_ENV_CURSES_FEATURES
-    2.  Library detection
-         1.  D_ENV_CURSES_NAME / D_ENV_CURSES_AVAILABLE
+    1.  Library detection
+         1.  D_ENV_CURSES_TYPE
+         2.  D_ENV_CURSES_FEATURES
+         3.  D_ENV_CURSES_NAME
+         4.  D_ENV_CURSES_AVAILABLE
 3.  PLATFORM GUIDANCE
     -----------------
     1.  Expected package
@@ -69,7 +70,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_UI_ENV_CURSES_H 1
 
 // djinterp
-#include "../env.h"  // D_ENV_OS_ID, D_ENV_OS_FLAG_*, D_ENV_LANG_USING_CPP
+#include "../env.h"  // D_ENV_OS_ID, D_ENV_IS_OS_*, D_ENV_LANG_USING_CPP
 
 //==============================================================================
 // 1.  TYPE AND FEATURE IDENTIFIERS
@@ -162,93 +163,116 @@ TABLE OF CONTENTS
 // included before this one; otherwise curses reads as not detected.
 
 
-// 2.1    Defaults
+// 2.1    Library detection
 //------------------------------------------------------------------------------
+// Every result here is guarded, so a value the build or a test defines first
+// stands, and each derives from the one before it: pinning D_ENV_CURSES_TYPE
+// carries its features, name and availability with it (decision 52 of the
+// register; detection used to #undef a pre-defined type and features, and
+// the name and availability were unguarded).
+
 // 2.1.1
-// D_ENV_CURSES_TYPE / D_ENV_CURSES_FEATURES
-//   constant: the detected library type and its feature flags; with no curses
-// header included, D_ENV_CURSES_TYPE_NONE and no features. Detection below
-// replaces these defaults, including pre-defined values.
+// D_ENV_CURSES_TYPE
+//   feature: the detected library, a D_ENV_CURSES_TYPE_* value: ncurses from
+// NCURSES_VERSION, wide when NCURSES_WIDECHAR is 1 (#51); PDCursesMod from its
+// own __PDCURSESMOD__ or a PDC_VER_MAJOR of 4 and up, and PDCurses from
+// PDC_VER_MAJOR or __PDCURSES__ otherwise (#53); D_ENV_CURSES_TYPE_NONE with no
+// curses header.
 #ifndef D_ENV_CURSES_TYPE
-    #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_NONE
+    #if defined(NCURSES_VERSION)
+        #if ( ( (defined(NCURSES_WIDECHAR)) &&                                 \
+                (NCURSES_WIDECHAR) )                ||                         \
+              ( (!defined(NCURSES_WIDECHAR)) &&                                \
+                (defined(_XOPEN_SOURCE_EXTENDED)) ) )
+            #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_NCURSESW
+        #else
+            #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_NCURSES
+        #endif
+    #elif ( (defined(__PDCURSESMOD__))     ||                                  \
+            ( (defined(PDC_VER_MAJOR)) &&                                      \
+              (PDC_VER_MAJOR >= 4) ) )
+        #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_PDCURSESMOD
+    #elif ( (defined(PDC_VER_MAJOR)) ||                                        \
+            (defined(__PDCURSES__)) )
+        #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_PDCURSES
+    #else
+        #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_NONE
+    #endif
 #endif  // D_ENV_CURSES_TYPE
 
+// 2.1.2
+// D_ENV_CURSES_FEATURES
+//   feature: the D_ENV_CURSES_FEAT_* flags of the type: ncurses has color,
+// mouse, resize and the extended API, and wide characters as ncursesw;
+// PDCurses and PDCursesMod have color and mouse, resize from PDC_VER_MAJOR's
+// versions on, and wide characters where built with PDC_WIDE; anything else,
+// none.
 #ifndef D_ENV_CURSES_FEATURES
-    #define D_ENV_CURSES_FEATURES 0
+    #if (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_NCURSESW)
+        #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_WIDE     |            \
+                                       D_ENV_CURSES_FEAT_COLOR    |            \
+                                       D_ENV_CURSES_FEAT_MOUSE    |            \
+                                       D_ENV_CURSES_FEAT_RESIZE   |            \
+                                       D_ENV_CURSES_FEAT_EXTENDED)
+    #elif (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_NCURSES)
+        #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_COLOR    |            \
+                                       D_ENV_CURSES_FEAT_MOUSE    |            \
+                                       D_ENV_CURSES_FEAT_RESIZE   |            \
+                                       D_ENV_CURSES_FEAT_EXTENDED)
+    #elif ( ( (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_PDCURSES)    ||          \
+              (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_PDCURSESMOD) ) &&        \
+            (defined(PDC_VER_MAJOR))                                &&         \
+            (defined(PDC_WIDE)) )
+        #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_WIDE     |            \
+                                       D_ENV_CURSES_FEAT_COLOR    |            \
+                                       D_ENV_CURSES_FEAT_MOUSE    |            \
+                                       D_ENV_CURSES_FEAT_RESIZE)
+    #elif ( ( (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_PDCURSES)    ||          \
+              (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_PDCURSESMOD) ) &&        \
+            (defined(PDC_VER_MAJOR)) )
+        #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_COLOR    |            \
+                                       D_ENV_CURSES_FEAT_MOUSE    |            \
+                                       D_ENV_CURSES_FEAT_RESIZE)
+    #elif ( (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_PDCURSES) ||               \
+            (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_PDCURSESMOD) )
+        // a PDCurses older than PDC_VER_MAJOR
+        #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_COLOR    |            \
+                                       D_ENV_CURSES_FEAT_MOUSE)
+    #else
+        #define D_ENV_CURSES_FEATURES 0
+    #endif
 #endif  // D_ENV_CURSES_FEATURES
 
-// 2.2    Library detection
-//------------------------------------------------------------------------------
-// 2.2.1
-// D_ENV_CURSES_NAME / D_ENV_CURSES_AVAILABLE
-//   feature: the detected library, from NCURSES_VERSION (ncurses, wide when
-// _XOPEN_SOURCE_EXTENDED or NCURSES_WIDECHAR is defined) or PDC_VER_MAJOR /
-// __PDCURSES__ (PDCurses, reported as PDCursesMod when PDC_WIDE is defined),
-// with its name and D_ENV_CURSES_AVAILABLE set to 1.
-#if defined(NCURSES_VERSION)
-    // ncurses is present
-    #undef  D_ENV_CURSES_TYPE
-
-    #if ( (defined(_XOPEN_SOURCE_EXTENDED)) ||                                 \
-          (defined(NCURSES_WIDECHAR)) )
-        // Wide character support detected
-        #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_NCURSESW
-        #undef  D_ENV_CURSES_FEATURES
-        #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_WIDE   |              \
-                                       D_ENV_CURSES_FEAT_COLOR  |              \
-                                       D_ENV_CURSES_FEAT_MOUSE  |              \
-                                       D_ENV_CURSES_FEAT_RESIZE |              \
-                                       D_ENV_CURSES_FEAT_EXTENDED)
-    #else
-        #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_NCURSES
-        #undef  D_ENV_CURSES_FEATURES
-        #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_COLOR  |              \
-                                       D_ENV_CURSES_FEAT_MOUSE  |              \
-                                       D_ENV_CURSES_FEAT_RESIZE |              \
-                                       D_ENV_CURSES_FEAT_EXTENDED)
-    #endif
-
-    #define D_ENV_CURSES_NAME "ncurses"
-    #define D_ENV_CURSES_AVAILABLE 1
-
-#elif defined(PDC_VER_MAJOR)
-    // PDCurses or PDCursesMod detected
-    #undef  D_ENV_CURSES_TYPE
-
-    #if defined(PDC_WIDE)
-        #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_PDCURSESMOD
-        #undef  D_ENV_CURSES_FEATURES
-        #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_WIDE |                \
-                                       D_ENV_CURSES_FEAT_COLOR |               \
-                                       D_ENV_CURSES_FEAT_MOUSE |               \
-                                       D_ENV_CURSES_FEAT_RESIZE)
+// 2.1.3
+// D_ENV_CURSES_NAME
+//   feature: the type's name, "Unknown" for D_ENV_CURSES_TYPE_NONE as before.
+#ifndef D_ENV_CURSES_NAME
+    #if ( (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_NCURSES) ||                  \
+          (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_NCURSESW) )
+        #define D_ENV_CURSES_NAME "ncurses"
+    #elif (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_PDCURSESMOD)
         #define D_ENV_CURSES_NAME "PDCursesMod"
-    #else
-        #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_PDCURSES
-        #undef  D_ENV_CURSES_FEATURES
-        #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_COLOR |               \
-                                       D_ENV_CURSES_FEAT_MOUSE |               \
-                                       D_ENV_CURSES_FEAT_RESIZE)
+    #elif (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_PDCURSES)
         #define D_ENV_CURSES_NAME "PDCurses"
+    #elif (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_SYSV)
+        #define D_ENV_CURSES_NAME "System V curses"
+    #elif (D_ENV_CURSES_TYPE == D_ENV_CURSES_TYPE_BSD_CURSES)
+        #define D_ENV_CURSES_NAME "BSD curses"
+    #else
+        #define D_ENV_CURSES_NAME "Unknown"
     #endif
+#endif  // D_ENV_CURSES_NAME
 
-    #define D_ENV_CURSES_AVAILABLE 1
-
-#elif defined(__PDCURSES__)
-    // Older PDCurses version
-    #undef  D_ENV_CURSES_TYPE
-    #define D_ENV_CURSES_TYPE D_ENV_CURSES_TYPE_PDCURSES
-    #undef  D_ENV_CURSES_FEATURES
-    #define D_ENV_CURSES_FEATURES (D_ENV_CURSES_FEAT_COLOR |                   \
-                                   D_ENV_CURSES_FEAT_MOUSE)
-    #define D_ENV_CURSES_NAME "PDCurses"
-    #define D_ENV_CURSES_AVAILABLE 1
-
-#else
-    // No compile-time detection - may still be available
-    #define D_ENV_CURSES_NAME "Unknown"
-    #define D_ENV_CURSES_AVAILABLE 0
-#endif
+// 2.1.4
+// D_ENV_CURSES_AVAILABLE
+//   feature: 1 when a curses library was detected or pinned, 0 otherwise.
+#ifndef D_ENV_CURSES_AVAILABLE
+    #if (D_ENV_CURSES_TYPE != D_ENV_CURSES_TYPE_NONE)
+        #define D_ENV_CURSES_AVAILABLE 1
+    #else
+        #define D_ENV_CURSES_AVAILABLE 0
+    #endif
+#endif  // D_ENV_CURSES_AVAILABLE
 
 //==============================================================================
 // 3.  PLATFORM GUIDANCE
@@ -262,32 +286,58 @@ TABLE OF CONTENTS
 // 3.1.1
 // D_ENV_CURSES_EXPECTED_PACKAGE / D_ENV_CURSES_EXPECTED_TYPE
 //   constant: where no curses was detected, the package that usually provides
-// one and the D_ENV_CURSES_TYPE_* it would be. One chain, so each platform
-// gets exactly one answer: Linux, whose identifier sits in the Unix block, is
-// matched before the generic Unix case.
-#if !D_ENV_CURSES_AVAILABLE
-    #if (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)
+// one and the D_ENV_CURSES_TYPE_* it would be; undefined where curses was
+// detected, or on a platform with no guidance.
+// D_INTERNAL_ENV_CURSES_PLATFORM
+//   macro: which guidance applies where no curses was detected: 1, Linux; 2,
+// Windows; 3, macOS and the BSDs; 4, other Unix; 0, none. One chain, so each
+// platform gets exactly one answer: Linux, whose identifier sits in the Unix
+// block, is matched before the generic Unix case.
+#if D_ENV_CURSES_AVAILABLE
+    #define D_INTERNAL_ENV_CURSES_PLATFORM 0
+#elif D_ENV_IS_OS_LINUX(D_ENV_OS_ID)
+    #define D_INTERNAL_ENV_CURSES_PLATFORM 1
+#elif D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
+    #define D_INTERNAL_ENV_CURSES_PLATFORM 2
+#elif ( (D_ENV_IS_OS_MACOS(D_ENV_OS_ID)) ||                                    \
+        (D_ENV_IS_OS_BSD(D_ENV_OS_ID)) )
+    #define D_INTERNAL_ENV_CURSES_PLATFORM 3
+#elif D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)
+    #define D_INTERNAL_ENV_CURSES_PLATFORM 4
+#else
+    #define D_INTERNAL_ENV_CURSES_PLATFORM 0
+#endif
+
+// each result is guarded, as section 2's are (decision 52 of the register)
+#ifndef D_ENV_CURSES_EXPECTED_PACKAGE
+    #if (D_INTERNAL_ENV_CURSES_PLATFORM == 1)
         // Linux: ncurses is standard. Debian / Ubuntu ship it as
         // libncurses-dev or libncursesw5-dev, and Red Hat / Fedora as
         // ncurses-devel.
         #define D_ENV_CURSES_EXPECTED_PACKAGE "ncurses-dev or ncurses-devel"
-        #define D_ENV_CURSES_EXPECTED_TYPE    D_ENV_CURSES_TYPE_NCURSES
-    #elif D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
+    #elif (D_INTERNAL_ENV_CURSES_PLATFORM == 2)
         // Windows: curses must be installed explicitly.
         #define D_ENV_CURSES_EXPECTED_PACKAGE                                  \
             "PDCurses, PDCursesMod, or ncurses (via WSL/Cygwin/MSYS2)"
-        #define D_ENV_CURSES_EXPECTED_TYPE    D_ENV_CURSES_TYPE_PDCURSES
-    #elif ( (D_ENV_OS_ID == D_ENV_OS_FLAG_MACOS) ||                            \
-            (D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)) )
+    #elif (D_INTERNAL_ENV_CURSES_PLATFORM == 3)
         // macOS and the BSDs: ncurses is usually part of the base system.
         #define D_ENV_CURSES_EXPECTED_PACKAGE "ncurses (system)"
-        #define D_ENV_CURSES_EXPECTED_TYPE    D_ENV_CURSES_TYPE_NCURSES
-    #elif D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)
+    #elif (D_INTERNAL_ENV_CURSES_PLATFORM == 4)
         // other Unix systems: System V curses or ncurses.
         #define D_ENV_CURSES_EXPECTED_PACKAGE "ncurses or system curses"
+    #endif
+#endif  // D_ENV_CURSES_EXPECTED_PACKAGE
+
+#ifndef D_ENV_CURSES_EXPECTED_TYPE
+    #if ( (D_INTERNAL_ENV_CURSES_PLATFORM == 1) ||                             \
+          (D_INTERNAL_ENV_CURSES_PLATFORM == 3) )
+        #define D_ENV_CURSES_EXPECTED_TYPE    D_ENV_CURSES_TYPE_NCURSES
+    #elif (D_INTERNAL_ENV_CURSES_PLATFORM == 2)
+        #define D_ENV_CURSES_EXPECTED_TYPE    D_ENV_CURSES_TYPE_PDCURSES
+    #elif (D_INTERNAL_ENV_CURSES_PLATFORM == 4)
         #define D_ENV_CURSES_EXPECTED_TYPE    D_ENV_CURSES_TYPE_SYSV
     #endif
-#endif
+#endif  // D_ENV_CURSES_EXPECTED_TYPE
 
 
 //==============================================================================
