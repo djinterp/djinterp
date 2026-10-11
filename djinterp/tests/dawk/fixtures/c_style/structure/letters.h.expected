@@ -1,0 +1,3 @@
+tests/dawk/fixtures/c_style/structure/letters.h:4:1: a table of contents numbers its fourth level
+tests/dawk/fixtures/c_style/structure/letters.h:52:1: a section is numbered in decimal, never in Roman numerals
+tests/dawk/fixtures/c_style/structure/letters.h:58:1: a section is numbered in decimal, never in Roman numerals

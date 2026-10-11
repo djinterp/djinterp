@@ -1,0 +1,3 @@
+tests/dawk/fixtures/c_style/includes/re_std_order.c:11:1: djinterp's includes come before re_std's
+tests/dawk/fixtures/c_style/includes/re_std_order.c:12:1: re_std's includes sit in a // re_std group
+tests/dawk/fixtures/c_style/includes/re_std_order.c:13:1: djinterp's includes come before re_std's

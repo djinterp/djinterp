@@ -1,0 +1,9 @@
+tests/dawk/fixtures/c_style/statements.cpp:8:5: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/statements.cpp:11:5: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/statements.cpp:11:5: a void function ends with an explicit return
+tests/dawk/fixtures/c_style/statements.cpp:11:19: a parameter's name begins with one underscore
+tests/dawk/fixtures/c_style/statements.cpp:13:25: an if-statement's body is braced
+tests/dawk/fixtures/c_style/statements.cpp:14:9: an if-statement is followed by an empty line
+tests/dawk/fixtures/c_style/statements.cpp:17:5: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/statements.cpp:20:9: a return statement is preceded by an empty line
+tests/dawk/fixtures/c_style/statements.cpp:23:5: a definition carries a comment opening with its name

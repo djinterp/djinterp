@@ -13,7 +13,7 @@
 * path:      /src/djinterp/tools/dawk/dline.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.10
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dline.h"  // corresponding header
 // std
@@ -30,6 +30,11 @@
 // D_INTERNAL_DLINE_NUMBER_MAX
 //   constant: room for a decimal attribute value, terminator included.
 #define D_INTERNAL_DLINE_NUMBER_MAX 24
+
+// D_INTERNAL_DLINE_SUMMARY_MAX
+//   constant: room for an #include's summary as an attribute, terminator
+// included; a longer one is not carried.
+#define D_INTERNAL_DLINE_SUMMARY_MAX 128
 
 // d_internal_line_facts
 //   struct: what one line was found to hold, gathered before its node is
@@ -382,6 +387,143 @@ d_internal_emit_text(
 
 
 /**
+ * @brief Finds where an `#include` directive ends on a line.
+ *
+ * @note The text layer reads no language, and this is the one construct it
+ *       knows. The Line Length section excuses a path, which no author can
+ *       shorten, and a rule can only say so if it is told where the path
+ *       ends. The directive is `#`, `include` and a name in quotes or in
+ *       angle brackets, with blanks where C allows them.
+ *
+ * @param[in] _bytes  the line's content.
+ * @param[in] _size   its byte count.
+ * @return the bytes through the name's closing quote or bracket, or 0 when
+ *         the line is no `#include`.
+ */
+static size_t
+d_internal_include_end(
+    const char* _bytes,
+    size_t      _size
+)
+{
+    size_t at = 0u;
+
+    while ( (at < _size) && ( (_bytes[at] == ' ') || (_bytes[at] == '\t') ) )
+    {
+        ++at;
+    }
+
+    if ( (at >= _size) || (_bytes[at] != '#') )
+    {
+        return 0u;
+    }
+
+    ++at;
+
+    while ( (at < _size) && ( (_bytes[at] == ' ') || (_bytes[at] == '\t') ) )
+    {
+        ++at;
+    }
+
+    if ( ((_size - at) < 7u) || (memcmp(_bytes + at, "include", 7u) != 0) )
+    {
+        return 0u;
+    }
+
+    at += 7u;
+
+    while ( (at < _size) && ( (_bytes[at] == ' ') || (_bytes[at] == '\t') ) )
+    {
+        ++at;
+    }
+
+    // the name's own closing character: a quote, or the bracket's partner
+    const char close = (at >= _size)         ? '\0'
+                     : (_bytes[at] == '"')   ? '"'
+                     : (_bytes[at] == '<')   ? '>'
+                     : '\0';
+
+    if (close == '\0')
+    {
+        return 0u;
+    }
+
+    ++at;
+
+    while ( (at < _size) && (_bytes[at] != close) )
+    {
+        ++at;
+    }
+
+    return (at < _size) ? (at + 1u) : 0u;
+}
+
+/**
+ * @brief Writes what an `#include` line holds beside every line's facts:
+ *        `directive-length`, and `summary` when a comment follows.
+ *
+ * @note `summary` is the `//` comment that is the rest of the line after
+ *       the directive, as written and without the blanks around it. A
+ *       comment longer than an attribute's room is not carried: no rule
+ *       asks for one by its words.
+ *
+ * @param[in,out] _tree   the tree.
+ * @param[in]     _node   the `line` node.
+ * @param[in]     _bytes  the line's content, the terminator excluded.
+ * @param[in]     _size   its byte count.
+ */
+static void
+d_internal_emit_include(
+    struct d_node_tree* _tree,
+    uint32_t            _node,
+    const char*         _bytes,
+    size_t              _size
+)
+{
+    const size_t end = d_internal_include_end(_bytes, _size);
+
+    if (end == 0u)
+    {
+        return;
+    }
+
+    struct d_internal_line_facts directive = { 0 };
+
+    d_internal_measure((const unsigned char*)_bytes, end, &directive);
+    d_internal_number(_tree, _node, "directive-length", directive.length);
+
+    size_t first = end;
+    size_t last  = _size;
+
+    while ( (first < last) &&
+            ( (_bytes[first] == ' ') || (_bytes[first] == '\t') ) )
+    {
+        ++first;
+    }
+
+    while ( (last > first) &&
+            ( (_bytes[last - 1u] == ' ') || (_bytes[last - 1u] == '\t') ) )
+    {
+        --last;
+    }
+
+    // a `//` comment, and nothing else, after the directive
+    if ( ((last - first) >= 2u)                            &&
+         ((last - first) < D_INTERNAL_DLINE_SUMMARY_MAX)   &&
+         (_bytes[first] == '/')                            &&
+         (_bytes[first + 1u] == '/') )
+    {
+        char summary[D_INTERNAL_DLINE_SUMMARY_MAX] = "";
+
+        memcpy(summary, _bytes + first, last - first);
+        summary[last - first] = '\0';
+        (void)d_node_set_attribute(_tree, _node, "summary", summary);
+    }
+
+    return;
+}
+
+/**
  * @brief Writes one `line` node from its facts.
  *
  * @param[in,out] _tree    the tree.
@@ -431,6 +573,8 @@ d_internal_emit_line(
             (void)d_node_set_attribute(_tree, node, names[at], NULL);
         }
     }
+
+    d_internal_emit_include(_tree, node, _bytes, _size);
 
     struct d_node* const line = d_node_at(_tree, node);
 

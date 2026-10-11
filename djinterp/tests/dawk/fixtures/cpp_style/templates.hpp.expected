@@ -1,0 +1,2 @@
+tests/dawk/fixtures/cpp_style/templates.hpp:3:10: a type template parameter is introduced by typename
+tests/dawk/fixtures/cpp_style/templates.hpp:7:10: a type template parameter is introduced by typename

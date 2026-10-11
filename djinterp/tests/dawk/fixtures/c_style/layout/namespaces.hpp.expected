@@ -1,0 +1,6 @@
+tests/dawk/fixtures/c_style/layout/namespaces.hpp:13:5: start-column
+tests/dawk/fixtures/c_style/layout/namespaces.hpp:14:5: start-column
+tests/dawk/fixtures/c_style/layout/namespaces.hpp:28:1: start-column
+tests/dawk/fixtures/c_style/layout/namespaces.hpp:29:1: start-column
+tests/dawk/fixtures/c_style/layout/namespaces.hpp:40:3: start-column
+tests/dawk/fixtures/c_style/layout/namespaces.hpp:41:3: start-column

@@ -1,0 +1,5 @@
+tests/dawk/fixtures/text/text_includes.c:4:1: a line should not exceed 80 characters
+tests/dawk/fixtures/text/text_includes.c:6:1: a line should not exceed 80 characters
+tests/dawk/fixtures/text/text_includes.c:14:1: a line should not exceed 80 characters
+tests/dawk/fixtures/text/text_includes.c:16:1: a line should not exceed 80 characters
+tests/dawk/fixtures/text/text_includes.c:18:1: a line should not exceed 80 characters

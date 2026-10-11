@@ -1,0 +1,4 @@
+tests/dawk/fixtures/cpp_style/reserved.hpp:3:19: a template parameter's name is not reserved
+tests/dawk/fixtures/cpp_style/reserved.hpp:5:10: a type template parameter is introduced by typename
+tests/dawk/fixtures/cpp_style/reserved.hpp:5:19: a template parameter's name is not reserved
+tests/dawk/fixtures/cpp_style/reserved.hpp:6:22: a template parameter's name is not reserved

@@ -1,0 +1,4 @@
+tests/dawk/fixtures/c_style/contracts.hpp:22:5: a contract says what the function returns
+tests/dawk/fixtures/c_style/contracts.hpp:34:5: a void function's contract omits @return
+tests/dawk/fixtures/c_style/contracts.hpp:41:5: a contract gives every parameter its @param
+tests/dawk/fixtures/c_style/contracts.hpp:45:20: a static assertion carries a message

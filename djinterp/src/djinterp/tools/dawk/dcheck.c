@@ -16,11 +16,10 @@
 * path:      /src/djinterp/tools/dawk/dcheck.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.10
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dmatch.h"  // corresponding header
 // std
-#include <limits.h>  // PATH_MAX
 #include <stdint.h>  // SIZE_MAX, UINT32_MAX
 #include <stdio.h>   // FILE, fopen, printf
 #include <stdlib.h>  // malloc, calloc, free
@@ -29,7 +28,9 @@
 #include "../../../../inc/djinterp/tools/dawk/daudit.h"     // d_audit_verify
 #include "../../../../inc/djinterp/tools/dawk/dbanner.h"    // d_banner_build
 #include "../../../../inc/djinterp/tools/dawk/dedit.h"      // d_edit_rewrite_line
+#include "../../../../inc/djinterp/tools/dawk/drepair.h"    // d_repair_plan_*
 #include "../../../../inc/djinterp/tools/dawk/ext/dext_source.h"  // d_ext_source_build
+#include "../../../../inc/djinterp/tools/dawk/dfs.h"        // d_fs_full_path
 #include "../../../../inc/djinterp/tools/dawk/dgit.h"       // d_git_read
 #include "../../../../inc/djinterp/tools/dawk/dguard.h"     // d_guard_build
 #include "../../../../inc/djinterp/tools/dawk/dinclude.h"   // d_include_build
@@ -353,6 +354,35 @@ d_internal_level(
         if (strcmp(_word, levels[at].word) == 0)
         {
             *_out = levels[at].level;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/*
+d_internal_claims
+  Reports whether a rule declares anything but a severity.  A rule that does
+is making claims, and a severity beside them is theirs; a rule that does not
+is an exemption, whose severity covers whatever it matches.
+*/
+static bool
+d_internal_claims(
+    const struct d_dss_sheet* _sheet,
+    const struct d_dss_rule*  _rule
+)
+{
+    for (uint32_t which = 0; which < _rule->declaration_count; ++which)
+    {
+        const struct d_dss_declaration* const declaration =
+            d_dss_declaration_at(_sheet, _rule->first_declaration + which);
+
+        if (strcmp(d_dss_text(_sheet, declaration->property),
+                   "severity") != 0)
+        {
             return true;
         }
     }
@@ -363,18 +393,25 @@ d_internal_level(
 
 /*
 d_internal_severity
-  Resolves the severity of one property on one node: the first matching rule
-whose `severity` declaration covers the property wins.  `severity: advise;`
+  Resolves the severity of one rule's claim on one node: the first matching
+rule whose `severity` declaration covers the property wins, among the rule
+making the claim and the rules that only set a severity.  `severity: advise;`
 covers every property; `severity: advise required;` covers only `required`.
 Scoping matters because severity belongs to a claim, not to a node -- a
 missing `revised:` line is a backfill question, while the geometry of a
 `revised:` line that exists is not.
+  A severity declared beside another rule's claims is passed over: it says
+how that rule's findings are reported, and two rules matching one node would
+otherwise report the later one's finding at the earlier one's level.  An
+exemption -- a rule holding nothing but a severity -- still outranks every
+rule below it, which is how a sheet turns a subtree off.
 */
 static enum d_check_severity
 d_internal_severity(
     const struct d_dss_sheet* _sheet,
     const struct d_cascade*   _cascade,
     uint32_t                  _node,
+    size_t                    _rule,
     const char*               _property,
     bool                      _honour,
     enum d_check_severity     _fallback
@@ -406,6 +443,13 @@ d_internal_severity(
         }
 
         const struct d_dss_rule* const rule = d_dss_rule_at(_sheet, at);
+
+        // another rule's severity, declared beside its own claims, is that
+        // rule's and not this claim's
+        if ((at != _rule) && (d_internal_claims(_sheet, rule)))
+        {
+            continue;
+        }
 
         for (uint32_t which = 0; which < rule->declaration_count; ++which)
         {
@@ -720,6 +764,9 @@ static const struct d_setting_def d_check_settings[] =
 {
     { "fix", D_SETTING_BOOL, "false", NULL, NULL, 0, 0, NULL,
       "apply repairs, rather than only report what fails" },
+    { "fix.stated", D_SETTING_BOOL, "false", NULL, NULL, 0, 0, NULL,
+      "with fix: make only the repairs a rule states with `repair`, and "
+      "leave columns, widths and contents as they are" },
     { "cascade.resolve", D_SETTING_ENUM, "first",
       d_internal_resolve_choices, NULL, 0, 0, "resolve",
       "which declaration of a property wins: the first matching rule, every "
@@ -754,6 +801,13 @@ static const struct d_setting_def d_check_settings[] =
 // D_CHECK_IMPORT_DEPTH_MAX
 //   constant: how deeply sheets may import one another.
 #define D_CHECK_IMPORT_DEPTH_MAX 16u
+
+// D_CHECK_PATH_MAX
+//   constant: the room the driver gives a path it builds for itself -- an
+// import's, from the sheet that names it -- or prints in a message.  It is
+// the driver's own number: ISO C has no name for a system's limit, and a path
+// the system hands back is never copied into room of this size.
+#define D_CHECK_PATH_MAX 4096
 
 // d_internal_segment
 //   struct: a run of consecutive combined lines copied from one place in one
@@ -872,6 +926,7 @@ d_internal_append_line(
          ((last->combined_first + last->count) == _x->lines) )
     {
         ++last->count;
+
         return true;
     }
 
@@ -932,6 +987,7 @@ d_internal_origin(
             *_out_line  = segment->source_first
                         + (_line - segment->combined_first);
             *_out_layer = segment->layer;
+
             return;
         }
     }
@@ -956,21 +1012,29 @@ d_internal_expand(
     const char*                  _layer
 )
 {
-    char resolved[PATH_MAX];
+    char* const full = d_fs_full_path(_path);
 
-    if (!realpath(_path, resolved))
+    // the name is kept with the expansion, which outlives this call
+    const char* const real = full ? d_internal_own(_x, full, strlen(full))
+                                  : NULL;
+
+    free(full);
+
+    if (!real)
     {
         (void)snprintf(_x->error, sizeof(_x->error), "%s: cannot open",
                        _path);
+
         return false;
     }
 
     for (size_t at = 0; at < _x->depth; ++at)
     {
-        if (strcmp(_x->stack[at], resolved) == 0)
+        if (strcmp(_x->stack[at], real) == 0)
         {
             (void)snprintf(_x->error, sizeof(_x->error), "%s: imports itself "
                            "by way of %s", _path, _x->stack[_x->depth - 1u]);
+
             return false;
         }
     }
@@ -979,15 +1043,15 @@ d_internal_expand(
     {
         (void)snprintf(_x->error, sizeof(_x->error), "%s: imports nest more "
                        "than %u deep", _path, D_CHECK_IMPORT_DEPTH_MAX);
+
         return false;
     }
 
     const char* const file = d_internal_own(_x, _path, strlen(_path));
-    const char* const real = d_internal_own(_x, resolved, strlen(resolved));
 
-    FILE* const handle = fopen(resolved, "rb");
+    FILE* const handle = fopen(real, "rb");
 
-    if ((!file) || (!real) || (!handle))
+    if ((!file) || (!handle))
     {
         if (handle)
         {
@@ -996,6 +1060,7 @@ d_internal_expand(
 
         (void)snprintf(_x->error, sizeof(_x->error), "%s: cannot open",
                        _path);
+
         return false;
     }
 
@@ -1010,6 +1075,7 @@ d_internal_expand(
     if (!source)
     {
         (void)fclose(handle);
+
         return false;
     }
 
@@ -1030,6 +1096,7 @@ d_internal_expand(
                        error.line, error.column,
                        error.message ? error.message : "parse failed");
         free(source);
+
         return false;
     }
 
@@ -1094,7 +1161,7 @@ d_internal_expand(
             }
             else
             {
-                char target[PATH_MAX];
+                char target[D_CHECK_PATH_MAX];
 
                 (void)snprintf(target, sizeof(target), "%.*s%.*s", (int)base,
                                _path, (int)(close - open - 1), open + 1);
@@ -1300,6 +1367,7 @@ main(
                                / sizeof(d_check_settings[0]))) )
     {
         (void)fprintf(stderr, "dcheck: cannot build the settings registry\n");
+
         return 2;
     }
 
@@ -1310,6 +1378,7 @@ main(
                           D_SETTING_ENVIRONMENT, problem, sizeof(problem)))
     {
         (void)fprintf(stderr, "dcheck: DAWK_SETTINGS: %s\n", problem);
+
         return 2;
     }
 
@@ -1332,8 +1401,12 @@ main(
             if (positional_count == 2)
             {
                 (void)fprintf(stderr, "dcheck: unexpected '%s'\n", argument);
+
                 return 2;
             }
+
+            // a path is read with `/` between its parts, however it was typed
+            d_fs_path_normalize(argv[at]);
 
             positional[positional_count++] = argument;
             continue;
@@ -1346,12 +1419,14 @@ main(
         if (taken < 0)
         {
             (void)fprintf(stderr, "dcheck: %s\n", problem);
+
             return 2;
         }
 
         if (taken == 0)
         {
             (void)fprintf(stderr, "dcheck: unexpected '%s'\n", argument);
+
             return 2;
         }
     }
@@ -1360,6 +1435,7 @@ main(
     {
         d_settings_describe(settings, stdout);
         d_settings_free(settings);
+
         return 0;
     }
 
@@ -1367,6 +1443,7 @@ main(
     {
         (void)fprintf(stderr, "usage: dcheck [--settings] [--name=value ...] "
                       "<sheet.dss> <root>\n");
+
         return 2;
     }
 
@@ -1387,6 +1464,7 @@ main(
     {
         (void)fprintf(stderr, "dcheck: %s\n", expansion.error);
         d_internal_expansion_free(&expansion);
+
         return 2;
     }
 
@@ -1394,7 +1472,7 @@ main(
     const size_t read   = expansion.used;
 
     // "file:line" for a line of the combined sheet
-    char where[PATH_MAX + 32];
+    char where[D_CHECK_PATH_MAX + 32];
 
     #define D_INTERNAL_WHERE(line_)                                           \
         do                                                                    \
@@ -1416,6 +1494,7 @@ main(
         (void)fprintf(stderr, "%s:%u: %s\n", where, error.column,
                       error.message ? error.message : "parse failed");
         d_internal_expansion_free(&expansion);
+
         return 1;
     }
 
@@ -1452,6 +1531,7 @@ main(
                 D_INTERNAL_WHERE(at_rule->line);
                 (void)fprintf(stderr, "%s: @set needs a name and a value\n",
                               where);
+
                 return 2;
             }
 
@@ -1470,6 +1550,7 @@ main(
         {
             D_INTERNAL_WHERE(at_rule->line);
             (void)fprintf(stderr, "%s: %s\n", where, problem);
+
             return 2;
         }
     }
@@ -1478,10 +1559,13 @@ main(
     {
         d_settings_describe(settings, stdout);
         d_settings_free(settings);
+
         return 0;
     }
 
     const bool        fixing      = d_settings_bool(settings, "fix");
+    const bool        stated_only = d_settings_bool(settings, "fix.stated");
+    struct d_repair_plan plan     = { NULL, 0u, 0u };
     const bool        sourcing    = d_settings_bool(settings, "source.tree");
     const bool        lining      = d_settings_bool(settings, "source.lines");
     const size_t      list_limit  =
@@ -1522,6 +1606,7 @@ main(
                       "would match nothing\n", where, bad_name);
         d_dss_free(sheet);
         d_internal_expansion_free(&expansion);
+
         return 2;
     }
 
@@ -1567,6 +1652,7 @@ main(
                               "warn or error\n", where);
                 d_dss_free(sheet);
                 d_internal_expansion_free(&expansion);
+
                 return 2;
             }
         }
@@ -1579,6 +1665,7 @@ main(
         (void)fprintf(stderr, "dcheck: cannot walk %s\n", root_path);
         d_dss_free(sheet);
         d_internal_expansion_free(&expansion);
+
         return 2;
     }
 
@@ -1592,6 +1679,7 @@ main(
     {
         d_dss_free(sheet);
         d_internal_expansion_free(&expansion);
+
         return 2;
     }
 
@@ -1787,6 +1875,8 @@ main(
         uint32_t touched[512];
         size_t   touched_count      = 0;
 
+        d_repair_plan_clear(&plan);
+
         for (size_t at = 0; at < rule_count; ++at)
         {
             const struct d_dss_rule* const rule = d_dss_rule_at(sheet, at);
@@ -1811,16 +1901,20 @@ main(
                     const char* const claim =
                         d_dss_text(sheet, declaration->property);
 
-                    // first match: a later rule's claim yields to an earlier
-                    if ((first_match) &&
-                        (!d_cascade_wins(cascade, node, (uint32_t)at,
-                                        declaration->symbol)))
+                    // first match: a later rule's claim yields to an earlier.
+                    // A violation names no value for rules to compete over,
+                    // so each rule's stands, as it does under the lint
+                    // driver and the rule harness
+                    if ( (first_match)                      &&
+                         (strcmp(claim, "violation") != 0)  &&
+                         (!d_cascade_wins(cascade, node, (uint32_t)at,
+                                          declaration->symbol)) )
                     {
                         continue;
                     }
 
                     const enum d_check_severity severity =
-                        d_internal_severity(sheet, cascade, node,
+                        d_internal_severity(sheet, cascade, node, at,
                                             claim, honour, fallback);
 
                     if (severity == D_CHECK_SEVERITY_OFF)
@@ -1887,6 +1981,27 @@ main(
                         // an advisory is reported and never repaired
                         if ((!fixing) || (repaired_this_file) ||
                             (severity == D_CHECK_SEVERITY_ADVISE))
+                        {
+                            continue;
+                        }
+
+                        // a rule that states its own repair is repaired
+                        // that way or not at all, and the edit waits for
+                        // the file's pass to end: where the stated repair
+                        // leaves a node, the default one does not take it up
+                        if (d_repair_stated(sheet, rule))
+                        {
+                            (void)d_repair_plan_note(&plan, sheet, tree,
+                                                     node, rule);
+
+                            continue;
+                        }
+
+                        // a violation names no value to repair towards;
+                        // and nothing else is repaired when only stated
+                        // repairs were asked for
+                        if ( (strcmp(claim, "violation") == 0) ||
+                             (stated_only) )
                         {
                             continue;
                         }
@@ -2249,6 +2364,15 @@ main(
             }
         }
 
+        // the repairs rules stated for their own findings, last line
+        // first; a structural edit above has moved the lines they were
+        // noted against, and they wait for the next pass
+        if ( (fixing) && (!repaired_this_file) )
+        {
+            repairs += d_repair_plan_apply(&plan, record, touched,
+                                           touched_count, &refused);
+        }
+
         free(hit);
     }
 
@@ -2260,6 +2384,7 @@ main(
     {
         (void)printf("%zu lexical errors in the source trees\n\n", lexical);
     }
+
     (void)printf("  %-16s %-8s %8s %8s  %s\n", "PROPERTY", "SHEET",
                  "MATCHED", "FAILED", "RATE");
 
@@ -2272,7 +2397,7 @@ main(
 
         // a declaration from the root sheet prints its line, as it always
         // has; one from an import names the file it lives in
-        char        origin[PATH_MAX + 16];
+        char        origin[D_CHECK_PATH_MAX + 16];
         const char* origin_file  = NULL;
         uint32_t    origin_line  = 0;
         const char* origin_layer = NULL;
@@ -2325,6 +2450,7 @@ main(
         walk.release(walk.user);
     }
 
+    d_repair_plan_free(&plan);
     d_node_tree_free(tree);
     d_cascade_free(cascade);
     d_match_index_free(index);

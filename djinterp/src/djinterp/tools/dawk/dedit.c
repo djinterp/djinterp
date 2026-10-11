@@ -73,6 +73,7 @@ d_edit_read_line(
         {
             (void)d_edit_trim_end(_out, strlen(_out));
             (void)fclose(handle);
+
             return true;
         }
     }
@@ -117,6 +118,7 @@ d_edit_rewrite_line(
     if (!source)
     {
         (void)fclose(handle);
+
         return false;
     }
 
@@ -131,6 +133,7 @@ d_edit_rewrite_line(
     if (!out)
     {
         free(source);
+
         return false;
     }
 
@@ -226,6 +229,7 @@ d_edit_delete_line(
     if (!source)
     {
         (void)fclose(handle);
+
         return false;
     }
 
@@ -252,6 +256,7 @@ d_edit_delete_line(
     if ((at != _line) || (start >= read))
     {
         free(source);
+
         return false;
     }
 
@@ -272,6 +277,7 @@ d_edit_delete_line(
     if (!out)
     {
         free(source);
+
         return false;
     }
 
@@ -371,4 +377,357 @@ d_edit_insert_line(
     free(source);
 
     return ok;
+}
+
+/*
+d_internal_read_whole
+  Reads a file whole, for a primitive that writes it whole again.  NULL
+when it cannot be opened or held; the caller frees what is returned.
+*/
+static char*
+d_internal_read_whole(
+    const char* _path,
+    size_t*     _out_size
+)
+{
+    FILE* const handle = fopen(_path, "rb");
+
+    if (!handle)
+    {
+        return NULL;
+    }
+
+    (void)fseek(handle, 0, SEEK_END);
+
+    const long size = ftell(handle);
+
+    (void)fseek(handle, 0, SEEK_SET);
+
+    char* const source = (size >= 0) ? malloc((size_t)size + 1u) : NULL;
+
+    *_out_size = source ? fread(source, 1u, (size_t)size, handle) : 0u;
+    (void)fclose(handle);
+
+    return source;
+}
+
+/*
+d_internal_line_count
+  The lines a text holds: one for each line feed, and one more for a last
+line that has none.
+*/
+static uint32_t
+d_internal_line_count(
+    const char* _text,
+    size_t      _size
+)
+{
+    uint32_t lines = (_size > 0u) ? 1u : 0u;
+
+    for (size_t at = 0u; (at + 1u) < _size; ++at)
+    {
+        lines += (_text[at] == '\n') ? 1u : 0u;
+    }
+
+    return lines;
+}
+
+/*
+d_internal_end_line
+  Writes a line's terminator: a line feed, after a carriage return when the
+line that is ending had one and its text has not already supplied it.
+*/
+static void
+d_internal_end_line(
+    FILE* _out,
+    bool  _carriage
+)
+{
+    if (_carriage)
+    {
+        (void)fputc('\r', _out);
+    }
+
+    (void)fputc('\n', _out);
+
+    return;
+}
+
+// d_internal_run
+//   struct: a run of lines, by its first and last, both 1-based.
+struct d_internal_run
+{
+    uint32_t  first;
+    uint32_t  last;
+};
+
+/*
+d_internal_write_replacing
+  Writes a file's text back with one run of lines replaced.  Every line
+outside the run goes out as it was; the replacement stands where the run
+began, the rest of the run is not written, and the run's last line gives
+its terminator to the replacement's.
+*/
+static void
+d_internal_write_replacing(
+    FILE*                        _out,
+    const char*                  _source,
+    size_t                       _size,
+    const struct d_internal_run* _run,
+    const char*                  _replacement
+)
+{
+    uint32_t at    = 1u;
+    size_t   start = 0u;
+
+    for (size_t which = 0u; which <= _size; ++which)
+    {
+        if ( (which != _size) && (_source[which] != '\n') )
+        {
+            continue;
+        }
+
+        const bool inside = ( (at >= _run->first) && (at <= _run->last) );
+
+        if (at == _run->first)
+        {
+            (void)fwrite(_replacement, 1u, strlen(_replacement), _out);
+        }
+        else if (!inside)
+        {
+            (void)fwrite(_source + start, 1u, which - start, _out);
+        }
+
+        // a line's own terminator, and for the run its last line's
+        if ( (which < _size) && ( (!inside) || (at == _run->last) ) )
+        {
+            d_internal_end_line(_out,
+                                ( (inside) && (which > start) &&
+                                  (_source[which - 1u] == '\r') ));
+        }
+
+        start = which + 1u;
+        ++at;
+    }
+
+    return;
+}
+
+/*
+d_edit_replace_lines
+  Replaces lines `_first` to `_last` by `_replacement`, which may itself be
+several lines joined by line feeds, in one write.  As d_edit_rewrite_line
+does for one line, the file is read whole and written whole.  Reports
+failure when the file has no such run, so that a stale line number writes
+nothing: the run is counted before the file is opened for writing.
+*/
+bool
+d_edit_replace_lines(
+    const char* _path,
+    uint32_t    _first,
+    uint32_t    _last,
+    const char* _replacement
+)
+{
+    const struct d_internal_run run    = { _first, _last };
+    size_t                      read   = 0u;
+    char* const                 source =
+        ( (_path) && (_replacement) && (_first > 0u) && (_last >= _first) )
+        ? d_internal_read_whole(_path, &read)
+        : NULL;
+    FILE* const                 out    =
+        ( (source) && (_last <= d_internal_line_count(source, read)) )
+        ? fopen(_path, "wb")
+        : NULL;
+
+    if (!out)
+    {
+        free(source);
+
+        return false;
+    }
+
+    d_internal_write_replacing(out, source, read, &run, _replacement);
+    (void)fclose(out);
+    free(source);
+
+    return true;
+}
+
+/*
+d_internal_shift_of
+  How far one line of a run being shifted moves: the run's columns, or 0
+for a line that keeps its place -- an empty one, and a directive, which
+stands in the first column whatever is around it.  Sets `_out_ok` false for
+a line the shift may not be made with: one indented by a tab, one a
+backslash carries onto the next (its leading space may be inside a literal),
+one with fewer spaces than it would lose, and one that is within 80
+characters and would not be afterwards.
+*/
+static int
+d_internal_shift_of(
+    const char* _line,
+    size_t      _length,
+    int         _columns,
+    bool*       _out_ok
+)
+{
+    size_t spaces = 0u;
+
+    while ( (spaces < _length) && (_line[spaces] == ' ') )
+    {
+        ++spaces;
+    }
+
+    if ( (spaces == _length) || (_line[spaces] == '\r') ||
+         (_line[spaces] == '#') )
+    {
+        return 0;
+    }
+
+    const size_t text = ( (_length > 0u) && (_line[_length - 1u] == '\r') )
+                      ? (_length - 1u)
+                      : _length;
+
+    if ( (_line[spaces] == '\t')                                    ||
+         (_line[text - 1u] == '\\')                                 ||
+         ( (_columns < 0) && (spaces < (size_t)(-_columns)) )       ||
+         ( (_columns > 0) && (text <= 80u) &&
+           ((text + (size_t)_columns) > 80u) ) )
+    {
+        *_out_ok = false;
+    }
+
+    return _columns;
+}
+
+/*
+d_internal_write_shifted
+  Writes a file's text back with a run of lines shifted, or -- with no
+stream -- only reports whether every line of the run may be.  The two share
+one walk so that what is checked is what is written.
+*/
+static bool
+d_internal_write_shifted(
+    FILE*                        _out,
+    const char*                  _source,
+    size_t                       _size,
+    const struct d_internal_run* _run,
+    int                          _columns
+)
+{
+    uint32_t at    = 1u;
+    size_t   start = 0u;
+    bool     ok    = true;
+
+    for (size_t which = 0u; which <= _size; ++which)
+    {
+        if ( (which != _size) && (_source[which] != '\n') )
+        {
+            continue;
+        }
+
+        const bool inside = ( (at >= _run->first) && (at <= _run->last) );
+        const int  move   = inside
+            ? d_internal_shift_of(_source + start, which - start, _columns,
+                                  &ok)
+            : 0;
+
+        // spaces added before the line, or taken from its start
+        for (int pad = 0; (_out) && (pad < move); ++pad)
+        {
+            (void)fputc(' ', _out);
+        }
+
+        if (_out)
+        {
+            const size_t skip = (move < 0) ? (size_t)(-move) : 0u;
+
+            (void)fwrite(_source + start + skip, 1u,
+                         (which - start) - skip, _out);
+
+            if (which < _size)
+            {
+                (void)fputc('\n', _out);
+            }
+        }
+
+        start = which + 1u;
+        ++at;
+    }
+
+    return ok;
+}
+
+/*
+d_edit_may_shift_lines
+  Reports whether d_edit_shift_lines would move the run: the file can be
+read, has the lines, and none of them is one that may not move.  Nothing is
+written.  It is the same walk the write makes, so the answer is the write's.
+*/
+bool
+d_edit_may_shift_lines(
+    const char* _path,
+    uint32_t    _first,
+    uint32_t    _last,
+    int         _columns
+)
+{
+    const struct d_internal_run run    = { _first, _last };
+    size_t                      read   = 0u;
+    char* const                 source =
+        ( (_path) && (_columns != 0) && (_first > 0u) && (_last >= _first) )
+        ? d_internal_read_whole(_path, &read)
+        : NULL;
+    const bool                  may    =
+        ( (source)                                                    &&
+          (_last <= d_internal_line_count(source, read))              &&
+          (d_internal_write_shifted(NULL, source, read, &run, _columns)) );
+
+    free(source);
+
+    return may;
+}
+
+/*
+d_edit_shift_lines
+  Moves lines `_first` to `_last` right by `_columns`, or left when it is
+negative, in one write.  Only the spaces that open a line change, so the
+file's tokens cannot; an empty line and a directive keep their places.  The
+run is checked whole before the file is opened for writing, and a run with
+any line that may not move -- see d_internal_shift_of -- is left as it is.
+*/
+bool
+d_edit_shift_lines(
+    const char* _path,
+    uint32_t    _first,
+    uint32_t    _last,
+    int         _columns
+)
+{
+    const struct d_internal_run run    = { _first, _last };
+    size_t                      read   = 0u;
+    char* const                 source =
+        ( (_path) && (_columns != 0) && (_first > 0u) && (_last >= _first) )
+        ? d_internal_read_whole(_path, &read)
+        : NULL;
+    FILE* const                 out    =
+        ( (source)                                                    &&
+          (_last <= d_internal_line_count(source, read))              &&
+          (d_internal_write_shifted(NULL, source, read, &run, _columns)) )
+        ? fopen(_path, "wb")
+        : NULL;
+
+    if (!out)
+    {
+        free(source);
+
+        return false;
+    }
+
+    (void)d_internal_write_shifted(out, source, read, &run, _columns);
+    (void)fclose(out);
+    free(source);
+
+    return true;
 }

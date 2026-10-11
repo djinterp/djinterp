@@ -1,0 +1,7 @@
+tests/dawk/fixtures/c_style/source.cpp:2:1: the corresponding header is summarized // corresponding header
+tests/dawk/fixtures/c_style/source.cpp:6:1: exactly two empty lines follow the last #include
+tests/dawk/fixtures/c_style/source.cpp:30:1: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/source.cpp:37:1: a #define carries a // NAME comment above it
+tests/dawk/fixtures/c_style/source.cpp:37:1: two consecutive empty lines only after the last #include
+tests/dawk/fixtures/c_style/source.cpp:41:9: a macro djinterp defines is D_-prefixed
+tests/dawk/fixtures/c_style/source.cpp:49:1: a function-like macro outside c/util/macro/ needs a reason

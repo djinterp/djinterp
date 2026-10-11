@@ -1,0 +1,6 @@
+tests/dawk/fixtures/c_style/contracts.h:18:1: a contract gives every parameter its @param
+tests/dawk/fixtures/c_style/contracts.h:26:1: a @param marks its direction: [in], [out] or [in,out]
+tests/dawk/fixtures/c_style/contracts.h:33:1: a @param names a parameter of the function below it
+tests/dawk/fixtures/c_style/contracts.h:33:1: a contract gives every parameter its @param
+tests/dawk/fixtures/c_style/contracts.h:39:1: a contract says what the function returns
+tests/dawk/fixtures/c_style/contracts.h:52:1: a void function's contract omits @return

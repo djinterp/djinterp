@@ -1,0 +1,8 @@
+tests/dawk/fixtures/c_style/structure/shared.hpp:5:1: a table of contents is numbered in decimal, never in Roman numerals
+tests/dawk/fixtures/c_style/structure/shared.hpp:5:1: a table of contents numbers its fourth level
+tests/dawk/fixtures/c_style/structure/shared.hpp:5:1: no blank line inside a table of contents
+tests/dawk/fixtures/c_style/structure/shared.hpp:14:1: fixed-width integers come from re_std: dstdint.h in C, cstdint.hpp in C++
+tests/dawk/fixtures/c_style/structure/shared.hpp:19:1: a section is numbered in decimal, never in Roman numerals
+tests/dawk/fixtures/c_style/structure/shared.hpp:22:1: a static assertion is spelled D_STATIC_ASSERT
+tests/dawk/fixtures/c_style/structure/shared.hpp:25:1: a section is numbered in decimal, never in Roman numerals
+tests/dawk/fixtures/c_style/structure/shared.hpp:27:1: an #endif closing #ifdef or #ifndef names its symbol

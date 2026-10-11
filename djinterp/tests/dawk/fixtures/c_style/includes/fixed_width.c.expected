@@ -1,0 +1,2 @@
+tests/dawk/fixtures/c_style/includes/fixed_width.c:4:1: fixed-width integers come from re_std: dstdint.h in C, cstdint.hpp in C++
+tests/dawk/fixtures/c_style/includes/fixed_width.c:6:1: fixed-width integers come from re_std: dstdint.h in C, cstdint.hpp in C++

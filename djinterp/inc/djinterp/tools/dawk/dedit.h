@@ -18,6 +18,15 @@
 *                                                            revised: 2026.09.20
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  OPERATIONS
+    ----------
+    1.  Reading
+    2.  Writing
+*/
+
 #ifndef DJINTERP_TOOLS_DAWK_DEDIT_H
 #define DJINTERP_TOOLS_DAWK_DEDIT_H 1
 
@@ -50,6 +59,18 @@ bool   d_edit_delete_line(const char* _path,
 bool   d_edit_insert_line(const char* _path,
                           uint32_t    _line,
                           const char* _text);
+bool   d_edit_replace_lines(const char* _path,
+                            uint32_t    _first,
+                            uint32_t    _last,
+                            const char* _replacement);
+bool   d_edit_may_shift_lines(const char* _path,
+                              uint32_t    _first,
+                              uint32_t    _last,
+                              int         _columns);
+bool   d_edit_shift_lines(const char* _path,
+                          uint32_t    _first,
+                          uint32_t    _last,
+                          int         _columns);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DEDIT_H

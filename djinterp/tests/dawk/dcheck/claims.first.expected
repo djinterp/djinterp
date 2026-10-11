@@ -1,0 +1,7 @@
+tests/dawk/dcheck/root/claims.c:3:1: warn: first claim
+tests/dawk/dcheck/root/claims.c:3:1: advise: second claim
+tests/dawk/dcheck/root/claims.c:13:1: advise: second claim
+tests/dawk/dcheck/root/claims.c:13:1: error: third claim
+tests/dawk/dcheck/root/claims.c:40:3: error: start-column
+tests/dawk/dcheck/root/claims.c:20:5: advise: fourth claim
+tests/dawk/dcheck/root/claims.c:40:3: advise: fourth claim

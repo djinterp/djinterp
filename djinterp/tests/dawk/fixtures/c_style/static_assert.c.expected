@@ -1,3 +1,6 @@
+tests/dawk/fixtures/c_style/static_assert.c:4:1: a static assertion is spelled D_STATIC_ASSERT
 tests/dawk/fixtures/c_style/static_assert.c:4:1: exactly two empty lines follow the last #include
+tests/dawk/fixtures/c_style/static_assert.c:5:1: a static assertion is spelled D_STATIC_ASSERT
 tests/dawk/fixtures/c_style/static_assert.c:5:14: a static assertion carries a message
-tests/dawk/fixtures/c_style/static_assert.c:6:1: a static assertion is spelled static_assert
+tests/dawk/fixtures/c_style/static_assert.c:6:1: a static assertion is spelled D_STATIC_ASSERT
+tests/dawk/fixtures/c_style/static_assert.c:8:16: a static assertion carries a message

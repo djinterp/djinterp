@@ -1,3 +1,14 @@
+/*******************************************************************************
+* djinterp [tools]                                                    test_dss.c
+*
+* Exercises `dss.h`.
+*
+*
+* path:      /tests/djinterp/tools/dawk/test_dss.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.22
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dss.h"
 #include <stdio.h>
 #include <stdlib.h>

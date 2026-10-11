@@ -1,0 +1,5 @@
+tests/dawk/fixtures/std/templates.hpp:8:5: a D_CONSTEXPR function that loops, which C++11 cannot be constant: D_CONSTEXPR_CPP14
+tests/dawk/fixtures/std/templates.hpp:24:5: a D_CONSTEXPR function that loops, which C++11 cannot be constant: D_CONSTEXPR_CPP14
+tests/dawk/fixtures/std/templates.hpp:40:5: a D_CONSTEXPR function that loops, which C++11 cannot be constant: D_CONSTEXPR_CPP14
+tests/dawk/fixtures/std/templates.hpp:56:5: a D_CONSTEXPR function that loops, which C++11 cannot be constant: D_CONSTEXPR_CPP14
+tests/dawk/fixtures/std/templates.hpp:69:1: a D_CONSTEXPR function that loops, which C++11 cannot be constant: D_CONSTEXPR_CPP14

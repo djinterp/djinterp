@@ -1,0 +1,7 @@
+tests/dawk/fixtures/c_style/naming/naming.c:12:8: a struct djinterp defines is d_-prefixed
+tests/dawk/fixtures/c_style/naming/naming.c:19:7: a union djinterp defines is d_-prefixed
+tests/dawk/fixtures/c_style/naming/naming.c:27:6: a enum djinterp defines is d_-prefixed
+tests/dawk/fixtures/c_style/naming/naming.c:38:9: a macro djinterp defines is D_-prefixed
+tests/dawk/fixtures/c_style/naming/naming.c:42:1: a typedef may not hide a struct, union or enum
+tests/dawk/fixtures/c_style/naming/naming.c:54:9: a parameter's name begins with one underscore
+tests/dawk/fixtures/c_style/naming/naming.c:64:1: a void function ends with an explicit return

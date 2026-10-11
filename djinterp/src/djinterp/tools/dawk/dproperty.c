@@ -459,12 +459,22 @@ d_property_derive(
                                                                _node_index,
                                                                "path");
 
-        if ((!path) || ((strlen(path) + 15u) >= _out_size))
+        // the root the file was read under: a header's path begins
+        // /inc/djinterp and a source's /src/djinterp.  A host that names
+        // no root is taken to be reading headers, as before
+        const char* const root = d_internal_ancestor_attribute(_tree,
+                                                               _node_index,
+                                                               "root");
+        const char* const base = ((root) && (root[0] != '\0'))
+                               ? root
+                               : "inc/djinterp";
+
+        if ((!path) || ((strlen(path) + strlen(base) + 3u) >= _out_size))
         {
             return false;
         }
 
-        (void)snprintf(_out, _out_size, "/inc/djinterp/%s", path);
+        (void)snprintf(_out, _out_size, "/%s/%s", base, path);
 
         return true;
     }
@@ -497,6 +507,7 @@ d_property_derive(
             {
                 (void)memcpy(_out, labels[at].spelling,
                              strlen(labels[at].spelling) + 1u);
+
                 return true;
             }
         }
@@ -607,6 +618,14 @@ d_property_evaluate(
 
     *_out_evaluated = true;
 
+    // how a rule's finding is put right is no claim about the node
+    if (strcmp(property, "repair") == 0)
+    {
+        *_out_evaluated = false;
+
+        return true;
+    }
+
     if (!node)
     {
         return false;
@@ -628,6 +647,7 @@ d_property_evaluate(
     if ((!node->present) && (strcmp(property, "required") != 0))
     {
         *_out_evaluated = false;
+
         return true;
     }
 
@@ -637,6 +657,7 @@ d_property_evaluate(
         if (want < 0.0)
         {
             *_out_evaluated = false;
+
             return true;
         }
 
@@ -666,6 +687,7 @@ d_property_evaluate(
                                derived, sizeof(derived)))
         {
             *_out_evaluated = false;
+
             return true;
         }
 
@@ -695,6 +717,7 @@ d_property_evaluate(
         }
 
         *_out_evaluated = false;
+
         return true;
     }
 
@@ -707,6 +730,7 @@ d_property_evaluate(
         if (!pattern)
         {
             *_out_evaluated = false;
+
             return true;
         }
 
@@ -961,6 +985,7 @@ static const struct d_schema_property d_internal_lint_properties[] =
     { "immutable",    false, NULL, NULL, d_property_evaluate, NULL },
     { "initial",      false, NULL, NULL, d_property_evaluate, NULL },
     { "min-gap",      false, NULL, NULL, d_property_evaluate, NULL },
+    { "repair",       false, NULL, NULL, d_property_evaluate, NULL },
     { "required",     false, NULL, NULL, d_property_evaluate, NULL },
     { "severity",     false, NULL, NULL, d_property_evaluate, NULL },
     { "start-column", false, NULL, NULL, d_property_evaluate, NULL },

@@ -188,6 +188,64 @@ d_internal_span_unit(
 }
 
 /*
+d_internal_repository_part
+  Where, in a root, the part a banner spells begins.  A banner's path starts
+at the repository: /inc/djinterp/..., /src/djinterp/..., /tests/...  So the
+part begins at the root's last `inc`, `src` or `tests` directory, however far
+below it the root reaches and whatever stands above it -- a checkout's own
+directory, a copy made elsewhere.  A root that names none of the three is
+taken by its last two directories, which is what every root was taken by
+before, and was right only for a root exactly two deep.
+*/
+static size_t
+d_internal_repository_part(
+    const char* _root,
+    size_t      _length
+)
+{
+    static const char* const tops[] = { "inc", "src", "tests" };
+    const size_t             count  = sizeof(tops) / sizeof(tops[0]);
+    size_t                   end    = _length;
+    size_t                   base   = _length;
+    unsigned                 seen   = 0u;
+
+    // each directory of the root, the last first
+    while (end > 0u)
+    {
+        size_t start = end;
+
+        while ( (start > 0u) && (_root[start - 1u] != '/') )
+        {
+            --start;
+        }
+
+        for (size_t which = 0u; which < count; ++which)
+        {
+            if ( ((end - start) == strlen(tops[which])) &&
+                 (memcmp(_root + start, tops[which], end - start) == 0) )
+            {
+                return start;
+            }
+        }
+
+        end = (start > 0u) ? (start - 1u) : 0u;
+    }
+
+    // none of them: the last two directories
+    while (base > 0u)
+    {
+        if ( (_root[base - 1u] == '/') && (++seen == 2u) )
+        {
+            break;
+        }
+
+        --base;
+    }
+
+    return base;
+}
+
+/*
 d_banner_file
   The file node and the three facts every sheet may read off it.  Factored out
 of d_banner_build so a file with no banner still gets the same node, and the
@@ -222,7 +280,50 @@ d_banner_file(
         relative = _path + root_length + 1u;
     }
 
+    // The root as a sheet reads it is two directories, inc/djinterp or
+    // src/djinterp, and a file's path is its way down from there: the
+    // subsystem a banner names, the guard a header carries and the path a
+    // banner states are each derived from the two.  A run may name a root
+    // further down -- one subsystem, one directory -- and what the root
+    // reaches below those two directories is then part of the file's path,
+    // so that a sheet says the same of a file whichever root it was read
+    // under.
+    const size_t base  = d_internal_repository_part(_root, root_length);
+    size_t       split = base;
+    unsigned     seen  = 0u;
+
+    while (split < root_length)
+    {
+        if ( (_root[split] == '/') && (++seen == 2u) )
+        {
+            break;
+        }
+
+        ++split;
+    }
+
+    char         repository[256];
+    char         below[D_BANNER_LINE_MAX] = "";
+    const size_t lower = (split < root_length) ? (root_length - split - 1u)
+                                               : 0u;
+
+    if ( (lower > 0u) && ((lower + strlen(relative) + 2u) < sizeof(below)) )
+    {
+        memcpy(below, _root + split + 1u, lower);
+        below[lower] = '/';
+        memcpy(below + lower + 1u, relative, strlen(relative) + 1u);
+        relative = below;
+    }
+
     (void)d_node_set_attribute(_tree, file, "path", relative);
+
+    if ( (split > base) && ((split - base) < sizeof(repository)) )
+    {
+        memcpy(repository, _root + base, split - base);
+        repository[split - base] = '\0';
+
+        (void)d_node_set_attribute(_tree, file, "root", repository);
+    }
 
     const char* const slash = strrchr(relative, '/');
 
@@ -274,6 +375,7 @@ d_banner_build(
     if (!fgets(buffer, (int)sizeof(buffer), handle))
     {
         (void)fclose(handle);
+
         return D_DSS_NO_INDEX;
     }
 
@@ -283,6 +385,7 @@ d_banner_build(
     if ((length < 2u) || (buffer[0] != '/') || (buffer[1] != '*'))
     {
         (void)fclose(handle);
+
         return D_DSS_NO_INDEX;
     }
 

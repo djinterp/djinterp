@@ -1,0 +1,6 @@
+tests/dawk/fixtures/c_style/spacing/directives.c:9:1: a conditional inside a function body
+tests/dawk/fixtures/c_style/spacing/directives.c:30:1: a conditional inside a function body
+tests/dawk/fixtures/c_style/spacing/directives.c:40:5: a return statement is preceded by an empty line
+tests/dawk/fixtures/c_style/spacing/directives.c:50:1: a conditional inside a function body
+tests/dawk/fixtures/c_style/spacing/directives.c:78:5: an if-statement is followed by an empty line
+tests/dawk/fixtures/c_style/spacing/directives.c:84:1: an if-statement is followed by an empty line

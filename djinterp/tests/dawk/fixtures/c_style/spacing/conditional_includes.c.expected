@@ -1,0 +1,1 @@
+tests/dawk/fixtures/c_style/spacing/conditional_includes.c:23:1: two consecutive empty lines only after the last #include

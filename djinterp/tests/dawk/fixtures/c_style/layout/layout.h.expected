@@ -1,0 +1,2 @@
+tests/dawk/fixtures/c_style/layout/layout.h:6:20: a parameter does not begin under the first
+tests/dawk/fixtures/c_style/layout/layout.h:7:1: a declaration's parameters begin after its (
