@@ -1,0 +1,2 @@
+tests/dawk/fixtures/std/c99.c:2:1: a C header newer than C99, included unguarded
+tests/dawk/fixtures/std/c99.c:9:1: a keyword newer than C99, in code no conditional guards

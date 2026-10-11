@@ -55,8 +55,8 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 
 // djinterp
-#include "../lex/lex_token.h"   // d_token
-#include "./syntax_group.h"     // d_syntax_groups
+#include "../lex/lex_token.h"                 // d_token
+#include "./syntax_group.h"                   // d_syntax_groups
 // re_std
 #include "../../../re_std/cstdint/dstdint.h"  // uint32_t, uint16_t, uint8_t
 
@@ -106,6 +106,11 @@ TABLE OF CONTENTS
                                                   // union or enum type
 #define D_SYNTAX_ITEM_FLAG_DETACHED      0x8000u  // a declaration's first
                                                   // parameter begins a line
+
+// D_SYNTAX_ITEM_FLAG_NO_RETURN
+//   constant: a constructor or a destructor, which has no return type.  The
+// first bit past the sixteen above.
+#define D_SYNTAX_ITEM_FLAG_NO_RETURN     0x00010000u
 
 // 1.2    Types
 //------------------------------------------------------------------------------
@@ -172,7 +177,7 @@ struct d_syntax_item
     uint32_t  name;
     uint32_t  params;
     uint32_t  body;
-    uint16_t  flags;       // D_SYNTAX_ITEM_FLAG_* bits
+    uint32_t  flags;       // D_SYNTAX_ITEM_FLAG_* bits
     uint8_t   kind;        // d_syntax_item_kind
     uint8_t   statement;   // d_syntax_statement; LABEL items use it too
     uint8_t   level;       // indentation level the structure implies
@@ -184,8 +189,10 @@ struct d_syntax_item
 // d_syntax_items
 //   struct: every item of a token stream.  `item_of[i]` is the innermost item
 //   containing token i; `level_of[o]` is, for an opener that is some item's
-//   body, the level of the item that owns it.  Both are parallel to the
-//   tokens, as the grouping's arrays are.
+//   body, the level of the item that owns it; `pp_of[i]` is the number of
+//   preprocessor conditionals open around token i, the include guard
+//   excluded, which is what an item's `pp_total` is at its first token.  All
+//   three are parallel to the tokens, as the grouping's arrays are.
 struct d_syntax_items
 {
     struct d_syntax_item*  items;
@@ -193,6 +200,7 @@ struct d_syntax_items
     size_t                 capacity;
     uint32_t*              item_of;
     uint8_t*               level_of;
+    uint8_t*               pp_of;
     size_t                 token_count;
 };
 

@@ -1,0 +1,3 @@
+tests/dawk/fixtures/c_style/layout/params.hpp:5:5: a definition with several parameters puts each on its own line
+tests/dawk/fixtures/c_style/layout/params.hpp:10:5: a declaration's parameters begin after its (
+tests/dawk/fixtures/c_style/layout/params.hpp:14:19: a parameter does not begin under the first

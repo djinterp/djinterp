@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                test_dregex.c
+/*******************************************************************************
+* djinterp [dawk]                                                  test_dregex.c
 *
 *   Unit tests for the POSIX ERE engine in regex.h.
 *     The cases that matter most are the leftmost-longest ones: a backtracking
@@ -7,11 +7,11 @@
 * and stated explicitly against the alternative a Perl-style engine would give.
 *
 *
-* path:      /tests/djinterp/c/dawk/test_dregex.c
+* path:      /tests/djinterp/tools/dawk/test_dregex.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dregex.h"  // corresponding header
 // std
 #include <stdio.h>   // printf

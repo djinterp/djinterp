@@ -1,0 +1,3 @@
+tests/dawk/fixtures/c_style/structure/compound.h:11:1: a section is numbered in decimal, never in Roman numerals
+tests/dawk/fixtures/c_style/structure/compound.h:17:1: a section is numbered in decimal, never in Roman numerals
+tests/dawk/fixtures/c_style/structure/compound.h:23:1: a section is numbered in decimal, never in Roman numerals

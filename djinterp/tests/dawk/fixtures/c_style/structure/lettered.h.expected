@@ -1,0 +1,2 @@
+tests/dawk/fixtures/c_style/structure/lettered.h:3:1: a table of contents numbers its fourth level
+tests/dawk/fixtures/c_style/structure/lettered.h:3:1: no blank line inside a table of contents

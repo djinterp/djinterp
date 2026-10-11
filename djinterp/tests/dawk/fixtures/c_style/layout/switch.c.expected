@@ -1,0 +1,4 @@
+tests/dawk/fixtures/c_style/layout/switch.c:45:9: start-column
+tests/dawk/fixtures/c_style/layout/switch.c:46:13: start-column
+tests/dawk/fixtures/c_style/layout/switch.c:51:7: start-column
+tests/dawk/fixtures/c_style/layout/switch.c:55:15: start-column

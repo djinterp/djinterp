@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                fuzz_dregex.c
+/*******************************************************************************
+* djinterp [dawk]                                                  fuzz_dregex.c
 *
 *   Differential test of the ERE engine against the system POSIX matcher.
 *     Random patterns are generated over a three-letter alphabet and run
@@ -12,11 +12,11 @@
 * is free to differ there and a difference would not be a finding.
 *
 *
-* path:      /tests/djinterp/c/dawk/fuzz_dregex.c
+* path:      /tests/djinterp/tools/dawk/fuzz_dregex.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dregex.h"  // corresponding header
 // std
 #include <regex.h>   // regcomp, regexec, regfree, REG_EXTENDED

@@ -20,7 +20,7 @@
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/dawk/ext/dtoken_node.h"  // corresponding header
 // std
-#include <ctype.h>    // isalnum
+#include <ctype.h>    // isalnum, isalpha, toupper
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
 #include <stdint.h>   // uint32_t
@@ -57,6 +57,24 @@
 // `kw-static-assert-reserved` at twenty-five.
 #define D_INTERNAL_NAME_MAX 48
 
+// 1.1.3
+// D_INTERNAL_TOC_INDENT_MAX
+//   constant: the deepest indentation a table of contents' entries are told
+// apart at; anything further in is counted with it.
+#define D_INTERNAL_TOC_INDENT_MAX 32
+
+// 1.1.4
+// D_INTERNAL_ORDINAL_MAX
+//   constant: the most letters a heading's ordinal is read to; the longest
+// Roman numeral below a hundred, `LXXXVIII`, has eight.
+#define D_INTERNAL_ORDINAL_MAX 8
+
+// 1.1.5
+// D_INTERNAL_LIST_MAX
+//   constant: how far back through a list of one-letter headings one of them
+// is asked what it counts as; a list has at most the alphabet's letters.
+#define D_INTERNAL_LIST_MAX 32
+
 // 1.2    Types
 //------------------------------------------------------------------------------
 // 1.2.1
@@ -83,9 +101,13 @@ struct d_internal_build
     uint32_t*                  next_start;  // per item: next begun at its token
     uint8_t*                   declarator;  // per token: a declared name
 
+    const struct d_lex_dialect* dialect;    // the language being read
+
     uint32_t*                  cond_macro;  // per open conditional: its macro
     uint8_t*                   cond_kind;   // per open conditional: its form
     uint32_t*                  cond_hash;   // per open conditional: its `#`
+    uint8_t*                   cond_else;   // per open conditional: whether
+                                            // its #else or an #elif is passed
     uint32_t                   cond_depth;  // open conditionals
 };
 
@@ -504,6 +526,65 @@ d_internal_define_guarded(
 
 
 /**
+ * @brief Reports whether a `#define` stands inside an `#ifndef` of its own
+ *        name, at any depth, before that `#ifndef`'s `#else`.
+ *
+ * @note The configuration skeleton's form, where a choice stands between
+ *       the guard and the definition:
+ *
+ *           #ifndef D_CFG_KNOB
+ *               #if defined(D_CFG_ALL)
+ *                   #define D_CFG_KNOB D_CFG_ALL
+ *               #else
+ *                   #define D_CFG_KNOB 0
+ *               #endif
+ *           #endif
+ *
+ *       Either definition supplies the name only if nobody else has, as
+ *       `d_internal_define_guarded` asks of the line before a `#define`.
+ *       The `#else` that is passed is the inner conditional's, not the
+ *       guard's; past the guard's own, the name is one somebody defined.
+ *
+ * @param[in] _build  the build, at the `#define`: its open conditionals are
+ *                    the ones around the directive.
+ * @param[in] _macro  the defined macro's token index.
+ * @return `true` if an open `#ifndef` tests this very name and is still in
+ *         its first branch, `false` otherwise.
+ */
+static bool
+d_internal_define_under_guard(
+    const struct d_internal_build* _build,
+    uint32_t                       _macro
+)
+{
+    const struct d_token* const defined = &_build->tokens[_macro];
+
+    for (uint32_t level = _build->cond_depth; level > 0u; --level)
+    {
+        const uint32_t tested = _build->cond_macro[level - 1u];
+
+        // `#ifndef` is the third of the forms a level records
+        if ( (_build->cond_kind[level - 1u] != 2u)  ||
+             (_build->cond_else[level - 1u] != 0u)  ||
+             (tested == D_SYNTAX_NONE) )
+        {
+            continue;
+        }
+
+        if ( (_build->tokens[tested].span.length == defined->span.length) &&
+             (memcmp(_build->source->text
+                         + _build->tokens[tested].span.offset,
+                     _build->source->text + defined->span.offset,
+                     defined->span.length) == 0) )
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * @brief Reports whether a directive's name token is spelled `_word`.
  *
  * @param[in] _build  the build.
@@ -687,6 +768,32 @@ d_internal_comment_line_is(
              (memcmp(text + first, _name, _length) == 0) )
         {
             return true;
+        }
+
+        // a member defined outside its class is named with its class,
+        // `integer_value::to_string`, and an operator with its symbol,
+        // `integer_value::operator+=`
+        if ( (last - first > _length + 2u)                         &&
+             (memcmp(text + last - _length, _name, _length) == 0)  &&
+             (text[last - _length - 1u] == ':')                    &&
+             (text[last - _length - 2u] == ':') )
+        {
+            return true;
+        }
+
+        for (size_t at_word = first;
+             (_length == 8u) && (memcmp(_name, "operator", 8u) == 0) &&
+             ((at_word + _length) <= last);
+             ++at_word)
+        {
+            if ( (memcmp(text + at_word, _name, _length) == 0) &&
+                 ( (at_word == first) ||
+                   ( (at_word >= first + 2u)        &&
+                     (text[at_word - 1u] == ':')    &&
+                     (text[at_word - 2u] == ':') ) ) )
+            {
+                return true;
+            }
         }
 
         // a family, `D_INTERNAL_ARGS<01-10>`, names each member it prefixes
@@ -945,6 +1052,24 @@ d_internal_emit_directive(
             {
                 (void)d_node_set_attribute(tree, node, "function-like",
                                            NULL);
+
+                // `...` among its parameters: a variadic macro
+                for (uint32_t at = macro + 2u; at <= last; ++at)
+                {
+                    const char* const spelt =
+                        d_token_spelling(_build->tokens[at].kind);
+
+                    if ((spelt) && (strcmp(spelt, ")") == 0))
+                    {
+                        break;
+                    }
+
+                    if (_build->tokens[at].kind == D_TOKEN_ELLIPSIS)
+                    {
+                        (void)d_node_set_attribute(tree, node, "variadic",
+                                                   NULL);
+                    }
+                }
             }
 
             // the comment run above the directive names what it defines,
@@ -980,9 +1105,8 @@ d_internal_emit_directive(
          (memcmp(_build->source->text + _build->tokens[name].span.offset,
                  "define",
                  6u) == 0) &&
-         d_internal_define_guarded(_build,
-                                   _at,
-                                   macro) )
+         ( (d_internal_define_guarded(_build, _at, macro)) ||
+           (d_internal_define_under_guard(_build, macro)) ) )
     {
         (void)d_node_set_attribute(tree,
                                    node,
@@ -1042,8 +1166,20 @@ d_internal_emit_directive(
             _build->cond_kind[_build->cond_depth]  = form;
             _build->cond_macro[_build->cond_depth] = macro;
             _build->cond_hash[_build->cond_depth]  = _at;
+            _build->cond_else[_build->cond_depth]  = 0u;
             ++_build->cond_depth;
         }
+    }
+
+    // past its #else or an #elif, a conditional's first test no longer
+    // says what is defined: `d_internal_define_under_guard` reads this
+    if ( (_build->cond_depth > 0u) &&
+         ( (d_internal_directive_is(_build, name, "else"))    ||
+           (d_internal_directive_is(_build, name, "elif"))    ||
+           (d_internal_directive_is(_build, name, "elifdef")) ||
+           (d_internal_directive_is(_build, name, "elifndef")) ) )
+    {
+        _build->cond_else[_build->cond_depth - 1u] = 1u;
     }
 
     if ( (d_internal_directive_is(_build, name, "endif")) &&
@@ -1066,6 +1202,15 @@ d_internal_emit_directive(
 
         (void)d_node_set_attribute(tree, node, "closes", forms[form]);
 
+        // the macro the conditional tested, which is what its #endif names
+        if ( (tested != D_SYNTAX_NONE) &&
+             (d_internal_spell(_build, &_build->tokens[tested])
+              != (size_t)-1) )
+        {
+            (void)d_node_set_attribute(tree, node, "symbol",
+                                       _build->spelling);
+        }
+
         if (named)
         {
             (void)d_node_set_attribute(tree, node, "named", NULL);
@@ -1073,6 +1218,7 @@ d_internal_emit_directive(
     }
 
     d_internal_number(tree, node, "depth", _build->depth[_at]);
+    d_internal_number(tree, node, "pp-depth", _build->items.pp_of[_at]);
     d_internal_blank_attribute(_build, node, _at);
 
     // the directive spans its line, from the `#` to its last token
@@ -1161,10 +1307,30 @@ d_internal_emit_group(
     // a body's brace sits at the level of the item that owns it
     if (_build->items.level_of[_at] != 0xFFu)
     {
+        const uint32_t owner = _build->items.item_of[_at];
+        const bool     known = ( (owner != D_SYNTAX_NONE) &&
+                                 (owner < (uint32_t)_build->items.count) );
+
         d_internal_number(tree,
                           node,
                           "level",
                           _build->items.level_of[_at]);
+
+        // and under the conditionals that item is under, which is what a
+        // layout rule asks before it asks for a column.  Only a brace is
+        // asked: a parameter list's parenthesis has rules of its own.  And
+        // a block that is a statement by itself begins its own item, which
+        // answers for the column: the brace is given none to answer with
+        if ( (known)                                        &&
+             (_build->tokens[_at].kind == D_TOKEN_BRACE_OPEN) &&
+             (_build->items.items[owner].first != _at) )
+        {
+            const unsigned own   = _build->items.pp_of[_at];
+            const unsigned outer = _build->items.items[owner].pp_total;
+
+            d_internal_number(tree, node, "pp-depth",
+                              (outer > own) ? outer : own);
+        }
     }
 
     if (_build->head_of[_at] == D_SYNTAX_NONE)
@@ -1180,6 +1346,800 @@ d_internal_emit_group(
     ++_build->stats->groups;
 
     return node;
+}
+
+
+/**
+ * @brief Finds the standard that made a keyword one, from the lexer's own
+ *        keyword table.
+ *
+ * @pre `_build->spelling` holds the keyword's spelling.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _kind   the keyword's token kind.
+ * @return the level of the earliest row giving the spelling that kind, a
+ *         year such as 2011; 0 if the table has no such row.
+ */
+static unsigned
+d_internal_keyword_since(
+    const struct d_internal_build* _build,
+    int                            _kind
+)
+{
+    const struct d_lex_dialect* const dialect = _build->dialect;
+    unsigned                          since   = 0u;
+
+    for (size_t at = 0u; (dialect) && (at < dialect->keyword_count); ++at)
+    {
+        const struct d_lex_keyword* const row = &dialect->keywords[at];
+
+        if ( (row->kind == _kind)                         &&
+             (row->since != D_LEX_NEVER)                  &&
+             (strcmp(row->text, _build->spelling) == 0)   &&
+             ((since == 0u) || (row->since < since)) )
+        {
+            since = row->since;
+        }
+    }
+
+    return since;
+}
+
+
+/**
+ * @brief Reports whether a token is a delimiter rule: a line comment holding
+ *        nothing but a run of `=`, `-` or `/`.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _at     the token's index.
+ * @return `true` for `//====`, `//----`, `// ====` and `//////`, each at
+ *         least ten characters long.
+ */
+static bool
+d_internal_comment_is_rule(
+    const struct d_internal_build* _build,
+    uint32_t                       _at
+)
+{
+    const struct d_token* const token = &_build->tokens[_at];
+
+    if ( (token->kind != D_TOKEN_COMMENT) ||
+         ((token->flags & D_TOKEN_FLAG_COMMENT_LINE) == 0u) )
+    {
+        return false;
+    }
+
+    const char* const text = _build->source->text + token->span.offset;
+    size_t            size = token->span.length;
+
+    while ( (size > 0u) &&
+            ( (text[size - 1u] == ' ') || (text[size - 1u] == '\r') ) )
+    {
+        --size;
+    }
+
+    size_t at = 0u;
+
+    while ( (at < size) && (text[at] == '/') )
+    {
+        ++at;
+    }
+
+    while ( (at < size) && (text[at] == ' ') )
+    {
+        ++at;
+    }
+
+    // what follows the slashes is one character repeated to the end
+    for (size_t scan = at; scan < size; ++scan)
+    {
+        if ( (text[scan] != '=') && (text[scan] != '-') &&
+             (text[scan] != '/') )
+        {
+            return false;
+        }
+    }
+
+    return (size >= 10u);
+}
+
+/**
+ * @brief Reads a Roman numeral in its usual spelling, in either case.
+ *
+ * @param[in] _text  the letters, terminated.
+ * @return its value, from 1 to 399; 0 when the letters are no numeral, or
+ *         spell one in a way it is not written (`IIII`, `VX`, `IC`).
+ */
+static unsigned
+d_internal_roman_value(
+    const char* _text
+)
+{
+    static const unsigned    values[]  = { 100u, 90u, 50u, 40u, 10u,
+                                           9u, 5u, 4u, 1u };
+    static const char* const letters[] = { "C", "XC", "L", "XL", "X",
+                                           "IX", "V", "IV", "I" };
+
+    unsigned total = 0u;
+    size_t   at    = 0u;
+
+    // the usual spelling is the greedy one: each step as often as it fits,
+    // largest first, and none more than three times
+    for (size_t which = 0u; which < (sizeof(values) / sizeof(values[0]));
+         ++which)
+    {
+        const size_t length = strlen(letters[which]);
+        unsigned     times  = 0u;
+
+        while ( (times < 3u) &&
+                (toupper((unsigned char)_text[at]) == letters[which][0]) &&
+                ( (length == 1u) ||
+                  (toupper((unsigned char)_text[at + 1u]) ==
+                   letters[which][1]) ) )
+        {
+            total += values[which];
+            at    += length;
+            ++times;
+
+            // a subtractive pair is written once
+            if (length == 2u)
+            {
+                break;
+            }
+        }
+    }
+
+    return ( (at > 0u) && (_text[at] == '\0') ) ? total : 0u;
+}
+
+/**
+ * @brief Finds what a comment's delimiter is drawn in, when one stands
+ *        directly above it.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _at     the comment's token.
+ * @return the character -- `=`, `-` or `/` -- or 0 when the line above is
+ *         no delimiter: the shape a heading shares with the others of its
+ *         list.
+ */
+static char
+d_internal_rule_above(
+    const struct d_internal_build* _build,
+    uint32_t                       _at
+)
+{
+    if ( (_at == 0u)                                          ||
+         (!d_internal_comment_is_rule(_build, _at - 1u))      ||
+         (_build->tokens[_at - 1u].end_line + 1u
+          != _build->tokens[_at].span.line) )
+    {
+        return '\0';
+    }
+
+    const struct d_token* const rule = &_build->tokens[_at - 1u];
+    const char* const           text = _build->source->text +
+                                       rule->span.offset;
+    size_t                      size = rule->span.length;
+
+    // a delimiter ends in the character it is drawn in
+    while ( (size > 1u) &&
+            ( (text[size - 1u] == ' ') || (text[size - 1u] == '\r') ) )
+    {
+        --size;
+    }
+
+    return text[size - 1u];
+}
+
+/**
+ * @brief Finds the letters a line comment opens with after its slashes,
+ *        when a period ends them: `// C.  name`, `/// IV.  name`.
+ *
+ * @param[in]  _text       the comment's text, from its first slash.
+ * @param[in]  _size       its length.
+ * @param[out] _out_first  where the letters begin.
+ * @param[out] _out_apart  whether two spaces follow the period, or nothing
+ *                         does.
+ * @return the count of letters; 0 when the comment does not open with two
+ *         or three slashes, a space, letters, a period and then a space or
+ *         its end.
+ */
+static size_t
+d_internal_ordinal_span(
+    const char* _text,
+    size_t      _size,
+    size_t*     _out_first,
+    bool*       _out_apart
+)
+{
+    size_t at = 0u;
+
+    while ( (_size > 0u) &&
+            ( (_text[_size - 1u] == ' ') || (_text[_size - 1u] == '\r') ) )
+    {
+        --_size;
+    }
+
+    while ( (at < _size) && (_text[at] == '/') )
+    {
+        ++at;
+    }
+
+    const size_t slashes = at;
+
+    while ( (at < _size) && (_text[at] == ' ') )
+    {
+        ++at;
+    }
+
+    const size_t first = at;
+
+    while ( (at < _size) && (isalpha((unsigned char)_text[at]) != 0) )
+    {
+        ++at;
+    }
+
+    if ( (slashes < 2u) || (slashes > 3u) || (first == slashes)      ||
+         (at == first) || (at >= _size) || (_text[at] != '.')        ||
+         ( ((at + 1u) < _size) && (_text[at + 1u] != ' ') ) )
+    {
+        return 0u;
+    }
+
+    *_out_first = first;
+    *_out_apart = ( ((at + 1u) >= _size) ||
+                    ( ((at + 2u) < _size) && (_text[at + 2u] == ' ') ) );
+
+    return (at - first);
+}
+
+/**
+ * @brief Reads the ordinal a heading comment opens with, when it is spelled
+ *        in letters: `// C.  name`, `/// IV.  name`, `// i.  name`.
+ *
+ * @note A heading's ordinal is one letter, or a Roman numeral in its usual
+ *       spelling: `// Note. the rest` opens with neither.  Under a delimiter
+ *       that is enough.  With none above it a heading stands two spaces from
+ *       its name, as the older headings over a run of declarations do, and a
+ *       line with one is a sentence or an entry of a list in prose.
+ *
+ * @param[in]  _build     the build.
+ * @param[in]  _at        a token's index.
+ * @param[out] _out       the ordinal's letters, terminated; room for
+ *                        D_INTERNAL_ORDINAL_MAX of them and the terminator.
+ * @param[out] _out_rule  what the delimiter directly above the comment is
+ *                        drawn in, or 0 (d_internal_rule_above).
+ * @return the count of letters, or 0 when the token is not a line comment
+ *         that opens with such an ordinal.
+ */
+static size_t
+d_internal_letter_ordinal(
+    const struct d_internal_build* _build,
+    uint32_t                       _at,
+    char*                          _out,
+    char*                          _out_rule
+)
+{
+    const struct d_token* const token = &_build->tokens[_at];
+    size_t                      first = 0u;
+    bool                        apart = false;
+
+    if ( (token->kind != D_TOKEN_COMMENT) ||
+         ((token->flags & D_TOKEN_FLAG_COMMENT_LINE) == 0u) )
+    {
+        return 0u;
+    }
+
+    const char* const text   = _build->source->text + token->span.offset;
+    const size_t      length = d_internal_ordinal_span(text,
+                                                       token->span.length,
+                                                       &first, &apart);
+
+    if ( (length == 0u) || (length > D_INTERNAL_ORDINAL_MAX) )
+    {
+        return 0u;
+    }
+
+    memcpy(_out, text + first, length);
+    _out[length] = '\0';
+    *_out_rule   = d_internal_rule_above(_build, _at);
+
+    // one letter or a numeral; and with no delimiter above, apart from its
+    // name
+    if ( ( (length > 1u) && (d_internal_roman_value(_out) == 0u) ) ||
+         ( (*_out_rule == '\0') && (!apart) ) )
+    {
+        _out[0] = '\0';
+
+        return 0u;
+    }
+
+    return length;
+}
+
+/**
+ * @brief Finds the heading before one in its own list: the nearest above it
+ *        whose ordinal is spelled in letters, under the same delimiter or
+ *        under none as this one is, and in the same case.
+ *
+ * @param[in]  _build  the build.
+ * @param[in]  _at     the heading's token.
+ * @param[out] _out    that heading's ordinal, terminated; empty when there
+ *                     is none.
+ * @return that heading's token, or `_at` itself when there is none.
+ */
+static uint32_t
+d_internal_ordinal_before(
+    const struct d_internal_build* _build,
+    uint32_t                       _at,
+    char*                          _out
+)
+{
+    char own[D_INTERNAL_ORDINAL_MAX + 1u] = "";
+    char rule                             = '\0';
+
+    _out[0] = '\0';
+
+    if (d_internal_letter_ordinal(_build, _at, own, &rule) == 0u)
+    {
+        return _at;
+    }
+
+    for (uint32_t at = _at; at > 0u; --at)
+    {
+        char shape = '\0';
+
+        if ( (d_internal_letter_ordinal(_build, at - 1u, _out,
+                                        &shape) != 0u)            &&
+             (shape == rule)                                      &&
+             ((_out[0] <= 'Z') == (own[0] <= 'Z')) )
+        {
+            return (at - 1u);
+        }
+
+        _out[0] = '\0';
+    }
+
+    return _at;
+}
+
+/**
+ * @brief Reports what a heading's ordinal counts as, when it is spelled in
+ *        letters: its value as a Roman numeral, or 0 when it is a letter.
+ *
+ * @note `C.` is the hundredth of a list numbered in Roman numerals and the
+ *       third of one numbered in letters, and so with `I`, `L`, `V` and `X`.
+ *       The heading before it in its list says which:
+ *       - `L` and `C` are numerals only after the numeral before them,
+ *         `XLIX.` and `XCIX.`: fifty sections are not skipped to, and a
+ *         list that reaches `L.` by letters, or skips to it, has letters.
+ *       - `I`, `V` and `X` are numerals when no heading stands before them,
+ *         or a numeral does: whichever, since a list of numerals may skip
+ *         one, begin again, or have two the wrong way round.  After a
+ *         letter they are letters: `H. I.`, `U. V.`, and whatever follows
+ *         `A. B. C.`.
+ *       A `C.` that only opens a line of prose is so a letter.  An `I.`,
+ *       `V.` or `X.` that does, with two spaces after it, is still taken
+ *       for a heading.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _at     a comment's token.
+ * @param[in] _depth  how many headings have been asked on the way here; the
+ *                    one beyond D_INTERNAL_LIST_MAX is taken as its letters
+ *                    spell.
+ * @return the value; 0 for a letter and for a token that opens with no
+ *         ordinal in letters.
+ */
+static unsigned
+d_internal_ordinal_value(
+    const struct d_internal_build* _build,
+    uint32_t                       _at,
+    unsigned                       _depth
+)
+{
+    char own[D_INTERNAL_ORDINAL_MAX + 1u]    = "";
+    char before[D_INTERNAL_ORDINAL_MAX + 1u] = "";
+    char rule                                = '\0';
+
+    const size_t   length = d_internal_letter_ordinal(_build, _at, own,
+                                                      &rule);
+    const unsigned value  = (length != 0u) ? d_internal_roman_value(own)
+                                           : 0u;
+
+    // more than one letter says what it is by itself
+    if ( (length != 1u) || (value == 0u) || (_depth >= D_INTERNAL_LIST_MAX) )
+    {
+        return value;
+    }
+
+    const uint32_t previous = d_internal_ordinal_before(_build, _at, before);
+
+    if (value >= 50u)
+    {
+        return (d_internal_roman_value(before) == (value - 1u)) ? value : 0u;
+    }
+
+    if (previous == _at)
+    {
+        return value;
+    }
+
+    const unsigned earlier = d_internal_ordinal_value(_build, previous,
+                                                      _depth + 1u);
+
+    return (earlier != 0u) ? value : 0u;
+}
+
+
+/**
+ * @brief Reports whether a heading's ordinal is one letter that counts as a
+ *        letter and not as a Roman numeral.
+ *
+ * @note Only an ordinal that is a single letter and nothing more is asked:
+ *       `C.  name`.  One with a second part -- `VII.1`, `I.a`, `C.II.` --
+ *       is read by its first run of numeral letters, as it always was.
+ *
+ * @param[in] _build  the build.
+ * @param[in] _at     a comment's token.
+ * @return `true` if the comment opens with one letter, a period and then a
+ *         space or its end, and d_internal_ordinal_value counts the letter
+ *         as none of a numeral; `false` otherwise.
+ */
+static bool
+d_internal_ordinal_is_letter(
+    const struct d_internal_build* _build,
+    uint32_t                       _at
+)
+{
+    char own[D_INTERNAL_ORDINAL_MAX + 1u] = "";
+    char rule                             = '\0';
+
+    return ( (d_internal_letter_ordinal(_build, _at, own, &rule) == 1u) &&
+             (d_internal_ordinal_value(_build, _at, 0u) == 0u) );
+}
+
+/**
+ * @brief Marks a line comment that is one of the guide's structural markers.
+ *
+ * @note A marker is recognised by its whole shape, never by its number
+ *       alone, since prose opens with numbers too: `// 3.38.0 the JSON
+ *       functions are built in` is a sentence.  An item or a fourth-level
+ *       marker is its number and nothing else; a section sits under a
+ *       delimiter rule; a decimal subsection sits over one.
+ *
+ * @param[in,out] _build  the build.
+ * @param[in]     _at     the comment's token.
+ * @param[in]     _node   its node, which takes `marker` (section,
+ *                        subsection, item or entry) and `numeral` (decimal
+ *                        or roman).
+ */
+static void
+d_internal_comment_marker(
+    struct d_internal_build* _build,
+    uint32_t                 _at,
+    uint32_t                 _node
+)
+{
+    const struct d_token* const token = &_build->tokens[_at];
+    const char* const           text  = _build->source->text +
+                                        token->span.offset;
+    size_t                      size  = token->span.length;
+
+    while ( (size > 0u) &&
+            ( (text[size - 1u] == ' ') || (text[size - 1u] == '\r') ||
+              (text[size - 1u] == '/') ) )
+    {
+        --size;
+    }
+
+    size_t at = 0u;
+
+    while ( (at < size) && (text[at] == '/') )
+    {
+        ++at;
+    }
+
+    const size_t slashes = at;
+
+    while ( (at < size) && (text[at] == ' ') )
+    {
+        ++at;
+    }
+
+    // `//` or `///`, a space, and then the ordinal
+    if ( (slashes < 2u) || (slashes > 3u) || (at == slashes) || (at >= size) )
+    {
+        return;
+    }
+
+    const size_t ordinal = at;
+    unsigned     parts   = 0u;
+    bool         dotted  = false;
+    const char*  numeral = "decimal";
+
+    if ( (text[at] >= '0') && (text[at] <= '9') )
+    {
+        // digits, and further digits after each period
+        while (at < size)
+        {
+            const size_t digits = at;
+
+            while ( (at < size) && (text[at] >= '0') && (text[at] <= '9') )
+            {
+                ++at;
+            }
+
+            if (at == digits)
+            {
+                break;
+            }
+
+            ++parts;
+            dotted = false;
+
+            if ( (at < size) && (text[at] == '.') )
+            {
+                dotted = true;
+                ++at;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    else
+    {
+        const bool upper = (strchr("IVXLC", text[at]) != NULL);
+
+        while ( (at < size) &&
+                (strchr(upper ? "IVXLC" : "ivx", text[at]) != NULL) )
+        {
+            ++at;
+        }
+
+        // a Roman ordinal ends in its period; and one that is a single
+        // letter and no more is not a letter of a list that counts in
+        // letters
+        if ( (at == ordinal) || (at >= size) || (text[at] != '.')       ||
+             (d_internal_ordinal_is_letter(_build, _at)) )
+        {
+            return;
+        }
+
+        ++at;
+        parts   = upper ? 1u : 2u;
+        dotted  = true;
+        numeral = "roman";
+    }
+
+    const size_t after = at;
+
+    while ( (at < size) && (text[at] == ' ') )
+    {
+        ++at;
+    }
+
+    const bool   named = (at < size);
+    const size_t gap   = at - after;
+    const bool   under = ( (_at > 0u)                                    &&
+                           (d_internal_comment_is_rule(_build, _at - 1u)) &&
+                           (_build->tokens[_at - 1u].end_line + 1u
+                            == token->span.line) );
+    const bool   over  = ( ((size_t)_at + 1u < _build->count)            &&
+                           (d_internal_comment_is_rule(_build, _at + 1u)) );
+    const char*  marker = NULL;
+
+    if (numeral[0] == 'r')
+    {
+        // `// II.  NAME` under a rule is a section; the older headings
+        // over a run of declarations, `// I.    creation` and
+        // `// i.    creation`, stand apart from their names by two spaces
+        if ( (parts == 1u) && (named) && (under) )
+        {
+            marker = "section";
+        }
+        else if ( (named) && (gap >= 2u) && (slashes == 2u) )
+        {
+            marker = "subsection";
+        }
+    }
+    else if ( (parts == 4u) && (!dotted) && (!named) && (after == size) )
+    {
+        marker = "entry";
+    }
+    else if ( (parts == 3u) && (!dotted) && (!named) && (after == size) )
+    {
+        marker = "item";
+    }
+    else if ( (parts == 2u) && (!dotted) && (named) && (gap >= 2u) &&
+              (over) )
+    {
+        marker = "subsection";
+    }
+    else if ( (parts == 1u) && (dotted) && (named) && (under) )
+    {
+        marker = "section";
+    }
+
+    if (marker)
+    {
+        (void)d_node_set_attribute(_build->tree, _node, "marker", marker);
+        (void)d_node_set_attribute(_build->tree, _node, "numeral", numeral);
+    }
+
+    return;
+}
+
+
+/**
+ * @brief Marks a block comment that is a table of contents, and counts what
+ *        the guide's format forbids inside one.
+ *
+ * @param[in,out] _build  the build.
+ * @param[in]     _at     the comment's token.
+ * @param[in]     _node   its node, which takes `toc`, and as numbers
+ *                        `lettered` (entries whose ordinal is one lower-case
+ *                        letter that is no numeral), `roman` (entries with
+ *                        a Roman ordinal) and `blank` (empty lines between
+ *                        two entries).  Which one-letter ordinals are
+ *                        numerals is decided as it is for a heading, by the
+ *                        entry before at the same indentation.
+ */
+static void
+d_internal_comment_toc(
+    struct d_internal_build* _build,
+    uint32_t                 _at,
+    uint32_t                 _node
+)
+{
+    static const char heading[] = "TABLE OF CONTENTS";
+
+    const struct d_token* const token = &_build->tokens[_at];
+    const char* const           text  = _build->source->text +
+                                        token->span.offset;
+    const size_t                size  = token->span.length;
+    size_t                      at    = 0u;
+
+    // the opener and the space after it
+    while ( (at < size) &&
+            ( (text[at] == '/') || (text[at] == '*') || (text[at] == ' ') ||
+              (text[at] == '\r') || (text[at] == '\n') ) )
+    {
+        ++at;
+    }
+
+    if ( (size - at < sizeof(heading) - 1u) ||
+         (memcmp(text + at, heading, sizeof(heading) - 1u) != 0) )
+    {
+        return;
+    }
+
+    // what the last entry at each indentation counted as -- a numeral's
+    // value, 0 for a letter -- and whether there was one: the next entry
+    // there is read by it, as a heading is by the heading before it
+    unsigned last[D_INTERNAL_TOC_INDENT_MAX + 1u] = { 0u };
+    bool     seen[D_INTERNAL_TOC_INDENT_MAX + 1u] = { false };
+    size_t lettered = 0u;
+    size_t roman    = 0u;
+    size_t blank    = 0u;
+    size_t pending  = 0u;
+    bool   begun    = false;
+
+    while (at < size)
+    {
+        // one line: its first and last characters that are not space
+        size_t end = at;
+
+        while ( (end < size) && (text[end] != '\n') )
+        {
+            ++end;
+        }
+
+        size_t first = at;
+
+        while ( (first < end) &&
+                ( (text[first] == ' ') || (text[first] == '\r') ) )
+        {
+            ++first;
+        }
+
+        const size_t indent = ((first - at) < D_INTERNAL_TOC_INDENT_MAX)
+                            ? (first - at)
+                            : D_INTERNAL_TOC_INDENT_MAX;
+
+        at = end + 1u;
+
+        // the closer's line holds no entry
+        if ( (first < end) && (text[first] == '*') )
+        {
+            continue;
+        }
+
+        if (first == end)
+        {
+            pending += begun ? 1u : 0u;
+
+            continue;
+        }
+
+        // an empty line counts once an entry follows it
+        blank   += pending;
+        pending  = 0u;
+        begun    = true;
+
+        size_t scan = first;
+
+        while ( (scan < end) && (text[scan] != '.') && (text[scan] != ' ') )
+        {
+            ++scan;
+        }
+
+        // an ordinal is a word ending in a period, with a name after it
+        if ( (scan == first) || (scan >= end) || (text[scan] != '.') ||
+             (scan + 1u >= end) || (text[scan + 1u] != ' ') )
+        {
+            continue;
+        }
+
+        const size_t length = scan - first;
+        bool         upper  = true;
+        bool         lower  = true;
+
+        bool         alpha  = true;
+
+        for (size_t which = first; which < scan; ++which)
+        {
+            upper = (upper) && (strchr("IVXLC", text[which]) != NULL);
+            lower = (lower) && (strchr("ivx", text[which]) != NULL);
+            alpha = (alpha) && (isalpha((unsigned char)text[which]) != 0);
+        }
+
+        // as a heading's: an ordinal of several numeral letters is one;
+        // a single letter is a numeral by the entry before it at its own
+        // indentation (d_internal_ordinal_value)
+        char     word[D_INTERNAL_ORDINAL_MAX + 1u] = "";
+        unsigned value                             = 0u;
+
+        if ( ((upper) || (lower)) && (length <= D_INTERNAL_ORDINAL_MAX) )
+        {
+            memcpy(word, text + first, length);
+            value = d_internal_roman_value(word);
+        }
+
+        if ( (length == 1u) && (value >= 50u) )
+        {
+            value = (last[indent] == (value - 1u)) ? value : 0u;
+        }
+        else if ( (length == 1u) && (seen[indent]) && (last[indent] == 0u) )
+        {
+            value = 0u;
+        }
+
+        // an entry numbered in digits is of no list of letters
+        if (alpha)
+        {
+            last[indent] = value;
+            seen[indent] = true;
+        }
+
+        if ( (length > 1u) ? ((upper) || (lower)) : (value != 0u) )
+        {
+            ++roman;
+        }
+        else if ( (length == 1u) && (text[first] >= 'a') &&
+                  (text[first] <= 'z') )
+        {
+            ++lettered;
+        }
+    }
+
+    (void)d_node_set_attribute(_build->tree, _node, "toc", NULL);
+    d_internal_number(_build->tree, _node, "lettered", lettered);
+    d_internal_number(_build->tree, _node, "roman", roman);
+    d_internal_number(_build->tree, _node, "blank", blank);
+
+    return;
 }
 
 
@@ -1223,6 +2183,25 @@ d_internal_emit_leaf(
     (void)d_node_set_attribute(tree, node, "kind", kind);
     (void)d_node_set_attribute(tree, node, "text", _build->spelling);
 
+    // the conditionals around the token, the include guard excluded
+    d_internal_number(tree, node, "pp-depth", _build->items.pp_of[_at]);
+
+    // a keyword newer than its language's first standard says which
+    // standard made it one: above C89 in C, above C++98 in C++
+    if (strcmp(d_internal_type_of(token->kind), "keyword") == 0)
+    {
+        const unsigned since = d_internal_keyword_since(_build, token->kind);
+        const unsigned first =
+            ( (_build->dialect) &&
+              (strcmp(_build->dialect->language, "c") == 0) ) ? D_LEX_C89
+                                                               : D_LEX_CPP98;
+
+        if (since > first)
+        {
+            d_internal_number(tree, node, "since", since);
+        }
+    }
+
     // an identifier carries its case, a fact a naming rule reads; a prefix
     // rule reads the name's own `text` through :not([text^=...])
     if (token->kind == D_TOKEN_IDENTIFIER)
@@ -1240,6 +2219,17 @@ d_internal_emit_leaf(
             ((token->flags & D_TOKEN_FLAG_COMMENT_LINE) != 0u) ? "line"
                                                                 : "block");
         ++_build->stats->comments;
+
+        // the guide's structure: a marker is a line of its own, a table of
+        // contents a block
+        if ((token->flags & D_TOKEN_FLAG_COMMENT_LINE) == 0u)
+        {
+            d_internal_comment_toc(_build, _at, node);
+        }
+        else if ((token->flags & D_TOKEN_FLAG_LINE_START) != 0u)
+        {
+            d_internal_comment_marker(_build, _at, node);
+        }
     }
 
     // a closer with no opener is a leaf, and says so
@@ -1481,6 +2471,231 @@ d_internal_first_param_flags(
 }
 
 
+// D_INTERNAL_CONTRACT_MAX
+//   constant: the parameters, and the @param tags, one contract is read for;
+//   a function past it is counted to this many.
+#define D_INTERNAL_CONTRACT_MAX 32
+
+/**
+ * @brief Reads the contract block directly above a function, and records how
+ *        its tags cover the function's parameters.
+ *
+ * @note A contract is a block comment opening with a slash and two stars,
+ *       beginning its own line and ending on the line just above the
+ *       function.  The banner, which opens with a longer run of stars, is
+ *       not one.  A tag opens its line: `@param` met inside a sentence is
+ *       prose about tags.
+ *
+ * @param[in,out] _build  the build.
+ * @param[in]     _k      the function's item index.
+ * @param[in]     _node   the function's node, which takes `contract`; as
+ *                        numbers `undocumented` (named parameters no @param
+ *                        names), `undirected` (@param tags with no
+ *                        direction) and `strangers` (@param tags naming no
+ *                        parameter); and `return-tag` when the block holds
+ *                        `@return` or `@retval`.
+ */
+static void
+d_internal_contract(
+    struct d_internal_build* _build,
+    uint32_t                 _k,
+    uint32_t                 _node
+)
+{
+    const struct d_syntax_item* const item = &_build->items.items[_k];
+
+    if (item->first == 0u)
+    {
+        return;
+    }
+
+    const struct d_token* const first   = &_build->tokens[item->first];
+    const struct d_token* const comment = &_build->tokens[item->first - 1u];
+
+    if ( (comment->kind != D_TOKEN_COMMENT)                         ||
+         ((comment->flags & D_TOKEN_FLAG_COMMENT_LINE) != 0u)       ||
+         ((comment->flags & D_TOKEN_FLAG_LINE_START) == 0u)         ||
+         (comment->end_line + 1u != first->span.line)               ||
+         (comment->span.length < 5u) )
+    {
+        return;
+    }
+
+    const char* const text = _build->source->text + comment->span.offset;
+    const size_t      size = comment->span.length;
+
+    if ( (memcmp(text, "/**", 3u) != 0) || (text[3] == '*') )
+    {
+        return;
+    }
+
+    // the tags: each @param's name, and whether a return is described
+    size_t tag_at[D_INTERNAL_CONTRACT_MAX];
+    size_t tag_length[D_INTERNAL_CONTRACT_MAX];
+    size_t tags       = 0u;
+    size_t undirected = 0u;
+    bool   returns    = false;
+
+    bool   fresh      = true;
+
+    for (size_t at = 0u; at + 1u < size; ++at)
+    {
+        if (text[at] == '\n')
+        {
+            fresh = true;
+
+            continue;
+        }
+
+        // the comment's own margin: space and stars
+        if ( (text[at] == ' ') || (text[at] == '*') || (text[at] == '\r') ||
+             (text[at] == '/') )
+        {
+            continue;
+        }
+
+        const bool opens = fresh;
+
+        fresh = false;
+
+        if ( (text[at] != '@') || (!opens) )
+        {
+            continue;
+        }
+
+        size_t end = at + 1u;
+
+        while ( (end < size) && (text[end] >= 'a') && (text[end] <= 'z') )
+        {
+            ++end;
+        }
+
+        const size_t word = end - at - 1u;
+
+        if ( ((word == 6u) && (memcmp(text + at + 1u, "return", 6u) == 0))  ||
+             ((word == 7u) && (memcmp(text + at + 1u, "returns", 7u) == 0)) ||
+             ((word == 6u) && (memcmp(text + at + 1u, "retval", 6u) == 0)) )
+        {
+            returns = true;
+        }
+
+        if ( (word != 5u) || (memcmp(text + at + 1u, "param", 5u) != 0) )
+        {
+            continue;
+        }
+
+        // `[in]`, `[out]` or `[in,out]`, hard against the tag
+        if ( (end < size) && (text[end] == '[') )
+        {
+            while ( (end < size) && (text[end] != ']') &&
+                    (text[end] != '\n') )
+            {
+                ++end;
+            }
+
+            end += ((end < size) && (text[end] == ']')) ? 1u : 0u;
+        }
+        else
+        {
+            ++undirected;
+        }
+
+        while ( (end < size) && (text[end] == ' ') )
+        {
+            ++end;
+        }
+
+        const size_t name = end;
+
+        while ( (end < size) &&
+                ( (text[end] == '_')                           ||
+                  ((text[end] >= 'a') && (text[end] <= 'z'))   ||
+                  ((text[end] >= 'A') && (text[end] <= 'Z'))   ||
+                  ((text[end] >= '0') && (text[end] <= '9')) ) )
+        {
+            ++end;
+        }
+
+        if ( (end > name) && (tags < D_INTERNAL_CONTRACT_MAX) )
+        {
+            tag_at[tags]     = name;
+            tag_length[tags] = end - name;
+            ++tags;
+        }
+    }
+
+    // the function's own parameters: an item begun directly inside its list
+    uint32_t names[D_INTERNAL_CONTRACT_MAX];
+    size_t   named = 0u;
+
+    if ( (item->params != D_SYNTAX_NONE) &&
+         (_build->groups.match[item->params] != D_SYNTAX_NONE) )
+    {
+        for (uint32_t at = item->params + 1u;
+             at < _build->groups.match[item->params];
+             ++at)
+        {
+            const uint32_t owner = _build->items.item_of[at];
+
+            if ( (owner == D_SYNTAX_NONE)                                 ||
+                 (_build->items.items[owner].kind != D_SYNTAX_ITEM_PARAM) ||
+                 (_build->items.items[owner].first != at)                 ||
+                 (_build->groups.parent[at] != item->params)              ||
+                 (_build->items.items[owner].name == D_SYNTAX_NONE)       ||
+                 (named == D_INTERNAL_CONTRACT_MAX) )
+            {
+                continue;
+            }
+
+            names[named] = _build->items.items[owner].name;
+            ++named;
+        }
+    }
+
+    size_t undocumented = 0u;
+    size_t strangers    = tags;
+    bool   met[D_INTERNAL_CONTRACT_MAX] = { false };
+
+    for (size_t which = 0u; which < named; ++which)
+    {
+        const struct d_token* const name   = &_build->tokens[names[which]];
+        const char* const           spelt  = _build->source->text +
+                                             name->span.offset;
+        bool                        tagged = false;
+
+        for (size_t tag = 0u; tag < tags; ++tag)
+        {
+            if ( (tag_length[tag] == name->span.length) &&
+                 (memcmp(text + tag_at[tag], spelt, tag_length[tag]) == 0) )
+            {
+                tagged = true;
+
+                // a tag is a stranger until some parameter answers to it
+                if (!met[tag])
+                {
+                    met[tag] = true;
+                    --strangers;
+                }
+            }
+        }
+
+        undocumented += tagged ? 0u : 1u;
+    }
+
+    (void)d_node_set_attribute(_build->tree, _node, "contract", NULL);
+    d_internal_number(_build->tree, _node, "undocumented", undocumented);
+    d_internal_number(_build->tree, _node, "undirected", undirected);
+    d_internal_number(_build->tree, _node, "strangers", strangers);
+
+    if (returns)
+    {
+        (void)d_node_set_attribute(_build->tree, _node, "return-tag", NULL);
+    }
+
+    return;
+}
+
+
 /**
  * @brief Sets the attributes only a function carries.
  *
@@ -1505,12 +2720,16 @@ d_internal_fn_attributes(
         tree,
         _node,
         "returns",
-        ((item->flags & D_SYNTAX_ITEM_FLAG_RETURNS_VOID) != 0u) ? "void"
-                                                               : "value");
+        ((item->flags & D_SYNTAX_ITEM_FLAG_NO_RETURN) != 0u)    ? "none"
+      : ((item->flags & D_SYNTAX_ITEM_FLAG_RETURNS_VOID) != 0u) ? "void"
+                                                                : "value");
     d_internal_number(tree,
                       _node,
                       "params",
                       facts.params);
+
+    // the contract block above it, when it carries one
+    d_internal_contract(_build, _k, _node);
 
     if ((item->flags & D_SYNTAX_ITEM_FLAG_MACRO_HEAD) != 0u)
     {
@@ -1742,11 +2961,33 @@ d_internal_emit_item(
                       "pp-depth",
                       item->pp_total);
 
+    // the line the item's last token is on: a repair that moves an item
+    // moves every line of it
+    if (item->last < _build->count)
+    {
+        d_internal_number(tree,
+                          node,
+                          "end-line",
+                          _build->tokens[item->last].span.line);
+    }
+
     if ((first->flags & D_TOKEN_FLAG_LINE_START) != 0u)
     {
         (void)d_node_set_attribute(tree,
                                    node,
                                    "line-start",
+                                   NULL);
+    }
+
+    // its last token begins a line too: a statement that ends in a brace
+    // on a line of its own, as the guide writes one, and not on one line
+    if ( (item->last < _build->count) &&
+         ((_build->tokens[item->last].flags & D_TOKEN_FLAG_LINE_START)
+          != 0u) )
+    {
+        (void)d_node_set_attribute(tree,
+                                   node,
+                                   "end-line-start",
                                    NULL);
     }
 
@@ -2002,6 +3243,7 @@ d_internal_release(
     free(_build->cond_macro);
     free(_build->cond_kind);
     free(_build->cond_hash);
+    free(_build->cond_else);
 
     return;
 }
@@ -2038,8 +3280,9 @@ d_token_node_build(
     memset(&build, 0, sizeof(build));
     memset(&scratch, 0, sizeof(scratch));
 
-    build.tree   = _tree;
-    build.source = source;
+    build.tree    = _tree;
+    build.source  = source;
+    build.dialect = _dialect;
     build.stats  = _out_stats ? _out_stats : &scratch;
 
     memset(build.stats, 0, sizeof(*build.stats));
@@ -2068,6 +3311,7 @@ d_token_node_build(
          (!d_syntax_group(build.tokens, build.count, &build.groups)) )
     {
         d_internal_release(&build);
+
         return D_DSS_NO_INDEX;
     }
 
@@ -2087,6 +3331,7 @@ d_token_node_build(
                               &build.items))
     {
         d_internal_release(&build);
+
         return D_DSS_NO_INDEX;
     }
 
@@ -2102,6 +3347,7 @@ d_token_node_build(
     build.cond_macro = malloc(slots * sizeof(uint32_t));
     build.cond_kind  = malloc(slots * sizeof(uint8_t));
     build.cond_hash  = malloc(slots * sizeof(uint32_t));
+    build.cond_else  = malloc(slots * sizeof(uint8_t));
 
     // any array missing ends the build
     if ( (!build.node_of)    ||
@@ -2112,9 +3358,11 @@ d_token_node_build(
          (!build.next_start) ||
          (!build.cond_macro) ||
          (!build.cond_kind)  ||
-         (!build.cond_hash) )
+         (!build.cond_hash)  ||
+         (!build.cond_else) )
     {
         d_internal_release(&build);
+
         return D_DSS_NO_INDEX;
     }
 
@@ -2130,6 +3378,7 @@ d_token_node_build(
         if (root == D_DSS_NO_INDEX)
         {
             d_internal_release(&build);
+
             return D_DSS_NO_INDEX;
         }
 

@@ -1,0 +1,2 @@
+tests/dawk/fixtures/cpp_style/bodies.hpp:4:1: an empty body is {} on one line
+tests/dawk/fixtures/cpp_style/bodies.hpp:16:5: an empty body is {} on one line

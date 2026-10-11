@@ -1,0 +1,40 @@
+########################################################################
+#  claims.dss -- how dcheck resolves several rules' claims on one node.
+#
+#  rules.sh pins what each rule of a sheet matches.  This pins what the
+#  driver then reports, which the harness never sees: which claims
+#  stand when several rules match one node, and at what severity.
+#
+#    - a `violation` names no value, so every rule's stands;
+#    - a claim that names a value -- `start-column` -- is still decided
+#      by the first rule to make it;
+#    - a severity declared beside a claim is that claim's own, and no
+#      other rule's findings take it;
+#    - a claim with no severity of its own takes the default;
+#    - a rule holding only a severity is an exemption, and outranks
+#      every rule below it.
+########################################################################
+
+@set source.tree true;
+@set source.files all;
+
+file[lang=c] fn-def[name=d_exempt] {
+    severity: off;
+}
+file[lang=c] fn-def[returns=void][ends!=return] {
+    violation: "first claim";
+    severity:  warn;
+}
+file[lang=c] fn-def[params>1] {
+    violation: "second claim";
+    severity:  advise;
+}
+file[lang=c] fn-def[params>2] {
+    violation: "third claim";
+}
+file[lang=c] statement[kind=return][line-start] { start-column: 5; }
+file[lang=c] statement[kind=return][line-start] { start-column: 9; }
+file[lang=c] statement[kind=return] {
+    violation: "fourth claim";
+    severity:  advise;
+}

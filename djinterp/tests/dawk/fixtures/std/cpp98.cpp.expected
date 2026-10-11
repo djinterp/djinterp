@@ -1,0 +1,16 @@
+tests/dawk/fixtures/std/cpp98.cpp:2:1: a C++ header newer than C++98, included unguarded
+tests/dawk/fixtures/std/cpp98.cpp:3:1: a C++ header newer than C++98, included unguarded
+tests/dawk/fixtures/std/cpp98.cpp:4:1: a C++ header newer than C++98, included unguarded
+tests/dawk/fixtures/std/cpp98.cpp:7:1: a variadic macro, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:9:6: long long, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:10:6: a scoped enum, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:13:17: a defaulted or deleted function, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:14:24: override or final, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:16:18: a variadic template, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:17:15: an alias declaration, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:18:1: auto type deduction, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:19:1: a keyword newer than C++98, in code no conditional guards
+tests/dawk/fixtures/std/cpp98.cpp:23:20: a range-based for, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:28:27: a lambda, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:29:10: a C++11 library name, which C++98 does not have
+tests/dawk/fixtures/std/cpp98.cpp:32:1: a D_CONSTEXPR function that loops, which C++11 cannot be constant: D_CONSTEXPR_CPP14

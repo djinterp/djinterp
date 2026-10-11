@@ -1,0 +1,2 @@
+tests/dawk/fixtures/c_style/params.h:4:16: a declaration names its parameters
+tests/dawk/fixtures/c_style/params.h:5:16: a declaration names its parameters

@@ -1,0 +1,2 @@
+tests/dawk/fixtures/cpp_style/levels.hpp:3:5: a level is tested with D_ENV_LANG_IS_CPPnn_OR_HIGHER, not __cplusplus
+tests/dawk/fixtures/cpp_style/levels.hpp:5:7: a level is tested with D_ENV_LANG_IS_CPPnn_OR_HIGHER, not __cplusplus

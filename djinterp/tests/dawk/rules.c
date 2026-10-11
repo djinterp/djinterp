@@ -7,6 +7,12 @@
 * the engine's own d_property_evaluate -- so a finding here is a finding
 * under dcheck -- and prints `path:line:column: message`, sorted by line.
 * rules.sh diffs that against each fixture's `.expected` file.
+*   With `--uncovered` it prints no findings: it reads every file given and
+* then names each rule of the sheet that produced none, as
+* `sheet:line: no fixture makes this rule fire`, and exits 1 if there is one.
+* A rule whose selector names a type or an attribute no extension emits
+* matches nothing and says nothing, so a rule is only known to work once
+* some fixture has made it fire.
 *
 *
 * path:      /tests/dawk/rules.c
@@ -22,6 +28,7 @@
 #include <stdlib.h>  // malloc, free, qsort
 #include <string.h>  // strcmp
 // djinterp
+#include "../../inc/djinterp/tools/dawk/dfs.h"        // d_fs_path_normalize
 #include "../../inc/djinterp/tools/dawk/dline.h"      // d_line_build_text
 #include "../../inc/djinterp/tools/dawk/dmatch.h"     // d_match_rule
 #include "../../inc/djinterp/tools/dawk/dproperty.h"  // d_property_evaluate
@@ -98,11 +105,29 @@ main(
     char** _argv
 )
 {
+    const bool uncovered = ( (_argc > 1) &&
+                             (strcmp(_argv[1], "--uncovered") == 0) );
+
+    // the mode is the first argument, when there is one
+    if (uncovered)
+    {
+        --_argc;
+        ++_argv;
+    }
+
     if (_argc < 3)
     {
-        (void)fprintf(stderr, "usage: rules <sheet> <file>...\n");
+        (void)fprintf(stderr,
+                      "usage: rules [--uncovered] <sheet> <file>...\n");
 
         return 2;
+    }
+
+    // a path is read with `/` between its parts, however it was typed: a
+    // finding names its file by the path, and the goldens are written so
+    for (int arg = 1; arg < _argc; ++arg)
+    {
+        d_fs_path_normalize(_argv[arg]);
     }
 
     size_t      sheet_length = 0u;
@@ -138,6 +163,14 @@ main(
     }
 
     const size_t rules = d_dss_rule_count(sheet);
+
+    // per rule: the findings it produced over every file
+    size_t* const fired = calloc(rules + 1u, sizeof(*fired));
+
+    if (!fired)
+    {
+        return 2;
+    }
 
     for (int arg = 2; arg < _argc; ++arg)
     {
@@ -203,6 +236,8 @@ main(
                         continue;
                     }
 
+                    ++fired[at];
+
                     if (found == capacity)
                     {
                         capacity *= 2u;
@@ -243,7 +278,7 @@ main(
         {
             qsort(findings, found, sizeof(*findings), d_internal_by_position);
 
-            for (size_t at = 0u; at < found; ++at)
+            for (size_t at = 0u; (!uncovered) && (at < found); ++at)
             {
                 (void)printf("%s:%u:%u: %s\n", _argv[arg], findings[at].line,
                              findings[at].column, findings[at].message);
@@ -255,8 +290,22 @@ main(
         free(text);
     }
 
+    int status = 0;
+
+    // the rules no file made fire, by their line in the sheet
+    for (size_t at = 0u; (uncovered) && (at < rules); ++at)
+    {
+        if (fired[at] == 0u)
+        {
+            (void)printf("%s:%u: no fixture makes this rule fire\n",
+                         _argv[1], d_dss_rule_at(sheet, (uint32_t)at)->line);
+            status = 1;
+        }
+    }
+
+    free(fired);
     d_dss_free(sheet);
     free(sheet_text);
 
-    return 0;
+    return status;
 }

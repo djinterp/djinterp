@@ -46,3 +46,23 @@ int  d_macros_c(void);
 #else
     #define D_MACROS_CHOSEN 1
 #endif
+
+// negative: a choice stands between the guard and each definition, as in
+// the configuration skeleton; either supplies the name only if nobody has
+#ifndef D_MACROS_PINNED
+    #if defined(D_MACROS_WIDE)
+        #define D_MACROS_PINNED 2
+    #else
+        #define D_MACROS_PINNED 1
+    #endif
+#endif  // D_MACROS_PINNED
+
+// positive, the second: past the guard's #else the name is one somebody
+// defined, and a definition there is no fallback
+#ifndef D_MACROS_SEEN
+    #define D_MACROS_SEEN 1
+#else
+    #if defined(D_MACROS_WIDE)
+        #define D_MACROS_SEEN 2
+    #endif
+#endif  // D_MACROS_SEEN

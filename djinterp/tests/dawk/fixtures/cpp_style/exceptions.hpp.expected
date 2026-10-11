@@ -1,0 +1,1 @@
+tests/dawk/fixtures/cpp_style/exceptions.hpp:7:9: a header does not throw: failure is reported by value

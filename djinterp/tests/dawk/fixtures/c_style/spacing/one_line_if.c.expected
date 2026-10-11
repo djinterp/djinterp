@@ -1,0 +1,5 @@
+tests/dawk/fixtures/c_style/spacing/one_line_if.c:15:18: an opening brace is on its own line
+tests/dawk/fixtures/c_style/spacing/one_line_if.c:16:5: an if-statement is followed by an empty line
+tests/dawk/fixtures/c_style/spacing/one_line_if.c:18:18: an opening brace is on its own line
+tests/dawk/fixtures/c_style/spacing/one_line_if.c:19:5: an if-statement is followed by an empty line
+tests/dawk/fixtures/c_style/spacing/one_line_if.c:21:18: an opening brace is on its own line

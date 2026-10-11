@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                test_dparse.c
+/*******************************************************************************
+* djinterp [dawk]                                                  test_dparse.c
 *
 *   Unit tests for the scanner and parser.
 *     Each case is a program and the shape its tree should have, written in a
@@ -8,11 +8,11 @@
 * way POSIX says, not whether it evaluates, which nothing here can yet do.
 *
 *
-* path:      /tests/djinterp/c/dawk/test_dparse.c
+* path:      /tests/djinterp/tools/dawk/test_dparse.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dparse.h"  // corresponding header
 // std
 #include <stdio.h>   // printf, snprintf

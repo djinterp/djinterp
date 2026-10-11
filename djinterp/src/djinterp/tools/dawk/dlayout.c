@@ -281,6 +281,7 @@ d_internal_collect(
             if (rows[at].cell_count == D_LAYOUT_COLUMN_MAX)
             {
                 free(rows);
+
                 return 0;
             }
 
@@ -598,6 +599,7 @@ d_layout_table_repair(
     if (!built)
     {
         free(rows);
+
         return false;
     }
 
@@ -633,6 +635,16 @@ d_layout_table_repair(
             }
         }
 #endif
+
+        // a table is not put in a column at the cost of a line's length: a
+        // row that was within 80 characters and would not be afterwards
+        // leaves the whole table as it is, for a person to wrap
+        if ( (ok)                                           &&
+             (strlen(built[row]) > 80u)                     &&
+             (d_edit_trim_end(line, strlen(line)) <= 80u) )
+        {
+            ok = false;
+        }
     }
 
     bool wrote = false;

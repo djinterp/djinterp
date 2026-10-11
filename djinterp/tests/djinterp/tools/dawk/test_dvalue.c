@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [dawk]                                                test_dvalue.c
+/*******************************************************************************
+* djinterp [dawk]                                                  test_dvalue.c
 *
 *   Unit tests for the value model in dvalue.h.
 *     The comparison matrix is written out in full -- every tag against every
@@ -8,11 +8,11 @@
 * will notice is wrong.
 *
 *
-* path:      /tests/djinterp/c/dawk/test_dvalue.c
+* path:      /tests/djinterp/tools/dawk/test_dvalue.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.19
-*                                                          revised: 2026.09.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
+*                                                            revised: 2026.09.19
+*******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dvalue.h"  // corresponding header
 // std
 #include <stdio.h>   // printf

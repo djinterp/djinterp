@@ -1,0 +1,3 @@
+tests/dawk/fixtures/c_style/layout/classes.hpp:16:5: a definition with several parameters puts each on its own line
+tests/dawk/fixtures/c_style/layout/classes.hpp:31:5: a definition with several parameters puts each on its own line
+tests/dawk/fixtures/c_style/layout/classes.hpp:49:1: a definition with several parameters puts each on its own line

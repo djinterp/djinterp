@@ -1,0 +1,9 @@
+tests/dawk/fixtures/c_style/layout/layout.c:7:1: a definition with several parameters puts each on its own line
+tests/dawk/fixtures/c_style/layout/layout.c:18:1: a function with more than 5 parameters
+tests/dawk/fixtures/c_style/layout/layout.c:36:1: a function nested past 4 levels
+tests/dawk/fixtures/c_style/layout/layout.c:43:4: start-column
+tests/dawk/fixtures/c_style/layout/layout.c:47:10: start-column
+tests/dawk/fixtures/c_style/layout/layout.c:53:18: start-column
+tests/dawk/fixtures/c_style/layout/layout.c:57:22: start-column
+tests/dawk/fixtures/c_style/layout/layout.c:61:26: start-column
+tests/dawk/fixtures/c_style/layout/layout.c:75:1: a function over 60 lines

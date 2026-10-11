@@ -1,0 +1,6 @@
+tests/dawk/fixtures/c_style/layout/layout.hpp:17:3: start-column
+tests/dawk/fixtures/c_style/layout/layout.hpp:18:3: start-column
+tests/dawk/fixtures/c_style/layout/layout.hpp:29:3: start-column
+tests/dawk/fixtures/c_style/layout/layout.hpp:31:6: start-column
+tests/dawk/fixtures/c_style/layout/layout.hpp:34:5: start-column
+tests/dawk/fixtures/c_style/layout/layout.hpp:35:5: start-column
