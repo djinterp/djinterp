@@ -22,7 +22,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parse.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // corresponding header
 // std
@@ -229,8 +229,8 @@ d_arg_internal_parse_resume(
 d_arg_internal_parse_begin
   What every parse starts with: CLI11's clear() of a root parsed before --
 so values added before the first parse stay, as CLI11 keeps them -- then
-the last parse's storage, the values borrowing from it being gone first;
-then the start every call that parses makes.
+the last parse's storage and program name, the values borrowing from the
+storage being gone first; then the start every call that parses makes.
 */
 int
 d_arg_internal_parse_begin(
@@ -244,14 +244,16 @@ d_arg_internal_parse_begin(
     }
 
     d_arg_string_list_release(&_parser->pool);
+    free(_parser->program);
+    _parser->program = NULL;
 
     return d_arg_internal_parse_resume(_parser);
 }
 
 /*
 d_arg_internal_parse_name
-  CLI11's naming of the root from `argv[0]`: a root without a name, or one
-named so before, takes it again.
+  The program's name kept, then CLI11's naming of the root from `argv[0]`:
+a root without a name, or one named so before, takes it again.
 */
 int
 d_arg_internal_parse_name(
@@ -259,25 +261,37 @@ d_arg_internal_parse_name(
     const char*          _name
 )
 {
-    struct d_arg_command* const root = &_parser->command;
-
-    // a name of its own stays
-    if ( (d_arg_command_name(root)[0] != '\0') &&
-         (!d_arg_command_has_flag(root,
-                                  D_ARG_COMMAND_AUTOMATIC_NAME)) )
-    {
-        return D_ARG_OK;
-    }
-
-    char* const name = d_arg_internal_copy_cstr(_name);
+    struct d_arg_command* const root    = &_parser->command;
+    char* const                 program = d_arg_internal_copy_cstr(_name);
+    const bool                  own     =
+        ( (d_arg_command_name(root)[0] != '\0') &&
+          (!d_arg_command_has_flag(root,
+                                   D_ARG_COMMAND_AUTOMATIC_NAME)) );
+    char* const                 name    = (own)
+                                          ? NULL
+                                          : d_arg_internal_copy_cstr(_name);
 
     // check if memory allocation was successful
-    if (!name)
+    if ( (!program) ||
+         ( (!own) &&
+           (!name) ) )
     {
+        free(program);
+        free(name);
+
         return d_arg_internal_fail(root,
                                    NULL,
                                    D_ARG_ERROR_OUT_OF_MEMORY,
                                    NULL);
+    }
+
+    free(_parser->program);
+    _parser->program = program;
+
+    // a name of its own stays
+    if (own)
+    {
+        return D_ARG_OK;
     }
 
     free(root->name);

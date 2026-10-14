@@ -14,14 +14,14 @@
 *   Sections 1 to 4 are defined in arg_internal.c, 5 in arg_escape.c, 6 in
 * arg_list.c, 7 in arg_parser.c, arg_validator.c and the arg_option*.c and
 * arg_command*.c sources, 8 in the arg_parse*.c, arg_process*.c and
-* arg_argv*.c sources, 9 in arg_system.c and arg_suggest.c, and 10 in
-* arg_formatter.c.
+* arg_argv*.c sources, 9 in arg_system.c and arg_suggest.c, 10 in
+* arg_formatter.c, and 11 in the arg_completion*.c sources.
 *
 *
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 /*
@@ -107,7 +107,7 @@ TABLE OF CONTENTS
     -------
     1.  Failures
          1.  d_arg_internal_fail_definition / d_arg_internal_fail
-         2.  d_arg_internal_fail_text
+         2.  d_arg_internal_fail_text / d_arg_internal_fail_adopt
          3.  d_arg_internal_watch
          4.  d_arg_internal_watch_begin and kin
          5.  d_arg_internal_unreport
@@ -169,6 +169,7 @@ TABLE OF CONTENTS
          5.  d_arg_internal_parse_add / d_arg_internal_parse_separate
          6.  d_arg_internal_parse_restart
          7.  d_arg_internal_parse_open_group and kin
+         8.  d_arg_internal_parse_min / d_arg_internal_parse_max
 9.  SYSTEM
     ------
     1.  Files
@@ -204,6 +205,22 @@ TABLE OF CONTENTS
          1.  d_arg_internal_help_fitted
     4.  Building
          1.  d_arg_internal_help_make
+11. COMPLETION
+    ----------
+    1.  The model
+         1.  d_arg_internal_complete_kind
+         2.  D_INTERNAL_ARG_COMPLETE_UNLIMITED
+         3.  d_arg_internal_complete_command
+         4.  d_arg_internal_complete_name
+         5.  d_arg_internal_complete_option
+         6.  d_arg_internal_complete_entry
+         7.  d_arg_internal_model
+         8.  d_arg_internal_complete_build / d_arg_internal_complete_release
+    2.  Writing
+         1.  d_arg_internal_complete_ident
+         2.  d_arg_internal_complete_lines
+         3.  d_arg_internal_complete_line_text
+         4.  d_arg_internal_complete_bash and kin
 */
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_C_ARG_INTERNAL_H
@@ -1110,13 +1127,23 @@ int         d_arg_internal_fail(const struct d_arg_command* _command,
                                 ...) D_FORMAT_PRINTF(4, 5);
 
 // 7.1.2
-// d_arg_internal_fail_text
+// d_arg_internal_fail_text / d_arg_internal_fail_adopt
 //   recording: d_arg_internal_fail with a message given as a span -- one a
-// validator or a converter composed -- rather than a format.
+// validator or a converter composed -- which is copied, rather than a
+// format; adopt's message is on the heap already, and the report takes it
+// over, freeing it when there is no parser to report to. A completed
+// request whose message is what it asked for -- D_ARG_CALL_FOR_VERSION,
+// D_ARG_CALL_FOR_COMPLETION -- whose copy was refused, or which comes
+// without one, is recorded as D_ARG_ERROR_OUT_OF_MEMORY instead; each
+// returns the status recorded.
 int         d_arg_internal_fail_text(const struct d_arg_command* _command,
                                      const struct d_arg_option*  _option,
                                      int                         _status,
                                      struct d_pack_text          _message);
+int         d_arg_internal_fail_adopt(const struct d_arg_command* _command,
+                                      const struct d_arg_option*  _option,
+                                      int                         _status,
+                                      char*                       _message);
 
 // 7.1.3
 // d_arg_internal_watch
@@ -1698,8 +1725,9 @@ int  d_arg_internal_parse_arg(struct d_arg_command* _command,
 // d_arg_internal_parse_begin and kin
 /**
  * @brief Starts a parse, as every entry point does: CLI11's clear() of a root
- *        parsed before, the last parse's error and storage forgotten, and a
- *        definition error reported as this parse's. Defined in arg_parse.c.
+ *        parsed before, the last parse's error, storage and program name
+ *        forgotten, and a definition error reported as this parse's.
+ *        Defined in arg_parse.c.
  *
  * @param[in,out] _parser  the parser.
  * @return D_ARG_OK, or the definition error, which ends the parse.
@@ -1717,13 +1745,15 @@ int  d_arg_internal_parse_begin(struct d_arg_parser* _parser);
  */
 int  d_arg_internal_parse_resume(struct d_arg_parser* _parser);
 /**
- * @brief Names the root from the program's name when it takes its name from
- *        there, as CLI11 names an App from `argv[0]`: a root without a name,
- *        or one named so before.
+ * @brief Keeps a copy of the program's name as the parser's `program`, then
+ *        names the root from it when the root takes its name from there, as
+ *        CLI11 names an App from `argv[0]`: a root without a name, or one
+ *        named so before.
  *
  * @param[in,out] _parser  the parser.
  * @param[in]     _name    the program's name, NUL-terminated.
- * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded, the parser then
+ *         as it was.
  */
 int  d_arg_internal_parse_name(struct d_arg_parser* _parser,
                                const char*          _name);
@@ -2145,6 +2175,17 @@ int  d_arg_internal_parse_entered(struct d_arg_command* _group);
 int  d_arg_internal_parse_list(struct d_arg_command* _command,
                                struct d_arg_command* _sub);
 
+// 8.4.8
+// d_arg_internal_parse_min / d_arg_internal_parse_max
+//   arithmetic: CLI11's min_num and max_num, the fewest and the most values
+// a name of the option takes from the arguments: its type's size, or fewer
+// when it expects fewer items; and the items it expects at most -- for one
+// that could take very many without taking extra arguments, its type's
+// largest size for each item it expects at least, the unlimited count
+// should that overflow.
+int  d_arg_internal_parse_min(const struct d_arg_option* _option);
+int  d_arg_internal_parse_max(const struct d_arg_option* _option);
+
 
 //==============================================================================
 // 9.  SYSTEM
@@ -2494,6 +2535,213 @@ int     d_arg_internal_help_make(const struct d_arg_command* _command,
                                  int                         _mode,
                                  size_t                      _limit,
                                  struct d_arg_buffer*        _out);
+
+
+//==============================================================================
+// 11.  COMPLETION
+//==============================================================================
+// The command tree as shell completion sees it -- what help shows, in the
+// order the parse searches it -- and the writers that make a script of it
+// for each shell. Defined in arg_completion.c, the writers in
+// arg_completion_sh.c (bash and zsh), arg_completion_fish.c and
+// arg_completion_pwsh.c; compiled only with D_INTERNAL_ARG_PARSER_COMPLETION.
+
+
+// 11.1   The model
+//------------------------------------------------------------------------------
+#if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
+
+// 11.1.1
+// d_arg_internal_complete_kind
+//   enum: how an option's values complete: not at all, for one that takes
+// none; as the choices its validators list; as files; as directories; or as
+// nothing, for values no listing helps with -- numbers, truth values,
+// characters, and a hidden positional's.
+enum d_arg_internal_complete_kind
+{
+    D_ARG_INTERNAL_COMPLETE_NONE        = 0,
+    D_ARG_INTERNAL_COMPLETE_CHOICES     = 1,
+    D_ARG_INTERNAL_COMPLETE_FILES       = 2,
+    D_ARG_INTERNAL_COMPLETE_DIRECTORIES = 3,
+    D_ARG_INTERNAL_COMPLETE_NOTHING     = 4
+};
+
+// 11.1.2
+// D_INTERNAL_ARG_COMPLETE_UNLIMITED
+//   constant: a count of values with no limit, as the scripts write it.
+#define D_INTERNAL_ARG_COMPLETE_UNLIMITED (-1)
+
+// 11.1.3
+// d_arg_internal_complete_command
+//   struct: a command completion knows -- the root, or a subcommand help
+// shows: the command; its parent's index, the root's own (0) for the root;
+// the most subcommands it takes, 0 for any number; where its subcommands'
+// names and its options' names begin in the model, and how many there are;
+// and its switches as the scripts spell them, NUL-terminated: `s` for
+// subcommand fallthrough, `f` for fallthrough, `w` for Windows-style
+// options, `e` for extra arguments kept, or `-` alone for none.
+struct d_arg_internal_complete_command
+{
+    const struct d_arg_command* command;
+    size_t                      parent;
+    size_t                      most;
+    size_t                      first_name;
+    size_t                      names;
+    size_t                      first_entry;
+    size_t                      entries;
+    char                        flags[5];
+};
+
+// 11.1.4
+// d_arg_internal_complete_name
+//   struct: a name or an alias of a subcommand of the command at `command`:
+// the subcommand's index, and the first line of its description.
+struct d_arg_internal_complete_name
+{
+    size_t             command;
+    size_t             target;
+    const char*        name;
+    struct d_pack_text summary;
+};
+
+// 11.1.5
+// d_arg_internal_complete_option
+//   struct: an option of the command at `command`, or of an option group it
+// holds: the fewest and the most values a name of it takes, the most 0 for
+// a flag and D_INTERNAL_ARG_COMPLETE_UNLIMITED for no limit; the most values
+// it takes as a positional, the same way, 0 when it is not one; a
+// d_arg_internal_complete_kind value; its choices in the model's list; and
+// the first line of its description.
+struct d_arg_internal_complete_option
+{
+    const struct d_arg_option* option;
+    size_t                     command;
+    int                        least;
+    int                        most;
+    int                        slots;
+    int                        kind;
+    size_t                     first_choice;
+    size_t                     choices;
+    struct d_pack_text         summary;
+};
+
+// 11.1.6
+// d_arg_internal_complete_entry
+//   struct: one name of an option: the option's index, the name without its
+// dashes, and whether it is a long name.
+struct d_arg_internal_complete_entry
+{
+    size_t      option;
+    const char* name;
+    bool        long_name;
+};
+
+// 11.1.7
+// d_arg_internal_model
+//   struct: the model shell completion writes its scripts from: the
+// commands completion knows, in breadth-first order from the root; their
+// subcommands' names, their options and their options' names, each
+// command's together and in the order the parse searches them; and the
+// options' choices, copied. The rest borrows from the command tree, which
+// must not change while the model is in use.
+struct d_arg_internal_model
+{
+    struct d_arg_internal_complete_command* commands;
+    size_t                                  command_count;
+    size_t                                  command_capacity;
+    struct d_arg_internal_complete_name*    names;
+    size_t                                  name_count;
+    size_t                                  name_capacity;
+    struct d_arg_internal_complete_option*  options;
+    size_t                                  option_count;
+    size_t                                  option_capacity;
+    struct d_arg_internal_complete_entry*   entries;
+    size_t                                  entry_count;
+    size_t                                  entry_capacity;
+    struct d_arg_string_list                choices;
+};
+
+// D_INTERNAL_ARG_MODEL_INIT
+//   constant: the initializer of an empty model, which owns nothing.
+#define D_INTERNAL_ARG_MODEL_INIT                                              \
+    { NULL, 0u, 0u, NULL, 0u, 0u, NULL, 0u, 0u, NULL, 0u, 0u, D_ARG_LIST_INIT }
+
+// 11.1.8
+// d_arg_internal_complete_build / d_arg_internal_complete_release
+/**
+ * @brief Builds the model of a command and what lies below it.
+ *
+ * @note A subcommand or an option group that is disabled, or in the empty
+ *       group, is left out with all it holds; so is an option in the empty
+ *       group, but for a positional, which is kept -- completing as nothing
+ *       -- so that the positionals after it are counted rightly.
+ *
+ * @param[out] _model  the model, whatever it held ignored.
+ * @param[in]  _root   the command.
+ * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY, the model then empty; or the
+ *         status of a validator's listing that failed, likewise.
+ */
+int  d_arg_internal_complete_build(struct d_arg_internal_model* _model,
+                                   const struct d_arg_command*  _root);
+/**
+ * @brief Frees what a model holds, leaving it empty; accepts NULL.
+ *
+ * @param[in,out] _model  the model.
+ */
+void d_arg_internal_complete_release(struct d_arg_internal_model* _model);
+
+// 11.2   Writing
+//------------------------------------------------------------------------------
+// 11.2.1
+// d_arg_internal_complete_ident
+//   text: the program's name as an identifier, appended: ASCII letters and
+// digits as they are, `_` doubled, and any other byte `_` and two
+// hexadecimal digits -- so that two programs never share one. Returns the
+// buffer's status.
+int  d_arg_internal_complete_ident(struct d_pack_text   _program,
+                                   struct d_arg_buffer* _out);
+
+// 11.2.2
+// d_arg_internal_complete_lines
+//   text: lines of a script, each followed by a newline, with every `@@` in
+// them replaced by `_ident`, appended. Returns the buffer's status.
+int  d_arg_internal_complete_lines(const char* const*   _lines,
+                                   size_t               _count,
+                                   struct d_pack_text   _ident,
+                                   struct d_arg_buffer* _out);
+
+// 11.2.3
+// d_arg_internal_complete_line_text
+//   view: the first line of a description, without the spaces around it --
+// what a script shows beside a name; empty for NULL.
+struct d_pack_text d_arg_internal_complete_line_text(const char* _text);
+
+// 11.2.4
+// d_arg_internal_complete_bash and kin
+/**
+ * @brief Writes a model's completion script for one shell.
+ *
+ * @param[in]     _model    the model.
+ * @param[in]     _program  the name the shell runs the program by; not
+ *                          empty.
+ * @param[in,out] _out      receives the script, appended.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the buffer could not
+ *         grow.
+ */
+int  d_arg_internal_complete_bash(const struct d_arg_internal_model* _model,
+                                  struct d_pack_text                 _program,
+                                  struct d_arg_buffer*               _out);
+int  d_arg_internal_complete_zsh(const struct d_arg_internal_model* _model,
+                                 struct d_pack_text                 _program,
+                                 struct d_arg_buffer*               _out);
+int  d_arg_internal_complete_fish(const struct d_arg_internal_model* _model,
+                                  struct d_pack_text                 _program,
+                                  struct d_arg_buffer*               _out);
+int  d_arg_internal_complete_pwsh(const struct d_arg_internal_model* _model,
+                                  struct d_pack_text                 _program,
+                                  struct d_arg_buffer*               _out);
+
+#endif  // D_INTERNAL_ARG_PARSER_COMPLETION
 
 
 D_EXTERN_C_END

@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_type.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 /*
@@ -104,7 +104,9 @@ struct d_arg_convert_context
 // call except where the type says so (D_ARG_BUILTIN_STRING and _TEXT). The
 // built-in converters read an empty value -- or none -- as the type's zero,
 // as CLI11's lexical_assign value-initializes, and the text types as empty
-// text.
+// text; and they write `_target` only when they succeed, so a variable a
+// value does not convert into keeps its value, where CLI11's conversions
+// leave a partial result.
 typedef int (*d_arg_convert_fn)(const struct d_arg_type*            _type,
                                 const struct d_pack_text*           _values,
                                 size_t                              _count,
@@ -164,6 +166,9 @@ typedef int (*d_arg_format_fn)(const struct d_arg_type* _type,
 // D_ARG_TYPE_FLAG_CONTAINER
 //   constant: a collection that takes every value it is given, so an option
 // bound to one expects an unlimited number of values and allows extra ones.
+// Its descriptor carries its element's INTEGER, FLOAT, BOOL, CHAR or STRING
+// flag beside this one, which is how shell completion knows what the
+// values are.
 #define D_ARG_TYPE_FLAG_CONTAINER 0x0040u
 
 // 1.1.4.8

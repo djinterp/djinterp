@@ -1,7 +1,8 @@
 /*******************************************************************************
 * djinterp [parse]                                            arg_parse_option.c
 *
-* The option step of the parse, declared in arg_internal.h (8.1.7).
+* The option step of the parse, declared in arg_internal.h (8.1.7 and
+* 8.4.8).
 *   CLI11's _parse_arg: an argument recognized as an option is split into
 * its name, its value and what follows a short name, and taken by the
 * command's option that answers to the name -- or one an option group, a
@@ -14,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parse_option.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -649,7 +650,7 @@ d_arg_internal_parse_min
   CLI11's min_num: the fewest values an option takes from the arguments --
 its type's size, or fewer when it expects fewer items.
 */
-D_STATIC int
+int
 d_arg_internal_parse_min(
     const struct d_arg_option* _option
 )
@@ -667,7 +668,7 @@ d_arg_internal_parse_max
 very many without taking extra arguments, its type's largest size for each
 value it expects at least -- the unlimited count should that overflow.
 */
-D_STATIC int
+int
 d_arg_internal_parse_max(
     const struct d_arg_option* _option
 )

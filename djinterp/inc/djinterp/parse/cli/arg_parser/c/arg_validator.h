@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_validator.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 /*
@@ -50,6 +50,7 @@ TABLE OF CONTENTS
               2.  D_ARG_VALIDATOR_MODIFYING
               3.  D_ARG_VALIDATOR_PATH
               4.  D_ARG_VALIDATOR_DIRECTORY
+              5.  D_ARG_VALIDATOR_NUMBER
          2.  d_arg_validator_value
          3.  d_arg_validator
     3.  Lifetime
@@ -73,7 +74,7 @@ TABLE OF CONTENTS
          1.  d_arg_validator_custom
          2.  d_arg_validator_own_context
          3.  d_arg_validator_set_describe
-         4.  d_arg_validator_set_choices / d_arg_validator_set_path_kind
+         4.  d_arg_validator_set_choices / d_arg_validator_set_value_kind
 5.  DEFAULT VALIDATORS
     ------------------
     1.  Ranges
@@ -296,6 +297,14 @@ typedef int (*d_arg_choices_fn)(const struct d_arg_validator* _validator,
 // d_arg_validator_existing_directory.
 #define D_ARG_VALIDATOR_DIRECTORY 0x0008u
 
+// 2.2.1.5
+// D_ARG_VALIDATOR_NUMBER
+//   constant: the values are numbers -- or made of them, as an IPv4 address
+// is -- for which shell completion offers nothing. Set by the ranges, the
+// number signs, and, in arg_validator_extra.h, the bounds, the type
+// validators of arithmetic types, the IPv4 check and the unit validators.
+#define D_ARG_VALIDATOR_NUMBER    0x0010u
+
 // 2.2.2
 // d_arg_validator_value
 //   union: a parameter a validator keeps inside itself rather than on the
@@ -500,9 +509,9 @@ int  d_arg_validator_each_choice(const struct d_arg_validator* _validator,
  *       (second)" when both operands have one, and the one they have
  *       otherwise. The result is active when both operands are, applies
  *       where `_first` applies, and is modifying. It lists the values of
- *       the first operand that lists any, and completes as a path when
- *       either operand does -- as a directory when every operand that
- *       completes as a path completes as a directory.
+ *       the first operand that lists any. It completes as a number when
+ *       either operand does, and otherwise as a path when either does -- as
+ *       a directory when either completes as one.
  *
  * @param[in] _first   the first validator, which is consumed.
  * @param[in] _second  the second validator, which is consumed.
@@ -520,8 +529,11 @@ struct d_arg_validator d_arg_validator_and(struct d_arg_validator _first,
  *       result passes when either operand passes, and otherwise rejects
  *       with "(first) OR (second)". The description is "(first) OR
  *       (second)" when both operands have one, and the one they have
- *       otherwise. Flags, application and completion are those of
- *       d_arg_validator_and; it lists the values of both operands.
+ *       otherwise. Flags and application are those of d_arg_validator_and.
+ *       It lists the values of both operands, and completes as a number
+ *       when both operands do, and otherwise as a path when either does --
+ *       as a directory when every operand that completes as a path
+ *       completes as a directory.
  *
  * @param[in] _first   the first validator, which is consumed.
  * @param[in] _second  the second validator, which is consumed.
@@ -602,15 +614,16 @@ void d_arg_validator_set_describe(struct d_arg_validator* _validator,
                                   d_arg_describe_fn       _describe);
 
 // 4.1.4
-// d_arg_validator_set_choices / d_arg_validator_set_path_kind
+// d_arg_validator_set_choices / d_arg_validator_set_value_kind
 //   settings: tell shell completion what a custom validator accepts --
 // `_choices` lists its values (NULL for none), and `_kind` is 0,
-// D_ARG_VALIDATOR_PATH or D_ARG_VALIDATOR_DIRECTORY, the latter setting
-// both flags. Neither fails, and each ignores a NULL validator.
+// D_ARG_VALIDATOR_PATH, D_ARG_VALIDATOR_DIRECTORY, which sets the path flag
+// too, or D_ARG_VALIDATOR_NUMBER. Neither fails, and each ignores a NULL
+// validator.
 void d_arg_validator_set_choices(struct d_arg_validator* _validator,
                                  d_arg_choices_fn        _choices);
-void d_arg_validator_set_path_kind(struct d_arg_validator* _validator,
-                                   uint32_t                _kind);
+void d_arg_validator_set_value_kind(struct d_arg_validator* _validator,
+                                    uint32_t                _kind);
 
 
 //==============================================================================
@@ -635,15 +648,16 @@ void d_arg_validator_set_path_kind(struct d_arg_validator* _validator,
  *       point to six significant digits. The value is converted as CLI11's
  *       lexical_cast converts it: as an option of the type would, but for
  *       the empty text, which is out of range, so a fraction is out of
- *       range for an integer type.
+ *       range for an integer type. Shell completion offers nothing for it,
+ *       as for a number.
  *
  * @param[in] _type  the descriptor of an arithmetic type: an integer, a
- *                   character or a floating-point type.
+ *                   character or a floating-point type, with a conversion.
  * @param[in] _low   the lower bound, an object of the type, copied.
  * @param[in] _high  the upper bound, an object of the type, copied.
  * @return the validator; on failure, a failed validator holding
- *         D_ARG_ERROR_BAD_ARGUMENT for a NULL argument or a type that is not
- *         arithmetic.
+ *         D_ARG_ERROR_BAD_ARGUMENT for a NULL argument, a type that is not
+ *         arithmetic or has no conversion, or a container's.
  */
 struct d_arg_validator d_arg_validator_range(const struct d_arg_type* _type,
                                              const void*              _low,

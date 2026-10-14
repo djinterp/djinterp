@@ -12,6 +12,9 @@
 * mappings are given as text, which the validator copies, and are compared
 * as text or -- given a type descriptor -- as values of that type, the way
 * CLI11 compares them as values of the container's element type.
+*   For shell completion, the sets and mappings list their members or keys,
+* and the bounds, the IPv4 check, the units and the type checks of
+* arithmetic and truth types complete as numbers (D_ARG_VALIDATOR_NUMBER).
 *   Everything here is compiled only with D_INTERNAL_ARG_PARSER_EXTRA_
 * VALIDATORS, as CLI11 compiles its own unless told not to; without it the
 * header declares nothing.
@@ -20,7 +23,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_validator_extra.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 /*
@@ -138,8 +141,7 @@ struct d_arg_validator d_arg_validator_number(void);
  * @param[in] _low   the lower bound, an object of the type, copied.
  * @param[in] _high  the upper bound, an object of the type, copied.
  * @return the validator; on failure, a failed validator holding
- *         D_ARG_ERROR_BAD_ARGUMENT for a NULL argument or a type that is not
- *         arithmetic.
+ *         D_ARG_ERROR_BAD_ARGUMENT, as d_arg_validator_range's.
  */
 struct d_arg_validator d_arg_validator_bound(const struct d_arg_type* _type,
                                              const void*              _low,

@@ -5,15 +5,33 @@
 * program's subcommands and options.
 *   d_arg_completion_script writes a script, generated from the command tree
 * as it is defined, that completes subcommand names and aliases, option
-* names, and option values: the values a validator lists (an is_member's
-* set, a transformer's keys -- see d_arg_validator_each_choice), directories
-* or files for a path validator, nothing for a number or a boolean, and files
-* otherwise. What help hides -- an option or subcommand in the empty group, a
-* disabled subcommand -- the script leaves out.
+* names, and the values of options and positionals: the values a validator
+* lists (an is_member's set, a transformer's keys -- see
+* d_arg_validator_each_choice), directories or files for a path validator,
+* nothing for a number, a truth value or a character -- a validator that
+* says so (D_ARG_VALIDATOR_NUMBER) or a bound type -- and files otherwise.
+* What help hides -- an option or subcommand in the empty group, a disabled
+* subcommand or option group -- the script leaves out, but for a hidden
+* positional, which it counts, completing nothing for it.
+*   The script holds the tree as data and walks the words before the cursor
+* as the parse takes them: subcommands, with subcommand fallthrough and the
+* most subcommands a command takes; options found by fallthrough; the values
+* an option takes after its name, after `=`, `:` (Windows style) or a short
+* name, and in a cluster of short flags; positionals in order; `--` and `++`.
+* Names are matched as typed, whatever the commands' ignore-case,
+* ignore-underscore and prefix-matching settings, and dotted subcommand
+* names, non-standard short names and the parse's rules for positionals at
+* the end are not followed. Bash runs the script from 3.2 on; zsh needs
+* compinit loaded first. PowerShell offers its own file completion for an
+* empty word where the script has nothing to offer, as it does for every
+* native command, and the script gives back a word nothing fits as it
+* stands, so that PowerShell offers no files in its place.
 *   A program offers the script through an option made by
 * d_arg_parser_set_completion_flag: `prog --completion bash` ends the parse
 * with D_ARG_CALL_FOR_COMPLETION, d_arg_parser_exit writes the script, and
-* the shell loads it (`source <(prog --completion bash)` in bash).
+* the shell loads it (`source <(prog --completion bash)` in bash and zsh,
+* `prog --completion fish | source` in fish, and `prog --completion
+* powershell | Out-String | Invoke-Expression` in PowerShell).
 *   Everything here is compiled only with D_INTERNAL_ARG_PARSER_COMPLETION;
 * without it the header declares nothing.
 *
@@ -21,7 +39,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_completion.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 /*
@@ -98,18 +116,20 @@ const char* d_arg_shell_name(int _shell);
 /**
  * @brief Writes a completion script for a command and its subcommands.
  *
- * @note The script completes the command as `_program`: the subcommands, as
- *       far down the command line as they are typed; at each, its options
- *       and those its option groups hold, and, with fallthrough, its
- *       parent's; and the values described above. Names are matched as
- *       typed, whatever the commands' ignore-case settings.
+ * @note The script completes the command as `_program`, defining shell
+ *       functions and variables named after it -- `_djarg_<name>` and
+ *       `__djarg_<name>_*`, the name's bytes other than ASCII letters and
+ *       digits escaped -- so that scripts for several programs live side by
+ *       side; PowerShell's keeps its own in a closure. What it completes is
+ *       described above. A subcommand's options include those its option
+ *       groups hold, and, with fallthrough, its parent's.
  *
  * @param[in] _command  the command, usually a parser's root.
  * @param[in] _shell    a d_arg_shell value.
  * @param[in] _program  the name the shell runs the program by; empty for
- *                      the last component of the command's name, less any
- *                      ".exe".
- * @param[in] _sink     where the script goes.
+ *                      the last component of the command's name -- after
+ *                      its last `/` or `\` -- less any ".exe".
+ * @param[in] _sink     where the script goes, written at once.
  * @return D_ARG_OK when written; D_ARG_ERROR_FILE when the sink refused the
  *         text; D_ARG_ERROR_OUT_OF_MEMORY when it could not be built; the
  *         status of a validator's listing that failed; or
@@ -130,18 +150,26 @@ int         d_arg_completion_script(const struct d_arg_command* _command,
  *        script.
  *
  * @note The option takes one value, a shell's name as d_arg_shell_from_name
- *       reads it, is not configurable, and is listed in help like any
- *       other. Given, it ends the parse before the requirements are checked
- *       -- as the help flag does -- with D_ARG_CALL_FOR_COMPLETION, and
- *       d_arg_parser_exit writes the script for the program as `argv[0]`
- *       names it. Replaces the option made before, if any.
+ *       reads it, shown as SHELL in help and offered by the script itself;
+ *       another is rejected with "<value> not in
+ *       {bash,zsh,fish,powershell,pwsh}". It is not configurable, and is
+ *       called back first, as the help flag is: given, it ends the parse
+ *       before the configuration, the environment and the requirements are
+ *       read -- a help or version flag given with it winning -- with
+ *       D_ARG_CALL_FOR_COMPLETION, the script the error's message, and
+ *       d_arg_parser_exit writes it to the parser's output. The script is
+ *       for the program as `argv[0]` names it -- its last component, less
+ *       any ".exe" -- or, after a parse given no program name, as the root
+ *       is named. Replaces the option made before, if any, wherever it was
+ *       moved.
  *
  * @param[in,out] _parser       the parser.
  * @param[in]     _names        the option's names, as
  *                              d_arg_command_add_option takes them; NULL or
  *                              "" removes the option.
  * @param[in]     _description  the help text, copied; NULL for "Print a
- *                              completion script for a shell and exit".
+ *                              completion script for a shell (bash, zsh,
+ *                              fish or powershell) and exit".
  * @return the option, owned by the root; NULL when removed, or on failure,
  *         as d_arg_command_add_option.
  */

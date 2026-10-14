@@ -122,8 +122,8 @@ d_arg_internal_path_validator(
 
     validator.describe  = d_arg_internal_path_describe;
     validator.parameter = _description;
-    d_arg_validator_set_path_kind(&validator,
-                                  _kind);
+    d_arg_validator_set_value_kind(&validator,
+                                   _kind);
 
     return validator;
 }
@@ -452,8 +452,8 @@ d_arg_validator_file_on_default_path(
     validator.describe    = d_arg_internal_path_describe;
     validator.parameter   = "FILE";
     validator.low.integer = (_error_return) ? 1L : 0L;
-    d_arg_validator_set_path_kind(&validator,
-                                  D_ARG_VALIDATOR_PATH);
+    d_arg_validator_set_value_kind(&validator,
+                                   D_ARG_VALIDATOR_PATH);
     d_arg_validator_own_context(&validator,
                                 d_arg_internal_path_default_copy,
                                 free);
@@ -777,8 +777,8 @@ d_arg_validator_file_size(
     memcpy(&validator.high,
            &_maximum,
            sizeof(_maximum));
-    d_arg_validator_set_path_kind(&validator,
-                                  D_ARG_VALIDATOR_PATH);
+    d_arg_validator_set_value_kind(&validator,
+                                   D_ARG_VALIDATOR_PATH);
 
     return validator;
 }

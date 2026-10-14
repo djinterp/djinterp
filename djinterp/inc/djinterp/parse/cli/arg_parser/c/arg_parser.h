@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_parser.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 /*
@@ -168,10 +168,13 @@ TABLE OF CONTENTS
 // deprecation warnings, and `err` failure messages. The rest is storage:
 // `pending` holds the arguments still to parse, the next one last; `pool`
 // the strings the last parse made -- a split line's words, a response
-// file's, converted wide arguments; `utf8_argv` the arguments
-// d_arg_parser_ensure_utf8 recovered, NULL-terminated. `completion` is the
-// option that asks for a completion script, if any; `response_quoting` a
-// d_arg_quoting value; `flags` the D_ARG_PARSER_* switches.
+// file's, converted wide arguments; `program` a copy of the program's name
+// as the last parse was given it -- `argv[0]`, or the first word of a line
+// parsed with the program's name -- NULL when it was given none;
+// `utf8_argv` the arguments d_arg_parser_ensure_utf8 recovered,
+// NULL-terminated. `completion` is the option that asks for a completion
+// script, if any; `response_quoting` a d_arg_quoting value; `flags` the
+// D_ARG_PARSER_* switches.
 //   Public-payload layout: read any field; change one only through the calls
 // below.
 struct d_arg_parser
@@ -185,6 +188,7 @@ struct d_arg_parser
     struct d_pack_sink         err;
     struct d_arg_text_list     pending;
     struct d_arg_string_list   pool;
+    char*                      program;
     struct d_arg_string_list   utf8_argv;
     struct d_arg_option*       completion;
     int                        response_quoting;
@@ -254,8 +258,8 @@ void    d_arg_parser_release(struct d_arg_parser* _parser);
  *
  * @param[in,out] _parser  the parser; may be NULL.
  * @post   every command is unparsed and every option holds no value; the
- *         values, the remaining arguments and the error the last parse gave
- *         are invalid.
+ *         values, the remaining arguments, the program's name and the
+ *         error the last parse gave are invalid.
  */
 void    d_arg_parser_clear(struct d_arg_parser* _parser);
 
@@ -283,7 +287,8 @@ void    d_arg_parser_clear(struct d_arg_parser* _parser);
  * @brief Parses main's arguments; CLI11's parse(argc, argv).
  *
  * @note A root without a name -- or named from `argv[0]` before -- takes
- *       `argv[0]` as its name. A value that is a whole argument, or its
+ *       `argv[0]` as its name, and the parser keeps a copy of `argv[0]` as
+ *       `program` in any case. A value that is a whole argument, or its
  *       tail after `=` or a short name, borrows `argv`'s storage.
  *
  * @param[in,out] _parser  the parser.
