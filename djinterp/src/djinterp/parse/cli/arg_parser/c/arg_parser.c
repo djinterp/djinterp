@@ -14,7 +14,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parser.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // corresponding header
 // std
@@ -232,8 +232,50 @@ d_arg_internal_fail(
 }
 
 /*
+d_arg_internal_fail_adopt
+  A failure of the parse whose message, on the heap, the report takes over:
+a completed request whose message is what it asked for -- a version, a
+completion script -- and has none is a refused allocation instead.
+*/
+int
+d_arg_internal_fail_adopt(
+    const struct d_arg_command* _command,
+    const struct d_arg_option*  _option,
+    int                         _status,
+    char*                       _message
+)
+{
+    struct d_arg_parser* const parser = d_arg_internal_parser_for(_command,
+                                                                  _option);
+    const bool                 lost   =
+        ( (!_message) &&
+          ( (_status == (int)D_ARG_CALL_FOR_VERSION) ||
+            (_status == (int)D_ARG_CALL_FOR_COMPLETION) ) );
+    const int                  status = (lost)
+                                        ? (int)D_ARG_ERROR_OUT_OF_MEMORY
+                                        : _status;
+
+    // nowhere to record it
+    if (!parser)
+    {
+        free(_message);
+
+        return status;
+    }
+
+    d_arg_internal_parser_store(&parser->error,
+                                _command,
+                                _option,
+                                status,
+                                _message);
+
+    return status;
+}
+
+/*
 d_arg_internal_fail_text
-  A failure of the parse whose message is a span, copied whole.
+  A failure of the parse whose message is a span, copied whole -- adopted,
+so that a request whose copy was refused is reported as the refusal.
 */
 int
 d_arg_internal_fail_text(
@@ -243,22 +285,10 @@ d_arg_internal_fail_text(
     struct d_pack_text          _message
 )
 {
-    struct d_arg_parser* const parser = d_arg_internal_parser_for(_command,
-                                                                  _option);
-
-    // nowhere to record it
-    if (!parser)
-    {
-        return _status;
-    }
-
-    d_arg_internal_parser_store(&parser->error,
-                                _command,
-                                _option,
-                                _status,
-                                d_arg_internal_copy_text(_message));
-
-    return _status;
+    return d_arg_internal_fail_adopt(_command,
+                                     _option,
+                                     _status,
+                                     d_arg_internal_copy_text(_message));
 }
 
 /*
@@ -467,6 +497,7 @@ d_arg_parser_release(
     d_arg_config_format_release(&_parser->config_format);
     d_arg_text_list_release(&_parser->pending);
     d_arg_string_list_release(&_parser->pool);
+    free(_parser->program);
     d_arg_string_list_release(&_parser->utf8_argv);
     *_parser = PARSER_EMPTY;
 
@@ -475,8 +506,9 @@ d_arg_parser_release(
 
 /*
 d_arg_parser_clear
-  CLI11's clear() on the root, then the last parse's error and storage: the
-values that borrowed from the storage are gone first.
+  CLI11's clear() on the root, then the last parse's error and storage --
+the program's name among it: the values that borrowed from the storage are
+gone first.
 */
 void
 d_arg_parser_clear(
@@ -493,6 +525,8 @@ d_arg_parser_clear(
     d_arg_error_release(&_parser->error);
     d_arg_text_list_release(&_parser->pending);
     d_arg_string_list_release(&_parser->pool);
+    free(_parser->program);
+    _parser->program = NULL;
 
     return;
 }

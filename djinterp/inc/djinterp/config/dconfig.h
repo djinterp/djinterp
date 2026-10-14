@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.10
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -48,6 +48,7 @@
 #include "cfg_qualifiers.h"      // storage / linkage qualifiers
 #include "djinterp/config/core/container/table/cfg_table.h"  // the table DSL subframework
 #include "djinterp/config/parse/cfg_parse.h"        // the parse substrate
+#include "djinterp/config/parse/cli/arg_parser/cfg_arg_parser.h"  // the argument parser
 #include "djinterp/config/parsegen/cfg_parsegen.h"  // parser generation (after parse)
 #include "djinterp/config/net/cfg_net.h"            // net foundation
 #include "djinterp/config/net/curl/cfg_curl.h"      // libcurl binding

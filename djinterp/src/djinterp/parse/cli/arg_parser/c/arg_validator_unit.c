@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_validator_unit.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_validator_extra.h"  // corresponding header
 // std
@@ -1289,7 +1289,8 @@ d_arg_internal_units_validator
   The validator over a units record: CLI11's checks first, a failure
 freeing the record and keeping its reason -- CLI11's message -- as the
 failed validator's description; otherwise the record is the validator's
-context, owned, copied and freed with it.
+context, owned, copied and freed with it, and its values complete as
+numbers.
 */
 D_STATIC struct d_arg_validator
 d_arg_internal_units_validator(
@@ -1329,6 +1330,7 @@ d_arg_internal_units_validator(
     d_arg_buffer_release(&reason);
     validator.describe  = d_arg_internal_units_describe;
     validator.parameter = _units->type;
+    validator.flags    |= D_ARG_VALIDATOR_NUMBER;
     d_arg_validator_own_context(&validator,
                                 d_arg_internal_units_copy,
                                 d_arg_internal_units_release);
@@ -1524,7 +1526,8 @@ d_arg_internal_size_describe(
 /*
 d_arg_validator_as_size_value
   The built-in 64-bit unsigned type as the parameter and the size of a
-kilobyte in `low`, so that nothing is allocated.
+kilobyte in `low`, so that nothing is allocated; its values complete as
+numbers.
 */
 struct d_arg_validator
 d_arg_validator_as_size_value(
@@ -1539,6 +1542,7 @@ d_arg_validator_as_size_value(
     validator.describe    = d_arg_internal_size_describe;
     validator.parameter   = d_arg_type_builtin(D_ARG_BUILTIN_UINT64);
     validator.low.integer = (_kb_is_1000) ? 1L : 0L;
+    validator.flags      |= D_ARG_VALIDATOR_NUMBER;
 
     return validator;
 }

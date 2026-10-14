@@ -11,7 +11,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_validator.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_validator.h"  // corresponding header
 // std
@@ -847,13 +847,32 @@ d_arg_internal_validator_pair_copy(
 }
 
 /*
-d_arg_internal_validator_path_kind
-  The completion flags of a composite of two: a path when either operand
-completes as one, a directory when every operand that completes as a path
-completes as a directory.
+d_arg_internal_validator_kind_and
+  The completion flags of a value both operands accept: a number when either
+takes numbers; otherwise a path when either takes paths, and a directory
+when either takes directories.
 */
 D_STATIC uint32_t
-d_arg_internal_validator_path_kind(
+d_arg_internal_validator_kind_and(
+    uint32_t _first,
+    uint32_t _second
+)
+{
+    const uint32_t either = _first | _second;
+
+    return ((either & D_ARG_VALIDATOR_NUMBER) != 0u)
+           ? D_ARG_VALIDATOR_NUMBER
+           : (either & (D_ARG_VALIDATOR_PATH | D_ARG_VALIDATOR_DIRECTORY));
+}
+
+/*
+d_arg_internal_validator_kind_or
+  The completion flags of a value either operand accepts: a number when both
+take numbers; otherwise a path when either takes paths, and a directory
+when every operand that takes paths takes directories.
+*/
+D_STATIC uint32_t
+d_arg_internal_validator_kind_or(
     uint32_t _first,
     uint32_t _second
 )
@@ -866,6 +885,12 @@ d_arg_internal_validator_path_kind(
                                    ((_first & directory) != 0u) ) &&
                                  ( ((_second & path) == 0u) ||
                                    ((_second & directory) != 0u) ) );
+
+    // numbers on both sides
+    if ((_first & _second & D_ARG_VALIDATOR_NUMBER) != 0u)
+    {
+        return D_ARG_VALIDATOR_NUMBER;
+    }
 
     return (!any)
            ? 0u
@@ -1354,7 +1379,7 @@ d_arg_validator_each_choice(
 /*
 d_arg_validator_and
   A composite of both: active when both are, applying where the first does,
-modifying, completing as d_arg_internal_validator_path_kind says.
+modifying, completing as d_arg_internal_validator_kind_and says.
 */
 struct d_arg_validator
 d_arg_validator_and(
@@ -1366,7 +1391,7 @@ d_arg_validator_and(
     const bool     active      =
         ( ((_first.flags & D_ARG_VALIDATOR_ACTIVE) != 0u) &&
           ((_second.flags & D_ARG_VALIDATOR_ACTIVE) != 0u) );
-    const uint32_t kind        = d_arg_internal_validator_path_kind(
+    const uint32_t kind        = d_arg_internal_validator_kind_and(
                                      _first.flags,
                                      _second.flags);
     struct d_arg_validator composite =
@@ -1387,7 +1412,8 @@ d_arg_validator_and(
 
 /*
 d_arg_validator_or
-  As d_arg_validator_and, combining as CLI11's OR.
+  As d_arg_validator_and, combining as CLI11's OR and completing as
+d_arg_internal_validator_kind_or says.
 */
 struct d_arg_validator
 d_arg_validator_or(
@@ -1399,7 +1425,7 @@ d_arg_validator_or(
     const bool     active      =
         ( ((_first.flags & D_ARG_VALIDATOR_ACTIVE) != 0u) &&
           ((_second.flags & D_ARG_VALIDATOR_ACTIVE) != 0u) );
-    const uint32_t kind        = d_arg_internal_validator_path_kind(
+    const uint32_t kind        = d_arg_internal_validator_kind_or(
                                      _first.flags,
                                      _second.flags);
     struct d_arg_validator composite =
@@ -1545,16 +1571,18 @@ d_arg_validator_set_choices(
 }
 
 /*
-d_arg_validator_set_path_kind
-  The completion flags: a directory is a path too.
+d_arg_validator_set_value_kind
+  The completion flags: a directory is a path too; a number is neither.
 */
 void
-d_arg_validator_set_path_kind(
+d_arg_validator_set_value_kind(
     struct d_arg_validator* _validator,
     uint32_t                _kind
 )
 {
-    const uint32_t both = D_ARG_VALIDATOR_PATH | D_ARG_VALIDATOR_DIRECTORY;
+    const uint32_t all = D_ARG_VALIDATOR_PATH      |
+                         D_ARG_VALIDATOR_DIRECTORY |
+                         D_ARG_VALIDATOR_NUMBER;
 
     // nothing to set without a validator
     if (!_validator)
@@ -1562,10 +1590,21 @@ d_arg_validator_set_path_kind(
         return;
     }
 
-    _validator->flags &= ~both;
-    _validator->flags |= ((_kind & D_ARG_VALIDATOR_DIRECTORY) != 0u)
-                         ? both
-                         : (_kind & D_ARG_VALIDATOR_PATH);
+    _validator->flags &= ~all;
+
+    // the one kind asked for
+    if ((_kind & D_ARG_VALIDATOR_NUMBER) != 0u)
+    {
+        _validator->flags |= D_ARG_VALIDATOR_NUMBER;
+    }
+    else if ((_kind & D_ARG_VALIDATOR_DIRECTORY) != 0u)
+    {
+        _validator->flags |= D_ARG_VALIDATOR_PATH | D_ARG_VALIDATOR_DIRECTORY;
+    }
+    else
+    {
+        _validator->flags |= (_kind & D_ARG_VALIDATOR_PATH);
+    }
 
     return;
 }
@@ -1796,7 +1835,9 @@ d_arg_internal_validator_non_negative_describe(
 /*
 d_arg_validator_range
   The type kept as the parameter, the bounds copied into the validator, so
-nothing is allocated; the type must be arithmetic and fit the bounds' room.
+nothing is allocated; the type must be arithmetic, convert into a scratch
+object -- which a container's does not, whatever its flags and size say --
+and fit the bounds' room. Its values complete as numbers.
 */
 struct d_arg_validator
 d_arg_validator_range(
@@ -1807,11 +1848,12 @@ d_arg_validator_range(
 {
     struct d_arg_validator validator = VALIDATOR_DEFAULT;
 
-    // an arithmetic type whose objects fit, and both bounds
-    if ( (!_type)                                                  ||
-         (!_low)                                                   ||
-         (!_high)                                                  ||
-         (_type->size > sizeof(union d_arg_validator_value))       ||
+    // an arithmetic type that converts and whose objects fit, and both
+    // bounds
+    if ( (!d_arg_internal_type_convertible(_type))            ||
+         (!_low)                                              ||
+         (!_high)                                             ||
+         (_type->size > sizeof(union d_arg_validator_value))  ||
          (d_arg_internal_number_of(_type) ==
           (int)D_ARG_INTERNAL_NUMBER_NONE) )
     {
@@ -1823,6 +1865,7 @@ d_arg_validator_range(
     validator.validate  = d_arg_internal_validator_range_validate;
     validator.describe  = d_arg_internal_validator_range_describe;
     validator.parameter = _type;
+    validator.flags    |= D_ARG_VALIDATOR_NUMBER;
     memcpy(&validator.low,
            _low,
            _type->size);

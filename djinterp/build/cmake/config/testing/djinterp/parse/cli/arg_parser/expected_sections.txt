@@ -1,0 +1,26 @@
+# djinterp [parse]                                         expected_sections.txt
+#
+# How many sections the argument parser's suites run at each language level,
+# in the default configuration (testing mode, every knob at its default).
+#   A suite is a table of sections, and a section is the unit a configuration
+# knob removes. A section that silently stopped being compiled would
+# otherwise read as a smaller pass; these are the counts that make it a
+# failure instead.
+#   Both builds read this file -- CMakeLists.txt and run_arg_parser_tests.sh,
+# beside it -- so there is one place to change when a section is added. A
+# line is `<level> <sections>`; anything else is a comment.
+#   A build under a configuration knob runs fewer sections, by design, and is
+# not held to these counts: see the matrix in run_arg_parser_tests.sh, and
+# DJINTERP_ARG_PARSER_EXPECT_COUNTS in CMakeLists.txt.
+#
+# path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/expected_sections.txt
+# link(s):   TBA
+# author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
+#                                                            revised: 2026.10.13
+
+# the C suites: common 20, types 20, validators 26, extra checks 11, sets
+# and mappings 13, numbers with units 10, the file system 8, smoke 19
+c99 127
+c11 127
+c17 127
+c23 127

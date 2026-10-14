@@ -13,7 +13,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_validator_extra.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_validator_extra.h"  // corresponding header
 // std
@@ -123,7 +123,8 @@ d_arg_internal_extra_number_describe(
 /*
 d_arg_validator_type
   The type kept as the parameter, so that nothing is allocated; its values
-must be plain data, converted into scratch storage and dropped.
+must be plain data, converted into scratch storage and dropped. A number or
+a truth value completes as a number.
 */
 struct d_arg_validator
 d_arg_validator_type(
@@ -144,6 +145,14 @@ d_arg_validator_type(
 
     validator.describe  = d_arg_internal_extra_type_describe;
     validator.parameter = _type;
+
+    // a number, a character or a truth value
+    if ( (d_arg_internal_number_of(_type) !=
+          (int)D_ARG_INTERNAL_NUMBER_NONE)                ||
+         ((_type->flags & D_ARG_TYPE_FLAG_BOOL) != 0u) )
+    {
+        validator.flags |= D_ARG_VALIDATOR_NUMBER;
+    }
 
     return validator;
 }
@@ -459,7 +468,8 @@ d_arg_internal_extra_ipv4_describe(
 
 /*
 d_arg_validator_valid_ipv4
-  The default validator with ValidIPV4's functions; it holds nothing.
+  The default validator with ValidIPV4's functions, completing as a number;
+it holds nothing.
 */
 struct d_arg_validator
 d_arg_validator_valid_ipv4(void)
@@ -470,6 +480,7 @@ d_arg_validator_valid_ipv4(void)
                                NULL);
 
     validator.describe = d_arg_internal_extra_ipv4_describe;
+    validator.flags   |= D_ARG_VALIDATOR_NUMBER;
 
     return validator;
 }
