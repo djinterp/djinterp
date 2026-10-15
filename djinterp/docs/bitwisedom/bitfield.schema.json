@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:bitwisedom:bitfield:1",
+  "title": "bitwis(e)dom bitfield",
+  "description": "A bitfield as a person writes one: its width, its affixes, and its rows, each in as few keys as say what it is. bitwis(e)dom reads it as a sheet (File > Open, a drop, the clipboard, or bitwisedom-gen), and writes it from one. docs/json.md describes every key. The reader passes over a key it does not know, and says so; this schema refuses one, so that an editor that checks JSON as it is typed shows a misspelt key at once.",
+  "type": "object",
+  "required": ["width"],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "const": "bitwisedom.bitfield" },
+    "version": { "type": "integer", "minimum": 1, "maximum": 1 },
+    "title": { "type": "string", "description": "the sheet's name" },
+    "width": {
+      "type": "integer", "minimum": 1, "maximum": 65536,
+      "description": "bits; past 64, the header holds the bitfield in arrays of words"
+    },
+    "prefix": { "type": "string", "description": "the start of every macro name" },
+    "suffix": { "type": "string", "description": "the end of every macro name" },
+    "trim_both": { "type": "string", "description": "comma-separated tokens trimmed from both ends of each local row name" },
+    "trim_left": { "type": "string", "description": "comma-separated tokens trimmed from the start of each local row name" },
+    "trim_right": { "type": "string", "description": "comma-separated tokens trimmed from the end of each local row name" },
+    "numbering": { "enum": ["lsb0", "msb0"], "description": "how the window numbers the bits; the header always counts from the least significant" },
+    "msb_left": { "type": "boolean", "description": "whether the grid draws the most significant bit at the left" },
+    "byte_order": { "enum": ["little", "big"], "description": "how the window numbers bytes" },
+    "probe": { "$ref": "#/$defs/number", "description": "the probe's value" },
+    "environment": { "type": "string", "description": "#defines the macros are evaluated in, which the header does not write" },
+    "note": { "type": "string" },
+    "rows": { "type": "array", "items": { "$ref": "#/$defs/row" } },
+    "segments": { "type": "array", "items": { "$ref": "#/$defs/segment" } },
+    "generator": {
+      "type": "object",
+      "description": "the header's settings, as a sheet file holds them; only those that differ from a new sheet's need be given"
+    }
+  },
+  "$defs": {
+    "number": {
+      "description": "an integer: a JSON number, or a string in any base C has -- \"0x0F00\", \"0b101\", \"017\", \"-3\" -- which is how a number past 2^53 is written",
+      "oneOf": [
+        { "type": "integer" },
+        {
+          "type": "string",
+          "pattern": "^\\s*[-+]?(0[xX][0-9A-Fa-f'_]+|0[bB][01'_]+|0[oO][0-7'_]+|[0-9][0-9'_]*)[uUlL]*\\s*$"
+        }
+      ]
+    },
+    "bits": {
+      "description": "a run of bits: \"lowest..highest\" (either way round), one bit as \"5\", or [lowest, highest]",
+      "oneOf": [
+        { "type": "string", "pattern": "^\\s*[0-9]+\\s*(\\.\\.\\s*[0-9]+\\s*)?$" },
+        {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "type": "integer", "minimum": 0, "maximum": 65535 }
+        }
+      ]
+    },
+    "colour": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$" },
+    "radix": { "enum": ["inherit", "hex", "dec", "oct", "bin", "shift"] },
+    "int_suffix": { "enum": ["inherit", "none", "u", "ul", "ull"] },
+    "encoding": {
+      "enum": ["unsigned", "twos_complement", "ones_complement", "sign_magnitude", "offset_binary"]
+    },
+    "row": {
+      "oneOf": [
+        { "$ref": "#/$defs/group" },
+        { "$ref": "#/$defs/symbol" }
+      ]
+    },
+    "group": {
+      "type": "object",
+      "required": ["group"],
+      "additionalProperties": false,
+      "properties": {
+        "group": { "type": "string", "description": "the group's name" },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/row" } },
+        "exclusive": { "type": "boolean", "description": "whether two of its bits or ranges claiming one bit is a collision; true unless false" },
+        "isolate": { "type": "boolean", "description": "own names only: its rows take none of the affixes of the groups around it" },
+        "name_children": { "type": "boolean", "description": "prepend this group name to its descendants" },
+        "collapsed": { "type": "boolean" },
+        "note": { "type": "string" },
+        "short": { "type": "string" },
+        "prefix": { "type": "string" },
+        "suffix": { "type": "string" },
+        "colour": { "$ref": "#/$defs/colour" },
+        "transparent": { "type": "boolean", "description": "no cell fill; unlike an automatic palette colour" },
+        "emit": { "type": "boolean" },
+        "radix": { "$ref": "#/$defs/radix" },
+        "int_suffix": { "$ref": "#/$defs/int_suffix" },
+        "digits": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "bit": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "bits": { "$ref": "#/$defs/bits" },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/row" }, "description": "nested children of a range; their allocation must fit the range" },
+        "name_children": { "type": "boolean", "description": "inherit a range's local name as a prefix for descendants" },
+        "collapsed": { "type": "boolean", "description": "collapse nested rows in the editor" },
+        "exclusive": { "type": "boolean", "description": "report collisions between overlapping sibling allocations, except contained spans" },
+        "isolate": { "type": "boolean" },
+        "lsb": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "width": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "values": {
+          "type": "object",
+          "description": "a range's named values, each a row after it, named by its key",
+          "additionalProperties": { "$ref": "#/$defs/value" }
+        },
+        "field": { "type": "string", "description": "the range a value is in, by its name or its macro name" },
+        "number": { "$ref": "#/$defs/number" },
+        "encoding": { "$ref": "#/$defs/encoding" },
+        "bias": { "$ref": "#/$defs/number" },
+        "value": { "$ref": "#/$defs/number", "description": "a literal" },
+        "expr": { "type": "string", "description": "an expression over other symbols, as C writes it" },
+        "body": { "type": "string", "description": "a macro's body, {NAME} for a symbol's macro name" },
+        "params": { "type": "string" },
+        "callable": { "type": "boolean", "description": "a macro with no parameters written as NAME()" },
+        "note": { "type": "string" },
+        "short": { "type": "string" },
+        "prefix": { "type": "string" },
+        "suffix": { "type": "string" },
+        "colour": { "$ref": "#/$defs/colour" },
+        "transparent": { "type": "boolean", "description": "no cell fill; unlike an automatic palette colour" },
+        "emit": { "type": "boolean" },
+        "radix": { "$ref": "#/$defs/radix" },
+        "int_suffix": { "$ref": "#/$defs/int_suffix" },
+        "digits": { "type": "integer", "minimum": 0 }
+      },
+      "oneOf": [
+        {
+          "description": "a bit",
+          "required": ["bit"],
+          "not": { "anyOf": [ { "required": ["bits"] }, { "required": ["lsb"] }, { "required": ["number"] }, { "required": ["value"] }, { "required": ["expr"] }, { "required": ["body"] } ] }
+        },
+        {
+          "description": "a range, by its bits",
+          "required": ["bits"],
+          "not": { "anyOf": [ { "required": ["bit"] }, { "required": ["lsb"] }, { "required": ["width"] }, { "required": ["number"] }, { "required": ["value"] }, { "required": ["expr"] }, { "required": ["body"] } ] }
+        },
+        {
+          "description": "a range, by its lowest bit and width",
+          "required": ["lsb"],
+          "not": { "anyOf": [ { "required": ["bit"] }, { "required": ["bits"] }, { "required": ["number"] }, { "required": ["value"] }, { "required": ["expr"] }, { "required": ["body"] } ] }
+        },
+        {
+          "description": "a value in a range it names",
+          "required": ["number", "field"],
+          "not": { "anyOf": [ { "required": ["bit"] }, { "required": ["bits"] }, { "required": ["lsb"] }, { "required": ["values"] }, { "required": ["value"] }, { "required": ["expr"] }, { "required": ["body"] } ] }
+        },
+        {
+          "description": "a value in bits of its own",
+          "required": ["number"],
+          "anyOf": [ { "required": ["bits"] }, { "required": ["lsb"] } ],
+          "not": { "anyOf": [ { "required": ["bit"] }, { "required": ["field"] }, { "required": ["values"] }, { "required": ["value"] }, { "required": ["expr"] }, { "required": ["body"] } ] }
+        },
+        {
+          "description": "a literal",
+          "required": ["value"],
+          "not": { "anyOf": [ { "required": ["bit"] }, { "required": ["bits"] }, { "required": ["lsb"] }, { "required": ["number"] }, { "required": ["expr"] }, { "required": ["body"] } ] }
+        },
+        {
+          "description": "an expression",
+          "required": ["expr"],
+          "not": { "anyOf": [ { "required": ["bit"] }, { "required": ["bits"] }, { "required": ["lsb"] }, { "required": ["number"] }, { "required": ["value"] }, { "required": ["body"] } ] }
+        },
+        {
+          "description": "a macro",
+          "required": ["body"],
+          "not": { "anyOf": [ { "required": ["bit"] }, { "required": ["bits"] }, { "required": ["lsb"] }, { "required": ["number"] }, { "required": ["value"] }, { "required": ["expr"] } ] }
+        }
+      ]
+    },
+    "value": {
+      "description": "a named value: its number, or an object with its number and the rest",
+      "oneOf": [
+        { "$ref": "#/$defs/number" },
+        {
+          "type": "object",
+          "required": ["number"],
+          "additionalProperties": false,
+          "properties": {
+            "number": { "$ref": "#/$defs/number" },
+            "encoding": { "$ref": "#/$defs/encoding" },
+            "bias": { "$ref": "#/$defs/number" },
+            "note": { "type": "string" },
+            "short": { "type": "string" },
+            "prefix": { "type": "string" },
+            "suffix": { "type": "string" },
+            "colour": { "$ref": "#/$defs/colour" },
+            "emit": { "type": "boolean" },
+            "radix": { "$ref": "#/$defs/radix" },
+            "int_suffix": { "$ref": "#/$defs/int_suffix" },
+            "digits": { "type": "integer", "minimum": 0 }
+          }
+        }
+      ]
+    },
+    "segment": {
+      "type": "object",
+      "required": ["bits"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "bits": { "$ref": "#/$defs/bits" },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/row" }, "description": "nested children of a range; their allocation must fit the range" },
+        "name_children": { "type": "boolean", "description": "inherit a range's local name as a prefix for descendants" },
+        "collapsed": { "type": "boolean", "description": "collapse nested rows in the editor" },
+        "exclusive": { "type": "boolean", "description": "report collisions between overlapping sibling allocations, except contained spans" },
+        "isolate": { "type": "boolean" },
+        "collapsed": { "type": "boolean" },
+        "colour": { "$ref": "#/$defs/colour" }
+      }
+    }
+  }
+}

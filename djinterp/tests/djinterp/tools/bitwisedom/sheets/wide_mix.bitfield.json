@@ -1,0 +1,138 @@
+{
+    "format": "bitwisedom.bitfield",
+    "version": 1,
+    "title": "wide_mix",
+    "width": 200,
+    "prefix": "MIX_",
+    "probe": "0x80000000000000000000000000000000000000000A50000001",
+    "rows": [
+        {
+            "group": "Fields",
+            "note": "Ranges that cross the boundaries of every word size, and their values in each encoding.",
+            "rows": [
+                {
+                    "name": "STRADDLE",
+                    "bits": "28..35",
+                    "note": "eight bits across bit 32",
+                    "values": {
+                        "S_A5": { "number": 165, "note": "a pattern" },
+                        "S_FF": { "number": 255, "note": "every bit" }
+                    }
+                },
+                {
+                    "name": "WIDE",
+                    "bits": "60..123",
+                    "note": "sixty-four bits across two 64-bit words",
+                    "values": {
+                        "W_ONE": { "number": 1, "note": "one" },
+                        "W_BIG": {
+                            "number": "9223372036854775807",
+                            "note": "the most a signed 64-bit integer holds"
+                        },
+                        "W_ALL": {
+                            "number": -1,
+                            "encoding": "twos_complement",
+                            "note": "minus one: every bit"
+                        }
+                    }
+                },
+                {
+                    "name": "SIGNED",
+                    "bits": "124..135",
+                    "note": "a signed field across bit 128",
+                    "values": {
+                        "MINUS_ONE": { "number": -1, "encoding": "twos_complement" },
+                        "MIN": { "number": -2048, "encoding": "twos_complement" },
+                        "MAX": { "number": 2047, "encoding": "twos_complement" }
+                    }
+                },
+                {
+                    "name": "SIGNMAG",
+                    "bits": "136..143",
+                    "note": "sign and magnitude",
+                    "values": { "SM_MINUS_5": { "number": -5, "encoding": "sign_magnitude" } }
+                },
+                {
+                    "name": "ONES",
+                    "bits": "144..151",
+                    "note": "ones' complement",
+                    "values": { "OC_MINUS_3": { "number": -3, "encoding": "ones_complement" } }
+                },
+                {
+                    "name": "BIASED",
+                    "bits": "152..159",
+                    "note": "offset binary, a bias of 127",
+                    "values": {
+                        "OB_MINUS_100": {
+                            "number": -100,
+                            "encoding": "offset_binary",
+                            "bias": 127
+                        }
+                    }
+                },
+                {
+                    "name": "TOP",
+                    "bits": "190..199",
+                    "note": "the last bits, to the sheet's end",
+                    "values": { "TOP_ALL": 1023 }
+                }
+            ]
+        },
+        {
+            "group": "Bits",
+            "note": "Bits at the ends of words.",
+            "prefix": "B_",
+            "rows": [
+                { "name": "AT_0", "bit": 0, "note": "bit 0" },
+                { "name": "AT_7", "bit": 7, "note": "bit 7" },
+                { "name": "AT_8", "bit": 8, "note": "bit 8" },
+                { "name": "AT_15", "bit": 15, "note": "bit 15" },
+                { "name": "AT_16", "bit": 16, "note": "bit 16" },
+                { "name": "AT_31", "bit": 31, "note": "bit 31" },
+                { "name": "AT_32", "bit": 32, "note": "bit 32" },
+                { "name": "AT_63", "bit": 63, "note": "bit 63" },
+                { "name": "AT_64", "bit": 64, "note": "bit 64" },
+                { "name": "AT_127", "bit": 127, "note": "bit 127" },
+                { "name": "AT_128", "bit": 128, "note": "bit 128" },
+                { "name": "AT_199", "bit": 199, "note": "bit 199" }
+            ]
+        },
+        {
+            "group": "Too wide",
+            "note": "A range no integer carries: it has no _GET or _SET.",
+            "rows": [{ "name": "BEYOND", "bits": "64..163", "note": "a hundred bits" }]
+        },
+        {
+            "group": "Sets",
+            "note": "Literals an integer holds, and those it does not; expressions.",
+            "exclusive": false,
+            "rows": [
+                { "name": "SMALL", "value": "0x1234", "note": "an integer" },
+                { "name": "BIT_63", "value": "0x8000000000000000", "note": "the top of 64 bits" },
+                {
+                    "name": "PAST",
+                    "value": "0x40000000000000000000000000000000000000",
+                    "note": "bit 150: no integer holds it"
+                },
+                { "name": "NEGATIVE", "value": -2, "note": "minus two, as a number" },
+                {
+                    "name": "CORNERS",
+                    "expr": "MIX_B_AT_0 | MIX_B_AT_199 | MIX_B_AT_64",
+                    "note": "the first and last bits, and bit 64"
+                },
+                {
+                    "name": "VALUES",
+                    "expr": "MIX_S_A5 | MIX_MINUS_ONE",
+                    "note": "two values together"
+                },
+                {
+                    "name": "NEXT",
+                    "params": "n",
+                    "body": "(({MIX_B_AT_64}) + (n))",
+                    "callable": true,
+                    "note": "the bit after another"
+                }
+            ]
+        }
+    ]
+}
