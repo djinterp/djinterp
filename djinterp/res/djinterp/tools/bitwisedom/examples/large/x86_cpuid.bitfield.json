@@ -1,0 +1,442 @@
+{
+    "format": "bitwisedom.bitfield",
+    "version": 1,
+    "title": "x86_cpuid",
+    "width": 320,
+    "prefix": "CPUID_",
+    "msb_left": false,
+    "probe": "0x800000000210000000000000000000000000000000000000000000001280780810138D83201",
+    "rows": [
+        {
+            "group": "Leaf 1, ECX",
+            "note": "CPUID.01H:ECX: feature information.",
+            "rows": [
+                { "name": "SSE3", "bit": 0, "note": "SSE3" },
+                { "name": "PCLMULQDQ", "bit": 1, "note": "carry-less multiplication" },
+                { "name": "DTES64", "bit": 2, "note": "the 64-bit debug store" },
+                { "name": "MONITOR", "bit": 3, "note": "MONITOR and MWAIT" },
+                { "name": "DS_CPL", "bit": 4, "note": "the CPL-qualified debug store" },
+                { "name": "VMX", "bit": 5, "note": "virtual machine extensions" },
+                { "name": "SMX", "bit": 6, "note": "safer mode extensions" },
+                { "name": "EIST", "bit": 7, "note": "Enhanced Intel SpeedStep" },
+                { "name": "TM2", "bit": 8, "note": "thermal monitor 2" },
+                { "name": "SSSE3", "bit": 9, "note": "supplemental SSE3" },
+                { "name": "CNXT_ID", "bit": 10, "note": "the L1 data cache's context ID" },
+                { "name": "SDBG", "bit": 11, "note": "the silicon debug MSR" },
+                { "name": "FMA", "bit": 12, "note": "fused multiply-add of three operands" },
+                { "name": "CMPXCHG16B", "bit": 13, "note": "CMPXCHG16B" },
+                { "name": "XTPR", "bit": 14, "note": "xTPR update control" },
+                { "name": "PDCM", "bit": 15, "note": "the perfmon and debug capability MSR" },
+                { "name": "PCID", "bit": 17, "note": "process-context identifiers" },
+                { "name": "DCA", "bit": 18, "note": "direct cache access" },
+                { "name": "SSE4_1", "bit": 19, "note": "SSE4.1" },
+                { "name": "SSE4_2", "bit": 20, "note": "SSE4.2" },
+                { "name": "X2APIC", "bit": 21, "note": "x2APIC" },
+                { "name": "MOVBE", "bit": 22, "note": "MOVBE" },
+                { "name": "POPCNT", "bit": 23, "note": "POPCNT" },
+                {
+                    "name": "TSC_DEADLINE",
+                    "bit": 24,
+                    "note": "the local APIC's TSC-deadline timer"
+                },
+                { "name": "AES", "bit": 25, "note": "the AES instructions" },
+                { "name": "XSAVE", "bit": 26, "note": "XSAVE, XRSTOR, XSETBV and XGETBV" },
+                { "name": "OSXSAVE", "bit": 27, "note": "the OS has set CR4.OSXSAVE" },
+                { "name": "AVX", "bit": 28, "note": "AVX" },
+                { "name": "F16C", "bit": 29, "note": "half-precision conversions" },
+                { "name": "RDRAND", "bit": 30, "note": "RDRAND" },
+                {
+                    "name": "HYPERVISOR",
+                    "bit": 31,
+                    "note": "0 on the bare processor; a hypervisor sets it"
+                }
+            ]
+        },
+        {
+            "group": "Leaf 1, EDX",
+            "note": "CPUID.01H:EDX: feature information.",
+            "rows": [
+                { "name": "FPU", "bit": 32, "note": "an x87 FPU on the chip" },
+                { "name": "VME", "bit": 33, "note": "virtual-8086 mode enhancements" },
+                { "name": "DE", "bit": 34, "note": "debugging extensions" },
+                { "name": "PSE", "bit": 35, "note": "page size extension" },
+                { "name": "TSC", "bit": 36, "note": "the time stamp counter" },
+                { "name": "MSR", "bit": 37, "note": "RDMSR and WRMSR" },
+                { "name": "PAE", "bit": 38, "note": "physical address extension" },
+                { "name": "MCE", "bit": 39, "note": "the machine check exception" },
+                { "name": "CX8", "bit": 40, "note": "CMPXCHG8B" },
+                { "name": "APIC", "bit": 41, "note": "an APIC on the chip" },
+                { "name": "SEP", "bit": 43, "note": "SYSENTER and SYSEXIT" },
+                { "name": "MTRR", "bit": 44, "note": "memory type range registers" },
+                { "name": "PGE", "bit": 45, "note": "the page global bit" },
+                { "name": "MCA", "bit": 46, "note": "the machine check architecture" },
+                { "name": "CMOV", "bit": 47, "note": "conditional moves" },
+                { "name": "PAT", "bit": 48, "note": "the page attribute table" },
+                { "name": "PSE_36", "bit": 49, "note": "36-bit page size extension" },
+                { "name": "PSN", "bit": 50, "note": "the processor serial number" },
+                { "name": "CLFSH", "bit": 51, "note": "CLFLUSH" },
+                { "name": "DS", "bit": 53, "note": "the debug store" },
+                {
+                    "name": "ACPI",
+                    "bit": 54,
+                    "note": "thermal monitor and software-controlled clock MSRs"
+                },
+                { "name": "MMX", "bit": 55, "note": "MMX" },
+                { "name": "FXSR", "bit": 56, "note": "FXSAVE and FXRSTOR" },
+                { "name": "SSE", "bit": 57, "note": "SSE" },
+                { "name": "SSE2", "bit": 58, "note": "SSE2" },
+                { "name": "SS", "bit": 59, "note": "self snoop" },
+                {
+                    "name": "HTT",
+                    "bit": 60,
+                    "note": "more than one logical processor in the package"
+                },
+                { "name": "TM", "bit": 61, "note": "the thermal monitor" },
+                { "name": "PBE", "bit": 63, "note": "pending break enable" }
+            ]
+        },
+        {
+            "group": "Leaf 7, EBX",
+            "note": "CPUID.(EAX=07H,ECX=0):EBX: structured extended features.",
+            "rows": [
+                {
+                    "name": "FSGSBASE",
+                    "bit": 64,
+                    "note": "RDFSBASE, RDGSBASE, WRFSBASE and WRGSBASE"
+                },
+                { "name": "TSC_ADJUST", "bit": 65, "note": "the IA32_TSC_ADJUST MSR" },
+                { "name": "SGX", "bit": 66, "note": "Software Guard Extensions" },
+                { "name": "BMI1", "bit": 67, "note": "bit manipulation, the first group" },
+                { "name": "HLE", "bit": 68, "note": "hardware lock elision" },
+                { "name": "AVX2", "bit": 69, "note": "AVX2" },
+                {
+                    "name": "FDP_EXCPTN_ONLY",
+                    "bit": 70,
+                    "note": "the x87 FDP is updated only on exceptions"
+                },
+                { "name": "SMEP", "bit": 71, "note": "supervisor-mode execution prevention" },
+                { "name": "BMI2", "bit": 72, "note": "bit manipulation, the second group" },
+                { "name": "ERMS", "bit": 73, "note": "enhanced REP MOVSB and REP STOSB" },
+                { "name": "INVPCID", "bit": 74, "note": "INVPCID" },
+                { "name": "RTM", "bit": 75, "note": "restricted transactional memory" },
+                { "name": "RDT_M", "bit": 76, "note": "resource director technology: monitoring" },
+                { "name": "FPCSDS", "bit": 77, "note": "the x87 FPU CS and DS are deprecated" },
+                { "name": "MPX", "bit": 78, "note": "memory protection extensions" },
+                { "name": "RDT_A", "bit": 79, "note": "resource director technology: allocation" },
+                { "name": "AVX512F", "bit": 80, "note": "AVX-512: the foundation" },
+                { "name": "AVX512DQ", "bit": 81, "note": "AVX-512: doublewords and quadwords" },
+                { "name": "RDSEED", "bit": 82, "note": "RDSEED" },
+                { "name": "ADX", "bit": 83, "note": "ADCX and ADOX" },
+                { "name": "SMAP", "bit": 84, "note": "supervisor-mode access prevention" },
+                { "name": "AVX512_IFMA", "bit": 85, "note": "AVX-512: integer fused multiply-add" },
+                { "name": "CLFLUSHOPT", "bit": 87, "note": "CLFLUSHOPT" },
+                { "name": "CLWB", "bit": 88, "note": "CLWB" },
+                { "name": "INTEL_PT", "bit": 89, "note": "processor trace" },
+                { "name": "AVX512PF", "bit": 90, "note": "AVX-512: prefetches" },
+                { "name": "AVX512ER", "bit": 91, "note": "AVX-512: exponentials and reciprocals" },
+                { "name": "AVX512CD", "bit": 92, "note": "AVX-512: conflict detection" },
+                { "name": "SHA", "bit": 93, "note": "SHA-1 and SHA-256" },
+                { "name": "AVX512BW", "bit": 94, "note": "AVX-512: bytes and words" },
+                { "name": "AVX512VL", "bit": 95, "note": "AVX-512 at 128 and 256 bits" }
+            ]
+        },
+        {
+            "group": "Leaf 7, ECX",
+            "note": "CPUID.(EAX=07H,ECX=0):ECX: structured extended features.",
+            "rows": [
+                { "name": "PREFETCHWT1", "bit": 96, "note": "PREFETCHWT1" },
+                { "name": "AVX512_VBMI", "bit": 97, "note": "AVX-512: vector bit manipulation" },
+                { "name": "UMIP", "bit": 98, "note": "user-mode instruction prevention" },
+                { "name": "PKU", "bit": 99, "note": "protection keys for user-mode pages" },
+                { "name": "OSPKE", "bit": 100, "note": "the OS has set CR4.PKE" },
+                { "name": "WAITPKG", "bit": 101, "note": "TPAUSE, UMONITOR and UMWAIT" },
+                {
+                    "name": "AVX512_VBMI2",
+                    "bit": 102,
+                    "note": "AVX-512: vector bit manipulation 2"
+                },
+                { "name": "CET_SS", "bit": 103, "note": "control-flow enforcement: shadow stacks" },
+                { "name": "GFNI", "bit": 104, "note": "Galois field instructions" },
+                { "name": "VAES", "bit": 105, "note": "vector AES" },
+                { "name": "VPCLMULQDQ", "bit": 106, "note": "vector carry-less multiplication" },
+                {
+                    "name": "AVX512_VNNI",
+                    "bit": 107,
+                    "note": "AVX-512: vector neural network instructions"
+                },
+                { "name": "AVX512_BITALG", "bit": 108, "note": "AVX-512: bit algorithms" },
+                { "name": "TME_EN", "bit": 109, "note": "total memory encryption" },
+                {
+                    "name": "AVX512_VPOPCNTDQ",
+                    "bit": 110,
+                    "note": "AVX-512: VPOPCNTD and VPOPCNTQ"
+                },
+                {
+                    "name": "LA57",
+                    "bit": 112,
+                    "note": "57-bit linear addresses: five-level paging"
+                },
+                {
+                    "name": "MAWAU",
+                    "bits": "113..117",
+                    "note": "the MPX address-width adjust: the value BNDLDX and BNDSTX use in 64-bit mode"
+                },
+                { "name": "RDPID", "bit": 118, "note": "RDPID" },
+                { "name": "KL", "bit": 119, "note": "Key Locker" },
+                { "name": "BUS_LOCK_DETECT", "bit": 120, "note": "OS bus-lock detection" },
+                { "name": "CLDEMOTE", "bit": 121, "note": "cache line demote" },
+                { "name": "MOVDIRI", "bit": 123, "note": "MOVDIRI" },
+                { "name": "MOVDIR64B", "bit": 124, "note": "MOVDIR64B" },
+                { "name": "ENQCMD", "bit": 125, "note": "ENQCMD and ENQCMDS" },
+                { "name": "SGX_LC", "bit": 126, "note": "SGX launch configuration" },
+                { "name": "PKS", "bit": 127, "note": "protection keys for supervisor-mode pages" }
+            ]
+        },
+        {
+            "group": "Leaf 7, EDX",
+            "note": "CPUID.(EAX=07H,ECX=0):EDX: structured extended features.",
+            "rows": [
+                { "name": "SGX_KEYS", "bit": 129, "note": "SGX attestation services" },
+                {
+                    "name": "AVX512_4VNNIW",
+                    "bit": 130,
+                    "note": "AVX-512: four-iteration VNNI on words"
+                },
+                {
+                    "name": "AVX512_4FMAPS",
+                    "bit": 131,
+                    "note": "AVX-512: four-iteration fused multiply-add, single precision"
+                },
+                { "name": "FSRM", "bit": 132, "note": "fast short REP MOV" },
+                { "name": "UINTR", "bit": 133, "note": "user interrupts" },
+                {
+                    "name": "AVX512_VP2INTERSECT",
+                    "bit": 136,
+                    "note": "AVX-512: VP2INTERSECTD and VP2INTERSECTQ"
+                },
+                { "name": "SRBDS_CTRL", "bit": 137, "note": "the SRBDS mitigation MSR" },
+                { "name": "MD_CLEAR", "bit": 138, "note": "VERW clears the CPU's buffers" },
+                { "name": "RTM_ALWAYS_ABORT", "bit": 139, "note": "every RTM transaction aborts" },
+                { "name": "RTM_FORCE_ABORT", "bit": 141, "note": "the TSX_FORCE_ABORT MSR" },
+                { "name": "SERIALIZE", "bit": 142, "note": "SERIALIZE" },
+                {
+                    "name": "HYBRID",
+                    "bit": 143,
+                    "note": "a hybrid part, of more than one type of core"
+                },
+                { "name": "TSXLDTRK", "bit": 144, "note": "TSX: suspending load address tracking" },
+                { "name": "PCONFIG", "bit": 146, "note": "PCONFIG" },
+                { "name": "ARCH_LBR", "bit": 147, "note": "architectural last branch records" },
+                {
+                    "name": "CET_IBT",
+                    "bit": 148,
+                    "note": "control-flow enforcement: indirect branch tracking"
+                },
+                { "name": "AMX_BF16", "bit": 150, "note": "AMX: bfloat16" },
+                { "name": "AVX512_FP16", "bit": 151, "note": "AVX-512: half precision" },
+                { "name": "AMX_TILE", "bit": 152, "note": "AMX: the tiles" },
+                { "name": "AMX_INT8", "bit": 153, "note": "AMX: 8-bit integers" },
+                {
+                    "name": "IBRS_IBPB",
+                    "bit": 154,
+                    "note": "indirect branch restricted speculation and the predictor barrier"
+                },
+                { "name": "STIBP", "bit": 155, "note": "single thread indirect branch predictors" },
+                { "name": "L1D_FLUSH", "bit": 156, "note": "the IA32_FLUSH_CMD MSR" },
+                {
+                    "name": "ARCH_CAPABILITIES",
+                    "bit": 157,
+                    "note": "the IA32_ARCH_CAPABILITIES MSR"
+                },
+                {
+                    "name": "CORE_CAPABILITIES",
+                    "bit": 158,
+                    "note": "the IA32_CORE_CAPABILITIES MSR"
+                },
+                { "name": "SSBD", "bit": 159, "note": "speculative store bypass disable" }
+            ]
+        },
+        {
+            "group": "Leaf 7.1, EAX",
+            "note": "CPUID.(EAX=07H,ECX=1):EAX: structured extended features.",
+            "rows": [
+                { "name": "SHA512", "bit": 160, "note": "SHA512" },
+                { "name": "SM3", "bit": 161, "note": "SM3" },
+                { "name": "SM4", "bit": 162, "note": "SM4" },
+                { "name": "RAO_INT", "bit": 163, "note": "remote atomic operations on integers" },
+                {
+                    "name": "AVX_VNNI",
+                    "bit": 164,
+                    "note": "AVX: vector neural network instructions, in VEX"
+                },
+                { "name": "AVX512_BF16", "bit": 165, "note": "AVX-512: bfloat16" },
+                { "name": "LASS", "bit": 166, "note": "linear address space separation" },
+                { "name": "CMPCCXADD", "bit": 167, "note": "CMPccXADD" },
+                {
+                    "name": "ARCH_PERFMON_EXT",
+                    "bit": 168,
+                    "note": "the architectural perfmon extended leaf"
+                },
+                { "name": "FZLRM", "bit": 170, "note": "fast zero-length REP MOVSB" },
+                { "name": "FSRS", "bit": 171, "note": "fast short REP STOSB" },
+                { "name": "FSRCS", "bit": 172, "note": "fast short REP CMPSB and REP SCASB" },
+                { "name": "FRED", "bit": 177, "note": "flexible return and event delivery" },
+                { "name": "LKGS", "bit": 178, "note": "LKGS" },
+                { "name": "WRMSRNS", "bit": 179, "note": "non-serializing WRMSR" },
+                { "name": "AMX_FP16", "bit": 181, "note": "AMX: half precision" },
+                { "name": "HRESET", "bit": 182, "note": "history reset" },
+                {
+                    "name": "AVX_IFMA",
+                    "bit": 183,
+                    "note": "AVX: integer fused multiply-add, in VEX"
+                },
+                { "name": "LAM", "bit": 186, "note": "linear address masking" },
+                { "name": "MSRLIST", "bit": 187, "note": "RDMSRLIST and WRMSRLIST" },
+                { "name": "MOVRS", "bit": 191, "note": "MOVRS and PREFETCHRST2" }
+            ]
+        },
+        {
+            "group": "Leaf 7.1, EDX",
+            "note": "CPUID.(EAX=07H,ECX=1):EDX: structured extended features.",
+            "rows": [
+                { "name": "AVX_VNNI_INT8", "bit": 196, "note": "AVX: VNNI on 8-bit integers" },
+                {
+                    "name": "AVX_NE_CONVERT",
+                    "bit": 197,
+                    "note": "AVX: conversions that raise no exceptions"
+                },
+                { "name": "AMX_COMPLEX", "bit": 200, "note": "AMX: complex numbers" },
+                { "name": "AVX_VNNI_INT16", "bit": 202, "note": "AVX: VNNI on 16-bit integers" },
+                { "name": "PREFETCHI", "bit": 206, "note": "PREFETCHIT0 and PREFETCHIT1" },
+                { "name": "USER_MSR", "bit": 207, "note": "URDMSR and UWRMSR" },
+                {
+                    "name": "CET_SSS",
+                    "bit": 210,
+                    "note": "control-flow enforcement: supervisor shadow stacks"
+                },
+                { "name": "AVX10", "bit": 211, "note": "AVX10; leaf 24h says which version" },
+                {
+                    "name": "APX_F",
+                    "bit": 213,
+                    "note": "advanced performance extensions: the foundation"
+                }
+            ]
+        },
+        {
+            "group": "Leaf 0Dh.1, EAX",
+            "note": "CPUID.(EAX=0DH,ECX=1):EAX: processor extended state.",
+            "rows": [
+                { "name": "XSAVEOPT", "bit": 224, "note": "XSAVEOPT" },
+                { "name": "XSAVEC", "bit": 225, "note": "XSAVEC and the compacted XRSTOR" },
+                { "name": "XGETBV_ECX1", "bit": 226, "note": "XGETBV with ECX = 1" },
+                { "name": "XSAVES", "bit": 227, "note": "XSAVES, XRSTORS and the IA32_XSS MSR" },
+                { "name": "XFD", "bit": 228, "note": "extended feature disable" }
+            ]
+        },
+        {
+            "group": "Leaf 80000001h, ECX",
+            "note": "CPUID.80000001H:ECX: extended features, many of them AMD's alone.",
+            "rows": [
+                { "name": "LAHF_LM", "bit": 256, "note": "LAHF and SAHF in 64-bit mode" },
+                {
+                    "name": "CMP_LEGACY",
+                    "bit": 257,
+                    "note": "core multi-processing legacy mode (AMD)"
+                },
+                { "name": "SVM", "bit": 258, "note": "secure virtual machine (AMD)" },
+                { "name": "EXTAPIC", "bit": 259, "note": "extended APIC space (AMD)" },
+                { "name": "CR8_LEGACY", "bit": 260, "note": "LOCK MOV CR0 means MOV CR8 (AMD)" },
+                { "name": "LZCNT", "bit": 261, "note": "LZCNT; AMD's ABM, with POPCNT" },
+                { "name": "SSE4A", "bit": 262, "note": "SSE4A (AMD)" },
+                { "name": "MISALIGNSSE", "bit": 263, "note": "misaligned SSE mode (AMD)" },
+                { "name": "PREFETCHW", "bit": 264, "note": "PREFETCHW" },
+                { "name": "OSVW", "bit": 265, "note": "OS-visible workarounds (AMD)" },
+                { "name": "IBS", "bit": 266, "note": "instruction-based sampling (AMD)" },
+                { "name": "XOP", "bit": 267, "note": "extended operations (AMD)" },
+                { "name": "SKINIT", "bit": 268, "note": "SKINIT and STGI (AMD)" },
+                { "name": "WDT", "bit": 269, "note": "the watchdog timer (AMD)" },
+                { "name": "LWP", "bit": 271, "note": "lightweight profiling (AMD)" },
+                { "name": "FMA4", "bit": 272, "note": "fused multiply-add of four operands (AMD)" },
+                { "name": "TCE", "bit": 273, "note": "the translation cache extension (AMD)" },
+                { "name": "NODEID_MSR", "bit": 275, "note": "the node ID MSR (AMD)" },
+                { "name": "TBM", "bit": 277, "note": "trailing bit manipulation (AMD)" },
+                { "name": "TOPOEXT", "bit": 278, "note": "topology extensions (AMD)" },
+                {
+                    "name": "PERFCTR_CORE",
+                    "bit": 279,
+                    "note": "core performance counter extensions (AMD)"
+                },
+                {
+                    "name": "PERFCTR_NB",
+                    "bit": 280,
+                    "note": "northbridge performance counter extensions (AMD)"
+                },
+                { "name": "DATA_BP_EXT", "bit": 282, "note": "data breakpoint extensions (AMD)" },
+                {
+                    "name": "PERF_TSC",
+                    "bit": 283,
+                    "note": "the performance time-stamp counter (AMD)"
+                },
+                {
+                    "name": "PERFCTR_LLC",
+                    "bit": 284,
+                    "note": "last-level cache performance counter extensions (AMD)"
+                },
+                { "name": "MONITORX", "bit": 285, "note": "MONITORX and MWAITX (AMD)" }
+            ]
+        },
+        {
+            "group": "Leaf 80000001h, EDX",
+            "note": "CPUID.80000001H:EDX: extended features. AMD's repeat leaf 1's EDX in the bits not named here.",
+            "rows": [
+                { "name": "SYSCALL", "bit": 299, "note": "SYSCALL and SYSRET" },
+                { "name": "NX", "bit": 308, "note": "execute disable" },
+                { "name": "MMXEXT", "bit": 310, "note": "AMD's extensions to MMX (AMD)" },
+                { "name": "FFXSR", "bit": 313, "note": "FXSAVE and FXRSTOR optimizations (AMD)" },
+                { "name": "PAGE1GB", "bit": 314, "note": "1-GByte pages" },
+                { "name": "RDTSCP", "bit": 315, "note": "RDTSCP and the IA32_TSC_AUX MSR" },
+                { "name": "LM", "bit": 317, "note": "64-bit mode: Intel 64 and AMD64" },
+                { "name": "AMD_3DNOWEXT", "bit": 318, "note": "AMD's extensions to 3DNow! (AMD)" },
+                { "name": "AMD_3DNOW", "bit": 319, "note": "3DNow! (AMD)" }
+            ]
+        },
+        {
+            "group": "Levels",
+            "note": "x86-64's microarchitecture levels, as the psABI sets them out: each the bits a processor of that level has, and so the bits of the level below it.",
+            "rows": [
+                {
+                    "name": "X86_64_V1",
+                    "expr": "CMOV | CX8 | FPU | FXSR | MMX | SYSCALL | SSE | SSE2",
+                    "note": "x86-64's baseline; the psABI also asks for CR4.OSFXSR, which CPUID does not say"
+                },
+                {
+                    "name": "X86_64_V2",
+                    "expr": "X86_64_V1 | CMPXCHG16B | LAHF_LM | POPCNT | SSE3 | SSE4_1 | SSE4_2 | SSSE3",
+                    "note": "x86-64-v2: the generation of SSE4.2 and POPCNT"
+                },
+                {
+                    "name": "X86_64_V3",
+                    "expr": "X86_64_V2 | AVX | AVX2 | BMI1 | BMI2 | F16C | FMA | LZCNT | MOVBE | OSXSAVE",
+                    "note": "x86-64-v3: the generation of AVX2 and FMA"
+                },
+                {
+                    "name": "X86_64_V4",
+                    "expr": "X86_64_V3 | AVX512F | AVX512BW | AVX512CD | AVX512DQ | AVX512VL",
+                    "note": "x86-64-v4: AVX-512's common core"
+                }
+            ]
+        }
+    ],
+    "segments": [
+        { "name": "1 ECX", "bits": "0..31" },
+        { "name": "1 EDX", "bits": "32..63" },
+        { "name": "7 EBX", "bits": "64..95" },
+        { "name": "7 ECX", "bits": "96..127" },
+        { "name": "7 EDX", "bits": "128..159" },
+        { "name": "7.1 EAX", "bits": "160..191" },
+        { "name": "7.1 EDX", "bits": "192..223" },
+        { "name": "0Dh.1 EAX", "bits": "224..255" },
+        { "name": "80000001h ECX", "bits": "256..287" },
+        { "name": "80000001h EDX", "bits": "288..319" }
+    ]
+}
