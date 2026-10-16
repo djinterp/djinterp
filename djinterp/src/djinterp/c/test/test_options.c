@@ -1,4 +1,15 @@
-#include "../../../inc/c/test/test_options.h"
+/*******************************************************************************
+* djinterp [c]                                                    test_options.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/test/test_options.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.20
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/test/test_options.h"
 
 
 /******************************************************************************
@@ -565,7 +576,7 @@ d_test_options_set_int32
 
     schema_row = d_internal_test_registry_config_row_from_flag(_key);
 
-    if ( (!schema_row) || 
+    if ( (!schema_row) ||
          (schema_row->value_type != D_TYPE_INFO_INT32) )
     {
         return false;
@@ -689,7 +700,7 @@ d_test_options_key_from_string
 
     row = d_test_registry_find(_key);
 
-    if ( (!row) || 
+    if ( (!row) ||
          ((row->command_flags & D_TEST_REGISTRY_FLAG_IS_CONFIG) == 0) )
     {
         return D_TEST_OPTIONS_KEY_INVALID;

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                         polynomial_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                           polynomial_tests.hpp
 *
 *   Unit-test declarations for parse/grammar/polynomial.hpp.  One declaration
 * group per section of the module under test (value-level vocabulary, type-
@@ -22,19 +22,30 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/parse/polynomial_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/polynomial_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.11
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.11
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    TEST HELPERS  (sentinels, float compare, the test_maybe effect, nat_f)
+      ----------------------------------------------------------------------
+
 I.    VALUE-LEVEL POLY VOCABULARY
+      ---------------------------
+
 II.   TYPE-LEVEL SHAPES
+      -----------------
+
 III.  FUNCTOR INSTANCES
+      -----------------
+
 IV.   TRAVERSABLE INSTANCES
+      ---------------------
 */
 
 
@@ -44,8 +55,9 @@ IV.   TRAVERSABLE INSTANCES
 // std
 #include <cmath>
 #include <type_traits>
+// djinterp
 // djinterp (module under test; pulls the whole functional + meta closure)
-#include "../../parse/grammar/polynomial.hpp"
+#include "../../../../inc/djinterp/core/functional/polynomial.hpp"
 
 
 NS_DJINTERP

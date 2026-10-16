@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                  array_common_tests_sa.c
+/*******************************************************************************
+* djinterp [container]                                   array_common_tests_sa.c
 *
 *   Comprehensive test runner for `array_common.h` unit tests.
 *   Contains helper functions and the main test suite runners.
@@ -11,12 +11,15 @@
 *   - Main test suite entry points and result aggregation
 *
 *
-* path:      \tests\container\array\array_common_tests_sa.c
+* path:      /tests/djinterp/c/container/array/array_common_tests_sa.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.10.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./array_common_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************
@@ -27,7 +30,7 @@
 d_test_init_from_args_wrapper
   Helper function for testing d_array_common_init_from_args.
   This wrapper handles the va_list conversion locally without modifying
-  the test_standalone framework.
+  the standalone harness.
 
 Parameter(s):
   _elements:     pointer to elements pointer to be initialized

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                                 env_config.h
+/*******************************************************************************
+* djinterp [core]                                                   env_config.h
 *
 * Per-module configuration for env.h. Owns all D_CFG_ENV_* macros related
 * to the core environment detection bitfield (language, POSIX, compiler,

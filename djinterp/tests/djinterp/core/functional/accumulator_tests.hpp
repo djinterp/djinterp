@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                  accumulator_tests.hpp
+/*******************************************************************************
+* djinterp [functional]                                    accumulator_tests.hpp
 *
 * Unit-test declarations for accumulator.hpp.
 *   This header declares the full battery of accumulator tests and the small
@@ -36,31 +36,40 @@
 * .cpp files, built without DTEST_SPEC_MODE, supply the predicate definitions
 * that the spec references by address.
 *
+*
 * path:      /tests/djinterp/core/functional/accumulator_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    HELPERS
-      1.  D_INTERNAL_ACC_CHECK            (early-return assertion)
-      2.  approx_eq                       (floating-point comparison)
-      3.  point / by_x / by_y / is_even   (shared fixtures)
+      -------
+      1.    D_INTERNAL_ACC_CHECK            (early-return assertion)
+      2.    approx_eq                       (floating-point comparison)
+      3.    point / by_x / by_y / is_even   (shared fixtures)
+
 II.   PER-SECTION TEST DECLARATIONS
-      1.  primitive       (accumulator class + make_accumulator)
-      2.  reducers        (sum/product/count/count_if/min/max/min_by/max_by)
-      3.  statistics      (mean/variance/stddev)
-      4.  positional      (first/last/nth)
-      5.  collectors      (joining/to_vector/to_map_by/group_by/histogram/top_k)
-      6.  predicates      (all_match/any_match/none_match)
-      7.  combinators     (contramap/map_output/filtered/take)
-      8.  combine         (variadic parallel folds)
-      9.  boxed           (boxed_accumulator/box_accumulator)
-      10. traits          (is_accumulator/is_boxed_accumulator/concepts)
+      -----------------------------
+      1.    primitive       (accumulator class + make_accumulator)
+      2.    reducers        (sum/product/count/count_if/min/max/min_by/max_by)
+      3.    statistics      (mean/variance/stddev)
+      4.    positional      (first/last/nth)
+      5.    collectors      (joining/to_vector/to_map_by/group_by/histogram/top_k)
+      6.    predicates      (all_match/any_match/none_match)
+      7.    combinators     (contramap/map_output/filtered/take)
+      8.    combine         (variadic parallel folds)
+      9.    boxed           (boxed_accumulator/box_accumulator)
+      10.   traits          (is_accumulator/is_boxed_accumulator/concepts)
+
 III.  SECTION RUNNERS + TOP-LEVEL AGGREGATE
+      -------------------------------------
+
 IV.   SPEC PROVIDER                       (DTEST_SPEC_MODE: accumulator_spec)
+      -----------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_ACCUMULATOR_
@@ -69,7 +78,7 @@ IV.   SPEC PROVIDER                       (DTEST_SPEC_MODE: accumulator_spec)
 // std
 #include <cstddef>
 // djinterp
-#include "../../inc/functional/accumulator.hpp"
+#include "../../../../inc/djinterp/core/functional/accumulator.hpp"
 
 #ifdef DTEST_SPEC_MODE
     // The enriched runner defines DTEST_SPEC_MODE and consumes accumulator_spec()

@@ -1,12 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                      compose_tests_tap.cpp
+/*******************************************************************************
+* djinterp [test]                                          compose_tests_tap.cpp
 *
 *   Tests for compose.hpp Section V: tap, the pass-through side-effect
 * injector.  Covers value pass-through, observation of the side effect,
 * invocation count, and composition into a pipe chain (tap returns its
 * input so it can sit transparently between stages).
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/compose_tests_tap.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "compose_tests.hpp"
 
 

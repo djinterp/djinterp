@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                  mediator_tests_signal_hub.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/mediator/mediator_tests_signal_hub.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : mediator_tests_signal_hub.cpp
 //   The named-channel multicast signal hub (section VI): connect (and the
 // C++17 string_view overload), connect_typed, disconnect / disconnect_all,

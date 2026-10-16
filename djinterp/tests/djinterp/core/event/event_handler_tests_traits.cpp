@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                event_handler_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                 event_handler_tests_traits.cpp
 *
 *   Sections III + IV -- HANDLER COMPATIBILITY DETECTION and HANDLER TRAITS.
 * Covers the internal detection traits (handler_invoke_result: invocable vs
@@ -12,10 +12,11 @@
 * and the event operand.
 *
 *
-* path:      /tests/djinterp/core/event/event_handler/event_handler_tests_traits.cpp
+* path:      /tests/djinterp/core/event/event_handler_tests_traits.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_handler_tests.hpp"

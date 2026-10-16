@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                           test_callable_tests_transform.cpp
+/*******************************************************************************
+* djinterp [test]                              test_callable_tests_transform.cpp
 *
 *   Row rewriting.  transform replaces the thunk bound to an id with the result
 * of a mapper applied to it - the general knob behind wrapping a row (negate,
@@ -12,11 +12,14 @@
 * empty thunk DISABLES the row (has() goes false, invoke reads false) while the
 * row itself remains counted.
 *
-* path:      /tests/djinterp/test/test_callable/test_callable_tests_transform.cpp
+*
+* path:      /tests/djinterp/test/test_callable_tests_transform.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_callable_tests.hpp"
 
 NS_DJINTERP

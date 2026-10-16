@@ -1,7 +1,17 @@
+/*******************************************************************************
+* djinterp [core]                                    curry_tests_combinators.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/curry_tests_combinators.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// std
+#include <string>
+// djinterp
 // djinterp [test] -- curry.hpp Section VI (constant-valued combinators)
 #include "./curry_tests.hpp"
-
-#include <string>
 
 
 NS_DJINTERP

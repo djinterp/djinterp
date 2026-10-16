@@ -1,33 +1,37 @@
-/******************************************************************************
-* djinterp [test]                                       test_handler_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                        test_handler_tests_sa.h
 *
 *   Unit test declarations for the `test_handler` module.
 *   Organized by sections matching the implementation in `test_handler.c`.
-*   This module is a dependency of DTest, so it uses `test_standalone.h`
+*   This module is a dependency of DTest, so it does not use DTest
 * rather than DTest for unit testing.
 *
 *
-* link:      TBA
-* file:      \test\test\test_handler_tests_sa.h
-* author(s): Samuel 'teer' Neal-Blim                           date: 2025.10.05
-******************************************************************************/
+* link(s):   TBA
+*
+*
+* path:      /tests/djinterp/c/test/test_handler_tests_sa.h
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_TEST_HANDLER_SA_
 #define DJINTERP_TESTING_TEST_HANDLER_SA_ 1
 
-#include <stdlib.h>
+// std
 #include <errno.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/dmemory.h"
-#include "../../../inc/c/string_fn.h"
-#include "../../../inc/c/event/event.h"
-#include "../../../inc/c/event/event_handler.h"
-#include "../../../inc/c/test/assert.h"
-#include "../../../inc/c/test/test.h"
-#include "../../../inc/c/test/test_handler.h"
-#include "../../../inc/c/test/test_standalone.h"
+#include <stdlib.h>
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/event/event.h"
+#include "../../../../inc/djinterp/c/test/default/assert.h"
+#include "../../../../inc/djinterp/c/test/default/test.h"
+#include "../../../../inc/djinterp/c/test/test_handler.h"
 // helpers
-#include "./test_handler_test_helpers.h"
+#include "test_handler_test_helpers.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 // I.    helper test functions

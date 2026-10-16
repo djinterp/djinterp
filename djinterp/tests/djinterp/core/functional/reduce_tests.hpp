@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            reduce_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                               reduce_tests.hpp
 *
 *   Unit-test declarations for core/functional/reduce.hpp -- the DRIVERS, the
 * iteration half of the step/driver split.  One declaration group per section of
@@ -50,19 +50,30 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/functional/reduce_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/reduce_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.12
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.12
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    FIXTURES  (one-body reducers, three leaves, lazy sources, probes)
+      -----------------------------------------------------------------
+
 I.    reduce_rt        (the runtime driver)
+      -------------------------------------
+
 II.   reduce_ct        (the value domain: value_list)
+      -----------------------------------------------
+
 III.  reduce_ct        (the type domain: std::tuple)
+      ----------------------------------------------
+
 IV.   THE STEP/DRIVER SPLIT  (one reducer, three domains; the tier)
+      -------------------------------------------------------------
 */
 
 
@@ -75,9 +86,10 @@ IV.   THE STEP/DRIVER SPLIT  (one reducer, three domains; the tier)
 #include <tuple>
 #include <type_traits>
 #include <vector>
+// djinterp
 // djinterp (module under test)
-#include "../../core/functional/reduce.hpp"
-#include "../../core/functional/structural_traits.hpp"   // Reducer (C++20 face)
+#include "../../../../inc/djinterp/core/functional/reduce.hpp"
+#include "../../../../inc/djinterp/core/functional/structural_traits.hpp"   // Reducer (C++20 face)
 
 
 NS_DJINTERP

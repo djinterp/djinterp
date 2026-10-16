@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                              cpp_named23.h
+/*******************************************************************************
+* djinterp [core]                                                cpp_named23.hpp
 *
 * C++23 named requirement type traits:
 *   Extends the C++20 named requirement traits with C++23 refinements:
@@ -39,39 +39,44 @@
 *   D_ENV_CPP_FEATURE_LANG_CONCEPTS             - concept availability
 *   D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL         - if consteval
 *
-* path:      \inc\cpp_named23.h
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.27
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/meta/stl/cpp_named23.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_CPP_NAMED23_
-#define DJINTERP_CPP_NAMED23_ 1
+#ifndef DJINTERP_META_STL_CPP_NAMED23_HPP
+#define DJINTERP_META_STL_CPP_NAMED23_HPP 1
 
 // require env.h to be included first
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "cpp_named23.h requires env.h to be included first"
+#ifndef DJINTERP_ENV_ENV_H
+    #error "cpp_named23.hpp requires env.h to be included first"
 #endif
 
 // only meaningful in C++ mode
 #ifndef __cplusplus
-    #error "cpp_named23.h can only be used in C++ compilation mode"
+    #error "cpp_named23.hpp can only be used in C++ compilation mode"
 #endif
 
+// djinterp
 // include C++20 layer
-#include "cpp_named20.h"
+#include "cpp_named20.hpp"
 
 // C++23 additions are active for C++23 and all later standards
 #if D_ENV_LANG_IS_CPP23_OR_HIGHER
 
-#include <type_traits>
+// std
+#include <chrono>
 #include <concepts>
+#include <ios>
 #include <iterator>
 #include <random>
-#include <ios>
-#include <chrono>
+#include <type_traits>
 
 
 NS_DJINTERP
-NS_TRAITS
+NS_RESTD
 
 // =========================================================================
 // I.   EXPRESSION-BASED CONCEPTS (C++23)
@@ -496,7 +501,7 @@ NS_END  // concepts
 // requirement.
 #define D_STATIC_ASSERT_CONTAINER(_C)                                      \
     static_assert(                                                         \
-        djinterp::traits::is_container_v<_C>,                              \
+        djinterp::re_std::is_container_v<_C>,                              \
         "Type " #_C " does not satisfy Container")
 
 // D_STATIC_ASSERT_REVERSIBLE_CONTAINER
@@ -505,7 +510,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_REVERSIBLE_CONTAINER(_C)                           \
     D_STATIC_ASSERT_CONTAINER(_C);                                         \
     static_assert(                                                         \
-        djinterp::traits::is_reversible_container_v<_C>,                   \
+        djinterp::re_std::is_reversible_container_v<_C>,                   \
         "Type " #_C " does not satisfy ReversibleContainer")
 
 // D_STATIC_ASSERT_SEQUENCE_CONTAINER
@@ -514,7 +519,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_SEQUENCE_CONTAINER(_C)                             \
     D_STATIC_ASSERT_CONTAINER(_C);                                         \
     static_assert(                                                         \
-        djinterp::traits::is_sequence_container_v<_C>,                     \
+        djinterp::re_std::is_sequence_container_v<_C>,                     \
         "Type " #_C " does not satisfy SequenceContainer")
 
 // D_STATIC_ASSERT_ASSOCIATIVE_CONTAINER
@@ -523,7 +528,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_ASSOCIATIVE_CONTAINER(_C)                          \
     D_STATIC_ASSERT_CONTAINER(_C);                                         \
     static_assert(                                                         \
-        djinterp::traits::is_associative_container_v<_C>,                  \
+        djinterp::re_std::is_associative_container_v<_C>,                  \
         "Type " #_C " does not satisfy AssociativeContainer")
 
 // D_STATIC_ASSERT_UNORDERED_ASSOCIATIVE_CONTAINER
@@ -532,7 +537,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_UNORDERED_ASSOCIATIVE_CONTAINER(_C)                \
     D_STATIC_ASSERT_CONTAINER(_C);                                         \
     static_assert(                                                         \
-        djinterp::traits::is_unordered_associative_container_v<_C>,        \
+        djinterp::re_std::is_unordered_associative_container_v<_C>,        \
         "Type " #_C " does not satisfy UnorderedAssociativeContainer")
 
 
@@ -605,7 +610,7 @@ NS_END  // concepts
 // allocator _A (defaults to std::allocator<_T>).
 #define D_STATIC_ASSERT_DEFAULT_INSERTABLE(_T, ...)                        \
     static_assert(                                                         \
-        djinterp::traits::is_default_insertable_v<_T __VA_OPT__(,)        \
+        djinterp::re_std::is_default_insertable_v<_T __VA_OPT__(,)        \
             __VA_ARGS__>,                                                  \
         "Type " #_T " does not satisfy DefaultInsertable")
 
@@ -614,7 +619,7 @@ NS_END  // concepts
 // allocator _A (defaults to std::allocator<_T>).
 #define D_STATIC_ASSERT_COPY_INSERTABLE(_T, ...)                           \
     static_assert(                                                         \
-        djinterp::traits::is_copy_insertable_v<_T __VA_OPT__(,)           \
+        djinterp::re_std::is_copy_insertable_v<_T __VA_OPT__(,)           \
             __VA_ARGS__>,                                                  \
         "Type " #_T " does not satisfy CopyInsertable")
 
@@ -623,7 +628,7 @@ NS_END  // concepts
 // allocator _A (defaults to std::allocator<_T>).
 #define D_STATIC_ASSERT_MOVE_INSERTABLE(_T, ...)                           \
     static_assert(                                                         \
-        djinterp::traits::is_move_insertable_v<_T __VA_OPT__(,)           \
+        djinterp::re_std::is_move_insertable_v<_T __VA_OPT__(,)           \
             __VA_ARGS__>,                                                  \
         "Type " #_T " does not satisfy MoveInsertable")
 
@@ -632,7 +637,7 @@ NS_END  // concepts
 // (defaults to std::allocator<_T>).
 #define D_STATIC_ASSERT_ERASABLE(_T, ...)                                  \
     static_assert(                                                         \
-        djinterp::traits::is_erasable_v<_T __VA_OPT__(,)                  \
+        djinterp::re_std::is_erasable_v<_T __VA_OPT__(,)                  \
             __VA_ARGS__>,                                                  \
         "Type " #_T " does not satisfy Erasable")
 
@@ -739,7 +744,7 @@ NS_END  // concepts
 // named requirement.
 #define D_STATIC_ASSERT_LEGACY_ITERATOR(_I)                                \
     static_assert(                                                         \
-        djinterp::traits::is_legacy_iterator_v<_I>,                        \
+        djinterp::re_std::is_legacy_iterator_v<_I>,                        \
         "Type " #_I " does not satisfy LegacyIterator")
 
 // D_STATIC_ASSERT_LEGACY_INPUT_ITERATOR
@@ -748,7 +753,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_LEGACY_INPUT_ITERATOR(_I)                          \
     D_STATIC_ASSERT_LEGACY_ITERATOR(_I);                                   \
     static_assert(                                                         \
-        djinterp::traits::is_legacy_input_iterator_v<_I>,                  \
+        djinterp::re_std::is_legacy_input_iterator_v<_I>,                  \
         "Type " #_I " does not satisfy LegacyInputIterator")
 
 // D_STATIC_ASSERT_LEGACY_FORWARD_ITERATOR
@@ -757,7 +762,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_LEGACY_FORWARD_ITERATOR(_I)                        \
     D_STATIC_ASSERT_LEGACY_INPUT_ITERATOR(_I);                             \
     static_assert(                                                         \
-        djinterp::traits::is_legacy_forward_iterator_v<_I>,                \
+        djinterp::re_std::is_legacy_forward_iterator_v<_I>,                \
         "Type " #_I " does not satisfy LegacyForwardIterator")
 
 // D_STATIC_ASSERT_LEGACY_BIDIRECTIONAL_ITERATOR
@@ -766,7 +771,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_LEGACY_BIDIRECTIONAL_ITERATOR(_I)                  \
     D_STATIC_ASSERT_LEGACY_FORWARD_ITERATOR(_I);                           \
     static_assert(                                                         \
-        djinterp::traits::is_legacy_bidirectional_iterator_v<_I>,          \
+        djinterp::re_std::is_legacy_bidirectional_iterator_v<_I>,          \
         "Type " #_I " does not satisfy LegacyBidirectionalIterator")
 
 // D_STATIC_ASSERT_LEGACY_RANDOM_ACCESS_ITERATOR
@@ -775,7 +780,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_LEGACY_RANDOM_ACCESS_ITERATOR(_I)                  \
     D_STATIC_ASSERT_LEGACY_BIDIRECTIONAL_ITERATOR(_I);                     \
     static_assert(                                                         \
-        djinterp::traits::is_legacy_random_access_iterator_v<_I>,          \
+        djinterp::re_std::is_legacy_random_access_iterator_v<_I>,          \
         "Type " #_I " does not satisfy LegacyRandomAccessIterator")
 
 
@@ -875,28 +880,28 @@ NS_END  // concepts
 //   macro: static_assert that _S supports unformatted input.
 #define D_STATIC_ASSERT_UNFORMATTED_INPUT_STREAM(_S)                       \
     static_assert(                                                         \
-        djinterp::traits::is_unformatted_input_stream_v<_S>,               \
+        djinterp::re_std::is_unformatted_input_stream_v<_S>,               \
         "Type " #_S " does not support UnformattedInputFunction")
 
 // D_STATIC_ASSERT_FORMATTED_INPUT_STREAM
 //   macro: static_assert that _S supports formatted input.
 #define D_STATIC_ASSERT_FORMATTED_INPUT_STREAM(_S)                         \
     static_assert(                                                         \
-        djinterp::traits::is_formatted_input_stream_v<_S>,                 \
+        djinterp::re_std::is_formatted_input_stream_v<_S>,                 \
         "Type " #_S " does not support FormattedInputFunction")
 
 // D_STATIC_ASSERT_UNFORMATTED_OUTPUT_STREAM
 //   macro: static_assert that _S supports unformatted output.
 #define D_STATIC_ASSERT_UNFORMATTED_OUTPUT_STREAM(_S)                      \
     static_assert(                                                         \
-        djinterp::traits::is_unformatted_output_stream_v<_S>,              \
+        djinterp::re_std::is_unformatted_output_stream_v<_S>,              \
         "Type " #_S " does not support UnformattedOutputFunction")
 
 // D_STATIC_ASSERT_FORMATTED_OUTPUT_STREAM
 //   macro: static_assert that _S supports formatted output.
 #define D_STATIC_ASSERT_FORMATTED_OUTPUT_STREAM(_S)                        \
     static_assert(                                                         \
-        djinterp::traits::is_formatted_output_stream_v<_S>,                \
+        djinterp::re_std::is_formatted_output_stream_v<_S>,                \
         "Type " #_S " does not support FormattedOutputFunction")
 
 // D_STATIC_ASSERT_UNIFORM_RANDOM_BIT_GENERATOR
@@ -904,7 +909,7 @@ NS_END  // concepts
 // UniformRandomBitGenerator.
 #define D_STATIC_ASSERT_UNIFORM_RANDOM_BIT_GENERATOR(_G)                   \
     static_assert(                                                         \
-        djinterp::traits::is_uniform_random_bit_generator_v<_G>,           \
+        djinterp::re_std::is_uniform_random_bit_generator_v<_G>,           \
         "Type " #_G " does not satisfy UniformRandomBitGenerator")
 
 // D_STATIC_ASSERT_RANDOM_NUMBER_ENGINE
@@ -912,7 +917,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_RANDOM_NUMBER_ENGINE(_E)                           \
     D_STATIC_ASSERT_UNIFORM_RANDOM_BIT_GENERATOR(_E);                     \
     static_assert(                                                         \
-        djinterp::traits::is_random_number_engine_v<_E>,                   \
+        djinterp::re_std::is_random_number_engine_v<_E>,                   \
         "Type " #_E " does not satisfy RandomNumberEngine")
 
 // D_STATIC_ASSERT_RANDOM_NUMBER_DISTRIBUTION
@@ -920,7 +925,7 @@ NS_END  // concepts
 // RandomNumberDistribution.
 #define D_STATIC_ASSERT_RANDOM_NUMBER_DISTRIBUTION(_D)                     \
     static_assert(                                                         \
-        djinterp::traits::is_random_number_distribution_v<_D>,             \
+        djinterp::re_std::is_random_number_distribution_v<_D>,             \
         "Type " #_D " does not satisfy RandomNumberDistribution")
 
 
@@ -1007,7 +1012,7 @@ NS_END  // concepts
 //   macro: static_assert that _M satisfies BasicLockable.
 #define D_STATIC_ASSERT_BASIC_LOCKABLE(_M)                                 \
     static_assert(                                                         \
-        djinterp::traits::is_basic_lockable_v<_M>,                         \
+        djinterp::re_std::is_basic_lockable_v<_M>,                         \
         "Type " #_M " does not satisfy BasicLockable")
 
 // D_STATIC_ASSERT_LOCKABLE
@@ -1015,7 +1020,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_LOCKABLE(_M)                                       \
     D_STATIC_ASSERT_BASIC_LOCKABLE(_M);                                    \
     static_assert(                                                         \
-        djinterp::traits::is_lockable_v<_M>,                               \
+        djinterp::re_std::is_lockable_v<_M>,                               \
         "Type " #_M " does not satisfy Lockable")
 
 // D_STATIC_ASSERT_TIMED_LOCKABLE
@@ -1023,7 +1028,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_TIMED_LOCKABLE(_M)                                 \
     D_STATIC_ASSERT_LOCKABLE(_M);                                          \
     static_assert(                                                         \
-        djinterp::traits::is_timed_lockable_v<_M>,                         \
+        djinterp::re_std::is_timed_lockable_v<_M>,                         \
         "Type " #_M " does not satisfy TimedLockable")
 
 // D_STATIC_ASSERT_MUTEX
@@ -1031,7 +1036,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_MUTEX(_M)                                          \
     D_STATIC_ASSERT_LOCKABLE(_M);                                          \
     static_assert(                                                         \
-        djinterp::traits::is_mutex_v<_M>,                                  \
+        djinterp::re_std::is_mutex_v<_M>,                                  \
         "Type " #_M " does not satisfy Mutex")
 
 // D_STATIC_ASSERT_SHARED_MUTEX
@@ -1039,7 +1044,7 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_SHARED_MUTEX(_M)                                   \
     D_STATIC_ASSERT_MUTEX(_M);                                             \
     static_assert(                                                         \
-        djinterp::traits::is_shared_mutex_v<_M>,                           \
+        djinterp::re_std::is_shared_mutex_v<_M>,                           \
         "Type " #_M " does not satisfy SharedMutex")
 
 
@@ -1085,6 +1090,7 @@ NS_END  // concepts
 
 #if defined(__cpp_lib_mdspan)
 
+// std
 #include <mdspan>
 
 NS_INTERNAL
@@ -1306,21 +1312,21 @@ NS_END  // concepts
 //   macro: static_assert that _M satisfies LayoutMapping.
 #define D_STATIC_ASSERT_LAYOUT_MAPPING(_M)                                 \
     static_assert(                                                         \
-        djinterp::traits::is_layout_mapping_v<_M>,                         \
+        djinterp::re_std::is_layout_mapping_v<_M>,                         \
         "Type " #_M " does not satisfy LayoutMapping")
 
 // D_STATIC_ASSERT_LAYOUT_MAPPING_POLICY
 //   macro: static_assert that _L satisfies LayoutMappingPolicy.
 #define D_STATIC_ASSERT_LAYOUT_MAPPING_POLICY(_L)                          \
     static_assert(                                                         \
-        djinterp::traits::is_layout_mapping_policy_v<_L>,                  \
+        djinterp::re_std::is_layout_mapping_policy_v<_L>,                  \
         "Type " #_L " does not satisfy LayoutMappingPolicy")
 
 // D_STATIC_ASSERT_ACCESSOR_POLICY
 //   macro: static_assert that _A satisfies AccessorPolicy.
 #define D_STATIC_ASSERT_ACCESSOR_POLICY(_A)                                \
     static_assert(                                                         \
-        djinterp::traits::is_accessor_policy_v<_A>,                        \
+        djinterp::re_std::is_accessor_policy_v<_A>,                        \
         "Type " #_A " does not satisfy AccessorPolicy")
 
 #endif  // __cpp_lib_mdspan
@@ -1399,7 +1405,7 @@ NS_END  // concepts
 //   macro: static_assert that _C satisfies Clock.
 #define D_STATIC_ASSERT_CLOCK(_C)                                          \
     static_assert(                                                         \
-        djinterp::traits::is_clock_v<_C>,                                  \
+        djinterp::re_std::is_clock_v<_C>,                                  \
         "Type " #_C " does not satisfy Clock")
 
 // D_STATIC_ASSERT_TRIVIAL_CLOCK
@@ -1407,35 +1413,35 @@ NS_END  // concepts
 #define D_STATIC_ASSERT_TRIVIAL_CLOCK(_C)                                  \
     D_STATIC_ASSERT_CLOCK(_C);                                             \
     static_assert(                                                         \
-        djinterp::traits::is_trivial_clock_v<_C>,                          \
+        djinterp::re_std::is_trivial_clock_v<_C>,                          \
         "Type " #_C " does not satisfy TrivialClock")
 
 // D_STATIC_ASSERT_CHAR_TRAITS
 //   macro: static_assert that _Tr satisfies CharTraits.
 #define D_STATIC_ASSERT_CHAR_TRAITS(_Tr)                                   \
     static_assert(                                                         \
-        djinterp::traits::is_char_traits_v<_Tr>,                           \
+        djinterp::re_std::is_char_traits_v<_Tr>,                           \
         "Type " #_Tr " does not satisfy CharTraits")
 
 // D_STATIC_ASSERT_BITMASK_TYPE
 //   macro: static_assert that _B satisfies BitmaskType.
 #define D_STATIC_ASSERT_BITMASK_TYPE(_B)                                   \
     static_assert(                                                         \
-        djinterp::traits::is_bitmask_type_v<_B>,                           \
+        djinterp::re_std::is_bitmask_type_v<_B>,                           \
         "Type " #_B " does not satisfy BitmaskType")
 
 // D_STATIC_ASSERT_REGEX_TRAITS
 //   macro: static_assert that _Tr satisfies RegexTraits.
 #define D_STATIC_ASSERT_REGEX_TRAITS(_Tr)                                  \
     static_assert(                                                         \
-        djinterp::traits::is_regex_traits_v<_Tr>,                          \
+        djinterp::re_std::is_regex_traits_v<_Tr>,                          \
         "Type " #_Tr " does not satisfy RegexTraits")
 
 
-NS_END  // traits
+NS_END  // re_std
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP23_OR_HIGHER
 
 
-#endif  // DJINTERP_CPP_NAMED23_
+#endif  // DJINTERP_META_STL_CPP_NAMED23_HPP

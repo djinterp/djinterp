@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [functional]                             pipeline_tests_sa_creation.c
+*
+*
+* path:      /tests/djinterp/c/functional/pipeline_tests_sa_creation.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./pipeline_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                    contravariant_tests.hpp
+/*******************************************************************************
+* djinterp [testing]                                     contravariant_tests.hpp
 *
 * Unit test suite for contravariant.hpp -- the contravariant functor protocol.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
@@ -67,10 +67,12 @@
 *   IV.   LAWS          (contravariant_tests_laws.cpp)
 *   V.    CONCEPTS      (contravariant_tests_concepts.cpp)
 *
+*
 * path:      /tests/djinterp/core/functional/contravariant_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.07.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CONTRAVARIANT_TESTS_
 #define DJINTERP_TESTS_CONTRAVARIANT_TESTS_ 1
@@ -82,13 +84,13 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
+// djinterp
 // -- (part 1) mode-gated includes --------------------------------------------
 // djinterp core is ALWAYS first and unconditional (NS_*, D_* qualifiers,
 // language gates, void_t), so both faces have it.
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "contravariant.hpp"                    // the header under test (normal)
+#include "../../../../inc/djinterp/core/functional/contravariant.hpp"                    // the header under test (normal)
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"      // module_spec + run_module (spec)

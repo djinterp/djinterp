@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                     transducer_tests_state.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/transducer_tests_state.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "transducer_tests.hpp"
 
 

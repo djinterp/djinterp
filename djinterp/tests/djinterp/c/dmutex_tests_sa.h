@@ -19,10 +19,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "..\..\inc\c\test\test_standalone.h"
-#include "..\..\inc\c\dmutex.h"
-#include "..\..\inc\c\string_fn.h"
-#include "..\..\inc\c\dtime.h"
+#include "../../inc/c/test/test_standalone.h"
+#include "../../inc/c/dmutex.h"
+#include "../../inc/c/string_fn.h"
+#include "../../inc/c/dtime.h"
 
 
 /******************************************************************************

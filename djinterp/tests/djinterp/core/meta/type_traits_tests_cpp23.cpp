@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                    type_traits_tests_cpp23.cpp
 *
 *   Unit tests for the C++23-features section (I.4) of type_traits.hpp:
@@ -18,9 +18,12 @@
 *     scoped (the qualifier, not the storage, is what matters)
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_cpp23.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_cpp23.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -142,32 +145,32 @@ type_traits_tests_cpp23(
 )
 {
     // positive
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_scoped_enum<scoped_default_t>::value == true,
         "is_scoped_enum<enum class>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_scoped_enum<scoped_struct_t>::value == true,
         "is_scoped_enum<enum struct>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_scoped_enum<scoped_char_t>::value == true,
         "is_scoped_enum<enum class : char>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_scoped_enum<type_traits_test_types::scoped_enum_t>::value == true,
         "is_scoped_enum<shared scoped helper>");
 
     // negative -- enum-but-unscoped
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_scoped_enum<unscoped_default_t>::value == false,
         "is_scoped_enum<unscoped enum>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_scoped_enum<unscoped_int_t>::value == false,
         "is_scoped_enum<unscoped : int>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_scoped_enum<type_traits_test_types::unscoped_enum_t>::value == false,
         "is_scoped_enum<shared unscoped helper>");
 
     // negative -- non-enum
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( is_scoped_enum<int>::value                  == false &&
           is_scoped_enum<enum_negative_class_t>::value == false &&
           is_scoped_enum<void>::value                  == false &&

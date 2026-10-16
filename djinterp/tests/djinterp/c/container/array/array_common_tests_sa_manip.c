@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                            array_common_tests_sa_manip.c
+/*******************************************************************************
+* djinterp [container]                             array_common_tests_sa_manip.c
 *
 *   Unit tests for `array_common.h` manipulation functions.
 *   Part of the array_common standalone test suite.
@@ -8,12 +8,15 @@
 *   dynamically allocated arrays, not stack-allocated arrays.
 *
 *
-* path:      \test\container\array\array_common_tests_sa_manip.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.10.25
-******************************************************************************/
+* path:      /tests/djinterp/c/container/array/array_common_tests_sa_manip.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./array_common_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

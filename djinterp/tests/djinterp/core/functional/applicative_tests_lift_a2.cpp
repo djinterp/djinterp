@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                applicative_tests_lift_a2.cpp
+/*******************************************************************************
+* djinterp [test]                                  applicative_tests_lift_a2.cpp
 *
 *   Section II.3 of the applicative.hpp suite: lift_a2, the applicative binary
 * lift derived generically as ap(functor_map(fa, curry2(f)), fb).  Covers the
@@ -11,10 +11,12 @@
 * result type identity.  Exercises the internal applicative_a2_curry /
 * applicative_a2_binder currying helpers.
 *
+*
 * path:      /tests/djinterp/core/functional/applicative_tests_lift_a2.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "applicative_tests.hpp"

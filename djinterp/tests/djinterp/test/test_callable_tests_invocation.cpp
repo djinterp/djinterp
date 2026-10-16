@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                          test_callable_tests_invocation.cpp
+/*******************************************************************************
+* djinterp [test]                             test_callable_tests_invocation.cpp
 *
 *   Running a row.  invoke returns the bound thunk's boolean when the id names
 * a live row, and returns false - never throwing - when it does not: the
@@ -10,11 +10,14 @@
 * invoke / size / empty) is exercised through a const table, the way the
 * framework dispatches during a tree walk.
 *
-* path:      /tests/djinterp/test/test_callable/test_callable_tests_invocation.cpp
+*
+* path:      /tests/djinterp/test/test_callable_tests_invocation.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_callable_tests.hpp"
 
 NS_DJINTERP

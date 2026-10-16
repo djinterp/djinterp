@@ -1,10 +1,19 @@
+/*******************************************************************************
+* djinterp [core]                                       recursion_tests_cata.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/recursion_tests_cata.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  recursion_tests_cata.cpp
 //   Section V -- cata[phi], the universal fold.
 
 // std
 #include <string>
-#include <vector>
 #include <type_traits>
+#include <vector>
 // djinterp
 #include "recursion_tests.hpp"
 

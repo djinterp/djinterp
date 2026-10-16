@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                               test_kind_tests_set_contains.cpp
+*
+*
+* path:      /tests/djinterp/test/test_kind_tests_set_contains.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstdint>
 #include <type_traits>
@@ -17,9 +26,9 @@ using namespace ::djinterp::test;
 
 // the trait that selects the dispatch: id_set exposes contains(), id_set_nc
 // does not -- so the two contains_dispatch overloads are both reachable
-static_assert(::djinterp::internal::has_set_contains<id_set>::value,
+static_assert(::djinterp::test::internal::has_set_contains<id_set>::value,
               "id_set must expose a native contains()");
-static_assert(!::djinterp::internal::has_set_contains<id_set_nc>::value,
+static_assert(!::djinterp::test::internal::has_set_contains<id_set_nc>::value,
               "id_set_nc must NOT expose contains()");
 
 
@@ -99,9 +108,9 @@ tests_set_contains_detection()
 {
     bool ok = true;
 
-    ok = D_TK_CHECK(::djinterp::internal::has_set_contains<id_set>::value)
+    ok = D_TK_CHECK(::djinterp::test::internal::has_set_contains<id_set>::value)
          && ok;
-    ok = D_TK_CHECK(!::djinterp::internal::has_set_contains<id_set_nc>::value)
+    ok = D_TK_CHECK(!::djinterp::test::internal::has_set_contains<id_set_nc>::value)
          && ok;
 
     return ok;

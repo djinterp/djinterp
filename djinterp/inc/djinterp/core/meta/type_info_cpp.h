@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                            type_info_cpp.h
+/*******************************************************************************
+* djinterp [core]                                                type_info_cpp.h
 *
 *  C++-specific extensions to the common type-information system.
 *  Covers bits 32-47 of d_type_info64:
@@ -24,21 +24,22 @@
 *  Bits 48-63 carry the user type ID when CUSTOM (bit 15) is set;
 *  see type_info_common.h for the user type ID macros.
 *
-* 
-* path:      /inc/c/type_info_cpp.h
+*
+* path:      /inc/djinterp/core/meta/type_info_cpp.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.12.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.06
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_C_TYPE_INFO_CPP_
-#define DJINTERP_C_TYPE_INFO_CPP_ 1
+#ifndef DJINTERP_META_TYPE_INFO_CPP_H
+#define DJINTERP_META_TYPE_INFO_CPP_H 1
 
 #if !D_ENV_LANG_USING_CPP
     #error "type_info_cpp.h requires a C++ compiler"
 #endif
 
-#include "type_info_common.h"
-#include "env_cpp_features.h"
+#include "../../c/meta/type_info_common.h"
+#include "../../env/cpp/env_cpp_features.h"
 
 
 /*============================================================================*
@@ -161,4 +162,4 @@
 #endif
 
 
-#endif  // DJINTERP_C_TYPE_INFO_CPP_
+#endif  // DJINTERP_META_TYPE_INFO_CPP_H

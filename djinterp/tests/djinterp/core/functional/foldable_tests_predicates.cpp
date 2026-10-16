@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                foldable_tests_predicates.cpp
+/*******************************************************************************
+* djinterp [test]                                  foldable_tests_predicates.cpp
 *
 *   Section II.7 of the foldable.hpp suite: fold_any (existential) and fold_all
 * (universal).  Covers a matching element, no match, the empty foldable (any is
@@ -16,10 +16,12 @@
 * the result is decided, yet stays equal to the element count while the result
 * is still undetermined.  Both facets are pinned down below.
 *
+*
 * path:      /tests/djinterp/core/functional/foldable_tests_predicates.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "foldable_tests.hpp"

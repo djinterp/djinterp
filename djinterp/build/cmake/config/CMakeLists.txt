@@ -90,8 +90,27 @@ include(CTest)
 # -----------------------------------------------------------------------------
 add_library(djinterp_c_runtime STATIC
     "${DJINTERP_SRC_ROOT}/djinterp/core/env/env.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/core/env/env_archive.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/core/env/env_compress.c"
     "${DJINTERP_SRC_ROOT}/djinterp/c/djinterp.c"
 )
+
+# ---------------------------------------------------------------------------
+# Compression backends.  env_compress.c and the core/util compress/archive TUs
+# call into whatever codec libraries their headers detect (zlib, brotli, bzip2,
+# and optionally zstd/lz4/xz).  Link the ones present; skip silently if absent.
+# PUBLIC so every test exe that links djinterp_c_runtime inherits them.
+find_package(ZLIB)
+if(ZLIB_FOUND)
+    target_link_libraries(djinterp_c_runtime PUBLIC ZLIB::ZLIB)
+endif()
+foreach(_codec brotlienc brotlidec brotlicommon bz2 zstd lz4 lzma)
+    find_library(DJINTERP_CODEC_${_codec} ${_codec})
+    if(DJINTERP_CODEC_${_codec})
+        target_link_libraries(djinterp_c_runtime PUBLIC ${DJINTERP_CODEC_${_codec}})
+    endif()
+endforeach()
+
 
 target_include_directories(djinterp_c_runtime PUBLIC
     "${DJINTERP_INC_ROOT}"

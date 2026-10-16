@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 option_set_tests_queries.cpp
+/*******************************************************************************
+* djinterp [test]                                   option_set_tests_queries.cpp
 *
 *   Section VI of the option_set.hpp suite: the trait machinery that queries an
 * already-instantiated option_set<>.
@@ -22,15 +22,16 @@
 *
 * path:      /tests/djinterp/core/option/option_set_tests_queries.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
 // djinterp
-#include "option_set_tests.hpp"
+#include "./option_set_tests.hpp"
 
 
 NS_DJINTERP

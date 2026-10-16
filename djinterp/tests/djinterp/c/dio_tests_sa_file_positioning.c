@@ -1,4 +1,15 @@
-#include ".\dio_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                dio_tests_sa_file_positioning.c
+*
+*
+* path:      /tests/djinterp/c/dio_tests_sa_file_positioning.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dio_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /*
@@ -8,7 +19,7 @@ d_tests_sa_dio_fgetpos
   - successful position retrieval at start
   - successful position retrieval after write
   - position retrieval after seek
-  
+
   Note: NULL stream and NULL pointer tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -33,7 +44,7 @@ d_tests_sa_dio_fgetpos
     // test 2: NULL position pointer test skipped (causes assertion in debug builds)
 
     // test 3: successful position get at start
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         get_result = d_fgetpos(temp_file, &pos);
@@ -53,7 +64,7 @@ d_tests_sa_dio_fgetpos
     }
 
     // test 4: position after write
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "1234567890");
@@ -76,7 +87,7 @@ d_tests_sa_dio_fgetpos
     }
 
     // test 5: position after seek
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "0123456789");
@@ -100,17 +111,17 @@ d_tests_sa_dio_fgetpos
     }
 
     // test 6: multiple position gets
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "ABC");
         fflush(temp_file);
 
         d_fgetpos(temp_file, &pos);
-        
+
         fprintf(temp_file, "DEF");
         fflush(temp_file);
-        
+
         d_fgetpos(temp_file, &pos2);
 
         result = d_assert_standalone(
@@ -129,7 +140,7 @@ d_tests_sa_dio_fgetpos
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }
@@ -143,7 +154,7 @@ d_tests_sa_dio_fsetpos
   - successful position set to middle
   - position set followed by read verification
   - position set followed by write verification
-  
+
   Note: NULL stream and NULL pointer tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -168,7 +179,7 @@ d_tests_sa_dio_fsetpos
     // test 2: NULL position pointer test skipped (causes assertion in debug builds)
 
     // test 3: successful position set to start
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "0123456789");
@@ -195,7 +206,7 @@ d_tests_sa_dio_fsetpos
     }
 
     // test 4: position set to middle
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "ABCDEFGHIJ");
@@ -222,12 +233,12 @@ d_tests_sa_dio_fsetpos
     }
 
     // test 5: get position, write, then restore position
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "1234567890");
         fflush(temp_file);
-        
+
         fseek(temp_file, 3, SEEK_SET);
         d_fgetpos(temp_file, &pos);  // save position at 3
 
@@ -255,7 +266,7 @@ d_tests_sa_dio_fsetpos
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }
@@ -263,13 +274,13 @@ d_tests_sa_dio_fsetpos
 
 /*
 d_tests_sa_dio_rewind
-  Tests the d_rewind file rewind function.
+  Tests the d_file_rewind_stream file rewind function.
   Tests the following:
   - successful rewind to start
   - rewind after write
   - rewind clears error indicators
   - rewind followed by read verification
-  
+
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -290,13 +301,13 @@ d_tests_sa_dio_rewind
     // test 1: NULL stream test skipped (causes assertion in debug builds)
 
     // test 2: successful rewind after write
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "REWINDTEST");
         fflush(temp_file);
 
-        d_rewind(temp_file);
+        d_file_rewind_stream(temp_file);
 
         // verify position by reading
         d_memset(buffer, 0, sizeof(buffer));
@@ -311,14 +322,14 @@ d_tests_sa_dio_rewind
     }
 
     // test 3: rewind from middle position
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "0123456789");
         fflush(temp_file);
         fseek(temp_file, 5, SEEK_SET);
 
-        d_rewind(temp_file);
+        d_file_rewind_stream(temp_file);
 
         // verify position
         d_memset(buffer, 0, sizeof(buffer));
@@ -333,7 +344,7 @@ d_tests_sa_dio_rewind
     }
 
     // test 4: rewind clears error indicators
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "TEST");
@@ -343,7 +354,7 @@ d_tests_sa_dio_rewind
         fseek(temp_file, 0, SEEK_END);
         fgetc(temp_file);  // should set EOF indicator
 
-        d_rewind(temp_file);
+        d_file_rewind_stream(temp_file);
 
         result = d_assert_standalone(
             d_feof(temp_file) == 0,
@@ -361,15 +372,15 @@ d_tests_sa_dio_rewind
     }
 
     // test 5: multiple rewinds
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "ABC");
         fflush(temp_file);
 
-        d_rewind(temp_file);
-        d_rewind(temp_file);
-        d_rewind(temp_file);
+        d_file_rewind_stream(temp_file);
+        d_file_rewind_stream(temp_file);
+        d_file_rewind_stream(temp_file);
 
         // verify position
         d_memset(buffer, 0, sizeof(buffer));
@@ -384,7 +395,7 @@ d_tests_sa_dio_rewind
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }

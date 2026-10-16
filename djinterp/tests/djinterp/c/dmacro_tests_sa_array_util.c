@@ -1,19 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                  dmacro_tests_sa_array_util.c
+/*******************************************************************************
+* djinterp [test]                                   dmacro_tests_sa_array_util.c
 *
 *   Unit tests for `dmacro.h` array utilities section (Section II).
 *   Tests compile-time array sizing macros (D_ARRAY_COUNT, D_ARRAY_COUNT_SAFE,
 *   D_ARRAY_COUNT_T) and array generation macros (D_MAKE_ARRAY,
 *   D_MAKE_STRING_ARRAY).
 *   Note: this module tests fundamental macro utilities that are dependencies
-* of other djinterp modules, so it uses `test_standalone.h` rather than DTest.
+* of other djinterp modules, so it does not use DTest for unit testing.
 *
 *
-* path:      \test\dmacro_tests_sa_array_util.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
-#include ".\dmacro_tests_sa.h"
+* path:      /tests/djinterp/c/dmacro_tests_sa_array_util.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************
@@ -699,8 +702,8 @@ d_tests_sa_dmacro_make_array
     // create char array
     D_MAKE_ARRAY(char, test_chars, 'x', 'y', 'z');
 
-    if (!d_assert_standalone(test_chars[0] == 'x' && 
-                             test_chars[1] == 'y' && 
+    if (!d_assert_standalone(test_chars[0] == 'x' &&
+                             test_chars[1] == 'y' &&
                              test_chars[2] == 'z',
                              "D_MAKE_ARRAY(char) initializes correctly",
                              "char array should have x, y, z",
@@ -802,9 +805,9 @@ d_tests_sa_dmacro_make_string_array
     }
 
     // test with longer identifier names
-    D_MAKE_STRING_ARRAY(long_names, 
-                        hello_world, 
-                        test_identifier, 
+    D_MAKE_STRING_ARRAY(long_names,
+                        hello_world,
+                        test_identifier,
                         another_one,
                         final_entry);
 

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [parse/test]                                        parse_tests.hpp
+/*******************************************************************************
+* djinterp [parse/test]                                          parse_tests.hpp
 *
 *   The two-faced suite header for parse.hpp (the DTest DTEST_SPEC_MODE
 * idiom).  parse.hpp carries the support types that face into a parser:
@@ -87,25 +87,26 @@
 *
 * path:      /tests/djinterp/parse/parse_tests.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_PARSE_TESTS_
 #define DJINTERP_TESTS_PARSE_TESTS_ 1
 
 // std
-#include <cstdio>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <string>
 #include <type_traits>
-
+// djinterp
 // -- (part 1) mode-gated includes -------------------------------------------
 //   djinterp core is always first and unconditional (NS_*, D_* qualifiers,
 // language gates), so both faces have it.
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "parse.hpp"                        // the header under test (normal)
+#include "../../../inc/djinterp/parse/parse.hpp"                        // the header under test (normal)
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"  // module_spec + run_module (spec)

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                   member_traits_tests.hpp
+/*******************************************************************************
+* djinterp [testing]                                     member_traits_tests.hpp
 *
 * Unit test suite for member_traits.hpp -- the DEPRECATED transitional shim.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
@@ -53,10 +53,12 @@
 * CONTENTS
 *   I.    FORWARDING   (member_traits_tests_forwarding.cpp)
 *
+*
 * path:      /tests/djinterp/core/meta/member_traits_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.07.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_MEMBER_TRAITS_TESTS_
 #define DJINTERP_TESTS_MEMBER_TRAITS_TESTS_ 1
@@ -64,11 +66,11 @@
 // std
 #include <cstdio>
 #include <type_traits>
-
+// djinterp
 // -- (part 1) mode-gated includes --------------------------------------------
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "member_traits.hpp"                    // the deprecated shim under test
+#include "../../../../inc/djinterp/core/meta/member_traits.hpp"                    // the deprecated shim under test
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"      // module_spec + run_module (spec)

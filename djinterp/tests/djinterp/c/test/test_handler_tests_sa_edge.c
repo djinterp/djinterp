@@ -1,9 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                  test_handler_tests_sa_edge.c
+/*******************************************************************************
+* djinterp [test]                                   test_handler_tests_sa_edge.c
 *   Unit tests for edge cases and error handling.
-* author(s): Samuel 'teer' Neal-Blim                           date: 2025.10.05
-******************************************************************************/
-#include "./test_handler_tests_sa.h"
+*
+*
+* path:      /tests/djinterp/c/test/test_handler_tests_sa_edge.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "test_handler_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 bool d_tests_sa_handler_null_parameters(struct d_test_counter* _test_info)
 {

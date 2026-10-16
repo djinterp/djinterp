@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                     functor_tests_protocol.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/functor_tests_protocol.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  functor_tests_protocol.cpp
 //   Section I -- functor_traits, is_functor (+ _v), and the deliberate absence
 //   of rebind from the core protocol.

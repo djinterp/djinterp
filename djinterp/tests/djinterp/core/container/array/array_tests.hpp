@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                           array_tests.hpp
+/*******************************************************************************
+* djinterp [testing]                                             array_tests.hpp
 *
 *   Declarations for the djinterp `array` container test suite,
 * including the threadsafe wrappers (threadsafe_array, atomic_array,
@@ -133,6 +133,48 @@
 *           - run_array_suite            (Part A only)
 *           - run_threadsafe_array_suite (Part B aggregate)
 *
+*   PART D.  ARRAY OPTIONS  (split across four .cpp files)
+*
+*   XXXV.  Options machinery - exhaustive coverage of the
+*          configuration surface used by every container in
+*          the family.  Verifies that all containers are
+*          configurable through the canonical
+*          `template<typename... _Options>` form alone:
+*           - per-axis option aliases resolve correctly
+*           - required (element type) and default values
+*             (extent, lifetime, iterability, lock policy)
+*           - option ORDER independence across all wrappers
+*           - first-match-wins for duplicate keys
+*           - universal axes silently ignored when
+*             irrelevant
+*           - cross-container option propagation
+*           - with_options mixin contract surfaced via
+*             every container
+*           - convenience-alias resolution
+*           - factory-function deduction
+*           - option_list manipulation primitives
+*             (prepend / append / concat)
+*           - lock-policy variation across all available
+*             policies
+*           - edge cases (extent 0/1/large, pointer / struct /
+*             integer element types)
+*   XXXVI. Module aggregate and runner
+*           - make_array_options_subtree         (in core .cpp)
+*           - run_array_options_suite            (in core .cpp)
+*
+*           Implementation translation units:
+*             array_options_core_tests.cpp    - aliases, defaults,
+*               order independence, duplicates, ignored axes,
+*               cross-container propagation, with_options mixin
+*               contract; also owns the aggregate builder + runner.
+*             array_options_alias_tests.cpp   - convenience-alias
+*               resolution (lifetime x iterability cube +
+*               mutex/timed/shared).
+*             array_options_factory_tests.cpp - factory functions
+*               and option_list manipulation primitives.
+*             array_options_edge_tests.cpp    - lock policy
+*               variation and element-type / extent edge cases.
+*
 *
 *   PORTABILITY:
 *   C++11 baseline - see env.h and env_cpp_features.h for the
@@ -147,55 +189,140 @@
 * gracefully where required features are unavailable.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.       SUITE TYPE ALIASES
-*
-* PART A:  BASE ARRAY
-* II.      CATEGORY: TRAIT CONFORMANCE
-* III.     CATEGORY: CONSTRUCTION
-* IV.      CATEGORY: ELEMENT ACCESS
-* V.       CATEGORY: ITERATION
-* VI.      CATEGORY: MUTATION
-* VII.     CATEGORY: BULK ALGORITHMS
-* VIII.    CATEGORY: CONSTEXPR USABILITY
-* IX.      CATEGORY: ITERATOR ALGORITHM INTEROP
-*
-* PART B:  THREADSAFE WRAPPERS
-* X.       CATEGORY: WRAPPER TRAIT CONFORMANCE
-* XI.      CATEGORY: THREADSAFE_ARRAY CONSTRUCTION
-* XII.     CATEGORY: THREADSAFE_ARRAY LOCK-FREE QUERIES
-* XIII.    CATEGORY: THREADSAFE_ARRAY SINGLE-OP ACCESS
-* XIV.     CATEGORY: THREADSAFE_ARRAY HANDLE-BASED ACCESS
-* XV.      CATEGORY: THREADSAFE_ARRAY BULK OPERATIONS
-* XVI.     CATEGORY: THREADSAFE_ARRAY OPTIMISTIC READ
-* XVII.    CATEGORY: THREADSAFE_ARRAY SNAPSHOT
-* XVIII.   CATEGORY: THREADSAFE_ARRAY CONVENIENCE ALIASES
-* XIX.     CATEGORY: THREADSAFE_ARRAY POLICY VARIATION
-* XX.      CATEGORY: THREADSAFE_ARRAY CONCURRENT ACCESS
-* XXI.     CATEGORY: ATOMIC_ARRAY CONSTRUCTION
-* XXII.    CATEGORY: ATOMIC_ARRAY ELEMENT ACCESS
-* XXIII.   CATEGORY: ATOMIC_ARRAY ELEMENT UPDATES
-* XXIV.    CATEGORY: ATOMIC_ARRAY ELEMENT CAS
-* XXV.     CATEGORY: ATOMIC_ARRAY BULK OPERATIONS
-* XXVI.    CATEGORY: ATOMIC_ARRAY ITERATION
-* XXVII.   CATEGORY: ATOMIC_ARRAY CONCURRENT ACCESS
-* XXVIII.  CATEGORY: COW_ARRAY CONSTRUCTION
-* XXIX.    CATEGORY: COW_ARRAY READ ACCESS
-* XXX.     CATEGORY: COW_ARRAY SNAPSHOT
-* XXXI.    CATEGORY: COW_ARRAY WRITE ACCESS
-* XXXII.   CATEGORY: COW_ARRAY CONCURRENT ACCESS
-* XXXIII.  CATEGORY: WRAPPER EDGE CASES
-*
-* PART C:  AGGREGATE BUILDERS AND RUNNERS
-* XXXIV.   AGGREGATE SUBTREE BUILDERS
-* XXXV.    MASTER-SUITE RUNNERS
-*
-*
 * path:      /tests/djinterp/core/container/array/array_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    SUITE TYPE ALIASES
+      ------------------
+
+      PART A:  BASE ARRAY
+
+II.   CATEGORY: TRAIT CONFORMANCE
+      ---------------------------
+
+III.  CATEGORY: CONSTRUCTION
+      ----------------------
+
+IV.   CATEGORY: ELEMENT ACCESS
+      ------------------------
+
+V.    CATEGORY: ITERATION
+      -------------------
+
+VI.   CATEGORY: MUTATION
+      ------------------
+
+VII.  CATEGORY: BULK ALGORITHMS
+      -------------------------
+
+VIII. CATEGORY: CONSTEXPR USABILITY
+      -----------------------------
+
+IX.   CATEGORY: ITERATOR ALGORITHM INTEROP
+      ------------------------------------
+
+      PART B:  THREADSAFE WRAPPERS
+
+X.    CATEGORY: WRAPPER TRAIT CONFORMANCE
+      -----------------------------------
+
+XI.   CATEGORY: THREADSAFE_ARRAY CONSTRUCTION
+      ---------------------------------------
+
+XII.  CATEGORY: THREADSAFE_ARRAY LOCK-FREE QUERIES
+      --------------------------------------------
+
+XIII. CATEGORY: THREADSAFE_ARRAY SINGLE-OP ACCESS
+      -------------------------------------------
+
+XIV.  CATEGORY: THREADSAFE_ARRAY HANDLE-BASED ACCESS
+      ----------------------------------------------
+
+XV.   CATEGORY: THREADSAFE_ARRAY BULK OPERATIONS
+      ------------------------------------------
+
+XVI.  CATEGORY: THREADSAFE_ARRAY OPTIMISTIC READ
+      ------------------------------------------
+
+XVII. CATEGORY: THREADSAFE_ARRAY SNAPSHOT
+      -----------------------------------
+
+XVIII. CATEGORY: THREADSAFE_ARRAY CONVENIENCE ALIASES
+      ----------------------------------------------
+
+XIX.  CATEGORY: THREADSAFE_ARRAY POLICY VARIATION
+      -------------------------------------------
+
+XX.   CATEGORY: THREADSAFE_ARRAY CONCURRENT ACCESS
+      --------------------------------------------
+
+XXI.  CATEGORY: ATOMIC_ARRAY CONSTRUCTION
+      -----------------------------------
+
+XXII. CATEGORY: ATOMIC_ARRAY ELEMENT ACCESS
+      -------------------------------------
+
+XXIII. CATEGORY: ATOMIC_ARRAY ELEMENT UPDATES
+      --------------------------------------
+
+XXIV. CATEGORY: ATOMIC_ARRAY ELEMENT CAS
+      ----------------------------------
+
+XXV.  CATEGORY: ATOMIC_ARRAY BULK OPERATIONS
+      --------------------------------------
+
+XXVI. CATEGORY: ATOMIC_ARRAY ITERATION
+      --------------------------------
+
+XXVII. CATEGORY: ATOMIC_ARRAY CONCURRENT ACCESS
+      ----------------------------------------
+
+XXVIII. CATEGORY: COW_ARRAY CONSTRUCTION
+      --------------------------------
+
+XXIX. CATEGORY: COW_ARRAY READ ACCESS
+      -------------------------------
+
+XXX.  CATEGORY: COW_ARRAY SNAPSHOT
+      ----------------------------
+
+XXXI. CATEGORY: COW_ARRAY WRITE ACCESS
+      --------------------------------
+
+XXXII. CATEGORY: COW_ARRAY CONCURRENT ACCESS
+      -------------------------------------
+
+XXXIII. CATEGORY: WRAPPER EDGE CASES
+      ----------------------------
+
+      PART C:  AGGREGATE BUILDERS AND RUNNERS
+
+XXXIV. AGGREGATE SUBTREE BUILDERS
+      --------------------------
+
+XXXV. MASTER-SUITE RUNNERS
+      --------------------
+
+      PART D:  ARRAY OPTIONS
+
+XXXVI. ARRAY OPTIONS CATEGORIES (aliases, defaults, ordering,
+      ------------------------------------------------------
+
+      duplicates, ignored axes, propagation, with_options
+
+      mixin, convenience aliases, factories, list ops,
+
+      lock policies, edge cases)
+
+XXXVII. ARRAY OPTIONS MODULE AGGREGATE AND RUNNER
+      -----------------------------------------
+*/
 
 #ifndef DJINTERP_TEST_ARRAY_TESTS_
 #define DJINTERP_TEST_ARRAY_TESTS_ 1
@@ -212,12 +339,12 @@
 
 // std
 #include <cstddef>
+// djinterp
 // djinterp  --  pull the environment header chain FIRST so that the
 // feature-flag macros below are defined before we test them.
-#include "../../../../../inc/djinterp/core/djinterp.hpp"
+#include "../../../../../inc/djinterp/djinterp.hpp"
 #include "../../../../../inc/djinterp/core/container/tree/nary/nary_tree.hpp"
 #include "../../../../../inc/djinterp/core/container/traits/sorted_container_traits.hpp"
-#include "../../../../../inc/djinterp/core/container/traits/flat_hierarchical_container_traits.hpp"
 #include "../../../../../inc/djinterp/test/test_common.hpp"
 #include "../../../../../inc/djinterp/test/test_defaults.hpp"
 #include "../../../../../inc/djinterp/test/test_event.hpp"
@@ -669,7 +796,7 @@ array_test_tree test_threadsafe_array_alias_shared_cpp17(
 // XIX. CATEGORY: THREADSAFE_ARRAY POLICY VARIATION
 // =========================================================================
 //   Same logical operations across all available lock
-// policies — null, exclusive, timed, shared — verifying that
+// policies - null, exclusive, timed, shared - verifying that
 // behavior is uniform and that the policy-specific
 // capabilities (supports_shared, supports_timed) are reported
 // correctly through the CRTP base.
@@ -725,7 +852,7 @@ array_test_tree test_atomic_array_copy_move_deletion_sfinae(
 // =========================================================================
 // XXII. CATEGORY: ATOMIC_ARRAY ELEMENT ACCESS
 // =========================================================================
-//   load(i), store(i, v), exchange(i, v) — each accepts an
+//   load(i), store(i, v), exchange(i, v) - each accepts an
 // optional memory_order.  Tests verify round-trip values,
 // independence of distinct slots, and that exchange()
 // returns the prior value.
@@ -778,7 +905,7 @@ array_test_tree test_atomic_array_cas_weak_loop(
 // XXV. CATEGORY: ATOMIC_ARRAY BULK OPERATIONS
 // =========================================================================
 //   size, empty, fill, is_lock_free.  fill is per-element
-// atomic, NOT a coherent whole-array operation — tests
+// atomic, NOT a coherent whole-array operation - tests
 // verify only that all slots end up at the supplied value.
 
 array_test_tree test_atomic_array_size_empty(
@@ -792,7 +919,7 @@ array_test_tree test_atomic_array_is_lock_free(
 // =========================================================================
 // XXVI. CATEGORY: ATOMIC_ARRAY ITERATION
 // =========================================================================
-//   begin/end/cbegin/cend yield std::atomic<T>* — callers
+//   begin/end/cbegin/cend yield std::atomic<T>* - callers
 // operate on each slot through its atomic interface.  data()
 // returns the underlying atomic_value_type pointer.
 
@@ -910,6 +1037,279 @@ array_test_tree test_threadsafe_edge_zero_extent(
 array_test_tree test_threadsafe_edge_single_element(
     test::test_type_id _kind);
 array_test_tree test_threadsafe_edge_large_extent(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// PART D:  ARRAY OPTIONS
+// =========================================================================
+//   This part exercises the *configuration surface* of every
+// container in the array family.  Where Parts A and B verify
+// runtime behavior, Part D verifies that the options pack
+// resolves to the right type traits, that defaults kick in
+// when the user is silent, that ordering and duplicates obey
+// the documented first-match-wins rule, and that the
+// `with_options` mixin contract is uniformly surfaced.
+//
+//   GOAL:
+//   Every container in the family - array<>, threadsafe_array<>,
+// atomic_array<>, cow_array<>, plus the convenience aliases
+// (mutex_array, timed_array, shared_array, mutable_iterable_array,
+// etc.) - must be configurable through the canonical
+// `template<typename... _Options>` form alone.  No positional-only
+// path is permitted; the convenience aliases MUST resolve to
+// fully-formed options-pack instantiations.
+//
+//   SOURCE FILE LAYOUT (translation units):
+//     array_options_core_tests.cpp    - alias resolution, defaults,
+//                                       order independence,
+//                                       first-match-wins,
+//                                       ignored axes, cross-
+//                                       container propagation,
+//                                       with_options mixin
+//                                       contract; also owns the
+//                                       Part D module aggregate
+//                                       builder + master runner.
+//     array_options_alias_tests.cpp   - convenience-alias resolution
+//                                       (lifetime x iterability
+//                                       cube + mutex/timed/shared).
+//     array_options_factory_tests.cpp - make_array, make_immutable_
+//                                       array, make_array_from_
+//                                       options, and the
+//                                       option_list manipulation
+//                                       primitives.
+//     array_options_edge_tests.cpp    - lock policy variation and
+//                                       element-type / extent
+//                                       edge cases.
+
+
+// =========================================================================
+// XXXIV. CATEGORY: ALIAS RESOLUTION
+// =========================================================================
+//   Each per-axis convenience alias must compose into the
+// canonical `option<key, value>` shape.  Tests verify the
+// alias's nested ::key_type and ::value_type are exactly
+// what the resolver expects to see.
+
+array_test_tree test_options_array_opt_type_alias(
+    test::test_type_id _kind);
+array_test_tree test_options_array_opt_extent_alias(
+    test::test_type_id _kind);
+array_test_tree test_options_container_opt_lifetime_alias(
+    test::test_type_id _kind);
+array_test_tree test_options_container_opt_iterability_alias(
+    test::test_type_id _kind);
+array_test_tree test_options_container_opt_lock_policy_alias(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXXV.  CATEGORY: REQUIRED AND DEFAULT OPTIONS
+// =========================================================================
+//   The element-type option is required.  The other axes
+// have defaults the resolver supplies when the option is
+// absent from the user pack.
+
+array_test_tree test_options_required_element_type(
+    test::test_type_id _kind);
+array_test_tree test_options_default_extent(
+    test::test_type_id _kind);
+array_test_tree test_options_default_lifetime(
+    test::test_type_id _kind);
+array_test_tree test_options_default_iterability(
+    test::test_type_id _kind);
+array_test_tree test_options_default_lock_policy_threadsafe(
+    test::test_type_id _kind);
+array_test_tree test_options_default_lock_policy_cow(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXXVI. CATEGORY: OPTION ORDER INDEPENDENCE
+// =========================================================================
+//   The user may supply axis options in any order; the
+// resolver looks each one up by key, so the resulting type
+// must be equivalent regardless of the original ordering.
+
+array_test_tree test_options_array_order_invariance(
+    test::test_type_id _kind);
+array_test_tree test_options_threadsafe_order_invariance(
+    test::test_type_id _kind);
+array_test_tree test_options_cow_order_invariance(
+    test::test_type_id _kind);
+array_test_tree test_options_atomic_order_invariance(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXXVII. CATEGORY: FIRST-MATCH-WINS FOR DUPLICATES
+// =========================================================================
+//   When a key appears more than once in the options pack,
+// `option_list_lookup_t` returns the first match.  Tests
+// instantiate containers with deliberate duplicates and
+// verify the earlier value wins.
+
+array_test_tree test_options_duplicate_extent_first_wins(
+    test::test_type_id _kind);
+array_test_tree test_options_duplicate_lifetime_first_wins(
+    test::test_type_id _kind);
+array_test_tree test_options_duplicate_iterability_first_wins(
+    test::test_type_id _kind);
+array_test_tree test_options_duplicate_lock_policy_first_wins(
+    test::test_type_id _kind);
+array_test_tree test_options_duplicate_element_type_first_wins(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXXVIII. CATEGORY: UNIVERSAL AXES SILENTLY IGNORED
+// =========================================================================
+//   The container_options.hpp header defines per-axis
+// options for every universal classification axis.  The
+// array family only consumes a subset (lifetime, iterability,
+// lock_policy); the others must be silently accepted (no
+// compile error) and have no effect on the resolved
+// configuration.
+
+array_test_tree test_options_ignored_universal_axes(
+    test::test_type_id _kind);
+array_test_tree test_options_thread_safety_enum_does_not_pin_lock_policy(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXXIX. CATEGORY: CROSS-CONTAINER OPTION PROPAGATION
+// =========================================================================
+//   Each wrapper composes the underlying `array<>` with the
+// same option pack.  The resolved positional axes (element
+// type, extent, lifetime, iterability) must therefore agree
+// across the wrapper and the inner array.
+
+array_test_tree test_options_threadsafe_inherits_axes(
+    test::test_type_id _kind);
+array_test_tree test_options_cow_inherits_axes(
+    test::test_type_id _kind);
+array_test_tree test_options_atomic_inherits_axes(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XL.   CATEGORY: WITH_OPTIONS MIXIN CONTRACT
+// =========================================================================
+//   Every container in the family inherits the with_options
+// surface: ::options_type, ::option_count, ::has_option_v<>,
+// ::option_t<>.  Tests verify presence and behavior on
+// representative configurations.
+
+array_test_tree test_options_options_type_alias_present(
+    test::test_type_id _kind);
+array_test_tree test_options_option_count_member(
+    test::test_type_id _kind);
+array_test_tree test_options_has_option_v(
+    test::test_type_id _kind);
+array_test_tree test_options_option_t_lookup_and_default(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XLI.  CATEGORY: CONVENIENCE ALIAS RESOLUTION
+// =========================================================================
+//   The lifetime x iterability cube has six named cells in
+// array.hpp; each must resolve to a well-formed array<...>
+// instantiation with the documented axis values.  The
+// thread-safety convenience aliases (mutex_array, timed_array,
+// shared_array) layer a lock policy onto the options pack.
+
+array_test_tree test_options_alias_mutable_iterable(
+    test::test_type_id _kind);
+array_test_tree test_options_alias_mutable_non_iterable(
+    test::test_type_id _kind);
+array_test_tree test_options_alias_immutable_iterable(
+    test::test_type_id _kind);
+array_test_tree test_options_alias_immutable_non_iterable(
+    test::test_type_id _kind);
+array_test_tree test_options_alias_constexpr_iterable(
+    test::test_type_id _kind);
+array_test_tree test_options_alias_constexpr_non_iterable(
+    test::test_type_id _kind);
+array_test_tree test_options_alias_mutex_array(
+    test::test_type_id _kind);
+array_test_tree test_options_alias_timed_array(
+    test::test_type_id _kind);
+array_test_tree test_options_alias_shared_array_cpp17(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XLII. CATEGORY: FACTORY FUNCTIONS
+// =========================================================================
+//   The make_array / make_immutable_array factories deduce
+// element type and extent from the runtime arguments;
+// make_array_from_options accepts an options pack and extends
+// it with a deduced extent when the user did not supply one.
+
+array_test_tree test_options_make_array_factory(
+    test::test_type_id _kind);
+array_test_tree test_options_make_immutable_array_factory(
+    test::test_type_id _kind);
+array_test_tree test_options_make_array_from_options_extent_deduction(
+    test::test_type_id _kind);
+array_test_tree test_options_make_array_from_options_explicit_extent(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XLIII. CATEGORY: OPTION LIST MANIPULATION
+// =========================================================================
+//   prepend / append / concat traits.  These let user code
+// programmatically build option packs by composing smaller
+// fragments.
+
+array_test_tree test_options_option_list_prepend(
+    test::test_type_id _kind);
+array_test_tree test_options_option_list_append(
+    test::test_type_id _kind);
+array_test_tree test_options_option_list_concat(
+    test::test_type_id _kind);
+array_test_tree test_options_option_list_concat_empty(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XLIV. CATEGORY: LOCK POLICY VARIATION
+// =========================================================================
+//   Threadsafe and cow containers must accept every documented
+// lock policy via container_opt_lock_policy<P>.  Tests verify
+// the resolved lock_policy_type member matches each option.
+
+array_test_tree test_options_lock_policy_explicit_null(
+    test::test_type_id _kind);
+array_test_tree test_options_lock_policy_explicit_exclusive(
+    test::test_type_id _kind);
+array_test_tree test_options_lock_policy_explicit_timed(
+    test::test_type_id _kind);
+array_test_tree test_options_lock_policy_explicit_shared_cpp17(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XLV.  CATEGORY: EDGE CASES
+// =========================================================================
+//   Edge cases for extent (0 / 1 / 1024) and unusual element
+// types (pointer / user struct / signed&unsigned integer
+// widths).
+
+array_test_tree test_options_edge_extent_zero(
+    test::test_type_id _kind);
+array_test_tree test_options_edge_extent_one(
+    test::test_type_id _kind);
+array_test_tree test_options_edge_extent_large(
+    test::test_type_id _kind);
+array_test_tree test_options_edge_pointer_element_type(
+    test::test_type_id _kind);
+array_test_tree test_options_edge_struct_element_type(
+    test::test_type_id _kind);
+array_test_tree test_options_edge_signed_unsigned_element_types(
     test::test_type_id _kind);
 
 
@@ -1087,6 +1487,41 @@ run_threadsafe_array_suite(
 // every module's results together.
 test::session_verdict
 run_combined_suite(
+    test::test_handler& _handler,
+    test::test_type_id  _kind        = test::D_TEST_KIND_MODULE,
+    double*             _out_seconds = nullptr);
+
+
+// =========================================================================
+// XLVI. PART D MODULE AGGREGATE AND RUNNER
+// =========================================================================
+//   make_array_options_subtree assembles every Part D
+// category function above as a child of a single module-
+// level root.  run_array_options_suite drives that
+// aggregate against the supplied handler and returns the
+// resulting session_verdict.  Signatures mirror the
+// existing Part A / Part B builders and runners so main.cpp
+// can wire Part D in alongside them with a single block.
+//
+//   Both entry points are defined in
+// array_options_core_tests.cpp, which is also the file
+// that aggregates every Part D test function across the
+// four translation units.
+
+// make_array_options_subtree
+//   builder: assembles every Part D test function (declared
+// above) into one array_test_tree rooted in a module-kind
+// interior node labelled "array options".
+array_test_tree
+make_array_options_subtree(
+    test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+
+// run_array_options_suite
+//   driver: builds the Part D subtree, hands it to _handler,
+// and returns the verdict.  When _out_seconds is non-null
+// the wall-clock duration of the run is stored there.
+test::session_verdict
+run_array_options_suite(
     test::test_handler& _handler,
     test::test_type_id  _kind        = test::D_TEST_KIND_MODULE,
     double*             _out_seconds = nullptr);

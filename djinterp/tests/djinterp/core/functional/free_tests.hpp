@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            free_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                                 free_tests.hpp
 *
 *   Declarations and shared fixtures for the parser/free.hpp unit suite -- the
 * three "free" strata over the parser carrier: FreeAp (applicative), FreeSel
@@ -27,10 +27,11 @@
 *     VII.    cross-stratum lifts ....... free_tests_crossstratum.cpp
 *
 *
-* path:      /tests/djinterp/parse/parser/free_tests.hpp
+* path:      /tests/djinterp/core/functional/free_tests.hpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_PARSE_FREE_TESTS_
 #define DJINTERP_PARSE_FREE_TESTS_ 1
@@ -41,11 +42,12 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+// djinterp
 // djinterp -- the header under test (which pulls in parse.hpp / parser.hpp /
 //   the functional companion), plus the DTest authoring + runner surface.
 //   NOTE: include paths are rooted at the djinterp include directory; adjust to
 //   match your build tree.
-#include "djinterp/parse/parser/free.hpp"
+#include "djinterp/core/functional/free.hpp"
 #include "djinterp/test/test_defaults.hpp"
 
 

@@ -1,21 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                      str_interp_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                          str_interp_tests_sa.h
 *
 *   Unit tests for the string interpolation module (string_interp.h).
 *   Tests cover context lifecycle, specifier management, interpolation
 * functions, convenience wrappers, and utility functions.
 *
 *
-* path:      /inc/tests/c/text/str_interp_tests_sa.h
+* path:      /tests/djinterp/c/text/str_interp_tests_sa.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.26
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.26
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEXT_STR_INTERP_TESTS_STANDALONE_
 #define DJINTERP_TEXT_STR_INTERP_TESTS_STANDALONE_ 1
 
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/text/str_interp.h"
+// djinterp
+#include "../../../../inc/djinterp/c/text/str_interp.h"
 
 
 /******************************************************************************

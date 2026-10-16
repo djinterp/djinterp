@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                option_diff_tests_ct_keys.cpp
+/*******************************************************************************
+* djinterp [test]                                  option_diff_tests_ct_keys.cpp
 *
 *   PART A / A.II - compile-time key-level diff traits (option_set_added_keys,
 * option_set_removed_keys, option_set_common_keys) plus direct coverage of the
@@ -7,10 +7,14 @@
 * key_list_filter_dispatch) they are built on.  Keys only - values are the
 * province of ct_values - so fixtures use the value-absent key_opt<> shape.
 *
+*
 * path:      /tests/djinterp/core/option/option_diff_tests_ct_keys.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.08
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./option_diff_tests.hpp"
 
 

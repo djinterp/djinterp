@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               test_container_tests_probes.cpp
+/*******************************************************************************
+* djinterp [test]                                test_container_tests_probes.cpp
 *
 *   Section I of the test_container suite: the STRUCTURAL MEMBER PROBES.  One
 * unit per probe (has_value_type, has_size_accessor, has_empty_method,
@@ -12,11 +12,14 @@
 *   has_clear_method is wired to no contract predicate, so this is the only
 * place it is exercised at all.
 *
-* path:      /tests/djinterp/test/test_container/test_container_tests_probes.cpp
+*
+* path:      /tests/djinterp/test/test_container_tests_probes.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_container_tests.hpp"
 
 NS_DJINTERP

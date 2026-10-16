@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [expression]                                     expression_render.hpp
+/*******************************************************************************
+* djinterp [parse]                                         expression_render.hpp
 *
 *   Turning an expression back into text, correctly parenthesized.  Rendering
 * is a fold: each sub-term becomes a string together with the precedence of
@@ -40,18 +40,19 @@
 *
 * path:      /inc/djinterp/parse/expression_render.hpp
 * link(s):   ch-synthesis.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_EXPRESSION_EXPRESSION_RENDER_
-#define DJINTERP_EXPRESSION_EXPRESSION_RENDER_ 1
+#ifndef DJINTERP_PARSE_EXPRESSION_RENDER_HPP
+#define DJINTERP_PARSE_EXPRESSION_RENDER_HPP 1
 
 // std
 #include <cstddef>
 #include <string>
 #include <vector>
 // djinterp
-#include "./expression.hpp"
+#include "../math/expression.hpp"
 #include "./expression_ops.hpp"
 
 
@@ -326,4 +327,4 @@ render
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_EXPRESSION_EXPRESSION_RENDER_
+#endif  // DJINTERP_PARSE_EXPRESSION_RENDER_HPP

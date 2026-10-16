@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                      monoid_tests_newtypes.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/monoid_tests_newtypes.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  monoid_tests_newtypes.cpp
 //   Section I -- MONOID NEWTYPES (sum / product / all / any / min / max).
 

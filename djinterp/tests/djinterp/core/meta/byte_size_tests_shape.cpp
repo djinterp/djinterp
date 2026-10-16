@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     byte_size_tests_shape.cpp
+/*******************************************************************************
+* djinterp [test]                                      byte_size_tests_shape.cpp
 *
 *   Section III of byte_size.hpp: byte_shape_of, byte_own_dynamic (its three
 * overloads) and byte_node_count (its two).  Exercised at ONE container level
@@ -19,10 +19,13 @@
 *     static         -> 0
 *
 *
-* path:      /inc/djinterp/test/byte_size_tests_shape.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.03
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/byte_size_tests_shape.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "byte_size_tests.hpp"
 
 

@@ -1,18 +1,25 @@
-/******************************************************************************
-* djinterp [test]                              consumer_tests_primitives.cpp
+/*******************************************************************************
+* djinterp [test]                                  consumer_tests_primitives.cpp
 *
 *   Tests for consumer.hpp Section II primitives: print_to (with custom
 * and default separators), write_to (container append), discard (null
 * sink), and count_into (external counter).  Covers correct output,
 * separator handling, empty-stream edge cases, multiple values, and
 * the no-op contract of discard.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/consumer_tests_primitives.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "consumer_tests.hpp"
-
+// std
 #include <sstream>
 #include <string>
 #include <vector>
+// djinterp
+#include "consumer_tests.hpp"
 
 
 NS_DJINTERP

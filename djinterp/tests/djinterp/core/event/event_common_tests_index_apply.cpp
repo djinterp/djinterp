@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                            event_common_tests_index_apply.cpp
+/*******************************************************************************
+* djinterp [test]                             event_common_tests_index_apply.cpp
 *
 *   Section I -- INDEX SEQUENCE POLYFILL + tuple-apply utilities.  Covers the
 * internal compile-time integer sequence (index_sequence / make_index_sequence)
@@ -13,10 +13,11 @@
 * stays C++11-clean.
 *
 *
-* path:      /tests/djinterp/core/event/event_common/event_common_tests_index_apply.cpp
+* path:      /tests/djinterp/core/event/event_common_tests_index_apply.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_common_tests.hpp"

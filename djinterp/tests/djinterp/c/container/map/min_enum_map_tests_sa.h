@@ -1,24 +1,25 @@
-/******************************************************************************
-* djinterp [test]                                      min_enum_map_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                        min_enum_map_tests_sa.h
 *
 *   Unit tests for the min_enum_map module (minimal enum-keyed map).
 *   Tests cover map creation, insertion, retrieval, removal, merging,
 * and comprehensive edge cases.
 *
 *
-* path:      /test/container/map/min_enum_map_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
-******************************************************************************/
+* path:      /tests/djinterp/c/container/map/min_enum_map_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_MIN_ENUM_MAP_TESTS_STANDALONE_
 #define DJINTERP_MIN_ENUM_MAP_TESTS_STANDALONE_ 1
 
-#include "../../../../inc/c/djinterp.h"
-#include "../../../../inc/c/string_fn.h"
-#include "../../../../inc/c/test/test_standalone.h"
-#include "../../../../inc/c/container/map/enum_map_entry.h"
-#include "../../../../inc/c/container/map/min_enum_map.h"
+// djinterp
+#include "../../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../../inc/djinterp/c/container/map/enum_map_entry.h"
+#include "../../../../../inc/djinterp/c/container/map/min_enum_map.h"
 
 
 /******************************************************************************

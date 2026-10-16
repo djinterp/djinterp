@@ -1,15 +1,16 @@
-/******************************************************************************
-* djinterp [test]                           event_handler_tests_handler_id.cpp
+/*******************************************************************************
+* djinterp [test]                             event_handler_tests_handler_id.cpp
 *
 *   Section I -- HANDLER IDENTIFICATION.  Covers the handler_id handle: its
 * relational operators, the validity query (non-zero is real, zero is the
 * null sentinel), the null() factory, and value-copy semantics.
 *
 *
-* path:      /tests/djinterp/core/event/event_handler/event_handler_tests_handler_id.cpp
+* path:      /tests/djinterp/core/event/event_handler_tests_handler_id.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_handler_tests.hpp"

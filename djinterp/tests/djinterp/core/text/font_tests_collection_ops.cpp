@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                  font_tests_collection_ops.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_collection_ops.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_collection_ops.cpp
 //   Section 9c: the free functions over the COLLECTION-shaped mixins -
 // the OpenType feature list, the variable-font axis list, the script hint

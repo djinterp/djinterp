@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    comonad_tests_extend.cpp
+/*******************************************************************************
+* djinterp [test]                                       comonad_tests_extend.cpp
 *
 *   Section II.2 of the comonad.hpp suite: extend, the co-bind, which recomputes
 * the focus from the WHOLE context (f : W<A> -> B), keeping the environment, to
@@ -10,10 +10,12 @@
 * the result types -- over std::pair, kv_pair (field-level, key-only equality),
 * and the custom Identity comonad.
 *
+*
 * path:      /tests/djinterp/core/functional/comonad_tests_extend.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "comonad_tests.hpp"

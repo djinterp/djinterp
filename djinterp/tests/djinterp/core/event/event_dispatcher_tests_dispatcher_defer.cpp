@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                event_dispatcher_tests_dispatcher_defer.cpp
+/*******************************************************************************
+* djinterp [test]                    event_dispatcher_tests_dispatcher_defer.cpp
 *
 *   Section III (deferred surface) -- the event_dispatcher facade's
 * asynchronous half and its integration with the registry.  queue enqueues an
@@ -12,10 +12,11 @@
 * are contrasted: fire delivers immediately, queue defers until processed.
 *
 *
-* path:      /tests/djinterp/core/event/event_dispatcher/event_dispatcher_tests_dispatcher_defer.cpp
+* path:      /tests/djinterp/core/event/event_dispatcher_tests_dispatcher_defer.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_dispatcher_tests.hpp"

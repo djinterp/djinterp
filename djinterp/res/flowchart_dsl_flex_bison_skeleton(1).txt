@@ -1,0 +1,1968 @@
+// ============================================================================
+// FLOWCHART DSL FLEX/BISON SKELETON
+// ============================================================================
+// This is a practical conversion of the ABNF grammar into a Bison/Flex starting
+// point. It keeps most grammar structure, but intentionally parses expressions
+// as opaque expression text in several places because a complete expression
+// grammar was not included in the ABNF.
+//
+// Suggested files:
+//   flowchart_parser.y
+//   flowchart_lexer.l
+//   flowchart_ast.hpp
+//   flowchart_driver.hpp / .cpp
+// ============================================================================
+
+
+// ============================================================================
+// FILE: flowchart_parser.y
+// ============================================================================
+
+%language "c++"
+%require "3.8"
+%defines "flowchart_parser.hpp"
+%output  "flowchart_parser.cpp"
+
+%define api.namespace {flowchart}
+%define api.parser.class {parser}
+%define api.value.type variant
+%define api.token.constructor
+%define parse.error detailed
+%define parse.lac full
+
+%locations
+
+%code requires {
+    #include <memory>
+    #include <string>
+    #include <vector>
+
+    namespace flowchart
+    {
+        class driver;
+
+        struct ast_node
+        {
+            virtual ~ast_node() = default;
+        };
+
+        struct document : ast_node
+        {
+            std::vector<std::unique_ptr<ast_node>> elements;
+        };
+    }
+}
+
+%parse-param { flowchart::driver& drv }
+%lex-param   { flowchart::driver& drv }
+
+%code {
+    #include "flowchart_driver.hpp"
+    static flowchart::parser::symbol_type yylex(flowchart::driver& drv);
+}
+
+// ----------------------------------------------------------------------------
+// Semantic tokens
+// ----------------------------------------------------------------------------
+
+%token <std::string> IDENTIFIER
+%token <std::string> STRING
+%token <std::string> NUMBER
+%token <std::string> INTEGER
+%token <std::string> HEX_COLOR
+
+// ----------------------------------------------------------------------------
+// Structural keywords
+// ----------------------------------------------------------------------------
+
+%token KW_DIMENSION KW_DIM KW_TIME KW_T KW_STATIC KW_ANIMATED KW_TIMELINE KW_DEFAULTS
+%token KW_NODE KW_EDGE KW_CONNECTOR KW_GROUP KW_ANNOTATION KW_LAYER
+%token KW_AT KW_STYLE KW_CONTENT KW_TEXT KW_FROM KW_TO KW_VIA KW_LABEL KW_ROUTING
+%token KW_CUSTOM KW_POINTS KW_CLOSED KW_EQUATION KW_IN KW_2D KW_3D
+%token KW_TRUE KW_FALSE KW_YES KW_NO
+
+// ----------------------------------------------------------------------------
+// Shape keywords
+// ----------------------------------------------------------------------------
+
+%token KW_RECTANGLE KW_RECT KW_BOX KW_SQUARE KW_CIRCLE KW_ELLIPSE KW_OVAL
+%token KW_DIAMOND KW_RHOMBUS KW_PARALLELOGRAM KW_TRAPEZOID
+%token KW_HEXAGON KW_OCTAGON KW_PENTAGON
+%token KW_TRIANGLE KW_TRIANGLE_UP KW_TRIANGLE_DOWN KW_TRIANGLE_LEFT KW_TRIANGLE_RIGHT
+%token KW_STAR KW_ARROW KW_ARROW_LEFT KW_ARROW_RIGHT KW_ARROW_UP KW_ARROW_DOWN
+%token KW_CLOUD KW_CYLINDER KW_DOCUMENT KW_TAPE KW_STORED_DATA
+%token KW_MANUAL_INPUT KW_MANUAL_OPERATION KW_PROCESS KW_DECISION KW_DATA
+%token KW_TERMINATOR KW_START KW_END KW_PREDEFINED_PROCESS KW_SUBPROCESS
+%token KW_INTERNAL_STORAGE KW_DELAY KW_PREPARATION KW_OFF_PAGE_CONNECTOR
+%token KW_OR_GATE KW_SUMMING_JUNCTION KW_DATABASE KW_DB KW_QUEUE KW_COLLATE
+%token KW_SORT KW_MERGE KW_EXTRACT KW_DISPLAY
+%token KW_CUBE KW_BOX3D KW_SPHERE KW_CONE KW_PYRAMID KW_PRISM KW_TORUS
+%token KW_CYLINDER3D KW_TETRAHEDRON KW_OCTAHEDRON KW_DODECAHEDRON
+%token KW_ICOSAHEDRON KW_CAPSULE KW_ELLIPSOID
+
+// ----------------------------------------------------------------------------
+// Anchor / direction / alignment keywords
+// ----------------------------------------------------------------------------
+
+%token KW_CENTER KW_C KW_NORTH KW_N KW_TOP KW_SOUTH KW_S KW_BOTTOM
+%token KW_EAST KW_E KW_RIGHT KW_WEST KW_W KW_LEFT
+%token KW_NORTHEAST KW_NE KW_TOP_RIGHT KW_NORTHWEST KW_NW KW_TOP_LEFT
+%token KW_SOUTHEAST KW_SE KW_BOTTOM_RIGHT KW_SOUTHWEST KW_SW KW_BOTTOM_LEFT
+%token KW_ABOVE KW_BELOW KW_MIDDLE KW_BASELINE KW_SUB KW_SUPER KW_JUSTIFY
+
+// ----------------------------------------------------------------------------
+// Position / routing / transform keywords
+// ----------------------------------------------------------------------------
+
+%token KW_ROTATE KW_PITCH KW_YAW KW_ROLL KW_POLAR KW_CYLINDRICAL KW_SPHERICAL
+%token KW_TRANSLATE KW_SCALE KW_SKEW KW_MATRIX KW_TRANSFORM
+%token KW_MANHATTAN KW_ORTHOGONAL KW_SMOOTH KW_CURVED KW_BEZIER KW_SPLINE
+%token KW_STRAIGHT KW_DIRECT KW_ARC KW_POLYLINE KW_AUTO KW_TENSION KW_SWEEP KW_PARAMETRIC
+
+// ----------------------------------------------------------------------------
+// Line / border / spacing / dimension keywords
+// ----------------------------------------------------------------------------
+
+%token KW_TYPE KW_WIDTH KW_THICKNESS KW_WEIGHT KW_PATTERN KW_CAP KW_JOIN
+%token KW_SOLID KW_DASHED KW_DOTTED KW_DASH_DOT KW_DASH_DOT_DOT
+%token KW_THIN KW_MEDIUM KW_THICK KW_BUTT KW_ROUND KW_MITER KW_BEVEL
+%token KW_BORDER_WIDTH KW_BORDER KW_BORDER_STYLE KW_BORDER_RADIUS KW_ROUNDED KW_RADIUS_WORD
+%token KW_MARGIN KW_MARGIN_TOP KW_MARGIN_RIGHT KW_MARGIN_BOTTOM KW_MARGIN_LEFT KW_MARGIN_X KW_MARGIN_Y
+%token KW_PADDING KW_PADDING_TOP KW_PADDING_RIGHT KW_PADDING_BOTTOM KW_PADDING_LEFT KW_PADDING_X KW_PADDING_Y
+%token KW_HEIGHT KW_H KW_DEPTH KW_D KW_SIZE
+%token KW_SHADOW KW_BOX_SHADOW
+
+// ----------------------------------------------------------------------------
+// Unit tokens
+// ----------------------------------------------------------------------------
+
+%token KW_DEG KW_RAD KW_GRAD KW_TURN KW_PX KW_PT KW_EM KW_REM KW_CM KW_MM KW_IN_UNIT KW_PC
+%token KW_MS KW_FRAMES KW_F_UNIT KW_S_UNIT
+
+// ----------------------------------------------------------------------------
+// Arrow / color / gradient keywords
+// ----------------------------------------------------------------------------
+
+%token KW_ARROW_START KW_ARROW_END KW_ARROW_SIZE KW_NONE KW_OPEN
+%token KW_FILLED_DIAMOND KW_FILLED_CIRCLE KW_FILLED_SQUARE
+%token KW_BAR KW_PERPENDICULAR KW_CROW_FOOT KW_FORK KW_MANY KW_ONE
+%token KW_ZERO_OR_MORE KW_ONE_OR_MORE KW_ZERO_OR_ONE
+%token KW_STROKE KW_BORDER_COLOR KW_LINE_COLOR KW_FILL KW_BACKGROUND KW_BG
+%token KW_GRADIENT KW_LINEAR KW_RADIAL KW_CONIC KW_RGB KW_RGBA KW_HSL KW_HSLA
+%token KW_OPACITY KW_ALPHA KW_TRANSPARENT
+%token KW_RED KW_GREEN KW_BLUE KW_YELLOW KW_ORANGE KW_PURPLE KW_PINK
+%token KW_BLACK KW_WHITE KW_GRAY KW_GREY KW_CYAN KW_MAGENTA KW_BROWN KW_LIME
+%token KW_NAVY KW_TEAL KW_OLIVE KW_MAROON KW_SILVER KW_GOLD KW_AQUA KW_FUCHSIA
+%token KW_INDIGO KW_VIOLET KW_SALMON KW_CORAL KW_CRIMSON
+
+// ----------------------------------------------------------------------------
+// Text / typography keywords
+// ----------------------------------------------------------------------------
+
+%token KW_RICH KW_BR KW_EXPR KW_FONT KW_FONT_FAMILY KW_FONT_SIZE KW_FONT_WEIGHT
+%token KW_FONT_STYLE KW_FONT_VARIANT KW_NORMAL KW_BOLD KW_BOLDER KW_LIGHTER
+%token KW_ITALIC KW_OBLIQUE KW_SMALL_CAPS KW_COLOR KW_TEXT_COLOR
+%token KW_ALIGN KW_TEXT_ALIGN KW_VERTICAL_ALIGN KW_VALIGN
+%token KW_TEXT_DECORATION KW_DECORATION KW_UNDERLINE KW_OVERLINE KW_LINE_THROUGH KW_STRIKE
+%token KW_DOUBLE KW_WAVY KW_TEXT_TRANSFORM KW_UPPERCASE KW_LOWERCASE KW_CAPITALIZE
+%token KW_LINE_HEIGHT KW_LETTER_SPACING KW_TRACKING KW_WORD_SPACING
+
+// ----------------------------------------------------------------------------
+// Connector / layer / annotation / animation keywords
+// ----------------------------------------------------------------------------
+
+%token KW_POINT_STYLE KW_POINT_SIZE KW_POINT_COLOR KW_DOT
+%token KW_Z_INDEX KW_VISIBLE KW_LOCKED
+%token KW_NOTE KW_COMMENT KW_CALLOUT KW_TOOLTIP KW_BADGE KW_ANIMATE
+%token KW_EASE KW_EASE_IN KW_EASE_OUT KW_EASE_IN_OUT KW_CUBIC_BEZIER
+
+// ----------------------------------------------------------------------------
+// Multi-character / Unicode tokens
+// ----------------------------------------------------------------------------
+
+%token DOTDOT ".."
+%token LE "≤"
+%token GE "≥"
+%token IN_SYMBOL "∈"
+%token DEG_SYMBOL "°"
+%token DISPLAY_MATH_DELIM "$$"
+%token ARROW_TRIANGLE "▶"
+%token ARROW_OPEN "⊳"
+%token ARROW_DIAMOND "◇"
+%token ARROW_FILLED_DIAMOND "◆"
+%token ARROW_CIRCLE "○"
+%token ARROW_FILLED_CIRCLE "●"
+%token ARROW_SQUARE "□"
+%token ARROW_FILLED_SQUARE "■"
+%token ARROW_PERPENDICULAR "⊥"
+
+// ----------------------------------------------------------------------------
+// Precedence for the embedded expression grammar
+// ----------------------------------------------------------------------------
+
+%left '+' '-'
+%left '*' '/'
+%right UMINUS
+
+%type <std::unique_ptr<flowchart::document>> flowchart_document
+%type <std::unique_ptr<flowchart::ast_node>> flowchart_element node_definition edge_definition connector_definition group_definition annotation_definition layer_definition
+%type <std::string> number integer percentage measurement angle boolean expression
+
+%start flowchart_document
+
+%%
+
+// ============================================================================
+// Document
+// ============================================================================
+
+flowchart_document
+    : flowchart_header flowchart_element_list
+      {
+          $$ = std::make_unique<flowchart::document>();
+          drv.set_document(std::move($$));
+      }
+    ;
+
+flowchart_header
+    : dimension_spec opt_time_spec opt_default_styles
+    ;
+
+flowchart_element_list
+    : /* empty */
+    | flowchart_element_list flowchart_element
+    ;
+
+flowchart_element
+    : node_definition
+    | edge_definition
+    | connector_definition
+    | group_definition
+    | annotation_definition
+    | layer_definition
+    ;
+
+// ============================================================================
+// Dimension / time / defaults
+// ============================================================================
+
+dimension_spec
+    : KW_DIMENSION ':' dimension_value
+    | KW_DIM ':' dim_short_value
+    ;
+
+dimension_value
+    : KW_2D
+    | KW_3D
+    ;
+
+dim_short_value
+    : integer
+      {
+          /* semantic check: must be 2 or 3 */
+      }
+    ;
+
+opt_time_spec
+    : /* empty */
+    | time_spec
+    ;
+
+time_spec
+    : KW_TIME ':' time_mode
+    | KW_T ':' time_range
+    ;
+
+time_mode
+    : KW_STATIC
+    | KW_ANIMATED
+    | KW_TIMELINE
+    ;
+
+time_range
+    : expression DOTDOT expression
+    | '[' expression ',' expression ']'
+    ;
+
+opt_default_styles
+    : /* empty */
+    | default_styles
+    ;
+
+default_styles
+    : KW_DEFAULTS '{' style_property_list '}'
+    ;
+
+// ============================================================================
+// Nodes / shapes
+// ============================================================================
+
+node_definition
+    : KW_NODE IDENTIFIER opt_node_type position_spec opt_style_block opt_content_block
+      { $$ = nullptr; }
+    ;
+
+opt_node_type
+    : /* empty */
+    | ':' shape_spec
+    ;
+
+shape_spec
+    : basic_shape
+    | solid_shape
+    | custom_shape
+    ;
+
+basic_shape
+    : KW_RECTANGLE | KW_RECT | KW_BOX | KW_SQUARE
+    | KW_CIRCLE | KW_ELLIPSE | KW_OVAL
+    | KW_DIAMOND | KW_RHOMBUS | KW_PARALLELOGRAM | KW_TRAPEZOID
+    | KW_HEXAGON | KW_OCTAGON | KW_PENTAGON
+    | KW_TRIANGLE | KW_TRIANGLE_UP | KW_TRIANGLE_DOWN | KW_TRIANGLE_LEFT | KW_TRIANGLE_RIGHT
+    | KW_STAR opt_integer_call
+    | KW_ARROW | KW_ARROW_LEFT | KW_ARROW_RIGHT | KW_ARROW_UP | KW_ARROW_DOWN
+    | KW_CLOUD | KW_CYLINDER | KW_DOCUMENT | KW_TAPE | KW_STORED_DATA
+    | KW_MANUAL_INPUT | KW_MANUAL_OPERATION | KW_PROCESS | KW_DECISION | KW_DATA
+    | KW_TERMINATOR | KW_START | KW_END
+    | KW_PREDEFINED_PROCESS | KW_SUBPROCESS | KW_INTERNAL_STORAGE | KW_DELAY | KW_PREPARATION
+    | KW_OFF_PAGE_CONNECTOR | KW_OR_GATE | KW_SUMMING_JUNCTION
+    | KW_DATABASE | KW_DB | KW_QUEUE | KW_COLLATE | KW_SORT | KW_MERGE | KW_EXTRACT | KW_DISPLAY
+    ;
+
+solid_shape
+    : KW_CUBE | KW_BOX3D | KW_SPHERE | KW_CONE | KW_PYRAMID
+    | KW_PRISM opt_integer_call
+    | KW_TORUS | KW_CYLINDER3D | KW_TETRAHEDRON | KW_OCTAHEDRON
+    | KW_DODECAHEDRON | KW_ICOSAHEDRON | KW_CAPSULE | KW_ELLIPSOID
+    ;
+
+opt_integer_call
+    : /* empty */
+    | '(' integer ')'
+    ;
+
+custom_shape
+    : KW_CUSTOM '{' shape_definition '}'
+    ;
+
+shape_definition
+    : parametric_shape
+    | implicit_shape
+    | point_list_shape
+    ;
+
+parametric_shape
+    : IDENTIFIER ':' expression ',' IDENTIFIER ':' expression opt_z_expression ',' parameter_range
+      {
+          /* semantic check: first two identifiers should be x and y; optional z */
+      }
+    ;
+
+opt_z_expression
+    : /* empty */
+    | ',' IDENTIFIER ':' expression
+      {
+          /* semantic check: identifier should be z */
+      }
+    ;
+
+implicit_shape
+    : KW_EQUATION ':' expression opt_comparison expression
+    ;
+
+opt_comparison
+    : /* empty */
+    | '<'
+    | '>'
+    | '='
+    | LE
+    | GE
+    ;
+
+point_list_shape
+    : KW_POINTS ':' point_list opt_closed_property
+    ;
+
+opt_closed_property
+    : /* empty */
+    | ',' KW_CLOSED ':' boolean
+    ;
+
+point_list
+    : '[' point_items ']'
+    ;
+
+point_items
+    : point
+    | point_items ',' point
+    ;
+
+parameter_range
+    : IDENTIFIER IN_SYMBOL '[' expression ',' expression ']'
+    | IDENTIFIER KW_IN range_expression
+    ;
+
+range_expression
+    : expression DOTDOT expression
+    | '[' expression ',' expression ']'
+    ;
+
+// ============================================================================
+// Position
+// ============================================================================
+
+position_spec
+    : KW_AT position opt_orientation
+    ;
+
+position
+    : coordinate_2d
+    | coordinate_3d
+    | relative_position
+    | grid_position
+    | mathematical_position
+    ;
+
+coordinate_2d
+    : '(' expression ',' expression ')'
+    ;
+
+coordinate_3d
+    : '(' expression ',' expression ',' expression ')'
+    ;
+
+relative_position
+    : anchor_point opt_offset
+    ;
+
+anchor_point
+    : IDENTIFIER '.' anchor_name
+    ;
+
+anchor_name
+    : KW_CENTER | KW_C
+    | KW_NORTH | KW_N | KW_TOP
+    | KW_SOUTH | KW_S | KW_BOTTOM
+    | KW_EAST | KW_E | KW_RIGHT
+    | KW_WEST | KW_W | KW_LEFT
+    | KW_NORTHEAST | KW_NE | KW_TOP_RIGHT
+    | KW_NORTHWEST | KW_NW | KW_TOP_LEFT
+    | KW_SOUTHEAST | KW_SE | KW_BOTTOM_RIGHT
+    | KW_SOUTHWEST | KW_SW | KW_BOTTOM_LEFT
+    ;
+
+opt_offset
+    : /* empty */
+    | '+' vector_expression
+    | '-' vector_expression
+    ;
+
+vector_expression
+    : point
+    | expression
+    ;
+
+grid_position
+    : '[' integer ',' integer opt_grid_z ']'
+    ;
+
+opt_grid_z
+    : /* empty */
+    | ',' integer
+    ;
+
+mathematical_position
+    : KW_F_UNIT '(' expression opt_arg_expr opt_arg_expr ')'
+    | KW_POLAR '(' expression ',' expression ')'
+    | KW_CYLINDRICAL '(' expression ',' expression ',' expression ')'
+    | KW_SPHERICAL '(' expression ',' expression ',' expression ')'
+    ;
+
+opt_arg_expr
+    : /* empty */
+    | ',' expression
+    ;
+
+opt_orientation
+    : /* empty */
+    | orientation
+    ;
+
+orientation
+    : KW_ROTATE ':' angle
+    | KW_PITCH ':' angle ',' KW_YAW ':' angle ',' KW_ROLL ':' angle
+    ;
+
+angle
+    : expression opt_angle_unit { $$ = $1; }
+    ;
+
+opt_angle_unit
+    : /* empty */
+    | angle_unit
+    ;
+
+angle_unit
+    : KW_DEG | DEG_SYMBOL | KW_RAD | KW_GRAD | KW_TURN
+    ;
+
+// ============================================================================
+// Edges / waypoints
+// ============================================================================
+
+edge_definition
+    : KW_EDGE IDENTIFIER edge_spec opt_edge_style opt_edge_labels
+      { $$ = nullptr; }
+    ;
+
+edge_spec
+    : KW_FROM node_reference KW_TO node_reference opt_waypoints
+    ;
+
+node_reference
+    : IDENTIFIER opt_anchor_suffix
+    ;
+
+opt_anchor_suffix
+    : /* empty */
+    | '.' anchor_name
+    ;
+
+opt_waypoints
+    : /* empty */
+    | KW_VIA waypoint_list
+    ;
+
+waypoint_list
+    : waypoint
+    | waypoint_list ',' waypoint
+    ;
+
+waypoint
+    : position
+    | KW_MANHATTAN
+    | KW_ORTHOGONAL
+    | KW_SMOOTH
+    | KW_CURVED
+    | KW_BEZIER '(' control_points ')'
+    | KW_SPLINE
+    ;
+
+control_points
+    : point
+    | control_points ',' point
+    ;
+
+point
+    : '(' expression ',' expression opt_point_z ')'
+    ;
+
+opt_point_z
+    : /* empty */
+    | ',' expression
+    ;
+
+opt_edge_style
+    : /* empty */
+    | edge_style
+    ;
+
+edge_style
+    : KW_STYLE '{' edge_style_property_list '}'
+    ;
+
+edge_style_property_list
+    : /* empty */
+    | edge_style_property_list edge_style_property
+    ;
+
+edge_style_property
+    : line_property
+    | arrow_property
+    | color_property
+    | animation_property
+    ;
+
+// ============================================================================
+// Line / arrow / color properties
+// ============================================================================
+
+line_property
+    : line_type
+    | line_width
+    | line_pattern
+    | line_cap
+    | line_join
+    ;
+
+line_type
+    : KW_TYPE ':' line_style_value
+    ;
+
+line_style_value
+    : KW_SOLID
+    | KW_DASHED
+    | KW_DOTTED
+    | KW_DASH_DOT
+    | KW_DASH_DOT_DOT
+    | KW_CUSTOM '[' number_list ']'
+    ;
+
+line_width
+    : KW_WIDTH ':' measurement
+    | KW_THICKNESS ':' measurement
+    | KW_WEIGHT ':' line_weight_value
+    ;
+
+line_weight_value
+    : KW_THIN
+    | KW_MEDIUM
+    | KW_THICK
+    | measurement
+    ;
+
+line_pattern
+    : KW_PATTERN ':' line_style_value
+    ;
+
+line_cap
+    : KW_CAP ':' line_cap_value
+    ;
+
+line_cap_value
+    : KW_BUTT
+    | KW_ROUND
+    | KW_SQUARE
+    ;
+
+line_join
+    : KW_JOIN ':' line_join_value
+    ;
+
+line_join_value
+    : KW_MITER
+    | KW_ROUND
+    | KW_BEVEL
+    ;
+
+arrow_property
+    : KW_ARROW_START ':' arrow_style
+    | KW_ARROW_END ':' arrow_style
+    | KW_ARROW ':' arrow_style
+    | KW_ARROW_SIZE ':' measurement
+    ;
+
+arrow_style
+    : KW_NONE
+    | KW_ARROW
+    | '>'
+    | KW_TRIANGLE
+    | ARROW_TRIANGLE
+    | KW_OPEN
+    | ARROW_OPEN
+    | KW_DIAMOND
+    | ARROW_DIAMOND
+    | KW_FILLED_DIAMOND
+    | ARROW_FILLED_DIAMOND
+    | KW_CIRCLE
+    | ARROW_CIRCLE
+    | KW_FILLED_CIRCLE
+    | ARROW_FILLED_CIRCLE
+    | KW_SQUARE
+    | ARROW_SQUARE
+    | KW_FILLED_SQUARE
+    | ARROW_FILLED_SQUARE
+    | KW_BAR
+    | KW_PERPENDICULAR
+    | ARROW_PERPENDICULAR
+    | KW_CROW_FOOT
+    | KW_FORK
+    | KW_MANY
+    | KW_ONE
+    | KW_ZERO_OR_MORE
+    | KW_ONE_OR_MORE
+    | KW_ZERO_OR_ONE
+    | KW_CUSTOM '{' shape_definition '}'
+    ;
+
+color_property
+    : stroke_color
+    | fill_color
+    | gradient_fill
+    | opacity_property
+    ;
+
+stroke_color
+    : KW_STROKE ':' color_value
+    | KW_BORDER_COLOR ':' color_value
+    | KW_LINE_COLOR ':' color_value
+    ;
+
+fill_color
+    : KW_FILL ':' color_value
+    | KW_BACKGROUND ':' color_value
+    | KW_BG ':' color_value
+    ;
+
+gradient_fill
+    : KW_GRADIENT ':' gradient_spec
+    ;
+
+gradient_spec
+    : linear_gradient
+    | radial_gradient
+    | conic_gradient
+    ;
+
+linear_gradient
+    : KW_LINEAR '(' angle ',' color_stop_list ')'
+    | KW_LINEAR '(' direction ',' color_stop_list ')'
+    ;
+
+radial_gradient
+    : KW_RADIAL '(' position ',' color_stop_list ')'
+    | KW_RADIAL '(' radial_shape ',' color_stop_list ')'
+    ;
+
+radial_shape
+    : KW_CIRCLE
+    | KW_ELLIPSE
+    ;
+
+conic_gradient
+    : KW_CONIC '(' angle ',' position ',' color_stop_list ')'
+    ;
+
+direction
+    : KW_TO direction_value
+    ;
+
+direction_value
+    : KW_TOP | KW_BOTTOM | KW_LEFT | KW_RIGHT
+    | KW_TOP_LEFT | KW_TOP_RIGHT | KW_BOTTOM_LEFT | KW_BOTTOM_RIGHT
+    ;
+
+color_stop_list
+    : color_stop
+    | color_stop_list ',' color_stop
+    ;
+
+color_stop
+    : color_value opt_percentage
+    ;
+
+opt_percentage
+    : /* empty */
+    | percentage
+    ;
+
+color_value
+    : HEX_COLOR
+    | rgb_color
+    | rgba_color
+    | hsl_color
+    | hsla_color
+    | named_color
+    | IDENTIFIER
+    ;
+
+rgb_color
+    : KW_RGB '(' integer ',' integer ',' integer ')'
+    ;
+
+rgba_color
+    : KW_RGBA '(' integer ',' integer ',' integer ',' number ')'
+    ;
+
+hsl_color
+    : KW_HSL '(' number ',' percentage ',' percentage ')'
+    ;
+
+hsla_color
+    : KW_HSLA '(' number ',' percentage ',' percentage ',' number ')'
+    ;
+
+named_color
+    : KW_RED | KW_GREEN | KW_BLUE | KW_YELLOW | KW_ORANGE | KW_PURPLE | KW_PINK
+    | KW_BLACK | KW_WHITE | KW_GRAY | KW_GREY | KW_CYAN | KW_MAGENTA
+    | KW_BROWN | KW_LIME | KW_NAVY | KW_TEAL | KW_OLIVE | KW_MAROON
+    | KW_SILVER | KW_GOLD | KW_TRANSPARENT | KW_AQUA | KW_FUCHSIA
+    | KW_INDIGO | KW_VIOLET | KW_SALMON | KW_CORAL | KW_CRIMSON
+    ;
+
+opacity_property
+    : KW_OPACITY ':' number
+    | KW_ALPHA ':' number
+    ;
+
+// ============================================================================
+// Style properties
+// ============================================================================
+
+style_property_list
+    : /* empty */
+    | style_property_list style_property
+    ;
+
+style_property
+    : color_property
+    | border_property
+    | spacing_property
+    | dimension_property
+    | shadow_property
+    | transform_property
+    ;
+
+border_property
+    : KW_BORDER_WIDTH ':' measurement
+    | KW_BORDER ':' measurement opt_line_style_value opt_color_value
+    | KW_BORDER_STYLE ':' line_style_value
+    | KW_BORDER_COLOR ':' color_value
+    | KW_BORDER_RADIUS ':' measurement
+    | KW_ROUNDED ':' measurement
+    | KW_RADIUS_WORD ':' measurement
+    ;
+
+opt_line_style_value
+    : /* empty */
+    | line_style_value
+    ;
+
+opt_color_value
+    : /* empty */
+    | color_value
+    ;
+
+spacing_property
+    : margin_property
+    | padding_property
+    ;
+
+margin_property
+    : KW_MARGIN ':' spacing_value
+    | KW_MARGIN_TOP ':' measurement
+    | KW_MARGIN_RIGHT ':' measurement
+    | KW_MARGIN_BOTTOM ':' measurement
+    | KW_MARGIN_LEFT ':' measurement
+    | KW_MARGIN_X ':' measurement
+    | KW_MARGIN_Y ':' measurement
+    ;
+
+padding_property
+    : KW_PADDING ':' spacing_value
+    | KW_PADDING_TOP ':' measurement
+    | KW_PADDING_RIGHT ':' measurement
+    | KW_PADDING_BOTTOM ':' measurement
+    | KW_PADDING_LEFT ':' measurement
+    | KW_PADDING_X ':' measurement
+    | KW_PADDING_Y ':' measurement
+    ;
+
+spacing_value
+    : measurement
+    | measurement measurement
+    | measurement measurement measurement measurement
+    ;
+
+dimension_property
+    : KW_WIDTH ':' measurement
+    | KW_W ':' measurement
+    | KW_HEIGHT ':' measurement
+    | KW_H ':' measurement
+    | KW_DEPTH ':' measurement
+    | KW_D ':' measurement
+    | KW_SIZE ':' measurement opt_measurement opt_measurement
+    ;
+
+opt_measurement
+    : /* empty */
+    | measurement
+    ;
+
+measurement
+    : number opt_unit { $$ = $1; }
+    ;
+
+opt_unit
+    : /* empty */
+    | unit
+    ;
+
+unit
+    : KW_PX | KW_PT | KW_EM | KW_REM | '%' | KW_CM | KW_MM | KW_IN_UNIT | KW_PC
+    ;
+
+number_list
+    : number
+    | number_list ',' number
+    ;
+
+shadow_property
+    : KW_SHADOW ':' shadow_spec
+    | KW_BOX_SHADOW ':' shadow_spec
+    ;
+
+shadow_spec
+    : measurement measurement opt_measurement opt_measurement color_value
+    | KW_NONE
+    ;
+
+transform_property
+    : KW_TRANSFORM ':' transform_list
+    ;
+
+transform_list
+    : transform_function
+    | transform_list ',' transform_function
+    ;
+
+transform_function
+    : KW_TRANSLATE '(' expression opt_arg_expr opt_arg_expr ')'
+    | KW_ROTATE '(' angle opt_axis_vector ')'
+    | KW_SCALE '(' number opt_number_arg opt_number_arg ')'
+    | KW_SKEW '(' angle opt_angle_arg ')'
+    | KW_MATRIX '(' number_list ')'
+    ;
+
+opt_axis_vector
+    : /* empty */
+    | ',' expression ',' expression ',' expression
+    ;
+
+opt_number_arg
+    : /* empty */
+    | ',' number
+    ;
+
+opt_angle_arg
+    : /* empty */
+    | ',' angle
+    ;
+
+// ============================================================================
+// Text / typography
+// ============================================================================
+
+opt_content_block
+    : /* empty */
+    | content_block
+    ;
+
+content_block
+    : KW_CONTENT '{' text_content opt_text_style '}'
+    | KW_TEXT ':' STRING opt_text_style
+    ;
+
+text_content
+    : STRING
+    | rich_text
+    | expression_text
+    ;
+
+rich_text
+    : KW_RICH '{' rich_text_element_list '}'
+    ;
+
+rich_text_element_list
+    : /* empty */
+    | rich_text_element_list rich_text_element
+    ;
+
+rich_text_element
+    : text_span
+    | KW_BR
+    | expression_inline
+    ;
+
+text_span
+    : STRING opt_inline_style
+    ;
+
+opt_inline_style
+    : /* empty */
+    | '[' text_style_property_list ']'
+    ;
+
+expression_inline
+    : '$' expression '$'
+    | DISPLAY_MATH_DELIM expression DISPLAY_MATH_DELIM
+    ;
+
+expression_text
+    : KW_EXPR ':' expression
+    ;
+
+opt_text_style
+    : /* empty */
+    | text_style
+    ;
+
+text_style
+    : KW_STYLE '{' text_style_property_list '}'
+    ;
+
+text_style_property_list
+    : /* empty */
+    | text_style_property_list text_style_property
+    ;
+
+text_style_property
+    : font_property
+    | text_color_property
+    | text_alignment_property
+    | text_decoration_property
+    | text_transform_property
+    | line_height_property
+    | letter_spacing_property
+    | word_spacing_property
+    ;
+
+font_property
+    : KW_FONT ':' font_name_list
+    | KW_FONT_FAMILY ':' font_name_list
+    | KW_FONT_SIZE ':' measurement
+    | KW_SIZE ':' measurement
+    | KW_FONT_WEIGHT ':' font_weight_value
+    | KW_WEIGHT ':' font_weight_value
+    | KW_FONT_STYLE ':' font_style_value
+    | KW_FONT_VARIANT ':' font_variant_value
+    ;
+
+font_name_list
+    : font_name
+    | font_name_list ',' font_name
+    ;
+
+font_name
+    : IDENTIFIER
+    | STRING
+    ;
+
+font_weight_value
+    : KW_NORMAL | KW_BOLD | KW_BOLDER | KW_LIGHTER | INTEGER
+    ;
+
+font_style_value
+    : KW_NORMAL
+    | KW_ITALIC
+    | KW_OBLIQUE opt_angle
+    ;
+
+opt_angle
+    : /* empty */
+    | angle
+    ;
+
+font_variant_value
+    : KW_NORMAL
+    | KW_SMALL_CAPS
+    ;
+
+text_color_property
+    : KW_COLOR ':' color_value
+    | KW_TEXT_COLOR ':' color_value
+    ;
+
+text_alignment_property
+    : KW_ALIGN ':' h_align_value
+    | KW_TEXT_ALIGN ':' h_align_value
+    | KW_VERTICAL_ALIGN ':' v_align_value
+    | KW_VALIGN ':' v_align_value
+    | KW_ALIGN ':' h_align_value v_align_value
+    ;
+
+h_align_value
+    : KW_LEFT | KW_CENTER | KW_RIGHT | KW_JUSTIFY | KW_START | KW_END
+    ;
+
+v_align_value
+    : KW_TOP | KW_MIDDLE | KW_BOTTOM | KW_BASELINE | KW_SUB | KW_SUPER
+    ;
+
+text_decoration_property
+    : KW_TEXT_DECORATION ':' text_decoration_value
+    | KW_DECORATION ':' text_decoration_value
+    ;
+
+text_decoration_value
+    : KW_NONE
+    | KW_UNDERLINE
+    | KW_OVERLINE
+    | KW_LINE_THROUGH
+    | KW_STRIKE
+    | text_decoration_value text_decoration_style opt_color_value
+    ;
+
+text_decoration_style
+    : KW_SOLID | KW_DOUBLE | KW_DOTTED | KW_DASHED | KW_WAVY
+    ;
+
+text_transform_property
+    : KW_TEXT_TRANSFORM ':' text_transform_value
+    ;
+
+text_transform_value
+    : KW_NONE | KW_UPPERCASE | KW_LOWERCASE | KW_CAPITALIZE
+    ;
+
+line_height_property
+    : KW_LINE_HEIGHT ':' line_height_value
+    ;
+
+line_height_value
+    : number
+    | measurement
+    ;
+
+letter_spacing_property
+    : KW_LETTER_SPACING ':' measurement
+    | KW_TRACKING ':' measurement
+    ;
+
+word_spacing_property
+    : KW_WORD_SPACING ':' measurement
+    ;
+
+// ============================================================================
+// Connectors
+// ============================================================================
+
+connector_definition
+    : KW_CONNECTOR IDENTIFIER connector_spec opt_connector_style
+      { $$ = nullptr; }
+    ;
+
+connector_spec
+    : KW_FROM connector_end KW_TO connector_end opt_routing_algorithm
+    ;
+
+connector_end
+    : node_reference
+    | point
+    | mathematical_position
+    ;
+
+opt_routing_algorithm
+    : /* empty */
+    | KW_ROUTING ':' routing_type
+    ;
+
+routing_type
+    : KW_STRAIGHT
+    | KW_DIRECT
+    | KW_ORTHOGONAL
+    | KW_MANHATTAN
+    | KW_BEZIER opt_bezier_params
+    | KW_CURVED opt_curve_params
+    | KW_ARC opt_arc_params
+    | KW_POLYLINE '(' point_list ')'
+    | KW_SMOOTH opt_smoothness
+    | KW_AUTO
+    | KW_CUSTOM '{' path_definition '}'
+    ;
+
+opt_bezier_params
+    : /* empty */
+    | '(' control_points ')'
+    ;
+
+opt_curve_params
+    : /* empty */
+    | '(' KW_TENSION ':' number ')'
+    ;
+
+opt_arc_params
+    : /* empty */
+    | '(' KW_RADIUS_WORD ':' measurement ',' KW_SWEEP ':' angle ')'
+    ;
+
+opt_smoothness
+    : /* empty */
+    | number
+    ;
+
+path_definition
+    : KW_D ':' STRING
+    | mathematical_path
+    ;
+
+mathematical_path
+    : KW_PARAMETRIC '{' IDENTIFIER ':' expression ',' IDENTIFIER ':' expression opt_z_expression ',' parameter_range '}'
+    ;
+
+opt_connector_style
+    : /* empty */
+    | connector_style
+    ;
+
+connector_style
+    : KW_STYLE '{' connector_style_property_list '}'
+    ;
+
+connector_style_property_list
+    : /* empty */
+    | connector_style_property_list connector_style_property
+    ;
+
+connector_style_property
+    : edge_style_property
+    | connection_point_style
+    ;
+
+connection_point_style
+    : KW_POINT_STYLE ':' point_style_value
+    | KW_POINT_SIZE ':' measurement
+    | KW_POINT_COLOR ':' color_value
+    ;
+
+point_style_value
+    : KW_DOT | KW_CIRCLE | KW_SQUARE | KW_NONE
+    ;
+
+// ============================================================================
+// Edge labels
+// ============================================================================
+
+opt_edge_labels
+    : /* empty */
+    | edge_labels
+    ;
+
+edge_labels
+    : KW_LABEL label_spec label_tail
+    ;
+
+label_tail
+    : /* empty */
+    | label_tail ',' KW_LABEL label_spec
+    ;
+
+label_spec
+    : label_text opt_label_position opt_text_style
+    ;
+
+label_text
+    : STRING
+    | expression_text
+    ;
+
+opt_label_position
+    : /* empty */
+    | KW_AT label_position_value
+    ;
+
+label_position_value
+    : KW_START
+    | KW_MIDDLE
+    | KW_END
+    | KW_CENTER
+    | number
+    | KW_ABOVE
+    | KW_BELOW
+    | KW_LEFT
+    | KW_RIGHT
+    | position
+    ;
+
+// ============================================================================
+// Groups / layers / annotations
+// ============================================================================
+
+group_definition
+    : KW_GROUP IDENTIFIER opt_group_spec '{' flowchart_element_list '}'
+      { $$ = nullptr; }
+    ;
+
+opt_group_spec
+    : /* empty */
+    | KW_AT position opt_style_block
+    ;
+
+opt_style_block
+    : /* empty */
+    | style_block
+    ;
+
+style_block
+    : KW_STYLE '{' style_property_list '}'
+    ;
+
+layer_definition
+    : KW_LAYER IDENTIFIER opt_layer_properties '{' flowchart_element_list '}'
+      { $$ = nullptr; }
+    ;
+
+opt_layer_properties
+    : /* empty */
+    | KW_STYLE '{' layer_property_list '}'
+    ;
+
+layer_property_list
+    : /* empty */
+    | layer_property_list layer_property
+    ;
+
+layer_property
+    : KW_Z_INDEX ':' integer
+    | KW_VISIBLE ':' boolean
+    | KW_LOCKED ':' boolean
+    | KW_OPACITY ':' number
+    ;
+
+annotation_definition
+    : KW_ANNOTATION IDENTIFIER annotation_spec
+      { $$ = nullptr; }
+    ;
+
+annotation_spec
+    : annotation_type position opt_style_block content_block
+    ;
+
+annotation_type
+    : KW_NOTE | KW_COMMENT | KW_CALLOUT | KW_TOOLTIP | KW_BADGE
+    ;
+
+// ============================================================================
+// Animation
+// ============================================================================
+
+animation_property
+    : KW_ANIMATE ':' animation_spec
+    ;
+
+animation_spec
+    : '{' animation_keyframe_list '}'
+    ;
+
+animation_keyframe_list
+    : /* empty */
+    | animation_keyframe_list animation_keyframe
+    ;
+
+animation_keyframe
+    : KW_AT time_value '{' style_property_list '}'
+    | time_value ':' '{' style_property_list '}'
+    ;
+
+time_value
+    : expression opt_time_unit
+    ;
+
+opt_time_unit
+    : /* empty */
+    | time_unit
+    ;
+
+time_unit
+    : KW_S_UNIT | KW_MS | KW_FRAMES | KW_F_UNIT
+    ;
+
+easing_function
+    : KW_EASE
+    | KW_LINEAR
+    | KW_EASE_IN
+    | KW_EASE_OUT
+    | KW_EASE_IN_OUT
+    | KW_CUBIC_BEZIER '(' number ',' number ',' number ',' number ')'
+    ;
+
+// ============================================================================
+// Helpers / expressions
+// ============================================================================
+
+boolean
+    : KW_TRUE  { $$ = "true"; }
+    | KW_FALSE { $$ = "false"; }
+    | KW_YES   { $$ = "true"; }
+    | KW_NO    { $$ = "false"; }
+    | INTEGER  { $$ = $1; }
+    ;
+
+number
+    : NUMBER  { $$ = $1; }
+    | INTEGER { $$ = $1; }
+    ;
+
+integer
+    : INTEGER { $$ = $1; }
+    ;
+
+percentage
+    : number '%' { $$ = $1 + "%"; }
+    ;
+
+expression
+    : number                    { $$ = $1; }
+    | IDENTIFIER                { $$ = $1; }
+    | STRING                    { $$ = $1; }
+    | '(' expression ')'        { $$ = "(" + $2 + ")"; }
+    | '-' expression %prec UMINUS { $$ = "-" + $2; }
+    | expression '+' expression { $$ = $1 + "+" + $3; }
+    | expression '-' expression { $$ = $1 + "-" + $3; }
+    | expression '*' expression { $$ = $1 + "*" + $3; }
+    | expression '/' expression { $$ = $1 + "/" + $3; }
+    ;
+
+%%
+
+void flowchart::parser::error(const location_type& loc, const std::string& msg)
+{
+    drv.error(loc, msg);
+}
+
+// ============================================================================
+// FILE: flowchart_lexer.l
+// ============================================================================
+
+%option c++
+%option noyywrap
+%option nounput
+%option noinput
+%option batch
+%option yyclass="flowchart_lexer"
+
+%{
+    #include <string>
+    #include "flowchart_parser.hpp"
+    #include "flowchart_driver.hpp"
+
+    using parser = flowchart::parser;
+
+    #define YY_USER_ACTION drv.location_step(YYLeng());
+%}
+
+DIGIT       [0-9]
+ALPHA       [A-Za-z]
+ID          {ALPHA}({ALPHA}|{DIGIT}|_|-)*
+INT         {DIGIT}+
+NUMBER      (({DIGIT}+\.{DIGIT}*)|(\.{DIGIT}+)|({DIGIT}+))([eE][+-]?{DIGIT}+)?
+HEX         (#[0-9A-Fa-f]{3})|(#[0-9A-Fa-f]{6})|(#[0-9A-Fa-f]{8})
+STRING      \"([^\"\]|\.)*\"
+WS          [ 	
+]+
+
+%%
+
+{WS}                        { /* location already advanced by YY_USER_ACTION */ }
+";"[^
+]*                   { /* ABNF-style comment */ }
+
+// ----------------------------------------------------------------------------
+// Multi-character and Unicode punctuation/operators
+// ----------------------------------------------------------------------------
+
+".."                        return parser::make_DOTDOT(drv.location());
+"≤"                         return parser::make_LE(drv.location());
+"≥"                         return parser::make_GE(drv.location());
+"∈"                         return parser::make_IN_SYMBOL(drv.location());
+"°"                         return parser::make_DEG_SYMBOL(drv.location());
+"$$"                        return parser::make_DISPLAY_MATH_DELIM(drv.location());
+
+"▶"                         return parser::make_ARROW_TRIANGLE(drv.location());
+"⊳"                         return parser::make_ARROW_OPEN(drv.location());
+"◇"                         return parser::make_ARROW_DIAMOND(drv.location());
+"◆"                         return parser::make_ARROW_FILLED_DIAMOND(drv.location());
+"○"                         return parser::make_ARROW_CIRCLE(drv.location());
+"●"                         return parser::make_ARROW_FILLED_CIRCLE(drv.location());
+"□"                         return parser::make_ARROW_SQUARE(drv.location());
+"■"                         return parser::make_ARROW_FILLED_SQUARE(drv.location());
+"⊥"                         return parser::make_ARROW_PERPENDICULAR(drv.location());
+
+// ----------------------------------------------------------------------------
+// Literals
+// ----------------------------------------------------------------------------
+
+{HEX}                       return parser::make_HEX_COLOR(YYText(), drv.location());
+{NUMBER}                    return parser::make_NUMBER(YYText(), drv.location());
+{INT}                       return parser::make_INTEGER(YYText(), drv.location());
+{STRING}                    return parser::make_STRING(YYText(), drv.location());
+
+// ----------------------------------------------------------------------------
+// Document/header keywords
+// ----------------------------------------------------------------------------
+
+"dimension"                 return parser::make_KW_DIMENSION(drv.location());
+"dim"                       return parser::make_KW_DIM(drv.location());
+"time"                      return parser::make_KW_TIME(drv.location());
+"t"                         return parser::make_KW_T(drv.location());
+"static"                    return parser::make_KW_STATIC(drv.location());
+"animated"                  return parser::make_KW_ANIMATED(drv.location());
+"timeline"                  return parser::make_KW_TIMELINE(drv.location());
+"defaults"                  return parser::make_KW_DEFAULTS(drv.location());
+"2D"                        return parser::make_KW_2D(drv.location());
+"3D"                        return parser::make_KW_3D(drv.location());
+
+// ----------------------------------------------------------------------------
+// Top-level elements
+// ----------------------------------------------------------------------------
+
+"node"                      return parser::make_KW_NODE(drv.location());
+"edge"                      return parser::make_KW_EDGE(drv.location());
+"connector"                 return parser::make_KW_CONNECTOR(drv.location());
+"group"                     return parser::make_KW_GROUP(drv.location());
+"annotation"                return parser::make_KW_ANNOTATION(drv.location());
+"layer"                     return parser::make_KW_LAYER(drv.location());
+
+"at"                        return parser::make_KW_AT(drv.location());
+"style"                     return parser::make_KW_STYLE(drv.location());
+"content"                   return parser::make_KW_CONTENT(drv.location());
+"text"                      return parser::make_KW_TEXT(drv.location());
+"from"                      return parser::make_KW_FROM(drv.location());
+"to"                        return parser::make_KW_TO(drv.location());
+"via"                       return parser::make_KW_VIA(drv.location());
+"label"                     return parser::make_KW_LABEL(drv.location());
+"routing"                   return parser::make_KW_ROUTING(drv.location());
+"custom"                    return parser::make_KW_CUSTOM(drv.location());
+"points"                    return parser::make_KW_POINTS(drv.location());
+"closed"                    return parser::make_KW_CLOSED(drv.location());
+"equation"                  return parser::make_KW_EQUATION(drv.location());
+"in"                        return parser::make_KW_IN(drv.location());
+
+// ----------------------------------------------------------------------------
+// Boolean values
+// ----------------------------------------------------------------------------
+
+"true"                      return parser::make_KW_TRUE(drv.location());
+"false"                     return parser::make_KW_FALSE(drv.location());
+"yes"                       return parser::make_KW_YES(drv.location());
+"no"                        return parser::make_KW_NO(drv.location());
+
+// ----------------------------------------------------------------------------
+// 2D shapes
+// ----------------------------------------------------------------------------
+
+"rectangle"                 return parser::make_KW_RECTANGLE(drv.location());
+"rect"                      return parser::make_KW_RECT(drv.location());
+"box"                       return parser::make_KW_BOX(drv.location());
+"square"                    return parser::make_KW_SQUARE(drv.location());
+"circle"                    return parser::make_KW_CIRCLE(drv.location());
+"ellipse"                   return parser::make_KW_ELLIPSE(drv.location());
+"oval"                      return parser::make_KW_OVAL(drv.location());
+"diamond"                   return parser::make_KW_DIAMOND(drv.location());
+"rhombus"                   return parser::make_KW_RHOMBUS(drv.location());
+"parallelogram"             return parser::make_KW_PARALLELOGRAM(drv.location());
+"trapezoid"                 return parser::make_KW_TRAPEZOID(drv.location());
+"hexagon"                   return parser::make_KW_HEXAGON(drv.location());
+"octagon"                   return parser::make_KW_OCTAGON(drv.location());
+"pentagon"                  return parser::make_KW_PENTAGON(drv.location());
+"triangle"                  return parser::make_KW_TRIANGLE(drv.location());
+"triangle_up"               return parser::make_KW_TRIANGLE_UP(drv.location());
+"triangle_down"             return parser::make_KW_TRIANGLE_DOWN(drv.location());
+"triangle_left"             return parser::make_KW_TRIANGLE_LEFT(drv.location());
+"triangle_right"            return parser::make_KW_TRIANGLE_RIGHT(drv.location());
+"star"                      return parser::make_KW_STAR(drv.location());
+"arrow"                     return parser::make_KW_ARROW(drv.location());
+"arrow_left"                return parser::make_KW_ARROW_LEFT(drv.location());
+"arrow_right"               return parser::make_KW_ARROW_RIGHT(drv.location());
+"arrow_up"                  return parser::make_KW_ARROW_UP(drv.location());
+"arrow_down"                return parser::make_KW_ARROW_DOWN(drv.location());
+"cloud"                     return parser::make_KW_CLOUD(drv.location());
+"cylinder"                  return parser::make_KW_CYLINDER(drv.location());
+"document"                  return parser::make_KW_DOCUMENT(drv.location());
+"tape"                      return parser::make_KW_TAPE(drv.location());
+"stored_data"               return parser::make_KW_STORED_DATA(drv.location());
+"manual_input"              return parser::make_KW_MANUAL_INPUT(drv.location());
+"manual_operation"          return parser::make_KW_MANUAL_OPERATION(drv.location());
+"process"                   return parser::make_KW_PROCESS(drv.location());
+"decision"                  return parser::make_KW_DECISION(drv.location());
+"data"                      return parser::make_KW_DATA(drv.location());
+"terminator"                return parser::make_KW_TERMINATOR(drv.location());
+"start"                     return parser::make_KW_START(drv.location());
+"end"                       return parser::make_KW_END(drv.location());
+"predefined_process"        return parser::make_KW_PREDEFINED_PROCESS(drv.location());
+"subprocess"                return parser::make_KW_SUBPROCESS(drv.location());
+"internal_storage"          return parser::make_KW_INTERNAL_STORAGE(drv.location());
+"delay"                     return parser::make_KW_DELAY(drv.location());
+"preparation"               return parser::make_KW_PREPARATION(drv.location());
+"off_page_connector"        return parser::make_KW_OFF_PAGE_CONNECTOR(drv.location());
+"or_gate"                   return parser::make_KW_OR_GATE(drv.location());
+"summing_junction"          return parser::make_KW_SUMMING_JUNCTION(drv.location());
+"database"                  return parser::make_KW_DATABASE(drv.location());
+"db"                        return parser::make_KW_DB(drv.location());
+"queue"                     return parser::make_KW_QUEUE(drv.location());
+"collate"                   return parser::make_KW_COLLATE(drv.location());
+"sort"                      return parser::make_KW_SORT(drv.location());
+"merge"                     return parser::make_KW_MERGE(drv.location());
+"extract"                   return parser::make_KW_EXTRACT(drv.location());
+"display"                   return parser::make_KW_DISPLAY(drv.location());
+
+// ----------------------------------------------------------------------------
+// 3D shapes
+// ----------------------------------------------------------------------------
+
+"cube"                      return parser::make_KW_CUBE(drv.location());
+"box3d"                     return parser::make_KW_BOX3D(drv.location());
+"sphere"                    return parser::make_KW_SPHERE(drv.location());
+"cone"                      return parser::make_KW_CONE(drv.location());
+"pyramid"                   return parser::make_KW_PYRAMID(drv.location());
+"prism"                     return parser::make_KW_PRISM(drv.location());
+"torus"                     return parser::make_KW_TORUS(drv.location());
+"cylinder3d"                return parser::make_KW_CYLINDER3D(drv.location());
+"tetrahedron"               return parser::make_KW_TETRAHEDRON(drv.location());
+"octahedron"                return parser::make_KW_OCTAHEDRON(drv.location());
+"dodecahedron"              return parser::make_KW_DODECAHEDRON(drv.location());
+"icosahedron"               return parser::make_KW_ICOSAHEDRON(drv.location());
+"capsule"                   return parser::make_KW_CAPSULE(drv.location());
+"ellipsoid"                 return parser::make_KW_ELLIPSOID(drv.location());
+
+// ----------------------------------------------------------------------------
+// Anchors / directions / alignment words
+// ----------------------------------------------------------------------------
+
+"center"                    return parser::make_KW_CENTER(drv.location());
+"c"                         return parser::make_KW_C(drv.location());
+"north"                     return parser::make_KW_NORTH(drv.location());
+"n"                         return parser::make_KW_N(drv.location());
+"top"                       return parser::make_KW_TOP(drv.location());
+"south"                     return parser::make_KW_SOUTH(drv.location());
+"s"                         return parser::make_KW_S(drv.location());
+"bottom"                    return parser::make_KW_BOTTOM(drv.location());
+"east"                      return parser::make_KW_EAST(drv.location());
+"e"                         return parser::make_KW_E(drv.location());
+"right"                     return parser::make_KW_RIGHT(drv.location());
+"west"                      return parser::make_KW_WEST(drv.location());
+"w"                         return parser::make_KW_W(drv.location());
+"left"                      return parser::make_KW_LEFT(drv.location());
+"northeast"                 return parser::make_KW_NORTHEAST(drv.location());
+"ne"                        return parser::make_KW_NE(drv.location());
+"top_right"                 return parser::make_KW_TOP_RIGHT(drv.location());
+"northwest"                 return parser::make_KW_NORTHWEST(drv.location());
+"nw"                        return parser::make_KW_NW(drv.location());
+"top_left"                  return parser::make_KW_TOP_LEFT(drv.location());
+"southeast"                 return parser::make_KW_SOUTHEAST(drv.location());
+"se"                        return parser::make_KW_SE(drv.location());
+"bottom_right"              return parser::make_KW_BOTTOM_RIGHT(drv.location());
+"southwest"                 return parser::make_KW_SOUTHWEST(drv.location());
+"sw"                        return parser::make_KW_SW(drv.location());
+"bottom_left"               return parser::make_KW_BOTTOM_LEFT(drv.location());
+"above"                     return parser::make_KW_ABOVE(drv.location());
+"below"                     return parser::make_KW_BELOW(drv.location());
+"middle"                    return parser::make_KW_MIDDLE(drv.location());
+"baseline"                  return parser::make_KW_BASELINE(drv.location());
+"sub"                       return parser::make_KW_SUB(drv.location());
+"super"                     return parser::make_KW_SUPER(drv.location());
+"justify"                   return parser::make_KW_JUSTIFY(drv.location());
+
+// ----------------------------------------------------------------------------
+// Position / transforms / units
+// ----------------------------------------------------------------------------
+
+"rotate"                    return parser::make_KW_ROTATE(drv.location());
+"pitch"                     return parser::make_KW_PITCH(drv.location());
+"yaw"                       return parser::make_KW_YAW(drv.location());
+"roll"                      return parser::make_KW_ROLL(drv.location());
+"polar"                     return parser::make_KW_POLAR(drv.location());
+"cylindrical"               return parser::make_KW_CYLINDRICAL(drv.location());
+"spherical"                 return parser::make_KW_SPHERICAL(drv.location());
+"translate"                 return parser::make_KW_TRANSLATE(drv.location());
+"scale"                     return parser::make_KW_SCALE(drv.location());
+"skew"                      return parser::make_KW_SKEW(drv.location());
+"matrix"                    return parser::make_KW_MATRIX(drv.location());
+"transform"                 return parser::make_KW_TRANSFORM(drv.location());
+
+"deg"                       return parser::make_KW_DEG(drv.location());
+"rad"                       return parser::make_KW_RAD(drv.location());
+"grad"                      return parser::make_KW_GRAD(drv.location());
+"turn"                      return parser::make_KW_TURN(drv.location());
+"px"                        return parser::make_KW_PX(drv.location());
+"pt"                        return parser::make_KW_PT(drv.location());
+"em"                        return parser::make_KW_EM(drv.location());
+"rem"                       return parser::make_KW_REM(drv.location());
+"cm"                        return parser::make_KW_CM(drv.location());
+"mm"                        return parser::make_KW_MM(drv.location());
+"in"                        return parser::make_KW_IN_UNIT(drv.location());
+"pc"                        return parser::make_KW_PC(drv.location());
+"ms"                        return parser::make_KW_MS(drv.location());
+"frames"                    return parser::make_KW_FRAMES(drv.location());
+
+// Ambiguous single-letter tokens. These are keywords in the original grammar.
+"f"                         return parser::make_KW_F_UNIT(drv.location());
+"d"                         return parser::make_KW_D(drv.location());
+"h"                         return parser::make_KW_H(drv.location());
+
+// ----------------------------------------------------------------------------
+// Routing / path keywords
+// ----------------------------------------------------------------------------
+
+"manhattan"                 return parser::make_KW_MANHATTAN(drv.location());
+"orthogonal"                return parser::make_KW_ORTHOGONAL(drv.location());
+"smooth"                    return parser::make_KW_SMOOTH(drv.location());
+"curved"                    return parser::make_KW_CURVED(drv.location());
+"bezier"                    return parser::make_KW_BEZIER(drv.location());
+"spline"                    return parser::make_KW_SPLINE(drv.location());
+"straight"                  return parser::make_KW_STRAIGHT(drv.location());
+"direct"                    return parser::make_KW_DIRECT(drv.location());
+"arc"                       return parser::make_KW_ARC(drv.location());
+"polyline"                  return parser::make_KW_POLYLINE(drv.location());
+"auto"                      return parser::make_KW_AUTO(drv.location());
+"tension"                   return parser::make_KW_TENSION(drv.location());
+"sweep"                     return parser::make_KW_SWEEP(drv.location());
+"parametric"                return parser::make_KW_PARAMETRIC(drv.location());
+
+// ----------------------------------------------------------------------------
+// Line / border / spacing / dimensions
+// ----------------------------------------------------------------------------
+
+"type"                      return parser::make_KW_TYPE(drv.location());
+"width"                     return parser::make_KW_WIDTH(drv.location());
+"thickness"                 return parser::make_KW_THICKNESS(drv.location());
+"weight"                    return parser::make_KW_WEIGHT(drv.location());
+"pattern"                   return parser::make_KW_PATTERN(drv.location());
+"cap"                       return parser::make_KW_CAP(drv.location());
+"join"                      return parser::make_KW_JOIN(drv.location());
+"solid"                     return parser::make_KW_SOLID(drv.location());
+"dashed"                    return parser::make_KW_DASHED(drv.location());
+"dotted"                    return parser::make_KW_DOTTED(drv.location());
+"dash-dot"                  return parser::make_KW_DASH_DOT(drv.location());
+"dash-dot-dot"              return parser::make_KW_DASH_DOT_DOT(drv.location());
+"thin"                      return parser::make_KW_THIN(drv.location());
+"medium"                    return parser::make_KW_MEDIUM(drv.location());
+"thick"                     return parser::make_KW_THICK(drv.location());
+"butt"                      return parser::make_KW_BUTT(drv.location());
+"round"                     return parser::make_KW_ROUND(drv.location());
+"miter"                     return parser::make_KW_MITER(drv.location());
+"bevel"                     return parser::make_KW_BEVEL(drv.location());
+
+"border_width"              return parser::make_KW_BORDER_WIDTH(drv.location());
+"border"                    return parser::make_KW_BORDER(drv.location());
+"border_style"              return parser::make_KW_BORDER_STYLE(drv.location());
+"border_radius"             return parser::make_KW_BORDER_RADIUS(drv.location());
+"rounded"                   return parser::make_KW_ROUNDED(drv.location());
+"radius"                    return parser::make_KW_RADIUS_WORD(drv.location());
+"margin"                    return parser::make_KW_MARGIN(drv.location());
+"margin_top"                return parser::make_KW_MARGIN_TOP(drv.location());
+"margin_right"              return parser::make_KW_MARGIN_RIGHT(drv.location());
+"margin_bottom"             return parser::make_KW_MARGIN_BOTTOM(drv.location());
+"margin_left"               return parser::make_KW_MARGIN_LEFT(drv.location());
+"margin_x"                  return parser::make_KW_MARGIN_X(drv.location());
+"margin_y"                  return parser::make_KW_MARGIN_Y(drv.location());
+"padding"                   return parser::make_KW_PADDING(drv.location());
+"padding_top"               return parser::make_KW_PADDING_TOP(drv.location());
+"padding_right"             return parser::make_KW_PADDING_RIGHT(drv.location());
+"padding_bottom"            return parser::make_KW_PADDING_BOTTOM(drv.location());
+"padding_left"              return parser::make_KW_PADDING_LEFT(drv.location());
+"padding_x"                 return parser::make_KW_PADDING_X(drv.location());
+"padding_y"                 return parser::make_KW_PADDING_Y(drv.location());
+"height"                    return parser::make_KW_HEIGHT(drv.location());
+"depth"                     return parser::make_KW_DEPTH(drv.location());
+"size"                      return parser::make_KW_SIZE(drv.location());
+"shadow"                    return parser::make_KW_SHADOW(drv.location());
+"box_shadow"                return parser::make_KW_BOX_SHADOW(drv.location());
+
+// ----------------------------------------------------------------------------
+// Arrow properties and arrow values
+// ----------------------------------------------------------------------------
+
+"arrow_start"               return parser::make_KW_ARROW_START(drv.location());
+"arrow_end"                 return parser::make_KW_ARROW_END(drv.location());
+"arrow_size"                return parser::make_KW_ARROW_SIZE(drv.location());
+"none"                      return parser::make_KW_NONE(drv.location());
+"open"                      return parser::make_KW_OPEN(drv.location());
+"filled_diamond"            return parser::make_KW_FILLED_DIAMOND(drv.location());
+"filled_circle"             return parser::make_KW_FILLED_CIRCLE(drv.location());
+"filled_square"             return parser::make_KW_FILLED_SQUARE(drv.location());
+"bar"                       return parser::make_KW_BAR(drv.location());
+"perpendicular"             return parser::make_KW_PERPENDICULAR(drv.location());
+"crow_foot"                 return parser::make_KW_CROW_FOOT(drv.location());
+"fork"                      return parser::make_KW_FORK(drv.location());
+"many"                      return parser::make_KW_MANY(drv.location());
+"one"                       return parser::make_KW_ONE(drv.location());
+"zero_or_more"              return parser::make_KW_ZERO_OR_MORE(drv.location());
+"one_or_more"               return parser::make_KW_ONE_OR_MORE(drv.location());
+"zero_or_one"               return parser::make_KW_ZERO_OR_ONE(drv.location());
+"0..*"                      return parser::make_KW_ZERO_OR_MORE(drv.location());
+"1..*"                      return parser::make_KW_ONE_OR_MORE(drv.location());
+"0..1"                      return parser::make_KW_ZERO_OR_ONE(drv.location());
+
+// ----------------------------------------------------------------------------
+// Color / gradient keywords
+// ----------------------------------------------------------------------------
+
+"stroke"                    return parser::make_KW_STROKE(drv.location());
+"border_color"              return parser::make_KW_BORDER_COLOR(drv.location());
+"line_color"                return parser::make_KW_LINE_COLOR(drv.location());
+"fill"                      return parser::make_KW_FILL(drv.location());
+"background"                return parser::make_KW_BACKGROUND(drv.location());
+"bg"                        return parser::make_KW_BG(drv.location());
+"gradient"                  return parser::make_KW_GRADIENT(drv.location());
+"linear"                    return parser::make_KW_LINEAR(drv.location());
+"radial"                    return parser::make_KW_RADIAL(drv.location());
+"conic"                     return parser::make_KW_CONIC(drv.location());
+"rgb"                       return parser::make_KW_RGB(drv.location());
+"rgba"                      return parser::make_KW_RGBA(drv.location());
+"hsl"                       return parser::make_KW_HSL(drv.location());
+"hsla"                      return parser::make_KW_HSLA(drv.location());
+"opacity"                   return parser::make_KW_OPACITY(drv.location());
+"alpha"                     return parser::make_KW_ALPHA(drv.location());
+"transparent"               return parser::make_KW_TRANSPARENT(drv.location());
+
+// Named colors. These may also be allowed as custom identifiers by changing the parser.
+"red"                       return parser::make_KW_RED(drv.location());
+"green"                     return parser::make_KW_GREEN(drv.location());
+"blue"                      return parser::make_KW_BLUE(drv.location());
+"yellow"                    return parser::make_KW_YELLOW(drv.location());
+"orange"                    return parser::make_KW_ORANGE(drv.location());
+"purple"                    return parser::make_KW_PURPLE(drv.location());
+"pink"                      return parser::make_KW_PINK(drv.location());
+"black"                     return parser::make_KW_BLACK(drv.location());
+"white"                     return parser::make_KW_WHITE(drv.location());
+"gray"                      return parser::make_KW_GRAY(drv.location());
+"grey"                      return parser::make_KW_GREY(drv.location());
+"cyan"                      return parser::make_KW_CYAN(drv.location());
+"magenta"                   return parser::make_KW_MAGENTA(drv.location());
+"brown"                     return parser::make_KW_BROWN(drv.location());
+"lime"                      return parser::make_KW_LIME(drv.location());
+"navy"                      return parser::make_KW_NAVY(drv.location());
+"teal"                      return parser::make_KW_TEAL(drv.location());
+"olive"                     return parser::make_KW_OLIVE(drv.location());
+"maroon"                    return parser::make_KW_MAROON(drv.location());
+"silver"                    return parser::make_KW_SILVER(drv.location());
+"gold"                      return parser::make_KW_GOLD(drv.location());
+"aqua"                      return parser::make_KW_AQUA(drv.location());
+"fuchsia"                   return parser::make_KW_FUCHSIA(drv.location());
+"indigo"                    return parser::make_KW_INDIGO(drv.location());
+"violet"                    return parser::make_KW_VIOLET(drv.location());
+"salmon"                    return parser::make_KW_SALMON(drv.location());
+"coral"                     return parser::make_KW_CORAL(drv.location());
+"crimson"                   return parser::make_KW_CRIMSON(drv.location());
+
+// ----------------------------------------------------------------------------
+// Text / typography
+// ----------------------------------------------------------------------------
+
+"rich"                      return parser::make_KW_RICH(drv.location());
+"br"                        return parser::make_KW_BR(drv.location());
+"expr"                      return parser::make_KW_EXPR(drv.location());
+"font"                      return parser::make_KW_FONT(drv.location());
+"font_family"               return parser::make_KW_FONT_FAMILY(drv.location());
+"font_size"                 return parser::make_KW_FONT_SIZE(drv.location());
+"font_weight"               return parser::make_KW_FONT_WEIGHT(drv.location());
+"font_style"                return parser::make_KW_FONT_STYLE(drv.location());
+"font_variant"              return parser::make_KW_FONT_VARIANT(drv.location());
+"normal"                    return parser::make_KW_NORMAL(drv.location());
+"bold"                      return parser::make_KW_BOLD(drv.location());
+"bolder"                    return parser::make_KW_BOLDER(drv.location());
+"lighter"                   return parser::make_KW_LIGHTER(drv.location());
+"italic"                    return parser::make_KW_ITALIC(drv.location());
+"oblique"                   return parser::make_KW_OBLIQUE(drv.location());
+"small_caps"                return parser::make_KW_SMALL_CAPS(drv.location());
+"color"                     return parser::make_KW_COLOR(drv.location());
+"text_color"                return parser::make_KW_TEXT_COLOR(drv.location());
+"align"                     return parser::make_KW_ALIGN(drv.location());
+"text_align"                return parser::make_KW_TEXT_ALIGN(drv.location());
+"vertical_align"            return parser::make_KW_VERTICAL_ALIGN(drv.location());
+"valign"                    return parser::make_KW_VALIGN(drv.location());
+"text_decoration"           return parser::make_KW_TEXT_DECORATION(drv.location());
+"decoration"                return parser::make_KW_DECORATION(drv.location());
+"underline"                 return parser::make_KW_UNDERLINE(drv.location());
+"overline"                  return parser::make_KW_OVERLINE(drv.location());
+"line_through"              return parser::make_KW_LINE_THROUGH(drv.location());
+"strike"                    return parser::make_KW_STRIKE(drv.location());
+"double"                    return parser::make_KW_DOUBLE(drv.location());
+"wavy"                      return parser::make_KW_WAVY(drv.location());
+"text_transform"            return parser::make_KW_TEXT_TRANSFORM(drv.location());
+"uppercase"                 return parser::make_KW_UPPERCASE(drv.location());
+"lowercase"                 return parser::make_KW_LOWERCASE(drv.location());
+"capitalize"                return parser::make_KW_CAPITALIZE(drv.location());
+"line_height"               return parser::make_KW_LINE_HEIGHT(drv.location());
+"letter_spacing"            return parser::make_KW_LETTER_SPACING(drv.location());
+"tracking"                  return parser::make_KW_TRACKING(drv.location());
+"word_spacing"              return parser::make_KW_WORD_SPACING(drv.location());
+
+// ----------------------------------------------------------------------------
+// Connector style / labels / layers / annotations / animation
+// ----------------------------------------------------------------------------
+
+"point_style"               return parser::make_KW_POINT_STYLE(drv.location());
+"point_size"                return parser::make_KW_POINT_SIZE(drv.location());
+"point_color"               return parser::make_KW_POINT_COLOR(drv.location());
+"dot"                       return parser::make_KW_DOT(drv.location());
+"z_index"                   return parser::make_KW_Z_INDEX(drv.location());
+"visible"                   return parser::make_KW_VISIBLE(drv.location());
+"locked"                    return parser::make_KW_LOCKED(drv.location());
+"note"                      return parser::make_KW_NOTE(drv.location());
+"comment"                   return parser::make_KW_COMMENT(drv.location());
+"callout"                   return parser::make_KW_CALLOUT(drv.location());
+"tooltip"                   return parser::make_KW_TOOLTIP(drv.location());
+"badge"                     return parser::make_KW_BADGE(drv.location());
+"animate"                   return parser::make_KW_ANIMATE(drv.location());
+"ease"                      return parser::make_KW_EASE(drv.location());
+"ease_in"                   return parser::make_KW_EASE_IN(drv.location());
+"ease_out"                  return parser::make_KW_EASE_OUT(drv.location());
+"ease_in_out"               return parser::make_KW_EASE_IN_OUT(drv.location());
+"cubic_bezier"              return parser::make_KW_CUBIC_BEZIER(drv.location());
+
+// ----------------------------------------------------------------------------
+// Identifiers and single-character punctuation
+// ----------------------------------------------------------------------------
+
+{ID}                        return parser::make_IDENTIFIER(YYText(), drv.location());
+
+":"                         return parser::symbol_type(':', drv.location());
+","                         return parser::symbol_type(',', drv.location());
+"{"                         return parser::symbol_type('{', drv.location());
+"}"                         return parser::symbol_type('}', drv.location());
+"("                         return parser::symbol_type('(', drv.location());
+")"                         return parser::symbol_type(')', drv.location());
+"["                         return parser::symbol_type('[', drv.location());
+"]"                         return parser::symbol_type(']', drv.location());
+"."                         return parser::symbol_type('.', drv.location());
+"+"                         return parser::symbol_type('+', drv.location());
+"-"                         return parser::symbol_type('-', drv.location());
+"*"                         return parser::symbol_type('*', drv.location());
+"/"                         return parser::symbol_type('/', drv.location());
+"<"                         return parser::symbol_type('<', drv.location());
+">"                         return parser::symbol_type('>', drv.location());
+"="                         return parser::symbol_type('=', drv.location());
+"%"                         return parser::symbol_type('%', drv.location());
+"$"                         return parser::symbol_type('$', drv.location());
+"#"                         return parser::symbol_type('#', drv.location());
+
+.                           {
+                                drv.error(drv.location(), std::string("unexpected character: ") + YYText());
+                            }
+
+%%
+
+// ============================================================================
+// IMPORTANT FIXUP NOTES
+// ============================================================================
+// 1. This skeleton deliberately uses EXPR as an opaque token, but the lexer above
+//    does not yet produce EXPR. You have two sane options:
+//
+//    A. Define a real expression grammar in Bison:
+//          expression : expression '+' expression
+//                     | expression '*' expression
+//                     | IDENTIFIER
+//                     | NUMBER
+//                     | '(' expression ')'
+//                     ;
+//
+//    B. Lex expressions in context until a delimiter. That requires lexer start
+//       conditions because expression delimiters differ by context.
+//
+//    For a serious DSL, option A is better.
+//
+// 2. The ABNF has many bare words that can be both keywords and identifiers,
+//    such as "w", "h", "d", "s", "f", "c". In a scannerless parser this is
+//    easy; in Flex/Bison it can cause conflicts. Better design:
+//       - reserve only true syntax introducers as keywords;
+//       - parse enum-like property values as IDENTIFIER;
+//       - validate them semantically.
+//
+// 3. Several tokens referenced in parser.y still need keyword rules if you keep
+//    the fully tokenized style: KW_RED, KW_DOT, KW_ABOVE, KW_BELOW, KW_EASE,
+//    KW_EASE_IN, KW_EASE_OUT, KW_EASE_IN_OUT, KW_CUBIC_BEZIER, KW_TO, etc.
+//    You can either add those tokens/rules or simplify these sets to IDENTIFIER
+//    plus semantic validation.
+//
+// 4. Recommended next pass: collapse most value words into IDENTIFIER. For
+//    example, instead of keyword tokens for every shape, do this:
+//
+//        basic_shape : IDENTIFIER opt_integer_call;
+//
+//    Then validate that IDENTIFIER is one of the allowed shape names.
+//
+// 5. The grammar currently allows style_property -> spacing_value, which means a
+//    raw measurement can appear directly in a style block. That follows the ABNF,
+//    but it may make error messages worse.

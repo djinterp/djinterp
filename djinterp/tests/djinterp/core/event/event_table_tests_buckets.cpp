@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 event_table_tests_buckets.cpp
+/*******************************************************************************
+* djinterp [test]                                  event_table_tests_buckets.cpp
 *
 *   Section III (bucket access + iteration) -- the per-key views over the
 * store.  Covers entries_for on a missing key (nullptr) and a present key
@@ -13,10 +13,11 @@
 * no-op on a missing key).
 *
 *
-* path:      /tests/djinterp/core/event/event_table/event_table_tests_buckets.cpp
+* path:      /tests/djinterp/core/event/event_table_tests_buckets.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_table_tests.hpp"

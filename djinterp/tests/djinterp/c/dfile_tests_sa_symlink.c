@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                      dfile_tests_sa_symlink.c
+/*******************************************************************************
+* djinterp [test]                                       dfile_tests_sa_symlink.c
 *
 *   Tests for symbolic link operations (symlink, readlink, is_symlink).
 *
 *
-* path:      \src	est\dfile_tests_sa_symlink.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
-#include ".\dfile_tests_sa.h"
+* path:      /tests/djinterp/c/dfile_tests_sa_symlink.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dfile_tests_sa.h"
 
 /******************************************************************************
  * XIII. SYMBOLIC LINK TESTS
@@ -50,12 +52,12 @@ d_tests_dfile_symlinks_available
                                 "symlink_availability_test.lnk");
 
     // try to create a symlink
-    result = d_symlink(target_buf, link_buf);
+    result = d_file_symlink(target_buf, link_buf);
 
     if (result == 0)
     {
         // success - cleanup and cache result
-        d_unlink(link_buf);
+        d_file_unlink(link_buf);
         cached_result = 1;
 
         return true;
@@ -70,7 +72,7 @@ d_tests_dfile_symlinks_available
 
 /*
 d_tests_dfile_symlink
-  Tests d_symlink for creating symbolic links.
+  Tests d_file_symlink for creating symbolic links.
   Tests the following:
   - creates symbolic link to existing file (skipped if no privilege)
   - link points to correct target (skipped if no privilege)
@@ -108,16 +110,16 @@ d_tests_dfile_symlink
     if (symlinks_available)
     {
         // test 1: create symbolic link
-        result = d_symlink(target_buf, link_buf);
+        result = d_file_symlink(target_buf, link_buf);
         test_create = (result == 0);
 
         // test 2: verify link exists
-        test_link_exists = d_is_symlink(link_buf);
+        test_link_exists = d_file_is_symlink(link_buf);
 
         // cleanup
         if (test_create)
         {
-            d_unlink(link_buf);
+            d_file_unlink(link_buf);
         }
     }
     else
@@ -129,15 +131,15 @@ d_tests_dfile_symlink
     }
 
     // test 3: NULL target (can always test this)
-    result = d_symlink(NULL, link_buf);
+    result = d_file_symlink(NULL, link_buf);
     test_null_target = (result == -1);
 
     // test 4: NULL linkpath (can always test this)
-    result = d_symlink(target_buf, NULL);
+    result = d_file_symlink(target_buf, NULL);
     test_null_linkpath = (result == -1);
 
     // build result tree
-    group = d_test_object_new_interior("d_symlink", 4);
+    group = d_test_object_new_interior("d_file_symlink", 4);
 
     if (!group)
     {
@@ -150,7 +152,7 @@ d_tests_dfile_symlink
     {
         group->elements[idx++] = D_ASSERT_TRUE("create",
                                                test_create,
-                                               "d_symlink creates symbolic link");
+                                               "d_file_symlink creates symbolic link");
         group->elements[idx++] = D_ASSERT_TRUE("link_exists",
                                                test_link_exists,
                                                "symbolic link exists after creation");
@@ -159,7 +161,7 @@ d_tests_dfile_symlink
     {
         group->elements[idx++] = D_ASSERT_TRUE("create",
                                                test_create,
-                                               "d_symlink creates symbolic link (skipped: no privilege)");
+                                               "d_file_symlink creates symbolic link (skipped: no privilege)");
         group->elements[idx++] = D_ASSERT_TRUE("link_exists",
                                                test_link_exists,
                                                "symbolic link exists after creation (skipped: no privilege)");
@@ -167,10 +169,10 @@ d_tests_dfile_symlink
 
     group->elements[idx++] = D_ASSERT_TRUE("null_target",
                                            test_null_target,
-                                           "d_symlink returns -1 for NULL target");
+                                           "d_file_symlink returns -1 for NULL target");
     group->elements[idx++] = D_ASSERT_TRUE("null_linkpath",
                                            test_null_linkpath,
-                                           "d_symlink returns -1 for NULL linkpath");
+                                           "d_file_symlink returns -1 for NULL linkpath");
 
     return group;
 }
@@ -178,7 +180,7 @@ d_tests_dfile_symlink
 
 /*
 d_tests_dfile_readlink
-  Tests d_readlink for reading link targets.
+  Tests d_file_readlink for reading link targets.
   Tests the following:
   - reads target of symbolic link (skipped if no privilege)
   - target matches original (skipped if no privilege)
@@ -217,11 +219,11 @@ d_tests_dfile_readlink
     if (symlinks_available)
     {
         // create a symbolic link
-        d_symlink(target_buf, link_buf);
+        d_file_symlink(target_buf, link_buf);
 
         // test 1 & 2: read link and verify target
         memset(read_buf, 0, sizeof(read_buf));
-        bytes_read = d_readlink(link_buf, read_buf, sizeof(read_buf) - 1);
+        bytes_read = d_file_readlink(link_buf, read_buf, sizeof(read_buf) - 1);
         test_read = (bytes_read > 0);
 
         if (bytes_read > 0)
@@ -232,7 +234,7 @@ d_tests_dfile_readlink
         test_target_match = test_read && (strstr(read_buf, D_TEST_DFILE_TEST_FILENAME) != NULL);
 
         // cleanup
-        d_unlink(link_buf);
+        d_file_unlink(link_buf);
     }
     else
     {
@@ -242,15 +244,15 @@ d_tests_dfile_readlink
     }
 
     // test 3: NULL path (can always test this)
-    bytes_read = d_readlink(NULL, read_buf, sizeof(read_buf));
+    bytes_read = d_file_readlink(NULL, read_buf, sizeof(read_buf));
     test_null_path = (bytes_read == -1);
 
     // test 4: non-symlink (regular file) (can always test this)
-    bytes_read = d_readlink(target_buf, read_buf, sizeof(read_buf));
+    bytes_read = d_file_readlink(target_buf, read_buf, sizeof(read_buf));
     test_non_symlink = (bytes_read == -1);
 
     // build result tree
-    group = d_test_object_new_interior("d_readlink", 4);
+    group = d_test_object_new_interior("d_file_readlink", 4);
 
     if (!group)
     {
@@ -263,7 +265,7 @@ d_tests_dfile_readlink
     {
         group->elements[idx++] = D_ASSERT_TRUE("read",
                                                test_read,
-                                               "d_readlink reads link target");
+                                               "d_file_readlink reads link target");
         group->elements[idx++] = D_ASSERT_TRUE("target_match",
                                                test_target_match,
                                                "read target matches original");
@@ -272,7 +274,7 @@ d_tests_dfile_readlink
     {
         group->elements[idx++] = D_ASSERT_TRUE("read",
                                                test_read,
-                                               "d_readlink reads link target (skipped: no privilege)");
+                                               "d_file_readlink reads link target (skipped: no privilege)");
         group->elements[idx++] = D_ASSERT_TRUE("target_match",
                                                test_target_match,
                                                "read target matches original (skipped: no privilege)");
@@ -280,10 +282,10 @@ d_tests_dfile_readlink
 
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_readlink returns -1 for NULL path");
+                                           "d_file_readlink returns -1 for NULL path");
     group->elements[idx++] = D_ASSERT_TRUE("non_symlink",
                                            test_non_symlink,
-                                           "d_readlink returns -1 for non-symlink");
+                                           "d_file_readlink returns -1 for non-symlink");
 
     return group;
 }
@@ -291,7 +293,7 @@ d_tests_dfile_readlink
 
 /*
 d_tests_dfile_is_symlink
-  Tests d_is_symlink for checking if path is symbolic link.
+  Tests d_file_is_symlink for checking if path is symbolic link.
   Tests the following:
   - returns non-zero for symbolic link (skipped if no privilege)
   - returns 0 for regular file
@@ -329,14 +331,14 @@ d_tests_dfile_is_symlink
     if (symlinks_available)
     {
         // create a symbolic link
-        d_symlink(target_buf, link_buf);
+        d_file_symlink(target_buf, link_buf);
 
         // test 1: symbolic link
-        result = d_is_symlink(link_buf);
+        result = d_file_is_symlink(link_buf);
         test_symlink = (result != 0);
 
         // cleanup
-        d_unlink(link_buf);
+        d_file_unlink(link_buf);
     }
     else
     {
@@ -345,19 +347,19 @@ d_tests_dfile_is_symlink
     }
 
     // test 2: regular file returns 0 (can always test this)
-    result = d_is_symlink(target_buf);
+    result = d_file_is_symlink(target_buf);
     test_regular_file = (result == 0);
 
     // test 3: directory returns 0 (can always test this)
-    result = d_is_symlink(D_TEST_DFILE_TEMP_DIR);
+    result = d_file_is_symlink(D_TEST_DFILE_TEMP_DIR);
     test_directory = (result == 0);
 
     // test 4: NULL path returns 0 (can always test this)
-    result = d_is_symlink(NULL);
+    result = d_file_is_symlink(NULL);
     test_null_path = (result == 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_is_symlink", 4);
+    group = d_test_object_new_interior("d_file_is_symlink", 4);
 
     if (!group)
     {
@@ -370,24 +372,24 @@ d_tests_dfile_is_symlink
     {
         group->elements[idx++] = D_ASSERT_TRUE("symlink",
                                                test_symlink,
-                                               "d_is_symlink returns non-zero for symlink");
+                                               "d_file_is_symlink returns non-zero for symlink");
     }
     else
     {
         group->elements[idx++] = D_ASSERT_TRUE("symlink",
                                                test_symlink,
-                                               "d_is_symlink returns non-zero for symlink (skipped: no privilege)");
+                                               "d_file_is_symlink returns non-zero for symlink (skipped: no privilege)");
     }
 
     group->elements[idx++] = D_ASSERT_TRUE("regular_file",
                                            test_regular_file,
-                                           "d_is_symlink returns 0 for regular file");
+                                           "d_file_is_symlink returns 0 for regular file");
     group->elements[idx++] = D_ASSERT_TRUE("directory",
                                            test_directory,
-                                           "d_is_symlink returns 0 for directory");
+                                           "d_file_is_symlink returns 0 for directory");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_is_symlink returns 0 for NULL path");
+                                           "d_file_is_symlink returns 0 for NULL path");
 
     return group;
 }
@@ -397,9 +399,9 @@ d_tests_dfile_is_symlink
 d_tests_dfile_symbolic_links_all
   Runs all symbolic link tests.
   Tests the following:
-  - d_symlink
-  - d_readlink
-  - d_is_symlink
+  - d_file_symlink
+  - d_file_readlink
+  - d_file_is_symlink
 */
 struct d_test_object*
 d_tests_dfile_symbolic_links_all
@@ -426,5 +428,3 @@ d_tests_dfile_symbolic_links_all
 }
 
 #endif  // D_FILE_HAS_SYMLINKS
-
-

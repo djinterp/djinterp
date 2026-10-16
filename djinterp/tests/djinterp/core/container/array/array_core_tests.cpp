@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                       array_core_tests.cpp
+/*******************************************************************************
+* djinterp [testing]                                        array_core_tests.cpp
 *
 *   Implementation of the array test suite under the return-a-subtree
 * protocol declared in array_tests.hpp.
@@ -27,12 +27,13 @@
 *
 * path:      /tests/djinterp/core/container/array/array_core_tests.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
-#include "./array_tests.hpp"
-
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <chrono>      // steady_clock + duration in run_array_suite
+// djinterp
+#include "./array_tests.hpp"
 
 
 NS_DJINTERP

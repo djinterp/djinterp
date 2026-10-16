@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                         reduce_tests_value.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/reduce_tests_value.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  reduce_tests_value.cpp
 //   II. reduce_ct over a value_list -- the VALUE domain. The unified entry point;
 //   the recursion itself lives in value_list's own fold.

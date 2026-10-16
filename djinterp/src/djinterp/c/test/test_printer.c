@@ -1,4 +1,17 @@
-#include "../../../inc/c/test/test_printer.h"
+/*******************************************************************************
+* djinterp [c]                                                    test_printer.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/test/test_printer.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.20
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/test/test_printer.h"
+#include "../../../../inc/djinterp/config/core/test/cfg_test.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /******************************************************************************
@@ -235,120 +248,6 @@ d_test_printer_options_print_usage
 }
 
 #endif  // D_CFG_TEST_ENABLE_CLI
-
-
-/******************************************************************************
- * FAILURE LIST PRINT FUNCTIONS
- *****************************************************************************/
-
-void
-d_test_printer_failure_list_print
-(
-    const struct d_test_standalone_failure_list* _list
-)
-{
-    size_t      i;
-    const char* mod;
-    const char* name;
-    const char* msg;
-
-    if ( (!_list)            ||
-         (_list->count == 0) )
-    {
-        return;
-    }
-
-    printf("\n");
-    printf("%s\n", D_TEST_PRINTER_SEPARATOR_DOUBLE);
-    printf("  FAILURE SUMMARY (%zu failure%s)\n",
-           _list->count,
-           (_list->count == 1) ? "" : "s");
-    printf("%s\n", D_TEST_PRINTER_SEPARATOR_DOUBLE);
-
-    for (i = 0; i < _list->count; i++)
-    {
-        mod = _list->entries[i].module_name
-                  ? _list->entries[i].module_name
-                  : "(unknown)";
-        name = _list->entries[i].test_name
-                   ? _list->entries[i].test_name
-                   : "(unnamed)";
-        msg = _list->entries[i].message
-                  ? _list->entries[i].message
-                  : "";
-
-        printf("  %3zu) [%s] %s", (i + 1), mod, name);
-
-        if (msg[0] != '\0')
-        {
-            printf(" - %s", msg);
-        }
-
-        printf("\n");
-    }
-
-    printf("%s\n", D_TEST_PRINTER_SEPARATOR_DOUBLE);
-
-    return;
-}
-
-void
-d_test_printer_failure_list_print_file
-(
-    FILE*                                       _file,
-    const struct d_test_standalone_failure_list* _list
-)
-{
-    size_t      i;
-    const char* mod;
-    const char* name;
-    const char* msg;
-
-    if ( (!_file)            ||
-         (!_list)            ||
-         (_list->count == 0) )
-    {
-        return;
-    }
-
-    fprintf(_file, "\n");
-    fprintf(_file, "%s\n",
-            D_TEST_PRINTER_SEPARATOR_DOUBLE);
-    fprintf(_file,
-            "  FAILURE SUMMARY (%zu failure%s)\n",
-            _list->count,
-            (_list->count == 1) ? "" : "s");
-    fprintf(_file, "%s\n",
-            D_TEST_PRINTER_SEPARATOR_DOUBLE);
-
-    for (i = 0; i < _list->count; i++)
-    {
-        mod = _list->entries[i].module_name
-                  ? _list->entries[i].module_name
-                  : "(unknown)";
-        name = _list->entries[i].test_name
-                   ? _list->entries[i].test_name
-                   : "(unnamed)";
-        msg = _list->entries[i].message
-                  ? _list->entries[i].message
-                  : "";
-
-        fprintf(_file, "  %3zu) [%s] %s",
-                (i + 1), mod, name);
-
-        if (msg[0] != '\0')
-        {
-            fprintf(_file, " - %s", msg);
-        }
-
-        fprintf(_file, "\n");
-    }
-
-    fprintf(_file, "%s\n",
-            D_TEST_PRINTER_SEPARATOR_DOUBLE);
-
-    return;
-}
 
 
 /******************************************************************************
@@ -943,7 +842,7 @@ d_test_printer_output_file
     }
 
 #if D_CFG_TEST_FILE_ENABLE
-    file = d_fopen(_filepath, "w");
+    file = d_file_open_stream(_filepath, "w");
 #else
     file = fopen(_filepath, "w");
 #endif

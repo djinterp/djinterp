@@ -1,5 +1,16 @@
-#include "../../../inc/c/event/event_handler.h"
-
+/*******************************************************************************
+* djinterp [c]                                                   event_handler.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/event/event_handler.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.20
+*******************************************************************************/
+// djinterp
+#include "../../../../inc/djinterp/c/event/event_handler.h"
 
 struct d_event_handler*
 d_event_handler_new

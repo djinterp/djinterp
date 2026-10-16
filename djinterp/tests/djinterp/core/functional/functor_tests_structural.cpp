@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                   functor_tests_structural.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/functor_tests_structural.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  functor_tests_structural.cpp
 //   Section 0 -- the structural detection vocabulary: functor_value_type,
 //   is_fmappable, and the C++20 concept faces.

@@ -1,14 +1,17 @@
-/******************************************************************************
-* djinterp [test]                                        test_metadata.c
+/*******************************************************************************
+* djinterp [c]                                                   test_metadata.c
 *
 *   Implementation of the metadata container.  Compiled by both languages from
 * this one source.  Extracted from test_object.c (revision.md §6).
 *
+*
 * path:      /src/djinterp/c/test/test_metadata.c
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.10
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.08.10
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#include "djinterp/c/test/test_metadata.h"
+#include "../../../../inc/djinterp/c/test/test_metadata.h"
 
 //   Nothing to compile when the module is off. The translation unit stays in
 // every KERNELS line rather than being dropped per-knob: a build system that

@@ -24,8 +24,8 @@ d_tests_sa_standalone_global_state
 )
 {
     bool                          result;
-    struct d_test_sa_options*      saved_options;
-    struct d_test_sa_failure_list* saved_failures;
+    struct d_test_standalone_options*      saved_options;
+    struct d_test_standalone_failure_list* saved_failures;
     const char*                    saved_module;
     size_t                         saved_assertion_num;
     size_t                         saved_test_num;
@@ -43,9 +43,9 @@ d_tests_sa_standalone_global_state
 
     // test 1: g_d_test_options is accessible
     {
-        struct d_test_sa_options local_opts;
+        struct d_test_standalone_options local_opts;
 
-        d_test_sa_options_init(&local_opts);
+        d_test_standalone_options_init(&local_opts);
         g_d_test_options = &local_opts;
 
         result = d_assert_standalone(
@@ -63,7 +63,7 @@ d_tests_sa_standalone_global_state
 
     // test 2: g_d_test_failures is accessible
     {
-        struct d_test_sa_failure_list local_list;
+        struct d_test_standalone_failure_list local_list;
 
         local_list.count    = 0;
         local_list.capacity = 0;

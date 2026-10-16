@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   foldable_tests_protocol.cpp
+/*******************************************************************************
+* djinterp [test]                                    foldable_tests_protocol.cpp
 *
 *   Section 0 + I of the foldable.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_foldable (and its _v shorthand), the std::vector
@@ -9,10 +9,12 @@
 * participates so detection and value-type extraction are proven on a non-std
 * foldable as well.
 *
+*
 * path:      /tests/djinterp/core/functional/foldable_tests_protocol.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "foldable_tests.hpp"

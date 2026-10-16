@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                               atomic_array_core_tests.cpp
+/*******************************************************************************
+* djinterp [testing]                                 atomic_array_core_tests.cpp
 *
 *   Implementation of the atomic_array portion of Part B (threadsafe
 * wrappers) of the array test suite under the return-a-subtree
@@ -22,20 +22,22 @@
 * exposed at the bottom of this file.
 *
 *
-* path:      /tests/djinterp/core/container/array/
+* path:      /tests/djinterp/core/container/array/atomic_array_core_tests.cpp
 *                 atomic_array_core_tests.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.03
-******************************************************************************/
-#include "./array_tests.hpp"
-
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <chrono>           // steady_clock + duration in run_*_suite
 #include <cstdint>          // std::uint64_t
 #include <type_traits>      // is_*_constructible
 #include <utility>          // std::move
+// djinterp
+#include "./array_tests.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>       // std::atomic, memory_order
     #include <thread>       // std::thread for concurrent tests
     #include <vector>       // std::vector for thread aggregation
@@ -87,8 +89,17 @@ namespace {
     // the wrapped type.
     // -------------------------------------------------------------------
 
+    //   atomic_array (and every concurrency wrapper in this
+    // suite) is an options-pack primary template
+    // (`template<typename... _Options>`), so the alias must
+    // forward `T` and `N` through the canonical option
+    // wrappers - it cannot pass them positionally the way
+    // `mutable_iterable_array` (defined as `<T, N>` in
+    // array.hpp) accepts.
     template<typename T, std::size_t N>
-    using at_arr = djinterp::atomic_array<T, N>;
+    using at_arr = djinterp::atomic_array<
+        djinterp::array_opt_type<T>,
+        djinterp::array_opt_extent<N>>;
 
     template<typename T, std::size_t N>
     using base_mi = djinterp::mutable_iterable_array<T, N>;
@@ -676,7 +687,7 @@ test_atomic_array_size_empty(
         "empty() == false for non-zero-extent");
 
     // size() / empty() are constexpr on a static-extent
-    // atomic_array — verify by binding to a constexpr value
+    // atomic_array - verify by binding to a constexpr value
     constexpr std::size_t sz = decltype(a)::extent;
     append_leaf(tree, root,
         sz == 8,
@@ -745,7 +756,7 @@ test_atomic_array_is_lock_free(
 
     // is_lock_free is platform/type dependent.  We
     // just verify the call is well-formed and returns
-    // some bool — we cannot portably assert true.
+    // some bool - we cannot portably assert true.
     bool lf = a.is_lock_free();
 
     append_leaf(tree, root,

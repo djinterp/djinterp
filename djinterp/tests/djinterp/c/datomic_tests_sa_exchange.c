@@ -1,15 +1,15 @@
-#include ".\datomic_tests_sa.h"
+#include "./datomic_tests_sa.h"
 
 
 /*
-d_tests_sa_atomic_exchange_int
+d_tests_sa_datomic_exchange_int
   Tests atomic exchange for int type.
   Tests the following:
   - d_atomic_exchange_int returns the old value
   - the atomic holds the new value after exchange
 */
 bool
-d_tests_sa_atomic_exchange_int
+d_tests_sa_datomic_exchange_int
 (
     struct d_test_counter* _counter
 )
@@ -39,13 +39,13 @@ d_tests_sa_atomic_exchange_int
 }
 
 /*
-d_tests_sa_atomic_exchange_uint
+d_tests_sa_datomic_exchange_uint
   Tests atomic exchange for unsigned int type.
   Tests the following:
   - d_atomic_exchange_uint returns old and sets new value
 */
 bool
-d_tests_sa_atomic_exchange_uint
+d_tests_sa_datomic_exchange_uint
 (
     struct d_test_counter* _counter
 )
@@ -69,13 +69,13 @@ d_tests_sa_atomic_exchange_uint
 }
 
 /*
-d_tests_sa_atomic_exchange_long
+d_tests_sa_datomic_exchange_long
   Tests atomic exchange for long type.
   Tests the following:
   - d_atomic_exchange_long handles negative values correctly
 */
 bool
-d_tests_sa_atomic_exchange_long
+d_tests_sa_datomic_exchange_long
 (
     struct d_test_counter* _counter
 )
@@ -99,13 +99,13 @@ d_tests_sa_atomic_exchange_long
 }
 
 /*
-d_tests_sa_atomic_exchange_ulong
+d_tests_sa_datomic_exchange_ulong
   Tests atomic exchange for unsigned long type.
   Tests the following:
   - d_atomic_exchange_ulong returns old and sets new value
 */
 bool
-d_tests_sa_atomic_exchange_ulong
+d_tests_sa_datomic_exchange_ulong
 (
     struct d_test_counter* _counter
 )
@@ -129,13 +129,13 @@ d_tests_sa_atomic_exchange_ulong
 }
 
 /*
-d_tests_sa_atomic_exchange_llong
+d_tests_sa_datomic_exchange_llong
   Tests atomic exchange for long long type.
   Tests the following:
   - d_atomic_exchange_llong returns old and sets new value
 */
 bool
-d_tests_sa_atomic_exchange_llong
+d_tests_sa_datomic_exchange_llong
 (
     struct d_test_counter* _counter
 )
@@ -159,13 +159,13 @@ d_tests_sa_atomic_exchange_llong
 }
 
 /*
-d_tests_sa_atomic_exchange_ullong
+d_tests_sa_datomic_exchange_ullong
   Tests atomic exchange for unsigned long long type.
   Tests the following:
   - d_atomic_exchange_ullong returns old and sets new value
 */
 bool
-d_tests_sa_atomic_exchange_ullong
+d_tests_sa_datomic_exchange_ullong
 (
     struct d_test_counter* _counter
 )
@@ -189,13 +189,13 @@ d_tests_sa_atomic_exchange_ullong
 }
 
 /*
-d_tests_sa_atomic_exchange_ptr
+d_tests_sa_datomic_exchange_ptr
   Tests atomic exchange for pointer type.
   Tests the following:
   - d_atomic_exchange_ptr returns old pointer and sets new one
 */
 bool
-d_tests_sa_atomic_exchange_ptr
+d_tests_sa_datomic_exchange_ptr
 (
     struct d_test_counter* _counter
 )
@@ -223,13 +223,13 @@ d_tests_sa_atomic_exchange_ptr
 }
 
 /*
-d_tests_sa_atomic_exchange_size
+d_tests_sa_datomic_exchange_size
   Tests atomic exchange for size_t type.
   Tests the following:
   - d_atomic_exchange_size returns old and sets new value
 */
 bool
-d_tests_sa_atomic_exchange_size
+d_tests_sa_datomic_exchange_size
 (
     struct d_test_counter* _counter
 )
@@ -253,7 +253,7 @@ d_tests_sa_atomic_exchange_size
 }
 
 /*
-d_tests_sa_atomic_exchange_explicit
+d_tests_sa_datomic_exchange_explicit
   Tests atomic exchange with explicit memory orders.
   Tests the following:
   - d_atomic_exchange_int_explicit with acquire ordering
@@ -262,7 +262,7 @@ d_tests_sa_atomic_exchange_explicit
   - d_atomic_exchange_ptr_explicit with seq_cst ordering
 */
 bool
-d_tests_sa_atomic_exchange_explicit
+d_tests_sa_datomic_exchange_explicit
 (
     struct d_test_counter* _counter
 )
@@ -324,14 +324,14 @@ d_tests_sa_atomic_exchange_explicit
 }
 
 /*
-d_tests_sa_atomic_exchange_all
+d_tests_sa_datomic_exchange_all
   Runs all atomic exchange tests.
   Tests the following:
   - all types: int, uint, long, ulong, llong, ullong, ptr, size
   - explicit memory order variants
 */
 bool
-d_tests_sa_atomic_exchange_all
+d_tests_sa_datomic_exchange_all
 (
     struct d_test_counter* _counter
 )
@@ -343,15 +343,15 @@ d_tests_sa_atomic_exchange_all
     printf("\n  [SECTION] Atomic Exchange Operations\n");
     printf("  -------------------------------------\n");
 
-    result = d_tests_sa_atomic_exchange_int(_counter) && result;
-    result = d_tests_sa_atomic_exchange_uint(_counter) && result;
-    result = d_tests_sa_atomic_exchange_long(_counter) && result;
-    result = d_tests_sa_atomic_exchange_ulong(_counter) && result;
-    result = d_tests_sa_atomic_exchange_llong(_counter) && result;
-    result = d_tests_sa_atomic_exchange_ullong(_counter) && result;
-    result = d_tests_sa_atomic_exchange_ptr(_counter) && result;
-    result = d_tests_sa_atomic_exchange_size(_counter) && result;
-    result = d_tests_sa_atomic_exchange_explicit(_counter) && result;
+    result = d_tests_sa_datomic_exchange_int(_counter) && result;
+    result = d_tests_sa_datomic_exchange_uint(_counter) && result;
+    result = d_tests_sa_datomic_exchange_long(_counter) && result;
+    result = d_tests_sa_datomic_exchange_ulong(_counter) && result;
+    result = d_tests_sa_datomic_exchange_llong(_counter) && result;
+    result = d_tests_sa_datomic_exchange_ullong(_counter) && result;
+    result = d_tests_sa_datomic_exchange_ptr(_counter) && result;
+    result = d_tests_sa_datomic_exchange_size(_counter) && result;
+    result = d_tests_sa_datomic_exchange_explicit(_counter) && result;
 
     return result;
 }

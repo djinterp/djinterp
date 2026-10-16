@@ -1,14 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                  pipeline_tests_creation.cpp
+/*******************************************************************************
+* djinterp [test]                                    pipeline_tests_creation.cpp
 *
 * Pipeline creation tests (section i):
 *   test_creation -- default ctor, from(container/vector&&/init-list/raw
 *                    array), of(variadic), and error().
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/pipeline_tests_creation.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <list>
 #include <utility>
+#include <vector>
+// djinterp
 #include "./pipeline_tests.hpp"
 
 

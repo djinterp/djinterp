@@ -1,12 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                        interpolate_tests_sink.cpp
+/*******************************************************************************
+* djinterp [test]                                     interpolate_tests_sink.cpp
 *
 * Section IV -- interp_string_sink: appends literal runs and resolved values
 * into a caller-owned buffer.  Verifies literal() and value() (over both a
 * string and a view), ordered accumulation, that the caller's buffer is
 * appended to (never cleared), and that an empty run is a no-op.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_sink.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

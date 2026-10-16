@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    option_set_tests_core.cpp
+/*******************************************************************************
+* djinterp [test]                                      option_set_tests_core.cpp
 *
 *   Section IV of the option_set.hpp suite: the option_set pack surface that
 * option_set inherits from internal::option_set_pack.
@@ -20,14 +20,15 @@
 *
 * path:      /tests/djinterp/core/option/option_set_tests_core.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <tuple>
 #include <type_traits>
 // djinterp
-#include "option_set_tests.hpp"
+#include "./option_set_tests.hpp"
 
 
 NS_DJINTERP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                              test_container_tests_element.cpp
+/*******************************************************************************
+* djinterp [test]                               test_container_tests_element.cpp
 *
 *   Section II of the test_container suite: the guarded ELEMENT PROTOCOL.  The
 * internal container_element_evaluable trait has two arms - a PRIMARY (for a
@@ -14,11 +14,14 @@
 * anchored with a structural positive (mini_evaluable, not basic_test) and a
 * clutch of negatives, so the specialization's verdict has a firm floor.
 *
-* path:      /tests/djinterp/test/test_container/test_container_tests_element.cpp
+*
+* path:      /tests/djinterp/test/test_container_tests_element.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_container_tests.hpp"
 
 NS_DJINTERP

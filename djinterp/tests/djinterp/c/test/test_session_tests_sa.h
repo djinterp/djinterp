@@ -1,23 +1,26 @@
-/******************************************************************************
-* djinterp [test]                                      test_session_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                        test_session_tests_sa.h
 *
 *   Unit tests for test_session.h using the standalone testing framework.
 *   Covers constructor/destructor, configuration, child management, execution,
 * output, statistics, status, and utility functions.
 *
 *
-* path:      \test\test\test_session_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
-******************************************************************************/
+* path:      /tests/djinterp/c/test/test_session_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_TEST_SESSION_STANDALONE_
 #define DJINTERP_TESTING_TEST_SESSION_STANDALONE_ 1
 
+// std
 #include <stdlib.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/test/test_session.h"
-#include "../../../inc/c/test/test_standalone.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/test/test_session.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /******************************************************************************

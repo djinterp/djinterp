@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               bifunctor_tests_instances.cpp
+/*******************************************************************************
+* djinterp [test]                                  bifunctor_tests_instances.cpp
 *
 *   Section III of the bifunctor.hpp suite: the two shipped instances, std::pair
 * and kv_pair, exercised specifically.  Covers each instance's bimap called
@@ -10,10 +10,12 @@
 * mapping the value preserves == (keys unchanged), while mapping the key breaks
 * it.
 *
+*
 * path:      /tests/djinterp/core/functional/bifunctor_tests_instances.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "bifunctor_tests.hpp"

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                         bsearch_tests.hpp
+/*******************************************************************************
+* djinterp [testing]                                           bsearch_tests.hpp
 *
 * Unit test suite for bsearch.hpp -- the compile-time binary-search engine.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):
@@ -82,10 +82,12 @@
 *   IV.   ORDERING     (bsearch_tests_ordering.cpp)
 *   V.    ROBUSTNESS   (bsearch_tests_robustness.cpp)
 *
+*
 * path:      /tests/djinterp/core/meta/bsearch_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.07.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_BSEARCH_TESTS_
 #define DJINTERP_TESTS_BSEARCH_TESTS_ 1
@@ -94,13 +96,13 @@
 #include <cstddef>
 #include <cstdio>
 #include <type_traits>
-
+// djinterp
 // -- (part 1) mode-gated includes --------------------------------------------
 // djinterp core is ALWAYS first and unconditional (NS_*, D_* qualifiers,
 // language gates), so both faces have it.
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "bsearch.hpp"                          // the header under test (normal)
+#include "../../../../inc/djinterp/core/meta/bsearch.hpp"                          // the header under test (normal)
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"      // module_spec + run_module (spec)

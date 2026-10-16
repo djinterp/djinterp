@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 event_common_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                  event_common_tests_traits.cpp
 *
 *   Section IV -- EVENT TRAITS.  Covers event_traits<_Event>: the payload_type
 * it exposes, the args_type alias that mirrors it, the arity drawn from the
@@ -8,10 +8,11 @@
 * prefers the canonical payload).
 *
 *
-* path:      /tests/djinterp/core/event/event_common/event_common_tests_traits.cpp
+* path:      /tests/djinterp/core/event/event_common_tests_traits.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_common_tests.hpp"

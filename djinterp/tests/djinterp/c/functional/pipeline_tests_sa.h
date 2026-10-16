@@ -1,28 +1,31 @@
-/******************************************************************************
-* djinterp [test]                                          pipeline_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                            pipeline_tests_sa.h
 *
 *   Unit tests for `pipeline.h` in the functional module.
 *   For the file itself, go to `\inc\functional\pipeline.h`.
-*   Note: this module is required to build DTest, so it uses `test_standalone.h`,
-* rather than DTest for unit testing. Any modules that are not dependencies of
+*   Note: this module is required to build DTest, so it does not use DTest
+* for unit testing. Any modules that are not dependencies of
 * DTest should use DTest for unit tests.
 *
 *
-* path:      \test\functional\pipeline_tests_sa.h
+* path:      /tests/djinterp/c/functional/pipeline_tests_sa.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.10
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_PIPELINE_
 #define DJINTERP_TESTING_FUNCTIONAL_PIPELINE_ 1
 
+// std
 #include <stdlib.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/dmemory.h"
-#include "../../../inc/c/string_fn.h"
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/functional/functional_common.h"
-#include "../../../inc/c/functional/pipeline.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/functional/functional_common.h"
+#include "../../../../inc/djinterp/c/functional/pipeline.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 // i.    pipeline creation tests

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                      font_tests_composites.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_composites.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_composites.cpp
 //   Section 10, parts III and IV: the composite profile traits (is_font_like
 // and the is_font_with_* / is_font_* gates built on it) and the enable_if_*

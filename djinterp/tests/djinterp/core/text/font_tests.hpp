@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                                font_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                                 font_tests.hpp
 *
 *   Declarations, probe types, and helpers for the font.hpp unit suite.
 * The section TUs (font_tests_*.cpp) define the tests_* functions, flat in
@@ -30,8 +30,9 @@
 *
 * path:      /tests/djinterp/core/text/font_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.12
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEXT_FONT_TESTS_
 #define DJINTERP_TEXT_FONT_TESTS_ 1
@@ -43,7 +44,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "font.hpp"
+#include "../../../../inc/djinterp/core/text/font.hpp"
 
 
 NS_DJINTERP

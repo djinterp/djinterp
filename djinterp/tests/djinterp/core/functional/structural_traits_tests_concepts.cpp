@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                           structural_traits_tests_concepts.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/structural_traits_tests_concepts.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  structural_traits_tests_concepts.cpp
 //   Section V -- the protocol concepts: BinaryCallable, Reducer, Transducer,
 //   UnfoldStep (C++20).

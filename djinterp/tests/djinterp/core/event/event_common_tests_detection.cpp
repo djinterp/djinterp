@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                              event_common_tests_detection.cpp
+/*******************************************************************************
+* djinterp [test]                               event_common_tests_detection.cpp
 *
 *   Section III -- EVENT TAG DETECTION.  Covers the internal detection traits
 * that classify a candidate event tag: has_payload_type / has_args_type (the
@@ -10,10 +10,11 @@
 * cv/reference-qualified case to confirm clean_t strips qualifiers.
 *
 *
-* path:      /tests/djinterp/core/event/event_common/event_common_tests_detection.cpp
+* path:      /tests/djinterp/core/event/event_common_tests_detection.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_common_tests.hpp"

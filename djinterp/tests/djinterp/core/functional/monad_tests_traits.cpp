@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      monad_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                         monad_tests_traits.cpp
 *
 *   Tests for monad.hpp Section 0: the predicate SFINAE structural
 * traits and the C++20 concept mirrors.  Almost all coverage here is
@@ -8,7 +8,14 @@
 * failing silently at runtime.  The section function records a single
 * runtime roll-up assertion so the report carries a visible row for the
 * compile-time suite.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/monad_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./monad_tests.hpp"
 
 

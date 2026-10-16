@@ -1,8 +1,19 @@
+/*******************************************************************************
+* djinterp [container]                                registry_tests_sa_common.c
+*
+*
+* path:      /tests/djinterp/c/container/registry/registry_tests_sa_common.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 /******************************************************************************
  * SECTION XI: REGISTRY_COMMON FUNCTION TESTS
  *****************************************************************************/
 
+// djinterp
 #include "./registry_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /*

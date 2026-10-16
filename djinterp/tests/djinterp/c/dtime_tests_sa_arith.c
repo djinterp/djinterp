@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                        dtime_tests_sa_arith.c
+/*******************************************************************************
+* djinterp [test]                                         dtime_tests_sa_arith.c
 *
 *   Tests for time arithmetic functions (timespec_add, timespec_sub,
 * timespec_cmp, conversions to/from ms/us/ns).
 *
 *
-* path:      \src\test\dtime_tests_sa_arith.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
+* path:      /tests/djinterp/c/dtime_tests_sa_arith.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "dtime_tests_sa.h"
 
 
@@ -17,7 +19,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dtime_timespec_add
+d_tests_sa_dtime_timespec_add
   Tests d_timespec_add for adding two timespec values.
   Tests the following:
   - adds two simple timespec values
@@ -30,7 +32,7 @@ d_tests_dtime_timespec_add
   - works with same source and destination
 */
 struct d_test_object*
-d_tests_dtime_timespec_add
+d_tests_sa_dtime_timespec_add
 (
     void
 )
@@ -97,9 +99,9 @@ d_tests_dtime_timespec_add
     memset(&result, 0, sizeof(result));
 
     d_timespec_add(&a, &b, &result);
-    test_normalized = (result.tv_nsec >= 0) && 
+    test_normalized = (result.tv_nsec >= 0) &&
                       (result.tv_nsec < D_TIME_NSEC_PER_SEC) &&
-                      (result.tv_sec == 2) && 
+                      (result.tv_sec == 2) &&
                       (result.tv_nsec == 1);
 
     // test 6: adding to zero
@@ -176,7 +178,7 @@ d_tests_dtime_timespec_add
 
 
 /*
-d_tests_dtime_timespec_sub
+d_tests_sa_dtime_timespec_sub
   Tests d_timespec_sub for subtracting two timespec values.
   Tests the following:
   - subtracts two simple timespec values
@@ -189,7 +191,7 @@ d_tests_dtime_timespec_sub
   - subtracting zero yields original value
 */
 struct d_test_object*
-d_tests_dtime_timespec_sub
+d_tests_sa_dtime_timespec_sub
 (
     void
 )
@@ -257,9 +259,9 @@ d_tests_dtime_timespec_sub
 
     d_timespec_sub(&a, &b, &result);
     // 10.1s - 5.9s = 4.2s
-    test_normalized = (result.tv_nsec >= 0) && 
+    test_normalized = (result.tv_nsec >= 0) &&
                       (result.tv_nsec < D_TIME_NSEC_PER_SEC) &&
-                      (result.tv_sec == 4) && 
+                      (result.tv_sec == 4) &&
                       (result.tv_nsec == 200000000);
 
     // test 6: a > b gives positive result
@@ -332,7 +334,7 @@ d_tests_dtime_timespec_sub
 
 
 /*
-d_tests_dtime_timespec_cmp
+d_tests_sa_dtime_timespec_cmp
   Tests d_timespec_cmp for comparing two timespec values.
   Tests the following:
   - returns negative when a < b
@@ -345,7 +347,7 @@ d_tests_dtime_timespec_cmp
   - symmetric comparison
 */
 struct d_test_object*
-d_tests_dtime_timespec_cmp
+d_tests_sa_dtime_timespec_cmp
 (
     void
 )
@@ -476,7 +478,7 @@ d_tests_dtime_timespec_cmp
 
 
 /*
-d_tests_dtime_timespec_to_ms
+d_tests_sa_dtime_timespec_to_ms
   Tests d_timespec_to_ms for converting timespec to milliseconds.
   Tests the following:
   - converts simple values correctly
@@ -489,7 +491,7 @@ d_tests_dtime_timespec_to_ms
   - round-trip with d_ms_to_timespec
 */
 struct d_test_object*
-d_tests_dtime_timespec_to_ms
+d_tests_sa_dtime_timespec_to_ms
 (
     void
 )
@@ -606,7 +608,7 @@ d_tests_dtime_timespec_to_ms
 
 
 /*
-d_tests_dtime_timespec_to_us
+d_tests_sa_dtime_timespec_to_us
   Tests d_timespec_to_us for converting timespec to microseconds.
   Tests the following:
   - converts simple values correctly
@@ -619,7 +621,7 @@ d_tests_dtime_timespec_to_us
   - round-trip with d_us_to_timespec
 */
 struct d_test_object*
-d_tests_dtime_timespec_to_us
+d_tests_sa_dtime_timespec_to_us
 (
     void
 )
@@ -736,7 +738,7 @@ d_tests_dtime_timespec_to_us
 
 
 /*
-d_tests_dtime_timespec_to_ns
+d_tests_sa_dtime_timespec_to_ns
   Tests d_timespec_to_ns for converting timespec to nanoseconds.
   Tests the following:
   - converts simple values correctly
@@ -749,7 +751,7 @@ d_tests_dtime_timespec_to_ns
   - round-trip with d_ns_to_timespec
 */
 struct d_test_object*
-d_tests_dtime_timespec_to_ns
+d_tests_sa_dtime_timespec_to_ns
 (
     void
 )
@@ -866,7 +868,7 @@ d_tests_dtime_timespec_to_ns
 
 
 /*
-d_tests_dtime_ms_to_timespec
+d_tests_sa_dtime_ms_to_timespec
   Tests d_ms_to_timespec for converting milliseconds to timespec.
   Tests the following:
   - converts simple values correctly
@@ -879,7 +881,7 @@ d_tests_dtime_ms_to_timespec
   - consistency with d_timespec_to_ms
 */
 struct d_test_object*
-d_tests_dtime_ms_to_timespec
+d_tests_sa_dtime_ms_to_timespec
 (
     void
 )
@@ -985,7 +987,7 @@ d_tests_dtime_ms_to_timespec
 
 
 /*
-d_tests_dtime_us_to_timespec
+d_tests_sa_dtime_us_to_timespec
   Tests d_us_to_timespec for converting microseconds to timespec.
   Tests the following:
   - converts simple values correctly
@@ -998,7 +1000,7 @@ d_tests_dtime_us_to_timespec
   - consistency with d_timespec_to_us
 */
 struct d_test_object*
-d_tests_dtime_us_to_timespec
+d_tests_sa_dtime_us_to_timespec
 (
     void
 )
@@ -1101,7 +1103,7 @@ d_tests_dtime_us_to_timespec
 
 
 /*
-d_tests_dtime_ns_to_timespec
+d_tests_sa_dtime_ns_to_timespec
   Tests d_ns_to_timespec for converting nanoseconds to timespec.
   Tests the following:
   - converts simple values correctly
@@ -1114,7 +1116,7 @@ d_tests_dtime_ns_to_timespec
   - consistency with d_timespec_to_ns
 */
 struct d_test_object*
-d_tests_dtime_ns_to_timespec
+d_tests_sa_dtime_ns_to_timespec
 (
     void
 )
@@ -1217,7 +1219,7 @@ d_tests_dtime_ns_to_timespec
 
 
 /*
-d_tests_dtime_time_arithmetic_all
+d_tests_sa_dtime_time_arithmetic_all
   Runs all time arithmetic tests.
   Tests the following:
   - d_timespec_add
@@ -1231,7 +1233,7 @@ d_tests_dtime_time_arithmetic_all
   - d_ns_to_timespec
 */
 struct d_test_object*
-d_tests_dtime_time_arithmetic_all
+d_tests_sa_dtime_time_arithmetic_all
 (
     void
 )
@@ -1247,15 +1249,15 @@ d_tests_dtime_time_arithmetic_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dtime_timespec_add();
-    group->elements[idx++] = d_tests_dtime_timespec_sub();
-    group->elements[idx++] = d_tests_dtime_timespec_cmp();
-    group->elements[idx++] = d_tests_dtime_timespec_to_ms();
-    group->elements[idx++] = d_tests_dtime_timespec_to_us();
-    group->elements[idx++] = d_tests_dtime_timespec_to_ns();
-    group->elements[idx++] = d_tests_dtime_ms_to_timespec();
-    group->elements[idx++] = d_tests_dtime_us_to_timespec();
-    group->elements[idx++] = d_tests_dtime_ns_to_timespec();
+    group->elements[idx++] = d_tests_sa_dtime_timespec_add();
+    group->elements[idx++] = d_tests_sa_dtime_timespec_sub();
+    group->elements[idx++] = d_tests_sa_dtime_timespec_cmp();
+    group->elements[idx++] = d_tests_sa_dtime_timespec_to_ms();
+    group->elements[idx++] = d_tests_sa_dtime_timespec_to_us();
+    group->elements[idx++] = d_tests_sa_dtime_timespec_to_ns();
+    group->elements[idx++] = d_tests_sa_dtime_ms_to_timespec();
+    group->elements[idx++] = d_tests_sa_dtime_us_to_timespec();
+    group->elements[idx++] = d_tests_sa_dtime_ns_to_timespec();
 
     return group;
 }

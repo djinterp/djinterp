@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    byte_size_tests_static.cpp
+/*******************************************************************************
+* djinterp [test]                                     byte_size_tests_static.cpp
 *
 *   Section I of byte_size.hpp: static_byte_size / static_byte_size_v.
 *
@@ -12,10 +12,13 @@
 *     - the static_byte_size_v companion (gated to the standards that have it).
 *
 *
-* path:      /inc/djinterp/test/byte_size_tests_static.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.03
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/byte_size_tests_static.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "byte_size_tests.hpp"
 
 

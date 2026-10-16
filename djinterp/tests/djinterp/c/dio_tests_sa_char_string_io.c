@@ -1,4 +1,15 @@
-#include ".\dio_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                  dio_tests_sa_char_string_io.c
+*
+*
+* path:      /tests/djinterp/c/dio_tests_sa_char_string_io.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dio_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /*
@@ -10,8 +21,8 @@ d_tests_sa_dio_gets_s
   - successful read from redirected stdin
   - buffer size enforcement
   - newline removal behavior
-  
-  Note: Since gets_s reads from stdin, these tests use d_freopen_s to redirect
+
+  Note: Since gets_s reads from stdin, these tests use d_file_reopen_stream_s to redirect
   stdin to a temporary file for automated testing.
 */
 bool
@@ -44,11 +55,11 @@ d_tests_sa_dio_gets_s
         "Zero size should return NULL",
         _counter) && result;
 
-    // test 3: successful read (simulated via stdin redirection using d_freopen_s)
+    // test 3: successful read (simulated via stdin redirection using d_file_reopen_stream_s)
     d_strcpy_s(temp_filename, sizeof(temp_filename), "test_gets_s_temp.txt");
-    
+
     // create test file
-    redirected = d_fopen(temp_filename, "w");
+    redirected = d_file_open_stream(temp_filename, "w");
     if (redirected)
     {
         fprintf(redirected, "test line\n");
@@ -57,11 +68,11 @@ d_tests_sa_dio_gets_s
 
     // redirect stdin to temp file
     redirected = NULL;
-    if (d_freopen_s(&redirected, temp_filename, "r", stdin) == 0 && redirected != NULL)
+    if (d_file_reopen_stream_s(&redirected, temp_filename, "r", stdin) == 0 && redirected != NULL)
     {
         d_memset(buffer, 0, sizeof(buffer));
         read_result = d_gets_s(buffer, sizeof(buffer));
-        
+
         result = d_assert_standalone(
             read_result != NULL,
             "gets_s_success_ptr",
@@ -77,7 +88,7 @@ d_tests_sa_dio_gets_s
 
     // test 4: small buffer truncation
     // create new test file
-    redirected = d_fopen(temp_filename, "w");
+    redirected = d_file_open_stream(temp_filename, "w");
     if (redirected)
     {
         fprintf(redirected, "This is a very long line that will be truncated\n");
@@ -86,13 +97,13 @@ d_tests_sa_dio_gets_s
 
     // redirect stdin again
     redirected = NULL;
-    if (d_freopen_s(&redirected, temp_filename, "r", stdin) == 0 && redirected != NULL)
+    if (d_file_reopen_stream_s(&redirected, temp_filename, "r", stdin) == 0 && redirected != NULL)
     {
         char small_buffer[10];
-        
+
         d_memset(small_buffer, 0, sizeof(small_buffer));
         read_result = d_gets_s(small_buffer, sizeof(small_buffer));
-        
+
         // should either succeed with truncation or fail
         result = d_assert_standalone(
             (read_result == NULL) || (strlen(small_buffer) < sizeof(small_buffer)),
@@ -107,17 +118,17 @@ d_tests_sa_dio_gets_s
 #if defined(D_ENV_PLATFORM_WINDOWS)
     {
         FILE* restored = NULL;
-        d_freopen_s(&restored, "CON", "r", stdin);
+        d_file_reopen_stream_s(&restored, "CON", "r", stdin);
     }
 #else
     {
         FILE* restored = NULL;
-        d_freopen_s(&restored, "/dev/tty", "r", stdin);
+        d_file_reopen_stream_s(&restored, "/dev/tty", "r", stdin);
     }
 #endif
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }
@@ -130,7 +141,7 @@ d_tests_sa_dio_fputs
   - successful write to file
   - write without newline appending
   - return value correctness
-  
+
   Note: NULL stream and NULL string tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -154,7 +165,7 @@ d_tests_sa_dio_fputs
     // test 2: NULL string test skipped (causes assertion in debug builds)
 
     // test 3: successful write
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         write_result = d_fputs("Hello, fputs!", temp_file);
@@ -167,12 +178,12 @@ d_tests_sa_dio_fputs
         fclose(temp_file);
 
         // verify written content
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             d_memset(read_buffer, 0, sizeof(read_buffer));
             d_fgets(read_buffer, sizeof(read_buffer), temp_file);
-            
+
             result = d_assert_standalone(
                 strcmp(read_buffer, "Hello, fputs!") == 0,
                 "fputs_success_content",
@@ -184,7 +195,7 @@ d_tests_sa_dio_fputs
     }
 
     // test 4: empty string
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         write_result = d_fputs("", temp_file);
@@ -198,7 +209,7 @@ d_tests_sa_dio_fputs
     }
 
     // test 5: multiple writes
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         d_fputs("First ", temp_file);
@@ -207,12 +218,12 @@ d_tests_sa_dio_fputs
         fclose(temp_file);
 
         // verify concatenated content
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             d_memset(read_buffer, 0, sizeof(read_buffer));
             d_fgets(read_buffer, sizeof(read_buffer), temp_file);
-            
+
             result = d_assert_standalone(
                 strcmp(read_buffer, "First Second Third") == 0,
                 "fputs_multi_content",
@@ -224,7 +235,7 @@ d_tests_sa_dio_fputs
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }
@@ -238,7 +249,7 @@ d_tests_sa_dio_fgets
   - newline preservation
   - partial line read with buffer limit
   - EOF handling
-  
+
   Note: NULL buffer and NULL stream tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -262,18 +273,18 @@ d_tests_sa_dio_fgets
     // test 2: NULL stream test skipped (causes assertion in debug builds)
 
     // test 3: successful line read with newline
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         fprintf(temp_file, "test line\n");
         fclose(temp_file);
 
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             d_memset(buffer, 0, sizeof(buffer));
             read_result = d_fgets(buffer, sizeof(buffer), temp_file);
-            
+
             result = d_assert_standalone(
                 read_result != NULL,
                 "fgets_success_ptr",
@@ -291,20 +302,20 @@ d_tests_sa_dio_fgets
     }
 
     // test 4: partial read with buffer limit
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         fprintf(temp_file, "This is a very long line\n");
         fclose(temp_file);
 
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             char small_buffer[10];
-            
+
             d_memset(small_buffer, 0, sizeof(small_buffer));
             read_result = d_fgets(small_buffer, sizeof(small_buffer), temp_file);
-            
+
             result = d_assert_standalone(
                 read_result != NULL,
                 "fgets_partial_ptr",
@@ -322,17 +333,17 @@ d_tests_sa_dio_fgets
     }
 
     // test 5: EOF handling
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         fclose(temp_file);  // empty file
 
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             d_memset(buffer, 0, sizeof(buffer));
             read_result = d_fgets(buffer, sizeof(buffer), temp_file);
-            
+
             result = d_assert_standalone(
                 read_result == NULL,
                 "fgets_eof",
@@ -344,18 +355,18 @@ d_tests_sa_dio_fgets
     }
 
     // test 6: line without newline
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         fprintf(temp_file, "no newline");
         fclose(temp_file);
 
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             d_memset(buffer, 0, sizeof(buffer));
             read_result = d_fgets(buffer, sizeof(buffer), temp_file);
-            
+
             result = d_assert_standalone(
                 read_result != NULL,
                 "fgets_no_newline_ptr",
@@ -373,7 +384,7 @@ d_tests_sa_dio_fgets
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }

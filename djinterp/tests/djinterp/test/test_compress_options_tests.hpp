@@ -10,7 +10,7 @@
 *   This is a property of the framework, not of the module under test, and it
 * applies to EVERY DTest runner rather than to this suite alone.  A runner
 * includes test_defaults.hpp to reach run_module; test_defaults.hpp includes
-* output/test_report_runner.hpp; and that header spells `byte_buffer` in two
+* output/test_report_runner.hpp; and that header spells `byte_blob` in two
 * places - pending_doc::bytes and write_bytes_to_file's parameter - which is a
 * typedef reachable only through the archive include guarded by
 * D_TEST_REPORT_ENABLE_ARCHIVE.  Without the macro the runner does not compile
@@ -71,11 +71,11 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-
+// djinterp
 // -- (part 1) mode-gated includes ------------------------------------------
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "test_compress_options.hpp"
+#include "../../../inc/djinterp/test/test_compress_options.hpp"
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"

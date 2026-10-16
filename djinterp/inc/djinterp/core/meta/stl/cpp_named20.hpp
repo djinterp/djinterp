@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                              cpp_named20.h
+/*******************************************************************************
+* djinterp [core]                                                cpp_named20.hpp
 *
 * C++20 named requirement concepts:
 *   Extends the C++17 named requirement traits with first-class C++20
@@ -27,46 +27,51 @@
 * CONCEPT NAMING CONVENTION:
 *   Concepts use the same snake_case names as the struct traits without the
 *   `is_` prefix, in a dedicated `concepts` sub-namespace:
-*     djinterp::traits::concepts::default_constructible<_T>
-*     djinterp::traits::concepts::move_constructible<_T>
-*     djinterp::traits::concepts::value_type<_T>
+*     djinterp::re_std::concepts::default_constructible<_T>
+*     djinterp::re_std::concepts::move_constructible<_T>
+*     djinterp::re_std::concepts::value_type<_T>
 *   (etc.)
 *
 * FEATURE DEPENDENCIES:
 *   D_ENV_CPP_FEATURE_LANG_CONCEPTS             - concept availability
 *   D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES    - move trait availability
 *
-* path:      \inc\cpp_named20.h
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.27
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/meta/stl/cpp_named20.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_CPP_NAMED20_
-#define DJINTERP_CPP_NAMED20_ 1
+#ifndef DJINTERP_META_STL_CPP_NAMED20_HPP
+#define DJINTERP_META_STL_CPP_NAMED20_HPP 1
 
 // require env.h to be included first
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "cpp_named20.h requires env.h to be included first"
+#ifndef DJINTERP_ENV_ENV_H
+    #error "cpp_named20.hpp requires env.h to be included first"
 #endif
 
 // only meaningful in C++ mode
 #ifndef __cplusplus
-    #error "cpp_named20.h can only be used in C++ compilation mode"
+    #error "cpp_named20.hpp can only be used in C++ compilation mode"
 #endif
 
+// djinterp
 // include C++17 layer
-#include "cpp_named17.h"
+#include "cpp_named17.hpp"
 
 // C++20 additions are active for C++20 and all later standards
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-#include <type_traits>
+// std
 #include <concepts>
 #include <iterator>
 #include <random>
+#include <type_traits>
 
 
 NS_DJINTERP
-NS_TRAITS
+NS_RESTD
 
 // =========================================================================
 // I.   CORE NAMED REQUIREMENT CONCEPTS (C++20)
@@ -693,6 +698,7 @@ NS_END  // concepts
 
 #if defined(__cpp_lib_format)
 
+// std
 #include <format>
 
 NS_INTERNAL
@@ -981,6 +987,7 @@ NS_END  // concepts
 
 #if defined(__cpp_lib_ranges)
 
+// std
 #include <ranges>
 
 NS_INTERNAL
@@ -1202,10 +1209,10 @@ NS_END  // concepts
 #endif  // __cpp_lib_ranges
 
 
-NS_END  // traits
+NS_END  // re_std
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_CPP_NAMED20_
+#endif  // DJINTERP_META_STL_CPP_NAMED20_HPP

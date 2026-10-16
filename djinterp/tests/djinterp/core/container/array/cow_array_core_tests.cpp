@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                 cow_array_core_tests.cpp
+/*******************************************************************************
+* djinterp [testing]                                    cow_array_core_tests.cpp
 *
 *   Implementation of the cow_array portion of Part B (threadsafe
 * wrappers) of the array test suite under the return-a-subtree
@@ -22,19 +22,21 @@
 * into the sub-builder exposed at the bottom of this file.
 *
 *
-* path:      /tests/djinterp/core/container/array/
+* path:      /tests/djinterp/core/container/array/cow_array_core_tests.cpp
 *                 cow_array_core_tests.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.03
-******************************************************************************/
-#include "./array_tests.hpp"
-
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstdint>          // std::uint64_t
 #include <type_traits>      // is_*_constructible
 #include <utility>          // std::move
+// djinterp
+#include "./array_tests.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>       // std::atomic for concurrent tests
     #include <thread>       // std::thread for concurrent tests
     #include <vector>       // std::vector for thread aggregation
@@ -89,8 +91,31 @@ namespace {
     // storage in from-array construction tests.
     // -------------------------------------------------------------------
 
+    //   cow_array is an options-pack primary template
+    // (`template<typename... _Options>`), so the alias must
+    // forward `T` and `N` through the canonical option
+    // wrappers - it cannot pass them positionally the way
+    // `mutable_iterable_array` (defined as `<T, N>` in
+    // array.hpp) accepts.
+    //
+    //   The lifetime and iterability options are passed
+    // explicitly here so the wrapper's internal `array_type`
+    // (i.e. `array<_Options...>`) is identical to
+    // `mutable_iterable_array<T, N>` (= `base_mi<T, N>`).
+    // Tests below pass `base_mi<int, N>&` lambdas to
+    // `modify()` and `base_mi<int, N>` instances to
+    // `replace()`; without the explicit options the
+    // wrapper's `array_type` would be a different
+    // instantiation (only two options) and those calls
+    // would fail to overload-resolve.
     template<typename T, std::size_t N>
-    using cow_arr = djinterp::cow_array<T, N>;
+    using cow_arr = djinterp::cow_array<
+        djinterp::array_opt_type<T>,
+        djinterp::array_opt_extent<N>,
+        djinterp::container_opt_lifetime<
+            djinterp::container_lifetime::mutable_storage>,
+        djinterp::container_opt_iterability<
+            djinterp::container_iterability::iterable>>;
 
     template<typename T, std::size_t N>
     using base_mi = djinterp::mutable_iterable_array<T, N>;
@@ -589,7 +614,7 @@ test_cow_array_modify(
         a.version() > v_before,
         "modify(fn) bumps version");
 
-    // modify with return value — verify pass-through
+    // modify with return value - verify pass-through
     auto v_pre = a.version();
 
     int returned = a.modify(
@@ -793,7 +818,7 @@ test_cow_array_concurrent_snapshots(
                 auto snap = a.snapshot();
 
                 // every snapshot must observe the full
-                // 1..8 sequence — never a partial write.
+                // 1..8 sequence - never a partial write.
                 bool ok = true;
                 for (std::size_t i = 0; i < 8; ++i)
                 {
@@ -805,7 +830,7 @@ test_cow_array_concurrent_snapshots(
                     // generation (writer below sets all to
                     // (i + 1) * gen).  The invariant we
                     // check: snap[i] / (i + 1) is identical
-                    // across all i — i.e. the snapshot is
+                    // across all i - i.e. the snapshot is
                     // self-consistent.
                     if (actual % expected != 0)
                     {
@@ -849,12 +874,23 @@ test_cow_array_concurrent_writers(
     root = tree.underlying().root();
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // Options-pack form of the same cow_array configuration
+    // (element=int, extent=4, mutable, iterable, exclusive
+    // lock).  The old form passed `4`,
+    // `array_lifetime::mutable_lifetime`, etc. positionally
+    // to `cow_array<typename... _Options>` which expects
+    // option wrappers - hence the previous compile error
+    // around "template argument for template type parameter
+    // must be a type".
     djinterp::cow_array<
-        int,
-        4,
-        array_lifetime::mutable_lifetime,
-        array_iterability::iterable,
-        djinterp::exclusive_lock_policy> a;
+        djinterp::array_opt_type<int>,
+        djinterp::array_opt_extent<4>,
+        djinterp::container_opt_lifetime<
+            djinterp::container_lifetime::mutable_storage>,
+        djinterp::container_opt_iterability<
+            djinterp::container_iterability::iterable>,
+        djinterp::container_opt_lock_policy<
+            djinterp::exclusive_lock_policy>> a;
 
     constexpr std::size_t kWriters    = 4;
     constexpr int         kIterations = 250;
@@ -873,7 +909,7 @@ test_cow_array_concurrent_writers(
 
     auto v_end = a.version();
 
-    // every set() bumps the version — under contention
+    // every set() bumps the version - under contention
     // we expect at least kWriters * kIterations bumps.
     auto expected_min = static_cast<std::uint64_t>(kWriters * kIterations);
 
@@ -889,7 +925,7 @@ test_cow_array_concurrent_writers(
     {
         int v = a.at(i);
         // accept zero (uninitialized) or any tid*1000+iter
-        // pattern — we only check that the read does not
+        // pattern - we only check that the read does not
         // segfault and yields a plausible value.
         if (v < 0)
         {

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                view_tests_adapters_basic.cpp
+/*******************************************************************************
+* djinterp [test]                                  view_tests_adapters_basic.cpp
 *
 * Basic adapter view tests (section IV, part 1): the element-wise and prefix
 * adapters.
@@ -10,9 +10,17 @@
 *   test_drop       -- skips n, with n == 0 and n > size edge cases.
 *   test_take_while -- prefix while predicate holds (all / none / partial).
 *   test_drop_while -- drops the leading run satisfying the predicate.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/view_tests_adapters_basic.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <vector>
+// djinterp
 #include "./view_tests.hpp"
 
 

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                alternative_tests_protocol.cpp
+/*******************************************************************************
+* djinterp [test]                                 alternative_tests_protocol.cpp
 *
 *   Section 0 + I of the alternative.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_alternative (and its _v shorthand), the opt<T> fixture
@@ -8,10 +8,12 @@
 * the orthogonality of the Alternative and Foldable protocols (opt<T> is an
 * Alternative but not a Foldable; the bag<T> Foldable fixture is the reverse).
 *
+*
 * path:      /tests/djinterp/core/functional/alternative_tests_protocol.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "alternative_tests.hpp"

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     cofree_tests_unfold.cpp
+/*******************************************************************************
+* djinterp [test]                                        cofree_tests_unfold.cpp
 *
 *   Section II.3 (unfold) of the cofree.hpp suite: unfold_cofree, which
 * coiteratively grows a cofree from a seed -- head_fn : S -> A gives each node's
@@ -10,10 +10,12 @@
 * termination), a head-type change, agreement with a hand-built chain, and the
 * result type.
 *
+*
 * path:      /tests/djinterp/core/functional/cofree_tests_unfold.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "cofree_tests.hpp"

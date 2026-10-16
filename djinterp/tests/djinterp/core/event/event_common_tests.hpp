@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        event_common_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                         event_common_tests.hpp
 *
 *   Declarations for the unit-test suite covering event_common.hpp.  Each free
 * function exercises one entity of the event foundations header and returns
@@ -25,10 +25,11 @@
 * the tests themselves live, flat, in djinterp::testing.
 *
 *
-* path:      /tests/djinterp/core/event/event_common/event_common_tests.hpp
+* path:      /tests/djinterp/core/event/event_common_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_EVENT_COMMON_TESTS_
 #define DJINTERP_EVENT_COMMON_TESTS_ 1
@@ -42,11 +43,18 @@
 #include <type_traits>
 #include <utility>
 // djinterp
+#ifndef DTEST_SPEC_MODE
 #include <djinterp/core/event/event_common.hpp>
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "djinterp/test/test_defaults.hpp"   // spec mode: enriched authoring surface + run_module / run_suite
+#endif
 
 
 NS_DJINTERP
 NS_TESTING
+
+#ifndef DTEST_SPEC_MODE  // fixtures + check helper: normal (section-file) mode only
 
 
 // =========================================================================
@@ -165,6 +173,8 @@ struct seq_size< ::djinterp::internal::index_sequence<_I...> >
 //  test declarations
 // =========================================================================
 
+#endif  // !DTEST_SPEC_MODE (fixtures + check helper)
+
 // II.  VERDICT (the set P)
 bool tests_verdict_enumerators();
 bool tests_verdict_type_properties();
@@ -214,6 +224,181 @@ bool tests_concept_nullary_unary();
 bool tests_concept_binary_ternary();
 bool tests_concept_variadic_event_type();
 
+
+#ifdef DTEST_SPEC_MODE
+
+// =========================================================================
+//  suite spec provider (spec mode)
+//    Mirrors this suite as data - each unit test paired with its name and a
+//  one-line descriptor - so run_module / run_suite can lower it into the
+//  six-kind tree and drive the report.  References only the test_fn_ptr
+//  declarations above; no fixtures required, which is what lets the
+//  aggregate runner include every suite header in one TU.
+// =========================================================================
+
+namespace dt = ::djinterp::test;
+
+inline dt::module_spec
+event_common_spec()
+{
+    return dt::module_spec{
+        "event_common",
+        "Event foundations: the verdict set, tag detection, the "
+        "index-sequence and tuple-apply utilities, event traits, the "
+        "declaration macros, and the C++20 concept layer.",
+        {
+            dt::block_spec{
+                "verdict",
+                "The verdict set P: the scoped enum and consumed().",
+                {
+                    { "verdict_enumerators",
+                      "pass and consume hold underlying 0/1 and compare unequal",
+                      &tests_verdict_enumerators },
+                    { "verdict_type_properties",
+                      "verdict is a scoped enum with an int underlying type",
+                      &tests_verdict_type_properties },
+                    { "consumed_values",
+                      "consumed() is true for consume, false for pass",
+                      &tests_consumed_values },
+                    { "consumed_consistency",
+                      "consumed(v) agrees with (v == consume) at every point",
+                      &tests_consumed_consistency },
+                }
+            },
+            dt::block_spec{
+                "detection",
+                "Event-tag detection: payload spellings, names, is_tuple.",
+                {
+                    { "has_payload_type",
+                      "detects the canonical payload_type spelling, cv/ref-stripped",
+                      &tests_has_payload_type },
+                    { "has_args_type",
+                      "detects the legacy args_type spelling",
+                      &tests_has_args_type },
+                    { "has_event_payload",
+                      "accepts a tag under either payload spelling",
+                      &tests_has_event_payload },
+                    { "event_payload_select",
+                      "prefers payload_type over args_type when both are present",
+                      &tests_event_payload_select },
+                    { "has_event_name",
+                      "requires name() to return const char*, rejects wrong types",
+                      &tests_has_event_name },
+                    { "is_tuple",
+                      "recognises std::tuple specializations, rejects non-tuples",
+                      &tests_is_tuple },
+                }
+            },
+            dt::block_spec{
+                "index_apply",
+                "The index_sequence polyfill and the tuple-apply utilities.",
+                {
+                    { "index_sequence",
+                      "carries exactly the indices written into it",
+                      &tests_index_sequence },
+                    { "make_index_sequence",
+                      "make_index_sequence<N> builds exactly N indices",
+                      &tests_make_index_sequence },
+                    { "apply_impl_direct",
+                      "apply_impl invokes a callable with index-selected elements",
+                      &tests_apply_impl_direct },
+                    { "apply_tuple_arities",
+                      "apply forwards tuples of arities zero through four",
+                      &tests_apply_tuple_arities },
+                    { "apply_tuple_values",
+                      "apply preserves element values through the call",
+                      &tests_apply_tuple_values },
+                }
+            },
+            dt::block_spec{
+                "traits",
+                "event_traits: payload, arity, has_name / has_args.",
+                {
+                    { "event_traits_payload_type",
+                      "payload_type is the declared payload tuple",
+                      &tests_event_traits_payload_type },
+                    { "event_traits_args_alias",
+                      "args_type is a legacy alias equal to payload_type",
+                      &tests_event_traits_args_alias },
+                    { "event_traits_arity",
+                      "arity counts the payload elements",
+                      &tests_event_traits_arity },
+                    { "event_traits_has_name",
+                      "has_name reflects the presence of a valid name()",
+                      &tests_event_traits_has_name },
+                    { "event_traits_has_args",
+                      "has_args reflects the presence of a payload",
+                      &tests_event_traits_has_args },
+                    { "event_traits_legacy_and_both",
+                      "resolves legacy-only and dual-spelling tags to their payload",
+                      &tests_event_traits_legacy_and_both },
+                }
+            },
+            dt::block_spec{
+                "macros",
+                "The D_EVENT / D_EVENT_EMPTY declaration macros.",
+                {
+                    { "d_event_payload",
+                      "D_EVENT declares a tag whose payload_type is the given tuple",
+                      &tests_d_event_payload },
+                    { "d_event_name",
+                      "D_EVENT gives the tag a name() returning its identifier",
+                      &tests_d_event_name },
+                    { "d_event_empty",
+                      "D_EVENT_EMPTY declares a well-formed arity-zero tag",
+                      &tests_d_event_empty },
+                    { "d_event_arity_range",
+                      "macro-declared tags report the correct arity across the range",
+                      &tests_d_event_arity_range },
+                    { "d_event_is_event",
+                      "macro-declared tags satisfy the detection traits",
+                      &tests_d_event_is_event },
+                }
+            },
+            dt::block_spec{
+                "concepts",
+                "The C++20 concept layer (vacuous pass where concepts are absent).",
+                {
+                    { "concept_is_event",
+                      "is_event holds for tags and fails for non-events",
+                      &tests_concept_is_event },
+                    { "concept_event_type",
+                      "event_type strips qualifiers before applying is_event",
+                      &tests_concept_event_type },
+                    { "concept_non_event_type",
+                      "non_event_type is the negation of event_type",
+                      &tests_concept_non_event_type },
+                    { "concept_empty_event_type",
+                      "empty_event_type matches only arity-zero tags",
+                      &tests_concept_empty_event_type },
+                    { "concept_argument_event_type",
+                      "argument_event_type matches only tags carrying a payload",
+                      &tests_concept_argument_event_type },
+                    { "concept_named_event_type",
+                      "named_event_type matches only tags exposing a name()",
+                      &tests_concept_named_event_type },
+                    { "concept_unnamed_event_type",
+                      "unnamed_event_type matches event tags without a name()",
+                      &tests_concept_unnamed_event_type },
+                    { "concept_event_of_arity",
+                      "event_of_arity<N> matches tags of exactly arity N",
+                      &tests_concept_event_of_arity },
+                    { "concept_nullary_unary",
+                      "the nullary and unary arity concepts match their arities",
+                      &tests_concept_nullary_unary },
+                    { "concept_binary_ternary",
+                      "the binary and ternary arity concepts match their arities",
+                      &tests_concept_binary_ternary },
+                    { "concept_variadic_event_type",
+                      "variadic_event_type matches tags of arity four or more",
+                      &tests_concept_variadic_event_type },
+                }
+            },
+        }
+    };
+}
+
+#endif  // DTEST_SPEC_MODE
 
 NS_END  // testing
 NS_END  // djinterp

@@ -1,13 +1,21 @@
-/******************************************************************************
-* djinterp [test]                                 fn_builder_tests_terminal.cpp
+/*******************************************************************************
+* djinterp [test]                                  fn_builder_tests_terminal.cpp
 *
 * Terminal-operation tests (section iii):
 *   test_fold      -- materialize the chain, then left-fold from an init.
 *   test_count_any -- count() (size after the chain) and any() (non-empty
 *                     after the chain).
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/fn_builder_tests_terminal.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <vector>
+// djinterp
 #include "./fn_builder_tests.hpp"
 
 

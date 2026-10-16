@@ -1,30 +1,32 @@
-/******************************************************************************
-* djinterp [test]                                    event_handler_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                       event_handler_tests_sa.h
 *
 *   Unit test declarations for `event_handler.h` module.
 *   Provides comprehensive testing of handler creation/destruction,
 * listener management (bind/unbind/enable/disable), event operations
 * (fire/queue/process), query functions, and integration/stress scenarios.
 *   Note: this module is required to build DTest, so it uses
-* `test_standalone.h` rather than DTest for unit testing.
+* a self-contained harness rather than DTest for unit testing.
 *
 *
-* path:      /tests/c/event/event_handler_tests_sa.h
+* path:      /tests/djinterp/c/event/event_handler_tests_sa.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.10.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_EVENT_HANDLER_STANDALONE_
 #define DJINTERP_TESTING_EVENT_HANDLER_STANDALONE_ 1
 
+// std
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/dmemory.h"
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/container/array/circular_array.h"
-#include "../../../inc/c/event/event_handler.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../inc/djinterp/c/container/array/circular_array.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

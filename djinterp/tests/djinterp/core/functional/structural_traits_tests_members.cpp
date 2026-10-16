@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                            structural_traits_tests_members.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/structural_traits_tests_members.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  structural_traits_tests_members.cpp
 //   Section I -- has_match_result_type and has_find_method: the pattern
 //   protocol's structural shapes, made machine-checkable.

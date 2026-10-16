@@ -1,9 +1,9 @@
-/******************************************************************************
-* djinterp [core]                                              cpp_named03.h
+/*******************************************************************************
+* djinterp [core]                                                cpp_named03.hpp
 *
 * C++03 named requirement type traits:
 *   C++03 introduced no new metaprogramming capabilities relevant to named
-* requirement detection. This header includes cpp_named98.h unmodified and
+* requirement detection. This header includes cpp_named98.hpp unmodified and
 * serves as a version-consistent entry point for C++03 compilation targets.
 *
 * SUPPORTED REQUIREMENTS:
@@ -16,25 +16,29 @@
 *   - MoveConstructible
 *   - MoveAssignable
 *
-* path:      \inc\cpp_named03.h
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.27
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/meta/stl/cpp_named03.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_CPP_NAMED03_
-#define DJINTERP_CPP_NAMED03_ 1
+#ifndef DJINTERP_META_STL_CPP_NAMED03_HPP
+#define DJINTERP_META_STL_CPP_NAMED03_HPP 1
 
 // require env.h to be included first
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "cpp_named03.h requires env.h to be included first"
+#ifndef DJINTERP_ENV_ENV_H
+    #error "cpp_named03.hpp requires env.h to be included first"
 #endif
 
 // only meaningful in C++ mode
 #ifndef __cplusplus
-    #error "cpp_named03.h can only be used in C++ compilation mode"
+    #error "cpp_named03.hpp can only be used in C++ compilation mode"
 #endif
 
+// djinterp
 // C++03 adds no relevant metaprogramming features over C++98
-#include "cpp_named98.h"
+#include "cpp_named98.hpp"
 
 
-#endif  // DJINTERP_CPP_NAMED03_
+#endif  // DJINTERP_META_STL_CPP_NAMED03_HPP

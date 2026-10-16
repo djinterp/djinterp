@@ -1,15 +1,17 @@
-/******************************************************************************
-* djinterp [test]                                 min_enum_map_tests_sa_core.c
+/*******************************************************************************
+* djinterp [test]                                   min_enum_map_tests_sa_core.c
 *
 *   Core operation tests for min_enum_map module.
 *   Tests creation, insertion, retrieval, and removal operations.
 *
 *
-* path:      /test/container/map/min_enum_map_tests_sa_core.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
-******************************************************************************/
+* path:      /tests/djinterp/c/container/map/min_enum_map_tests_sa_core.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./min_enum_map_tests_sa.h"
 
 
@@ -33,12 +35,12 @@ d_test_min_enum_map_create_int
 )
 {
     int* ptr = malloc(sizeof(int));
-    
+
     if (ptr)
     {
         *ptr = _value;
     }
-    
+
     return ptr;
 }
 
@@ -59,20 +61,20 @@ d_test_min_enum_map_create_string
 {
     char* copy;
     size_t len;
-    
+
     if (!_str)
     {
         return NULL;
     }
-    
+
     len = d_strnlen(_str, SIZE_MAX);
     copy = malloc(len + 1);
-    
+
     if (copy)
     {
         d_strcpy_s(copy, len + 1, _str);
     }
-    
+
     return copy;
 }
 
@@ -114,26 +116,26 @@ d_tests_min_enum_map_new
     test_allocation = (map1 != NULL);
 
     // test 2: entries initialized to NULL
-    test_entries_null = ( (map1 != NULL) && 
+    test_entries_null = ( (map1 != NULL) &&
                           (map1->entries == NULL) );
 
     // test 3: count initialized to 0
-    test_count_zero = ( (map1 != NULL) && 
+    test_count_zero = ( (map1 != NULL) &&
                         (map1->count == 0) );
 
     // test 4: capacity initialized to 0
-    test_capacity_zero = ( (map1 != NULL) && 
+    test_capacity_zero = ( (map1 != NULL) &&
                            (map1->capacity == 0) );
 
     // test 5: ready for use (can insert immediately)
     test_ready_for_use = false;
-    
+
     if (map1)
     {
         int* value = d_test_min_enum_map_create_int(42);
         bool result = d_min_enum_map_put(map1, D_TEST_COLOR_MIN_ENUM_MAP_RED, value);
         test_ready_for_use = result;
-        
+
         if (value)
         {
             free(value);
@@ -142,7 +144,7 @@ d_tests_min_enum_map_new
 
     // test 6: multiple maps can be created
     map2 = d_min_enum_map_new();
-    test_multiple_maps = ( (map2 != NULL) && 
+    test_multiple_maps = ( (map2 != NULL) &&
                            (map2 != map1) );
 
     // cleanup
@@ -246,7 +248,7 @@ d_tests_min_enum_map_put
 
     // test 2: single insert succeeds
     map = d_min_enum_map_new();
-    
+
     if (map)
     {
         result = d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
@@ -255,11 +257,11 @@ d_tests_min_enum_map_put
     {
         result = false;
     }
-    
+
     test_single_insert = result;
 
     // test 3: count updated correctly
-    test_count_update = ( (map) && 
+    test_count_update = ( (map) &&
                           (map->count == 1) );
 
     // test 4: can retrieve inserted value
@@ -271,7 +273,7 @@ d_tests_min_enum_map_put
     {
         retrieved = NULL;
     }
-    
+
     test_retrieval = (retrieved == value1);
 
     // test 5: update existing key (replacing value1 with value2)
@@ -287,9 +289,9 @@ d_tests_min_enum_map_put
         old_value = NULL;
         retrieved = NULL;
     }
-    
-    test_update_existing = ( (retrieved == value2) && 
-                             ( (map) && 
+
+    test_update_existing = ( (retrieved == value2) &&
+                             ( (map) &&
                                (map->count == 1) ) );
 
     // free the old value that was replaced
@@ -304,13 +306,13 @@ d_tests_min_enum_map_put
         d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN, value2);
         d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_BLUE, value3);
     }
-    
-    test_multiple_inserts = ( (map) && 
+
+    test_multiple_inserts = ( (map) &&
                               (map->count == 3) );
 
     // test 7: maintains sorted order (keys should be ascending)
     test_sorted_order = false;
-    
+
     if ( (map)          &&
          (map->entries) &&
          (map->count >= 3) )
@@ -328,16 +330,16 @@ d_tests_min_enum_map_put
     {
         initial_capacity = 0;
     }
-    
+
     for (i = 10; ( (i < 30) && (map) ); i++)
     {
         int* val;
-        
+
         val = d_test_min_enum_map_create_int((int)i);
         d_min_enum_map_put(map, (int)i, val);
     }
-    
-    test_capacity_growth = ( (map) && 
+
+    test_capacity_growth = ( (map) &&
                              (map->capacity > initial_capacity) );
 
     // cleanup: free all unique values in map, then free map
@@ -349,23 +351,23 @@ d_tests_min_enum_map_put
         size_t freed_count;
         size_t j;
         bool already_freed;
-        
+
         freed_count = 0;
-        
+
         for (i = 0; i < map->count; i++)
         {
             void* current;
-            
+
             current = map->entries[i].value;
-            
+
             if (!current)
             {
                 continue;
             }
-            
+
             // check if we've already freed this pointer
             already_freed = false;
-            
+
             for (j = 0; j < freed_count; j++)
             {
                 if (freed_ptrs[j] == current)
@@ -374,7 +376,7 @@ d_tests_min_enum_map_put
                     break;
                 }
             }
-            
+
             // only free if not already freed
             if (!already_freed)
             {
@@ -382,7 +384,7 @@ d_tests_min_enum_map_put
                 freed_ptrs[freed_count++] = current;
             }
         }
-        
+
         d_min_enum_map_free(map);
     }
 
@@ -464,14 +466,14 @@ d_tests_min_enum_map_get
 
     // test 2: empty map returns NULL
     map = d_min_enum_map_new();
-    result = map 
+    result = map
              ? d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_RED)
              : NULL;
     test_empty_map = (result == NULL);
 
     // test 3: retrieves existing value
     value1 = d_test_min_enum_map_create_int(42);
-    
+
     if (map)
     {
         d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
@@ -481,18 +483,18 @@ d_tests_min_enum_map_get
     {
         result = NULL;
     }
-    
+
     test_existing_value = (result == value1);
 
     // test 4: returns NULL for missing key
-    result = map 
+    result = map
              ? d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_BLUE)
              : NULL;
     test_missing_key = (result == NULL);
 
     // test 5: retrieves correct value among many
     value2 = d_test_min_enum_map_create_int(99);
-    
+
     if (map)
     {
         d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN, value2);
@@ -505,7 +507,7 @@ d_tests_min_enum_map_get
     {
         result = NULL;
     }
-    
+
     test_correct_among_many = (result == value2);
 
     // test 6: handles NULL value correctly
@@ -519,13 +521,13 @@ d_tests_min_enum_map_get
     {
         result = (void*)1;  // non-NULL for failure
     }
-    
+
     // Note: getting NULL could mean "not found" or "value is NULL"
     // We need to use contains to distinguish
-    bool contains = map 
+    bool contains = map
                     ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_PURPLE)
                     : false;
-    test_null_value = ( (result == NULL) && 
+    test_null_value = ( (result == NULL) &&
                         (contains) );
 
     // cleanup
@@ -610,14 +612,14 @@ d_tests_min_enum_map_contains
 
     // test 2: empty map returns false
     map = d_min_enum_map_new();
-    result = map 
-             ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_RED) 
+    result = map
+             ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_RED)
              : false;
     test_empty_map = !(result);
 
     // test 3: returns true for existing key
     value1 = d_test_min_enum_map_create_int(42);
-    
+
     if (map)
     {
         d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
@@ -627,7 +629,7 @@ d_tests_min_enum_map_contains
     {
         result = false;
     }
-    
+
     test_existing_key = result;
 
     // test 4: returns false for missing key
@@ -639,11 +641,11 @@ d_tests_min_enum_map_contains
     {
         d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN, NULL);
     }
-    
-    bool contains_null = map 
+
+    bool contains_null = map
                          ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN)
                          : false;
-    bool contains_missing = map 
+    bool contains_missing = map
                             ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_PURPLE)
                             : true;
     test_null_value_distinction = contains_null && !contains_missing;
@@ -659,7 +661,7 @@ d_tests_min_enum_map_contains
     {
         result = true;
     }
-    
+
     test_after_removal = !result;
 
     // cleanup
@@ -744,7 +746,7 @@ d_tests_min_enum_map_count
 
     // test 3: correct count after inserts
     value1 = d_test_min_enum_map_create_int(42);
-    
+
     if (map)
     {
         d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
@@ -756,7 +758,7 @@ d_tests_min_enum_map_count
     {
         count = 999;
     }
-    
+
     test_after_inserts = (count == 3);
 
     // test 4: updates after removals
@@ -769,7 +771,7 @@ d_tests_min_enum_map_count
     {
         count = 999;
     }
-    
+
     test_after_removals = (count == 2);
 
     // test 5: updates after clear
@@ -782,7 +784,7 @@ d_tests_min_enum_map_count
     {
         count = 999;
     }
-    
+
     test_after_clear = (count == 0);
 
     // test 6: no change on update
@@ -885,14 +887,14 @@ d_tests_min_enum_map_remove
 
     // test 2: empty map returns false
     map = d_min_enum_map_new();
-    result = map 
+    result = map
              ? d_min_enum_map_remove(map, D_TEST_COLOR_MIN_ENUM_MAP_RED)
              : false;
     test_empty_map = !result;
 
     // test 3: removes existing entry
     value1 = d_test_min_enum_map_create_int(42);
-    
+
     if (map)
     {
         d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
@@ -906,7 +908,7 @@ d_tests_min_enum_map_remove
     }
 
     // test 4: returns false for missing key
-    result = map 
+    result = map
              ? d_min_enum_map_remove(map, D_TEST_COLOR_MIN_ENUM_MAP_BLUE)
              : true;
     test_missing_key = !result;
@@ -920,11 +922,11 @@ d_tests_min_enum_map_remove
         d_min_enum_map_put(map, 40, value1);
         d_min_enum_map_remove(map, 20);
     }
-    
+
     test_sorted_after_removal = false;
-    
-    if ( (map)          && 
-         (map->entries) && 
+
+    if ( (map)          &&
+         (map->entries) &&
          (map->count >= 3) )
     {
         test_sorted_after_removal = (map->entries[0].key == 10) &&
@@ -944,14 +946,14 @@ d_tests_min_enum_map_remove
     {
         result = false;
     }
-    
-    bool count_ok   = ( (map) && 
+
+    bool count_ok   = ( (map) &&
                         (map->count == 2) );
-    bool last_ok    = ( (map)          && 
-                        (map->entries) && 
+    bool last_ok    = ( (map)          &&
+                        (map->entries) &&
                         (map->entries[map->count - 1].key == 30) );
-    test_remove_end = ( (result)       && 
-                        (count_ok)     && 
+    test_remove_end = ( (result)       &&
+                        (count_ok)     &&
                         (last_ok) );
 
     // test 8: remove from beginning
@@ -963,14 +965,14 @@ d_tests_min_enum_map_remove
     {
         result = false;
     }
-    
-    count_ok = ( (map) && 
+
+    count_ok = ( (map) &&
                  (map->count == 1) );
-    bool first_ok = ( (map)          && 
-                      (map->entries) && 
+    bool first_ok = ( (map)          &&
+                      (map->entries) &&
                       (map->entries[0].key == 30) );
-    test_remove_beginning = ( (result)   && 
-                              (count_ok) && 
+    test_remove_beginning = ( (result)   &&
+                              (count_ok) &&
                               (first_ok) );
 
     // cleanup

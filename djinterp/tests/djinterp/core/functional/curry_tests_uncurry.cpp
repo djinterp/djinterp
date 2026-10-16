@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                        curry_tests_uncurry.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/curry_tests_uncurry.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 // djinterp [test] -- curry.hpp Section IV (uncurrying)
 #include "./curry_tests.hpp"
 

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                    test_common_tests_event.cpp
+*
+*
+* path:      /tests/djinterp/test/test_common_tests_event.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstddef>
 #include <cstring>

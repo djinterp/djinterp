@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        dmacro_tests_sa_eval.c
+/*******************************************************************************
+* djinterp [test]                                         dmacro_tests_sa_eval.c
 *
 *   Unit tests for `dmacro.h` macro expansion and evaluation (Section III).
 *   Tests D_INC, D_EVAL, and iteration macro results.
@@ -9,13 +9,17 @@
 *   of these macros using built-in operators or direct value checking.
 *
 *
-* path:      \test\dmacro_tests_sa_eval.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+* path:      /tests/djinterp/c/dmacro_tests_sa_eval.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "dmacro_tests_sa.h"
+// std
 #include <string.h>
+// djinterp
+#include "dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

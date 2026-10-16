@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      test_callable_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                        test_callable_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_callable.hpp.  Each free
 * function exercises one facet of test_callable_table - the out-of-line store
@@ -37,10 +37,11 @@
 * djinterp::testing (hence the `dt` alias below).
 *
 *
-* path:      /tests/djinterp/test/test_callable/test_callable_tests.hpp
+* path:      /tests/djinterp/test/test_callable_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_CALLABLE_TESTS_
 #define DJINTERP_TEST_CALLABLE_TESTS_ 1
@@ -49,8 +50,9 @@
 #include <cstddef>
 #include <cstdio>
 #include <functional>
+// djinterp
 // djinterp  -- framework header first, then the header under test.
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include <djinterp/test/test_callable.hpp>
 #endif

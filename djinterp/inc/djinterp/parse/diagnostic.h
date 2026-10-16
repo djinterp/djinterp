@@ -539,6 +539,11 @@ d_parse_diag_truncated(
     return ((_sink->flags & D_PARSE_DIAG_SINK_TRUNCATED) != 0u) ? 1 : 0;
 }
 
+int32_t         d_parse_diag_find(const struct d_parse_diag_sink* _sink,
+                                  uint16_t                        _domain,
+                                  uint16_t                        _code,
+                                  uint32_t                        _from);
+
 // 3.5    Rendering
 //------------------------------------------------------------------------------
 const char*     d_parse_severity_name(int _severity);

@@ -1,13 +1,18 @@
-/******************************************************************************
-* djinterp [test]                                      ptr_vector_tests_sa_query.c
+/*******************************************************************************
+* djinterp [test]                                    ptr_vector_tests_sa_query.c
 *
 *   Unit tests for ptr_vector query functions.
 *
-* path:      \tests\container\vector\ptr_vector_tests_sa_query.c
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.29
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/container/vector/ptr_vector_tests_sa_query.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./ptr_vector_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 static int g_query_test_values[] = {10, 20, 30, 40, 50};
 

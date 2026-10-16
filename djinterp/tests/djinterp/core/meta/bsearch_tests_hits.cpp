@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                         bsearch_tests_hits.cpp
+*
+*
+* path:      /tests/djinterp/core/meta/bsearch_tests_hits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "bsearch_tests.hpp"
 
 

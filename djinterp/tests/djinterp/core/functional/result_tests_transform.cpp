@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   result_tests_transform.cpp
+/*******************************************************************************
+* djinterp [test]                                     result_tests_transform.cpp
 *
 * Transform / fluent method tests for result<T, E> (section I methods that
 * map or thread the active branch).
@@ -13,10 +13,18 @@
 *   test_or_else  -- ok passes through; err invokes recovery (to ok or to a
 *                    different err).
 *   test_match    -- pattern-match dispatch across ok / err arms.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/result_tests_transform.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <string>
+// std
 #include <cstddef>
+#include <string>
+// djinterp
 #include "./result_tests.hpp"
 
 

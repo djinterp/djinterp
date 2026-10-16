@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                               polynomial_tests_traversable.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/polynomial_tests_traversable.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  polynomial_tests_traversable.cpp
 //   Section IV -- traversable_traits specialisations, traverse, and sequence.
 //   The effect threaded is the header's test_maybe<T>.

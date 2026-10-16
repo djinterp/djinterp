@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            foldable_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                             foldable_tests.hpp
 *
 *   Declarations and shared fixtures for the foldable.hpp unit suite.  The
 * individual tests_* predicates and their block-providers are defined per
@@ -30,8 +30,9 @@
 *
 * path:      /tests/djinterp/core/functional/foldable_tests.hpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_FOLDABLE_TESTS_
 #define DJINTERP_FUNCTIONAL_FOLDABLE_TESTS_ 1
@@ -42,6 +43,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+// djinterp
 // djinterp -- the header under test, plus the DTest authoring + runner surface
 //   (module_spec / block_spec / test_spec, the option set, and run_module).
 //   NOTE: these two include paths are rooted at the djinterp include directory

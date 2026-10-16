@@ -1,13 +1,18 @@
-/******************************************************************************
-* djinterp [test]                                     ptr_vector_tests_sa_search.c
+/*******************************************************************************
+* djinterp [test]                                   ptr_vector_tests_sa_search.c
 *
 *   Unit tests for ptr_vector search functions.
 *
-* path:      \tests\container\vector\ptr_vector_tests_sa_search.c
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.29
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/container/vector/ptr_vector_tests_sa_search.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./ptr_vector_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 static int g_search_test_values[] = {10, 20, 30, 20, 50, 20};
 

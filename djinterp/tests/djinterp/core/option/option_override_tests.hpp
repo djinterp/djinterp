@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    option_override_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                      option_override_tests.hpp
 *
 *   Declarations, fixtures, and section block-providers for the
 * option_override.hpp unit suite.  option_override.hpp is a purely TYPE-LEVEL
@@ -40,18 +40,27 @@
 * include path (the `inc/` root), matching the rest of the framework.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    FIXTURES              (key enum / arg tags / swap markers)
-* II.   PREDICATE HELPER      (one-arg trait for the swap-helper tests)
-* III.  TEST DECLARATIONS     (per section, flat in djinterp::testing)
-* IV.   BLOCK PROVIDERS        (one block_spec per section)
-*
-*
 * path:      /tests/djinterp/core/option/option_override_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    FIXTURES              (key enum / arg tags / swap markers)
+      ----------------------------------------------------------
+
+II.   PREDICATE HELPER      (one-arg trait for the swap-helper tests)
+      ---------------------------------------------------------------
+
+III.  TEST DECLARATIONS     (per section, flat in djinterp::testing)
+      --------------------------------------------------------------
+
+IV.   BLOCK PROVIDERS        (one block_spec per section)
+      ---------------------------------------------------
+*/
 
 #ifndef DJINTERP_OPTION_OVERRIDE_TESTS_
 #define DJINTERP_OPTION_OVERRIDE_TESTS_ 1
@@ -60,8 +69,8 @@
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
-// djinterp (resolved via the project include path)
-#include "djinterp/test/test_defaults.hpp"   // module_spec / block_spec / test_spec, run_module
+// djinterp
+#include <djinterp/test/test_defaults.hpp>   // module_spec / block_spec / test_spec, run_module
 
 // The header under test is C++20-only (OverridePolicy concept); include it -
 // and everything that names its types - only where concepts are available.
@@ -76,6 +85,7 @@ NS_TESTING
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
+#ifndef DTEST_SPEC_MODE   // fixtures: normal face only
 // ===========================================================================
 // I.   FIXTURES
 // ===========================================================================
@@ -108,6 +118,8 @@ struct ov_swap_new    {};
 
 template<typename _Arg>
 struct ov_is_swap_target : std::is_same<_Arg, ov_swap_target> {};
+
+#endif  // !DTEST_SPEC_MODE
 
 
 // ===========================================================================
@@ -178,6 +190,31 @@ bool policy_arg_union_delta_engine();
 ::djinterp::test::block_spec option_override_lazy_block();
 ::djinterp::test::block_spec option_override_engine_block();
 ::djinterp::test::block_spec option_override_policies_block();
+
+
+// ===========================================================================
+// SPEC PROVIDER   (spec face - the runner hands this to run_module)
+// ===========================================================================
+#ifdef DTEST_SPEC_MODE
+inline ::djinterp::test::module_spec
+option_override_spec()
+{
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
+
+    dt::module_spec mod;
+    mod.name       = "option_override.hpp";
+    mod.descriptor = "option-aware override engine, merge_args_union, and ready-made policies";
+
+    mod.blocks.push_back(tt::option_override_helpers_block());   // I.
+    mod.blocks.push_back(tt::option_override_merge_block());     // II.
+    mod.blocks.push_back(tt::option_override_lazy_block());      // III.
+    mod.blocks.push_back(tt::option_override_engine_block());    // IV.
+    mod.blocks.push_back(tt::option_override_policies_block());  // V.
+
+    return mod;
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

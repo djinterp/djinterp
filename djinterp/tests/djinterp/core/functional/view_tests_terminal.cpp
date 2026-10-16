@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      view_tests_terminal.cpp
+/*******************************************************************************
+* djinterp [test]                                        view_tests_terminal.cpp
 *
 * Terminal operator tests (section VII): the drains that force a pipeline.
 *
@@ -13,10 +13,18 @@
 *   NOTE: the table of contents also lists reduce / find_if / min_element /
 * max_element, but those terminals are not implemented in view.hpp, so there
 * is nothing to exercise for them here.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/view_tests_terminal.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <deque>
+#include <vector>
+// djinterp
 #include "./view_tests.hpp"
 
 

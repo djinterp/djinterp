@@ -1,13 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                       interpolate_tests_sigil.cpp
+/*******************************************************************************
+* djinterp [test]                                    interpolate_tests_sigil.cpp
 *
 * Section II.ii -- sigil_scanner: the `$name` syntax.  Exercises plain literals,
 * a single / mid-string / adjacent key, the doubled-sigil escape, a bare sigil
 * (no name and at end-of-source) kept literal, a configurable sigil, the
 * name-character set (alnum + underscore) and its boundary, and a compile-time
 * scan.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_sigil.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

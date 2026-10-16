@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                          recursion_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                            recursion_tests.hpp
 *
 *   Unit-test declarations for core/functional/recursion.hpp.  One declaration
 * group per section of the module under test:
@@ -34,20 +34,37 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/functional/recursion_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/recursion_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.11
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.11
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    FIXTURES  (base functors, native carrier, builders, verifiers, forms)
+      ---------------------------------------------------------------------
+
 I.    MU
+      --
+
+      --
+
+      --
+
 II.   TRAITS + DETECTION
+      ------------------
+
 III.  CATA
+      ----
+
 IV.   ANA
+      ---
+
 V.    HYLO
+      ----
 */
 
 
@@ -57,10 +74,11 @@ V.    HYLO
 // std
 #include <cstddef>
 #include <string>
-#include <vector>
 #include <type_traits>
+#include <vector>
+// djinterp
 // djinterp (module under test; pulls functor.hpp + the meta closure)
-#include "../../core/functional/recursion.hpp"
+#include "../../../../inc/djinterp/core/functional/recursion.hpp"
 
 
 NS_DJINTERP

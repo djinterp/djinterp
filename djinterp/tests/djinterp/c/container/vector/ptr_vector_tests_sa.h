@@ -1,29 +1,32 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                          ptr_vector_tests_sa.h
 *
 *   Unit test declarations for `ptr_vector.h` module.
 *   Provides comprehensive testing of all d_ptr_vector struct wrapper functions
-* including constructors, capacity management, element manipulation, 
-* append/prepend operations, resize operations, access functions, query 
-* functions, search functions, utility functions, iteration helpers, and 
+* including constructors, capacity management, element manipulation,
+* append/prepend operations, resize operations, access functions, query
+* functions, search functions, utility functions, iteration helpers, and
 * destructor operations.
 *
 *
-* path:      \tests\container\vector\ptr_vector_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.29
-******************************************************************************/
+* path:      /tests/djinterp/c/container/vector/ptr_vector_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_PTR_VECTOR_SA_
 #define DJINTERP_TESTS_PTR_VECTOR_SA_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../../../inc/c/test/test_standalone.h"
-#include "../../../../inc/c/container/vector/ptr_vector.h"
-#include "../../../../inc/c/string_fn.h"
+// djinterp
+#include "../../../../../inc/djinterp/c/container/vector/ptr_vector.h"
+#include "../../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

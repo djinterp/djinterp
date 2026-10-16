@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [text]                            text_lineup_tests_sa_string_array.c
+*
+*
+* path:      /tests/djinterp/c/text/text_lineup_tests_sa_string_array.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./text_lineup_tests_sa.h"
 
 

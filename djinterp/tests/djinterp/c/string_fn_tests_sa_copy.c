@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                      string_fn_tests_sa_copy.c
+*
+*
+* path:      /tests/djinterp/c/string_fn_tests_sa_copy.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./string_fn_tests_sa.h"
 
 
@@ -42,13 +52,13 @@ d_tests_sa_string_fn_strcpy_s
     // test 1: normal copy
     memset(dest, 0, sizeof(dest));
     result = d_strcpy_s(dest, sizeof(dest), D_TEST_DSTRING_SHORT_STR);
-    test_normal_copy = (result == 0) && 
+    test_normal_copy = (result == 0) &&
                       (strcmp(dest, D_TEST_DSTRING_SHORT_STR) == 0);
 
     // test 2: exact-fit buffer
     memset(exact_dest, 0, sizeof(exact_dest));
     result = d_strcpy_s(exact_dest, sizeof(exact_dest), D_TEST_DSTRING_SHORT_STR);
-    test_exact_fit = (result == 0) && 
+    test_exact_fit = (result == 0) &&
                      (strcmp(exact_dest, D_TEST_DSTRING_SHORT_STR) == 0);
 
     // test 3: insufficient buffer
@@ -152,21 +162,21 @@ d_tests_sa_string_fn_strncpy_s
     // test 1: partial copy (first 5 chars)
     memset(dest, 0, sizeof(dest));
     result = d_strncpy_s(dest, sizeof(dest), D_TEST_DSTRING_MEDIUM_STR, 5);
-    test_partial_copy = (result == 0) && 
+    test_partial_copy = (result == 0) &&
                        (strncmp(dest, D_TEST_DSTRING_MEDIUM_STR, 5) == 0) &&
                        (strlen(dest) == 5);
 
     // test 2: null termination
     memset(dest, 'Z', sizeof(dest));
     result = d_strncpy_s(dest, sizeof(dest), D_TEST_DSTRING_SHORT_STR, 3);
-    test_null_termination = (result == 0) && 
-                           (dest[3] == '\0') && 
+    test_null_termination = (result == 0) &&
+                           (dest[3] == '\0') &&
                            (strlen(dest) == 3);
 
     // test 3: count larger than source
     memset(dest, 0, sizeof(dest));
     result = d_strncpy_s(dest, sizeof(dest), D_TEST_DSTRING_SHORT_STR, 100);
-    test_count_larger = (result == 0) && 
+    test_count_larger = (result == 0) &&
                        (strcmp(dest, D_TEST_DSTRING_SHORT_STR) == 0);
 
     // test 4: insufficient buffer
@@ -185,9 +195,9 @@ d_tests_sa_string_fn_strncpy_s
 
     // test 7: count equal to buffer size
     memset(small_dest, 0, sizeof(small_dest));
-    result = d_strncpy_s(small_dest, sizeof(small_dest), D_TEST_DSTRING_LONG_STR, 
+    result = d_strncpy_s(small_dest, sizeof(small_dest), D_TEST_DSTRING_LONG_STR,
                          sizeof(small_dest) - 1);
-    test_count_equal_size = (result == 0) && 
+    test_count_equal_size = (result == 0) &&
                             (strlen(small_dest) == sizeof(small_dest) - 1);
 
     // build result tree
@@ -260,19 +270,19 @@ d_tests_sa_string_fn_strcat_s
     // test 1: normal concatenation
     d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, D_TEST_DSTRING_SHORT_STR);
     result = d_strcat_s(dest, sizeof(dest), " World");
-    test_normal_concat = (result == 0) && 
+    test_normal_concat = (result == 0) &&
                         (strcmp(dest, "Hello World") == 0);
 
     // test 2: empty destination
     dest[0] = '\0';
     result = d_strcat_s(dest, sizeof(dest), D_TEST_DSTRING_SHORT_STR);
-    test_empty_dest = (result == 0) && 
+    test_empty_dest = (result == 0) &&
                      (strcmp(dest, D_TEST_DSTRING_SHORT_STR) == 0);
 
     // test 3: empty source
     d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, D_TEST_DSTRING_SHORT_STR);
     result = d_strcat_s(dest, sizeof(dest), "");
-    test_empty_src = (result == 0) && 
+    test_empty_src = (result == 0) &&
                     (strcmp(dest, D_TEST_DSTRING_SHORT_STR) == 0);
 
     // test 4: insufficient buffer
@@ -292,7 +302,7 @@ d_tests_sa_string_fn_strcat_s
     // test 7: exact fit
     d_strcpy_s(exact_dest, 11, "Hello");
     result = d_strcat_s(exact_dest, sizeof(exact_dest), "World");
-    test_exact_fit = (result == 0) && 
+    test_exact_fit = (result == 0) &&
                     (strcmp(exact_dest, "HelloWorld") == 0);
 
     // build result tree
@@ -361,13 +371,13 @@ d_tests_sa_string_fn_strncat_s
     // test 1: partial concatenation
     d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, "Hello");
     result = d_strncat_s(dest, sizeof(dest), " World!", 6);  // just " World"
-    test_partial_concat = (result == 0) && 
+    test_partial_concat = (result == 0) &&
                          (strcmp(dest, "Hello World") == 0);
 
     // test 2: count larger than source
     d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, "Test");
     result = d_strncat_s(dest, sizeof(dest), "123", 100);
-    test_count_larger = (result == 0) && 
+    test_count_larger = (result == 0) &&
                        (strcmp(dest, "Test123") == 0);
 
     // test 3: insufficient buffer
@@ -382,14 +392,14 @@ d_tests_sa_string_fn_strncat_s
     // test 5: zero count
     d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, "Original");
     result = d_strncat_s(dest, sizeof(dest), "Should not appear", 0);
-    test_zero_count = (result == 0) && 
+    test_zero_count = (result == 0) &&
                      (strcmp(dest, "Original") == 0);
 
     // test 6: preserves termination
     memset(dest, 'X', sizeof(dest));
     d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, "Start");
     result = d_strncat_s(dest, sizeof(dest), "End", 3);
-    test_termination = (result == 0) && 
+    test_termination = (result == 0) &&
                       (dest[strlen("StartEnd")] == '\0');
 
     // build result tree

@@ -1,25 +1,28 @@
-/******************************************************************************
-* djinterp [test]                                               env_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                                 env_tests_sa.h
 *
 * This is a test file for `env.h` unit tests.
 * For the file itself, go to `\inc\c\env.h`.
-* Note: this module is required to build DTest, so it uses `test_standalone.h`,
-* rather than DTest for unit testing. Any modules that are not dependencies of
+* Note: this module is required to build DTest, so it does not use DTest for
+* unit testing. Any modules that are not dependencies of
 * DTest should use DTest for unit tests.
-* 
 *
-* path:      \test\env_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.09.26
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/env_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.26
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_ENV_
 #define DJINTERP_TESTING_ENV_ 1
 
-#include <stdlib.h>
+// std
 #include <stdint.h>
-#include "..\..\inc\c\djinterp.h"
-#include "..\..\inc\c\test\test_standalone.h"
+#include <stdlib.h>
+// djinterp
+#include "../../../inc/djinterp/c/djinterp.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 // =============================================================================
@@ -314,9 +317,4 @@ bool d_tests_sa_env_build_all(struct d_test_counter* _test_info);
 bool d_tests_sa_env_all(struct d_test_counter* _test_info);
 
 
-#endif	// DJINTERP_TESTING_ENV_
-
-
-
-
-
+#endif  // DJINTERP_TESTING_ENV_

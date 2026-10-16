@@ -1,17 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                   dmacro_tests_sa_iter_adv.c
+/*******************************************************************************
+* djinterp [test]                                     dmacro_tests_sa_iter_adv.c
 *
 *   Unit tests for `dmacro.h` advanced iteration patterns section.
 *   Tests D_FOR_EACH_ADJACENT_PAIR for sliding window iteration.
 *   Note: this module tests fundamental macro utilities that are dependencies
-* of other djinterp modules, so it uses `test_standalone.h` rather than DTest.
+* of other djinterp modules, so it does not use DTest for unit testing.
 *
 *
-* path:      \test\dmacro_tests_sa_iter_adv.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
-#include ".\dmacro_tests_sa.h"
+* path:      /tests/djinterp/c/dmacro_tests_sa_iter_adv.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

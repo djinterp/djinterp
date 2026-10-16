@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             option_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                               option_tests.hpp
 *
 *   Declarations, fixtures, and section block-providers for the option.hpp
 * unit suite.  option.hpp is a purely TYPE-LEVEL header (the core option<>
@@ -35,18 +35,27 @@
 * include path (the `inc/` root), matching the rest of the framework.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    FIXTURES              (sample keys / arg tags / decoy / NTTP source)
-* II.   MEMBER DETECTORS      (SFINAE presence probes for the option<> surface)
-* III.  TEST DECLARATIONS     (per section, flat in djinterp::testing)
-* IV.   BLOCK PROVIDERS        (one block_spec per section)
-*
-*
 * path:      /tests/djinterp/core/option/option_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    FIXTURES              (sample keys / arg tags / decoy / NTTP source)
+      --------------------------------------------------------------------
+
+II.   MEMBER DETECTORS      (SFINAE presence probes for the option<> surface)
+      -----------------------------------------------------------------------
+
+III.  TEST DECLARATIONS     (per section, flat in djinterp::testing)
+      --------------------------------------------------------------
+
+IV.   BLOCK PROVIDERS        (one block_spec per section)
+      ---------------------------------------------------
+*/
 
 #ifndef DJINTERP_OPTION_TESTS_
 #define DJINTERP_OPTION_TESTS_ 1
@@ -56,15 +65,19 @@
 #include <cstdint>
 #include <tuple>
 #include <type_traits>
+// djinterp
 // djinterp (resolved via the project include path)
 #include "djinterp/test/test_defaults.hpp"      // module_spec / block_spec / test_spec, run_module
+#ifndef DTEST_SPEC_MODE
 #include "djinterp/core/option/option.hpp"      // the header under test
+#endif  // !DTEST_SPEC_MODE
 
 
 NS_DJINTERP
 NS_TESTING
 
 
+#ifndef DTEST_SPEC_MODE   // fixtures: normal face only
 // ===========================================================================
 // I.   FIXTURES
 // ===========================================================================
@@ -139,6 +152,8 @@ struct has_arg_count_member : std::false_type {};
 template<typename _T>
 struct has_arg_count_member<_T, std::void_t<decltype(_T::arg_count)>> : std::true_type {};
 
+#endif  // !DTEST_SPEC_MODE
+
 
 // ===========================================================================
 // III. TEST DECLARATIONS
@@ -202,6 +217,30 @@ bool concept_constrains_overloads();
 ::djinterp::test::block_spec option_core_block();
 ::djinterp::test::block_spec option_is_option_block();
 ::djinterp::test::block_spec option_concepts_block();
+
+
+// ===========================================================================
+// SPEC PROVIDER   (spec face - the runner hands this to run_module)
+// ===========================================================================
+#ifdef DTEST_SPEC_MODE
+inline ::djinterp::test::module_spec
+option_spec()
+{
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
+
+    dt::module_spec mod;
+    mod.name       = "option.hpp";
+    mod.descriptor = "Core option<> type, is_option detection trait, and the "
+                     "Option/UnaryOption/ArgsOption concept analogs.";
+    mod.blocks.push_back(tt::option_sentinels_block());   // I.   sentinels
+    mod.blocks.push_back(tt::option_core_block());        // II.  option<> core
+    mod.blocks.push_back(tt::option_is_option_block());   // III. is_option
+    mod.blocks.push_back(tt::option_concepts_block());    // IV.  concepts (C++20)
+
+    return mod;
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

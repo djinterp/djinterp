@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  compose_tests_memoize.cpp
+/*******************************************************************************
+* djinterp [test]                                      compose_tests_memoize.cpp
 *
 *   Tests for compose.hpp Section VI: memoize, the caching wrapper for a
 * pure unary function.  Covers correct results, caching (the wrapped
@@ -7,8 +7,15 @@
 * inputs, cache_size reporting, clear_cache, recomputation after a
 * clear, and deduction of the output type via the callable_result_t
 * default template argument.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/compose_tests_memoize.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "compose_tests.hpp"
 
 

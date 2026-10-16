@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                      mediator_tests_traits.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/mediator/mediator_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : mediator_tests_traits.cpp
 //   Feature gates (section I) and the SFINAE protocol-detection traits
 // (section II): the internal has_*_method probes, the is_mediator_like /

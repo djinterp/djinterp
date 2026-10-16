@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                              test_builder_tests_events.cpp
+/*******************************************************************************
+* djinterp [test]                                  test_builder_tests_events.cpp
 *
 *   The event lifecycle run() fires as it walks, and the subscription sugar.
 * on_passed / on_failed / on_skipped / on_error fire once per matching leaf
@@ -12,11 +12,14 @@
 * run.  The generic on<> / fire<> surface and direct events() access work for a
 * custom event, and subscriptions survive a clear().
 *
-* path:      /tests/djinterp/test/test_builder/test_builder_tests_events.cpp
+*
+* path:      /tests/djinterp/test/test_builder_tests_events.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_builder_tests.hpp"
 
 NS_DJINTERP

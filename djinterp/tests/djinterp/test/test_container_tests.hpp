@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     test_container_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                       test_container_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_container.hpp.  Each
 * free function exercises one facet of the test_container contract - the
@@ -39,10 +39,11 @@
 * djinterp::testing.  The alias `dt` below binds the former.
 *
 *
-* path:      /tests/djinterp/test/test_container/test_container_tests.hpp
+* path:      /tests/djinterp/test/test_container_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_CONTAINER_TESTS_
 #define DJINTERP_TEST_CONTAINER_TESTS_ 1
@@ -52,9 +53,10 @@
 #include <cstdint>
 #include <cstdio>
 #include <vector>
+// djinterp
 // djinterp  -- framework header FIRST, then the header under test (normal mode)
 // or the enriched authoring surface (spec mode).
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include <djinterp/test/test_container.hpp>   // the contract under test
 #endif

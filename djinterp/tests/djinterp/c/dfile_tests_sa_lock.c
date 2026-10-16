@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                         dfile_tests_sa_lock.c
+/*******************************************************************************
+* djinterp [test]                                          dfile_tests_sa_lock.c
 *
 *   Tests for file locking operations (flock).
 *
 *
-* path:      \src	est\dfile_tests_sa_lock.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
-#include ".\dfile_tests_sa.h"
+* path:      /tests/djinterp/c/dfile_tests_sa_lock.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dfile_tests_sa.h"
 
 
 /******************************************************************************
@@ -17,7 +19,7 @@
 
 /*
 d_tests_dfile_flock
-  Tests d_flock for advisory file locking.
+  Tests d_file_lock_fd for advisory file locking.
   Tests the following:
   - acquires shared lock
   - acquires exclusive lock
@@ -44,9 +46,9 @@ d_tests_dfile_flock
     d_tests_dfile_get_test_path(path_buf,
                                sizeof(path_buf),
                                "flock_test.txt");
-    d_fwrite_all(path_buf, "test", 4);
+    d_file_write_all(path_buf, "test", 4);
 
-    fd = d_open(path_buf, O_RDWR);
+    fd = d_file_open(path_buf, O_RDWR);
     test_shared_lock = false;
     test_exclusive_lock = false;
     test_unlock = false;
@@ -54,31 +56,31 @@ d_tests_dfile_flock
     if (fd >= 0)
     {
         // test 1: shared lock
-        result = d_flock(fd, D_LOCK_SH);
+        result = d_file_lock_fd(fd, D_LOCK_SH);
         test_shared_lock = (result == 0);
 
         // test 2: unlock
-        result = d_flock(fd, D_LOCK_UN);
+        result = d_file_lock_fd(fd, D_LOCK_UN);
         test_unlock = (result == 0);
 
         // test 3: exclusive lock
-        result = d_flock(fd, D_LOCK_EX);
+        result = d_file_lock_fd(fd, D_LOCK_EX);
         test_exclusive_lock = (result == 0);
 
         // cleanup: unlock and close
-        d_flock(fd, D_LOCK_UN);
-        d_close(fd);
+        d_file_lock_fd(fd, D_LOCK_UN);
+        d_file_close_fd(fd);
     }
 
     // cleanup
-    d_remove(path_buf);
+    d_file_remove(path_buf);
 
     // test 4: invalid fd
-    result = d_flock(-1, D_LOCK_SH);
+    result = d_file_lock_fd(-1, D_LOCK_SH);
     test_invalid_fd = (result == -1);
 
     // build result tree
-    group = d_test_object_new_interior("d_flock", 4);
+    group = d_test_object_new_interior("d_file_lock_fd", 4);
 
     if (!group)
     {
@@ -88,16 +90,16 @@ d_tests_dfile_flock
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("shared_lock",
                                            test_shared_lock,
-                                           "d_flock acquires shared lock");
+                                           "d_file_lock_fd acquires shared lock");
     group->elements[idx++] = D_ASSERT_TRUE("exclusive_lock",
                                            test_exclusive_lock,
-                                           "d_flock acquires exclusive lock");
+                                           "d_file_lock_fd acquires exclusive lock");
     group->elements[idx++] = D_ASSERT_TRUE("unlock",
                                            test_unlock,
-                                           "d_flock releases lock");
+                                           "d_file_lock_fd releases lock");
     group->elements[idx++] = D_ASSERT_TRUE("invalid_fd",
                                            test_invalid_fd,
-                                           "d_flock returns -1 for invalid fd");
+                                           "d_file_lock_fd returns -1 for invalid fd");
 
     return group;
 }
@@ -105,7 +107,7 @@ d_tests_dfile_flock
 
 /*
 d_tests_dfile_flock_stream
-  Tests d_flock_stream for stream-based locking.
+  Tests d_file_lock_stream for stream-based locking.
   Tests the following:
   - acquires lock via stream
   - returns -1 for NULL stream
@@ -128,29 +130,29 @@ d_tests_dfile_flock_stream
     d_tests_dfile_get_test_path(path_buf,
                                sizeof(path_buf),
                                "flock_stream_test.txt");
-    d_fwrite_all(path_buf, "test", 4);
+    d_file_write_all(path_buf, "test", 4);
 
     // test 1: lock via stream
-    file = d_fopen(path_buf, "r+");
+    file = d_file_open_stream(path_buf, "r+");
     test_lock_stream = false;
 
     if (file)
     {
-        result = d_flock_stream(file, D_LOCK_SH);
+        result = d_file_lock_stream(file, D_LOCK_SH);
         test_lock_stream = (result == 0);
-        d_flock_stream(file, D_LOCK_UN);
+        d_file_lock_stream(file, D_LOCK_UN);
         fclose(file);
     }
 
     // cleanup
-    d_remove(path_buf);
+    d_file_remove(path_buf);
 
     // test 2: NULL stream
-    result = d_flock_stream(NULL, D_LOCK_SH);
+    result = d_file_lock_stream(NULL, D_LOCK_SH);
     test_null_stream = (result == -1);
 
     // build result tree
-    group = d_test_object_new_interior("d_flock_stream", 2);
+    group = d_test_object_new_interior("d_file_lock_stream", 2);
 
     if (!group)
     {
@@ -160,10 +162,10 @@ d_tests_dfile_flock_stream
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("lock_stream",
                                            test_lock_stream,
-                                           "d_flock_stream acquires lock");
+                                           "d_file_lock_stream acquires lock");
     group->elements[idx++] = D_ASSERT_TRUE("null_stream",
                                            test_null_stream,
-                                           "d_flock_stream returns -1 for NULL");
+                                           "d_file_lock_stream returns -1 for NULL");
 
     return group;
 }
@@ -173,8 +175,8 @@ d_tests_dfile_flock_stream
 d_tests_dfile_locking_all
   Runs all file locking tests.
   Tests the following:
-  - d_flock
-  - d_flock_stream
+  - d_file_lock_fd
+  - d_file_lock_stream
 */
 struct d_test_object*
 d_tests_dfile_locking_all
@@ -198,5 +200,3 @@ d_tests_dfile_locking_all
 
     return group;
 }
-
-

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                type_traits_tests_detection.cpp
 *
 *   Unit tests for Section 0.2 of type_traits.hpp:
@@ -30,9 +30,12 @@
 * for it.
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_detection.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_detection.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -287,7 +290,7 @@ type_traits_tests_detection(
 )
 {
     // ---- nonesuch ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( std::is_default_constructible<nonesuch>::value == false &&
           std::is_copy_constructible   <nonesuch>::value == false &&
           std::is_destructible         <nonesuch>::value == false &&
@@ -295,89 +298,89 @@ type_traits_tests_detection(
         "nonesuch: uninstantiable (all five special members rejected)");
 
     // ---- detected_or / detected_or_t ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename detected_or<float, has_value_type_expr,
                                           with_int_value_type>::type, int>::value,
         "detected_or: success -> int");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename detected_or<float, has_value_type_expr,
                                           with_int_value_type>::value_t,
                      std::true_type>::value,
         "detected_or: success value_t is true_type");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename detected_or<float, has_value_type_expr,
                                           without_value_type>::type, float>::value,
         "detected_or: failure -> supplied default");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename detected_or<float, has_value_type_expr,
                                           without_value_type>::value_t,
                      std::false_type>::value,
         "detected_or: failure value_t is false_type");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<detected_or_t<float, has_value_type_expr,
                                     with_int_value_type>, int>::value,
         "detected_or_t alias: success path");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<detected_or_t<float, has_value_type_expr,
                                     without_value_type>, float>::value,
         "detected_or_t alias: failure path");
 
     // ---- detected_t ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<detected_t<has_value_type_expr, with_int_value_type>,
                      int>::value,
         "detected_t: success -> int");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<detected_t<has_value_type_expr, without_value_type>,
                      nonesuch>::value,
         "detected_t: failure -> nonesuch sentinel");
 
     // ---- is_detected ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected<has_value_type_expr, with_int_value_type>::value == true,
         "is_detected: with value_type -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected<has_value_type_expr, without_value_type>::value == false,
         "is_detected: without value_type -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected<has_size_member_expr, std::vector<int>>::value == true,
         "is_detected: vector has .size() -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected<has_size_member_expr, int>::value == false,
         "is_detected: int has no .size() -> false");
 
     // ---- is_detected_convertible ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected_convertible<long, has_value_type_expr,
                                 with_int_value_type>::value == true,
         "is_detected_convertible: int -> long convertible -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected_convertible<int, has_value_type_expr,
                                 with_int_value_type>::value == true,
         "is_detected_convertible: int -> int convertible -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected_convertible<long, has_value_type_expr,
                                 with_unrelated_value_type>::value == false,
         "is_detected_convertible: opaque not convertible to long -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected_convertible<long, has_value_type_expr,
                                 without_value_type>::value == false,
         "is_detected_convertible: probe failure -> false");
 
     // ---- is_detected_exact ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected_exact<int, has_value_type_expr,
                           with_int_value_type>::value == true,
         "is_detected_exact: int matches int -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected_exact<long, has_value_type_expr,
                           with_int_value_type>::value == false,
         "is_detected_exact: long does not match int -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected_exact<int, has_value_type_expr,
                           without_value_type>::value == false,
         "is_detected_exact: probe failure (nonesuch != int) -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_detected_exact<const int, has_value_type_expr,
                           with_int_value_type>::value == false,
         "is_detected_exact: const int does not match int (strict identity)");

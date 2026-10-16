@@ -1,29 +1,33 @@
-/******************************************************************************
-* djinterp [test]                                         registry_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                            registry_tests_sa.h
 *
 *   Test declarations for registry module standalone tests.
 *   Organises tests by header section; each section has individual test
 *   functions and one *_all aggregation function.
 *
 *
-* path:      \tests\c\container\registry\registry_tests_sa.h
-* author(s): Samuel 'teer' Neal-Blim
-******************************************************************************/
+* path:      /tests/djinterp/c/container/registry/registry_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                                created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_REGISTRY_STANDALONE_
 #define DJINTERP_TESTS_REGISTRY_STANDALONE_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../../../inc/c/djinterp.h"
-#include "../../../../inc/c/test/test_standalone.h"
-#include "../../../../inc/c/container/registry/registry.h"
-#include "../../../../inc/c/container/registry/registry_common.h"
-#include "../../../../inc/c/string_fn.h"
-#include "../../../../inc/c/dstring.h"
-#include "../../../../inc/c/dmemory.h"
+// djinterp
+#include "../../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../../inc/djinterp/c/container/registry/registry.h"
+#include "../../../../../inc/djinterp/c/container/registry/registry_common.h"
+#include "../../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../../inc/djinterp/c/dstring.h"
+#include "../../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

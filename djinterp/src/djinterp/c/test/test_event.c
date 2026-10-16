@@ -1,14 +1,17 @@
-/******************************************************************************
-* djinterp [test]                                                test_event.c
+/*******************************************************************************
+* djinterp [c]                                                      test_event.c
 *
 *   Implementation of the DTest event module -- the observation record and
 * the dispatch kernel.  Compiled by both languages from this one source.
 *
+*
 * path:      /src/djinterp/c/test/test_event.c
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.31
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#include "djinterp/c/test/test_event.h"
+#include "../../../../inc/djinterp/c/test/test_event.h"
 
 D_EXTERN_C_BEGIN
 

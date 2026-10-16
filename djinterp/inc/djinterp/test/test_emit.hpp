@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                                  test_emit.hpp
 *
 *   The FP + fluent OUTPUT surface for a finished run - two faces over one
@@ -40,13 +40,14 @@
 *   PORTABILITY:  C++17 (it composes test_output / document_bundle).
 *
 *
-* path:      /inc/djinterp/test/output/test_emit.hpp
+* path:      /inc/djinterp/test/test_emit.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_TEST_EMIT_
-#define DJINTERP_TEST_TEST_EMIT_ 1
+#ifndef DJINTERP_TEST_TEST_EMIT_HPP
+#define DJINTERP_TEST_TEST_EMIT_HPP 1
 
 // std
 #include <cstddef>
@@ -56,8 +57,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"            // NS_*, D_NODISCARD, gates
-#include "./test_output_config.hpp"        // to_output_config, doc_format, render_*_bytes,
+#include "../djinterp.hpp"            // NS_*, D_NODISCARD, gates
                                            //   build_*, at_module,
                                            //   document_bundle, output_config, pack_mode,
                                            //   format_id_*, codec_id, write_to_disk,
@@ -524,4 +524,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-#endif  // DJINTERP_TEST_TEST_EMIT_
+#endif  // DJINTERP_TEST_TEST_EMIT_HPP

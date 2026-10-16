@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                          dstring_tests_copy.c
+/*******************************************************************************
+* djinterp [test]                                        dstring_tests_sa_copy.c
 *
 *   Unit tests for d_string safe copy functions:
 *     - d_string_copy_s
@@ -8,12 +8,15 @@
 *     - d_string_ncopy_cstr_s
 *     - d_string_to_buffer_s
 *
-* path:      \src\test\dstring_tests_copy.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_copy.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "../../tests/c/dstring_tests_sa.h"
+// djinterp
+#include "dstring_tests_sa.h"
 
 
 /******************************************************************************
@@ -150,7 +153,7 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new();
     src  = d_string_new_from_cstr("Hello World");
 
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         result = d_string_copy_s(dest, src);
@@ -190,7 +193,7 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new_from_cstr("Old Content");
     src  = d_string_new_from_cstr("New Content");
 
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         result = d_string_copy_s(dest, src);
@@ -223,7 +226,7 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new_with_capacity(8);
     src  = d_string_new_from_cstr("This is a much longer string");
 
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         result = d_string_copy_s(dest, src);
@@ -263,7 +266,7 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new();
     src  = d_string_new_from_cstr("Source String");
 
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         d_string_copy_s(dest, src);
@@ -296,7 +299,7 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new_from_cstr("Has Content");
     src  = d_string_new();
 
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         result = d_string_copy_s(dest, src);
@@ -622,7 +625,7 @@ d_tests_sa_dstring_ncopy_s
     dest = d_string_new();
     src  = d_string_new_from_cstr("Hello World");
 
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         result = d_string_ncopy_s(dest, src, 5);
@@ -662,7 +665,7 @@ d_tests_sa_dstring_ncopy_s
     dest = d_string_new();
     src  = d_string_new_from_cstr("Short");
 
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         result = d_string_ncopy_s(dest, src, 42);

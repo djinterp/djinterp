@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                              option_diff_tests_rt_values.cpp
+/*******************************************************************************
+* djinterp [test]                                option_diff_tests_rt_values.cpp
 *
 *   PART B / B.II - runtime value-level diff (option_changed_keys,
 * option_unchanged_keys, option_diff_count, option_sets_equal) over
@@ -11,10 +11,14 @@
 *     base  a:1 b:2 c:3      derived  a:1 b:20 d:4
 *       -> common {a,b}; a unchanged, b changed; c removed; d added
 *
+*
 * path:      /tests/djinterp/core/option/option_diff_tests_rt_values.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.08
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./option_diff_tests.hpp"
 
 

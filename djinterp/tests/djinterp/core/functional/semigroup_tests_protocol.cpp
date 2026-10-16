@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                   semigroup_tests_protocol.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/semigroup_tests_protocol.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  semigroup_tests_protocol.cpp
 //   Section I -- semigroup_traits, is_semigroup, the Semigroup concept.
 

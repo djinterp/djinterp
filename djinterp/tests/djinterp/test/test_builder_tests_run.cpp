@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 test_builder_tests_run.cpp
+/*******************************************************************************
+* djinterp [test]                                     test_builder_tests_run.cpp
 *
 *   The terminal and the read surface.  run() walks the forest, evaluates each
 * deferred leaf, and summarize() folds the result into a tally: passed /
@@ -14,11 +14,14 @@
 * and bookkeeping and re-installs the default kinds; and tree() / callables()
 * expose the live backing stores.
 *
-* path:      /tests/djinterp/test/test_builder/test_builder_tests_run.cpp
+*
+* path:      /tests/djinterp/test/test_builder_tests_run.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_builder_tests.hpp"
 
 NS_DJINTERP

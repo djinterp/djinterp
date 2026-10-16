@@ -1,14 +1,16 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                     dtime_tests_sa_monotonic.c
 *
 *   Tests for monotonic time utility functions (monotonic_time_ms,
 * monotonic_time_us, monotonic_time_ns).
 *
 *
-* path:      \src\test\dtime_tests_sa_monotonic.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
+* path:      /tests/djinterp/c/dtime_tests_sa_monotonic.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "dtime_tests_sa.h"
 
 
@@ -17,7 +19,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dtime_monotonic_time_ms
+d_tests_sa_dtime_monotonic_time_ms
   Tests d_monotonic_time_ms for getting monotonic time in milliseconds.
   Tests the following:
   - returns non-negative value
@@ -30,7 +32,7 @@ d_tests_dtime_monotonic_time_ms
   - handles system load gracefully
 */
 struct d_test_object*
-d_tests_dtime_monotonic_time_ms
+d_tests_sa_dtime_monotonic_time_ms
 (
     void
 )
@@ -174,7 +176,7 @@ d_tests_dtime_monotonic_time_ms
 
 
 /*
-d_tests_dtime_monotonic_time_us
+d_tests_sa_dtime_monotonic_time_us
   Tests d_monotonic_time_us for getting monotonic time in microseconds.
   Tests the following:
   - returns non-negative value
@@ -187,7 +189,7 @@ d_tests_dtime_monotonic_time_us
   - handles rapid successive calls
 */
 struct d_test_object*
-d_tests_dtime_monotonic_time_us
+d_tests_sa_dtime_monotonic_time_us
 (
     void
 )
@@ -276,7 +278,7 @@ d_tests_dtime_monotonic_time_us
             t2 = d_monotonic_time_us();
             diff = t2 - t1;
 
-            if ( (diff >= 0) && 
+            if ( (diff >= 0) &&
                  (diff < min_diff) )
             {
                 min_diff = diff;
@@ -300,8 +302,8 @@ d_tests_dtime_monotonic_time_us
     elapsed = t2 - t1;
     // allow tolerance of 50ms (50000us)
     test_elapsed_accuracy = (elapsed >= expected_min_us) &&
-                            (elapsed <= expected_min_us + 
-                                        (D_TEST_DTIME_SLEEP_TOLERANCE_MS * 
+                            (elapsed <= expected_min_us +
+                                        (D_TEST_DTIME_SLEEP_TOLERANCE_MS *
                                          D_TIME_USEC_PER_MSEC));
 
     // test 7: relationship with d_monotonic_time_ms is approximately 1000:1
@@ -375,7 +377,7 @@ d_tests_dtime_monotonic_time_us
 
 
 /*
-d_tests_dtime_monotonic_time_ns
+d_tests_sa_dtime_monotonic_time_ns
   Tests d_monotonic_time_ns for getting monotonic time in nanoseconds.
   Tests the following:
   - returns non-negative value
@@ -388,7 +390,7 @@ d_tests_dtime_monotonic_time_ns
   - handles potential overflow gracefully
 */
 struct d_test_object*
-d_tests_dtime_monotonic_time_ns
+d_tests_sa_dtime_monotonic_time_ns
 (
     void
 )
@@ -467,7 +469,7 @@ d_tests_dtime_monotonic_time_ns
             t2 = d_monotonic_time_ns();
             diff = t2 - t1;
 
-            if ( (diff > 0) && 
+            if ( (diff > 0) &&
                  (diff < min_diff) )
             {
                 min_diff = diff;
@@ -487,8 +489,8 @@ d_tests_dtime_monotonic_time_ns
     elapsed = t2 - t1;
     // allow tolerance
     test_elapsed_accuracy = (elapsed >= expected_min_ns) &&
-                            (elapsed <= expected_min_ns + 
-                                        (D_TEST_DTIME_SLEEP_TOLERANCE_MS * 
+                            (elapsed <= expected_min_ns +
+                                        (D_TEST_DTIME_SLEEP_TOLERANCE_MS *
                                          D_TIME_NSEC_PER_MSEC));
 
     // test 7: relationship with d_monotonic_time_us is approximately 1000:1
@@ -519,7 +521,7 @@ d_tests_dtime_monotonic_time_ns
                 all_positive = false;
             }
 
-            if ( (i > 0) && 
+            if ( (i > 0) &&
                  (values[i] < values[i - 1]) )
             {
                 all_increasing = false;
@@ -570,7 +572,7 @@ d_tests_dtime_monotonic_time_ns
 
 
 /*
-d_tests_dtime_monotonic_time_all
+d_tests_sa_dtime_monotonic_time_all
   Runs all monotonic time utility tests.
   Tests the following:
   - d_monotonic_time_ms
@@ -578,7 +580,7 @@ d_tests_dtime_monotonic_time_all
   - d_monotonic_time_ns
 */
 struct d_test_object*
-d_tests_dtime_monotonic_time_all
+d_tests_sa_dtime_monotonic_time_all
 (
     void
 )
@@ -594,9 +596,9 @@ d_tests_dtime_monotonic_time_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dtime_monotonic_time_ms();
-    group->elements[idx++] = d_tests_dtime_monotonic_time_us();
-    group->elements[idx++] = d_tests_dtime_monotonic_time_ns();
+    group->elements[idx++] = d_tests_sa_dtime_monotonic_time_ms();
+    group->elements[idx++] = d_tests_sa_dtime_monotonic_time_us();
+    group->elements[idx++] = d_tests_sa_dtime_monotonic_time_ns();
 
     return group;
 }

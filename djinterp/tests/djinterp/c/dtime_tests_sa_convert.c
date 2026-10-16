@@ -1,14 +1,16 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                       dtime_tests_sa_convert.c
 *
 *   Tests for thread-safe time conversion functions (localtime, gmtime,
 * ctime, asctime).
 *
 *
-* path:      \src\test\dtime_tests_sa_convert.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
+* path:      /tests/djinterp/c/dtime_tests_sa_convert.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "dtime_tests_sa.h"
 
 
@@ -17,7 +19,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dtime_localtime
+d_tests_sa_dtime_localtime
   Tests d_localtime for thread-safe local time conversion.
   Tests the following:
   - converts valid timestamp to local time
@@ -30,7 +32,7 @@ d_tests_dtime_localtime
   - handles negative timestamp (pre-epoch, if supported)
 */
 struct d_test_object*
-d_tests_dtime_localtime
+d_tests_sa_dtime_localtime
 (
     void
 )
@@ -93,7 +95,7 @@ d_tests_dtime_localtime
     memset(&result, 0xFF, sizeof(result));
     ret_ptr = d_localtime(&y2k, &result);
     test_y2k = (ret_ptr != NULL);
-    test_y2k_year = (result.tm_year == 100 || result.tm_year == 99);  // 2000 or 
+    test_y2k_year = (result.tm_year == 100 || result.tm_year == 99);  // 2000 or
                                                                        // 1999
                                                                        // dep. TZ
 
@@ -136,7 +138,7 @@ d_tests_dtime_localtime
 
 
 /*
-d_tests_dtime_gmtime
+d_tests_sa_dtime_gmtime
   Tests d_gmtime for thread-safe UTC time conversion.
   Tests the following:
   - converts valid timestamp to UTC
@@ -148,7 +150,7 @@ d_tests_dtime_gmtime
   - all struct tm fields are in valid ranges
 */
 struct d_test_object*
-d_tests_dtime_gmtime
+d_tests_sa_dtime_gmtime
 (
     void
 )
@@ -255,7 +257,7 @@ d_tests_dtime_gmtime
 
 
 /*
-d_tests_dtime_ctime
+d_tests_sa_dtime_ctime
   Tests d_ctime for thread-safe time-to-string conversion.
   Tests the following:
   - converts valid timestamp to string
@@ -267,7 +269,7 @@ d_tests_dtime_ctime
   - handles epoch timestamp
 */
 struct d_test_object*
-d_tests_dtime_ctime
+d_tests_sa_dtime_ctime
 (
     void
 )
@@ -306,7 +308,7 @@ d_tests_dtime_ctime
 
     // test 3: contains current year (check for 4-digit year pattern)
     // we look for "20" to handle years 2000-2099
-    test_contains_year = (strstr(buf, "20") != NULL) || 
+    test_contains_year = (strstr(buf, "20") != NULL) ||
                          (strstr(buf, "19") != NULL);
 
     // test 4: returns the buffer pointer
@@ -332,8 +334,8 @@ d_tests_dtime_ctime
     // either "2000" or "1999" to handle all timezones correctly.
     memset(buf, 0, sizeof(buf));
     ret_ptr = d_ctime(&y2k, buf);
-    test_y2k_contains_2000 = (ret_ptr != NULL) && 
-                             ((strstr(buf, "2000") != NULL) || 
+    test_y2k_contains_2000 = (ret_ptr != NULL) &&
+                             ((strstr(buf, "2000") != NULL) ||
                               (strstr(buf, "1999") != NULL));
 
     // build result tree
@@ -375,7 +377,7 @@ d_tests_dtime_ctime
 
 
 /*
-d_tests_dtime_asctime
+d_tests_sa_dtime_asctime
   Tests d_asctime for thread-safe tm-to-string conversion.
   Tests the following:
   - converts valid struct tm to string
@@ -387,7 +389,7 @@ d_tests_dtime_asctime
   - produces consistent output for same input
 */
 struct d_test_object*
-d_tests_dtime_asctime
+d_tests_sa_dtime_asctime
 (
     void
 )
@@ -442,7 +444,7 @@ d_tests_dtime_asctime
     // test 6: Y2K conversion
     memset(buf, 0, sizeof(buf));
     ret_ptr = d_asctime(&tm_y2k, buf);
-    test_y2k_conversion = (ret_ptr != NULL) && 
+    test_y2k_conversion = (ret_ptr != NULL) &&
                           (strstr(buf, "2000") != NULL) &&
                           (strstr(buf, "Jan") != NULL);
 
@@ -504,7 +506,7 @@ d_tests_dtime_asctime
 
 
 /*
-d_tests_dtime_thread_safe_conversion_all
+d_tests_sa_dtime_thread_safe_conversion_all
   Runs all thread-safe time conversion tests.
   Tests the following:
   - d_localtime
@@ -513,7 +515,7 @@ d_tests_dtime_thread_safe_conversion_all
   - d_asctime
 */
 struct d_test_object*
-d_tests_dtime_thread_safe_conversion_all
+d_tests_sa_dtime_thread_safe_conversion_all
 (
     void
 )
@@ -529,10 +531,10 @@ d_tests_dtime_thread_safe_conversion_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dtime_localtime();
-    group->elements[idx++] = d_tests_dtime_gmtime();
-    group->elements[idx++] = d_tests_dtime_ctime();
-    group->elements[idx++] = d_tests_dtime_asctime();
+    group->elements[idx++] = d_tests_sa_dtime_localtime();
+    group->elements[idx++] = d_tests_sa_dtime_gmtime();
+    group->elements[idx++] = d_tests_sa_dtime_ctime();
+    group->elements[idx++] = d_tests_sa_dtime_asctime();
 
     return group;
 }

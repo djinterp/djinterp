@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  option_set_tests_expand.cpp
+/*******************************************************************************
+* djinterp [test]                                    option_set_tests_expand.cpp
 *
 *   Sections I + II of the option_set.hpp suite: the normalization machinery
 * that turns a user's entry list into the flat option tuple.
@@ -20,14 +20,15 @@
 *
 * path:      /tests/djinterp/core/option/option_set_tests_expand.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <tuple>
 #include <type_traits>
 // djinterp
-#include "option_set_tests.hpp"
+#include "./option_set_tests.hpp"
 
 
 NS_DJINTERP

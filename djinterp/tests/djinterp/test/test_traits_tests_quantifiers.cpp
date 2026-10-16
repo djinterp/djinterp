@@ -1,8 +1,16 @@
-// djinterp
-#include "test_traits_tests.hpp"
-
+/*******************************************************************************
+* djinterp [test]                              test_traits_tests_quantifiers.cpp
+*
+*
+* path:      /tests/djinterp/test/test_traits_tests_quantifiers.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <type_traits>
+// djinterp
+#include "test_traits_tests.hpp"
 
 
 NS_DJINTERP

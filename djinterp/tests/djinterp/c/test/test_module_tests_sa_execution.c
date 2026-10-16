@@ -4,7 +4,7 @@
 *   Unit tests for test_module.h execution functions.
 *   Note: children that must be executed via d_test_module_run are passed
 * through the constructor array (d_test_type**), NOT through add_child
-* (which takes d_test_tree_node* — a different layout). The constructor
+* (which takes d_test_tree_node* - a different layout). The constructor
 * path is the only safe way to populate children that run will iterate.
 *
 * path:      \test\test\test_module_tests_sa_execution.c
@@ -414,7 +414,7 @@ d_tests_sa_test_module_run_child
         return false;
     }
 
-    // run_child on a fn_test child — may return false
+    // run_child on a fn_test child - may return false
     // (requires parent settings context)
     run_result = d_test_module_run_child(mod, 0, NULL);
 

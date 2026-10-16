@@ -1,12 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                    result_tests_equality.cpp
+/*******************************************************************************
+* djinterp [test]                                      result_tests_equality.cpp
 *
 * Equality-operator tests for result<T, E>.
 *
 *   test_equality -- result == / != result across ok/err combinations.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/result_tests_equality.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <string>
+// djinterp
 #include "./result_tests.hpp"
 
 

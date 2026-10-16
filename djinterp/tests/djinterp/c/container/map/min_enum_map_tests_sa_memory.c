@@ -1,15 +1,17 @@
-/******************************************************************************
-* djinterp [test]                              min_enum_map_tests_sa_memory.c
+/*******************************************************************************
+* djinterp [test]                                 min_enum_map_tests_sa_memory.c
 *
 *   Memory management and advanced tests for min_enum_map module.
 *   Tests clear, free, merge operations, and edge cases.
 *
 *
-* path:      /test/container/map/min_enum_map_tests_sa_memory.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
-******************************************************************************/
+* path:      /tests/djinterp/c/container/map/min_enum_map_tests_sa_memory.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./min_enum_map_tests_sa.h"
 
 
@@ -127,7 +129,7 @@ d_tests_min_enum_map_free
 
     // test 2: empty map freed
     map = d_min_enum_map_new();
-    
+
     if (map)
     {
         d_min_enum_map_free(map);
@@ -141,7 +143,7 @@ d_tests_min_enum_map_free
     // test 3: map with entries freed
     map = d_min_enum_map_new();
     value = d_test_min_enum_map_create_int(42);
-    
+
     if (map)
     {
         d_min_enum_map_put(map, 1, value);
@@ -160,17 +162,17 @@ d_tests_min_enum_map_free
 
     // test 5: multiple free operations
     test_multiple_frees = true;
-    
+
     for (i = 0; i < 5; i++)
     {
         temp = d_min_enum_map_new();
-        
+
         if (!temp)
         {
             test_multiple_frees = false;
             break;
         }
-        
+
         d_min_enum_map_free(temp);
     }
 
@@ -182,7 +184,7 @@ d_tests_min_enum_map_free
 
     // build result tree
     group = d_test_object_new_interior("d_min_enum_map_free", 5);
-    
+
     if (!group)
     {
         return NULL;
@@ -214,7 +216,7 @@ d_tests_min_enum_map_memory_all
     size_t                idx;
 
     group = d_test_object_new_interior("Memory Management", 2);
-    
+
     if (!group)
     {
         return NULL;
@@ -243,7 +245,7 @@ d_tests_min_enum_map_merge
   - keeps dest value when overwrite=false
   - uses src value when overwrite=true
   - maintains sorted order after merge
-  
+
   Note: The implementation treats NULL dest + empty src as a no-op (returns true).
   This is an optimization but could mask bugs. A stricter implementation would
   return false for any NULL dest regardless of src state.
@@ -289,14 +291,14 @@ d_tests_min_enum_map_merge
     test_empty_src = result;
 
     // test 4: no overlap
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         d_min_enum_map_put(dest, 1, val1);
         d_min_enum_map_put(src, 2, val2);
         result = d_min_enum_map_merge(dest, src, false);
         bool count_ok = (dest->count == 2);
-        bool has_both = d_min_enum_map_contains(dest, 1) && 
+        bool has_both = d_min_enum_map_contains(dest, 1) &&
                        d_min_enum_map_contains(dest, 2);
         test_no_overlap = result && count_ok && has_both;
     }
@@ -306,7 +308,7 @@ d_tests_min_enum_map_merge
     }
 
     // test 5: with overlap, don't overwrite
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         d_min_enum_map_clear(dest);
@@ -325,7 +327,7 @@ d_tests_min_enum_map_merge
     }
 
     // test 6: with overlap, overwrite
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         d_min_enum_map_clear(dest);
@@ -342,7 +344,7 @@ d_tests_min_enum_map_merge
     }
 
     // test 7: maintains sorted order after merge
-    if ( (dest) && 
+    if ( (dest) &&
          (src) )
     {
         d_min_enum_map_clear(dest);
@@ -388,7 +390,7 @@ d_tests_min_enum_map_merge
     }
 
     group = d_test_object_new_interior("d_min_enum_map_merge", 7);
-    
+
     if (!group)
     {
         return NULL;
@@ -438,17 +440,17 @@ d_tests_min_enum_map_entry_macros
 
     // test D_ENUM_ENTRY
     struct d_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_MIN_ENUM_MAP_RED, (void*)0x1234);
-    test_entry = ( (e1.key == D_TEST_COLOR_MIN_ENUM_MAP_RED) && 
+    test_entry = ( (e1.key == D_TEST_COLOR_MIN_ENUM_MAP_RED) &&
                    (e1.value == (void*)0x1234) );
 
     // test D_ENUM_ENTRY_STR
     struct d_enum_map_entry e2 = D_ENUM_ENTRY_STR(D_TEST_COLOR_MIN_ENUM_MAP_GREEN, "green");
-    test_entry_str = ( (e2.key == D_TEST_COLOR_MIN_ENUM_MAP_GREEN) && 
+    test_entry_str = ( (e2.key == D_TEST_COLOR_MIN_ENUM_MAP_GREEN) &&
                        (strcmp((char*)e2.value, "green") == 0) );
 
     // test D_ENUM_ENTRY_INT
     struct d_enum_map_entry e3 = D_ENUM_ENTRY_INT(D_TEST_COLOR_MIN_ENUM_MAP_BLUE, 42);
-    test_entry_int = ( (e3.key == D_TEST_COLOR_MIN_ENUM_MAP_BLUE) && 
+    test_entry_int = ( (e3.key == D_TEST_COLOR_MIN_ENUM_MAP_BLUE) &&
                        ((intptr_t)e3.value == 42) );
 
     // test D_ENUM_ENTRY_NULL
@@ -458,7 +460,7 @@ d_tests_min_enum_map_entry_macros
 
     // test D_ENUM_ENTRY_SELF
     struct d_enum_map_entry e5 = D_ENUM_ENTRY_SELF(D_TEST_COLOR_MIN_ENUM_MAP_PURPLE);
-    test_entry_self = ( (e5.key == D_TEST_COLOR_MIN_ENUM_MAP_PURPLE) && 
+    test_entry_self = ( (e5.key == D_TEST_COLOR_MIN_ENUM_MAP_PURPLE) &&
                         ((intptr_t)e5.value == D_TEST_COLOR_MIN_ENUM_MAP_PURPLE) );
 
     // test D_ENUM_ENTRY_SENTINEL
@@ -626,7 +628,7 @@ d_tests_min_enum_map_advanced_all
 }
 
 /******************************************************************************
- * EDGE CASES AND STRESS TESTS  
+ * EDGE CASES AND STRESS TESTS
  *****************************************************************************/
 
 struct d_test_object*
@@ -688,7 +690,7 @@ d_tests_min_enum_map_edge_cases
         d_min_enum_map_clear(map);
         bool put_ok = d_min_enum_map_put(map, 3, val);
         void* retrieved = d_min_enum_map_get(map, 3);
-        test_clear_then_use = ( (put_ok) && 
+        test_clear_then_use = ( (put_ok) &&
                                 (retrieved == val) );
     }
     else
@@ -724,7 +726,7 @@ d_tests_min_enum_map_edge_cases
     }
 
     group = d_test_object_new_interior("Edge Cases", 5);
-    
+
     if (!group)
     {
         return NULL;
@@ -784,7 +786,7 @@ d_tests_min_enum_map_stress
             }
         }
 
-        test_many_inserts = 
+        test_many_inserts =
             ( (test_many_inserts) &&
               (d_min_enum_map_count(map) == D_TEST_MIN_ENUM_MAP_LARGE_SIZE) );
     }
@@ -865,11 +867,11 @@ d_tests_min_enum_map_stress
 
     // memory stability
     test_memory_stable = true;
-    
+
     if (map)
     {
         int cycle;
-        
+
         for (cycle = 0; cycle < 10; cycle++)
         {
             for (i = 0; i < D_TEST_MIN_ENUM_MAP_SMALL_SIZE; i++)
@@ -936,7 +938,7 @@ d_tests_min_enum_map_edge_stress_all
     size_t                idx;
 
     group = d_test_object_new_interior("Edge Cases and Stress", 2);
-    
+
     if (!group)
     {
         return NULL;

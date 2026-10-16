@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                               test_archive_tests_sniffers.cpp
+*
+* path:      /tests/djinterp/test/test_archive_tests_sniffers.cpp
+******************************************************************************/
+// djinterp
 #include "test_archive_tests.hpp"
 
 NS_DJINTERP
@@ -22,7 +28,7 @@ bool
 tests_archive_zip_find_eocd_locates_record()
 {
     // a bare record, which is what an empty archive is
-    const dj::byte_buffer bare = ta_eocd(0u);
+    const dj::byte_blob bare = ta_eocd(0u);
 
     D_TA_CHECK(bare.size() == 22u);
     D_TA_CHECK(dt::zip_find_eocd(bare) == 0u);
@@ -30,15 +36,15 @@ tests_archive_zip_find_eocd_locates_record()
     // a record behind one member
     std::vector<ta_zip_member> members;
 
-    members.push_back(ta_zip_member("a.txt", dj::byte_buffer("hello"), 0u));
+    members.push_back(ta_zip_member("a.txt", dj::byte_blob("hello"), 0u));
 
-    const dj::byte_buffer one = ta_make_zip(members);
+    const dj::byte_blob one = ta_make_zip(members);
 
     D_TA_CHECK(one.size() > 22u);
     D_TA_CHECK(dt::zip_find_eocd(one) == (one.size() - 22u));
 
     // the scan is backward: the later of two signatures wins
-    dj::byte_buffer twice = ta_eocd(1u);
+    dj::byte_blob twice = ta_eocd(1u);
 
     twice += ta_eocd(2u);
 
@@ -51,7 +57,7 @@ tests_archive_zip_find_eocd_locates_record()
 
     tricky.push_back(ta_zip_member("t", ta_eocd(7u), 0u));
 
-    const dj::byte_buffer buried = ta_make_zip(tricky);
+    const dj::byte_blob buried = ta_make_zip(tricky);
 
     D_TA_CHECK(dt::zip_find_eocd(buried) == (buried.size() - 22u));
 
@@ -71,24 +77,24 @@ bool
 tests_archive_zip_find_eocd_rejects_absent_and_short()
 {
     // no signature anywhere
-    const dj::byte_buffer plain(100u, 'x');
+    const dj::byte_blob plain(100u, 'x');
 
     D_TA_CHECK(dt::zip_find_eocd(plain) == ta_npos);
 
     // too short, including the empty blob
-    D_TA_CHECK(dt::zip_find_eocd(dj::byte_buffer()) == ta_npos);
+    D_TA_CHECK(dt::zip_find_eocd(dj::byte_blob()) == ta_npos);
 
     std::size_t n = 0;
 
     for (n = 0; n < 22u; ++n)
     {
-        const dj::byte_buffer shortb(n, 'x');
+        const dj::byte_blob shortb(n, 'x');
 
         D_TA_CHECK(dt::zip_find_eocd(shortb) == ta_npos);
     }
 
     // a 21-byte blob that DOES carry the signature is still too short
-    const dj::byte_buffer truncated = ta_eocd(0u).substr(0, 21);
+    const dj::byte_blob truncated = ta_eocd(0u).substr(0, 21);
 
     D_TA_CHECK(truncated.size() == 21u);
     D_TA_CHECK(dt::zip_find_eocd(truncated) == ta_npos);
@@ -97,7 +103,7 @@ tests_archive_zip_find_eocd_rejects_absent_and_short()
     D_TA_CHECK(dt::zip_find_eocd(ta_eocd(0u)) == 0u);
 
     // a near-miss signature is not accepted
-    dj::byte_buffer near = ta_eocd(0u);
+    dj::byte_blob near = ta_eocd(0u);
 
     near[3] = static_cast<char>(0x07u);   // PK\5\7, not PK\5\6
     D_TA_CHECK(dt::zip_find_eocd(near) == ta_npos);
@@ -124,12 +130,12 @@ tests_archive_looks_like_zip_front_signatures()
     // a local file header at the front
     std::vector<ta_zip_member> members;
 
-    members.push_back(ta_zip_member("a.txt", dj::byte_buffer("hello"), 0u));
+    members.push_back(ta_zip_member("a.txt", dj::byte_blob("hello"), 0u));
 
     D_TA_CHECK(dt::looks_like_zip(ta_make_zip(members)));
 
     // the empty archive: a bare EOCD, which is both the front and the back
-    const dj::byte_buffer empty_zip = ta_eocd(0u);
+    const dj::byte_blob empty_zip = ta_eocd(0u);
 
     D_TA_CHECK(empty_zip.size() == 22u);
     D_TA_CHECK(dt::looks_like_zip(empty_zip));
@@ -137,10 +143,10 @@ tests_archive_looks_like_zip_front_signatures()
 
     // several members
     members.push_back(ta_zip_member("b.bin",
-                                    dj::byte_buffer("\0\1\2", 3), 8u));
-    members.push_back(ta_zip_member("dir/", dj::byte_buffer(), 0u));
+                                    dj::byte_blob("\0\1\2", 3), 8u));
+    members.push_back(ta_zip_member("dir/", dj::byte_blob(), 0u));
 
-    const dj::byte_buffer three = ta_make_zip(members);
+    const dj::byte_blob three = ta_make_zip(members);
 
     D_TA_CHECK(dt::looks_like_zip(three));
     D_TA_CHECK(dt::zip_total_entries(three) == 3L);
@@ -148,7 +154,7 @@ tests_archive_looks_like_zip_front_signatures()
     // a member with an empty payload is fine
     std::vector<ta_zip_member> hollow;
 
-    hollow.push_back(ta_zip_member("e", dj::byte_buffer(), 0u));
+    hollow.push_back(ta_zip_member("e", dj::byte_blob(), 0u));
     D_TA_CHECK(dt::looks_like_zip(ta_make_zip(hollow)));
 
     return true;
@@ -168,12 +174,12 @@ bool
 tests_archive_looks_like_zip_rejects_malformed()
 {
     // too short
-    D_TA_CHECK(!dt::looks_like_zip(dj::byte_buffer()));
-    D_TA_CHECK(!dt::looks_like_zip(dj::byte_buffer(21u, 'x')));
+    D_TA_CHECK(!dt::looks_like_zip(dj::byte_blob()));
+    D_TA_CHECK(!dt::looks_like_zip(dj::byte_blob(21u, 'x')));
     D_TA_CHECK(!dt::looks_like_zip(ta_eocd(0u).substr(0, 21)));
 
     // the wrong front signature, even with a real EOCD behind it
-    dj::byte_buffer bad_front(8u, 'Q');
+    dj::byte_blob bad_front(8u, 'Q');
 
     bad_front += ta_eocd(1u);
 
@@ -182,8 +188,8 @@ tests_archive_looks_like_zip_rejects_malformed()
     D_TA_CHECK(!dt::looks_like_zip(bad_front));
 
     // a right front signature with NO EOCD behind it
-    dj::byte_buffer no_eocd =
-        ta_local_header("a.txt", dj::byte_buffer("hello"), 0u);
+    dj::byte_blob no_eocd =
+        ta_local_header("a.txt", dj::byte_blob("hello"), 0u);
 
     no_eocd.append(64u, 'z');
 
@@ -194,16 +200,16 @@ tests_archive_looks_like_zip_rejects_malformed()
     // each byte of the front signature matters
     std::vector<ta_zip_member> members;
 
-    members.push_back(ta_zip_member("a", dj::byte_buffer("x"), 0u));
+    members.push_back(ta_zip_member("a", dj::byte_blob("x"), 0u));
 
-    const dj::byte_buffer good = ta_make_zip(members);
+    const dj::byte_blob good = ta_make_zip(members);
     std::size_t           i    = 0;
 
     D_TA_CHECK(dt::looks_like_zip(good));
 
     for (i = 0; i < 4u; ++i)
     {
-        dj::byte_buffer broken = good;
+        dj::byte_blob broken = good;
 
         broken[i] = static_cast<char>(
             static_cast<unsigned char>(broken[i]) ^ 0xFFu);
@@ -240,7 +246,7 @@ tests_archive_zip_total_entries_reads_count()
 
     for (i = 1; i <= 5u; ++i)
     {
-        members.push_back(ta_zip_member("m", dj::byte_buffer("d"), 0u));
+        members.push_back(ta_zip_member("m", dj::byte_blob("d"), 0u));
 
         D_TA_CHECK(dt::zip_total_entries(ta_make_zip(members)) ==
                    static_cast<long>(i));
@@ -252,7 +258,7 @@ tests_archive_zip_total_entries_reads_count()
     D_TA_CHECK(dt::zip_total_entries(ta_eocd(256u)) == 256L);
 
     // the field really is the one at offset ten, not the one at eight
-    dj::byte_buffer skewed = ta_eocd(0u);
+    dj::byte_blob skewed = ta_eocd(0u);
 
     skewed[8]  = static_cast<char>(0x11u);   // entries on this disk
     skewed[9]  = static_cast<char>(0x00u);
@@ -262,8 +268,8 @@ tests_archive_zip_total_entries_reads_count()
     D_TA_CHECK(dt::zip_total_entries(skewed) == 0x22L);
 
     // absent record
-    D_TA_CHECK(dt::zip_total_entries(dj::byte_buffer()) == -1L);
-    D_TA_CHECK(dt::zip_total_entries(dj::byte_buffer(100u, 'x')) == -1L);
+    D_TA_CHECK(dt::zip_total_entries(dj::byte_blob()) == -1L);
+    D_TA_CHECK(dt::zip_total_entries(dj::byte_blob(100u, 'x')) == -1L);
     D_TA_CHECK(dt::zip_total_entries(ta_make_gzip_header(64)) == -1L);
 
     // which is distinguishable from a genuinely empty archive
@@ -289,11 +295,11 @@ tests_archive_zip_local_methods_walks_chain()
     std::vector<ta_zip_member> members;
 
     members.push_back(ta_zip_member("stored.txt",
-                                    dj::byte_buffer("aaaa"), 0u));
-    members.push_back(ta_zip_member("defl.txt", dj::byte_buffer("bbbb"), 8u));
-    members.push_back(ta_zip_member("odd.bin", dj::byte_buffer("cc"), 12u));
+                                    dj::byte_blob("aaaa"), 0u));
+    members.push_back(ta_zip_member("defl.txt", dj::byte_blob("bbbb"), 8u));
+    members.push_back(ta_zip_member("odd.bin", dj::byte_blob("cc"), 12u));
 
-    const dj::byte_buffer     blob = ta_make_zip(members);
+    const dj::byte_blob     blob = ta_make_zip(members);
     std::vector<unsigned int> out;
 
     D_TA_CHECK(dt::zip_local_methods(blob, out));
@@ -321,19 +327,19 @@ tests_archive_zip_local_methods_walks_chain()
 
     // a blob with no headers at all: the first four bytes fail the
     // signature test and the walk ends immediately
-    D_TA_CHECK(dt::zip_local_methods(dj::byte_buffer(100u, 'x'), out));
+    D_TA_CHECK(dt::zip_local_methods(dj::byte_blob(100u, 'x'), out));
     D_TA_CHECK(out.empty());
 
     // and a blob too short to hold a signature
-    D_TA_CHECK(dt::zip_local_methods(dj::byte_buffer(), out));
+    D_TA_CHECK(dt::zip_local_methods(dj::byte_blob(), out));
     D_TA_CHECK(out.empty());
-    D_TA_CHECK(dt::zip_local_methods(dj::byte_buffer(3u, 'x'), out));
+    D_TA_CHECK(dt::zip_local_methods(dj::byte_blob(3u, 'x'), out));
     D_TA_CHECK(out.empty());
 
     // a member with an empty payload still contributes a method
     std::vector<ta_zip_member> hollow;
 
-    hollow.push_back(ta_zip_member("e", dj::byte_buffer(), 0u));
+    hollow.push_back(ta_zip_member("e", dj::byte_blob(), 0u));
     D_TA_CHECK(dt::zip_local_methods(ta_make_zip(hollow), out));
     D_TA_CHECK(out.size() == 1u);
     D_TA_CHECK(out[0] == 0u);
@@ -354,9 +360,9 @@ tests_archive_zip_local_methods_rejects_truncated()
 {
     std::vector<ta_zip_member> members;
 
-    members.push_back(ta_zip_member("a.txt", dj::byte_buffer("hello"), 0u));
+    members.push_back(ta_zip_member("a.txt", dj::byte_blob("hello"), 0u));
 
-    const dj::byte_buffer     blob = ta_make_zip(members);
+    const dj::byte_blob     blob = ta_make_zip(members);
     std::vector<unsigned int> out;
 
     D_TA_CHECK(dt::zip_local_methods(blob, out));
@@ -366,14 +372,14 @@ tests_archive_zip_local_methods_rejects_truncated()
 
     for (n = 4u; n < 30u; ++n)
     {
-        const dj::byte_buffer cut = blob.substr(0, n);
+        const dj::byte_blob cut = blob.substr(0, n);
 
         D_TA_CHECK(!dt::zip_local_methods(cut, out));
     }
 
     // a full header whose declared payload runs past the end
-    dj::byte_buffer header_only =
-        ta_local_header("a.txt", dj::byte_buffer("hello"), 0u);
+    dj::byte_blob header_only =
+        ta_local_header("a.txt", dj::byte_blob("hello"), 0u);
 
     // drop the payload but leave the declared size in place
     header_only = header_only.substr(0, header_only.size() - 3u);
@@ -382,8 +388,8 @@ tests_archive_zip_local_methods_rejects_truncated()
     D_TA_CHECK(!dt::zip_local_methods(header_only, out));
 
     // a header declaring a name longer than the blob can hold
-    dj::byte_buffer long_name =
-        ta_local_header("a.txt", dj::byte_buffer(), 0u);
+    dj::byte_blob long_name =
+        ta_local_header("a.txt", dj::byte_blob(), 0u);
 
     long_name[26] = static_cast<char>(0xFFu);
     long_name[27] = static_cast<char>(0xFFu);
@@ -391,8 +397,8 @@ tests_archive_zip_local_methods_rejects_truncated()
     D_TA_CHECK(!dt::zip_local_methods(long_name, out));
 
     // a header declaring an enormous payload
-    dj::byte_buffer big_payload =
-        ta_local_header("a.txt", dj::byte_buffer("hello"), 0u);
+    dj::byte_blob big_payload =
+        ta_local_header("a.txt", dj::byte_blob("hello"), 0u);
 
     big_payload[18] = static_cast<char>(0xFFu);
     big_payload[19] = static_cast<char>(0xFFu);
@@ -416,7 +422,7 @@ tests_archive_looks_like_gzip_checks_three_bytes
 bool
 tests_archive_looks_like_gzip_checks_three_bytes()
 {
-    const dj::byte_buffer good = ta_make_gzip_header(32);
+    const dj::byte_blob good = ta_make_gzip_header(32);
 
     D_TA_CHECK(dt::looks_like_gzip(good));
 
@@ -426,14 +432,14 @@ tests_archive_looks_like_gzip_checks_three_bytes()
     // the bare two-byte magic is NOT enough
     D_TA_CHECK(!dt::looks_like_gzip(ta_make_gzip_header(0).substr(0, 2)));
     D_TA_CHECK(!dt::looks_like_gzip(ta_make_gzip_header(0).substr(0, 1)));
-    D_TA_CHECK(!dt::looks_like_gzip(dj::byte_buffer()));
+    D_TA_CHECK(!dt::looks_like_gzip(dj::byte_blob()));
 
     // every one of the three bytes is checked
     std::size_t i = 0;
 
     for (i = 0; i < 3u; ++i)
     {
-        dj::byte_buffer broken = good;
+        dj::byte_blob broken = good;
 
         broken[i] = static_cast<char>(
             static_cast<unsigned char>(broken[i]) ^ 0xFFu);
@@ -442,7 +448,7 @@ tests_archive_looks_like_gzip_checks_three_bytes()
     }
 
     // a different compression method byte is rejected
-    dj::byte_buffer other_method = good;
+    dj::byte_blob other_method = good;
 
     other_method[2] = static_cast<char>(0x00u);
     D_TA_CHECK(!dt::looks_like_gzip(other_method));
@@ -465,12 +471,12 @@ tests_archive_tar_has_ustar_magic_at_offset
 bool
 tests_archive_tar_has_ustar_magic_at_offset()
 {
-    const dj::byte_buffer good = ta_make_tar_blocks(1);
+    const dj::byte_blob good = ta_make_tar_blocks(1);
 
     D_TA_CHECK(dt::tar_has_ustar_magic(good));
 
     // the offset is exact: the same text elsewhere does not count
-    dj::byte_buffer misplaced(512u, static_cast<char>(0));
+    dj::byte_blob misplaced(512u, static_cast<char>(0));
 
     misplaced[0] = 'u';
     misplaced[1] = 's';
@@ -481,7 +487,7 @@ tests_archive_tar_has_ustar_magic_at_offset()
     D_TA_CHECK(!dt::tar_has_ustar_magic(misplaced));
 
     // one byte off in either direction fails
-    dj::byte_buffer shifted(512u, static_cast<char>(0));
+    dj::byte_blob shifted(512u, static_cast<char>(0));
 
     shifted[256] = 'u';
     shifted[257] = 's';
@@ -492,7 +498,7 @@ tests_archive_tar_has_ustar_magic_at_offset()
     D_TA_CHECK(!dt::tar_has_ustar_magic(shifted));
 
     // the length guard
-    D_TA_CHECK(!dt::tar_has_ustar_magic(dj::byte_buffer()));
+    D_TA_CHECK(!dt::tar_has_ustar_magic(dj::byte_blob()));
     D_TA_CHECK(!dt::tar_has_ustar_magic(good.substr(0, 262)));
     D_TA_CHECK(dt::tar_has_ustar_magic(good.substr(0, 263)));
 
@@ -501,7 +507,7 @@ tests_archive_tar_has_ustar_magic_at_offset()
 
     for (i = 257u; i <= 261u; ++i)
     {
-        dj::byte_buffer broken = good;
+        dj::byte_blob broken = good;
 
         broken[i] = 'X';
         D_TA_CHECK(!dt::tar_has_ustar_magic(broken));
@@ -526,45 +532,45 @@ tests_archive_tar_is_terminated_checks_zero_tail
 bool
 tests_archive_tar_is_terminated_checks_zero_tail()
 {
-    const dj::byte_buffer good = ta_make_tar_blocks(1);
+    const dj::byte_blob good = ta_make_tar_blocks(1);
 
     D_TA_CHECK(good.size() == (512u + 1024u));
     D_TA_CHECK(dt::tar_is_terminated(good));
 
     // exactly 1024 zero bytes is enough
-    const dj::byte_buffer bare(1024u, static_cast<char>(0));
+    const dj::byte_blob bare(1024u, static_cast<char>(0));
 
     D_TA_CHECK(dt::tar_is_terminated(bare));
 
     // the length guard
-    D_TA_CHECK(!dt::tar_is_terminated(dj::byte_buffer()));
-    D_TA_CHECK(!dt::tar_is_terminated(dj::byte_buffer(1023u,
+    D_TA_CHECK(!dt::tar_is_terminated(dj::byte_blob()));
+    D_TA_CHECK(!dt::tar_is_terminated(dj::byte_blob(1023u,
                                                       static_cast<char>(0))));
 
     // a non-zero byte at either end of the tail, and in the middle
-    dj::byte_buffer first_bad = good;
+    dj::byte_blob first_bad = good;
 
     first_bad[good.size() - 1024u] = 'X';
     D_TA_CHECK(!dt::tar_is_terminated(first_bad));
 
-    dj::byte_buffer last_bad = good;
+    dj::byte_blob last_bad = good;
 
     last_bad[good.size() - 1u] = 'X';
     D_TA_CHECK(!dt::tar_is_terminated(last_bad));
 
-    dj::byte_buffer mid_bad = good;
+    dj::byte_blob mid_bad = good;
 
     mid_bad[good.size() - 500u] = 'X';
     D_TA_CHECK(!dt::tar_is_terminated(mid_bad));
 
     // leading content is irrelevant: only the last 1024 bytes are read
-    dj::byte_buffer noisy(2000u, 'N');
+    dj::byte_blob noisy(2000u, 'N');
 
     noisy.append(1024u, static_cast<char>(0));
     D_TA_CHECK(dt::tar_is_terminated(noisy));
 
     // the byte just before the tail may be anything
-    dj::byte_buffer edge(1u, 'N');
+    dj::byte_blob edge(1u, 'N');
 
     edge.append(1024u, static_cast<char>(0));
     D_TA_CHECK(dt::tar_is_terminated(edge));
@@ -591,7 +597,7 @@ bool
 tests_archive_sniffers_agree_with_real_containers()
 {
     const dj::entry_list items = ta_sample_entries();
-    dj::byte_buffer      blob;
+    dj::byte_blob      blob;
 
     // zip, if this build writes one
     if (dj::try_archive<dj::formats::zip>(items, blob,

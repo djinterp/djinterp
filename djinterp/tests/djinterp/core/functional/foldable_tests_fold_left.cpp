@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  foldable_tests_fold_left.cpp
+/*******************************************************************************
+* djinterp [test]                                   foldable_tests_fold_left.cpp
 *
 *   Section II.1 of the foldable.hpp suite: fold_left, the one obligation every
 * other fold is derived from.  Covers the empty (zero-iteration) and non-empty
@@ -8,10 +8,12 @@
 * move-threaded collecting accumulator, const-lvalue and rvalue foldable
 * arguments, and the same fold over the non-std seq<T> fixture.
 *
+*
 * path:      /tests/djinterp/core/functional/foldable_tests_fold_left.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "foldable_tests.hpp"

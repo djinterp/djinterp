@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                         producer_tests_generators.cpp
+/*******************************************************************************
+* djinterp [functional]                            producer_tests_generators.cpp
 *
 *   Tests for the source producers that do not wrap another producer:
 * iterate, unfold, range, iota, repeat, repeat_n, cycle, generate, empty,
@@ -8,14 +8,19 @@
 *   Infinite producers (iterate / repeat / cycle / generate) are bounded
 * with take_n before draining so the tests terminate.
 *
-* path:      /src/functional/producer_tests_generators.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/producer_tests_generators.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "./producer_tests.hpp"
-
-#include <vector>
+// std
 #include <string>
 #include <utility>
+#include <vector>
+// djinterp
+#include "./producer_tests.hpp"
 
 
 NS_DJINTERP

@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                             test_compress_tests_roundtrip.cpp
+*
+* path:      /tests/djinterp/test/test_compress_tests_roundtrip.cpp
+******************************************************************************/
+// djinterp
 #include "test_compress_tests.hpp"
 
 NS_DJINTERP
@@ -17,7 +23,7 @@ tests_compress_roundtrip_report_is_fully_populated
 bool
 tests_compress_roundtrip_report_is_fully_populated()
 {
-    const dj::byte_buffer      in = dt::make_text(1000);
+    const dj::byte_blob      in = dt::make_text(1000);
     const dt::roundtrip_report r  = dt::roundtrip<dj::codecs::store>(in);
 
     D_TC_CHECK(r.input_size == in.size());
@@ -53,7 +59,7 @@ tests_compress_roundtrip_store_reproduces_input
 bool
 tests_compress_roundtrip_store_reproduces_input()
 {
-    const dj::byte_buffer in = dt::make_text(4096);
+    const dj::byte_blob in = dt::make_text(4096);
 
     // store is the one codec a bare build is guaranteed to carry
     D_TC_CHECK(dt::is_available<dj::codecs::store>());
@@ -71,7 +77,7 @@ tests_compress_roundtrip_store_reproduces_input()
     D_TC_CHECK(dt::facade_roundtrip_ok<dj::codecs::store>(in));
 
     // a NUL-bearing payload proves the path is length-carrying
-    const dj::byte_buffer nuls = dt::make_with_nuls(1500);
+    const dj::byte_blob nuls = dt::make_with_nuls(1500);
 
     D_TC_CHECK(dt::roundtrips<dj::codecs::store>(nuls));
     D_TC_CHECK(dt::roundtrip<dj::codecs::store>(nuls).restored == nuls);
@@ -94,7 +100,7 @@ tests_compress_roundtrip_unavailable_codec_contract
 bool
 tests_compress_roundtrip_unavailable_codec_contract()
 {
-    const dj::byte_buffer in = dt::make_text(256);
+    const dj::byte_blob in = dt::make_text(256);
     std::size_t           checked = 0;
 
     // walk the framed codecs; whichever are absent must obey the contract
@@ -161,7 +167,7 @@ tests_compress_roundtrip_empty_input
 bool
 tests_compress_roundtrip_empty_input()
 {
-    const dj::byte_buffer      empty;
+    const dj::byte_blob      empty;
     const dt::roundtrip_report r = dt::roundtrip<dj::codecs::store>(empty);
 
     D_TC_CHECK(r.input_size == 0u);
@@ -198,8 +204,8 @@ tests_compress_roundtrip_large_input
 bool
 tests_compress_roundtrip_large_input()
 {
-    const dj::byte_buffer prose   = dt::make_text(200000);
-    const dj::byte_buffer entropy = dt::make_incompressible(160000);
+    const dj::byte_blob prose   = dt::make_text(200000);
+    const dj::byte_blob entropy = dt::make_incompressible(160000);
 
     D_TC_CHECK(prose.size() > 65536u);
     D_TC_CHECK(entropy.size() > 65536u);
@@ -237,7 +243,7 @@ tests_compress_roundtrip_accepts_options
 bool
 tests_compress_roundtrip_accepts_options()
 {
-    const dj::byte_buffer    in = dt::make_text(2048);
+    const dj::byte_blob    in = dt::make_text(2048);
     dj::compress_options     fast;
     dj::compress_options     best;
 
@@ -294,7 +300,7 @@ tests_compress_roundtrips_is_strict
 bool
 tests_compress_roundtrips_is_strict()
 {
-    const dj::byte_buffer in = dt::make_text(512);
+    const dj::byte_blob in = dt::make_text(512);
 
     // the always-present codec is accepted by both
     D_TC_CHECK(dt::roundtrips<dj::codecs::store>(in));
@@ -339,7 +345,7 @@ tests_compress_facade_roundtrip_ok_is_build_agnostic
 bool
 tests_compress_facade_roundtrip_ok_is_build_agnostic()
 {
-    const dj::byte_buffer in = dt::make_text(3000);
+    const dj::byte_blob in = dt::make_text(3000);
 
     D_TC_CHECK(tc_facade_contract_holds<dj::codecs::store>(in, "store"));
     D_TC_CHECK(tc_facade_contract_holds<dj::codecs::deflate>(in, "deflate"));
@@ -370,7 +376,7 @@ tests_compress_facade_roundtrip_ok_over_corpus
 bool
 tests_compress_facade_roundtrip_ok_over_corpus()
 {
-    const std::vector<dj::byte_buffer> c = dt::standard_corpus();
+    const std::vector<dj::byte_blob> c = dt::standard_corpus();
     std::size_t                        i = 0;
 
     for (i = 0; i < c.size(); ++i)
@@ -413,10 +419,10 @@ tests_compress_roundtrip_never_throws_on_garbage
 bool
 tests_compress_roundtrip_never_throws_on_garbage()
 {
-    const dj::byte_buffer junk("this is not a compressed stream of any kind");
-    const dj::byte_buffer truncated_gzip =
+    const dj::byte_blob junk("this is not a compressed stream of any kind");
+    const dj::byte_blob truncated_gzip =
         tc_prefix(reinterpret_cast<const unsigned char*>("\x1F\x8B"), 2, 3);
-    dj::byte_buffer       out;
+    dj::byte_blob       out;
 
     // the low-level entry points return a status
     const dj::status s1 = dj::try_decompress<dj::codecs::gzip>(junk, out);

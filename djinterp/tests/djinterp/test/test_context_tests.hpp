@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       test_context_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                         test_context_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_context.hpp.  Each free
 * function exercises one facet of the DTest document layer's focus type and
@@ -36,10 +36,11 @@
 * focus type and its builders).
 *
 *
-* path:      /tests/djinterp/test/test_context/test_context_tests.hpp
+* path:      /tests/djinterp/test/test_context_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_CONTEXT_TESTS_
 #define DJINTERP_TEST_CONTEXT_TESTS_ 1
@@ -47,9 +48,10 @@
 // std
 #include <cstddef>
 #include <cstdio>
+// djinterp
 // djinterp  -- framework header first, then the header under test (which pulls
 // in test_report.hpp for the four focus-part node types).
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include <djinterp/test/test_context.hpp>
 #endif

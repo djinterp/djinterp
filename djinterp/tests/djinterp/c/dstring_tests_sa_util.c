@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                        dstring_tests_sa_util.c
+*
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_util.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./dstring_tests_sa.h"
 
 
@@ -1169,7 +1179,7 @@ d_tests_sa_dstring_hash
 d_tests_sa_dstring_util_all
   Runs all utility function tests for dstring module.
   Tests the following:
-  - validation functions (is_valid, is_ascii, is_numeric, is_alpha, 
+  - validation functions (is_valid, is_ascii, is_numeric, is_alpha,
     is_alnum, is_whitespace)
   - counting functions (count_char, count_substr)
   - hashing function (hash)

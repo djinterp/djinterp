@@ -1,14 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                 result_tests_combinators.cpp
+/*******************************************************************************
+* djinterp [test]                                   result_tests_combinators.cpp
 *
 * Combinator-factory / pipeline tests for result.hpp section IV:
 *   test_combinators -- or_value_with, map_err_with, unwrap_with, all driven
 *                       through operator| against a result.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/result_tests_combinators.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <string>
+// std
 #include <cstddef>
 #include <stdexcept>
+#include <string>
+// djinterp
 #include "./result_tests.hpp"
 
 

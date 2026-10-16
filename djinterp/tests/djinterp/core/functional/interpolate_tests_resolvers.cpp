@@ -1,12 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                   interpolate_tests_resolvers.cpp
+/*******************************************************************************
+* djinterp [test]                                interpolate_tests_resolvers.cpp
 *
 * Section III (leaf resolvers) -- empty_resolver (identity: everything misses),
 * map_resolver (linear {key,value} lookup; a miss is a real miss), and
 * lookup_resolver (adapt an always-hit callable, owning its produced value),
 * plus the bindings / lookup factories and the resolvers' value types.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_resolvers.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

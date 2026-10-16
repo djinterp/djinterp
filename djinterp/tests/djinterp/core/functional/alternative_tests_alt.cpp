@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    alternative_tests_alt.cpp
+/*******************************************************************************
+* djinterp [test]                                      alternative_tests_alt.cpp
 *
 *   Section II.2 of the alternative.hpp suite: alt, the associative choice
 * (Haskell's <|>) that delegates to the instance's choice().  Covers the basic
@@ -8,10 +8,12 @@
 * rvalue / mixed argument-forwarding paths, the result type identity, and a
 * non-int element type.
 *
+*
 * path:      /tests/djinterp/core/functional/alternative_tests_alt.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "alternative_tests.hpp"

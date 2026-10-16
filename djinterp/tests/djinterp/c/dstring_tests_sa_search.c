@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                      dstring_tests_sa_search.c
+*
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_search.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./dstring_tests_sa.h"
 
 
@@ -2466,7 +2476,7 @@ d_tests_sa_dstring_ends_with
     str    = d_string_new_from_cstr("hello world");
     suffix = d_string_new_from_cstr("world");
 
-    if ( (str) && 
+    if ( (str) &&
          (suffix) )
     {
         result = d_string_ends_with(str, suffix);
@@ -2490,7 +2500,7 @@ d_tests_sa_dstring_ends_with
     str    = d_string_new_from_cstr("hello world");
     suffix = d_string_new_from_cstr("hello");
 
-    if ( (str) && 
+    if ( (str) &&
          (suffix) )
     {
         result = d_string_ends_with(str, suffix);
@@ -2514,7 +2524,7 @@ d_tests_sa_dstring_ends_with
     str    = d_string_new_from_cstr("hello");
     suffix = d_string_new_from_cstr("hello");
 
-    if ( (str) && 
+    if ( (str) &&
          (suffix) )
     {
         result = d_string_ends_with(str, suffix);
@@ -2538,7 +2548,7 @@ d_tests_sa_dstring_ends_with
     str    = d_string_new_from_cstr("hello");
     suffix = d_string_new_from_cstr("");
 
-    if ( (str) && 
+    if ( (str) &&
          (suffix) )
     {
         result = d_string_ends_with(str, suffix);
@@ -2949,7 +2959,7 @@ d_tests_sa_dstring_pbrk
 d_tests_sa_dstring_search_all
   Runs all search function tests for dstring module.
   Tests the following:
-  - character search functions (find_char, find_char_from, rfind_char, 
+  - character search functions (find_char, find_char_from, rfind_char,
     chr, rchr, chrnul)
   - substring search functions (find, find_cstr, find_from, find_cstr_from,
     rfind, rfind_cstr, str)

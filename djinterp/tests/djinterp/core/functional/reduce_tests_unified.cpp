@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                       reduce_tests_unified.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/reduce_tests_unified.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  reduce_tests_unified.cpp
 //   IV. The step/driver split -- the header's thesis, put on trial: "the same
 //   reducer body serves all three domains; only the driver (loop vs. recursion)

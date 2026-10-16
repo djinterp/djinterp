@@ -1,4 +1,14 @@
-#include ".\dmemory_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                        dmemory_tests_sa_copy.c
+*
+*
+* path:      /tests/djinterp/c/dmemory_tests_sa_copy.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmemory_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +16,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dmemory_memcpy
+d_tests_sa_dmemory_memcpy
   Tests d_memcpy for basic memory copying.
   Tests the following:
   - copies data correctly
@@ -19,7 +29,7 @@ d_tests_dmemory_memcpy
   - copies binary data correctly
 */
 struct d_test_object*
-d_tests_dmemory_memcpy
+d_tests_sa_dmemory_memcpy
 (
     void
 )
@@ -68,7 +78,7 @@ d_tests_dmemory_memcpy
     {
         memset(dest, 0, sizeof(dest));
         d_memcpy(dest, src, i);
-        
+
         if (memcmp(dest, src, i) != 0)
         {
             test_various_sizes = false;
@@ -138,7 +148,7 @@ d_tests_dmemory_memcpy
 
 
 /*
-d_tests_dmemory_memcpy_s
+d_tests_sa_dmemory_memcpy_s
   Tests d_memcpy_s for secure memory copying.
   Tests the following:
   - copies data correctly with size check
@@ -153,7 +163,7 @@ d_tests_dmemory_memcpy_s
   - validates against RSIZE_MAX
 */
 struct d_test_object*
-d_tests_dmemory_memcpy_s
+d_tests_sa_dmemory_memcpy_s
 (
     void
 )
@@ -196,7 +206,7 @@ d_tests_dmemory_memcpy_s
     test_null_src = (result == EINVAL);
 
     // test 4: destination too small
-    result = d_memcpy_s(small_dest, sizeof(small_dest), src, 
+    result = d_memcpy_s(small_dest, sizeof(small_dest), src,
                         D_TESTS_MEMORY_MEDIUM_SIZE);
     test_dest_too_small = (result == ERANGE);
 
@@ -279,14 +289,14 @@ d_tests_dmemory_memcpy_s
 
 
 /*
-d_tests_dmemory_copy_all
+d_tests_sa_dmemory_copy_all
   Runs all memory copy tests.
   Tests the following:
   - d_memcpy
   - d_memcpy_s
 */
 struct d_test_object*
-d_tests_dmemory_copy_all
+d_tests_sa_dmemory_copy_all
 (
     void
 )
@@ -302,10 +312,8 @@ d_tests_dmemory_copy_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dmemory_memcpy();
-    group->elements[idx++] = d_tests_dmemory_memcpy_s();
+    group->elements[idx++] = d_tests_sa_dmemory_memcpy();
+    group->elements[idx++] = d_tests_sa_dmemory_memcpy_s();
 
     return group;
 }
-
-

@@ -1,13 +1,15 @@
-/******************************************************************************
-* djinterp [test]                                         dtime_tests_sa_null.c
+/*******************************************************************************
+* djinterp [test]                                          dtime_tests_sa_null.c
 *
 *   Comprehensive NULL parameter tests for all dtime functions.
 *
 *
-* path:      \src\test\dtime_tests_sa_null.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
+* path:      /tests/djinterp/c/dtime_tests_sa_null.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "dtime_tests_sa.h"
 
 
@@ -16,7 +18,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dtime_null_params_all
+d_tests_sa_dtime_null_params_all
   Comprehensive NULL parameter tests for all dtime functions.
   Tests the following:
   - d_localtime with NULL timer returns NULL
@@ -43,7 +45,7 @@ d_tests_dtime_null_params_all
   - d_timespec_is_valid with NULL returns 0
 */
 struct d_test_object*
-d_tests_dtime_null_params_all
+d_tests_sa_dtime_null_params_all
 (
     void
 )

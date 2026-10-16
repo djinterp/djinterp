@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [text]                                   html_template_concepts.hpp
+/*******************************************************************************
+* djinterp [core]                                     html_template_concepts.hpp
 *
 *   C++20 concepts for the HTML element / document / backend
 * protocols. These mirror the structural traits in
@@ -33,27 +33,36 @@
 *
 * path:      /inc/djinterp/core/text/html/html_template_concepts.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    HTML ELEMENT CONCEPTS
+      ---------------------
+
 II.   HTML DOCUMENT CONCEPTS
+      ----------------------
+
 III.  CAPABILITY CONCEPTS (CLASS / ID / DOCTYPE / DOM SHORTCUTS)
+      ----------------------------------------------------------
+
 IV.   COMPOSITE CONCEPTS
+      ------------------
+
 V.    HTML BACKEND CONCEPTS
+      ---------------------
 */
 
-#ifndef DJINTERP_HTML_TEMPLATE_CONCEPTS_
-#define DJINTERP_HTML_TEMPLATE_CONCEPTS_ 1
+#ifndef DJINTERP_TEXT_HTML_HTML_TEMPLATE_CONCEPTS_HPP
+#define DJINTERP_TEXT_HTML_HTML_TEMPLATE_CONCEPTS_HPP 1
 
 // djinterp
 #include "../../../djinterp.hpp"
 #include "./html.hpp"
 #include "./html_template_traits.hpp"
-#include "../xml/xml_template_concepts.hpp"
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
@@ -227,4 +236,4 @@ NS_END  // djinterp
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-#endif  // DJINTERP_HTML_TEMPLATE_CONCEPTS_
+#endif  // DJINTERP_TEXT_HTML_HTML_TEMPLATE_CONCEPTS_HPP

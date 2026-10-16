@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        option_diff_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                          option_diff_tests.hpp
 *
 *   Shared surface for the option_diff.hpp unit suite.  Declares the six
 * section block-providers - each defined in its own translation unit - and
@@ -44,8 +44,9 @@
 *
 * path:      /tests/djinterp/core/option/option_diff_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_OPTION_DIFF_TESTS_
 #define DJINTERP_OPTION_DIFF_TESTS_ 1
@@ -68,16 +69,22 @@ namespace djinterp
 #include <tuple>
 #include <type_traits>
 #include <vector>
-
+// djinterp
 // djinterp [test] - framework runner + report options surface
-#include "../../../../inc/djinterp/test/test_spec_runner.hpp"
 #include "../../../../inc/djinterp/test/test_options.hpp"
 // djinterp [option] - the header under test (extract_actual shim above)
+#ifdef DTEST_SPEC_MODE
+#include <djinterp/test/test_defaults.hpp>
+#endif  // DTEST_SPEC_MODE
+#ifndef DTEST_SPEC_MODE
 #include "../../../../inc/djinterp/core/option/option_diff.hpp"
+#endif  // !DTEST_SPEC_MODE
 
 
 NS_DJINTERP
 NS_TESTING
+
+#ifndef DTEST_SPEC_MODE   // fixtures: normal face only
 
 
 // ===========================================================================
@@ -278,6 +285,8 @@ struct test_option_map
 
 // ===========================================================================
 // section block-providers (one per translation unit)
+#endif  // !DTEST_SPEC_MODE
+
 // ===========================================================================
 //
 //   Each returns the section's block_spec; the runner assembles them into a
@@ -304,6 +313,33 @@ struct test_option_map
 
 // B.III  merge (option_merge, all modes)
 ::djinterp::test::block_spec option_diff_rt_merge_block();
+
+
+// ===========================================================================
+// SPEC PROVIDER   (spec face - the runner hands this to run_module)
+// ===========================================================================
+#ifdef DTEST_SPEC_MODE
+inline ::djinterp::test::module_spec
+option_diff_spec()
+{
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
+
+    dt::module_spec mod;
+    mod.name       = "option_diff.hpp";
+    mod.descriptor =
+        "compile-time + runtime key / value diff, diff summary, and merge";
+
+    mod.blocks.push_back(tt::option_diff_ct_keys_block());     // A.II (+ A.I)
+    mod.blocks.push_back(tt::option_diff_ct_values_block());   // A.III + A.IV
+    mod.blocks.push_back(tt::option_diff_ct_merge_block());    // A.V
+    mod.blocks.push_back(tt::option_diff_rt_keys_block());     // B.I
+    mod.blocks.push_back(tt::option_diff_rt_values_block());   // B.II
+    mod.blocks.push_back(tt::option_diff_rt_merge_block());    // B.III
+
+    return mod;
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

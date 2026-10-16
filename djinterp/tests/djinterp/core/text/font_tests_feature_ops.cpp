@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                     font_tests_feature_ops.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_feature_ops.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_feature_ops.cpp
 //   Section 9b: the gated free functions - decorations, casing, metric
 // overrides, the stretch/spacing axes, and foreground/background color.

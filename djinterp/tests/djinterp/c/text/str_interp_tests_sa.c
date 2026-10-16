@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [text]                                          str_interp_tests_sa.c
+*
+*
+* path:      /tests/djinterp/c/text/str_interp_tests_sa.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./str_interp_tests_sa.h"
 
 

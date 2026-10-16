@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   alternative_tests_asum.cpp
+/*******************************************************************************
+* djinterp [test]                                     alternative_tests_asum.cpp
 *
 *   Section II.3 of the alternative.hpp suite: asum, which folds a Foldable of
 * alternatives with alt from aempty ("take the first that succeeds").  Covers
@@ -9,10 +9,12 @@
 * intersection -- the same over the bag<T> Foldable fixture (a Foldable other
 * than the std::vector instance) plus the element-type deduction it relies on.
 *
+*
 * path:      /tests/djinterp/core/functional/alternative_tests_asum.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "alternative_tests.hpp"

@@ -111,7 +111,7 @@ test_helper_counter_module_failing
 
 /*
 d_tests_sa_tsa_runner_init
-  Tests d_test_sa_runner_init function.
+  Tests d_test_standalone_runner_init function.
   Tests the following:
   - initializes suite_name correctly
   - initializes suite_description correctly
@@ -129,7 +129,7 @@ d_tests_sa_tsa_runner_init
 )
 {
     struct d_test_object*    group;
-    struct d_test_sa_runner  runner;
+    struct d_test_standalone_runner  runner;
     bool                     test_name;
     bool                     test_description;
     bool                     test_module_count;
@@ -141,7 +141,7 @@ d_tests_sa_tsa_runner_init
     size_t                   idx;
 
     // test initialization
-    d_test_sa_runner_init(&runner, "Test Suite", "Test Description");
+    d_test_standalone_runner_init(&runner, "Test Suite", "Test Description");
 
     test_name         = (runner.suite_name != NULL) &&
                         (strcmp(runner.suite_name,
@@ -164,15 +164,15 @@ d_tests_sa_tsa_runner_init
     test_failures_init = (runner.failures.count == 0);
 
     // test NULL safety
-    d_test_sa_runner_init(NULL, "Suite", "Desc");
+    d_test_standalone_runner_init(NULL, "Suite", "Desc");
     test_null_safe = true;
 
     // build result tree
-    group = d_test_object_new_interior("d_test_sa_runner_init", 8);
+    group = d_test_object_new_interior("d_test_standalone_runner_init", 8);
 
     if (!group)
     {
-        d_test_sa_failure_list_free(&runner.failures);
+        d_test_standalone_failure_list_free(&runner.failures);
 
         return NULL;
     }
@@ -212,7 +212,7 @@ d_tests_sa_tsa_runner_init
         "handles NULL runner safely");
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return group;
 }
@@ -223,7 +223,7 @@ d_tests_sa_tsa_runner_init
 
 /*
 d_tests_sa_tsa_runner_set_options
-  Tests d_test_sa_runner_set_options function.
+  Tests d_test_standalone_runner_set_options function.
   Tests the following:
   - copies options to runner
   - handles NULL runner safely
@@ -236,41 +236,41 @@ d_tests_sa_tsa_runner_set_options
 )
 {
     struct d_test_object*      group;
-    struct d_test_sa_runner    runner;
-    struct d_test_sa_options   opts;
+    struct d_test_standalone_runner    runner;
+    struct d_test_standalone_options   opts;
     bool                       test_copies_options;
     bool                       test_null_runner;
     bool                       test_null_options;
     size_t                     idx;
 
     // initialize runner and set custom options
-    d_test_sa_runner_init(&runner, "Suite", "Desc");
+    d_test_standalone_runner_init(&runner, "Suite", "Desc");
 
-    d_test_sa_options_init(&opts);
+    d_test_standalone_options_init(&opts);
     opts.number_assertions = true;
     opts.list_failures     = true;
     opts.show_info         = false;
 
-    d_test_sa_runner_set_options(&runner, &opts);
+    d_test_standalone_runner_set_options(&runner, &opts);
 
     test_copies_options = (runner.options.number_assertions == true) &&
                           (runner.options.list_failures == true)     &&
                           (runner.options.show_info == false);
 
     // test NULL safety
-    d_test_sa_runner_set_options(NULL, &opts);
+    d_test_standalone_runner_set_options(NULL, &opts);
     test_null_runner = true;
 
-    d_test_sa_runner_set_options(&runner, NULL);
+    d_test_standalone_runner_set_options(&runner, NULL);
     test_null_options = true;
 
     // build result tree
     group = d_test_object_new_interior(
-                "d_test_sa_runner_set_options", 3);
+                "d_test_standalone_runner_set_options", 3);
 
     if (!group)
     {
-        d_test_sa_failure_list_free(&runner.failures);
+        d_test_standalone_failure_list_free(&runner.failures);
 
         return NULL;
     }
@@ -290,7 +290,7 @@ d_tests_sa_tsa_runner_set_options
         "handles NULL options safely");
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return group;
 }
@@ -301,7 +301,7 @@ d_tests_sa_tsa_runner_set_options
 
 /*
 d_tests_sa_tsa_runner_add_module
-  Tests d_test_sa_runner_add_module function.
+  Tests d_test_standalone_runner_add_module function.
   Tests the following:
   - adds module with tree-based function
   - increments module_count
@@ -318,7 +318,7 @@ d_tests_sa_tsa_runner_add_module
 )
 {
     struct d_test_object*    group;
-    struct d_test_sa_runner  runner;
+    struct d_test_standalone_runner  runner;
     bool                     test_adds_module;
     bool                     test_increments_count;
     bool                     test_stores_name;
@@ -329,10 +329,10 @@ d_tests_sa_tsa_runner_add_module
     size_t                   idx;
 
     // initialize runner
-    d_test_sa_runner_init(&runner, "Suite", "Desc");
+    d_test_standalone_runner_init(&runner, "Suite", "Desc");
 
     // test adding module
-    d_test_sa_runner_add_module(&runner,
+    d_test_standalone_runner_add_module(&runner,
                                 "module1",
                                 "Module Description",
                                 test_helper_simple_module,
@@ -351,7 +351,7 @@ d_tests_sa_tsa_runner_add_module
                              test_helper_simple_module);
 
     // test NULL runner
-    d_test_sa_runner_add_module(NULL,
+    d_test_standalone_runner_add_module(NULL,
                                 "module",
                                 "desc",
                                 test_helper_simple_module,
@@ -360,17 +360,17 @@ d_tests_sa_tsa_runner_add_module
     test_null_runner = true;
 
     // test NULL function
-    d_test_sa_runner_add_module(&runner, "module", "desc",
+    d_test_standalone_runner_add_module(&runner, "module", "desc",
                                 NULL, 0, NULL);
     test_null_fn = (runner.module_count == 1);
 
     // build result tree
     group = d_test_object_new_interior(
-                "d_test_sa_runner_add_module", 7);
+                "d_test_standalone_runner_add_module", 7);
 
     if (!group)
     {
-        d_test_sa_failure_list_free(&runner.failures);
+        d_test_standalone_failure_list_free(&runner.failures);
 
         return NULL;
     }
@@ -406,7 +406,7 @@ d_tests_sa_tsa_runner_add_module
         "handles NULL function safely");
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return group;
 }
@@ -417,7 +417,7 @@ d_tests_sa_tsa_runner_add_module
 
 /*
 d_tests_sa_tsa_runner_add_module_counter
-  Tests d_test_sa_runner_add_module_counter function.
+  Tests d_test_standalone_runner_add_module_counter function.
   Tests the following:
   - adds module with counter-based function
   - increments module_count
@@ -432,7 +432,7 @@ d_tests_sa_tsa_runner_add_module_counter
 )
 {
     struct d_test_object*    group;
-    struct d_test_sa_runner  runner;
+    struct d_test_standalone_runner  runner;
     bool                     test_adds_module;
     bool                     test_increments_count;
     bool                     test_stores_counter_fn;
@@ -441,10 +441,10 @@ d_tests_sa_tsa_runner_add_module_counter
     size_t                   idx;
 
     // initialize runner
-    d_test_sa_runner_init(&runner, "Suite", "Desc");
+    d_test_standalone_runner_init(&runner, "Suite", "Desc");
 
     // test adding counter module
-    d_test_sa_runner_add_module_counter(
+    d_test_standalone_runner_add_module_counter(
         &runner,
         "counter_module",
         "Counter Module Description",
@@ -459,7 +459,7 @@ d_tests_sa_tsa_runner_add_module_counter
     test_run_fn_null       = (runner.modules[0].run_fn == NULL);
 
     // test NULL runner
-    d_test_sa_runner_add_module_counter(
+    d_test_standalone_runner_add_module_counter(
         NULL,
         "module",
         "desc",
@@ -470,11 +470,11 @@ d_tests_sa_tsa_runner_add_module_counter
 
     // build result tree
     group = d_test_object_new_interior(
-                "d_test_sa_runner_add_module_counter", 5);
+                "d_test_standalone_runner_add_module_counter", 5);
 
     if (!group)
     {
-        d_test_sa_failure_list_free(&runner.failures);
+        d_test_standalone_failure_list_free(&runner.failures);
 
         return NULL;
     }
@@ -502,7 +502,7 @@ d_tests_sa_tsa_runner_add_module_counter
         "handles NULL runner safely");
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return group;
 }
@@ -513,7 +513,7 @@ d_tests_sa_tsa_runner_add_module_counter
 
 /*
 d_tests_sa_tsa_runner_settings
-  Tests d_test_sa_runner_set_* functions.
+  Tests d_test_standalone_runner_set_* functions.
   Tests the following:
   - set_wait_for_input changes value
   - set_show_notes changes value
@@ -527,7 +527,7 @@ d_tests_sa_tsa_runner_settings
 )
 {
     struct d_test_object*    group;
-    struct d_test_sa_runner  runner;
+    struct d_test_standalone_runner  runner;
     bool                     test_set_wait_false;
     bool                     test_set_wait_true;
     bool                     test_set_notes_false;
@@ -536,25 +536,25 @@ d_tests_sa_tsa_runner_settings
     size_t                   idx;
 
     // initialize runner
-    d_test_sa_runner_init(&runner, "Suite", "Desc");
+    d_test_standalone_runner_init(&runner, "Suite", "Desc");
 
     // test set_wait_for_input
-    d_test_sa_runner_set_wait_for_input(&runner, false);
+    d_test_standalone_runner_set_wait_for_input(&runner, false);
     test_set_wait_false = (runner.wait_for_input == false);
 
-    d_test_sa_runner_set_wait_for_input(&runner, true);
+    d_test_standalone_runner_set_wait_for_input(&runner, true);
     test_set_wait_true = (runner.wait_for_input == true);
 
     // test set_show_notes
-    d_test_sa_runner_set_show_notes(&runner, false);
+    d_test_standalone_runner_set_show_notes(&runner, false);
     test_set_notes_false = (runner.show_notes == false);
 
-    d_test_sa_runner_set_show_notes(&runner, true);
+    d_test_standalone_runner_set_show_notes(&runner, true);
     test_set_notes_true = (runner.show_notes == true);
 
     // test NULL safety
-    d_test_sa_runner_set_wait_for_input(NULL, false);
-    d_test_sa_runner_set_show_notes(NULL, false);
+    d_test_standalone_runner_set_wait_for_input(NULL, false);
+    d_test_standalone_runner_set_show_notes(NULL, false);
     test_null_safe = true;
 
     // build result tree
@@ -562,7 +562,7 @@ d_tests_sa_tsa_runner_settings
 
     if (!group)
     {
-        d_test_sa_failure_list_free(&runner.failures);
+        d_test_standalone_failure_list_free(&runner.failures);
 
         return NULL;
     }
@@ -590,7 +590,7 @@ d_tests_sa_tsa_runner_settings
         "handles NULL runner safely");
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return group;
 }
@@ -601,7 +601,7 @@ d_tests_sa_tsa_runner_settings
 
 /*
 d_tests_sa_tsa_runner_cleanup
-  Tests d_test_sa_runner_cleanup function.
+  Tests d_test_standalone_runner_cleanup function.
   Tests the following:
   - handles NULL runner safely
   - cleanup after init does not crash
@@ -615,19 +615,19 @@ d_tests_sa_tsa_runner_cleanup
 )
 {
     struct d_test_object*    group;
-    struct d_test_sa_runner  runner;
+    struct d_test_standalone_runner  runner;
     bool                     test_null_safe;
     bool                     test_init_cleanup;
     bool                     test_modules_null;
     size_t                   idx;
 
     // test NULL safety
-    d_test_sa_runner_cleanup(NULL);
+    d_test_standalone_runner_cleanup(NULL);
     test_null_safe = true;
 
     // test cleanup after init
-    d_test_sa_runner_init(&runner, "Suite", "Desc");
-    d_test_sa_runner_cleanup(&runner);
+    d_test_standalone_runner_init(&runner, "Suite", "Desc");
+    d_test_standalone_runner_cleanup(&runner);
     test_init_cleanup = true;
 
     // verify results.modules is NULL
@@ -635,7 +635,7 @@ d_tests_sa_tsa_runner_cleanup
 
     // build result tree
     group = d_test_object_new_interior(
-                "d_test_sa_runner_cleanup", 3);
+                "d_test_standalone_runner_cleanup", 3);
 
     if (!group)
     {
@@ -667,12 +667,12 @@ d_tests_sa_tsa_runner_cleanup
 d_tests_sa_tsa_runner_all
   Runs all runner tests.
   Tests the following:
-  - d_test_sa_runner_init
-  - d_test_sa_runner_set_options
-  - d_test_sa_runner_add_module
-  - d_test_sa_runner_add_module_counter
+  - d_test_standalone_runner_init
+  - d_test_standalone_runner_set_options
+  - d_test_standalone_runner_add_module
+  - d_test_standalone_runner_add_module_counter
   - runner settings
-  - d_test_sa_runner_cleanup
+  - d_test_standalone_runner_cleanup
 */
 struct d_test_object*
 d_tests_sa_tsa_runner_all

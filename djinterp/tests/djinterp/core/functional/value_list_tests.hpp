@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                         value_list_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                           value_list_tests.hpp
 *
 *   Unit-test declarations for core/meta/value_list.hpp -- the NTTP sequence, the
 * value-domain counterpart of dtuple's std::tuple type sequence.  One declaration
@@ -40,21 +40,36 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/meta/value_list_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/value_list_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.12
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.12
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    FIXTURES  (carrier-callable leaves, look-alikes, an enum for heterogeneity)
+      ---------------------------------------------------------------------------
+
 I.    THE SEQUENCE     (value_list, size)
+      -----------------------------------
+
 II.   DETECTION        (is_value_list, ValueList)
+      -------------------------------------------
+
 III.  SIZE + ACCESS    (value_list_size, value_list_at, at)
+      -----------------------------------------------------
+
 IV.   GROWTH           (append, prepend, concat)
+      ------------------------------------------
+
 V.    TRANSFORMATION   (transform)
+      ----------------------------
+
 VI.   REDUCTION        (fold)
+      -----------------------
 */
 
 
@@ -65,8 +80,9 @@ VI.   REDUCTION        (fold)
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
+// djinterp
 // djinterp (module under test)
-#include "../../core/meta/value_list.hpp"
+#include "../../../../inc/djinterp/core/meta/value_list.hpp"
 
 
 NS_DJINTERP

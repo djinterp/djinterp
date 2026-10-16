@@ -1,14 +1,18 @@
-/******************************************************************************
-* djinterp [test]                          test_session_tests_sa_execution.c
+/*******************************************************************************
+* djinterp [test]                              test_session_tests_sa_execution.c
 *
 *   Unit tests for test_session.h execution functions.
 *
-* path:      \test\test\test_session_tests_sa_execution.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/test/test_session_tests_sa_execution.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "./test_session_tests_sa.h"
+// djinterp
+#include "test_session_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 //=============================================================================

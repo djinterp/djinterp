@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                         test_common_tests_sa.h
 *
 *   Unit test declarations for `test_common.h` module.
@@ -13,20 +13,23 @@
 * are reported by the standalone runner.
 *
 *
-* path:      \tests\test\test_common_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.03
-******************************************************************************/
+* path:      /tests/djinterp/c/test/test_common_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_TESTS_TEST_COMMON_SA_
-#define DJINTERP_TESTS_TEST_COMMON_SA_ 1
+#ifndef DJINTERP_TEST_C_TEST_COMMON_TESTS_SA_
+#define DJINTERP_TEST_C_TEST_COMMON_TESTS_SA_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../../../inc/c/string_fn.h"
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/test/test_common.h"
+// djinterp
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/test/test_common.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /******************************************************************************
@@ -141,4 +144,4 @@ bool                  d_tests_sa_test_common_run_all(struct d_test_counter* _cou
 struct d_test_object* d_tests_sa_test_common_run_all_tree(void);
 
 
-#endif  // DJINTERP_TESTS_TEST_COMMON_SA_
+#endif  // DJINTERP_TEST_C_TEST_COMMON_TESTS_SA_

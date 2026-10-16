@@ -1,12 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                       interpolate_tests_brace.cpp
+/*******************************************************************************
+* djinterp [test]                                    interpolate_tests_brace.cpp
 *
 * Section II.i -- brace_scanner: the `{key}` syntax.  Exercises the full edge
 * surface: plain literals, single / trimmed / interleaved / adjacent keys, the
 * {{ and }} escapes, an unmatched '{' and a lone '}' kept literal, the empty
 * and whitespace-only key, an empty source, and a compile-time scan.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_brace.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

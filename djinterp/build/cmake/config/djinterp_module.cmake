@@ -233,16 +233,40 @@ function(djinterp_add_test_executable _target)
         "SOURCES;DEFINES;LIBRARIES;INCLUDES"
         ${ARGN})
 
+    #   D_TESTING marks the test build.  D_TEST_OUTPUT_DIR hands the target's
+    # own output directory to the sources as a string literal, so a runner that
+    # wants an ABSOLUTE report path can set
+    #       opts.set<test_option::output_file>(D_TEST_OUTPUT_DIR "/suite.pdf");
+    # and be independent of the working directory entirely.  Runners that leave
+    # output_file empty need nothing: the working-directory property below
+    # already lands their reports in the same place.
     djinterp_add_executable(${_target}
         SOURCES   ${_arg_SOURCES}
-        DEFINES   D_TESTING=1 ${_arg_DEFINES}
+        DEFINES   D_TESTING=1
+                  "D_TEST_OUTPUT_DIR=\"$<TARGET_FILE_DIR:${_target}>\""
+                  ${_arg_DEFINES}
         INCLUDES  ${_arg_INCLUDES}
         LIBRARIES ${_arg_LIBRARIES})
 
+    # ---- runtime working directory -----------------------------------------
+    #   The suites emit their reports through test_option::output_file, which
+    # defaults to empty - so an unqualified report name is written relative to
+    # the PROCESS's working directory.  Left unset, that is wherever the runner
+    # happened to be launched from (the build dir under ctest, the project dir
+    # under F5), and reports scatter accordingly.
+    #   Pinning it to the target's own output directory puts every report beside
+    # the exe that produced it, under bin/<arch>-<Config>/<rel>/.  Set for both
+    # launch paths: WORKING_DIRECTORY for ctest, VS_DEBUGGER_WORKING_DIRECTORY
+    # for F5 / Debug in the IDE.  $<TARGET_FILE_DIR:...> resolves per-config, so
+    # Debug and Release reports never land in the same folder.
+    set_target_properties(${_target} PROPERTIES
+        VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${_target}>")
+
     # CTest registration: enables `ctest -R <target>` from the build dir
     if (BUILD_TESTING)
-        add_test(NAME    ${_target}
-                 COMMAND ${_target})
+        add_test(NAME              ${_target}
+                 COMMAND           ${_target}
+                 WORKING_DIRECTORY "$<TARGET_FILE_DIR:${_target}>")
     endif()
 
     # Register in the global aggregate registry.  Stored as parallel lists

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                 test_object_tests_metadata.cpp
+*
+*
+* path:      /tests/djinterp/test/test_object_tests_metadata.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstddef>
 #include <string>

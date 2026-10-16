@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        applicative_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                          applicative_tests.hpp
 *
 *   Declarations and shared fixtures for the applicative.hpp unit suite.  The
 * individual tests_* predicates and their block-providers are defined per
@@ -45,8 +45,9 @@
 *
 * path:      /tests/djinterp/core/functional/applicative_tests.hpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_APPLICATIVE_TESTS_
 #define DJINTERP_FUNCTIONAL_APPLICATIVE_TESTS_ 1
@@ -57,6 +58,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+// djinterp
 // djinterp -- the header under test (which pulls in monad.hpp + functor.hpp),
 //   plus the DTest authoring + runner surface.  NOTE: these two include paths
 //   are rooted at the djinterp include directory (e.g. -I.../inc); adjust them

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                            event_handler_tests_invocation.cpp
+/*******************************************************************************
+* djinterp [test]                             event_handler_tests_invocation.cpp
 *
 *   Section II -- VERDICT NORMALIZATION + tuple-apply.  Covers the internal
 * invocation helpers: invoke_normalized (a void-returning handler is run and
@@ -10,10 +10,11 @@
 * checked to confirm they reach the handler in order.
 *
 *
-* path:      /tests/djinterp/core/event/event_handler/event_handler_tests_invocation.cpp
+* path:      /tests/djinterp/core/event/event_handler_tests_invocation.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_handler_tests.hpp"

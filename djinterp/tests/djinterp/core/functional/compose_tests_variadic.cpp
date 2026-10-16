@@ -1,13 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                 compose_tests_variadic.cpp
+/*******************************************************************************
+* djinterp [test]                                     compose_tests_variadic.cpp
 *
 *   Tests for compose.hpp Section III: variadic compose_all (right-to-
 * left) and pipe_all (left-to-right).  Covers the single-function base
 * case, two- and three-function chains, the documented application
 * orders, equivalence with the binary primitives, type-changing chains,
 * and constexpr foldability.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/compose_tests_variadic.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "compose_tests.hpp"
 
 

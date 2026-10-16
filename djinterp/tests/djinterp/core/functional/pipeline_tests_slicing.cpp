@@ -1,14 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                   pipeline_tests_slicing.cpp
+/*******************************************************************************
+* djinterp [test]                                     pipeline_tests_slicing.cpp
 *
 * Slicing / reordering tests (section ii, part 2):
 *   test_take    -- take, take_last, take_while (incl. edge counts).
 *   test_skip    -- skip, skip_while (incl. edge counts).
 *   test_slice   -- slice(start, end, step), including the step == 0 error.
 *   test_reorder -- reversed, sorted(cmp), sorted() default.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/pipeline_tests_slicing.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <vector>
+// djinterp
 #include "./pipeline_tests.hpp"
 
 

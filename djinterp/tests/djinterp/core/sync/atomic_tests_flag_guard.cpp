@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 atomic_tests_flag_guard.cpp
+/*******************************************************************************
+* djinterp [test]                                    atomic_tests_flag_guard.cpp
 *
 *   Section III - atomic_flag_guard.  The RAII guard test-and-sets a
 * std::atomic_flag on construction and clears it on destruction, reporting via
@@ -13,13 +13,13 @@
 *
 * path:      /tests/djinterp/core/sync/atomic_tests_flag_guard.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <atomic>
 #include <cstdio>
-
 // djinterp
 #include "atomic_tests.hpp"
 

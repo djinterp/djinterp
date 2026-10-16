@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                         bifunctor_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                            bifunctor_tests.hpp
 *
 *   Declarations and shared fixtures for the bifunctor.hpp unit suite.  The
 * individual tests_* predicates and their block-providers are defined per
@@ -42,8 +42,9 @@
 *
 * path:      /tests/djinterp/core/functional/bifunctor_tests.hpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_BIFUNCTOR_TESTS_
 #define DJINTERP_FUNCTIONAL_BIFUNCTOR_TESTS_ 1
@@ -53,6 +54,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+// djinterp
 // djinterp -- the header under test (which pulls in meta/kv_pair.hpp), plus the
 //   DTest authoring + runner surface.  NOTE: these two include paths are rooted
 //   at the djinterp include directory (e.g. -I.../inc); adjust them to match

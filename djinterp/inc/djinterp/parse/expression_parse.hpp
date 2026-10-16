@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [expression]                                      expression_parse.hpp
+/*******************************************************************************
+* djinterp [parse]                                          expression_parse.hpp
 *
 *   The inverse of the renderer: text (already lexed into tokens) into an
 * expression term, with operator precedence resolved from the very same
@@ -42,11 +42,12 @@
 *
 * path:      /inc/djinterp/parse/expression_parse.hpp
 * link(s):   ch-parsing.tex, ch-synthesis.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_EXPRESSION_EXPRESSION_PARSE_
-#define DJINTERP_EXPRESSION_EXPRESSION_PARSE_ 1
+#ifndef DJINTERP_PARSE_EXPRESSION_PARSE_HPP
+#define DJINTERP_PARSE_EXPRESSION_PARSE_HPP 1
 
 // std
 #include <cstddef>
@@ -54,8 +55,8 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "./expression.hpp"
-#include "../functional/maybe.hpp"
+#include "../math/expression.hpp"
+#include "../core/functional/maybe.hpp"
 #include "../parse/parser/parser.hpp"
 
 
@@ -448,4 +449,4 @@ parse_expression
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_EXPRESSION_EXPRESSION_PARSE_
+#endif  // DJINTERP_PARSE_EXPRESSION_PARSE_HPP

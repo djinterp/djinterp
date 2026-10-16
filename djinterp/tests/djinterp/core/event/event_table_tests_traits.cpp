@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  event_table_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                   event_table_tests_traits.cpp
 *
 *   Sections IV + V (structural detection) -- the fifteen internal detection
 * traits and the event_table_traits facade built on them.  For every trait the
@@ -15,10 +15,11 @@
 * spelling, confirming clean_t is applied.
 *
 *
-* path:      /tests/djinterp/core/event/event_table/event_table_tests_traits.cpp
+* path:      /tests/djinterp/core/event/event_table_tests_traits.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_table_tests.hpp"

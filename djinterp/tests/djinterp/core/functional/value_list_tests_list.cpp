@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                      value_list_tests_list.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/value_list_tests_list.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  value_list_tests_list.cpp
 //   Section I -- value_list<auto...>: the NTTP sequence and its size().
 

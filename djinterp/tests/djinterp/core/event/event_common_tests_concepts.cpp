@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               event_common_tests_concepts.cpp
+/*******************************************************************************
+* djinterp [test]                                event_common_tests_concepts.cpp
 *
 *   Section VI -- CONCEPT CONSTRAINTS (C++20+).  Covers the concept layer that
 * classifies event tags: is_event, event_type / non_event_type, the
@@ -16,10 +16,11 @@
 * portable across C++11..C++23.
 *
 *
-* path:      /tests/djinterp/core/event/event_common/event_common_tests_concepts.cpp
+* path:      /tests/djinterp/core/event/event_common_tests_concepts.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_common_tests.hpp"

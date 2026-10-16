@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                             array_common_tests_sa_init.c
+/*******************************************************************************
+* djinterp [container]                              array_common_tests_sa_init.c
 *
 *   Unit tests for `array_common.h` initialization functions.
 *   Part of the array_common standalone test suite.
@@ -25,12 +25,15 @@
 *   - d_index negative indexing support where applicable
 *
 *
-* path:      \test\container\array\array_common_tests_sa_init.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.10.25
-******************************************************************************/
+* path:      /tests/djinterp/c/container/array/array_common_tests_sa_init.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./array_common_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                 test_object_tests_mutation.cpp
+*
+*
+* path:      /tests/djinterp/test/test_object_tests_mutation.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstdint>
 #include <type_traits>
@@ -147,34 +156,39 @@ tests_object_set_status
   Verifies set_status().
   Tests the following:
   - the status is replaced by the supplied code
-  - the raw result is left untouched (unlike skip(), which clears it)
+  - the verdict follows the new status, because ruling 13 derives it; before
+    that ruling a stored verdict survived the change untouched
   - every one of the five status codes can be set
+  - result() is true for exactly one of the five, status_passed
 */
 bool
 tests_object_set_status()
 {
     bool ok = true;
 
-    // result is preserved across a status change
-    basic_test t(1, true);          // result true, status passed
+    // the verdict follows the status rather than surviving it
+    basic_test t(1, true);          // status passed, so result() is true
     t.set_status(basic_test::status_error);
     ok = D_TO_CHECK(t.status() == basic_test::status_error) && ok;
-    ok = D_TO_CHECK(t.result() == true) && ok;   // result untouched
+    ok = D_TO_CHECK(t.result() == false) && ok;
 
-    // each code can be set
+    // each code can be set, and the verdict tracks each one
     basic_test s;
     s.set_status(basic_test::status_passed);
     ok = D_TO_CHECK(s.status() == basic_test::status_passed)  && ok;
+    ok = D_TO_CHECK(s.result() == true)                       && ok;
     s.set_status(basic_test::status_failed);
     ok = D_TO_CHECK(s.status() == basic_test::status_failed)  && ok;
+    ok = D_TO_CHECK(s.result() == false)                      && ok;
     s.set_status(basic_test::status_skipped);
     ok = D_TO_CHECK(s.status() == basic_test::status_skipped) && ok;
+    ok = D_TO_CHECK(s.result() == false)                      && ok;
     s.set_status(basic_test::status_pending);
     ok = D_TO_CHECK(s.status() == basic_test::status_pending) && ok;
+    ok = D_TO_CHECK(s.result() == false)                      && ok;
     s.set_status(basic_test::status_error);
     ok = D_TO_CHECK(s.status() == basic_test::status_error)   && ok;
-    // result never changed throughout (default false)
-    ok = D_TO_CHECK(s.result() == false) && ok;
+    ok = D_TO_CHECK(s.result() == false)                      && ok;
 
     return ok;
 }

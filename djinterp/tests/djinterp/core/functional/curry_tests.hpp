@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                        curry_tests.hpp
+/*******************************************************************************
+* djinterp [functional]                                          curry_tests.hpp
 *
 *   DTest declarations and shared fixtures for the curry.hpp unit-test
 * suite.  Declares one section function per like-group semantic section of
@@ -16,17 +16,24 @@
 * like every other DTest module.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    SHARED HELPER CALLABLES
-* II.   SECTION FUNCTION DECLARATIONS
-* III.  MODULE ENTRY POINTS
-*
-*
 * path:      /tests/djinterp/core/functional/curry_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.31
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    SHARED HELPER CALLABLES
+      -----------------------
+
+II.   SECTION FUNCTION DECLARATIONS
+      -----------------------------
+
+III.  MODULE ENTRY POINTS
+      -------------------
+*/
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_CURRY_
 #define DJINTERP_TESTING_FUNCTIONAL_CURRY_ 1
@@ -35,11 +42,11 @@
 #include <cstddef>
 #include <string>
 // djinterp
-#include "../core/functional/curry.hpp"
-#include "./test_common.hpp"
-#include "./test_handler.hpp"
-#include "./test_defaults.hpp"
-#include "./test_runner.hpp"
+#include "../../../../inc/djinterp/core/functional/curry.hpp"
+#include "../../../../inc/djinterp/test/test_common.hpp"
+#include "../../../../inc/djinterp/test/test_handler.hpp"
+#include "../../../../inc/djinterp/test/test_defaults.hpp"
+#include "../../../../inc/djinterp/test/test_runner.hpp"
 
 
 NS_DJINTERP

@@ -1,13 +1,15 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                       dtime_tests_sa_strtime.c
 *
 *   Tests for string parsing and formatting functions (strptime, strftime_s).
 *
 *
-* path:      \src\test\dtime_tests_sa_strtime.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
+* path:      /tests/djinterp/c/dtime_tests_sa_strtime.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "dtime_tests_sa.h"
 
 
@@ -16,7 +18,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dtime_strptime
+d_tests_sa_dtime_strptime
   Tests d_strptime for parsing time strings according to format.
   Tests the following:
   - parses date in Y-m-d format
@@ -31,7 +33,7 @@ d_tests_dtime_strptime
   - parses weekday names correctly
 */
 struct d_test_object*
-d_tests_dtime_strptime
+d_tests_sa_dtime_strptime
 (
     void
 )
@@ -103,7 +105,7 @@ d_tests_dtime_strptime
     ret_ptr = d_strptime("not-a-date", "%Y-%m-%d", &result);
     // strptime behavior varies: may return NULL or return early
     // we accept NULL or a pointer that indicates parse failure
-    test_mismatch = (ret_ptr == NULL) || 
+    test_mismatch = (ret_ptr == NULL) ||
                     (result.tm_year == 0 && result.tm_mon == 0 && result.tm_mday == 0);
 
     // test 6: NULL string parameter
@@ -185,7 +187,7 @@ d_tests_dtime_strptime
 
 
 /*
-d_tests_dtime_strftime_s
+d_tests_sa_dtime_strftime_s
   Tests d_strftime_s for safe string formatting of time.
   Tests the following:
   - formats date correctly
@@ -202,7 +204,7 @@ d_tests_dtime_strftime_s
   - handles maximum buffer size edge case
 */
 struct d_test_object*
-d_tests_dtime_strftime_s
+d_tests_sa_dtime_strftime_s
 (
     void
 )
@@ -251,7 +253,7 @@ d_tests_dtime_strftime_s
     // test 3: format combined datetime correctly
     memset(buf, 0, sizeof(buf));
     result = d_strftime_s(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm_test);
-    test_format_datetime = (result > 0) && 
+    test_format_datetime = (result > 0) &&
                            (strcmp(buf, "2023-06-15 14:30:45") == 0);
 
     // test 4: returns number of characters written (excluding null)
@@ -356,14 +358,14 @@ d_tests_dtime_strftime_s
 
 
 /*
-d_tests_dtime_string_parsing_formatting_all
+d_tests_sa_dtime_string_parsing_formatting_all
   Runs all string parsing and formatting tests.
   Tests the following:
   - d_strptime
   - d_strftime_s
 */
 struct d_test_object*
-d_tests_dtime_string_parsing_formatting_all
+d_tests_sa_dtime_string_parsing_formatting_all
 (
     void
 )
@@ -379,8 +381,8 @@ d_tests_dtime_string_parsing_formatting_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dtime_strptime();
-    group->elements[idx++] = d_tests_dtime_strftime_s();
+    group->elements[idx++] = d_tests_sa_dtime_strptime();
+    group->elements[idx++] = d_tests_sa_dtime_strftime_s();
 
     return group;
 }

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     array_filter_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                        array_filter_tests_sa.h
 *
 *   Unit test declarations for the `contiguous_filter.h` module.
 *   Provides comprehensive testing of all contiguous_filter functions including
@@ -12,22 +12,26 @@
 * corresponding .c source file containing the function definitions.
 *
 *
-* path:      \tests\container\array_filter_tests_sa.h
+* path:      /tests/djinterp/c/container/array/array_filter_tests_sa.h
+* link(s):   TBA
 * links(s):  TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.20
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CONTIGUOUS_FILTER_SA_
 #define DJINTERP_TESTS_CONTIGUOUS_FILTER_SA_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "..\..\..\..\inc\c\djinterp.h"
-#include "..\..\..\..\inc\c\dmemory.h"
-#include "..\..\..\..\inc\c\string_fn.h"
-#include "..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\inc\c\container\array\array_filter.h"
+// djinterp
+#include "../../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../../inc/djinterp/c/container/array/array_filter.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

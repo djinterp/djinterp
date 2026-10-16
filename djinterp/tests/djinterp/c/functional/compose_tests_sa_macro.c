@@ -1,5 +1,16 @@
+/*******************************************************************************
+* djinterp [functional]                                 compose_tests_sa_macro.c
+*
+*
+* path:      /tests/djinterp/c/functional/compose_tests_sa_macro.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./compose_tests_sa.h"
 #include "./compose_tests_sa_helpers.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////

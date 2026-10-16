@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                              member_types_tests_extraction.cpp
+*
+*
+* path:      /tests/djinterp/core/meta/member_types_tests_extraction.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "member_types_tests.hpp"
 
 

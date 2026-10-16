@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [event]                              event_handler_tests_sa_queries.c
+*
+*
+* path:      /tests/djinterp/c/event/event_handler_tests_sa_queries.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./event_handler_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

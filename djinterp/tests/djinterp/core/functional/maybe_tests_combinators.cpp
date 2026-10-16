@@ -1,13 +1,21 @@
-/******************************************************************************
-* djinterp [test]                                  maybe_tests_combinators.cpp
+/*******************************************************************************
+* djinterp [test]                                    maybe_tests_combinators.cpp
 *
 * Combinator-factory / pipeline tests for maybe.hpp section IV:
 *   test_combinators -- or_else_with, unwrap_or_with, filter_with, expect_with,
 *                       all driven through operator| against a maybe.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/maybe_tests_combinators.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <string>
+// std
 #include <stdexcept>
+#include <string>
+// djinterp
 #include "./maybe_tests.hpp"
 
 

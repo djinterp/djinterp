@@ -49,13 +49,13 @@ bool d_tests_sa_standalone_assertion_macro_all(struct d_test_counter* _counter);
  *****************************************************************************/
 // D_TEST_OBJECT_LEAF and D_TEST_OBJECT_INTERIOR
 bool d_tests_sa_standalone_object_constants(struct d_test_counter* _counter);
-// D_TEST_SA_LINE_WIDTH
+// D_TEST_STANDALONE_LINE_WIDTH
 bool d_tests_sa_standalone_line_width(struct d_test_counter* _counter);
-// D_TEST_SA_SEPARATOR_DOUBLE and D_TEST_SA_SEPARATOR_SINGLE
+// D_TEST_STANDALONE_SEPARATOR_DOUBLE and D_TEST_STANDALONE_SEPARATOR_SINGLE
 bool d_tests_sa_standalone_separators(struct d_test_counter* _counter);
-// D_TEST_SA_MAX_MODULES
+// D_TEST_STANDALONE_MAX_MODULES
 bool d_tests_sa_standalone_max_modules(struct d_test_counter* _counter);
-// D_TEST_SA_MAX_FAILURES
+// D_TEST_STANDALONE_MAX_FAILURES
 bool d_tests_sa_standalone_max_failures(struct d_test_counter* _counter);
 
 // II.  aggregation function
@@ -97,9 +97,9 @@ bool d_tests_sa_standalone_object_all(struct d_test_counter* _counter);
 /******************************************************************************
  * V. RESULTS STRUCTURE TESTS
  *****************************************************************************/
-// d_test_sa_module_results structure
+// d_test_standalone_module_results structure
 bool d_tests_sa_standalone_module_results_struct(struct d_test_counter* _counter);
-// d_test_sa_suite_results structure
+// d_test_standalone_suite_results structure
 bool d_tests_sa_standalone_suite_results_struct(struct d_test_counter* _counter);
 
 // V.   aggregation function
@@ -109,9 +109,9 @@ bool d_tests_sa_standalone_results_all(struct d_test_counter* _counter);
 /******************************************************************************
  * VI. NOTE STRUCTURE TESTS
  *****************************************************************************/
-// d_test_sa_note_item structure
+// d_test_standalone_note_item structure
 bool d_tests_sa_standalone_note_item_struct(struct d_test_counter* _counter);
-// d_test_sa_note_section structure
+// d_test_standalone_note_section structure
 bool d_tests_sa_standalone_note_section_struct(struct d_test_counter* _counter);
 
 // VI.  aggregation function
@@ -125,9 +125,9 @@ bool d_tests_sa_standalone_note_all(struct d_test_counter* _counter);
 bool d_tests_sa_standalone_fn_test_module(struct d_test_counter* _counter);
 // fn_test_module_counter function pointer type
 bool d_tests_sa_standalone_fn_test_module_counter(struct d_test_counter* _counter);
-// d_test_sa_module_entry structure
+// d_test_standalone_module_entry structure
 bool d_tests_sa_standalone_module_entry_struct(struct d_test_counter* _counter);
-// d_test_sa_runner structure
+// d_test_standalone_runner structure
 bool d_tests_sa_standalone_runner_struct(struct d_test_counter* _counter);
 
 // VII. aggregation function
@@ -169,19 +169,19 @@ bool d_tests_sa_standalone_template_all(struct d_test_counter* _counter);
 /******************************************************************************
  * XI. RUNNER FUNCTION TESTS
  *****************************************************************************/
-// d_test_sa_runner_init function
+// d_test_standalone_runner_init function
 bool d_tests_sa_standalone_runner_init(struct d_test_counter* _counter);
-// d_test_sa_runner_set_options function
+// d_test_standalone_runner_set_options function
 bool d_tests_sa_standalone_runner_set_options(struct d_test_counter* _counter);
-// d_test_sa_runner_add_module function
+// d_test_standalone_runner_add_module function
 bool d_tests_sa_standalone_runner_add_module(struct d_test_counter* _counter);
-// d_test_sa_runner_add_module_counter function
+// d_test_standalone_runner_add_module_counter function
 bool d_tests_sa_standalone_runner_add_module_counter(struct d_test_counter* _counter);
-// d_test_sa_runner_set_wait_for_input function
+// d_test_standalone_runner_set_wait_for_input function
 bool d_tests_sa_standalone_runner_set_wait(struct d_test_counter* _counter);
-// d_test_sa_runner_set_show_notes function
+// d_test_standalone_runner_set_show_notes function
 bool d_tests_sa_standalone_runner_set_notes(struct d_test_counter* _counter);
-// d_test_sa_runner_cleanup function
+// d_test_standalone_runner_cleanup function
 bool d_tests_sa_standalone_runner_cleanup(struct d_test_counter* _counter);
 
 // XI.  aggregation function
@@ -191,9 +191,9 @@ bool d_tests_sa_standalone_runner_fn_all(struct d_test_counter* _counter);
 /******************************************************************************
  * XII. UTILITY FUNCTION TESTS
  *****************************************************************************/
-// d_test_sa_get_elapsed_time function
+// d_test_standalone_get_elapsed_time function
 bool d_tests_sa_standalone_get_elapsed_time(struct d_test_counter* _counter);
-// d_test_sa_print_timestamp function
+// d_test_standalone_print_timestamp function
 bool d_tests_sa_standalone_print_timestamp(struct d_test_counter* _counter);
 
 // XII. aggregation function
@@ -203,13 +203,13 @@ bool d_tests_sa_standalone_utility_all(struct d_test_counter* _counter);
 /******************************************************************************
  * XIII. CLI OPTIONS TESTS
  *****************************************************************************/
-// d_test_sa_options structure
+// d_test_standalone_options structure
 bool d_tests_sa_standalone_options_struct(struct d_test_counter* _counter);
-// d_test_sa_options_init function
+// d_test_standalone_options_init function
 bool d_tests_sa_standalone_options_init(struct d_test_counter* _counter);
-// d_test_sa_options_parse function
+// d_test_standalone_options_parse function
 bool d_tests_sa_standalone_options_parse(struct d_test_counter* _counter);
-// d_test_sa_options_print_usage function
+// d_test_standalone_options_print_usage function
 bool d_tests_sa_standalone_options_print_usage(struct d_test_counter* _counter);
 
 // XIII. aggregation function
@@ -219,19 +219,19 @@ bool d_tests_sa_standalone_options_all(struct d_test_counter* _counter);
 /******************************************************************************
  * XIV. FAILURE TRACKING TESTS
  *****************************************************************************/
-// d_test_sa_failure_entry structure
+// d_test_standalone_failure_entry structure
 bool d_tests_sa_standalone_failure_entry_struct(struct d_test_counter* _counter);
-// d_test_sa_failure_list structure
+// d_test_standalone_failure_list structure
 bool d_tests_sa_standalone_failure_list_struct(struct d_test_counter* _counter);
-// d_test_sa_failure_list_init function
+// d_test_standalone_failure_list_init function
 bool d_tests_sa_standalone_failure_list_init(struct d_test_counter* _counter);
-// d_test_sa_failure_list_add function
+// d_test_standalone_failure_list_add function
 bool d_tests_sa_standalone_failure_list_add(struct d_test_counter* _counter);
-// d_test_sa_failure_list_print function
+// d_test_standalone_failure_list_print function
 bool d_tests_sa_standalone_failure_list_print_fn(struct d_test_counter* _counter);
-// d_test_sa_failure_list_print_file function
+// d_test_standalone_failure_list_print_file function
 bool d_tests_sa_standalone_failure_list_print_file_fn(struct d_test_counter* _counter);
-// d_test_sa_failure_list_free function
+// d_test_standalone_failure_list_free function
 bool d_tests_sa_standalone_failure_list_free(struct d_test_counter* _counter);
 
 // XIV. aggregation function

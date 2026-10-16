@@ -1,24 +1,28 @@
-/******************************************************************************
-* djinterp [test]                                 predicate_tests_sa_helpers.h
+/*******************************************************************************
+* djinterp [test]                                   predicate_tests_sa_helpers.h
 *
 *   Shared helper predicate functions used across predicate test files.
 *   Extracted to avoid duplication between constructor and evaluation tests.
-*   All helpers are declared static inline so each translation unit gets its
+*   All helpers are declared D_STATIC inline so each translation unit gets its
 * own copy without linker conflicts.
 *
 *
-* path:      \tests\functional\predicate_tests_sa_helpers.h
+* path:      /tests/djinterp/c/functional/predicate_tests_sa_helpers.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.10
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_PREDICATE_STANDALONE_HELPERS_
 #define DJINTERP_TESTS_PREDICATE_STANDALONE_HELPERS_ 1
 
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+
 
 // pred_always_true
 //   helper: predicate that always returns true regardless of input.
-D_STATIC_INLINE bool
+D_STATIC bool
 pred_always_true
 (
     const void* _element,
@@ -33,7 +37,7 @@ pred_always_true
 
 // pred_always_false
 //   helper: predicate that always returns false regardless of input.
-D_STATIC_INLINE bool
+D_STATIC bool
 pred_always_false
 (
     const void* _element,
@@ -49,7 +53,7 @@ pred_always_false
 // pred_is_even
 //   helper: predicate that returns true if the int element is even.
 // Returns false if _element is NULL.
-D_STATIC_INLINE bool
+D_STATIC bool
 pred_is_even
 (
     const void* _element,
@@ -73,7 +77,7 @@ pred_is_even
 // pred_is_odd
 //   helper: predicate that returns true if the int element is odd.
 // Returns false if _element is NULL.
-D_STATIC_INLINE bool
+D_STATIC bool
 pred_is_odd
 (
     const void* _element,
@@ -97,7 +101,7 @@ pred_is_odd
 // pred_is_positive
 //   helper: predicate that returns true if the int element is > 0.
 // Returns false if _element is NULL.
-D_STATIC_INLINE bool
+D_STATIC bool
 pred_is_positive
 (
     const void* _element,
@@ -121,7 +125,7 @@ pred_is_positive
 // pred_is_negative
 //   helper: predicate that returns true if the int element is < 0.
 // Returns false if _element is NULL.
-D_STATIC_INLINE bool
+D_STATIC bool
 pred_is_negative
 (
     const void* _element,
@@ -146,7 +150,7 @@ pred_is_negative
 //   helper: predicate that returns true if the int element exceeds the
 // int threshold provided through _context. Returns false if either
 // _element or _context is NULL.
-D_STATIC_INLINE bool
+D_STATIC bool
 pred_greater_than_threshold
 (
     const void* _element,

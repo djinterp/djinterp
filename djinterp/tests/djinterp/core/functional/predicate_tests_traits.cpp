@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                              predicate_tests_traits.cpp
+/*******************************************************************************
+* djinterp [functional]                               predicate_tests_traits.cpp
 *
 *   Tests for the structural detection traits: is_predicate_and / _or / _xor /
 * _not / _nand / _nor, the aggregate is_predicate_combinator, and their _v
@@ -11,9 +11,14 @@
 *
 *   C++11+ only; under C++98 this entry point compiles to a no-op pass.
 *
-* path:      /src/functional/predicate_tests_traits.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/predicate_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./predicate_tests.hpp"
 
 

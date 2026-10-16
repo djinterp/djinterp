@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [event]                                         event_tests_sa_free.c
+*
+*
+* path:      /tests/djinterp/c/event/event_tests_sa_free.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./event_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 // d_tests_sa_event_free_dummy_cb
@@ -72,78 +83,36 @@ d_tests_sa_event_free_basic
 }
 
 /*
-d_tests_sa_event_free_null_args
-  Tests freeing an event with NULL args.
+d_tests_sa_event_free_with_context
+  Tests that d_event_free does NOT free the context pointer.
   Tests the following:
-  - Event with NULL args is freed without crash
+  - Context data is still accessible after event is freed
+  - d_event_free only frees the event struct itself
 */
 bool
-d_tests_sa_event_free_null_args
+d_tests_sa_event_free_with_context
 (
     struct d_test_counter* _counter
 )
 {
     bool            result;
     struct d_event* ev;
+    int             val;
 
     result = true;
-    ev     = d_event_new_args(200, NULL, 0);
+    val    = 42;
+    ev     = d_event_new_ctx(300, &val);
 
     if (ev)
     {
         d_event_free(ev);
-    }
 
-    result = d_assert_standalone(
-        true,
-        "free_event_null_args",
-        "Freeing event with NULL args should not crash",
-        _counter) && result;
-
-    return result;
-}
-
-/*
-d_tests_sa_event_free_heap_args
-  Tests freeing an event whose args are heap-allocated.
-  Tests the following:
-  - d_event_free frees both args and event struct
-*/
-bool
-d_tests_sa_event_free_heap_args
-(
-    struct d_test_counter* _counter
-)
-{
-    bool            result;
-    struct d_event* ev;
-    void**          heap_args;
-
-    result    = true;
-    heap_args = (void**)malloc(2 * sizeof(void*));
-
-    if (heap_args)
-    {
-        heap_args[0] = NULL;
-        heap_args[1] = NULL;
-
-        ev = d_event_new_args(300, heap_args, 2);
-
-        if (ev)
-        {
-            // d_event_free will free(ev->args) then free(ev)
-            d_event_free(ev);
-
-            result = d_assert_standalone(
-                true,
-                "free_event_heap_args",
-                "Freeing event with heap args should not crash",
-                _counter) && result;
-        }
-        else
-        {
-            free(heap_args);
-        }
+        // val is stack-allocated — should still be 42 after event free
+        result = d_assert_standalone(
+            val == 42,
+            "free_event_context_preserved",
+            "Context data should survive d_event_free (caller-owned)",
+            _counter) && result;
     }
 
     return result;
@@ -391,8 +360,7 @@ d_tests_sa_event_free_all
 
     result = d_tests_sa_event_free_null(_counter)              && result;
     result = d_tests_sa_event_free_basic(_counter)             && result;
-    result = d_tests_sa_event_free_null_args(_counter)         && result;
-    result = d_tests_sa_event_free_heap_args(_counter)         && result;
+    result = d_tests_sa_event_free_with_context(_counter)      && result;
     result = d_tests_sa_event_free_sequential(_counter)        && result;
     result = d_tests_sa_event_listener_free_null(_counter)     && result;
     result = d_tests_sa_event_listener_free_enabled(_counter)  && result;

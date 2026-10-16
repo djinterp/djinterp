@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                test_common_tests_constexpr.cpp
+*
+*
+* path:      /tests/djinterp/test/test_common_tests_constexpr.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <type_traits>
 // djinterp

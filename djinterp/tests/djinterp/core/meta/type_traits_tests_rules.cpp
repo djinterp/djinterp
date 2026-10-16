@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                    type_traits_tests_rules.cpp
 *
 *   Unit tests for the rule-of-N traits in Section III of type_traits.hpp:
@@ -27,9 +27,12 @@
 *                                ill-formed)
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_rules.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_rules.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -165,56 +168,56 @@ type_traits_tests_rules(
 )
 {
     // ---- follows_rule_of_five ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_five<fs>::value == true,
         "follows_rule_of_five<full_special_member_t>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_five<tt>::value == true,
         "follows_rule_of_five<trivial_t> (defaults pass)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_five<int>::value == true,
         "follows_rule_of_five<int> (builtin)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_five<nc>::value == false,
         "follows_rule_of_five<noncopyable_t> -- copy deleted");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_five<void>::value == false,
         "follows_rule_of_five<void>");
 
     // ---- follows_rule_of_three ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_three<co>::value == true,
         "follows_rule_of_three<copy_only_t>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_three<fs>::value == true,
         "follows_rule_of_three<full_special_member_t>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_three<tt>::value == true,
         "follows_rule_of_three<trivial_t>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_three<int>::value == true,
         "follows_rule_of_three<int>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_three<nc>::value == false,
         "follows_rule_of_three<noncopyable_t>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_three<void>::value == false,
         "follows_rule_of_three<void>");
 
     // ---- follows_rule_of_zero ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_zero<tt>::value == true,
         "follows_rule_of_zero<trivial_t>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_zero<int>::value == true,
         "follows_rule_of_zero<int>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_zero<fs>::value == false,
         "follows_rule_of_zero<full_special_member_t>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_zero<co>::value == false,
         "follows_rule_of_zero<copy_only_t>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         follows_rule_of_zero<nc>::value == false,
         "follows_rule_of_zero<noncopyable_t>");
 

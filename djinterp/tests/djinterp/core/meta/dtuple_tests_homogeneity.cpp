@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  dtuple_tests_homogeneity.cpp
+/*******************************************************************************
+* djinterp [test]                                   dtuple_tests_homogeneity.cpp
 *
 *   Unit tests for the tuple-homogeneity section of dtuple.hpp:
 *     - is_tuple_homogeneous / is_tuple_homogeneous_v   (compile-time)
@@ -22,9 +22,12 @@
 *   confirm the value matches the trait for representative inputs.
 *
 *
-* path:      /inc/djinterp/test/dtuple_tests_homogeneity.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.19
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/dtuple_tests_homogeneity.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./dtuple_tests.hpp"
 
 

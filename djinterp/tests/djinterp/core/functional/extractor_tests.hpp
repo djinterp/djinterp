@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                     extractor_tests.hpp
+/*******************************************************************************
+* djinterp [functional]                                      extractor_tests.hpp
 *
 * Unit-test declarations for extractor.hpp.
 *   This header declares the full battery of extractor tests and the helpers
@@ -35,30 +35,39 @@
 * the spec; the section .cpp files, built without DTEST_SPEC_MODE, supply the
 * predicate definitions the spec references by address.
 *
-* path:      /test/functional/extractor_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/extractor_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    HELPERS
-      1.  D_INTERNAL_EXT_CHECK             (early-return assertion)
-      2.  person / triple                  (source fixtures)
-      3.  key functors                     (get_id / get_age / get_dept ...)
-      4.  predicates / transforms          (is_adult / times_two / ...)
-      5.  age_of                            (free key function)
-      6.  checked_age                       (throwing extractor, for try)
-      7.  make_people                       (sample container builder)
+      -------
+      1.    D_INTERNAL_EXT_CHECK             (early-return assertion)
+      2.    person / triple                  (source fixtures)
+      3.    key functors                     (get_id / get_age / get_dept ...)
+      4.    predicates / transforms          (is_adult / times_two / ...)
+      5.    age_of                            (free key function)
+      6.    checked_age                       (throwing extractor, for try)
+      7.    make_people                       (sample container builder)
+
 II.   PER-SECTION TEST DECLARATIONS
-      1.  primitive   (identity/constant/from_function/from_member/from_index)
-      2.  combinators (then_extract/fanout/mapped/filtered/guarded/defaulted/try)
-      3.  pipeline    (operator| with the three adapters)
-      4.  drivers     (extract_all/first/unique/into_map/group_by)
-      5.  traits      (is_extractor/result_t/is_maybe/is_maybe_extractor/concepts)
+      -----------------------------
+      1.    primitive   (identity/constant/from_function/from_member/from_index)
+      2.    combinators (then_extract/fanout/mapped/filtered/guarded/defaulted/try)
+      3.    pipeline    (operator| with the three adapters)
+      4.    drivers     (extract_all/first/unique/into_map/group_by)
+      5.    traits      (is_extractor/result_t/is_maybe/is_maybe_extractor/concepts)
+
 III.  SECTION RUNNERS + TOP-LEVEL AGGREGATE
+      -------------------------------------
+
 IV.   SPEC PROVIDER                        (DTEST_SPEC_MODE: extractor_spec)
+      ----------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_TEST_FUNCTIONAL_EXTRACTOR_
@@ -68,7 +77,7 @@ IV.   SPEC PROVIDER                        (DTEST_SPEC_MODE: extractor_spec)
 #include <string>
 #include <vector>
 // djinterp
-#include "../../inc/functional/extractor.hpp"
+#include "../../../../inc/djinterp/core/functional/extractor.hpp"
 
 #ifdef DTEST_SPEC_MODE
     // The enriched runner defines DTEST_SPEC_MODE and consumes extractor_spec()

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                  adapter_tests_class_iface.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/adapter/adapter/adapter_tests_class_iface.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : adapter_tests_class_iface.cpp
 //   The inheritance-based adapters and the forwarding policies: class_adapter
 // (section V, public-Target / private-Adaptee MI with a protected

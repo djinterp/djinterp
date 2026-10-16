@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                      pattern_tests_capture.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/pattern/pattern_tests_capture.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : pattern_tests_capture.cpp
 //   Status codes (section I) and the capture map (section II): the pattern_capture
 // binding and pattern_capture_map's capacity, lookup, mutation (set / erase /

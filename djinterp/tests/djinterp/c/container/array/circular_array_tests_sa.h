@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   circular_array_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                      circular_array_tests_sa.h
 *
 *   Unit test declarations for `circular_array.h` module.
 *   Provides comprehensive testing of all d_circular_array functions including
@@ -7,20 +7,23 @@
 * functions, utility functions, and memory management.
 *
 *
-* path:      /tests/container/array/circular_array_tests_sa.h
+* path:      /tests/djinterp/c/container/array/circular_array_tests_sa.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.31
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.31
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CIRCULAR_ARRAY_SA_
 #define DJINTERP_TESTS_CIRCULAR_ARRAY_SA_ 1
 
-#include <stdlib.h>
+// std
 #include <errno.h>
-#include "../../../../inc/c/djinterp.h"
-#include "../../../../inc/c/dmemory.h"
-#include "../../../../inc/c/test/test_standalone.h"
-#include "../../../../inc/c/container/array/circular_array.h"
+#include <stdlib.h>
+// djinterp
+#include "../../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../inc/djinterp/c/container/array/circular_array.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

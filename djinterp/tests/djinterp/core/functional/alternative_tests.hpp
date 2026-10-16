@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                         alternative_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                          alternative_tests.hpp
 *
 *   Declarations and shared fixtures for the alternative.hpp unit suite.  The
 * individual tests_* predicates and their block-providers are defined per
@@ -40,8 +40,9 @@
 *
 * path:      /tests/djinterp/core/functional/alternative_tests.hpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_ALTERNATIVE_TESTS_
 #define DJINTERP_FUNCTIONAL_ALTERNATIVE_TESTS_ 1
@@ -53,6 +54,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+// djinterp
 // djinterp -- the header under test (which pulls in foldable.hpp), plus the
 //   DTest authoring + runner surface.  NOTE: these two include paths are rooted
 //   at the djinterp include directory (e.g. -I.../inc); adjust them to match

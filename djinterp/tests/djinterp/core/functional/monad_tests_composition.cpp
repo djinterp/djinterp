@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 monad_tests_composition.cpp
+/*******************************************************************************
+* djinterp [test]                                    monad_tests_composition.cpp
 *
 *   Tests for monad.hpp Section II sequencing/composition operations:
 * monad_then (sequence, discard the first value), kleisli_compose
@@ -7,7 +7,14 @@
 * lift).  Covers success and short-circuit paths, value-discarding
 * semantics, Kleisli associativity, type-changing lifts, and the
 * left-bias of lift_m2.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/monad_tests_composition.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./monad_tests.hpp"
 
 

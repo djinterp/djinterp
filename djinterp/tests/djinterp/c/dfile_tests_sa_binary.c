@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                        dfile_tests_sa_binary.c
+*
+*
+* path:      /tests/djinterp/c/dfile_tests_sa_binary.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "dfile_tests_sa.h"
 
 
@@ -7,7 +17,7 @@
 
 /*
 d_tests_dfile_fread_all
-  Tests d_fread_all for reading entire files.
+  Tests d_file_read_all for reading entire files.
   Tests the following:
   - reads entire file content
   - returns correct size
@@ -37,7 +47,7 @@ d_tests_dfile_fread_all
                                D_TEST_DFILE_TEST_FILENAME);
 
     // test 1, 2, 3: read file, check size, verify content
-    content = d_fread_all(path_buf, &size);
+    content = d_file_read_all(path_buf, &size);
     test_read = (content != NULL);
     test_size = (size == strlen(D_TEST_DFILE_TEST_CONTENT));
     test_content = test_read && (strcmp((char*)content, D_TEST_DFILE_TEST_CONTENT) == 0);
@@ -48,15 +58,15 @@ d_tests_dfile_fread_all
     }
 
     // test 4: nonexistent file
-    content = d_fread_all("nonexistent_fread_test.txt", &size);
+    content = d_file_read_all("nonexistent_fread_test.txt", &size);
     test_nonexistent = (content == NULL);
 
     // test 5: NULL path
-    content = d_fread_all(NULL, &size);
+    content = d_file_read_all(NULL, &size);
     test_null_path = (content == NULL);
 
     // build result tree
-    group = d_test_object_new_interior("d_fread_all", 5);
+    group = d_test_object_new_interior("d_file_read_all", 5);
 
     if (!group)
     {
@@ -66,19 +76,19 @@ d_tests_dfile_fread_all
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("read",
                                            test_read,
-                                           "d_fread_all reads file");
+                                           "d_file_read_all reads file");
     group->elements[idx++] = D_ASSERT_TRUE("size",
                                            test_size,
-                                           "d_fread_all returns correct size");
+                                           "d_file_read_all returns correct size");
     group->elements[idx++] = D_ASSERT_TRUE("content",
                                            test_content,
-                                           "d_fread_all content is correct");
+                                           "d_file_read_all content is correct");
     group->elements[idx++] = D_ASSERT_TRUE("nonexistent",
                                            test_nonexistent,
-                                           "d_fread_all returns NULL for nonexistent");
+                                           "d_file_read_all returns NULL for nonexistent");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_fread_all returns NULL for NULL path");
+                                           "d_file_read_all returns NULL for NULL path");
 
     return group;
 }
@@ -86,7 +96,7 @@ d_tests_dfile_fread_all
 
 /*
 d_tests_dfile_fwrite_all
-  Tests d_fwrite_all for writing entire files.
+  Tests d_file_write_all for writing entire files.
   Tests the following:
   - writes data to new file
   - overwrites existing file
@@ -115,10 +125,10 @@ d_tests_dfile_fwrite_all
                                "fwrite_all_test.txt");
 
     // test 1 & 2: write to new file and verify
-    result = d_fwrite_all(path_buf, "test content", 12);
+    result = d_file_write_all(path_buf, "test content", 12);
     test_write = (result == 0);
 
-    read_content = (char*)d_fread_all(path_buf, &read_size);
+    read_content = (char*)d_file_read_all(path_buf, &read_size);
     test_content = (read_content != NULL) && (strcmp(read_content, "test content") == 0);
 
     if (read_content)
@@ -127,10 +137,10 @@ d_tests_dfile_fwrite_all
     }
 
     // test 3: overwrite existing
-    result = d_fwrite_all(path_buf, "new", 3);
-    read_content = (char*)d_fread_all(path_buf, &read_size);
-    test_overwrite = (result == 0) && 
-                     (read_content != NULL) && 
+    result = d_file_write_all(path_buf, "new", 3);
+    read_content = (char*)d_file_read_all(path_buf, &read_size);
+    test_overwrite = (result == 0) &&
+                     (read_content != NULL) &&
                      (strcmp(read_content, "new") == 0);
 
     if (read_content)
@@ -139,14 +149,14 @@ d_tests_dfile_fwrite_all
     }
 
     // cleanup
-    d_remove(path_buf);
+    d_file_remove(path_buf);
 
     // test 4: NULL path
-    result = d_fwrite_all(NULL, "data", 4);
+    result = d_file_write_all(NULL, "data", 4);
     test_null_path = (result != 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_fwrite_all", 4);
+    group = d_test_object_new_interior("d_file_write_all", 4);
 
     if (!group)
     {
@@ -156,16 +166,16 @@ d_tests_dfile_fwrite_all
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("write",
                                            test_write,
-                                           "d_fwrite_all writes file");
+                                           "d_file_write_all writes file");
     group->elements[idx++] = D_ASSERT_TRUE("content",
                                            test_content,
                                            "written content is correct");
     group->elements[idx++] = D_ASSERT_TRUE("overwrite",
                                            test_overwrite,
-                                           "d_fwrite_all overwrites existing");
+                                           "d_file_write_all overwrites existing");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_fwrite_all returns error for NULL");
+                                           "d_file_write_all returns error for NULL");
 
     return group;
 }
@@ -173,7 +183,7 @@ d_tests_dfile_fwrite_all
 
 /*
 d_tests_dfile_fappend_all
-  Tests d_fappend_all for appending to files.
+  Tests d_file_append_all for appending to files.
   Tests the following:
   - appends to existing file
   - creates new file if not exists
@@ -201,13 +211,13 @@ d_tests_dfile_fappend_all
                                "fappend_all_test.txt");
 
     // write initial content
-    d_fwrite_all(path_buf, "Hello", 5);
+    d_file_write_all(path_buf, "Hello", 5);
 
     // test 1 & 2: append and verify
-    result = d_fappend_all(path_buf, " World", 6);
+    result = d_file_append_all(path_buf, " World", 6);
     test_append = (result == 0);
 
-    read_content = (char*)d_fread_all(path_buf, &read_size);
+    read_content = (char*)d_file_read_all(path_buf, &read_size);
     test_content = (read_content != NULL) && (strcmp(read_content, "Hello World") == 0);
 
     if (read_content)
@@ -216,14 +226,14 @@ d_tests_dfile_fappend_all
     }
 
     // cleanup
-    d_remove(path_buf);
+    d_file_remove(path_buf);
 
     // test 3: NULL path
-    result = d_fappend_all(NULL, "data", 4);
+    result = d_file_append_all(NULL, "data", 4);
     test_null_path = (result != 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_fappend_all", 3);
+    group = d_test_object_new_interior("d_file_append_all", 3);
 
     if (!group)
     {
@@ -233,13 +243,13 @@ d_tests_dfile_fappend_all
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("append",
                                            test_append,
-                                           "d_fappend_all appends to file");
+                                           "d_file_append_all appends to file");
     group->elements[idx++] = D_ASSERT_TRUE("content",
                                            test_content,
                                            "appended content is correct");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_fappend_all returns error for NULL");
+                                           "d_file_append_all returns error for NULL");
 
     return group;
 }
@@ -249,9 +259,9 @@ d_tests_dfile_fappend_all
 d_tests_dfile_binary_io_all
   Runs all binary I/O helper tests.
   Tests the following:
-  - d_fread_all
-  - d_fwrite_all
-  - d_fappend_all
+  - d_file_read_all
+  - d_file_write_all
+  - d_file_append_all
 */
 struct d_test_object*
 d_tests_dfile_binary_io_all
@@ -276,5 +286,3 @@ d_tests_dfile_binary_io_all
 
     return group;
 }
-
-

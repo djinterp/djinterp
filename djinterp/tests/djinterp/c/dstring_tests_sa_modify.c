@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                      dstring_tests_sa_modify.c
+*
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_modify.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./dstring_tests_sa.h"
 
 
@@ -2733,7 +2743,7 @@ d_tests_sa_dstring_modify_all
   Runs all modification function tests for dstring module.
   Tests the following:
   - assignment functions (assign, assign_cstr, assign_buffer, assign_char)
-  - append functions (append, append_cstr, append_buffer, append_char, 
+  - append functions (append, append_cstr, append_buffer, append_char,
     append_formatted)
   - prepend functions (prepend, prepend_cstr, prepend_char)
   - insert functions (insert, insert_cstr, insert_char)

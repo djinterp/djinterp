@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                             dstring_tests_sa.h
 *
 *   Unit test declarations for the d_string safe string module. Tests are
@@ -7,44 +7,79 @@
 * manageable.
 *
 *
-* path:      \inc\test\dstring_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+* path:      /tests/djinterp/c/dstring_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 /*
 TABLE OF CONTENTS
 =================
-  I.    CREATION & DESTRUCTION TESTS     (dstring_tests_creation.c)
-  II.   CAPACITY MANAGEMENT TESTS        (dstring_tests_capacity.c)
-  III.  ACCESS FUNCTION TESTS            (dstring_tests_access.c)
-  IV.   SAFE COPY TESTS                  (dstring_tests_copy.c)
-  V.    CONCATENATION TESTS              (dstring_tests_concat.c)
-  VI.   DUPLICATION TESTS                (dstring_tests_dup.c)
-  VII.  COMPARISON TESTS                 (dstring_tests_compare.c)
-  VIII. SEARCH TESTS                     (dstring_tests_search.c)
-  IX.   MODIFICATION TESTS               (dstring_tests_modify.c)
-  X.    CASE CONVERSION TESTS            (dstring_tests_case.c)
-  XI.   REVERSAL TESTS                   (dstring_tests_reverse.c)
-  XII.  TRIMMING TESTS                   (dstring_tests_trim.c)
-  XIII. TOKENIZATION TESTS               (dstring_tests_token.c)
-  XIV.  JOIN TESTS                       (dstring_tests_join.c)
-  XV.   UTILITY TESTS                    (dstring_tests_util.c)
-  XVI.  ERROR STRING TESTS               (dstring_tests_error.c)
-  XVII. FORMATTED STRING TESTS           (dstring_tests_format.c)
+I.    CREATION & DESTRUCTION TESTS     (dstring_tests_creation.c)
+      -----------------------------------------------------------
+
+II.   CAPACITY MANAGEMENT TESTS        (dstring_tests_capacity.c)
+      -----------------------------------------------------------
+
+III.  ACCESS FUNCTION TESTS            (dstring_tests_access.c)
+      ---------------------------------------------------------
+
+IV.   SAFE COPY TESTS                  (dstring_tests_copy.c)
+      -------------------------------------------------------
+
+V.    CONCATENATION TESTS              (dstring_tests_concat.c)
+      ---------------------------------------------------------
+
+VI.   DUPLICATION TESTS                (dstring_tests_dup.c)
+      ------------------------------------------------------
+
+VII.  COMPARISON TESTS                 (dstring_tests_compare.c)
+      ----------------------------------------------------------
+
+VIII. SEARCH TESTS                     (dstring_tests_search.c)
+      ---------------------------------------------------------
+
+IX.   MODIFICATION TESTS               (dstring_tests_modify.c)
+      ---------------------------------------------------------
+
+X.    CASE CONVERSION TESTS            (dstring_tests_case.c)
+      -------------------------------------------------------
+
+XI.   REVERSAL TESTS                   (dstring_tests_reverse.c)
+      ----------------------------------------------------------
+
+XII.  TRIMMING TESTS                   (dstring_tests_trim.c)
+      -------------------------------------------------------
+
+XIII. TOKENIZATION TESTS               (dstring_tests_token.c)
+      --------------------------------------------------------
+
+XIV.  JOIN TESTS                       (dstring_tests_join.c)
+      -------------------------------------------------------
+
+XV.   UTILITY TESTS                    (dstring_tests_util.c)
+      -------------------------------------------------------
+
+XVI.  ERROR STRING TESTS               (dstring_tests_error.c)
+      --------------------------------------------------------
+
+XVII. FORMATTED STRING TESTS           (dstring_tests_format.c)
+      ---------------------------------------------------------
 */
 
 
 #ifndef DJINTERP_DSTRING_TESTS_STANDALONE_
 #define DJINTERP_DSTRING_TESTS_STANDALONE_ 1
 
+// std
 #include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include "../../inc/c/djinterp.h"
-#include "../../inc/c/dmemory.h"
-#include "../../inc/c/test/test_standalone.h"
-#include "../../inc/c/dstring.h"
+// djinterp
+#include "../../../inc/djinterp/c/djinterp.h"
+#include "../../../inc/djinterp/c/dmemory.h"
+#include "../../../inc/djinterp/c/dstring.h"
 
 
 // Test Suite Configuration

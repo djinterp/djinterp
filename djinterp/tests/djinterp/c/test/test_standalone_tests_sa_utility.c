@@ -7,7 +7,7 @@
 
 /*
 d_tests_sa_standalone_get_elapsed_time
-  Tests the d_test_sa_get_elapsed_time function.
+  Tests the d_test_standalone_get_elapsed_time function.
   Tests the following:
   - Returns zero for identical start and end
   - Returns positive value when end > start
@@ -29,7 +29,7 @@ d_tests_sa_standalone_get_elapsed_time
     // test 1: returns zero for identical start and end
     start   = 0;
     end     = 0;
-    elapsed = d_test_sa_get_elapsed_time(start, end);
+    elapsed = d_test_standalone_get_elapsed_time(start, end);
 
     result = d_assert_standalone(
         elapsed == 0.0,
@@ -40,7 +40,7 @@ d_tests_sa_standalone_get_elapsed_time
     // test 2: returns positive value when end > start
     start   = 0;
     end     = CLOCKS_PER_SEC;
-    elapsed = d_test_sa_get_elapsed_time(start, end);
+    elapsed = d_test_standalone_get_elapsed_time(start, end);
 
     result = d_assert_standalone(
         elapsed > 0.0,
@@ -71,7 +71,7 @@ d_tests_sa_standalone_get_elapsed_time
         }
 
         actual_end     = clock();
-        actual_elapsed = d_test_sa_get_elapsed_time(actual_start,
+        actual_elapsed = d_test_standalone_get_elapsed_time(actual_start,
                                                      actual_end);
 
         result = d_assert_standalone(
@@ -84,7 +84,7 @@ d_tests_sa_standalone_get_elapsed_time
     // test 5: handles fractional seconds
     start   = 0;
     end     = CLOCKS_PER_SEC / 2;
-    elapsed = d_test_sa_get_elapsed_time(start, end);
+    elapsed = d_test_standalone_get_elapsed_time(start, end);
 
     result = d_assert_standalone(
         (elapsed >= 0.49) && (elapsed <= 0.51),
@@ -95,7 +95,7 @@ d_tests_sa_standalone_get_elapsed_time
     // test 6: handles multiple seconds
     start   = 0;
     end     = CLOCKS_PER_SEC * 5;
-    elapsed = d_test_sa_get_elapsed_time(start, end);
+    elapsed = d_test_standalone_get_elapsed_time(start, end);
 
     result = d_assert_standalone(
         (elapsed >= 4.99) && (elapsed <= 5.01),
@@ -108,7 +108,7 @@ d_tests_sa_standalone_get_elapsed_time
 
 /*
 d_tests_sa_standalone_print_timestamp
-  Tests the d_test_sa_print_timestamp function.
+  Tests the d_test_standalone_print_timestamp function.
   Tests the following:
   - Function does not crash when called
   - Function produces output (writes to stdout)
@@ -124,17 +124,17 @@ d_tests_sa_standalone_print_timestamp
     result = true;
 
     // test 1: function does not crash
-    d_test_sa_print_timestamp();
+    d_test_standalone_print_timestamp();
 
     result = d_assert_standalone(
         true,
         "print_timestamp_no_crash",
-        "d_test_sa_print_timestamp should not crash",
+        "d_test_standalone_print_timestamp should not crash",
         _counter) && result;
 
     // test 2: function can be called multiple times
-    d_test_sa_print_timestamp();
-    d_test_sa_print_timestamp();
+    d_test_standalone_print_timestamp();
+    d_test_standalone_print_timestamp();
 
     result = d_assert_standalone(
         true,

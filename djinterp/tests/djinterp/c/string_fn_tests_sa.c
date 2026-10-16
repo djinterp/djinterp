@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                           string_fn_tests_sa.c
+*
+*
+* path:      /tests/djinterp/c/string_fn_tests_sa.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./string_fn_tests_sa.h"
 
 
@@ -17,7 +27,7 @@ d_tests_sa_string_fn_setup
 {
     // no specific setup needed for string tests
     // this function is here for consistency and potential future use
-    
+
     return true;
 }
 
@@ -33,7 +43,7 @@ d_tests_sa_string_fn_teardown
 {
     // no specific teardown needed for string tests
     // this function is here for consistency and potential future use
-    
+
     return true;
 }
 
@@ -50,20 +60,20 @@ d_tests_sa_string_fn_fill_buffer
 )
 {
     size_t i;
-    
-    if ( (!_buffer) || 
+
+    if ( (!_buffer) ||
          (_size == 0) )
     {
         return;
     }
-    
+
     for (i = 0; i < _size - 1; i++)
     {
         _buffer[i] = _pattern;
     }
-    
+
     _buffer[_size - 1] = '\0';
-    
+
     return;
 }
 
@@ -80,18 +90,18 @@ d_tests_sa_string_fn_compare_buffers
 )
 {
     size_t i;
-    
-    if ( (!_buf1) || 
+
+    if ( (!_buf1) ||
          (!_buf2) )
     {
         return (_buf1 == _buf2);
     }
-    
+
     if (_size == 0)
     {
         return true;
     }
-    
+
     for (i = 0; i < _size; i++)
     {
         if (_buf1[i] != _buf2[i])
@@ -99,7 +109,7 @@ d_tests_sa_string_fn_compare_buffers
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -136,7 +146,7 @@ d_tests_sa_string_fn_run_all
 
     // setup test environment
     setup_success = d_tests_sa_string_fn_setup();
-    
+
     if (!setup_success)
     {
         printf("Failed to setup dstring test environment\n");
@@ -171,5 +181,3 @@ d_tests_sa_string_fn_run_all
 
     return group;
 }
-
-

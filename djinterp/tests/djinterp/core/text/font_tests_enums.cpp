@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                           font_tests_enums.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_enums.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_enums.cpp
 //   Section 2: font_weight, font_slant, font_stretch, font_spacing,
 // font_size_unit.  These enums are wire values - they mirror OS/2

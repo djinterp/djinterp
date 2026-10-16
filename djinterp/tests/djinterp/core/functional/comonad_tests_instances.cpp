@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 comonad_tests_instances.cpp
+/*******************************************************************************
+* djinterp [test]                                    comonad_tests_instances.cpp
 *
 *   Section III of the comonad.hpp suite: the two shipped Env (co-reader)
 * instances, std::pair and kv_pair, exercised specifically.  Covers each
@@ -11,10 +11,12 @@
 * equality (extend preserves the key / environment, so == survives a recomputed
 * value).
 *
+*
 * path:      /tests/djinterp/core/functional/comonad_tests_instances.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "comonad_tests.hpp"

@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                         dfile_tests_sa_path.c
+/*******************************************************************************
+* djinterp [test]                                          dfile_tests_sa_path.c
 *
 *   Tests for path utility operations (getcwd, realpath, dirname, basename).
 *
 *
-* path:      \src	est\dfile_tests_sa_path.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
-#include ".\dfile_tests_sa.h"
+* path:      /tests/djinterp/c/dfile_tests_sa_path.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dfile_tests_sa.h"
 
 
 /******************************************************************************
@@ -17,7 +19,7 @@
 
 /*
 d_tests_dfile_getcwd
-  Tests d_getcwd for getting current working directory.
+  Tests d_dir_get_current for getting current working directory.
   Tests the following:
   - returns valid path
   - path is a directory
@@ -38,16 +40,16 @@ d_tests_dfile_getcwd
     size_t                idx;
 
     // test 1 & 2: get cwd and verify it's a directory
-    result = d_getcwd(cwd_buf, sizeof(cwd_buf));
+    result = d_dir_get_current(cwd_buf, sizeof(cwd_buf));
     test_get_cwd = (result != NULL) && (strlen(cwd_buf) > 0);
-    test_is_dir = test_get_cwd && d_is_dir(cwd_buf);
+    test_is_dir = test_get_cwd && d_dir_exists(cwd_buf);
 
     // test 3: NULL buffer
-    result = d_getcwd(NULL, 100);
+    result = d_dir_get_current(NULL, 100);
     test_null_buf = (result == NULL);
 
     // build result tree
-    group = d_test_object_new_interior("d_getcwd", 3);
+    group = d_test_object_new_interior("d_dir_get_current", 3);
 
     if (!group)
     {
@@ -57,13 +59,13 @@ d_tests_dfile_getcwd
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("get_cwd",
                                            test_get_cwd,
-                                           "d_getcwd returns current directory");
+                                           "d_dir_get_current returns current directory");
     group->elements[idx++] = D_ASSERT_TRUE("is_dir",
                                            test_is_dir,
                                            "returned path is a directory");
     group->elements[idx++] = D_ASSERT_TRUE("null_buf",
                                            test_null_buf,
-                                           "d_getcwd returns NULL for NULL buffer");
+                                           "d_dir_get_current returns NULL for NULL buffer");
 
     return group;
 }
@@ -71,7 +73,7 @@ d_tests_dfile_getcwd
 
 /*
 d_tests_dfile_chdir
-  Tests d_chdir for changing working directory.
+  Tests d_dir_set_current for changing working directory.
   Tests the following:
   - changes to valid directory
   - returns error for nonexistent directory
@@ -93,26 +95,26 @@ d_tests_dfile_chdir
     size_t                idx;
 
     // save original directory
-    d_getcwd(original_cwd, sizeof(original_cwd));
+    d_dir_get_current(original_cwd, sizeof(original_cwd));
 
     // test 1: change to test directory
-    result = d_chdir(D_TEST_DFILE_TEMP_DIR);
-    d_getcwd(new_cwd, sizeof(new_cwd));
+    result = d_dir_set_current(D_TEST_DFILE_TEMP_DIR);
+    d_dir_get_current(new_cwd, sizeof(new_cwd));
     test_change = (result == 0);
 
     // restore original directory
-    d_chdir(original_cwd);
+    d_dir_set_current(original_cwd);
 
     // test 2: nonexistent directory
-    result = d_chdir("nonexistent_chdir_test_dir");
+    result = d_dir_set_current("nonexistent_chdir_test_dir");
     test_nonexistent = (result != 0);
 
     // test 3: NULL path
-    result = d_chdir(NULL);
+    result = d_dir_set_current(NULL);
     test_null_path = (result != 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_chdir", 3);
+    group = d_test_object_new_interior("d_dir_set_current", 3);
 
     if (!group)
     {
@@ -122,13 +124,13 @@ d_tests_dfile_chdir
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("change",
                                            test_change,
-                                           "d_chdir changes directory");
+                                           "d_dir_set_current changes directory");
     group->elements[idx++] = D_ASSERT_TRUE("nonexistent",
                                            test_nonexistent,
-                                           "d_chdir returns error for nonexistent");
+                                           "d_dir_set_current returns error for nonexistent");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_chdir returns error for NULL path");
+                                           "d_dir_set_current returns error for NULL path");
 
     return group;
 }
@@ -136,7 +138,7 @@ d_tests_dfile_chdir
 
 /*
 d_tests_dfile_realpath
-  Tests d_realpath for getting canonical paths.
+  Tests d_path_resolve for getting canonical paths.
   Tests the following:
   - returns canonical path for existing file
   - returns NULL for nonexistent file
@@ -163,19 +165,19 @@ d_tests_dfile_realpath
                                D_TEST_DFILE_TEST_FILENAME);
 
     // test 1: resolve existing file
-    result = d_realpath(path_buf, resolved);
+    result = d_path_resolve(path_buf, resolved);
     test_resolve = (result != NULL) && (strlen(resolved) > 0);
 
     // test 2: nonexistent file
-    result = d_realpath("nonexistent_realpath_test.txt", resolved);
+    result = d_path_resolve("nonexistent_realpath_test.txt", resolved);
     test_nonexistent = (result == NULL);
 
     // test 3: NULL path
-    result = d_realpath(NULL, resolved);
+    result = d_path_resolve(NULL, resolved);
     test_null_path = (result == NULL);
 
     // build result tree
-    group = d_test_object_new_interior("d_realpath", 3);
+    group = d_test_object_new_interior("d_path_resolve", 3);
 
     if (!group)
     {
@@ -185,13 +187,13 @@ d_tests_dfile_realpath
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("resolve",
                                            test_resolve,
-                                           "d_realpath resolves path");
+                                           "d_path_resolve resolves path");
     group->elements[idx++] = D_ASSERT_TRUE("nonexistent",
                                            test_nonexistent,
-                                           "d_realpath returns NULL for nonexistent");
+                                           "d_path_resolve returns NULL for nonexistent");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_realpath returns NULL for NULL path");
+                                           "d_path_resolve returns NULL for NULL path");
 
     return group;
 }
@@ -199,7 +201,7 @@ d_tests_dfile_realpath
 
 /*
 d_tests_dfile_dirname
-  Tests d_dirname for extracting directory component.
+  Tests d_path_dirname for extracting directory component.
   Tests the following:
   - extracts directory from path with file
   - handles path with trailing separator
@@ -219,15 +221,15 @@ d_tests_dfile_dirname
     size_t                idx;
 
     // test 1: directory from path with file
-    result = d_dirname("/path/to/file.txt", buf, sizeof(buf));
+    result = d_path_dirname("/path/to/file.txt", buf, sizeof(buf));
     test_with_file = (result != NULL) && (strstr(buf, "to") != NULL);
 
     // test 2: NULL path
-    result = d_dirname(NULL, buf, sizeof(buf));
+    result = d_path_dirname(NULL, buf, sizeof(buf));
     test_null_path = (result == NULL);
 
     // build result tree
-    group = d_test_object_new_interior("d_dirname", 2);
+    group = d_test_object_new_interior("d_path_dirname", 2);
 
     if (!group)
     {
@@ -237,10 +239,10 @@ d_tests_dfile_dirname
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("with_file",
                                            test_with_file,
-                                           "d_dirname extracts directory");
+                                           "d_path_dirname extracts directory");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_dirname returns NULL for NULL path");
+                                           "d_path_dirname returns NULL for NULL path");
 
     return group;
 }
@@ -248,7 +250,7 @@ d_tests_dfile_dirname
 
 /*
 d_tests_dfile_basename
-  Tests d_basename for extracting filename component.
+  Tests d_path_basename for extracting filename component.
   Tests the following:
   - extracts filename from path
   - handles path without directory
@@ -269,19 +271,19 @@ d_tests_dfile_basename
     size_t                idx;
 
     // test 1: extract filename from path with directory
-    result = d_basename("/path/to/file.txt", buf, sizeof(buf));
+    result = d_path_basename("/path/to/file.txt", buf, sizeof(buf));
     test_with_dir = (result != NULL) && (strcmp(buf, "file.txt") == 0);
 
     // test 2: just filename
-    result = d_basename("file.txt", buf, sizeof(buf));
+    result = d_path_basename("file.txt", buf, sizeof(buf));
     test_no_dir = (result != NULL) && (strcmp(buf, "file.txt") == 0);
 
     // test 3: NULL path
-    result = d_basename(NULL, buf, sizeof(buf));
+    result = d_path_basename(NULL, buf, sizeof(buf));
     test_null_path = (result == NULL);
 
     // build result tree
-    group = d_test_object_new_interior("d_basename", 3);
+    group = d_test_object_new_interior("d_path_basename", 3);
 
     if (!group)
     {
@@ -291,13 +293,13 @@ d_tests_dfile_basename
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("with_dir",
                                            test_with_dir,
-                                           "d_basename extracts filename from path");
+                                           "d_path_basename extracts filename from path");
     group->elements[idx++] = D_ASSERT_TRUE("no_dir",
                                            test_no_dir,
-                                           "d_basename handles simple filename");
+                                           "d_path_basename handles simple filename");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_basename returns NULL for NULL path");
+                                           "d_path_basename returns NULL for NULL path");
 
     return group;
 }
@@ -472,7 +474,7 @@ d_tests_dfile_path_is_absolute
 
 /*
 d_tests_dfile_get_extension
-  Tests d_get_extension for extracting file extensions.
+  Tests d_path_extension for extracting file extensions.
   Tests the following:
   - returns extension for file with extension
   - returns NULL for file without extension
@@ -494,23 +496,23 @@ d_tests_dfile_get_extension
     size_t                idx;
 
     // test 1: file with extension
-    result = d_get_extension("file.txt");
+    result = d_path_extension("file.txt");
     test_with_ext = (result != NULL) && (strcmp(result, ".txt") == 0);
 
     // test 2: file without extension
-    result = d_get_extension("filename");
+    result = d_path_extension("filename");
     test_no_ext = (result == NULL);
 
     // test 3: hidden file (should return NULL, not treat . as extension)
-    result = d_get_extension(".bashrc");
+    result = d_path_extension(".bashrc");
     test_hidden_file = (result == NULL);
 
     // test 4: NULL path
-    result = d_get_extension(NULL);
+    result = d_path_extension(NULL);
     test_null_path = (result == NULL);
 
     // build result tree
-    group = d_test_object_new_interior("d_get_extension", 4);
+    group = d_test_object_new_interior("d_path_extension", 4);
 
     if (!group)
     {
@@ -520,16 +522,16 @@ d_tests_dfile_get_extension
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("with_ext",
                                            test_with_ext,
-                                           "d_get_extension returns extension");
+                                           "d_path_extension returns extension");
     group->elements[idx++] = D_ASSERT_TRUE("no_ext",
                                            test_no_ext,
-                                           "d_get_extension returns NULL for no ext");
+                                           "d_path_extension returns NULL for no ext");
     group->elements[idx++] = D_ASSERT_TRUE("hidden_file",
                                            test_hidden_file,
-                                           "d_get_extension handles hidden files");
+                                           "d_path_extension handles hidden files");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_get_extension returns NULL for NULL");
+                                           "d_path_extension returns NULL for NULL");
 
     return group;
 }
@@ -539,15 +541,15 @@ d_tests_dfile_get_extension
 d_tests_dfile_path_utilities_all
   Runs all path utility tests.
   Tests the following:
-  - d_getcwd
-  - d_chdir
-  - d_realpath
-  - d_dirname
-  - d_basename
+  - d_dir_get_current
+  - d_dir_set_current
+  - d_path_resolve
+  - d_path_dirname
+  - d_path_basename
   - d_path_join
   - d_path_normalize
   - d_path_is_absolute
-  - d_get_extension
+  - d_path_extension
 */
 struct d_test_object*
 d_tests_dfile_path_utilities_all
@@ -578,5 +580,3 @@ d_tests_dfile_path_utilities_all
 
     return group;
 }
-
-

@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [functional]                              filter_tests_sa_execution.c
+*
+*
+* path:      /tests/djinterp/c/functional/filter_tests_sa_execution.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./filter_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -900,7 +911,7 @@ d_tests_sa_filter_counting
     bool                    result;
 
     result      = true;
-    
+
     chain = d_filter_chain_new();
 
     if (!chain)

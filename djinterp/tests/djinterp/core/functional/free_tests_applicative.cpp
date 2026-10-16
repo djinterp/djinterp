@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  free_tests_applicative.cpp
+/*******************************************************************************
+* djinterp [test]                                     free_tests_applicative.cpp
 *
 *   Section V of the parser/free.hpp suite: the applicative stratum
 * (free_ap_parser) and its ap_pure / ap_lift / ap_apply / ap_map factories.
@@ -8,10 +8,12 @@
 * the constant-function specialisation.  Unlike the monadic stratum there is no
 * value-dependency between the two effects -- the shape is static.
 *
-* path:      /tests/djinterp/parse/parser/free_tests_applicative.cpp
+*
+* path:      /tests/djinterp/core/functional/free_tests_applicative.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "free_tests.hpp"

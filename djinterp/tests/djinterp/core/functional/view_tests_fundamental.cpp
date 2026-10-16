@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   view_tests_fundamental.cpp
+/*******************************************************************************
+* djinterp [test]                                     view_tests_fundamental.cpp
 *
 * Fundamental view tests (section II): the non-owning, owning, and
 * iterator-pair wrappers.
@@ -7,10 +7,18 @@
 *   test_ref_view           -- non-owning wrap over a container.
 *   test_owning_view        -- by-value capture of a (moved-in) container.
 *   test_iterator_pair_view -- a view defined by a raw [first, last) range.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/view_tests_fundamental.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <utility>
+#include <vector>
+// djinterp
 #include "./view_tests.hpp"
 
 

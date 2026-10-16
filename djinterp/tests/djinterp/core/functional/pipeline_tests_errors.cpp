@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    pipeline_tests_errors.cpp
+/*******************************************************************************
+* djinterp [test]                                      pipeline_tests_errors.cpp
 *
 * Error-propagation tests. An errored pipeline (from error(code)) carries its
 * state through the chainable operations and short-circuits the queries.
@@ -10,11 +10,19 @@
 *                             their documented errored-pipeline values. Note
 *                             in particular that all() on an errored pipeline
 *                             is false (not vacuously true).
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/pipeline_tests_errors.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <map>
 #include <utility>
+#include <vector>
+// djinterp
 #include "./pipeline_tests.hpp"
 
 

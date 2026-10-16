@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                              test_context_tests_builders.cpp
+/*******************************************************************************
+* djinterp [test]                                test_context_tests_builders.cpp
 *
 *   Section II of the test_context suite: the FOCUS BUILDERS.  at_run,
 * at_module, at_unit and at_check each name a common focus shape by populating
@@ -21,11 +21,14 @@
 *   Every body is C++17-gated (the builders do not exist below C++17); under an
 * older standard each unit passes vacuously.
 *
-* path:      /tests/djinterp/test/test_context/test_context_tests_builders.cpp
+*
+* path:      /tests/djinterp/test/test_context_tests_builders.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_context_tests.hpp"
 
 NS_DJINTERP

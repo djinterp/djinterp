@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                            font_tests_font.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_font.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_font.cpp
 //   Section 8: font<_Feat, _ColorType> itself - the always-present core, the
 // seventeen static has_* gates, empty(), the constructor set, and value

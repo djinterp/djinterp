@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   bifunctor_tests_bimap.cpp
+/*******************************************************************************
+* djinterp [test]                                      bifunctor_tests_bimap.cpp
 *
 *   Section II.1 of the bifunctor.hpp suite: bimap, the one obligation, which
 * maps f : A -> C over the first parameter and g : B -> D over the second,
@@ -10,10 +10,12 @@
 *
 *   kv_pair equality is key-only, so kv checks read the m_key / m_value fields.
 *
+*
 * path:      /tests/djinterp/core/functional/bifunctor_tests_bimap.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "bifunctor_tests.hpp"

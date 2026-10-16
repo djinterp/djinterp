@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        profunctor_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                           profunctor_tests.hpp
 *
 *   Unit-test declarations for core/functional/profunctor.hpp.  One declaration
 * group per section of the module under test:
@@ -26,19 +26,30 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/functional/profunctor_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/profunctor_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.11
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.11
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    FIXTURES  (constexpr functors, negatives, the second instance, traits)
+      ----------------------------------------------------------------------
+
 I.    ARROW WRAPPER
+      -------------
+
 II.   PROTOCOL + DETECTION
+      --------------------
+
 III.  OPERATIONS (dimap / lmap / rmap)
+      --------------------------------
+
 IV.   INSTANCE (profn<F>)
+      -------------------
 */
 
 
@@ -49,8 +60,9 @@ IV.   INSTANCE (profn<F>)
 #include <string>
 #include <type_traits>
 #include <utility>
+// djinterp
 // djinterp (module under test)
-#include "../../core/functional/profunctor.hpp"
+#include "../../../../inc/djinterp/core/functional/profunctor.hpp"
 
 
 NS_DJINTERP

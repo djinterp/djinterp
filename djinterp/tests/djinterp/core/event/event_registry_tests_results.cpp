@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                            event_registry_tests_results.cpp
+/*******************************************************************************
+* djinterp [test]                               event_registry_tests_results.cpp
 *
 *   Section I -- DISPATCH AND RUN RESULTS.  Covers the two result aggregates:
 * dispatch_result (the enriched (invoked, outcome) pair, with consumed() true
@@ -8,10 +8,11 @@
 * holder whose fields are independently stored).
 *
 *
-* path:      /tests/djinterp/core/event/event_registry/event_registry_tests_results.cpp
+* path:      /tests/djinterp/core/event/event_registry_tests_results.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_registry_tests.hpp"

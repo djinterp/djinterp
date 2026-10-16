@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                             applicative_tests_applicable.cpp
+/*******************************************************************************
+* djinterp [test]                               applicative_tests_applicable.cpp
 *
 *   Section 0 (applicability) of the applicative.hpp suite: is_applicable and
 * its _v shorthand / applicable_with concept, which answer "is ap(Ff, Fa) a
@@ -10,10 +10,12 @@
 * box-wrapped function with an ident argument -- ap requires the SAME
 * applicative on both sides).
 *
+*
 * path:      /tests/djinterp/core/functional/applicative_tests_applicable.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "applicative_tests.hpp"

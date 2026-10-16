@@ -1,8 +1,8 @@
-#include ".\datomic_tests_sa.h"
+#include "./datomic_tests_sa.h"
 
 
 /*
-d_tests_sa_atomic_flag_test_and_set
+d_tests_sa_datomic_flag_test_and_set
   Tests atomic flag test-and-set operation.
   Tests the following:
   - initial test_and_set returns false (flag was clear)
@@ -10,7 +10,7 @@ d_tests_sa_atomic_flag_test_and_set
   - flag remains set on subsequent calls
 */
 bool
-d_tests_sa_atomic_flag_test_and_set
+d_tests_sa_datomic_flag_test_and_set
 (
     struct d_test_counter* _counter
 )
@@ -46,14 +46,14 @@ d_tests_sa_atomic_flag_test_and_set
 }
 
 /*
-d_tests_sa_atomic_flag_clear
+d_tests_sa_datomic_flag_clear
   Tests atomic flag clear operation.
   Tests the following:
   - flag can be cleared after being set
   - test_and_set returns false after clear
 */
 bool
-d_tests_sa_atomic_flag_clear
+d_tests_sa_datomic_flag_clear
 (
     struct d_test_counter* _counter
 )
@@ -81,14 +81,14 @@ d_tests_sa_atomic_flag_clear
 }
 
 /*
-d_tests_sa_atomic_flag_explicit
+d_tests_sa_datomic_flag_explicit
   Tests atomic flag with explicit memory orders.
   Tests the following:
   - test_and_set_explicit with seq_cst ordering
   - clear_explicit with seq_cst ordering
 */
 bool
-d_tests_sa_atomic_flag_explicit
+d_tests_sa_datomic_flag_explicit
 (
     struct d_test_counter* _counter
 )
@@ -119,13 +119,13 @@ d_tests_sa_atomic_flag_explicit
 }
 
 /*
-d_tests_sa_atomic_flag_all
+d_tests_sa_datomic_flag_all
   Runs all atomic flag tests.
   Tests the following:
   - test_and_set, clear, explicit
 */
 bool
-d_tests_sa_atomic_flag_all
+d_tests_sa_datomic_flag_all
 (
     struct d_test_counter* _counter
 )
@@ -137,9 +137,9 @@ d_tests_sa_atomic_flag_all
     printf("\n  [SECTION] Atomic Flag Operations\n");
     printf("  ---------------------------------\n");
 
-    result = d_tests_sa_atomic_flag_test_and_set(_counter) && result;
-    result = d_tests_sa_atomic_flag_clear(_counter) && result;
-    result = d_tests_sa_atomic_flag_explicit(_counter) && result;
+    result = d_tests_sa_datomic_flag_test_and_set(_counter) && result;
+    result = d_tests_sa_datomic_flag_clear(_counter) && result;
+    result = d_tests_sa_datomic_flag_explicit(_counter) && result;
 
     return result;
 }

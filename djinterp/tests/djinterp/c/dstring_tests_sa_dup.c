@@ -1,17 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                            dstring_tests_dup.c
+/*******************************************************************************
+* djinterp [test]                                         dstring_tests_sa_dup.c
 *
 *   Unit tests for d_string duplication functions:
 *     - d_string_dup
 *     - d_string_ndup
 *     - d_string_substr
 *
-* path:      \src\test\dstring_tests_dup.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_dup.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "../../tests/c/dstring_tests_sa.h"
+// djinterp
+#include "dstring_tests_sa.h"
 
 
 /******************************************************************************

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                              cpp_named14.h
+/*******************************************************************************
+* djinterp [core]                                                cpp_named14.hpp
 *
 * C++14 named requirement type traits:
 *   Extends the C++11 named requirement traits with variable template
@@ -24,32 +24,36 @@
 *   D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES   - _v helper availability
 *   D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES    - move trait availability
 *
-* path:      \inc\cpp_named14.h
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.27
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/meta/stl/cpp_named14.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_CPP_NAMED14_
-#define DJINTERP_CPP_NAMED14_ 1
+#ifndef DJINTERP_META_STL_CPP_NAMED14_HPP
+#define DJINTERP_META_STL_CPP_NAMED14_HPP 1
 
 // require env.h to be included first
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "cpp_named14.h requires env.h to be included first"
+#ifndef DJINTERP_ENV_ENV_H
+    #error "cpp_named14.hpp requires env.h to be included first"
 #endif
 
 // only meaningful in C++ mode
 #ifndef __cplusplus
-    #error "cpp_named14.h can only be used in C++ compilation mode"
+    #error "cpp_named14.hpp can only be used in C++ compilation mode"
 #endif
 
+// djinterp
 // include C++11 layer
-#include "cpp_named11.h"
+#include "cpp_named11.hpp"
 
 // C++14 additions are active for C++14 and all later standards
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 
 NS_DJINTERP
-NS_TRAITS
+NS_RESTD
 
 // =========================================================================
 // I.   VARIABLE TEMPLATE HELPERS (C++14)
@@ -589,10 +593,10 @@ constexpr bool is_literal_type_v_ =
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // traits
+NS_END  // re_std
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 
-#endif  // DJINTERP_CPP_NAMED14_
+#endif  // DJINTERP_META_STL_CPP_NAMED14_HPP

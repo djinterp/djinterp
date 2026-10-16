@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                              type_traits_tests_macros_core.cpp
 *
 *   Unit tests for the core detection-macro family, now DECLARED in
@@ -34,9 +34,12 @@
 *     member; the alias must yield that same type.
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_macros_core.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_macros_core.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -273,76 +276,76 @@ type_traits_tests_macros_core(
 )
 {
     // ---- D_VOID_T ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<D_VOID_T<int>, void>::value,
         "D_VOID_T<int> -> void");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<D_VOID_T<int, char>, void>::value,
         "D_VOID_T<int, char> -> void (variadic)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<D_VOID_T<>, void>::value,
         "D_VOID_T<> -> void (empty pack)");
 
     // ---- D_TYPE_TRAIT_TRUE (single expr) ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_value_type<with_value_type_int>::value == true,
         "D_TYPE_TRAIT_TRUE single: with value_type -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_value_type<without_value_type>::value == false,
         "D_TYPE_TRAIT_TRUE single: without value_type -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_value_type<int>::value == false,
         "D_TYPE_TRAIT_TRUE single: builtin int -> false");
 
     // ---- D_TYPE_TRAIT_TRUE (multi expr) ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_value_type_and_data<with_type_and_data>::value == true,
         "D_TYPE_TRAIT_TRUE multi: both probes succeed -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_value_type_and_data<with_type_only_no_data>::value == false,
         "D_TYPE_TRAIT_TRUE multi: second probe fails -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_value_type_and_data<without_value_type>::value == false,
         "D_TYPE_TRAIT_TRUE multi: first probe fails -> false");
 
     // ---- D_TYPE_TRAIT_TRUE_AS ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_count_7<with_value_type_int>::value == 7,
         "D_TYPE_TRAIT_TRUE_AS: success inherits supplied base (value=7)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_base_of<std::integral_constant<int, 7>,
                         macro_trait_count_7<with_value_type_int>>::value,
         "D_TYPE_TRAIT_TRUE_AS: success base type matches INHERIT_EXPR");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_count_7<without_value_type>::value == false,
         "D_TYPE_TRAIT_TRUE_AS: failure ::value is false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_base_of<std::false_type,
                         macro_trait_count_7<without_value_type>>::value,
         "D_TYPE_TRAIT_TRUE_AS: failure base is std::false_type");
 
     // ---- D_TYPE_TRAIT_TRUE_FROM ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_has_vt_and_integral<int>::value == false,
         "D_TYPE_TRAIT_TRUE_FROM: int (no value_type) -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_trait_has_vt_and_integral<with_value_type_int>::value == false,
         "D_TYPE_TRAIT_TRUE_FROM: probe ok but delegate false -> false");
 
     // ---- D_TYPE_TRAIT_TYPE_ALIAS ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<macro_type_alias_subject_t<int>, const int>::value,
         "D_TYPE_TRAIT_TYPE_ALIAS: alias resolves to ::type (int -> const int)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<macro_type_alias_subject_t<float>, const float>::value,
         "D_TYPE_TRAIT_TYPE_ALIAS: alias resolves to ::type (float -> const float)");
 
     // ---- D_TYPE_TRAIT_VALUE_BOOL ----
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_value_bool_subject_v<int*> == true,
         "D_TYPE_TRAIT_VALUE_BOOL: _v alias (true case)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_value_bool_subject_v<int> == false,
         "D_TYPE_TRAIT_VALUE_BOOL: _v alias (false case)");
 #endif

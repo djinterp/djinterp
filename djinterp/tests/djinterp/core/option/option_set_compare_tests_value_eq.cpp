@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                         option_set_compare_tests_value_eq.cpp
+/*******************************************************************************
+* djinterp [test]                          option_set_compare_tests_value_eq.cpp
 *
 *   Section V of the option_set_compare.hpp suite: option_set_value_eq, the
 * parameterized value-equality trait.
@@ -24,8 +24,9 @@
 *
 * path:      /tests/djinterp/core/option/option_set_compare_tests_value_eq.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <type_traits>

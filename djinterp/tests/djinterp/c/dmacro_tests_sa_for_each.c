@@ -1,4 +1,15 @@
-#include ".\dmacro_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                     dmacro_tests_sa_for_each.c
+*
+*
+* path:      /tests/djinterp/c/dmacro_tests_sa_for_each.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 // helper macros for FOR_EACH testing

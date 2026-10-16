@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   test_handler_link_stubs.c
+/*******************************************************************************
+* djinterp [test]                                      test_handler_link_stubs.c
 *
 *   TEMPORARY stub implementations for framework functions whose source files
 * are not yet linked into the test_handler standalone test project.
@@ -16,15 +16,18 @@
 * are available.
 *
 *
-* path:      \test\c\test\test_handler_link_stubs.c
-* link:      TBA (temporary)
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.28
-******************************************************************************/
+* path:      /tests/djinterp/c/test/test_handler_link_stubs.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "../../../inc/c/test/test_handler.h"
-#include "../../../inc/c/test/test_tree.h"
+// std
 #include <stdlib.h>
 #include <string.h>
+// djinterp
+#include "../../../../inc/djinterp/c/test/test_handler.h"
+#include "../../../../inc/djinterp/c/test/test_tree.h"
 
 
 /******************************************************************************

@@ -1,13 +1,15 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                         dtime_tests_sa_sleep.c
 *
 *   Tests for sleep functions (nanosleep, usleep, sleep_ms).
 *
 *
-* path:      \src\test\dtime_tests_sa_sleep.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
+* path:      /tests/djinterp/c/dtime_tests_sa_sleep.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "dtime_tests_sa.h"
 
 
@@ -16,7 +18,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dtime_nanosleep
+d_tests_sa_dtime_nanosleep
   Tests d_nanosleep for high-resolution sleep.
   Tests the following:
   - sleeps for approximately the requested duration
@@ -29,7 +31,7 @@ d_tests_dtime_nanosleep
   - handles large nanosecond values (normalized)
 */
 struct d_test_object*
-d_tests_dtime_nanosleep
+d_tests_sa_dtime_nanosleep
 (
     void
 )
@@ -100,8 +102,8 @@ d_tests_dtime_nanosleep
     memset(&rem, 0xFF, sizeof(rem));
     result = d_nanosleep(&req, &rem);
     // on success without interruption, remaining should be zero or very small
-    test_remaining_cleared = (result == 0) && 
-                             (rem.tv_sec == 0) && 
+    test_remaining_cleared = (result == 0) &&
+                             (rem.tv_sec == 0) &&
                              (rem.tv_nsec < D_TIME_NSEC_PER_MSEC);
 
     // test 8: NULL remaining parameter is acceptable
@@ -149,7 +151,7 @@ d_tests_dtime_nanosleep
 
 
 /*
-d_tests_dtime_usleep
+d_tests_sa_dtime_usleep
   Tests d_usleep for microsecond sleep.
   Tests the following:
   - sleeps for approximately the requested duration
@@ -162,7 +164,7 @@ d_tests_dtime_usleep
   - handles exact millisecond boundaries
 */
 struct d_test_object*
-d_tests_dtime_usleep
+d_tests_sa_dtime_usleep
 (
     void
 )
@@ -196,7 +198,7 @@ d_tests_dtime_usleep
 
     test_sleep_duration = (elapsed_ms >= D_TEST_DTIME_SLEEP_TEST_MS);
     test_within_tolerance = (elapsed_ms >= D_TEST_DTIME_SLEEP_TEST_MS) &&
-                            (elapsed_ms <= D_TEST_DTIME_SLEEP_TEST_MS + 
+                            (elapsed_ms <= D_TEST_DTIME_SLEEP_TEST_MS +
                                            D_TEST_DTIME_SLEEP_TOLERANCE_MS);
 
     // test 2: returns 0 on success
@@ -281,7 +283,7 @@ d_tests_dtime_usleep
 
 
 /*
-d_tests_dtime_sleep_ms
+d_tests_sa_dtime_sleep_ms
   Tests d_sleep_ms for millisecond sleep (convenience function).
   Tests the following:
   - sleeps for approximately the requested duration
@@ -294,7 +296,7 @@ d_tests_dtime_sleep_ms
   - handles exact second boundaries
 */
 struct d_test_object*
-d_tests_dtime_sleep_ms
+d_tests_sa_dtime_sleep_ms
 (
     void
 )
@@ -327,7 +329,7 @@ d_tests_dtime_sleep_ms
 
     test_sleep_duration = (elapsed_ms >= (int64_t)sleep_ms);
     test_within_tolerance = (elapsed_ms >= (int64_t)sleep_ms) &&
-                            (elapsed_ms <= (int64_t)sleep_ms + 
+                            (elapsed_ms <= (int64_t)sleep_ms +
                                            D_TEST_DTIME_SLEEP_TOLERANCE_MS);
 
     // test 2: returns 0 on success
@@ -423,7 +425,7 @@ d_tests_dtime_sleep_ms
 
 
 /*
-d_tests_dtime_sleep_functions_all
+d_tests_sa_dtime_sleep_functions_all
   Runs all sleep function tests.
   Tests the following:
   - d_nanosleep
@@ -431,7 +433,7 @@ d_tests_dtime_sleep_functions_all
   - d_sleep_ms
 */
 struct d_test_object*
-d_tests_dtime_sleep_functions_all
+d_tests_sa_dtime_sleep_functions_all
 (
     void
 )
@@ -447,9 +449,9 @@ d_tests_dtime_sleep_functions_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dtime_nanosleep();
-    group->elements[idx++] = d_tests_dtime_usleep();
-    group->elements[idx++] = d_tests_dtime_sleep_ms();
+    group->elements[idx++] = d_tests_sa_dtime_nanosleep();
+    group->elements[idx++] = d_tests_sa_dtime_usleep();
+    group->elements[idx++] = d_tests_sa_dtime_sleep_ms();
 
     return group;
 }

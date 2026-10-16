@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    atomic_tests_version.cpp
+/*******************************************************************************
+* djinterp [test]                                       atomic_tests_version.cpp
 *
 *   Section II - atomic_version.  The generation-counter wrapper mirrors
 * atomic_size but exposes fetch_add plus the documented bump() mutation
@@ -11,14 +11,14 @@
 *
 * path:      /tests/djinterp/core/sync/atomic_tests_version.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <cstdint>
 #include <cstdio>
 #include <limits>
-
 // djinterp
 #include "atomic_tests.hpp"   // establishes the D_ENV_LANG_* feature gates
                              //   (and pulls <atomic> via atomic.hpp)
@@ -26,6 +26,7 @@
 // std (C++20-only; gated on the feature macro the header above establishes,
 // so this include must follow it)
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+    // std
     #include <atomic>
     #include <thread>
 #endif

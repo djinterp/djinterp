@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                             event_table_tests_merge_clear.cpp
+/*******************************************************************************
+* djinterp [test]                              event_table_tests_merge_clear.cpp
 *
 *   Section III (merge + clear) -- whole-table composition and teardown.
 * merge realizes the pointwise concatenation rho (+) rho': it appends _other's
@@ -13,10 +13,11 @@
 * mixing enabled and disabled entries.
 *
 *
-* path:      /tests/djinterp/core/event/event_table/event_table_tests_merge_clear.cpp
+* path:      /tests/djinterp/core/event/event_table_tests_merge_clear.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_table_tests.hpp"

@@ -1,4 +1,15 @@
-#include "./test_common_tests_sa.h"
+/*******************************************************************************
+* djinterp [test]                                    test_common_tests_sa_type.c
+*
+*
+* path:      /tests/djinterp/c/test/test_common_tests_sa_type.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "test_common_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /******************************************************************************

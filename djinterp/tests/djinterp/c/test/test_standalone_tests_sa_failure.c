@@ -7,7 +7,7 @@
 
 /*
 d_tests_sa_standalone_failure_entry_struct
-  Tests the d_test_sa_failure_entry structure.
+  Tests the d_test_standalone_failure_entry structure.
   Tests the following:
   - Structure has expected members
   - module_name member is accessible
@@ -21,7 +21,7 @@ d_tests_sa_standalone_failure_entry_struct
 )
 {
     bool                           result;
-    struct d_test_sa_failure_entry  entry;
+    struct d_test_standalone_failure_entry  entry;
 
     result = true;
 
@@ -67,7 +67,7 @@ d_tests_sa_standalone_failure_entry_struct
 
     // test 5: structure size is reasonable (three pointers)
     result = d_assert_standalone(
-        sizeof(struct d_test_sa_failure_entry) >=
+        sizeof(struct d_test_standalone_failure_entry) >=
             (3 * sizeof(void*)),
         "failure_entry_size",
         "failure_entry should be at least 3 pointers",
@@ -78,7 +78,7 @@ d_tests_sa_standalone_failure_entry_struct
 
 /*
 d_tests_sa_standalone_failure_list_struct
-  Tests the d_test_sa_failure_list structure.
+  Tests the d_test_standalone_failure_list structure.
   Tests the following:
   - Structure has expected members
   - count member is accessible
@@ -92,7 +92,7 @@ d_tests_sa_standalone_failure_list_struct
 )
 {
     bool                          result;
-    struct d_test_sa_failure_list  list;
+    struct d_test_standalone_failure_list  list;
 
     result = true;
 
@@ -128,7 +128,7 @@ d_tests_sa_standalone_failure_list_struct
 
 /*
 d_tests_sa_standalone_failure_list_init
-  Tests the d_test_sa_failure_list_init function.
+  Tests the d_test_standalone_failure_list_init function.
   Tests the following:
   - NULL list is handled safely
   - count is initialized to 0
@@ -142,12 +142,12 @@ d_tests_sa_standalone_failure_list_init
 )
 {
     bool                          result;
-    struct d_test_sa_failure_list  list;
+    struct d_test_standalone_failure_list  list;
 
     result = true;
 
     // test 1: NULL list is handled safely
-    d_test_sa_failure_list_init(NULL);
+    d_test_standalone_failure_list_init(NULL);
 
     result = d_assert_standalone(
         true,
@@ -156,7 +156,7 @@ d_tests_sa_standalone_failure_list_init
         _counter) && result;
 
     // test 2: count is initialized to 0
-    d_test_sa_failure_list_init(&list);
+    d_test_standalone_failure_list_init(&list);
 
     result = d_assert_standalone(
         list.count == 0,
@@ -179,14 +179,14 @@ d_tests_sa_standalone_failure_list_init
         _counter) && result;
 
     // cleanup
-    d_test_sa_failure_list_free(&list);
+    d_test_standalone_failure_list_free(&list);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_failure_list_add
-  Tests the d_test_sa_failure_list_add function.
+  Tests the d_test_standalone_failure_list_add function.
   Tests the following:
   - NULL list is handled safely
   - Entry is added correctly
@@ -201,12 +201,12 @@ d_tests_sa_standalone_failure_list_add
 )
 {
     bool                          result;
-    struct d_test_sa_failure_list  list;
+    struct d_test_standalone_failure_list  list;
 
     result = true;
 
     // test 1: NULL list is handled safely
-    d_test_sa_failure_list_add(NULL, "mod", "test", "msg");
+    d_test_standalone_failure_list_add(NULL, "mod", "test", "msg");
 
     result = d_assert_standalone(
         true,
@@ -215,8 +215,8 @@ d_tests_sa_standalone_failure_list_add
         _counter) && result;
 
     // test 2: entry is added, count is incremented
-    d_test_sa_failure_list_init(&list);
-    d_test_sa_failure_list_add(&list, "module1",
+    d_test_standalone_failure_list_init(&list);
+    d_test_standalone_failure_list_add(&list, "module1",
                                 "test_assert", "failed");
 
     result = d_assert_standalone(
@@ -259,9 +259,9 @@ d_tests_sa_standalone_failure_list_add
         _counter) && result;
 
     // test 6: multiple entries can be added
-    d_test_sa_failure_list_add(&list, "module2",
+    d_test_standalone_failure_list_add(&list, "module2",
                                 "test2", "msg2");
-    d_test_sa_failure_list_add(&list, "module3",
+    d_test_standalone_failure_list_add(&list, "module3",
                                 "test3", "msg3");
 
     result = d_assert_standalone(
@@ -278,7 +278,7 @@ d_tests_sa_standalone_failure_list_add
         _counter) && result;
 
     // test 8: NULL fields are stored as-is
-    d_test_sa_failure_list_add(&list, NULL, NULL, NULL);
+    d_test_standalone_failure_list_add(&list, NULL, NULL, NULL);
 
     result = d_assert_standalone(
         list.count == 4,
@@ -293,14 +293,14 @@ d_tests_sa_standalone_failure_list_add
         _counter) && result;
 
     // cleanup
-    d_test_sa_failure_list_free(&list);
+    d_test_standalone_failure_list_free(&list);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_failure_list_print_fn
-  Tests the d_test_sa_failure_list_print function.
+  Tests the d_test_standalone_failure_list_print function.
   Tests the following:
   - NULL list is handled safely
   - Empty list does not crash
@@ -313,12 +313,12 @@ d_tests_sa_standalone_failure_list_print_fn
 )
 {
     bool                          result;
-    struct d_test_sa_failure_list  list;
+    struct d_test_standalone_failure_list  list;
 
     result = true;
 
     // test 1: NULL list is handled safely
-    d_test_sa_failure_list_print(NULL);
+    d_test_standalone_failure_list_print(NULL);
 
     result = d_assert_standalone(
         true,
@@ -327,8 +327,8 @@ d_tests_sa_standalone_failure_list_print_fn
         _counter) && result;
 
     // test 2: empty list does not crash
-    d_test_sa_failure_list_init(&list);
-    d_test_sa_failure_list_print(&list);
+    d_test_standalone_failure_list_init(&list);
+    d_test_standalone_failure_list_print(&list);
 
     result = d_assert_standalone(
         true,
@@ -337,8 +337,8 @@ d_tests_sa_standalone_failure_list_print_fn
         _counter) && result;
 
     // test 3: non-empty list does not crash
-    d_test_sa_failure_list_add(&list, "mod", "test", "msg");
-    d_test_sa_failure_list_print(&list);
+    d_test_standalone_failure_list_add(&list, "mod", "test", "msg");
+    d_test_standalone_failure_list_print(&list);
 
     result = d_assert_standalone(
         true,
@@ -347,14 +347,14 @@ d_tests_sa_standalone_failure_list_print_fn
         _counter) && result;
 
     // cleanup
-    d_test_sa_failure_list_free(&list);
+    d_test_standalone_failure_list_free(&list);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_failure_list_print_file_fn
-  Tests the d_test_sa_failure_list_print_file function.
+  Tests the d_test_standalone_failure_list_print_file function.
   Tests the following:
   - NULL file is handled safely
   - NULL list is handled safely
@@ -367,14 +367,14 @@ d_tests_sa_standalone_failure_list_print_file_fn
 )
 {
     bool                          result;
-    struct d_test_sa_failure_list  list;
+    struct d_test_standalone_failure_list  list;
 
     result = true;
 
     // test 1: NULL file is handled safely
-    d_test_sa_failure_list_init(&list);
-    d_test_sa_failure_list_add(&list, "mod", "test", "msg");
-    d_test_sa_failure_list_print_file(NULL, &list);
+    d_test_standalone_failure_list_init(&list);
+    d_test_standalone_failure_list_add(&list, "mod", "test", "msg");
+    d_test_standalone_failure_list_print_file(NULL, &list);
 
     result = d_assert_standalone(
         true,
@@ -383,7 +383,7 @@ d_tests_sa_standalone_failure_list_print_file_fn
         _counter) && result;
 
     // test 2: NULL list is handled safely
-    d_test_sa_failure_list_print_file(stdout, NULL);
+    d_test_standalone_failure_list_print_file(stdout, NULL);
 
     result = d_assert_standalone(
         true,
@@ -392,7 +392,7 @@ d_tests_sa_standalone_failure_list_print_file_fn
         _counter) && result;
 
     // test 3: non-empty list writes to stdout without crash
-    d_test_sa_failure_list_print_file(stdout, &list);
+    d_test_standalone_failure_list_print_file(stdout, &list);
 
     result = d_assert_standalone(
         true,
@@ -401,14 +401,14 @@ d_tests_sa_standalone_failure_list_print_file_fn
         _counter) && result;
 
     // cleanup
-    d_test_sa_failure_list_free(&list);
+    d_test_standalone_failure_list_free(&list);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_failure_list_free
-  Tests the d_test_sa_failure_list_free function.
+  Tests the d_test_standalone_failure_list_free function.
   Tests the following:
   - NULL list is handled safely
   - Empty list is freed safely
@@ -421,12 +421,12 @@ d_tests_sa_standalone_failure_list_free
 )
 {
     bool                          result;
-    struct d_test_sa_failure_list  list;
+    struct d_test_standalone_failure_list  list;
 
     result = true;
 
     // test 1: NULL list is handled safely
-    d_test_sa_failure_list_free(NULL);
+    d_test_standalone_failure_list_free(NULL);
 
     result = d_assert_standalone(
         true,
@@ -435,8 +435,8 @@ d_tests_sa_standalone_failure_list_free
         _counter) && result;
 
     // test 2: empty list is freed safely
-    d_test_sa_failure_list_init(&list);
-    d_test_sa_failure_list_free(&list);
+    d_test_standalone_failure_list_init(&list);
+    d_test_standalone_failure_list_free(&list);
 
     result = d_assert_standalone(
         true,
@@ -445,10 +445,10 @@ d_tests_sa_standalone_failure_list_free
         _counter) && result;
 
     // test 3: non-empty list is freed safely
-    d_test_sa_failure_list_init(&list);
-    d_test_sa_failure_list_add(&list, "mod1", "test1", "msg1");
-    d_test_sa_failure_list_add(&list, "mod2", "test2", "msg2");
-    d_test_sa_failure_list_free(&list);
+    d_test_standalone_failure_list_init(&list);
+    d_test_standalone_failure_list_add(&list, "mod1", "test1", "msg1");
+    d_test_standalone_failure_list_add(&list, "mod2", "test2", "msg2");
+    d_test_standalone_failure_list_free(&list);
 
     result = d_assert_standalone(
         true,
@@ -457,7 +457,7 @@ d_tests_sa_standalone_failure_list_free
         _counter) && result;
 
     // test 4: double free is handled safely
-    d_test_sa_failure_list_free(&list);
+    d_test_standalone_failure_list_free(&list);
 
     result = d_assert_standalone(
         true,

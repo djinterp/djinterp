@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                 type_traits_tests_template.cpp
 *
 *   Unit tests for the template-detection traits in Section III of
@@ -28,9 +28,12 @@
 *     fires the trait.
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_template.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_template.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -193,70 +196,70 @@ type_traits_tests_template(
 )
 {
     // ---- is_template ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template<std::tuple<>>::value == true,
         "is_template<std::tuple<>> -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template<std::tuple<int>>::value == false,
         "is_template<std::tuple<int>> -> false (has args)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template<std::tuple<int, char>>::value == false,
         "is_template<std::tuple<int, char>> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template<int>::value == false,
         "is_template<int>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template<void>::value == false,
         "is_template<void>");
 
     // ---- is_template_with_args ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_with_args<std::tuple<int>>::value == true,
         "is_template_with_args<std::tuple<int>>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_with_args<std::tuple<int, char, float>>::value == true,
         "is_template_with_args<std::tuple<3 args>>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_with_args<std::tuple<>>::value == true,
         "is_template_with_args<std::tuple<>> (variadic empty OK)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_with_args<std::vector<int>>::value == true,
         "is_template_with_args<std::vector<int>>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_with_args<int>::value == false,
         "is_template_with_args<int>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_with_args<void>::value == false,
         "is_template_with_args<void>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_with_args<int*>::value == false,
         "is_template_with_args<int*>");
 
     // ---- cross-check ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( is_template<std::tuple<>>::value == true &&
           is_template_with_args<std::tuple<>>::value == true ),
         "Both traits fire on std::tuple<>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( is_template<std::tuple<int>>::value == false &&
           is_template_with_args<std::tuple<int>>::value == true ),
         "Only with_args fires on std::tuple<int>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( is_template<int>::value == false &&
           is_template_with_args<int>::value == false ),
         "Neither fires on int");
 
     // ---- is_template_parameter_base_of ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_parameter_base_of<derived_with_base_value_type>::value == true,
         "is_template_parameter_base_of: CRTP-style positive case");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_parameter_base_of<class_with_unrelated_value_type>::value == false,
         "is_template_parameter_base_of: vt unrelated -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_parameter_base_of<base_class_t>::value == false,
         "is_template_parameter_base_of: no value_type -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_template_parameter_base_of<int>::value == false,
         "is_template_parameter_base_of<int>");
 

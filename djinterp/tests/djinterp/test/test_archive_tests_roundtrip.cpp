@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                              test_archive_tests_roundtrip.cpp
+*
+* path:      /tests/djinterp/test/test_archive_tests_roundtrip.cpp
+******************************************************************************/
+// djinterp
 #include "test_archive_tests.hpp"
 
 NS_DJINTERP
@@ -19,7 +25,7 @@ tests_archive_roundtrip_reports_facade_status()
 {
     const dj::entry_list items = ta_sample_entries();
     dj::entry_list       out;
-    dj::byte_buffer      blob;
+    dj::byte_blob      blob;
 
     // zip: whatever creation reports, the driver agrees
     const dj::status zip_create =
@@ -99,8 +105,8 @@ tests_archive_roundtrip_preserves_files()
 
     items.push_back(dt::make_text_entry("a.txt", "plain text"));
     items.push_back(dt::make_file_entry("bin/blob",
-                                        dj::byte_buffer("x\0y\0z", 5)));
-    items.push_back(dt::make_file_entry("empty", dj::byte_buffer()));
+                                        dj::byte_blob("x\0y\0z", 5)));
+    items.push_back(dt::make_file_entry("empty", dj::byte_blob()));
     items.push_back(dt::make_dir_entry("bin"));
 
     dj::entry_list   out;
@@ -122,14 +128,14 @@ tests_archive_roundtrip_preserves_files()
         D_TA_CHECK(dt::has_entry(out, "bin/blob"));
 
         // including the NUL-bearing one, byte for byte
-        dj::byte_buffer got;
+        dj::byte_blob got;
 
         D_TA_CHECK(dt::file_data(out, "bin/blob", got));
         D_TA_CHECK(got.size() == 5u);
-        D_TA_CHECK(got == dj::byte_buffer("x\0y\0z", 5));
+        D_TA_CHECK(got == dj::byte_blob("x\0y\0z", 5));
 
         // and the empty file survived as an empty file
-        dj::byte_buffer hollow("sentinel");
+        dj::byte_blob hollow("sentinel");
 
         D_TA_CHECK(dt::file_data(out, "empty", hollow));
         D_TA_CHECK(hollow.empty());
@@ -191,7 +197,7 @@ tests_archive_roundtrip_contract_all_formats()
 
     // the sweep is not vacuous: the built-in writers mean at least one
     // format really did take the success branch above
-    dj::byte_buffer blob;
+    dj::byte_blob blob;
 
     D_TA_CHECK(dj::try_archive<dj::formats::zip>(items, blob,
                                                  dj::archive_options()) ==
@@ -306,7 +312,7 @@ tests_archive_roundtrip_handles_degenerate_lists()
         D_TA_CHECK(dt::count_files(out) == 0u);
 
         // and the container advertises no members
-        dj::byte_buffer blob;
+        dj::byte_blob blob;
 
         D_TA_CHECK(dj::try_archive<dj::formats::zip>(empty, blob,
                                                      dj::archive_options()) ==
@@ -339,7 +345,7 @@ tests_archive_roundtrip_handles_degenerate_lists()
     // a single empty file is not the same as no files at all
     dj::entry_list hollow;
 
-    hollow.push_back(dt::make_file_entry("e", dj::byte_buffer()));
+    hollow.push_back(dt::make_file_entry("e", dj::byte_blob()));
 
     D_TA_CHECK(dt::count_files(hollow) == 1u);
 
@@ -369,7 +375,7 @@ bool
 tests_archive_writability_is_independent()
 {
     const dj::entry_list items = ta_sample_entries();
-    dj::byte_buffer      blob;
+    dj::byte_blob      blob;
 
     // the built-in writers work regardless of the writability query.  This
     // is the pin: should archive_create later be gated on format_can_write,

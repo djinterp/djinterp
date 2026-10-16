@@ -68,6 +68,8 @@ TABLE OF CONTENTS
     2.  The container
          1.  d_parsegen_grammar
          2.  Grammar flags
+    3.  Diagnostic codes
+         1.  d_parsegen_grammar_diag
 3.  OPERATIONS
     ----------
     1.  Lifetime
@@ -273,6 +275,27 @@ struct d_parsegen_grammar
 // D_PARSEGEN_GRAMMAR_VERIFIED
 //   constant: structure has been checked since the last edit.
 #define D_PARSEGEN_GRAMMAR_VERIFIED     0x08u
+
+
+// 2.3    Diagnostic codes
+//------------------------------------------------------------------------------
+// 2.3.1
+// d_parsegen_grammar_diag
+//   enum: the conditions resolution and verification report, under
+// D_PARSEGEN_DIAG_DOMAIN_GRAMMAR. A code is meaningful only alongside its
+// domain, and together they are the stable identity of a diagnostic: tests and
+// tools match on the pair, and the message text may be reworded freely.
+// Append-only -- a code once published is never renumbered.
+enum d_parsegen_grammar_diag
+{
+    D_PARSEGEN_DIAG_GRAMMAR_UNRESOLVED_REF = 0,
+    D_PARSEGEN_DIAG_GRAMMAR_BAD_START      = 1,
+    D_PARSEGEN_DIAG_GRAMMAR_UNKNOWN_KIND   = 2,
+    D_PARSEGEN_DIAG_GRAMMAR_BAD_CHILD      = 3,
+    D_PARSEGEN_DIAG_GRAMMAR_SIBLING_CYCLE  = 4,
+    D_PARSEGEN_DIAG_GRAMMAR_BAD_ARITY      = 5,
+    D_PARSEGEN_DIAG_GRAMMAR_NO_BODY        = 6
+};
 
 
 //==============================================================================

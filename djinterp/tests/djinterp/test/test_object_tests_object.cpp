@@ -1,7 +1,17 @@
+/*******************************************************************************
+* djinterp [test]                                   test_object_tests_object.cpp
+*
+*
+* path:      /tests/djinterp/test/test_object_tests_object.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstdint>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 // djinterp
 #include "test_object_tests.hpp"
@@ -57,7 +67,10 @@ static_assert(std::is_same<std::remove_cv<
                   std::int64_t>::value, "");
 
 // -- storage : member types ---------------------------------------------------
-static_assert(std::is_same<decltype(basic_test::m_result),     bool>::value, "");
+//   ruling 13 removed the stored m_result; the verdict is derived, so what is
+// pinned here is the accessor's return type, not a member's.
+static_assert(std::is_same<decltype(std::declval<const basic_test&>().result()),
+                           bool>::value, "");
 static_assert(std::is_same<decltype(basic_test::m_status),
                            basic_test::status_type>::value, "");
 static_assert(std::is_same<decltype(basic_test::m_type_id),
@@ -178,8 +191,8 @@ tests_object_status_constants()
 tests_object_storage
   Verifies the stored members' types.
   Tests the following:
-  - m_result / m_status / m_type_id / m_callable_id / m_metadata have the
-    declared types
+  - m_status / m_type_id / m_callable_id / m_metadata have the declared types
+  - result() is derived from m_status and still returns bool (ruling 13)
   - a custom container threads straight through to m_metadata
   (No unique-id or depth member exists: identity and depth are the owning
   tree's concern, per the header contract.)
@@ -189,8 +202,9 @@ tests_object_storage()
 {
     bool ok = true;
 
-    ok = D_TO_CHECK(std::is_same<decltype(basic_test::m_result),
-                                 bool>::value) && ok;
+    ok = D_TO_CHECK(std::is_same<
+                        decltype(std::declval<const basic_test&>().result()),
+                        bool>::value) && ok;
     ok = D_TO_CHECK(std::is_same<decltype(basic_test::m_status),
                                  basic_test::status_type>::value) && ok;
     ok = D_TO_CHECK(std::is_same<decltype(basic_test::m_type_id),

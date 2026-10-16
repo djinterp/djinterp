@@ -1,16 +1,21 @@
-/******************************************************************************
-* djinterp [functional]                          producer_tests_terminals.cpp
+/*******************************************************************************
+* djinterp [functional]                             producer_tests_terminals.cpp
 *
 *   Tests for the free terminal conveniences: collect, for_each, and fold.
 * These differ from the inherited producer_base::collect() in that they take
 * the producer by lvalue reference and drive it externally.
 *
-* path:      /src/functional/producer_tests_terminals.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/producer_tests_terminals.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "./producer_tests.hpp"
-
+// std
 #include <vector>
+// djinterp
+#include "./producer_tests.hpp"
 
 
 NS_DJINTERP

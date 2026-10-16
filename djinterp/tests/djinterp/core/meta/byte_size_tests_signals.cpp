@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   byte_size_tests_signals.cpp
+/*******************************************************************************
+* djinterp [test]                                    byte_size_tests_signals.cpp
 *
 *   Section II of byte_size.hpp: the internal storage-shape signal detectors
 * that decide a container's dynamic footprint.  They are implementation detail
@@ -19,10 +19,13 @@
 *   Also: the detectors strip cv / ref via clean_t, so qualified inputs agree.
 *
 *
-* path:      /inc/djinterp/test/byte_size_tests_signals.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.03
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/byte_size_tests_signals.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "byte_size_tests.hpp"
 
 

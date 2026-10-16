@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 option_builder_tests_lift.cpp
+/*******************************************************************************
+* djinterp [test]                                  option_builder_tests_lift.cpp
 *
 *   Section II of the option_builder.hpp suite: the tuple-to-set lift.
 *
@@ -17,8 +17,9 @@
 *
 * path:      /tests/djinterp/core/option/option_builder_tests_lift.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <tuple>

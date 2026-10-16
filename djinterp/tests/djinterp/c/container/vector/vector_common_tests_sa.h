@@ -1,28 +1,31 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                       vector_common_tests_sa.h
 *
 *   Unit test declarations for `vector_common.h` module.
 *   Provides comprehensive testing of all vector_common utility functions
-* including initialization, capacity management, element manipulation, 
-* append/prepend operations, resize operations, access functions, query 
+* including initialization, capacity management, element manipulation,
+* append/prepend operations, resize operations, access functions, query
 * functions, utility functions, and cleanup.
 *
 *
-* path:      \tests\container\vector\vector_common_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.29
-******************************************************************************/
+* path:      /tests/djinterp/c/container/vector/vector_common_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_VECTOR_COMMON_SA_
 #define DJINTERP_TESTS_VECTOR_COMMON_SA_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../../../inc/c/test/test_standalone.h"
-#include "../../../../inc/c/container/vector/vector_common.h"
-#include "../../../../inc/c/string_fn.h"
+// djinterp
+#include "../../../../../inc/djinterp/c/container/vector/vector_common.h"
+#include "../../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

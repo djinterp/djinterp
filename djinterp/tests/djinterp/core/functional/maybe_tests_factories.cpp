@@ -1,12 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                    maybe_tests_factories.cpp
+/*******************************************************************************
+* djinterp [test]                                      maybe_tests_factories.cpp
 *
 * Factory-function tests for maybe.hpp section III:
 *   test_factories -- just, nothing<T>, from_pointer (null / non-null),
 *                     from_predicate (satisfied / not satisfied).
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/maybe_tests_factories.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <string>
+// djinterp
 #include "./maybe_tests.hpp"
 
 

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                            producer_tests_traits.cpp
+/*******************************************************************************
+* djinterp [functional]                                producer_tests_traits.cpp
 *
 *   Tests for the producer detection traits: is_producer_step, is_producer,
 * producer_value_type, and the C++20 concepts producer_step_type / producer.
@@ -9,13 +9,18 @@
 * static_assert (which fire at build time). A representative subset is also
 * re-checked at runtime so the harness registry reflects this section.
 *
-* path:      /src/functional/producer_tests_traits.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/producer_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "./producer_tests.hpp"
-
-#include <vector>
+// std
 #include <type_traits>
+#include <vector>
+// djinterp
+#include "./producer_tests.hpp"
 
 
 NS_DJINTERP

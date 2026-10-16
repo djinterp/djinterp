@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        view_tests_source.cpp
+/*******************************************************************************
+* djinterp [test]                                          view_tests_source.cpp
 *
 * Source view tests (section III): views that produce elements with no input
 * view.
@@ -16,9 +16,17 @@
 *                    non-const instance.
 *   test_empty    -- the zero-element source.
 *   test_single   -- the one-element source.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/view_tests_source.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <vector>
+// djinterp
 #include "./view_tests.hpp"
 
 

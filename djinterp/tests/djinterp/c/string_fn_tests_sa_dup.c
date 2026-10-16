@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                       string_fn_tests_sa_dup.c
+*
+*
+* path:      /tests/djinterp/c/string_fn_tests_sa_dup.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./string_fn_tests_sa.h"
 
 
@@ -38,7 +48,7 @@ d_tests_sa_string_fn_strdup
 
     // test 1: normal duplication
     dup1 = d_strdup(D_TEST_DSTRING_MEDIUM_STR);
-    test_normal_dup = (dup1 != NULL) && 
+    test_normal_dup = (dup1 != NULL) &&
                      (strcmp(dup1, D_TEST_DSTRING_MEDIUM_STR) == 0) &&
                      (dup1 != D_TEST_DSTRING_MEDIUM_STR);
 
@@ -48,30 +58,30 @@ d_tests_sa_string_fn_strdup
 
     // test 3: empty string
     dup3 = d_strdup("");
-    test_empty_string = (dup3 != NULL) && 
-                       (dup3[0] == '\0') && 
+    test_empty_string = (dup3 != NULL) &&
+                       (dup3[0] == '\0') &&
                        (strlen(dup3) == 0);
 
     // test 4: independence (modify original after dup)
     dup4 = d_strdup(original);
     test_independence = false;
-    
+
     if (dup4)
     {
         original[0] = 'X';
-        test_independence = (dup4[0] == 'M') && 
+        test_independence = (dup4[0] == 'M') &&
                           (strcmp(dup4, "Modifiable") == 0);
     }
 
     // test 5: special characters
     char special[] = "Tab\there\nNewline\r\nCRLF";
     char* dup5 = d_strdup(special);
-    test_special_chars = (dup5 != NULL) && 
+    test_special_chars = (dup5 != NULL) &&
                          (strcmp(dup5, special) == 0);
 
     // test 6: memory is actually allocated (different pointers)
     char* dup6 = d_strdup(D_TEST_DSTRING_SHORT_STR);
-    test_memory_allocated = (dup6 != NULL) && 
+    test_memory_allocated = (dup6 != NULL) &&
                            (dup6 != D_TEST_DSTRING_SHORT_STR);
 
     // cleanup
@@ -146,19 +156,19 @@ d_tests_sa_string_fn_strndup
 
     // test 1: partial duplication (first 5 chars of "Hello, World!")
     dup1 = d_strndup(D_TEST_DSTRING_MEDIUM_STR, 5);
-    test_partial_dup = (dup1 != NULL) && 
-                      (strcmp(dup1, "Hello") == 0) && 
+    test_partial_dup = (dup1 != NULL) &&
+                      (strcmp(dup1, "Hello") == 0) &&
                       (strlen(dup1) == 5);
 
     // test 2: null termination
     dup2 = d_strndup("Testing123", 4);
-    test_null_termination = (dup2 != NULL) && 
-                           (dup2[4] == '\0') && 
+    test_null_termination = (dup2 != NULL) &&
+                           (dup2[4] == '\0') &&
                            (strcmp(dup2, "Test") == 0);
 
     // test 3: n larger than string length
     dup3 = d_strndup(D_TEST_DSTRING_SHORT_STR, 100);
-    test_n_larger = (dup3 != NULL) && 
+    test_n_larger = (dup3 != NULL) &&
                    (strcmp(dup3, D_TEST_DSTRING_SHORT_STR) == 0) &&
                    (strlen(dup3) == strlen(D_TEST_DSTRING_SHORT_STR));
 
@@ -172,7 +182,7 @@ d_tests_sa_string_fn_strndup
 
     // test 6: proper truncation
     char* dup6 = d_strndup(D_TEST_DSTRING_LONG_STR, 20);
-    test_truncation = (dup6 != NULL) && 
+    test_truncation = (dup6 != NULL) &&
                      (strlen(dup6) == 20) &&
                      (strncmp(dup6, D_TEST_DSTRING_LONG_STR, 20) == 0);
 
@@ -459,5 +469,3 @@ d_tests_sa_string_fn_case_comparison_all
 
     return group;
 }
-
-

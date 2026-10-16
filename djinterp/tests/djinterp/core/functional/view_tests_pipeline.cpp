@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      view_tests_pipeline.cpp
+/*******************************************************************************
+* djinterp [test]                                        view_tests_pipeline.cpp
 *
 * Pipeline operator tests (section VI): operator| for view|adapter and
 * container|adapter, plus multi-stage chaining.
@@ -9,9 +9,17 @@
 *                                   ref_view before the adapter applies.
 *   test_pipeline_chain         -- several adapters compose left-to-right and
 *                                   stay lazy until a terminal drains them.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/view_tests_pipeline.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <vector>
+// djinterp
 #include "./view_tests.hpp"
 
 

@@ -1,71 +1,53 @@
-// djinterp
-#include "../../../../../../../../../tests/djinterp/core/event/event_handler/event_handler_tests.hpp"
-#include "djinterp/test/test_report_runner.hpp"    // report_builder + report model
+/******************************************************************************
+* djinterp [test]                                event_handler_tests_runner.cpp
+*
+*   Enriched runner for the event_handler unit tests.  The suite describes
+* itself: event_handler_tests.hpp, compiled with DTEST_SPEC_MODE, exposes
+* event_handler_spec() - the suite's blocks as data, each unit test paired with
+* a name and a one-line descriptor.  run_module (test_defaults.hpp) lowers that
+* spec into the six-kind tree, describes it, and drives the report to the
+* console and - as configured by a test_option_set - a PDF.  This file is only
+* the entry point.
+*
+*   OUTPUT VIA TEST_OPTIONS:
+*   Rather than the bare-filename convenience, this runner builds a
+* test_option_set (test_options.hpp) and selects the PDF face on it:
+*     opts.set<test_option::document>(test_doc_type::pdf);        // emit a PDF
+*     opts.set<test_option::output_file>("event_handler_tests.pdf");
+* then hands the set to run_module's option-set overload.  document /
+* output_file / split / show now ride the one configuration surface, so tuning
+* any of them (split -> per_module, show -> failures_only, ...) is a one-line
+* change here and needs no runner-shape edit.  Leave `document` at its txt
+* default for a console-only run.
+*
+*   DTEST_SPEC_MODE swaps the header's fixtures for its spec provider, so the
+* runner pulls in the authoring surface without the section-file fixtures.
+*
+* path:      /build/cmake/config/testing/djinterp/core/event/event_handler/event_handler_tests_runner.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.01
+******************************************************************************/
 
+#define DTEST_SPEC_MODE                    // expose event_handler_spec(); omit fixtures
+#include "event_handler_tests.hpp"        // resolved via the test include path
 
-// D_EH_RUN
-//   macro: runs ::djinterp::testing::<fn> as a unit test named for the
-// function - recorded in the report and echoed to the live console.
-#define D_EH_RUN(_fn)   rb.run(#_fn, &::djinterp::testing::_fn)
+#include <string>
 
 
 int
 main()
 {
-    ::djinterp::test::report_builder rb;
+    namespace dt = ::djinterp::test;
 
-    rb.set_title("event_handler.hpp unit tests");
+    // configure the report through the option set: PDF, to a named file.
+    dt::test_option_set opts = dt::default_test_options();
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("event_handler_tests.pdf"));
 
-    // write a PDF beside the live console output; omit this line for a
-    // console-only run (see test_options.hpp for layout / naming knobs).
-    rb.use_pdf("event_handler_tests.pdf");
-
-    rb.module("event_handler",
-              "The handler primitive: handler_id, verdict normalization and "
-              "tuple-apply, handler compatibility traits, the seq/skip monoid, "
-              "and the C++20 concept layer");
-
-    // handler identification
-    D_EH_RUN(tests_handler_id_relational);
-    D_EH_RUN(tests_handler_id_validity);
-    D_EH_RUN(tests_handler_id_null);
-    D_EH_RUN(tests_handler_id_value_semantics);
-
-    // verdict normalization + tuple-apply
-    D_EH_RUN(tests_invoke_normalized_void);
-    D_EH_RUN(tests_invoke_normalized_verdict);
-    D_EH_RUN(tests_apply_handler_arities);
-    D_EH_RUN(tests_apply_handler_void_normalization);
-    D_EH_RUN(tests_apply_handler_forwards_values);
-
-    // handler compatibility detection + traits
-    D_EH_RUN(tests_handler_traits_is_invocable);
-    D_EH_RUN(tests_handler_traits_return_type);
-    D_EH_RUN(tests_handler_traits_returns_void_verdict);
-    D_EH_RUN(tests_handler_traits_is_compatible);
-    D_EH_RUN(tests_handler_traits_is_nothrow);
-    D_EH_RUN(tests_handler_traits_expected_arity);
-    D_EH_RUN(tests_handler_traits_cvref);
-
-    // the handler monoid (seq, skip)
-    D_EH_RUN(tests_skip_always_pass);
-    D_EH_RUN(tests_seq_pass_pass);
-    D_EH_RUN(tests_seq_left_zero);
-    D_EH_RUN(tests_seq_void_normalization);
-    D_EH_RUN(tests_seq_associativity);
-    D_EH_RUN(tests_seq_lvalue_passthrough);
-    D_EH_RUN(tests_seq_clean_type);
-
-    // concept constraints (C++20+; vacuous pass where concepts are absent)
-    D_EH_RUN(tests_concept_is_handler);
-    D_EH_RUN(tests_concept_handler_for);
-    D_EH_RUN(tests_concept_void_verdict_handler_for);
-    D_EH_RUN(tests_concept_nothrow_handlers);
-    D_EH_RUN(tests_concept_handler_for_event_of_arity);
-    D_EH_RUN(tests_concept_arity_aliases);
-    D_EH_RUN(tests_concept_non_event_safety);
-
-    return rb.finish();
+    return dt::run_module(
+        ::djinterp::testing::event_handler_spec(),
+        "event_handler.hpp unit tests",
+        "enriched: six-kind vocabulary, per-node metadata",
+        opts);
 }
-
-#undef D_EH_RUN

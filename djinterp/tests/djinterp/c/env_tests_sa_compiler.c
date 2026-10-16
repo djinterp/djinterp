@@ -1,18 +1,23 @@
-/******************************************************************************
-* djinterp [test]                                      env_tests_sa_compiler.c
+/*******************************************************************************
+* djinterp [test]                                        env_tests_sa_compiler.c
 *
 * Unit tests for `env.h` compiler detection section (Section IV).
 * Tests compiler detection, version info, version comparison, VA_OPT detection,
 * and preprocessor limits.
-* Note: this module is required to build DTest, so it uses `test_standalone.h`.
+* Note: this module is required to build DTest, so it does not use DTest.
 *
-* path:      \test\env_tests_sa_compiler.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.09.26
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/env_tests_sa_compiler.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.26
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "env_tests_sa.h"
+// std
 #include <string.h>
+// djinterp
+#include "env_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

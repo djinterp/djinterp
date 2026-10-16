@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        view_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                          view_tests_traits.cpp
 *
 * SFINAE trait & concept tests for view.hpp (sections I and VIII):
 *   is_view, has_begin_end, is_pipeable_to_view, view_value_type, is_adapter,
@@ -9,10 +9,18 @@
 *   Compile-time guarantees are asserted at file scope via static_assert; the
 * runtime sections mirror them so the counts roll into the report and the
 * gated variable-template / concept paths are exercised when available.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/view_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <type_traits>
+#include <vector>
+// djinterp
 #include "./view_tests.hpp"
 
 

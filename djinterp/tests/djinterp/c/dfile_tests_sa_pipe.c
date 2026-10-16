@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                         dfile_tests_sa_pipe.c
+/*******************************************************************************
+* djinterp [test]                                          dfile_tests_sa_pipe.c
 *
 *   Tests for pipe operations (popen, pclose).
 *
 *
-* path:      \src	est\dfile_tests_sa_pipe.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
-#include ".\dfile_tests_sa.h"
+* path:      /tests/djinterp/c/dfile_tests_sa_pipe.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dfile_tests_sa.h"
 
 
 /******************************************************************************
@@ -17,7 +19,7 @@
 
 /*
 d_tests_dfile_popen_pclose
-  Tests d_popen and d_pclose for process pipes.
+  Tests d_pipe_open and d_pipe_close for process pipes.
   Tests the following:
   - opens pipe for reading
   - can read output from command
@@ -42,9 +44,9 @@ d_tests_dfile_popen_pclose
 
     // test 1, 2, 3: open pipe, read, and close
 #if defined(D_FILE_PLATFORM_WINDOWS)
-    pipe_stream = d_popen("echo test", "r");
+    pipe_stream = d_pipe_open("echo test", "r");
 #else
-    pipe_stream = d_popen("echo test", "r");
+    pipe_stream = d_pipe_open("echo test", "r");
 #endif
 
     test_open = (pipe_stream != NULL);
@@ -60,16 +62,16 @@ d_tests_dfile_popen_pclose
         }
 
         // test 3: close pipe
-        close_result = d_pclose(pipe_stream);
+        close_result = d_pipe_close(pipe_stream);
         test_close = (close_result != -1);
     }
 
     // test 4: NULL command
-    pipe_stream = d_popen(NULL, "r");
+    pipe_stream = d_pipe_open(NULL, "r");
     test_null_command = (pipe_stream == NULL);
 
     // build result tree
-    group = d_test_object_new_interior("d_popen/d_pclose", 4);
+    group = d_test_object_new_interior("d_pipe_open/d_pipe_close", 4);
 
     if (!group)
     {
@@ -79,16 +81,16 @@ d_tests_dfile_popen_pclose
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("open",
                                            test_open,
-                                           "d_popen opens pipe");
+                                           "d_pipe_open opens pipe");
     group->elements[idx++] = D_ASSERT_TRUE("read",
                                            test_read,
                                            "can read from pipe");
     group->elements[idx++] = D_ASSERT_TRUE("close",
                                            test_close,
-                                           "d_pclose closes pipe");
+                                           "d_pipe_close closes pipe");
     group->elements[idx++] = D_ASSERT_TRUE("null_command",
                                            test_null_command,
-                                           "d_popen returns NULL for NULL command");
+                                           "d_pipe_open returns NULL for NULL command");
 
     return group;
 }
@@ -98,7 +100,7 @@ d_tests_dfile_popen_pclose
 d_tests_dfile_pipe_operations_all
   Runs all pipe operation tests.
   Tests the following:
-  - d_popen/d_pclose
+  - d_pipe_open/d_pipe_close
 */
 struct d_test_object*
 d_tests_dfile_pipe_operations_all
@@ -121,5 +123,3 @@ d_tests_dfile_pipe_operations_all
 
     return group;
 }
-
-

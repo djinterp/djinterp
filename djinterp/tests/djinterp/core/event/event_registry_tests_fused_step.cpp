@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                         event_registry_tests_fused_step.cpp
+/*******************************************************************************
+* djinterp [test]                            event_registry_tests_fused_step.cpp
 *
 *   Section II -- FUSED STEP.  Drives fused_step directly with hand-built words
 * of erased verdict(void*) letters.  Covers the empty step (size zero, folds to
@@ -9,10 +9,11 @@
 * arguments and run_one(payload) which folds over an already-built payload.
 *
 *
-* path:      /tests/djinterp/core/event/event_registry/event_registry_tests_fused_step.cpp
+* path:      /tests/djinterp/core/event/event_registry_tests_fused_step.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_registry_tests.hpp"

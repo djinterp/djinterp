@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 comonad_tests_duplicate.cpp
+/*******************************************************************************
+* djinterp [test]                                    comonad_tests_duplicate.cpp
 *
 *   Section II.3 of the comonad.hpp suite: duplicate, which nests a comonad one
 * level (W<A> -> W<W<A>>) and is defined as extend with the identity.  Covers
@@ -8,10 +8,12 @@
 * comonad law extract . duplicate == id, the equivalence duplicate(w) ==
 * extend(w, id), and the result types.
 *
+*
 * path:      /tests/djinterp/core/functional/comonad_tests_duplicate.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "comonad_tests.hpp"

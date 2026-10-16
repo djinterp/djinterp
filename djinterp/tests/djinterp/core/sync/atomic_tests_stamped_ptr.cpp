@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                atomic_tests_stamped_ptr.cpp
+/*******************************************************************************
+* djinterp [test]                                   atomic_tests_stamped_ptr.cpp
 *
 *   Section IV - atomic_stamped_ptr<T>.  The ABA-defeating packed pointer is
 * the most edge-heavy type in the header, so this section is the largest:
@@ -25,14 +25,14 @@
 *
 * path:      /tests/djinterp/core/sync/atomic_tests_stamped_ptr.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
-
 // djinterp
 #include "atomic_tests.hpp"
 

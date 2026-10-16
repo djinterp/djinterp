@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       dstring_tests_compare.c
+/*******************************************************************************
+* djinterp [test]                                     dstring_tests_sa_compare.c
 *
 *   Unit tests for d_string comparison functions:
 *     - d_string_compare
@@ -15,12 +15,15 @@
 *     - d_string_equals_ignore_case
 *     - d_string_equals_cstr_ignore_case
 *
-* path:      \src\test\dstring_tests_compare.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_compare.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "../../tests/c/dstring_tests_sa.h"
+// djinterp
+#include "dstring_tests_sa.h"
 
 
 /******************************************************************************

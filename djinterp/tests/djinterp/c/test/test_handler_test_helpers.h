@@ -1,20 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                   test_handler_test_helpers.h
+/*******************************************************************************
+* djinterp [test]                                    test_handler_test_helpers.h
 *
 *   Shared helper functions used by the test_handler standalone test suites.
 *   Provides factory functions for creating pre-configured passing and failing
 * tests, and utility functions for populating test blocks with children.
 *
 *
-* path:      \test\c\test\test_handler_test_helpers.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.28
-******************************************************************************/
+* path:      /tests/djinterp/c/test/test_handler_test_helpers.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_HANDLER_TEST_HELPERS_
 #define DJINTERP_TEST_HANDLER_TEST_HELPERS_ 1
 
-#include "../../../inc/c/test/test_handler.h"
+// djinterp
+#include "../../../../inc/djinterp/c/test/test_handler.h"
 
 
 /******************************************************************************

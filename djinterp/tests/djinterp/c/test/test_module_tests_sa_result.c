@@ -197,7 +197,7 @@ d_tests_sa_test_module_get_result_null
         all_passed = false;
     }
 
-    // unrun module — result is pre-allocated with default values
+    // unrun module - result is pre-allocated with default values
     mod = d_test_module_new(NULL, 0);
 
     if (mod)

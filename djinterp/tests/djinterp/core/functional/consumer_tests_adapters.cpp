@@ -1,18 +1,25 @@
-/******************************************************************************
-* djinterp [test]                                consumer_tests_adapters.cpp
+/*******************************************************************************
+* djinterp [test]                                    consumer_tests_adapters.cpp
 *
 *   Tests for consumer.hpp Section II adapters: filtered (predicate
 * gate) and mapped (contramap / input transform).  Covers pass-through
 * and rejection by the predicate, the always-true / always-false
 * boundary predicates, same-type and type-changing maps, and the
 * composition of filtered with mapped.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/consumer_tests_adapters.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "consumer_tests.hpp"
-
+// std
 #include <sstream>
 #include <string>
 #include <vector>
+// djinterp
+#include "consumer_tests.hpp"
 
 
 NS_DJINTERP

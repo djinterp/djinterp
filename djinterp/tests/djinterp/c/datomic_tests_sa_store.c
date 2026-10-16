@@ -1,14 +1,14 @@
-#include ".\datomic_tests_sa.h"
+#include "./datomic_tests_sa.h"
 
 
 /*
-d_tests_sa_atomic_store_int
+d_tests_sa_datomic_store_int
   Tests atomic store for int type.
   Tests the following:
   - d_atomic_store_int sets the correct value
 */
 bool
-d_tests_sa_atomic_store_int
+d_tests_sa_datomic_store_int
 (
     struct d_test_counter* _counter
 )
@@ -31,13 +31,13 @@ d_tests_sa_atomic_store_int
 }
 
 /*
-d_tests_sa_atomic_store_uint
+d_tests_sa_datomic_store_uint
   Tests atomic store for unsigned int type.
   Tests the following:
   - d_atomic_store_uint sets the correct value
 */
 bool
-d_tests_sa_atomic_store_uint
+d_tests_sa_datomic_store_uint
 (
     struct d_test_counter* _counter
 )
@@ -60,13 +60,13 @@ d_tests_sa_atomic_store_uint
 }
 
 /*
-d_tests_sa_atomic_store_long
+d_tests_sa_datomic_store_long
   Tests atomic store for long type.
   Tests the following:
   - d_atomic_store_long sets the correct value
 */
 bool
-d_tests_sa_atomic_store_long
+d_tests_sa_datomic_store_long
 (
     struct d_test_counter* _counter
 )
@@ -89,13 +89,13 @@ d_tests_sa_atomic_store_long
 }
 
 /*
-d_tests_sa_atomic_store_ulong
+d_tests_sa_datomic_store_ulong
   Tests atomic store for unsigned long type.
   Tests the following:
   - d_atomic_store_ulong sets the correct value
 */
 bool
-d_tests_sa_atomic_store_ulong
+d_tests_sa_datomic_store_ulong
 (
     struct d_test_counter* _counter
 )
@@ -118,13 +118,13 @@ d_tests_sa_atomic_store_ulong
 }
 
 /*
-d_tests_sa_atomic_store_llong
+d_tests_sa_datomic_store_llong
   Tests atomic store for long long type.
   Tests the following:
   - d_atomic_store_llong sets the correct value
 */
 bool
-d_tests_sa_atomic_store_llong
+d_tests_sa_datomic_store_llong
 (
     struct d_test_counter* _counter
 )
@@ -147,13 +147,13 @@ d_tests_sa_atomic_store_llong
 }
 
 /*
-d_tests_sa_atomic_store_ullong
+d_tests_sa_datomic_store_ullong
   Tests atomic store for unsigned long long type.
   Tests the following:
   - d_atomic_store_ullong sets the correct value
 */
 bool
-d_tests_sa_atomic_store_ullong
+d_tests_sa_datomic_store_ullong
 (
     struct d_test_counter* _counter
 )
@@ -176,13 +176,13 @@ d_tests_sa_atomic_store_ullong
 }
 
 /*
-d_tests_sa_atomic_store_ptr
+d_tests_sa_datomic_store_ptr
   Tests atomic store for pointer type.
   Tests the following:
   - d_atomic_store_ptr sets a non-NULL pointer
 */
 bool
-d_tests_sa_atomic_store_ptr
+d_tests_sa_datomic_store_ptr
 (
     struct d_test_counter* _counter
 )
@@ -207,13 +207,13 @@ d_tests_sa_atomic_store_ptr
 }
 
 /*
-d_tests_sa_atomic_store_size
+d_tests_sa_datomic_store_size
   Tests atomic store for size_t type.
   Tests the following:
   - d_atomic_store_size sets the correct value
 */
 bool
-d_tests_sa_atomic_store_size
+d_tests_sa_datomic_store_size
 (
     struct d_test_counter* _counter
 )
@@ -236,14 +236,14 @@ d_tests_sa_atomic_store_size
 }
 
 /*
-d_tests_sa_atomic_store_explicit
+d_tests_sa_datomic_store_explicit
   Tests atomic store with explicit memory orders.
   Tests the following:
   - d_atomic_store_int_explicit with relaxed ordering
   - d_atomic_store_int_explicit with release ordering
 */
 bool
-d_tests_sa_atomic_store_explicit
+d_tests_sa_datomic_store_explicit
 (
     struct d_test_counter* _counter
 )
@@ -277,14 +277,14 @@ d_tests_sa_atomic_store_explicit
 }
 
 /*
-d_tests_sa_atomic_store_all
+d_tests_sa_datomic_store_all
   Runs all atomic store tests.
   Tests the following:
   - all types: int, uint, long, ulong, llong, ullong, ptr, size
   - explicit memory order variants
 */
 bool
-d_tests_sa_atomic_store_all
+d_tests_sa_datomic_store_all
 (
     struct d_test_counter* _counter
 )
@@ -296,15 +296,15 @@ d_tests_sa_atomic_store_all
     printf("\n  [SECTION] Atomic Store Operations\n");
     printf("  ----------------------------------\n");
 
-    result = d_tests_sa_atomic_store_int(_counter) && result;
-    result = d_tests_sa_atomic_store_uint(_counter) && result;
-    result = d_tests_sa_atomic_store_long(_counter) && result;
-    result = d_tests_sa_atomic_store_ulong(_counter) && result;
-    result = d_tests_sa_atomic_store_llong(_counter) && result;
-    result = d_tests_sa_atomic_store_ullong(_counter) && result;
-    result = d_tests_sa_atomic_store_ptr(_counter) && result;
-    result = d_tests_sa_atomic_store_size(_counter) && result;
-    result = d_tests_sa_atomic_store_explicit(_counter) && result;
+    result = d_tests_sa_datomic_store_int(_counter) && result;
+    result = d_tests_sa_datomic_store_uint(_counter) && result;
+    result = d_tests_sa_datomic_store_long(_counter) && result;
+    result = d_tests_sa_datomic_store_ulong(_counter) && result;
+    result = d_tests_sa_datomic_store_llong(_counter) && result;
+    result = d_tests_sa_datomic_store_ullong(_counter) && result;
+    result = d_tests_sa_datomic_store_ptr(_counter) && result;
+    result = d_tests_sa_datomic_store_size(_counter) && result;
+    result = d_tests_sa_datomic_store_explicit(_counter) && result;
 
     return result;
 }

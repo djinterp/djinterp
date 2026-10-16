@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                        font_tests_core_ops.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_core_ops.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_core_ops.cpp
 //   Section 9a: the free functions over the always-present core - family,
 // style name, size, size unit, the two-track weight (symbolic + numeric),

@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                              contravariant_tests_contramap.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/contravariant_tests_contramap.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "contravariant_tests.hpp"
 
 

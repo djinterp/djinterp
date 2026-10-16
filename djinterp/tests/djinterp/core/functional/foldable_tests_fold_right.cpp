@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 foldable_tests_fold_right.cpp
+/*******************************************************************************
+* djinterp [test]                                  foldable_tests_fold_right.cpp
 *
 *   Section II.2 of the foldable.hpp suite: fold_right, derived by materializing
 * the foldable (fold_to_vector) and folding the buffer in reverse.  Covers the
@@ -9,10 +9,12 @@
 * type differs from the element type, rvalue-init forwarding, and the same fold
 * over the non-std seq<T> fixture.
 *
+*
 * path:      /tests/djinterp/core/functional/foldable_tests_fold_right.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "foldable_tests.hpp"

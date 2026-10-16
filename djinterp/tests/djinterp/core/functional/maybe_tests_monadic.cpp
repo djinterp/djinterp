@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      maybe_tests_monadic.cpp
+/*******************************************************************************
+* djinterp [test]                                        maybe_tests_monadic.cpp
 *
 * Monadic / fluent method tests for maybe<T> (section I methods that thread or
 * gate the contained value).
@@ -11,9 +11,17 @@
 *   test_or_else    -- present returns *this; empty invokes the fallback.
 *   test_filter     -- predicate pass keeps the value, fail / empty -> nothing.
 *   test_match      -- pattern-match dispatch across both branches.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/maybe_tests_monadic.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <string>
+// djinterp
 #include "./maybe_tests.hpp"
 
 

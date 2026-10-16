@@ -1,4 +1,15 @@
-#include ".\dio_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                 dio_tests_sa_formatted_input.c
+*
+*
+* path:      /tests/djinterp/c/dio_tests_sa_formatted_input.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dio_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /*
@@ -11,7 +22,7 @@ d_tests_sa_dio_sscanf
   - successful parsing of strings
   - partial match behavior
   - format mismatch returns appropriate count
-  
+
   Note: NULL buffer tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -128,7 +139,7 @@ d_tests_sa_dio_sscanf_s
   - buffer size enforcement for strings
   - successful multi-value parse
   - format string validation
-  
+
   Note: NULL buffer tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -354,7 +365,7 @@ d_tests_sa_dio_fscanf
   - multiple value parsing
   - EOF handling
   - format mismatch behavior
-  
+
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -378,18 +389,18 @@ d_tests_sa_dio_fscanf
     // test 1: NULL stream test skipped (causes assertion in debug builds)
 
     // test 2: successful parse from file
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         fprintf(temp_file, "12345");
         fclose(temp_file);
 
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             int_val = 0;
             parsed = d_fscanf(temp_file, "%d", &int_val);
-            
+
             result = d_assert_standalone(
                 parsed == 1,
                 "fscanf_success_count",
@@ -407,19 +418,19 @@ d_tests_sa_dio_fscanf
     }
 
     // test 3: multiple values from file
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         fprintf(temp_file, "100 200");
         fclose(temp_file);
 
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             int_val = 0;
             int_val2 = 0;
             parsed = d_fscanf(temp_file, "%d %d", &int_val, &int_val2);
-            
+
             result = d_assert_standalone(
                 parsed == 2,
                 "fscanf_multi_count",
@@ -437,17 +448,17 @@ d_tests_sa_dio_fscanf
     }
 
     // test 4: EOF handling
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         fclose(temp_file);  // empty file
 
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             int_val = 0;
             parsed = d_fscanf(temp_file, "%d", &int_val);
-            
+
             result = d_assert_standalone(
                 parsed == EOF,
                 "fscanf_eof",
@@ -459,7 +470,7 @@ d_tests_sa_dio_fscanf
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }
@@ -471,7 +482,7 @@ d_tests_sa_dio_fscanf_s
   Tests the following:
   - successful secure parsing from file
   - buffer size validation
-  
+
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -494,18 +505,18 @@ d_tests_sa_dio_fscanf_s
     // test 1: NULL stream test skipped (causes assertion in debug builds)
 
     // test 2: successful secure parse
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         fprintf(temp_file, "54321");
         fclose(temp_file);
 
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             int_val = 0;
             parsed = d_fscanf_s(temp_file, "%d", &int_val);
-            
+
             result = d_assert_standalone(
                 parsed == 1,
                 "fscanf_s_success_count",
@@ -523,18 +534,18 @@ d_tests_sa_dio_fscanf_s
     }
 
     // test 3: string parse with size
-    temp_file = d_fopen(temp_filename, "w");
+    temp_file = d_file_open_stream(temp_filename, "w");
     if (temp_file)
     {
         fprintf(temp_file, "securestring");
         fclose(temp_file);
 
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             d_memset(str_buf, 0, sizeof(str_buf));
             parsed = d_fscanf_s(temp_file, "%63s", str_buf, (unsigned)sizeof(str_buf));
-            
+
             result = d_assert_standalone(
                 parsed == 1,
                 "fscanf_s_string_count",
@@ -552,7 +563,7 @@ d_tests_sa_dio_fscanf_s
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }

@@ -1,0 +1,210 @@
+/******************************************************************************
+* djinterp [documentation]                              filter_grammar_abnf.txt
+*
+* ABNF (Augmented Backus-Naur Form) grammar for filter expression DSL.
+*   Follows RFC 5234 ABNF specification for maximum compatibility with
+* parser generators and formal analysis tools.
+*
+* path:      \docs\filter_grammar_abnf.txt
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.15
+******************************************************************************/
+
+; ===========================================================================
+; FILTER EXPRESSION GRAMMAR (ABNF per RFC 5234)
+; ===========================================================================
+
+; ---------------------------------------------------------------------------
+; TOP-LEVEL PRODUCTIONS
+; ---------------------------------------------------------------------------
+
+filter-expr     = or-expr
+
+or-expr         = and-expr *( WS "OR" WS and-expr )
+
+and-expr        = unary-expr *( WS "AND" WS unary-expr )
+
+unary-expr      = [ "NOT" WS ] primary-expr
+
+primary-expr    = predicate / "(" WS filter-expr WS ")"
+
+predicate       = attribute WS operator WS value
+
+
+; ---------------------------------------------------------------------------
+; ATTRIBUTE, OPERATOR, AND VALUE PRODUCTIONS
+; ---------------------------------------------------------------------------
+
+attribute       = identifier
+
+operator        = eq-op / ne-op / le-op / ge-op / lt-op / gt-op /
+                  match-op / in-op / has-op / colon-op
+
+eq-op           = "=="
+ne-op           = "!="
+le-op           = "<="
+ge-op           = ">="
+lt-op           = "<"
+gt-op           = ">"
+match-op        = "~" [ "=" ]
+in-op           = "in" / "IN"
+has-op          = "has" / "HAS"
+colon-op        = ":"
+
+value           = string-literal / number-literal / set-literal
+
+
+; LITERALS
+string-literal  = quoted-string / unquoted-string
+
+quoted-string   = DQUOTE *( qdtext / quoted-pair ) DQUOTE /
+                  SQUOTE *( qstext / quoted-pair ) SQUOTE
+
+qdtext          = %x20-21 / %x23-5B / %x5D-7E  ; printable except " and \
+qstext          = %x20-26 / %x28-5B / %x5D-7E  ; printable except ' and \
+
+quoted-pair     = "\" ( DQUOTE / SQUOTE / "\" / "n" / "t" / "r" )
+
+unquoted-string = 1*( ALPHA / DIGIT / "-" / "_" / "." / "/" )
+
+number-literal  = [ "-" ] 1*DIGIT [ "." 1*DIGIT ]
+
+set-literal     = "{" WS value-list WS "}"
+
+value-list      = value *( WS "," WS value )
+
+
+; ---------------------------------------------------------------------------
+; IDENTIFIERS AND KEYWORDS
+; ---------------------------------------------------------------------------
+
+identifier      = ( ALPHA / "_" ) *( ALPHA / DIGIT / "_" / "-" )
+
+; Keywords (case-insensitive):
+; AND, OR, NOT, XOR, in, has
+
+
+; ---------------------------------------------------------------------------
+; WHITESPACE
+; ---------------------------------------------------------------------------
+
+WS              = *( SP / HTAB / CR / LF )
+
+SP              = %x20         ; space
+HTAB            = %x09         ; horizontal tab
+CR              = %x0D         ; carriage return
+LF              = %x0A         ; line feed
+
+
+; ---------------------------------------------------------------------------
+; CORE RULES (from RFC 5234)
+; ---------------------------------------------------------------------------
+
+ALPHA           = %x41-5A / %x61-7A   ; A-Z / a-z
+DIGIT           = %x30-39              ; 0-9
+DQUOTE          = %x22                 ; " (double quote)
+SQUOTE          = %x27                 ; ' (single quote)
+
+
+; ===========================================================================
+; EXAMPLES OF VALID EXPRESSIONS
+; ===========================================================================
+
+; Simple predicates:
+;   status == "active"
+;   priority > 5
+;   owner:alice
+;   name ~ "test.*"
+;   tags in {urgent, critical}
+
+; Boolean combinations:
+;   status == "active" AND priority > 5
+;   type == "bug" OR type == "task"
+;   NOT status == "closed"
+;   (type == "bug" OR type == "task") AND status == "active"
+
+; Complex expressions:
+;   (type == "bug" OR type == "task") AND 
+;   status == "active" AND 
+;   NOT priority == "low"
+
+;   assignee ~ "team-alpha-.*" AND
+;   (priority == "high" OR priority == "urgent") AND
+;   created > "2024-01-01"
+
+
+; ===========================================================================
+; OPERATOR PRECEDENCE AND ASSOCIATIVITY
+; ===========================================================================
+
+; Precedence (highest to lowest):
+;   1. NOT         (unary, right-associative)
+;   2. AND         (binary, left-associative)
+;   3. OR          (binary, left-associative)
+;
+; Grouping with parentheses overrides precedence.
+
+
+; ===========================================================================
+; LEXICAL NOTES
+; ===========================================================================
+
+; 1. Keywords are case-insensitive: AND = and = And
+; 2. Whitespace is optional around most tokens but required between keywords
+; 3. Escape sequences in quoted strings:
+;    \" → "
+;    \' → '
+;    \\ → \
+;    \n → newline
+;    \t → tab
+;    \r → carriage return
+; 4. Unquoted strings cannot contain whitespace or special characters
+
+
+; ===========================================================================
+; SEMANTIC CONSTRAINTS (not expressible in ABNF)
+; ===========================================================================
+
+; 1. Attributes must resolve to valid element properties
+; 2. Operators must be compatible with value types:
+;    - Comparison operators (< <= > >=) require numeric or string values
+;    - Match operator (~) requires string or regex pattern
+;    - In operator requires set literal
+; 3. Set literals must contain values of compatible types
+; 4. Keywords cannot be used as attribute names (reserved identifiers)
+
+
+; ===========================================================================
+; ALTERNATIVE: SIMPLIFIED ABNF (FOR REFERENCE)
+; ===========================================================================
+
+; If whitespace handling is implicit:
+;
+; filter-expr     = or-expr
+; or-expr         = and-expr *( "OR" and-expr )
+; and-expr        = unary-expr *( "AND" unary-expr )
+; unary-expr      = [ "NOT" ] primary-expr
+; primary-expr    = predicate / "(" filter-expr ")"
+; predicate       = identifier operator value
+; operator        = "==" / "!=" / "<=" / ">=" / "<" / ">" / 
+;                   "~" / "~=" / ":" / "in" / "has"
+; value           = string / number / set
+; string          = DQUOTE *CHAR DQUOTE / unquoted-chars
+; number          = [ "-" ] 1*DIGIT [ "." 1*DIGIT ]
+; set             = "{" value *( "," value ) "}"
+; identifier      = ALPHA *( ALPHA / DIGIT / "_" / "-" )
+
+
+; ===========================================================================
+; ABNF COMPATIBILITY NOTES
+; ===========================================================================
+
+; This grammar is compatible with:
+; - RFC 5234 (ABNF specification)
+; - RFC 7405 (Case-Sensitive String Support)
+; - Parser generators that accept ABNF input
+; - Formal verification tools
+
+
+; ===========================================================================
+; END OF ABNF GRAMMAR
+; ===========================================================================

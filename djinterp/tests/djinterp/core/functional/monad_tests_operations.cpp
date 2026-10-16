@@ -1,12 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                  monad_tests_operations.cpp
+/*******************************************************************************
+* djinterp [test]                                     monad_tests_operations.cpp
 *
 *   Tests for monad.hpp Section II core operations: monad_unit,
 * monad_bind, monad_map, and monad_join.  Covers the success path and
 * the short-circuit (none) path for each, type-changing maps, the
 * functor identity and composition laws for map, and the left/right
 * identity monad laws for unit/bind.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/monad_tests_operations.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./monad_tests.hpp"
 
 

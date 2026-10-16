@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                             test_callable_tests_binding.cpp
+/*******************************************************************************
+* djinterp [test]                                test_callable_tests_binding.cpp
 *
 *   The storage and query surface of test_callable_table: add issues stable,
 * monotonic, 1-based ids (never the reserved sentinel); size / empty / clear
@@ -9,11 +9,14 @@
 * one that separates has() from a mere bounds check, and it is set up here by
 * adding an empty thunk_type{} - a row that occupies an id yet reads as absent.
 *
-* path:      /tests/djinterp/test/test_callable/test_callable_tests_binding.cpp
+*
+* path:      /tests/djinterp/test/test_callable_tests_binding.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_callable_tests.hpp"
 
 NS_DJINTERP

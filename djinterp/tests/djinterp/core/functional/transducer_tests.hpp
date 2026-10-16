@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [functional]                                     transducer_tests.hpp
 *
 * Unit-test declarations for transducer.hpp.
@@ -30,25 +30,32 @@
 * C++20). Named functors keep the suite uniform; runtime-only lambdas would
 * be fine from C++14 but are avoided for consistency.
 *
-* path:      /test/functional/transducer_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/transducer_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    HELPERS
-      1.  D_INTERNAL_TRD_CHECK            (early-return assertion)
-      2.  feature guard                   (mirror transducer.hpp's C++14 gate)
-      3.  transforms / predicates         (square / is_even / under ...)
-      4.  side effects                    (counter / collector)
-      5.  expand                           (flat_map one-to-many)
-      6.  int_sum_acc                      (accumulator-protocol fixture)
-      7.  range_producer                   (producer-protocol fixture)
-      8.  int_reducer / not_a_reducer      (reducer fixtures for traits)
+      -------
+      1.    D_INTERNAL_TRD_CHECK            (early-return assertion)
+      2.    feature guard                   (mirror transducer.hpp's C++14 gate)
+      3.    transforms / predicates         (square / is_even / under ...)
+      4.    side effects                    (counter / collector)
+      5.    expand                           (flat_map one-to-many)
+      6.    int_sum_acc                      (accumulator-protocol fixture)
+      7.    range_producer                   (producer-protocol fixture)
+      8.    int_reducer / not_a_reducer      (reducer fixtures for traits)
+
 II.   PER-SECTION TEST DECLARATIONS
+      -----------------------------
+
 III.  SECTION RUNNERS + TOP-LEVEL AGGREGATE
+      -------------------------------------
 */
 
 #ifndef DJINTERP_TEST_FUNCTIONAL_TRANSDUCER_
@@ -58,7 +65,7 @@ III.  SECTION RUNNERS + TOP-LEVEL AGGREGATE
 #include <cstddef>
 #include <vector>
 // djinterp
-#include "../../inc/functional/transducer.hpp"
+#include "../../../../inc/djinterp/core/functional/transducer.hpp"
 
 #ifdef DTEST_SPEC_MODE
     // The enriched runner defines DTEST_SPEC_MODE and consumes transducer_spec()

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               option_override_tests_lazy.cpp
+/*******************************************************************************
+* djinterp [test]                                 option_override_tests_lazy.cpp
 *
 *   Section III of the option_override.hpp suite: the lazy on_delta_only SFINAE
 * plumbing and the accumulator helper.
@@ -23,14 +23,15 @@
 *
 * path:      /tests/djinterp/core/option/option_override_tests_lazy.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <tuple>
 #include <type_traits>
 // djinterp
-#include "option_override_tests.hpp"
+#include "./option_override_tests.hpp"
 
 
 NS_DJINTERP

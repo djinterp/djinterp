@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 alternative_tests_aempty.cpp
+/*******************************************************************************
+* djinterp [test]                                   alternative_tests_aempty.cpp
 *
 *   Section II.1 of the alternative.hpp suite: aempty, the empty / failure
 * element of an alternative (the type supplied explicitly, as with mempty).
@@ -7,10 +7,12 @@
 * delegation to the instance's empty(), and the identity of its result type.
 * (Its role as the identity for choice is exercised in the alt section.)
 *
+*
 * path:      /tests/djinterp/core/functional/alternative_tests_aempty.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "alternative_tests.hpp"

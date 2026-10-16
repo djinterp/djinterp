@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            cofree_tests.hpp
+/*******************************************************************************
+* djinterp [testing]                                            cofree_tests.hpp
 *
 *   Declarations and shared fixtures for the cofree.hpp unit suite.  The
 * individual tests_* predicates and their block-providers are defined per
@@ -15,8 +15,9 @@
 *   chain_to_vector walks such a linear chain into a std::vector so map / extend
 * / unfold results can be compared by contents; the named functors (dbl / inc /
 * show for heads; head_of_node / suffix_sum / suffix_len for whole sub-trees;
-* id_head / times_ten / descend for unfold seeds) are named rather than lambdas
-* so they may appear in trailing return types on every language floor.
+* id_head / times_ten / descend for unfold seeds; sum_alg / len_alg / max_alg /
+* join_alg as annotated_cata algebras) are named rather than lambdas so they may
+* appear in trailing return types on every language floor.
 *
 *   Every predicate lives flat in djinterp::testing and returns true iff all of
 * its checks pass.  Each section .cpp keeps its predicates file-local (internal
@@ -28,12 +29,14 @@
 *     II.3b   cofree_extend / extend ..... cofree_tests_extend.cpp
 *     II.3c   unfold_cofree .............. cofree_tests_unfold.cpp
 *     III.    registration & protocol .... cofree_tests_protocol.cpp
+*     IV-VI.  env_layer / recursion ...... cofree_tests_recursion.cpp
 *
 *
 * path:      /tests/djinterp/core/functional/cofree_tests.hpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_COFREE_TESTS_
 #define DJINTERP_FUNCTIONAL_COFREE_TESTS_ 1
@@ -45,12 +48,10 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-// djinterp -- the header under test (which pulls in functor.hpp + comonad.hpp),
-//   plus the DTest authoring + runner surface.  NOTE: these two include paths
-//   are rooted at the djinterp include directory (e.g. -I.../inc); adjust them
-//   to match your build tree.
-#include "djinterp/core/functional/cofree.hpp"
-#include "djinterp/test/test_defaults.hpp"
+// djinterp
+#include <djinterp/djinterp.hpp>
+#include <djinterp/core/functional/cofree.hpp>
+#include <djinterp/test/test_defaults.hpp>
 
 
 NS_DJINTERP
@@ -242,6 +243,68 @@ struct descend
     }
 };
 
+// -- annotated_cata algebras (B, F<Result>) -> Result --
+//   Each takes a node's ANNOTATION and its ALREADY-FOLDED children, so the
+// child slot carries a Result (an int / size_t / string), never a sub-tree.
+// The empty layer is the base case: it contributes the algebra's identity.
+
+// sum_alg
+//   (int, opt<int>) -> int: this head plus the folded suffix's sum.
+struct sum_alg
+{
+    int operator()(
+        int             _ann,
+        const opt<int>& _folded
+    ) const
+    {
+        return _ann + (_folded.has ? _folded.val : 0);
+    }
+};
+
+// len_alg
+//   (int, opt<size_t>) -> size_t: one for this node plus the folded suffix's
+// length.  Ignores the annotation, which proves the fold is structural.
+struct len_alg
+{
+    std::size_t operator()(
+        int                     /*_ann*/,
+        const opt<std::size_t>& _folded
+    ) const
+    {
+        return static_cast<std::size_t>(1) +
+               (_folded.has ? _folded.val : static_cast<std::size_t>(0));
+    }
+};
+
+// max_alg
+//   (int, opt<int>) -> int: the greater of this head and the folded suffix's
+// maximum.
+struct max_alg
+{
+    int operator()(
+        int             _ann,
+        const opt<int>& _folded
+    ) const
+    {
+        return (_folded.has && (_folded.val > _ann)) ? _folded.val : _ann;
+    }
+};
+
+// join_alg
+//   (int, opt<string>) -> string: this head, comma-joined onto the folded
+// suffix (proves the Result type is independent of the annotation type).
+struct join_alg
+{
+    std::string operator()(
+        int                     _ann,
+        const opt<std::string>& _folded
+    ) const
+    {
+        return std::to_string(_ann) +
+               (_folded.has ? ("," + _folded.val) : std::string());
+    }
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                IV.  SECTION BLOCK-PROVIDERS  (the runner's surface)      ///
@@ -252,6 +315,7 @@ struct descend
 ::djinterp::test::block_spec cofree_extend_block();
 ::djinterp::test::block_spec cofree_unfold_block();
 ::djinterp::test::block_spec cofree_protocol_block();
+::djinterp::test::block_spec cofree_recursion_block();
 
 
 NS_END  // testing

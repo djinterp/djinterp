@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                     test_kind_tests_record.cpp
+*
+*
+* path:      /tests/djinterp/test/test_kind_tests_record.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstdint>
 #include <string>
@@ -63,7 +72,7 @@ tests_test_kind_aggregate()
 {
     bool ok = true;
 
-    const test_option_set opts = { 7 };
+    const test_option_set opts;   // default config; only its address is used
 
     test_kind k = { 10, "my_kind", 2, true, &opts };
     ok = D_TK_CHECK(k.id == 10)                       && ok;
@@ -155,7 +164,7 @@ tests_test_kind_values()
 {
     bool ok = true;
 
-    const test_option_set opts = { 99 };
+    const test_option_set opts;   // default config; only its address is used
 
     test_kind lo = { INT32_MIN, nullptr, 0, false, nullptr };
     ok = D_TK_CHECK(lo.id == INT32_MIN)         && ok;

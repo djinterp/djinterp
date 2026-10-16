@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                 pattern_tests_match_result.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/pattern/pattern_tests_match_result.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : pattern_tests_match_result.cpp
 //   The match result (section III): pattern_match_result carries the matched
 // flag, a status code, and the capture map. Covers its three constructors

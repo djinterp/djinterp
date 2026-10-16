@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   event_table_tests_stats.cpp
+/*******************************************************************************
+* djinterp [test]                                    event_table_tests_stats.cpp
 *
 *   Sections II + III (statistics) -- the event_table_stats aggregate and the
 * get_stats snapshot that fills it.  The deterministic fields are asserted
@@ -12,10 +12,11 @@
 * after-clear snapshots are verified to read all-zero.
 *
 *
-* path:      /tests/djinterp/core/event/event_table/event_table_tests_stats.cpp
+* path:      /tests/djinterp/core/event/event_table_tests_stats.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_table_tests.hpp"

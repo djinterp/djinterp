@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [text]                                     html_template_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                       html_template_traits.hpp
 *
 *   Structural SFINAE detection traits for HTML element / document /
 * backend types. Layered on top of `xml_template_traits.hpp`: any HTML
@@ -35,24 +35,40 @@
 *
 * path:      /inc/djinterp/core/text/html/html_template_traits.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.08
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    HTML KIND ACCESSOR DETECTION
+      ----------------------------
+
 II.   CLASS LIST DETECTION
+      --------------------
+
 III.  DOCTYPE & VERSION DETECTION
+      ---------------------------
+
 IV.   HEAD / BODY ACCESSOR DETECTION
+      ------------------------------
+
 V.    HTML ELEMENT CLASSIFICATION
+      ---------------------------
+
 VI.   HTML DOCUMENT CLASSIFICATION
+      ----------------------------
+
 VII.  BACKEND COMPLETENESS DETECTION
+      ------------------------------
+
 VIII. VARIABLE TEMPLATES
+      ------------------
 */
 
-#ifndef DJINTERP_HTML_TEMPLATE_TRAITS_
-#define DJINTERP_HTML_TEMPLATE_TRAITS_ 1
+#ifndef DJINTERP_TEXT_HTML_HTML_TEMPLATE_TRAITS_HPP
+#define DJINTERP_TEXT_HTML_HTML_TEMPLATE_TRAITS_HPP 1
 
 // std
 #include <cstddef>
@@ -60,7 +76,6 @@ VIII. VARIABLE TEMPLATES
 #include <type_traits>
 // djinterp
 #include "../../../djinterp.hpp"
-#include "../xml/xml_template_traits.hpp"
 
 
 NS_DJINTERP
@@ -522,7 +537,7 @@ struct has_html_element_type_alias : std::false_type
 
 template<typename _Type>
 struct has_html_element_type_alias<_Type, void_t<
-    typename _Type::element_type
+    typename clean_t<_Type>::element_type
 >> : std::true_type
 {};
 
@@ -536,7 +551,7 @@ struct has_html_document_type_alias : std::false_type
 
 template<typename _Type>
 struct has_html_document_type_alias<_Type, void_t<
-    typename _Type::document_type
+    typename clean_t<_Type>::document_type
 >> : std::true_type
 {};
 
@@ -551,7 +566,7 @@ struct has_make_html_document_method : std::false_type
 
 template<typename _Type>
 struct has_make_html_document_method<_Type, void_t<
-    decltype(_Type::make_html_document())
+    decltype(clean_t<_Type>::make_html_document())
 >> : std::true_type
 {};
 
@@ -625,4 +640,4 @@ struct is_html_backend_complete
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_HTML_TEMPLATE_TRAITS_
+#endif  // DJINTERP_TEXT_HTML_HTML_TEMPLATE_TRAITS_HPP

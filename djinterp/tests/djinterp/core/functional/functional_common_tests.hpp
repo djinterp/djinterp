@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  functional_common_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                    functional_common_tests.hpp
 *
 *   Unit-test declarations for core/functional/functional_traits.hpp -- the
 * shared callable vocabulary (and, since the merge, its C++20 concept faces).
@@ -30,21 +30,31 @@
 * module's own D_ENV_CPP_FEATURE_LANG_CONCEPTS.
 *   All tests are flat in djinterp::testing.
 *
-* 
-* path:      /tests/djinterp/core/functional/functional/
+*
+* path:      /tests/djinterp/core/functional/functional_common_tests.hpp
 *                functional_traits_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    FIXTURES  (callables, non-callables, predicates, bool-conversion probes)
+      ------------------------------------------------------------------------
+
 I.    CALL TRAITS        (is_callable, callable_result_t)
+      ---------------------------------------------------
+
 II.   PREDICATE TRAIT    (is_predicate)
+      ---------------------------------
+
 III.  CONVENIENCE ALIASES(is_callable_v, is_predicate_v)
+      --------------------------------------------------
+
 IV.   CONCEPT FACES      (Callable, Predicate)
+      ----------------------------------------
 */
 
 
@@ -56,7 +66,6 @@ IV.   CONCEPT FACES      (Callable, Predicate)
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "../../../../inc/djinterp/core/functional/functional_traits.hpp"
 
 
 NS_DJINTERP

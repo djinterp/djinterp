@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  option_set_compare_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                   option_set_compare_tests.hpp
 *
 *   Declarations, fixtures, and section block-providers for the
 * option_set_compare.hpp unit suite.
@@ -40,17 +40,24 @@
 *   All unit tests live FLAT in namespace djinterp::testing.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    FIXTURES              (key enum / expander / value carrier + extractor)
-* II.   TEST DECLARATIONS     (per section, flat in djinterp::testing)
-* III.  BLOCK PROVIDERS        (one block_spec per section group)
-*
-*
 * path:      /tests/djinterp/core/option/option_set_compare_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    FIXTURES              (key enum / expander / value carrier + extractor)
+      -----------------------------------------------------------------------
+
+II.   TEST DECLARATIONS     (per section, flat in djinterp::testing)
+      --------------------------------------------------------------
+
+III.  BLOCK PROVIDERS        (one block_spec per section group)
+      ---------------------------------------------------------
+*/
 
 #ifndef DJINTERP_OPTION_SET_COMPARE_TESTS_
 #define DJINTERP_OPTION_SET_COMPARE_TESTS_ 1
@@ -59,15 +66,19 @@
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
+// djinterp
 // djinterp (resolved via the project include path)
 #include "djinterp/test/test_defaults.hpp"             // module_spec / block_spec / test_spec, run_module
+#ifndef DTEST_SPEC_MODE
 #include "djinterp/core/option/option_set_compare.hpp" // key_list, congruity, value carriers, value_eq
+#endif  // !DTEST_SPEC_MODE
 
 
 NS_DJINTERP
 NS_TESTING
 
 
+#ifndef DTEST_SPEC_MODE   // fixtures: normal face only
 // ===========================================================================
 // I.   FIXTURES
 // ===========================================================================
@@ -114,6 +125,8 @@ struct extract_cmp_val<option<_Key, cmp_val<_V>, _Rest...>>
     using type = value_present<_V>;
 };
 
+#endif  // !DTEST_SPEC_MODE
+
 
 // ===========================================================================
 // II.  TEST DECLARATIONS
@@ -152,6 +165,30 @@ bool value_eq_empty();
 ::djinterp::test::block_spec option_set_compare_congruity_block();
 ::djinterp::test::block_spec option_set_compare_carriers_block();
 ::djinterp::test::block_spec option_set_compare_value_eq_block();
+
+
+// ===========================================================================
+// SPEC PROVIDER   (spec face - the runner hands this to run_module)
+// ===========================================================================
+#ifdef DTEST_SPEC_MODE
+inline ::djinterp::test::module_spec
+option_set_compare_spec()
+{
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
+
+    dt::module_spec mod;
+    mod.name       = "option_set_compare.hpp";
+    mod.descriptor = "key lists, key/type congruity, value carriers, parameterized value equality";
+
+    mod.blocks.push_back(tt::option_set_compare_keylist_block());     // I + II.
+    mod.blocks.push_back(tt::option_set_compare_congruity_block());   // III.
+    mod.blocks.push_back(tt::option_set_compare_carriers_block());    // IV.
+    mod.blocks.push_back(tt::option_set_compare_value_eq_block());    // V.
+
+    return mod;
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  option_set_tests_values.cpp
+/*******************************************************************************
+* djinterp [test]                                    option_set_tests_values.cpp
 *
 *   Section V of the option_set.hpp suite: the field marker and the value-
 * carrying face.
@@ -31,14 +31,15 @@
 *
 * path:      /tests/djinterp/core/option/option_set_tests_values.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <tuple>
 #include <type_traits>
 // djinterp
-#include "option_set_tests.hpp"
+#include "./option_set_tests.hpp"
 
 
 NS_DJINTERP
@@ -89,10 +90,10 @@ bool
 values_option_field_cases()
 {
     constexpr bool ok =
-        std::is_same<option_field_t<option<os_key::a, field<int>>>, int>::value          &&
-        std::is_same<option_field_t<option<os_key::a>>, unit>::value                     &&
-        std::is_same<option_field_t<option<os_key::a, int>>, unit>::value                &&
-        std::is_same<option_field_t<unary_option<os_key::a>>, unit>::value               &&
+        std::is_same<option_field_t<option<os_key::a, field<int>>>, int>::value  &&
+        std::is_same<option_field_t<option<os_key::a>>, unit>::value             &&
+        std::is_same<option_field_t<option<os_key::a, int>>, unit>::value        &&
+        std::is_same<option_field_t<unary_option<os_key::a>>, unit>::value       &&
         std::is_same<option_field_t<option<os_key::a, field<double>, int>>, double>::value;
 
     static_assert(ok, "option_field: field<T>->T; unit for unary / non-field / field<unit>; first arg only");

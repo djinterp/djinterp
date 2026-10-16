@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [vparse]                                                adapter.hpp
+/*******************************************************************************
+* djinterp [parse]                                                   adapter.hpp
 *
 *   The join to djinterp::parse.  as_parser wraps a compiled vparse program as a
 * first-class parser<std::string, char>: a value invocable as
@@ -10,11 +10,13 @@
 *
 *
 * path:      /inc/djinterp/parse/vparse/adapter.hpp
-* author(s): vparse                                        created: 2026.06.19
-******************************************************************************/
+* link(s):   TBA
+* author(s): vparse                                          created: 2026.06.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_VPARSE_ADAPTER_
-#define DJINTERP_PARSE_VPARSE_ADAPTER_ 1
+#ifndef DJINTERP_PARSE_VPARSE_ADAPTER_HPP
+#define DJINTERP_PARSE_VPARSE_ADAPTER_HPP 1
 
 // std
 #include <string>
@@ -30,4 +32,4 @@ parser<std::string, char> as_parser(const program& _prog);
 NS_END  // parse
 NS_END  // djinterp
 
-#endif  // DJINTERP_PARSE_VPARSE_ADAPTER_
+#endif  // DJINTERP_PARSE_VPARSE_ADAPTER_HPP

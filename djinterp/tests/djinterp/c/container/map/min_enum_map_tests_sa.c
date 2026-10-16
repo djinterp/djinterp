@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                    min_enum_map_tests_sa.c
+/*******************************************************************************
+* djinterp [test]                                        min_enum_map_tests_sa.c
 *
 *   Master test runner for min_enum_map module.
 *   Coordinates execution of all test categories.
 *
 *
-* path:      /test/container/map/min_enum_map_tests_sa.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
-******************************************************************************/
+* path:      /tests/djinterp/c/container/map/min_enum_map_tests_sa.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./min_enum_map_tests_sa.h"
 
 
@@ -20,7 +22,7 @@ d_tests_min_enum_map_run_all
   - Memory management (clear, free)
   - Advanced operations (merge, macros, ordering)
   - Edge cases and stress testing
-  
+
   This function aggregates all test categories and returns a complete
   test tree for execution by the test framework.
 */

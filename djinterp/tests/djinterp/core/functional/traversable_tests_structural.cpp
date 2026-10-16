@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                               traversable_tests_structural.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/traversable_tests_structural.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  traversable_tests_structural.cpp
 //   Section 0 -- traversable_value_type, the internal helpers (identity and
 //   append), and the C++20 Traversable concept.

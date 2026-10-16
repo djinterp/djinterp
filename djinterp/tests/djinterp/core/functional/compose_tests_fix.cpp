@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      compose_tests_fix.cpp
+/*******************************************************************************
+* djinterp [test]                                          compose_tests_fix.cpp
 *
 *   Tests for compose.hpp Section VII: fix, the Y-combinator for
 * recursive lambdas.  The combinator itself is available on the C++11
@@ -7,8 +7,15 @@
 * self, ...)) lambda, which is a C++14 feature.  This file therefore
 * provides a C++11-safe functor-based recursion test that runs on every
 * standard, plus richer generic-lambda tests gated to C++14+.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/compose_tests_fix.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "compose_tests.hpp"
 
 

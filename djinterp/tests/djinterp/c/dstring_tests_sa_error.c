@@ -1,18 +1,21 @@
-/******************************************************************************
-* djinterp [test]                                          dstring_tests_error.c
+/*******************************************************************************
+* djinterp [test]                                       dstring_tests_sa_error.c
 *
 *   Unit tests for d_string error functions:
 *     - d_string_error
 *     - d_string_error_r
 *
-* path:      \src\test\dstring_tests_error.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_error.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "../../tests/c/dstring_tests_sa.h"
-
+// std
 #include <errno.h>
+// djinterp
+#include "dstring_tests_sa.h"
 
 
 /******************************************************************************

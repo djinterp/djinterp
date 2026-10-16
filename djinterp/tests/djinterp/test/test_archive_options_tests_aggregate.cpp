@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                      test_archive_options_tests_aggregate.cpp
+*
+* path:      /tests/djinterp/test/test_archive_options_tests_aggregate.cpp
+******************************************************************************/
+// djinterp
 #include "test_archive_options_tests.hpp"
 
 NS_DJINTERP

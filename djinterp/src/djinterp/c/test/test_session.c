@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                               test_session.c
+/*******************************************************************************
+* djinterp [c]                                                    test_session.c
 *
 *   Implementation of test session - the top-level DTest coordinator.
 *   Manages test execution, output formatting, and result aggregation.
 *
-* path:      \src\test\test_session.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.21
-******************************************************************************/
-#include "../../../inc/c/test/test_session.h"
+*
+* path:      /src/djinterp/c/test/test_session.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.21
+*                                                            revised: 2026.09.20
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/test/test_session.h"
 
 
 /******************************************************************************
@@ -75,9 +77,9 @@ d_internal_session_close_output
         return;
     }
 
-    if ( (_output->owns_stream) && 
-         (_output->stream)      && 
-         (_output->stream != stdout) && 
+    if ( (_output->owns_stream) &&
+         (_output->stream)      &&
+         (_output->stream != stdout) &&
          (_output->stream != stderr) )
     {
         fclose(_output->stream);
@@ -124,7 +126,7 @@ d_internal_session_open_file
             break;
         }
 
-        if ( (_filename[i - 1] == '/') || 
+        if ( (_filename[i - 1] == '/') ||
              (_filename[i - 1] == '\\') )
         {
             break;
@@ -144,7 +146,7 @@ d_internal_session_open_file
     {
         const char* ext;
 
-        ext = _output->extension ? _output->extension 
+        ext = _output->extension ? _output->extension
                                  : D_TEST_SESSION_DEFAULT_EXTENSION;
 
         if (len + d_strnlen(ext, 16) >= sizeof(full_path))
@@ -454,7 +456,7 @@ d_test_session_new_with_modules_and_config
 
         if (_config->settings)
         {
-            value = d_min_enum_map_get(_config->settings, 
+            value = d_min_enum_map_get(_config->settings,
                                        D_TEST_SESSION_OPT_FILENAME);
 
             if (value)
@@ -462,7 +464,7 @@ d_test_session_new_with_modules_and_config
                 d_test_session_set_output_file(session, (const char*)value);
             }
 
-            value = d_min_enum_map_get(_config->settings, 
+            value = d_min_enum_map_get(_config->settings,
                                        D_TEST_SESSION_OPT_FILE_EXTENSION);
 
             if (value)
@@ -470,7 +472,7 @@ d_test_session_new_with_modules_and_config
                 session->output.extension = (const char*)value;
             }
 
-            value = d_min_enum_map_get(_config->settings, 
+            value = d_min_enum_map_get(_config->settings,
                                        D_TEST_SESSION_OPT_VERBOSE);
 
             if (value)
@@ -478,7 +480,7 @@ d_test_session_new_with_modules_and_config
                 session->output.verbosity = (enum DTestVerbosity)(uintptr_t)value;
             }
 
-            value = d_min_enum_map_get(_config->settings, 
+            value = d_min_enum_map_get(_config->settings,
                                        D_TEST_SESSION_OPT_COLOR);
 
             if (value)
@@ -486,12 +488,12 @@ d_test_session_new_with_modules_and_config
                 session->output.use_color = (bool)(uintptr_t)value;
             }
 
-            value = d_min_enum_map_get(_config->settings, 
+            value = d_min_enum_map_get(_config->settings,
                                        D_TEST_SESSION_OPT_OUTPUT_FORMAT);
 
             if (value)
             {
-                d_test_session_set_output_format(session, 
+                d_test_session_set_output_format(session,
                     (enum DTestOutputFormat)(uintptr_t)value);
             }
 
@@ -573,15 +575,15 @@ d_test_session_validate_args
         row = d_test_registry_find(_args[i].key);
 
         // validate: key must exist AND have SESSION flag set
-        if ( (!row) || 
+        if ( (!row) ||
              ((row->command_flags & D_TEST_REGISTRY_FLAG_SESSION) == 0) )
         {
             continue;
         }
 
         // store with the registry flag as the key
-        d_min_enum_map_put(config->settings, 
-                           (int)row->flag, 
+        d_min_enum_map_put(config->settings,
+                           (int)row->flag,
                            (void*)_args[i].value);
     }
 
@@ -629,11 +631,11 @@ d_test_session_set_option
     const void*             _value
 )
 {
-    return ( (_session)         && 
-             (_session->config) && 
+    return ( (_session)         &&
+             (_session->config) &&
              (_session->config->settings) )
-        ?  d_min_enum_map_put(_session->config->settings, 
-                              (int)_option, 
+        ?  d_min_enum_map_put(_session->config->settings,
+                              (int)_option,
                               (void*)_value)
         : false;
 }
@@ -645,10 +647,10 @@ d_test_session_get_option
     enum DTestSessionOption      _option
 )
 {
-    return ( (_session)         && 
-             (_session->config) && 
+    return ( (_session)         &&
+             (_session->config) &&
              (_session->config->settings) )
-        ? d_min_enum_map_get(_session->config->settings, 
+        ? d_min_enum_map_get(_session->config->settings,
                              (int)_option)
         : NULL;
 }
@@ -697,7 +699,7 @@ d_test_session_set_output_file
     const char*            _filename
 )
 {
-    if ( (!_session) || 
+    if ( (!_session) ||
          (!_filename) )
     {
         return false;
@@ -756,8 +758,8 @@ d_test_session_add_child
     struct d_test_type*    _child
 )
 {
-    if ( (!_session)           || 
-         (!_session->children) || 
+    if ( (!_session)           ||
+         (!_session->children) ||
          (!_child) )
     {
         return false;
@@ -826,7 +828,7 @@ d_test_session_get_child_at
         return NULL;
     }
 
-    return (struct d_test_type*)d_ptr_vector_at(_session->children, 
+    return (struct d_test_type*)d_ptr_vector_at(_session->children,
                                                  (d_index)_index);
 }
 
@@ -877,16 +879,16 @@ d_test_session_run
         return false;
     }
 
-    opt_value = d_test_session_get_option(_session, 
+    opt_value = d_test_session_get_option(_session,
                                           D_TEST_SESSION_OPT_ABORT_ON_FAILURE);
     abort_on_failure = opt_value ? (bool)(uintptr_t)opt_value : false;
 
-    opt_value = d_test_session_get_option(_session, 
+    opt_value = d_test_session_get_option(_session,
                                           D_TEST_SESSION_OPT_REPEAT_COUNT);
-    repeat_count = opt_value ? (size_t)(uintptr_t)opt_value 
+    repeat_count = opt_value ? (size_t)(uintptr_t)opt_value
                              : D_TEST_SESSION_DEFAULT_REPEAT_COUNT;
 
-    opt_value = d_test_session_get_option(_session, 
+    opt_value = d_test_session_get_option(_session,
                                           D_TEST_SESSION_OPT_FAIL_FAST);
     fail_fast = opt_value ? (size_t)(uintptr_t)opt_value : 0;
 
@@ -903,13 +905,13 @@ d_test_session_run
     all_passed   = true;
     child_count  = d_test_session_child_count(_session);
 
-    for (_session->repeat_current = 0; 
-         _session->repeat_current < repeat_count; 
+    for (_session->repeat_current = 0;
+         _session->repeat_current < repeat_count;
          _session->repeat_current++)
     {
         if (repeat_count > 1)
         {
-            d_test_session_writeln(_session, 
+            d_test_session_writeln(_session,
                                    "\n--- Iteration %zu of %zu ---",
                                    _session->repeat_current + 1,
                                    repeat_count);
@@ -938,7 +940,7 @@ d_test_session_run
 
             d_test_session_write_module_start(_session, child);
 
-            child_passed = d_test_module_run(child->D_KEYWORD_TEST_MODULE, 
+            child_passed = d_test_module_run(child->D_KEYWORD_TEST_MODULE,
                                              _session->config);
 
             if (child_passed)
@@ -1052,7 +1054,7 @@ d_test_session_run_by_name
         {
             found = true;
 
-            if (!d_test_module_run(child->D_KEYWORD_TEST_MODULE, 
+            if (!d_test_module_run(child->D_KEYWORD_TEST_MODULE,
                                    _session->config))
             {
                 all_passed = false;
@@ -1162,8 +1164,8 @@ d_test_session_write
 {
     va_list args;
 
-    if ( (!_session)               || 
-         (!_session->output.stream) || 
+    if ( (!_session)               ||
+         (!_session->output.stream) ||
          (!_format) )
     {
         return;
@@ -1192,8 +1194,8 @@ d_test_session_writeln
 {
     va_list args;
 
-    if ( (!_session)                || 
-         (!_session->output.stream) || 
+    if ( (!_session)                ||
+         (!_session->output.stream) ||
          (!_format) )
     {
         return;
@@ -1238,17 +1240,17 @@ d_test_session_write_header
     d_localtime(&now, &tm_result);
     strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", &tm_result);
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "%s========================================%s",
         d_internal_session_color_bold(_session),
         d_internal_session_color_reset(_session));
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "%s         DTest Session Started%s",
         d_internal_session_color_bold(_session),
         d_internal_session_color_reset(_session));
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "%s========================================%s",
         d_internal_session_color_bold(_session),
         d_internal_session_color_reset(_session));
@@ -1258,7 +1260,7 @@ d_test_session_write_header
         d_test_session_writeln(_session, "Started: %s", time_buf);
     }
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "Modules: %zu",
         d_test_session_child_count(_session));
 
@@ -1290,17 +1292,17 @@ d_test_session_write_footer
 
     d_test_session_writeln(_session, "");
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "%s========================================%s",
         d_internal_session_color_bold(_session),
         d_internal_session_color_reset(_session));
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "%s         DTest Session Complete%s",
         d_internal_session_color_bold(_session),
         d_internal_session_color_reset(_session));
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "%s========================================%s",
         d_internal_session_color_bold(_session),
         d_internal_session_color_reset(_session));
@@ -1348,12 +1350,12 @@ d_test_session_write_summary
     total_skipped = d_test_session_total_skipped(_session);
 
     d_test_session_writeln(_session, "");
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "%s--- Summary ---%s",
         d_internal_session_color_bold(_session),
         d_internal_session_color_reset(_session));
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "Status: %s%s%s",
         all_passed ? d_internal_session_color_pass(_session)
                    : d_internal_session_color_fail(_session),
@@ -1362,13 +1364,13 @@ d_test_session_write_summary
 
     d_test_session_writeln(_session, "Total:   %zu", total_run);
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "Passed:  %s%zu%s",
         d_internal_session_color_pass(_session),
         total_passed,
         d_internal_session_color_reset(_session));
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "Failed:  %s%zu%s",
         total_failed > 0 ? d_internal_session_color_fail(_session) : "",
         total_failed,
@@ -1376,7 +1378,7 @@ d_test_session_write_summary
 
     if (total_skipped > 0)
     {
-        d_test_session_writeln(_session, 
+        d_test_session_writeln(_session,
             "Skipped: %s%zu%s",
             d_internal_session_color_skip(_session),
             total_skipped,
@@ -1413,7 +1415,7 @@ d_test_session_write_module_start
 
     name = d_test_module_get_name(_module->D_KEYWORD_TEST_MODULE);
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "%s[MODULE]%s %s",
         d_internal_session_color_bold(_session),
         d_internal_session_color_reset(_session),
@@ -1445,7 +1447,7 @@ d_test_session_write_module_end
 
     name = d_test_module_get_name(_module->D_KEYWORD_TEST_MODULE);
 
-    d_test_session_writeln(_session, 
+    d_test_session_writeln(_session,
         "  %s%s%s %s",
         _passed ? d_internal_session_color_pass(_session)
                 : d_internal_session_color_fail(_session),
@@ -1482,7 +1484,7 @@ d_test_session_write_test_result
         return;
     }
 
-    d_test_session_write(_session, 
+    d_test_session_write(_session,
         "    %s%s%s %s",
         _passed ? d_internal_session_color_pass(_session)
                 : d_internal_session_color_fail(_session),

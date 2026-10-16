@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    event_table_tests_core.cpp
+/*******************************************************************************
+* djinterp [test]                                     event_table_tests_core.cpp
 *
 *   Section III (core) -- the event_table lifecycle operations.  Covers the
 * empty initial state; insert (ids handed out from 1 and strictly increasing,
@@ -11,10 +11,11 @@
 * contains lookups across present, disabled, and absent ids.
 *
 *
-* path:      /tests/djinterp/core/event/event_table/event_table_tests_core.cpp
+* path:      /tests/djinterp/core/event/event_table_tests_core.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_table_tests.hpp"

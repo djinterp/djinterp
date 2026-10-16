@@ -1,50 +1,85 @@
-/******************************************************************************
-* djinterp [test]                                           dmacro_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                              dmacro_tests_sa.h
 *
 *   This is a test file for `dmacro.h` unit tests.
 *   For the file itself, go to `\inc\c\dmacro.h`.
 *   Note: this module tests fundamental macro utilities that are dependencies
-* of other djinterp modules, so it uses `test_standalone.h` rather than DTest
+* of other djinterp modules, so it does not use DTest for unit testing
 * for unit testing. Any modules that are not dependencies of DTest should use
 * DTest for unit tests.
 *
-* path:      \test\dmacro_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/dmacro_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
-==============================================
+=================
 I.    Configuration system test functions
+      -----------------------------------
+
 II.   Token manipulation test functions
+      ---------------------------------
+
 III.  Array utilities test functions
+      ------------------------------
+
 IV.   Argument counting test functions
+      --------------------------------
+
 V.    Macro expansion and evaluation test functions
+      ---------------------------------------------
+
 VI.   Boolean and conditional logic test functions
+      --------------------------------------------
+
 VII.  Argument selection test functions
+      ---------------------------------
+
 VIII. Core iteration infrastructure test functions
+      --------------------------------------------
+
 IX.   For_each implementations test functions
+      ---------------------------------------
+
 X.    Pair and indexed iteration test functions
+      -----------------------------------------
+
 XI.   Member access iteration test functions
+      --------------------------------------
+
 XII.  Advanced iteration patterns test functions
+      ------------------------------------------
+
 XIII. Pointer array initialization test functions
+      -------------------------------------------
+
 XIV.  Utility operators test functions
+      --------------------------------
+
 XV.   Compile-time assertions test functions
+      --------------------------------------
+
 XVI.  Master test suite
+      -----------------
 */
 
 #ifndef DJINTERP_TESTING_DMACRO_STANDALONE
 #define DJINTERP_TESTING_DMACRO_STANDALONE 1
 
-#include <stdlib.h>
+// std
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include "..\..\inc\c\djinterp.h"
-#include "..\..\inc\c\dmacro.h"
-#include "..\..\inc\c\string_fn.h"
-#include "..\..\inc\c\test\test_standalone.h"
+// djinterp
+#include "../../../inc/djinterp/c/djinterp.h"
+#include "../../../inc/djinterp/c/dmacro.h"
+#include "../../../inc/djinterp/c/string_fn.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 // I. Configuration system test functions
@@ -226,7 +261,3 @@ bool                  d_tests_sa_dmacro_all(struct d_test_counter* _test_info);
 
 
 #endif  // DJINTERP_TESTING_DMACRO_STANDALONE
-
-
-
-

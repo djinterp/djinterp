@@ -1,4 +1,15 @@
-#include "./test_options_tests_sa.h"
+/*******************************************************************************
+* djinterp [test]                              test_options_tests_sa_lifecycle.c
+*
+*
+* path:      /tests/djinterp/c/test/test_options_tests_sa_lifecycle.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "test_options_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /******************************************************************************
@@ -124,8 +135,8 @@ d_tests_sa_config_new_preset
          (!verbose) )
     {
         if (silent)
-        { 
-            d_test_options_free(silent); 
+        {
+            d_test_options_free(silent);
         }
 
         if (verbose)

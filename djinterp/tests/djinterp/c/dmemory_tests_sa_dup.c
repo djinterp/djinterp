@@ -1,4 +1,14 @@
-#include ".\dmemory_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                         dmemory_tests_sa_dup.c
+*
+*
+* path:      /tests/djinterp/c/dmemory_tests_sa_dup.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmemory_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +16,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dmemory_memdup_s
+d_tests_sa_dmemory_memdup_s
   Tests d_memdup_s for secure memory duplication.
   Tests the following:
   - duplicates memory correctly
@@ -19,7 +29,7 @@ d_tests_dmemory_memdup_s
   - memory is properly aligned
 */
 struct d_test_object*
-d_tests_dmemory_memdup_s
+d_tests_sa_dmemory_memdup_s
 (
     void
 )
@@ -46,10 +56,10 @@ d_tests_dmemory_memdup_s
 
     // test 1: basic duplication
     dup = d_memdup_s(src, 64);
-    test_basic_dup = (dup != NULL) && 
+    test_basic_dup = (dup != NULL) &&
                     (memcmp(dup, src, 64) == 0) &&
                     (dup != src);
-    
+
     if (dup)
     {
         free(dup);
@@ -58,7 +68,7 @@ d_tests_dmemory_memdup_s
     // test 2: exact size allocation (difficult to verify directly)
     dup = d_memdup_s(src, 17);  // odd size
     test_exact_size = (dup != NULL) && (memcmp(dup, src, 17) == 0);
-    
+
     if (dup)
     {
         free(dup);
@@ -77,12 +87,12 @@ d_tests_dmemory_memdup_s
     unsigned char original[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     unsigned char* dup_indep = (unsigned char*)d_memdup_s(original, sizeof(original));
     test_independence = false;
-    
+
     if (dup_indep)
     {
         // modify the original - this should NOT affect the duplicate
         original[0] = 99;
-        
+
         // the duplicate should still have the original value (1) at position 0
         // and the rest should be unchanged (positions 1-9 still match because
         // we only changed original[0])
@@ -93,23 +103,23 @@ d_tests_dmemory_memdup_s
     // test 6: various sizes
     test_various_sizes = true;
     size_t test_sizes[] = {1, 3, 7, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128};
-    
+
     for (i = 0; i < sizeof(test_sizes) / sizeof(test_sizes[0]); i++)
     {
         dup = d_memdup_s(src, test_sizes[i]);
-        
+
         if (!dup || memcmp(dup, src, test_sizes[i]) != 0)
         {
             test_various_sizes = false;
-            
+
             if (dup)
             {
                 free(dup);
             }
-            
+
             break;
         }
-        
+
         free(dup);
     }
 
@@ -117,7 +127,7 @@ d_tests_dmemory_memdup_s
     unsigned char binary[] = {0x00, 0xFF, 0x00, 0xAA, 0x00, 0x55};
     dup = d_memdup_s(binary, sizeof(binary));
     test_binary_data = (dup != NULL) && (memcmp(dup, binary, sizeof(binary)) == 0);
-    
+
     if (dup)
     {
         free(dup);
@@ -125,9 +135,9 @@ d_tests_dmemory_memdup_s
 
     // test 8: memory alignment
     dup = d_memdup_s(src, 100);
-    test_alignment = (dup != NULL) && 
+    test_alignment = (dup != NULL) &&
                     (((uintptr_t)dup % sizeof(void*)) == 0);  // aligned to pointer size
-    
+
     if (dup)
     {
         free(dup);
@@ -172,13 +182,13 @@ d_tests_dmemory_memdup_s
 
 
 /*
-d_tests_dmemory_duplication_all
+d_tests_sa_dmemory_duplication_all
   Runs all memory duplication tests.
   Tests the following:
   - d_memdup_s
 */
 struct d_test_object*
-d_tests_dmemory_duplication_all
+d_tests_sa_dmemory_duplication_all
 (
     void
 )
@@ -194,7 +204,7 @@ d_tests_dmemory_duplication_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dmemory_memdup_s();
+    group->elements[idx++] = d_tests_sa_dmemory_memdup_s();
 
     return group;
 }
@@ -205,7 +215,7 @@ d_tests_dmemory_duplication_all
  *****************************************************************************/
 
 /*
-d_tests_dmemory_memset
+d_tests_sa_dmemory_memset
   Tests d_memset for basic memory setting.
   Tests the following:
   - sets memory to value
@@ -218,7 +228,7 @@ d_tests_dmemory_memset
   - fills entire buffer
 */
 struct d_test_object*
-d_tests_dmemory_memset
+d_tests_sa_dmemory_memset
 (
     void
 )
@@ -242,7 +252,7 @@ d_tests_dmemory_memset
     memset(buffer, 0, sizeof(buffer));
     result = d_memset(buffer, 0xAA, 64);
     test_basic_set = true;
-    
+
     for (i = 0; i < 64; i++)
     {
         if (buffer[i] != 0xAA)
@@ -264,12 +274,12 @@ d_tests_dmemory_memset
 
     // test 4: various sizes
     test_various_sizes = true;
-    
+
     for (i = 1; i <= 128; i *= 2)
     {
         memset(buffer, 0, sizeof(buffer));
         d_memset(buffer, 0x55, i);
-        
+
         size_t j;
         for (j = 0; j < i; j++)
         {
@@ -279,7 +289,7 @@ d_tests_dmemory_memset
                 break;
             }
         }
-        
+
         if (!test_various_sizes)
         {
             break;
@@ -291,7 +301,7 @@ d_tests_dmemory_memset
     d_memset(&guard_buf[16], 0xAA, 32);
     test_preserve_surrounding = (guard_buf[15] == 0xBB) &&
                                (guard_buf[48] == 0xBB);
-    
+
     for (i = 16; i < 48; i++)
     {
         if (guard_buf[i] != 0xAA)
@@ -304,12 +314,12 @@ d_tests_dmemory_memset
     // test 6: different values (including 0 and 0xFF)
     test_different_values = true;
     unsigned char test_vals[] = {0x00, 0xFF, 0x01, 0xFE, 0x55, 0xAA};
-    
+
     for (i = 0; i < sizeof(test_vals); i++)
     {
         memset(buffer, ~test_vals[i], 10);
         d_memset(buffer, test_vals[i], 10);
-        
+
         size_t j;
         for (j = 0; j < 10; j++)
         {
@@ -328,7 +338,7 @@ d_tests_dmemory_memset
     // test 8: fill entire buffer
     d_memset(buffer, 0xCC, sizeof(buffer));
     test_fill_entire = true;
-    
+
     for (i = 0; i < sizeof(buffer); i++)
     {
         if (buffer[i] != 0xCC)
@@ -377,7 +387,7 @@ d_tests_dmemory_memset
 
 
 /*
-d_tests_dmemory_memset_s
+d_tests_sa_dmemory_memset_s
   Tests d_memset_s for secure memory setting.
   Tests the following:
   - sets memory securely
@@ -390,7 +400,7 @@ d_tests_dmemory_memset_s
   - handles maximum values
 */
 struct d_test_object*
-d_tests_dmemory_memset_s
+d_tests_sa_dmemory_memset_s
 (
     void
 )
@@ -413,7 +423,7 @@ d_tests_dmemory_memset_s
     memset(buffer, 0, sizeof(buffer));
     result = d_memset_s(buffer, sizeof(buffer), 0xAA, 64);
     test_basic_set = (result == 0);
-    
+
     for (i = 0; i < 64; i++)
     {
         if (buffer[i] != 0xAA)
@@ -447,7 +457,7 @@ d_tests_dmemory_memset_s
     memset(buffer, 0, sizeof(buffer));
     result = d_memset_s(buffer, sizeof(buffer), 0xDD, sizeof(buffer) / 2);
     test_partial_buffer = (result == 0);
-    
+
     for (i = 0; i < sizeof(buffer) / 2; i++)
     {
         if (buffer[i] != 0xDD)
@@ -456,7 +466,7 @@ d_tests_dmemory_memset_s
             break;
         }
     }
-    
+
     // check second half is unchanged
     for (i = sizeof(buffer) / 2; i < sizeof(buffer); i++)
     {
@@ -474,7 +484,7 @@ d_tests_dmemory_memset_s
     // test 8: handles maximum values
     result = d_memset_s(buffer, sizeof(buffer), 0xFF, sizeof(buffer));
     test_max_values = (result == 0);
-    
+
     for (i = 0; i < sizeof(buffer); i++)
     {
         if (buffer[i] != 0xFF)
@@ -523,14 +533,14 @@ d_tests_dmemory_memset_s
 
 
 /*
-d_tests_dmemory_set_all
+d_tests_sa_dmemory_set_all
   Runs all memory set tests.
   Tests the following:
   - d_memset
   - d_memset_s
 */
 struct d_test_object*
-d_tests_dmemory_set_all
+d_tests_sa_dmemory_set_all
 (
     void
 )
@@ -546,8 +556,8 @@ d_tests_dmemory_set_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dmemory_memset();
-    group->elements[idx++] = d_tests_dmemory_memset_s();
+    group->elements[idx++] = d_tests_sa_dmemory_memset();
+    group->elements[idx++] = d_tests_sa_dmemory_memset_s();
 
     return group;
 }

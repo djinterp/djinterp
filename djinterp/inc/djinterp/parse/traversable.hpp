@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                       traversable.hpp
+/*******************************************************************************
+* djinterp [parse]                                               traversable.hpp
 *
 * Traversable protocol: traverse and sequence (C++).
 *   A traversable is a structure T<A> that can be walked left-to-right while
@@ -46,11 +46,12 @@
 *   std::vector<maybe<int> > v{ just(1), just(2), just(3) };
 *   maybe<std::vector<int> > s = sequence(v);     // just({1,2,3})
 *
-* 
+*
 * path:      /inc/djinterp/parse/traversable.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.11
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.11
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -67,8 +68,8 @@ II.   GENERIC TRAVERSABLE OPERATIONS
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_TRAVERSABLE_
-#define DJINTERP_FUNCTIONAL_TRAVERSABLE_ 1
+#ifndef DJINTERP_PARSE_TRAVERSABLE_HPP
+#define DJINTERP_PARSE_TRAVERSABLE_HPP 1
 
 // std
 #include <type_traits>
@@ -348,4 +349,4 @@ auto sequence
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_TRAVERSABLE_
+#endif  // DJINTERP_PARSE_TRAVERSABLE_HPP

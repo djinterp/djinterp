@@ -1,12 +1,17 @@
-/******************************************************************************
-* djinterp [functional]                              predicate_tests_binary.cpp
+/*******************************************************************************
+* djinterp [functional]                               predicate_tests_binary.cpp
 *
 *   Tests for the binary predicate combinators (AND, OR, XOR) and their
 * factory functions (predicate_and, predicate_or, predicate_xor).
 *
-* path:      /src/functional/predicate_tests_binary.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/predicate_tests_binary.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./predicate_tests.hpp"
 
 

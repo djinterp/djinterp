@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                          test_builder_tests_inline_ops.cpp
+/*******************************************************************************
+* djinterp [test]                              test_builder_tests_inline_ops.cpp
 *
 *   The immediate and imperative surface.  check / expect add an ANONYMOUS leaf
 * evaluated RIGHT NOW - folded into the tree's counts (and the inline_checks
@@ -10,11 +10,14 @@
 * the LIVE cursor (no save / restore, unlike the scoped forms), and add_if does
 * so only when its condition - value or predicate, evaluated now - holds.
 *
-* path:      /tests/djinterp/test/test_builder/test_builder_tests_inline_ops.cpp
+*
+* path:      /tests/djinterp/test/test_builder_tests_inline_ops.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_builder_tests.hpp"
 
 NS_DJINTERP

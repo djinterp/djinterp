@@ -1,15 +1,15 @@
-#include ".\datomic_tests_sa.h"
+#include "./datomic_tests_sa.h"
 
 
 /*
-d_tests_sa_atomic_fetch_add_int
+d_tests_sa_datomic_fetch_add_int
   Tests fetch-add for int type.
   Tests the following:
   - d_atomic_fetch_add_int returns old value
   - value is incremented after fetch-add
 */
 bool
-d_tests_sa_atomic_fetch_add_int
+d_tests_sa_datomic_fetch_add_int
 (
     struct d_test_counter* _counter
 )
@@ -39,13 +39,13 @@ d_tests_sa_atomic_fetch_add_int
 }
 
 /*
-d_tests_sa_atomic_fetch_add_uint
+d_tests_sa_datomic_fetch_add_uint
   Tests fetch-add for unsigned int type.
   Tests the following:
   - d_atomic_fetch_add_uint returns old and adds correctly
 */
 bool
-d_tests_sa_atomic_fetch_add_uint
+d_tests_sa_datomic_fetch_add_uint
 (
     struct d_test_counter* _counter
 )
@@ -69,13 +69,13 @@ d_tests_sa_atomic_fetch_add_uint
 }
 
 /*
-d_tests_sa_atomic_fetch_add_long
+d_tests_sa_datomic_fetch_add_long
   Tests fetch-add for long type.
   Tests the following:
   - d_atomic_fetch_add_long returns old and adds correctly
 */
 bool
-d_tests_sa_atomic_fetch_add_long
+d_tests_sa_datomic_fetch_add_long
 (
     struct d_test_counter* _counter
 )
@@ -99,13 +99,13 @@ d_tests_sa_atomic_fetch_add_long
 }
 
 /*
-d_tests_sa_atomic_fetch_add_llong
+d_tests_sa_datomic_fetch_add_llong
   Tests fetch-add for long long type.
   Tests the following:
   - d_atomic_fetch_add_llong returns old and adds correctly
 */
 bool
-d_tests_sa_atomic_fetch_add_llong
+d_tests_sa_datomic_fetch_add_llong
 (
     struct d_test_counter* _counter
 )
@@ -129,13 +129,13 @@ d_tests_sa_atomic_fetch_add_llong
 }
 
 /*
-d_tests_sa_atomic_fetch_add_size
+d_tests_sa_datomic_fetch_add_size
   Tests fetch-add for size_t type.
   Tests the following:
   - d_atomic_fetch_add_size returns old and adds correctly
 */
 bool
-d_tests_sa_atomic_fetch_add_size
+d_tests_sa_datomic_fetch_add_size
 (
     struct d_test_counter* _counter
 )
@@ -159,13 +159,13 @@ d_tests_sa_atomic_fetch_add_size
 }
 
 /*
-d_tests_sa_atomic_fetch_sub_int
+d_tests_sa_datomic_fetch_sub_int
   Tests fetch-sub for int type.
   Tests the following:
   - d_atomic_fetch_sub_int returns old and subtracts correctly
 */
 bool
-d_tests_sa_atomic_fetch_sub_int
+d_tests_sa_datomic_fetch_sub_int
 (
     struct d_test_counter* _counter
 )
@@ -189,13 +189,13 @@ d_tests_sa_atomic_fetch_sub_int
 }
 
 /*
-d_tests_sa_atomic_fetch_sub_long
+d_tests_sa_datomic_fetch_sub_long
   Tests fetch-sub for long type.
   Tests the following:
   - d_atomic_fetch_sub_long returns old and subtracts correctly
 */
 bool
-d_tests_sa_atomic_fetch_sub_long
+d_tests_sa_datomic_fetch_sub_long
 (
     struct d_test_counter* _counter
 )
@@ -219,13 +219,13 @@ d_tests_sa_atomic_fetch_sub_long
 }
 
 /*
-d_tests_sa_atomic_fetch_sub_size
+d_tests_sa_datomic_fetch_sub_size
   Tests fetch-sub for size_t type.
   Tests the following:
   - d_atomic_fetch_sub_size returns old and subtracts correctly
 */
 bool
-d_tests_sa_atomic_fetch_sub_size
+d_tests_sa_datomic_fetch_sub_size
 (
     struct d_test_counter* _counter
 )
@@ -249,13 +249,13 @@ d_tests_sa_atomic_fetch_sub_size
 }
 
 /*
-d_tests_sa_atomic_fetch_or_int
+d_tests_sa_datomic_fetch_or_int
   Tests fetch-or for int type.
   Tests the following:
   - d_atomic_fetch_or_int returns old and ORs correctly
 */
 bool
-d_tests_sa_atomic_fetch_or_int
+d_tests_sa_datomic_fetch_or_int
 (
     struct d_test_counter* _counter
 )
@@ -279,13 +279,13 @@ d_tests_sa_atomic_fetch_or_int
 }
 
 /*
-d_tests_sa_atomic_fetch_xor_int
+d_tests_sa_datomic_fetch_xor_int
   Tests fetch-xor for int type.
   Tests the following:
   - d_atomic_fetch_xor_int returns old and XORs correctly
 */
 bool
-d_tests_sa_atomic_fetch_xor_int
+d_tests_sa_datomic_fetch_xor_int
 (
     struct d_test_counter* _counter
 )
@@ -309,13 +309,13 @@ d_tests_sa_atomic_fetch_xor_int
 }
 
 /*
-d_tests_sa_atomic_fetch_and_int
+d_tests_sa_datomic_fetch_and_int
   Tests fetch-and for int type.
   Tests the following:
   - d_atomic_fetch_and_int returns old and ANDs correctly
 */
 bool
-d_tests_sa_atomic_fetch_and_int
+d_tests_sa_datomic_fetch_and_int
 (
     struct d_test_counter* _counter
 )
@@ -339,7 +339,7 @@ d_tests_sa_atomic_fetch_and_int
 }
 
 /*
-d_tests_sa_atomic_fetch_explicit
+d_tests_sa_datomic_fetch_explicit
   Tests fetch operations with explicit memory orders.
   Tests the following:
   - fetch_add_int_explicit with acquire ordering
@@ -349,7 +349,7 @@ d_tests_sa_atomic_fetch_explicit
   - fetch_xor_int_explicit with seq_cst ordering
 */
 bool
-d_tests_sa_atomic_fetch_explicit
+d_tests_sa_datomic_fetch_explicit
 (
     struct d_test_counter* _counter
 )
@@ -418,7 +418,7 @@ d_tests_sa_atomic_fetch_explicit
 }
 
 /*
-d_tests_sa_atomic_fetch_all
+d_tests_sa_datomic_fetch_all
   Runs all atomic fetch-and-modify tests.
   Tests the following:
   - fetch_add for int, uint, long, llong, size
@@ -427,7 +427,7 @@ d_tests_sa_atomic_fetch_all
   - explicit memory order variants
 */
 bool
-d_tests_sa_atomic_fetch_all
+d_tests_sa_datomic_fetch_all
 (
     struct d_test_counter* _counter
 )
@@ -439,18 +439,18 @@ d_tests_sa_atomic_fetch_all
     printf("\n  [SECTION] Atomic Fetch-and-Modify\n");
     printf("  ----------------------------------\n");
 
-    result = d_tests_sa_atomic_fetch_add_int(_counter) && result;
-    result = d_tests_sa_atomic_fetch_add_uint(_counter) && result;
-    result = d_tests_sa_atomic_fetch_add_long(_counter) && result;
-    result = d_tests_sa_atomic_fetch_add_llong(_counter) && result;
-    result = d_tests_sa_atomic_fetch_add_size(_counter) && result;
-    result = d_tests_sa_atomic_fetch_sub_int(_counter) && result;
-    result = d_tests_sa_atomic_fetch_sub_long(_counter) && result;
-    result = d_tests_sa_atomic_fetch_sub_size(_counter) && result;
-    result = d_tests_sa_atomic_fetch_or_int(_counter) && result;
-    result = d_tests_sa_atomic_fetch_xor_int(_counter) && result;
-    result = d_tests_sa_atomic_fetch_and_int(_counter) && result;
-    result = d_tests_sa_atomic_fetch_explicit(_counter) && result;
+    result = d_tests_sa_datomic_fetch_add_int(_counter) && result;
+    result = d_tests_sa_datomic_fetch_add_uint(_counter) && result;
+    result = d_tests_sa_datomic_fetch_add_long(_counter) && result;
+    result = d_tests_sa_datomic_fetch_add_llong(_counter) && result;
+    result = d_tests_sa_datomic_fetch_add_size(_counter) && result;
+    result = d_tests_sa_datomic_fetch_sub_int(_counter) && result;
+    result = d_tests_sa_datomic_fetch_sub_long(_counter) && result;
+    result = d_tests_sa_datomic_fetch_sub_size(_counter) && result;
+    result = d_tests_sa_datomic_fetch_or_int(_counter) && result;
+    result = d_tests_sa_datomic_fetch_xor_int(_counter) && result;
+    result = d_tests_sa_datomic_fetch_and_int(_counter) && result;
+    result = d_tests_sa_datomic_fetch_explicit(_counter) && result;
 
     return result;
 }

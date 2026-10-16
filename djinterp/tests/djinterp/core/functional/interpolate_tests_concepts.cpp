@@ -1,12 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                    interpolate_tests_concepts.cpp
+/*******************************************************************************
+* djinterp [test]                                 interpolate_tests_concepts.cpp
 *
 * Section IX (C++20) -- the concept parallels of the scanner / resolver / sink
 * contracts: scanner_for, resolver_for, sink_for.  Verifies each accepts the
 * shipped models and rejects an unrelated type (int).  Gated on C++20: below it
 * the block is emitted empty.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_concepts.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

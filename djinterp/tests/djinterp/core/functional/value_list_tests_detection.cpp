@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                 value_list_tests_detection.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/value_list_tests_detection.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  value_list_tests_detection.cpp
 //   Section II -- is_value_list (+ _v) and the ValueList concept face.
 

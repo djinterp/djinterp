@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                              dfile_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                               dfile_tests_sa.h
 *
 *   Unit tests for the dfile module (cross-platform file I/O).
 *   Tests cover secure file opening, large file support, file descriptors,
@@ -7,18 +7,19 @@
 * utilities, symbolic links, pipes, and binary I/O helpers.
 *
 *
-* path:      \inc\c\test\dfile_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
+* path:      /tests/djinterp/c/dfile_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_DFILE_TESTS_SA_
 #define DJINTERP_DFILE_TESTS_SA_ 1
 
-#include "..\..\inc\c\test\test_standalone.h"
-#include "..\..\inc\c\djinterp.h"
-#include "..\..\inc\c\dmemory.h"
-#include "..\..\inc\c\dfile.h"
+// djinterp
+#include "../../../inc/djinterp/c/djinterp.h"
+#include "../../../inc/djinterp/c/dmemory.h"
+#include "../../../inc/djinterp/c/fs/dfile.h"
 
 
 /******************************************************************************
@@ -181,7 +182,3 @@ struct d_test_object* d_tests_dfile_run_all(void);
 
 
 #endif  // DJINTERP_DFILE_TESTS_SA_
-
-
-
-

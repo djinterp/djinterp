@@ -1,75 +1,53 @@
-// djinterp
-#include "../../../../../../../../../tests/djinterp/core/event/event_registry/event_registry_tests.hpp"
-#include "djinterp/test/test_report_runner.hpp"    // report_builder + report model
+/******************************************************************************
+* djinterp [test]                               event_registry_tests_runner.cpp
+*
+*   Enriched runner for the event_registry unit tests.  The suite describes
+* itself: event_registry_tests.hpp, compiled with DTEST_SPEC_MODE, exposes
+* event_registry_spec() - the suite's blocks as data, each unit test paired with
+* a name and a one-line descriptor.  run_module (test_defaults.hpp) lowers that
+* spec into the six-kind tree, describes it, and drives the report to the
+* console and - as configured by a test_option_set - a PDF.  This file is only
+* the entry point.
+*
+*   OUTPUT VIA TEST_OPTIONS:
+*   Rather than the bare-filename convenience, this runner builds a
+* test_option_set (test_options.hpp) and selects the PDF face on it:
+*     opts.set<test_option::document>(test_doc_type::pdf);        // emit a PDF
+*     opts.set<test_option::output_file>("event_registry_tests.pdf");
+* then hands the set to run_module's option-set overload.  document /
+* output_file / split / show now ride the one configuration surface, so tuning
+* any of them (split -> per_module, show -> failures_only, ...) is a one-line
+* change here and needs no runner-shape edit.  Leave `document` at its txt
+* default for a console-only run.
+*
+*   DTEST_SPEC_MODE swaps the header's fixtures for its spec provider, so the
+* runner pulls in the authoring surface without the section-file fixtures.
+*
+* path:      /build/cmake/config/testing/djinterp/core/event/event_registry/event_registry_tests_runner.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.01
+******************************************************************************/
 
+#define DTEST_SPEC_MODE                    // expose event_registry_spec(); omit fixtures
+#include "event_registry_tests.hpp"       // resolved via the test include path
 
-// D_ER_RUN
-//   macro: runs ::djinterp::testing::<fn> as a unit test named for the
-// function - recorded in the report and echoed to the live console.
-#define D_ER_RUN(_fn)   rb.run(#_fn, &::djinterp::testing::_fn)
+#include <string>
 
 
 int
 main()
 {
-    ::djinterp::test::report_builder rb;
+    namespace dt = ::djinterp::test;
 
-    rb.set_title("event_registry.hpp unit tests");
+    // configure the report through the option set: PDF, to a named file.
+    dt::test_option_set opts = dt::default_test_options();
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("event_registry_tests.pdf"));
 
-    // write a PDF beside the live console output; omit this line for a
-    // console-only run (see test_options.hpp for layout / naming knobs).
-    rb.use_pdf("event_registry_tests.pdf");
-
-    rb.module("event_registry",
-              "Typed subscription layer: bind, dispatch and run folds, the "
-              "fused compile path, merge, management, and queries");
-
-    // I.   dispatch_result + run_result
-    D_ER_RUN(tests_dispatch_result_fields_and_consumed);
-    D_ER_RUN(tests_run_result_aggregate);
-
-    // II.  fused_step (the staging proposition)
-    D_ER_RUN(tests_fused_step_empty);
-    D_ER_RUN(tests_fused_step_fold_order_and_size);
-    D_ER_RUN(tests_fused_step_short_circuit);
-    D_ER_RUN(tests_fused_step_operator_and_run_one);
-
-    // III. bind + dispatch (the inner fold)
-    D_ER_RUN(tests_bind_returns_valid_id_and_registers);
-    D_ER_RUN(tests_bind_distinct_ids);
-    D_ER_RUN(tests_dispatch_no_handlers);
-    D_ER_RUN(tests_dispatch_single_pass);
-    D_ER_RUN(tests_dispatch_single_consume);
-    D_ER_RUN(tests_dispatch_order_and_count);
-    D_ER_RUN(tests_dispatch_consume_short_circuit);
-    D_ER_RUN(tests_dispatch_disabled_masked);
-    D_ER_RUN(tests_dispatch_payload_delivery);
-    D_ER_RUN(tests_dispatch_void_handler_and_nullary);
-    D_ER_RUN(tests_dispatch_multi_event_isolation_and_cvref);
-
-    // III. run (the outer fold)
-    D_ER_RUN(tests_run_empty_trace);
-    D_ER_RUN(tests_run_counts_pass);
-    D_ER_RUN(tests_run_consumed_count);
-    D_ER_RUN(tests_run_no_handlers);
-    D_ER_RUN(tests_run_short_circuit_accumulation);
-
-    // III. compile (the fused path)
-    D_ER_RUN(tests_compile_empty);
-    D_ER_RUN(tests_compile_size_and_fold);
-    D_ER_RUN(tests_compile_masks_disabled);
-    D_ER_RUN(tests_compile_snapshot_independent);
-
-    // III. management + merge + typed/aggregate queries + table access
-    D_ER_RUN(tests_unbind);
-    D_ER_RUN(tests_enable_disable);
-    D_ER_RUN(tests_is_enabled_contains);
-    D_ER_RUN(tests_merge);
-    D_ER_RUN(tests_typed_queries);
-    D_ER_RUN(tests_aggregate_queries);
-    D_ER_RUN(tests_table_access);
-
-    return rb.finish();
+    return dt::run_module(
+        ::djinterp::testing::event_registry_spec(),
+        "event_registry.hpp unit tests",
+        "enriched: six-kind vocabulary, per-node metadata",
+        opts);
 }
-
-#undef D_ER_RUN

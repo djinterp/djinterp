@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                      compose_tests.hpp
+/*******************************************************************************
+* djinterp [functional]                                        compose_tests.hpp
 *
 *   DTest declarations and shared helper types for the compose.hpp unit
 * test suite.  Each like-group semantic section of compose.hpp maps to a
@@ -30,10 +30,12 @@
 * C++98 fallback is exercised separately by its own (out-of-scope here)
 * suite because variadic / fix / traits are RED in C++98.
 *
+*
 * path:      /tests/djinterp/core/functional/compose_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.31
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_COMPOSE_
 #define DJINTERP_TESTING_FUNCTIONAL_COMPOSE_ 1
@@ -42,12 +44,12 @@
 #include <cstddef>
 #include <string>
 // djinterp
-#include "../../core/djinterp.hpp"
-#include "../../test/test_common.hpp"
-#include "../../test/test_handler.hpp"
-#include "../../test/test_defaults.hpp"
-#include "../../test/test_runner.hpp"
-#include "../compose.hpp"
+#include "../../../../inc/djinterp/djinterp.hpp"
+#include "../../../../inc/djinterp/test/test_common.hpp"
+#include "../../../../inc/djinterp/test/test_handler.hpp"
+#include "../../../../inc/djinterp/test/test_defaults.hpp"
+#include "../../../../inc/djinterp/test/test_runner.hpp"
+#include "../../../../inc/djinterp/core/functional/compose.hpp"
 
 
 NS_DJINTERP

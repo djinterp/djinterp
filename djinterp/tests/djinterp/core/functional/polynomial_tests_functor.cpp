@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                   polynomial_tests_functor.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/polynomial_tests_functor.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  polynomial_tests_functor.cpp
 //   Section III -- functor_traits specialisations, functor_map, the functor
 //   laws, and the cata / ana integration those instances exist to serve.

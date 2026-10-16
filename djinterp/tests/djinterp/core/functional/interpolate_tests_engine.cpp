@@ -1,13 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                      interpolate_tests_engine.cpp
+/*******************************************************************************
+* djinterp [test]                                   interpolate_tests_engine.cpp
 *
 * Section V -- interpolate_into: the fold that binds scanner, resolver, and
 * sink.  Verifies literal passthrough, a hit's value emission, a miss leaving
 * the raw placeholder, mixed and partial interpolation, escape collapsing, the
 * exact literal-vs-value DISPATCH (via a recording sink), and that the engine is
 * scanner-agnostic (sigil and replay scanners drive it identically).
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_engine.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

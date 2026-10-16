@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                          option_set_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                           option_set_tests.hpp
 *
 *   Declarations, fixtures, and section block-providers for the option_set.hpp
 * unit suite.
@@ -46,17 +46,24 @@
 * option_set.hpp.  Both resolve through the project's configured include path.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    FIXTURES              (key enums / expanders / passthrough / non-option)
-* II.   TEST DECLARATIONS     (per section, flat in djinterp::testing)
-* III.  BLOCK PROVIDERS        (one block_spec per section group)
-*
-*
 * path:      /tests/djinterp/core/option/option_set_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    FIXTURES              (key enums / expanders / passthrough / non-option)
+      ------------------------------------------------------------------------
+
+II.   TEST DECLARATIONS     (per section, flat in djinterp::testing)
+      --------------------------------------------------------------
+
+III.  BLOCK PROVIDERS        (one block_spec per section group)
+      ---------------------------------------------------------
+*/
 
 #ifndef DJINTERP_OPTION_SET_TESTS_
 #define DJINTERP_OPTION_SET_TESTS_ 1
@@ -65,15 +72,18 @@
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
-// djinterp (resolved via the project include path)
-#include "djinterp/test/test_defaults.hpp"    // module_spec / block_spec / test_spec, run_module
-#include "djinterp/core/option/option_set.hpp" // option_set<>, expand_option, field, queries, concepts
+// djinterp
+#include <djinterp/test/test_defaults.hpp>      // module_spec / block_spec / test_spec, run_module
+#ifndef DTEST_SPEC_MODE
+#include <djinterp/core/option/option_set.hpp>  // option_set<>, expand_option, field, queries, concepts
+#endif  // !DTEST_SPEC_MODE
 
 
 NS_DJINTERP
 NS_TESTING
 
 
+#ifndef DTEST_SPEC_MODE   // fixtures: normal face only
 // ===========================================================================
 // I.   FIXTURES
 // ===========================================================================
@@ -106,6 +116,8 @@ struct os_passthrough
 {
     using expanded_t = std::tuple<>;
 };
+
+#endif  // !DTEST_SPEC_MODE
 
 
 // ===========================================================================
@@ -179,6 +191,32 @@ bool concept_option_set_non_empty();
 ::djinterp::test::block_spec option_set_values_block();
 ::djinterp::test::block_spec option_set_queries_block();
 ::djinterp::test::block_spec option_set_concepts_block();
+
+
+// ===========================================================================
+// SPEC PROVIDER   (spec face - the runner hands this to run_module)
+// ===========================================================================
+#ifdef DTEST_SPEC_MODE
+inline ::djinterp::test::module_spec
+option_set_spec()
+{
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
+
+    dt::module_spec mod;
+    mod.name       = "option_set.hpp";
+    mod.descriptor = "expansion, construction checks, pack surface, value face, queries, concepts";
+
+    mod.blocks.push_back(tt::option_set_expand_block());     // I + II.
+    mod.blocks.push_back(tt::option_set_checks_block());     // III.
+    mod.blocks.push_back(tt::option_set_core_block());       // IV.
+    mod.blocks.push_back(tt::option_set_values_block());     // V.
+    mod.blocks.push_back(tt::option_set_queries_block());    // VI.
+    mod.blocks.push_back(tt::option_set_concepts_block());   // VII.
+
+    return mod;
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

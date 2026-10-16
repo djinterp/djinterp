@@ -1,13 +1,17 @@
-/******************************************************************************
-* djinterp [test]                            test_session_tests_sa_children.c
+/*******************************************************************************
+* djinterp [test]                               test_session_tests_sa_children.c
 *
 *   Unit tests for test_session.h child management functions.
 *
-* path:      \test\test\test_session_tests_sa_children.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
-******************************************************************************/
-#include "./test_session_tests_sa.h"
+*
+* path:      /tests/djinterp/c/test/test_session_tests_sa_children.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "test_session_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 //=============================================================================
@@ -71,7 +75,7 @@ d_tests_sa_test_session_add_child
     session = d_test_session_new();
     child   = create_module_child();
 
-    if ( (!session) || 
+    if ( (!session) ||
          (!child) )
     {
         printf("  %s allocation failed\n", D_TEST_SYMBOL_FAIL);

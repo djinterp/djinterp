@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      result_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                        result_tests_traits.cpp
 *
 * SFINAE structural trait tests for result.hpp section II:
 *   is_result<T>, result_value_type<R> / result_error_type<R>,
@@ -10,12 +10,20 @@
 *   Compile-time guarantees are asserted at file scope via static_assert; the
 * runtime section mirrors them so the counts roll into the report and the
 * gated variable-template / concept paths are exercised when available.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/result_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <string>
+// std
 #include <cstddef>
+#include <string>
 #include <type_traits>
 #include <vector>
+// djinterp
 #include "./result_tests.hpp"
 
 

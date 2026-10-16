@@ -1,12 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                  interpolate_tests_resolution.cpp
+/*******************************************************************************
+* djinterp [test]                               interpolate_tests_resolution.cpp
 *
 * Section III.i -- resolution<value>: the minimal maybe a resolver answers with.
 * Verifies found()/value(), the resolved()/unresolved() factories, and the LAZY
 * or_else combinator that chaining routes through -- a hit returns unchanged
 * without invoking the alternative; a miss invokes it; and or_else chains.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_resolution.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

@@ -1,7 +1,17 @@
+/*******************************************************************************
+* djinterp [core]                               curry_tests_predicate_traits.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/curry_tests_predicate_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// std
+#include <type_traits>
+// djinterp
 // djinterp [test] -- curry.hpp Section II (predicate traits & concepts)
 #include "./curry_tests.hpp"
-
-#include <type_traits>
 
 
 NS_DJINTERP

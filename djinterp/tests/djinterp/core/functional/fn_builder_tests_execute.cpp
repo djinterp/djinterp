@@ -1,13 +1,21 @@
-/******************************************************************************
-* djinterp [test]                                  fn_builder_tests_execute.cpp
+/*******************************************************************************
+* djinterp [test]                                   fn_builder_tests_execute.cpp
 *
 * Execution-overload tests (section iii):
 *   test_execute -- execute(vector), execute(generic container),
 *                   execute(pointer, count), and operator() shorthand.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/fn_builder_tests_execute.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <list>
+#include <vector>
+// djinterp
 #include "./fn_builder_tests.hpp"
 
 

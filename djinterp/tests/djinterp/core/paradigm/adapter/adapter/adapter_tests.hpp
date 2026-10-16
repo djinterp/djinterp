@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             adapter_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                              adapter_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/paradigm/adapter/adapter.hpp.  Two
 * faces, selected by DTEST_SPEC_MODE:
@@ -22,10 +22,12 @@
 * place, and expands to full coverage the moment the header is fixed and the
 * macro is defined.
 *
-* path:      /tests/djinterp/paradigm/adapter/adapter_tests.hpp
+*
+* path:      /tests/djinterp/core/paradigm/adapter/adapter/adapter_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.09
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_ADAPTER_TESTS_
 #define DJINTERP_TEST_ADAPTER_TESTS_ 1
@@ -36,7 +38,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "adapter.hpp"                        // the header under test (bare form)
+#include "../../../../../../inc/djinterp/core/paradigm/adapter/adapter.hpp"                        // the header under test (bare form)
 #include "djinterp/test/test_defaults.hpp"    // module_spec, run_module (full-from-inc)
 
 

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                     font_tests_value_types.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_value_types.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_value_types.cpp
 //   Sections 3-6: the plain value types - font_color, the OpenType tag
 // packing, opentype_feature, variable_axis, and font_family_info.

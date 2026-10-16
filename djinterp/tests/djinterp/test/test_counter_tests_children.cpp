@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                test_counter_tests_children.cpp
+*
+*
+* path:      /tests/djinterp/test/test_counter_tests_children.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp
 #include "test_counter_tests.hpp"
 

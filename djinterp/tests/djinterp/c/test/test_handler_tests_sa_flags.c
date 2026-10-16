@@ -1,4 +1,15 @@
-#include "./test_handler_tests_sa.h"
+/*******************************************************************************
+* djinterp [test]                                  test_handler_tests_sa_flags.c
+*
+*
+* path:      /tests/djinterp/c/test/test_handler_tests_sa_flags.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "test_handler_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /*
@@ -101,11 +112,11 @@ d_tests_sa_handler_set_flag
 
         result = d_test_handler_has_flag(
                      handler,
-                     D_TEST_HANDLER_FLAG_EMIT_EVENTS)
-              && d_test_handler_has_flag(
-                     handler,
-                     D_TEST_HANDLER_FLAG_ABORT_ON_FAIL)
-              && d_test_handler_has_flag(
+                     D_TEST_HANDLER_FLAG_EMIT_EVENTS) &&
+              d_test_handler_has_flag(
+                  handler,
+                  D_TEST_HANDLER_FLAG_ABORT_ON_FAIL) &&
+              d_test_handler_has_flag(
                      handler,
                      D_TEST_HANDLER_FLAG_TRACK_STACK);
 

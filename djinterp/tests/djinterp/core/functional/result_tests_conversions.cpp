@@ -1,14 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                 result_tests_conversions.cpp
+/*******************************************************************************
+* djinterp [test]                                   result_tests_conversions.cpp
 *
 * maybe-conversion tests for result<T, E>: the ok() / err() member accessors
 * (section I) and the free to_maybe (section VI).
 *
 *   test_conversions -- result::ok(), result::err(), and to_maybe across both
 *                       branches.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/result_tests_conversions.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <string>
+// djinterp
 #include "./result_tests.hpp"
 
 

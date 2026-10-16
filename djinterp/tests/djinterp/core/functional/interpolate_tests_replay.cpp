@@ -1,11 +1,18 @@
-/******************************************************************************
-* djinterp [test]                                      interpolate_tests_replay.cpp
+/*******************************************************************************
+* djinterp [test]                                   interpolate_tests_replay.cpp
 *
 * Section II.iii -- replay_scanner: replays a pre-scanned piece cache instead of
 * re-deriving it from the text.  Verifies it reproduces a scan exactly, handles
 * an empty cache, and exposes the scanner typedefs.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_replay.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

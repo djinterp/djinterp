@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     dmacro_tests_sa_argcount.c
+/*******************************************************************************
+* djinterp [test]                                    dmacro_tests_sa_arg_count.c
 *
 *   Unit tests for `dmacro.h` argument counting utilities (Section II).
 *   Tests D_VARG_COUNT, D_HAS_ARGS, and related argument inspection macros.
@@ -11,11 +11,14 @@
 *   as expressions.
 *
 *
-* path:      \test\dmacro_tests_sa_argcount.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
-#include ".\dmacro_tests_sa.h"
+* path:      /tests/djinterp/c/dmacro_tests_sa_arg_count.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

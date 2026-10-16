@@ -1,21 +1,32 @@
-﻿#include "../../../inc/c/test/test_standalone.h"
+/*******************************************************************************
+* djinterp [c]                                                 test_standalone.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/test/test_standalone.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
+#include "../../../../inc/djinterp/c/test/test_standalone.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
-/******************************************************************************
- * INTERNAL DUAL-OUTPUT HELPER
- *****************************************************************************/
 
 // D_INTERNAL_TPRINTF
 //   macro: prints to both stdout and the global output file (if open).
 // Use in place of printf within framework output functions.
-#define D_INTERNAL_TPRINTF(...)                         \
-    do {                                                \
-        printf(__VA_ARGS__);                            \
-        if (g_d_test_output_file)                       \
-        {                                               \
-            fprintf(g_d_test_output_file,                \
-                    __VA_ARGS__);                        \
-        }                                               \
+#define D_INTERNAL_TPRINTF(...)                                             \
+    do                                                                      \
+    {                                                                       \
+        printf(__VA_ARGS__);                                                \
+        if (g_d_test_output_file)                                           \
+        {                                                                   \
+            fprintf(g_d_test_output_file,                                   \
+                    __VA_ARGS__);                                           \
+        }                                                                   \
+                                                                            \
     } while (0)
 
 
@@ -23,8 +34,8 @@
  * GLOBAL TEST STATE DEFINITIONS
  *****************************************************************************/
 
-struct d_test_sa_options*      g_d_test_options          = NULL;
-struct d_test_sa_failure_list* g_d_test_failures         = NULL;
+struct d_test_standalone_options*      g_d_test_options          = NULL;
+struct d_test_standalone_failure_list* g_d_test_failures         = NULL;
 const char*                    g_d_test_current_module   = NULL;
 size_t                         g_d_test_assertion_number = 0;
 size_t                         g_d_test_test_number      = 0;
@@ -84,7 +95,7 @@ d_test_internal_strcat_safe
  *****************************************************************************/
 
 /*
-d_test_sa_options_init
+d_test_standalone_options_init
   Initializes a test options struct to default values. All output features
 are enabled, numbering is disabled, and no output file is set.
 
@@ -94,9 +105,9 @@ Return:
   none.
 */
 void
-d_test_sa_options_init
+d_test_standalone_options_init
 (
-    struct d_test_sa_options* _options
+    struct d_test_standalone_options* _options
 )
 {
     if (!_options)
@@ -116,7 +127,7 @@ d_test_sa_options_init
 }
 
 /*
-d_test_sa_options_parse
+d_test_standalone_options_parse
   Parses command-line arguments into a test options struct.
 Recognized flags:
   -na             number assertions
@@ -137,9 +148,9 @@ Return:
 program should exit (e.g. --help was requested).
 */
 bool
-d_test_sa_options_parse
+d_test_standalone_options_parse
 (
-    struct d_test_sa_options* _options,
+    struct d_test_standalone_options* _options,
     int                       _argc,
     char*                     _argv[]
 )
@@ -209,7 +220,7 @@ d_test_sa_options_parse
         else if ( (strcmp(_argv[i], "-h") == 0)    ||
                   (strcmp(_argv[i], "--help") == 0) )
         {
-            d_test_sa_options_print_usage(_argv[0]);
+            d_test_standalone_options_print_usage(_argv[0]);
 
             return false;
         }
@@ -225,7 +236,7 @@ d_test_sa_options_parse
 }
 
 /*
-d_test_sa_options_print_usage
+d_test_standalone_options_print_usage
   Prints a usage/help message listing all available CLI flags.
 
 Parameter(s):
@@ -234,7 +245,7 @@ Return:
   none.
 */
 void
-d_test_sa_options_print_usage
+d_test_standalone_options_print_usage
 (
     const char* _program_name
 )
@@ -276,7 +287,7 @@ d_test_sa_options_print_usage
  *****************************************************************************/
 
 /*
-d_test_sa_failure_list_init
+d_test_standalone_failure_list_init
   Initializes a failure list to empty state with pre-allocated capacity.
 
 Parameter(s):
@@ -285,9 +296,9 @@ Return:
   none.
 */
 void
-d_test_sa_failure_list_init
+d_test_standalone_failure_list_init
 (
-    struct d_test_sa_failure_list* _list
+    struct d_test_standalone_failure_list* _list
 )
 {
     if (!_list)
@@ -297,9 +308,9 @@ d_test_sa_failure_list_init
 
     _list->count    = 0;
     _list->capacity = 64;
-    _list->entries  = (struct d_test_sa_failure_entry*)
+    _list->entries  = (struct d_test_standalone_failure_entry*)
         calloc(_list->capacity,
-               sizeof(struct d_test_sa_failure_entry));
+               sizeof(struct d_test_standalone_failure_entry));
 
     // if alloc fails, set capacity to 0 (tracking disabled)
     if (!_list->entries)
@@ -311,9 +322,9 @@ d_test_sa_failure_list_init
 }
 
 /*
-d_test_sa_failure_list_add
+d_test_standalone_failure_list_add
   Records a failure entry. Grows the list if needed, up to
-D_TEST_SA_MAX_FAILURES.
+D_TEST_STANDALONE_MAX_FAILURES.
 
 Parameter(s):
   _list:    the failure list to add to
@@ -324,24 +335,20 @@ Return:
   none.
 */
 void
-d_test_sa_failure_list_add
+d_test_standalone_failure_list_add
 (
-    struct d_test_sa_failure_list* _list,
+    struct d_test_standalone_failure_list* _list,
     const char*                    _module,
     const char*                    _name,
     const char*                    _message
 )
 {
-    struct d_test_sa_failure_entry* new_entries;
+    struct d_test_standalone_failure_entry* new_entries;
     size_t                         new_capacity;
 
-    if (!_list)
-    {
-        return;
-    }
-
     // enforce hard limit
-    if (_list->count >= D_TEST_SA_MAX_FAILURES)
+    if ( (!_list) ||
+         (_list->count >= D_TEST_STANDALONE_MAX_FAILURES) )
     {
         return;
     }
@@ -353,16 +360,14 @@ d_test_sa_failure_list_add
                            ? _list->capacity * 2
                            : 64;
 
-        if (new_capacity > D_TEST_SA_MAX_FAILURES)
+        if (new_capacity > D_TEST_STANDALONE_MAX_FAILURES)
         {
-            new_capacity = D_TEST_SA_MAX_FAILURES;
+            new_capacity = D_TEST_STANDALONE_MAX_FAILURES;
         }
 
-        new_entries =
-            (struct d_test_sa_failure_entry*)realloc(
-                _list->entries,
-                new_capacity *
-                    sizeof(struct d_test_sa_failure_entry));
+        new_entries = realloc( _list->entries,
+                               (new_capacity *
+                                sizeof(struct d_test_standalone_failure_entry)) );
 
         if (!new_entries)
         {
@@ -383,7 +388,7 @@ d_test_sa_failure_list_add
 }
 
 /*
-d_test_sa_failure_list_print
+d_test_standalone_failure_list_print
   Prints all recorded failures to stdout as a summary block.
 Does nothing if the list is empty.
 
@@ -393,9 +398,9 @@ Return:
   none.
 */
 void
-d_test_sa_failure_list_print
+d_test_standalone_failure_list_print
 (
-    const struct d_test_sa_failure_list* _list
+    const struct d_test_standalone_failure_list* _list
 )
 {
     size_t      i;
@@ -447,7 +452,7 @@ d_test_sa_failure_list_print
 }
 
 /*
-d_test_sa_failure_list_print_file
+d_test_standalone_failure_list_print_file
   Prints all recorded failures to a file stream as a summary
 block. Does nothing if the list is empty or the file is NULL.
 
@@ -458,10 +463,10 @@ Return:
   none.
 */
 void
-d_test_sa_failure_list_print_file
+d_test_standalone_failure_list_print_file
 (
     FILE*                                _file,
-    const struct d_test_sa_failure_list* _list
+    const struct d_test_standalone_failure_list* _list
 )
 {
     size_t      i;
@@ -518,7 +523,7 @@ d_test_sa_failure_list_print_file
 }
 
 /*
-d_test_sa_failure_list_free
+d_test_standalone_failure_list_free
   Frees all memory associated with a failure list.
 
 Parameter(s):
@@ -527,9 +532,9 @@ Return:
   none.
 */
 void
-d_test_sa_failure_list_free
+d_test_standalone_failure_list_free
 (
-    struct d_test_sa_failure_list* _list
+    struct d_test_standalone_failure_list* _list
 )
 {
     if (!_list)
@@ -671,7 +676,7 @@ d_assert_standalone
         // track failure if enabled
         if (g_d_test_failures)
         {
-            d_test_sa_failure_list_add(g_d_test_failures,
+            d_test_standalone_failure_list_add(g_d_test_failures,
                                         g_d_test_current_module,
                                         _test_name,
                                         _message);
@@ -981,7 +986,7 @@ d_test_substitute_template
          (!_delimiters[1])    ||
          (!_delimiters[0][0]) ||
          (!_delimiters[1][0]) ||
-         ( (_kv_count > 0) && 
+         ( (_kv_count > 0) &&
            (!_key_values)) )
     {
         return NULL;
@@ -1221,7 +1226,7 @@ d_test_default_print_object
     {
         // leaf node - print assertion result
         const char* symbol = _obj->result
-            ? D_TEST_SYMBOL_PASS 
+            ? D_TEST_SYMBOL_PASS
             : D_TEST_SYMBOL_FAIL;
         const char* msg = _obj->message
             ? _obj->message
@@ -1271,7 +1276,7 @@ d_test_default_print_object
                 // track failure if enabled
                 if (g_d_test_failures)
                 {
-                    d_test_sa_failure_list_add(
+                    d_test_standalone_failure_list_add(
                         g_d_test_failures,
                         g_d_test_current_module,
                         _obj->name,
@@ -1397,7 +1402,7 @@ d_test_default_print_object_to_file
     if (_obj->is_leaf)
     {
         // leaf node - print assertion result
-        const char* symbol = _obj->result 
+        const char* symbol = _obj->result
             ? D_TEST_SYMBOL_PASS
             : D_TEST_SYMBOL_FAIL;
 
@@ -1592,7 +1597,7 @@ d_test_standalone_output_file
  *****************************************************************************/
 
 /*
-d_test_sa_print_timestamp
+d_test_standalone_print_timestamp
   Prints the current timestamp in YYYY-MM-DD HH:MM:SS format.
 
 Parameter(s):
@@ -1601,7 +1606,7 @@ Return:
   none.
 */
 void
-d_test_sa_print_timestamp
+d_test_standalone_print_timestamp
 (
     void
 )
@@ -1652,7 +1657,7 @@ d_test_sa_print_timestamp
 }
 
 /*
-d_test_sa_get_elapsed_time
+d_test_standalone_get_elapsed_time
   Calculates elapsed time in seconds from clock ticks.
 
 Parameter(s):
@@ -1662,7 +1667,7 @@ Return:
   Elapsed time in seconds as a double.
 */
 double
-d_test_sa_get_elapsed_time
+d_test_standalone_get_elapsed_time
 (
     clock_t _start,
     clock_t _end
@@ -1676,7 +1681,7 @@ d_test_sa_get_elapsed_time
  *****************************************************************************/
 
 /*
-d_test_sa_create_framework_header
+d_test_standalone_create_framework_header
   Prints the framework header banner for a test suite.
   Creates the top-level banner with suite name, description, and timestamp.
 
@@ -1687,7 +1692,7 @@ Return:
   none.
 */
 void
-d_test_sa_create_framework_header
+d_test_standalone_create_framework_header
 (
     const char* _suite_name,
     const char* _description
@@ -1704,14 +1709,14 @@ d_test_sa_create_framework_header
     }
 
     printf("\n");
-    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
     D_INTERNAL_TPRINTF("  TESTING: %s\n", _suite_name);
-    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
     D_INTERNAL_TPRINTF("  Description: %s\n", _description);
     printf("  Date/Time:   ");
-    d_test_sa_print_timestamp();
+    d_test_standalone_print_timestamp();
     printf("\n");
-    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
     D_INTERNAL_TPRINTF("\n");
     D_INTERNAL_TPRINTF("  Starting test suite execution...\n");
     D_INTERNAL_TPRINTF("\n");
@@ -1720,7 +1725,7 @@ d_test_sa_create_framework_header
 }
 
 /*
-d_test_sa_create_module_test_header
+d_test_standalone_create_module_test_header
   Prints the header for a module's test section.
 
 Parameter(s):
@@ -1730,7 +1735,7 @@ Return:
   none.
 */
 void
-d_test_sa_create_module_test_header
+d_test_standalone_create_module_test_header
 (
     const char* _module_name,
     const char* _description
@@ -1741,7 +1746,7 @@ d_test_sa_create_module_test_header
         _module_name = "(unknown)";
     }
 
-    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (_description)
     {
@@ -1755,14 +1760,14 @@ d_test_sa_create_module_test_header
                            _module_name);
     }
 
-    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
     D_INTERNAL_TPRINTF("\n");
 
     return;
 }
 
 /*
-d_test_sa_create_module_test_results
+d_test_standalone_create_module_test_results
   Prints the results summary for a single test module.
 
 Parameter(s):
@@ -1772,7 +1777,7 @@ Return:
   none.
 */
 void
-d_test_sa_create_module_test_results
+d_test_standalone_create_module_test_results
 (
     const char*                  _module_name,
     const struct d_test_counter* _counter
@@ -1791,14 +1796,14 @@ d_test_sa_create_module_test_results
     {
         D_INTERNAL_TPRINTF("\n");
         D_INTERNAL_TPRINTF("%s\n",
-                           D_TEST_SA_SEPARATOR_SINGLE);
+                           D_TEST_STANDALONE_SEPARATOR_SINGLE);
         D_INTERNAL_TPRINTF("  MODULE RESULTS: %s\n",
                            _module_name);
         D_INTERNAL_TPRINTF("%s\n",
-                           D_TEST_SA_SEPARATOR_SINGLE);
+                           D_TEST_STANDALONE_SEPARATOR_SINGLE);
         D_INTERNAL_TPRINTF("  (no results available)\n");
         D_INTERNAL_TPRINTF("%s\n",
-                           D_TEST_SA_SEPARATOR_SINGLE);
+                           D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
         return;
     }
@@ -1821,11 +1826,11 @@ d_test_sa_create_module_test_results
 
     D_INTERNAL_TPRINTF("\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_SINGLE);
+                       D_TEST_STANDALONE_SEPARATOR_SINGLE);
     D_INTERNAL_TPRINTF("  MODULE RESULTS: %s\n",
                        _module_name);
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_SINGLE);
+                       D_TEST_STANDALONE_SEPARATOR_SINGLE);
     D_INTERNAL_TPRINTF(
         "  Assertions: %zu/%zu passed (%.2f%%)\n",
         _counter->assertions_passed,
@@ -1853,13 +1858,13 @@ d_test_sa_create_module_test_results
     }
 
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_SINGLE);
+                       D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     return;
 }
 
 /*
-d_test_sa_create_comprehensive_results
+d_test_standalone_create_comprehensive_results
   Prints comprehensive results for an entire test suite.
 
 Parameter(s):
@@ -1868,9 +1873,9 @@ Return:
   none.
 */
 void
-d_test_sa_create_comprehensive_results
+d_test_standalone_create_comprehensive_results
 (
-    const struct d_test_sa_suite_results* _suite
+    const struct d_test_standalone_suite_results* _suite
 )
 {
     double module_rate;
@@ -1884,15 +1889,15 @@ d_test_sa_create_comprehensive_results
     {
         D_INTERNAL_TPRINTF("\n");
         D_INTERNAL_TPRINTF("%s\n",
-                           D_TEST_SA_SEPARATOR_DOUBLE);
+                           D_TEST_STANDALONE_SEPARATOR_DOUBLE);
         D_INTERNAL_TPRINTF(
             "  COMPREHENSIVE TEST RESULTS\n");
         D_INTERNAL_TPRINTF("%s\n",
-                           D_TEST_SA_SEPARATOR_DOUBLE);
+                           D_TEST_STANDALONE_SEPARATOR_DOUBLE);
         D_INTERNAL_TPRINTF(
             "  (no suite results available)\n");
         D_INTERNAL_TPRINTF("%s\n",
-                           D_TEST_SA_SEPARATOR_DOUBLE);
+                           D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
         return;
     }
@@ -1922,11 +1927,11 @@ d_test_sa_create_comprehensive_results
 
     D_INTERNAL_TPRINTF("\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_DOUBLE);
+                       D_TEST_STANDALONE_SEPARATOR_DOUBLE);
     D_INTERNAL_TPRINTF(
         "  COMPREHENSIVE TEST RESULTS\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_DOUBLE);
+                       D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     // module summary
     D_INTERNAL_TPRINTF("\n");
@@ -2018,13 +2023,13 @@ d_test_sa_create_comprehensive_results
 
     D_INTERNAL_TPRINTF("\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_DOUBLE);
+                       D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     return;
 }
 
 /*
-d_test_sa_create_implementation_notes
+d_test_standalone_create_implementation_notes
   Prints implementation notes and recommendations.
 
 Parameter(s):
@@ -2034,10 +2039,10 @@ Return:
   none.
 */
 void
-d_test_sa_create_implementation_notes
+d_test_standalone_create_implementation_notes
 (
     size_t                               _section_count,
-    const struct d_test_sa_note_section* _sections
+    const struct d_test_standalone_note_section* _sections
 )
 {
     size_t i;
@@ -2045,11 +2050,11 @@ d_test_sa_create_implementation_notes
 
     D_INTERNAL_TPRINTF("\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_DOUBLE);
+                       D_TEST_STANDALONE_SEPARATOR_DOUBLE);
     D_INTERNAL_TPRINTF(
         "  IMPLEMENTATION NOTES & RECOMMENDATIONS\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_DOUBLE);
+                       D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     if ( (!_sections) ||
          (_section_count == 0) )
@@ -2057,7 +2062,7 @@ d_test_sa_create_implementation_notes
         D_INTERNAL_TPRINTF(
             "  (no implementation notes)\n");
         D_INTERNAL_TPRINTF("%s\n",
-                           D_TEST_SA_SEPARATOR_DOUBLE);
+                           D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
         return;
     }
@@ -2095,13 +2100,13 @@ d_test_sa_create_implementation_notes
 
     D_INTERNAL_TPRINTF("\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_DOUBLE);
+                       D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     return;
 }
 
 /*
-d_test_sa_create_final_status
+d_test_standalone_create_final_status
   Prints the final status line for the test suite.
 
 Parameter(s):
@@ -2111,7 +2116,7 @@ Return:
   none.
 */
 void
-d_test_sa_create_final_status
+d_test_standalone_create_final_status
 (
     const char* _framework_name,
     bool        _passed
@@ -2124,10 +2129,10 @@ d_test_sa_create_final_status
 
     D_INTERNAL_TPRINTF("\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_DOUBLE);
+                       D_TEST_STANDALONE_SEPARATOR_DOUBLE);
     D_INTERNAL_TPRINTF("  FINAL STATUS\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_DOUBLE);
+                       D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     if (_passed)
     {
@@ -2168,7 +2173,7 @@ d_test_sa_create_final_status
 
     D_INTERNAL_TPRINTF("\n");
     D_INTERNAL_TPRINTF("%s\n",
-                       D_TEST_SA_SEPARATOR_DOUBLE);
+                       D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     return;
 }
@@ -2178,7 +2183,7 @@ d_test_sa_create_final_status
  *****************************************************************************/
 
 /*
-d_test_sa_runner_init
+d_test_standalone_runner_init
   Initializes a test runner with the given suite name and description.
 
 Parameter(s):
@@ -2189,9 +2194,9 @@ Return:
   none.
 */
 void
-d_test_sa_runner_init
+d_test_standalone_runner_init
 (
-    struct d_test_sa_runner* _runner,
+    struct d_test_standalone_runner* _runner,
     const char*              _suite_name,
     const char*              _suite_description
 )
@@ -2208,10 +2213,10 @@ d_test_sa_runner_init
     _runner->show_notes        = true;
 
     // initialize options to defaults
-    d_test_sa_options_init(&_runner->options);
+    d_test_standalone_options_init(&_runner->options);
 
     // initialize failure tracking
-    d_test_sa_failure_list_init(&_runner->failures);
+    d_test_standalone_failure_list_init(&_runner->failures);
 
     // initialize results
     _runner->results.modules_total  = 0;
@@ -2224,9 +2229,9 @@ d_test_sa_runner_init
 }
 
 /*
-d_test_sa_runner_set_options
+d_test_standalone_runner_set_options
   Copies parsed CLI options into the runner. Should be called after
-d_test_sa_runner_init and d_test_sa_options_parse, before execute.
+d_test_standalone_runner_init and d_test_standalone_options_parse, before execute.
 
 Parameter(s):
   _runner:  the runner to configure
@@ -2235,10 +2240,10 @@ Return:
   none.
 */
 void
-d_test_sa_runner_set_options
+d_test_standalone_runner_set_options
 (
-    struct d_test_sa_runner*        _runner,
-    const struct d_test_sa_options* _options
+    struct d_test_standalone_runner*        _runner,
+    const struct d_test_standalone_options* _options
 )
 {
     if ( (!_runner) ||
@@ -2253,7 +2258,7 @@ d_test_sa_runner_set_options
 }
 
 /*
-d_test_sa_runner_add_module
+d_test_standalone_runner_add_module
   Registers a test module with the runner (tree-based test function).
 
 Parameter(s):
@@ -2267,14 +2272,14 @@ Return:
   none.
 */
 void
-d_test_sa_runner_add_module
+d_test_standalone_runner_add_module
 (
-    struct d_test_sa_runner*             _runner,
+    struct d_test_standalone_runner*             _runner,
     const char*                          _name,
     const char*                          _description,
     fn_test_module                       _run_fn,
     size_t                               _note_count,
-    const struct d_test_sa_note_section* _notes
+    const struct d_test_standalone_note_section* _notes
 )
 {
     size_t idx;
@@ -2285,10 +2290,10 @@ d_test_sa_runner_add_module
         return;
     }
 
-    if (_runner->module_count >= D_TEST_SA_MAX_MODULES)
+    if (_runner->module_count >= D_TEST_STANDALONE_MAX_MODULES)
     {
         printf("ERROR: Maximum module count (%d) exceeded\n",
-               D_TEST_SA_MAX_MODULES);
+               D_TEST_STANDALONE_MAX_MODULES);
 
         return;
     }
@@ -2308,7 +2313,7 @@ d_test_sa_runner_add_module
 }
 
 /*
-d_test_sa_runner_add_module_counter
+d_test_standalone_runner_add_module_counter
   Registers a test module with the runner (counter-based test function).
 
 Parameter(s):
@@ -2322,14 +2327,14 @@ Return:
   none.
 */
 void
-d_test_sa_runner_add_module_counter
+d_test_standalone_runner_add_module_counter
 (
-    struct d_test_sa_runner*             _runner,
+    struct d_test_standalone_runner*             _runner,
     const char*                          _name,
     const char*                          _description,
     fn_test_module_counter               _run_fn,
     size_t                               _note_count,
-    const struct d_test_sa_note_section* _notes
+    const struct d_test_standalone_note_section* _notes
 )
 {
     size_t idx;
@@ -2340,10 +2345,10 @@ d_test_sa_runner_add_module_counter
         return;
     }
 
-    if (_runner->module_count >= D_TEST_SA_MAX_MODULES)
+    if (_runner->module_count >= D_TEST_STANDALONE_MAX_MODULES)
     {
         printf("ERROR: Maximum module count (%d) exceeded\n",
-               D_TEST_SA_MAX_MODULES);
+               D_TEST_STANDALONE_MAX_MODULES);
 
         return;
     }
@@ -2363,7 +2368,7 @@ d_test_sa_runner_add_module_counter
 }
 
 /*
-d_test_sa_runner_set_wait_for_input
+d_test_standalone_runner_set_wait_for_input
   Sets whether the runner should wait for user input before exiting.
 
 Parameter(s):
@@ -2373,9 +2378,9 @@ Return:
   none.
 */
 void
-d_test_sa_runner_set_wait_for_input
+d_test_standalone_runner_set_wait_for_input
 (
-    struct d_test_sa_runner* _runner,
+    struct d_test_standalone_runner* _runner,
     bool                     _wait
 )
 {
@@ -2390,7 +2395,7 @@ d_test_sa_runner_set_wait_for_input
 }
 
 /*
-d_test_sa_runner_set_show_notes
+d_test_standalone_runner_set_show_notes
   Sets whether the runner should display implementation notes.
 
 Parameter(s):
@@ -2400,9 +2405,9 @@ Return:
   none.
 */
 void
-d_test_sa_runner_set_show_notes
+d_test_standalone_runner_set_show_notes
 (
-    struct d_test_sa_runner* _runner,
+    struct d_test_standalone_runner* _runner,
     bool                     _show
 )
 {
@@ -2417,7 +2422,7 @@ d_test_sa_runner_set_show_notes
 }
 
 /*
-d_test_sa_runner_execute
+d_test_standalone_runner_execute
   Executes all registered test modules and generates comprehensive output.
 Respects CLI options for numbering, footers, file output, and failure
 listing.
@@ -2428,9 +2433,9 @@ Return:
   0 if all tests passed, 1 if any tests failed.
 */
 int
-d_test_sa_runner_execute
+d_test_standalone_runner_execute
 (
-    struct d_test_sa_runner* _runner
+    struct d_test_standalone_runner* _runner
 )
 {
     size_t                 i;
@@ -2478,7 +2483,7 @@ d_test_sa_runner_execute
     suite_start = clock();
 
     // print framework header
-    d_test_sa_create_framework_header(
+    d_test_standalone_create_framework_header(
         _runner->suite_name,
         _runner->suite_description);
 
@@ -2502,7 +2507,7 @@ d_test_sa_runner_execute
         }
 
         // print module header
-        d_test_sa_create_module_test_header(
+        d_test_standalone_create_module_test_header(
             _runner->modules[i].name,
             _runner->modules[i].description);
 
@@ -2545,7 +2550,7 @@ d_test_sa_runner_execute
         // print module results (if footers enabled)
         if (_runner->options.show_module_footer)
         {
-            d_test_sa_create_module_test_results(
+            d_test_standalone_create_module_test_results(
                 _runner->modules[i].name,
                 &module_counter);
         }
@@ -2555,7 +2560,7 @@ d_test_sa_runner_execute
              _runner->modules[i].notes        &&
              _runner->modules[i].note_count > 0 )
         {
-            d_test_sa_create_implementation_notes(
+            d_test_standalone_create_implementation_notes(
                 _runner->modules[i].note_count,
                 _runner->modules[i].notes);
         }
@@ -2580,27 +2585,27 @@ d_test_sa_runner_execute
     _runner->results.modules_passed = modules_passed;
     _runner->results.totals         = overall_counter;
     _runner->results.total_time     =
-        d_test_sa_get_elapsed_time(suite_start, suite_end);
+        d_test_standalone_get_elapsed_time(suite_start, suite_end);
 
     // print comprehensive results
-    d_test_sa_create_comprehensive_results(
+    d_test_standalone_create_comprehensive_results(
         &_runner->results);
 
     // print failure summary if enabled
     if (_runner->options.list_failures)
     {
-        d_test_sa_failure_list_print(&_runner->failures);
+        d_test_standalone_failure_list_print(&_runner->failures);
 
         if (g_d_test_output_file)
         {
-            d_test_sa_failure_list_print_file(
+            d_test_standalone_failure_list_print_file(
                 g_d_test_output_file,
                 &_runner->failures);
         }
     }
 
     // print final status
-    d_test_sa_create_final_status(_runner->suite_name,
+    d_test_standalone_create_final_status(_runner->suite_name,
                                   overall_result);
 
     // close output file if opened
@@ -2626,7 +2631,7 @@ d_test_sa_runner_execute
 }
 
 /*
-d_test_sa_runner_cleanup
+d_test_standalone_runner_cleanup
   Cleans up any resources allocated by the runner, including the failure
 tracking list and module results array.
 
@@ -2636,9 +2641,9 @@ Return:
   none.
 */
 void
-d_test_sa_runner_cleanup
+d_test_standalone_runner_cleanup
 (
-    struct d_test_sa_runner* _runner
+    struct d_test_standalone_runner* _runner
 )
 {
     if (!_runner)
@@ -2647,7 +2652,7 @@ d_test_sa_runner_cleanup
     }
 
     // free failure tracking list
-    d_test_sa_failure_list_free(&_runner->failures);
+    d_test_standalone_failure_list_free(&_runner->failures);
 
     // free module results array if allocated
     if (_runner->results.modules)
