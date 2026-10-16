@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                     profunctor_tests_arrow.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/profunctor_tests_arrow.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  profunctor_tests_arrow.cpp
 //   Section I -- profn<F>, the arrow wrapper, and make_profn.
 

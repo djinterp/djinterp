@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                    polynomial_tests_values.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/polynomial_tests_values.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  polynomial_tests_values.cpp
 //   Section I -- value-level poly_* vocabulary (var/unit/const/sum/product).
 

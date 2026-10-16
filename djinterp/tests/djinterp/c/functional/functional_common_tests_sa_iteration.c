@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [functional]                   functional_common_tests_sa_iteration.c
+*
+*
+* path:      /tests/djinterp/c/functional/functional_common_tests_sa_iteration.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./functional_common_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 // --- local helper: consumer that increments each int element by 1 ---

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     maybe_tests_lifetime.cpp
+/*******************************************************************************
+* djinterp [test]                                       maybe_tests_lifetime.cpp
 *
 * Lifetime, value access, and mutation tests for maybe<T> (section I of
 * maybe.hpp: the primitive itself).
@@ -13,11 +13,19 @@
 *   test_modifiers     -- reset and emplace.
 *   test_lifetime      -- balanced construction / destruction of the contained
 *                         value via an instance-counting payload type.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/maybe_tests_lifetime.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <string>
+// std
 #include <stdexcept>
+#include <string>
 #include <utility>
+// djinterp
 #include "./maybe_tests.hpp"
 
 

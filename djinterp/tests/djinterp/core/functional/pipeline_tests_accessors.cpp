@@ -1,14 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                 pipeline_tests_accessors.cpp
+/*******************************************************************************
+* djinterp [test]                                   pipeline_tests_accessors.cpp
 *
 * Accessor / status / iteration tests (section iv):
 *   test_accessors -- size, empty, has_error, error_code, data, operator[],
 *                     and the two to_vector overloads (const& and &&).
 *   test_iteration -- begin/end range-for support.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/pipeline_tests_accessors.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <utility>
+#include <vector>
+// djinterp
 #include "./pipeline_tests.hpp"
 
 

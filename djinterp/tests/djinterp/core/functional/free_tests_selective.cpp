@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    free_tests_selective.cpp
+/*******************************************************************************
+* djinterp [test]                                       free_tests_selective.cpp
 *
 *   Section VI of the parser/free.hpp suite: the selective stratum
 * (free_sel_parser) and its sel_pure / sel_lift / sel_select / sel_branch
@@ -23,10 +23,12 @@
 * and sel_lift predicates are unaffected.  This block is therefore NOT wired
 * into free_tests_runner.cpp yet; enable its push_backs once the bridge builds.
 *
-* path:      /tests/djinterp/parse/parser/free_tests_selective.cpp
+*
+* path:      /tests/djinterp/core/functional/free_tests_selective.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "free_tests.hpp"

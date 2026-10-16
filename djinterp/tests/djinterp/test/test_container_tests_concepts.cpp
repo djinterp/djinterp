@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                             test_container_tests_concepts.cpp
+/*******************************************************************************
+* djinterp [test]                              test_container_tests_concepts.cpp
 *
 *   Section IV of the test_container suite: the C++20 CONCEPT layer.  Five
 * structural concepts (value_typed / iterable / sized / rootable / growable)
@@ -15,11 +15,14 @@
 * here tracks the header exactly.  Below C++20 the concepts do not exist and
 * every unit passes vacuously.
 *
-* path:      /tests/djinterp/test/test_container/test_container_tests_concepts.cpp
+*
+* path:      /tests/djinterp/test/test_container_tests_concepts.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_container_tests.hpp"
 
 NS_DJINTERP

@@ -1,13 +1,20 @@
-/******************************************************************************
-* djinterp [test]                              compose_tests_composition.cpp
+/*******************************************************************************
+* djinterp [test]                                  compose_tests_composition.cpp
 *
 *   Tests for compose.hpp Section II: the binary factories compose,
 * pipe, and compose_transformer.  Verifies application order (math vs
 * pipe), type-changing chains, the const& and rvalue call overloads,
 * the .first()/.second() introspection accessors, and constexpr
 * evaluation of a composed chain.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/compose_tests_composition.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "compose_tests.hpp"
 
 

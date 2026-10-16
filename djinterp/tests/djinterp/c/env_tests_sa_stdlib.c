@@ -1,17 +1,21 @@
-/******************************************************************************
-* djinterp [test]                                        env_tests_sa_stdlib.c
+/*******************************************************************************
+* djinterp [test]                                          env_tests_sa_stdlib.c
 *
 * Unit tests for `env.h` Standard Library Feature Detection section.
 * Tests header availability, POSIX features, string functions, file I/O,
 * time functions, math headers, network features, process features,
 * memory management, SIMD intrinsics, VLA, and security features.
-* Note: this module is required to build DTest, so it uses `test_standalone.h`.
+* Note: this module is required to build DTest, so it does not use DTest.
 *
-* path:      \test\env_tests_sa_stdlib.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.09.26
-******************************************************************************/
-#include ".\env_tests_sa.h"
+*
+* path:      /tests/djinterp/c/env_tests_sa_stdlib.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.26
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./env_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

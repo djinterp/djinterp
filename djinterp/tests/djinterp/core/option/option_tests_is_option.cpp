@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   option_tests_is_option.cpp
+/*******************************************************************************
+* djinterp [test]                                     option_tests_is_option.cpp
 *
 *   Section III of the option.hpp suite: the is_option detection trait.
 *
@@ -19,8 +19,9 @@
 *
 * path:      /tests/djinterp/core/option/option_tests_is_option.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <cstddef>

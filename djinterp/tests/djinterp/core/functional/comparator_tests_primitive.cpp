@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                 comparator_tests_primitive.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/comparator_tests_primitive.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "comparator_tests.hpp"
 
 

@@ -1,21 +1,25 @@
-/******************************************************************************
-* djinterp [test]                                        dmacro_tests_sa_token.c
+/*******************************************************************************
+* djinterp [test]                                  dmacro_tests_sa_token_manip.c
 *
 *   Unit tests for `dmacro.h` token manipulation section (Section I).
 *   Tests token pasting (D_CONCAT), stringification (D_STRINGIFY, D_TOSTR),
 *   and expansion control macros (D_EXPAND, D_EMPTY, D_DEFER, D_OBSTRUCT,
 *   D_UNPACK).
 *   Note: this module tests fundamental macro utilities that are dependencies
-* of other djinterp modules, so it uses `test_standalone.h` rather than DTest.
+* of other djinterp modules, so it does not use DTest for unit testing.
 *
 *
-* path:      \test\dmacro_tests_sa_token.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+* path:      /tests/djinterp/c/dmacro_tests_sa_token_manip.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "dmacro_tests_sa.h"
+// std
 #include <string.h>
+// djinterp
+#include "dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

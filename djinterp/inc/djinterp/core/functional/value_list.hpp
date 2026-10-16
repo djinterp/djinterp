@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                               value_list.hpp
+/*******************************************************************************
+* djinterp [core]                                                 value_list.hpp
 *
 * value_list - the NTTP sequence (value-domain counterpart of the type list):
 *   dtuple.hpp treats std::tuple<typename...> as the framework's compile-time
@@ -44,22 +44,24 @@
 * (core/functional/reduce.hpp, a later task) builds on for its value_list
 * overload; it lives here so value_list is self-contained.
 *
-* path:      /inc/djinterp/core/meta/value_list.hpp
+*
+* path:      /inc/djinterp/core/functional/value_list.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.05
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_META_VALUE_LIST_
-#define DJINTERP_META_VALUE_LIST_ 1
+#ifndef DJINTERP_FUNCTIONAL_VALUE_LIST_HPP
+#define DJINTERP_FUNCTIONAL_VALUE_LIST_HPP 1
 
 // std
 #include <cstddef>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
-#include "./trait_detect.hpp"   // D_TYPE_TRAIT_VALUE_BOOL
-#include "./carrier.hpp"        // val_t / val (value carriers)
+#include "../../djinterp.hpp"
+#include "../meta/trait_detect.hpp"   // D_TYPE_TRAIT_VALUE_BOOL
+#include "../meta/carrier.hpp"        // val_t / val (value carriers)
 
 
 NS_DJINTERP
@@ -381,4 +383,4 @@ fold(value_list<_Values...> _list, _Acc _seed, _Op _op)
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_META_VALUE_LIST_
+#endif  // DJINTERP_FUNCTIONAL_VALUE_LIST_HPP

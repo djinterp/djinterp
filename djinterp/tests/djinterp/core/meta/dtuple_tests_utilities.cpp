@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    dtuple_tests_utilities.cpp
+/*******************************************************************************
+* djinterp [test]                                     dtuple_tests_utilities.cpp
 *
 *   Unit tests for the tuple-utilities section of dtuple.hpp:
 *     - tuple_to_pack  (runtime apply / expand into a callable)
@@ -19,12 +19,15 @@
 * expected sequence.
 *
 *
-* path:      /inc/djinterp/test/dtuple_tests_utilities.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.19
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/dtuple_tests_utilities.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <string>
-
+// djinterp
 #include "./dtuple_tests.hpp"
 
 
@@ -79,7 +82,7 @@ dtuple_tests_utilities_all(
 
         tuple_to_pack(std::tuple<>{}, [&called]() { called = true; });
 
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             called,
             "tuple_to_pack: empty tuple invokes nullary callable");
     }
@@ -91,7 +94,7 @@ dtuple_tests_utilities_all(
         tuple_to_pack(std::tuple<int>{42},
                       [&captured](int _a) { captured = _a; });
 
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             (captured == 42),
             "tuple_to_pack: single-element tuple forwards the value");
     }
@@ -108,7 +111,7 @@ dtuple_tests_utilities_all(
                           cap_char = _b;
                       });
 
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             ((cap_int == 7) && (cap_char == 'k')),
             "tuple_to_pack: two-element heterogeneous tuple expanded positionally");
     }
@@ -127,7 +130,7 @@ dtuple_tests_utilities_all(
                           cap_c = _c;
                       });
 
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             ((cap_a == 1) && (cap_b == 2.5) && (cap_c == 99L)),
             "tuple_to_pack: three-element tuple forwards each value in order");
     }
@@ -142,7 +145,7 @@ dtuple_tests_utilities_all(
                           sum = _a + _b + _c + _d + _e;
                       });
 
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             (sum == 15),
             "tuple_to_pack: five-element tuple visits every index");
     }
@@ -165,7 +168,7 @@ dtuple_tests_utilities_all(
                           cap_second = _b;
                       });
 
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             ((cap_first == "hello") && (cap_second == "world")),
             "tuple_to_pack: non-trivial elements (std::string) forwarded");
     }
@@ -177,7 +180,7 @@ dtuple_tests_utilities_all(
         tuple_to_pack(std::tuple<int, int>{10, 20},
                       [&captured](int _a, int _b) { captured = _a + _b; });
 
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             (captured == 30),
             "tuple_to_pack: rvalue tuple input forwarded correctly");
     }
@@ -190,10 +193,10 @@ dtuple_tests_utilities_all(
         tuple_to_pack(lv,
                       [&captured](int _a, int _b) { captured = _a * _b; });
 
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             (captured == 20),
             "tuple_to_pack: lvalue tuple input forwarded");
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             ((std::get<0>(lv) == 4) && (std::get<1>(lv) == 5)),
             "tuple_to_pack: lvalue tuple values intact after the call");
     }
@@ -211,10 +214,10 @@ dtuple_tests_utilities_all(
 
         tuple_to_pack(std::tuple<int, int, int>{2, 4, 6}, add_three);
 
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             (call_count == 1),
             "tuple_to_pack: callable invoked exactly once");
-        record_assertion(_test_handler, 
+        record_assertion(_test_handler,
             (sum == 12),
             "tuple_to_pack: stateful lambda observed correct args");
     }

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               dtuple_tests_transformation.cpp
+/*******************************************************************************
+* djinterp [test]                                dtuple_tests_transformation.cpp
 *
 *   Unit tests for the tuple-transformation section of dtuple.hpp:
 *     - tuple_apply_all / tuple_apply_all_t
@@ -21,10 +21,13 @@
 *       different output type than its input.
 *
 *
-* path:      /inc/djinterp/test/dtuple_tests_transformation.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.19
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/dtuple_tests_transformation.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./dtuple_tests.hpp"
 
 
@@ -122,48 +125,48 @@ dtuple_tests_transformation_all(
     test_handler& _test_handler
 )
 {
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_apply_all<std::add_const>::type,
                      std::tuple<>>::value,
         "tuple_apply_all: empty pack -> std::tuple<>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_apply_all<std::add_const_t,
                                                std::tuple<>>::type,
                      std::tuple<>>::value,
         "tuple_apply_all: single empty tuple unwraps to std::tuple<>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_apply_all<std::add_const_t, int>::type,
                      std::tuple<const int>>::value,
         "tuple_apply_all: single element add_const");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_apply_all<std::add_const_t, int, char, float>::type,
                      std::tuple<const int, const char, const float>>::value,
         "tuple_apply_all: pack-shape add_const");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_apply_all<std::add_const_t,
                                                std::tuple<int, char, float>>::type,
                      std::tuple<const int, const char, const float>>::value,
         "tuple_apply_all: tuple-shape add_const matches pack-shape");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_apply_all<std::add_pointer_t,
                                                int, char, double>::type,
                      std::tuple<int*, char*, double*>>::value,
         "tuple_apply_all: add_pointer over three types");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_apply_all<identity,
                                                std::tuple<alpha, bravo, charlie>>::type,
                      std::tuple<alpha, bravo, charlie>>::value,
         "tuple_apply_all: identity preserves the tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_apply_all<add_array_2, int, char>::type,
                      std::tuple<std::array<int, 2>, std::array<char, 2>>>::value,
         "tuple_apply_all: trait that replaces type (add_array_2)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_apply_all<std::add_const_t,
                                                int, int, int>::type,
                      std::tuple<const int, const int, const int>>::value,
         "tuple_apply_all: repeated types transformed positionally");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<tuple_apply_all_t<std::add_pointer_t,
                                         std::tuple<int, char, float>>,
                      std::tuple<int*, char*, float*>>::value,

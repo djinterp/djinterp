@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    pipeline_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                      pipeline_tests_traits.cpp
 *
 * SFINAE structural trait & concept tests for pipeline.hpp section III:
 *   is_pipeline, pipeline_value_type, is_pipeline_mapper, is_pipeline_predicate,
@@ -9,11 +9,19 @@
 *   Compile-time guarantees are asserted at file scope via static_assert; the
 * runtime section mirrors them so the counts roll into the report and the
 * gated variable-template / concept paths are exercised when available.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/pipeline_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <string>
 #include <type_traits>
+#include <vector>
+// djinterp
 #include "./pipeline_tests.hpp"
 
 

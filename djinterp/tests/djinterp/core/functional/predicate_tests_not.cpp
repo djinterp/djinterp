@@ -1,12 +1,17 @@
-/******************************************************************************
-* djinterp [functional]                                 predicate_tests_not.cpp
+/*******************************************************************************
+* djinterp [functional]                                  predicate_tests_not.cpp
 *
 *   Tests for the unary negation combinator (predicate_not_combinator) and
 * its factory function (predicate_not).
 *
-* path:      /src/functional/predicate_tests_not.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/predicate_tests_not.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./predicate_tests.hpp"
 
 

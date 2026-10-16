@@ -1,13 +1,21 @@
-/******************************************************************************
-* djinterp [test]                                  fn_builder_tests_reorder.cpp
+/*******************************************************************************
+* djinterp [test]                                   fn_builder_tests_reorder.cpp
 *
 * Slicing / reordering fluent-operation tests (section ii, part 2):
 *   test_take_skip    -- take and skip, including edge counts.
 *   test_distinct     -- de-duplication via operator==.
 *   test_reverse_sort -- reversed and sorted(cmp).
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/fn_builder_tests_reorder.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <vector>
+// djinterp
 #include "./fn_builder_tests.hpp"
 
 

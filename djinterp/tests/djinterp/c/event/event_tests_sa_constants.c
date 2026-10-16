@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [event]                                    event_tests_sa_constants.c
+*
+*
+* path:      /tests/djinterp/c/event/event_tests_sa_constants.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./event_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /*
@@ -102,7 +113,8 @@ d_tests_sa_event_id_type
 d_tests_sa_event_struct
   Tests the d_event structure layout.
   Tests the following:
-  - id, args, num_args members are accessible and assignable
+  - id and context members are accessible and assignable
+  - context accepts NULL
   - sizeof(struct d_event) is non-zero
 */
 bool
@@ -118,23 +130,21 @@ d_tests_sa_event_struct
     result = true;
     dummy  = 42;
 
-    ev.id       = 100;
-    ev.args     = &dummy;
-    ev.num_args = 1;
+    ev.id      = 100;
+    ev.context = &dummy;
 
     result = d_assert_standalone(
-        ev.id == 100 && ev.args == &dummy && ev.num_args == 1,
+        ev.id == 100 && ev.context == &dummy,
         "event_struct_members",
-        "All d_event members should be accessible",
+        "d_event id and context should be accessible",
         _counter) && result;
 
-    ev.args     = NULL;
-    ev.num_args = 0;
+    ev.context = NULL;
 
     result = d_assert_standalone(
-        ev.args == NULL && ev.num_args == 0,
-        "event_struct_null_args",
-        "d_event should accept NULL args and zero num_args",
+        ev.context == NULL,
+        "event_struct_null_context",
+        "d_event should accept NULL context",
         _counter) && result;
 
     result = d_assert_standalone(

@@ -1,14 +1,17 @@
-/******************************************************************************
-* djinterp [test]                                         test_object.c
+/*******************************************************************************
+* djinterp [c]                                                     test_object.c
 *
 *   Implementation of the shared node kernel.  Compiled by both languages from
 * this one source.
 *
+*
 * path:      /src/djinterp/c/test/test_object.c
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.31
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#include "djinterp/c/test/test_object.h"
+#include "../../../../inc/djinterp/c/test/test_object.h"
 
 D_EXTERN_C_BEGIN
 
@@ -32,8 +35,7 @@ d_test_object_init(
         return D_TEST_OBJECT_INVALID;
     }
 
-    _object->result      = false;
-    _object->status      = (int32_t)D_TEST_STATUS_PENDING;
+    _object->status      = (d_test_status)D_TEST_STATUS_PENDING;
     _object->type_id     = (d_test_type_id)0;
     _object->callable_id = (d_test_callable_id)0;
 
@@ -77,12 +79,12 @@ d_test_object_evaluate(
         return D_TEST_OBJECT_INVALID;
     }
 
-    /*   Assignment to a bool normalises; the ternary that used to do it by
-       hand is gone rather than left as a no-op. */
-    _object->result = (_result != 0);
+    /*   The verdict is not stored.  It went in beside the status until the
+       two proved never to be independent, and it is now read back out of the
+       status by d_test_object_result_of. */
     _object->status = (_result != 0)
-                      ? (int32_t)D_TEST_STATUS_PASSED
-                      : (int32_t)D_TEST_STATUS_FAILED;
+                      ? (d_test_status)D_TEST_STATUS_PASSED
+                      : (d_test_status)D_TEST_STATUS_FAILED;
 
     return D_TEST_OBJECT_OK;
 }
@@ -91,7 +93,7 @@ d_test_object_evaluate(
 enum d_test_object_result
 d_test_object_set_status(
     struct d_test_object* _object,
-    int32_t               _status
+    d_test_status         _status
 )
 {
     if (_object == (struct d_test_object*)0)
@@ -101,15 +103,19 @@ d_test_object_set_status(
 
 #if D_INTERNAL_TEST_OBJECT_VALIDATE
     _object->status = d_test_status_is_valid(_status)
-                      ? _status : (int32_t)D_TEST_STATUS_ERROR;
+                      ? _status : (d_test_status)D_TEST_STATUS_ERROR;
 #else
     _object->status = _status;
 #endif
 
-    /*   Setting the status does NOT rewrite the boolean result.  The two are
-       related but not derived: a node may be skipped without its verdict
-       having been computed, and a runner that recomputed the result from a
-       status would invent a verdict for a test it never ran. */
+    /*   THIS COMMENT USED TO DEFEND A SECOND MEMBER.  It read that setting the
+       status must not rewrite the boolean result, because "a runner that
+       recomputed the result from a status would invent a verdict for a test it
+       never ran".  The concern was real and the conclusion was backwards: not
+       having a verdict and inventing one are different things, and the member
+       it protected held a STALE verdict rather than an independent one.  The
+       status now carries the outcome alone, and a test that never ran reports
+       pending, skipped or error -- none of which read as passed. */
     return D_TEST_OBJECT_OK;
 }
 
@@ -153,18 +159,25 @@ d_test_object_result_of(
     const struct d_test_object* _object
 )
 {
-    return (_object != (const struct d_test_object*)0)
-           ? _object->result : false;
+    /*   DERIVED, NOT STORED.  `passed` is the only status that asserts a true
+       verdict: failed is false by definition, and pending, skipped and error
+       are all states in which no verdict was reached -- which this returns as
+       false because the function's contract is "did this test pass", not "is
+       this test's outcome known".  A caller that needs to tell "ran and
+       disagreed" from "never ran" reads the status, which is why the status is
+       what the node keeps.  Null yields false for the same reason. */
+    return (_object != (const struct d_test_object*)0) &&
+           (_object->status == (d_test_status)D_TEST_STATUS_PASSED);
 }
 
 
-int32_t
+d_test_status
 d_test_object_status(
     const struct d_test_object* _object
 )
 {
     return (_object != (const struct d_test_object*)0)
-           ? _object->status : (int32_t)D_TEST_STATUS_ERROR;
+           ? _object->status : (d_test_status)D_TEST_STATUS_ERROR;
 }
 
 
@@ -174,7 +187,7 @@ d_test_object_passed(
 )
 {
     return (_object != (const struct d_test_object*)0) &&
-           (_object->status == (int32_t)D_TEST_STATUS_PASSED);
+           (_object->status == (d_test_status)D_TEST_STATUS_PASSED);
 }
 
 

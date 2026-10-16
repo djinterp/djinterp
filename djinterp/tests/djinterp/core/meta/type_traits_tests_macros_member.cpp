@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                            type_traits_tests_macros_member.cpp
 *
 *   Unit tests for the member-detection macros now DECLARED in
@@ -44,9 +44,12 @@
 *     - the `_v` variable-template alias matches `::value`
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_macros_member.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_macros_member.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -299,49 +302,49 @@ type_traits_tests_macros_member(
 )
 {
     // ---- HAS_METHOD ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_push_back<container_like>::value == true,
         "D_TYPE_TRAIT_HAS_METHOD: positive case");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_push_back<has_value_type_no_methods>::value == false,
         "D_TYPE_TRAIT_HAS_METHOD: value_type but no method -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_push_back<bare_class>::value == false,
         "D_TYPE_TRAIT_HAS_METHOD: bare class -> false");
 
     // ---- HAS_METHOD_ARGS (single arg) ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_erase_int<container_like>::value == true,
         "D_TYPE_TRAIT_HAS_METHOD_ARGS: erase(int) present");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_erase_int<bare_class>::value == false,
         "D_TYPE_TRAIT_HAS_METHOD_ARGS: bare class -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_erase_unrelated<container_like>::value == false,
         "D_TYPE_TRAIT_HAS_METHOD_ARGS: incompatible arg type -> false");
 
     // ---- HAS_TYPE ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_value_type_alias<container_like>::value == true,
         "D_TYPE_TRAIT_HAS_TYPE: value_type present");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_value_type_alias<bare_class>::value == false,
         "D_TYPE_TRAIT_HAS_TYPE: nothing -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_size_type_alias<container_like>::value == true,
         "D_TYPE_TRAIT_HAS_TYPE: size_type present");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_size_type_alias<has_value_type_no_methods>::value == false,
         "D_TYPE_TRAIT_HAS_TYPE: size_type absent (only value_type) -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_element_t_alias<container_like>::value == true,
         "D_TYPE_TRAIT_HAS_TYPE: element_t alternate name present");
 
     // ---- HAS_STATIC_MEMBER ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_magic_static<container_like>::value == true,
         "D_TYPE_TRAIT_HAS_STATIC_MEMBER: present");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_magic_static<bare_class>::value == false,
         "D_TYPE_TRAIT_HAS_STATIC_MEMBER: absent");
 

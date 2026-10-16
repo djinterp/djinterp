@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                event_handler_tests_monoid.cpp
+/*******************************************************************************
+* djinterp [test]                                 event_handler_tests_monoid.cpp
 *
 *   Section V -- THE HANDLER MONOID (seq, skip).  Covers the monoid unit skip
 * (always yields pass, accepts any arguments) and the sequencing operation
@@ -12,10 +12,11 @@
 * that seq decays cv/reference-qualified handler operands.
 *
 *
-* path:      /tests/djinterp/core/event/event_handler/event_handler_tests_monoid.cpp
+* path:      /tests/djinterp/core/event/event_handler_tests_monoid.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_handler_tests.hpp"

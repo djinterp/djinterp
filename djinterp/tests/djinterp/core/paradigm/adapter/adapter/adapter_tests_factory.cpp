@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                      adapter_tests_factory.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/adapter/adapter/adapter_tests_factory.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : adapter_tests_factory.cpp
 //   The convenience factories (section X, C++14+): make_object_adapter,
 // make_owning_adapter, the two make_function_adapter overloads,

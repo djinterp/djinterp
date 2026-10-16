@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               event_table_tests_concepts.cpp
+/*******************************************************************************
+* djinterp [test]                                 event_table_tests_concepts.cpp
 *
 *   Section VI (concept constraints, C++20+) -- the ten concepts layered over
 * event_table_traits, each exercised as a boolean.  The core concept
@@ -17,10 +17,11 @@
 * standards.
 *
 *
-* path:      /tests/djinterp/core/event/event_table/event_table_tests_concepts.cpp
+* path:      /tests/djinterp/core/event/event_table_tests_concepts.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_table_tests.hpp"

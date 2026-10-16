@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                              cpp_named98.h
+/*******************************************************************************
+* djinterp [core]                                                cpp_named98.hpp
 *
 * C++98 named requirement type traits:
 *   Provides compile-time detection of fundamental named requirements using
@@ -25,37 +25,41 @@
 *     types without compiler intrinsics. Enums will report false.
 *
 * NAMING CONVENTIONS:
-*   djinterp::traits::is_default_constructible<_T>::value
-*   djinterp::traits::is_copy_constructible<_T>::value
-*   djinterp::traits::is_copy_assignable<_T>::value
-*   djinterp::traits::is_destructible<_T>::value
+*   djinterp::re_std::is_default_constructible<_T>::value
+*   djinterp::re_std::is_copy_constructible<_T>::value
+*   djinterp::re_std::is_copy_assignable<_T>::value
+*   djinterp::re_std::is_destructible<_T>::value
 *
-* path:      \inc\cpp_named98.h
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.27
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/meta/stl/cpp_named98.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_CPP_NAMED98_
-#define DJINTERP_CPP_NAMED98_ 1
+#ifndef DJINTERP_META_STL_CPP_NAMED98_HPP
+#define DJINTERP_META_STL_CPP_NAMED98_HPP 1
 
 // require env.h to be included first
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "cpp_named98.h requires env.h to be included first"
+#ifndef DJINTERP_ENV_ENV_H
+    #error "cpp_named98.hpp requires env.h to be included first"
 #endif
 
 // only meaningful in C++ mode
 #ifndef __cplusplus
-    #error "cpp_named98.h can only be used in C++ compilation mode"
+    #error "cpp_named98.hpp can only be used in C++ compilation mode"
 #endif
 
 // C++98 SFINAE-based implementations are only active when <type_traits>
 // is not available; C++11 supersedes these with compiler-intrinsic traits.
 #if !D_ENV_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <cstddef>
 
 
 NS_DJINTERP
-NS_TRAITS
+NS_RESTD
 
 NS_INTERNAL
 
@@ -158,7 +162,7 @@ NS_END  // internal
 // is_default_constructible
 //   trait: evaluates to true if _T can be default-constructed.
 // note: may produce false positives for types with private constructors on
-// some C++98 compilers. See cpp_named11.h for a precise implementation.
+// some C++98 compilers. See cpp_named11.hpp for a precise implementation.
 template<typename _T>
 struct is_default_constructible
 {
@@ -263,7 +267,7 @@ NS_END  // internal
 //   trait: evaluates to true if _T is a scalar type (arithmetic,
 // pointer, pointer-to-member, or enumeration).
 // note: C++98 implementation cannot detect enumeration types without
-// compiler intrinsics. Enum types will report false. See cpp_named11.h
+// compiler intrinsics. Enum types will report false. See cpp_named11.hpp
 // for a complete implementation.
 template<typename _T>
 struct is_scalar
@@ -325,7 +329,7 @@ NS_END  // internal
 // is_equality_comparable
 //   trait: evaluates to true if _T supports operator==.
 // note: C++98 implementation tests syntactic validity only; does not
-// verify that the result is convertible to bool. See cpp_named11.h for
+// verify that the result is convertible to bool. See cpp_named11.hpp for
 // a precise implementation.
 template<typename _T>
 struct is_equality_comparable
@@ -381,7 +385,7 @@ NS_END  // internal
 //   trait: evaluates to true if _C has begin(), end(), and size()
 // members (partial Container check).
 // note: C++98 implementation cannot verify nested types (value_type,
-// iterator, etc.). See cpp_named11.h for a thorough implementation.
+// iterator, etc.). See cpp_named11.hpp for a thorough implementation.
 template<typename _C>
 struct is_container
 {
@@ -425,7 +429,7 @@ NS_END  // internal
 // prefix increment (++it) (partial LegacyIterator check).
 // note: C++98 implementation cannot verify iterator_traits nested
 // types or CopyConstructible/CopyAssignable requirements. See
-// cpp_named11.h for a thorough implementation.
+// cpp_named11.hpp for a thorough implementation.
 template<typename _I>
 struct is_legacy_iterator
 {
@@ -434,10 +438,10 @@ struct is_legacy_iterator
 };
 
 
-NS_END  // traits
+NS_END  // re_std
 NS_END  // djinterp
 
 #endif  // !D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_CPP_NAMED98_
+#endif  // DJINTERP_META_STL_CPP_NAMED98_HPP

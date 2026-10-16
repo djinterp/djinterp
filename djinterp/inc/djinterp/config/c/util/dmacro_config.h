@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [core]                                                 config_env.h
+/*******************************************************************************
+* djinterp [core]                                                   config_env.h
 *
 * 
 *
 *
-* path:      /inc/core/c/config/dmacro_config.h
+* path:      /inc/djinterp/config/c/util/dmacro_config.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.09
 ******************************************************************************/

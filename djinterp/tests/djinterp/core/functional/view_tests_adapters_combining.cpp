@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                            view_tests_adapters_combining.cpp
+/*******************************************************************************
+* djinterp [test]                              view_tests_adapters_combining.cpp
 *
 * Combining adapter view tests (section IV, part 2): adapters that pair,
 * join, reorder, or regroup elements.
@@ -10,10 +10,18 @@
 *   test_reverse   -- reverses a bidirectional view.
 *   test_chunk     -- groups into fixed-size vectors (last may be short).
 *   test_stride    -- yields every n-th element starting from the first.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/view_tests_adapters_combining.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <utility>
+#include <vector>
+// djinterp
 #include "./view_tests.hpp"
 
 

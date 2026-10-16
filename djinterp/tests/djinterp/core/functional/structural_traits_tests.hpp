@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  structural_traits_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                    structural_traits_tests.hpp
 *
 *   Unit-test declarations for core/functional/structural_traits.hpp -- the
 * structural detection traits behind the parse/scanner/pattern layers and the
@@ -43,21 +43,35 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/functional/structural_traits_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/structural_traits_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.12
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.12
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    FIXTURES  (patterns, callables by arity and qualifier, sources, steps)
+      ----------------------------------------------------------------------
+
 I.    MEMBER DETECTION   (has_match_result_type, has_find_method)
+      -----------------------------------------------------------
+
 II.   ARITY TRILOGY      (is_nullary_callable, is_unary_callable,
-                          is_binary_callable)
+      -----------------------------------------------------------
+
+      is_binary_callable)
+
 III.  OPTIONAL-LIKE      (produces_optional_like, is_unfold_step)
+      -----------------------------------------------------------
+
 IV.   CONVENIENCE ALIASES(the _v shorthands)
+      --------------------------------------
+
 V.    PROTOCOL CONCEPTS  (BinaryCallable, Reducer, Transducer, UnfoldStep)
+      --------------------------------------------------------------------
 */
 
 
@@ -68,8 +82,9 @@ V.    PROTOCOL CONCEPTS  (BinaryCallable, Reducer, Transducer, UnfoldStep)
 #include <cstddef>
 #include <string>
 #include <type_traits>
+// djinterp
 // djinterp (module under test)
-#include "../../core/functional/structural_traits.hpp"
+#include "../../../../inc/djinterp/core/functional/structural_traits.hpp"
 
 
 NS_DJINTERP

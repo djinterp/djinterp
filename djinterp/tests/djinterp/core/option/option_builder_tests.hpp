@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      option_builder_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                       option_builder_tests.hpp
 *
 *   Declarations, fixtures, and section block-providers for the
 * option_builder.hpp unit suite.
@@ -39,17 +39,24 @@
 *   All unit tests live FLAT in namespace djinterp::testing.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    FIXTURES              (key carrier / opaque slots / passthrough / non-key)
-* II.   TEST DECLARATIONS     (per section, flat in djinterp::testing)
-* III.  BLOCK PROVIDERS        (one block_spec per section)
-*
-*
 * path:      /tests/djinterp/core/option/option_builder_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    FIXTURES              (key carrier / opaque slots / passthrough / non-key)
+      --------------------------------------------------------------------------
+
+II.   TEST DECLARATIONS     (per section, flat in djinterp::testing)
+      --------------------------------------------------------------
+
+III.  BLOCK PROVIDERS        (one block_spec per section)
+      ---------------------------------------------------
+*/
 
 #ifndef DJINTERP_OPTION_BUILDER_TESTS_
 #define DJINTERP_OPTION_BUILDER_TESTS_ 1
@@ -58,15 +65,19 @@
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
+// djinterp
 // djinterp (resolved via the project include path)
 #include "djinterp/test/test_defaults.hpp"          // module_spec / block_spec / test_spec, run_module
+#ifndef DTEST_SPEC_MODE
 #include "djinterp/core/option/option_builder.hpp"  // option_partition_wrap, tuple_to_option_set, option_set_from_flat_t
+#endif  // !DTEST_SPEC_MODE
 
 
 NS_DJINTERP
 NS_TESTING
 
 
+#ifndef DTEST_SPEC_MODE   // fixtures: normal face only
 // ===========================================================================
 // I.   FIXTURES
 // ===========================================================================
@@ -104,6 +115,8 @@ struct ob_pass           // passthrough: skipped by the engine, flattened by opt
 struct ob_not_key        // no static ::value member
 {};
 
+#endif  // !DTEST_SPEC_MODE
+
 
 // ===========================================================================
 // II.  TEST DECLARATIONS
@@ -136,6 +149,29 @@ bool pipeline_empty_schema();
 ::djinterp::test::block_spec option_builder_wrap_block();
 ::djinterp::test::block_spec option_builder_lift_block();
 ::djinterp::test::block_spec option_builder_pipeline_block();
+
+
+// ===========================================================================
+// SPEC PROVIDER   (spec face - the runner hands this to run_module)
+// ===========================================================================
+#ifdef DTEST_SPEC_MODE
+inline ::djinterp::test::module_spec
+option_builder_spec()
+{
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
+
+    dt::module_spec mod;
+    mod.name       = "option_builder.hpp";
+    mod.descriptor = "chunk wrapper, tuple-to-set lift, and the flat-schema pipeline";
+
+    mod.blocks.push_back(tt::option_builder_wrap_block());       // I.
+    mod.blocks.push_back(tt::option_builder_lift_block());       // II.
+    mod.blocks.push_back(tt::option_builder_pipeline_block());   // III.
+
+    return mod;
+}
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

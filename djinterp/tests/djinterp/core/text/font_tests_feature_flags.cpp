@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                   font_tests_feature_flags.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_feature_flags.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_feature_flags.cpp
 //   Section 1: font_feat, operator|, has_ff.  The bits gate every mixin in
 // the header, so their values are load-bearing ABI, not decoration.

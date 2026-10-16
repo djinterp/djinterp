@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 pipeline_tests_transform.cpp
+/*******************************************************************************
+* djinterp [test]                                   pipeline_tests_transform.cpp
 *
 * Transforming-operation tests (section ii, part 1):
 *   test_map      -- element-wise map, including a type-changing map.
@@ -7,10 +7,18 @@
 *   test_distinct -- distinct() via operator== and distinct(eq) via a custom
 *                    equality.
 *   test_flat_map -- map-to-container then flatten.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/pipeline_tests_transform.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <string>
+#include <vector>
+// djinterp
 #include "./pipeline_tests.hpp"
 
 

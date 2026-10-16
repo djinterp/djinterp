@@ -898,7 +898,17 @@ columns_resized(
     expect(std::fabs(grid.name_width - fitted) < 0.01f,
            "and fitting again changes nothing");
 
-    // the value column's
+    // The value column is hidden by default. Its resize edge should only
+    // exist after the user enables the column in View > Columns.
+    expect(!grid.show_values, "the value column starts hidden");
+    expect(!grid_spot("edge.value", 0, 0).found,
+           "a hidden value column has no resize edge");
+
+    post(_window, "set", true, std::string("grid.show_values"));
+    frames(_window, 3);
+    expect(grid.show_values, "the value column can be shown");
+
+    // the visible value column's edge can then be dragged normally
     const float values = grid.value_width;
 
     expect(move_to(_window, grid_spot("edge.value", 0, 0)),

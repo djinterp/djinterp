@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                         pattern_tests_base.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/pattern/pattern_tests_base.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : pattern_tests_base.cpp
 //   The CRTP base (section IV): the four public faces - match / operator()
 // (predicate), extract, render, rewrite - exercised through the shared

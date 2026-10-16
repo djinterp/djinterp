@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                           ptr_array_tests_sa.h
 *
 *   Unit test declarations for `ptr_array.h` module.
@@ -7,20 +7,23 @@
 * operations, search functions, utility functions, and destructors.
 *
 *
-* path:      \tests\container\array\ptr_array_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.31
-******************************************************************************/
+* path:      /tests/djinterp/c/container/array/ptr_array_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.31
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_PTR_ARRAY_SA_
 #define DJINTERP_TESTS_PTR_ARRAY_SA_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../../../../inc/c/test/test_standalone.h"
-#include "../../../../inc/c/container/array/ptr_array.h"
-#include "../../../../inc/c/string_fn.h"
+// djinterp
+#include "../../../../../inc/djinterp/c/container/array/ptr_array.h"
+#include "../../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

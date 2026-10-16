@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               applicative_tests_protocol.cpp
+/*******************************************************************************
+* djinterp [test]                                 applicative_tests_protocol.cpp
 *
 *   Section 0 + I of the applicative.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_applicative (and its _v shorthand), the monad-bridge
@@ -9,10 +9,12 @@
 * the monadic protocols (box is monad + functor + applicative; the direct ident
 * is functor + applicative but NOT a monad; a scalar is none).
 *
+*
 * path:      /tests/djinterp/core/functional/applicative_tests_protocol.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "applicative_tests.hpp"

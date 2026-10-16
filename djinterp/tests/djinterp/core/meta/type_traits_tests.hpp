@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                          type_traits_tests.hpp
 *
 *   Test-suite header for the djinterp type_traits.hpp module.
@@ -53,14 +53,17 @@
 *           is_tuple, is_single_tuple_arg, to_tuple)
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests.hpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_TYPE_TRAITS_TESTS_
 #define DJINTERP_TEST_TYPE_TRAITS_TESTS_ 1
 
 
+// std
 #include <array>
 #include <cstddef>
 #include <initializer_list>
@@ -71,7 +74,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #include <djinterp/test/test_handler.hpp>
 #include <djinterp/test/test_options.hpp>
 #include <djinterp/test/test_defaults.hpp>

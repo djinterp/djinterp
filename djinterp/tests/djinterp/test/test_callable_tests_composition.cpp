@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                         test_callable_tests_composition.cpp
+/*******************************************************************************
+* djinterp [test]                            test_callable_tests_composition.cpp
 *
 *   The boolean algebra over thunks.  compose_and / compose_or fold a clause
 * onto the thunk already bound to an id under short-circuit AND / OR, replacing
@@ -15,11 +15,14 @@
 * A final case grows the table past a reallocation to confirm a composed thunk,
 * holding its operands by value, does not dangle on the vector's slot.
 *
-* path:      /tests/djinterp/test/test_callable/test_callable_tests_composition.cpp
+*
+* path:      /tests/djinterp/test/test_callable_tests_composition.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_callable_tests.hpp"
 
 NS_DJINTERP

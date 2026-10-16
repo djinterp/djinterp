@@ -1,4 +1,15 @@
-#include ".\dio_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                dio_tests_sa_formatted_output.c
+*
+*
+* path:      /tests/djinterp/c/dio_tests_sa_formatted_output.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dio_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /*
@@ -10,7 +21,7 @@ d_tests_sa_dio_sprintf_s
   - successful multi-value formatting
   - buffer overflow handling
   - return value correctness
-  
+
   Note: NULL buffer tests are skipped as they cause assertions in debug builds.
   Behavior varies between sprintf_s (Windows) and vsnprintf (fallback).
 */
@@ -27,10 +38,10 @@ d_tests_sa_dio_sprintf_s
     result = true;
 
     // test 1: NULL buffer test skipped (causes assertion in debug builds)
-    
+
     // test 2: zero size behavior varies by implementation
     // vsnprintf: returns would-be length (4)
-    // sprintf_s: may return error (-1) 
+    // sprintf_s: may return error (-1)
     written = d_sprintf_s(buffer, 0, "test");
     result  = d_assert_standalone(
         (written == 4) || (written < 0),
@@ -89,13 +100,13 @@ d_tests_sa_dio_sprintf_s
     // sprintf_s: may return error (-1) or truncated length
     d_memset(buffer, 0, sizeof(buffer));
     written = d_sprintf_s(buffer, 5, "This is a long string");
-    
+
     result = d_assert_standalone(
         (written == (int)strlen("This is a long string")) || (written < 0) || (written == 4),
         "sprintf_s_truncate",
         "Small buffer should return would-be length, error, or truncated length",
         _counter) && result;
-    
+
     // Verify buffer was null-terminated and truncated
     result = d_assert_standalone(
         strlen(buffer) <= 4,
@@ -129,7 +140,7 @@ d_tests_sa_dio_vsprintf_s
   - successful formatting via variadic wrapper
   - correct argument passing through va_list
   - buffer size enforcement
-  
+
   Note: NULL buffer tests are skipped as they cause assertions in debug builds.
 */
 static int
@@ -239,7 +250,7 @@ d_tests_sa_dio_snprintf
     // test 2: truncation (buffer too small)
     d_memset(buffer, 0, sizeof(buffer));
     written = d_snprintf(buffer, 10, "This is a very long string");
-    
+
     // snprintf should return what WOULD have been written
     result = d_assert_standalone(
         written == (int)strlen("This is a very long string"),

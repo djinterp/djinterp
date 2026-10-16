@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      djinterp_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                            djinterp_tests_sa.h
 *
 * Unified test suite header for djinterp.h - all test declarations.
 *
@@ -15,22 +15,26 @@
 *
 * Usage:
 *   #include ".\djinterp_tests_sa.h"
-*   
+*
 *   struct d_test_counter counter = {0, 0, 0, 0};
 *   bool result = d_tests_sa_run_all(&counter);
 *
-* path:      \test\djinterp_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.15
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/djinterp_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.15
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_HEADER_TESTS_STANDALONE_
 #define DJINTERP_HEADER_TESTS_STANDALONE_ 1
 
+// std
 #include <limits.h>
 #include <stdlib.h>
-#include "..\..\inc\c\djinterp.h"
-#include "..\..\inc\c\test\test_standalone.h"
+// djinterp
+#include "../../../inc/djinterp/c/djinterp.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************
@@ -168,8 +172,3 @@ void d_tests_sa_print_summary(const struct d_test_counter* _counter);
 
 
 #endif  // DJINTERP_HEADER_TESTS_STANDALONE_
-
-
-
-
-

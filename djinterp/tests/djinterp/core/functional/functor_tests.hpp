@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                           functor_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                              functor_tests.hpp
 *
 *   Unit-test declarations for core/functional/functor.hpp -- the Functor
 * protocol and the generic functorial map.  One declaration group per section of
@@ -40,19 +40,28 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/functional/functor_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/functor_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.12
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.12
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    FIXTURES  (two monads, a non-monad view functor, negatives, probes)
+      -------------------------------------------------------------------
+
 I.    FUNCTOR PROTOCOL        (functor_traits, is_functor)
-I.2   THE MONAD BRIDGE        (every monad is a functor)
-0'.   STRUCTURAL TRAITS       (functor_value_type, is_fmappable, concepts)
+      ----------------------------------------------------
+
+      I.2   THE MONAD BRIDGE        (every monad is a functor)
+
+      0'.   STRUCTURAL TRAITS       (functor_value_type, is_fmappable, concepts)
+
 II.   GENERIC OPERATIONS      (functor_map)
+      -------------------------------------
 */
 
 
@@ -63,8 +72,9 @@ II.   GENERIC OPERATIONS      (functor_map)
 #include <string>
 #include <type_traits>
 #include <utility>
+// djinterp
 // djinterp (module under test)
-#include "../../core/functional/functor.hpp"
+#include "../../../../inc/djinterp/core/functional/functor.hpp"
 
 
 NS_DJINTERP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    dtuple_tests_selection.cpp
+/*******************************************************************************
+* djinterp [test]                                     dtuple_tests_selection.cpp
 *
 *   Unit tests for the type-selection section of dtuple.hpp:
 *     - type_case
@@ -20,10 +20,13 @@
 * indirectly through every type_selector test below.
 *
 *
-* path:      /inc/djinterp/test/dtuple_tests_selection.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.19
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/dtuple_tests_selection.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./dtuple_tests.hpp"
 
 
@@ -165,42 +168,42 @@ dtuple_tests_selection_all(
 )
 {
     // ---- type_case ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         type_case<true, int>::condition == true,
         "type_case<true, int>::condition is true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         type_case<false, int>::condition == false,
         "type_case<false, int>::condition is false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename type_case<false, char>::type, char>::value,
         "type_case::type is exposed regardless of condition");
 
     // ---- type_selector ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( std::is_same<typename type_selector<>::type, void>::value &&
           (type_selector<>::matched == false) ),
         "type_selector<> -> void / false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( std::is_same<typename type_selector<int>::type, void>::value &&
           (type_selector<int>::matched == false) ),
         "type_selector<int> (primary, non-case) -> void / false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( std::is_same<typename type_selector<type_case<true, int>>::type, int>::value &&
           (type_selector<type_case<true, int>>::matched == true) ),
         "type_selector<true int> -> int / true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( std::is_same<typename type_selector<type_case<false, int>>::type, void>::value &&
           (type_selector<type_case<false, int>>::matched == false) ),
         "type_selector<false int> -> void / false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename type_selector<type_case<true, int>,
                                              type_case<true, char>>::type, int>::value,
         "type_selector<true int, true char> -> int (first match)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename type_selector<type_case<false, int>,
                                              type_case<true, char>>::type, char>::value,
         "type_selector<false int, true char> -> char");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( std::is_same<typename type_selector<type_case<false, int>,
                                                type_case<false, char>,
                                                type_case<false, float>>::type, void>::value &&
@@ -208,19 +211,19 @@ dtuple_tests_selection_all(
                          type_case<false, char>,
                          type_case<false, float>>::matched == false) ),
         "type_selector<all false> -> void / false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename type_selector<type_case<false, int>,
                                              type_case<false, char>,
                                              type_case<false, float>,
                                              type_case<true,  alpha>>::type, alpha>::value,
         "type_selector<f, f, f, t alpha> -> alpha (last match)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename type_selector<type_case<false, int>,
                                              type_case<true,  bravo>,
                                              type_case<true,  charlie>,
                                              type_case<false, delta>>::type, bravo>::value,
         "type_selector<f, t bravo, t charlie, f> -> bravo (first true wins)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<type_select_t<type_case<false, int>,
                                     type_case<true,  char>>, char>::value,
         "type_select_t: alias consistent with ::type");

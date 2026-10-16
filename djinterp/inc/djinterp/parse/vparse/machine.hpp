@@ -1,11 +1,14 @@
-/******************************************************************************
-* djinterp [parse]                                                  machine.hpp
+/*******************************************************************************
+* djinterp [parse]                                                   machine.hpp
 *
 *
 * path:      /inc/djinterp/parse/vparse/machine.hpp
-******************************************************************************/
-#ifndef VPARSE_MACHINE_HPP
-#define VPARSE_MACHINE_HPP
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+#ifndef DJINTERP_PARSE_VPARSE_MACHINE_HPP
+#define DJINTERP_PARSE_VPARSE_MACHINE_HPP
 // Operator-agnostic substrate. Knows nothing about any opcode or parsing family.
 // Operator families live in their own modules and attach private state via `ext`.
 
@@ -15,7 +18,7 @@
 #include <unordered_map>
 #include <vector>
 
-struct machine 
+struct machine
 {
     // ---- shared substrate (all families) ----
     const std::string* input = nullptr;   // subject text (char-level families)
@@ -36,7 +39,7 @@ struct machine
 using VOp = std::function<void(machine&)>;
 
 // A per-family operator registry (opcode -> handler). Each family owns one.
-struct op_set 
+struct op_set
 {
     std::unordered_map<int, VOp> h;
     std::unordered_map<int, std::string> nm;

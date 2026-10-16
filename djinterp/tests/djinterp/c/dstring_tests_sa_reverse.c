@@ -1,16 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                       dstring_tests_reverse.c
+/*******************************************************************************
+* djinterp [test]                                     dstring_tests_sa_reverse.c
 *
 *   Unit tests for d_string reversal functions:
 *     - d_string_reverse
 *     - d_string_reversed
 *
-* path:      \src\test\dstring_tests_reverse.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_reverse.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "../../tests/c/dstring_tests_sa.h"
+// djinterp
+#include "dstring_tests_sa.h"
 
 
 

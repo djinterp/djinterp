@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            interpolate_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                          interpolate_tests.hpp
 *
 *   DTest declarations and shared fixtures for the interpolate.hpp unit-test
 * suite.  interpolate.hpp is the type-agnostic interpolation engine (scanner /
@@ -41,10 +41,12 @@
 * types can serve both runtime invocation and (where relevant) constexpr /
 * unevaluated contexts across every supported standard.
 *
+*
 * path:      /tests/djinterp/core/functional/interpolate_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_INTERPOLATE_
 #define DJINTERP_TESTING_FUNCTIONAL_INTERPOLATE_ 1

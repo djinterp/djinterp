@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                    adapter_tests_ownership.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/adapter/adapter/adapter_tests_ownership.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : adapter_tests_ownership.cpp
 //   Feature gates (section I) and the five ownership storage policies
 // (section II): by_reference, by_pointer, by_value, by_shared_ptr,

@@ -1,19 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                  dmacro_tests_sa_ptr_array.c
+/*******************************************************************************
+* djinterp [test]                                    dmacro_tests_sa_ptr_array.c
 *
 *   Unit tests for `dmacro.h` pointer array initialization section.
 *   Tests D_FOR_EACH_DATA_COMMA and D_STRUCT_ARRAY_INIT concepts.
 *   Note: D_FOR_EACH_DATA_COMMA passes custom function names through macro
 * expansion which is incompatible with MSVC traditional preprocessor.
 *   Note: this module tests fundamental macro utilities that are dependencies
-* of other djinterp modules, so it uses `test_standalone.h` rather than DTest.
+* of other djinterp modules, so it does not use DTest for unit testing.
 *
 *
-* path:      \test\dmacro_tests_sa_ptr_array.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
-#include ".\dmacro_tests_sa.h"
+* path:      /tests/djinterp/c/dmacro_tests_sa_ptr_array.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

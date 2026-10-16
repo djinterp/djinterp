@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                         dfile_tests_sa_null.c
+/*******************************************************************************
+* djinterp [test]                                          dfile_tests_sa_null.c
 *
 *   Tests for NULL parameter handling across all functions.
 *
 *
-* path:      \src	est\dfile_tests_sa_null.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
-#include ".\dfile_tests_sa.h"
+* path:      /tests/djinterp/c/dfile_tests_sa_null.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dfile_tests_sa.h"
 
 
 /******************************************************************************
@@ -37,10 +39,10 @@ d_tests_dfile_null_params_all
     size_t                idx;
 
     // test various NULL parameter handling
-    test_fopen = (d_fopen(NULL, "r") == NULL);
-    test_stat = (d_stat(NULL, NULL) != 0);
-    test_mkdir = (d_mkdir(NULL, 0) != 0);
-    test_getcwd = (d_getcwd(NULL, 0) == NULL);
+    test_fopen = (d_file_open_stream(NULL, "r") == NULL);
+    test_stat = (d_file_stat(NULL, NULL) != 0);
+    test_mkdir = (d_dir_create(NULL, 0) != 0);
+    test_getcwd = (d_dir_get_current(NULL, 0) == NULL);
     test_path_join = (d_path_join(NULL, 0, "a", "b") == NULL);
 
     // build result tree
@@ -54,21 +56,19 @@ d_tests_dfile_null_params_all
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("fopen",
                                            test_fopen,
-                                           "d_fopen handles NULL gracefully");
+                                           "d_file_open_stream handles NULL gracefully");
     group->elements[idx++] = D_ASSERT_TRUE("stat",
                                            test_stat,
-                                           "d_stat handles NULL gracefully");
+                                           "d_file_stat handles NULL gracefully");
     group->elements[idx++] = D_ASSERT_TRUE("mkdir",
                                            test_mkdir,
-                                           "d_mkdir handles NULL gracefully");
+                                           "d_dir_create handles NULL gracefully");
     group->elements[idx++] = D_ASSERT_TRUE("getcwd",
                                            test_getcwd,
-                                           "d_getcwd handles NULL gracefully");
+                                           "d_dir_get_current handles NULL gracefully");
     group->elements[idx++] = D_ASSERT_TRUE("path_join",
                                            test_path_join,
                                            "d_path_join handles NULL gracefully");
 
     return group;
 }
-
-

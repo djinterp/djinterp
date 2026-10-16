@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                              cpp_named17.h
+/*******************************************************************************
+* djinterp [core]                                                cpp_named17.hpp
 *
 * C++17 named requirement type traits:
 *   Extends the C++14 named requirement traits with:
@@ -25,34 +25,39 @@
 *   D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES  - inline constexpr
 *   D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES - move trait availability
 *
-* path:      \inc\cpp_named17.h
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.27
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/meta/stl/cpp_named17.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_CPP_NAMED17_
-#define DJINTERP_CPP_NAMED17_ 1
+#ifndef DJINTERP_META_STL_CPP_NAMED17_HPP
+#define DJINTERP_META_STL_CPP_NAMED17_HPP 1
 
 // require env.h to be included first
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "cpp_named17.h requires env.h to be included first"
+#ifndef DJINTERP_ENV_ENV_H
+    #error "cpp_named17.hpp requires env.h to be included first"
 #endif
 
 // only meaningful in C++ mode
 #ifndef __cplusplus
-    #error "cpp_named17.h can only be used in C++ compilation mode"
+    #error "cpp_named17.hpp can only be used in C++ compilation mode"
 #endif
 
+// djinterp
 // include C++14 layer
-#include "cpp_named14.h"
+#include "cpp_named14.hpp"
 
 // C++17 additions are active for C++17 and all later standards
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+// std
 #include <type_traits>
 
 
 NS_DJINTERP
-NS_TRAITS
+NS_RESTD
 
 // =========================================================================
 // I.   TRIVIALLY-QUALIFIED VARIANTS (C++17)
@@ -725,7 +730,7 @@ NS_END  // internal
 // LegacyRandomAccessIterator whose elements are contiguous in memory.
 // note: pointer types are always contiguous. For class-type iterators,
 // detection relies on contiguous_iterator_tag (C++20). See
-// cpp_named20.h for std::contiguous_iterator-backed version.
+// cpp_named20.hpp for std::contiguous_iterator-backed version.
 template<typename _I>
 struct is_legacy_contiguous_iterator
 {
@@ -936,10 +941,10 @@ inline constexpr bool is_literal_type_v_ =
 #endif  // D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 
 
-NS_END  // traits
+NS_END  // re_std
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-#endif  // DJINTERP_CPP_NAMED17_
+#endif  // DJINTERP_META_STL_CPP_NAMED17_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                           type_info_common.h
+/*******************************************************************************
+* djinterp [c]                                                type_info_common.h
 *
 *  Common type-information definitions shared by both the C and C++ modules.
 *  Contains the base bit layout (bits 0-23), X-macro tables, constant IDs,
@@ -28,15 +28,17 @@
 *      descriptor can express "user struct #42" or "user enum #7".
 *      When CUSTOM is clear, bits 48-63 must be zero.
 *
+*
 * path:      /inc/djinterp/c/util/type_info_common.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.12.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.06
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_C_TYPE_INFO_COMMON_
-#define DJINTERP_C_TYPE_INFO_COMMON_ 1
+#ifndef DJINTERP_C_UTIL_TYPE_INFO_COMMON_H
+#define DJINTERP_C_UTIL_TYPE_INFO_COMMON_H 1
 
-#include "env.h"
+#include "../../env/env.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -844,4 +846,4 @@ struct d_type_func_ext
 }
 
 
-#endif  // DJINTERP_C_TYPE_INFO_COMMON_
+#endif  // DJINTERP_C_UTIL_TYPE_INFO_COMMON_H

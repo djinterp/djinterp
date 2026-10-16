@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  compose_tests_sa_helpers.h
+/*******************************************************************************
+* djinterp [test]                                     compose_tests_sa_helpers.h
 *
 *   Shared helper transformer and consumer functions used across compose test
 * files. Extracted to avoid duplication between transformer and partial
@@ -7,10 +7,11 @@
 * translation unit gets its own copy without linker conflicts.
 *
 *
-* path:      \tests\functional\compose\compose_tests_sa_helpers.h
+* path:      /tests/djinterp/c/functional/compose_tests_sa_helpers.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.10
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_COMPOSE_SA_HELPERS_
 #define DJINTERP_TESTS_COMPOSE_SA_HELPERS_ 1

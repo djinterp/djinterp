@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                  type_traits_tests_logical.cpp
 *
 *   Unit tests for the logical metafunctions in Section I.1 and the
@@ -31,9 +31,12 @@
 *     answers.
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_logical.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_logical.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -208,78 +211,78 @@ type_traits_tests_logical(
 )
 {
     // ---- bool_constant ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<bool_constant<true>, std::true_type>::value,
         "bool_constant<true> == std::true_type");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<bool_constant<false>, std::false_type>::value,
         "bool_constant<false> == std::false_type");
 
     // ---- conjunction ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         conjunction<>::value == true,
         "conjunction<> -> true (empty)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         conjunction<std::true_type>::value == true,
         "conjunction<true>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         conjunction<std::true_type, std::true_type, std::true_type>::value == true,
         "conjunction<all true>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         conjunction<std::true_type, std::false_type, std::true_type>::value == false,
         "conjunction<any false>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         conjunction<std::is_integral<int>, std::is_integral<char>>::value == true,
         "conjunction<is_integral<int>, is_integral<char>>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         conjunction<std::is_integral<int>, std::is_pointer<int>>::value == false,
         "conjunction<is_integral<int>, is_pointer<int>>");
 
     // ---- disjunction ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         disjunction<>::value == false,
         "disjunction<> -> false (empty)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         disjunction<std::true_type>::value == true,
         "disjunction<true>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         disjunction<std::false_type, std::false_type, std::false_type>::value == false,
         "disjunction<all false>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         disjunction<std::false_type, std::true_type, std::false_type>::value == true,
         "disjunction<any true>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         disjunction<std::is_pointer<int>, std::is_integral<int>>::value == true,
         "disjunction<is_pointer<int>, is_integral<int>>");
 
     // ---- negation ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         negation<std::true_type>::value  == false,
         "negation<true>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         negation<std::false_type>::value == true,
         "negation<false>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         negation<negation<std::true_type>>::value == true,
         "negation<negation<true>> (double)");
 
     // ---- D_CONJUNCTION / D_DISJUNCTION / D_NEGATION ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         D_CONJUNCTION<std::true_type, std::true_type>::value == true,
         "D_CONJUNCTION<true, true> -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         D_CONJUNCTION<std::true_type, std::false_type>::value == false,
         "D_CONJUNCTION<true, false> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         D_DISJUNCTION<std::false_type, std::true_type>::value == true,
         "D_DISJUNCTION<false, true> -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         D_DISJUNCTION<std::false_type, std::false_type>::value == false,
         "D_DISJUNCTION<false, false> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         D_NEGATION<std::true_type>::value == false,
         "D_NEGATION<true>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         D_NEGATION<std::false_type>::value == true,
         "D_NEGATION<false>");
 

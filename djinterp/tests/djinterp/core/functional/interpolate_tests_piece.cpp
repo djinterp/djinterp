@@ -1,11 +1,18 @@
-/******************************************************************************
-* djinterp [test]                                       interpolate_tests_piece.cpp
+/*******************************************************************************
+* djinterp [test]                                    interpolate_tests_piece.cpp
 *
 * Section I -- scan-event vocabulary: piece_kind and the `piece` token every
 * scanner emits (its default state, the literal vs key faces, is_key(), and the
 * framework typedefs a piece exposes).
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_piece.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

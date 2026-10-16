@@ -79,7 +79,7 @@ d_tests_sa_standalone_object_constants
 
 /*
 d_tests_sa_standalone_line_width
-  Tests the D_TEST_SA_LINE_WIDTH constant.
+  Tests the D_TEST_STANDALONE_LINE_WIDTH constant.
   Tests the following:
   - Macro is defined
   - Value is 80 (standard terminal width)
@@ -94,33 +94,33 @@ d_tests_sa_standalone_line_width
 
     result = true;
 
-    // test 1: D_TEST_SA_LINE_WIDTH is defined
-    #ifdef D_TEST_SA_LINE_WIDTH
+    // test 1: D_TEST_STANDALONE_LINE_WIDTH is defined
+    #ifdef D_TEST_STANDALONE_LINE_WIDTH
         result = d_assert_standalone(
             true,
             "line_width_defined",
-            "D_TEST_SA_LINE_WIDTH should be defined",
+            "D_TEST_STANDALONE_LINE_WIDTH should be defined",
             _counter) && result;
     #else
         result = d_assert_standalone(
             false,
             "line_width_defined",
-            "D_TEST_SA_LINE_WIDTH should be defined",
+            "D_TEST_STANDALONE_LINE_WIDTH should be defined",
             _counter) && result;
     #endif
 
     // test 2: value is 80
     result = d_assert_standalone(
-        D_TEST_SA_LINE_WIDTH == 80,
+        D_TEST_STANDALONE_LINE_WIDTH == 80,
         "line_width_value",
-        "D_TEST_SA_LINE_WIDTH should be 80",
+        "D_TEST_STANDALONE_LINE_WIDTH should be 80",
         _counter) && result;
 
     // test 3: value is positive
     result = d_assert_standalone(
-        D_TEST_SA_LINE_WIDTH > 0,
+        D_TEST_STANDALONE_LINE_WIDTH > 0,
         "line_width_positive",
-        "D_TEST_SA_LINE_WIDTH should be positive",
+        "D_TEST_STANDALONE_LINE_WIDTH should be positive",
         _counter) && result;
 
     return result;
@@ -130,8 +130,8 @@ d_tests_sa_standalone_line_width
 d_tests_sa_standalone_separators
   Tests the separator string constants.
   Tests the following:
-  - D_TEST_SA_SEPARATOR_DOUBLE is defined and has correct length
-  - D_TEST_SA_SEPARATOR_SINGLE is defined and has correct length
+  - D_TEST_STANDALONE_SEPARATOR_DOUBLE is defined and has correct length
+  - D_TEST_STANDALONE_SEPARATOR_SINGLE is defined and has correct length
   - Separators are distinct
   - Separators contain expected characters
 */
@@ -149,36 +149,36 @@ d_tests_sa_standalone_separators
 
     result = true;
 
-    // test 1: D_TEST_SA_SEPARATOR_DOUBLE is defined
-    #ifdef D_TEST_SA_SEPARATOR_DOUBLE
+    // test 1: D_TEST_STANDALONE_SEPARATOR_DOUBLE is defined
+    #ifdef D_TEST_STANDALONE_SEPARATOR_DOUBLE
         result = d_assert_standalone(
             true,
             "separator_double_defined",
-            "D_TEST_SA_SEPARATOR_DOUBLE should be defined",
+            "D_TEST_STANDALONE_SEPARATOR_DOUBLE should be defined",
             _counter) && result;
-        double_sep = D_TEST_SA_SEPARATOR_DOUBLE;
+        double_sep = D_TEST_STANDALONE_SEPARATOR_DOUBLE;
     #else
         result = d_assert_standalone(
             false,
             "separator_double_defined",
-            "D_TEST_SA_SEPARATOR_DOUBLE should be defined",
+            "D_TEST_STANDALONE_SEPARATOR_DOUBLE should be defined",
             _counter) && result;
         double_sep = NULL;
     #endif
 
-    // test 2: D_TEST_SA_SEPARATOR_SINGLE is defined
-    #ifdef D_TEST_SA_SEPARATOR_SINGLE
+    // test 2: D_TEST_STANDALONE_SEPARATOR_SINGLE is defined
+    #ifdef D_TEST_STANDALONE_SEPARATOR_SINGLE
         result = d_assert_standalone(
             true,
             "separator_single_defined",
-            "D_TEST_SA_SEPARATOR_SINGLE should be defined",
+            "D_TEST_STANDALONE_SEPARATOR_SINGLE should be defined",
             _counter) && result;
-        single_sep = D_TEST_SA_SEPARATOR_SINGLE;
+        single_sep = D_TEST_STANDALONE_SEPARATOR_SINGLE;
     #else
         result = d_assert_standalone(
             false,
             "separator_single_defined",
-            "D_TEST_SA_SEPARATOR_SINGLE should be defined",
+            "D_TEST_STANDALONE_SEPARATOR_SINGLE should be defined",
             _counter) && result;
         single_sep = NULL;
     #endif
@@ -189,7 +189,7 @@ d_tests_sa_standalone_separators
         double_len = d_strnlen(double_sep, 100);
 
         result = d_assert_standalone(
-            double_len == D_TEST_SA_LINE_WIDTH,
+            double_len == D_TEST_STANDALONE_LINE_WIDTH,
             "separator_double_length",
             "SEPARATOR_DOUBLE should be LINE_WIDTH characters",
             _counter) && result;
@@ -208,7 +208,7 @@ d_tests_sa_standalone_separators
         single_len = d_strnlen(single_sep, 100);
 
         result = d_assert_standalone(
-            single_len == D_TEST_SA_LINE_WIDTH,
+            single_len == D_TEST_STANDALONE_LINE_WIDTH,
             "separator_single_length",
             "SEPARATOR_SINGLE should be LINE_WIDTH characters",
             _counter) && result;
@@ -236,7 +236,7 @@ d_tests_sa_standalone_separators
 
 /*
 d_tests_sa_standalone_max_modules
-  Tests the D_TEST_SA_MAX_MODULES constant.
+  Tests the D_TEST_STANDALONE_MAX_MODULES constant.
   Tests the following:
   - Macro is defined
   - Value is 64
@@ -252,40 +252,40 @@ d_tests_sa_standalone_max_modules
 
     result = true;
 
-    // test 1: D_TEST_SA_MAX_MODULES is defined
-    #ifdef D_TEST_SA_MAX_MODULES
+    // test 1: D_TEST_STANDALONE_MAX_MODULES is defined
+    #ifdef D_TEST_STANDALONE_MAX_MODULES
         result = d_assert_standalone(
             true,
             "max_modules_defined",
-            "D_TEST_SA_MAX_MODULES should be defined",
+            "D_TEST_STANDALONE_MAX_MODULES should be defined",
             _counter) && result;
     #else
         result = d_assert_standalone(
             false,
             "max_modules_defined",
-            "D_TEST_SA_MAX_MODULES should be defined",
+            "D_TEST_STANDALONE_MAX_MODULES should be defined",
             _counter) && result;
     #endif
 
     // test 2: value is 64
     result = d_assert_standalone(
-        D_TEST_SA_MAX_MODULES == 64,
+        D_TEST_STANDALONE_MAX_MODULES == 64,
         "max_modules_value",
-        "D_TEST_SA_MAX_MODULES should be 64",
+        "D_TEST_STANDALONE_MAX_MODULES should be 64",
         _counter) && result;
 
     // test 3: value is positive
     result = d_assert_standalone(
-        D_TEST_SA_MAX_MODULES > 0,
+        D_TEST_STANDALONE_MAX_MODULES > 0,
         "max_modules_positive",
-        "D_TEST_SA_MAX_MODULES should be positive",
+        "D_TEST_STANDALONE_MAX_MODULES should be positive",
         _counter) && result;
 
     // test 4: value is reasonable (not too large)
     result = d_assert_standalone(
-        D_TEST_SA_MAX_MODULES <= 1024,
+        D_TEST_STANDALONE_MAX_MODULES <= 1024,
         "max_modules_reasonable",
-        "D_TEST_SA_MAX_MODULES should be <= 1024",
+        "D_TEST_STANDALONE_MAX_MODULES should be <= 1024",
         _counter) && result;
 
     return result;
@@ -293,7 +293,7 @@ d_tests_sa_standalone_max_modules
 
 /*
 d_tests_sa_standalone_max_failures
-  Tests the D_TEST_SA_MAX_FAILURES constant.
+  Tests the D_TEST_STANDALONE_MAX_FAILURES constant.
   Tests the following:
   - Macro is defined
   - Value is 512
@@ -310,38 +310,38 @@ d_tests_sa_standalone_max_failures
 
     result = true;
 
-    // test 1: D_TEST_SA_MAX_FAILURES is defined
-    #ifdef D_TEST_SA_MAX_FAILURES
+    // test 1: D_TEST_STANDALONE_MAX_FAILURES is defined
+    #ifdef D_TEST_STANDALONE_MAX_FAILURES
         result = d_assert_standalone(
             true,
             "max_failures_defined",
-            "D_TEST_SA_MAX_FAILURES should be defined",
+            "D_TEST_STANDALONE_MAX_FAILURES should be defined",
             _counter) && result;
     #else
         result = d_assert_standalone(
             false,
             "max_failures_defined",
-            "D_TEST_SA_MAX_FAILURES should be defined",
+            "D_TEST_STANDALONE_MAX_FAILURES should be defined",
             _counter) && result;
     #endif
 
     // test 2: value is 512
     result = d_assert_standalone(
-        D_TEST_SA_MAX_FAILURES == 512,
+        D_TEST_STANDALONE_MAX_FAILURES == 512,
         "max_failures_value",
-        "D_TEST_SA_MAX_FAILURES should be 512",
+        "D_TEST_STANDALONE_MAX_FAILURES should be 512",
         _counter) && result;
 
     // test 3: value is positive
     result = d_assert_standalone(
-        D_TEST_SA_MAX_FAILURES > 0,
+        D_TEST_STANDALONE_MAX_FAILURES > 0,
         "max_failures_positive",
-        "D_TEST_SA_MAX_FAILURES should be positive",
+        "D_TEST_STANDALONE_MAX_FAILURES should be positive",
         _counter) && result;
 
     // test 4: value is >= MAX_MODULES
     result = d_assert_standalone(
-        D_TEST_SA_MAX_FAILURES >= D_TEST_SA_MAX_MODULES,
+        D_TEST_STANDALONE_MAX_FAILURES >= D_TEST_STANDALONE_MAX_MODULES,
         "max_failures_gte_modules",
         "MAX_FAILURES should be >= MAX_MODULES",
         _counter) && result;

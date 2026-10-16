@@ -35,9 +35,9 @@ d_tests_sa_test_module_all
 {
     bool all_passed;
 
-    printf("\n%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    printf("\n%s\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
     printf("Running test_module Unit Test Suite\n");
-    printf("%s\n\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    printf("%s\n\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     all_passed = true;
 
@@ -46,7 +46,7 @@ d_tests_sa_test_module_all
     //=========================================================================
 
     printf("  [SECTION] Constructor / Destructor\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_module_new(_test_info))
     {
@@ -85,7 +85,7 @@ d_tests_sa_test_module_all
     //=========================================================================
 
     printf("  [SECTION] Child Management\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_module_add_child(_test_info))
     {
@@ -124,7 +124,7 @@ d_tests_sa_test_module_all
     //=========================================================================
 
     printf("  [SECTION] Configuration\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_module_get_effective_settings(_test_info))
     {
@@ -153,7 +153,7 @@ d_tests_sa_test_module_all
     //=========================================================================
 
     printf("  [SECTION] Stage Hooks\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_module_set_stage_hook(_test_info))
     {
@@ -187,7 +187,7 @@ d_tests_sa_test_module_all
     //=========================================================================
 
     printf("  [SECTION] Execution\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_module_run(_test_info))
     {
@@ -226,7 +226,7 @@ d_tests_sa_test_module_all
     //=========================================================================
 
     printf("  [SECTION] Results\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_module_get_result(_test_info))
     {
@@ -260,7 +260,7 @@ d_tests_sa_test_module_all
     //=========================================================================
 
     printf("  [SECTION] Output\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_module_print(_test_info))
     {
@@ -291,7 +291,7 @@ d_tests_sa_test_module_all
     // SUMMARY
     //=========================================================================
 
-    printf("\n%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    printf("\n%s\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     if (all_passed)
     {
@@ -311,7 +311,7 @@ d_tests_sa_test_module_all
            _test_info->tests_passed,
            _test_info->tests_total);
 
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    printf("%s\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     return all_passed;
 }

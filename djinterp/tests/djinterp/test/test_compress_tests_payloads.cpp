@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                              test_compress_tests_payloads.cpp
+*
+* path:      /tests/djinterp/test/test_compress_tests_payloads.cpp
+******************************************************************************/
+// djinterp
 #include "test_compress_tests.hpp"
 
 NS_DJINTERP
@@ -25,14 +31,14 @@ tests_compress_make_repeated_size_and_content
 bool
 tests_compress_make_repeated_size_and_content()
 {
-    const dj::byte_buffer z = dt::make_repeated('Z', 4096);
+    const dj::byte_blob z = dt::make_repeated('Z', 4096);
 
     D_TC_CHECK(z.size() == 4096u);
     D_TC_CHECK(tc_count_byte(z, 'Z') == 4096u);
     D_TC_CHECK(tc_distinct_bytes(z) == 1u);
 
     // a high byte survives without sign trouble
-    const dj::byte_buffer high =
+    const dj::byte_blob high =
         dt::make_repeated(static_cast<char>(0xFFu), 300);
 
     D_TC_CHECK(high.size() == 300u);
@@ -41,7 +47,7 @@ tests_compress_make_repeated_size_and_content()
     D_TC_CHECK(static_cast<unsigned char>(high[299]) == 0xFFu);
 
     // and so does a NUL fill, which a C-string-minded path would truncate
-    const dj::byte_buffer nul = dt::make_repeated('\0', 64);
+    const dj::byte_blob nul = dt::make_repeated('\0', 64);
 
     D_TC_CHECK(nul.size() == 64u);
     D_TC_CHECK(tc_count_byte(nul, '\0') == 64u);
@@ -63,7 +69,7 @@ tests_compress_make_repeated_degenerate()
     D_TC_CHECK(dt::make_repeated('A', 0).empty());
     D_TC_CHECK(dt::make_repeated('A', 0).size() == 0u);
 
-    const dj::byte_buffer one = dt::make_repeated('A', 1);
+    const dj::byte_blob one = dt::make_repeated('A', 1);
 
     D_TC_CHECK(one.size() == 1u);
     D_TC_CHECK(one[0] == 'A');
@@ -89,7 +95,7 @@ tests_compress_make_pattern_cycles_byte_range
 bool
 tests_compress_make_pattern_cycles_byte_range()
 {
-    const dj::byte_buffer p = dt::make_pattern(1024);
+    const dj::byte_blob p = dt::make_pattern(1024);
     std::size_t           i = 0;
 
     D_TC_CHECK(p.size() == 1024u);
@@ -102,7 +108,7 @@ tests_compress_make_pattern_cycles_byte_range()
     }
 
     // one full cycle covers the whole byte range
-    const dj::byte_buffer full = dt::make_pattern(256);
+    const dj::byte_blob full = dt::make_pattern(256);
 
     D_TC_CHECK(tc_distinct_bytes(full) == 256u);
     D_TC_CHECK(static_cast<unsigned char>(full[0]) == 0x00u);
@@ -132,14 +138,14 @@ tests_compress_make_pattern_degenerate()
 {
     D_TC_CHECK(dt::make_pattern(0).empty());
 
-    const dj::byte_buffer one = dt::make_pattern(1);
+    const dj::byte_blob one = dt::make_pattern(1);
 
     D_TC_CHECK(one.size() == 1u);
     D_TC_CHECK(static_cast<unsigned char>(one[0]) == 0x00u);
 
     // a shorter buffer is a prefix of a longer one
-    const dj::byte_buffer shortp = dt::make_pattern(10);
-    const dj::byte_buffer longp  = dt::make_pattern(20);
+    const dj::byte_blob shortp = dt::make_pattern(10);
+    const dj::byte_blob longp  = dt::make_pattern(20);
 
     D_TC_CHECK(longp.substr(0, 10) == shortp);
 
@@ -162,7 +168,7 @@ tests_compress_make_text_length_and_tiling
 bool
 tests_compress_make_text_length_and_tiling()
 {
-    const dj::byte_buffer t = dt::make_text(8192);
+    const dj::byte_blob t = dt::make_text(8192);
     std::size_t           i = 0;
 
     D_TC_CHECK(t.size() == 8192u);
@@ -174,14 +180,14 @@ tests_compress_make_text_length_and_tiling()
     }
 
     // an exact multiple of the seed length
-    const dj::byte_buffer exact = dt::make_text(tc_seed_len * 3u);
+    const dj::byte_blob exact = dt::make_text(tc_seed_len * 3u);
 
     D_TC_CHECK(exact.size() == (tc_seed_len * 3u));
     D_TC_CHECK(exact.substr(0, tc_seed_len) ==
                exact.substr(tc_seed_len, tc_seed_len));
 
     // a length one past a boundary is trimmed, not rounded up
-    const dj::byte_buffer plus1 = dt::make_text(tc_seed_len + 1u);
+    const dj::byte_blob plus1 = dt::make_text(tc_seed_len + 1u);
 
     D_TC_CHECK(plus1.size() == (tc_seed_len + 1u));
     D_TC_CHECK(plus1[tc_seed_len] == tc_seed_phrase[0]);
@@ -207,18 +213,18 @@ tests_compress_make_text_degenerate()
     D_TC_CHECK(dt::make_text(0).empty());
 
     // shorter than one seed
-    const dj::byte_buffer tiny = dt::make_text(5);
+    const dj::byte_blob tiny = dt::make_text(5);
 
     D_TC_CHECK(tiny.size() == 5u);
     D_TC_CHECK(tiny == std::string(tc_seed_phrase, 5));
 
-    const dj::byte_buffer one = dt::make_text(1);
+    const dj::byte_blob one = dt::make_text(1);
 
     D_TC_CHECK(one.size() == 1u);
     D_TC_CHECK(one[0] == tc_seed_phrase[0]);
 
     // exactly one seed
-    const dj::byte_buffer seed = dt::make_text(tc_seed_len);
+    const dj::byte_blob seed = dt::make_text(tc_seed_len);
 
     D_TC_CHECK(seed == std::string(tc_seed_phrase, tc_seed_len));
 
@@ -249,8 +255,8 @@ tests_compress_make_incompressible_is_deterministic()
                dt::make_incompressible(500, 42u));
 
     // the sequence is a stream, so a short draw prefixes a long one
-    const dj::byte_buffer longer  = dt::make_incompressible(500, 7u);
-    const dj::byte_buffer shorter = dt::make_incompressible(100, 7u);
+    const dj::byte_blob longer  = dt::make_incompressible(500, 7u);
+    const dj::byte_blob shorter = dt::make_incompressible(100, 7u);
 
     D_TC_CHECK(longer.substr(0, 100) == shorter);
 
@@ -279,7 +285,7 @@ tests_compress_make_incompressible_seed_behaviour()
                dt::make_incompressible(256, 100u));
 
     // a zero seed is replaced by the default, not left to stick at zero
-    const dj::byte_buffer zero_seed = dt::make_incompressible(256, 0u);
+    const dj::byte_blob zero_seed = dt::make_incompressible(256, 0u);
 
     D_TC_CHECK(zero_seed.size() == 256u);
     D_TC_CHECK(zero_seed == dt::make_incompressible(256, 0x1234ABCDu));
@@ -308,7 +314,7 @@ tests_compress_make_incompressible_spread
 bool
 tests_compress_make_incompressible_spread()
 {
-    const dj::byte_buffer r = dt::make_incompressible(8192);
+    const dj::byte_blob r = dt::make_incompressible(8192);
 
     D_TC_CHECK(r.size() == 8192u);
 
@@ -338,7 +344,7 @@ tests_compress_make_with_nuls_layout
 bool
 tests_compress_make_with_nuls_layout()
 {
-    const dj::byte_buffer n = dt::make_with_nuls(1500);
+    const dj::byte_blob n = dt::make_with_nuls(1500);
     std::size_t           i = 0;
 
     D_TC_CHECK(n.size() == 1500u);
@@ -392,7 +398,7 @@ tests_compress_standard_corpus_shape
 bool
 tests_compress_standard_corpus_shape()
 {
-    const std::vector<dj::byte_buffer> c = dt::standard_corpus();
+    const std::vector<dj::byte_blob> c = dt::standard_corpus();
 
     D_TC_CHECK(c.size() == 10u);
 
@@ -409,8 +415,8 @@ tests_compress_standard_corpus_shape()
     D_TC_CHECK(c[9].size() == 160000u);
 
     // the documented content
-    D_TC_CHECK(c[1] == dj::byte_buffer("A"));
-    D_TC_CHECK(c[2] == dj::byte_buffer("hello, world"));
+    D_TC_CHECK(c[1] == dj::byte_blob("A"));
+    D_TC_CHECK(c[2] == dj::byte_blob("hello, world"));
     D_TC_CHECK(c[3] == dt::make_repeated('Z', 4096));
     D_TC_CHECK(c[4] == dt::make_pattern(1024));
     D_TC_CHECK(c[5] == dt::make_text(8192));
@@ -443,8 +449,8 @@ tests_compress_standard_corpus_is_deterministic
 bool
 tests_compress_standard_corpus_is_deterministic()
 {
-    const std::vector<dj::byte_buffer> a = dt::standard_corpus();
-    const std::vector<dj::byte_buffer> b = dt::standard_corpus();
+    const std::vector<dj::byte_blob> a = dt::standard_corpus();
+    const std::vector<dj::byte_blob> b = dt::standard_corpus();
     std::size_t                        i = 0;
 
     D_TC_CHECK(a.size() == b.size());

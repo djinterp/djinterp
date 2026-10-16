@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     atomic_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                        atomic_tests_traits.cpp
 *
 *   Section V - the compile-time type / trait surface every atomic wrapper
 * advertises.  These are the guarantees generic code (and the concurrency
@@ -19,15 +19,15 @@
 *
 * path:      /tests/djinterp/core/sync/atomic_tests_traits.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <type_traits>
-
 // djinterp
 #include "atomic_tests.hpp"
 

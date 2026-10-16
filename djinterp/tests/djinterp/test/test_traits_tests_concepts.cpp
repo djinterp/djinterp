@@ -1,9 +1,17 @@
-// djinterp
-#include "test_traits_tests.hpp"
-
+/*******************************************************************************
+* djinterp [test]                                 test_traits_tests_concepts.cpp
+*
+*
+* path:      /tests/djinterp/test/test_traits_tests_concepts.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <concepts>
 #include <type_traits>
+// djinterp
+#include "test_traits_tests.hpp"
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS

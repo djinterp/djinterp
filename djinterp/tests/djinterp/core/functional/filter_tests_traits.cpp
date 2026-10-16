@@ -1,9 +1,18 @@
-#include "filter_tests.hpp"
-
+/*******************************************************************************
+* djinterp [core]                                        filter_tests_traits.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/filter_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstddef>
 #include <type_traits>
 #include <vector>
+// djinterp
+#include "filter_tests.hpp"
 
 
 NS_DJINTERP

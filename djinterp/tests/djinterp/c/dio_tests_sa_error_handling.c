@@ -1,4 +1,15 @@
-#include ".\dio_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                  dio_tests_sa_error_handling.c
+*
+*
+* path:      /tests/djinterp/c/dio_tests_sa_error_handling.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dio_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /*
@@ -9,7 +20,7 @@ d_tests_sa_dio_perror
   - error message printing with NULL prefix
   - error message based on current errno
   - no crash on various inputs
-  
+
   Note: d_perror writes to stderr, so these tests mainly verify
   it doesn't crash and accepts various inputs.
 */
@@ -80,7 +91,7 @@ d_tests_sa_dio_feof
   - EOF set after reading past end
   - EOF cleared by rewind
   - EOF cleared by clearerr
-  
+
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -102,7 +113,7 @@ d_tests_sa_dio_feof
     // test 1: NULL stream test skipped (causes assertion in debug builds)
 
     // test 2: EOF not set initially
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "content");
@@ -120,7 +131,7 @@ d_tests_sa_dio_feof
     }
 
     // test 3: EOF set after reading past end
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "AB");
@@ -129,7 +140,7 @@ d_tests_sa_dio_feof
 
         // read all content
         fread(buffer, 1, 2, temp_file);
-        
+
         // try to read more (should set EOF)
         fgetc(temp_file);
 
@@ -144,7 +155,7 @@ d_tests_sa_dio_feof
     }
 
     // test 4: EOF cleared by rewind
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "XY");
@@ -156,7 +167,7 @@ d_tests_sa_dio_feof
         fgetc(temp_file);
 
         // rewind should clear EOF
-        d_rewind(temp_file);
+        d_file_rewind_stream(temp_file);
 
         eof_status = d_feof(temp_file);
         result     = d_assert_standalone(
@@ -169,7 +180,7 @@ d_tests_sa_dio_feof
     }
 
     // test 5: EOF cleared by clearerr
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "12");
@@ -194,7 +205,7 @@ d_tests_sa_dio_feof
     }
 
     // test 6: EOF not set on successful read
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "ABCDEF");
@@ -214,7 +225,7 @@ d_tests_sa_dio_feof
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }
@@ -228,7 +239,7 @@ d_tests_sa_dio_ferror
   - error set after invalid operation
   - error cleared by clearerr
   - error cleared by rewind
-  
+
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -249,7 +260,7 @@ d_tests_sa_dio_ferror
     // test 1: NULL stream test skipped (causes assertion in debug builds)
 
     // test 2: error not set initially
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         error_status = d_ferror(temp_file);
@@ -263,7 +274,7 @@ d_tests_sa_dio_ferror
     }
 
     // test 3: error set after invalid write (write to read-only file)
-    temp_file = d_fopen(temp_filename, "r");
+    temp_file = d_file_open_stream(temp_filename, "r");
     if (temp_file)
     {
         // attempt to write to read-only file
@@ -280,7 +291,7 @@ d_tests_sa_dio_ferror
     }
 
     // test 4: error cleared by clearerr
-    temp_file = d_fopen(temp_filename, "r");
+    temp_file = d_file_open_stream(temp_filename, "r");
     if (temp_file)
     {
         // set error
@@ -300,14 +311,14 @@ d_tests_sa_dio_ferror
     }
 
     // test 5: error cleared by rewind
-    temp_file = d_fopen(temp_filename, "r");
+    temp_file = d_file_open_stream(temp_filename, "r");
     if (temp_file)
     {
         // set error
         fputc('X', temp_file);
 
         // rewind should clear error
-        d_rewind(temp_file);
+        d_file_rewind_stream(temp_file);
 
         error_status = d_ferror(temp_file);
         result       = d_assert_standalone(
@@ -320,7 +331,7 @@ d_tests_sa_dio_ferror
     }
 
     // test 6: error not set on valid operations
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "valid data");
@@ -337,7 +348,7 @@ d_tests_sa_dio_ferror
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }
@@ -351,7 +362,7 @@ d_tests_sa_dio_clearerr
   - clearing error indicator
   - clearing both indicators simultaneously
   - no effect when no indicators set
-  
+
   Note: NULL stream tests are skipped as they cause assertions in debug builds.
 */
 bool
@@ -372,7 +383,7 @@ d_tests_sa_dio_clearerr
     // test 1: NULL stream test skipped (causes assertion in debug builds)
 
     // test 2: clearing EOF indicator
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "AB");
@@ -403,7 +414,7 @@ d_tests_sa_dio_clearerr
     }
 
     // test 3: clearing error indicator
-    temp_file = d_fopen(temp_filename, "r");
+    temp_file = d_file_open_stream(temp_filename, "r");
     if (temp_file)
     {
         // set error
@@ -429,7 +440,7 @@ d_tests_sa_dio_clearerr
     }
 
     // test 4: clearing both indicators
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "X");
@@ -442,7 +453,7 @@ d_tests_sa_dio_clearerr
 
         // close and reopen as read-only to set error too
         fclose(temp_file);
-        temp_file = d_fopen(temp_filename, "r");
+        temp_file = d_file_open_stream(temp_filename, "r");
         if (temp_file)
         {
             // set both EOF and error
@@ -464,7 +475,7 @@ d_tests_sa_dio_clearerr
     }
 
     // test 5: clearerr on stream with no indicators set
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "normal");
@@ -483,7 +494,7 @@ d_tests_sa_dio_clearerr
     }
 
     // test 6: multiple clearerr calls
-    temp_file = d_fopen(temp_filename, "w+");
+    temp_file = d_file_open_stream(temp_filename, "w+");
     if (temp_file)
     {
         fprintf(temp_file, "T");
@@ -509,7 +520,7 @@ d_tests_sa_dio_clearerr
     }
 
     // cleanup
-    d_remove(temp_filename);
+    d_file_remove(temp_filename);
 
     return result;
 }

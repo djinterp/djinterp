@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                free_tests_crossstratum.cpp
+/*******************************************************************************
+* djinterp [test]                                    free_tests_crossstratum.cpp
 *
 *   Section VII of the parser/free.hpp suite: the cross-stratum lifts along the
 * chain  FreeAp F A  <=  FreeSel F A  <=  Free F A.  ap_to_sel rewraps the same
@@ -8,10 +8,12 @@
 * Each lift must preserve parsing behaviour (same value, same residual) while
 * changing the static stratum (the result type).
 *
-* path:      /tests/djinterp/parse/parser/free_tests_crossstratum.cpp
+*
+* path:      /tests/djinterp/core/functional/free_tests_crossstratum.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "free_tests.hpp"

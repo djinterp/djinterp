@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       maybe_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                         maybe_tests_traits.cpp
 *
 * Predicate & structural trait tests for maybe.hpp section II:
 *   is_maybe<T>, is_maybe_predicate<P, T>, the variable-template shorthands
@@ -10,10 +10,18 @@
 * trait results are usable in constant expressions); the runtime section
 * mirrors them so the counts roll into the report and so the gated
 * variable-template / concept paths are exercised when available.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/maybe_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <string>
 #include <vector>
+// djinterp
 #include "./maybe_tests.hpp"
 
 

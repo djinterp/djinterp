@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                              type_traits_tests_macros_spec.cpp
 *
 *   Unit tests for the specialization-detection macros, now in
@@ -30,9 +30,12 @@
 *   - the _AS variant inherits from the supplied INHERIT_EXPR
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_macros_spec.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_macros_spec.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -140,47 +143,47 @@ type_traits_tests_macros_spec(
 )
 {
     // ---- D_TYPE_TRAIT_IS_SPECIALIZATION_OF (sugar) ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_is_tuple<std::tuple<int, char>>::value == true,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: tuple<int,char>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_is_tuple<std::tuple<>>::value == true,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: empty tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_is_tuple<std::tuple<int>>::value == true,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: single-element tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_is_tuple<int>::value == false,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: builtin int -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_is_tuple<std::vector<int>>::value == false,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: vector -> false");
 
     // ---- D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS (base macro) ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_is_vector_count_13<std::vector<int>>::value == 13,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: match inherits supplied base");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_base_of<macro_spec_count_13_base,
                         macro_is_vector_count_13<std::vector<int>>>::value,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: base type matches INHERIT_EXPR");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_is_vector_count_13<int>::value == false,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: non-match ::value false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_base_of<std::false_type,
                         macro_is_vector_count_13<int>>::value,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: non-match base is false_type");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         macro_is_vector_count_13<std::vector<double>>::value == 13,
         "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: vector<double> also matches");
 
     // ---- Cross-template hygiene ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( macro_is_pair<std::pair<int, char>>::value     == true &&
           macro_is_pair<std::tuple<int, char>>::value    == false ),
         "Cross hygiene: macro_is_pair fires for pair, not tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( macro_is_vector<std::vector<int>>::value       == true &&
           macro_is_vector<std::tuple<int>>::value        == false ),
         "Cross hygiene: macro_is_vector fires for vector, not tuple");

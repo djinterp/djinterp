@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     applicative_tests_ap.cpp
+/*******************************************************************************
+* djinterp [test]                                       applicative_tests_ap.cpp
 *
 *   Section II.2 of the applicative.hpp suite: ap, wrapped application
 *   F<a -> b> -> F<a> -> F<b> (Haskell <*>), delegating to
@@ -9,10 +9,12 @@
 * the value type, the direct applicative (total, no short-circuit), the
 * lvalue/rvalue forwarding paths, and the result type identity.
 *
+*
 * path:      /tests/djinterp/core/functional/applicative_tests_ap.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "applicative_tests.hpp"

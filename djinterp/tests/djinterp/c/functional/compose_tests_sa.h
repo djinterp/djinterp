@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            compose_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                             compose_tests_sa.h
 *
 *   Unit test declarations for `compose.h` module.
 *   Provides comprehensive testing of all function composition and partial
@@ -8,21 +8,24 @@
 * convenience/template macros.
 *
 *
-* path:      \tests\functional\compose\compose_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.09
-******************************************************************************/
+* path:      /tests/djinterp/c/functional/compose_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.09
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_COMPOSE_SA_
 #define DJINTERP_TESTS_COMPOSE_SA_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/string_fn.h"
-#include "../../../inc/c/functional/compose.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/functional/compose.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

@@ -1,14 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                fn_builder_tests_transform.cpp
+/*******************************************************************************
+* djinterp [test]                                 fn_builder_tests_transform.cpp
 *
 * Transforming fluent-operation tests (section ii, part 1):
 *   test_map      -- map (incl. type-changing) and and_then (its alias).
 *   test_filter   -- filter and where (its alias).
 *   test_flat_map -- map each element to a container then flatten.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/fn_builder_tests_transform.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <string>
+#include <vector>
+// djinterp
 #include "./fn_builder_tests.hpp"
 
 

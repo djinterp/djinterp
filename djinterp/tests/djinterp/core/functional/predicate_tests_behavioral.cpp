@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                          predicate_tests_behavioral.cpp
+/*******************************************************************************
+* djinterp [functional]                           predicate_tests_behavioral.cpp
 *
 *   Tests for the behavioral detection trait is_predicate (+ is_predicate_v)
 * and the C++20 concepts predicate_combinator / predicate. Also defines the
@@ -10,9 +10,14 @@
 * under C++98 the trait checks compile to a no-op pass (the aggregator still
 * runs every other section).
 *
-* path:      /src/functional/predicate_tests_behavioral.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/predicate_tests_behavioral.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./predicate_tests.hpp"
 
 

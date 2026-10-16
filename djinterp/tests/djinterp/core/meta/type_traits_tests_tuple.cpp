@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                    type_traits_tests_tuple.cpp
 *
 *   Unit tests for the tuple-meta traits in Section III of type_traits.hpp.
@@ -40,9 +40,12 @@
 *     primary template's std::conditional would otherwise evaluate.
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_tuple.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.22
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_tuple.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 

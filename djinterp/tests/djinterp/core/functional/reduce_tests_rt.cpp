@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                            reduce_tests_rt.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/reduce_tests_rt.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  reduce_tests_rt.cpp
 //   I. reduce_rt -- the runtime driver: a left fold over an iterator range, and
 //   the iterable convenience form over anything with begin()/end().

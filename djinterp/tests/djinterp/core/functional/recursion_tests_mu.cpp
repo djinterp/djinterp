@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                         recursion_tests_mu.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/recursion_tests_mu.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  recursion_tests_mu.cpp
 //   Section I -- mu<F>, the least fixed point (ctor, In, out, empty, sharing).
 

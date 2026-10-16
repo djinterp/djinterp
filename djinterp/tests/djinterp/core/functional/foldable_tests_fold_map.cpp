@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   foldable_tests_fold_map.cpp
+/*******************************************************************************
+* djinterp [test]                                    foldable_tests_fold_map.cpp
 *
 *   Section II.3 of the foldable.hpp suite: fold_map, which maps each element to
 * a monoid value and combines the images left-associated from an explicit
@@ -9,10 +9,12 @@
 * combine), left-association shown by a non-commutative combine, a single
 * element, and the same over the non-std seq<T> fixture.
 *
+*
 * path:      /tests/djinterp/core/functional/foldable_tests_fold_map.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "foldable_tests.hpp"

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             test_context.hpp
+/*******************************************************************************
+* djinterp [test]                                               test_context.hpp
 *
 *   The focus type for the DTest document layer: a "fat" nullable context
 * whose four parts (run / module / unit / check) name the four depths of a
@@ -38,24 +38,29 @@
 * parallel to binding_env.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    TEST CONTEXT               (the focus struct)
-* II.   FOCUS BUILDERS             (at_run / at_module / at_unit / at_check)
-*
-*
 * path:      /inc/djinterp/test/test_context.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_TEST_TEST_CONTEXT_
-#define DJINTERP_TEST_TEST_CONTEXT_ 1
+/*
+TABLE OF CONTENTS
+=================
+I.    TEST CONTEXT               (the focus struct)
+      ---------------------------------------------
+
+II.   FOCUS BUILDERS             (at_run / at_module / at_unit / at_check)
+      --------------------------------------------------------------------
+*/
+
+#ifndef DJINTERP_TEST_TEST_CONTEXT_HPP
+#define DJINTERP_TEST_TEST_CONTEXT_HPP 1
 
 // std
 #include <cstddef>
 // djinterp
-#include "../core/djinterp.hpp"      // NS_*, D_NODISCARD, language gates
+#include "../djinterp.hpp"      // NS_*, D_NODISCARD, language gates
 #include "./output/test_report.hpp"  // test_report, report_module, report_unit,
                                      //   report_check (the focus pointees)
 
@@ -196,4 +201,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-#endif  // DJINTERP_TEST_TEST_CONTEXT_
+#endif  // DJINTERP_TEST_TEST_CONTEXT_HPP

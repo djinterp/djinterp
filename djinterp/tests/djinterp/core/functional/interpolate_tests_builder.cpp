@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     interpolate_tests_builder.cpp
+/*******************************************************************************
+* djinterp [test]                                  interpolate_tests_builder.cpp
 *
 * Section VII -- the lazy `interpolation` functor: a bound template plus a
 * resolver chain carried in the type, forced by a terminal.  Verifies the
@@ -8,8 +8,15 @@
 * partial render, interpolate_if (open / closed gate), .recursive(), .into(),
 * the string conversion, template_view() / resolver() accessors,
 * make_interpolation, a non-default scanner, and constexpr construction.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_builder.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

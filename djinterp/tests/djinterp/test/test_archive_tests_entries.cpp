@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                                test_archive_tests_entries.cpp
+*
+* path:      /tests/djinterp/test/test_archive_tests_entries.cpp
+******************************************************************************/
+// djinterp
 #include "test_archive_tests.hpp"
 
 NS_DJINTERP
@@ -16,20 +22,20 @@ bool
 tests_archive_make_entry_records_every_field()
 {
     const dj::entry e = dt::make_entry("path/to/file.txt",
-                                       dj::byte_buffer("contents"),
+                                       dj::byte_blob("contents"),
                                        false,
                                        0644u,
                                        1700000000L);
 
     D_TA_CHECK(e.name == "path/to/file.txt");
-    D_TA_CHECK(e.data == dj::byte_buffer("contents"));
+    D_TA_CHECK(e.data == dj::byte_blob("contents"));
     D_TA_CHECK(!e.is_directory);
     D_TA_CHECK(e.mode == 0644u);
     D_TA_CHECK(e.mtime == 1700000000L);
 
     // a directory with an explicit mode and time
     const dj::entry d = dt::make_entry("path/to/dir",
-                                       dj::byte_buffer(),
+                                       dj::byte_blob(),
                                        true,
                                        0755u,
                                        42L);
@@ -41,7 +47,7 @@ tests_archive_make_entry_records_every_field()
     D_TA_CHECK(d.data.empty());
 
     // the fields do not bleed into one another
-    const dj::entry z = dt::make_entry("", dj::byte_buffer(), false, 0u, 0L);
+    const dj::entry z = dt::make_entry("", dj::byte_blob(), false, 0u, 0L);
 
     D_TA_CHECK(z.name.empty());
     D_TA_CHECK(z.data.empty());
@@ -51,7 +57,7 @@ tests_archive_make_entry_records_every_field()
 
     // a negative mtime (pre-epoch) is carried as given
     const dj::entry old =
-        dt::make_entry("old", dj::byte_buffer("x"), false, 0u, -100L);
+        dt::make_entry("old", dj::byte_blob("x"), false, 0u, -100L);
 
     D_TA_CHECK(old.mtime == -100L);
 
@@ -70,17 +76,17 @@ bool
 tests_archive_make_file_entry_defaults()
 {
     const dj::entry e =
-        dt::make_file_entry("notes.md", dj::byte_buffer("# title"));
+        dt::make_file_entry("notes.md", dj::byte_blob("# title"));
 
     D_TA_CHECK(e.name == "notes.md");
-    D_TA_CHECK(e.data == dj::byte_buffer("# title"));
+    D_TA_CHECK(e.data == dj::byte_blob("# title"));
     D_TA_CHECK(!e.is_directory);
     D_TA_CHECK(e.mode == 0u);
     D_TA_CHECK(e.mtime == 0L);
 
     // it is exactly the fully specified form with those defaults
     const dj::entry expected =
-        dt::make_entry("notes.md", dj::byte_buffer("# title"), false, 0u, 0L);
+        dt::make_entry("notes.md", dj::byte_blob("# title"), false, 0u, 0L);
 
     D_TA_CHECK(e.name == expected.name);
     D_TA_CHECK(e.data == expected.data);
@@ -89,7 +95,7 @@ tests_archive_make_file_entry_defaults()
     D_TA_CHECK(e.mtime == expected.mtime);
 
     // an empty payload is a legitimate file
-    const dj::entry empty = dt::make_file_entry("empty", dj::byte_buffer());
+    const dj::entry empty = dt::make_file_entry("empty", dj::byte_blob());
 
     D_TA_CHECK(empty.data.empty());
     D_TA_CHECK(!empty.is_directory);
@@ -112,7 +118,7 @@ tests_archive_make_text_entry_matches_file_entry()
 {
     const dj::entry t = dt::make_text_entry("a.txt", "hello, world");
     const dj::entry f =
-        dt::make_file_entry("a.txt", dj::byte_buffer("hello, world"));
+        dt::make_file_entry("a.txt", dj::byte_blob("hello, world"));
 
     D_TA_CHECK(t.name == f.name);
     D_TA_CHECK(t.data == f.data);
@@ -181,7 +187,7 @@ tests_archive_entries_carry_binary_payloads
 bool
 tests_archive_entries_carry_binary_payloads()
 {
-    const dj::byte_buffer nuls("a\0b\0c", 5);
+    const dj::byte_blob nuls("a\0b\0c", 5);
     const dj::entry       e = dt::make_file_entry("blob.bin", nuls);
 
     D_TA_CHECK(e.data.size() == 5u);
@@ -190,7 +196,7 @@ tests_archive_entries_carry_binary_payloads()
     D_TA_CHECK(e.data[3] == '\0');
 
     // high bytes
-    dj::byte_buffer high;
+    dj::byte_blob high;
 
     high.push_back(static_cast<char>(0xFFu));
     high.push_back(static_cast<char>(0x80u));
@@ -205,14 +211,14 @@ tests_archive_entries_carry_binary_payloads()
     D_TA_CHECK(static_cast<unsigned char>(h.data[2]) == 0x00u);
 
     // a payload that is entirely NULs still has its length
-    const dj::byte_buffer allnul(16u, static_cast<char>(0));
+    const dj::byte_blob allnul(16u, static_cast<char>(0));
     const dj::entry       a = dt::make_file_entry("z.bin", allnul);
 
     D_TA_CHECK(a.data.size() == 16u);
     D_TA_CHECK(a.data == allnul);
 
     // and a large payload is carried whole
-    const dj::byte_buffer big(100000u, 'x');
+    const dj::byte_blob big(100000u, 'x');
 
     D_TA_CHECK(dt::make_file_entry("big", big).data.size() == 100000u);
 
@@ -240,7 +246,7 @@ tests_archive_entries_are_independent_values()
     a.data += "more";
     a.name  = "renamed.txt";
 
-    D_TA_CHECK(b.data == dj::byte_buffer("payload"));
+    D_TA_CHECK(b.data == dj::byte_blob("payload"));
     D_TA_CHECK(b.name == "same.txt");
     D_TA_CHECK(a.data != b.data);
 
@@ -251,7 +257,7 @@ tests_archive_entries_are_independent_values()
     copy.data = "changed";
     copy.is_directory = true;
 
-    D_TA_CHECK(src.data == dj::byte_buffer("original"));
+    D_TA_CHECK(src.data == dj::byte_blob("original"));
     D_TA_CHECK(!src.is_directory);
 
     // a list holds copies
@@ -262,7 +268,7 @@ tests_archive_entries_are_independent_values()
     pushed.data = "v2";
 
     D_TA_CHECK(items.size() == 1u);
-    D_TA_CHECK(items[0].data == dj::byte_buffer("v1"));
+    D_TA_CHECK(items[0].data == dj::byte_blob("v1"));
 
     return true;
 }

@@ -1,15 +1,17 @@
-/******************************************************************************
-* djinterp [test]                                   test_handler_test_helpers.c
+/*******************************************************************************
+* djinterp [test]                                    test_handler_test_helpers.c
 *
 *   Implementation of shared helper functions used across the test_handler
 * standalone test suites.
 *
 *
-* path:      \test\c\test\test_handler_test_helpers.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.28
-******************************************************************************/
+* path:      /tests/djinterp/c/test/test_handler_test_helpers.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.28
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_handler_test_helpers.h"
 
 

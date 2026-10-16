@@ -1,16 +1,23 @@
-/******************************************************************************
-* djinterp [test]                                     consumer_tests_flow.cpp
+/*******************************************************************************
+* djinterp [test]                                        consumer_tests_flow.cpp
 *
 *   Tests for consumer.hpp Section II stateful flow combinators:
 * batched (fire every N-th input), take (first N then ignore), and drop
 * (skip first N then forward).  These carry mutable per-instance state,
 * so the edge cases around the stride/limit boundaries and the zero
 * arguments get particular attention.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/consumer_tests_flow.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "consumer_tests.hpp"
-
+// std
 #include <vector>
+// djinterp
+#include "consumer_tests.hpp"
 
 
 NS_DJINTERP

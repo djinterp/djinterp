@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                    semigroup_tests_mappend.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/semigroup_tests_mappend.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  semigroup_tests_mappend.cpp
 //   Section II -- mappend, the associative combine.
 

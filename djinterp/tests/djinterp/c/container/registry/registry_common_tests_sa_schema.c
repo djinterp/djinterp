@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [container]                         registry_common_tests_sa_schema.c
+*
+*
+* path:      /tests/djinterp/c/container/registry/registry_common_tests_sa_schema.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./registry_common_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

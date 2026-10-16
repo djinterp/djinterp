@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                event_common_tests_verdict.cpp
+/*******************************************************************************
+* djinterp [test]                                 event_common_tests_verdict.cpp
 *
 *   Section II -- VERDICT (the set P).  Covers the `verdict` enum class and the
 * `consumed` query: the enumerator values, the scoped-enum type properties,
@@ -7,10 +7,11 @@
 * verdict::consume.
 *
 *
-* path:      /tests/djinterp/core/event/event_common/event_common_tests_verdict.cpp
+* path:      /tests/djinterp/core/event/event_common_tests_verdict.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_common_tests.hpp"

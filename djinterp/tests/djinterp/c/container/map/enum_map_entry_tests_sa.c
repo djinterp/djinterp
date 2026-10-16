@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                    enum_map_entry_tests_sa.c
+/*******************************************************************************
+* djinterp [test]                                      enum_map_entry_tests_sa.c
 *
 *   Tests for enum_map_entry module - entry structure and macros only.
 *   This tests the macros defined in enum_map_entry.h, not the map operations.
 *
 *
-* path:      \test\container\map\enum_map_entry_tests_sa.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
-******************************************************************************/
+* path:      /tests/djinterp/c/container/map/enum_map_entry_tests_sa.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./enum_map_entry_tests_sa.h"
 
 
@@ -57,13 +59,13 @@ d_tests_enum_map_entry_basic_macros
 
     // test 4: various pointer types
     struct d_enum_map_entry e3 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE, test_str);
-    test_pointer_types = (e3.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE) && 
+    test_pointer_types = (e3.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE) &&
                          (e3.value == (void*)test_str) &&
                          (strcmp((char*)e3.value, "hello") == 0);
 
     // test 5: legacy alias D_ENUM_KEY_ENTRY
     struct d_enum_map_entry e4 = D_ENUM_KEY_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW, &test_int);
-    test_legacy_alias = (e4.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) && 
+    test_legacy_alias = (e4.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) &&
                         (e4.value == (void*)&test_int);
 
     // test 6: properly initialized (no garbage)
@@ -136,13 +138,13 @@ d_tests_enum_map_entry_typed_macros
 
     // test 1: D_ENUM_ENTRY_STR
     struct d_enum_map_entry e1 = D_ENUM_ENTRY_STR(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, "red");
-    test_str_entry = (e1.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_RED) && 
+    test_str_entry = (e1.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_RED) &&
                      (e1.value != NULL) &&
                      (strcmp((char*)e1.value, "red") == 0);
 
     // test 2: D_ENUM_ENTRY_INT
     struct d_enum_map_entry e2 = D_ENUM_ENTRY_INT(D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN, 42);
-    test_int_entry = (e2.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN) && 
+    test_int_entry = (e2.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN) &&
                      ((intptr_t)e2.value == 42);
 
     // test 3: D_ENUM_ENTRY_NULL
@@ -151,7 +153,7 @@ d_tests_enum_map_entry_typed_macros
 
     // test 4: D_ENUM_ENTRY_SELF
     struct d_enum_map_entry e4 = D_ENUM_ENTRY_SELF(D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW);
-    test_self_entry = (e4.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) && 
+    test_self_entry = (e4.key == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) &&
                       ((intptr_t)e4.value == (int)D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW) &&
                       (e4.key == (intptr_t)e4.value);
 
@@ -165,7 +167,7 @@ d_tests_enum_map_entry_typed_macros
 
     // test 7: string literals accessible
     struct d_enum_map_entry e7 = D_ENUM_ENTRY_STR(200, "Hello, World!");
-    test_str_accessible = (e7.key == 200) && 
+    test_str_accessible = (e7.key == 200) &&
                           (strcmp((char*)e7.value, "Hello, World!") == 0) &&
                           (strlen((char*)e7.value) == 13);
 
@@ -374,7 +376,7 @@ d_tests_enum_map_entry_sentinel_macros
 
     // test 1: D_ENUM_ENTRY_SENTINEL creates sentinel
     struct d_enum_map_entry sent = D_ENUM_ENTRY_SENTINEL;
-    test_creates_sentinel = (sent.key == D_ENUM_MAP_SENTINEL_KEY) && 
+    test_creates_sentinel = (sent.key == D_ENUM_MAP_SENTINEL_KEY) &&
                            (sent.value == NULL);
 
     // test 2: D_ENUM_ENTRY_IS_SENTINEL detects sentinel
@@ -390,7 +392,7 @@ d_tests_enum_map_entry_sentinel_macros
     struct d_enum_map_entry normal1 = D_ENUM_ENTRY(D_TEST_COLOR_ENUM_MAP_ENTRY_RED, &dummy);
     struct d_enum_map_entry normal2 = D_ENUM_ENTRY_NULL(0);
     struct d_enum_map_entry normal3 = D_ENUM_ENTRY_INT(INT_MAX, 42);
-    test_false_for_normal = !D_ENUM_ENTRY_IS_SENTINEL(normal1) && 
+    test_false_for_normal = !D_ENUM_ENTRY_IS_SENTINEL(normal1) &&
                            !D_ENUM_ENTRY_IS_SENTINEL(normal2) &&
                            !D_ENUM_ENTRY_IS_SENTINEL(normal3);
 
@@ -441,7 +443,7 @@ d_tests_enum_map_entry_run_all
   - Entry creation macros
   - Entry comparison macros
   - Sentinel marker macros
-  
+
   Note: This only tests the macros and entry structure.
   Map operations (min_enum_map) are tested separately.
 */

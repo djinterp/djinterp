@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                     mediator_tests_classic.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/mediator/mediator_tests_classic.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : mediator_tests_classic.cpp
 //   The classic, virtual-dispatch layer (section III): colleague_id, the
 // abstract mediator_base / colleague_base, and the dynamic concrete_mediator.

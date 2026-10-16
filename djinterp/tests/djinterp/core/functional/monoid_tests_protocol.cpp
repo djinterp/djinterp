@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                      monoid_tests_protocol.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/monoid_tests_protocol.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  monoid_tests_protocol.cpp
 //   Section II -- MONOID PROTOCOL (is_monoid / is_monoid_v / Monoid).
 

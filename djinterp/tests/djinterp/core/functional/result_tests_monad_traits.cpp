@@ -1,15 +1,23 @@
-/******************************************************************************
-* djinterp [test]                                result_tests_monad_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                  result_tests_monad_traits.cpp
 *
 * Tests for the monad_traits<result<_T, _E>> specialization defined in
 * result.hpp section V. The generic monad protocol (monad_bind / map_with /
 * ... in monad.hpp) is covered by the monad module's own suite; here we test
 * only the specialization's own surface as declared in result.hpp:
 *   value_type, error_type, rebind, is_specialized, unit, and bind.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/result_tests_monad_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <string>
 #include <type_traits>
+// djinterp
 #include "./result_tests.hpp"
 
 

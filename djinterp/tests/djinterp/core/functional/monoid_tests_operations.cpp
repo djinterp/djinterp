@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                    monoid_tests_operations.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/monoid_tests_operations.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  monoid_tests_operations.cpp
 //   Section IV -- GENERIC MONOID OPERATIONS (mempty / mconcat / fold_monoid).
 

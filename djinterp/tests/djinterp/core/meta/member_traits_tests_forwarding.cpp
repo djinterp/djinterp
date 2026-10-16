@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                             member_traits_tests_forwarding.cpp
+*
+*
+* path:      /tests/djinterp/core/meta/member_traits_tests_forwarding.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "member_traits_tests.hpp"
 
 

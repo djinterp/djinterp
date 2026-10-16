@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                              cpp_named26.h
+/*******************************************************************************
+* djinterp [core]                                                cpp_named26.hpp
 *
 * C++26 named requirement type traits:
 *   Extends the C++23 named requirement traits with C++26 additions:
@@ -34,25 +34,29 @@
 *   D_ENV_CPP_FEATURE_LANG_CONCEPTS                - concept availability
 *   D_ENV_CPP_FEATURE_LANG_CONTRACTS               - contract annotations
 *
-* path:      \inc\cpp_named26.h
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.27
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/meta/stl/cpp_named26.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_CPP_NAMED26_
-#define DJINTERP_CPP_NAMED26_ 1
+#ifndef DJINTERP_META_STL_CPP_NAMED26_HPP
+#define DJINTERP_META_STL_CPP_NAMED26_HPP 1
 
 // require env.h to be included first
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "cpp_named26.h requires env.h to be included first"
+#ifndef DJINTERP_ENV_ENV_H
+    #error "cpp_named26.hpp requires env.h to be included first"
 #endif
 
 // only meaningful in C++ mode
 #ifndef __cplusplus
-    #error "cpp_named26.h can only be used in C++ compilation mode"
+    #error "cpp_named26.hpp can only be used in C++ compilation mode"
 #endif
 
+// djinterp
 // include C++23 layer
-#include "cpp_named23.h"
+#include "cpp_named23.hpp"
 
 // C++26 standard value (202600L is provisional; update when finalized)
 #ifndef D_ENV_LANG_CPP_STANDARD_CPP26
@@ -72,11 +76,12 @@
 // C++26 additions are active for C++26 and all later standards
 #if D_ENV_LANG_IS_CPP26_OR_HIGHER
 
+// std
 #include <type_traits>
 
 
 NS_DJINTERP
-NS_TRAITS
+NS_RESTD
 
 // =========================================================================
 // I.   TRIVIAL RELOCATABILITY TRAITS (C++26)
@@ -386,22 +391,22 @@ NS_END  // concepts
 
 // NOTE: TrivialType deprecation (C++26)
 //   The TrivialType named requirement is deprecated as of C++26.
-//   djinterp::traits::is_trivial<_T> remains available for backward
+//   djinterp::re_std::is_trivial<_T> remains available for backward
 //   compatibility. The standard recommends checking the specific
 //   properties needed (e.g., is_trivially_copyable,
 //   is_trivially_default_constructible) rather than is_trivial.
 //
 // NOTE: PODType removal (C++26)
 //   std::is_pod was removed from the standard library in C++26.
-//   djinterp::traits::is_pod<_T> remains available and falls back to
+//   djinterp::re_std::is_pod<_T> remains available and falls back to
 //   (is_trivial && is_standard_layout) when std::is_pod is absent.
 //   Prefer is_trivially_copyable + is_standard_layout for new code.
 
 
-NS_END  // traits
+NS_END  // re_std
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP26_OR_HIGHER
 
 
-#endif  // DJINTERP_CPP_NAMED26_
+#endif  // DJINTERP_META_STL_CPP_NAMED26_HPP

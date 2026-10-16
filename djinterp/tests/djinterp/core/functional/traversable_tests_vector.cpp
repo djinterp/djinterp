@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                   traversable_tests_vector.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/traversable_tests_vector.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  traversable_tests_vector.cpp
 //   The std::vector instance -- the one concrete traversable the header ships:
 //   walk left-to-right, run f : A -> F<B> at each element, combine with lift_a2

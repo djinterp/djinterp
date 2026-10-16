@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                type_traits_tests_macros_op.cpp
 *
 *   Unit tests for the operator-detection macros (now in trait_detect.hpp)
@@ -27,9 +27,12 @@
 * helpers defined in an anonymous namespace.
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_macros_op.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_macros_op.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -303,79 +306,79 @@ type_traits_tests_macros_op(
 )
 {
     // ---- HAS_BINARY_OP ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_plus<addable_t>::value  == true,
         "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t + addable_t");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_equal<addable_t>::value == true,
         "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t == addable_t");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_less<addable_t>::value  == true,
         "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t < addable_t");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( has_op_plus<int>::value  == true &&
           has_op_equal<int>::value == true &&
           has_op_less<int>::value  == true ),
         "D_TYPE_TRAIT_HAS_BINARY_OP: builtin int supports +, ==, <");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_plus<inert_t>::value == false,
         "D_TYPE_TRAIT_HAS_BINARY_OP: inert_t -> false for +");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_equal<inert_t>::value == false,
         "D_TYPE_TRAIT_HAS_BINARY_OP: inert_t -> false for ==");
 
     // ---- HAS_UNARY_OP ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_neg<addable_t>::value == true,
         "D_TYPE_TRAIT_HAS_UNARY_OP: -addable_t");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_not<addable_t>::value == true,
         "D_TYPE_TRAIT_HAS_UNARY_OP: !addable_t");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_deref<addable_t>::value == true,
         "D_TYPE_TRAIT_HAS_UNARY_OP: *addable_t");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         ( has_op_neg<int>::value == true &&
           has_op_not<int>::value == true ),
         "D_TYPE_TRAIT_HAS_UNARY_OP: -int and !int (builtin)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_deref<int*>::value == true,
         "D_TYPE_TRAIT_HAS_UNARY_OP: *int*");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_neg<inert_t>::value == false,
         "D_TYPE_TRAIT_HAS_UNARY_OP: -inert_t -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_op_deref<int>::value == false,
         "D_TYPE_TRAIT_HAS_UNARY_OP: *int -> false (cannot deref non-pointer)");
 
     // ---- HAS_METHOD_OF_TYPE ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<decltype(probe_returns_size_t<sized_box>(0)), int>::value,
         "HAS_METHOD_OF_TYPE: positive case selects constrained overload");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<decltype(probe_returns_size_t<bare_box>(0)), long>::value,
         "HAS_METHOD_OF_TYPE: negative case falls to variadic");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         HAS_METHOD_OF_TYPE_V(sized_box, count, std::size_t) == true,
         "HAS_METHOD_OF_TYPE_V: returns true for matching return type");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         HAS_METHOD_OF_TYPE_V(sized_box, count, int) == false,
         "HAS_METHOD_OF_TYPE_V: returns false for non-matching return type");
 
     // ---- HAS_METHOD_OF_TYPE_ARGS ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<decltype(probe_returns_int_with_args<sized_box>(0)),
                      int>::value,
         "HAS_METHOD_OF_TYPE_ARGS: positive case selects constrained overload");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<decltype(probe_returns_int_with_args<bare_box>(0)),
                      long>::value,
         "HAS_METHOD_OF_TYPE_ARGS: negative case falls to variadic");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         HAS_METHOD_OF_TYPE_ARGS_V(sized_box, width, int,
                                   std::declval<int>()) == true,
         "HAS_METHOD_OF_TYPE_ARGS_V: matching return type -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         HAS_METHOD_OF_TYPE_ARGS_V(sized_box, width, long,
                                   std::declval<int>()) == false,
         "HAS_METHOD_OF_TYPE_ARGS_V: non-matching return type -> false");

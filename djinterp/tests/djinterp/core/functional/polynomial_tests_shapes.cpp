@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                    polynomial_tests_shapes.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/polynomial_tests_shapes.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  polynomial_tests_shapes.cpp
 //   Section II -- type-level shapes (poly_*_t, documentation-only builders).
 

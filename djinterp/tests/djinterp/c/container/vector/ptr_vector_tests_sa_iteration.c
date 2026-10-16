@@ -1,13 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                  ptr_vector_tests_sa_iteration.c
+/*******************************************************************************
+* djinterp [tests]                               ptr_vector_tests_sa_iteration.c
 *
 *   Unit tests for ptr_vector iteration helper functions.
 *
-* path:      \tests\container\vector\ptr_vector_tests_sa_iteration.c
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.29
-******************************************************************************/
-
+*
+* path:      /tests/djinterp/c/container/vector/ptr_vector_tests_sa_iteration.c
+* link(s):   TBA
+*                djinterp-c-container-ptr-vector-tests-sa/main.c
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./ptr_vector_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
+
 
 static int g_iter_test_values[] = {1, 2, 3, 4, 5};
 static int g_apply_sum = 0;

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        string_fn_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                           string_fn_tests_sa.h
 *
 *   Unit tests for the string_fn module (cross-platform string operations).
 *   Tests cover secure string copying, duplication, case operations,
@@ -8,16 +8,17 @@
 * index-returning search, and in-place character replacement.
 *
 *
-* path:      \inc\test\string_fn_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+* path:      /tests/djinterp/c/string_fn_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_STRING_FN_TESTS_STANDALONE_
 #define DJINTERP_STRING_FN_TESTS_STANDALONE_ 1
 
-#include "../../inc/c/test/test_standalone.h"
-#include "../../inc/c/string_fn.h"
+// djinterp
+#include "../../../inc/djinterp/c/string_fn.h"
 
 
 /******************************************************************************

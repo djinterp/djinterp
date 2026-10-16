@@ -1,30 +1,33 @@
-/******************************************************************************
-* djinterp [test]                                event_table_common_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                  event_table_common_tests_sa.h
 *
 *   Unit test declarations for `event_table_common.h` module.
 *   Provides comprehensive testing of hash functions (FNV-1a and simple),
 * prime number utilities, hash node management, statistics structures,
 * and integration/stress scenarios.
 *   Note: this module is required to build DTest, so it uses
-* `test_standalone.h` rather than DTest for unit testing.
+* a self-contained harness rather than DTest for unit testing.
 *
 *
-* path:      /tests/c/event/event_table_common_tests_sa.h
+* path:      /tests/djinterp/c/event/event_table_common_tests_sa.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.10.04
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.04
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_EVENT_TABLE_COMMON_STANDALONE_
 #define DJINTERP_TESTING_EVENT_TABLE_COMMON_STANDALONE_ 1
 
-#include <stdlib.h>
+// std
 #include <errno.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/dmemory.h"
-#include "../../../inc/c/string_fn.h"
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/event/event.h"
-#include "../../../inc/c/event/event_table_common.h"
+#include <stdlib.h>
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/event/event.h"
+#include "../../../../inc/djinterp/c/event/event_table_common.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

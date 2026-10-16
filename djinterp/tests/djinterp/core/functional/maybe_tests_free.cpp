@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                          maybe_tests_free.cpp
+/*******************************************************************************
+* djinterp [test]                                           maybe_tests_free.cpp
 *
 * Free-function helper tests for maybe.hpp section VI:
 *   test_zip_with -- combine two maybes via a binary function; nothing if
@@ -7,9 +7,17 @@
 *   test_flatten  -- collapse maybe<maybe<T>> to maybe<T>.
 *   test_collect  -- container of maybe<T> -> maybe<vector<T>>: just iff all
 *                    elements are present.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/maybe_tests_free.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <vector>
+// djinterp
 #include "./maybe_tests.hpp"
 
 

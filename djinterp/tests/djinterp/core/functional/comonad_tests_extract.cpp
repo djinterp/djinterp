@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   comonad_tests_extract.cpp
+/*******************************************************************************
+* djinterp [test]                                      comonad_tests_extract.cpp
 *
 *   Section II.1 of the comonad.hpp suite: extract, the counit, which reads the
 * focus value out of a comonad (W<A> -> A).  Covers reading the focus over the
@@ -8,10 +8,12 @@
 * of a type different from the environment's, argument forwarding, and the
 * by-value result type.
 *
+*
 * path:      /tests/djinterp/core/functional/comonad_tests_extract.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "comonad_tests.hpp"

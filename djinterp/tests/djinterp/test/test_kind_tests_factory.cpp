@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                    test_kind_tests_factory.cpp
+*
+*
+* path:      /tests/djinterp/test/test_kind_tests_factory.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstdint>
 #include <string>
@@ -53,7 +62,7 @@ tests_make_test_kind_basic()
 {
     bool ok = true;
 
-    const test_option_set opts = { 3 };
+    const test_option_set opts;   // default config; only its address is used
 
     test_kind k = make_test_kind(10, "kind", 2, true, &opts);
     ok = D_TK_CHECK(k.id == 10)                    && ok;

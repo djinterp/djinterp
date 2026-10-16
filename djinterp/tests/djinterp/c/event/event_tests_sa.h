@@ -1,31 +1,34 @@
-/******************************************************************************
-* djinterp [test]                                             event_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                               event_tests_sa.h
 *
 *   Unit test declarations for `event.h` module.
 *   Provides comprehensive testing of all event functions including
-* constant/type definitions, d_event constructors, d_event_listener
-* constructors, comparison functions (d_event_compare, d_event_compare_deep,
-* d_event_listener_compare), search (d_event_listener_find_index_of), and
-* destructor functions (d_event_free, d_event_listener_free).
+* constant/type definitions, d_event constructors (d_event_new, d_event_new_ctx),
+* d_event_listener constructors, comparison functions (d_event_compare,
+* d_event_compare_deep, d_event_listener_compare), search
+* (d_event_listener_find_index_of), and destructor functions.
 *   No external container modules are required.
 *
 *
-* path:      /tests/c/event/event_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.03
-******************************************************************************/
+* path:      /tests/djinterp/c/event/event_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_EVENT_TESTS_STANDALONE_
 #define DJINTERP_TESTING_EVENT_TESTS_STANDALONE_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/string_fn.h"
-#include "../../../inc/c/dtime.h"
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/event/event.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/dtime.h"
+#include "../../../../inc/djinterp/c/event/event.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************
@@ -46,10 +49,9 @@ bool d_tests_sa_event_constant_all(struct d_test_counter* _counter);
 bool d_tests_sa_event_new_basic(struct d_test_counter* _counter);
 bool d_tests_sa_event_new_ids(struct d_test_counter* _counter);
 bool d_tests_sa_event_new_distinct(struct d_test_counter* _counter);
-bool d_tests_sa_event_new_args_null(struct d_test_counter* _counter);
-bool d_tests_sa_event_new_args_valid(struct d_test_counter* _counter);
-bool d_tests_sa_event_new_args_single(struct d_test_counter* _counter);
-bool d_tests_sa_event_new_args_inconsistent(struct d_test_counter* _counter);
+bool d_tests_sa_event_new_ctx_null(struct d_test_counter* _counter);
+bool d_tests_sa_event_new_ctx_valid(struct d_test_counter* _counter);
+bool d_tests_sa_event_new_ctx_distinct(struct d_test_counter* _counter);
 
 // II.  aggregation function
 bool d_tests_sa_event_constructor_all(struct d_test_counter* _counter);
@@ -77,11 +79,11 @@ bool d_tests_sa_event_listener_constructor_all(struct d_test_counter* _counter);
  *****************************************************************************/
 bool d_tests_sa_event_compare_null(struct d_test_counter* _counter);
 bool d_tests_sa_event_compare_ids(struct d_test_counter* _counter);
-bool d_tests_sa_event_compare_num_args(struct d_test_counter* _counter);
+bool d_tests_sa_event_compare_context(struct d_test_counter* _counter);
 bool d_tests_sa_event_compare_self(struct d_test_counter* _counter);
 bool d_tests_sa_event_compare_deep_null(struct d_test_counter* _counter);
 bool d_tests_sa_event_compare_deep_ids(struct d_test_counter* _counter);
-bool d_tests_sa_event_compare_deep_args(struct d_test_counter* _counter);
+bool d_tests_sa_event_compare_deep_context(struct d_test_counter* _counter);
 bool d_tests_sa_event_compare_deep_no_comparator(struct d_test_counter* _counter);
 bool d_tests_sa_event_listener_compare_null(struct d_test_counter* _counter);
 bool d_tests_sa_event_listener_compare_ids(struct d_test_counter* _counter);
@@ -114,8 +116,7 @@ bool d_tests_sa_event_find_all(struct d_test_counter* _counter);
  *****************************************************************************/
 bool d_tests_sa_event_free_null(struct d_test_counter* _counter);
 bool d_tests_sa_event_free_basic(struct d_test_counter* _counter);
-bool d_tests_sa_event_free_null_args(struct d_test_counter* _counter);
-bool d_tests_sa_event_free_heap_args(struct d_test_counter* _counter);
+bool d_tests_sa_event_free_with_context(struct d_test_counter* _counter);
 bool d_tests_sa_event_free_sequential(struct d_test_counter* _counter);
 bool d_tests_sa_event_listener_free_null(struct d_test_counter* _counter);
 bool d_tests_sa_event_listener_free_enabled(struct d_test_counter* _counter);

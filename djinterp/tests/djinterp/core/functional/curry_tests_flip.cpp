@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                           curry_tests_flip.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/curry_tests_flip.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 // djinterp [test] -- curry.hpp Section V (argument transformations)
 #include "./curry_tests.hpp"
 

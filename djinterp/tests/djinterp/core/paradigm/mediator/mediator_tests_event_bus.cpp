@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                   mediator_tests_event_bus.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/mediator/mediator_tests_event_bus.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : mediator_tests_event_bus.cpp
 //   The type-indexed publish/subscribe event bus (section IV): subscription
 // tokens, subscribe, both publish overloads (const-lvalue and rvalue), the

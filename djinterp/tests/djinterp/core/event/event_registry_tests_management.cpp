@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                         event_registry_tests_management.cpp
+/*******************************************************************************
+* djinterp [test]                            event_registry_tests_management.cpp
 *
 *   Section III (management) -- the delegated lifecycle surface the registry
 * forwards to its underlying event_table, plus the registry merge, the typed
@@ -14,10 +14,11 @@
 * registry's state.
 *
 *
-* path:      /tests/djinterp/core/event/event_registry/event_registry_tests_management.cpp
+* path:      /tests/djinterp/core/event/event_registry_tests_management.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_registry_tests.hpp"

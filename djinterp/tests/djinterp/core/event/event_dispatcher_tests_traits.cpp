@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                          event_dispatcher_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                              event_dispatcher_tests_traits.cpp
 *
 *   Sections V-VI -- STRUCTURAL DETECTION HELPERS and EVENT DISPATCHER TRAITS.
 * event_dispatcher_traits performs compile-time structural detection of the
@@ -17,10 +17,11 @@
 * top of them is covered separately, under its C++20 gate.)
 *
 *
-* path:      /tests/djinterp/core/event/event_dispatcher/event_dispatcher_tests_traits.cpp
+* path:      /tests/djinterp/core/event/event_dispatcher_tests_traits.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_dispatcher_tests.hpp"

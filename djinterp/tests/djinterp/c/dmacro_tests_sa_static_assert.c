@@ -1,17 +1,20 @@
-/******************************************************************************
-* djinterp [test]                               dmacro_tests_sa_static_assert.c
+/*******************************************************************************
+* djinterp [test]                                dmacro_tests_sa_static_assert.c
 *
 *   Unit tests for `dmacro.h` compile-time assertions section.
 *   Tests D_ASSERT_SAME_SIZE macro for compile-time type size validation.
 *   Note: this module tests fundamental macro utilities that are dependencies
-* of other djinterp modules, so it uses `test_standalone.h` rather than DTest.
+* of other djinterp modules, so it does not use DTest for unit testing.
 *
 *
-* path:      \test\dmacro_tests_sa_static_assert.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
-#include ".\dmacro_tests_sa.h"
+* path:      /tests/djinterp/c/dmacro_tests_sa_static_assert.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

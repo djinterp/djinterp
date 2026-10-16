@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [expression]                                        expression_ops.hpp
+/*******************************************************************************
+* djinterp [parse]                                            expression_ops.hpp
 *
 *   The verbs over an expression term.  expression.hpp defined the noun --
 * the term is mu<expr_layer>, and cata (recursion.hpp) already folds it.
@@ -45,11 +45,12 @@
 *
 * path:      /inc/djinterp/parse/expression_ops.hpp
 * link(s):   ch-recursion.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_EXPRESSION_EXPRESSION_OPS_
-#define DJINTERP_EXPRESSION_EXPRESSION_OPS_ 1
+#ifndef DJINTERP_PARSE_EXPRESSION_OPS_HPP
+#define DJINTERP_PARSE_EXPRESSION_OPS_HPP 1
 
 // std
 #include <cstddef>
@@ -57,11 +58,11 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "./expression.hpp"
-#include "../functional/recursion.hpp"
-#include "../functional/foldable.hpp"
-#include "../functional/semigroup.hpp"
-#include "../functional/monoid.hpp"
+#include "../math/expression.hpp"
+#include "../core/functional/recursion.hpp"
+#include "../core/functional/foldable.hpp"
+#include "../core/functional/semigroup.hpp"
+#include "../core/functional/monoid.hpp"
 
 
 NS_DJINTERP
@@ -557,4 +558,4 @@ substitute
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_EXPRESSION_EXPRESSION_OPS_
+#endif  // DJINTERP_PARSE_EXPRESSION_OPS_HPP

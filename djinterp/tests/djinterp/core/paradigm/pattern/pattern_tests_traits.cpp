@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                       pattern_tests_traits.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/pattern/pattern_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : pattern_tests_traits.cpp
 //   The pattern traits (section V) and the C++20 concept (section VII): the
 // seven SFINAE detectors, the composite is_pattern / is_pattern_v, and the

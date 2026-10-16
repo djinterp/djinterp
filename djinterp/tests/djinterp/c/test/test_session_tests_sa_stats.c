@@ -1,14 +1,18 @@
-/******************************************************************************
-* djinterp [test]                              test_session_tests_sa_stats.c
+/*******************************************************************************
+* djinterp [test]                                  test_session_tests_sa_stats.c
 *
 *   Unit tests for test_session.h statistics functions.
 *
-* path:      \test\test\test_session_tests_sa_stats.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/test/test_session_tests_sa_stats.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "./test_session_tests_sa.h"
+// djinterp
+#include "test_session_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 /*
 d_tests_sa_test_session_get_stats

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      event_registry_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                       event_registry_tests.hpp
 *
 *   Declarations for the unit-test suite covering event_registry.hpp.  Each
 * free function exercises one entity of the typed subscription layer and
@@ -39,10 +39,11 @@
 * the tests themselves live, flat, in djinterp::testing.
 *
 *
-* path:      /tests/djinterp/core/event/event_registry/event_registry_tests.hpp
+* path:      /tests/djinterp/core/event/event_registry_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_EVENT_REGISTRY_TESTS_
 #define DJINTERP_EVENT_REGISTRY_TESTS_ 1
@@ -53,14 +54,22 @@
 #include <functional>
 #include <tuple>
 #include <vector>
+// djinterp
 // djinterp  -- framework header FIRST (event_registry.hpp requires it), then
 // the header under test.
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
+#ifndef DTEST_SPEC_MODE
 #include <djinterp/core/event/event_registry.hpp>
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "djinterp/test/test_defaults.hpp"   // spec mode: enriched authoring surface + run_module / run_suite
+#endif
 
 
 NS_DJINTERP
 NS_TESTING
+
+#ifndef DTEST_SPEC_MODE  // fixtures + check helper: normal (section-file) mode only
 
 
 // =========================================================================
@@ -226,6 +235,8 @@ struct step_rec
 //  test declarations
 // =========================================================================
 
+#endif  // !DTEST_SPEC_MODE (fixtures + check helper)
+
 // I.   dispatch_result + run_result
 bool tests_dispatch_result_fields_and_consumed();
 bool tests_run_result_aggregate();
@@ -271,6 +282,169 @@ bool tests_typed_queries();
 bool tests_aggregate_queries();
 bool tests_table_access();
 
+
+#ifdef DTEST_SPEC_MODE
+
+// =========================================================================
+//  suite spec provider (spec mode)
+//    Mirrors this suite as data - each unit test paired with its name and a
+//  one-line descriptor - so run_module / run_suite can lower it into the
+//  six-kind tree and drive the report.  References only the test_fn_ptr
+//  declarations above; no fixtures required, which is what lets the
+//  aggregate runner include every suite header in one TU.
+// =========================================================================
+
+namespace dt = ::djinterp::test;
+
+inline dt::module_spec
+event_registry_spec()
+{
+    return dt::module_spec
+    {
+        "event_registry",
+        "Typed subscription layer: bind, dispatch and run folds, the "
+        "fused compile path, merge, management, and queries.",
+        {
+            dt::block_spec{
+                "results",
+                "The dispatch_result and run_result records.",
+                {
+                    { "dispatch_result_fields_and_consumed",
+                      "dispatch_result carries counts and a consumed flag",
+                      &tests_dispatch_result_fields_and_consumed },
+                    { "run_result_aggregate",
+                      "run_result aggregates dispatch results over a trace",
+                      &tests_run_result_aggregate },
+                }
+            },
+            dt::block_spec{
+                "fused_step",
+                "The compiled fused_step: fold, order, short-circuit.",
+                {
+                    { "fused_step_empty",
+                      "an empty fused_step passes and dispatches nothing",
+                      &tests_fused_step_empty },
+                    { "fused_step_fold_order_and_size",
+                      "fused_step folds handlers in order, tracking size",
+                      &tests_fused_step_fold_order_and_size },
+                    { "fused_step_short_circuit",
+                      "fused_step short-circuits on a consuming handler",
+                      &tests_fused_step_short_circuit },
+                    { "fused_step_operator_and_run_one",
+                      "fused_step's call operator runs a single step",
+                      &tests_fused_step_operator_and_run_one },
+                }
+            },
+            dt::block_spec{
+                "bind_dispatch",
+                "Binding handlers and dispatching occurrences.",
+                {
+                    { "bind_returns_valid_id_and_registers",
+                      "bind returns a valid id and registers the handler",
+                      &tests_bind_returns_valid_id_and_registers },
+                    { "bind_distinct_ids",
+                      "successive binds yield distinct ids",
+                      &tests_bind_distinct_ids },
+                    { "dispatch_no_handlers",
+                      "dispatch with no handlers passes",
+                      &tests_dispatch_no_handlers },
+                    { "dispatch_single_pass",
+                      "dispatch runs a single passing handler",
+                      &tests_dispatch_single_pass },
+                    { "dispatch_single_consume",
+                      "dispatch honours a single consuming handler",
+                      &tests_dispatch_single_consume },
+                    { "dispatch_order_and_count",
+                      "dispatch runs handlers in order and counts them",
+                      &tests_dispatch_order_and_count },
+                    { "dispatch_consume_short_circuit",
+                      "a consuming handler halts dispatch",
+                      &tests_dispatch_consume_short_circuit },
+                    { "dispatch_disabled_masked",
+                      "disabled handlers are masked from dispatch",
+                      &tests_dispatch_disabled_masked },
+                    { "dispatch_payload_delivery",
+                      "dispatch delivers the payload to each handler",
+                      &tests_dispatch_payload_delivery },
+                    { "dispatch_void_handler_and_nullary",
+                      "dispatch handles void handlers and nullary events",
+                      &tests_dispatch_void_handler_and_nullary },
+                    { "dispatch_multi_event_isolation_and_cvref",
+                      "dispatch isolates events and strips cv/ref",
+                      &tests_dispatch_multi_event_isolation_and_cvref },
+                }
+            },
+            dt::block_spec{
+                "run",
+                "Folding dispatch over a trace of occurrences.",
+                {
+                    { "run_empty_trace",
+                      "running an empty trace yields an empty result",
+                      &tests_run_empty_trace },
+                    { "run_counts_pass",
+                      "run counts the passing dispatches over a trace",
+                      &tests_run_counts_pass },
+                    { "run_consumed_count",
+                      "run counts the consumed occurrences",
+                      &tests_run_consumed_count },
+                    { "run_no_handlers",
+                      "run over unhandled events passes each",
+                      &tests_run_no_handlers },
+                    { "run_short_circuit_accumulation",
+                      "run accumulates results across short-circuits",
+                      &tests_run_short_circuit_accumulation },
+                }
+            },
+            dt::block_spec{
+                "compile",
+                "Compiling a registry into a static word.",
+                {
+                    { "compile_empty",
+                      "compiling an empty registry yields an empty word",
+                      &tests_compile_empty },
+                    { "compile_size_and_fold",
+                      "compile reports size and folds the handlers",
+                      &tests_compile_size_and_fold },
+                    { "compile_masks_disabled",
+                      "compile omits disabled handlers",
+                      &tests_compile_masks_disabled },
+                    { "compile_snapshot_independent",
+                      "a compiled word is independent of later edits",
+                      &tests_compile_snapshot_independent },
+                }
+            },
+            dt::block_spec{
+                "management",
+                "Unbind, enable/disable, merge, and queries.",
+                {
+                    { "unbind",
+                      "unbind removes a handler by id",
+                      &tests_unbind },
+                    { "enable_disable",
+                      "enable/disable toggles a handler's participation",
+                      &tests_enable_disable },
+                    { "is_enabled_contains",
+                      "is_enabled and contains reflect handler state",
+                      &tests_is_enabled_contains },
+                    { "merge",
+                      "merge folds another registry's handlers in",
+                      &tests_merge },
+                    { "typed_queries",
+                      "typed queries report per-event handler state",
+                      &tests_typed_queries },
+                    { "aggregate_queries",
+                      "aggregate queries report totals across events",
+                      &tests_aggregate_queries },
+                    { "table_access",
+                      "the registry exposes its underlying table",
+                      &tests_table_access },
+                }
+            },
+        }
+    };
+}
+
+#endif  // DTEST_SPEC_MODE
 
 NS_END  // testing
 NS_END  // djinterp

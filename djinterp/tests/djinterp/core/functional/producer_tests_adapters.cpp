@@ -1,17 +1,22 @@
-/******************************************************************************
-* djinterp [functional]                          producer_tests_adapters.cpp
+/*******************************************************************************
+* djinterp [functional]                              producer_tests_adapters.cpp
 *
 *   Tests for the producers that wrap another producer: take_n, drop_n,
 * concat, interleave, transform, and filter. Also exercises the CRTP
 * producer_base::collect() terminal that every helper inherits.
 *
-* path:      /src/functional/producer_tests_adapters.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/producer_tests_adapters.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "./producer_tests.hpp"
-
-#include <vector>
+// std
 #include <string>
+#include <vector>
+// djinterp
+#include "./producer_tests.hpp"
 
 
 NS_DJINTERP

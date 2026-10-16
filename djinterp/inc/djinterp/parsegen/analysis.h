@@ -57,6 +57,8 @@ TABLE OF CONTENTS
          1.  d_parsegen_rule_facts
     4.  The collection
          1.  d_parsegen_facts
+    5.  Diagnostic codes
+         1.  d_parsegen_analysis_diag
 2.  OPERATIONS
     ----------
     1.  Lifetime
@@ -177,6 +179,26 @@ struct d_parsegen_facts
 // D_PARSEGEN_FACTS_COMPLETE
 //   constant: analysis ran to a fixed point over a grammar of this size.
 #define D_PARSEGEN_FACTS_COMPLETE       0x02u
+
+
+// 1.5    Diagnostic codes
+//------------------------------------------------------------------------------
+// 1.5.1
+// d_parsegen_analysis_diag
+//   enum: the conditions analysis reports, under
+// D_PARSEGEN_DIAG_DOMAIN_ANALYSIS. The severity each is emitted at is part of
+// its meaning: LEFT_RECURSIVE is a note, because it is a fact for selection
+// rather than a fault; UNREACHABLE is a warning; UNPRODUCTIVE is an error,
+// because no family could run the grammar. Append-only.
+enum d_parsegen_analysis_diag
+{
+    D_PARSEGEN_DIAG_ANALYSIS_UNDERSIZED     = 0,
+    D_PARSEGEN_DIAG_ANALYSIS_UNRESOLVED     = 1,
+    D_PARSEGEN_DIAG_ANALYSIS_NOT_SETTLED    = 2,
+    D_PARSEGEN_DIAG_ANALYSIS_LEFT_RECURSIVE = 3,
+    D_PARSEGEN_DIAG_ANALYSIS_UNPRODUCTIVE   = 4,
+    D_PARSEGEN_DIAG_ANALYSIS_UNREACHABLE    = 5
+};
 
 
 //==============================================================================

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                             option_override_tests_engine.cpp
+/*******************************************************************************
+* djinterp [test]                               option_override_tests_engine.cpp
 *
 *   Section IV of the option_override.hpp suite: the option_set_override engine
 * (and its internal tuple_to_option_set lift).
@@ -26,14 +26,15 @@
 *
 * path:      /tests/djinterp/core/option/option_override_tests_engine.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <tuple>
 #include <type_traits>
 // djinterp
-#include "option_override_tests.hpp"
+#include "./option_override_tests.hpp"
 
 
 NS_DJINTERP

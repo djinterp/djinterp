@@ -179,7 +179,7 @@ d_tests_sa_standalone_fn_test_module_counter
 
 /*
 d_tests_sa_standalone_module_entry_struct
-  Tests the d_test_sa_module_entry structure.
+  Tests the d_test_standalone_module_entry structure.
   Tests the following:
   - Structure has expected members
   - All members are accessible
@@ -191,7 +191,7 @@ d_tests_sa_standalone_module_entry_struct
 )
 {
     bool                         result;
-    struct d_test_sa_module_entry entry;
+    struct d_test_standalone_module_entry entry;
 
     result = true;
 
@@ -254,7 +254,7 @@ d_tests_sa_standalone_module_entry_struct
 
 /*
 d_tests_sa_standalone_runner_struct
-  Tests the d_test_sa_runner structure.
+  Tests the d_test_standalone_runner structure.
   Tests the following:
   - Structure has expected members
   - All members are accessible including options and failures
@@ -267,7 +267,7 @@ d_tests_sa_standalone_runner_struct
 )
 {
     bool                     result;
-    struct d_test_sa_runner  runner;
+    struct d_test_standalone_runner  runner;
 
     result = true;
 
@@ -334,13 +334,13 @@ d_tests_sa_standalone_runner_struct
         "results member should be accessible",
         _counter) && result;
 
-    // test 8: modules array has D_TEST_SA_MAX_MODULES elements
-    runner.modules[D_TEST_SA_MAX_MODULES - 1].name = "last_module";
+    // test 8: modules array has D_TEST_STANDALONE_MAX_MODULES elements
+    runner.modules[D_TEST_STANDALONE_MAX_MODULES - 1].name = "last_module";
 
     result = d_assert_standalone(
-        runner.modules[D_TEST_SA_MAX_MODULES - 1].name != NULL,
+        runner.modules[D_TEST_STANDALONE_MAX_MODULES - 1].name != NULL,
         "runner_modules_max_size",
-        "modules array should have D_TEST_SA_MAX_MODULES elements",
+        "modules array should have D_TEST_STANDALONE_MAX_MODULES elements",
         _counter) && result;
 
     // test 9: options member is accessible

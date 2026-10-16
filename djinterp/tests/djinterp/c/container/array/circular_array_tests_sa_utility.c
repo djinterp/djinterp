@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [container]                         circular_array_tests_sa_utility.c
+*
+*
+* path:      /tests/djinterp/c/container/array/circular_array_tests_sa_utility.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./circular_array_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

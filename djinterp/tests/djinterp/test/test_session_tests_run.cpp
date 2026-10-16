@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                     test_session_tests_run.cpp
+*
+*
+* path:      /tests/djinterp/test/test_session_tests_run.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp
 #include "test_session_tests.hpp"
 

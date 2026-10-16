@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             pattern_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                              pattern_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/core/paradigm/pattern/pattern.hpp -
 * the type-agnostic pattern primitive (capture map, match result, the CRTP
@@ -30,10 +30,12 @@
 * it a member template <typename _D = derived_type>; the suite targets the fixed
 * header (patch + fixed header accompany this suite).
 *
+*
 * path:      /tests/djinterp/core/paradigm/pattern/pattern_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.10
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_PATTERN_TESTS_
 #define DJINTERP_TEST_PATTERN_TESTS_ 1
@@ -43,7 +45,7 @@
 #include <string>
 #include <utility>
 // djinterp
-#include "pattern.hpp"                        // the header under test (bare form)
+#include "../../../../../inc/djinterp/core/paradigm/pattern/pattern.hpp"                        // the header under test (bare form)
 #include "djinterp/test/test_defaults.hpp"    // module_spec, run_module
 
 

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                 test_object_tests_protocol.cpp
+*
+*
+* path:      /tests/djinterp/test/test_object_tests_protocol.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstdint>
 #include <type_traits>
@@ -74,10 +83,12 @@ tests_object_bool_conversion()
     bool b = pass;
     ok = D_TO_CHECK(b == true) && ok;
 
-    // tracks m_result, not status
+    //   tracks status, because ruling 13 derives the verdict from it. Before
+    // that ruling this read `== true`: the stored verdict survived a later
+    // set_status. It no longer can.
     basic_test t(1, true);
     t.set_status(basic_test::status_failed);
-    ok = D_TO_CHECK(static_cast<bool>(t) == true) && ok;  // result still true
+    ok = D_TO_CHECK(static_cast<bool>(t) == false) && ok;
 
     return ok;
 }

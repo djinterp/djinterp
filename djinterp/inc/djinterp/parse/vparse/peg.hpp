@@ -1,11 +1,14 @@
-/******************************************************************************
-* djinterp [parse]                                                      peg.hpp
+/*******************************************************************************
+* djinterp [parse]                                                       peg.hpp
 *
 *
 * path:      /inc/djinterp/parse/vparse/peg.hpp
-******************************************************************************/
-#ifndef VPARSE_PEG_HPP
-#define VPARSE_PEG_HPP
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+#ifndef DJINTERP_PARSE_VPARSE_PEG_HPP
+#define DJINTERP_PARSE_VPARSE_PEG_HPP
 // PEG / recursive-descent operator family. Owns its opcodes, its instruction
 // format, and its program-counter-driven driver. Numbers opcodes from 0 — they
 // live in this namespace and never collide with another family's.

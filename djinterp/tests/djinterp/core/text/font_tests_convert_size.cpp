@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                    font_tests_convert_size.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_convert_size.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_convert_size.cpp
 //   Section 9d: fn_convert_size - the only function in the header with real
 // branching, and therefore the only one where "100% coverage" means

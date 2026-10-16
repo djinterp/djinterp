@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 dtuple_tests_construction.cpp
+/*******************************************************************************
+* djinterp [test]                                  dtuple_tests_construction.cpp
 *
 *   Unit tests for the tuple-construction section of dtuple.hpp:
 *     - to_tuple / to_tuple_t  (including the empty-pack specialization)
@@ -20,10 +20,13 @@
 *       is a tuple-of-tuples).
 *
 *
-* path:      /inc/djinterp/test/dtuple_tests_construction.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.19
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/dtuple_tests_construction.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./dtuple_tests.hpp"
 
 
@@ -182,58 +185,58 @@ dtuple_tests_construction_all(
 )
 {
     // ---- to_tuple ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_tuple<>::type, std::tuple<>>::value,
         "to_tuple: empty pack -> std::tuple<>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_tuple<int>::type, std::tuple<int>>::value,
         "to_tuple: single non-tuple wraps");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_tuple<std::tuple<int, char>>::type,
                      std::tuple<int, char>>::value,
         "to_tuple: single tuple unwraps");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_tuple<std::tuple<>>::type, std::tuple<>>::value,
         "to_tuple: single empty tuple stays empty");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_tuple<int, char>::type, std::tuple<int, char>>::value,
         "to_tuple: two args build new tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_tuple<std::tuple<int>, char>::type,
                      std::tuple<std::tuple<int>, char>>::value,
         "to_tuple: two args with nested tuple stays nested");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_tuple<const std::tuple<int>>::type,
                      std::tuple<const std::tuple<int>>>::value,
         "to_tuple: cv-qualified tuple single arg wraps");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<to_tuple_t<int, char, float>,
                      std::tuple<int, char, float>>::value,
         "to_tuple_t: alias yields the same tuple");
 
     // ---- make_tuple_of ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename make_tuple_of<int, 0>::type, std::tuple<>>::value,
         "make_tuple_of: count 0 -> empty tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename make_tuple_of<int, 1>::type, std::tuple<int>>::value,
         "make_tuple_of: count 1 -> single-element tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename make_tuple_of<int, 2>::type, std::tuple<int, int>>::value,
         "make_tuple_of: count 2 -> two-element tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename make_tuple_of<int, 5>::type,
                      std::tuple<int, int, int, int, int>>::value,
         "make_tuple_of: count 5 -> five-element tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename make_tuple_of<std::tuple<int, char>, 1>::type,
                      std::tuple<int, char>>::value,
         "make_tuple_of: count 1 with tuple unwraps via to_tuple");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename make_tuple_of<std::tuple<int>, 2>::type,
                      std::tuple<std::tuple<int>, std::tuple<int>>>::value,
         "make_tuple_of: count 2 with tuple keeps nesting");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<make_tuple_of_t<char, 4>, std::tuple<char, char, char, char>>::value,
         "make_tuple_of_t: alias yields the same tuple");
 

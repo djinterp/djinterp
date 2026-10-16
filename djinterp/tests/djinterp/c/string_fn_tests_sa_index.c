@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                     string_fn_tests_sa_index.c
+*
+*
+* path:      /tests/djinterp/c/string_fn_tests_sa_index.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./string_fn_tests_sa.h"
 
 
@@ -600,7 +610,7 @@ d_tests_sa_string_fn_strreplace_char
 
     // test 3: no match
     count = d_strreplace_char(str2, 13, 'z', 'Z');
-    test_no_match = (count == 0) && 
+    test_no_match = (count == 0) &&
                     (strcmp(str2, "No match here") == 0);
 
     // test 4: NULL

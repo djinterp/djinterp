@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                        font_tests_concepts.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_concepts.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_concepts.cpp
 //   Section 11: the concept face.  Every concept in the header is a thin
 // wrapper over a section-10 trait (`concept X = has_font_Y<T>::value`), so

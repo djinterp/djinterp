@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                          functor_tests_map.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/functor_tests_map.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  functor_tests_map.cpp
 //   Section II -- functor_map (fmap), the one operation, and the functor laws.
 

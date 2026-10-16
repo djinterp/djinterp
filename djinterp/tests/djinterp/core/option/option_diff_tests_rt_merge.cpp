@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               option_diff_tests_rt_merge.cpp
+/*******************************************************************************
+* djinterp [test]                                 option_diff_tests_rt_merge.cpp
 *
 *   PART B / B.III - runtime merge (option_merge) over test_option_map.
 * Exercises all three modes and, crucially, their two DIFFERENT count
@@ -12,10 +12,14 @@
 *   Fixtures (a/b/c = alpha/beta/gamma):
 *     target  a:1 b:2      source  b:99 c:3      -> b shared, c new
 *
+*
 * path:      /tests/djinterp/core/option/option_diff_tests_rt_merge.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.08
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./option_diff_tests.hpp"
 
 

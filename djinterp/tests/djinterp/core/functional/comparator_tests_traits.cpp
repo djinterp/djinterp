@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                    comparator_tests_traits.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/comparator_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "comparator_tests.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER

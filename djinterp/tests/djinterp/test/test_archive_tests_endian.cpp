@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                                 test_archive_tests_endian.cpp
+*
+* path:      /tests/djinterp/test/test_archive_tests_endian.cpp
+******************************************************************************/
+// djinterp
 #include "test_archive_tests.hpp"
 
 NS_DJINTERP
@@ -20,7 +26,7 @@ tests_archive_read_u16_le_byte_order
 bool
 tests_archive_read_u16_le_byte_order()
 {
-    dj::byte_buffer b;
+    dj::byte_blob b;
 
     ta_put_u16(b, 0x1234u);
 
@@ -30,7 +36,7 @@ tests_archive_read_u16_le_byte_order()
     D_TA_CHECK(avi::read_u16_le(b.data(), 0) == 0x1234u);
 
     // the reverse ordering decodes differently
-    dj::byte_buffer rev;
+    dj::byte_blob rev;
 
     rev.push_back(static_cast<char>(0x12u));
     rev.push_back(static_cast<char>(0x34u));
@@ -39,7 +45,7 @@ tests_archive_read_u16_le_byte_order()
                avi::read_u16_le(b.data(), 0));
 
     // zero
-    dj::byte_buffer z(2u, static_cast<char>(0));
+    dj::byte_blob z(2u, static_cast<char>(0));
 
     D_TA_CHECK(avi::read_u16_le(z.data(), 0) == 0u);
 
@@ -59,31 +65,31 @@ bool
 tests_archive_read_u16_le_range_and_offset()
 {
     // the extremes
-    dj::byte_buffer hi;
+    dj::byte_blob hi;
 
     ta_put_u16(hi, 0xFFFFu);
     D_TA_CHECK(avi::read_u16_le(hi.data(), 0) == 0xFFFFu);
 
-    dj::byte_buffer top;
+    dj::byte_blob top;
 
     ta_put_u16(top, 0x8000u);
     D_TA_CHECK(avi::read_u16_le(top.data(), 0) == 0x8000u);
 
     // a high byte in each position must not sign-extend
-    dj::byte_buffer a;
+    dj::byte_blob a;
 
     a.push_back(static_cast<char>(0xFFu));
     a.push_back(static_cast<char>(0x00u));
     D_TA_CHECK(avi::read_u16_le(a.data(), 0) == 0x00FFu);
 
-    dj::byte_buffer c;
+    dj::byte_blob c;
 
     c.push_back(static_cast<char>(0x00u));
     c.push_back(static_cast<char>(0xFFu));
     D_TA_CHECK(avi::read_u16_le(c.data(), 0) == 0xFF00u);
 
     // the offset selects the pair
-    dj::byte_buffer many;
+    dj::byte_blob many;
 
     ta_put_u16(many, 0x1111u);
     ta_put_u16(many, 0x2222u);
@@ -111,7 +117,7 @@ tests_archive_read_u32_le_byte_order
 bool
 tests_archive_read_u32_le_byte_order()
 {
-    dj::byte_buffer b;
+    dj::byte_blob b;
 
     ta_put_u32(b, 0x12345678uL);
 
@@ -123,10 +129,10 @@ tests_archive_read_u32_le_byte_order()
     D_TA_CHECK(avi::read_u32_le(b.data(), 0) == 0x12345678uL);
 
     // each byte occupies its own octet
-    dj::byte_buffer o0;
-    dj::byte_buffer o1;
-    dj::byte_buffer o2;
-    dj::byte_buffer o3;
+    dj::byte_blob o0;
+    dj::byte_blob o1;
+    dj::byte_blob o2;
+    dj::byte_blob o3;
 
     ta_put_u32(o0, 0x000000FFuL);
     ta_put_u32(o1, 0x0000FF00uL);
@@ -139,8 +145,8 @@ tests_archive_read_u32_le_byte_order()
     D_TA_CHECK(avi::read_u32_le(o3.data(), 0) == 0xFF000000uL);
 
     // the two signatures the sniffers actually compare
-    dj::byte_buffer local = ta_local_header("n", dj::byte_buffer(), 0u);
-    dj::byte_buffer eocd  = ta_eocd(0u);
+    dj::byte_blob local = ta_local_header("n", dj::byte_blob(), 0u);
+    dj::byte_blob eocd  = ta_eocd(0u);
 
     D_TA_CHECK(avi::read_u32_le(local.data(), 0) == 0x04034b50uL);
     D_TA_CHECK(avi::read_u32_le(eocd.data(), 0) == 0x06054b50uL);
@@ -160,25 +166,25 @@ tests_archive_read_u32_le_range_and_offset
 bool
 tests_archive_read_u32_le_range_and_offset()
 {
-    dj::byte_buffer hi;
+    dj::byte_blob hi;
 
     ta_put_u32(hi, 0xFFFFFFFFuL);
     D_TA_CHECK(avi::read_u32_le(hi.data(), 0) == 0xFFFFFFFFuL);
 
     // the top bit alone
-    dj::byte_buffer top;
+    dj::byte_blob top;
 
     ta_put_u32(top, 0x80000000uL);
     D_TA_CHECK(avi::read_u32_le(top.data(), 0) == 0x80000000uL);
     D_TA_CHECK(avi::read_u32_le(top.data(), 0) > 0x7FFFFFFFuL);
 
     // zero
-    dj::byte_buffer z(4u, static_cast<char>(0));
+    dj::byte_blob z(4u, static_cast<char>(0));
 
     D_TA_CHECK(avi::read_u32_le(z.data(), 0) == 0uL);
 
     // the offset selects the quad
-    dj::byte_buffer many;
+    dj::byte_blob many;
 
     ta_put_u32(many, 0x11111111uL);
     ta_put_u32(many, 0x22222222uL);

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                            test_builder_tests_structure.cpp
+/*******************************************************************************
+* djinterp [test]                               test_builder_tests_structure.cpp
 *
 *   Building the forest.  test_module / test_block / test grow a rank-checked
 * nesting (a module holds blocks, a block holds tests), each opener resetting
@@ -11,11 +11,14 @@
 * than re-installing the defaults): a leaf `block` rejects a child test, and an
 * empty kind set rejects a block under a module by the raw-id-as-rank fallback.
 *
-* path:      /tests/djinterp/test/test_builder/test_builder_tests_structure.cpp
+*
+* path:      /tests/djinterp/test/test_builder_tests_structure.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_builder_tests.hpp"
 
 NS_DJINTERP

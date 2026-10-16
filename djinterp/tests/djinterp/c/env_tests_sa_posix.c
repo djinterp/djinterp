@@ -1,17 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                         env_tests_sa_posix.c
+/*******************************************************************************
+* djinterp [test]                                           env_tests_sa_posix.c
 *
 * Unit tests for `env.h` POSIX standards detection section (Section III).
 * Tests POSIX version detection, XSI detection, feature macros, and utilities.
-* Note: this module is required to build DTest, so it uses `test_standalone.h`.
+* Note: this module is required to build DTest, so it does not use DTest.
 *
-* path:      \test\env_tests_sa_posix.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.09.26
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/env_tests_sa_posix.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.26
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "env_tests_sa.h"
+// std
 #include <string.h>
+// djinterp
+#include "env_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

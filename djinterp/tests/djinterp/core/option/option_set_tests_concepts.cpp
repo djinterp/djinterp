@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                option_set_tests_concepts.cpp
+/*******************************************************************************
+* djinterp [test]                                  option_set_tests_concepts.cpp
 *
 *   Section VII of the option_set.hpp suite: the C++20 concept analogs of the
 * query traits.
@@ -25,13 +25,14 @@
 *
 * path:      /tests/djinterp/core/option/option_set_tests_concepts.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <type_traits>
 // djinterp
-#include "option_set_tests.hpp"
+#include "./option_set_tests.hpp"
 
 
 NS_DJINTERP

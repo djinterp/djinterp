@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                    member_types_tests.hpp
+/*******************************************************************************
+* djinterp [testing]                                      member_types_tests.hpp
 *
 * Unit test suite for member_types.hpp -- the framework's shared nested-typedef
 * detectors and the pick_member_type extraction helper.
@@ -61,10 +61,12 @@
 *   II.   DETECTOR SEMANTICS   (member_types_tests_semantics.cpp)
 *   III.  EXTRACTION           (member_types_tests_extraction.cpp)
 *
+*
 * path:      /tests/djinterp/core/meta/member_types_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.07.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_MEMBER_TYPES_TESTS_
 #define DJINTERP_TESTS_MEMBER_TYPES_TESTS_ 1
@@ -76,11 +78,11 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-
+// djinterp
 // -- (part 1) mode-gated includes --------------------------------------------
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "member_types.hpp"                     // the header under test (normal)
+#include "../../../../inc/djinterp/core/meta/member_types.hpp"                     // the header under test (normal)
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"      // module_spec + run_module (spec)

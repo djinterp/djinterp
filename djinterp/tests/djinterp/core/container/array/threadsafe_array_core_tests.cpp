@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                            threadsafe_array_core_tests.cpp
+/*******************************************************************************
+* djinterp [testing]                             threadsafe_array_core_tests.cpp
 *
 *   Implementation of the threadsafe_array portion of Part B
 * (threadsafe wrappers) of the array test suite under the
@@ -19,9 +19,9 @@
 * threaded use).  It is also the home of the suite-wide
 * aggregate builder (make_threadsafe_array_test_subtree) and
 * master runner (run_threadsafe_array_suite), and of the
-* cross-cutting tests that touch all three wrappers — axis
+* cross-cutting tests that touch all three wrappers - axis
 * preservation, strategy-tag mutual disjointness, and the cube
-* edge cases — which have no single natural home and so live
+* edge cases - which have no single natural home and so live
 * with the suite's namesake.
 *   The atomic_array and cow_array strategies live in their
 * own translation units (atomic_array_core_tests.cpp and
@@ -29,20 +29,22 @@
 * their sub-builders.
 *
 *
-* path:      /tests/djinterp/core/container/array/
+* path:      /tests/djinterp/core/container/array/threadsafe_array_core_tests.cpp
 *                 threadsafe_array_core_tests.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.02
-******************************************************************************/
-#include "./array_tests.hpp"
-
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.02
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <chrono>           // steady_clock + duration in run_*_suite
 #include <cstdint>          // std::uint64_t
 #include <type_traits>      // is_*_constructible
 #include <utility>          // std::move
+// djinterp
+#include "./array_tests.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // std
     #include <atomic>       // std::atomic, memory_order
     #include <thread>       // std::thread for concurrent tests
     #include <vector>       // std::vector for thread aggregation
@@ -102,32 +104,91 @@ namespace {
     // -------------------------------------------------------------------
 
     // null-locked threadsafe_array (zero-overhead)
+    //
+    //   threadsafe_array (and the convenience aliases
+    // mutex_array / timed_array / shared_array on top of it)
+    // is an options-pack primary template
+    // (`template<typename... _Options>`).  The test alias must
+    // forward `T` and `N` through the canonical option
+    // wrappers - it cannot pass them positionally the way
+    // `mutable_iterable_array` (defined as `<T, N>` in
+    // array.hpp) accepts.
+    //
+    //   Lifetime and iterability options are passed
+    // explicitly so the wrapper's internal `array_type`
+    // (= `array<_Options...>`) is identical to
+    // `base_mi<T, N>` (= `mutable_iterable_array<T, N>`).
+    // The `apply`, `apply_read`, and `optimistic` tests
+    // below pass `base_mi<int, N>&`-taking lambdas to the
+    // wrapper; without the explicit options those calls
+    // would fail to overload-resolve.  Same shape applies
+    // to mutex_array / timed_array / shared_array below.
     template<typename T, std::size_t N>
-    using ts_arr = djinterp::threadsafe_array<T, N>;
+    using ts_arr = djinterp::threadsafe_array<
+        djinterp::array_opt_type<T>,
+        djinterp::array_opt_extent<N>,
+        djinterp::container_opt_lifetime<
+            djinterp::container_lifetime::mutable_storage>,
+        djinterp::container_opt_iterability<
+            djinterp::container_iterability::iterable>>;
 
     // exclusive-locked threadsafe_array (= mutex_array)
     template<typename T, std::size_t N>
-    using ts_mtx_arr = djinterp::mutex_array<T, N>;
+    using ts_mtx_arr = djinterp::mutex_array<
+        djinterp::array_opt_type<T>,
+        djinterp::array_opt_extent<N>,
+        djinterp::container_opt_lifetime<
+            djinterp::container_lifetime::mutable_storage>,
+        djinterp::container_opt_iterability<
+            djinterp::container_iterability::iterable>>;
 
     // timed-locked threadsafe_array (= timed_array)
     template<typename T, std::size_t N>
-    using ts_tim_arr = djinterp::timed_array<T, N>;
+    using ts_tim_arr = djinterp::timed_array<
+        djinterp::array_opt_type<T>,
+        djinterp::array_opt_extent<N>,
+        djinterp::container_opt_lifetime<
+            djinterp::container_lifetime::mutable_storage>,
+        djinterp::container_opt_iterability<
+            djinterp::container_iterability::iterable>>;
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
     // shared-locked threadsafe_array (= shared_array, C++17+)
     template<typename T, std::size_t N>
-    using ts_shr_arr = djinterp::shared_array<T, N>;
+    using ts_shr_arr = djinterp::shared_array<
+        djinterp::array_opt_type<T>,
+        djinterp::array_opt_extent<N>,
+        djinterp::container_opt_lifetime<
+            djinterp::container_lifetime::mutable_storage>,
+        djinterp::container_opt_iterability<
+            djinterp::container_iterability::iterable>>;
 #endif
 
     // atomic_array
     template<typename T, std::size_t N>
-    using at_arr = djinterp::atomic_array<T, N>;
+    using at_arr = djinterp::atomic_array<
+        djinterp::array_opt_type<T>,
+        djinterp::array_opt_extent<N>>;
 
     // null-locked cow_array
+    //
+    //   Lifetime and iterability options are explicit so the
+    // wrapper's internal `array_type` matches
+    // `base_mi<T, N>` (= mutable_iterable_array<T, N>).
+    // The large-cow_array stress test below passes a
+    // `base_mi<int, kLarge>&` lambda to `modify()`; that
+    // call only overload-resolves when the alias produces
+    // a cow_array whose `array_type` is exactly base_mi.
     template<typename T, std::size_t N>
-    using cow_arr = djinterp::cow_array<T, N>;
+    using cow_arr = djinterp::cow_array<
+        djinterp::array_opt_type<T>,
+        djinterp::array_opt_extent<N>,
+        djinterp::container_opt_lifetime<
+            djinterp::container_lifetime::mutable_storage>,
+        djinterp::container_opt_iterability<
+            djinterp::container_iterability::iterable>>;
 
-    // base array aliases — used as the underlying for the
+    // base array aliases - used as the underlying for the
     // threadsafe wrappers' axis-preservation checks
     template<typename T, std::size_t N>
     using base_mi = djinterp::mutable_iterable_array<T, N>;
@@ -139,7 +200,7 @@ namespace {
     // -------------------------------------------------------------------
     //  SFINAE expression detectors
     //
-    //   These are intentionally narrow — each verifies
+    //   These are intentionally narrow - each verifies
     // existence (or absence) of a single named member
     // operation on the wrapper.  Used by the trait-
     // conformance and SFINAE-deletion tests.
@@ -513,7 +574,14 @@ test_threadsafe_array_copy_assignment(
     // self-assignment must be a no-op (or at least
     // safe).  We just check that the contents are
     // unchanged.
-    a = a;
+    //
+    //   Indirecting through a reference silences clang's
+    // -Wself-assign-overloaded without changing the
+    // runtime behavior: the assignment still resolves to
+    // `a.operator=(a)` and exercises exactly the same
+    // copy-assign path the warning would have flagged.
+    auto& a_ref = a;
+    a = a_ref;
     append_leaf(tree, root,
         ( a.at(0) == 1 && a.at(3) == 4 ),
         "copy assignment: self-assignment preserves contents");
@@ -576,14 +644,14 @@ test_threadsafe_array_size_lockfree(
         a.size_lockfree() == 0,
         "size_lockfree() == 0 before assign");
 
-    djinterp::array<int, 8> src(1, 2, 3, 4, 5, 6, 7, 8);
+    base_mi<int, 8> src(1, 2, 3, 4, 5, 6, 7, 8);
     a.assign(src);
 
     append_leaf(tree, root,
         a.size_lockfree() == 8,
         "size_lockfree() == 8 after assign(src) of size 8");
 
-    // size_lockfree must not throw and must not lock —
+    // size_lockfree must not throw and must not lock -
     // structurally we cannot directly assert "no lock,"
     // but we can assert it is callable on a const ref
     // and is noexcept-able.
@@ -653,7 +721,7 @@ test_threadsafe_array_empty_lockfree(
         "empty_lockfree() == true before assign "
         "(atomic_state size == 0)");
 
-    djinterp::array<int, 4> src(1, 2, 3, 4);
+    base_mi<int, 4> src(1, 2, 3, 4);
     a.assign(src);
 
     append_leaf(tree, root,
@@ -710,7 +778,7 @@ test_threadsafe_array_at_returns_value(
 
     ts_mtx_arr<int, 4> a(1, 2, 3, 4);
 
-    // Returning by value, not reference — the lock can
+    // Returning by value, not reference - the lock can
     // release before the caller observes the result.
     append_leaf(tree, root,
         std::is_same<
@@ -931,7 +999,7 @@ test_threadsafe_array_assign(
     auto* root = tree.underlying().root();
 
     ts_mtx_arr<int, 4> a(0, 0, 0, 0);
-    djinterp::array<int, 4> src(11, 22, 33, 44);
+    base_mi<int, 4> src(11, 22, 33, 44);
 
     const std::uint64_t v_before = a.version();
     a.assign(src);
@@ -968,7 +1036,7 @@ test_threadsafe_array_apply_write(
     const std::uint64_t v_before = a.version();
 
     // apply with a void-returning fn
-    a.apply([](djinterp::array<int, 4>& _arr)
+    a.apply([](base_mi<int, 4>& _arr)
         {
             for (std::size_t i = 0; i < _arr.size(); ++i)
             {
@@ -987,7 +1055,7 @@ test_threadsafe_array_apply_write(
 
     // apply with a value-returning fn
     int sum = a.apply(
-        [](djinterp::array<int, 4>& _arr) -> int
+        [](base_mi<int, 4>& _arr) -> int
         {
             int s = 0;
             for (std::size_t i = 0; i < _arr.size(); ++i)
@@ -1018,7 +1086,7 @@ test_threadsafe_array_apply_read(
     const std::uint64_t v_before = a.version();
 
     int sum = a.apply_read(
-        [](const djinterp::array<int, 4>& _arr) -> int
+        [](const base_mi<int, 4>& _arr) -> int
         {
             int s = 0;
             for (std::size_t i = 0; i < _arr.size(); ++i)
@@ -1082,10 +1150,20 @@ test_threadsafe_array_batch_guard(
             // spawning a writer that attempts a.set() while the
             // batch is alive; the writer must block until the
             // batch's scope ends.
+            //
+            //   IMPORTANT: writer.join() MUST happen after the
+            // guard's scope closes, not inside it.  Joining
+            // while the guard still holds the write lock would
+            // deadlock: main waits on the writer, writer waits
+            // on the lock that main holds.  We therefore declare
+            // the thread above the inner scope and move-assign
+            // a real thread into it from inside the scope, then
+            // join after the scope has released the lock.
 
             std::atomic<bool> writer_done{false};
             bool writer_observed_during_batch = false;
             std::size_t guard_count_seen      = 0;
+            std::thread writer;
 
             {
                 auto guard = a.batch();
@@ -1098,7 +1176,7 @@ test_threadsafe_array_batch_guard(
 
                 // spawn the contender; it must block on a.set()
                 // because we hold the write lock.
-                std::thread writer(
+                writer = std::thread(
                     [&a, &writer_done]
                     {
                         a.set(0, 99);
@@ -1110,12 +1188,13 @@ test_threadsafe_array_batch_guard(
                     std::chrono::milliseconds(20));
 
                 writer_observed_during_batch = !writer_done.load();
-
-                // releasing the batch unblocks the writer.
-                writer.join();
             }
-            // batch released here; writer has now committed its
-            // store of 99 to slot 0.
+            // batch released here; the writer's blocked a.set()
+            // proceeds and writer_done flips to true.
+
+            // safe to join now: the lock is released, so the
+            // writer's set() can complete and the thread exits.
+            writer.join();
 
             const bool count_ok      = (guard_count_seen == 4);
             const bool exclusion_ok  = writer_observed_during_batch;
@@ -1157,10 +1236,10 @@ test_threadsafe_array_optimistic_uncontested(
     ts_mtx_arr<int, 4>  a(10, 20, 30, 40);
     const std::uint64_t v_before = a.version();
 
-    // No writer is contending — the optimistic read
+    // No writer is contending - the optimistic read
     // should succeed on the first attempt.
     int sum = a.optimistic(
-        [](const djinterp::array<int, 4>& _arr) -> int
+        [](const base_mi<int, 4>& _arr) -> int
         {
             int s = 0;
             for (std::size_t i = 0; i < _arr.size(); ++i)
@@ -1199,7 +1278,7 @@ test_threadsafe_array_optimistic_fallback(
     // forcing the immediate fall-through to a real
     // read lock.
     int v0 = a.optimistic(
-        [](const djinterp::array<int, 4>& _arr) -> int
+        [](const base_mi<int, 4>& _arr) -> int
         {
             return _arr[0];
         },
@@ -1212,7 +1291,7 @@ test_threadsafe_array_optimistic_fallback(
 
     // verify that retries=1 still produces a value
     int v1 = a.optimistic(
-        [](const djinterp::array<int, 4>& _arr) -> int
+        [](const base_mi<int, 4>& _arr) -> int
         {
             return _arr[3];
         },
@@ -1311,9 +1390,12 @@ test_threadsafe_array_alias_mutex(
 {
     array_test_tree tree = make_block_tree(
         "threadsafe_array: mutex_array alias");
+
     auto* root = tree.underlying().root();
 
-    using mtx_t = djinterp::mutex_array<int, 4>;
+    using mtx_t = djinterp::mutex_array<
+        djinterp::array_opt_type<int>,
+        djinterp::array_opt_extent<4>>;
 
     // mutex_array must be a threadsafe_array with the
     // exclusive_lock_policy.
@@ -1344,7 +1426,9 @@ test_threadsafe_array_alias_timed(
         "threadsafe_array: timed_array alias");
     auto* root = tree.underlying().root();
 
-    using tim_t = djinterp::timed_array<int, 4>;
+    using tim_t = djinterp::timed_array<
+        djinterp::array_opt_type<int>,
+        djinterp::array_opt_extent<4>>;
 
     append_leaf(tree, root,
         std::is_same<
@@ -1374,7 +1458,9 @@ test_threadsafe_array_alias_shared_cpp17(
     auto* root = tree.underlying().root();
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    using shr_t = djinterp::shared_array<int, 4>;
+    using shr_t = djinterp::shared_array<
+        djinterp::array_opt_type<int>,
+        djinterp::array_opt_extent<4>>;
 
     append_leaf(tree, root,
         std::is_same<
@@ -1412,10 +1498,12 @@ test_threadsafe_array_policy_null(
         "threadsafe_array: null_lock_policy (zero overhead)");
     auto* root = tree.underlying().root();
 
-    using null_t = djinterp::threadsafe_array<int, 4>;
+    using null_t = djinterp::threadsafe_array<
+        djinterp::array_opt_type<int>,
+        djinterp::array_opt_extent<4>>;
 
     // null_lock_policy is the project default for the
-    // primary template — verify it reports as such.
+    // primary template - verify it reports as such.
     append_leaf(tree, root,
         std::is_same<
             typename null_t::lock_policy_type,
@@ -2059,7 +2147,7 @@ test_threadsafe_edge_large_extent(
 // directly by users who want to drive only the threadsafe_array
 // tests against a custom test_handler.
 //   This sub-builder owns the cross-cutting tests too: axis
-// preservation, strategy disjointness, and the cube edge cases —
+// preservation, strategy disjointness, and the cube edge cases -
 // because each of those tests touches all three wrappers and so
 // has no single natural home.  The other sub-builders
 // (make_atomic_array_subtree, make_cow_array_subtree) cover

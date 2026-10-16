@@ -1,12 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                  compose_tests_partial.cpp
+/*******************************************************************************
+* djinterp [test]                                      compose_tests_partial.cpp
 *
 *   Tests for compose.hpp Section IV: partial_back, which binds the last
 * argument of a function.  Covers binding the trailing argument of a
 * binary and a ternary callable, the resulting arity reduction, and
 * constexpr evaluation.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/compose_tests_partial.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "compose_tests.hpp"
 
 

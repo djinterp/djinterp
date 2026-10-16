@@ -1,11 +1,11 @@
-/******************************************************************************
-* djinterp [container]                                 array_common_tests_sa.h
+/*******************************************************************************
+* djinterp [container]                                   array_common_tests_sa.h
 *
 *   Comprehensive unit test suite header for `array_common.h`.
-*   This module provides thorough, rigorous testing of all array_common 
-*   functions using the standalone test framework (test_standalone.h).
+*   This module provides thorough, rigorous testing of all array_common
+*   functions using the self-contained standalone harness.
 *
-*   Note: This module is a dependency of DTest, so it uses `test_standalone.h`
+*   Note: This module is a dependency of DTest, so it does not use DTest
 *   rather than DTest for unit testing. Any modules that are not dependencies
 *   of DTest should use DTest for unit tests.
 *
@@ -26,22 +26,25 @@
 *     - Memory allocation failure handling where applicable
 *
 *
-* path:      \test\container\array\array_common_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.10.25
-******************************************************************************/
+* path:      /tests/djinterp/c/container/array/array_common_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_CONTAINER_ARRAY_COMMON_
 #define DJINTERP_TESTING_CONTAINER_ARRAY_COMMON_ 1
 
+// std
 #include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../../../inc/c/djinterp.h"
-#include "../../../../inc/c/dmemory.h"
-#include "../../../../inc/c/test/test_standalone.h"
-#include "../../../../inc/c/container/array/array_common.h"
+// djinterp
+#include "../../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../../inc/djinterp/c/container/array/array_common.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

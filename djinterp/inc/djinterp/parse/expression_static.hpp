@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [expression]                                     expression_static.hpp
+/*******************************************************************************
+* djinterp [parse]                                         expression_static.hpp
 *
 *   The compile-time face of an expression: the term encoded in the *type*,
 * for the zero-overhead path.  Where expression.hpp's term is a heap-backed
@@ -50,11 +50,12 @@
 *
 * path:      /inc/djinterp/parse/expression_static.hpp
 * link(s):   ch-recursion.tex, ch-synthesis.tex
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_EXPRESSION_EXPRESSION_STATIC_
-#define DJINTERP_EXPRESSION_EXPRESSION_STATIC_ 1
+#ifndef DJINTERP_PARSE_EXPRESSION_STATIC_HPP
+#define DJINTERP_PARSE_EXPRESSION_STATIC_HPP 1
 
 // std
 #include <array>
@@ -64,7 +65,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "./expression.hpp"
+#include "../math/expression.hpp"
 
 
 NS_DJINTERP
@@ -575,4 +576,4 @@ concept StaticExpr = is_static_expr<_Type>::value;
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_EXPRESSION_EXPRESSION_STATIC_
+#endif  // DJINTERP_PARSE_EXPRESSION_STATIC_HPP

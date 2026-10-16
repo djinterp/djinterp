@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [core] unit tests                                test_env_config.h
-* 
+/*******************************************************************************
+* djinterp [core] unit tests                                   test_env_config.h
+*
 * test environment configuration helper
 * This header demonstrates how to simulate different environments for testing
 * env.h detection logic using the D_CFG_ENV_CUSTOM system.
@@ -8,14 +8,17 @@
 * usage:
 *   define one of the test scenario macros before including this header,
 *   then include env.h:
-*   
+*
 *   #define TEST_SCENARIO_WINDOWS_MSVC
 *   #include "test_env_config.h"
 *   #include "../env.h"
 *
-* path:      \tests\test_env_config.h
-* author(s): [Your Name]                                      date: 2024.12.24
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/test_env_config.h
+* link(s):   TBA
+* author(s): [Your Name]                                     created: 2024.12.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_ENV_CONFIG_
 #define DJINTERP_TEST_ENV_CONFIG_ 1
@@ -34,21 +37,21 @@
 #ifdef TEST_SCENARIO_LINUX_GCC
     // OS detection
     #define D_ENV_DETECTED_OS_LINUX     1
-    
+
     // compiler detection
     #define D_ENV_DETECTED_COMPILER_GCC 1
-    
+
     // architecture detection
     #define D_ENV_DETECTED_ARCH_X64     1
-    
+
     // POSIX detection
     #define D_ENV_DETECTED_POSIX_2008   1
     #define D_ENV_DETECTED_POSIX_THREADS 1
     #define D_ENV_DETECTED_POSIX_REALTIME 1
-    
+
     // language detection
     #define D_ENV_DETECTED_C11          1
-    
+
     // build configuration
     #define D_ENV_DETECTED_BUILD_DEBUG  1
 #endif  // TEST_SCENARIO_LINUX_GCC
@@ -63,19 +66,19 @@
 #ifdef TEST_SCENARIO_WINDOWS_MSVC
     // OS detection
     #define D_ENV_DETECTED_OS_WINDOWS   1
-    
+
     // compiler detection
     #define D_ENV_DETECTED_COMPILER_MSVC 1
-    
+
     // architecture detection
     #define D_ENV_DETECTED_ARCH_X64     1
-    
+
     // POSIX detection (none on Windows)
     #define D_ENV_DETECTED_POSIX_NONE   1
-    
+
     // language detection (C++ compilation)
     #define D_ENV_DETECTED_CPP17        1
-    
+
     // build configuration
     #define D_ENV_DETECTED_BUILD_RELEASE 1
 #endif  // TEST_SCENARIO_WINDOWS_MSVC
@@ -90,21 +93,21 @@
 #ifdef TEST_SCENARIO_MACOS_CLANG
     // OS detection
     #define D_ENV_DETECTED_OS_MACOS     1
-    
+
     // compiler detection
     #define D_ENV_DETECTED_COMPILER_APPLE_CLANG 1
-    
+
     // architecture detection
     #define D_ENV_DETECTED_ARCH_ARM64   1
-    
+
     // POSIX detection
     #define D_ENV_DETECTED_POSIX_2008   1
     #define D_ENV_DETECTED_POSIX_THREADS 1
-    
+
     // language detection
     #define D_ENV_DETECTED_C17          1
     #define D_ENV_DETECTED_CPP20        1
-    
+
     // build configuration
     #define D_ENV_DETECTED_BUILD_DEBUG  1
 #endif  // TEST_SCENARIO_MACOS_CLANG
@@ -119,19 +122,19 @@
 #ifdef TEST_SCENARIO_EMBEDDED_ARM
     // OS detection
     #define D_ENV_DETECTED_OS_UNKNOWN   1
-    
+
     // compiler detection
     #define D_ENV_DETECTED_COMPILER_GCC 1
-    
+
     // architecture detection
     #define D_ENV_DETECTED_ARCH_ARM     1
-    
+
     // POSIX detection (none in embedded)
     #define D_ENV_DETECTED_POSIX_NONE   1
-    
+
     // language detection
     #define D_ENV_DETECTED_C99          1
-    
+
     // build configuration
     #define D_ENV_DETECTED_BUILD_RELEASE 1
 #endif  // TEST_SCENARIO_EMBEDDED_ARM
@@ -146,22 +149,22 @@
 #ifdef TEST_SCENARIO_BSD_CLANG
     // OS detection
     #define D_ENV_DETECTED_OS_BSD       1
-    
+
     // compiler detection
     #define D_ENV_DETECTED_COMPILER_CLANG 1
-    
+
     // architecture detection
     #define D_ENV_DETECTED_ARCH_X64     1
-    
+
     // POSIX detection
     #define D_ENV_DETECTED_POSIX_2017   1
     #define D_ENV_DETECTED_POSIX_THREADS 1
     #define D_ENV_DETECTED_POSIX_REALTIME 1
     #define D_ENV_DETECTED_POSIX_SOCKETS 1
-    
+
     // language detection
     #define D_ENV_DETECTED_C11          1
-    
+
     // build configuration
     #define D_ENV_DETECTED_BUILD_DEBUG  1
 #endif  // TEST_SCENARIO_BSD_CLANG
@@ -180,19 +183,19 @@
 #ifdef TEST_SCENARIO_OLD_COMPILER
     // OS detection
     #define D_ENV_DETECTED_OS_LINUX     1
-    
+
     // compiler detection
     #define D_ENV_DETECTED_COMPILER_GCC 1
-    
+
     // architecture detection
     #define D_ENV_DETECTED_ARCH_X86     1
-    
+
     // POSIX detection
     #define D_ENV_DETECTED_POSIX_1993   1
-    
+
     // language detection
     #define D_ENV_DETECTED_C95          1
-    
+
     // build configuration
     #define D_ENV_DETECTED_BUILD_DEBUG  1
 #endif  // TEST_SCENARIO_OLD_COMPILER
@@ -206,22 +209,22 @@
 #ifdef TEST_SCENARIO_MODERN_CPP
     // OS detection
     #define D_ENV_DETECTED_OS_LINUX     1
-    
+
     // compiler detection
     #define D_ENV_DETECTED_COMPILER_CLANG 1
-    
+
     // architecture detection
     #define D_ENV_DETECTED_ARCH_X64     1
-    
+
     // POSIX detection
     #define D_ENV_DETECTED_POSIX_2024   1
     #define D_ENV_DETECTED_POSIX_THREADS 1
     #define D_ENV_DETECTED_POSIX_REALTIME 1
     #define D_ENV_DETECTED_POSIX_SOCKETS 1
-    
+
     // language detection
     #define D_ENV_DETECTED_CPP23        1
-    
+
     // build configuration
     #define D_ENV_DETECTED_BUILD_RELEASE 1
 #endif  // TEST_SCENARIO_MODERN_CPP
@@ -236,20 +239,20 @@
     #ifndef D_ENV_DETECTED_OS_LINUX
         #define D_ENV_DETECTED_OS_LINUX 1
     #endif
-    
+
     // compiler detection
     #define D_ENV_DETECTED_COMPILER_GCC 1
-    
+
     // architecture detection
     #define D_ENV_DETECTED_ARCH_X64     1
-    
+
     // POSIX detection
     #define D_ENV_DETECTED_POSIX_2008   1
-    
+
     // language detection (both C and C++)
     #define D_ENV_DETECTED_C11          1
     #define D_ENV_DETECTED_CPP17        1
-    
+
     // build configuration
     #define D_ENV_DETECTED_BUILD_DEBUG  1
 #endif  // TEST_SCENARIO_CROSS_PLATFORM
@@ -262,19 +265,19 @@
 #ifdef TEST_SCENARIO_MINIMAL
     // OS detection
     #define D_ENV_DETECTED_OS_UNKNOWN   1
-    
+
     // compiler detection
     #define D_ENV_DETECTED_COMPILER_UNKNOWN 1
-    
+
     // architecture detection
     #define D_ENV_DETECTED_ARCH_UNKNOWN 1
-    
+
     // POSIX detection (none)
     #define D_ENV_DETECTED_POSIX_NONE   1
-    
+
     // language detection (basic C)
     #define D_ENV_DETECTED_C95          1
-    
+
     // build configuration
     #define D_ENV_DETECTED_BUILD_DEBUG  1
 #endif  // TEST_SCENARIO_MINIMAL
@@ -295,7 +298,7 @@
                               D_CFG_ENV_BIT_OS     | \
                               D_CFG_ENV_BIT_ARCH   | \
                               D_CFG_ENV_BIT_BUILD)
-    
+
     // manually define non-language sections
     #define D_ENV_DETECTED_COMPILER_GCC 1
     #define D_ENV_DETECTED_OS_LINUX     1
@@ -312,7 +315,7 @@
                               D_CFG_ENV_BIT_OS    | \
                               D_CFG_ENV_BIT_ARCH  | \
                               D_CFG_ENV_BIT_BUILD)
-    
+
     // manually define non-compiler sections
     #define D_ENV_DETECTED_C11          1
     #define D_ENV_DETECTED_OS_LINUX     1

@@ -1,8 +1,18 @@
-// djinterp [test] -- curry.hpp Section I (internal machinery)
-#include "./curry_tests.hpp"
-
+/*******************************************************************************
+* djinterp [core]                                       curry_tests_internal.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/curry_tests_internal.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// std
 #include <tuple>
 #include <type_traits>
+// djinterp
+// djinterp [test] -- curry.hpp Section I (internal machinery)
+#include "./curry_tests.hpp"
 
 
 NS_DJINTERP

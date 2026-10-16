@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                atomic_tests_concurrency.cpp
+/*******************************************************************************
+* djinterp [test]                                   atomic_tests_concurrency.cpp
 *
 *   Section VI - behaviour under real thread contention.  The single-threaded
 * sections prove the API contract; these prove the types are actually atomic
@@ -25,8 +25,9 @@
 *
 * path:      /tests/djinterp/core/sync/atomic_tests_concurrency.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <atomic>
@@ -35,7 +36,6 @@
 #include <cstdio>
 #include <thread>
 #include <vector>
-
 // djinterp
 #include "atomic_tests.hpp"
 

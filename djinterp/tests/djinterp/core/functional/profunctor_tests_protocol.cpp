@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                  profunctor_tests_protocol.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/profunctor_tests_protocol.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  profunctor_tests_protocol.cpp
 //   Section II -- profunctor_traits, is_profunctor, the internal helpers, the
 //   Profunctor concept.

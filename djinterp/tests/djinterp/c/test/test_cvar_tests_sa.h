@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                         test_cvar_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                           test_cvar_tests_sa.h
 *
 *   Unit test declarations for `test_cvar.h` module.
 *   Provides comprehensive testing of the registry-based configuration and
@@ -9,21 +9,24 @@
 * registry table integrity, and default value helpers.
 *
 *
-* path:      \tests\test\test_cvar_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.03
-******************************************************************************/
+* path:      /tests/djinterp/c/test/test_cvar_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_TEST_CVAR_STANDALONE_
 #define DJINTERP_TESTS_TEST_CVAR_STANDALONE_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/test/test_cvar.h"
-#include "../../../inc/c/string_fn.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/test/test_cvar.h"
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /******************************************************************************

@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                passthrough_tests_semantics.cpp
+*
+*
+* path:      /tests/djinterp/core/meta/passthrough_tests_semantics.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "passthrough_tests.hpp"
 
 

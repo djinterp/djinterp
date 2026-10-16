@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                          test_compress_tests_verification.cpp
+*
+* path:      /tests/djinterp/test/test_compress_tests_verification.cpp
+******************************************************************************/
+// djinterp
 #include "test_compress_tests.hpp"
 
 NS_DJINTERP
@@ -15,7 +21,7 @@ tests_compress_decompresses_to_matching_payload
 bool
 tests_compress_decompresses_to_matching_payload()
 {
-    const std::vector<dj::byte_buffer> c = dt::standard_corpus();
+    const std::vector<dj::byte_blob> c = dt::standard_corpus();
     std::size_t                        i = 0;
 
     for (i = 0; i < c.size(); ++i)
@@ -54,7 +60,7 @@ tests_compress_decompresses_to_rejects_mismatch
 bool
 tests_compress_decompresses_to_rejects_mismatch()
 {
-    const dj::byte_buffer      payload = dt::make_text(500);
+    const dj::byte_blob      payload = dt::make_text(500);
     const dt::roundtrip_report r =
         dt::roundtrip<dj::codecs::store>(payload);
 
@@ -62,7 +68,7 @@ tests_compress_decompresses_to_rejects_mismatch()
     D_TC_CHECK(dt::decompresses_to<dj::codecs::store>(r.compressed, payload));
 
     // one byte different
-    dj::byte_buffer off_by_one = payload;
+    dj::byte_blob off_by_one = payload;
 
     off_by_one[250] = static_cast<char>(off_by_one[250] ^ 0x01);
     D_TC_CHECK(off_by_one != payload);
@@ -70,12 +76,12 @@ tests_compress_decompresses_to_rejects_mismatch()
                                                        off_by_one));
 
     // a shorter expectation: a prefix must not match
-    const dj::byte_buffer prefix = payload.substr(0, 499);
+    const dj::byte_blob prefix = payload.substr(0, 499);
 
     D_TC_CHECK(!dt::decompresses_to<dj::codecs::store>(r.compressed, prefix));
 
     // a longer expectation
-    dj::byte_buffer longer = payload;
+    dj::byte_blob longer = payload;
 
     longer.push_back('!');
     D_TC_CHECK(!dt::decompresses_to<dj::codecs::store>(r.compressed, longer));
@@ -85,7 +91,7 @@ tests_compress_decompresses_to_rejects_mismatch()
                    r.compressed, dt::make_repeated('Q', 500)));
 
     // and a differing first byte, not just a middle one
-    dj::byte_buffer first = payload;
+    dj::byte_blob first = payload;
 
     first[0] = static_cast<char>(first[0] ^ 0xFF);
     D_TC_CHECK(!dt::decompresses_to<dj::codecs::store>(r.compressed, first));
@@ -104,7 +110,7 @@ tests_compress_decompresses_to_empty_cases
 bool
 tests_compress_decompresses_to_empty_cases()
 {
-    const dj::byte_buffer      empty;
+    const dj::byte_blob      empty;
     const dt::roundtrip_report e = dt::roundtrip<dj::codecs::store>(empty);
 
     D_TC_CHECK(e.compress_status == dj::status_ok);
@@ -141,7 +147,7 @@ tests_compress_is_valid_stream_accepts_own_output
 bool
 tests_compress_is_valid_stream_accepts_own_output()
 {
-    const std::vector<dj::byte_buffer> c = dt::standard_corpus();
+    const std::vector<dj::byte_blob> c = dt::standard_corpus();
     std::size_t                        i = 0;
 
     for (i = 0; i < c.size(); ++i)
@@ -186,8 +192,8 @@ tests_compress_is_valid_stream_rejects_undecodable
 bool
 tests_compress_is_valid_stream_rejects_undecodable()
 {
-    const dj::byte_buffer junk("certainly not a compressed stream");
-    const dj::byte_buffer empty;
+    const dj::byte_blob junk("certainly not a compressed stream");
+    const dj::byte_blob empty;
     std::size_t           checked = 0;
 
     // a codec this build lacks reports everything malformed
@@ -283,9 +289,9 @@ tests_compress_is_available_agrees_with_report
 bool
 tests_compress_is_available_agrees_with_report()
 {
-    const dj::byte_buffer empty;
-    const dj::byte_buffer small = dt::make_text(10);
-    const dj::byte_buffer large = dt::make_text(100000);
+    const dj::byte_blob empty;
+    const dj::byte_blob small = dt::make_text(10);
+    const dj::byte_blob large = dt::make_text(100000);
 
     D_TC_CHECK(dt::roundtrip<dj::codecs::store>(empty).available ==
                dt::is_available<dj::codecs::store>());
@@ -330,7 +336,7 @@ tests_compress_verification_helpers_agree
 bool
 tests_compress_verification_helpers_agree()
 {
-    const std::vector<dj::byte_buffer> c = dt::standard_corpus();
+    const std::vector<dj::byte_blob> c = dt::standard_corpus();
     std::size_t                        i = 0;
 
     for (i = 0; i < c.size(); ++i)
@@ -355,7 +361,7 @@ tests_compress_verification_helpers_agree()
     // an unavailable codec fails everything together
     if (!dt::is_available<dj::codecs::gzip>())
     {
-        const dj::byte_buffer      in = dt::make_text(100);
+        const dj::byte_blob      in = dt::make_text(100);
         const dt::roundtrip_report r  = dt::roundtrip<dj::codecs::gzip>(in);
 
         D_TC_CHECK(!dt::roundtrips<dj::codecs::gzip>(in));

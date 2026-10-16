@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                     test_traits_tests.hpp
+/*******************************************************************************
+* djinterp [testing]                                       test_traits_tests.hpp
 *
 *   Declarations, subjects and check macros for the test_traits suite.  The
 * section TUs define the tests_* functions declared at the bottom; the runner
@@ -43,15 +43,21 @@
 *
 * path:      /tests/djinterp/test/test_traits_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    CHECK MACROS
+      ------------
+
 II.   HAZARD GATE
+      -----------
+
 III.  SUBJECTS
+      --------
       i.    well-shaped traits
       ii.   mis-shaped traits          (one named defect each)
       iii.  `_v` companions            (one honest, one stale)
@@ -59,7 +65,9 @@ III.  SUBJECTS
       v.    subject types
       vi.   probes                     (one per declarator in section I)
       vii.  concept subjects           (C++20)
+
 IV.   TEST DECLARATIONS
+      -----------------
 */
 
 #ifndef DJINTERP_TESTING_TEST_TRAITS_TESTS_
@@ -72,7 +80,18 @@ IV.   TEST DECLARATIONS
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "test_traits.hpp"      // the header under test
+// djinterp  -- framework header first, then mode-gated (same shape as
+// test_common_tests.hpp): the section-file face pulls the subject under test;
+// the spec-provider face (DTEST_SPEC_MODE) drops it and pulls the spec
+// machinery instead, so the umbrella TU that includes every suite header at
+// once never compiles this suite's fixtures.
+#include <djinterp/djinterp.hpp>              // NS_* macros (both modes)
+#ifndef DTEST_SPEC_MODE
+#include "../../../inc/djinterp/test/test_traits.hpp"      // the header under test (section-file mode)
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "djinterp/test/test_defaults.hpp"   // spec mode: module_spec + run_suite
+#endif
 
 
 // D_TT_HAZARD_TESTS
@@ -92,6 +111,8 @@ IV.   TEST DECLARATIONS
 NS_DJINTERP
 NS_TESTING
 
+
+#ifndef DTEST_SPEC_MODE   // section-file mode only: subject usings, check macros, fixtures
 
 // the toolkit under test, by name.  djinterp::testing nests inside djinterp, so
 // the detection idiom (is_detected, detected_t, nonesuch, ...) is already
@@ -804,6 +825,9 @@ D_TEST_DECLARE_SUBSUMES(subsumes_nothing, unrelated_c, value_typed_c)
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
+#endif  // !DTEST_SPEC_MODE  (subject usings / check macros / fixtures)
+
+
 ///////////////////////////////////////////////////////////////////////////////
 ///                IV.  TEST DECLARATIONS                                    ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -881,6 +905,249 @@ bool tests_declare_subsumes_partial();
 bool tests_declare_subsumes_shape();
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
+// =============================================================================
+//  SUITE SPEC PROVIDER (spec mode)
+// =============================================================================
+//   The suite as data: one block per declaration section above, one
+// { name, descriptor, &fn } row per test.  References only the tests_*
+// declarations - no fixtures - so it compiles without the subject header.
+//   tests_build_time_hazards is intentionally NOT listed: it is the
+// build-breaking demo gated off by default (see D_TT_HAZARD_TESTS), and belongs
+// only to a -DD_TT_HAZARD_TESTS=1 build, never to the normal report.  The
+// concept-layer block is present only where the language has concepts.
+
+#ifdef DTEST_SPEC_MODE
+
+// dt: spec mode reaches module_spec / block_spec / test_spec through it.
+namespace dt = ::djinterp::test;
+
+// traits_spec
+//   function: the module_spec provider the umbrella runner hands to run_suite.
+inline dt::module_spec
+traits_spec()
+{
+    return dt::module_spec{
+        "test_traits",
+        "The trait-detection toolkit test_traits.hpp provides: member/type and "
+        "expression probes, type-set quantifiers, bool-trait shape checks, "
+        "cv-ref agreement, hostile fixtures, and the C++20 concept layer.",
+        {
+            dt::block_spec{
+                "probe declarators",
+                "Declaring detection probes and where they may be declared.",
+                {
+                    { "tests_type_probe",
+                      "a type-member probe detects a nested type on subjects that have it",
+                      &tests_type_probe },
+                    { "tests_type_probe_2",
+                      "a second, independent type-member probe resolves on its own axis",
+                      &tests_type_probe_2 },
+                    { "tests_expr_probe",
+                      "an expression probe detects a well-formed expression",
+                      &tests_expr_probe },
+                    { "tests_expr_probe_2",
+                      "a second expression probe resolves independently",
+                      &tests_expr_probe_2 },
+                    { "tests_noexcept_probe",
+                      "a noexcept probe reports whether the detected expression is non-throwing",
+                      &tests_noexcept_probe },
+                    { "tests_constexpr_probe",
+                      "a constexpr probe reports whether the detected expression is constant",
+                      &tests_constexpr_probe },
+                    { "tests_probe_scope",
+                      "a probe may be declared at namespace or class scope, as documented",
+                      &tests_probe_scope },
+                }
+            },
+            dt::block_spec{
+                "reading a probe",
+                "Reading a probe: value companions, nothrow, value-category yields, validity.",
+                {
+                    { "tests_is_nothrow_probe",
+                      "is_nothrow_probe reports the noexcept result of a probe",
+                      &tests_is_nothrow_probe },
+                    { "tests_yields_lvalue",
+                      "yields_lvalue detects an expression whose result is an lvalue",
+                      &tests_yields_lvalue },
+                    { "tests_yields_xvalue",
+                      "yields_xvalue detects an xvalue result",
+                      &tests_yields_xvalue },
+                    { "tests_yields_prvalue",
+                      "yields_prvalue detects a prvalue result",
+                      &tests_yields_prvalue },
+                    { "tests_is_valid",
+                      "is_valid reports whether a probed expression is well-formed",
+                      &tests_is_valid },
+                    { "tests_is_valid_evil",
+                      "is_valid holds up against SFINAE-hostile subjects",
+                      &tests_is_valid_evil },
+                    { "tests_reading_value_companions",
+                      "the _v value companions agree with their trait forms",
+                      &tests_reading_value_companions },
+                }
+            },
+            dt::block_spec{
+                "type-set quantifiers",
+                "Quantifying a trait over a type pack: count, all/any/none, binding, short-circuit.",
+                {
+                    { "tests_count_holds",
+                      "count_holds counts the pack members satisfying a trait",
+                      &tests_count_holds },
+                    { "tests_count_holds_empty_pack",
+                      "count_holds over an empty pack is zero",
+                      &tests_count_holds_empty_pack },
+                    { "tests_holds_for_all",
+                      "holds_for_all is true iff every member satisfies the trait",
+                      &tests_holds_for_all },
+                    { "tests_holds_for_any",
+                      "holds_for_any is true iff some member satisfies the trait",
+                      &tests_holds_for_any },
+                    { "tests_holds_for_none",
+                      "holds_for_none is true iff no member satisfies the trait",
+                      &tests_holds_for_none },
+                    { "tests_quantifier_binding",
+                      "quantifiers bind their trait argument correctly across packs",
+                      &tests_quantifier_binding },
+                    { "tests_no_short_circuit",
+                      "quantifiers instantiate the trait for every member (no short-circuit)",
+                      &tests_no_short_circuit },
+                    { "tests_quantifier_value_companions",
+                      "the quantifier _v companions agree with their trait forms",
+                      &tests_quantifier_value_companions },
+                }
+            },
+            dt::block_spec{
+                "trait shape",
+                "Bool-trait shape: what counts as a bool trait, sinks, predicates, well-formedness.",
+                {
+                    { "tests_is_bool_trait_positive",
+                      "is_bool_trait accepts a properly shaped boolean trait",
+                      &tests_is_bool_trait_positive },
+                    { "tests_is_bool_trait_sink",
+                      "is_bool_trait rejects a sink that swallows any argument",
+                      &tests_is_bool_trait_sink },
+                    { "tests_is_bool_trait_predicates",
+                      "is_bool_trait distinguishes predicate-shaped traits",
+                      &tests_is_bool_trait_predicates },
+                    { "tests_is_bool_trait_non_traits",
+                      "is_bool_trait rejects non-trait types",
+                      &tests_is_bool_trait_non_traits },
+                    { "tests_trait_is_well_formed",
+                      "trait_is_well_formed detects a trait that instantiates cleanly",
+                      &tests_trait_is_well_formed },
+                    { "tests_trait_v_agrees",
+                      "trait_is_well_formed_v agrees with its trait form",
+                      &tests_trait_v_agrees },
+                    { "tests_shape_self_application",
+                      "shape checks are stable under self-application",
+                      &tests_shape_self_application },
+                    { "tests_shape_value_companions",
+                      "the shape _v companions agree with their trait forms",
+                      &tests_shape_value_companions },
+                }
+            },
+            dt::block_spec{
+                "cv-ref agreement",
+                "cv/ref handling: the disagreement report, its accessors, invariance and tracking.",
+                {
+                    { "tests_cvref_cells",
+                      "cvref_report exposes one cell per cv-ref qualification",
+                      &tests_cvref_cells },
+                    { "tests_cvref_report_accessors",
+                      "cvref_report accessors read the expected cells",
+                      &tests_cvref_report_accessors },
+                    { "tests_cvref_report_first_disagreement",
+                      "cvref_report names the first qualification where a trait disagrees",
+                      &tests_cvref_report_first_disagreement },
+                    { "tests_trait_across_cvref",
+                      "trait_across_cvref evaluates a trait over every cv-ref form",
+                      &tests_trait_across_cvref },
+                    { "tests_trait_ignores_cvref",
+                      "trait_ignores_cvref detects a trait invariant under cv-ref",
+                      &tests_trait_ignores_cvref },
+                    { "tests_cvref_value_companion",
+                      "the cv-ref _v companion agrees with its trait form",
+                      &tests_cvref_value_companion },
+                }
+            },
+            dt::block_spec{
+                "fixtures",
+                "Hostile fixtures engineered to break naive detection.",
+                {
+                    { "tests_fixture_shapes",
+                      "the well-shaped fixtures are detected as intended",
+                      &tests_fixture_shapes },
+                    { "tests_fixture_private_members",
+                      "detection is not fooled by private members",
+                      &tests_fixture_private_members },
+                    { "tests_fixture_ambiguous_members",
+                      "detection handles ambiguous member lookups",
+                      &tests_fixture_ambiguous_members },
+                    { "tests_fixture_greedy",
+                      "detection resists a greedy template that matches anything",
+                      &tests_fixture_greedy },
+                    { "tests_fixture_evil",
+                      "detection survives deliberately adversarial fixtures",
+                      &tests_fixture_evil },
+                    { "tests_fixture_throwing_nothrowing",
+                      "noexcept detection separates throwing from non-throwing fixtures",
+                      &tests_fixture_throwing_nothrowing },
+                    { "tests_fixture_literal_nonliteral",
+                      "constexpr detection separates literal from non-literal fixtures",
+                      &tests_fixture_literal_nonliteral },
+                    { "tests_fixture_enums",
+                      "traits behave correctly on enum subjects",
+                      &tests_fixture_enums },
+                    { "tests_fixture_nonclass_types",
+                      "traits behave correctly on non-class subjects",
+                      &tests_fixture_nonclass_types },
+                    { "tests_hostile_list_cardinalities",
+                      "quantifiers handle hostile type lists of varied cardinality",
+                      &tests_hostile_list_cardinalities },
+                    { "tests_hostile_list_complete",
+                      "the hostile type list is exercised in full",
+                      &tests_hostile_list_complete },
+                }
+            },
+            dt::block_spec{
+                "build-time pins",
+                "Compile-time pins fixing the toolkit's guarantees at build time.",
+                {
+                    { "tests_static_pin",
+                      "the static_assert pins hold at compile time",
+                      &tests_static_pin },
+                }
+            },
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+            dt::block_spec{
+                "concept layer",
+                "The C++20 concept layer: trait/concept agreement and concept subsumption.",
+                {
+                    { "tests_trait_concept_agree",
+                      "each concept agrees with its underlying trait",
+                      &tests_trait_concept_agree },
+                    { "tests_declare_subsumes_refines",
+                      "a refining concept subsumes the one it refines",
+                      &tests_declare_subsumes_refines },
+                    { "tests_declare_subsumes_implies_only",
+                      "an implies-only relationship does not create subsumption",
+                      &tests_declare_subsumes_implies_only },
+                    { "tests_declare_subsumes_partial",
+                      "partial overlap yields the documented subsumption",
+                      &tests_declare_subsumes_partial },
+                    { "tests_declare_subsumes_shape",
+                      "declared subsumption matches the concept's shape",
+                      &tests_declare_subsumes_shape },
+                }
+            },
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+        }
+    };
+}
+
+#endif  // DTEST_SPEC_MODE
 
 
 NS_END  // testing

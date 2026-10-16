@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                profunctor_tests_operations.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/profunctor_tests_operations.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  profunctor_tests_operations.cpp
 //   Section III -- dimap / lmap / rmap and the profunctor laws.
 

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                          font_tests_mixins.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_mixins.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_mixins.cpp
 //   Section 7: the font_mixin EBO layer.  Every optional capability is a
 // template <bool _Enable> struct whose false face is empty; the header's

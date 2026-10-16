@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                functional_common_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                   functional_common_tests_sa.h
 *
 *   Standalone unit tests for the functional_common module.
 *   Provides comprehensive coverage for all utility functions declared in
@@ -7,21 +7,24 @@
 * map/filter, fold, and iteration/query operations.
 *
 *
-* path:      \inc\test\functional\functional_common_tests_sa.h
+* path:      /tests/djinterp/c/functional/functional_common_tests_sa.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.10
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_COMMON_STANDALONE_
 #define DJINTERP_TESTING_FUNCTIONAL_COMMON_STANDALONE_ 1
 
+// std
 #include <stddef.h>
 #include <stdio.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/dmemory.h"
-#include "../../../inc/c/string_fn.h"
-#include "../../../inc/c/functional/functional_common.h"
-#include "../../../inc/c/test/test_standalone.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/functional/functional_common.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 // i.    identity function tests

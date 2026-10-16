@@ -1,16 +1,21 @@
-/******************************************************************************
-* djinterp [functional]                               producer_tests_step.cpp
+/*******************************************************************************
+* djinterp [functional]                                  producer_tests_step.cpp
 *
 *   Tests for the producer step type and its builders: producer_step<T>,
 * make_step, and no_step.
 *
-* path:      /src/functional/producer_tests_step.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/producer_tests_step.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "./producer_tests.hpp"
-
+// std
 #include <string>
 #include <utility>
+// djinterp
+#include "./producer_tests.hpp"
 
 
 NS_DJINTERP

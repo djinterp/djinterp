@@ -1,16 +1,19 @@
-/******************************************************************************
-* djinterp [test]                        test_builder_tests_kinds_summary.cpp
+/*******************************************************************************
+* djinterp [test]                           test_builder_tests_kinds_summary.cpp
 *
 *   The builder's supporting vocabulary: the default kind set it seeds a tree
 * with (module > block > test by rank, only test a leaf), the reserved kind
 * ids, the run_summary tally type (its zero state and the all_passed /
 * any_failed predicates), and the make_suite factory.
 *
-* path:      /tests/djinterp/test/test_builder/test_builder_tests_kinds_summary.cpp
+*
+* path:      /tests/djinterp/test/test_builder_tests_kinds_summary.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_builder_tests.hpp"
 
 NS_DJINTERP

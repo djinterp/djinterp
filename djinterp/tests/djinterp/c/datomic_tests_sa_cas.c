@@ -1,8 +1,8 @@
-#include ".\datomic_tests_sa.h"
+#include "./datomic_tests_sa.h"
 
 
 /*
-d_tests_sa_atomic_compare_exchange_strong_int
+d_tests_sa_datomic_compare_exchange_strong_int
   Tests strong CAS for int type.
   Tests the following:
   - CAS succeeds when expected matches current value
@@ -11,7 +11,7 @@ d_tests_sa_atomic_compare_exchange_strong_int
   - expected is updated to current value on failure
 */
 bool
-d_tests_sa_atomic_compare_exchange_strong_int
+d_tests_sa_datomic_compare_exchange_strong_int
 (
     struct d_test_counter* _counter
 )
@@ -59,14 +59,14 @@ d_tests_sa_atomic_compare_exchange_strong_int
 }
 
 /*
-d_tests_sa_atomic_compare_exchange_weak_int
+d_tests_sa_datomic_compare_exchange_weak_int
   Tests weak CAS for int type.
   Tests the following:
   - weak CAS eventually succeeds (may spuriously fail)
   - value is correct after successful weak CAS
 */
 bool
-d_tests_sa_atomic_compare_exchange_weak_int
+d_tests_sa_datomic_compare_exchange_weak_int
 (
     struct d_test_counter* _counter
 )
@@ -103,13 +103,13 @@ d_tests_sa_atomic_compare_exchange_weak_int
 }
 
 /*
-d_tests_sa_atomic_compare_exchange_strong_uint
+d_tests_sa_datomic_compare_exchange_strong_uint
   Tests strong CAS for unsigned int type.
   Tests the following:
   - CAS succeeds for unsigned int
 */
 bool
-d_tests_sa_atomic_compare_exchange_strong_uint
+d_tests_sa_datomic_compare_exchange_strong_uint
 (
     struct d_test_counter* _counter
 )
@@ -135,13 +135,13 @@ d_tests_sa_atomic_compare_exchange_strong_uint
 }
 
 /*
-d_tests_sa_atomic_compare_exchange_strong_long
+d_tests_sa_datomic_compare_exchange_strong_long
   Tests strong CAS for long type.
   Tests the following:
   - CAS succeeds for long
 */
 bool
-d_tests_sa_atomic_compare_exchange_strong_long
+d_tests_sa_datomic_compare_exchange_strong_long
 (
     struct d_test_counter* _counter
 )
@@ -167,13 +167,13 @@ d_tests_sa_atomic_compare_exchange_strong_long
 }
 
 /*
-d_tests_sa_atomic_compare_exchange_strong_llong
+d_tests_sa_datomic_compare_exchange_strong_llong
   Tests strong CAS for long long type.
   Tests the following:
   - CAS succeeds for long long
 */
 bool
-d_tests_sa_atomic_compare_exchange_strong_llong
+d_tests_sa_datomic_compare_exchange_strong_llong
 (
     struct d_test_counter* _counter
 )
@@ -199,13 +199,13 @@ d_tests_sa_atomic_compare_exchange_strong_llong
 }
 
 /*
-d_tests_sa_atomic_compare_exchange_strong_ptr
+d_tests_sa_datomic_compare_exchange_strong_ptr
   Tests strong CAS for pointer type.
   Tests the following:
   - CAS succeeds for pointer
 */
 bool
-d_tests_sa_atomic_compare_exchange_strong_ptr
+d_tests_sa_datomic_compare_exchange_strong_ptr
 (
     struct d_test_counter* _counter
 )
@@ -235,13 +235,13 @@ d_tests_sa_atomic_compare_exchange_strong_ptr
 }
 
 /*
-d_tests_sa_atomic_compare_exchange_strong_size
+d_tests_sa_datomic_compare_exchange_strong_size
   Tests strong CAS for size_t type.
   Tests the following:
   - CAS succeeds for size_t
 */
 bool
-d_tests_sa_atomic_compare_exchange_strong_size
+d_tests_sa_datomic_compare_exchange_strong_size
 (
     struct d_test_counter* _counter
 )
@@ -267,7 +267,7 @@ d_tests_sa_atomic_compare_exchange_strong_size
 }
 
 /*
-d_tests_sa_atomic_compare_exchange_explicit
+d_tests_sa_datomic_compare_exchange_explicit
   Tests CAS with explicit memory orders.
   Tests the following:
   - strong CAS with acq_rel/relaxed ordering succeeds
@@ -276,7 +276,7 @@ d_tests_sa_atomic_compare_exchange_explicit
   - ptr CAS with explicit ordering works
 */
 bool
-d_tests_sa_atomic_compare_exchange_explicit
+d_tests_sa_datomic_compare_exchange_explicit
 (
     struct d_test_counter* _counter
 )
@@ -370,7 +370,7 @@ d_tests_sa_atomic_compare_exchange_explicit
 }
 
 /*
-d_tests_sa_atomic_compare_exchange_all
+d_tests_sa_datomic_compare_exchange_all
   Runs all atomic compare-and-exchange tests.
   Tests the following:
   - strong CAS for int, uint, long, llong, ptr, size
@@ -378,7 +378,7 @@ d_tests_sa_atomic_compare_exchange_all
   - explicit memory order variants
 */
 bool
-d_tests_sa_atomic_compare_exchange_all
+d_tests_sa_datomic_compare_exchange_all
 (
     struct d_test_counter* _counter
 )
@@ -390,21 +390,21 @@ d_tests_sa_atomic_compare_exchange_all
     printf("\n  [SECTION] Atomic Compare-and-Exchange\n");
     printf("  --------------------------------------\n");
 
-    result = d_tests_sa_atomic_compare_exchange_strong_int(_counter)
+    result = d_tests_sa_datomic_compare_exchange_strong_int(_counter)
              && result;
-    result = d_tests_sa_atomic_compare_exchange_weak_int(_counter)
+    result = d_tests_sa_datomic_compare_exchange_weak_int(_counter)
              && result;
-    result = d_tests_sa_atomic_compare_exchange_strong_uint(_counter)
+    result = d_tests_sa_datomic_compare_exchange_strong_uint(_counter)
              && result;
-    result = d_tests_sa_atomic_compare_exchange_strong_long(_counter)
+    result = d_tests_sa_datomic_compare_exchange_strong_long(_counter)
              && result;
-    result = d_tests_sa_atomic_compare_exchange_strong_llong(_counter)
+    result = d_tests_sa_datomic_compare_exchange_strong_llong(_counter)
              && result;
-    result = d_tests_sa_atomic_compare_exchange_strong_ptr(_counter)
+    result = d_tests_sa_datomic_compare_exchange_strong_ptr(_counter)
              && result;
-    result = d_tests_sa_atomic_compare_exchange_strong_size(_counter)
+    result = d_tests_sa_datomic_compare_exchange_strong_size(_counter)
              && result;
-    result = d_tests_sa_atomic_compare_exchange_explicit(_counter)
+    result = d_tests_sa_datomic_compare_exchange_explicit(_counter)
              && result;
 
     return result;

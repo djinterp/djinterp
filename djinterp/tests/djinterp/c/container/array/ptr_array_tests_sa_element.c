@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [container]                              ptr_array_tests_sa_element.c
+*
+*
+* path:      /tests/djinterp/c/container/array/ptr_array_tests_sa_element.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./ptr_array_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

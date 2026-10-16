@@ -1,0 +1,351 @@
+/******************************************************************************
+* djinterp [documentation]                        filter_grammar_prefix_abnf.txt
+*
+* ABNF (Augmented Backus-Naur Form) grammar for prefix-style filter expressions.
+*   Follows RFC 5234 specification for filter DSL using --and, --or, --not,
+* --xor prefix operators.
+*
+* SYNTAX STYLE:
+*   Prefix operators: --and expr1 expr2 [expr3...]
+*   No precedence rules needed (explicit structure)
+*   Shell-friendly (no quoting required)
+*
+* path:      \docs\filter_grammar_prefix_abnf.txt
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.15
+******************************************************************************/
+
+; ===========================================================================
+; PREFIX-STYLE FILTER EXPRESSION GRAMMAR (ABNF per RFC 5234)
+; ===========================================================================
+
+; ---------------------------------------------------------------------------
+; TOP-LEVEL PRODUCTIONS
+; ---------------------------------------------------------------------------
+
+filter-expr     = logical-expr / predicate
+
+logical-expr    = and-expr / or-expr / xor-expr / not-expr
+
+
+; ---------------------------------------------------------------------------
+; LOGICAL OPERATORS (PREFIX STYLE)
+; ---------------------------------------------------------------------------
+
+; --and operator: n-ary (2 or more operands)
+and-expr        = "--and" 1*WSP filter-expr 1*WSP filter-expr 
+                  *( 1*WSP filter-expr )
+
+; --or operator: n-ary (2 or more operands)
+or-expr         = "--or" 1*WSP filter-expr 1*WSP filter-expr 
+                  *( 1*WSP filter-expr )
+
+; --xor operator: binary (exactly 2 operands)
+xor-expr        = "--xor" 1*WSP filter-expr 1*WSP filter-expr
+
+; --not operator: unary (exactly 1 operand)
+not-expr        = "--not" 1*WSP filter-expr
+
+
+; ---------------------------------------------------------------------------
+; PREDICATES
+; ---------------------------------------------------------------------------
+
+predicate       = attribute operator value
+
+attribute       = identifier
+
+operator        = colon-op / eq-op / ne-op / le-op / ge-op / 
+                  lt-op / gt-op / match-op / in-op
+
+colon-op        = ":"
+eq-op           = "=="
+ne-op           = "!="
+le-op           = "<="
+ge-op           = ">="
+lt-op           = "<"
+gt-op           = ">"
+match-op        = "~" [ "=" ]
+in-op           = " in "  ; note: space-delimited for clarity
+
+value           = string-literal / number-literal / set-literal
+
+
+; ---------------------------------------------------------------------------
+; IDENTIFIERS AND LITERALS
+; ---------------------------------------------------------------------------
+
+identifier      = ( ALPHA / "_" ) *( ALPHA / DIGIT / "_" / "-" )
+
+string-literal  = quoted-string / unquoted-string
+
+quoted-string   = DQUOTE *( qdtext / quoted-pair ) DQUOTE /
+                  SQUOTE *( qstext / quoted-pair ) SQUOTE
+
+qdtext          = %x20-21 / %x23-5B / %x5D-7E  ; printable except " and \
+qstext          = %x20-26 / %x28-5B / %x5D-7E  ; printable except ' and \
+
+quoted-pair     = "\" ( DQUOTE / SQUOTE / "\" / "n" / "t" / "r" )
+
+unquoted-string = 1*( ALPHA / DIGIT / "-" / "_" / "." / "/" )
+
+number-literal  = [ "-" ] 1*DIGIT [ "." 1*DIGIT ]
+
+set-literal     = "{" [ WSP ] value-list [ WSP ] "}"
+
+value-list      = value *( [ WSP ] "," [ WSP ] value )
+
+
+; ---------------------------------------------------------------------------
+; OPTIONAL: PARENTHETICAL GROUPING
+; ---------------------------------------------------------------------------
+
+; If parenthetical grouping is supported (optional extension):
+; filter-expr     = logical-expr / predicate / grouped-expr
+; grouped-expr    = "(" [ WSP ] filter-expr [ WSP ] ")"
+
+
+; ---------------------------------------------------------------------------
+; WHITESPACE
+; ---------------------------------------------------------------------------
+
+WSP             = SP / HTAB / CR / LF
+
+SP              = %x20         ; space
+HTAB            = %x09         ; horizontal tab
+CR              = %x0D         ; carriage return
+LF              = %x0A         ; line feed
+
+
+; ---------------------------------------------------------------------------
+; CORE RULES (from RFC 5234)
+; ---------------------------------------------------------------------------
+
+ALPHA           = %x41-5A / %x61-7A   ; A-Z / a-z
+DIGIT           = %x30-39              ; 0-9
+DQUOTE          = %x22                 ; " (double quote)
+SQUOTE          = %x27                 ; ' (single quote)
+
+
+; ===========================================================================
+; EXAMPLES OF VALID EXPRESSIONS
+; ===========================================================================
+
+; Simple predicates:
+;   status:active
+;   priority>5
+;   owner:alice
+
+; Unary NOT:
+;   --not archived
+;   --not status:closed
+
+; Binary AND:
+;   --and status:active priority:high
+
+; Binary OR:
+;   --or type:bug type:task
+
+; N-ary AND (ternary):
+;   --and status:active priority:high owner:alice
+
+; N-ary OR (quaternary):
+;   --or status:active status:pending status:review status:draft
+
+; Nested expressions:
+;   --and --or type:bug type:task status:active
+;   --not --and status:closed priority:low
+;   --and --or a b --or c d
+
+; Complex expression:
+;   --and --or type:bug type:task status:active --not priority:low
+;
+;   Meaning: (type=bug OR type=task) AND status=active AND NOT priority=low
+
+
+; ===========================================================================
+; OPERATOR SEMANTICS
+; ===========================================================================
+
+; --and: Logical conjunction (all operands must be true)
+;   --and a b c   ≡   a AND b AND c
+;   Short-circuits: evaluates left to right, stops on first false
+
+; --or: Logical disjunction (at least one operand must be true)
+;   --or a b c    ≡   a OR b OR c
+;   Short-circuits: evaluates left to right, stops on first true
+
+; --xor: Logical exclusive-or (exactly one operand must be true)
+;   --xor a b     ≡   (a AND NOT b) OR (NOT a AND b)
+;   No short-circuit: both operands always evaluated
+
+; --not: Logical negation (inverts operand)
+;   --not a       ≡   NOT a
+;   Always evaluates operand
+
+
+; ===========================================================================
+; PARSING NOTES
+; ===========================================================================
+
+; WHITESPACE:
+;   - Whitespace is required between operators and operands
+;   - Whitespace separates operands in n-ary operators
+;   - Example: "--and a b c" requires spaces between all tokens
+
+; N-ARY PARSING:
+;   - --and and --or accept 2 or more operands
+;   - Parser should be greedy (consume as many operands as possible)
+;   - Operands are consumed until:
+;     a) End of input, or
+;     b) Token that cannot start an expression
+
+; PREDICATE FORMAT:
+;   - Predicates are atomic (no whitespace within predicate)
+;   - Format: attribute operator value
+;   - Examples: status:active, priority>5, name~"test.*"
+
+; AMBIGUITY:
+;   - No ambiguity (prefix notation is inherently unambiguous)
+;   - Each operator explicitly specifies its operands
+;   - No precedence rules needed
+
+
+; ===========================================================================
+; COMPARISON WITH INFIX STYLE
+; ===========================================================================
+
+; Expression: (a OR b) AND c
+; Infix:      (a OR b) AND c
+; Prefix:     --and --or a b c
+
+; Expression: NOT (a AND b)
+; Infix:      NOT (a AND b)
+; Prefix:     --not --and a b
+
+; Expression: (a OR b) AND (c OR d)
+; Infix:      (a OR b) AND (c OR d)
+; Prefix:     --and --or a b --or c d
+
+; Expression: a AND b AND c AND d
+; Infix:      a AND b AND c AND d
+; Prefix:     --and a b c d
+
+
+; ===========================================================================
+; FORMAL PROPERTIES
+; ===========================================================================
+
+; GRAMMAR TYPE:
+;   - Context-free grammar (Type 2 in Chomsky hierarchy)
+;   - LL(1) parseable (one token lookahead sufficient)
+;   - Right-recursive (tail-recursive)
+
+; COMPLETENESS:
+;   - Functionally complete (NOT + AND express all boolean functions)
+;   - OR can be derived: A OR B = NOT (NOT A AND NOT B)
+;   - XOR is convenience (can be expressed with AND/OR/NOT)
+
+; AMBIGUITY:
+;   - Unambiguous (no alternative parse trees for any expression)
+;   - Each operator explicitly delimits its operands
+;   - No precedence conflicts (no infix operators)
+
+
+; ===========================================================================
+; ADVANTAGES OF PREFIX STYLE
+; ===========================================================================
+
+; 1. SHELL-FRIENDLY:
+;    - No need to quote operators
+;    - Each token is a separate shell argument
+;    - Example: --and status:active priority>5
+
+; 2. NO PRECEDENCE RULES:
+;    - Operator order is explicit
+;    - No need to remember NOT > AND > OR
+;    - Structure is inherent in syntax
+
+; 3. NO PARENTHESES NEEDED:
+;    - Nesting is explicit through operator position
+;    - Example: --and --or a b c (instead of (a OR b) AND c)
+
+; 4. N-ARY OPERATORS:
+;    - Naturally supports n-ary AND and OR
+;    - More efficient than nested binary operations
+;    - Example: --and a b c d (instead of a AND (b AND (c AND d)))
+
+; 5. SIMPLE PARSING:
+;    - Straightforward recursive descent
+;    - No precedence climbing needed
+;    - Minimal lookahead required
+
+
+; ===========================================================================
+; DISADVANTAGES OF PREFIX STYLE
+; ===========================================================================
+
+; 1. LESS FAMILIAR:
+;    - Most users know infix notation (SQL, Excel, etc.)
+;    - Requires learning new syntax
+
+; 2. MORE VERBOSE:
+;    - Operators take more characters (--and vs AND)
+;    - Can be longer for simple expressions
+
+; 3. HARDER TO READ:
+;    - Requires mental tree building
+;    - Not as intuitive as infix for some users
+
+; 4. NON-STANDARD:
+;    - Not SQL-like or spreadsheet-like
+;    - Different from most query languages
+
+
+; ===========================================================================
+; EXTENSIONS AND VARIATIONS
+; ===========================================================================
+
+; OPTIONAL PARENTHESES:
+;   - Allow parentheses for clarity (even though not needed)
+;   - Example: --and (--or a b) c
+
+; SHORT ALIASES:
+;   - Provide shorter operator names
+;   - -a for --and, -o for --or, -n for --not, -x for --xor
+
+; INFIX PREDICATES WITH PREFIX LOGIC:
+;   - Allow full infix predicates but prefix logic operators
+;   - Example: --and "status == active" "priority > 5"
+
+; NAMED OPERANDS:
+;   - Explicit operand naming
+;   - Example: --and --left a --right b
+
+
+; ===========================================================================
+; VALIDATION RULES
+; ===========================================================================
+
+; 1. Operators must have correct arity:
+;    - --and: 2 or more operands
+;    - --or: 2 or more operands
+;    - --xor: exactly 2 operands
+;    - --not: exactly 1 operand
+
+; 2. Predicates must have valid format:
+;    - attribute:value (colon operator)
+;    - attribute==value (equals operator)
+;    - etc.
+
+; 3. Nested expressions must be well-formed:
+;    - All operators must have their operands
+;    - No dangling operators
+
+; 4. Whitespace must separate tokens:
+;    - At least one whitespace character between operator and operands
+;    - At least one whitespace character between operands
+
+
+; ===========================================================================
+; END OF ABNF GRAMMAR
+; ===========================================================================

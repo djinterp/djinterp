@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                           test_builder_tests_assertions.cpp
+/*******************************************************************************
+* djinterp [test]                              test_builder_tests_assertions.cpp
 *
 *   The predicate algebra conjoined into the current test.  assert_ (and its
 * intent-named twin test_fn) tells a deferred PREDICATE - evaluated at run() -
@@ -11,11 +11,14 @@
 * when empty).  With no test open, every assertion is a no-op that binds
 * nothing; a test never given a clause stays pending.
 *
-* path:      /tests/djinterp/test/test_builder/test_builder_tests_assertions.cpp
+*
+* path:      /tests/djinterp/test/test_builder_tests_assertions.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_builder_tests.hpp"
 
 NS_DJINTERP

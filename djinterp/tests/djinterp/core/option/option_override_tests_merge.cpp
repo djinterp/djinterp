@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                              option_override_tests_merge.cpp
+/*******************************************************************************
+* djinterp [test]                                option_override_tests_merge.cpp
 *
 *   Section II of the option_override.hpp suite: the option-aware merge metafn
 * merge_args_union<_B, _D>.
@@ -21,13 +21,14 @@
 *
 * path:      /tests/djinterp/core/option/option_override_tests_merge.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <type_traits>
 // djinterp
-#include "option_override_tests.hpp"
+#include "./option_override_tests.hpp"
 
 
 NS_DJINTERP

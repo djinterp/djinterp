@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        cofree_tests_map.cpp
+/*******************************************************************************
+* djinterp [test]                                           cofree_tests_map.cpp
 *
 *   Section II.3 (map) of the cofree.hpp suite: cofree_map, the functorial map
 * that applies A -> B to every node's head while preserving the F-layers, and
@@ -8,10 +8,12 @@
 * change, the functor identity and composition laws, the single-node (leaf)
 * case, agreement between cofree_map and functor_map, and the result type.
 *
+*
 * path:      /tests/djinterp/core/functional/cofree_tests_map.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "cofree_tests.hpp"

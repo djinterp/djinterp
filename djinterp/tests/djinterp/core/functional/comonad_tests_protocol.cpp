@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 comonad_tests_protocol.cpp
+/*******************************************************************************
+* djinterp [test]                                     comonad_tests_protocol.cpp
 *
 *   Section 0 + I of the comonad.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_comonad (and its _v shorthand), comonad_value_type
@@ -10,10 +10,12 @@
 * matters most: the comonad's value_type is the SECOND component (the focus),
 * not the first (the environment).
 *
+*
 * path:      /tests/djinterp/core/functional/comonad_tests_protocol.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <vector>

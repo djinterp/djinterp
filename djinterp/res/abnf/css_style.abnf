@@ -1,0 +1,321 @@
+; ============================================================================
+; djinterp [css] -- ABNF grammar of the implemented stylesheet subset
+; ============================================================================
+;
+; This document describes exactly what the parser in css_parser.hpp accepts.
+; It is not a description of CSS3 in general -- it is what *this* implementation
+; recognises.  Where the implementation deviates from real-world CSS3 the
+; deviation is called out in a `; NOTE:` comment.
+;
+; Conventions:
+;   - ABNF per RFC 5234, with the usual `*` (zero-or-more), `1*` (one-or-more),
+;     `[ ]` (optional), and `/` (alternation) operators.
+;   - Lower-case hyphenated rule names.
+;   - Whitespace and comments are *not* implicit between tokens.  They appear
+;     explicitly as `ws` wherever the parser actually skips them, which is
+;     more places than CSS3 normally cares about.
+;   - The parser is forgiving: malformed declarations are skipped to the next
+;     `;` and malformed rules to the next top-level `}`.  Recovery rules are
+;     not in the grammar -- they describe what the parser tolerates rather
+;     than what it accepts.
+;
+; ============================================================================
+; 1.  TOP LEVEL
+; ============================================================================
+
+; A stylesheet is a sequence of rules separated by optional whitespace and
+; comments.  An optional UTF-8 BOM at the very start is silently consumed.
+stylesheet      = [ utf8-bom ] *( ws / rule )
+
+utf8-bom        = %xEF %xBB %xBF
+
+rule            = style-rule / at-rule
+
+
+; ============================================================================
+; 2.  STYLE RULE
+; ============================================================================
+
+; A style rule is a comma-separated selector list followed by a brace-delimited
+; declaration block.
+style-rule      = selector-list ws "{" declaration-block-body "}"
+
+selector-list   = complex-selector *( ws "," ws complex-selector )
+
+declaration-block-body
+                = *( ws ( declaration / ";" ) )
+                  ; NOTE: stray ";" between declarations is tolerated.
+                  ; The trailing ";" after the last declaration is optional.
+
+
+; ============================================================================
+; 3.  AT-RULE
+; ============================================================================
+
+; @name prelude (statement form: ";")  or  @name prelude { body }.
+;
+; The body, when present, is *either* a sequence of nested style rules
+; (e.g. @media) *or* a declaration block (e.g. @font-face).  The parser
+; disambiguates with bounded look-ahead: if a `{` appears at top level inside
+; the body before any `;`, the body is treated as nested rules; otherwise it is
+; treated as declarations.
+at-rule         = "@" ident ws value-list-prelude ws
+                  ( ";" / "{" at-rule-body "}" )
+
+value-list-prelude
+                = *value-component
+                  ; Stops at ";" or "{".  May be empty.
+
+at-rule-body    = nested-rules-body / declaration-block-body
+
+nested-rules-body
+                = *( ws style-rule )
+
+
+; ============================================================================
+; 4.  SELECTORS
+; ============================================================================
+
+; A complex selector is a head compound followed by zero or more
+; "(combinator) compound" steps.
+;
+; The descendant combinator is plain whitespace and is recognised by the
+; parser only when whitespace separates two compounds and no explicit
+; combinator follows.
+complex-selector
+                = compound-selector
+                  *( combinator compound-selector )
+
+combinator      = ws ">" ws        ; child
+                / ws "+" ws        ; adjacent sibling
+                / ws "~" ws        ; general sibling
+                / 1*ws             ; descendant (whitespace only)
+
+; A compound selector is one or more simple selectors fused with no
+; whitespace between them.  Compound terminates at whitespace, "{", ",", "(",
+; ")", ">", "+", "~", or any character that does not begin a simple selector.
+compound-selector
+                = 1*simple-selector
+
+simple-selector = universal-selector
+                / type-selector
+                / id-selector
+                / class-selector
+                / attribute-selector
+                / pseudo-element-selector
+                / negation-selector
+                / pseudo-class-selector
+
+universal-selector  = "*"
+type-selector       = ident
+id-selector         = "#" ident
+class-selector      = "." ident
+
+; ----------------------------------------------------------------------------
+; Attribute selector
+; ----------------------------------------------------------------------------
+;
+; Seven matchers, plus an optional case-insensitive flag.
+attribute-selector  = "[" ws ident ws
+                      ( "]"                                           ; presence
+                      / attribute-op ws attribute-value [ ws "i-flag" ] ws "]"
+                      )
+
+attribute-op        = "="     ; exact
+                    / "~="    ; whitespace-separated word match
+                    / "|="    ; lang/dash-separated prefix match
+                    / "^="    ; prefix match
+                    / "$="    ; suffix match
+                    / "*="    ; substring match
+
+attribute-value     = string / ident
+
+i-flag              = "i" / "I"
+
+; ----------------------------------------------------------------------------
+; Pseudo-classes and pseudo-elements
+; ----------------------------------------------------------------------------
+;
+; The parser admits any identifier after ":" or "::".  It does not validate
+; the name -- evaluation is deferred to the matcher (which has built-in
+; handling for :first-child, :last-child, :only-child, :root, :empty, plus
+; whatever the host registers via style_match_options).
+;
+; A functional pseudo-class :name(...) captures its argument as an opaque
+; raw string; the parser tracks one level of nested parens and respects
+; quoted strings within the argument.
+;
+; :not(...) is parsed structurally and hosts an inner compound selector.
+
+pseudo-element-selector
+                = "::" ident [ "(" pseudo-arg ")" ]
+
+pseudo-class-selector
+                = ":" ident [ "(" pseudo-arg ")" ]
+
+negation-selector
+                = ":not" ws "(" ws compound-selector ws ")"
+                  ; NOTE: real CSS Selectors 4 admits a complex selector
+                  ; list inside :not().  This implementation only admits
+                  ; a single compound selector.
+
+pseudo-arg      = *pseudo-arg-char
+                  ; Any character except an unbalanced ")".  Quoted strings
+                  ; (single or double) are respected for the purpose of paren
+                  ; counting.  Captured verbatim for the host matcher.
+
+
+; ============================================================================
+; 5.  DECLARATIONS AND VALUES
+; ============================================================================
+
+; A declaration is "property : value-list [! important]".  The trailing ";"
+; is consumed by the surrounding declaration-block, not by the declaration
+; itself.
+declaration     = ident ws ":" ws value-list [ ws "!" ws "important" ws ]
+
+; A value list is a sequence of value components.  It terminates at ";",
+; "}", "!", or end-of-input -- and, inside a function call, at ")".
+value-list      = *value-component
+
+value-component = number-value
+                / string-value
+                / hash-value
+                / function-value
+                / ident-value
+                / delim-value
+
+number-value    = number [ ident / "%" ]
+                  ; Trailing ident is the dimension unit (e.g. "px", "em").
+                  ; Trailing "%" makes it a percentage.
+
+string-value    = string
+
+hash-value      = "#" 1*ident-continue
+                  ; Body is the colour digits, custom name, etc.
+
+ident-value     = ident
+
+function-value  = ident "(" ws value-list ws ")"
+                  ; Function arguments are themselves a value-list.  Bounded
+                  ; recursion: nesting depth is capped at D_CSS_MAX_VALUE_DEPTH
+                  ; (32) to defend against pathological input.
+
+delim-value     = "/" / ","
+                  ; The only standalone delimiters that survive into the
+                  ; value list.  Other punctuation either has structural
+                  ; meaning (";", "}", "!") or terminates the value list.
+
+
+; ============================================================================
+; 6.  LEXICAL TOKENS
+; ============================================================================
+
+; ----------------------------------------------------------------------------
+; Identifier
+; ----------------------------------------------------------------------------
+;
+; Optional leading hyphen (admitted only when followed by an ident-start
+; character, so a stray "-" is not consumed), then one ident-start char,
+; then any number of ident-continue chars.
+;
+; NOTE: this means custom-property syntax "--name" is NOT accepted, because
+; the second "-" is not an ident-start char.  Add it to is_ident_start if you
+; need CSS custom properties.
+
+ident           = [ "-" ] ident-start *ident-continue
+
+ident-start     = ALPHA / "_" / non-ascii
+                  ; ALPHA = %x41-5A / %x61-7A  (RFC 5234)
+
+ident-continue  = ident-start / DIGIT / "-"
+                  ; DIGIT = %x30-39  (RFC 5234)
+
+non-ascii       = %x80-FF
+                  ; Any high-bit byte; admitted conservatively without
+                  ; UTF-8 validation.
+
+; ----------------------------------------------------------------------------
+; String
+; ----------------------------------------------------------------------------
+;
+; Either single- or double-quoted.  An unescaped newline is an error.
+; A backslash escape consumes one following character verbatim (full CSS
+; escape semantics -- hex sequences, line continuations -- are not
+; implemented; the interface allows them to be added later).
+string          = ( DQUOTE *( escape / dq-string-char ) DQUOTE )
+                / ( "'"    *( escape / sq-string-char ) "'"    )
+
+dq-string-char  = %x20-21 / %x23-5B / %x5D-FF       ; not " or \ or LF
+sq-string-char  = %x20-26 / %x28-5B / %x5D-FF       ; not ' or \ or LF
+escape          = "\" %x00-FF                        ; backslash + any byte
+
+DQUOTE          = %x22
+
+; ----------------------------------------------------------------------------
+; Number
+; ----------------------------------------------------------------------------
+;
+; Optional sign, integer or fractional digits (at least one digit overall),
+; optional exponent.  If the "e" / "E" turns out not to be a valid exponent
+; (e.g. it is the start of "em" / "ex" units), the parser rolls back so the
+; remaining ident becomes the unit.
+
+number          = [ "+" / "-" ]
+                  ( 1*DIGIT [ "." 1*DIGIT ]
+                  / "." 1*DIGIT )
+                  [ exponent ]
+
+exponent        = ( "e" / "E" ) [ "+" / "-" ] 1*DIGIT
+
+; ----------------------------------------------------------------------------
+; Whitespace and comments
+; ----------------------------------------------------------------------------
+;
+; Whitespace is the framework's `char_predicate_is_whitespace`: SP, HT, CR,
+; LF, FF, VT.  Block comments are /* ... */ and may appear anywhere
+; whitespace may.  Comments do not nest.
+
+ws              = *( wschar / comment )
+                  ; "ws" is "skip_ws_and_comments"; it accepts zero or more
+                  ; whitespace characters and comments in any order.
+
+wschar          = %x20 / %x09 / %x0A / %x0B / %x0C / %x0D
+
+comment         = "/*" *( comment-char ) "*/"
+comment-char    = %x00-FF                            ; any byte; no nesting
+
+
+; ============================================================================
+; 7.  WHAT IS NOT (YET) SUPPORTED
+; ============================================================================
+;
+; The following are intentional limitations of this implementation, not bugs.
+; The grammar above does not generate them; the parser does not accept them.
+;
+;   - CSS escapes beyond `\<one byte>`.  Hex escapes (`\26 `, `\000026`) and
+;     line-continuation escapes inside strings are not interpreted.
+;
+;   - CSS custom properties (`--name`) and the `var(--name)` function.  The
+;     latter parses fine -- it is just a function call -- but the property
+;     name itself is rejected because `--` is not a legal ident prefix here.
+;
+;   - The numeric arithmetic of `:nth-child(an+b)`, `:nth-of-type`, and
+;     friends.  The parser captures the argument as raw text; it is up to
+;     the host (or a future v2 pass) to evaluate it.
+;
+;   - Full :not() expressivity.  Real CSS Selectors 4 admits a list of
+;     complex selectors; this implementation admits a single compound.
+;
+;   - Evaluation of @media queries and @supports conditions.  Both parse
+;     into the AST as raw value-list preludes plus nested rules; the
+;     host decides whether they apply.
+;
+;   - Unicode-aware identifier classification.  The parser admits any byte
+;     >= 0x80 as an ident character without validating UTF-8.  This is the
+;     standard pragmatic behaviour for ASCII-source stylesheets and is
+;     consistent with most production CSS parsers.
+
+; ============================================================================
+; END
+; ============================================================================

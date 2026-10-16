@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       event_handler_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                        event_handler_tests.hpp
 *
 *   Declarations for the unit-test suite covering event_handler.hpp.  Each free
 * function exercises one entity of the handler primitive header and returns
@@ -27,10 +27,11 @@
 * the tests themselves live, flat, in djinterp::testing.
 *
 *
-* path:      /tests/djinterp/core/event/event_handler/event_handler_tests.hpp
+* path:      /tests/djinterp/core/event/event_handler_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_EVENT_HANDLER_TESTS_
 #define DJINTERP_EVENT_HANDLER_TESTS_ 1
@@ -43,11 +44,18 @@
 #include <type_traits>
 #include <utility>
 // djinterp
+#ifndef DTEST_SPEC_MODE
 #include <djinterp/core/event/event_handler.hpp>
+#endif
+#ifdef DTEST_SPEC_MODE
+#include "djinterp/test/test_defaults.hpp"   // spec mode: enriched authoring surface + run_module / run_suite
+#endif
 
 
 NS_DJINTERP
 NS_TESTING
+
+#ifndef DTEST_SPEC_MODE  // fixtures + check helper: normal (section-file) mode only
 
 
 // =========================================================================
@@ -386,6 +394,8 @@ struct mp_pass
 //  test declarations
 // =========================================================================
 
+#endif  // !DTEST_SPEC_MODE (fixtures + check helper)
+
 // I.   HANDLER IDENTIFICATION
 bool tests_handler_id_relational();
 bool tests_handler_id_validity();
@@ -426,6 +436,154 @@ bool tests_concept_handler_for_event_of_arity();
 bool tests_concept_arity_aliases();
 bool tests_concept_non_event_safety();
 
+
+#ifdef DTEST_SPEC_MODE
+
+// =========================================================================
+//  suite spec provider (spec mode)
+//    Mirrors this suite as data - each unit test paired with its name and a
+//  one-line descriptor - so run_module / run_suite can lower it into the
+//  six-kind tree and drive the report.  References only the test_fn_ptr
+//  declarations above; no fixtures required, which is what lets the
+//  aggregate runner include every suite header in one TU.
+// =========================================================================
+
+namespace dt = ::djinterp::test;
+
+inline dt::module_spec
+event_handler_spec()
+{
+    return dt::module_spec{
+        "event_handler",
+        "The handler primitive: handler_id, verdict normalization and "
+        "tuple-apply, handler compatibility traits, the seq/skip monoid, "
+        "and the C++20 concept layer.",
+        {
+            dt::block_spec{
+                "handler_id",
+                "The opaque handler_id handle: ordering, validity, value semantics.",
+                {
+                    { "handler_id_relational",
+                      "handler_id defines a strict, consistent ordering",
+                      &tests_handler_id_relational },
+                    { "handler_id_validity",
+                      "valid() distinguishes bound ids from the null id",
+                      &tests_handler_id_validity },
+                    { "handler_id_null",
+                      "the null handler_id is distinct from any bound id",
+                      &tests_handler_id_null },
+                    { "handler_id_value_semantics",
+                      "handler_id copies and compares by value",
+                      &tests_handler_id_value_semantics },
+                }
+            },
+            dt::block_spec{
+                "invocation",
+                "Verdict normalization and payload-tuple application.",
+                {
+                    { "invoke_normalized_void",
+                      "a void handler is normalized to verdict::pass",
+                      &tests_invoke_normalized_void },
+                    { "invoke_normalized_verdict",
+                      "a verdict-returning handler's verdict is forwarded unchanged",
+                      &tests_invoke_normalized_verdict },
+                    { "apply_handler_arities",
+                      "apply_handler unpacks payload tuples of arity zero through three",
+                      &tests_apply_handler_arities },
+                    { "apply_handler_void_normalization",
+                      "apply_handler normalizes a void handler to pass",
+                      &tests_apply_handler_void_normalization },
+                    { "apply_handler_forwards_values",
+                      "apply_handler delivers the payload values in order",
+                      &tests_apply_handler_forwards_values },
+                }
+            },
+            dt::block_spec{
+                "monoid",
+                "The sequencing monoid: skip (identity) and seq (combine).",
+                {
+                    { "skip_always_pass",
+                      "skip is the always-pass step, the monoid's unit",
+                      &tests_skip_always_pass },
+                    { "seq_pass_pass",
+                      "seq of two passing steps passes",
+                      &tests_seq_pass_pass },
+                    { "seq_left_zero",
+                      "a consuming left step short-circuits seq (left zero)",
+                      &tests_seq_left_zero },
+                    { "seq_void_normalization",
+                      "seq normalizes void steps to pass before combining",
+                      &tests_seq_void_normalization },
+                    { "seq_associativity",
+                      "seq is associative",
+                      &tests_seq_associativity },
+                    { "seq_lvalue_passthrough",
+                      "seq forwards an lvalue state through both steps",
+                      &tests_seq_lvalue_passthrough },
+                    { "seq_clean_type",
+                      "seq's result type is cv/ref-stripped",
+                      &tests_seq_clean_type },
+                }
+            },
+            dt::block_spec{
+                "traits",
+                "handler_traits: invocability, return kind, compatibility, arity.",
+                {
+                    { "handler_traits_is_invocable",
+                      "is_invocable detects a handler callable with the payload",
+                      &tests_handler_traits_is_invocable },
+                    { "handler_traits_return_type",
+                      "return_type reports the handler's return type",
+                      &tests_handler_traits_return_type },
+                    { "handler_traits_returns_void_verdict",
+                      "detects whether a handler returns void or verdict",
+                      &tests_handler_traits_returns_void_verdict },
+                    { "handler_traits_is_compatible",
+                      "is_compatible gates handlers to void / verdict returns",
+                      &tests_handler_traits_is_compatible },
+                    { "handler_traits_is_nothrow",
+                      "is_nothrow reflects a noexcept handler",
+                      &tests_handler_traits_is_nothrow },
+                    { "handler_traits_expected_arity",
+                      "expected_arity matches the event payload arity",
+                      &tests_handler_traits_expected_arity },
+                    { "handler_traits_cvref",
+                      "handler_traits strips cv/ref before inspecting",
+                      &tests_handler_traits_cvref },
+                }
+            },
+            dt::block_spec{
+                "concepts",
+                "The C++20 handler concept layer.",
+                {
+                    { "concept_is_handler",
+                      "the is_handler concept holds for valid handlers",
+                      &tests_concept_is_handler },
+                    { "concept_handler_for",
+                      "handler_for<E> matches handlers compatible with event E",
+                      &tests_concept_handler_for },
+                    { "concept_void_verdict_handler_for",
+                      "separates void-returning from verdict-returning handlers",
+                      &tests_concept_void_verdict_handler_for },
+                    { "concept_nothrow_handlers",
+                      "the nothrow-handler concept matches noexcept handlers",
+                      &tests_concept_nothrow_handlers },
+                    { "concept_handler_for_event_of_arity",
+                      "handler_for composes with event_of_arity<N>",
+                      &tests_concept_handler_for_event_of_arity },
+                    { "concept_arity_aliases",
+                      "the arity-named handler concepts match their arities",
+                      &tests_concept_arity_aliases },
+                    { "concept_non_event_safety",
+                      "handler concepts are vacuously false for non-events",
+                      &tests_concept_non_event_safety },
+                }
+            },
+        }
+    };
+}
+
+#endif  // DTEST_SPEC_MODE
 
 NS_END  // testing
 NS_END  // djinterp

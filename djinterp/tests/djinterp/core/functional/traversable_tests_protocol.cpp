@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                 traversable_tests_protocol.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/traversable_tests_protocol.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  traversable_tests_protocol.cpp
 //   Section I -- traversable_traits (primary, undefined) and is_traversable.
 

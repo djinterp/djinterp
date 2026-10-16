@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                  cofree_tests_protocol.cpp
+/*******************************************************************************
+* djinterp [test]                                      cofree_tests_protocol.cpp
 *
 *   Section III of the cofree.hpp suite: the typeclass registration.  cofree<F,A>
 * registers functor_traits AND comonad_traits, so this section checks that the
@@ -10,10 +10,12 @@
 * plain functor (opt, a functor but not a comonad) from cofree (both) and from a
 * scalar (neither).
 *
+*
 * path:      /tests/djinterp/core/functional/cofree_tests_protocol.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "cofree_tests.hpp"

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                           functional_common_tests_callable.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/functional_common_tests_callable.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  functional_traits_tests_callable.cpp
 //   Section I -- is_callable and callable_result_t.
 
@@ -5,7 +14,6 @@
 #include <string>
 #include <type_traits>
 // djinterp
-#include "functional_traits_tests.hpp"
 
 
 NS_DJINTERP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       dstring_tests_creation.c
+/*******************************************************************************
+* djinterp [test]                                    dstring_tests_sa_creation.c
 *
 *   Unit tests for d_string creation and destruction functions:
 *     - d_string_new
@@ -13,12 +13,15 @@
 *     - d_string_free
 *     - d_string_free_contents
 *
-* path:      \src\test\dstring_tests_creation.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_creation.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "../../tests/c/dstring_tests_sa.h"
+// djinterp
+#include "dstring_tests_sa.h"
 
 
 /******************************************************************************
@@ -777,7 +780,7 @@ d_tests_sa_dstring_new_from_buffer
     {
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "binary_data_preserved",
-            (str->size == 8) && 
+            (str->size == 8) &&
             ((unsigned char)str->text[2] == 0xFF),
             "binary data should be preserved exactly"
         );

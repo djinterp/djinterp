@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [event]                                      event_tests_sa_compare.c
+*
+*
+* path:      /tests/djinterp/c/event/event_tests_sa_compare.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./event_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 // d_tests_sa_event_cmp_dummy_cb
@@ -95,7 +106,7 @@ d_tests_sa_event_compare_ids
   Tests the following:
   - Smaller id returns negative
   - Larger id returns positive
-  - Equal ids with same fields returns 0
+  - Equal ids with same context returns 0
 */
 bool
 d_tests_sa_event_compare_ids
@@ -130,7 +141,7 @@ d_tests_sa_event_compare_ids
         result = d_assert_standalone(
             d_event_compare(ev_lo, ev_lo2) == 0,
             "event_cmp_equal",
-            "Equal ids with same fields should return 0",
+            "Equal ids with same NULL context should return 0",
             _counter) && result;
     }
 
@@ -153,14 +164,14 @@ d_tests_sa_event_compare_ids
 }
 
 /*
-d_tests_sa_event_compare_num_args
-  Tests d_event_compare secondary comparison on num_args.
+d_tests_sa_event_compare_context
+  Tests d_event_compare secondary comparison on context pointer.
   Tests the following:
-  - Same id, fewer num_args returns negative
-  - Same id, more num_args returns positive
+  - Same id, different context pointers produces non-zero result
+  - Same id, same context pointer returns 0
 */
 bool
-d_tests_sa_event_compare_num_args
+d_tests_sa_event_compare_context
 (
     struct d_test_counter* _counter
 )
@@ -168,26 +179,30 @@ d_tests_sa_event_compare_num_args
     bool            result;
     struct d_event* ev_a;
     struct d_event* ev_b;
+    int             val_a;
+    int             val_b;
 
     result = true;
-    ev_a   = d_event_new(5);
-    ev_b   = d_event_new(5);
+    val_a  = 10;
+    val_b  = 20;
+    ev_a   = d_event_new_ctx(5, &val_a);
+    ev_b   = d_event_new_ctx(5, &val_b);
 
     if ( (ev_a) && (ev_b) )
     {
-        ev_a->num_args = 1;
-        ev_b->num_args = 3;
-
         result = d_assert_standalone(
-            d_event_compare(ev_a, ev_b) < 0,
-            "event_cmp_num_args_less",
-            "Fewer num_args should return negative",
+            d_event_compare(ev_a, ev_b) != 0,
+            "event_cmp_context_diff",
+            "Same id, different context ptrs should be non-zero",
             _counter) && result;
 
+        // set both to same context
+        ev_b->context = &val_a;
+
         result = d_assert_standalone(
-            d_event_compare(ev_b, ev_a) > 0,
-            "event_cmp_num_args_greater",
-            "More num_args should return positive",
+            d_event_compare(ev_a, ev_b) == 0,
+            "event_cmp_context_same",
+            "Same id, same context ptr should return 0",
             _counter) && result;
     }
 
@@ -290,7 +305,6 @@ d_tests_sa_event_compare_deep_ids
   Tests d_event_compare_deep ID-level comparison.
   Tests the following:
   - Different IDs compare on ID regardless of comparator
-  - Different num_args compare on num_args
 */
 bool
 d_tests_sa_event_compare_deep_ids
@@ -312,19 +326,7 @@ d_tests_sa_event_compare_deep_ids
             d_event_compare_deep(ev_lo, ev_hi,
                 (fn_comparator)d_tests_sa_event_cmp_int_comparator) < 0,
             "deep_cmp_diff_id",
-            "Different IDs should compare on ID, not args",
-            _counter) && result;
-
-        // same id, different num_args
-        ev_hi->id       = 1;
-        ev_lo->num_args = 1;
-        ev_hi->num_args = 5;
-
-        result = d_assert_standalone(
-            d_event_compare_deep(ev_lo, ev_hi,
-                (fn_comparator)d_tests_sa_event_cmp_int_comparator) < 0,
-            "deep_cmp_diff_num_args",
-            "Different num_args should compare on num_args",
+            "Different IDs should compare on ID, not context",
             _counter) && result;
     }
 
@@ -342,15 +344,15 @@ d_tests_sa_event_compare_deep_ids
 }
 
 /*
-d_tests_sa_event_compare_deep_args
-  Tests d_event_compare_deep with comparator on args.
+d_tests_sa_event_compare_deep_context
+  Tests d_event_compare_deep with comparator on context.
   Tests the following:
-  - Lower arg value returns negative via comparator
-  - Higher arg value returns positive via comparator
+  - Lower context value returns negative via comparator
+  - Higher context value returns positive via comparator
   - Self-comparison returns 0
 */
 bool
-d_tests_sa_event_compare_deep_args
+d_tests_sa_event_compare_deep_context
 (
     struct d_test_counter* _counter
 )
@@ -364,28 +366,23 @@ d_tests_sa_event_compare_deep_args
     result = true;
     val_lo = 10;
     val_hi = 99;
-    ev_a   = d_event_new(5);
-    ev_b   = d_event_new(5);
+    ev_a   = d_event_new_ctx(5, &val_lo);
+    ev_b   = d_event_new_ctx(5, &val_hi);
 
     if ( (ev_a) && (ev_b) )
     {
-        ev_a->args     = &val_lo;
-        ev_a->num_args = 1;
-        ev_b->args     = &val_hi;
-        ev_b->num_args = 1;
-
         result = d_assert_standalone(
             d_event_compare_deep(ev_a, ev_b,
                 (fn_comparator)d_tests_sa_event_cmp_int_comparator) < 0,
-            "deep_cmp_args_less",
-            "Lower arg should return negative via comparator",
+            "deep_cmp_context_less",
+            "Lower context value should return negative via comparator",
             _counter) && result;
 
         result = d_assert_standalone(
             d_event_compare_deep(ev_b, ev_a,
                 (fn_comparator)d_tests_sa_event_cmp_int_comparator) > 0,
-            "deep_cmp_args_greater",
-            "Higher arg should return positive via comparator",
+            "deep_cmp_context_greater",
+            "Higher context value should return positive via comparator",
             _counter) && result;
 
         result = d_assert_standalone(
@@ -396,15 +393,14 @@ d_tests_sa_event_compare_deep_args
             _counter) && result;
     }
 
-    // args point to stack; free structs only
     if (ev_a)
     {
-        free(ev_a);
+        d_event_free(ev_a);
     }
 
     if (ev_b)
     {
-        free(ev_b);
+        d_event_free(ev_b);
     }
 
     return result;
@@ -414,8 +410,8 @@ d_tests_sa_event_compare_deep_args
 d_tests_sa_event_compare_deep_no_comparator
   Tests d_event_compare_deep with NULL comparator.
   Tests the following:
-  - NULL comparator with non-NULL args does not crash
-  - Both args NULL with same id/num_args returns 0
+  - NULL comparator with non-NULL context does not crash
+  - Both NULL context with same id returns 0
 */
 bool
 d_tests_sa_event_compare_deep_no_comparator
@@ -432,17 +428,12 @@ d_tests_sa_event_compare_deep_no_comparator
     result = true;
     val_a  = 10;
     val_b  = 20;
-    ev_a   = d_event_new(5);
-    ev_b   = d_event_new(5);
+    ev_a   = d_event_new_ctx(5, &val_a);
+    ev_b   = d_event_new_ctx(5, &val_b);
 
     if ( (ev_a) && (ev_b) )
     {
-        // NULL comparator with non-NULL args
-        ev_a->args     = &val_a;
-        ev_a->num_args = 1;
-        ev_b->args     = &val_b;
-        ev_b->num_args = 1;
-
+        // NULL comparator with non-NULL context
         {
             int cmp;
 
@@ -455,16 +446,14 @@ d_tests_sa_event_compare_deep_no_comparator
                 _counter) && result;
         }
 
-        // both args NULL
-        ev_a->args     = NULL;
-        ev_a->num_args = 0;
-        ev_b->args     = NULL;
-        ev_b->num_args = 0;
+        // both NULL context
+        ev_a->context = NULL;
+        ev_b->context = NULL;
 
         result = d_assert_standalone(
             d_event_compare_deep(ev_a, ev_b, NULL) == 0,
-            "deep_cmp_both_null_args",
-            "Both NULL args with same id/num_args should return 0",
+            "deep_cmp_both_null_context",
+            "Both NULL context with same id should return 0",
             _counter) && result;
     }
 
@@ -712,11 +701,11 @@ d_tests_sa_event_compare_all
 
     result = d_tests_sa_event_compare_null(_counter)                    && result;
     result = d_tests_sa_event_compare_ids(_counter)                     && result;
-    result = d_tests_sa_event_compare_num_args(_counter)                && result;
+    result = d_tests_sa_event_compare_context(_counter)                 && result;
     result = d_tests_sa_event_compare_self(_counter)                    && result;
     result = d_tests_sa_event_compare_deep_null(_counter)               && result;
     result = d_tests_sa_event_compare_deep_ids(_counter)                && result;
-    result = d_tests_sa_event_compare_deep_args(_counter)               && result;
+    result = d_tests_sa_event_compare_deep_context(_counter)            && result;
     result = d_tests_sa_event_compare_deep_no_comparator(_counter)      && result;
     result = d_tests_sa_event_listener_compare_null(_counter)           && result;
     result = d_tests_sa_event_listener_compare_ids(_counter)            && result;

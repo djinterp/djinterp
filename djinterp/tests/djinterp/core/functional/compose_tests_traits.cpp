@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    compose_tests_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                       compose_tests_traits.cpp
 *
 *   Tests for compose.hpp Section 0: the predicate SFINAE structural
 * traits and the C++20 concept mirrors.  Almost all coverage here is
@@ -8,11 +8,16 @@
 * with a descriptive message rather than failing silently at runtime.
 * The section function records a single runtime roll-up assertion so
 * the report carries a visible row for the compile-time suite.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/compose_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "compose_tests.hpp"
-
-#include "../../test/test_trait.hpp"
 
 
 NS_DJINTERP

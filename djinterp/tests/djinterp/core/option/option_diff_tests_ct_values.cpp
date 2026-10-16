@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                              option_diff_tests_ct_values.cpp
+/*******************************************************************************
+* djinterp [test]                                option_diff_tests_ct_values.cpp
 *
 *   PART A / A.III + A.IV - compile-time value-level diff traits
 * (option_set_changed_keys, option_set_unchanged_keys) and the diff summary
@@ -13,10 +13,14 @@
 *     base    a:1  b:2  c:3
 *     derived a:1  b:99 d:4     -> common {a,b}; a unchanged, b changed
 *
+*
 * path:      /tests/djinterp/core/option/option_diff_tests_ct_values.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.08
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./option_diff_tests.hpp"
 
 

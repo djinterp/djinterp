@@ -55,6 +55,8 @@ TABLE OF CONTENTS
          1.  d_parsegen_registry
          2.  Registry flags
               a. D_PARSEGEN_REGISTRY_OWNS_STAGES
+    2.  Diagnostic codes
+         1.  d_parsegen_registry_diag
 3.  OPERATIONS
     ----------
     1.  Lifetime
@@ -201,6 +203,22 @@ struct d_parsegen_registry
 //   constant: the table was allocated by the registry and is freed by
 // d_parsegen_registry_release.
 #define D_PARSEGEN_REGISTRY_OWNS_STAGES 0x01u
+
+
+// 2.2    Diagnostic codes
+//------------------------------------------------------------------------------
+// 2.2.1
+// d_parsegen_registry_diag
+//   enum: the conditions a registry query reports, under
+// D_PARSEGEN_DIAG_DOMAIN_REGISTRY -- the registry's own domain, since a failed
+// query is about the registry whichever kind of stage was asked for. REJECTED
+// is the continuation note under NONE_ACCEPTS, one per candidate. Append-only.
+enum d_parsegen_registry_diag
+{
+    D_PARSEGEN_DIAG_REGISTRY_NO_SUCH_STAGE = 0,
+    D_PARSEGEN_DIAG_REGISTRY_NONE_ACCEPTS  = 1,
+    D_PARSEGEN_DIAG_REGISTRY_REJECTED      = 2
+};
 
 
 //==============================================================================

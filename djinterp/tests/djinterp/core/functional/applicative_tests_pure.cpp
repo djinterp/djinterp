@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   applicative_tests_pure.cpp
+/*******************************************************************************
+* djinterp [test]                                     applicative_tests_pure.cpp
 *
 *   Section II.1 of the applicative.hpp suite: pure, which lifts a bare value
 * into an explicitly-named applicative (the dual of monad_unit).  Covers pure
@@ -8,10 +8,12 @@
 * the delegation of the bridge's pure to monad_unit, and the result type
 * identity.
 *
+*
 * path:      /tests/djinterp/core/functional/applicative_tests_pure.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "applicative_tests.hpp"

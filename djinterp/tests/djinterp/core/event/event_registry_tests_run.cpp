@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                              event_registry_tests_run.cpp
+/*******************************************************************************
+* djinterp [test]                                   event_registry_tests_run.cpp
 *
 *   Section III (run) -- the outer fold over a homogeneous trace.  run folds
 * dispatch across [first, last), building one payload per element, and returns
@@ -12,10 +12,11 @@
 * actually ran before the left zero).
 *
 *
-* path:      /tests/djinterp/core/event/event_registry/event_registry_tests_run.cpp
+* path:      /tests/djinterp/core/event/event_registry_tests_run.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_registry_tests.hpp"

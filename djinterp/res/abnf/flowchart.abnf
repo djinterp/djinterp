@@ -1,0 +1,620 @@
+; ============================================================================
+; FLOWCHART DSL GRAMMAR
+; ============================================================================
+
+flowchart-document = flowchart-header *flowchart-element
+
+flowchart-header = dimension-spec [time-spec] [default-styles]
+
+; ============================================================================
+; DIMENSION AND TIME SPECIFICATIONS
+; ============================================================================
+
+dimension-spec = "dimension" ":" ("2D" / "3D")
+               / "dim" ":" ("2" / "3")
+
+time-spec = "time" ":" ("static" / "animated" / "timeline")
+          / "t" ":" time-range
+
+time-range = expression ".." expression
+           / "[" expression "," expression "]"
+
+default-styles = "defaults" "{" *style-property "}"
+
+; ============================================================================
+; FLOWCHART ELEMENTS
+; ============================================================================
+
+flowchart-element = node-definition
+                  / edge-definition
+                  / connector-definition
+                  / group-definition
+                  / annotation-definition
+                  / layer-definition
+
+; ============================================================================
+; NODE DEFINITIONS
+; ============================================================================
+
+node-definition = "node" identifier [node-type] position-spec [style-block] [content-block]
+
+node-type = ":" shape-spec
+
+; Shapes
+shape-spec = basic-shape / custom-shape
+
+basic-shape = "rectangle" / "rect" / "box"
+            / "square"
+            / "circle" / "ellipse" / "oval"
+            / "diamond" / "rhombus"
+            / "parallelogram"
+            / "trapezoid"
+            / "hexagon" / "octagon" / "pentagon"
+            / "triangle" / "triangle_up" / "triangle_down" / "triangle_left" / "triangle_right"
+            / "star" ["(" integer ")"]  ; star(5) for 5-pointed star
+            / "arrow" / "arrow_left" / "arrow_right" / "arrow_up" / "arrow_down"
+            / "cloud"
+            / "cylinder"
+            / "document"
+            / "tape" / "stored_data"
+            / "manual_input"
+            / "manual_operation"
+            / "process"
+            / "decision"
+            / "data"
+            / "terminator" / "start" / "end"
+            / "predefined_process" / "subprocess"
+            / "internal_storage"
+            / "delay"
+            / "preparation"
+            / "off_page_connector"
+            / "or_gate" / "summing_junction"
+            / "database" / "db"
+            / "queue"
+            / "collate"
+            / "sort"
+            / "merge"
+            / "extract"
+            / "display"
+
+; 3D Shapes (when dimension is 3D)
+basic-shape =/ solid-shape
+
+solid-shape = "cube" / "box3d"
+            / "sphere"
+            / "cone"
+            / "pyramid"
+            / "prism" ["(" integer ")"]  ; prism(6) for hexagonal prism
+            / "torus"
+            / "cylinder3d"
+            / "tetrahedron"
+            / "octahedron"
+            / "dodecahedron"
+            / "icosahedron"
+            / "capsule"
+            / "ellipsoid"
+
+; Custom shapes using mathematical expressions
+custom-shape = "custom" "{" shape-definition "}"
+
+shape-definition = parametric-shape / implicit-shape / point-list-shape
+
+parametric-shape = "x" ":" expression "," "y" ":" expression ["," "z" ":" expression] "," parameter-range
+
+implicit-shape = "equation" ":" expression ["<" / ">" / "=" / "≤" / "≥"] expression
+
+point-list-shape = "points" ":" point-list ["," "closed" ":" boolean]
+
+point-list = "[" point *("," point) "]"
+
+parameter-range = identifier "∈" "[" expression "," expression "]"
+                / identifier "in" range-expression
+
+; ============================================================================
+; POSITION SPECIFICATIONS
+; ============================================================================
+
+position-spec = "at" position [orientation]
+
+position = coordinate-2d / coordinate-3d / relative-position / grid-position / mathematical-position
+
+coordinate-2d = "(" expression "," expression ")"
+
+coordinate-3d = "(" expression "," expression "," expression ")"
+
+relative-position = anchor-point [offset]
+                  / identifier "." anchor-name [offset]
+
+anchor-point = identifier "." anchor-name
+
+anchor-name = "center" / "c"
+            / "north" / "n" / "top"
+            / "south" / "s" / "bottom"
+            / "east" / "e" / "right"
+            / "west" / "w" / "left"
+            / "northeast" / "ne" / "top_right"
+            / "northwest" / "nw" / "top_left"
+            / "southeast" / "se" / "bottom_right"
+            / "southwest" / "sw" / "bottom_left"
+
+offset = "+" vector-expression
+       / "-" vector-expression
+
+grid-position = "[" integer "," integer [","  integer] "]"
+
+mathematical-position = "f" "(" expression ["," expression ["," expression]] ")"
+                      / "polar" "(" expression "," expression ")"  ; (r, θ)
+                      / "cylindrical" "(" expression "," expression "," expression ")"  ; (ρ, φ, z)
+                      / "spherical" "(" expression "," expression "," expression ")"  ; (r, θ, φ)
+
+orientation = "rotate" ":" angle
+            / "pitch" ":" angle "," "yaw" ":" angle "," "roll" ":" angle  ; 3D
+
+angle = expression [angle-unit]
+
+angle-unit = "deg" / "°" / "rad" / "grad" / "turn"
+
+; ============================================================================
+; EDGE DEFINITIONS (Connections)
+; ============================================================================
+
+edge-definition = "edge" identifier edge-spec [edge-style] [edge-labels]
+
+edge-spec = "from" node-reference "to" node-reference [waypoints]
+
+node-reference = identifier ["." anchor-name]
+
+; Waypoints for complex routing
+waypoints = "via" waypoint-list
+
+waypoint-list = waypoint *("," waypoint)
+
+waypoint = position
+         / "manhattan"  ; right-angle routing
+         / "orthogonal"
+         / "smooth" / "curved"
+         / "bezier" "(" control-points ")"
+         / "spline"
+
+control-points = point *("," point)
+
+point = "(" expression "," expression ["," expression] ")"
+
+; Edge styles and types
+edge-style = "style" "{" *edge-style-property "}"
+
+edge-style-property = line-property
+                    / arrow-property
+                    / color-property
+                    / animation-property
+
+; ============================================================================
+; LINE PROPERTIES
+; ============================================================================
+
+line-property = line-type / line-width / line-pattern / line-cap / line-join
+
+line-type = "type" ":" line-style-value
+
+line-style-value = "solid" / "dashed" / "dotted" / "dash-dot" / "dash-dot-dot"
+                 / "custom" "[" number-list "]"  ; custom dash pattern
+
+line-width = "width" ":" measurement
+           / "thickness" ":" measurement
+           / "weight" ":" ("thin" / "medium" / "thick" / measurement)
+
+line-pattern = "pattern" ":" line-style-value
+
+line-cap = "cap" ":" ("butt" / "round" / "square")
+
+line-join = "join" ":" ("miter" / "round" / "bevel")
+
+; ============================================================================
+; ARROW PROPERTIES
+; ============================================================================
+
+arrow-property = arrow-start / arrow-end / arrow-size
+
+arrow-start = "arrow_start" ":" arrow-style
+
+arrow-end = "arrow_end" ":" arrow-style
+          / "arrow" ":" arrow-style  ; defaults to end
+
+arrow-style = "none"
+            / "arrow" / ">"
+            / "triangle" / "▶"
+            / "open" / "⊳"
+            / "diamond" / "◇"
+            / "filled_diamond" / "◆"
+            / "circle" / "○"
+            / "filled_circle" / "●"
+            / "square" / "□"
+            / "filled_square" / "■"
+            / "bar" / "perpendicular" / "⊥"
+            / "crow_foot"
+            / "fork"
+            / "many"
+            / "one"
+            / "zero_or_more" / "0..*"
+            / "one_or_more" / "1..*"
+            / "zero_or_one" / "0..1"
+            / "custom" "{" shape-definition "}"
+
+arrow-size = "arrow_size" ":" measurement
+
+; ============================================================================
+; COLOR PROPERTIES
+; ============================================================================
+
+color-property = stroke-color / fill-color / gradient-fill / opacity-property
+
+stroke-color = "stroke" ":" color-value
+             / "border_color" ":" color-value
+             / "line_color" ":" color-value
+
+fill-color = "fill" ":" color-value
+           / "background" ":" color-value
+           / "bg" ":" color-value
+
+gradient-fill = "gradient" ":" gradient-spec
+
+gradient-spec = linear-gradient / radial-gradient / conic-gradient
+
+linear-gradient = "linear" "(" angle "," color-stop-list ")"
+                / "linear" "(" direction "," color-stop-list ")"
+
+radial-gradient = "radial" "(" position "," color-stop-list ")"
+                / "radial" "(" "circle" / "ellipse" "," color-stop-list ")"
+
+conic-gradient = "conic" "(" angle "," position "," color-stop-list ")"
+
+direction = "to" ("top" / "bottom" / "left" / "right" / "top_left" / "top_right" / "bottom_left" / "bottom_right")
+
+color-stop-list = color-stop *("," color-stop)
+
+color-stop = color-value [percentage]
+
+color-value = hex-color / rgb-color / rgba-color / hsl-color / hsla-color / named-color
+
+hex-color = "#" 6HEXDIG / "#" 3HEXDIG / "#" 8HEXDIG  ; RGB, RGB, RGBA
+
+rgb-color = "rgb" "(" integer "," integer "," integer ")"
+
+rgba-color = "rgba" "(" integer "," integer "," integer "," number ")"
+
+hsl-color = "hsl" "(" number "," percentage "," percentage ")"
+
+hsla-color = "hsla" "(" number "," percentage "," percentage "," number ")"
+
+named-color = "red" / "green" / "blue" / "yellow" / "orange" / "purple" / "pink"
+            / "black" / "white" / "gray" / "grey"
+            / "cyan" / "magenta"
+            / "brown" / "lime" / "navy" / "teal" / "olive" / "maroon"
+            / "silver" / "gold"
+            / "transparent"
+            / "aqua" / "fuchsia" / "indigo" / "violet"
+            / "salmon" / "coral" / "crimson"
+            / identifier  ; custom color name
+
+opacity-property = "opacity" ":" number
+                 / "alpha" ":" number
+
+percentage = number "%"
+
+; ============================================================================
+; BORDER AND SPACING PROPERTIES
+; ============================================================================
+
+style-property = color-property
+               / border-property
+               / spacing-property
+               / dimension-property
+               / shadow-property
+               / transform-property
+
+border-property = border-width / border-style / border-color / border-radius
+
+border-width = "border_width" ":" measurement
+             / "border" ":" measurement [line-style-value] [color-value]
+
+border-style = "border_style" ":" line-style-value
+
+border-color = "border_color" ":" color-value
+
+border-radius = "border_radius" ":" measurement
+              / "rounded" ":" measurement
+              / "radius" ":" measurement
+
+; Spacing properties
+spacing-property = margin-property / padding-property / spacing-value
+
+margin-property = "margin" ":" spacing-value
+                / "margin_top" ":" measurement
+                / "margin_right" ":" measurement
+                / "margin_bottom" ":" measurement
+                / "margin_left" ":" measurement
+                / "margin_x" ":" measurement  ; left and right
+                / "margin_y" ":" measurement  ; top and bottom
+
+padding-property = "padding" ":" spacing-value
+                 / "padding_top" ":" measurement
+                 / "padding_right" ":" measurement
+                 / "padding_bottom" ":" measurement
+                 / "padding_left" ":" measurement
+                 / "padding_x" ":" measurement
+                 / "padding_y" ":" measurement
+
+spacing-value = measurement  ; all sides
+              / measurement measurement  ; vertical horizontal
+              / measurement measurement measurement measurement  ; top right bottom left
+
+; Dimensions
+dimension-property = width-property / height-property / depth-property / size-property
+
+width-property = "width" ":" measurement / "w" ":" measurement
+
+height-property = "height" ":" measurement / "h" ":" measurement
+
+depth-property = "depth" ":" measurement / "d" ":" measurement  ; 3D only
+
+size-property = "size" ":" measurement [measurement [measurement]]
+
+measurement = number [unit]
+
+unit = "px" / "pt" / "em" / "rem" / "%" / "cm" / "mm" / "in" / "pc"
+
+number-list = number *("," number)
+
+; Shadow properties
+shadow-property = "shadow" ":" shadow-spec
+                / "box_shadow" ":" shadow-spec
+
+shadow-spec = measurement measurement [measurement] [measurement] color-value
+            / "none"
+
+; Transform properties (2D and 3D)
+transform-property = "transform" ":" transform-list
+
+transform-list = transform-function *("," transform-function)
+
+transform-function = translate-transform / rotate-transform / scale-transform / skew-transform / matrix-transform
+
+translate-transform = "translate" "(" expression ["," expression ["," expression]] ")"
+
+rotate-transform = "rotate" "(" angle ["," expression "," expression "," expression] ")"  ; 3D: axis vector
+
+scale-transform = "scale" "(" number ["," number ["," number]] ")"
+
+skew-transform = "skew" "(" angle ["," angle] ")"
+
+matrix-transform = "matrix" "(" number-list ")"
+
+; ============================================================================
+; TEXT AND TYPOGRAPHY
+; ============================================================================
+
+content-block = "content" "{" text-content [text-style] "}"
+              / "text" ":" string [text-style]
+
+text-content = string / rich-text / expression-text
+
+string = DQUOTE *(CHAR / escaped-char) DQUOTE
+
+escaped-char = "\" CHAR
+
+rich-text = "rich" "{" *rich-text-element "}"
+
+rich-text-element = text-span / line-break / expression-inline
+
+text-span = string [inline-style]
+
+inline-style = "[" *text-style-property "]"
+
+line-break = "br" / "\n"
+
+expression-inline = "$" expression "$"
+                  / "$$" expression "$$"  ; display mode
+
+expression-text = "expr" ":" expression
+
+text-style = "style" "{" *text-style-property "}"
+
+text-style-property = font-property
+                    / text-color-property
+                    / text-alignment-property
+                    / text-decoration-property
+                    / text-transform-property
+                    / line-height-property
+                    / letter-spacing-property
+
+; Font properties
+font-property = font-family / font-size / font-weight / font-style / font-variant
+
+font-family = "font" ":" font-name *("," font-name)
+            / "font_family" ":" font-name *("," font-name)
+
+font-name = identifier / string
+
+font-size = "font_size" ":" measurement
+          / "size" ":" measurement
+
+font-weight = "font_weight" ":" font-weight-value
+            / "weight" ":" font-weight-value
+
+font-weight-value = "normal" / "bold" / "bolder" / "lighter"
+                  / "100" / "200" / "300" / "400" / "500" / "600" / "700" / "800" / "900"
+
+font-style = "font_style" ":" ("normal" / "italic" / "oblique" [angle])
+
+font-variant = "font_variant" ":" ("normal" / "small_caps")
+
+; Text color
+text-color-property = "color" ":" color-value
+                    / "text_color" ":" color-value
+
+; Text alignment
+text-alignment-property = horizontal-align / vertical-align / text-align
+
+horizontal-align = "align" ":" h-align-value
+                 / "text_align" ":" h-align-value
+
+h-align-value = "left" / "center" / "right" / "justify" / "start" / "end"
+
+vertical-align = "vertical_align" ":" v-align-value
+               / "valign" ":" v-align-value
+
+v-align-value = "top" / "middle" / "bottom" / "baseline" / "sub" / "super"
+
+text-align = "align" ":" h-align-value v-align-value
+
+; Text decoration
+text-decoration-property = "text_decoration" ":" text-decoration-value
+                         / "decoration" ":" text-decoration-value
+
+text-decoration-value = "none" / "underline" / "overline" / "line_through" / "strike"
+                      / text-decoration-value text-decoration-style [color-value]
+
+text-decoration-style = "solid" / "double" / "dotted" / "dashed" / "wavy"
+
+; Text transform
+text-transform-property = "text_transform" ":" ("none" / "uppercase" / "lowercase" / "capitalize")
+
+; Line height
+line-height-property = "line_height" ":" (number / measurement)
+
+; Letter spacing
+letter-spacing-property = "letter_spacing" ":" measurement
+                        / "tracking" ":" measurement
+
+; Word spacing
+word-spacing-property = "word_spacing" ":" measurement
+
+; ============================================================================
+; CONNECTOR DEFINITIONS (Advanced)
+; ============================================================================
+
+connector-definition = "connector" identifier connector-spec [connector-style]
+
+connector-spec = "from" connector-end "to" connector-end [routing-algorithm]
+
+connector-end = node-reference
+              / point
+              / mathematical-position
+
+routing-algorithm = "routing" ":" routing-type
+
+routing-type = "straight" / "direct"
+             / "orthogonal" / "manhattan"
+             / "bezier" [bezier-params]
+             / "curved" [curve-params]
+             / "arc" [arc-params]
+             / "polyline" "(" point-list ")"
+             / "smooth" [smoothness]
+             / "auto"  ; automatic routing
+             / "custom" "{" path-definition "}"
+
+bezier-params = "(" control-points ")"
+
+curve-params = "(" "tension" ":" number ")"
+
+arc-params = "(" "radius" ":" measurement "," "sweep" ":" angle ")"
+
+smoothness = number  ; 0-1
+
+path-definition = "d" ":" svg-path-data
+                / mathematical-path
+
+svg-path-data = string  ; SVG path data format
+
+mathematical-path = "parametric" "{" "x" ":" expression "," "y" ":" expression ["," "z" ":" expression] "," parameter-range "}"
+
+connector-style = "style" "{" *connector-style-property "}"
+
+connector-style-property = edge-style-property
+                         / connection-point-style
+
+connection-point-style = "point_style" ":" ("dot" / "circle" / "square" / "none")
+                       / "point_size" ":" measurement
+                       / "point_color" ":" color-value
+
+; ============================================================================
+; EDGE LABELS
+; ============================================================================
+
+edge-labels = "label" label-spec *("," "label" label-spec)
+
+label-spec = label-text [label-position] [text-style]
+
+label-text = string / expression-text
+
+label-position = "at" label-position-value
+
+label-position-value = "start" / "middle" / "end" / "center"
+                     / number  ; 0-1 along edge
+                     / "above" / "below" / "left" / "right"
+                     / position
+
+; ============================================================================
+; GROUPING AND LAYERS
+; ============================================================================
+
+group-definition = "group" identifier [group-spec] "{" *flowchart-element "}"
+
+group-spec = "at" position [style-block]
+
+style-block = "style" "{" *style-property "}"
+
+layer-definition = "layer" identifier [layer-properties] "{" *flowchart-element "}"
+
+layer-properties = "style" "{" *layer-property "}"
+
+layer-property = "z_index" ":" integer
+               / "visible" ":" boolean
+               / "locked" ":" boolean
+               / "opacity" ":" number
+
+; ============================================================================
+; ANNOTATIONS
+; ============================================================================
+
+annotation-definition = "annotation" identifier annotation-spec
+
+annotation-spec = annotation-type position [style-block] content-block
+
+annotation-type = "note" / "comment" / "callout" / "tooltip" / "badge"
+
+; ============================================================================
+; ANIMATION (Time-based)
+; ============================================================================
+
+animation-property = "animate" ":" animation-spec
+
+animation-spec = "{" *animation-keyframe "}"
+
+animation-keyframe = "at" time-value "{" *style-property "}"
+                   / time-value ":" "{" *style-property "}"
+
+time-value = expression [time-unit]
+
+time-unit = "s" / "ms" / "frames" / "f"
+
+; Animation easing
+easing-function = "ease" / "linear" / "ease_in" / "ease_out" / "ease_in_out"
+                / "cubic_bezier" "(" number "," number "," number "," number ")"
+
+; ============================================================================
+; HELPER RULES
+; ============================================================================
+
+boolean = "true" / "false" / "yes" / "no" / "1" / "0"
+
+identifier = ALPHA *(ALPHA / DIGIT / "_" / "-")
+
+ALPHA = %x41-5A / %x61-7A
+DIGIT = %x30-39
+HEXDIG = DIGIT / "A" / "B" / "C" / "D" / "E" / "F" / "a" / "b" / "c" / "d" / "e" / "f"
+DQUOTE = %x22
+CHAR = %x20-21 / %x23-7E  ; printable ASCII except quotes
+
+; Import expression from base mathematical grammar
+expression = <from base mathematical grammar>

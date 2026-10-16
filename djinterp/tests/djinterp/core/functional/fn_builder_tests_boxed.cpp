@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    fn_builder_tests_boxed.cpp
+/*******************************************************************************
+* djinterp [test]                                     fn_builder_tests_boxed.cpp
 *
 * Type-erasure tests (section IV): boxed_fn_builder and box_builder.
 *
@@ -7,11 +7,19 @@
 *                 boxed_fn_builder type (via direct construction and via
 *                 box_builder), then execute it; including a type-changing
 *                 chain and the operator() container overload.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/fn_builder_tests_boxed.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <list>
 #include <string>
+#include <vector>
+// djinterp
 #include "./fn_builder_tests.hpp"
 
 

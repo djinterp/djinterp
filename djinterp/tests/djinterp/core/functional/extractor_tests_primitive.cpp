@@ -1,8 +1,17 @@
-#include "extractor_tests.hpp"
-
+/*******************************************************************************
+* djinterp [core]                                  extractor_tests_primitive.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/extractor_tests_primitive.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <tuple>
 #include <utility>
+// djinterp
+#include "extractor_tests.hpp"
 
 
 NS_DJINTERP

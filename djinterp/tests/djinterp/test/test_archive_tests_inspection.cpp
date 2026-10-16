@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                             test_archive_tests_inspection.cpp
+*
+* path:      /tests/djinterp/test/test_archive_tests_inspection.cpp
+******************************************************************************/
+// djinterp
 #include "test_archive_tests.hpp"
 
 NS_DJINTERP
@@ -94,7 +100,7 @@ tests_archive_find_entry_locates_by_name()
 
     D_TA_CHECK(e != ta_no_entry);
     D_TA_CHECK(e->name == "readme.txt");
-    D_TA_CHECK(e->data == dj::byte_buffer("hello, world"));
+    D_TA_CHECK(e->data == dj::byte_blob("hello, world"));
     D_TA_CHECK(!e->is_directory);
 
     // the pointer addresses the list's own element
@@ -228,7 +234,7 @@ tests_archive_find_entry_returns_first_match()
 
     D_TA_CHECK(e != ta_no_entry);
     D_TA_CHECK(e == &items[0]);
-    D_TA_CHECK(e->data == dj::byte_buffer("first"));
+    D_TA_CHECK(e->data == dj::byte_blob("first"));
 
     // duplicates that differ only by trailing separator
     dj::entry_list slashed;
@@ -340,7 +346,7 @@ tests_archive_count_files_and_dirs()
     dj::entry_list tricky;
 
     tricky.push_back(dt::make_file_entry("looks/like/a/dir/",
-                                         dj::byte_buffer("data")));
+                                         dj::byte_blob("data")));
 
     D_TA_CHECK(dt::count_files(tricky) == 1u);
     D_TA_CHECK(dt::count_dirs(tricky) == 0u);
@@ -348,7 +354,7 @@ tests_archive_count_files_and_dirs()
     // and an empty-payload file is still a file
     dj::entry_list hollow;
 
-    hollow.push_back(dt::make_file_entry("hollow", dj::byte_buffer()));
+    hollow.push_back(dt::make_file_entry("hollow", dj::byte_blob()));
 
     D_TA_CHECK(dt::count_files(hollow) == 1u);
     D_TA_CHECK(dt::count_dirs(hollow) == 0u);

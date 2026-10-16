@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                       adapter_tests_traits.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/adapter/adapter/adapter_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : adapter_tests_traits.cpp
 //   The adaptation-trait layer (section III): the internal structural probes
 // (has_value_type / has_size_method / has_begin_end / has_push_back /

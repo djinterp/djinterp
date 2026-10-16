@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                    mediator_tests_dispatch.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/mediator/mediator_tests_dispatch.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : mediator_tests_dispatch.cpp
 //   The stateless dispatch policies (section VIII).  Each is a struct with a
 // single static dispatch() over a handler range and an event.  The three

@@ -1,4 +1,15 @@
-#include ".\dmacro_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                    dmacro_tests_sa_selection.c
+*
+*
+* path:      /tests/djinterp/c/dmacro_tests_sa_selection.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************
@@ -36,7 +47,7 @@ d_tests_sa_dmacro_first_second_third
            D_INDENT);
 
     // test D_VARG_GET_FIRST
-    result = D_VARG_GET_FIRST(10, 20, 30, 40, 50);
+    result = D_VARG_GET_ARG_1(10, 20, 30, 40, 50);
 
     if (!d_assert_standalone(result == 10,
                              "D_VARG_GET_FIRST(10,20,30,40,50) == 10",

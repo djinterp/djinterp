@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                      mediator_tests_static.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/mediator/mediator_tests_static.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : mediator_tests_static.cpp
 //   The CRTP static mediator (section VII): a compile-time colleague set with
 // no virtual dispatch.  The fixture is a two-colleague UI: a button and a

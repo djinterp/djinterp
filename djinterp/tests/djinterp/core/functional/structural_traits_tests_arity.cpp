@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                              structural_traits_tests_arity.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/structural_traits_tests_arity.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  structural_traits_tests_arity.cpp
 //   Section II -- the arity trilogy: is_nullary_callable, is_unary_callable,
 //   is_binary_callable.

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                     producer_tests.hpp
+/*******************************************************************************
+* djinterp [functional]                                       producer_tests.hpp
 *
 *   Unit-test header for producer.hpp. Provides a lightweight, self-contained
 * test harness in `djinterp::testing`, shared helper producer/functor types,
@@ -34,10 +34,11 @@
 * requires C++11+ for its rvalue-reference / variadic machinery.)
 *
 *
-* path:      /inc/functional/producer_tests.hpp
+* path:      /tests/djinterp/core/functional/producer_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_PRODUCER_TESTS_
 #define DJINTERP_FUNCTIONAL_PRODUCER_TESTS_ 1
@@ -46,15 +47,15 @@
 #include <cstddef>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
-#include "./producer.hpp"
+#include "../../../../inc/djinterp/djinterp.hpp"
+#include "../../../../inc/djinterp/core/functional/producer.hpp"
 // DTest framework (run_session model: handler + record_assertion + session).
 // Same include convention as the example suites (view_tests.hpp, ...); adjust
 // the prefix if this header sits elsewhere relative to the test framework.
-#include "./test_common.hpp"
-#include "./test_handler.hpp"
-#include "./test_defaults.hpp"
-#include "./test_runner.hpp"
+#include "../../../../inc/djinterp/test/test_common.hpp"
+#include "../../../../inc/djinterp/test/test_handler.hpp"
+#include "../../../../inc/djinterp/test/test_defaults.hpp"
+#include "../../../../inc/djinterp/test/test_runner.hpp"
 
 
 #ifndef D_KEYWORD_TESTING

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            mediator_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                             mediator_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/patterns/mediator/mediator.hpp.
 * Two faces, selected by DTEST_SPEC_MODE:
@@ -25,10 +25,12 @@
 * (or anything else) to build on GCC/Clang.  The fixes are in the accompanying
 * patch; the suite targets the corrected header.
 *
-* path:      /tests/djinterp/patterns/mediator/mediator_tests.hpp
+*
+* path:      /tests/djinterp/core/paradigm/mediator/mediator_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.09
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_MEDIATOR_TESTS_
 #define DJINTERP_TEST_MEDIATOR_TESTS_ 1
@@ -40,7 +42,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "mediator.hpp"                       // the header under test (bare form)
+#include "../../../../../inc/djinterp/core/paradigm/mediator/mediator.hpp"                       // the header under test (bare form)
 #include "djinterp/test/test_defaults.hpp"    // module_spec, run_module (full-from-inc)
 
 

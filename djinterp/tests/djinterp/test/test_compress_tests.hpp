@@ -10,7 +10,7 @@
 *   This is a property of the framework, not of the module under test, and it
 * applies to EVERY DTest runner rather than to this suite alone.  A runner
 * includes test_defaults.hpp to reach run_module; test_defaults.hpp includes
-* output/test_report_runner.hpp; and that header spells `byte_buffer` in two
+* output/test_report_runner.hpp; and that header spells `byte_blob` in two
 * places - pending_doc::bytes and write_bytes_to_file's parameter - which is a
 * typedef reachable only through the archive include guarded by
 * D_TEST_REPORT_ENABLE_ARCHIVE.  Without the macro the runner does not compile
@@ -68,11 +68,11 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-
+// djinterp
 // -- (part 1) mode-gated includes ------------------------------------------
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "test_compress.hpp"
+#include "../../../inc/djinterp/test/test_compress.hpp"
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"
@@ -141,13 +141,13 @@ namespace dj = ::djinterp;
 // tc_bytes
 //   function: builds a buffer from an explicit unsigned byte list, so a test
 // can hand a signature predicate an exact header without escaping games.
-inline dj::byte_buffer
+inline dj::byte_blob
 tc_bytes(
     const unsigned char* _p,
     std::size_t          _n
 )
 {
-    dj::byte_buffer out;
+    dj::byte_blob out;
     std::size_t     i = 0;
 
     out.reserve(_n);
@@ -164,14 +164,14 @@ tc_bytes(
 //   function: _magic followed by _tail_n filler bytes.  Signature predicates
 // are documented to be lenient about everything past the header, so the
 // filler proves they really do stop reading where they say they do.
-inline dj::byte_buffer
+inline dj::byte_blob
 tc_prefix(
     const unsigned char* _magic,
     std::size_t          _magic_n,
     std::size_t          _tail_n
 )
 {
-    dj::byte_buffer out = tc_bytes(_magic, _magic_n);
+    dj::byte_blob out = tc_bytes(_magic, _magic_n);
     std::size_t     i   = 0;
 
     for (i = 0; i < _tail_n; ++i)
@@ -186,12 +186,12 @@ tc_prefix(
 //   function: every proper prefix of _b, shortest first - the input a
 // length-guard test needs to prove a predicate rejects short buffers rather
 // than reading past the end.
-inline std::vector<dj::byte_buffer>
+inline std::vector<dj::byte_blob>
 tc_truncations(
-    const dj::byte_buffer& _b
+    const dj::byte_blob& _b
 )
 {
-    std::vector<dj::byte_buffer> out;
+    std::vector<dj::byte_blob> out;
     std::size_t                  i = 0;
 
     for (i = 0; i < _b.size(); ++i)
@@ -206,18 +206,18 @@ tc_truncations(
 //   function: _b repeated once per leading byte, each copy with one byte of
 // the first _n flipped - so a magic test can prove EVERY byte of the
 // signature is checked, not just the first.
-inline std::vector<dj::byte_buffer>
+inline std::vector<dj::byte_blob>
 tc_corruptions(
-    const dj::byte_buffer& _b,
+    const dj::byte_blob& _b,
     std::size_t            _n
 )
 {
-    std::vector<dj::byte_buffer> out;
+    std::vector<dj::byte_blob> out;
     std::size_t                  i = 0;
 
     for (i = 0; (i < _n) && (i < _b.size()); ++i)
     {
-        dj::byte_buffer c = _b;
+        dj::byte_blob c = _b;
 
         c[i] = static_cast<char>(
             static_cast<unsigned char>(c[i]) ^ 0xFFu);
@@ -231,7 +231,7 @@ tc_corruptions(
 // tc_zlib_header
 //   function: a well-formed two-byte zlib header - DEFLATE in the low nibble
 // of CMF, and a FLG chosen so the pair is a multiple of 31.
-inline dj::byte_buffer
+inline dj::byte_blob
 tc_zlib_header(
     unsigned int _cmf = 0x78u
 )
@@ -247,7 +247,7 @@ tc_zlib_header(
         }
     }
 
-    dj::byte_buffer out;
+    dj::byte_blob out;
 
     out.push_back(static_cast<char>(static_cast<unsigned char>(_cmf)));
     out.push_back(static_cast<char>(static_cast<unsigned char>(flg)));
@@ -262,7 +262,7 @@ tc_zlib_header(
 // without asserting on specific generator output.
 inline std::size_t
 tc_distinct_bytes(
-    const dj::byte_buffer& _b
+    const dj::byte_blob& _b
 )
 {
     bool        seen[256];
@@ -292,7 +292,7 @@ tc_distinct_bytes(
 //   function: how many bytes of _b equal _c.
 inline std::size_t
 tc_count_byte(
-    const dj::byte_buffer& _b,
+    const dj::byte_blob& _b,
     char                   _c
 )
 {
@@ -318,7 +318,7 @@ tc_count_byte(
 template<typename _Codec>
 inline bool
 tc_facade_contract_holds(
-    const dj::byte_buffer& _in,
+    const dj::byte_blob& _in,
     const char*            _name
 )
 {

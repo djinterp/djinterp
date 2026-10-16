@@ -1,15 +1,29 @@
+/*******************************************************************************
+* djinterp [c]                                                      test_stats.c
+*
+* TBA
+*
+*
+* path:      /src/djinterp/c/test/test_stats.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 // enable POSIX features for clock_gettime
 #if !defined(_WIN32) && !defined(_WIN64)
     #define _POSIX_C_SOURCE 199309L
 #endif
 
-#include "../../../inc/c/test/test_stats.h"
+// djinterp
+#include "../../../../inc/djinterp/c/test/test_stats.h"
 
 #if defined(_WIN32) || defined(_WIN64)
+    // windows
     #include <windows.h>
 #else
-    #include <time.h>
+    // std
     #include <sys/time.h>
+    #include <time.h>
 #endif
 
 

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                          event_dispatcher_tests_drive.cpp
+/*******************************************************************************
+* djinterp [test]                               event_dispatcher_tests_drive.cpp
 *
 *   Section IV -- FUSED DRIVE.  drive runs a homogeneous trace through a
 * precompiled fused_step as a single loop, reporting only the occurrence and
@@ -12,10 +12,11 @@
 * occurrences and consumed_count, with identical per-occurrence side effects.
 *
 *
-* path:      /tests/djinterp/core/event/event_dispatcher/event_dispatcher_tests_drive.cpp
+* path:      /tests/djinterp/core/event/event_dispatcher_tests_drive.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_dispatcher_tests.hpp"

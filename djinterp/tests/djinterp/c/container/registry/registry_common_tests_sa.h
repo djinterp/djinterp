@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    registry_common_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                     registry_common_tests_sa.h
 *
 *   Unit test declarations for `registry_common.h` module.
 *   Provides comprehensive testing of all registry_common functions including
@@ -7,20 +7,23 @@
 * utilities.
 *
 *
-* path:      \tests\container\registry\registry_common_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.05
-******************************************************************************/
+* path:      /tests/djinterp/c/container/registry/registry_common_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_REGISTRY_COMMON_SA_
 #define DJINTERP_TESTS_REGISTRY_COMMON_SA_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../../../../inc/c/test/test_standalone.h"
-#include "../../../../inc/c/container/registry/registry_common.h"
-#include "../../../../inc/c/string_fn.h"
+// djinterp
+#include "../../../../../inc/djinterp/c/container/registry/registry_common.h"
+#include "../../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

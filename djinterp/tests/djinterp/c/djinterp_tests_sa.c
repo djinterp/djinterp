@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      djinterp_tests_sa.c
+/*******************************************************************************
+* djinterp [test]                                            djinterp_tests_sa.c
 *
 * Master test suite implementation - aggregates all test modules.
 *
@@ -11,12 +11,16 @@
 *   - djinterp_tests_sa_function_ptr.c   (function pointer types)
 *   - djinterp_tests_sa_edge.c           (edge cases and boundaries)
 *
-* path:      \test\djinterp_tests_sa.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.15
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/djinterp_tests_sa.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.15
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "djinterp_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

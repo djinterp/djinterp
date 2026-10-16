@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [meta]                                                        kv.h
+/*******************************************************************************
+* djinterp [meta]                                                           kv.h
 *
 * Extraction of a key and a value from a byte-oriented record, at offsets and
 * widths the record itself declares. Tier 0 -- compiled by BOTH faces.
@@ -65,21 +65,6 @@
 * includer used or not.
 *
 *
-* WHAT THIS HEADER IS NOT
-* =======================
-*   This is the FIELD and ACCESS layer only. The interned-key vocabulary --
-* the reserved zero shared by d_test_key_id, d_test_callable_id and
-* DTestMetadataFlag -- and the carrier that d_option_carrier becomes are
-* separate sections and land separately. A consumer takes the layers it needs.
-*
-*   IT DOES NOT ABSORB struct d_type_struct_field. That triple is the same
-* shape and was the precedent for this one, but it sits inside
-* `d_type_struct_ext` behind a flexible array member and its widths are 16-bit
-* because that descriptor gets written down. Widening it would change a
-* serialised format to buy a spelling, so it converts instead -- see
-* d_kv_field_from_struct_field in section I.
-*
-*
 * path:      /inc/djinterp/c/meta/kv.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.09.05
@@ -89,7 +74,6 @@
 #define DJINTERP_C_KV_ 1
 
 // std
-// c
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -98,16 +82,7 @@
 #include "type_info.h"
 
 
-//   djinterp.h IS MANDATORY AND FIRST. It carries D_EXTERN_C_BEGIN, and a
-// header that lets that macro become conditional trades a compile-time
-// diagnostic naming this file for a link error naming nothing. It also carries
-// D_ENV_ARCH_IS_BIG_ENDIAN by way of env_arch.h, without which section III
-// cannot be written.
-
 D_EXTERN_C_BEGIN
-
-
-// I.     the field descriptor
 
 // d_kv_field
 //   struct: where a datum sits inside a record, how wide it is, and what its
@@ -412,9 +387,9 @@ d_kv_load_unsigned(
     const unsigned char* at;
 
     // refuse a null record, an unrepresentable width, or a read past the end
-    if ( (!_base)                                  ||
-         (_size == 0u)                             ||
-         (_size > 8u)                              ||
+    if ( (!_base)       ||
+         (_size == 0u)  ||
+         (_size > 8u)   ||
          (!d_kv_fits(_offset, _size, _capacity)) )
     {
         return 0u;
@@ -514,9 +489,9 @@ d_kv_store_unsigned(
     uint64_t       limit;
 
     // refuse a null record, an unrepresentable width, or a write past the end
-    if ( (!_base)                                  ||
-         (_size == 0u)                             ||
-         (_size > 8u)                              ||
+    if ( (!_base)       ||
+         (_size == 0u)  ||
+         (_size > 8u)   ||
          (!d_kv_fits(_offset, _size, _capacity)) )
     {
         return false;
@@ -607,10 +582,10 @@ d_kv_read(
 )
 {
     // refuse a null argument, an absent slot, a width mismatch, or an overrun
-    if ( (!_base)                                  ||
-         (!_out)                                   ||
-         (_size == 0u)                             ||
-         ((size_t)_size != _out_size)              ||
+    if ( (!_base)                      ||
+         (!_out)                       ||
+         (_size == 0u)                 ||
+         ((size_t)_size != _out_size)  ||
          (!d_kv_fits(_offset, _size, _capacity)) )
     {
         return false;
@@ -637,10 +612,10 @@ d_kv_write(
 )
 {
     // refuse a null argument, an absent slot, a width mismatch, or an overrun
-    if ( (!_base)                                  ||
-         (!_in)                                    ||
-         (_size == 0u)                             ||
-         ((size_t)_size != _in_size)               ||
+    if ( (!_base)                     ||
+         (!_in)                       ||
+         (_size == 0u)                ||
+         ((size_t)_size != _in_size)  ||
          (!d_kv_fits(_offset, _size, _capacity)) )
     {
         return false;

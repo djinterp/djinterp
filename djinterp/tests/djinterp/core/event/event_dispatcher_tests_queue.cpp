@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                          event_dispatcher_tests_queue.cpp
+/*******************************************************************************
+* djinterp [test]                               event_dispatcher_tests_queue.cpp
 *
 *   Sections I-II -- INTERNAL QUEUE SUPPORT and EVENT QUEUE.  Exercises the
 * event_queue: enqueue appends (payload captured by value) and is reflected in
@@ -19,10 +19,11 @@
 * per-type delivery through process() is exactly their contract.
 *
 *
-* path:      /tests/djinterp/core/event/event_dispatcher/event_dispatcher_tests_queue.cpp
+* path:      /tests/djinterp/core/event/event_dispatcher_tests_queue.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_dispatcher_tests.hpp"

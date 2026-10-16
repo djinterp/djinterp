@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                            mediator_tests_factory_concepts.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/mediator/mediator_tests_factory_concepts.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : mediator_tests_factory_concepts.cpp
 //   Two dialect-gated layers.  The convenience factories (section IX, C++14+):
 // make_event_bus, make_signal_hub, subscribe_many, unsubscribe_all — bodies

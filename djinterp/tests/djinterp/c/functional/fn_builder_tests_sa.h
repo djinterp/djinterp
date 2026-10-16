@@ -1,28 +1,31 @@
-/******************************************************************************
-* djinterp [test]                                       fn_builder_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                          fn_builder_tests_sa.h
 *
 *   Unit tests for `fn_builder.h` in the functional module.
 *   For the file itself, go to `\inc\functional\fn_builder.h`.
-*   Note: this module is required to build DTest, so it uses `test_standalone.h`,
-* rather than DTest for unit testing. Any modules that are not dependencies of
+*   Note: this module is required to build DTest, so it does not use DTest
+* for unit testing. Any modules that are not dependencies of
 * DTest should use DTest for unit tests.
 *
 *
-* path:      /test/functional/fn_builder_tests_sa.h
+* path:      /tests/djinterp/c/functional/fn_builder_tests_sa.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.10
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.10
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FN_BUILDER_STANDALONE_
 #define DJINTERP_TESTING_FN_BUILDER_STANDALONE_ 1
 
+// std
 #include <stdlib.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/dmemory.h"
-#include "../../../inc/c/string_fn.h"
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/functional/functional_common.h"
-#include "../../../inc/c/functional/fn_builder.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/functional/functional_common.h"
+#include "../../../../inc/djinterp/c/functional/fn_builder.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 // i.    builder creation tests

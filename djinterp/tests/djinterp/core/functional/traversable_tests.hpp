@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       traversable_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                          traversable_tests.hpp
 *
 *   Unit-test declarations for core/functional/traversable.hpp -- the capstone of
 * the functional layer: walk a structure left-to-right, run an applicative effect
@@ -45,19 +45,28 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/functional/traversable_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/traversable_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.12
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.12
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    FIXTURES  (two effects, two traversable structures, negatives, probes)
+      ----------------------------------------------------------------------
+
 I.    TRAVERSABLE PROTOCOL   (traversable_traits, is_traversable)
-0'.   STRUCTURAL TRAITS      (traversable_value_type, helpers, the concept)
+      -----------------------------------------------------------
+
+      0'.   STRUCTURAL TRAITS      (traversable_value_type, helpers, the concept)
+
       THE std::vector INSTANCE
+
 II.   GENERIC OPERATIONS     (traverse, sequence)
+      -------------------------------------------
 */
 
 
@@ -70,8 +79,9 @@ II.   GENERIC OPERATIONS     (traverse, sequence)
 #include <type_traits>
 #include <utility>
 #include <vector>
+// djinterp
 // djinterp (module under test)
-#include "../../core/functional/traversable.hpp"
+#include "../../../../inc/djinterp/core/functional/traversable.hpp"
 
 
 NS_DJINTERP

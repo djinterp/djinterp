@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        free_tests_monad.cpp
+/*******************************************************************************
+* djinterp [test]                                           free_tests_monad.cpp
 *
 *   Sections III-IV of the parser/free.hpp suite: the monadic stratum -- the
 * parsing_program free-monad construction, lift_to_program / to_parser, the
@@ -8,10 +8,12 @@
 * an earlier parsed value); to_parser realises the "free monad over a monad
 * reduces to the monad" identity by iterative descent.
 *
-* path:      /tests/djinterp/parse/parser/free_tests_monad.cpp
+*
+* path:      /tests/djinterp/core/functional/free_tests_monad.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "free_tests.hpp"

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                 mediator_tests_variant_bus.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/mediator/mediator_tests_variant_bus.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : mediator_tests_variant_bus.cpp
 //   The closed-set variant_event_bus (section V, C++17+).  variant_event_bus
 // only exists when std::variant is available, so each predicate's body is

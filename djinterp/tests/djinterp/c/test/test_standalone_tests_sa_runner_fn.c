@@ -43,7 +43,7 @@ helper_runner_module_counter
 
 /*
 d_tests_sa_standalone_runner_init
-  Tests the d_test_sa_runner_init function.
+  Tests the d_test_standalone_runner_init function.
   Tests the following:
   - NULL runner is handled safely
   - Suite name is stored
@@ -61,21 +61,21 @@ d_tests_sa_standalone_runner_init
 )
 {
     bool                    result;
-    struct d_test_sa_runner runner;
+    struct d_test_standalone_runner runner;
 
     result = true;
 
     // test 1: NULL runner is handled safely
-    d_test_sa_runner_init(NULL, "Test", "Description");
+    d_test_standalone_runner_init(NULL, "Test", "Description");
 
     result = d_assert_standalone(
         true,
         "runner_init_null_safe",
-        "d_test_sa_runner_init(NULL) should not crash",
+        "d_test_standalone_runner_init(NULL) should not crash",
         _counter) && result;
 
     // test 2: suite name is stored
-    d_test_sa_runner_init(&runner, "Test Suite", "Suite Description");
+    d_test_standalone_runner_init(&runner, "Test Suite", "Suite Description");
 
     result = d_assert_standalone(
         runner.suite_name != NULL,
@@ -176,14 +176,14 @@ d_tests_sa_standalone_runner_init
         _counter) && result;
 
     // cleanup failure list allocated by init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_runner_set_options
-  Tests the d_test_sa_runner_set_options function.
+  Tests the d_test_standalone_runner_set_options function.
   Tests the following:
   - NULL runner is handled safely
   - NULL options is handled safely
@@ -197,14 +197,14 @@ d_tests_sa_standalone_runner_set_options
 )
 {
     bool                       result;
-    struct d_test_sa_runner    runner;
-    struct d_test_sa_options   opts;
+    struct d_test_standalone_runner    runner;
+    struct d_test_standalone_options   opts;
 
     result = true;
 
     // test 1: NULL runner is handled safely
-    d_test_sa_options_init(&opts);
-    d_test_sa_runner_set_options(NULL, &opts);
+    d_test_standalone_options_init(&opts);
+    d_test_standalone_runner_set_options(NULL, &opts);
 
     result = d_assert_standalone(
         true,
@@ -213,8 +213,8 @@ d_tests_sa_standalone_runner_set_options
         _counter) && result;
 
     // test 2: NULL options is handled safely
-    d_test_sa_runner_init(&runner, "Test", "Desc");
-    d_test_sa_runner_set_options(&runner, NULL);
+    d_test_standalone_runner_init(&runner, "Test", "Desc");
+    d_test_standalone_runner_set_options(&runner, NULL);
 
     result = d_assert_standalone(
         true,
@@ -223,7 +223,7 @@ d_tests_sa_standalone_runner_set_options
         _counter) && result;
 
     // test 3: options are copied to runner
-    d_test_sa_options_init(&opts);
+    d_test_standalone_options_init(&opts);
     opts.number_assertions  = true;
     opts.number_tests       = true;
     opts.global_numbering   = true;
@@ -232,7 +232,7 @@ d_tests_sa_standalone_runner_set_options
     opts.list_failures      = true;
     opts.output_file        = "/tmp/test_output.txt";
 
-    d_test_sa_runner_set_options(&runner, &opts);
+    d_test_standalone_runner_set_options(&runner, &opts);
 
     result = d_assert_standalone(
         runner.options.number_assertions == true,
@@ -277,14 +277,14 @@ d_tests_sa_standalone_runner_set_options
         _counter) && result;
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_runner_add_module
-  Tests the d_test_sa_runner_add_module function.
+  Tests the d_test_standalone_runner_add_module function.
   Tests the following:
   - NULL runner is handled safely
   - NULL run_fn is handled safely
@@ -298,12 +298,12 @@ d_tests_sa_standalone_runner_add_module
 )
 {
     bool                    result;
-    struct d_test_sa_runner runner;
+    struct d_test_standalone_runner runner;
 
     result = true;
 
     // test 1: NULL runner is handled safely
-    d_test_sa_runner_add_module(NULL, "test", "desc",
+    d_test_standalone_runner_add_module(NULL, "test", "desc",
                                 helper_runner_module_tree,
                                 0, NULL);
 
@@ -314,8 +314,8 @@ d_tests_sa_standalone_runner_add_module
         _counter) && result;
 
     // test 2: NULL run_fn is handled safely
-    d_test_sa_runner_init(&runner, "Test", "Desc");
-    d_test_sa_runner_add_module(&runner, "test", "desc",
+    d_test_standalone_runner_init(&runner, "Test", "Desc");
+    d_test_standalone_runner_add_module(&runner, "test", "desc",
                                 NULL, 0, NULL);
 
     result = d_assert_standalone(
@@ -325,7 +325,7 @@ d_tests_sa_standalone_runner_add_module
         _counter) && result;
 
     // test 3: module is added correctly
-    d_test_sa_runner_add_module(&runner, "module1", "Module 1",
+    d_test_standalone_runner_add_module(&runner, "module1", "Module 1",
                                 helper_runner_module_tree,
                                 0, NULL);
 
@@ -365,7 +365,7 @@ d_tests_sa_standalone_runner_add_module
         _counter) && result;
 
     // test 8: multiple modules can be added
-    d_test_sa_runner_add_module(&runner, "module2", "Module 2",
+    d_test_standalone_runner_add_module(&runner, "module2", "Module 2",
                                 helper_runner_module_tree,
                                 0, NULL);
 
@@ -376,14 +376,14 @@ d_tests_sa_standalone_runner_add_module
         _counter) && result;
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_runner_add_module_counter
-  Tests the d_test_sa_runner_add_module_counter function.
+  Tests the d_test_standalone_runner_add_module_counter function.
   Tests the following:
   - NULL runner is handled safely
   - NULL run_fn is handled safely
@@ -396,12 +396,12 @@ d_tests_sa_standalone_runner_add_module_counter
 )
 {
     bool                    result;
-    struct d_test_sa_runner runner;
+    struct d_test_standalone_runner runner;
 
     result = true;
 
     // test 1: NULL runner is handled safely
-    d_test_sa_runner_add_module_counter(NULL, "test", "desc",
+    d_test_standalone_runner_add_module_counter(NULL, "test", "desc",
                                         helper_runner_module_counter,
                                         0, NULL);
 
@@ -412,8 +412,8 @@ d_tests_sa_standalone_runner_add_module_counter
         _counter) && result;
 
     // test 2: NULL run_fn is handled safely
-    d_test_sa_runner_init(&runner, "Test", "Desc");
-    d_test_sa_runner_add_module_counter(&runner, "test", "desc",
+    d_test_standalone_runner_init(&runner, "Test", "Desc");
+    d_test_standalone_runner_add_module_counter(&runner, "test", "desc",
                                         NULL, 0, NULL);
 
     result = d_assert_standalone(
@@ -423,7 +423,7 @@ d_tests_sa_standalone_runner_add_module_counter
         _counter) && result;
 
     // test 3: module is added correctly
-    d_test_sa_runner_add_module_counter(&runner,
+    d_test_standalone_runner_add_module_counter(&runner,
                                         "counter_module",
                                         "Counter Module",
                                         helper_runner_module_counter,
@@ -451,14 +451,14 @@ d_tests_sa_standalone_runner_add_module_counter
         _counter) && result;
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_runner_set_wait
-  Tests the d_test_sa_runner_set_wait_for_input function.
+  Tests the d_test_standalone_runner_set_wait_for_input function.
   Tests the following:
   - NULL runner is handled safely
   - wait_for_input is set to true
@@ -471,12 +471,12 @@ d_tests_sa_standalone_runner_set_wait
 )
 {
     bool                    result;
-    struct d_test_sa_runner runner;
+    struct d_test_standalone_runner runner;
 
     result = true;
 
     // test 1: NULL runner is handled safely
-    d_test_sa_runner_set_wait_for_input(NULL, true);
+    d_test_standalone_runner_set_wait_for_input(NULL, true);
 
     result = d_assert_standalone(
         true,
@@ -485,8 +485,8 @@ d_tests_sa_standalone_runner_set_wait
         _counter) && result;
 
     // test 2: wait_for_input can be set to false
-    d_test_sa_runner_init(&runner, "Test", "Desc");
-    d_test_sa_runner_set_wait_for_input(&runner, false);
+    d_test_standalone_runner_init(&runner, "Test", "Desc");
+    d_test_standalone_runner_set_wait_for_input(&runner, false);
 
     result = d_assert_standalone(
         runner.wait_for_input == false,
@@ -495,7 +495,7 @@ d_tests_sa_standalone_runner_set_wait
         _counter) && result;
 
     // test 3: wait_for_input can be set to true
-    d_test_sa_runner_set_wait_for_input(&runner, true);
+    d_test_standalone_runner_set_wait_for_input(&runner, true);
 
     result = d_assert_standalone(
         runner.wait_for_input == true,
@@ -504,14 +504,14 @@ d_tests_sa_standalone_runner_set_wait
         _counter) && result;
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_runner_set_notes
-  Tests the d_test_sa_runner_set_show_notes function.
+  Tests the d_test_standalone_runner_set_show_notes function.
   Tests the following:
   - NULL runner is handled safely
   - show_notes is set to true
@@ -524,12 +524,12 @@ d_tests_sa_standalone_runner_set_notes
 )
 {
     bool                    result;
-    struct d_test_sa_runner runner;
+    struct d_test_standalone_runner runner;
 
     result = true;
 
     // test 1: NULL runner is handled safely
-    d_test_sa_runner_set_show_notes(NULL, true);
+    d_test_standalone_runner_set_show_notes(NULL, true);
 
     result = d_assert_standalone(
         true,
@@ -538,8 +538,8 @@ d_tests_sa_standalone_runner_set_notes
         _counter) && result;
 
     // test 2: show_notes can be set to false
-    d_test_sa_runner_init(&runner, "Test", "Desc");
-    d_test_sa_runner_set_show_notes(&runner, false);
+    d_test_standalone_runner_init(&runner, "Test", "Desc");
+    d_test_standalone_runner_set_show_notes(&runner, false);
 
     result = d_assert_standalone(
         runner.show_notes == false,
@@ -548,7 +548,7 @@ d_tests_sa_standalone_runner_set_notes
         _counter) && result;
 
     // test 3: show_notes can be set to true
-    d_test_sa_runner_set_show_notes(&runner, true);
+    d_test_standalone_runner_set_show_notes(&runner, true);
 
     result = d_assert_standalone(
         runner.show_notes == true,
@@ -557,14 +557,14 @@ d_tests_sa_standalone_runner_set_notes
         _counter) && result;
 
     // cleanup failure list allocated by runner_init
-    d_test_sa_failure_list_free(&runner.failures);
+    d_test_standalone_failure_list_free(&runner.failures);
 
     return result;
 }
 
 /*
 d_tests_sa_standalone_runner_cleanup
-  Tests the d_test_sa_runner_cleanup function.
+  Tests the d_test_standalone_runner_cleanup function.
   Tests the following:
   - NULL runner is handled safely
   - Cleanup with no allocated resources is safe
@@ -577,22 +577,22 @@ d_tests_sa_standalone_runner_cleanup
 )
 {
     bool                    result;
-    struct d_test_sa_runner runner;
+    struct d_test_standalone_runner runner;
 
     result = true;
 
     // test 1: NULL runner is handled safely
-    d_test_sa_runner_cleanup(NULL);
+    d_test_standalone_runner_cleanup(NULL);
 
     result = d_assert_standalone(
         true,
         "runner_cleanup_null_safe",
-        "d_test_sa_runner_cleanup(NULL) should not crash",
+        "d_test_standalone_runner_cleanup(NULL) should not crash",
         _counter) && result;
 
     // test 2: cleanup with initialized runner is safe
-    d_test_sa_runner_init(&runner, "Test", "Desc");
-    d_test_sa_runner_cleanup(&runner);
+    d_test_standalone_runner_init(&runner, "Test", "Desc");
+    d_test_standalone_runner_cleanup(&runner);
 
     result = d_assert_standalone(
         true,

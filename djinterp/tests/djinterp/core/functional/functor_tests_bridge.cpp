@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                       functor_tests_bridge.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/functor_tests_bridge.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  functor_tests_bridge.cpp
 //   Section I.2 -- the blanket monad bridge: every monad is a functor, keyed on
 //   is_monad, with no per-type wiring.

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       test_counter_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                         test_counter_tests.hpp
 *
 * djinterp test_counter unit-test header:
 *   Declarations, helper types, and a helper macro for the test_counter.hpp
@@ -22,8 +22,9 @@
 *
 * path:      /tests/djinterp/test/test_counter_tests.hpp
 * link(s):   TBA
-* author(s): TBA                                           created: 2026.06.24
-******************************************************************************/
+* author(s): TBA                                             created: 2026.06.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_COUNTER_TESTS_
 #define DJINTERP_TEST_COUNTER_TESTS_ 1
@@ -34,10 +35,11 @@
 #include <limits>
 #include <tuple>
 #include <type_traits>
+// djinterp
 // djinterp  -- framework header first, then mode-gated.
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "test_counter.hpp"
+#include "../../../inc/djinterp/test/test_counter.hpp"
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"   // spec mode: module_spec + run_module

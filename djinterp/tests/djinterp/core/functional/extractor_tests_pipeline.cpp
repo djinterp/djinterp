@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                   extractor_tests_pipeline.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/extractor_tests_pipeline.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "extractor_tests.hpp"
 
 

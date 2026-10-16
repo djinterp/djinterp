@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   foldable_tests_collect.cpp
+/*******************************************************************************
+* djinterp [test]                                     foldable_tests_collect.cpp
 *
 *   Sections II.4 - II.6 of the foldable.hpp suite: the materialize-and-measure
 * derivations.  fold_to_vector collects elements in fold order (covering the
@@ -9,10 +9,12 @@
 * class element type, a larger sequence, the non-std seq<T> fixture, and the
 * cross-invariants tying the three together.
 *
+*
 * path:      /tests/djinterp/core/functional/foldable_tests_collect.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "foldable_tests.hpp"

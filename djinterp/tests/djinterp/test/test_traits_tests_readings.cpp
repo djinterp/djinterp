@@ -1,10 +1,18 @@
-// djinterp
-#include "test_traits_tests.hpp"
-
+/*******************************************************************************
+* djinterp [test]                                 test_traits_tests_readings.cpp
+*
+*
+* path:      /tests/djinterp/test/test_traits_tests_readings.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <memory>
 #include <type_traits>
 #include <utility>
+// djinterp
+#include "test_traits_tests.hpp"
 
 
 NS_DJINTERP

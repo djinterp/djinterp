@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                  pattern_tests_combinators.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/pattern/pattern_tests_combinators.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : pattern_tests_combinators.cpp
 //   The combinators (section VI): pattern_and, pattern_or, pattern_not and their
 // factory functions. Each is exercised for its match rule, its extraction

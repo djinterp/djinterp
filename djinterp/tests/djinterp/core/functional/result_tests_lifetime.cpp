@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    result_tests_lifetime.cpp
+/*******************************************************************************
+* djinterp [test]                                      result_tests_lifetime.cpp
 *
 * Lifetime, value/error access tests for result<T, E> (section I: the
 * primitive itself).
@@ -14,12 +14,20 @@
 *   test_lifetime     -- balanced construction / destruction of the active
 *                        branch (value side and error side) via an
 *                        instance-counting payload.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/result_tests_lifetime.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <string>
+// std
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <utility>
+// djinterp
 #include "./result_tests.hpp"
 
 

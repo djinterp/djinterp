@@ -1,15 +1,23 @@
-/******************************************************************************
-* djinterp [test]                                 maybe_tests_monad_traits.cpp
+/*******************************************************************************
+* djinterp [test]                                   maybe_tests_monad_traits.cpp
 *
 * Tests for the monad_traits<maybe<_T>> specialization defined in maybe.hpp
 * section V.  The generic monad protocol (free bind/map_with/etc. in
 * monad.hpp) is covered by the monad module's own suite; here we test only the
 * specialization's own surface as declared in maybe.hpp:
 *   value_type, rebind, is_specialized, unit, and bind.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/maybe_tests_monad_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <string>
 #include <type_traits>
+// djinterp
 #include "./maybe_tests.hpp"
 
 

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                       cofree_tests_type.cpp
+/*******************************************************************************
+* djinterp [test]                                          cofree_tests_type.cpp
 *
 *   Section I of the cofree.hpp suite: the cofree<F, A> type itself.  Covers the
 * public default constructor (needed because duplicate yields a cofree whose
@@ -7,10 +7,12 @@
 * their reference-returning signatures, the value_type / layer_type member
 * typedefs, and building a small multi-node chain by hand through make.
 *
+*
 * path:      /tests/djinterp/core/functional/cofree_tests_type.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "cofree_tests.hpp"

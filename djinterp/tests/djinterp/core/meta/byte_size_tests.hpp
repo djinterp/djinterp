@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                           byte_size_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                            byte_size_tests.hpp
 *
 *   Unit-test suite for the container byte-footprint module `byte_size.hpp`.
 * Tests are split across translation units, one per semantic section of the
@@ -42,10 +42,11 @@
 *       recursion through static-sited elements (which contribute zero).
 *
 *
-* path:      /inc/djinterp/test/byte_size_tests.hpp
+* path:      /tests/djinterp/core/meta/byte_size_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.03
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_BYTE_SIZE_TESTS_
 #define DJINTERP_BYTE_SIZE_TESTS_ 1
@@ -62,7 +63,7 @@
 #include <type_traits>
 #include <vector>
 // djinterp
-#include "byte_size.hpp"   // system under test
+#include "../../../../inc/djinterp/core/meta/byte_size.hpp"   // system under test
 
 
 NS_DJINTERP

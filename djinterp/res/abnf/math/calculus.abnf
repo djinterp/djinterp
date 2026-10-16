@@ -1,0 +1,394 @@
+; ============================================================================
+; CALCULUS EXTENSION
+; ============================================================================
+
+calculus-expression = derivative
+                    / integral
+                    / limit
+                    / series
+                    / differential
+
+; Derivatives
+derivative = partial-derivative / ordinary-derivative
+
+ordinary-derivative = "d" ["^" integer] "/" "d" variable ["^" integer]
+                    / "D" ["_" variable] "(" expression ")"
+                    / ("diff" / "derivative") "(" expression "," variable ["," integer] ")"
+                    / "'" / "''"  ; prime notation for derivatives
+
+partial-derivative = "∂" ["^" integer] "/" "∂" variable ["^" integer]
+                   / "∂" "_" variable ["^" integer]
+                   / ("partial" / "grad") "(" expression "," variable-list ")"
+
+; Integrals
+integral = definite-integral / indefinite-integral
+
+indefinite-integral = "∫" expression "d" variable
+                    / "integrate" "(" expression "," variable ")"
+
+definite-integral = "∫" "_" expression "^" expression expression "d" variable
+                  / "integrate" "(" expression "," variable "," expression "," expression ")"
+
+; Multiple integrals
+multiple-integral = "∫∫" / "∫∫∫"
+                  / double-integral
+                  / triple-integral
+
+double-integral = "∫" "_" bounds "∫" "_" bounds expression "d" variable "d" variable
+
+triple-integral = "∫" "_" bounds "∫" "_" bounds "∫" "_" bounds 
+                  expression "d" variable "d" variable "d" variable
+
+bounds = expression "^" expression
+
+; Limits
+limit = "lim" "_" (variable "→" expression) expression
+      / "lim" "_" (variable "→" expression ["^" ("+"/"-")]) expression
+      / "limit" "(" expression "," variable "," expression ["," direction] ")"
+
+direction = "+" / "-" / "+-"
+
+; Series and summations
+series = summation / product-notation
+
+summation = "∑" "_" (variable "=" expression) "^" expression expression
+          / "sum" "(" expression "," variable "," expression "," expression ")"
+
+product-notation = "∏" "_" (variable "=" expression) "^" expression expression
+                 / "product" "(" expression "," variable "," expression "," expression ")"
+
+; Differential operators
+differential = "d" variable
+             / "∆" variable  ; Delta
+             / "δ" variable  ; delta (variation)
+
+; Vector calculus
+vector-calculus = "div" "(" vector-field ")"  ; divergence
+                / "curl" "(" vector-field ")"  ; curl
+                / "grad" "(" scalar-field ")"  ; gradient
+                / "∇" ["·" / "×"] vector-field  ; del operator
+
+vector-field = expression
+scalar-field = expression
+
+; ============================================================================
+; LINEAR ALGEBRA EXTENSION
+; ============================================================================
+
+linear-algebra-expression = matrix-expression
+                          / vector-expression
+                          / matrix-operation
+
+; Matrices
+matrix-expression = matrix-literal
+                  / matrix-function
+
+matrix-literal = "[" matrix-rows "]"
+               / "[[" matrix-rows "]]"
+
+matrix-rows = matrix-row *(";" matrix-row)
+            / matrix-row *("|" matrix-row)
+
+matrix-row = expression *("," expression)
+
+; Matrix operations
+matrix-operation = matrix-multiply
+                 / matrix-transpose
+                 / matrix-inverse
+                 / matrix-determinant
+                 / matrix-trace
+                 / matrix-rank
+                 / eigenvalue
+                 / eigenvector
+
+matrix-multiply = expression "*" expression
+                / "dot" "(" expression "," expression ")"
+
+matrix-transpose = expression "^T"
+                 / expression "'"
+                 / "transpose" "(" expression ")"
+
+matrix-inverse = expression "^-1"
+               / expression "^(-1)"
+               / "inv" "(" expression ")"
+
+matrix-determinant = "det" "(" expression ")"
+                   / "|" expression "|"
+
+matrix-trace = "trace" "(" expression ")"
+             / "tr" "(" expression ")"
+
+matrix-rank = "rank" "(" expression ")"
+
+eigenvalue = "eigenvalues" "(" expression ")"
+           / "eig" "(" expression ")"
+
+eigenvector = "eigenvectors" "(" expression ")"
+
+; Vector operations
+vector-expression = vector-literal
+                  / vector-operation
+
+vector-operation = dot-product
+                 / cross-product
+                 / vector-norm
+                 / vector-normalize
+
+dot-product = expression "·" expression
+            / expression "." expression
+            / "dot" "(" expression "," expression ")"
+
+cross-product = expression "×" expression
+              / "cross" "(" expression "," expression ")"
+
+vector-norm = "||" expression "||" ["_" integer]
+            / "norm" "(" expression ["," integer] ")"
+
+vector-normalize = "normalize" "(" expression ")"
+                 / "unit" "(" expression ")"
+
+; Matrix constructors
+matrix-function = "zeros" "(" integer ["," integer] ")"
+                / "ones" "(" integer ["," integer] ")"
+                / "eye" "(" integer ")"  ; identity matrix
+                / "diag" "(" vector-expression ")"
+                / "reshape" "(" expression "," integer "," integer ")"
+
+; Linear algebra operations
+linear-solve = "solve" "(" expression "," expression ")"  ; Ax = b
+             / expression "\" expression  ; left division
+
+; Matrix decompositions
+decomposition = "lu" "(" expression ")"
+              / "qr" "(" expression ")"
+              / "svd" "(" expression ")"
+              / "cholesky" "(" expression ")"
+
+; ============================================================================
+; LOGICAL EXPRESSIONS EXTENSION
+; ============================================================================
+
+logical-expression = quantified-expression
+                   / propositional-expression
+                   / predicate-expression
+
+; Quantifiers
+quantified-expression = universal-quantifier
+                      / existential-quantifier
+
+universal-quantifier = "∀" variable ["∈" set-expression] "," logical-expression
+                     / "forall" variable ["in" set-expression] "," logical-expression
+
+existential-quantifier = "∃" variable ["∈" set-expression] "," logical-expression
+                       / "exists" variable ["in" set-expression] "," logical-expression
+
+; Propositional logic
+propositional-expression = logical-or-prop
+
+logical-or-prop = logical-and-prop *("∨" / "||" / "or" logical-and-prop)
+
+logical-and-prop = logical-not-prop *("∧" / "&&" / "and" logical-not-prop)
+
+logical-not-prop = ["¬" / "!" / "not"] logical-implication
+
+logical-implication = logical-equivalence [("→" / "=>" / "implies") logical-equivalence]
+
+logical-equivalence = logical-primary [("↔" / "<=>" / "iff") logical-primary]
+
+logical-primary = "true" / "false" / "⊤" / "⊥"
+                / predicate-call
+                / "(" propositional-expression ")"
+
+; Predicates
+predicate-expression = predicate-call
+
+predicate-call = identifier "(" argument-list ")"
+
+; Logical constants
+logical-constant = "true" / "false" / "⊤" / "⊥"
+
+; ============================================================================
+; SET THEORY EXTENSION
+; ============================================================================
+
+set-expression = set-operation
+               / set-literal
+               / set-builder
+               / set-constant
+
+; Set literals
+set-literal = "{" [set-elements] "}"
+
+set-elements = expression *("," expression)
+
+; Set builder notation
+set-builder = "{" variable ["∈" set-expression] [":" / "|"] logical-expression "}"
+            / "{" expression [":" / "|"] variable ["∈" set-expression] "," logical-expression "}"
+
+; Set operations
+set-operation = set-union
+              / set-intersection
+              / set-difference
+              / set-complement
+              / set-cartesian-product
+              / set-power-set
+
+set-union = expression "∪" expression
+          / "union" "(" expression "," expression ")"
+
+set-intersection = expression "∩" expression
+                 / "intersection" "(" expression "," expression ")"
+
+set-difference = expression "\" expression
+               / expression "-" expression
+               / "difference" "(" expression "," expression ")"
+
+set-complement = expression "^c"
+               / expression "'"
+               / "complement" "(" expression ")"
+
+set-cartesian-product = expression "×" expression
+                      / "cartesian" "(" expression "," expression ")"
+
+set-power-set = "℘" "(" expression ")"
+              / "P" "(" expression ")"
+              / "powerset" "(" expression ")"
+
+; Set relations
+set-relation = set-membership
+             / set-subset
+             / set-proper-subset
+             / set-superset
+             / set-cardinality
+
+set-membership = expression "∈" expression
+               / expression "∉" expression
+               / "in" "(" expression "," expression ")"
+
+set-subset = expression "⊆" expression
+           / expression "⊇" expression
+           / "subset" "(" expression "," expression ")"
+
+set-proper-subset = expression "⊂" expression
+                  / expression "⊃" expression
+                  / "proper_subset" "(" expression "," expression ")"
+
+set-superset = expression "⊇" expression
+             / "superset" "(" expression "," expression ")"
+
+set-cardinality = "|" expression "|"
+                / "#" expression
+                / "card" "(" expression ")"
+                / "cardinality" "(" expression ")"
+
+; Common sets
+set-constant = "ℕ" / "N"  ; natural numbers
+             / "ℤ" / "Z"  ; integers
+             / "ℚ" / "Q"  ; rationals
+             / "ℝ" / "R"  ; reals
+             / "ℂ" / "C"  ; complex numbers
+             / "∅" / "emptyset"  ; empty set
+
+; Set functions
+set-function = "min" "(" set-expression ")"
+             / "max" "(" set-expression ")"
+             / "sup" "(" set-expression ")"  ; supremum
+             / "inf" "(" set-expression ")"  ; infimum
+
+; ============================================================================
+; DISCRETE STRUCTURES EXTENSION
+; ============================================================================
+
+discrete-expression = combinatorics
+                    / graph-theory
+                    / recurrence-relation
+                    / modular-arithmetic
+
+; Combinatorics
+combinatorics = permutation
+              / combination
+              / binomial-coefficient
+              / multinomial-coefficient
+              / stirling-number
+
+permutation = "P" "(" integer "," integer ")"
+            / integer "P" integer
+            / "permutation" "(" integer "," integer ")"
+
+combination = "C" "(" integer "," integer ")"
+            / integer "C" integer
+            / "(" integer "choose" integer ")"
+            / "combination" "(" integer "," integer ")"
+
+binomial-coefficient = "(" integer "\n" integer ")"  ; notation: (n k)
+                     / "binom" "(" integer "," integer ")"
+
+multinomial-coefficient = "(" integer "!" "/" integer-list "!" ")"
+
+stirling-number = "S" "(" integer "," integer ")"  ; Stirling second kind
+                / "s" "(" integer "," integer ")"  ; Stirling first kind
+
+; Graph theory notation
+graph-theory = graph-literal
+             / graph-property
+
+graph-literal = "G" "=" "(" vertex-set "," edge-set ")"
+              / "graph" "(" vertex-set "," edge-set ")"
+
+vertex-set = set-expression
+edge-set = set-expression
+
+graph-property = "degree" "(" vertex ")"
+               / "neighbors" "(" vertex ")"
+               / "adjacent" "(" vertex "," vertex ")"
+               / "connected" "(" graph ")"
+               / "cycle" "(" graph ")"
+               / "path" "(" vertex "," vertex ")"
+
+vertex = identifier
+graph = identifier
+
+; Recurrence relations
+recurrence-relation = sequence-term "=" expression
+                    / identifier "(" integer ")" "=" expression
+
+sequence-term = identifier "_" (integer / variable)
+              / identifier "[" (integer / variable) "]"
+
+; Modular arithmetic
+modular-arithmetic = expression "mod" expression
+                   / expression "≡" expression "(" "mod" expression ")"
+                   / "mod" "(" expression "," expression ")"
+
+; Number theory functions
+number-theory = "gcd" "(" argument-list ")"
+              / "lcm" "(" argument-list ")"
+              / "totient" "(" expression ")"  ; Euler's totient
+              / "mobius" "(" expression ")"   ; Möbius function
+              / "isprime" "(" expression ")"
+              / "nextprime" "(" expression ")"
+              / "primes" "(" expression ")"
+              / "factors" "(" expression ")"
+
+; Floor and ceiling
+floor-ceil = "⌊" expression "⌋"
+           / "⌈" expression "⌉"
+           / "floor" "(" expression ")"
+           / "ceil" "(" expression ")"
+
+; Integer sequences
+sequence-notation = "{" identifier "_" variable "}" "_" (variable "=" expression) "^" expression
+                  / "sequence" "(" expression "," variable "," expression "," expression ")"
+
+; Lists and tuples (for discrete structures)
+list-expression = "(" element-list ")"
+                / "[" element-list "]"
+
+element-list = expression *("," expression)
+
+; Recursive definitions
+recursive-def = identifier "(" base-case ")" "=" expression
+                *("," identifier "(" recursive-case ")" "=" expression)
+
+base-case = integer / logical-expression
+recursive-case = variable / expression

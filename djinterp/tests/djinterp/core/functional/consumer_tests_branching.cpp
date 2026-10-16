@@ -1,16 +1,23 @@
-/******************************************************************************
-* djinterp [test]                               consumer_tests_branching.cpp
+/*******************************************************************************
+* djinterp [test]                                   consumer_tests_branching.cpp
 *
 *   Tests for consumer.hpp Section II branching combinators: conditional
 * (route on a predicate) and fallback (try primary, on exception run
 * secondary).  Covers true/false routing, the all-true and all-false
 * boundaries, single-evaluation of the predicate, the no-throw path of
 * fallback, the throwing path, and propagation of secondary exceptions.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/consumer_tests_branching.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "consumer_tests.hpp"
-
+// std
 #include <vector>
+// djinterp
+#include "consumer_tests.hpp"
 
 
 NS_DJINTERP

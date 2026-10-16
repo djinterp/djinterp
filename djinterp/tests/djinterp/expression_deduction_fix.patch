@@ -1,0 +1,100 @@
+--- a/core/expression/expression.hpp
++++ b/core/expression/expression.hpp
+@@ -85,8 +85,13 @@
+ #include "../functional/cofree.hpp"
+ 
+ 
+ NS_DJINTERP
++
++// annotated_expression (fwd) -- the carrier below retypes its child hole to
++// this, so the name must be visible first.
++template<typename _OpId, typename _Atom, typename _Annotation>
++class annotated_expression;
+ 
+ 
+ //   Nothing here is a new carrier: the term is mu (recursion.hpp) over the
+ // one functor defined below, folding is cata, annotation is cofree, and the
+@@ -478,14 +483,43 @@
+     // expr_carrier
+     //   helper: binds _OpId and _Atom so expr_layer presents as the
+     // single-argument template-template parameter mu (and cofree) require --
+     // the same nested-alias device parser_layer uses for free.
++    // annotated_expression is declared below; the carrier needs its name to
++    // retype the child hole.
++    template<typename _OpId, typename _Atom, typename _Ann>
++    class annotated_expression_fwd;
++
++    // expr_child
++    //   helper: cofree hands its functor `shared_ptr<cofree<F, Ann>>` as the
++    // recursive hole.  An ANNOTATED expression's consumers read children as
++    // `shared_ptr<annotated_expression<Op, Atom, Ann>>` -- they box that type
++    // and bind references to the resulting vector -- so that one position is
++    // retyped to the node.  Every other instantiation (the folded `F<Result>`
++    // that cata rebuilds) is left alone by the primary.
++    template<typename _OpId, typename _Atom, typename _Child>
++    struct expr_child
++    {
++        using type = _Child;
++    };
++
++    template<typename _OpId, typename _Atom,
++             template<typename> typename _F, typename _Ann>
++    struct expr_child<_OpId, _Atom, std::shared_ptr<cofree<_F, _Ann> > >
++    {
++        using type =
++            std::shared_ptr< ::djinterp::annotated_expression<
++                _OpId, _Atom, _Ann> >;
++    };
++
+     template<typename _OpId,
+              typename _Atom>
+     struct expr_carrier
+     {
+         template<typename _Child>
+-        using layer = expr_layer<_OpId, _Atom, _Child>;
++        using layer = expr_layer<_OpId, _Atom,
++                                 typename expr_child<_OpId, _Atom,
++                                                     _Child>::type>;
+     };
+ 
+ NS_END  // internal
+ 
+@@ -661,13 +695,36 @@
+ // functor.  Attribute grammars, inferred-type decoration, source spans, and
+ // cached values are all annotations; extract reads a node's, extend
+ // re-decorates from whole sub-trees (comonad.hpp), and unfold_cofree builds
+ // one (cofree.hpp).
++//   NOTE (2026.07): this is a CLASS, not an alias.  Spelled as
++//       using annotated_expression =
++//           cofree<internal::expr_carrier<_OpId,_Atom>::template layer, _Ann>;
++// the three parameters sit in a NON-DEDUCED context ([temp.deduct.type]/5), so
++// a function template taking `const annotated_expression<_OpId,_Atom,_Ann>&`
++// can never deduce them and every generic entry point over an annotated term
++// becomes uncallable.  Deriving keeps the parameters deducible while the value
++// remains a cofree, which is all annotated_cata / extract / extend require.
+ template<typename _OpId,
+          typename _Atom,
+          typename _Annotation>
+-using annotated_expression =
+-    cofree<internal::expr_carrier<_OpId, _Atom>::template layer, _Annotation>;
++class annotated_expression
++    : public cofree<internal::expr_carrier<_OpId, _Atom>::template layer,
++                    _Annotation>
++{
++public:
++    using base_type  = cofree<
++        internal::expr_carrier<_OpId, _Atom>::template layer, _Annotation>;
++    using layer_type = typename base_type::layer_type;
++    using value_type = _Annotation;
++
++    annotated_expression() : base_type() {}
++    annotated_expression(const base_type& _b) : base_type(_b) {}
++
++    static annotated_expression
++    make(const _Annotation& _head, const layer_type& _layer)
++    { return annotated_expression(base_type::make(_head, _layer)); }
++};
+ 
+ 
+ ///////////////////////////////////////////////////////////////////////////////
+ ///             V.    STRUCTURAL DETECTION                                  ///

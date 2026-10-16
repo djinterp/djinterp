@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     maybe_tests_equality.cpp
+/*******************************************************************************
+* djinterp [test]                                       maybe_tests_equality.cpp
 *
 * Equality-operator tests for maybe<T>.
 *
@@ -12,8 +12,15 @@
 * empty one).  The assertions below pin the behavior AS WRITTEN so a future
 * change is caught; the asymmetry is very likely a defect in maybe.hpp worth a
 * separate fix (the left-hand overload should mirror the right-hand one).
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/maybe_tests_equality.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./maybe_tests.hpp"
 
 

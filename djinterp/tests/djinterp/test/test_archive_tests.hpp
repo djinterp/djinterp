@@ -10,7 +10,7 @@
 *   This is a property of the framework, not of the module under test, and it
 * applies to EVERY DTest runner rather than to this suite alone.  A runner
 * includes test_defaults.hpp to reach run_module; test_defaults.hpp includes
-* output/test_report_runner.hpp; and that header spells `byte_buffer` in two
+* output/test_report_runner.hpp; and that header spells `byte_blob` in two
 * places - pending_doc::bytes and write_bytes_to_file's parameter - which is a
 * typedef reachable only through the archive include guarded by
 * D_TEST_REPORT_ENABLE_ARCHIVE.  Without the macro the runner does not compile
@@ -81,11 +81,11 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-
+// djinterp
 // -- (part 1) mode-gated includes ------------------------------------------
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "test_archive.hpp"
+#include "../../../inc/djinterp/test/test_archive.hpp"
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"
@@ -156,7 +156,7 @@ namespace dj = ::djinterp;
 // order every ZIP structural field uses.
 inline void
 ta_put_u16(
-    dj::byte_buffer& _b,
+    dj::byte_blob& _b,
     unsigned int     _v
 )
 {
@@ -171,7 +171,7 @@ ta_put_u16(
 //   function: appends a 32-bit value to _b in little-endian order.
 inline void
 ta_put_u32(
-    dj::byte_buffer& _b,
+    dj::byte_blob& _b,
     unsigned long    _v
 )
 {
@@ -191,14 +191,14 @@ ta_put_u32(
 //   function: a complete ZIP local file header for _name / _data, declaring
 // compression method _method.  Thirty fixed bytes, then the name, then the
 // (notionally already compressed) data.
-inline dj::byte_buffer
+inline dj::byte_blob
 ta_local_header(
     const std::string&     _name,
-    const dj::byte_buffer& _data,
+    const dj::byte_blob& _data,
     unsigned int           _method
 )
 {
-    dj::byte_buffer b;
+    dj::byte_blob b;
 
     ta_put_u32(b, 0x04034b50UL);                 //  0 signature
     ta_put_u16(b, 20u);                          //  4 version needed
@@ -224,12 +224,12 @@ ta_local_header(
 // ta_eocd
 //   function: a bare 22-byte end-of-central-directory record advertising
 // _total members and no archive comment.
-inline dj::byte_buffer
+inline dj::byte_blob
 ta_eocd(
     unsigned int _total
 )
 {
-    dj::byte_buffer b;
+    dj::byte_blob b;
 
     ta_put_u32(b, 0x06054b50UL);   //  0 signature
     ta_put_u16(b, 0u);             //  4 this disk
@@ -249,12 +249,12 @@ ta_eocd(
 struct ta_zip_member
 {
     std::string     name;
-    dj::byte_buffer data;
+    dj::byte_blob data;
     unsigned int    method;
 
     ta_zip_member(
         const std::string&     _name,
-        const dj::byte_buffer& _data,
+        const dj::byte_blob& _data,
         unsigned int           _method
     )
         : name(_name),
@@ -268,12 +268,12 @@ struct ta_zip_member
 // followed by an EOCD advertising the member count.  No central directory is
 // written: the module's sniffers read the local-header chain from the front
 // and the EOCD from the back, and neither consults the directory in between.
-inline dj::byte_buffer
+inline dj::byte_blob
 ta_make_zip(
     const std::vector<ta_zip_member>& _members
 )
 {
-    dj::byte_buffer b;
+    dj::byte_blob b;
     std::size_t     i = 0;
 
     for (i = 0; i < _members.size(); ++i)
@@ -292,12 +292,12 @@ ta_make_zip(
 // ta_tar_header_block
 //   function: a 512-byte tar header block carrying _name and the ustar magic
 // at offset 257 - the marker tar_has_ustar_magic looks for.
-inline dj::byte_buffer
+inline dj::byte_blob
 ta_tar_header_block(
     const std::string& _name
 )
 {
-    dj::byte_buffer b(512u, static_cast<char>(0));
+    dj::byte_blob b(512u, static_cast<char>(0));
     std::size_t     i = 0;
 
     for (i = 0; (i < _name.size()) && (i < 100u); ++i)
@@ -319,12 +319,12 @@ ta_tar_header_block(
 // ta_make_tar_blocks
 //   function: a synthetic tar stream - _n header blocks followed by the
 // mandatory two 512-byte zero blocks.
-inline dj::byte_buffer
+inline dj::byte_blob
 ta_make_tar_blocks(
     std::size_t _n
 )
 {
-    dj::byte_buffer b;
+    dj::byte_blob b;
     std::size_t     i = 0;
 
     for (i = 0; i < _n; ++i)
@@ -342,12 +342,12 @@ ta_make_tar_blocks(
 // ta_make_gzip_header
 //   function: the three bytes looks_like_gzip inspects - the two magic bytes
 // plus the DEFLATE method code - followed by _tail filler.
-inline dj::byte_buffer
+inline dj::byte_blob
 ta_make_gzip_header(
     std::size_t _tail = 16u
 )
 {
-    dj::byte_buffer b;
+    dj::byte_blob b;
 
     b.push_back(static_cast<char>(0x1Fu));
     b.push_back(static_cast<char>(0x8Bu));
@@ -369,7 +369,7 @@ ta_sample_entries()
 
     items.push_back(dt::make_text_entry("readme.txt", "hello, world"));
     items.push_back(dt::make_file_entry("data/blob.bin",
-                                        dj::byte_buffer("a\0b\0c", 5)));
+                                        dj::byte_blob("a\0b\0c", 5)));
     items.push_back(dt::make_dir_entry("data"));
 
     return items;
@@ -408,7 +408,7 @@ ta_format_contract_holds(
     const char*           _name
 )
 {
-    dj::byte_buffer blob;
+    dj::byte_blob blob;
     const dj::status cs = dj::try_archive<_Format>(_in, blob,
                                                    dj::archive_options());
 

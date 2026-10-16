@@ -1,4 +1,15 @@
-#include "./test_handler_tests_sa.h"
+/*******************************************************************************
+* djinterp [test]                               test_handler_tests_sa_emission.c
+*
+*
+* path:      /tests/djinterp/c/test/test_handler_tests_sa_emission.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "test_handler_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /*

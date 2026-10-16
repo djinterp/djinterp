@@ -1,11 +1,19 @@
-/******************************************************************************
-* djinterp [test]                                   result_tests_factories.cpp
+/*******************************************************************************
+* djinterp [test]                                     result_tests_factories.cpp
 *
 * Factory-function tests for result.hpp section III:
 *   test_factories -- ok<T, E> and err<T, E>, from lvalue and rvalue sources.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/result_tests_factories.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <string>
+// djinterp
 #include "./result_tests.hpp"
 
 

@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                       dstring_tests_sa_token.c
+*
+*
+* path:      /tests/djinterp/c/dstring_tests_sa_token.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./dstring_tests_sa.h"
 
 

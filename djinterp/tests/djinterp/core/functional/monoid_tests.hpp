@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                             monoid_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                               monoid_tests.hpp
 *
 *   Unit-test declarations for core/functional/monoid.hpp.  One declaration
 * group per section of the module under test (newtypes, protocol, instances,
@@ -14,19 +14,30 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/functional/monoid_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/monoid_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.10
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.10
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    TEST HELPERS
+      ------------
+
 I.    MONOID NEWTYPES
+      ---------------
+
 II.   MONOID PROTOCOL
+      ---------------
+
 III.  INSTANCES  (semigroup + monoid)
+      -------------------------------
+
 IV.   GENERIC MONOID OPERATIONS
+      -------------------------
 */
 
 
@@ -35,8 +46,9 @@ IV.   GENERIC MONOID OPERATIONS
 
 // std
 #include <cmath>
+// djinterp
 // djinterp (module under test; pulls semigroup.hpp + foldable.hpp + core)
-#include "../../core/functional/monoid.hpp"
+#include "../../../../inc/djinterp/core/functional/monoid.hpp"
 
 
 NS_DJINTERP

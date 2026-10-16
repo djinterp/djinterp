@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   interpolate_tests_recursive.cpp
+/*******************************************************************************
+* djinterp [test]                                interpolate_tests_recursive.cpp
 *
 * Section VI -- recursive_resolver / recursive: expand a resolved VALUE that is
 * itself a template.  Verifies flat (no-nesting) values, one/multi level
@@ -7,8 +7,15 @@
 * terminates with the placeholder intact), partial nested expansion, a miss
 * staying a miss, a non-default (sigil) scanner for nested values, use through
 * the engine, the factory, and the owning value type.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_recursive.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

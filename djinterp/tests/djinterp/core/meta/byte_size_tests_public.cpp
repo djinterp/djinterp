@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    byte_size_tests_public.cpp
+/*******************************************************************************
+* djinterp [test]                                     byte_size_tests_public.cpp
 *
 *   Section V of byte_size.hpp: the public functions dynamic_byte_size and
 * total_byte_size, viewed as a whole rather than by internal branch.
@@ -14,10 +14,13 @@
 *     - integration sanity: total is never less than the exact static part.
 *
 *
-* path:      /inc/djinterp/test/byte_size_tests_public.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.03
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/byte_size_tests_public.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "byte_size_tests.hpp"
 
 

@@ -1,8 +1,15 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                            test_handler_tests_sa_integration.c
-* author(s): Samuel 'teer' Neal-Blim                           date: 2025.10.05
-******************************************************************************/
-#include "./test_handler_tests_sa.h"
+*
+*
+* path:      /tests/djinterp/c/test/test_handler_tests_sa_integration.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.10.05
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "test_handler_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /*

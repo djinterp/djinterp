@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                   comparator_tests.hpp
+/*******************************************************************************
+* djinterp [functional]                                     comparator_tests.hpp
 *
 * Unit-test declarations for comparator.hpp.
 *   This header declares the full battery of comparator tests and the small
@@ -40,34 +40,43 @@
 * without DTEST_SPEC_MODE, supply the predicate definitions the spec references
 * by address.
 *
+*
 * path:      /tests/djinterp/core/functional/comparator_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    HELPERS
-      1.  D_INTERNAL_CMP_CHECK            (early-return assertion)
-      2.  record / get_rank / get_id      (key-based fixtures)
-      3.  rank_of                          (free key function)
-      4.  asc_int / desc_int               (raw binary comparators)
+      -------
+      1.    D_INTERNAL_CMP_CHECK            (early-return assertion)
+      2.    record / get_rank / get_id      (key-based fixtures)
+      3.    rank_of                          (free key function)
+      4.    asc_int / desc_int               (raw binary comparators)
+
 II.   PER-SECTION TEST DECLARATIONS
-      1.  primitive       (natural / by_key / by_member / by_function)
-      2.  combinators     (reversed / then / lifted)
-      3.  pipeline        (operator| with then_adapter / reversed_adapter)
-      4.  predicates      (equal_under / less_than / greater_than)
-      5.  traits          (is_comparator / is_*_predicate / concepts)
+      -----------------------------
+      1.    primitive       (natural / by_key / by_member / by_function)
+      2.    combinators     (reversed / then / lifted)
+      3.    pipeline        (operator| with then_adapter / reversed_adapter)
+      4.    predicates      (equal_under / less_than / greater_than)
+      5.    traits          (is_comparator / is_*_predicate / concepts)
+
 III.  SECTION RUNNERS + TOP-LEVEL AGGREGATE
+      -------------------------------------
+
 IV.   SPEC PROVIDER                       (DTEST_SPEC_MODE: comparator_spec)
+      ----------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_COMPARATOR_
 #define DJINTERP_TESTING_FUNCTIONAL_COMPARATOR_ 1
 
 // djinterp
-#include "../../inc/functional/comparator.hpp"
+#include "../../../../inc/djinterp/core/functional/comparator.hpp"
 
 #ifdef DTEST_SPEC_MODE
     // The enriched runner defines DTEST_SPEC_MODE and consumes comparator_spec()

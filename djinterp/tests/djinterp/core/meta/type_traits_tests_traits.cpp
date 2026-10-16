@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                   type_traits_tests_traits.cpp
 *
 *   Unit tests for the "container-shape" detection traits in Section III
@@ -20,9 +20,12 @@
 *       composite predicate must reject correctly
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_traits.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_traits.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -364,120 +367,120 @@ type_traits_tests_traits(
 )
 {
     // ---- has_max_size ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_max_size<has_max_size_subject_t>::value == true,
         "has_max_size: positive case");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_max_size<has_max_size_wrong_type_t>::value == false,
         "has_max_size: wrong type for max_size -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_max_size<no_max_size_t>::value == false,
         "has_max_size: no max_size -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_max_size<int>::value == false,
         "has_max_size<int> -> false");
 
     // ---- has_nested_template_type ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_nested_template_type<has_nested_template_type_subject_t>::value == true,
         "has_nested_template_type: positive");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_nested_template_type<has_nested_template_type_negative_t>::value == false,
         "has_nested_template_type: non-template `type` -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_nested_template_type<int>::value == false,
         "has_nested_template_type<int> -> false");
 
     // ---- has_variadic_constructor ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_variadic_constructor<has_variadic_constructor_subject_t>::value == true,
         "has_variadic_constructor: positive");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_variadic_constructor<int>::value == true,
         "has_variadic_constructor<int> -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         has_variadic_constructor<not_constructible_from_self_t>::value == false,
         "has_variadic_constructor: copy-deleted -> false");
 
     // ---- is_allocator (broken, B5+B6) ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_allocator<std::allocator<int>>::value == false,
         "[BUG B6] is_allocator<allocator<int>> wrongly false (rvalue probe)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_allocator<std::allocator<char>>::value == false,
         "[BUG B6] is_allocator<allocator<char>> wrongly false (rvalue probe)");
 
     // ---- is_bounded ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_bounded<has_max_size_subject_t, std::is_class>::value == true,
         "is_bounded<positive, is_class>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_bounded<has_max_size_subject_t, std::is_arithmetic>::value == false,
         "is_bounded<positive, is_arithmetic> -> false (2nd trait fails)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_bounded<no_max_size_t, std::is_class>::value == false,
         "is_bounded<no_max_size, is_class> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_bounded<int, std::is_class>::value == false,
         "is_bounded<int, is_class> -> false");
 
     // ---- is_nonvoid ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nonvoid<int>::value == true,
         "is_nonvoid<int>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nonvoid<int*>::value == true,
         "is_nonvoid<int*>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nonvoid<void*>::value == true,
         "is_nonvoid<void*>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nonvoid<void>::value == false,
         "is_nonvoid<void>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nonvoid<const void>::value == false,
         "is_nonvoid<const void>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nonvoid<volatile void>::value == false,
         "is_nonvoid<volatile void>");
 
     // ---- is_sized ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_sized<sized_subject>::value == true,
         "is_sized<sized_subject>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_sized<std::vector<int>>::value == true,
         "is_sized<vector<int>>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_sized<is_sized_negative_t>::value == false,
         "is_sized: missing size() -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_sized<is_sized_strange_t>::value == false,
         "is_sized: size_type not convertible to size_t -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_sized<int>::value == false,
         "is_sized<int> -> false");
 
     // ---- is_valid_size_type ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_valid_size_type<std::size_t>::value == true,
         "is_valid_size_type<size_t>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_valid_size_type<unsigned int>::value == true,
         "is_valid_size_type<unsigned int>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_valid_size_type<unsigned char>::value == true,
         "is_valid_size_type<unsigned char>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_valid_size_type<int>::value == false,
         "is_valid_size_type<int> -> false (signed)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_valid_size_type<void>::value == false,
         "is_valid_size_type<void> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_valid_size_type<int*>::value == false,
         "is_valid_size_type<int*> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_valid_size_type<float>::value == false,
         "is_valid_size_type<float> -> false");
 

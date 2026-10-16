@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        test_builder_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                         test_builder_tests.hpp
 *
 *   Declarations for the unit-test suite covering test_builder.hpp - the
 * fluent, functional authoring surface over a test_tree.  Each free function
@@ -46,10 +46,11 @@
 * etc.; `verdict` resolves unqualified, as in the event suite.
 *
 *
-* path:      /tests/djinterp/test/test_builder/test_builder_tests.hpp
+* path:      /tests/djinterp/test/test_builder_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEST_BUILDER_TESTS_
 #define DJINTERP_TEST_BUILDER_TESTS_ 1
@@ -60,8 +61,9 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+// djinterp
 // djinterp  -- framework header first, then the header under test.
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
 #include <djinterp/test/test_builder.hpp>
 #endif

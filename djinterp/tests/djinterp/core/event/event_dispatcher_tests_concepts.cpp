@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                       event_dispatcher_tests_concepts.cpp
+/*******************************************************************************
+* djinterp [test]                            event_dispatcher_tests_concepts.cpp
 *
 *   Section VII -- CONCEPT CONSTRAINTS (C++20+).  Exercises the dispatcher
 * concepts layered over event_dispatcher_traits.  Core: is_event_dispatcher_type
@@ -17,10 +17,11 @@
 * are unconditional.
 *
 *
-* path:      /tests/djinterp/core/event/event_dispatcher/event_dispatcher_tests_concepts.cpp
+* path:      /tests/djinterp/core/event/event_dispatcher_tests_concepts.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_dispatcher_tests.hpp"

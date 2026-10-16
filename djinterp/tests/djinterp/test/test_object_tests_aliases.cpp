@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                  test_object_tests_aliases.cpp
+*
+*
+* path:      /tests/djinterp/test/test_object_tests_aliases.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstdint>
 #include <string>

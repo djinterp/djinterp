@@ -1,5 +1,16 @@
-#include "dtime_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                          dtime_tests_sa_norm.c
+*
+*
+* path:      /tests/djinterp/c/dtime_tests_sa_norm.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// std
 #include <limits.h>
+// djinterp
+#include "dtime_tests_sa.h"
 
 
 /******************************************************************************
@@ -7,7 +18,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dtime_timespec_normalize
+d_tests_sa_dtime_timespec_normalize
   Tests d_timespec_normalize for normalizing timespec values.
   Tests the following:
   - normalizes positive nanosecond overflow
@@ -22,7 +33,7 @@ d_tests_dtime_timespec_normalize
   - result tv_nsec is always in [0, 999999999]
 */
 struct d_test_object*
-d_tests_dtime_timespec_normalize
+d_tests_sa_dtime_timespec_normalize
 (
     void
 )
@@ -119,7 +130,7 @@ d_tests_dtime_timespec_normalize
 
     d_timespec_normalize(&ts);
     // with proper normalization, tv_nsec should be in [0, 999999999]
-    test_negative_sec_positive_nsec = (ts.tv_nsec >= 0) && 
+    test_negative_sec_positive_nsec = (ts.tv_nsec >= 0) &&
                                       (ts.tv_nsec < D_TIME_NSEC_PER_SEC);
 
     // test 9: exact billion nanoseconds (0s + 1B ns -> 1s + 0ns)
@@ -156,7 +167,7 @@ d_tests_dtime_timespec_normalize
         {
             d_timespec_normalize(&test_cases[i]);
 
-            if ( (test_cases[i].tv_nsec < 0) || 
+            if ( (test_cases[i].tv_nsec < 0) ||
                  (test_cases[i].tv_nsec >= D_TIME_NSEC_PER_SEC) )
             {
                 all_valid = false;
@@ -211,7 +222,7 @@ d_tests_dtime_timespec_normalize
 
 
 /*
-d_tests_dtime_timespec_is_valid
+d_tests_sa_dtime_timespec_is_valid
   Tests d_timespec_is_valid for checking timespec validity.
   Tests the following:
   - returns true for valid normalized timespec
@@ -226,7 +237,7 @@ d_tests_dtime_timespec_is_valid
   - consistent results for same input
 */
 struct d_test_object*
-d_tests_dtime_timespec_is_valid
+d_tests_sa_dtime_timespec_is_valid
 (
     void
 )
@@ -413,14 +424,14 @@ d_tests_dtime_timespec_is_valid
 
 
 /*
-d_tests_dtime_timespec_normalization_all
+d_tests_sa_dtime_timespec_normalization_all
   Runs all timespec normalization tests.
   Tests the following:
   - d_timespec_normalize
   - d_timespec_is_valid
 */
 struct d_test_object*
-d_tests_dtime_timespec_normalization_all
+d_tests_sa_dtime_timespec_normalization_all
 (
     void
 )
@@ -436,8 +447,8 @@ d_tests_dtime_timespec_normalization_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dtime_timespec_normalize();
-    group->elements[idx++] = d_tests_dtime_timespec_is_valid();
+    group->elements[idx++] = d_tests_sa_dtime_timespec_normalize();
+    group->elements[idx++] = d_tests_sa_dtime_timespec_is_valid();
 
     return group;
 }

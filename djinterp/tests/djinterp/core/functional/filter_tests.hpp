@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                        filter_tests.hpp
+/*******************************************************************************
+* djinterp [functional]                                         filter_tests.hpp
 *
 * Unit-test declarations for filter.hpp (which now folds in the filterable
 * container traits formerly in filterable_traits.hpp).
@@ -37,25 +37,34 @@
 * spec; the section .cpp files, built without DTEST_SPEC_MODE, supply the
 * predicate definitions the spec references by address.
 *
-* path:      /test/functional/filter_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/filter_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    HELPERS
-      1.  D_INTERNAL_FLT_CHECK            (early-return assertion)
-      2.  predicates                      (is_even / is_positive / gt3 ...)
-      3.  equality functors               (int_eq / mod3_eq)
-      4.  native_filter_type              (.filter() member, for detection)
-      5.  raw_op                           (filter_op_fn-shaped functor)
-      6.  not_a_filter                     (negative fixture)
-      7.  ints                             (vector<int> builder)
+      -------
+      1.    D_INTERNAL_FLT_CHECK            (early-return assertion)
+      2.    predicates                      (is_even / is_positive / gt3 ...)
+      3.    equality functors               (int_eq / mod3_eq)
+      4.    native_filter_type              (.filter() member, for detection)
+      5.    raw_op                           (filter_op_fn-shaped functor)
+      6.    not_a_filter                     (negative fixture)
+      7.    ints                             (vector<int> builder)
+
 II.   PER-SECTION TEST DECLARATIONS
+      -----------------------------
+
 III.  SECTION RUNNERS + TOP-LEVEL AGGREGATE
+      -------------------------------------
+
 IV.   SPEC PROVIDER                       (DTEST_SPEC_MODE: filter_spec)
+      ------------------------------------------------------------------
 */
 
 #ifndef DJINTERP_TEST_FUNCTIONAL_FILTER_
@@ -65,7 +74,7 @@ IV.   SPEC PROVIDER                       (DTEST_SPEC_MODE: filter_spec)
 #include <cstddef>
 #include <vector>
 // djinterp
-#include "../../inc/functional/filter.hpp"
+#include "../../../../inc/djinterp/core/functional/filter.hpp"
 
 #ifdef DTEST_SPEC_MODE
     // The enriched runner defines DTEST_SPEC_MODE and consumes filter_spec()

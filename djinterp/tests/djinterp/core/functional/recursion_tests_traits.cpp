@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                     recursion_tests_traits.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/recursion_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  recursion_tests_traits.cpp
 //   Sections II-IV -- recursive_traits / corecursive_traits, the detection
 //   traits and concepts, and the canonical mu<F> instances.

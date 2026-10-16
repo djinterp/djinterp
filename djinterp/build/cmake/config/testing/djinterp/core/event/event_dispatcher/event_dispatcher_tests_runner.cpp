@@ -1,77 +1,53 @@
-// djinterp
-#include "../../../../../../../../../tests/djinterp/core/event/event_dispatcher/event_dispatcher_tests.hpp"
-#include "djinterp/test/test_report_runner.hpp"    // report_builder + report model
+/******************************************************************************
+* djinterp [test]                             event_dispatcher_tests_runner.cpp
+*
+*   Enriched runner for the event_dispatcher unit tests.  The suite describes
+* itself: event_dispatcher_tests.hpp, compiled with DTEST_SPEC_MODE, exposes
+* event_dispatcher_spec() - the suite's blocks as data, each unit test paired with
+* a name and a one-line descriptor.  run_module (test_defaults.hpp) lowers that
+* spec into the six-kind tree, describes it, and drives the report to the
+* console and - as configured by a test_option_set - a PDF.  This file is only
+* the entry point.
+*
+*   OUTPUT VIA TEST_OPTIONS:
+*   Rather than the bare-filename convenience, this runner builds a
+* test_option_set (test_options.hpp) and selects the PDF face on it:
+*     opts.set<test_option::document>(test_doc_type::pdf);        // emit a PDF
+*     opts.set<test_option::output_file>("event_dispatcher_tests.pdf");
+* then hands the set to run_module's option-set overload.  document /
+* output_file / split / show now ride the one configuration surface, so tuning
+* any of them (split -> per_module, show -> failures_only, ...) is a one-line
+* change here and needs no runner-shape edit.  Leave `document` at its txt
+* default for a console-only run.
+*
+*   DTEST_SPEC_MODE swaps the header's fixtures for its spec provider, so the
+* runner pulls in the authoring surface without the section-file fixtures.
+*
+* path:      /build/cmake/config/testing/djinterp/core/event/event_dispatcher/event_dispatcher_tests_runner.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.01
+******************************************************************************/
 
+#define DTEST_SPEC_MODE                    // expose event_dispatcher_spec(); omit fixtures
+#include "event_dispatcher_tests.hpp"     // resolved via the test include path
 
-// D_ED_RUN
-//   macro: runs ::djinterp::testing::<fn> as a unit test named for the
-// function - recorded in the report and echoed to the live console.
-#define D_ED_RUN(_fn)   rb.run(#_fn, &::djinterp::testing::_fn)
+#include <string>
 
 
 int
 main()
 {
-    ::djinterp::test::report_builder rb;
+    namespace dt = ::djinterp::test;
 
-    rb.set_title("event_dispatcher.hpp unit tests");
+    // configure the report through the option set: PDF, to a named file.
+    dt::test_option_set opts = dt::default_test_options();
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("event_dispatcher_tests.pdf"));
 
-    // write a PDF beside the live console output; omit this line for a
-    // console-only run (see test_options.hpp for layout / naming knobs).
-    rb.use_pdf("event_dispatcher_tests.pdf");
-
-    rb.module("event_dispatcher",
-              "Event front end: the deferred event_queue, the dispatcher "
-              "facade (immediate and deferred), the fused drive, and the "
-              "dispatcher traits and concepts");
-
-    // I/II. event_queue
-    D_ED_RUN(tests_queue_enqueue_pending_empty_clear);
-    D_ED_RUN(tests_queue_process_order_and_count);
-    D_ED_RUN(tests_queue_process_partial_and_remainder);
-    D_ED_RUN(tests_queue_process_max_clamped_and_all);
-    D_ED_RUN(tests_queue_process_empty);
-    D_ED_RUN(tests_queue_delivery_time_binding);
-    D_ED_RUN(tests_queue_payload_captured_by_value);
-    D_ED_RUN(tests_queue_reentrant_enqueue_deferred);
-    D_ED_RUN(tests_queue_heterogeneous);
-
-    // III. event_dispatcher facade -- immediate surface
-    D_ED_RUN(tests_dispatcher_bind_and_management);
-    D_ED_RUN(tests_dispatcher_fire_immediate);
-    D_ED_RUN(tests_dispatcher_run);
-    D_ED_RUN(tests_dispatcher_compile);
-    D_ED_RUN(tests_dispatcher_merge);
-    D_ED_RUN(tests_dispatcher_typed_and_aggregate_queries);
-    D_ED_RUN(tests_dispatcher_component_access);
-
-    // III. event_dispatcher facade -- deferred surface + integration
-    D_ED_RUN(tests_dispatcher_queue_pending);
-    D_ED_RUN(tests_dispatcher_process_dispatches);
-    D_ED_RUN(tests_dispatcher_queue_then_bind_then_process);
-    D_ED_RUN(tests_dispatcher_process_partial_and_all);
-    D_ED_RUN(tests_dispatcher_fire_vs_queue);
-
-    // IV.  fused drive
-    D_ED_RUN(tests_drive_result_fields);
-    D_ED_RUN(tests_drive_empty_trace);
-    D_ED_RUN(tests_drive_counts_and_consumed);
-    D_ED_RUN(tests_drive_empty_step);
-    D_ED_RUN(tests_drive_coherence_with_run);
-
-    // V/VI. event_dispatcher_traits + typed detection
-    D_ED_RUN(tests_traits_real_dispatcher);
-    D_ED_RUN(tests_traits_negative);
-    D_ED_RUN(tests_traits_duck_typed_structural);
-    D_ED_RUN(tests_traits_clean_t_normalization);
-    D_ED_RUN(tests_traits_typed_bind_fire_queue);
-
-    // VII. concepts (C++20+)
-    D_ED_RUN(tests_concepts_core);
-    D_ED_RUN(tests_concepts_typed_capability);
-    D_ED_RUN(tests_concepts_composite);
-
-    return rb.finish();
+    return dt::run_module(
+        ::djinterp::testing::event_dispatcher_spec(),
+        "event_dispatcher.hpp unit tests",
+        "enriched: six-kind vocabulary, per-node metadata",
+        opts);
 }
-
-#undef D_ED_RUN

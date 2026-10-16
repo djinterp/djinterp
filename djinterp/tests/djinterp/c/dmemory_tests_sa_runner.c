@@ -1,4 +1,14 @@
-#include ".\dmemory_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                      dmemory_tests_sa_runner.c
+*
+*
+* path:      /tests/djinterp/c/dmemory_tests_sa_runner.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmemory_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,45 +16,45 @@
  *****************************************************************************/
 
 /*
-d_tests_dmemory_setup
+d_tests_sa_dmemory_setup
   Sets up test environment for memory tests.
 */
 bool
-d_tests_dmemory_setup
+d_tests_sa_dmemory_setup
 (
     void
 )
 {
     // no specific setup needed for memory tests
     // this function is here for consistency and potential future use
-    
+
     return true;
 }
 
 
 /*
-d_tests_dmemory_teardown
+d_tests_sa_dmemory_teardown
   Cleans up test environment.
 */
 bool
-d_tests_dmemory_teardown
+d_tests_sa_dmemory_teardown
 (
     void
 )
 {
     // no specific teardown needed for memory tests
     // this function is here for consistency and potential future use
-    
+
     return true;
 }
 
 
 /*
-d_tests_dmemory_fill_pattern
+d_tests_sa_dmemory_fill_pattern
   Fills a buffer with a repeating byte pattern.
 */
 void
-d_tests_dmemory_fill_pattern
+d_tests_sa_dmemory_fill_pattern
 (
     void*       _buffer,
     size_t      _size,
@@ -56,34 +66,34 @@ d_tests_dmemory_fill_pattern
     unsigned char* pat;
     size_t         i;
     size_t         j;
-    
-    if ( (!_buffer) || 
-         (!_pattern) || 
-         (_size == 0) || 
+
+    if ( (!_buffer) ||
+         (!_pattern) ||
+         (_size == 0) ||
          (_pattern_size == 0) )
     {
         return;
     }
-    
+
     buf = (unsigned char*)_buffer;
     pat = (unsigned char*)_pattern;
-    
+
     for (i = 0; i < _size; i++)
     {
         j = i % _pattern_size;
         buf[i] = pat[j];
     }
-    
+
     return;
 }
 
 
 /*
-d_tests_dmemory_verify_pattern
+d_tests_sa_dmemory_verify_pattern
   Verifies a buffer contains expected pattern.
 */
 bool
-d_tests_dmemory_verify_pattern
+d_tests_sa_dmemory_verify_pattern
 (
     const void*   _buffer,
     size_t        _size,
@@ -92,15 +102,15 @@ d_tests_dmemory_verify_pattern
 {
     const unsigned char* buf;
     size_t               i;
-    
-    if ( (!_buffer) || 
+
+    if ( (!_buffer) ||
          (_size == 0) )
     {
         return false;
     }
-    
+
     buf = (const unsigned char*)_buffer;
-    
+
     for (i = 0; i < _size; i++)
     {
         if (buf[i] != _pattern)
@@ -108,17 +118,17 @@ d_tests_dmemory_verify_pattern
             return false;
         }
     }
-    
+
     return true;
 }
 
 
 /*
-d_tests_dmemory_compare_buffers
+d_tests_sa_dmemory_compare_buffers
   Compares two memory buffers byte-by-byte.
 */
 bool
-d_tests_dmemory_compare_buffers
+d_tests_sa_dmemory_compare_buffers
 (
     const void* _buf1,
     const void* _buf2,
@@ -128,21 +138,21 @@ d_tests_dmemory_compare_buffers
     const unsigned char* b1;
     const unsigned char* b2;
     size_t               i;
-    
-    if ( (!_buf1) || 
+
+    if ( (!_buf1) ||
          (!_buf2) )
     {
         return (_buf1 == _buf2);
     }
-    
+
     if (_size == 0)
     {
         return true;
     }
-    
+
     b1 = (const unsigned char*)_buf1;
     b2 = (const unsigned char*)_buf2;
-    
+
     for (i = 0; i < _size; i++)
     {
         if (b1[i] != b2[i])
@@ -150,7 +160,7 @@ d_tests_dmemory_compare_buffers
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -160,7 +170,7 @@ d_tests_dmemory_compare_buffers
  *****************************************************************************/
 
 /*
-d_tests_dmemory_run_all
+d_tests_sa_dmemory_run_all
   Master test runner for all dmemory tests.
   Tests the following:
   - Memory copy operations
@@ -173,7 +183,7 @@ d_tests_dmemory_run_all
   - Performance tests
 */
 struct d_test_object*
-d_tests_dmemory_run_all
+d_tests_sa_dmemory_run_all
 (
     void
 )
@@ -183,8 +193,8 @@ d_tests_dmemory_run_all
     size_t                idx;
 
     // setup test environment
-    setup_success = d_tests_dmemory_setup();
-    
+    setup_success = d_tests_sa_dmemory_setup();
+
     if (!setup_success)
     {
         printf("Failed to setup dmemory test environment\n");
@@ -196,25 +206,23 @@ d_tests_dmemory_run_all
 
     if (!group)
     {
-        d_tests_dmemory_teardown();
+        d_tests_sa_dmemory_teardown();
         return NULL;
     }
 
     // run all test categories
     idx = 0;
-    group->elements[idx++] = d_tests_dmemory_copy_all();
-    group->elements[idx++] = d_tests_dmemory_duplication_all();
-    group->elements[idx++] = d_tests_dmemory_set_all();
-    group->elements[idx++] = d_tests_dmemory_null_params_all();
-    group->elements[idx++] = d_tests_dmemory_boundary_conditions_all();
-    group->elements[idx++] = d_tests_dmemory_alignment_all();
-    group->elements[idx++] = d_tests_dmemory_overlap_all();
-    group->elements[idx++] = d_tests_dmemory_performance_all();
+    group->elements[idx++] = d_tests_sa_dmemory_copy_all();
+    group->elements[idx++] = d_tests_sa_dmemory_duplication_all();
+    group->elements[idx++] = d_tests_sa_dmemory_set_all();
+    group->elements[idx++] = d_tests_sa_dmemory_null_params_all();
+    group->elements[idx++] = d_tests_sa_dmemory_boundary_conditions_all();
+    group->elements[idx++] = d_tests_sa_dmemory_alignment_all();
+    group->elements[idx++] = d_tests_sa_dmemory_overlap_all();
+    group->elements[idx++] = d_tests_sa_dmemory_performance_all();
 
     // cleanup
-    d_tests_dmemory_teardown();
+    d_tests_sa_dmemory_teardown();
 
     return group;
 }
-
-

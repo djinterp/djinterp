@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                            predicate_tests_variadic.cpp
+/*******************************************************************************
+* djinterp [functional]                             predicate_tests_variadic.cpp
 *
 *   Tests for the variadic fold factories all_of, any_of, and none_of, and
 * the internal fold helpers (all_of_fold / any_of_fold) that compute the
@@ -8,9 +8,14 @@
 *   These features are C++11+ only; under C++98 this entry point compiles to
 * a no-op pass.
 *
-* path:      /src/functional/predicate_tests_variadic.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/predicate_tests_variadic.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./predicate_tests.hpp"
 
 

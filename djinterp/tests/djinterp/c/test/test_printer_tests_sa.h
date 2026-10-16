@@ -1,29 +1,34 @@
-/******************************************************************************
-* djinterp [test]                                              test_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                        test_printer_tests_sa.h
 *
 * This is a test file for `test.h` unit tests.
 * For the file itself, go to `\inc\test\test.h`.
-* Note: this module is required to build DTest, so it uses `test_standalone.h`,
-* rather than DTest for unit testing. Any modules that are not dependencies of
+* Note: this module is required to build DTest, so it does not use DTest for
+* unit testing. Any modules that are not dependencies of
 * DTest should use DTest for unit tests.
 *
 *
-* link:      TBA
-* file:      \test\test\test_tests_standalone.h
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.09.26
-******************************************************************************/
+* link(s):   TBA
+*
+*
+* path:      /tests/djinterp/c/test/test_printer_tests_sa.h
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.26
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_TEST_
-#define	DJINTERP_TESTING_TEST_ 1
+#define DJINTERP_TESTING_TEST_ 1
 
+// std
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/test/assert.h"
-#include "../../../inc/c/test/test.h"
-#include "../../../inc/c/test/test_standalone.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/test/default/assert.h"
+#include "../../../../inc/djinterp/c/test/default/test.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 // Helper structure for managing temporary test files
@@ -275,4 +280,4 @@ bool d_tests_sa_test_repeated_allocations(struct d_test_counter* _test_info);
 bool d_tests_sa_test_printer_all(struct d_test_counter* _test_info);
 
 
-#endif	// DJINTERP_TESTING_TEST_
+#endif  // DJINTERP_TESTING_TEST_

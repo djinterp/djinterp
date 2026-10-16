@@ -48,7 +48,7 @@ d_tests_sa_test_module_get_effective_settings
     }
 
     // call with valid module, NULL parent/node config
-    struct d_test_config* effective =
+    struct d_test_options* effective =
         d_test_module_get_effective_settings(mod, NULL, NULL);
 
     // should produce a usable result (non-crash; may return non-NULL

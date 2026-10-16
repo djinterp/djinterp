@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                           structural_traits_tests_optional.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/structural_traits_tests_optional.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  structural_traits_tests_optional.cpp
 //   Section III -- produces_optional_like and is_unfold_step: the pull-based
 //   source protocols (bool-testable AND dereferenceable).
@@ -9,6 +18,7 @@
 #include "structural_traits_tests.hpp"
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+// std
 #  include <optional>
 #endif
 

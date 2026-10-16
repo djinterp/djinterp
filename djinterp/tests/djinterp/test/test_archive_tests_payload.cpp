@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                                test_archive_tests_payload.cpp
+*
+* path:      /tests/djinterp/test/test_archive_tests_payload.cpp
+******************************************************************************/
+// djinterp
 #include "test_archive_tests.hpp"
 
 NS_DJINTERP
@@ -17,24 +23,24 @@ bool
 tests_archive_file_data_fetches_contents()
 {
     const dj::entry_list items = ta_sample_entries();
-    dj::byte_buffer      out;
+    dj::byte_blob      out;
 
     D_TA_CHECK(dt::file_data(items, "readme.txt", out));
-    D_TA_CHECK(out == dj::byte_buffer("hello, world"));
+    D_TA_CHECK(out == dj::byte_blob("hello, world"));
 
     // a binary payload
-    dj::byte_buffer bin;
+    dj::byte_blob bin;
 
     D_TA_CHECK(dt::file_data(items, "data/blob.bin", bin));
     D_TA_CHECK(bin.size() == 5u);
-    D_TA_CHECK(bin == dj::byte_buffer("a\0b\0c", 5));
+    D_TA_CHECK(bin == dj::byte_blob("a\0b\0c", 5));
 
     // an empty payload is a success, not a miss
     dj::entry_list hollow;
 
-    hollow.push_back(dt::make_file_entry("empty.txt", dj::byte_buffer()));
+    hollow.push_back(dt::make_file_entry("empty.txt", dj::byte_blob()));
 
-    dj::byte_buffer e("previous contents");
+    dj::byte_blob e("previous contents");
 
     D_TA_CHECK(dt::file_data(hollow, "empty.txt", e));
     D_TA_CHECK(e.empty());
@@ -42,12 +48,12 @@ tests_archive_file_data_fetches_contents()
     // the trailing-separator tolerance carries over
     dj::entry_list slashed;
 
-    slashed.push_back(dt::make_file_entry("odd/", dj::byte_buffer("v")));
+    slashed.push_back(dt::make_file_entry("odd/", dj::byte_blob("v")));
 
-    dj::byte_buffer s;
+    dj::byte_blob s;
 
     D_TA_CHECK(dt::file_data(slashed, "odd", s));
-    D_TA_CHECK(s == dj::byte_buffer("v"));
+    D_TA_CHECK(s == dj::byte_blob("v"));
 
     return true;
 }
@@ -65,39 +71,39 @@ bool
 tests_archive_file_data_rejects_directory_and_absent()
 {
     const dj::entry_list items = ta_sample_entries();
-    dj::byte_buffer      out("sentinel");
+    dj::byte_blob      out("sentinel");
 
     // a directory is refused
     D_TA_CHECK(!dt::file_data(items, "data", out));
-    D_TA_CHECK(out == dj::byte_buffer("sentinel"));
+    D_TA_CHECK(out == dj::byte_blob("sentinel"));
 
     // including when queried with the trailing separator
     D_TA_CHECK(!dt::file_data(items, "data/", out));
-    D_TA_CHECK(out == dj::byte_buffer("sentinel"));
+    D_TA_CHECK(out == dj::byte_blob("sentinel"));
 
     // a missing name is refused
     D_TA_CHECK(!dt::file_data(items, "absent.txt", out));
-    D_TA_CHECK(out == dj::byte_buffer("sentinel"));
+    D_TA_CHECK(out == dj::byte_blob("sentinel"));
 
     // so is the empty name
     D_TA_CHECK(!dt::file_data(items, "", out));
-    D_TA_CHECK(out == dj::byte_buffer("sentinel"));
+    D_TA_CHECK(out == dj::byte_blob("sentinel"));
 
     // and any lookup on an empty list
     const dj::entry_list empty;
 
     D_TA_CHECK(!dt::file_data(empty, "anything", out));
-    D_TA_CHECK(out == dj::byte_buffer("sentinel"));
+    D_TA_CHECK(out == dj::byte_blob("sentinel"));
 
     // the guard really is the flag, not the payload: a directory with a
     // name that also exists as a file resolves to whichever comes first
     dj::entry_list shadow;
 
     shadow.push_back(dt::make_dir_entry("name"));
-    shadow.push_back(dt::make_file_entry("name", dj::byte_buffer("data")));
+    shadow.push_back(dt::make_file_entry("name", dj::byte_blob("data")));
 
     D_TA_CHECK(!dt::file_data(shadow, "name", out));
-    D_TA_CHECK(out == dj::byte_buffer("sentinel"));
+    D_TA_CHECK(out == dj::byte_blob("sentinel"));
 
     return true;
 }
@@ -231,7 +237,7 @@ tests_archive_files_preserved_rejects_damage()
     // the binary member's NULs matter too
     dj::entry_list nulled = items;
 
-    nulled[1].data = dj::byte_buffer("a\0b\0d", 5);
+    nulled[1].data = dj::byte_blob("a\0b\0d", 5);
     D_TA_CHECK(!dt::files_preserved(items, nulled));
 
     return true;

@@ -7,7 +7,7 @@
 
 /*
 d_tests_sa_standalone_note_item_struct
-  Tests the d_test_sa_note_item structure.
+  Tests the d_test_standalone_note_item structure.
   Tests the following:
   - Structure has expected members
   - prefix member is accessible
@@ -20,7 +20,7 @@ d_tests_sa_standalone_note_item_struct
 )
 {
     bool                       result;
-    struct d_test_sa_note_item note_item;
+    struct d_test_standalone_note_item note_item;
 
     result = true;
 
@@ -44,9 +44,9 @@ d_tests_sa_standalone_note_item_struct
 
     // test 3: structure size is reasonable (two pointers)
     result = d_assert_standalone(
-        sizeof(struct d_test_sa_note_item) >= (2 * sizeof(void*)),
+        sizeof(struct d_test_standalone_note_item) >= (2 * sizeof(void*)),
         "note_item_size",
-        "d_test_sa_note_item should be at least 2 pointers",
+        "d_test_standalone_note_item should be at least 2 pointers",
         _counter) && result;
 
     // test 4: can use various prefix types
@@ -79,7 +79,7 @@ d_tests_sa_standalone_note_item_struct
 
 /*
 d_tests_sa_standalone_note_section_struct
-  Tests the d_test_sa_note_section structure.
+  Tests the d_test_standalone_note_section structure.
   Tests the following:
   - Structure has expected members
   - title member is accessible
@@ -93,8 +93,8 @@ d_tests_sa_standalone_note_section_struct
 )
 {
     bool                          result;
-    struct d_test_sa_note_section note_section;
-    struct d_test_sa_note_item    items[3];
+    struct d_test_standalone_note_section note_section;
+    struct d_test_standalone_note_item    items[3];
 
     result = true;
 
@@ -141,9 +141,9 @@ d_tests_sa_standalone_note_section_struct
 
     // test 5: structure size is reasonable
     result = d_assert_standalone(
-        sizeof(struct d_test_sa_note_section) >= (sizeof(void*) + sizeof(size_t) + sizeof(void*)),
+        sizeof(struct d_test_standalone_note_section) >= (sizeof(void*) + sizeof(size_t) + sizeof(void*)),
         "note_section_size",
-        "d_test_sa_note_section should have expected size",
+        "d_test_standalone_note_section should have expected size",
         _counter) && result;
 
     // test 6: count can be zero

@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                         dfile_tests_sa_meta.c
+/*******************************************************************************
+* djinterp [test]                                          dfile_tests_sa_meta.c
 *
 *   Tests for file metadata operations (stat, fstat, chmod, access).
 *
 *
-* path:      \src	est\dfile_tests_sa_meta.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
-#include ".\dfile_tests_sa.h"
+* path:      /tests/djinterp/c/dfile_tests_sa_meta.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dfile_tests_sa.h"
 
 
 /******************************************************************************
@@ -17,7 +19,7 @@
 
 /*
 d_tests_dfile_stat
-  Tests d_stat for getting file status.
+  Tests d_file_stat for getting file status.
   Tests the following:
   - returns 0 for existing file
   - populates stat structure with valid size
@@ -47,20 +49,20 @@ d_tests_dfile_stat
 
     // test 1 & 2: stat existing file
     memset(&st, 0, sizeof(st));
-    result = d_stat(path_buf, &st);
+    result = d_file_stat(path_buf, &st);
     test_existing = (result == 0);
     test_valid_size = (st.st_size == strlen(D_TEST_DFILE_TEST_CONTENT));
 
     // test 3: nonexistent file
-    result = d_stat("nonexistent_stat_test.txt", &st);
+    result = d_file_stat("nonexistent_stat_test.txt", &st);
     test_nonexistent = (result != 0);
 
     // test 4: NULL path
-    result = d_stat(NULL, &st);
+    result = d_file_stat(NULL, &st);
     test_null_path = (result != 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_stat", 4);
+    group = d_test_object_new_interior("d_file_stat", 4);
 
     if (!group)
     {
@@ -70,16 +72,16 @@ d_tests_dfile_stat
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("existing",
                                            test_existing,
-                                           "d_stat returns 0 for existing file");
+                                           "d_file_stat returns 0 for existing file");
     group->elements[idx++] = D_ASSERT_TRUE("valid_size",
                                            test_valid_size,
-                                           "d_stat populates correct file size");
+                                           "d_file_stat populates correct file size");
     group->elements[idx++] = D_ASSERT_TRUE("nonexistent",
                                            test_nonexistent,
-                                           "d_stat returns error for nonexistent");
+                                           "d_file_stat returns error for nonexistent");
     group->elements[idx++] = D_ASSERT_TRUE("null_path",
                                            test_null_path,
-                                           "d_stat returns error for NULL path");
+                                           "d_file_stat returns error for NULL path");
 
     return group;
 }
@@ -87,7 +89,7 @@ d_tests_dfile_stat
 
 /*
 d_tests_dfile_fstat
-  Tests d_fstat for getting file status from descriptor.
+  Tests d_file_stat_fd for getting file status from descriptor.
   Tests the following:
   - returns 0 for valid fd
   - populates stat structure
@@ -115,25 +117,25 @@ d_tests_dfile_fstat
                                D_TEST_DFILE_TEST_FILENAME);
 
     // test 1 & 2: fstat on valid fd
-    fd = d_open(path_buf, O_RDONLY);
+    fd = d_file_open(path_buf, O_RDONLY);
     test_valid_fd = false;
     test_valid_size = false;
 
     if (fd >= 0)
     {
         memset(&st, 0, sizeof(st));
-        result = d_fstat(fd, &st);
+        result = d_file_stat_fd(fd, &st);
         test_valid_fd = (result == 0);
         test_valid_size = (st.st_size == strlen(D_TEST_DFILE_TEST_CONTENT));
-        d_close(fd);
+        d_file_close_fd(fd);
     }
 
     // test 3: invalid fd
-    result = d_fstat(-1, &st);
+    result = d_file_stat_fd(-1, &st);
     test_invalid_fd = (result != 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_fstat", 3);
+    group = d_test_object_new_interior("d_file_stat_fd", 3);
 
     if (!group)
     {
@@ -143,13 +145,13 @@ d_tests_dfile_fstat
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("valid_fd",
                                            test_valid_fd,
-                                           "d_fstat returns 0 for valid fd");
+                                           "d_file_stat_fd returns 0 for valid fd");
     group->elements[idx++] = D_ASSERT_TRUE("valid_size",
                                            test_valid_size,
-                                           "d_fstat populates correct file size");
+                                           "d_file_stat_fd populates correct file size");
     group->elements[idx++] = D_ASSERT_TRUE("invalid_fd",
                                            test_invalid_fd,
-                                           "d_fstat returns error for invalid fd");
+                                           "d_file_stat_fd returns error for invalid fd");
 
     return group;
 }
@@ -157,7 +159,7 @@ d_tests_dfile_fstat
 
 /*
 d_tests_dfile_lstat
-  Tests d_lstat for status without following symlinks.
+  Tests d_file_stat_nofollow for status without following symlinks.
   Tests the following:
   - returns 0 for existing file
   - returns -1 for nonexistent file
@@ -182,15 +184,15 @@ d_tests_dfile_lstat
                                D_TEST_DFILE_TEST_FILENAME);
 
     // test 1: lstat existing file
-    result = d_lstat(path_buf, &st);
+    result = d_file_stat_nofollow(path_buf, &st);
     test_existing = (result == 0);
 
     // test 2: nonexistent file
-    result = d_lstat("nonexistent_lstat_test.txt", &st);
+    result = d_file_stat_nofollow("nonexistent_lstat_test.txt", &st);
     test_nonexistent = (result != 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_lstat", 2);
+    group = d_test_object_new_interior("d_file_stat_nofollow", 2);
 
     if (!group)
     {
@@ -200,10 +202,10 @@ d_tests_dfile_lstat
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("existing",
                                            test_existing,
-                                           "d_lstat returns 0 for existing file");
+                                           "d_file_stat_nofollow returns 0 for existing file");
     group->elements[idx++] = D_ASSERT_TRUE("nonexistent",
                                            test_nonexistent,
-                                           "d_lstat returns error for nonexistent");
+                                           "d_file_stat_nofollow returns error for nonexistent");
 
     return group;
 }
@@ -211,7 +213,7 @@ d_tests_dfile_lstat
 
 /*
 d_tests_dfile_access
-  Tests d_access for checking file permissions.
+  Tests d_file_access for checking file permissions.
   Tests the following:
   - returns 0 for existing file with F_OK
   - returns 0 for readable file with R_OK
@@ -237,19 +239,19 @@ d_tests_dfile_access
                                D_TEST_DFILE_TEST_FILENAME);
 
     // test 1: file exists (F_OK)
-    result = d_access(path_buf, F_OK);
+    result = d_file_access(path_buf, F_OK);
     test_exists = (result == 0);
 
     // test 2: file is readable (R_OK)
-    result = d_access(path_buf, R_OK);
+    result = d_file_access(path_buf, R_OK);
     test_readable = (result == 0);
 
     // test 3: nonexistent file
-    result = d_access("nonexistent_access_test.txt", F_OK);
+    result = d_file_access("nonexistent_access_test.txt", F_OK);
     test_nonexistent = (result != 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_access", 3);
+    group = d_test_object_new_interior("d_file_access", 3);
 
     if (!group)
     {
@@ -259,13 +261,13 @@ d_tests_dfile_access
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("exists",
                                            test_exists,
-                                           "d_access returns 0 for existing file");
+                                           "d_file_access returns 0 for existing file");
     group->elements[idx++] = D_ASSERT_TRUE("readable",
                                            test_readable,
-                                           "d_access returns 0 for readable file");
+                                           "d_file_access returns 0 for readable file");
     group->elements[idx++] = D_ASSERT_TRUE("nonexistent",
                                            test_nonexistent,
-                                           "d_access returns error for nonexistent");
+                                           "d_file_access returns error for nonexistent");
 
     return group;
 }
@@ -273,7 +275,7 @@ d_tests_dfile_access
 
 /*
 d_tests_dfile_chmod
-  Tests d_chmod for changing file permissions.
+  Tests d_file_chmod for changing file permissions.
   Tests the following:
   - returns 0 on success
   - actually changes permissions
@@ -296,21 +298,21 @@ d_tests_dfile_chmod
     d_tests_dfile_get_test_path(path_buf,
                                sizeof(path_buf),
                                "chmod_test.txt");
-    d_fwrite_all(path_buf, "test", 4);
+    d_file_write_all(path_buf, "test", 4);
 
     // test 1: change permissions
-    result = d_chmod(path_buf, S_IRUSR | S_IWUSR);
+    result = d_file_chmod(path_buf, S_IRUSR | S_IWUSR);
     test_change = (result == 0);
 
     // cleanup
-    d_remove(path_buf);
+    d_file_remove(path_buf);
 
     // test 2: nonexistent file
-    result = d_chmod("nonexistent_chmod_test.txt", S_IRUSR);
+    result = d_file_chmod("nonexistent_chmod_test.txt", S_IRUSR);
     test_nonexistent = (result != 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_chmod", 2);
+    group = d_test_object_new_interior("d_file_chmod", 2);
 
     if (!group)
     {
@@ -320,10 +322,10 @@ d_tests_dfile_chmod
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("change",
                                            test_change,
-                                           "d_chmod changes file permissions");
+                                           "d_file_chmod changes file permissions");
     group->elements[idx++] = D_ASSERT_TRUE("nonexistent",
                                            test_nonexistent,
-                                           "d_chmod returns error for nonexistent");
+                                           "d_file_chmod returns error for nonexistent");
 
     return group;
 }
@@ -418,7 +420,7 @@ d_tests_dfile_file_size_stream
                                D_TEST_DFILE_TEST_FILENAME);
 
     // test 1: correct size from stream
-    file = d_fopen(path_buf, "r");
+    file = d_file_open_stream(path_buf, "r");
     test_correct_size = false;
 
     if (file)
@@ -516,7 +518,7 @@ d_tests_dfile_file_exists
 
 /*
 d_tests_dfile_is_file
-  Tests d_is_file for checking if path is regular file.
+  Tests d_file_is_regular for checking if path is regular file.
   Tests the following:
   - returns non-zero for regular file
   - returns 0 for directory
@@ -542,19 +544,19 @@ d_tests_dfile_is_file
                                D_TEST_DFILE_TEST_FILENAME);
 
     // test 1: regular file
-    result = d_is_file(path_buf);
+    result = d_file_is_regular(path_buf);
     test_regular_file = (result != 0);
 
     // test 2: directory returns 0
-    result = d_is_file(D_TEST_DFILE_TEMP_DIR);
+    result = d_file_is_regular(D_TEST_DFILE_TEMP_DIR);
     test_directory = (result == 0);
 
     // test 3: nonexistent path
-    result = d_is_file("nonexistent_isfile_test.txt");
+    result = d_file_is_regular("nonexistent_isfile_test.txt");
     test_nonexistent = (result == 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_is_file", 3);
+    group = d_test_object_new_interior("d_file_is_regular", 3);
 
     if (!group)
     {
@@ -564,13 +566,13 @@ d_tests_dfile_is_file
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("regular_file",
                                            test_regular_file,
-                                           "d_is_file returns non-zero for file");
+                                           "d_file_is_regular returns non-zero for file");
     group->elements[idx++] = D_ASSERT_TRUE("directory",
                                            test_directory,
-                                           "d_is_file returns 0 for directory");
+                                           "d_file_is_regular returns 0 for directory");
     group->elements[idx++] = D_ASSERT_TRUE("nonexistent",
                                            test_nonexistent,
-                                           "d_is_file returns 0 for nonexistent");
+                                           "d_file_is_regular returns 0 for nonexistent");
 
     return group;
 }
@@ -578,7 +580,7 @@ d_tests_dfile_is_file
 
 /*
 d_tests_dfile_is_dir
-  Tests d_is_dir for checking if path is directory.
+  Tests d_dir_exists for checking if path is directory.
   Tests the following:
   - returns non-zero for directory
   - returns 0 for regular file
@@ -604,19 +606,19 @@ d_tests_dfile_is_dir
                                D_TEST_DFILE_TEST_FILENAME);
 
     // test 1: directory
-    result = d_is_dir(D_TEST_DFILE_TEMP_DIR);
+    result = d_dir_exists(D_TEST_DFILE_TEMP_DIR);
     test_directory = (result != 0);
 
     // test 2: regular file returns 0
-    result = d_is_dir(path_buf);
+    result = d_dir_exists(path_buf);
     test_regular_file = (result == 0);
 
     // test 3: nonexistent path
-    result = d_is_dir("nonexistent_isdir_test");
+    result = d_dir_exists("nonexistent_isdir_test");
     test_nonexistent = (result == 0);
 
     // build result tree
-    group = d_test_object_new_interior("d_is_dir", 3);
+    group = d_test_object_new_interior("d_dir_exists", 3);
 
     if (!group)
     {
@@ -626,13 +628,13 @@ d_tests_dfile_is_dir
     idx = 0;
     group->elements[idx++] = D_ASSERT_TRUE("directory",
                                            test_directory,
-                                           "d_is_dir returns non-zero for directory");
+                                           "d_dir_exists returns non-zero for directory");
     group->elements[idx++] = D_ASSERT_TRUE("regular_file",
                                            test_regular_file,
-                                           "d_is_dir returns 0 for regular file");
+                                           "d_dir_exists returns 0 for regular file");
     group->elements[idx++] = D_ASSERT_TRUE("nonexistent",
                                            test_nonexistent,
-                                           "d_is_dir returns 0 for nonexistent");
+                                           "d_dir_exists returns 0 for nonexistent");
 
     return group;
 }
@@ -642,16 +644,16 @@ d_tests_dfile_is_dir
 d_tests_dfile_metadata_all
   Runs all file metadata tests.
   Tests the following:
-  - d_stat
-  - d_fstat
-  - d_lstat
-  - d_access
-  - d_chmod
+  - d_file_stat
+  - d_file_stat_fd
+  - d_file_stat_nofollow
+  - d_file_access
+  - d_file_chmod
   - d_file_size
   - d_file_size_stream
   - d_file_exists
-  - d_is_file
-  - d_is_dir
+  - d_file_is_regular
+  - d_dir_exists
 */
 struct d_test_object*
 d_tests_dfile_metadata_all
@@ -683,5 +685,3 @@ d_tests_dfile_metadata_all
 
     return group;
 }
-
-

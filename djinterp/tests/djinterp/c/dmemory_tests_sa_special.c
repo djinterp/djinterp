@@ -1,4 +1,14 @@
-#include ".\dmemory_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                     dmemory_tests_sa_special.c
+*
+*
+* path:      /tests/djinterp/c/dmemory_tests_sa_special.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmemory_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +16,7 @@
  *****************************************************************************/
 
  /*
- d_tests_dmemory_null_params_all
+ d_tests_sa_dmemory_null_params_all
    Tests NULL parameter handling across all functions.
    Tests the following:
    - d_memcpy with NULL parameters
@@ -17,7 +27,7 @@
    - proper error codes returned
  */
 struct d_test_object*
-    d_tests_dmemory_null_params_all
+    d_tests_sa_dmemory_null_params_all
     (
         void
     )
@@ -99,7 +109,7 @@ struct d_test_object*
  *****************************************************************************/
 
  /*
- d_tests_dmemory_boundary_conditions_all
+ d_tests_sa_dmemory_boundary_conditions_all
    Tests boundary conditions across all functions.
    Tests the following:
    - zero-size operations
@@ -110,7 +120,7 @@ struct d_test_object*
    - power-of-two sizes
  */
 struct d_test_object*
-    d_tests_dmemory_boundary_conditions_all
+    d_tests_sa_dmemory_boundary_conditions_all
     (
         void
     )
@@ -142,7 +152,7 @@ struct d_test_object*
     result_ptr = d_memcpy(dst, src, 0);
     void* dup_zero = d_memdup_s(src, 0);
     result_ptr = d_memset(dst, 0x42, 0);
-    test_zero_size = d_tests_dmemory_verify_pattern(dst, sizeof(dst), 0xFF) &&
+    test_zero_size = d_tests_sa_dmemory_verify_pattern(dst, sizeof(dst), 0xFF) &&
         (dup_zero == NULL);
 
     // test 2: single-byte operations
@@ -161,7 +171,7 @@ struct d_test_object*
     // test 3: exact buffer fit
     result_int = d_memcpy_s(dst, sizeof(dst), src, sizeof(dst));
     test_exact_fit = (result_int == 0) &&
-        d_tests_dmemory_compare_buffers(dst, src, sizeof(dst));
+        d_tests_sa_dmemory_compare_buffers(dst, src, sizeof(dst));
 
     // test 4: off-by-one scenarios
     result_int = d_memcpy_s(dst, 100, src, 101);  // one too many
@@ -178,7 +188,7 @@ struct d_test_object*
         memset(dst, 0, sizeof(dst));
         result_ptr = d_memcpy(dst, src, pow2_sizes[i]);
 
-        if (!d_tests_dmemory_compare_buffers(dst, src, pow2_sizes[i]))
+        if (!d_tests_sa_dmemory_compare_buffers(dst, src, pow2_sizes[i]))
         {
             test_power_of_two = false;
             break;
@@ -194,7 +204,7 @@ struct d_test_object*
     {
         memset(large_src, 0x5A, 65536);
         result_ptr = d_memcpy(large_dst, large_src, 65536);
-        test_max_portable = d_tests_dmemory_verify_pattern(large_dst, 65536, 0x5A);
+        test_max_portable = d_tests_sa_dmemory_verify_pattern(large_dst, 65536, 0x5A);
     }
 
     if (large_src) free(large_src);
@@ -237,7 +247,7 @@ struct d_test_object*
  *****************************************************************************/
 
  /*
- d_tests_dmemory_alignment_all
+ d_tests_sa_dmemory_alignment_all
    Tests memory operations with various alignments.
    Tests the following:
    - aligned addresses (4, 8, 16 byte boundaries)
@@ -248,7 +258,7 @@ struct d_test_object*
    - cache-line boundaries
  */
 struct d_test_object*
-    d_tests_dmemory_alignment_all
+    d_tests_sa_dmemory_alignment_all
     (
         void
     )
@@ -285,7 +295,7 @@ struct d_test_object*
     // test 1: fully aligned (16-byte aligned addresses)
     memset(dst_aligned, 0, sizeof(dst_aligned));
     result = d_memcpy(dst_aligned, src_aligned, sizeof(src_aligned));
-    test_aligned = d_tests_dmemory_compare_buffers(dst_aligned,
+    test_aligned = d_tests_sa_dmemory_compare_buffers(dst_aligned,
         src_aligned,
         sizeof(src_aligned));
 
@@ -299,14 +309,14 @@ struct d_test_object*
 
     memset(dst_aligned, 0, sizeof(dst_aligned));
     result = d_memcpy(dst_aligned, unaligned_src, 64);
-    test_unaligned_src = d_tests_dmemory_compare_buffers(dst_aligned,
+    test_unaligned_src = d_tests_sa_dmemory_compare_buffers(dst_aligned,
         unaligned_src,
         64);
 
     // test 3: unaligned destination (offset by 3)
     unaligned_dst = buffer + 128 + 3;
     result = d_memcpy(unaligned_dst, src_aligned, 60);
-    test_unaligned_dst = d_tests_dmemory_compare_buffers(unaligned_dst,
+    test_unaligned_dst = d_tests_sa_dmemory_compare_buffers(unaligned_dst,
         src_aligned,
         60);
 
@@ -320,7 +330,7 @@ struct d_test_object*
     }
 
     result = d_memcpy(unaligned_dst, unaligned_src, 50);
-    test_both_unaligned = d_tests_dmemory_compare_buffers(unaligned_dst,
+    test_both_unaligned = d_tests_sa_dmemory_compare_buffers(unaligned_dst,
         unaligned_src,
         50);
 
@@ -336,7 +346,7 @@ struct d_test_object*
     result = d_memcpy(odd_dst, odd_src, 13);
     result = d_memcpy(odd_dst + 13, odd_src + 13, 27);
     result = d_memcpy(odd_dst + 40, odd_src + 40, 13);
-    test_odd_sized = d_tests_dmemory_compare_buffers(odd_dst, odd_src, 53);
+    test_odd_sized = d_tests_sa_dmemory_compare_buffers(odd_dst, odd_src, 53);
 
     // test 6: cache-line boundary crossing (typically 64 bytes)
     unsigned char cache_src[128];
@@ -349,7 +359,7 @@ struct d_test_object*
 
     // copy across cache line boundary
     result = d_memcpy(cache_dst + 32, cache_src + 32, 64);
-    test_cache_line = d_tests_dmemory_compare_buffers(cache_dst + 32,
+    test_cache_line = d_tests_sa_dmemory_compare_buffers(cache_dst + 32,
         cache_src + 32,
         64);
 
@@ -390,7 +400,7 @@ struct d_test_object*
  *****************************************************************************/
 
  /*
- d_tests_dmemory_overlap_all
+ d_tests_sa_dmemory_overlap_all
    Tests memory operations with overlapping regions.
    Tests the following:
    - forward overlap (src before dst)
@@ -401,7 +411,7 @@ struct d_test_object*
    - warning: memcpy behavior with overlap is undefined
  */
 struct d_test_object*
-    d_tests_dmemory_overlap_all
+    d_tests_sa_dmemory_overlap_all
     (
         void
     )
@@ -449,7 +459,7 @@ struct d_test_object*
     }
 
     result = d_memcpy(buffer, buffer, 100);
-    test_complete_overlap = d_tests_dmemory_compare_buffers(buffer, expected, 100);
+    test_complete_overlap = d_tests_sa_dmemory_compare_buffers(buffer, expected, 100);
 
     // test 4: partial overlap (overlapping by half)
     for (i = 0; i < 100; i++)
@@ -467,12 +477,12 @@ struct d_test_object*
     }
 
     result = d_memcpy(buffer + 100, buffer, 100);
-    test_adjacent = d_tests_dmemory_compare_buffers(buffer + 100, buffer, 100);
+    test_adjacent = d_tests_sa_dmemory_compare_buffers(buffer + 100, buffer, 100);
 
     // test 6: self-copy with memset
     memset(buffer, 0x42, 100);
     result = d_memset(buffer, 0x42, 100);
-    test_self_copy = d_tests_dmemory_verify_pattern(buffer, 100, 0x42);
+    test_self_copy = d_tests_sa_dmemory_verify_pattern(buffer, 100, 0x42);
 
     // build result tree
     group = d_test_object_new_interior("Overlapping Memory", 6);
@@ -511,7 +521,7 @@ struct d_test_object*
  *****************************************************************************/
 
  /*
- d_tests_dmemory_performance_all
+ d_tests_sa_dmemory_performance_all
    Optional performance tests for memory operations.
    Tests the following:
    - large buffer copy performance
@@ -521,7 +531,7 @@ struct d_test_object*
    - Note: these are basic functional tests, not true benchmarks
  */
 struct d_test_object*
-    d_tests_dmemory_performance_all
+    d_tests_sa_dmemory_performance_all
     (
         void
     )
@@ -557,7 +567,7 @@ struct d_test_object*
 
         // copy
         result = d_memcpy(large_dst, large_src, 1024 * 1024);
-        test_large_perf = d_tests_dmemory_compare_buffers(large_dst,
+        test_large_perf = d_tests_sa_dmemory_compare_buffers(large_dst,
             large_src,
             1024 * 1024);
     }
@@ -575,7 +585,7 @@ struct d_test_object*
     {
         result = d_memcpy(small_dst, small_src, 16);
 
-        if (!d_tests_dmemory_compare_buffers(small_dst, small_src, 16))
+        if (!d_tests_sa_dmemory_compare_buffers(small_dst, small_src, 16))
         {
             test_small_perf = false;
             break;
@@ -601,7 +611,7 @@ struct d_test_object*
     if (large_dst)
     {
         result = d_memset(large_dst, 0xAA, 1024 * 1024);
-        test_pattern_perf = d_tests_dmemory_verify_pattern(large_dst,
+        test_pattern_perf = d_tests_sa_dmemory_verify_pattern(large_dst,
             1024 * 1024,
             0xAA);
     }

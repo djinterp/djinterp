@@ -1,79 +1,53 @@
-// djinterp
-#include "../../../../../../../../../tests/djinterp/core/event/event_common/event_common_tests.hpp"
-#include "djinterp/test/test_report_runner.hpp"    // report_builder + report model
+/******************************************************************************
+* djinterp [test]                                 event_common_tests_runner.cpp
+*
+*   Enriched runner for the event_common unit tests.  The suite describes
+* itself: event_common_tests.hpp, compiled with DTEST_SPEC_MODE, exposes
+* event_common_spec() - the suite's blocks as data, each unit test paired with
+* a name and a one-line descriptor.  run_module (test_defaults.hpp) lowers that
+* spec into the six-kind tree, describes it, and drives the report to the
+* console and - as configured by a test_option_set - a PDF.  This file is only
+* the entry point.
+*
+*   OUTPUT VIA TEST_OPTIONS:
+*   Rather than the bare-filename convenience, this runner builds a
+* test_option_set (test_options.hpp) and selects the PDF face on it:
+*     opts.set<test_option::document>(test_doc_type::pdf);        // emit a PDF
+*     opts.set<test_option::output_file>("event_common_tests.pdf");
+* then hands the set to run_module's option-set overload.  document /
+* output_file / split / show now ride the one configuration surface, so tuning
+* any of them (split -> per_module, show -> failures_only, ...) is a one-line
+* change here and needs no runner-shape edit.  Leave `document` at its txt
+* default for a console-only run.
+*
+*   DTEST_SPEC_MODE swaps the header's fixtures for its spec provider, so the
+* runner pulls in the authoring surface without the section-file fixtures.
+*
+* path:      /build/cmake/config/testing/djinterp/core/event/event_common/event_common_tests_runner.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.01
+******************************************************************************/
 
+#define DTEST_SPEC_MODE                    // expose event_common_spec(); omit fixtures
+#include "event_common_tests.hpp"         // resolved via the test include path
 
-// D_EC_RUN
-//   macro: runs ::djinterp::testing::<fn> as a unit test named for the
-// function - recorded in the report and echoed to the live console.
-#define D_EC_RUN(_fn)   rb.run(#_fn, &::djinterp::testing::_fn)
+#include <string>
 
 
 int
 main()
 {
-    ::djinterp::test::report_builder rb;
+    namespace dt = ::djinterp::test;
 
-    rb.set_title("event_common.hpp unit tests");
+    // configure the report through the option set: PDF, to a named file.
+    dt::test_option_set opts = dt::default_test_options();
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(
+        std::string("event_common_tests.pdf"));
 
-    // write a PDF beside the live console output; omit this line for a
-    // console-only run (see test_options.hpp for layout / naming knobs).
-    rb.use_pdf("event_common_tests.pdf");
-
-    rb.module("event_common",
-              "Event foundations: verdict set, tag detection, traits, "
-              "declaration macros, and the C++20 concept layer");
-
-    // verdict (the set P)
-    D_EC_RUN(tests_verdict_enumerators);
-    D_EC_RUN(tests_verdict_type_properties);
-    D_EC_RUN(tests_consumed_values);
-    D_EC_RUN(tests_consumed_consistency);
-
-    // event tag detection
-    D_EC_RUN(tests_has_payload_type);
-    D_EC_RUN(tests_has_args_type);
-    D_EC_RUN(tests_has_event_payload);
-    D_EC_RUN(tests_event_payload_select);
-    D_EC_RUN(tests_has_event_name);
-    D_EC_RUN(tests_is_tuple);
-
-    // index sequence polyfill + tuple-apply
-    D_EC_RUN(tests_index_sequence);
-    D_EC_RUN(tests_make_index_sequence);
-    D_EC_RUN(tests_apply_impl_direct);
-    D_EC_RUN(tests_apply_tuple_arities);
-    D_EC_RUN(tests_apply_tuple_values);
-
-    // event traits
-    D_EC_RUN(tests_event_traits_payload_type);
-    D_EC_RUN(tests_event_traits_args_alias);
-    D_EC_RUN(tests_event_traits_arity);
-    D_EC_RUN(tests_event_traits_has_name);
-    D_EC_RUN(tests_event_traits_has_args);
-    D_EC_RUN(tests_event_traits_legacy_and_both);
-
-    // declaration macros
-    D_EC_RUN(tests_d_event_payload);
-    D_EC_RUN(tests_d_event_name);
-    D_EC_RUN(tests_d_event_empty);
-    D_EC_RUN(tests_d_event_arity_range);
-    D_EC_RUN(tests_d_event_is_event);
-
-    // concept constraints (C++20+; vacuous pass where concepts are absent)
-    D_EC_RUN(tests_concept_is_event);
-    D_EC_RUN(tests_concept_event_type);
-    D_EC_RUN(tests_concept_non_event_type);
-    D_EC_RUN(tests_concept_empty_event_type);
-    D_EC_RUN(tests_concept_argument_event_type);
-    D_EC_RUN(tests_concept_named_event_type);
-    D_EC_RUN(tests_concept_unnamed_event_type);
-    D_EC_RUN(tests_concept_event_of_arity);
-    D_EC_RUN(tests_concept_nullary_unary);
-    D_EC_RUN(tests_concept_binary_ternary);
-    D_EC_RUN(tests_concept_variadic_event_type);
-
-    return rb.finish();
+    return dt::run_module(
+        ::djinterp::testing::event_common_spec(),
+        "event_common.hpp unit tests",
+        "enriched: six-kind vocabulary, per-node metadata",
+        opts);
 }
-
-#undef D_EC_RUN

@@ -1,16 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                            env_tests_sa_os.c
+/*******************************************************************************
+* djinterp [test]                                              env_tests_sa_os.c
 *
 * Unit tests for `env.h` operating system detection (section VII).
 * Tests the D_ENV_OS_* macros that detect operating systems and properties.
-* Note: this module is required to build DTest, so it uses `test_standalone.h`.
+* Note: this module is required to build DTest, so it does not use DTest.
 *
-* path:      \test\env_tests_sa_os.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.24
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/env_tests_sa_os.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "env_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    option_tests_concepts.cpp
+/*******************************************************************************
+* djinterp [test]                                      option_tests_concepts.cpp
 *
 *   Section IV of the option.hpp suite: the C++20 concept analogs.
 *
@@ -23,8 +23,9 @@
 *
 * path:      /tests/djinterp/core/option/option_tests_concepts.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <type_traits>

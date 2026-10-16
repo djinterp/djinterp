@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                          semigroup_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                            semigroup_tests.hpp
 *
 *   Unit-test declarations for core/functional/semigroup.hpp.  One declaration
 * group per section of the module under test:
@@ -30,17 +30,24 @@
 *
 *   All tests are flat in djinterp::testing.
 *
-* path:      /inc/djinterp/test/functional/semigroup_tests.hpp
+*
+* path:      /tests/djinterp/core/functional/semigroup_tests.hpp
 * link(s):   TBA
-* author(s): teer                                          created: 2026.07.11
-******************************************************************************/
+* author(s): teer                                            created: 2026.07.11
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 0.    FIXTURES  (semigroup instances, the family, negatives, generic helper)
+      ----------------------------------------------------------------------
+
 I.    PROTOCOL + DETECTION
+      --------------------
+
 II.   MAPPEND
+      -------
 */
 
 
@@ -51,8 +58,9 @@ II.   MAPPEND
 #include <string>
 #include <type_traits>
 #include <utility>
+// djinterp
 // djinterp (module under test)
-#include "../../core/functional/semigroup.hpp"
+#include "../../../../inc/djinterp/core/functional/semigroup.hpp"
 
 
 NS_DJINTERP

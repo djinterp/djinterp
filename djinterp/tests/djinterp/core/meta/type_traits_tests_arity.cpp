@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                    type_traits_tests_arity.cpp
 *
 *   Unit tests for the arity / single-arg detection traits in Section
@@ -23,9 +23,12 @@
 * exercise the empty-pack case for is_single_type_arg.
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_arity.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_arity.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -160,69 +163,69 @@ type_traits_tests_arity(
 )
 {
     // ---- is_zero ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_zero<0>::value == true,
         "is_zero<0>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_zero<1>::value == false,
         "is_zero<1>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_zero<5>::value == false,
         "is_zero<5>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_zero<SIZE_MAX>::value == false,
         "is_zero<SIZE_MAX>");
 
     // ---- is_nonzero ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nonzero<0>::value == false,
         "is_nonzero<0>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nonzero<1>::value == true,
         "is_nonzero<1>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nonzero<SIZE_MAX>::value == true,
         "is_nonzero<SIZE_MAX>");
 
     // complementarity
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_zero<0>::value != is_nonzero<0>::value,
         "is_zero/is_nonzero complementary at 0");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_zero<7>::value != is_nonzero<7>::value,
         "is_zero/is_nonzero complementary at 7");
 
     // ---- is_single_arg ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_arg<>::value == false,
         "is_single_arg<> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_arg<int>::value == true,
         "is_single_arg<int> -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename is_single_arg<int>::type, int>::value,
         "is_single_arg<int>::type == int");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_arg<int, char>::value == false,
         "is_single_arg<int, char> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_arg<int, char, float>::value == false,
         "is_single_arg<int, char, float> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_arg<int, int>::value == false,
         "is_single_arg<int, int> -> false (duplicates still multi-arg)");
 
     // ---- is_single_type_arg ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_type_arg<int, int>::value == true,
         "is_single_type_arg<int, int>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_type_arg<double, double>::value == true,
         "is_single_type_arg<double, double>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_type_arg<int, char>::value == false,
         "is_single_type_arg<int, char> (mismatch)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_type_arg<int, int, int>::value == false,
         "is_single_type_arg<int, int, int> (arity)");
 

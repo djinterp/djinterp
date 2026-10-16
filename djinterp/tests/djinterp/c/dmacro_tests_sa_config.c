@@ -1,18 +1,21 @@
-/******************************************************************************
-* djinterp [test]                                         dmacro_tests_sa_cfg.c
+/*******************************************************************************
+* djinterp [test]                                       dmacro_tests_sa_config.c
 *
 *   Unit tests for `dmacro.h` configuration system.
 *   Tests D_CFG_DMACRO_* configuration macros, variant selection, limit
 *   constants, and query macros.
 *   Note: this module tests fundamental macro utilities that are dependencies
-* of other djinterp modules, so it uses `test_standalone.h` rather than DTest.
+* of other djinterp modules, so it does not use DTest for unit testing.
 *
 *
-* path:      \test\dmacro_tests_sa_cfg.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
-#include ".\dmacro_tests_sa.h"
+* path:      /tests/djinterp/c/dmacro_tests_sa_config.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dmacro_tests_sa.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

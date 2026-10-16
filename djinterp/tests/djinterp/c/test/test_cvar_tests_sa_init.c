@@ -1,4 +1,15 @@
-#include "./test_cvar_tests_sa.h"
+/*******************************************************************************
+* djinterp [test]                                      test_cvar_tests_sa_init.c
+*
+*
+* path:      /tests/djinterp/c/test/test_cvar_tests_sa_init.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "test_cvar_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 /******************************************************************************

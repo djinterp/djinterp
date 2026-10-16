@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [event]                                 event_tests_sa_listener_new.c
+*
+*
+* path:      /tests/djinterp/c/event/event_tests_sa_listener_new.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./event_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 // d_tests_sa_event_lnew_dummy_cb

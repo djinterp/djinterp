@@ -1,5 +1,16 @@
-#include "./string_fn_tests_sa.h"
+/*******************************************************************************
+* djinterp [core]                                     string_fn_tests_sa_error.c
+*
+*
+* path:      /tests/djinterp/c/string_fn_tests_sa_error.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// std
 #include <errno.h>
+// djinterp
+#include "./string_fn_tests_sa.h"
 
 
 /******************************************************************************
@@ -375,7 +386,7 @@ d_tests_sa_string_fn_boundary_conditions_all
 
     // test 3: exact boundary fit
     result = d_strcpy_s(exact_fit, sizeof(exact_fit), "Hello");
-    test_exact_boundary = (result == 0) && 
+    test_exact_boundary = (result == 0) &&
                          (strcmp(exact_fit, "Hello") == 0) &&
                          (strlen(exact_fit) == 5);
 
@@ -393,11 +404,11 @@ d_tests_sa_string_fn_boundary_conditions_all
     char empty[] = "";
     result_ptr = d_strrev(empty);
     char* dup_empty = d_strdup("");
-    test_empty_operations = (result_ptr == empty) && 
+    test_empty_operations = (result_ptr == empty) &&
                            (empty[0] == '\0') &&
-                           (dup_empty != NULL) && 
+                           (dup_empty != NULL) &&
                            (dup_empty[0] == '\0');
-    
+
     if (dup_empty)
     {
         free(dup_empty);

@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                    test_kind_tests_queries.cpp
+*
+*
+* path:      /tests/djinterp/test/test_kind_tests_queries.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <cstdint>
 #include <string>
@@ -20,7 +29,7 @@ using namespace ::djinterp::test;
 
 namespace
 {
-    const test_option_set g_opts = { 42 };
+    const test_option_set g_opts;   // default config; only its address is used
 
     // sample_kinds
     //   a small range of records exercising leaf/interior, with/without

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                    predicate_tests.hpp
+/*******************************************************************************
+* djinterp [functional]                                      predicate_tests.hpp
 *
 *   Unit-test header for predicate.hpp. Provides a lightweight, self-contained
 * test harness in `djinterp::testing`, the shared helper predicate types every
@@ -31,10 +31,11 @@
 * C++98 those entry points compile to no-op passes.
 *
 *
-* path:      /inc/functional/predicate_tests.hpp
+* path:      /tests/djinterp/core/functional/predicate_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_PREDICATE_TESTS_
 #define DJINTERP_FUNCTIONAL_PREDICATE_TESTS_ 1
@@ -42,15 +43,15 @@
 // std
 #include <cstddef>
 // djinterp
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #include <djinterp/core/functional/predicate.hpp>
 // DTest framework (run_session model: handler + record_assertion + session).
 // Same include convention as the example suites (view_tests.hpp, ...); adjust
 // the prefix if this header sits elsewhere relative to the test framework.
-#include "./test_common.hpp"
-#include "./test_handler.hpp"
-#include "./test_defaults.hpp"
-#include "./test_runner.hpp"
+#include "../../../../inc/djinterp/test/test_common.hpp"
+#include "../../../../inc/djinterp/test/test_handler.hpp"
+#include "../../../../inc/djinterp/test/test_defaults.hpp"
+#include "../../../../inc/djinterp/test/test_runner.hpp"
 
 
 NS_DJINTERP

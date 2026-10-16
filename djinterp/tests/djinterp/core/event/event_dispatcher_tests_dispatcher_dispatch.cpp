@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]             event_dispatcher_tests_dispatcher_dispatch.cpp
+/*******************************************************************************
+* djinterp [test]                 event_dispatcher_tests_dispatcher_dispatch.cpp
 *
 *   Section III (immediate surface) -- the event_dispatcher facade's
 * synchronous half.  bind and the management operations (unbind / enable /
@@ -13,10 +13,11 @@
 * live sub-objects reflecting the dispatcher's state.
 *
 *
-* path:      /tests/djinterp/core/event/event_dispatcher/event_dispatcher_tests_dispatcher_dispatch.cpp
+* path:      /tests/djinterp/core/event/event_dispatcher_tests_dispatcher_dispatch.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_dispatcher_tests.hpp"

@@ -1,3 +1,13 @@
+/*******************************************************************************
+* djinterp [core]                                     string_fn_tests_sa_manip.c
+*
+*
+* path:      /tests/djinterp/c/string_fn_tests_sa_manip.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./string_fn_tests_sa.h"
 
 
@@ -45,8 +55,8 @@ d_tests_sa_string_fn_strtok_r
     token = d_strtok_r(str1, ",", &saveptr1);
     test_basic_tokenize = (token != NULL) && (strcmp(token, "one") == 0);
     token = d_strtok_r(NULL, ",", &saveptr1);
-    test_basic_tokenize = test_basic_tokenize && 
-                         (token != NULL) && 
+    test_basic_tokenize = test_basic_tokenize &&
+                         (token != NULL) &&
                          (strcmp(token, "two") == 0);
 
     // test 2: multiple delimiters (spaces)
@@ -54,8 +64,8 @@ d_tests_sa_string_fn_strtok_r
     token = d_strtok_r(str2, " ", &saveptr2);
     test_multiple_delims = (token != NULL) && (strcmp(token, "hello") == 0);
     token = d_strtok_r(NULL, " ", &saveptr2);
-    test_multiple_delims = test_multiple_delims && 
-                          (token != NULL) && 
+    test_multiple_delims = test_multiple_delims &&
+                          (token != NULL) &&
                           (strcmp(token, "world") == 0);
 
     // test 3: NULL string on continuation (use fresh string since str1 was modified)
@@ -70,8 +80,8 @@ d_tests_sa_string_fn_strtok_r
     token = d_strtok_r(str3, ":", &saveptr1);
     test_empty_tokens = (token != NULL) && (strcmp(token, "a") == 0);
     token = d_strtok_r(NULL, ":", &saveptr1);
-    test_empty_tokens = test_empty_tokens && 
-                       (token != NULL) && 
+    test_empty_tokens = test_empty_tokens &&
+                       (token != NULL) &&
                        (strcmp(token, "b") == 0);
 
     // test 5: state preserved between calls
@@ -79,12 +89,12 @@ d_tests_sa_string_fn_strtok_r
     char str6[] = "a-b-c";
     char* save5 = NULL;
     char* save6 = NULL;
-    
+
     char* tok5 = d_strtok_r(str5, "-", &save5);
     char* tok6 = d_strtok_r(str6, "-", &save6);
     tok5 = d_strtok_r(NULL, "-", &save5);
     tok6 = d_strtok_r(NULL, "-", &save6);
-    
+
     test_state_preserved = (tok5 != NULL) && (strcmp(tok5, "2") == 0) &&
                           (tok6 != NULL) && (strcmp(tok6, "b") == 0);
 
@@ -333,7 +343,7 @@ d_tests_sa_string_fn_strcasestr
     // test 5: at beginning
     const char* haystack_begin = "Testing 123";
     result = d_strcasestr(haystack_begin, "test");
-    test_at_beginning = (result != NULL) && 
+    test_at_beginning = (result != NULL) &&
                        (result == haystack_begin);
 
     // test 6: at end
@@ -408,18 +418,18 @@ d_tests_sa_string_fn_strchrnul
 
     // test 1: character found
     result = d_strchrnul(test_str, 'o');
-    test_found = (result != NULL) && (*result == 'o') && 
+    test_found = (result != NULL) && (*result == 'o') &&
                 (result == &test_str[4]);
 
     // test 2: character not found returns end
     result = d_strchrnul(test_str, 'x');
-    test_not_found = (result != NULL) && (*result == '\0') && 
+    test_not_found = (result != NULL) && (*result == '\0') &&
                     (result == &test_str[strlen(test_str)]);
 
     // test 3: finds first occurrence
     const char* multi_o_str = "multiple o's here";
     result = d_strchrnul(multi_o_str, 'o');
-    test_first_occurrence = (result != NULL) && 
+    test_first_occurrence = (result != NULL) &&
                            (result == strchr(multi_o_str, 'o'));
 
     // test 4: NULL string

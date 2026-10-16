@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                     adapter_tests_function.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/adapter/adapter/adapter_tests_function.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : adapter_tests_function.cpp
 //   The function-adapter layer (section VIII): function_adapter (both the
 // transforming primary template and the void-transform passthrough

@@ -1,5 +1,15 @@
+/*******************************************************************************
+* djinterp [parse]                                         parse_tests_error.cpp
+*
+*
+* path:      /tests/djinterp/parse/parse_tests_error.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// std
 #include <climits>
-
+// djinterp
 #include "parse_tests.hpp"
 
 

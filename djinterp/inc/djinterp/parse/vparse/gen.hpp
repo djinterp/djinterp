@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [vparse]                                                    gen.hpp
+/*******************************************************************************
+* djinterp [parse]                                                       gen.hpp
 *
 *   The virtual parser GENERATOR: an operator family whose voperators emit and
 * back-patch instructions of an OUTPUT program instead of consuming input.  A
@@ -12,11 +12,13 @@
 *
 *
 * path:      /inc/djinterp/parse/vparse/gen.hpp
-* author(s): vparse                                        created: 2026.06.19
-******************************************************************************/
+* link(s):   TBA
+* author(s): vparse                                          created: 2026.06.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_VPARSE_GEN_
-#define DJINTERP_PARSE_VPARSE_GEN_ 1
+#ifndef DJINTERP_PARSE_VPARSE_GEN_HPP
+#define DJINTERP_PARSE_VPARSE_GEN_HPP 1
 
 // std
 #include <string>
@@ -62,4 +64,4 @@ program      compile(const ruleset& _grammar);
 NS_END  // parse
 NS_END  // djinterp
 
-#endif  // DJINTERP_PARSE_VPARSE_GEN_
+#endif  // DJINTERP_PARSE_VPARSE_GEN_HPP

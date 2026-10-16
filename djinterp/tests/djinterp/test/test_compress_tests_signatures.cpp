@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [test]                            test_compress_tests_signatures.cpp
+*
+* path:      /tests/djinterp/test/test_compress_tests_signatures.cpp
+******************************************************************************/
+// djinterp
 #include "test_compress_tests.hpp"
 
 NS_DJINTERP
@@ -29,7 +35,7 @@ tests_compress_gzip_magic()
     D_TC_CHECK(dt::has_gzip_magic(tc_prefix(tc_m_gzip, 2, 64)));
 
     // every byte of the magic is checked
-    const std::vector<dj::byte_buffer> bad =
+    const std::vector<dj::byte_blob> bad =
         tc_corruptions(tc_prefix(tc_m_gzip, 2, 8), 2);
     std::size_t                        i = 0;
 
@@ -41,7 +47,7 @@ tests_compress_gzip_magic()
     }
 
     // and the length guard
-    const std::vector<dj::byte_buffer> shortb =
+    const std::vector<dj::byte_blob> shortb =
         tc_truncations(tc_bytes(tc_m_gzip, 2));
 
     D_TC_CHECK(shortb.size() == 2u);
@@ -70,7 +76,7 @@ bool
 tests_compress_zlib_magic_accepts_valid_header()
 {
     // the canonical 32 KiB-window header
-    const dj::byte_buffer h = tc_zlib_header(0x78u);
+    const dj::byte_blob h = tc_zlib_header(0x78u);
 
     D_TC_CHECK(h.size() == 2u);
     D_TC_CHECK(dt::has_zlib_magic(h));
@@ -90,7 +96,7 @@ tests_compress_zlib_magic_accepts_valid_header()
     D_TC_CHECK(dt::has_zlib_magic(tc_zlib_header(0x68u)));
 
     // payload past the header is not inspected
-    dj::byte_buffer with_tail = h;
+    dj::byte_blob with_tail = h;
 
     with_tail.append(64, static_cast<char>(0xA5u));
     D_TC_CHECK(dt::has_zlib_magic(with_tail));
@@ -118,7 +124,7 @@ tests_compress_zlib_magic_rejects_bad_header()
     {
         if ((((0x77u << 8) | flg) % 31u) == 0u)
         {
-            dj::byte_buffer b;
+            dj::byte_blob b;
 
             b.push_back(static_cast<char>(0x77u));   // low nibble 7, not 8
             b.push_back(static_cast<char>(flg));
@@ -130,7 +136,7 @@ tests_compress_zlib_magic_rejects_bad_header()
     }
 
     // the right method with a failing FCHECK
-    dj::byte_buffer bad = tc_zlib_header(0x78u);
+    dj::byte_blob bad = tc_zlib_header(0x78u);
 
     bad[1] = static_cast<char>(
         static_cast<unsigned char>(
@@ -141,8 +147,8 @@ tests_compress_zlib_magic_rejects_bad_header()
     D_TC_CHECK(!dt::has_zlib_magic(bad));
 
     // the length guard
-    D_TC_CHECK(!dt::has_zlib_magic(dj::byte_buffer()));
-    D_TC_CHECK(!dt::has_zlib_magic(dj::byte_buffer("\x78")));
+    D_TC_CHECK(!dt::has_zlib_magic(dj::byte_blob()));
+    D_TC_CHECK(!dt::has_zlib_magic(dj::byte_blob("\x78")));
 
     // and the other codecs' magics are not zlib headers
     D_TC_CHECK(!dt::has_zlib_magic(tc_bytes(tc_m_bzip2, 3)));
@@ -167,9 +173,9 @@ tests_compress_bzip2_magic()
     D_TC_CHECK(dt::has_bzip2_magic(tc_prefix(tc_m_bzip2, 3, 32)));
 
     // a real bzip2 stream carries the block-size digit next; still accepted
-    D_TC_CHECK(dt::has_bzip2_magic(dj::byte_buffer("BZh9\x31\x41\x59")));
+    D_TC_CHECK(dt::has_bzip2_magic(dj::byte_blob("BZh9\x31\x41\x59")));
 
-    const std::vector<dj::byte_buffer> bad =
+    const std::vector<dj::byte_blob> bad =
         tc_corruptions(tc_prefix(tc_m_bzip2, 3, 8), 3);
     std::size_t                        i = 0;
 
@@ -181,7 +187,7 @@ tests_compress_bzip2_magic()
     }
 
     // the length guard, including the near-miss two-byte prefix
-    const std::vector<dj::byte_buffer> shortb =
+    const std::vector<dj::byte_blob> shortb =
         tc_truncations(tc_bytes(tc_m_bzip2, 3));
 
     D_TC_CHECK(shortb.size() == 3u);
@@ -191,7 +197,7 @@ tests_compress_bzip2_magic()
         D_TC_CHECK(!dt::has_bzip2_magic(shortb[i]));
     }
 
-    D_TC_CHECK(!dt::has_bzip2_magic(dj::byte_buffer("BZ")));
+    D_TC_CHECK(!dt::has_bzip2_magic(dj::byte_blob("BZ")));
 
     return true;
 }
@@ -211,7 +217,7 @@ tests_compress_xz_magic()
     D_TC_CHECK(dt::has_xz_magic(tc_bytes(tc_m_xz, 6)));
     D_TC_CHECK(dt::has_xz_magic(tc_prefix(tc_m_xz, 6, 100)));
 
-    const std::vector<dj::byte_buffer> bad =
+    const std::vector<dj::byte_blob> bad =
         tc_corruptions(tc_prefix(tc_m_xz, 6, 8), 6);
     std::size_t                        i = 0;
 
@@ -223,7 +229,7 @@ tests_compress_xz_magic()
         D_TC_CHECK(!dt::has_xz_magic(bad[i]));
     }
 
-    const std::vector<dj::byte_buffer> shortb =
+    const std::vector<dj::byte_blob> shortb =
         tc_truncations(tc_bytes(tc_m_xz, 6));
 
     D_TC_CHECK(shortb.size() == 6u);
@@ -234,7 +240,7 @@ tests_compress_xz_magic()
     }
 
     // the ASCII middle of the signature alone is not enough
-    D_TC_CHECK(!dt::has_xz_magic(dj::byte_buffer("7zXZ\0\0", 6)));
+    D_TC_CHECK(!dt::has_xz_magic(dj::byte_blob("7zXZ\0\0", 6)));
 
     return true;
 }
@@ -254,7 +260,7 @@ tests_compress_zstd_magic()
     D_TC_CHECK(dt::has_zstd_magic(tc_bytes(tc_m_zstd, 4)));
     D_TC_CHECK(dt::has_zstd_magic(tc_prefix(tc_m_zstd, 4, 40)));
 
-    const std::vector<dj::byte_buffer> bad =
+    const std::vector<dj::byte_blob> bad =
         tc_corruptions(tc_prefix(tc_m_zstd, 4, 8), 4);
     std::size_t                        i = 0;
 
@@ -265,7 +271,7 @@ tests_compress_zstd_magic()
         D_TC_CHECK(!dt::has_zstd_magic(bad[i]));
     }
 
-    const std::vector<dj::byte_buffer> shortb =
+    const std::vector<dj::byte_blob> shortb =
         tc_truncations(tc_bytes(tc_m_zstd, 4));
 
     D_TC_CHECK(shortb.size() == 4u);
@@ -304,7 +310,7 @@ tests_compress_lz4_frame_magic()
     D_TC_CHECK(dt::has_lz4_frame_magic(tc_bytes(tc_m_lz4, 4)));
     D_TC_CHECK(dt::has_lz4_frame_magic(tc_prefix(tc_m_lz4, 4, 40)));
 
-    const std::vector<dj::byte_buffer> bad =
+    const std::vector<dj::byte_blob> bad =
         tc_corruptions(tc_prefix(tc_m_lz4, 4, 8), 4);
     std::size_t                        i = 0;
 
@@ -315,7 +321,7 @@ tests_compress_lz4_frame_magic()
         D_TC_CHECK(!dt::has_lz4_frame_magic(bad[i]));
     }
 
-    const std::vector<dj::byte_buffer> shortb =
+    const std::vector<dj::byte_blob> shortb =
         tc_truncations(tc_bytes(tc_m_lz4, 4));
 
     D_TC_CHECK(shortb.size() == 4u);
@@ -344,8 +350,8 @@ tests_compress_magic_predicates_reject_empty
 bool
 tests_compress_magic_predicates_reject_empty()
 {
-    const dj::byte_buffer empty;
-    const dj::byte_buffer one(1, static_cast<char>(0x1Fu));
+    const dj::byte_blob empty;
+    const dj::byte_blob one(1, static_cast<char>(0x1Fu));
 
     D_TC_CHECK(!dt::has_gzip_magic(empty));
     D_TC_CHECK(!dt::has_zlib_magic(empty));
@@ -362,7 +368,7 @@ tests_compress_magic_predicates_reject_empty()
     D_TC_CHECK(!dt::has_lz4_frame_magic(one));
 
     // no predicate accepts another codec's header
-    const dj::byte_buffer gz = tc_prefix(tc_m_gzip, 2, 8);
+    const dj::byte_blob gz = tc_prefix(tc_m_gzip, 2, 8);
 
     D_TC_CHECK(dt::has_gzip_magic(gz));
     D_TC_CHECK(!dt::has_bzip2_magic(gz));
@@ -370,7 +376,7 @@ tests_compress_magic_predicates_reject_empty()
     D_TC_CHECK(!dt::has_zstd_magic(gz));
     D_TC_CHECK(!dt::has_lz4_frame_magic(gz));
 
-    const dj::byte_buffer xz = tc_prefix(tc_m_xz, 6, 8);
+    const dj::byte_blob xz = tc_prefix(tc_m_xz, 6, 8);
 
     D_TC_CHECK(dt::has_xz_magic(xz));
     D_TC_CHECK(!dt::has_gzip_magic(xz));
@@ -391,12 +397,12 @@ tests_compress_expected_signature_dispatch
 bool
 tests_compress_expected_signature_dispatch()
 {
-    const dj::byte_buffer gz   = tc_prefix(tc_m_gzip, 2, 16);
-    const dj::byte_buffer zl   = tc_zlib_header();
-    const dj::byte_buffer bz   = tc_prefix(tc_m_bzip2, 3, 16);
-    const dj::byte_buffer xz   = tc_prefix(tc_m_xz, 6, 16);
-    const dj::byte_buffer zs   = tc_prefix(tc_m_zstd, 4, 16);
-    const dj::byte_buffer l4   = tc_prefix(tc_m_lz4, 4, 16);
+    const dj::byte_blob gz   = tc_prefix(tc_m_gzip, 2, 16);
+    const dj::byte_blob zl   = tc_zlib_header();
+    const dj::byte_blob bz   = tc_prefix(tc_m_bzip2, 3, 16);
+    const dj::byte_blob xz   = tc_prefix(tc_m_xz, 6, 16);
+    const dj::byte_blob zs   = tc_prefix(tc_m_zstd, 4, 16);
+    const dj::byte_blob l4   = tc_prefix(tc_m_lz4, 4, 16);
 
     // each tag accepts its own framing
     D_TC_CHECK(dt::has_expected_signature<dj::codecs::gzip>(gz));
@@ -429,7 +435,7 @@ tests_compress_expected_signature_dispatch()
     D_TC_CHECK(!dt::has_expected_signature<dj::codecs::zlib>(bz));
 
     // and each rejects an empty buffer
-    const dj::byte_buffer empty;
+    const dj::byte_blob empty;
 
     D_TC_CHECK(!dt::has_expected_signature<dj::codecs::gzip>(empty));
     D_TC_CHECK(!dt::has_expected_signature<dj::codecs::zlib>(empty));
@@ -454,9 +460,9 @@ tests_compress_expected_signature_unframed_codecs
 bool
 tests_compress_expected_signature_unframed_codecs()
 {
-    const dj::byte_buffer empty;
-    const dj::byte_buffer junk("not a stream of any kind at all");
-    const dj::byte_buffer other = tc_prefix(tc_m_xz, 6, 16);
+    const dj::byte_blob empty;
+    const dj::byte_blob junk("not a stream of any kind at all");
+    const dj::byte_blob other = tc_prefix(tc_m_xz, 6, 16);
 
     // unconditionally true, whatever they are handed
     D_TC_CHECK(dt::has_expected_signature<dj::codecs::store>(empty));

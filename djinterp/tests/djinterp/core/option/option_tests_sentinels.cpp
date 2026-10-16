@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   option_tests_sentinels.cpp
+/*******************************************************************************
+* djinterp [test]                                     option_tests_sentinels.cpp
 *
 *   Section I of the option.hpp suite: the reserved arg-search sentinels.
 *
@@ -16,8 +16,9 @@
 *
 * path:      /tests/djinterp/core/option/option_tests_sentinels.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <cstddef>

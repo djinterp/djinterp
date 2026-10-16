@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            atomic_tests.hpp
+/*******************************************************************************
+* djinterp [test]                                               atomic_tests.hpp
 *
 *   Unit-test declarations for core/sync/atomic.hpp.  Every test is a niladic
 * predicate returning true on pass (the report_builder::run signature); all
@@ -24,14 +24,15 @@
 *
 * path:      /tests/djinterp/core/sync/atomic_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.13
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.13
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_CORE_SYNC_ATOMIC_TESTS_
 #define DJINTERP_CORE_SYNC_ATOMIC_TESTS_ 1
 
 // djinterp
-#include "atomic.hpp"   // the unit under test (also supplies NS_* macros and
+#include "../../../../inc/djinterp/core/sync/atomic.hpp"   // the unit under test (also supplies NS_* macros and
                         //   the D_ENV_LANG_* feature gates via djinterp.hpp)
 
 

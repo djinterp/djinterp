@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                         option_set_compare_tests_carriers.cpp
+/*******************************************************************************
+* djinterp [test]                          option_set_compare_tests_carriers.cpp
 *
 *   Section IV of the option_set_compare.hpp suite: the value-carrier sentinels
 * and their structural equality.
@@ -21,8 +21,9 @@
 *
 * path:      /tests/djinterp/core/option/option_set_compare_tests_carriers.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <type_traits>

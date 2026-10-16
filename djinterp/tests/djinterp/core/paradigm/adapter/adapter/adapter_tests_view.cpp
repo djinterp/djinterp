@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                         adapter_tests_view.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/adapter/adapter/adapter_tests_view.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : adapter_tests_view.cpp
 //   The non-owning view adapters (section IX): adapted_ref (mutable reference
 // view), adapted_const_ref (read-only view), and adapted_view (a projecting

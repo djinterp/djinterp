@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                            functional_common_tests_aliases.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/functional_common_tests_aliases.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  functional_traits_tests_aliases.cpp
 //   Section III -- the _v variable-template shorthands (C++14+).
 
@@ -5,7 +14,6 @@
 #include <string>
 #include <type_traits>
 // djinterp
-#include "functional_traits_tests.hpp"
 
 
 NS_DJINTERP

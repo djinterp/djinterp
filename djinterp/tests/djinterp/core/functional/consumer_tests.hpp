@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [functional]                                     consumer_tests.hpp
+/*******************************************************************************
+* djinterp [functional]                                       consumer_tests.hpp
 *
 *   DTest declarations and shared helper types for the consumer.hpp unit
 * test suite.  Each like-group semantic section of consumer.hpp maps to
@@ -30,10 +30,12 @@
 * (loops / assignments), which are runtime on C++11 and constexpr on
 * C++14+; the tests exercise them at runtime on every standard.
 *
+*
 * path:      /tests/djinterp/core/functional/consumer_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.31
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_CONSUMER_
 #define DJINTERP_TESTING_FUNCTIONAL_CONSUMER_ 1
@@ -43,12 +45,12 @@
 #include <string>
 #include <vector>
 // djinterp
-#include "../../core/djinterp.hpp"
-#include "../../test/test_common.hpp"
-#include "../../test/test_handler.hpp"
-#include "../../test/test_defaults.hpp"
-#include "../../test/test_runner.hpp"
-#include "../consumer.hpp"
+#include "../../../../inc/djinterp/djinterp.hpp"
+#include "../../../../inc/djinterp/test/test_common.hpp"
+#include "../../../../inc/djinterp/test/test_handler.hpp"
+#include "../../../../inc/djinterp/test/test_defaults.hpp"
+#include "../../../../inc/djinterp/test/test_runner.hpp"
+#include "../../../../inc/djinterp/core/functional/consumer.hpp"
 
 
 NS_DJINTERP

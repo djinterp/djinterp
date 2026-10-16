@@ -1,6 +1,16 @@
+/*******************************************************************************
+* djinterp [parse]                                         parse_tests_state.cpp
+*
+*
+* path:      /tests/djinterp/parse/parse_tests_state.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// std
 #include <climits>
 #include <cstring>
-
+// djinterp
 #include "parse_tests.hpp"
 
 

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                         dtuple_tests_pack.cpp
+/*******************************************************************************
+* djinterp [test]                                          dtuple_tests_pack.cpp
 *
 *   Unit tests for the parameter-pack-utility and tuple-detection sections
 * of dtuple.hpp:
@@ -21,10 +21,13 @@
 *     - single-tuple-arg detection for empty tuples and nested tuples
 *
 *
-* path:      /inc/djinterp/test/dtuple_tests_pack.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.19
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/dtuple_tests_pack.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./dtuple_tests.hpp"
 
 
@@ -243,102 +246,102 @@ dtuple_tests_pack_all(
 )
 {
     // ---- first_arg ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename first_arg<int>::type, int>::value,
         "first_arg: single arg int");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename first_arg<int, char>::type, int>::value,
         "first_arg: two args yields first");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename first_arg<int, char, float, double>::type, int>::value,
         "first_arg: four args yields first");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename first_arg<const int>::type, const int>::value,
         "first_arg: preserves const qualifier");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename first_arg<int&>::type, int&>::value,
         "first_arg: preserves lvalue reference");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename first_arg<int&&, char>::type, int&&>::value,
         "first_arg: preserves rvalue reference");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename first_arg<std::tuple<int, char>, alpha>::type,
                      std::tuple<int, char>>::value,
         "first_arg: tuple as first element");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<first_arg_t<int, char>,
                      typename first_arg<int, char>::type>::value,
         "first_arg_t: alias consistent with first_arg::type");
 
     // ---- is_tuple_single_arg ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple_single_arg<>::value == false,
         "is_tuple_single_arg: empty pack -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple_single_arg<int>::value == true,
         "is_tuple_single_arg: one arg -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple_single_arg<std::tuple<>>::value == true,
         "is_tuple_single_arg: one tuple arg -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple_single_arg<int, char>::value == false,
         "is_tuple_single_arg: two args -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple_single_arg<int, char, float>::value == false,
         "is_tuple_single_arg: three args -> false");
 
     // ---- is_tuple ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple<std::tuple<>>::value == true,
         "is_tuple: empty tuple -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple<std::tuple<int>>::value == true,
         "is_tuple: single-element tuple -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple<std::tuple<int, char, float>>::value == true,
         "is_tuple: multi-element tuple -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple<std::tuple<std::tuple<int>>>::value == true,
         "is_tuple: nested tuple -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple<int>::value == false,
         "is_tuple: int -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple<void>::value == false,
         "is_tuple: void -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple<std::pair<int, int>>::value == false,
         "is_tuple: std::pair -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple<const std::tuple<int>>::value == false,
         "is_tuple: const-qualified tuple -> false (outside partial spec)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_tuple<std::tuple<int>&>::value == false,
         "is_tuple: tuple lvalue ref -> false (outside partial spec)");
 
     // ---- is_single_tuple_arg ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_tuple_arg<>::value == false,
         "is_single_tuple_arg: empty pack -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_tuple_arg<std::tuple<>>::value == true,
         "is_single_tuple_arg: single empty tuple -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_tuple_arg<std::tuple<int, char>>::value == true,
         "is_single_tuple_arg: single non-empty tuple -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_tuple_arg<int>::value == false,
         "is_single_tuple_arg: single non-tuple -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_tuple_arg<std::tuple<int>, std::tuple<char>>::value == false,
         "is_single_tuple_arg: two tuples -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_tuple_arg<std::tuple<int>, int>::value == false,
         "is_single_tuple_arg: tuple plus non-tuple -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_tuple_arg<int, std::tuple<int>>::value == false,
         "is_single_tuple_arg: non-tuple plus tuple -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_single_tuple_arg<const std::tuple<int>>::value == false,
         "is_single_tuple_arg: const-qualified tuple -> false");
 

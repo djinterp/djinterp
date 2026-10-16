@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                     adapter_tests_concepts.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/adapter/adapter/adapter_tests_concepts.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : adapter_tests_concepts.cpp
 //   The C++20 concept surface (section XI): adaptable_to (value + structural
 // adaptability), adapter_for (the adaptee()/size() surface), function_adaptable

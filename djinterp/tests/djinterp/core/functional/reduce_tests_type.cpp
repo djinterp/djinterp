@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                          reduce_tests_type.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/reduce_tests_type.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  reduce_tests_type.cpp
 //   III. reduce_ct over a std::tuple -- the TYPE domain. The recursion walks the
 //   element TYPES, feeding each as a type_c carrier; no tuple value is built.

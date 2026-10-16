@@ -1,14 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                 fn_builder_tests_creation.cpp
+/*******************************************************************************
+* djinterp [test]                                  fn_builder_tests_creation.cpp
 *
 * Builder creation tests (sections i / III):
 *   test_creation -- create(), make_builder(), the identity seed chain, the
 *                    chain_type alias, and reuse of a composed builder across
 *                    multiple inputs (composition is built once, executed many).
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/fn_builder_tests_creation.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <type_traits>
+#include <vector>
+// djinterp
 #include "./fn_builder_tests.hpp"
 
 

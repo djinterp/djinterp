@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                        option_tests_core.cpp
+/*******************************************************************************
+* djinterp [test]                                          option_tests_core.cpp
 *
 *   Section II of the option.hpp suite: the core option<> type.
 *
@@ -21,8 +21,9 @@
 *
 * path:      /tests/djinterp/core/option/option_tests_core.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // std
 #include <cstddef>

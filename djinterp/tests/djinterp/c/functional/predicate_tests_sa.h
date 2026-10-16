@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                          predicate_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                           predicate_tests_sa.h
 *
 *   Unit test declarations for `predicate.h` module.
 *   Provides comprehensive testing of all d_predicate combinator functions
@@ -8,22 +8,25 @@
 * OR, XOR, and NOT combinators with both context and non-context variants.
 *
 *
-* path:      \tests\functional\predicate_tests_sa.h
+* path:      /tests/djinterp/c/functional/predicate_tests_sa.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.09
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.09
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_PREDICATE_STANDALONE_
 #define DJINTERP_TESTS_PREDICATE_STANDALONE_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/string_fn.h"
-#include "../../../inc/c/test/test_standalone.h"
-#include "../../../inc/c/functional/predicate.h"
+// djinterp
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../../inc/djinterp/c/functional/predicate.h"
 #include "./predicate_tests_sa_helpers.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 // constructor function tests

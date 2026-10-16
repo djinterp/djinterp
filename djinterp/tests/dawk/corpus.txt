@@ -1,0 +1,97 @@
+# Programs run through both the system awk and dawk, over the same input.
+# A line beginning with ! is a DELIBERATE divergence from the reference:
+# it is still run, but a difference is expected and counted separately.
+# The only one at present is substr's clamping, where we follow gawk and
+# POSIX -- substr("hello",0,3) is "he" -- and mawk gives "hel".
+BEGIN { print 1+2*3, 2^10, -2^2, 7%3, 10/4 }
+BEGIN { print "a" "b", 1 2, 1+1 2 }
+BEGIN { x=5; x+=3; x*=2; x-=1; x/=3; print x }
+BEGIN { print length("hello"), index("hello","ll"), substr("hello",2,3) }
+!BEGIN { print substr("hello",0,3), substr("hello",-1), substr("hello",2,-1) }
+BEGIN { print toupper("aBc"), tolower("aBc") }
+BEGIN { print int(3.7), int(-3.7), sqrt(16), exp(0), log(1) }
+BEGIN { printf "%d|%5d|%-5d|%05.1f|%s|%c|%x|%o|%e\n", 42, 42, 42, 3.14159, "hi", 65, 255, 8, 1234.5 }
+BEGIN { printf "%*d|%.*f|%%\n", 6, 7, 2, 3.14159 }
+BEGIN { print sprintf("[%s:%d]", "x", 9) }
+BEGIN { s="hello world"; n=gsub(/o/,"0",s); print n, s }
+BEGIN { s="aaa"; n=sub(/a/,"[&]",s); print n, s }
+BEGIN { s="abc"; n=gsub(/x*/,"-",s); print n, s }
+BEGIN { s="a.b.c"; n=gsub(/\./,"/",s); print n, s }
+BEGIN { print match("hello","l+"), RSTART, RLENGTH }
+BEGIN { print match("hello","z"), RSTART, RLENGTH }
+BEGIN { n=split("a:b:c",arr,":"); for(i=1;i<=n;i++) print i, arr[i] }
+BEGIN { n=split("a b  c",arr); print n, arr[3] }
+BEGIN { a["x"]=1; a["y"]=2; n=0; for(k in a) n++; print n, ("x" in a), ("z" in a) }
+BEGIN { a[1,2]=3; print ((1,2) in a), a[1,2] }
+BEGIN { a[1]=1; delete a[1]; print (1 in a), length(a) }
+BEGIN { for(i=0;i<5;i++) s=s i; print s }
+BEGIN { i=0; while(i<3){ i++ }; print i }
+BEGIN { i=0; do { i++ } while(i<3); print i }
+BEGIN { for(i=0;i<10;i++){ if(i==3) continue; if(i==6) break; s=s i }; print s }
+BEGIN { if (1) print "t"; else print "f" }
+BEGIN { x = 1 ? "a" : "b"; print x }
+BEGIN { print (1&&0), (1||0), !1, !0, !"" , !"x" }
+BEGIN { print ("10"==10), ("10"=="10"), (10<9), ("10"<"9") }
+BEGIN { print 1==1.0, "abc"<"abd", ""==0 }
+function f(a,b) { return a+b } BEGIN { print f(2,3) }
+function g(n) { if(n<=1) return 1; return n*g(n-1) } BEGIN { print g(5) }
+function h(arr,  i) { for(i=1;i<=3;i++) arr[i]=i*i } BEGIN { h(a); print a[1], a[2], a[3] }
+function loc(x,  t) { t = x*2; return t } BEGIN { t=99; print loc(3), t }
+{ print NR, NF, $1, $NF }
+{ print }
+{ $2="X"; print }
+{ $5="E"; print NF, $0 }
+{ NF=2; print $0, NF }
+{ $0="p q r"; print NF, $2 }
+{ print $0 }
+NR==2 { print "second:" $0 }
+/b/ { print "hasb:" $0 }
+$1 ~ /^a/ { print "starta:" $0 }
+NR==1, NR==2 { print "range:" NR }
+{ n++ } END { print "total", n }
+{ s+=$1 } END { printf "%.2f\n", s }
+{ a[$1]++ } END { n=0; for(k in a) n+=a[k]; print n, length(a) }
+$1 == 1 { print "numeric one" }
+$1 == "1" { print "string one" }
+{ print ($1<$2), ($1"" < $2"") }
+{ print length(), length($1) }
+{ print toupper($0) }
+BEGIN { OFS="-" } { $1=$1; print }
+BEGIN { ORS="|" } { print $1 }
+BEGIN { FS=":" } { print $2 }
+BEGIN { CONVFMT="%.2g" } { x=3.14159; print x "" }
+BEGIN { OFMT="%.2f"; print 3.14159, 3.14159 "" }
+BEGIN { print 1e17, 2^53, 0.1+0.2 }
+BEGIN { x["a"]=1; for (k in x) delete x[k]; print length(x) }
+BEGIN { print 1; exit 0; print 2 } END { print "end ran" }
+{ if (NR==1) next; print "notfirst:" $0 }
+{ print FILENAME == "" ? "none" : "named", FNR, NR }
+FNR==1 { print "firstof", NR }
+{ if (FNR==1 && NR>1) print "newfile at", NR }
+{ if (NR==1) { getline; print "after getline:" $0, NR } }
+{ if (NR==1) { getline L; print "into var:" L, NR, $0 } }
+BEGIN { print "a" > aux; print "b" > aux; close(aux); while ((getline L < aux) > 0) n++; print n }
+BEGIN { print "x" > aux; close(aux); print "y" >> aux; close(aux); while ((getline L < aux) > 0) s = s L; print s }
+BEGIN { r = (getline L < "/definitely/not/here"); print r }
+BEGIN { while (("echo one; echo two" | getline L) > 0) n++; print n }
+BEGIN { "echo hello" | getline; print $0, NF }
+BEGIN { "echo a b c" | getline L; print L, NF }
+BEGIN { c = "echo z"; c | getline; print $0; close(c); c | getline; print $0 }
+BEGIN { print close("never opened") }
+BEGIN { print "one" | "cat"; close("cat"); print "two" }
+BEGIN { print ARGC }
+BEGIN { for (i=0; i<ARGC; i++) if (ARGV[i] ~ /awk/) print "argv0 looks right" }
+BEGIN { print (length(ENVIRON) > 0) }
+FNR==1 && NR>1 { nextfile } { n++ } END { print n }
+BEGIN { printf "%s\n", "to stdout" > "/dev/stdout" }
+{ print $1 > aux } END { close(aux); while ((getline L < aux) > 0) n++; print n }
+BEGIN { print (1,2) }
+{ print ($1, $2) }
+{ printf ("%s-%s|", $1, $2) } END { print "" }
+BEGIN { n=split("abc",x,""); print n, x[1] x[2] x[3] }
+BEGIN { print split("",y,"") }
+BEGIN { FS=""; $0="xyz"; print NF, $2 }
+BEGIN { FS=":"; $0="a:b:c"; FS="-"; print FS, $1, NF }
+{ FS="-"; print $1 }
+BEGIN { RS=""; FS="\n" } { print NR": "$1"/"$2 }
+BEGIN { RS="" } { print NR, NF }

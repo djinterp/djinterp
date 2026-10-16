@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                       adapter_tests_object.cpp
+*
+*
+* path:      /tests/djinterp/core/paradigm/adapter/adapter/adapter_tests_object.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test] : adapter_tests_object.cpp
 //   The object_adapter (section IV): the composition adapter, exercised across
 // every ownership policy and its delegated size()/get()/adaptee()/forward()

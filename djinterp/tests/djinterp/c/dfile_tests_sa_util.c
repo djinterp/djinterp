@@ -1,15 +1,17 @@
-/******************************************************************************
-* djinterp [test]                                         dfile_tests_sa_util.c
+/*******************************************************************************
+* djinterp [test]                                          dfile_tests_sa_util.c
 *
 *   Utility functions for dfile module tests.
 *   Provides test environment setup, teardown, and path helpers.
 *
 *
-* path:      \src\test\dfile_tests_sa_util.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
-#include ".\dfile_tests_sa.h"
+* path:      /tests/djinterp/c/dfile_tests_sa_util.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
+#include "./dfile_tests_sa.h"
 
 
 /******************************************************************************
@@ -39,11 +41,11 @@ d_tests_dfile_setup
     size_t content_len;
 
     // create test directory
-    mkdir_result = d_mkdir(D_TEST_DFILE_TEMP_DIR, S_IRWXU | S_IRWXG | S_IROTH);
+    mkdir_result = d_dir_create(D_TEST_DFILE_TEMP_DIR, S_IRWXU | S_IRWXG | S_IROTH);
 
     // directory may already exist, that's okay
-    if ( (mkdir_result != 0) && 
-         (!d_is_dir(D_TEST_DFILE_TEMP_DIR)) )
+    if ( (mkdir_result != 0) &&
+         (!d_dir_exists(D_TEST_DFILE_TEMP_DIR)) )
     {
         return false;
     }
@@ -57,7 +59,7 @@ d_tests_dfile_setup
     }
 
     // use binary mode to ensure consistent file size across platforms
-    test_file = d_fopen(path_buf, "wb");
+    test_file = d_file_open_stream(path_buf, "wb");
 
     if (!test_file)
     {
@@ -94,14 +96,14 @@ d_tests_dfile_teardown
     char               path_buf[D_INTERNAL_TEST_PATH_BUF_SIZE];
 
     // remove all files in test directory
-    dir = d_opendir(D_TEST_DFILE_TEMP_DIR);
+    dir = d_dir_open(D_TEST_DFILE_TEMP_DIR);
 
     if (dir)
     {
-        while ((entry = d_readdir(dir)) != NULL)
+        while ((entry = d_dir_read(dir)) != NULL)
         {
             // skip . and ..
-            if ( (strcmp(entry->d_name, ".") == 0) || 
+            if ( (strcmp(entry->d_name, ".") == 0) ||
                  (strcmp(entry->d_name, "..") == 0) )
             {
                 continue;
@@ -112,15 +114,15 @@ d_tests_dfile_teardown
                                            sizeof(path_buf),
                                            entry->d_name))
             {
-                d_remove(path_buf);
+                d_file_remove(path_buf);
             }
         }
 
-        d_closedir(dir);
+        d_dir_close(dir);
     }
 
     // remove test directory
-    d_rmdir(D_TEST_DFILE_TEMP_DIR);
+    d_dir_remove(D_TEST_DFILE_TEMP_DIR);
 
     return true;
 }
@@ -146,8 +148,8 @@ d_tests_dfile_get_test_path
 )
 {
 
-    if ( (!_buf) || 
-         (_bufsize == 0) || 
+    if ( (!_buf) ||
+         (_bufsize == 0) ||
          (!_filename) )
     {
         return NULL;

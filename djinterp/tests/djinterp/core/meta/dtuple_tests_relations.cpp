@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    dtuple_tests_relations.cpp
+/*******************************************************************************
+* djinterp [test]                                     dtuple_tests_relations.cpp
 *
 *   Unit tests for the tuple-of-tuples type-relation section of
 * dtuple.hpp:
@@ -34,10 +34,13 @@
 * return true via clean_t.
 *
 *
-* path:      /inc/djinterp/test/dtuple_tests_relations.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.19
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/dtuple_tests_relations.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./dtuple_tests.hpp"
 
 
@@ -264,99 +267,99 @@ dtuple_tests_relations_all(
 )
 {
     // ---- normalize_tuple ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename normalize_tuple<std::tuple<>>::type,
                      std::tuple<>>::value,
         "normalize_tuple: empty tuple -> empty");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename normalize_tuple<std::tuple<int, char>>::type,
                      std::tuple<int, char>>::value,
         "normalize_tuple: already-clean tuple unchanged");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename normalize_tuple<std::tuple<const int>>::type,
                      std::tuple<int>>::value,
         "normalize_tuple: strips const from element");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename normalize_tuple<std::tuple<int&&>>::type,
                      std::tuple<int>>::value,
         "normalize_tuple: strips rvalue ref from element");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename normalize_tuple<std::tuple<const int&, volatile char>>::type,
                      std::tuple<int, char>>::value,
         "normalize_tuple: strips mixed cv + ref");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<normalize_tuple_t<const std::tuple<int>>, std::tuple<int>>::value,
         "normalize_tuple_t: cleans outer const before normalizing");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<normalize_tuple_t<const std::tuple<const int&, volatile char>&>,
                      std::tuple<int, char>>::value,
         "normalize_tuple_t: deep clean (outer + inner)");
 
     // ---- tuple_all_elements_same_as ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         tuple_all_elements_same_as<std::tuple<>, int>::value == true,
         "tuple_all_elements_same_as: empty tuple vacuously true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         tuple_all_elements_same_as<std::tuple<int>, int>::value == true,
         "tuple_all_elements_same_as: single match");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         tuple_all_elements_same_as<std::tuple<int>, char>::value == false,
         "tuple_all_elements_same_as: single mismatch");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         tuple_all_elements_same_as<std::tuple<int, int, int>, int>::value == true,
         "tuple_all_elements_same_as: all match");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         tuple_all_elements_same_as<std::tuple<int, char, int>, int>::value == false,
         "tuple_all_elements_same_as: partial match -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         tuple_all_elements_same_as<std::tuple<int, const int, int&>, int>::value == true,
         "tuple_all_elements_same_as: cv/ref variants match via clean_t");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         tuple_all_elements_same_as<std::tuple<int>, const int>::value == false,
         "tuple_all_elements_same_as: probe is NOT cleaned (asymmetric)");
 
     // ---- all_inner_tuple_elements_one_type ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<int>::value == false,
         "all_inner_tuple_elements_one_type: non-tuple -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<>>::value == true,
         "all_inner_tuple_elements_one_type: empty outer -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<>>>::value == true,
         "all_inner_tuple_elements_one_type: single empty inner -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<>, std::tuple<>>>::value == true,
         "all_inner_tuple_elements_one_type: all empty inners -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<>, std::tuple<int>>>::value == false,
         "all_inner_tuple_elements_one_type: empty then non-empty -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<int>>>::value == true,
         "all_inner_tuple_elements_one_type: single inner of int -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<int, int, int>>>::value == true,
         "all_inner_tuple_elements_one_type: single inner of 3 ints -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<int>,
                                                       std::tuple<int>>>::value == true,
         "all_inner_tuple_elements_one_type: two inners of int -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<int>,
                                                       std::tuple<int, int>>>::value == true,
         "all_inner_tuple_elements_one_type: jagged sizes but uniform type -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<int, char>>>::value == false,
         "all_inner_tuple_elements_one_type: single inner with mixed elements -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<int>,
                                                       std::tuple<char>>>::value == false,
         "all_inner_tuple_elements_one_type: int row vs char row -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<int>,
                                                       std::tuple<>>>::value == false,
         "all_inner_tuple_elements_one_type: non-empty first, empty later -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         all_inner_tuple_elements_one_type<std::tuple<std::tuple<const int>,
                                                       std::tuple<int&>>>::value == true,
         "all_inner_tuple_elements_one_type: cv/ref normalized via clean_t");

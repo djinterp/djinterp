@@ -1,6 +1,6 @@
-/******************************************************************************
-* djinterp [database]                                      database_common.hpp
-* 
+/*******************************************************************************
+* djinterp [core]                                            database_common.hpp
+*
 * djinterp database common module:
 *   This header provides comprehensive base classes, interfaces, and utilities
 * for database operations that are vendor-agnostic, including:
@@ -30,14 +30,15 @@
 * to type_traits.hpp for consistency with the rest of the djinterp
 * tool-chain.
 *
-* 
-* path:      /inc/djinterp/core/db/database_common.hpp                                           
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/db/database_common.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_COMMON_
-#define DJINTERP_DATABASE_COMMON_
+#ifndef DJINTERP_DB_DATABASE_COMMON_HPP
+#define DJINTERP_DB_DATABASE_COMMON_HPP
 
 // std
 #include <algorithm>
@@ -54,9 +55,8 @@
 #include <variant>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
-#include "../env/db/env_db.h"
-#include "./database_traits.hpp"
+#include "../../djinterp.hpp"
+#include "../../env/db/env_db.h"
 
 
 NS_DJINTERP
@@ -1330,7 +1330,7 @@ public:
         return *m_connection;
     }
 
-    void 
+    void
     release()
     {
         if ( (m_pool) &&
@@ -1646,7 +1646,7 @@ exception::what() const noexcept
     return m_message.c_str();
 }
 
-D_INLINE int 
+D_INLINE int
 exception::error_code() const noexcept
 {
     return m_error_code;
@@ -1655,4 +1655,4 @@ exception::error_code() const noexcept
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_DATABASE_COMMON_
+#endif  // DJINTERP_DB_DATABASE_COMMON_HPP

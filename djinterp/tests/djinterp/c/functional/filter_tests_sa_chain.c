@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [functional]                                  filter_tests_sa_chain.c
+*
+*
+* path:      /tests/djinterp/c/functional/filter_tests_sa_chain.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./filter_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 // helper predicate for chain tests

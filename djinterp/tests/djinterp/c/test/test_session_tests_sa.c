@@ -1,14 +1,18 @@
-/******************************************************************************
-* djinterp [test]                                      test_session_tests_sa.c
+/*******************************************************************************
+* djinterp [test]                                        test_session_tests_sa.c
 *
 *   Aggregation function for all test_session.h standalone unit tests.
 *
-* path:      \test\test\test_session_tests_sa.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/test/test_session_tests_sa.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.16
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "./test_session_tests_sa.h"
+// djinterp
+#include "test_session_tests_sa.h"
+#include "../../../../inc/djinterp/c/test/test_counter.h"
 
 
 bool
@@ -19,9 +23,9 @@ d_tests_sa_test_session_all
 {
     bool all_passed;
 
-    printf("\n%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    printf("\n%s\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
     printf("Running test_session Unit Test Suite\n");
-    printf("%s\n\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    printf("%s\n\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     all_passed = true;
 
@@ -30,7 +34,7 @@ d_tests_sa_test_session_all
     //=========================================================================
 
     printf("  [SECTION] Constructor / Destructor\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_session_new(_test_info))                        { all_passed = false; }
     if (!d_tests_sa_test_session_new_with_config(_test_info))            { all_passed = false; }
@@ -47,7 +51,7 @@ d_tests_sa_test_session_all
     //=========================================================================
 
     printf("  [SECTION] Configuration\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_session_set_get_option(_test_info))   { all_passed = false; }
     if (!d_tests_sa_test_session_option_null(_test_info))      { all_passed = false; }
@@ -62,7 +66,7 @@ d_tests_sa_test_session_all
     //=========================================================================
 
     printf("  [SECTION] Child Management\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_session_add_child(_test_info))            { all_passed = false; }
     if (!d_tests_sa_test_session_add_child_non_module(_test_info)) { all_passed = false; }
@@ -80,7 +84,7 @@ d_tests_sa_test_session_all
     //=========================================================================
 
     printf("  [SECTION] Execution\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_session_run_empty(_test_info))         { all_passed = false; }
     if (!d_tests_sa_test_session_run_null(_test_info))          { all_passed = false; }
@@ -96,7 +100,7 @@ d_tests_sa_test_session_all
     //=========================================================================
 
     printf("  [SECTION] Output\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_session_write_header(_test_info))  { all_passed = false; }
     if (!d_tests_sa_test_session_write_footer(_test_info))  { all_passed = false; }
@@ -111,7 +115,7 @@ d_tests_sa_test_session_all
     //=========================================================================
 
     printf("  [SECTION] Statistics\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_session_get_stats(_test_info))      { all_passed = false; }
     if (!d_tests_sa_test_session_all_passed(_test_info))     { all_passed = false; }
@@ -126,7 +130,7 @@ d_tests_sa_test_session_all
     //=========================================================================
 
     printf("  [SECTION] Status\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_session_get_status(_test_info))          { all_passed = false; }
     if (!d_tests_sa_test_session_status_to_string(_test_info))    { all_passed = false; }
@@ -141,7 +145,7 @@ d_tests_sa_test_session_all
     //=========================================================================
 
     printf("  [SECTION] Utility\n");
-    printf("  %s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    printf("  %s\n", D_TEST_STANDALONE_SEPARATOR_SINGLE);
 
     if (!d_tests_sa_test_session_print(_test_info))     { all_passed = false; }
     if (!d_tests_sa_test_session_exit_code(_test_info))  { all_passed = false; }
@@ -150,7 +154,7 @@ d_tests_sa_test_session_all
     // SUMMARY
     //=========================================================================
 
-    printf("\n%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    printf("\n%s\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     if (all_passed)
     {
@@ -170,7 +174,7 @@ d_tests_sa_test_session_all
            _test_info->tests_passed,
            _test_info->tests_total);
 
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    printf("%s\n", D_TEST_STANDALONE_SEPARATOR_DOUBLE);
 
     return all_passed;
 }

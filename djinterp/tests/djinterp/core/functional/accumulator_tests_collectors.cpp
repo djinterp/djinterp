@@ -1,9 +1,18 @@
-#include "accumulator_tests.hpp"
-
+/*******************************************************************************
+* djinterp [core]                               accumulator_tests_collectors.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/accumulator_tests_collectors.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <map>
 #include <string>
 #include <vector>
+// djinterp
+#include "accumulator_tests.hpp"
 
 
 NS_DJINTERP

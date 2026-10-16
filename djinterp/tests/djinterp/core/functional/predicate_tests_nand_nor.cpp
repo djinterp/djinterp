@@ -1,13 +1,18 @@
-/******************************************************************************
-* djinterp [functional]                            predicate_tests_nand_nor.cpp
+/*******************************************************************************
+* djinterp [functional]                             predicate_tests_nand_nor.cpp
 *
 *   Tests for the NAND and NOR binary combinators (predicate_nand_combinator,
 * predicate_nor_combinator) and their factories (predicate_nand,
 * predicate_nor).
 *
-* path:      /src/functional/predicate_tests_nand_nor.cpp
-******************************************************************************/
+*
+* path:      /tests/djinterp/core/functional/predicate_tests_nand_nor.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./predicate_tests.hpp"
 
 

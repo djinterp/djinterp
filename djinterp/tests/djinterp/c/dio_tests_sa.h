@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                            dio_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                                 dio_tests_sa.h
 *
 *   Unit test declarations for `dio.h` module.
 *   Provides comprehensive testing of all d_io functions including formatted
@@ -7,22 +7,25 @@
 * positioning, and error handling.
 *
 *
-* path:      \tests\c\core\dio_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.16
-******************************************************************************/
+* path:      /tests/djinterp/c/dio_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.16
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_DIO_SA_
 #define DJINTERP_TESTS_DIO_SA_ 1
 
+// std
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\..\inc\c\test\test_standalone.h"
-#include "..\..\inc\c\dio.h"
-#include "..\..\inc\c\string_fn.h"
-#include "..\..\inc\c\dstring.h"
+// djinterp
+#include "../../../inc/djinterp/c/dio.h"
+#include "../../../inc/djinterp/c/string_fn.h"
+#include "../../../inc/djinterp/c/dstring.h"
+#include "../../../inc/djinterp/test/c/test_counter.h"
 
 
 /******************************************************************************

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                   byte_size_tests_descent.cpp
+/*******************************************************************************
+* djinterp [test]                                    byte_size_tests_descent.cpp
 *
 *   Section IV of byte_size.hpp: byte_dynamic_helper's two specializations --
 * the primary (element is a leaf: stop at this level's own region) and the
@@ -20,10 +20,13 @@
 *     - empty outer and empty inner containers.
 *
 *
-* path:      /inc/djinterp/test/byte_size_tests_descent.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.03
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/byte_size_tests_descent.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.03
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "byte_size_tests.hpp"
 
 

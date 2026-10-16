@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
 * djinterp [test]                                 type_traits_tests_callable.cpp
 *
 *   Unit tests for the callable traits in Section I.2 of type_traits.hpp:
@@ -26,9 +26,12 @@
 *   - is_nothrow_invocable_r: composes noexcept with convertibility
 *
 *
-* path:      /inc/djinterp/test/type_traits_tests_callable.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/type_traits_tests_callable.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.20
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./type_traits_tests.hpp"
 
 
@@ -261,75 +264,75 @@ type_traits_tests_callable(
 )
 {
     // ---- invoke_result ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<invoke_result_t<decltype(&free_fn_int_to_int), int>, int>::value,
         "invoke_result_t<free fn, int> -> int");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<invoke_result_t<callable_int_to_int, int>, int>::value,
         "invoke_result_t<1-arg functor, int> -> int");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<invoke_result_t<callable_two_ints_to_int, int, int>, int>::value,
         "invoke_result_t<2-arg functor, int, int> -> int");
 
     // ---- is_invocable ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable<callable_int_to_int, int>::value == true,
         "is_invocable: 1-arg functor with int -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable<callable_two_ints_to_int, int, int>::value == true,
         "is_invocable: 2-arg functor -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable<non_callable_t, int>::value == false,
         "is_invocable: non-callable -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable<int, int>::value == false,
         "is_invocable: int -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable<callable_int_to_int, int, int>::value == false,
         "is_invocable: arity mismatch (too many) -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable<callable_int_to_int>::value == false,
         "is_invocable: arity mismatch (too few) -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable<callable_int_to_int, non_callable_t>::value == false,
         "is_invocable: incompatible arg type -> false");
 
     // ---- is_invocable_r ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable_r<int, callable_int_to_int, int>::value == true,
         "is_invocable_r<int, functor returning int, int> -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable_r<long, callable_int_to_int, int>::value == true,
         "is_invocable_r<long, functor returning int, int> -> true (convertible)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable_r<to_double_t, callable_int_to_int, int>::value == true,
         "is_invocable_r<to_double_t, functor returning int, int> -> true (via ctor)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable_r<int, callable_int_to_opaque, int>::value == false,
         "is_invocable_r<int, functor returning opaque, int> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_invocable_r<void, callable_int_to_int, int>::value == true,
         "is_invocable_r<void, ..., int> -> true (anything convertible to void)");
 
     // ---- is_nothrow_invocable ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nothrow_invocable<callable_int_to_int_noexcept, int>::value == true,
         "is_nothrow_invocable<noexcept functor, int> -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nothrow_invocable<callable_int_to_int, int>::value == false,
         "is_nothrow_invocable<throwing functor, int> -> false");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nothrow_invocable<non_callable_t, int>::value == false,
         "is_nothrow_invocable<non-callable, int> -> false");
 
     // ---- is_nothrow_invocable_r ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nothrow_invocable_r<int, callable_int_to_int_noexcept, int>::value == true,
         "is_nothrow_invocable_r<int, noexcept functor, int> -> true");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nothrow_invocable_r<int, callable_int_to_int, int>::value == false,
         "is_nothrow_invocable_r<int, throwing functor, int> -> false (throws)");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         is_nothrow_invocable_r<non_callable_t,
                                callable_int_to_int_noexcept, int>::value == false,
         "is_nothrow_invocable_r: incompatible return -> false");

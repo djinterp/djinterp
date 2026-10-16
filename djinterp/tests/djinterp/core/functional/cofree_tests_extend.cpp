@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                     cofree_tests_extend.cpp
+/*******************************************************************************
+* djinterp [test]                                        cofree_tests_extend.cpp
 *
 *   Section II.3 (extend) of the cofree.hpp suite, plus the comonad face of the
 * registration: cofree_extend re-decorates every node with a function of that
@@ -10,10 +10,12 @@
 * three comonad laws: extract . extend(f) == f, extend(extract) == id, and
 * extract . duplicate == id (with duplicate's shape verified by mapping).
 *
+*
 * path:      /tests/djinterp/core/functional/cofree_tests_extend.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "cofree_tests.hpp"

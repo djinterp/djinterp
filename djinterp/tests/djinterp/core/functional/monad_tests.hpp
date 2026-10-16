@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                           monad_tests.hpp
+/*******************************************************************************
+* djinterp [testing]                                             monad_tests.hpp
 *
 *   DTest declarations and shared helper types for the monad.hpp unit
 * test suite.  Each like-group semantic section of monad.hpp maps to a
@@ -33,10 +33,12 @@
 *   C++11 minimum.  The test arrows are written as named functor types
 * (not generic lambdas) so the suite compiles unchanged on C++11.
 *
+*
 * path:      /tests/djinterp/core/functional/monad_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.31
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.31
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTING_FUNCTIONAL_MONAD_
 #define DJINTERP_TESTING_FUNCTIONAL_MONAD_ 1
@@ -46,11 +48,10 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #include <djinterp/core/meta/type_traits.hpp>
 #include <djinterp/core/functional/monad.hpp>
 #include <djinterp/test/test_common.hpp>
-#include <djinterp/test/test_trait.hpp>
 #include <djinterp/test/test_handler.hpp>
 #include <djinterp/test/test_defaults.hpp>
 #include <djinterp/test/test_runner.hpp>
@@ -103,7 +104,7 @@ public:
 
     // is_some
     //   returns: whether a value is held.
-    bool 
+    bool
     is_some() const
     {
         return m_has;

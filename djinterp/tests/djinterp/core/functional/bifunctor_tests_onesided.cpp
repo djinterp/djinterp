@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                bifunctor_tests_onesided.cpp
+/*******************************************************************************
+* djinterp [test]                                   bifunctor_tests_onesided.cpp
 *
 *   Sections II.2 - II.3 of the bifunctor.hpp suite: map_first and map_second,
 * derived as bimap with the identity helper on the untouched side.  Covers
@@ -10,10 +10,12 @@
 *
 *   kv_pair equality is key-only, so kv checks read the m_key / m_value fields.
 *
+*
 * path:      /tests/djinterp/core/functional/bifunctor_tests_onesided.cpp
 * link(s):   TBA
-* author(s): djinterp DTest suite                          created: 2026.07.07
-******************************************************************************/
+* author(s): djinterp DTest suite                            created: 2026.07.07
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "bifunctor_tests.hpp"

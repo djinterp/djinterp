@@ -1,13 +1,20 @@
-/******************************************************************************
-* djinterp [test]                                 interpolate_tests_composition.cpp
+/*******************************************************************************
+* djinterp [test]                              interpolate_tests_composition.cpp
 *
 * Section III (composition) -- chain_resolver (try A, else B; first hit wins,
 * second consulted only on a miss) and when_resolver (gate a resolver on a key
 * predicate; non-matching keys fall through as a miss), plus the chain / when
 * factories.  Pins the two documented properties: chain's lazy fall-through
 * (observed with a call-counting frame) and its associativity.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_composition.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

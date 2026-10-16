@@ -1,15 +1,23 @@
-/******************************************************************************
-* djinterp [test]                                   pipeline_tests_factory.cpp
+/*******************************************************************************
+* djinterp [test]                                     pipeline_tests_factory.cpp
 *
 * Convenience factory tests (section II):
 *   test_factory -- the free pipeline_from(container) and
 *                   pipeline_from(pointer, count), including element-type
 *                   deduction.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/pipeline_tests_factory.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include <vector>
+// std
 #include <list>
 #include <type_traits>
+#include <vector>
+// djinterp
 #include "./pipeline_tests.hpp"
 
 

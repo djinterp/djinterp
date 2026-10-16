@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                             test_container_tests_contract.cpp
+/*******************************************************************************
+* djinterp [test]                              test_container_tests_contract.cpp
 *
 *   Section III of the test_container suite: the three-rung CONTRACT LADDER.
 *   - is_test_object_container   the read/run minimum (value_type whose
@@ -22,11 +22,14 @@
 * latter contrasted against the raw expression probe, which queries the type
 * directly and so does NOT normalize.
 *
-* path:      /tests/djinterp/test/test_container/test_container_tests_contract.cpp
+*
+* path:      /tests/djinterp/test/test_container_tests_contract.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_container_tests.hpp"
 
 NS_DJINTERP

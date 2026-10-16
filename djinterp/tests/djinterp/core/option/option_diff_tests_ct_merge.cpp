@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               option_diff_tests_ct_merge.cpp
+/*******************************************************************************
+* djinterp [test]                                 option_diff_tests_ct_merge.cpp
 *
 *   PART A / A.V - the merge bridge.  Covers the merge_mode vocabulary, the
 * internal merge_mode_policy map (overwrite -> override_replace;
@@ -15,10 +15,14 @@
 *   Fixtures (a/b/c = alpha/beta/gamma):
 *     base  a:1 b:2      delta  b:99 c:3      -> b is the contested key
 *
+*
 * path:      /tests/djinterp/core/option/option_diff_tests_ct_merge.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.08
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./option_diff_tests.hpp"
 
 

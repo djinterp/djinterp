@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [test]                                 test_timer_tests_accessors.cpp
+*
+*
+* path:      /tests/djinterp/test/test_timer_tests_accessors.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp
 #include "test_timer_tests.hpp"
 

@@ -1,18 +1,25 @@
-/******************************************************************************
-* djinterp [test]                                  consumer_tests_erasure.cpp
+/*******************************************************************************
+* djinterp [test]                                     consumer_tests_erasure.cpp
 *
 *   Tests for consumer.hpp Section III type erasure: boxed_consumer<T>
 * and box<T>(consumer).  Covers boxing each kind of consumer (primitive,
 * adapter, broadcast), storing heterogeneous boxed consumers in a single
 * container, reassigning a boxed consumer at runtime, and round-tripping
 * values through the erased call.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/consumer_tests_erasure.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#include "consumer_tests.hpp"
-
+// std
 #include <sstream>
 #include <string>
 #include <vector>
+// djinterp
+#include "consumer_tests.hpp"
 
 
 NS_DJINTERP

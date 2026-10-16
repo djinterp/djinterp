@@ -1,21 +1,22 @@
-/******************************************************************************
-* djinterp [test]                                  enum_map_entry_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                      enum_map_entry_tests_sa.h
 *
 *   Unit tests for the enum_map_entry module (entry structure and macros only).
 *   Tests entry creation macros, comparison macros, and sentinel markers.
 *   Does NOT test min_enum_map operations - that's a separate test suite.
 *
 *
-* path:      /test/container/map/enum_map_entry_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
-******************************************************************************/
+* path:      /tests/djinterp/c/container/map/enum_map_entry_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.24
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_ENUM_MAP_ENTRY_TESTS_STANDALONE_
 #define DJINTERP_ENUM_MAP_ENTRY_TESTS_STANDALONE_ 1
 
-#include "../../../../inc/c/test/test_standalone.h"
-#include "../../../../inc/c/container/map/enum_map_entry.h"
+// djinterp
+#include "../../../../../inc/djinterp/c/container/map/enum_map_entry.h"
 
 
 /******************************************************************************
@@ -73,8 +74,3 @@ struct d_test_object* d_tests_enum_map_entry_run_all(void);
 
 
 #endif  // DJINTERP_ENUM_MAP_ENTRY_TESTS_STANDALONE_
-
-
-
-
-

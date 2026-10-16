@@ -1,13 +1,18 @@
-/******************************************************************************
-* djinterp [test]                                     ptr_vector_tests_sa_access.c
+/*******************************************************************************
+* djinterp [test]                                   ptr_vector_tests_sa_access.c
 *
 *   Unit tests for ptr_vector access functions.
 *
-* path:      \tests\container\vector\ptr_vector_tests_sa_access.c
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.29
-******************************************************************************/
+*
+* path:      /tests/djinterp/c/container/vector/ptr_vector_tests_sa_access.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.01.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./ptr_vector_tests_sa.h"
+#include "../../../../../inc/djinterp/test/c/test_counter.h"
 
 static int g_access_test_values[] = {100, 200, 300, 400, 500};
 

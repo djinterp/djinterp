@@ -1,13 +1,21 @@
-/******************************************************************************
-* djinterp [test]                                     pipeline_tests_query.cpp
+/*******************************************************************************
+* djinterp [test]                                       pipeline_tests_query.cpp
 *
 * Query / consumption tests (section iii):
 *   test_query    -- any, all, none, count over populated and empty pipelines.
 *   test_for_each -- visits every element for side effects and returns the
 *                    same pipeline for chaining.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/pipeline_tests_query.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// std
 #include <vector>
+// djinterp
 #include "./pipeline_tests.hpp"
 
 

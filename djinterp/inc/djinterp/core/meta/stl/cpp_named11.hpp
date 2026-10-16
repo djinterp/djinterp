@@ -1,10 +1,10 @@
-/******************************************************************************
-* djinterp [core]                                              cpp_named11.h
+/*******************************************************************************
+* djinterp [core]                                                cpp_named11.hpp
 *
 * C++11 named requirement type traits:
 *   Provides precise compile-time detection of fundamental named requirements
 * using the C++11 <type_traits> header. This supersedes the sizeof-based
-* SFINAE approach from cpp_named98.h with compiler-intrinsic-backed traits
+* SFINAE approach from cpp_named98.hpp with compiler-intrinsic-backed traits
 * that correctly handle private/deleted special members.
 *
 *   C++11 introduces rvalue references, enabling MoveConstructible and
@@ -13,17 +13,17 @@
 *
 * SUPPORTED REQUIREMENTS:
 *   - DefaultConstructible  (is_default_constructible)
-*   - MoveConstructible     (is_move_constructible)       [NEW in C++11]
+*   - MoveConstructible     (is_move_constructible)        [NEW in C++11]
 *   - CopyConstructible     (is_copy_constructible)
-*   - MoveAssignable        (is_move_assignable)          [NEW in C++11]
+*   - MoveAssignable        (is_move_assignable)           [NEW in C++11]
 *   - CopyAssignable        (is_copy_assignable)
 *   - Destructible          (is_destructible)
-*   - nothrow variants of all of the above                [NEW in C++11]
-*   - ScalarType            (is_scalar)                   [NEW in C++11]
-*   - TriviallyCopyable     (is_trivially_copyable)       [NEW in C++11]
-*   - TrivialType           (is_trivial)                  [NEW in C++11]
-*   - StandardLayoutType    (is_standard_layout)          [NEW in C++11]
-*   - PODType               (is_pod)                      [NEW in C++11]
+*   - nothrow variants of all of the above                 [NEW in C++11]
+*   - ScalarType            (is_scalar)                    [NEW in C++11]
+*   - TriviallyCopyable     (is_trivially_copyable)        [NEW in C++11]
+*   - TrivialType           (is_trivial)                   [NEW in C++11]
+*   - StandardLayoutType    (is_standard_layout)           [NEW in C++11]
+*   - PODType               (is_pod)                       [NEW in C++11]
 *   - BooleanTestable       (is_boolean_testable)          [NEW in C++11]
 *   - EqualityComparable    (is_equality_comparable)       [NEW in C++11]
 *   - LessThanComparable    (is_less_than_comparable)      [NEW in C++11]
@@ -81,45 +81,50 @@
 *   D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES  - move trait availability
 *
 * NAMING CONVENTIONS:
-*   djinterp::traits::is_default_constructible<_T>::value
-*   djinterp::traits::is_nothrow_move_constructible<_T>::value
+*   djinterp::re_std::is_default_constructible<_T>::value
+*   djinterp::re_std::is_nothrow_move_constructible<_T>::value
 *   (etc.)
 *
-* path:      \inc\cpp_named11.h
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.27
-******************************************************************************/
+*
+* path:      /inc/djinterp/core/meta/stl/cpp_named11.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.27
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_CPP_NAMED11_
-#define DJINTERP_CPP_NAMED11_ 1
+#ifndef DJINTERP_META_STL_CPP_NAMED11_HPP
+#define DJINTERP_META_STL_CPP_NAMED11_HPP 1
 
 // require env.h to be included first
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "cpp_named11.h requires env.h to be included first"
+#ifndef DJINTERP_ENV_ENV_H
+    #error "cpp_named11.hpp requires env.h to be included first"
 #endif
 
 // only meaningful in C++ mode
 #ifndef __cplusplus
-    #error "cpp_named11.h can only be used in C++ compilation mode"
+    #error "cpp_named11.hpp can only be used in C++ compilation mode"
 #endif
 
+// djinterp
 // include C++98/03 layer (active only when C++11 is not available)
-#include "cpp_named03.h"
+#include "cpp_named03.hpp"
 
 // C++11 trait definitions are active for C++11 and all later standards
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#include <type_traits>
-#include <functional>
-#include <utility>
-#include <memory>
-#include <iterator>
-#include <ios>
-#include <random>
+// std
 #include <chrono>
+#include <functional>
+#include <ios>
+#include <iterator>
+#include <memory>
+#include <random>
+#include <type_traits>
+#include <utility>
 
 
 NS_DJINTERP
-NS_TRAITS
+NS_RESTD
 
 // =========================================================================
 // I.   NAMED REQUIREMENT TRAITS (C++11)
@@ -562,7 +567,7 @@ struct is_less_than_comparable
 // is_swappable
 //   trait: evaluates to true if _T is swappable via ADL-visible swap.
 // note: this is a basic detection using std::swap as fallback. See
-// cpp_named17.h for std::is_swappable-backed version.
+// cpp_named17.hpp for std::is_swappable-backed version.
 template<typename _T>
 struct is_swappable
 {
@@ -658,7 +663,7 @@ struct is_function_object
 // (satisfies Callable).
 // note: tests direct invocation `_F(_Args...)` only. Does not account
 // for std::invoke semantics (pointer-to-member, etc.). See
-// cpp_named17.h for std::is_invocable-backed version.
+// cpp_named17.hpp for std::is_invocable-backed version.
 template<typename _F,
          typename... _Args>
 struct is_callable
@@ -2344,10 +2349,10 @@ struct is_literal_type_
 };
 
 
-NS_END  // traits
+NS_END  // re_std
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_CPP_NAMED11_
+#endif  // DJINTERP_META_STL_CPP_NAMED11_HPP

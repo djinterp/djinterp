@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [container]                                       container_config.h
+/*******************************************************************************
+* djinterp [container]                                        container_config.h
 *
 * Feature configuration for the container module.
 *   Provides hierarchical enable/disable toggles for optional functionality
@@ -46,7 +46,7 @@
 *       #define D_CFG_CONTAINER_FILTER_VECTOR 0
 *       #include "container\array\vector.h"
 *
-* path:      \inc\container\container_config.h
+* path:      /inc/djinterp/config/core/container/container_config.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.02.19
 ******************************************************************************/

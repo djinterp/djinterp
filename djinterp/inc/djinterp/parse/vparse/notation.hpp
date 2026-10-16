@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [vparse]                                               notation.hpp
+/*******************************************************************************
+* djinterp [parse]                                                  notation.hpp
 *
 *   The grammar language and its metacircular front-end.  meta_grammar() is the
 * grammar of grammars -- the notation's own syntax, expressed as a ruleset, so
@@ -16,11 +16,13 @@
 *
 *
 * path:      /inc/djinterp/parse/vparse/notation.hpp
-* author(s): vparse                                        created: 2026.06.19
-******************************************************************************/
+* link(s):   TBA
+* author(s): vparse                                          created: 2026.06.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_PARSE_VPARSE_NOTATION_
-#define DJINTERP_PARSE_VPARSE_NOTATION_ 1
+#ifndef DJINTERP_PARSE_VPARSE_NOTATION_HPP
+#define DJINTERP_PARSE_VPARSE_NOTATION_HPP 1
 
 // std
 #include <string>
@@ -50,4 +52,4 @@ NS_END  // parse
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_PARSE_VPARSE_NOTATION_
+#endif  // DJINTERP_PARSE_VPARSE_NOTATION_HPP

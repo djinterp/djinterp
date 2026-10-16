@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                    value_list_tests_growth.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/value_list_tests_growth.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  value_list_tests_growth.cpp
 //   Section IV -- growth: append, prepend, and the four concat overloads.
 

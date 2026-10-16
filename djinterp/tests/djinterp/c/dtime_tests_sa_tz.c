@@ -1,13 +1,15 @@
-/******************************************************************************
-* djinterp [test]                                           dtime_tests_sa_tz.c
+/*******************************************************************************
+* djinterp [test]                                            dtime_tests_sa_tz.c
 *
 *   Tests for timezone utility functions (timegm, tzset).
 *
 *
-* path:      \src\test\dtime_tests_sa_tz.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
+* path:      /tests/djinterp/c/dtime_tests_sa_tz.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "dtime_tests_sa.h"
 
 
@@ -16,7 +18,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dtime_timegm
+d_tests_sa_dtime_timegm
   Tests d_timegm for inverse of gmtime (struct tm UTC to time_t).
   Tests the following:
   - converts epoch struct tm to time_t 0
@@ -29,7 +31,7 @@ d_tests_dtime_timegm
   - handles dates before epoch (if supported)
 */
 struct d_test_object*
-d_tests_dtime_timegm
+d_tests_sa_dtime_timegm
 (
     void
 )
@@ -200,7 +202,7 @@ d_tests_dtime_timegm
 
 
 /*
-d_tests_dtime_tzset
+d_tests_sa_dtime_tzset
   Tests d_tzset for timezone initialization.
   Tests the following:
   - function executes without error
@@ -213,7 +215,7 @@ d_tests_dtime_tzset
   - timezone offset is reasonable
 */
 struct d_test_object*
-d_tests_dtime_tzset
+d_tests_sa_dtime_tzset
 (
     void
 )
@@ -372,14 +374,14 @@ d_tests_dtime_tzset
 
 
 /*
-d_tests_dtime_timezone_utilities_all
+d_tests_sa_dtime_timezone_utilities_all
   Runs all timezone utility tests.
   Tests the following:
   - d_timegm
   - d_tzset
 */
 struct d_test_object*
-d_tests_dtime_timezone_utilities_all
+d_tests_sa_dtime_timezone_utilities_all
 (
     void
 )
@@ -395,8 +397,8 @@ d_tests_dtime_timezone_utilities_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dtime_timegm();
-    group->elements[idx++] = d_tests_dtime_tzset();
+    group->elements[idx++] = d_tests_sa_dtime_timegm();
+    group->elements[idx++] = d_tests_sa_dtime_tzset();
 
     return group;
 }

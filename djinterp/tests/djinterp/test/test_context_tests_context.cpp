@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                               test_context_tests_context.cpp
+/*******************************************************************************
+* djinterp [test]                                 test_context_tests_context.cpp
 *
 *   Section I of the test_context suite: the FOCUS STRUCT itself.  test_context
 * is a plain aggregate - four nullable report-node pointers (run / module_ /
@@ -14,11 +14,14 @@
 *   Every body is C++17-gated (test_context does not exist below C++17); under
 * an older standard each unit passes vacuously.
 *
-* path:      /tests/djinterp/test/test_context/test_context_tests_context.cpp
+*
+* path:      /tests/djinterp/test/test_context_tests_context.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "test_context_tests.hpp"
 
 NS_DJINTERP

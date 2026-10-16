@@ -1,4 +1,15 @@
+/*******************************************************************************
+* djinterp [event]                                    event_tests_sa_event_new.c
+*
+*
+* path:      /tests/djinterp/c/event/event_tests_sa_event_new.c
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./event_tests_sa.h"
+#include "../../../../inc/djinterp/test/c/test_counter.h"
 
 
 /*
@@ -7,7 +18,7 @@ d_tests_sa_event_new_basic
   Tests the following:
   - Returns non-NULL
   - id is set correctly
-  - args is NULL, num_args is 0
+  - context is NULL
 */
 bool
 d_tests_sa_event_new_basic
@@ -30,9 +41,9 @@ d_tests_sa_event_new_basic
     if (ev)
     {
         result = d_assert_standalone(
-            ev->id == 42 && ev->args == NULL && ev->num_args == 0,
+            ev->id == 42 && ev->context == NULL,
             "event_new_fields",
-            "New event should have id=42, NULL args, num_args=0",
+            "New event should have id=42 and NULL context",
             _counter) && result;
 
         d_event_free(ev);
@@ -46,8 +57,8 @@ d_tests_sa_event_new_ids
   Tests d_event_new with various id values.
   Tests the following:
   - Zero id works
-  - Positive id works
   - Negative id works
+  - Large id works
 */
 bool
 d_tests_sa_event_new_ids
@@ -153,14 +164,14 @@ d_tests_sa_event_new_distinct
 }
 
 /*
-d_tests_sa_event_new_args_null
-  Tests d_event_new_args with NULL args and 0 size.
+d_tests_sa_event_new_ctx_null
+  Tests d_event_new_ctx with NULL context.
   Tests the following:
   - Returns non-NULL
-  - args is NULL, num_args is 0
+  - context is NULL
 */
 bool
-d_tests_sa_event_new_args_null
+d_tests_sa_event_new_ctx_null
 (
     struct d_test_counter* _counter
 )
@@ -169,20 +180,20 @@ d_tests_sa_event_new_args_null
     struct d_event* ev;
 
     result = true;
-    ev     = d_event_new_args(5, NULL, 0);
+    ev     = d_event_new_ctx(5, NULL);
 
     result = d_assert_standalone(
         ev != NULL,
-        "event_new_args_null_non_null",
-        "d_event_new_args with NULL/0 should return non-NULL",
+        "event_new_ctx_null_non_null",
+        "d_event_new_ctx with NULL should return non-NULL",
         _counter) && result;
 
     if (ev)
     {
         result = d_assert_standalone(
-            ev->id == 5 && ev->args == NULL && ev->num_args == 0,
-            "event_new_args_null_fields",
-            "Should have id=5, NULL args, num_args=0",
+            ev->id == 5 && ev->context == NULL,
+            "event_new_ctx_null_fields",
+            "Should have id=5 and NULL context",
             _counter) && result;
 
         d_event_free(ev);
@@ -192,69 +203,15 @@ d_tests_sa_event_new_args_null
 }
 
 /*
-d_tests_sa_event_new_args_valid
-  Tests d_event_new_args with valid arguments.
+d_tests_sa_event_new_ctx_valid
+  Tests d_event_new_ctx with non-NULL context.
   Tests the following:
   - Returns non-NULL
-  - args pointer is stored directly (no copy)
-  - num_args reflects passed count
+  - context stores the pointer directly (no copy)
+  - Context is accessible through the stored pointer
 */
 bool
-d_tests_sa_event_new_args_valid
-(
-    struct d_test_counter* _counter
-)
-{
-    bool            result;
-    struct d_event* ev;
-    int             val_a;
-    int             val_b;
-    void*           args[2];
-
-    result  = true;
-    val_a   = 100;
-    val_b   = 200;
-    args[0] = &val_a;
-    args[1] = &val_b;
-
-    ev = d_event_new_args(7, args, 2);
-
-    result = d_assert_standalone(
-        ev != NULL,
-        "event_new_args_valid_non_null",
-        "Valid args should create non-NULL event",
-        _counter) && result;
-
-    if (ev)
-    {
-        result = d_assert_standalone(
-            ev->id == 7 && ev->num_args == 2,
-            "event_new_args_valid_id_count",
-            "Should have id=7 and num_args=2",
-            _counter) && result;
-
-        result = d_assert_standalone(
-            ev->args == (void*)args,
-            "event_new_args_stores_ptr",
-            "Args should store the original pointer directly",
-            _counter) && result;
-
-        // args points to stack; free struct only
-        free(ev);
-    }
-
-    return result;
-}
-
-/*
-d_tests_sa_event_new_args_single
-  Tests d_event_new_args with a single argument.
-  Tests the following:
-  - num_args is 1
-  - args pointer matches source
-*/
-bool
-d_tests_sa_event_new_args_single
+d_tests_sa_event_new_ctx_valid
 (
     struct d_test_counter* _counter
 )
@@ -262,88 +219,82 @@ d_tests_sa_event_new_args_single
     bool            result;
     struct d_event* ev;
     int             val;
-    void*           args[1];
 
-    result  = true;
-    val     = 999;
-    args[0] = &val;
+    result = true;
+    val    = 42;
+    ev     = d_event_new_ctx(7, &val);
 
-    ev = d_event_new_args(1, args, 1);
+    result = d_assert_standalone(
+        ev != NULL,
+        "event_new_ctx_valid_non_null",
+        "Valid context should create non-NULL event",
+        _counter) && result;
 
     if (ev)
     {
         result = d_assert_standalone(
-            ev->num_args == 1 && ev->args == (void*)args,
-            "event_new_args_single",
-            "Single-arg event should have num_args=1 and matching ptr",
+            ev->id == 7 && ev->context == &val,
+            "event_new_ctx_stores_ptr",
+            "Context should store the original pointer directly",
             _counter) && result;
 
-        free(ev);
+        result = d_assert_standalone(
+            *((int*)ev->context) == 42,
+            "event_new_ctx_accessible",
+            "Context data should be accessible through stored pointer",
+            _counter) && result;
+
+        d_event_free(ev);
     }
 
     return result;
 }
 
 /*
-d_tests_sa_event_new_args_inconsistent
-  Tests d_event_new_args with inconsistent NULL/size combinations.
+d_tests_sa_event_new_ctx_distinct
+  Tests that d_event_new_ctx returns distinct events with independent contexts.
   Tests the following:
-  - NULL args with non-zero size still creates event (stores as-is)
-  - Non-NULL args with 0 size still creates event (stores as-is)
+  - Two events are distinct pointers
+  - Each stores its own context
 */
 bool
-d_tests_sa_event_new_args_inconsistent
+d_tests_sa_event_new_ctx_distinct
 (
     struct d_test_counter* _counter
 )
 {
     bool            result;
-    struct d_event* ev;
-    int             dummy;
-    void*           args[1];
+    struct d_event* ev_a;
+    struct d_event* ev_b;
+    int             val_a;
+    int             val_b;
 
-    result  = true;
-    dummy   = 0;
-    args[0] = &dummy;
+    result = true;
+    val_a  = 100;
+    val_b  = 200;
+    ev_a   = d_event_new_ctx(1, &val_a);
+    ev_b   = d_event_new_ctx(2, &val_b);
 
-    // NULL args with non-zero size
-    ev = d_event_new_args(10, NULL, 3);
-
-    result = d_assert_standalone(
-        ev != NULL,
-        "event_new_args_null_nonzero",
-        "NULL args with non-zero size should still create event",
-        _counter) && result;
-
-    if (ev)
+    if ( (ev_a) &&
+         (ev_b) )
     {
         result = d_assert_standalone(
-            ev->args == NULL && ev->num_args == 3,
-            "event_new_args_null_nonzero_fields",
-            "Should store NULL args and num_args=3 as given",
+            ev_a != ev_b &&
+            ev_a->context == &val_a &&
+            ev_b->context == &val_b,
+            "event_new_ctx_distinct",
+            "Distinct events should store independent contexts",
             _counter) && result;
-
-        d_event_free(ev);
     }
 
-    // non-NULL args with 0 size
-    ev = d_event_new_args(11, args, 0);
-
-    result = d_assert_standalone(
-        ev != NULL,
-        "event_new_args_nonnull_zero",
-        "Non-NULL args with 0 size should still create event",
-        _counter) && result;
-
-    if (ev)
+    if (ev_a)
     {
-        result = d_assert_standalone(
-            ev->args == (void*)args && ev->num_args == 0,
-            "event_new_args_nonnull_zero_fields",
-            "Should store args pointer and num_args=0 as given",
-            _counter) && result;
+        d_event_free(ev_a);
+    }
 
-        free(ev);
+    if (ev_b)
+    {
+        d_event_free(ev_b);
     }
 
     return result;
@@ -366,13 +317,12 @@ d_tests_sa_event_constructor_all
     printf("\n  [SECTION] d_event Constructors\n");
     printf("  ---------------------------------\n");
 
-    result = d_tests_sa_event_new_basic(_counter)            && result;
-    result = d_tests_sa_event_new_ids(_counter)              && result;
-    result = d_tests_sa_event_new_distinct(_counter)         && result;
-    result = d_tests_sa_event_new_args_null(_counter)        && result;
-    result = d_tests_sa_event_new_args_valid(_counter)       && result;
-    result = d_tests_sa_event_new_args_single(_counter)      && result;
-    result = d_tests_sa_event_new_args_inconsistent(_counter) && result;
+    result = d_tests_sa_event_new_basic(_counter)        && result;
+    result = d_tests_sa_event_new_ids(_counter)          && result;
+    result = d_tests_sa_event_new_distinct(_counter)     && result;
+    result = d_tests_sa_event_new_ctx_null(_counter)     && result;
+    result = d_tests_sa_event_new_ctx_valid(_counter)    && result;
+    result = d_tests_sa_event_new_ctx_distinct(_counter) && result;
 
     return result;
 }

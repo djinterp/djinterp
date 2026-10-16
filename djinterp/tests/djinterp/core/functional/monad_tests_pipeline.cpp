@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    monad_tests_pipeline.cpp
+/*******************************************************************************
+* djinterp [test]                                       monad_tests_pipeline.cpp
 *
 *   Tests for monad.hpp Sections III and IV: the pipeline combinators
 * bind_with / map_with / then_with and the operator| that applies them.
@@ -7,7 +7,14 @@
 * the pipe, multi-stage chaining, type-changing pipelines, the
 * equivalence of the pipe form with the direct call, and the SFINAE
 * guard that keeps operator| from firing on non-monad left-hand sides.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/monad_tests_pipeline.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "./monad_tests.hpp"
 
 

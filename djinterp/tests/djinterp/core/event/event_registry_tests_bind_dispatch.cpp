@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                      event_registry_tests_bind_dispatch.cpp
+/*******************************************************************************
+* djinterp [test]                         event_registry_tests_bind_dispatch.cpp
 *
 *   Section III (bind + dispatch) -- typed registration and the inner fold.
 * bind type-erases a compatible callable, stores it under the event's key, and
@@ -15,10 +15,11 @@
 * normalize to the same key (so const ev& dispatch hits ev's handlers).
 *
 *
-* path:      /tests/djinterp/core/event/event_registry/event_registry_tests_bind_dispatch.cpp
+* path:      /tests/djinterp/core/event/event_registry_tests_bind_dispatch.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_registry_tests.hpp"

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [core]                                              type_info.h
+/*******************************************************************************
+* djinterp [core]                                                    type_info.h
 *
 *  Umbrella header for the bit-efficient type information system.
 *  Includes the common definitions unconditionally, then pulls in either
@@ -16,24 +16,26 @@
 *                          type detection.
 *    type_info_cpp.h     — C++ modifier bits (32-47) and SET macros.
 *
-* path:      /inc/c/type_info.h
+*
+* path:      /inc/djinterp/core/meta/type_info.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.12.06
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.06
+*                                                            revised: 2026.09.20
+*******************************************************************************/
 
-#ifndef DJINTERP_C_TYPE_INFO_
-#define DJINTERP_C_TYPE_INFO_ 1
+#ifndef DJINTERP_META_TYPE_INFO_H
+#define DJINTERP_META_TYPE_INFO_H 1
 
 // common definitions — always included
-#include "type_info_common.h"
+#include "../../c/meta/type_info_common.h"
 
 #if D_ENV_LANG_USING_CPP
     // C++ modifier bits (32-47), feature-gated SET macros
     #include "type_info_cpp.h"
 #else
     // C storage-class bits (24-31) and C11 _Generic support
-    #include "type_info_c.h"
+    #include "../../c/meta/type_info_c.h"
 #endif
 
 
-#endif  // DJINTERP_C_TYPE_INFO_
+#endif  // DJINTERP_META_TYPE_INFO_H

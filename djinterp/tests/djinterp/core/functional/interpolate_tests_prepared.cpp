@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    interpolate_tests_prepared.cpp
+/*******************************************************************************
+* djinterp [test]                                 interpolate_tests_prepared.cpp
 *
 * Section VIII -- prepared_interpolation: scan ONCE into a shared piece cache
 * and replay it every render.  Verifies the mirrored builder surface (identity,
@@ -8,8 +8,15 @@
 * across renders, pieces() inspection, the shared cache (a chained prepared
 * refers to the SAME cache), make_prepared, and prepare_into filling a
 * caller-owned container for a replay_scanner.
-******************************************************************************/
+*
+*
+* path:      /tests/djinterp/core/functional/interpolate_tests_prepared.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "interpolate_tests.hpp"
 
 

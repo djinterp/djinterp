@@ -1,7 +1,16 @@
-#include "transducer_tests.hpp"
-
+/*******************************************************************************
+* djinterp [core]                                     transducer_tests_core2.cpp
+*
+*
+* path:      /tests/djinterp/core/functional/transducer_tests_core2.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // std
 #include <vector>
+// djinterp
+#include "transducer_tests.hpp"
 
 
 NS_DJINTERP

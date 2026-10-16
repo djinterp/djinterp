@@ -1,3 +1,12 @@
+/*******************************************************************************
+* djinterp [core]                                          font_tests_traits.cpp
+*
+*
+* path:      /tests/djinterp/core/text/font_tests_traits.cpp
+* link(s):   TBA
+* author(s): TBA                                                    created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 // djinterp [test]  font_tests_traits.cpp
 //   Section 10, parts I and II: the expression detectors and the individual
 // capability traits.

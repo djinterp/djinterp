@@ -7,7 +7,7 @@
 
 /*
 d_tests_sa_standalone_options_struct
-  Tests the d_test_sa_options structure.
+  Tests the d_test_standalone_options structure.
   Tests the following:
   - Structure has expected members
   - All boolean members are accessible
@@ -20,7 +20,7 @@ d_tests_sa_standalone_options_struct
 )
 {
     bool                       result;
-    struct d_test_sa_options   opts;
+    struct d_test_standalone_options   opts;
 
     result = true;
 
@@ -101,7 +101,7 @@ d_tests_sa_standalone_options_struct
 
 /*
 d_tests_sa_standalone_options_init
-  Tests the d_test_sa_options_init function.
+  Tests the d_test_standalone_options_init function.
   Tests the following:
   - NULL options is handled safely
   - All numbering flags default to false
@@ -117,21 +117,21 @@ d_tests_sa_standalone_options_init
 )
 {
     bool                     result;
-    struct d_test_sa_options opts;
+    struct d_test_standalone_options opts;
 
     result = true;
 
     // test 1: NULL options is handled safely
-    d_test_sa_options_init(NULL);
+    d_test_standalone_options_init(NULL);
 
     result = d_assert_standalone(
         true,
         "options_init_null_safe",
-        "d_test_sa_options_init(NULL) should not crash",
+        "d_test_standalone_options_init(NULL) should not crash",
         _counter) && result;
 
     // test 2: initialize and verify defaults
-    d_test_sa_options_init(&opts);
+    d_test_standalone_options_init(&opts);
 
     result = d_assert_standalone(
         opts.number_assertions == false,
@@ -180,7 +180,7 @@ d_tests_sa_standalone_options_init
 
 /*
 d_tests_sa_standalone_options_parse
-  Tests the d_test_sa_options_parse function.
+  Tests the d_test_standalone_options_parse function.
   Tests the following:
   - NULL options is handled safely
   - NULL argv is handled safely
@@ -202,12 +202,12 @@ d_tests_sa_standalone_options_parse
 {
     bool                     result;
     bool                     parse_result;
-    struct d_test_sa_options opts;
+    struct d_test_standalone_options opts;
 
     result = true;
 
     // test 1: NULL options is handled safely
-    parse_result = d_test_sa_options_parse(NULL, 0, NULL);
+    parse_result = d_test_standalone_options_parse(NULL, 0, NULL);
 
     result = d_assert_standalone(
         parse_result == true,
@@ -216,8 +216,8 @@ d_tests_sa_standalone_options_parse
         _counter) && result;
 
     // test 2: NULL argv is handled safely
-    d_test_sa_options_init(&opts);
-    parse_result = d_test_sa_options_parse(&opts, 2, NULL);
+    d_test_standalone_options_init(&opts);
+    parse_result = d_test_standalone_options_parse(&opts, 2, NULL);
 
     result = d_assert_standalone(
         parse_result == true,
@@ -229,8 +229,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_na[] = { "prog", "-na" };
 
-        d_test_sa_options_init(&opts);
-        d_test_sa_options_parse(&opts, 2, argv_na);
+        d_test_standalone_options_init(&opts);
+        d_test_standalone_options_parse(&opts, 2, argv_na);
 
         result = d_assert_standalone(
             opts.number_assertions == true,
@@ -243,8 +243,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_nt[] = { "prog", "-nt" };
 
-        d_test_sa_options_init(&opts);
-        d_test_sa_options_parse(&opts, 2, argv_nt);
+        d_test_standalone_options_init(&opts);
+        d_test_standalone_options_parse(&opts, 2, argv_nt);
 
         result = d_assert_standalone(
             opts.number_tests == true,
@@ -257,8 +257,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_gn[] = { "prog", "-gn" };
 
-        d_test_sa_options_init(&opts);
-        d_test_sa_options_parse(&opts, 2, argv_gn);
+        d_test_standalone_options_init(&opts);
+        d_test_standalone_options_parse(&opts, 2, argv_gn);
 
         result = d_assert_standalone(
             opts.global_numbering == true,
@@ -271,8 +271,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_ni[] = { "prog", "-ni" };
 
-        d_test_sa_options_init(&opts);
-        d_test_sa_options_parse(&opts, 2, argv_ni);
+        d_test_standalone_options_init(&opts);
+        d_test_standalone_options_parse(&opts, 2, argv_ni);
 
         result = d_assert_standalone(
             opts.show_info == false,
@@ -285,8 +285,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_nf[] = { "prog", "-nf" };
 
-        d_test_sa_options_init(&opts);
-        d_test_sa_options_parse(&opts, 2, argv_nf);
+        d_test_standalone_options_init(&opts);
+        d_test_standalone_options_parse(&opts, 2, argv_nf);
 
         result = d_assert_standalone(
             opts.show_module_footer == false,
@@ -299,8 +299,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_lf[] = { "prog", "-lf" };
 
-        d_test_sa_options_init(&opts);
-        d_test_sa_options_parse(&opts, 2, argv_lf);
+        d_test_standalone_options_init(&opts);
+        d_test_standalone_options_parse(&opts, 2, argv_lf);
 
         result = d_assert_standalone(
             opts.list_failures == true,
@@ -313,8 +313,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_o[] = { "prog", "-o", "/tmp/out.txt" };
 
-        d_test_sa_options_init(&opts);
-        d_test_sa_options_parse(&opts, 3, argv_o);
+        d_test_standalone_options_init(&opts);
+        d_test_standalone_options_parse(&opts, 3, argv_o);
 
         result = d_assert_standalone(
             opts.output_file != NULL,
@@ -333,8 +333,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_o_no_arg[] = { "prog", "-o" };
 
-        d_test_sa_options_init(&opts);
-        parse_result = d_test_sa_options_parse(&opts, 2,
+        d_test_standalone_options_init(&opts);
+        parse_result = d_test_standalone_options_parse(&opts, 2,
                                                argv_o_no_arg);
 
         result = d_assert_standalone(
@@ -348,8 +348,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_multi[] = { "prog", "-na", "-nt", "-lf" };
 
-        d_test_sa_options_init(&opts);
-        d_test_sa_options_parse(&opts, 4, argv_multi);
+        d_test_standalone_options_init(&opts);
+        d_test_standalone_options_parse(&opts, 4, argv_multi);
 
         result = d_assert_standalone(
             (opts.number_assertions == true) &&
@@ -364,8 +364,8 @@ d_tests_sa_standalone_options_parse
     {
         char* argv_empty[] = { "prog" };
 
-        d_test_sa_options_init(&opts);
-        parse_result = d_test_sa_options_parse(&opts, 1,
+        d_test_standalone_options_init(&opts);
+        parse_result = d_test_standalone_options_parse(&opts, 1,
                                                argv_empty);
 
         result = d_assert_standalone(
@@ -380,7 +380,7 @@ d_tests_sa_standalone_options_parse
 
 /*
 d_tests_sa_standalone_options_print_usage
-  Tests the d_test_sa_options_print_usage function.
+  Tests the d_test_standalone_options_print_usage function.
   Tests the following:
   - NULL program_name is handled safely
   - Valid program_name does not crash
@@ -396,7 +396,7 @@ d_tests_sa_standalone_options_print_usage
     result = true;
 
     // test 1: NULL program_name is handled safely
-    d_test_sa_options_print_usage(NULL);
+    d_test_standalone_options_print_usage(NULL);
 
     result = d_assert_standalone(
         true,
@@ -405,7 +405,7 @@ d_tests_sa_standalone_options_print_usage
         _counter) && result;
 
     // test 2: valid program_name does not crash
-    d_test_sa_options_print_usage("test_program");
+    d_test_standalone_options_print_usage("test_program");
 
     result = d_assert_standalone(
         true,

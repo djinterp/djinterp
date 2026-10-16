@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                      text_lineup_tests_sa.h
+/*******************************************************************************
+* djinterp [test]                                         text_lineup_tests_sa.h
 *
 *   Unit tests for the text_lineup module (text lineup and formatting
 * utilities). Tests cover the lightweight d_text_buffer used for output
@@ -7,16 +7,16 @@
 * d_text_lineup formatting engine with its full set of behavior flags.
 *
 *
-* path:      \test\text\text_lineup_tests_sa.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.01
-******************************************************************************/
+* path:      /tests/djinterp/c/text/text_lineup_tests_sa.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.01
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TEXT_LINEUP_TESTS_STANDALONE_
 #define DJINTERP_TEXT_LINEUP_TESTS_STANDALONE_ 1
 
-#include "../../../inc/djinterp/c/test/test_standalone.h"
-#include "../../../inc/djinterp/c/text/text_lineup.h"
+// djinterp
 
 
 /******************************************************************************
@@ -65,7 +65,7 @@
 
 // D_TEST_LINEUP_LINE_SUFFIX
 //   constant: per-line suffix (e.g., trailing backslash).
-#define D_TEST_LINEUP_LINE_SUFFIX       " \\"
+#define D_TEST_LINEUP_LINE_SUFFIX       " //"
 
 // D_TEST_LINEUP_STRNLEN_MAX
 //   constant: upper bound passed to d_strnlen in test assertions.

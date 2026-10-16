@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [testing]                                     passthrough_tests.hpp
+/*******************************************************************************
+* djinterp [testing]                                       passthrough_tests.hpp
 *
 * Unit test suite for passthrough.hpp -- the passthrough_marker opt-in base,
 * the is_passthrough trait, and the C++20 Passthrough concept.
@@ -51,10 +51,12 @@
 *   II.   SEMANTICS   (passthrough_tests_semantics.cpp)
 *   III.  CONCEPT     (passthrough_tests_concept.cpp)
 *
+*
 * path:      /tests/djinterp/core/meta/passthrough_tests.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.07.25
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 #ifndef DJINTERP_TESTS_PASSTHROUGH_TESTS_
 #define DJINTERP_TESTS_PASSTHROUGH_TESTS_ 1
@@ -63,11 +65,11 @@
 #include <cstdio>
 #include <string>
 #include <type_traits>
-
+// djinterp
 // -- (part 1) mode-gated includes --------------------------------------------
-#include <djinterp/core/djinterp.hpp>
+#include <djinterp/djinterp.hpp>
 #ifndef DTEST_SPEC_MODE
-#include "passthrough.hpp"                      // the header under test (normal)
+#include "../../../../inc/djinterp/core/meta/passthrough.hpp"                      // the header under test (normal)
 #endif
 #ifdef DTEST_SPEC_MODE
 #include "djinterp/test/test_defaults.hpp"      // module_spec + run_module (spec)

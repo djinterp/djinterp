@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                option_diff_tests_rt_keys.cpp
+/*******************************************************************************
+* djinterp [test]                                  option_diff_tests_rt_keys.cpp
 *
 *   PART B / B.I - runtime key-level diff (option_keys_in, option_added_keys,
 * option_removed_keys, option_common_keys) exercised over test_option_map, the
@@ -10,10 +10,14 @@
 *   Fixtures (a/b/c/d = alpha..delta):
 *     base  a:1 b:2 c:3      derived  a:1 b:20 d:4
 *
+*
 * path:      /tests/djinterp/core/option/option_diff_tests_rt_keys.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.08
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.08
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./option_diff_tests.hpp"
 
 

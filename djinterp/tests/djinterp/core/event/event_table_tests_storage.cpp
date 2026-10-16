@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                 event_table_tests_storage.cpp
+/*******************************************************************************
+* djinterp [test]                                  event_table_tests_storage.cpp
 *
 *   Section I -- INTERNAL STORAGE TYPES.  Covers the erasure key kappa
 * (internal::type_key: a per-type token that is stable across calls for the
@@ -8,10 +8,11 @@
 * enabled mask bit -- each field stored and retrievable).
 *
 *
-* path:      /tests/djinterp/core/event/event_table/event_table_tests_storage.cpp
+* path:      /tests/djinterp/core/event/event_table_tests_storage.cpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 // djinterp
 #include "event_table_tests.hpp"

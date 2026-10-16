@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [test]                                    dtuple_tests_modifiers.cpp
+/*******************************************************************************
+* djinterp [test]                                     dtuple_tests_modifiers.cpp
 *
 *   Unit tests for the type-modifier section of dtuple.hpp:
 *     - wrap_all (and the empty / general / explicit-empty
@@ -25,10 +25,13 @@
 *       non-tuple element by contributing exactly one type.
 *
 *
-* path:      /inc/djinterp/test/dtuple_tests_modifiers.cpp
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.19
-******************************************************************************/
+* path:      /tests/djinterp/core/meta/dtuple_tests_modifiers.cpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.19
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
+// djinterp
 #include "./dtuple_tests.hpp"
 
 
@@ -286,101 +289,101 @@ dtuple_tests_modifiers_all(
 )
 {
     // ---- wrap_all ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename wrap_all<>::template type<int>, int>::value,
         "wrap_all: empty pack -> identity");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename wrap_all<std::add_const>::template type<int>,
                      const int>::value,
         "wrap_all: single add_const");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename wrap_all<std::add_pointer, std::add_const>::template type<int>,
                      const int*>::value,
         "wrap_all: add_pointer/add_const composes right-to-left");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename wrap_all<std::add_pointer, std::add_pointer>::template type<int>,
                      int**>::value,
         "wrap_all: add_pointer twice -> int**");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<wrap_all_t<int, std::add_const>, const int>::value,
         "wrap_all_t: alias consistent");
 
     // ---- to_lvalue_reference ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_lvalue_reference::template type<int>, int&>::value,
         "to_lvalue_reference: int -> int&");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_lvalue_reference::template type<int&&>, int&>::value,
         "to_lvalue_reference: rvalue -> lvalue");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_lvalue_reference::template type<const int>, const int&>::value,
         "to_lvalue_reference: preserves const");
 
     // ---- to_rvalue_reference ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_rvalue_reference::template type<int>, int&&>::value,
         "to_rvalue_reference: int -> int&&");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_rvalue_reference::template type<int&>, int&&>::value,
         "to_rvalue_reference: lvalue -> rvalue");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_rvalue_reference::template type<int&&>, int&&>::value,
         "to_rvalue_reference: rvalue stays rvalue");
 
     // ---- to_pointer ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_pointer::template type<int>, int*>::value,
         "to_pointer: int -> int*");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_pointer::template type<int*>, int*>::value,
         "to_pointer: int* normalized");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_pointer::template type<int**>, int**>::value,
         "to_pointer: int** normalized to int**");
 
     // ---- to_type ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_type<int>::type, int>::value,
         "to_type: int -> int");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename to_type<const int&>::type, const int&>::value,
         "to_type: preserves cv + ref");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<to_type_t<volatile int*>, volatile int*>::value,
         "to_type_t: alias preserves cv + pointer");
 
     // ---- tuple_join ----
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_join<>::type, std::tuple<>>::value,
         "tuple_join: empty pack -> std::tuple<>");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_join<int>::type, std::tuple<int>>::value,
         "tuple_join: single non-tuple wraps");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_join<std::tuple<int>>::type, std::tuple<int>>::value,
         "tuple_join: single tuple unwrapped to itself");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_join<std::tuple<int>, std::tuple<char>>::type,
                      std::tuple<int, char>>::value,
         "tuple_join: two tuples concat");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_join<std::tuple<int>, char>::type,
                      std::tuple<int, char>>::value,
         "tuple_join: tuple + non-tuple appends");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_join<int, std::tuple<char>>::type,
                      std::tuple<int, char>>::value,
         "tuple_join: non-tuple + tuple prepends");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_join<std::tuple<>, std::tuple<int>>::type,
                      std::tuple<int>>::value,
         "tuple_join: empty tuple contributes nothing");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_join<std::tuple<int>, std::tuple<char>,
                                           std::tuple<float>>::type,
                      std::tuple<int, char, float>>::value,
         "tuple_join: three tuples concat");
-    record_assertion(_test_handler, 
+    record_assertion(_test_handler,
         std::is_same<typename tuple_join<std::tuple<std::tuple<int>>>::type,
                      std::tuple<std::tuple<int>>>::value,
         "tuple_join: nested tuple is NOT flattened recursively");

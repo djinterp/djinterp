@@ -1,14 +1,16 @@
-/******************************************************************************
-* djinterp [test]                                        dtime_tests_sa_highres.c
+/*******************************************************************************
+* djinterp [test]                                       dtime_tests_sa_highres.c
 *
 *   Tests for high-resolution time functions (clock_gettime, clock_getres,
 * timespec_get).
 *
 *
-* path:      \src\test\dtime_tests_sa_highres.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.25
-******************************************************************************/
+* path:      /tests/djinterp/c/dtime_tests_sa_highres.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
+*                                                            revised: 2026.09.21
+*******************************************************************************/
+// djinterp
 #include "dtime_tests_sa.h"
 
 
@@ -17,7 +19,7 @@
  *****************************************************************************/
 
 /*
-d_tests_dtime_clock_gettime
+d_tests_sa_dtime_clock_gettime
   Tests d_clock_gettime for high-resolution time retrieval.
   Tests the following:
   - retrieves CLOCK_REALTIME successfully
@@ -32,7 +34,7 @@ d_tests_dtime_clock_gettime
   - handles CLOCK_THREAD_CPUTIME_ID
 */
 struct d_test_object*
-d_tests_dtime_clock_gettime
+d_tests_sa_dtime_clock_gettime
 (
     void
 )
@@ -80,14 +82,14 @@ d_tests_dtime_clock_gettime
     // test 5: tv_nsec is within valid range
     memset(&ts1, 0, sizeof(ts1));
     d_clock_gettime(CLOCK_REALTIME, &ts1);
-    test_nsec_valid_range = (ts1.tv_nsec >= 0) && 
+    test_nsec_valid_range = (ts1.tv_nsec >= 0) &&
                             (ts1.tv_nsec < D_TIME_NSEC_PER_SEC);
 
     // test 6: consecutive calls show time progression (or at least no regression)
     memset(&ts1, 0, sizeof(ts1));
     memset(&ts2, 0, sizeof(ts2));
     d_clock_gettime(CLOCK_MONOTONIC, &ts1);
-    
+
     // small busy-wait to ensure time passes
     {
         volatile int i;
@@ -97,10 +99,10 @@ d_tests_dtime_clock_gettime
             // intentionally empty
         }
     }
-    
+
     d_clock_gettime(CLOCK_MONOTONIC, &ts2);
     test_time_progression = (ts2.tv_sec > ts1.tv_sec) ||
-                            ( (ts2.tv_sec == ts1.tv_sec) && 
+                            ( (ts2.tv_sec == ts1.tv_sec) &&
                               (ts2.tv_nsec >= ts1.tv_nsec) );
 
     // test 7: returns 0 on success
@@ -169,7 +171,7 @@ d_tests_dtime_clock_gettime
 
 
 /*
-d_tests_dtime_clock_getres
+d_tests_sa_dtime_clock_getres
   Tests d_clock_getres for clock resolution retrieval.
   Tests the following:
   - retrieves CLOCK_REALTIME resolution successfully
@@ -182,7 +184,7 @@ d_tests_dtime_clock_getres
   - CLOCK_MONOTONIC typically has nanosecond-level resolution
 */
 struct d_test_object*
-d_tests_dtime_clock_getres
+d_tests_sa_dtime_clock_getres
 (
     void
 )
@@ -223,7 +225,7 @@ d_tests_dtime_clock_getres
     // test 5: tv_nsec is within valid range
     memset(&res, 0xFF, sizeof(res));
     d_clock_getres(CLOCK_REALTIME, &res);
-    test_nsec_valid_range = (res.tv_nsec >= 0) && 
+    test_nsec_valid_range = (res.tv_nsec >= 0) &&
                             (res.tv_nsec < D_TIME_NSEC_PER_SEC);
 
     // test 6: returns 0 on success
@@ -239,7 +241,7 @@ d_tests_dtime_clock_getres
     // resolution should be less than 1ms (1000000 ns) on most modern systems
     memset(&res, 0xFF, sizeof(res));
     d_clock_getres(CLOCK_MONOTONIC, &res);
-    test_high_resolution = (res.tv_sec == 0) && 
+    test_high_resolution = (res.tv_sec == 0) &&
                            (res.tv_nsec <= 1000000);  // at most 1ms
 
     // build result tree
@@ -281,7 +283,7 @@ d_tests_dtime_clock_getres
 
 
 /*
-d_tests_dtime_timespec_get
+d_tests_sa_dtime_timespec_get
   Tests d_timespec_get for C11-style timespec retrieval.
   Tests the following:
   - retrieves TIME_UTC successfully
@@ -294,7 +296,7 @@ d_tests_dtime_timespec_get
   - multiple calls produce consistent results
 */
 struct d_test_object*
-d_tests_dtime_timespec_get
+d_tests_sa_dtime_timespec_get
 (
     void
 )
@@ -335,7 +337,7 @@ d_tests_dtime_timespec_get
     // test 4: tv_nsec is within valid range
     memset(&ts1, 0, sizeof(ts1));
     d_timespec_get(&ts1, TIME_UTC);
-    test_nsec_valid_range = (ts1.tv_nsec >= 0) && 
+    test_nsec_valid_range = (ts1.tv_nsec >= 0) &&
                             (ts1.tv_nsec < D_TIME_NSEC_PER_SEC);
 
     // test 5: returns 0 for NULL timespec
@@ -351,7 +353,7 @@ d_tests_dtime_timespec_get
     memset(&ts1, 0, sizeof(ts1));
     memset(&ts2, 0, sizeof(ts2));
     d_timespec_get(&ts1, TIME_UTC);
-    
+
     // small busy-wait
     {
         volatile int i;
@@ -361,10 +363,10 @@ d_tests_dtime_timespec_get
             // intentionally empty
         }
     }
-    
+
     d_timespec_get(&ts2, TIME_UTC);
     test_time_progression = (ts2.tv_sec > ts1.tv_sec) ||
-                            ( (ts2.tv_sec == ts1.tv_sec) && 
+                            ( (ts2.tv_sec == ts1.tv_sec) &&
                               (ts2.tv_nsec >= ts1.tv_nsec) );
 
     // test 8: multiple calls in quick succession produce consistent results
@@ -414,7 +416,7 @@ d_tests_dtime_timespec_get
 
 
 /*
-d_tests_dtime_high_resolution_time_all
+d_tests_sa_dtime_high_resolution_time_all
   Runs all high-resolution time tests.
   Tests the following:
   - d_clock_gettime
@@ -422,7 +424,7 @@ d_tests_dtime_high_resolution_time_all
   - d_timespec_get
 */
 struct d_test_object*
-d_tests_dtime_high_resolution_time_all
+d_tests_sa_dtime_high_resolution_time_all
 (
     void
 )
@@ -438,9 +440,9 @@ d_tests_dtime_high_resolution_time_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_dtime_clock_gettime();
-    group->elements[idx++] = d_tests_dtime_clock_getres();
-    group->elements[idx++] = d_tests_dtime_timespec_get();
+    group->elements[idx++] = d_tests_sa_dtime_clock_gettime();
+    group->elements[idx++] = d_tests_sa_dtime_clock_getres();
+    group->elements[idx++] = d_tests_sa_dtime_timespec_get();
 
     return group;
 }
