@@ -16,7 +16,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_completion.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_completion.h"  // corresponding header
 // std
@@ -168,20 +168,18 @@ d_arg_internal_complete_room(
     size_t  _size
 )
 {
-    size_t capacity = 0u;
-    void*  items    = NULL;
-
     // room already
     if (_count < *_capacity)
     {
         return _items;
     }
 
-    items = d_arg_internal_grow(_items,
-                                *_capacity,
-                                _count + 1u,
-                                _size,
-                                &capacity);
+    size_t      capacity = 0u;
+    void* const items    = d_arg_internal_grow(_items,
+                                               *_capacity,
+                                               _count + 1u,
+                                               _size,
+                                               &capacity);
 
     // the capacity it grew to
     if (items != NULL)
@@ -535,7 +533,6 @@ d_arg_internal_complete_values(
                                                   option);
     const int                        most   = d_arg_internal_parse_max(
                                                   option);
-    int                              status = D_ARG_OK;
 
     _record->least        = (least > 0) ? least : 0;
     _record->most         = d_arg_internal_complete_count(option,
@@ -564,8 +561,9 @@ d_arg_internal_complete_values(
         return D_ARG_OK;
     }
 
-    status           = d_arg_internal_complete_listed(_model,
+    const int status = d_arg_internal_complete_listed(_model,
                                                       option);
+
     _record->choices = _model->choices.count - _record->first_choice;
     _record->kind    = (_record->choices > 0u)
                        ? (int)D_ARG_INTERNAL_COMPLETE_CHOICES
@@ -653,7 +651,6 @@ d_arg_internal_complete_add_option(
 
     struct d_arg_internal_complete_option* const record =
         (struct d_arg_internal_complete_option*)items + _model->option_count;
-    int                                          status = D_ARG_OK;
 
     _model->options = (struct d_arg_internal_complete_option*)items;
     record->option  = _option;
@@ -661,9 +658,10 @@ d_arg_internal_complete_add_option(
     record->summary = d_arg_internal_complete_line_text(
                           _option->description);
     _model->option_count++;
-    status = d_arg_internal_complete_values(_model,
-                                            record,
-                                            shown);
+
+    const int status = d_arg_internal_complete_values(_model,
+                                                      record,
+                                                      shown);
 
     return ( (status == D_ARG_OK) &&
              (named) )
@@ -829,13 +827,13 @@ d_arg_internal_complete_build(
     const struct d_arg_command*  _root
 )
 {
-    const struct d_arg_internal_model empty  = D_INTERNAL_ARG_MODEL_INIT;
-    int                               status = D_ARG_OK;
+    const struct d_arg_internal_model empty = D_INTERNAL_ARG_MODEL_INIT;
 
     *_model = empty;
-    status  = d_arg_internal_complete_add_command(_model,
-                                                  _root,
-                                                  0u);
+
+    int status = d_arg_internal_complete_add_command(_model,
+                                                     _root,
+                                                     0u);
 
     // each command in turn
     for (size_t index = 0u;
@@ -1063,13 +1061,11 @@ d_arg_internal_complete_script(
     struct d_arg_buffer*        _out
 )
 {
-    struct d_arg_internal_model model  = D_INTERNAL_ARG_MODEL_INIT;
-    const struct d_pack_text    name   =
+    const struct d_pack_text name =
         (_program.length > 0u)
         ? _program
         : d_arg_internal_complete_base(
               d_arg_internal_text_of(d_arg_command_name(_command)));
-    int                         status = D_ARG_OK;
 
     // a shell, and a name to complete
     if ( (_shell < 0)                         ||
@@ -1079,8 +1075,11 @@ d_arg_internal_complete_script(
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
 
-    status = d_arg_internal_complete_build(&model,
-                                           _command);
+    struct d_arg_internal_model model  = D_INTERNAL_ARG_MODEL_INIT;
+    int                         status = d_arg_internal_complete_build(
+                                             &model,
+                                             _command);
+
     status = (status == D_ARG_OK)
              ? WRITERS[_shell](&model,
                                name,
@@ -1202,8 +1201,6 @@ d_arg_internal_complete_requested(
 )
 {
     struct d_arg_parser* const parser = d_arg_internal_parser_of(_option);
-    struct d_arg_buffer        script = D_ARG_BUFFER_INIT;
-    int                        status = D_ARG_OK;
 
     (void)_context;
 
@@ -1214,12 +1211,15 @@ d_arg_internal_complete_requested(
         return D_ARG_OK;
     }
 
-    status = d_arg_internal_complete_script(
-                 &parser->command,
-                 d_arg_shell_from_name(_results[_count - 1u]),
-                 d_arg_internal_complete_base(
-                     d_arg_internal_text_of(parser->program)),
-                 &script);
+    struct d_arg_buffer script = D_ARG_BUFFER_INIT;
+    int                 status =
+        d_arg_internal_complete_script(
+            &parser->command,
+            d_arg_shell_from_name(_results[_count - 1u]),
+            d_arg_internal_complete_base(
+                d_arg_internal_text_of(parser->program)),
+            &script);
+
     status = (status == D_ARG_OK)
              ? d_arg_internal_fail_adopt(&parser->command,
                                          _option,

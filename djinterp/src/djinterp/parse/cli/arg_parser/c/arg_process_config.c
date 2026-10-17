@@ -14,7 +14,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_process_config.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -27,9 +27,9 @@
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_config.h"  // items, formats
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_option.h"  // d_arg_option
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // d_arg_parser
-#include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_type.h"  // d_arg_flag_value
+#include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_type.h"  // d_arg_flag_value_intmax
 // re_std
-#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
+#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, intmax_t
 
 
 //==============================================================================
@@ -52,14 +52,14 @@ d_arg_internal_process_flag_choice(
     struct d_arg_buffer*       _out
 )
 {
-    long flag = 0;
+    intmax_t flag = 0;
 
     // the name's own value, for an override refused but meaning yes
     if ( (d_arg_option_has_flag(_option,
                                 D_ARG_OPTION_DISABLE_FLAG_OVERRIDE)) &&
-         (d_arg_flag_value(_read,
-                           _option->integer_rule,
-                           &flag) == D_ARG_OK)                      &&
+         (d_arg_flag_value_intmax(_read,
+                                  _option->integer_rule,
+                                  &flag) == D_ARG_OK)               &&
          (flag == 1) )
     {
         return d_arg_option_flag_value(_option,
@@ -230,7 +230,9 @@ d_arg_internal_process_flag_several
 what the option takes -- or under a policy that takes or joins them all --
 they are left for the caller; beyond it they are refused, unless the
 option refuses flag overrides, when each is added that is one of its
-values, and any other is CLI11's InvalidError.
+values, and any other is CLI11's InvalidError -- in its words, which its
+one-argument constructor, meant for a name, ends with a sentence about
+positionals that do not come into it.
 */
 D_STATIC int
 d_arg_internal_process_flag_several(
@@ -246,7 +248,7 @@ d_arg_internal_process_flag_several(
     // within what the option takes
     if ( ( (int)_inputs->count <=
            d_arg_option_items_expected_max(_option) ) ||
-         (policy == (int)D_ARG_MULTI_TAKE_ALL)       ||
+         (policy == (int)D_ARG_MULTI_TAKE_ALL)        ||
          (policy == (int)D_ARG_MULTI_JOIN) )
     {
         *_handled = false;
@@ -281,7 +283,9 @@ d_arg_internal_process_flag_several(
                  : d_arg_internal_fail(NULL,
                                        _option,
                                        D_ARG_ERROR_INVALID,
-                                       "invalid flag argument given");
+                                       "invalid flag argument given: Too "
+                                       "many positional arguments with "
+                                       "unlimited expected args");
     }
 
     return status;
@@ -414,7 +418,7 @@ d_arg_internal_process_configurable(
 
     return ( (d_arg_command_has_flag(_command,
                                      D_ARG_COMMAND_FALLTHROUGH)) &&
-             (_command->parent != NULL)                           &&
+             (_command->parent != NULL)                          &&
              (d_arg_command_name(_command)[0] != '\0') )
            ? d_arg_internal_process_configurable(
                  d_arg_internal_fallthrough_parent(_command),
@@ -760,9 +764,6 @@ d_arg_internal_process_item_values(
     const struct d_arg_config_item* _item
 )
 {
-    struct d_arg_text_list filtered = D_ARG_LIST_INIT;
-    int                    status   = D_ARG_OK;
-
     // the inputs as they are
     if ( (!_item->multiline) ||
          (d_arg_option_has_flag(_option,
@@ -774,10 +775,13 @@ d_arg_internal_process_item_values(
                                                   &_item->inputs);
     }
 
-    status = d_arg_internal_parse_stored(
-                 _command,
-                 d_arg_internal_process_filtered(_item,
-                                                 &filtered));
+    struct d_arg_text_list filtered = D_ARG_LIST_INIT;
+    int                    status   =
+        d_arg_internal_parse_stored(
+            _command,
+            d_arg_internal_process_filtered(_item,
+                                            &filtered));
+
     status = (status == D_ARG_OK)
              ? d_arg_internal_process_item_inputs(_command,
                                                   _option,
@@ -1148,12 +1152,10 @@ d_arg_internal_process_config_count(
         return 0u;
     }
 
-    return ( (count == 2u)                                &&
+    return ( (count == 2u)                                     &&
              (d_arg_internal_equal_cstr((*_files)[0],
-                                        "{}"))            &&
-             ( ((*_files)[1].length == 0u) ||
-               (d_arg_internal_equal_cstr((*_files)[1],
-                                          "%%")) ) )
+                                        "{}"))                 &&
+             (d_arg_internal_is_separator((*_files)[1])) )
            ? 1u
            : count;
 }

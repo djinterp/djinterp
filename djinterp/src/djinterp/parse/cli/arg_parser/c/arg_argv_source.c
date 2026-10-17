@@ -14,7 +14,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_argv_source.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_argv.h"  // corresponding header
 // std
@@ -75,14 +75,14 @@ d_arg_internal_program_is_file(
     bool*                _is_file
 )
 {
-    int status = D_ARG_OK;
-
     d_arg_buffer_clear(_scratch);
-    status    = d_arg_buffer_append(_scratch,
-                                    _line.data,
-                                    (_end < _line.length)
-                                    ? _end
-                                    : _line.length);
+
+    const int status = d_arg_buffer_append(_scratch,
+                                           _line.data,
+                                           (_end < _line.length)
+                                           ? _end
+                                           : _line.length);
+
     *_is_file = ( (status == D_ARG_OK) &&
                   (d_arg_internal_path_kind(
                        d_arg_buffer_text(_scratch).data) == 1) );
@@ -135,7 +135,9 @@ d_arg_internal_program_find(
 /*
 d_arg_internal_program_unescape
   CLI11's find_and_replace(name, "\\" + key, key): each quote after a
-backslash written without it.
+backslash written without it. The name is what a quote encloses, so its last
+byte is no backslash -- the quote after it would not have closed it -- and
+the bound only keeps the look at the next byte within the name.
 */
 D_STATIC int
 d_arg_internal_program_unescape(
@@ -167,9 +169,12 @@ d_arg_internal_program_unescape(
 /*
 d_arg_internal_program_quoted
   CLI11's fallback for a line that opens with a quote: the next such quote
-that no backslash precedes closes it, and what it encloses is the name,
-its escaped quotes unescaped when the search passed one. `*_end` receives
-the position after the closing quote, or NPOS when it never closes.
+that no backslash precedes closes it, and what it encloses is the name, its
+escaped quotes unescaped -- CLI11 unescapes only when the search passed one,
+but a name holding none comes out of the unescaping as it went in. `*_end`
+receives the position after the closing quote, or NPOS when it never
+closes. The line holds the opening quote, so each search, of what follows a
+quote, stays within it.
 */
 D_STATIC int
 d_arg_internal_program_quoted(
@@ -178,30 +183,24 @@ d_arg_internal_program_quoted(
     size_t*              _end
 )
 {
-    const char         key     = _line.data[0];
-    const char* const  first   = (_line.length > 1u)
-                                 ? (const char*)memchr(_line.data + 1u,
-                                                       key,
-                                                       _line.length - 1u)
-                                 : NULL;
-    size_t             close   = (first != NULL)
-                                 ? (size_t)(first - _line.data)
-                                 : NPOS;
-    bool               escaped = false;
+    const char        key   = _line.data[0];
+    const char* const first = (const char*)memchr(_line.data + 1u,
+                                                  key,
+                                                  _line.length - 1u);
+    size_t            close = (first != NULL)
+                              ? (size_t)(first - _line.data)
+                              : NPOS;
 
     // a quote after a backslash does not close
     while ( (close != NPOS) &&
             (_line.data[close - 1u] == '\\') )
     {
-        const char* const next = ((close + 1u) < _line.length)
-                                 ? (const char*)memchr(
-                                       _line.data + close + 1u,
-                                       key,
-                                       _line.length - close - 1u)
-                                 : NULL;
+        const char* const next = (const char*)memchr(
+                                     _line.data + close + 1u,
+                                     key,
+                                     _line.length - close - 1u);
 
-        close   = (next != NULL) ? (size_t)(next - _line.data) : NPOS;
-        escaped = true;
+        close = (next != NULL) ? (size_t)(next - _line.data) : NPOS;
     }
 
     *_end = (close != NPOS) ? (close + 1u) : NPOS;
@@ -212,15 +211,11 @@ d_arg_internal_program_quoted(
         return D_ARG_OK;
     }
 
-    return (escaped)
-           ? d_arg_internal_program_unescape(
-                 d_arg_internal_span(_line.data + 1u,
-                                     close - 1u),
-                 key,
-                 _name)
-           : d_arg_buffer_append(_name,
-                                 _line.data + 1u,
-                                 close - 1u);
+    return d_arg_internal_program_unescape(
+               d_arg_internal_span(_line.data + 1u,
+                                   close - 1u),
+               key,
+               _name);
 }
 
 /*
@@ -405,7 +400,6 @@ d_arg_internal_response_text(
     const bool                 big    = ( (_bytes.length >= 2u) &&
                                           (mark[0] == 0xFEu)    &&
                                           (mark[1] == 0xFFu) );
-    int                        status = D_ARG_OK;
 
     // UTF-8's mark, skipped
     if ( (_bytes.length >= 3u) &&
@@ -428,33 +422,34 @@ d_arg_internal_response_text(
         return D_ARG_OK;
     }
 
-    status = d_arg_internal_response_utf16(
-                 d_arg_internal_span(_bytes.data + 2u,
-                                     _bytes.length - 2u),
-                 big,
-                 _converted);
+    const int status = d_arg_internal_response_utf16(
+                           d_arg_internal_span(_bytes.data + 2u,
+                                               _bytes.length - 2u),
+                           big,
+                           _converted);
+
     *_text = d_arg_buffer_text(_converted);
 
     return status;
 }
 
 /*
-d_arg_read_response_file
+d_arg_internal_response_words
   A file read whole, its text found, and split by the rules asked for, line
-breaks separating words; a file that cannot be read described as CLI11
-describes a missing one.
+breaks separating words, the words stored where they go; a file that cannot
+be read described as CLI11 describes a missing one.
 */
-int
-d_arg_read_response_file(
-    const char*               _path,
-    int                       _quoting,
-    struct d_arg_string_list* _out,
-    struct d_arg_buffer*      _error
+D_STATIC int
+d_arg_internal_response_words(
+    const char*                        _path,
+    int                                _quoting,
+    const struct d_arg_internal_words* _words,
+    struct d_arg_buffer*               _error
 )
 {
     // validate the parameters
-    if ( (!_path) ||
-         (!_out)  ||
+    if ( (!_path)                                  ||
+         (!_words->strings)                        ||
          (!d_arg_internal_quoting_known(_quoting)) )
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
@@ -483,11 +478,11 @@ d_arg_read_response_file(
                                             &text)
              : status;
     status = (status == D_ARG_OK)
-             ? d_arg_split_line(text,
-                                _quoting,
-                                D_ARG_SPLIT_LINE_BREAKS,
-                                _out,
-                                _error)
+             ? d_arg_internal_split_words(text,
+                                          _quoting,
+                                          D_ARG_SPLIT_LINE_BREAKS,
+                                          _words,
+                                          _error)
              : status;
     d_arg_buffer_release(&converted);
     d_arg_buffer_release(&bytes);
@@ -495,13 +490,36 @@ d_arg_read_response_file(
     return status;
 }
 
+/*
+d_arg_read_response_file
+  d_arg_internal_response_words into a string list alone.
+*/
+int
+d_arg_read_response_file(
+    const char*               _path,
+    int                       _quoting,
+    struct d_arg_string_list* _out,
+    struct d_arg_buffer*      _error
+)
+{
+    const struct d_arg_internal_words words = { _out,
+                                                NULL };
+
+    return d_arg_internal_response_words(_path,
+                                         _quoting,
+                                         &words,
+                                         _error);
+}
+
 // d_arg_internal_response_walk
 //   struct: an expansion under way: the parser, whose pool keeps the files'
-// words; the arguments as they come out, the first first; and whether a
-// `--` has been met, after which nothing is expanded.
+// words; their spans, in the order read, each to the length it was made
+// with; the arguments as they come out, the first first; and whether a `--`
+// has been met, after which nothing is expanded.
 struct d_arg_internal_response_walk
 {
     struct d_arg_parser*   parser;
+    struct d_arg_text_list words;
     struct d_arg_text_list out;
     bool                   ended;
 };
@@ -544,9 +562,10 @@ d_arg_internal_response_refuse(
 
 /*
 d_arg_internal_response_read
-  The file an `@file` names, read into the parser's pool, `*_read` set when
-its words are there: a file that cannot be read kept as the argument, as
-GCC keeps one; words that break the file's rules a failure.
+  The file an `@file` names, its words read into the parser's pool and
+their spans after the walk's, `*_read` set when they are there: a file that
+cannot be read kept as the argument, as GCC keeps one; words that break the
+file's rules a failure.
 */
 D_STATIC int
 d_arg_internal_response_read(
@@ -555,14 +574,16 @@ d_arg_internal_response_read(
     bool*                                _read
 )
 {
-    struct d_arg_parser* const parser = _walk->parser;
-    const char* const          path   = _word.data + 1;
-    struct d_arg_buffer        error  = D_ARG_BUFFER_INIT;
-    int                        status = d_arg_read_response_file(
-                                            path,
-                                            parser->response_quoting,
-                                            &parser->pool,
-                                            &error);
+    struct d_arg_parser* const        parser = _walk->parser;
+    const char* const                 path   = _word.data + 1;
+    const struct d_arg_internal_words words  = { &parser->pool,
+                                                 &_walk->words };
+    struct d_arg_buffer               error  = D_ARG_BUFFER_INIT;
+    int                               status = d_arg_internal_response_words(
+                                                   path,
+                                                   parser->response_quoting,
+                                                   &words,
+                                                   &error);
 
     *_read = (status == D_ARG_OK);
 
@@ -600,9 +621,6 @@ d_arg_internal_response_file(
 )
 {
     struct d_arg_parser* const parser = _walk->parser;
-    const size_t               first  = parser->pool.count;
-    bool                       read   = false;
-    int                        status = D_ARG_OK;
 
     // nested too deeply
     if (_depth >= (int)D_INTERNAL_ARG_PARSER_RESPONSE_DEPTH)
@@ -616,11 +634,12 @@ d_arg_internal_response_file(
                                    (int)D_INTERNAL_ARG_PARSER_RESPONSE_DEPTH);
     }
 
-    status = d_arg_internal_response_read(_walk,
-                                          _word,
-                                          &read);
-
-    const size_t last = (read) ? parser->pool.count : first;
+    const size_t first  = _walk->words.count;
+    bool         read   = false;
+    int          status = d_arg_internal_response_read(_walk,
+                                                       _word,
+                                                       &read);
+    const size_t last   = (read) ? _walk->words.count : first;
 
     // each of the file's own words, expanded in turn; the words of files
     // they name land past `last`, and are this loop's no more
@@ -628,10 +647,9 @@ d_arg_internal_response_file(
          (status == D_ARG_OK) && (index < last);
          ++index)
     {
-        status = d_arg_internal_response_word(
-                     _walk,
-                     d_arg_internal_text_of(parser->pool.items[index]),
-                     _depth + 1);
+        status = d_arg_internal_response_word(_walk,
+                                              _walk->words.items[index],
+                                              _depth + 1);
     }
 
     return status;
@@ -640,7 +658,8 @@ d_arg_internal_response_file(
 /*
 d_arg_internal_response_word
   One argument met in order: one starting with `@` before any `--` stands
-for its file's words; anything else, the `--` included, is kept.
+for its file's words -- unless it holds a NUL byte, which no path can;
+anything else, the `--` included, is kept.
 */
 D_STATIC int
 d_arg_internal_response_word(
@@ -649,9 +668,12 @@ d_arg_internal_response_word(
     int                                  _depth
 )
 {
-    const bool file = ( (!_walk->ended)       &&
-                        (_word.length > 1u)   &&
-                        (_word.data[0] == '@') );
+    const bool file = ( (!_walk->ended)                     &&
+                        (_word.length > 1u)                 &&
+                        (_word.data[0] == '@')              &&
+                        (memchr(_word.data,
+                                '\0',
+                                _word.length) == NULL) );
 
     _walk->ended = ( (_walk->ended) ||
                      (d_arg_internal_equal_cstr(_word,
@@ -680,6 +702,7 @@ d_arg_internal_expand_responses(
 {
     struct d_arg_text_list* const       pending = &_parser->pending;
     struct d_arg_internal_response_walk walk    = { _parser,
+                                                    D_ARG_LIST_INIT,
                                                     D_ARG_LIST_INIT,
                                                     false };
     int                                 status  = D_ARG_OK;
@@ -714,6 +737,7 @@ d_arg_internal_expand_responses(
     }
 
     d_arg_text_list_release(&walk.out);
+    d_arg_text_list_release(&walk.words);
 
     return status;
 }
@@ -740,9 +764,6 @@ d_arg_utf8_from_wide(
     struct d_arg_buffer* _out
 )
 {
-    struct d_arg_internal_utf16 state  = { 0u };
-    int                         status = D_ARG_OK;
-
     // validate the parameters
     if ( (!_out) ||
          ( (!_text) &&
@@ -750,6 +771,9 @@ d_arg_utf8_from_wide(
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
+
+    struct d_arg_internal_utf16 state  = { 0u };
+    int                         status = D_ARG_OK;
 
     // each unit in turn
     for (size_t index = 0u;
@@ -781,8 +805,6 @@ d_arg_utf8_from_wide(
     struct d_arg_buffer* _out
 )
 {
-    int status = D_ARG_OK;
-
     // validate the parameters
     if ( (!_out) ||
          ( (!_text) &&
@@ -790,6 +812,8 @@ d_arg_utf8_from_wide(
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
+
+    int status = D_ARG_OK;
 
     // each code point in turn
     for (size_t index = 0u;

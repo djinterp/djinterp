@@ -45,7 +45,7 @@
 # path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/run_arg_parser_tests.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-#                                                            revised: 2026.10.13
+#                                                            revised: 2026.10.16
 #*******************************************************************************
 set -uo pipefail
 export LC_ALL=C
@@ -69,7 +69,8 @@ for argument in "$@"; do
         --sanitize) sanitize=1 ;;
         --verbose)  verbose=1 ;;
         *)
-            echo "usage: $(basename "$0") [--matrix] [--sanitize] [--verbose]" >&2
+            echo "usage: $(basename "$0")" \
+                 "[--matrix] [--sanitize] [--verbose]" >&2
             exit 2
             ;;
     esac
@@ -114,6 +115,15 @@ C_SUITES=( "${SUITES_DIR}/arg_tests_support.c"
            "${SUITES_DIR}/arg_validator_member_tests.c"
            "${SUITES_DIR}/arg_validator_unit_tests.c"
            "${SUITES_DIR}/arg_validator_path_tests.c"
+           "${SUITES_DIR}/arg_option_tests.c"
+           "${SUITES_DIR}/arg_command_tests.c"
+           "${SUITES_DIR}/arg_formatter_tests.c"
+           "${SUITES_DIR}/arg_parse_tests.c"
+           "${SUITES_DIR}/arg_process_tests.c"
+           "${SUITES_DIR}/arg_config_tests.c"
+           "${SUITES_DIR}/arg_argv_tests.c"
+           "${SUITES_DIR}/arg_parser_tests.c"
+           "${SUITES_DIR}/arg_suggest_tests.c"
            "${SUITES_DIR}/arg_smoke_tests.c"
            "${HERE}/arg_parser_c_tests_runner.c" )
 
@@ -300,7 +310,9 @@ knob_level()
 
 echo "djinterp argument parser"
 echo "  $("${CC}" --version | head -n 1)"
-[[ "${sanitize}" -eq 1 ]] && echo "  with AddressSanitizer and UndefinedBehaviorSanitizer"
+if [[ "${sanitize}" -eq 1 ]]; then
+    echo "  with AddressSanitizer and UndefinedBehaviorSanitizer"
+fi
 echo
 echo "== default configuration: every level =="
 

@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -1083,6 +1083,21 @@ d_arg_internal_equal_nocase_cstr(
     }
 
     return true;
+}
+
+/*
+d_arg_internal_is_separator
+  CLI11's is_separator: the values that part a container's items, the empty
+one and `%%`.
+*/
+bool
+d_arg_internal_is_separator(
+    struct d_pack_text _text
+)
+{
+    return ( (_text.length == 0u) ||
+             (d_arg_internal_equal_cstr(_text,
+                                        "%%")) );
 }
 
 /*

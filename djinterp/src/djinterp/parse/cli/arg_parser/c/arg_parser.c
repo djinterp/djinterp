@@ -14,7 +14,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parser.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // corresponding header
 // std
@@ -535,24 +535,32 @@ d_arg_parser_clear(
 // 3.  ENDING
 //==============================================================================
 
-/*
-d_arg_internal_parser_request
-  What CLI11's exit() writes for a completed request: the help, or help with
-every subcommand expanded; the version, and a newline; a completion script
-as it was made.
-*/
+/**
+ * @brief Writes what a completed request asks for, as CLI11's exit() does.
+ *
+ * @param[in] _command  the command whose help is asked for.
+ * @param[in] _error    the request: D_ARG_CALL_FOR_HELP,
+ *                      D_ARG_CALL_FOR_ALL_HELP, D_ARG_CALL_FOR_VERSION or
+ *                      D_ARG_CALL_FOR_COMPLETION.
+ * @param[in] _out      where it is written.
+ *
+ * Help is the command's, plain or with every subcommand expanded, which
+ * d_arg_help hands down to the last subcommand the parse used under it; a
+ * version is the error's message and a newline; a completion script is the
+ * message as it was made.
+ */
 D_STATIC void
-d_arg_internal_parser_request(
-    const struct d_arg_parser* _parser,
-    const struct d_arg_error*  _error,
-    struct d_pack_sink         _out
+d_arg_internal_command_request(
+    const struct d_arg_command* _command,
+    const struct d_arg_error*   _error,
+    struct d_pack_sink          _out
 )
 {
     // help, plain or expanded
     if ( (_error->status == (int)D_ARG_CALL_FOR_HELP) ||
          (_error->status == (int)D_ARG_CALL_FOR_ALL_HELP) )
     {
-        (void)d_arg_help(&_parser->command,
+        (void)d_arg_help(_command,
                          d_arg_internal_span("",
                                              0u),
                          (_error->status == (int)D_ARG_CALL_FOR_HELP)
@@ -577,12 +585,120 @@ d_arg_internal_parser_request(
     return;
 }
 
+/**
+ * @brief Writes an error's failure message with the nearest function that
+ *        writes one: the command's own, else its nearest parent's, else
+ *        d_arg_failure_simple, CLI11's default.
+ *
+ * @param[in] _command  the command the error is reported from.
+ * @param[in] _error    the error.
+ * @param[in] _err      where the message is written.
+ *
+ * The function is looked up at the failure, where CLI11 copies its parent's
+ * into a subcommand when it is made, so that a change on a parent reaches
+ * every command under it whenever it was made; and it is called with the
+ * command the error is reported from, as CLI11 calls a subcommand's copy,
+ * with the context of the command it was found on.
+ */
+D_STATIC void
+d_arg_internal_command_failure(
+    const struct d_arg_command* _command,
+    const struct d_arg_error*   _error,
+    struct d_pack_sink          _err
+)
+{
+    const struct d_arg_command* owner = _command;
+
+    // the nearest command with a failure message of its own
+    while ( (owner != NULL) &&
+            (owner->failure_fn == NULL) )
+    {
+        owner = owner->parent;
+    }
+
+    const d_arg_failure_fn write   = (owner != NULL)
+                                     ? owner->failure_fn
+                                     : d_arg_failure_simple;
+    void* const            context = (owner != NULL)
+                                     ? owner->failure_context
+                                     : NULL;
+
+    (void)write(_command,
+                _error,
+                _err,
+                context);
+
+    return;
+}
+
+/*
+d_arg_command_exit_to
+  CLI11's exit(): a runtime error writes nothing; a completed request what
+it asked for; an error that does not exit with success the nearest failure
+message.
+*/
+int
+d_arg_command_exit_to(
+    const struct d_arg_command* _command,
+    const struct d_arg_error*   _error,
+    struct d_pack_sink          _out,
+    struct d_pack_sink          _err
+)
+{
+    // validate the parameters
+    if ( (!_command) ||
+         (!_error) )
+    {
+        return (int)D_ARG_EXIT_BASE_CLASS;
+    }
+
+    // the completed requests write what they asked for
+    if ( (_error->status >= (int)D_ARG_CALL_FOR_HELP) &&
+         (_error->status <= (int)D_ARG_CALL_FOR_COMPLETION) )
+    {
+        d_arg_internal_command_request(_command,
+                                       _error,
+                                       _out);
+    }
+    else if ( (_error->status != (int)D_ARG_RUNTIME_ERROR) &&
+              (_error->exit_code != (int)D_ARG_EXIT_SUCCESS) )
+    {
+        d_arg_internal_command_failure(_command,
+                                       _error,
+                                       _err);
+    }
+
+    return _error->exit_code;
+}
+
+/*
+d_arg_command_exit
+  d_arg_command_exit_to with the sinks of the command's parser.
+*/
+int
+d_arg_command_exit(
+    const struct d_arg_command* _command,
+    const struct d_arg_error*   _error
+)
+{
+    // validate the parameters
+    if ( (!_command) ||
+         (!_command->parser) )
+    {
+        return (int)D_ARG_EXIT_BASE_CLASS;
+    }
+
+    return d_arg_command_exit_to(_command,
+                                 _error,
+                                 _command->parser->out,
+                                 _command->parser->err);
+}
+
 /*
 d_arg_parser_exit_to
-  CLI11's exit(): a runtime error writes nothing; a completed request what
-it asked for; an error that does not exit with success the root's failure
-message -- its own, or CLI11's simple one. The status is described by the
-parser's error when it is that error's, and by its own text otherwise.
+  d_arg_command_exit_to at the root, with the parser's error when `_status`
+is its status, and otherwise the status described by its own text and exit
+code.
 */
 int
 d_arg_parser_exit_to(
@@ -592,44 +708,23 @@ d_arg_parser_exit_to(
     struct d_pack_sink         _err
 )
 {
-    struct d_arg_error own = D_ARG_ERROR_INIT;
-
     // validate the parameters
     if (!_parser)
     {
         return (int)D_ARG_EXIT_BASE_CLASS;
     }
 
+    struct d_arg_error own = D_ARG_ERROR_INIT;
+
     own.status    = _status;
     own.exit_code = d_arg_status_exit_code(_status);
 
-    const struct d_arg_error* const error = (_parser->error.status == _status)
-                                            ? &_parser->error
-                                            : &own;
-    const struct d_arg_command* const root = &_parser->command;
-
-    // the completed requests write what they asked for
-    if ( (error->status >= (int)D_ARG_CALL_FOR_HELP) &&
-         (error->status <= (int)D_ARG_CALL_FOR_COMPLETION) )
-    {
-        d_arg_internal_parser_request(_parser,
-                                      error,
-                                      _out);
-    }
-    else if ( (error->status != (int)D_ARG_RUNTIME_ERROR) &&
-              (error->exit_code != (int)D_ARG_EXIT_SUCCESS) )
-    {
-        const d_arg_failure_fn write = (root->failure_fn != NULL)
-                                       ? root->failure_fn
-                                       : d_arg_failure_simple;
-
-        (void)write(root,
-                    error,
-                    _err,
-                    root->failure_context);
-    }
-
-    return error->exit_code;
+    return d_arg_command_exit_to(&_parser->command,
+                                 (_parser->error.status == _status)
+                                 ? &_parser->error
+                                 : &own,
+                                 _out,
+                                 _err);
 }
 
 /*
@@ -665,7 +760,6 @@ d_arg_internal_parser_run_with(
     const struct d_arg_option* const first = (_command->help != NULL)
                                              ? _command->help
                                              : _command->help_all;
-    int                              status = D_ARG_OK;
 
     // no help flag, nothing to suggest
     if (!first)
@@ -673,8 +767,9 @@ d_arg_internal_parser_run_with(
         return D_ARG_OK;
     }
 
-    status = d_arg_buffer_append_cstr(_text,
-                                      "Run with ");
+    int status = d_arg_buffer_append_cstr(_text,
+                                          "Run with ");
+
     status = (status == D_ARG_OK)
              ? d_arg_option_name(first,
                                  0u,
@@ -808,13 +903,13 @@ d_arg_command_fail(
     ...
 )
 {
-    va_list arguments;
-
     // validate the parameters
     if (!_command)
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
+
+    va_list arguments;
 
     va_start(arguments,
              _format);
@@ -842,13 +937,13 @@ d_arg_option_fail(
     ...
 )
 {
-    va_list arguments;
-
     // validate the parameters
     if (!_option)
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
+
+    va_list arguments;
 
     va_start(arguments,
              _format);

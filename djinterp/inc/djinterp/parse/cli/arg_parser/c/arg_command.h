@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_command.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 
 /*
@@ -53,9 +53,10 @@ TABLE OF CONTENTS
          1.  d_arg_name_match
     3.  Callbacks
          1.  d_arg_flag_fn
-         2.  d_arg_option_visit_fn
-         3.  d_arg_extra_visit_fn
-         4.  d_arg_group_visit_fn
+         2.  d_arg_flag_intmax_fn
+         3.  d_arg_option_visit_fn
+         4.  d_arg_extra_visit_fn
+         5.  d_arg_group_visit_fn
 2.  RECORDS
     -------
     1.  The command
@@ -70,6 +71,7 @@ TABLE OF CONTENTS
          1.  d_arg_command_add_flag
          2.  d_arg_command_add_flag_bound
          3.  d_arg_command_add_flag_callback / d_arg_command_add_flag_function
+         4.  d_arg_command_add_flag_function_intmax
     3.  Special options
          1.  d_arg_command_set_help_flag / d_arg_command_set_help_all_flag
          2.  d_arg_command_set_version_flag / d_arg_command_set_version_fn
@@ -166,7 +168,7 @@ TABLE OF CONTENTS
                                              // d_arg_option_defaults
 #include "./arg_type.h"                      // d_arg_type
 // re_std
-#include "../../../../../re_std/cstdint/dstdint.h"  // uint32_t
+#include "../../../../../re_std/cstdint/dstdint.h"  // uint32_t, intmax_t
 
 
 //==============================================================================
@@ -300,14 +302,27 @@ typedef int (*d_arg_flag_fn)(struct d_arg_option* _option,
                              long                 _count,
                              void*                _context);
 
+#if defined(INTMAX_MAX)
+
 // 1.3.2
+// d_arg_flag_intmax_fn
+//   type: d_arg_flag_fn with the count as wide as CLI11's std::int64_t, for
+// d_arg_command_add_flag_function_intmax, where a `long` may be narrower.
+// Declared where dstdint.h declares intmax_t, as d_arg_parse_intmax is.
+typedef int (*d_arg_flag_intmax_fn)(struct d_arg_option* _option,
+                                    intmax_t             _count,
+                                    void*                _context);
+
+#endif  // INTMAX_MAX
+
+// 1.3.3
 // d_arg_option_visit_fn
 //   type: called for each option a traversal finds; a status other than
 // D_ARG_OK stops the traversal, which returns it.
 typedef int (*d_arg_option_visit_fn)(struct d_arg_option* _option,
                                      void*                _context);
 
-// 1.3.3
+// 1.3.4
 // d_arg_extra_visit_fn
 //   type: called for each argument a command did not use, in order, with
 // what it was taken to be; a status other than D_ARG_OK stops the
@@ -315,7 +330,7 @@ typedef int (*d_arg_option_visit_fn)(struct d_arg_option* _option,
 typedef int (*d_arg_extra_visit_fn)(const struct d_arg_extra* _extra,
                                     void*                     _context);
 
-// 1.3.4
+// 1.3.5
 // d_arg_group_visit_fn
 //   type: called with each option group name a traversal finds; a status
 // other than D_ARG_OK stops the traversal, which returns it.
@@ -556,7 +571,9 @@ struct d_arg_option*
  *
  * @note add_flag_function is CLI11's add_flag_function: the flag sums its
  *       values and the function is called with the sum -- 0 when the sum is
- *       not an integer -- whenever the flag is given.
+ *       not an integer a `long` holds, where CLI11 reads 64 bits, as
+ *       d_arg_command_add_flag_function_intmax does -- whenever the flag is
+ *       given.
  *
  * @param[in,out] _command      the command.
  * @param[in]     _names        the names.
@@ -581,6 +598,38 @@ struct d_arg_option*
                                      void*                 _context,
                                      d_arg_release_fn      _release,
                                      const char*           _description);
+
+#if defined(INTMAX_MAX)
+
+// 3.2.4
+// d_arg_command_add_flag_function_intmax
+/**
+ * @brief Adds a flag that sums its values and calls a function with the
+ *        sum as CLI11 gives it; CLI11's add_flag_function, whose function
+ *        takes a std::int64_t.
+ *
+ * @note As d_arg_command_add_flag_function, but the sum is read as the
+ *       64-bit integer CLI11 reads, on every system, and is 0 only when it
+ *       is not one. Declared where dstdint.h declares intmax_t.
+ *
+ * @param[in,out] _command      the command.
+ * @param[in]     _names        the names.
+ * @param[in]     _function     the function.
+ * @param[in]     _context      its context.
+ * @param[in]     _release      frees `_context` with the flag, and on
+ *                              failure; NULL leaves it borrowed.
+ * @param[in]     _description  the help text, copied; NULL for none.
+ * @return the flag, or NULL, as d_arg_command_add_flag.
+ */
+struct d_arg_option*
+     d_arg_command_add_flag_function_intmax(struct d_arg_command* _command,
+                                            const char*           _names,
+                                            d_arg_flag_intmax_fn  _function,
+                                            void*                 _context,
+                                            d_arg_release_fn      _release,
+                                            const char*           _description);
+
+#endif  // INTMAX_MAX
 
 // 3.3    Special options
 //------------------------------------------------------------------------------
@@ -1109,10 +1158,11 @@ void d_arg_command_set_pre_callback(struct d_arg_command* _command,
 
 // 5.5.5
 // d_arg_command_set_failure_message
-//   setting: CLI11's failure_message(): what the parser's exit writes for an
-// error; d_arg_failure_simple or d_arg_failure_help (arg_parser.h), or a
-// function of the caller's. NULL -- what every command starts with -- uses
-// the parent's, and at the root d_arg_failure_simple, CLI11's default; so a
+//   setting: CLI11's failure_message(): what d_arg_command_exit writes for
+// an error reported from the command, and d_arg_parser_exit from the root;
+// d_arg_failure_simple or d_arg_failure_help (arg_parser.h), or a function
+// of the caller's. NULL -- what every command starts with -- uses the
+// parent's, and at the root d_arg_failure_simple, CLI11's default; so a
 // subcommand follows its parent's later changes, where CLI11's keeps a copy
 // of the message its parent had when it was made.
 void d_arg_command_set_failure_message(struct d_arg_command* _command,

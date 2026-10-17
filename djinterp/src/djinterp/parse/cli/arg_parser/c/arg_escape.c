@@ -11,7 +11,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_escape.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -635,15 +635,15 @@ d_arg_internal_binary_escape(
 )
 {
     struct d_arg_buffer escaped = D_ARG_BUFFER_INIT;
-    bool                changed = false;
 
     d_arg_internal_binary_escaped(_text,
                                   &escaped);
-    changed = ( (escaped.length != _text.length) ||
-                ( (escaped.length > 0u) &&
-                  (memcmp(escaped.data,
-                          _text.data,
-                          _text.length) != 0) ) );
+
+    const bool changed = ( (escaped.length != _text.length) ||
+                           ( (escaped.length > 0u) &&
+                             (memcmp(escaped.data,
+                                     _text.data,
+                                     _text.length) != 0) ) );
 
     // unchanged and not forced: the text as it is
     if ( (!changed) &&

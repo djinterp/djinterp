@@ -13,7 +13,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_common_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 #include "./arg_common_tests.h"  // corresponding header
 // std
@@ -103,6 +103,8 @@ static const struct d_tests_arg_common_status_row STATUS_ROWS[] =
       113,                                "Option not found" },
     { D_ARG_ERROR_ARGUMENT_MISMATCH,      "ArgumentMismatch",
       114,                                "Argument mismatch" },
+    { D_ARG_ERROR_PARSE,                  "ParseError",
+      111,                                "Parse error" },
     { D_ARG_ERROR_OUT_OF_MEMORY,          "OutOfMemory",
       127,                                "Out of memory" },
     { D_ARG_ERROR_BAD_ARGUMENT,           "BadArgument",

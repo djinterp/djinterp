@@ -19,7 +19,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_config_write.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_config.h"  // corresponding header
 // std
@@ -129,9 +129,6 @@ d_arg_internal_ini_exponent(
     size_t             _at
 )
 {
-    size_t sign   = 0u;
-    size_t digits = 0u;
-
     // not an exponent
     if ( (_at >= _value.length)        ||
          ( (_value.data[_at] != 'e') &&
@@ -140,10 +137,10 @@ d_arg_internal_ini_exponent(
         return 0u;
     }
 
-    sign   = (d_arg_internal_ini_signed(_value,
-                                        _at + 1u)) ? 1u : 0u;
-    digits = d_arg_internal_ini_digits(_value,
-                                       _at + 1u + sign);
+    const size_t sign   = (d_arg_internal_ini_signed(_value,
+                                                     _at + 1u)) ? 1u : 0u;
+    const size_t digits = d_arg_internal_ini_digits(_value,
+                                                    _at + 1u + sign);
 
     return (digits > 0u)
            ? (1u + sign + digits)
@@ -733,10 +730,8 @@ d_arg_internal_ini_results_convert(
     if ( (braces) &&
          (_count <= 2u) )
     {
-        keep = ( (_count == 2u)                          &&
-                 ( (_values[1].length == 0u) ||
-                   (d_arg_internal_equal_cstr(_values[1],
-                                              "%%")) ) )
+        keep = ( (_count == 2u)                              &&
+                 (d_arg_internal_is_separator(_values[1])) )
                ? 1u
                : ((_count == 1u) ? 0u : _count);
     }
@@ -1040,17 +1035,18 @@ d_arg_internal_ini_flag_as(
     bool*                _accepted
 )
 {
-    struct d_arg_internal_watch watch  = { NULL,
-                                           D_ARG_ERROR_INIT };
-    struct d_arg_buffer         read   = D_ARG_BUFFER_INIT;
-    int                         status = D_ARG_OK;
+    struct d_arg_internal_watch watch = { NULL,
+                                          D_ARG_ERROR_INIT };
+    struct d_arg_buffer         read  = D_ARG_BUFFER_INIT;
 
     d_arg_internal_watch_begin(&watch,
                                d_arg_internal_parser_of(_option));
-    status = d_arg_option_flag_value(_option,
-                                     _name,
-                                     d_arg_buffer_text(_value),
-                                     &read);
+
+    int status = d_arg_option_flag_value(_option,
+                                         _name,
+                                         d_arg_buffer_text(_value),
+                                         &read);
+
     (void)d_arg_internal_watch_end(&watch,
                                    (status == D_ARG_ERROR_ARGUMENT_MISMATCH)
                                    ? D_ARG_OK

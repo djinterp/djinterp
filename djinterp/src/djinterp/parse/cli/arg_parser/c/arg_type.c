@@ -11,11 +11,12 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_type.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_type.h"  // corresponding header
 // std
-#include <limits.h>  // CHAR_MIN, LONG_MIN, LONG_MAX, ULONG_MAX
+#include <limits.h>  // CHAR_MIN, LONG_MIN, LONG_MAX, ULONG_MAX, LLONG_MIN,
+                     // LLONG_MAX
 #include <stddef.h>  // size_t, ptrdiff_t, NULL
 #include <string.h>  // memchr, memcpy, memset
 // djinterp
@@ -968,17 +969,17 @@ d_arg_internal_sum_reals(
     // each value as a number, or a flag word's number
     for (size_t index = 0u; index < _count; ++index)
     {
-        double value = 0.0;
-        long   flag  = 0;
+        double   value = 0.0;
+        intmax_t flag  = 0;
 
         if (d_arg_parse_double(_values[index],
                                &value) == D_ARG_OK)
         {
             sum += value;
         }
-        else if (d_arg_flag_value(_values[index],
-                                  _rule,
-                                  &flag) == D_ARG_OK)
+        else if (d_arg_flag_value_intmax(_values[index],
+                                         _rule,
+                                         &flag) == D_ARG_OK)
         {
             sum += (double)flag;
         }
@@ -1250,13 +1251,49 @@ d_arg_parse_bool(
 
 /*
 d_arg_flag_value
-  The flag words, then an integer under the rule, which must fit `long`.
+  d_arg_flag_value_intmax's number, which must also fit `long`.
 */
 int
 d_arg_flag_value(
     struct d_pack_text _text,
     int                _rule,
     long*              _out
+)
+{
+    // somewhere to put the value
+    if (!_out)
+    {
+        return D_ARG_ERROR_BAD_ARGUMENT;
+    }
+
+    intmax_t value = 0;
+
+    // a flag value within `long`
+    if ( (d_arg_flag_value_intmax(_text,
+                                  _rule,
+                                  &value) != D_ARG_OK) ||
+         (value < LONG_MIN)                            ||
+         (value > LONG_MAX) )
+    {
+        return D_ARG_ERROR_CONVERSION;
+    }
+
+    *_out = (long)value;
+
+    return D_ARG_OK;
+}
+
+/*
+d_arg_flag_value_intmax
+  The flag words, then an integer under the rule, which must fit `long
+long`: CLI11's strtoll reads it into one, and a number one cannot hold is
+no flag value there.
+*/
+int
+d_arg_flag_value_intmax(
+    struct d_pack_text _text,
+    int                _rule,
+    intmax_t*          _out
 )
 {
     // somewhere to put the value
@@ -1279,19 +1316,29 @@ d_arg_flag_value(
     if (d_arg_internal_flag_word(_text,
                                  &word))
     {
-        *_out = word;
+        *_out = (intmax_t)word;
 
         return D_ARG_OK;
     }
 
-    // otherwise an integer, which whitespace may precede but not follow, in
-    // the shape strtoll reads
-    return ( (d_arg_internal_is_space(_text.data[_text.length - 1u])) ||
-             (!d_arg_internal_flag_shaped(_text)) )
-           ? D_ARG_ERROR_CONVERSION
-           : d_arg_parse_long(_text,
-                              _rule,
-                              _out);
+    intmax_t value = 0;
+
+    // otherwise an integer within `long long`, which whitespace may precede
+    // but not follow, in the shape strtoll reads
+    if ( (d_arg_internal_is_space(_text.data[_text.length - 1u])) ||
+         (!d_arg_internal_flag_shaped(_text))                     ||
+         (d_arg_internal_signed_value(_text,
+                                      _rule,
+                                      &value) != D_ARG_OK)        ||
+         (value < LLONG_MIN)                                      ||
+         (value > LLONG_MAX) )
+    {
+        return D_ARG_ERROR_CONVERSION;
+    }
+
+    *_out = value;
+
+    return D_ARG_OK;
 }
 
 /*

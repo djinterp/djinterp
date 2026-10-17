@@ -16,11 +16,13 @@
 # path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/expected_sections.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-#                                                            revised: 2026.10.13
+#                                                            revised: 2026.10.16
 
-# the C suites: common 20, types 20, validators 26, extra checks 11, sets
-# and mappings 13, numbers with units 10, the file system 8, smoke 19
-c99 127
-c11 127
-c17 127
-c23 127
+# the C suites: common 20, types 21, validators 26, extra checks 11, sets
+# and mappings 13, numbers with units 10, the file system 8, options 17,
+# commands 29, help 20, the parse 11, its processing 13, configuration
+# files 66, arguments from text 26, the parser 12, suggestions 5, smoke 19
+c99 327
+c11 327
+c17 327
+c23 327

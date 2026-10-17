@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 
 /*
@@ -157,10 +157,11 @@ enum d_arg_status
     D_ARG_ERROR_HORRIBLE               = 19,
     D_ARG_ERROR_OPTION_NOT_FOUND       = 20,
     D_ARG_ERROR_ARGUMENT_MISMATCH      = 21,
-    D_ARG_ERROR_OUT_OF_MEMORY          = 22,
-    D_ARG_ERROR_BAD_ARGUMENT           = 23,
-    D_ARG_ERROR_UNSUPPORTED            = 24,
-    D_ARG_STATUS_COUNT                 = 25
+    D_ARG_ERROR_PARSE                  = 22,
+    D_ARG_ERROR_OUT_OF_MEMORY          = 23,
+    D_ARG_ERROR_BAD_ARGUMENT           = 24,
+    D_ARG_ERROR_UNSUPPORTED            = 25,
+    D_ARG_STATUS_COUNT                 = 26
 };
 
 // 1.1.2

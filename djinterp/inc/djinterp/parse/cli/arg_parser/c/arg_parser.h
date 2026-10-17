@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_parser.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -64,8 +64,10 @@ TABLE OF CONTENTS
     1.  Exit
          1.  d_arg_parser_exit
          2.  d_arg_parser_exit_to
-         3.  d_arg_parser_parse_or_exit
-         4.  D_ARG_PARSE
+         3.  d_arg_command_exit
+         4.  d_arg_command_exit_to
+         5.  d_arg_parser_parse_or_exit
+         6.  D_ARG_PARSE
     2.  Failure messages
          1.  d_arg_failure_simple
          2.  d_arg_failure_help
@@ -166,9 +168,11 @@ TABLE OF CONTENTS
 // cleared. `formatter` and `config_format` serve every command that has none
 // of its own; `out` receives help, versions, completion scripts and
 // deprecation warnings, and `err` failure messages. The rest is storage:
-// `pending` holds the arguments still to parse, the next one last; `pool`
-// the strings the last parse made -- a split line's words, a response
-// file's, converted wide arguments; `program` a copy of the program's name
+// `pending` holds the arguments still to parse, the next one last, each
+// with every byte it holds; `pool` the strings the last parse made -- a
+// split line's words, a response file's, converted wide arguments -- of
+// which one holding a NUL byte reads, as a C string, as ending there, where
+// its span in `pending` goes on; `program` a copy of the program's name
 // as the last parse was given it -- `argv[0]`, or the first word of a line
 // parsed with the program's name -- NULL when it was given none;
 // `utf8_argv` the arguments d_arg_parser_ensure_utf8 recovered,
@@ -276,7 +280,9 @@ void    d_arg_parser_clear(struct d_arg_parser* _parser);
 // Any other status -- a completed request (D_ARG_CALL_FOR_HELP,
 // D_ARG_CALL_FOR_ALL_HELP, D_ARG_CALL_FOR_VERSION,
 // D_ARG_CALL_FOR_COMPLETION, D_ARG_SUCCESS) or an error -- is described by
-// d_arg_parser_error and ended by d_arg_parser_exit.
+// d_arg_parser_error and ended by d_arg_parser_exit. A call refused with
+// D_ARG_ERROR_BAD_ARGUMENT -- its parser, or what it is to parse, not there
+// -- is refused before any of this, and leaves the last parse as it was.
 
 
 // 4.1    Arguments
@@ -335,16 +341,23 @@ int     d_arg_parser_parse_args(struct d_arg_parser*      _parser,
  *
  * @note The line is split as d_arg_split_line splits it with
  *       D_ARG_QUOTING_CLI11 -- reading `:` as `=` when the root takes
- *       Windows-style options -- into words the parser keeps. With a program
- *       name, the name is what d_arg_split_program_name finds, and it names
- *       a root without one.
+ *       Windows-style options -- into words the parser keeps, each whole: a
+ *       NUL byte a word holds, as it is or from an escape such as `\0`,
+ *       reaches the option with the bytes after it, as in CLI11, where
+ *       d_arg_split_line's list reads the word as ending there. With a
+ *       program name, the name is what d_arg_split_program_name finds, and
+ *       it names a root without one -- up to a NUL it holds, as every name
+ *       is a C string.
  *
  * @param[in,out] _parser             the parser.
- * @param[in]     _line               the command line.
+ * @param[in]     _line               the command line; its data may be NULL
+ *                                    when its length is 0.
  * @param[in]     _with_program_name  whether the line starts with the
  *                                    program's name.
- * @return a status, as d_arg_parser_parse's; D_ARG_ERROR_INVALID for a
- *         malformed escape, as CLI11's ParseError(InvalidError).
+ * @return a status, as d_arg_parser_parse's; D_ARG_ERROR_PARSE for a
+ *         malformed escape, CLI11's ParseError; D_ARG_ERROR_BAD_ARGUMENT
+ *         for a NULL parser, or a line whose data is NULL with a nonzero
+ *         length.
  */
 int     d_arg_parser_parse_line(struct d_arg_parser* _parser,
                                 struct d_pack_text   _line,
@@ -381,6 +394,10 @@ int     d_arg_parser_parse_wide(struct d_arg_parser* _parser,
  * @brief Parses a wide command line; CLI11's parse(std::wstring,
  *        program_name_included).
  *
+ * @note The line is converted to UTF-8, as d_arg_utf8_from_wide converts --
+ *       U+0000 a NUL byte -- then parsed as d_arg_parser_parse_line parses
+ *       it.
+ *
  * @param[in,out] _parser             the parser.
  * @param[in]     _line               the command line; may be NULL when
  *                                    `_length` is 0.
@@ -407,8 +424,10 @@ int     d_arg_parser_parse_line_wide(struct d_arg_parser* _parser,
  *       not when the runtime expanded wildcards, and `argv` is returned.
  *       Elsewhere `argv` is UTF-8 already and is returned as it is.
  *
- * @param[in,out] _parser  the parser, which keeps the copies.
- * @param[in]     _argv    main's arguments, ending in NULL.
+ * @param[in,out] _parser  the parser, which keeps the copies; NULL, which
+ *                         leaves `_argv` as it is.
+ * @param[in]     _argv    main's arguments, ending in NULL, and read no
+ *                         further; NULL, which holds none.
  * @return the arguments to parse: the copies, NULL-terminated and valid
  *         until the next call or the parser's release, or `_argv`. When the
  *         copies could not be made, `_argv`, after recording
@@ -436,11 +455,13 @@ char**  d_arg_parser_ensure_utf8(struct d_arg_parser* _parser,
  *       the definitions are checked first, as a parse checks them.
  *
  * @param[in,out] _parser  the parser.
- * @param[in]     _text    the configuration text.
- * @return a status, as d_arg_parser_parse's; D_ARG_ERROR_INVALID for a
- *         malformed escape in the text, described in CLI11's words;
- *         D_ARG_ERROR_CONFIG for an item no option claims, when
- *         configuration extras are errors.
+ * @param[in]     _text    the configuration text; its data may be NULL when
+ *                         its length is 0.
+ * @return a status, as d_arg_parser_parse's; D_ARG_ERROR_PARSE for a
+ *         malformed escape in the text, CLI11's ParseError, described in
+ *         its words; D_ARG_ERROR_CONFIG for an item no option claims, when
+ *         configuration extras are errors; D_ARG_ERROR_BAD_ARGUMENT for a
+ *         NULL parser, or text whose data is NULL with a nonzero length.
  */
 int     d_arg_parser_parse_config(struct d_arg_parser* _parser,
                                   struct d_pack_text   _text);
@@ -470,7 +491,8 @@ int     d_arg_parser_parse_config(struct d_arg_parser* _parser,
  *       parser's error output. D_ARG_OK, D_ARG_SUCCESS and
  *       D_ARG_RUNTIME_ERROR write nothing. When `_status` is the status of
  *       the parser's error, that error's message and exit code are used; any
- *       other status is reported with its own.
+ *       other status is reported with its own. d_arg_command_exit does the
+ *       same from any command.
  *
  * @param[in] _parser  the parser.
  * @param[in] _status  the status to end with, usually the last parse's.
@@ -491,6 +513,38 @@ int     d_arg_parser_exit_to(const struct d_arg_parser* _parser,
                              struct d_pack_sink         _err);
 
 // 5.1.3
+// d_arg_command_exit
+/**
+ * @brief Ends a parse with an error from any command of the tree; CLI11's
+ *        exit() called on a subcommand or an option group.
+ *
+ * @note What is written is what d_arg_parser_exit writes, for the command:
+ *       help is the command's, or that of the last subcommand the parse used
+ *       under it; a failure message is the nearest one -- the command's own,
+ *       else its nearest parent's, else d_arg_failure_simple -- looked up
+ *       when the error is reported, and called with the command. Help, a
+ *       version and a completion script go to the parser's output, a
+ *       failure message to its error output.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _error    the error to end with: the parser's
+ *                      (d_arg_parser_error), or one the caller made.
+ * @return the error's exit code; D_ARG_EXIT_BASE_CLASS when the command or
+ *         the error is NULL.
+ */
+int     d_arg_command_exit(const struct d_arg_command* _command,
+                           const struct d_arg_error*   _error);
+
+// 5.1.4
+// d_arg_command_exit_to
+//   ending: d_arg_command_exit writing to the sinks given rather than the
+// parser's, as CLI11's exit(error, out, err).
+int     d_arg_command_exit_to(const struct d_arg_command* _command,
+                              const struct d_arg_error*   _error,
+                              struct d_pack_sink          _out,
+                              struct d_pack_sink          _err);
+
+// 5.1.5
 // d_arg_parser_parse_or_exit
 /**
  * @brief Parses main's arguments and, unless the parse came to D_ARG_OK,
@@ -562,7 +616,7 @@ d_arg_parser_parse_or_exit(
 
 #endif  // __cplusplus
 
-// 5.1.4
+// 5.1.6
 // D_ARG_PARSE
 //   macro: CLI11_PARSE, for C and C++: parses main's arguments with a parser
 // and, unless the parse came to D_ARG_OK, returns d_arg_parser_exit's code
@@ -678,8 +732,10 @@ void    d_arg_parser_set_output(struct d_arg_parser* _parser,
  *       d_arg_read_response_file splits them; those starting with `@` are
  *       replaced in turn, up to D_INTERNAL_ARG_PARSER_RESPONSE_DEPTH files
  *       deep, below which the parse fails with D_ARG_ERROR_FILE. A file that
- *       cannot be read leaves its argument as it is, as GCC does. Off at
- *       first.
+ *       cannot be read leaves its argument as it is, as GCC does; so does an
+ *       argument holding a NUL byte, which names no file. A file's words
+ *       keep every byte they hold, a NUL among them, as a line's do in
+ *       d_arg_parser_parse_line. Off at first.
  *
  * @param[in,out] _parser   the parser.
  * @param[in]     _enabled  whether `@file` is replaced.
@@ -703,10 +759,12 @@ void    d_arg_parser_set_response_files(struct d_arg_parser* _parser,
 // mean '--verbose' for '--verbse'?" -- the one name nearest by optimal string
 // alignment distance (Damerau-Levenshtein's, a swap of neighbours one edit),
 // within D_INTERNAL_ARG_PARSER_SUGGESTION_DISTANCE edits and no more than
-// half the longer name, among those the command, its option groups, the
-// parents it falls through to and the subcommands the parse used would
-// have taken; hidden and disabled ones are never named. On at first; off,
-// the message is CLI11's. Does not fail.
+// half the longer name, among those the command and its option groups --
+// and, for a subcommand's name, the parents its subcommands fall through
+// to -- and the subcommands the parse used would have taken; hidden and
+// disabled ones are never named, nor is anything for an argument that is
+// empty, or starts with a dash and is no option's. On at first; off, the
+// message is CLI11's. Does not fail.
 void    d_arg_parser_set_suggestions(struct d_arg_parser* _parser,
                                      bool                 _enabled);
 

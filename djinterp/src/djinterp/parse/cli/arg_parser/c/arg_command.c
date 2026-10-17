@@ -14,7 +14,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -192,7 +192,6 @@ d_arg_internal_command_inherit(
                                D_ARG_COMMAND_CONFIGURABLE                |
                                D_ARG_COMMAND_WINDOWS_STYLE               |
                                D_ARG_COMMAND_PREFIX_MATCHING;
-    int            status    = D_ARG_OK;
 
     _command->option_defaults        = _parent->option_defaults;
     _command->option_defaults.group  = NULL;
@@ -204,8 +203,10 @@ d_arg_internal_command_inherit(
     _command->formatter              = _parent->formatter;
     _command->config_format          = _parent->config_format;
     _command->require_subcommand_max = _parent->require_subcommand_max;
-    status = d_arg_internal_command_copy_text(_parent->option_defaults.group,
-                                              &_command->option_defaults.group);
+
+    int status = d_arg_internal_command_copy_text(
+                     _parent->option_defaults.group,
+                     &_command->option_defaults.group);
 
     // the three texts
     if (status == D_ARG_OK)
@@ -664,7 +665,6 @@ d_arg_internal_compare_subcommand_names(
     {
         const struct d_arg_command* const other =
             _base->subcommands.items[index];
-        const char*                       clash = NULL;
 
         if ( (other == _subcommand) ||
              (d_arg_command_has_flag(other,
@@ -673,8 +673,9 @@ d_arg_internal_compare_subcommand_names(
             continue;
         }
 
-        clash = d_arg_internal_command_names_clash(_subcommand,
-                                                   other);
+        const char* clash = d_arg_internal_command_names_clash(_subcommand,
+                                                               other);
+
         clash = ( (clash == NULL) &&
                   (!d_arg_internal_command_named(other)) )
                 ? d_arg_internal_compare_subcommand_names(_subcommand,

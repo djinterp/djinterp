@@ -563,7 +563,8 @@ static const char WINDOWS_NONE[] =
     "[Tree/Dir/Inner.TXT] -> fail <Path already exists: Tree/Dir/Inner.TXT>\n";
 
 // WINDOWS_DEF
-//   constant: CLI11's FileOnDefaultPath("tree/dir") over WINDOWS_NAMES, on Windows.
+//   constant: CLI11's FileOnDefaultPath("tree/dir") over WINDOWS_NAMES, on
+// Windows.
 static const char WINDOWS_DEF[] =
     "desc <FILE>\n"
     "[tree\\file10] -> pass <tree\\file10>\n"

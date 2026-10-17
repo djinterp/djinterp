@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command_tree.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -685,13 +685,13 @@ d_arg_command_add_option_group(
     const char*           _description
 )
 {
-    const char* const name = (_group_name != NULL) ? _group_name : "";
-
     // validate the parameters
     if (!_command)
     {
         return NULL;
     }
+
+    const char* const name = (_group_name != NULL) ? _group_name : "";
 
     // a newline is refused
     if (strchr(name,
@@ -745,18 +745,19 @@ d_arg_internal_command_move_clash(
     const struct d_arg_option*  _option
 )
 {
-    struct d_arg_buffer name   = D_ARG_BUFFER_INIT;
-    int                 status = D_ARG_OK;
+    struct d_arg_buffer name = D_ARG_BUFFER_INIT;
 
     (void)d_arg_option_name(_option,
                             0u,
                             &name);
-    status = d_arg_internal_fail_definition(
-                 _group,
-                 NULL,
-                 D_ARG_ERROR_OPTION_ALREADY_ADDED,
-                 "option was not located: %s is already added",
-                 d_arg_buffer_text(&name).data);
+
+    const int status = d_arg_internal_fail_definition(
+                           _group,
+                           NULL,
+                           D_ARG_ERROR_OPTION_ALREADY_ADDED,
+                           "option was not located: %s is already added",
+                           d_arg_buffer_text(&name).data);
+
     d_arg_buffer_release(&name);
 
     return status;
@@ -1168,8 +1169,6 @@ d_arg_command_remove_subcommand(
     struct d_arg_command* _subcommand
 )
 {
-    struct d_arg_command* root = _command;
-
     // validate the parameters
     if ( (!_command) ||
          (!_subcommand) )
@@ -1186,6 +1185,8 @@ d_arg_command_remove_subcommand(
     {
         return false;
     }
+
+    struct d_arg_command* root = _command;
 
     // from the root down
     while (root->parent != NULL)

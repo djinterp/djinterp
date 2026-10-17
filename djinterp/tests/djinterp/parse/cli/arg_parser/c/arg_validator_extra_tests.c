@@ -1216,13 +1216,13 @@ static const char K_BOUND[] =
     "[-0b1] -> fail <Value 0 not in range [5 - 7]>\n"
     "[0x1_0] -> fail <Value 10 not in range [5 - 7]>\n";
 
-// D_IPV4
+// DEPARTED_IPV4
 //   constant: ValidIPV4 over TRUE_ADDRESSES. CLI11 reads each part with its
 // conversion to `int`, which takes `true` as 1 for the sake of flags, so it
 // passes `true.0.0.1`, `true.1.1.1` and `0.0.0.true`; here a part is an
 // integer or nothing, and the word is refused as a number that did not
 // parse. The two lines with a dot too many are CLI11's.
-static const char D_IPV4[] =
+static const char DEPARTED_IPV4[] =
     "desc <IPV4>\n"
     "[1.2.3.] -> fail <Failed parsing number ()>\n"
     "[true.0.0.1] -> fail <Failed parsing number (true)>\n"
@@ -1230,13 +1230,13 @@ static const char D_IPV4[] =
     "[1.2.3.4.] -> fail <Invalid IPV4 address: must have 3 separators>\n"
     "[0.0.0.true] -> fail <Failed parsing number (true)>\n";
 
-// D_BDBL
+// DEPARTED_BDBL
 //   constant: CLI11's Bound(0.1, 0.3) over `double`, run over CLAMPED. A
 // clamped value is written as the type writes values, the shortest text
 // that reads back as the same number -- `0.1`, `0.3` -- where CLI11 writes
 // every digit a `double` holds: `0.10000000000000001`,
 // `0.29999999999999999`. Each text reads back as the same value.
-static const char D_BDBL[] =
+static const char DEPARTED_BDBL[] =
     "desc <FLOAT bounded to [0.1 - 0.3]>\n"
     "[0.05] -> pass <0.1>\n"
     "[0.5] -> pass <0.3>\n"
@@ -1245,10 +1245,10 @@ static const char D_BDBL[] =
     "[120] -> pass <0.3>\n"
     "[50] -> pass <0.3>\n";
 
-// D_BFLT
+// DEPARTED_BFLT
 //   constant: CLI11's Bound(0.1f, 0.3f) over `float`, run over CLAMPED: the
 // same, where CLI11 writes `0.100000001` and `0.300000012`.
-static const char D_BFLT[] =
+static const char DEPARTED_BFLT[] =
     "desc <FLOAT bounded to [0.1 - 0.3]>\n"
     "[0.05] -> pass <0.1>\n"
     "[0.5] -> pass <0.3>\n"
@@ -1257,13 +1257,13 @@ static const char D_BFLT[] =
     "[120] -> pass <0.3>\n"
     "[50] -> pass <0.3>\n";
 
-// D_BU8
+// DEPARTED_BU8
 //   constant: CLI11's Bound over `uint8_t` from 65 to 100, run over CLAMPED.
 // The bounds and a clamped value are written in decimal, where CLI11 streams
 // an 8-bit integer as a character: its description is `UINT bounded to [A -
 // d]`, and it clamps 120 to `d`, which an option of the type then fails to
 // convert.
-static const char D_BU8[] =
+static const char DEPARTED_BU8[] =
     "desc <UINT bounded to [65 - 100]>\n"
     "[0.05] -> fail <Value 0.05 could not be converted>\n"
     "[0.5] -> fail <Value 0.5 could not be converted>\n"
@@ -1828,20 +1828,20 @@ d_tests_arg_extra_departures(void)
     const unsigned char b_low  = 65u;
     const unsigned char b_high = 100u;
     const bool          address = d_tests_arg_holds(
-                                      "D_IPV4",
+                                      "DEPARTED_IPV4",
                                       d_arg_validator_valid_ipv4(),
                                       TRUE_ADDRESSES,
                                       TRUE_ADDRESS_COUNT,
-                                      D_IPV4);
+                                      DEPARTED_IPV4);
     const bool          real    = d_tests_arg_holds(
-                                      "D_BDBL",
+                                      "DEPARTED_BDBL",
                                       d_arg_validator_bound_double(0.1,
                                                                    0.3),
                                       CLAMPED,
                                       CLAMPED_COUNT,
-                                      D_BDBL);
+                                      DEPARTED_BDBL);
     const bool          single  = d_tests_arg_holds(
-                                      "D_BFLT",
+                                      "DEPARTED_BFLT",
                                       d_arg_validator_bound(
                                           d_arg_type_builtin(
                                               D_ARG_BUILTIN_FLOAT),
@@ -1849,9 +1849,9 @@ d_tests_arg_extra_departures(void)
                                           &f_high),
                                       CLAMPED,
                                       CLAMPED_COUNT,
-                                      D_BFLT);
+                                      DEPARTED_BFLT);
     const bool          byte    = d_tests_arg_holds(
-                                      "D_BU8",
+                                      "DEPARTED_BU8",
                                       d_arg_validator_bound(
                                           d_arg_type_builtin(
                                               D_ARG_BUILTIN_UINT8),
@@ -1859,7 +1859,7 @@ d_tests_arg_extra_departures(void)
                                           &b_high),
                                       CLAMPED,
                                       CLAMPED_COUNT,
-                                      D_BU8);
+                                      DEPARTED_BU8);
 
     return ( (address) &&
              (real)    &&

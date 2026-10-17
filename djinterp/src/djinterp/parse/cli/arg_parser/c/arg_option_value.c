@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_option_value.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_option.h"  // corresponding header
 // std
@@ -32,20 +32,6 @@
 //==============================================================================
 // 1.  ADDING
 //==============================================================================
-
-/*
-d_arg_internal_option_is_separator
-  CLI11's is_separator: an empty value, or "%%".
-*/
-D_STATIC bool
-d_arg_internal_option_is_separator(
-    struct d_pack_text _value
-)
-{
-    return ( (_value.length == 0u) ||
-             (d_arg_internal_equal_cstr(_value,
-                                        "%%")) );
-}
 
 /*
 d_arg_internal_option_push_value
@@ -757,7 +743,7 @@ d_arg_internal_option_restarts(
     return ( (_option->type_size_max > 1)                        &&
              (_option->type_size_max != _option->type_size_min)  &&
              (_index >= 0)                                       &&
-             (d_arg_internal_option_is_separator(_value)) );
+             (d_arg_internal_is_separator(_value)) );
 }
 
 /*

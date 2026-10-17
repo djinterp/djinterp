@@ -47,6 +47,7 @@ bool d_tests_arg_type_floating_locale(void);
 // 2.3  Truth values
 bool d_tests_arg_type_bool(void);
 bool d_tests_arg_type_flag_value(void);
+bool d_tests_arg_type_flag_value_intmax(void);
 
 // 2.4  Through a descriptor
 bool d_tests_arg_type_empty_is_zero(void);
