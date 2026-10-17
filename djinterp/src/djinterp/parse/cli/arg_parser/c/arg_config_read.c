@@ -22,7 +22,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_config_read.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_config.h"  // corresponding header
 // std
@@ -825,7 +825,7 @@ d_arg_internal_config_secondary(
 /*
 d_arg_internal_config_unescape
   CLI11's remove_escaped_characters as the reader calls it: a malformed
-escape is its ParseError(InvalidError), in the escape's own words.
+escape is its ParseError, in the escape's own words.
 */
 D_STATIC int
 d_arg_internal_config_unescape(
@@ -839,7 +839,7 @@ d_arg_internal_config_unescape(
                                                _error);
 
     return (status == D_ARG_ERROR_VALIDATION)
-           ? D_ARG_ERROR_INVALID
+           ? D_ARG_ERROR_PARSE
            : status;
 }
 
@@ -881,12 +881,6 @@ d_arg_internal_config_unquote(
     struct d_arg_buffer*                        _error
 )
 {
-    const char front  = (_text.length > 0u) ? _text.data[0] : '\0';
-    const char back   = (_text.length > 0u)
-                        ? _text.data[_text.length - 1u]
-                        : '\0';
-    int        status = D_ARG_OK;
-
     d_arg_buffer_clear(_out);
 
     // too short to be quoted
@@ -896,8 +890,11 @@ d_arg_internal_config_unquote(
                                         _text);
     }
 
-    const struct d_pack_text inner = d_arg_internal_span(_text.data + 1u,
-                                                         _text.length - 2u);
+    const char               front  = _text.data[0];
+    const char               back   = _text.data[_text.length - 1u];
+    const struct d_pack_text inner  = d_arg_internal_span(_text.data + 1u,
+                                                          _text.length - 2u);
+    int                      status = D_ARG_OK;
 
     // a binary string, a string, a literal, or the text itself
     if (d_arg_internal_is_binary_string(_text))
@@ -969,7 +966,8 @@ struct d_arg_internal_config_reader
 d_arg_internal_config_parent
   One part of a path, its quotes removed as CLI11's remove_quotes(vector)
 removes them -- an empty part kept as it is -- added to an item's sections;
-a malformed escape is CLI11's ParseError(InvalidError).
+a malformed escape, which d_arg_internal_remove_quotes_text calls text that
+breaks the rules, is CLI11's ParseError.
 */
 D_STATIC int
 d_arg_internal_config_parent(
@@ -978,8 +976,6 @@ d_arg_internal_config_parent(
     struct d_arg_config_item*            _item
 )
 {
-    int status = D_ARG_OK;
-
     // an empty part, kept
     if (_part.length == 0u)
     {
@@ -988,9 +984,16 @@ d_arg_internal_config_parent(
     }
 
     d_arg_buffer_clear(&_reader->scratch);
-    status = d_arg_internal_remove_quotes_text(_part,
-                                               &_reader->scratch,
-                                               _reader->error);
+
+    const int status = d_arg_internal_remove_quotes_text(_part,
+                                                         &_reader->scratch,
+                                                         _reader->error);
+
+    // a malformed escape is CLI11's ParseError
+    if (status == D_ARG_ERROR_INVALID)
+    {
+        return D_ARG_ERROR_PARSE;
+    }
 
     return (status == D_ARG_OK)
            ? d_arg_config_item_add_parent(
@@ -1711,20 +1714,19 @@ d_arg_internal_config_replace(
 d_arg_internal_config_ml_unescape
   A `"""` value's escapes resolved once it closes: CLI11's
 remove_escaped_characters over the whole value, a malformed escape being
-its ParseError(InvalidError).
+its ParseError.
 */
 D_STATIC int
 d_arg_internal_config_ml_unescape(
     struct d_arg_internal_config_reader* _reader
 )
 {
-    int status = D_ARG_OK;
-
     d_arg_buffer_clear(&_reader->scratch);
-    status = d_arg_internal_config_unescape(
-                 d_arg_buffer_text(&_reader->value),
-                 &_reader->scratch,
-                 _reader->error);
+
+    const int status = d_arg_internal_config_unescape(
+                           d_arg_buffer_text(&_reader->value),
+                           &_reader->scratch,
+                           _reader->error);
 
     return (status == D_ARG_OK)
            ? d_arg_internal_config_replace(_reader)
@@ -1741,8 +1743,6 @@ d_arg_internal_config_ml_binary(
     struct d_arg_internal_config_reader* _reader
 )
 {
-    int status = D_ARG_OK;
-
     // check if memory allocation was successful
     if (_reader->value.failed)
     {
@@ -1756,8 +1756,10 @@ d_arg_internal_config_ml_binary(
     }
 
     d_arg_buffer_clear(&_reader->scratch);
-    status = d_arg_internal_extract_binary(d_arg_buffer_text(&_reader->value),
-                                           &_reader->scratch);
+
+    const int status = d_arg_internal_extract_binary(
+                           d_arg_buffer_text(&_reader->value),
+                           &_reader->scratch);
 
     return (status == D_ARG_OK)
            ? d_arg_internal_config_replace(_reader)
@@ -2239,7 +2241,7 @@ d_arg_internal_config_entry(
     struct d_pack_text                   _line
 )
 {
-    struct d_arg_internal_config_entry entry  =
+    struct d_arg_internal_config_entry entry =
     {
         _buffer,               // buffer
         _line,                 // line
@@ -2247,12 +2249,13 @@ d_arg_internal_config_entry(
         &_reader->raw,         // raw
         false                  // mlquote
     };
-    struct d_arg_config_item           item   = D_ARG_CONFIG_ITEM_INIT;
-    int                                status = D_ARG_OK;
+    struct d_arg_config_item           item  = D_ARG_CONFIG_ITEM_INIT;
 
     _reader->raw.count = 0u;
-    status = d_arg_internal_config_split_line(_reader,
-                                              &entry);
+
+    int status = d_arg_internal_config_split_line(_reader,
+                                                  &entry);
+
     status = (status == D_ARG_OK)
              ? d_arg_internal_config_parents(_reader,
                                              &entry.name,
@@ -2347,8 +2350,6 @@ d_arg_internal_config_finish(
     struct d_arg_internal_config_reader* _reader
 )
 {
-    int status = D_ARG_OK;
-
     // the default section needs no end
     if (d_arg_internal_equal_cstr(_reader->section,
                                   DEFAULT_SECTION))
@@ -2356,7 +2357,7 @@ d_arg_internal_config_finish(
         return D_ARG_OK;
     }
 
-    status = d_arg_internal_config_close(_reader);
+    const int status = d_arg_internal_config_close(_reader);
 
     return (status == D_ARG_OK)
            ? d_arg_internal_config_peel(_reader->out,

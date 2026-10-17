@@ -13,7 +13,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command_option.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -28,6 +28,8 @@
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // d_arg_parser
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_type.h"  // d_arg_type, d_arg_parse_bool
 #include "./arg_internal.h"  // failures, lists, spans
+// re_std
+#include "../../../../../../inc/re_std/cstdint/dstdint.h"  // intmax_t, INT64_MIN, INT64_MAX
 
 
 //==============================================================================
@@ -238,7 +240,7 @@ d_arg_internal_command_clash_positional(
             d_arg_internal_find_option(d_arg_internal_command_top(_command),
                                        d_arg_internal_text_of(single));
 
-        status = ( (found != NULL)               &&
+        status = ( (found != NULL)                 &&
                    (found->long_names.count == 0u) &&
                    (found->short_names.count == 0u) )
                  ? d_arg_internal_fail_definition(
@@ -628,14 +630,14 @@ d_arg_internal_command_switch_defaults(
     const struct d_arg_option_defaults* _defaults
 )
 {
-    const uint32_t flags  = _defaults->flags;
-    int            status = D_ARG_OK;
+    const uint32_t flags = _defaults->flags;
 
     d_arg_option_set_required(_option,
                               (flags & D_ARG_OPTION_REQUIRED) != 0u);
-    status = d_arg_option_set_ignore_case(
-                 _option,
-                 (flags & D_ARG_OPTION_IGNORE_CASE) != 0u);
+
+    int status = d_arg_option_set_ignore_case(
+                     _option,
+                     (flags & D_ARG_OPTION_IGNORE_CASE) != 0u);
 
     if (status == D_ARG_OK)
     {
@@ -819,12 +821,6 @@ d_arg_command_add_option_bound(
     const char*              _description
 )
 {
-    const struct d_arg_internal_command_new bound = { NULL,
-                                                      NULL,
-                                                      NULL,
-                                                      _target,
-                                                      _type };
-
     // validate the parameters
     if ( (!_command) ||
          (!_names)   ||
@@ -833,6 +829,12 @@ d_arg_command_add_option_bound(
     {
         return NULL;
     }
+
+    const struct d_arg_internal_command_new bound = { NULL,
+                                                      NULL,
+                                                      NULL,
+                                                      _target,
+                                                      _type };
 
     struct d_arg_option* const option = d_arg_internal_command_add(_command,
                                                                    _names,
@@ -1412,12 +1414,15 @@ d_arg_command_add_flag_bound(
 
 // d_arg_internal_command_flag_call
 //   struct: what a flag made by add_flag_callback or add_flag_function keeps:
-// the caller's function, its context, and the function that frees it.
+// the caller's function -- `function`, or `wide` for one given the sum as
+// an intmax_t, the other NULL -- its context, and the function that frees
+// it.
 struct d_arg_internal_command_flag_call
 {
-    d_arg_flag_fn    function;
-    void*            context;
-    d_arg_release_fn release;
+    d_arg_flag_fn        function;
+    d_arg_flag_intmax_fn wide;
+    void*                context;
+    d_arg_release_fn     release;
 };
 
 /*
@@ -1532,6 +1537,39 @@ d_arg_internal_command_flag_count(
 }
 
 /*
+d_arg_internal_command_flag_count_intmax
+  CLI11's add_flag_function lambda as CLI11 reads the sum, into a 64-bit
+integer: 0 when the sum is no integer or does not fit one.
+*/
+D_STATIC int
+d_arg_internal_command_flag_count_intmax(
+    struct d_arg_option*      _option,
+    const struct d_pack_text* _values,
+    size_t                    _count,
+    void*                     _context
+)
+{
+    const struct d_arg_internal_command_flag_call* const call =
+        (const struct d_arg_internal_command_flag_call*)_context;
+    intmax_t                                             total = 0;
+
+    // a sum that is no 64-bit integer counts as 0
+    if ( (d_arg_parse_intmax(d_arg_internal_command_flag_first(_values,
+                                                               _count),
+                             _option->integer_rule,
+                             &total) != D_ARG_OK) ||
+         (total < INT64_MIN)                      ||
+         (total > INT64_MAX) )
+    {
+        total = 0;
+    }
+
+    return call->wide(_option,
+                      total,
+                      call->context);
+}
+
+/*
 d_arg_internal_command_add_flag_call
   A flag whose values reach the caller's function through `_wrap`; the
 caller's context is freed with the flag or, on any failure, at once.
@@ -1597,6 +1635,7 @@ d_arg_command_add_flag_callback(
 )
 {
     const struct d_arg_internal_command_flag_call call = { _function,
+                                                           NULL,
                                                            _context,
                                                            _release };
 
@@ -1623,6 +1662,53 @@ d_arg_command_add_flag_callback(
 }
 
 /*
+d_arg_internal_command_add_flag_sum
+  A flag summing its values, the sum reaching the caller's function through
+`_wrap`: the parameters checked -- the context freed when they fail -- and
+the sum policy set.
+*/
+D_STATIC struct d_arg_option*
+d_arg_internal_command_add_flag_sum(
+    struct d_arg_command*                          _command,
+    const char*                                    _names,
+    const char*                                    _description,
+    const struct d_arg_internal_command_flag_call* _call,
+    d_arg_results_fn                               _wrap
+)
+{
+    // validate the parameters; the context goes either way
+    if ( (!_command) ||
+         (!_names)   ||
+         ( (!_call->function) &&
+           (!_call->wide) ) )
+    {
+        if ( (_call->release != NULL) &&
+             (_call->context != NULL) )
+        {
+            _call->release(_call->context);
+        }
+
+        return NULL;
+    }
+
+    struct d_arg_option* const option =
+        d_arg_internal_command_add_flag_call(_command,
+                                             _names,
+                                             _description,
+                                             _call,
+                                             _wrap);
+
+    // it sums its values
+    if (option != NULL)
+    {
+        d_arg_option_set_multi_option_policy(option,
+                                             (int)D_ARG_MULTI_SUM);
+    }
+
+    return option;
+}
+
+/*
 d_arg_command_add_flag_function
   A flag summing its values and calling the function with the sum.
 */
@@ -1637,39 +1723,44 @@ d_arg_command_add_flag_function(
 )
 {
     const struct d_arg_internal_command_flag_call call = { _function,
+                                                           NULL,
                                                            _context,
                                                            _release };
 
-    // validate the parameters; the context goes either way
-    if ( (!_command) ||
-         (!_names)   ||
-         (!_function) )
-    {
-        if ( (_release != NULL) &&
-             (_context != NULL) )
-        {
-            _release(_context);
-        }
+    return d_arg_internal_command_add_flag_sum(
+               _command,
+               _names,
+               _description,
+               &call,
+               d_arg_internal_command_flag_count);
+}
 
-        return NULL;
-    }
+/*
+d_arg_command_add_flag_function_intmax
+  A flag summing its values and calling the function with the sum, read as
+CLI11 reads it.
+*/
+struct d_arg_option*
+d_arg_command_add_flag_function_intmax(
+    struct d_arg_command* _command,
+    const char*           _names,
+    d_arg_flag_intmax_fn  _function,
+    void*                 _context,
+    d_arg_release_fn      _release,
+    const char*           _description
+)
+{
+    const struct d_arg_internal_command_flag_call call = { NULL,
+                                                           _function,
+                                                           _context,
+                                                           _release };
 
-    struct d_arg_option* const option =
-        d_arg_internal_command_add_flag_call(
-            _command,
-            _names,
-            _description,
-            &call,
-            d_arg_internal_command_flag_count);
-
-    // it sums its values
-    if (option != NULL)
-    {
-        d_arg_option_set_multi_option_policy(option,
-                                             (int)D_ARG_MULTI_SUM);
-    }
-
-    return option;
+    return d_arg_internal_command_add_flag_sum(
+               _command,
+               _names,
+               _description,
+               &call,
+               d_arg_internal_command_flag_count_intmax);
 }
 
 //==============================================================================

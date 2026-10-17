@@ -21,7 +21,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -36,7 +36,7 @@ TABLE OF CONTENTS
     ----
     1.  Spans
          1.  d_arg_internal_trim
-         2.  d_arg_internal_equal_cstr / d_arg_internal_equal_nocase_cstr
+         2.  d_arg_internal_equal_cstr and kin
          3.  d_arg_internal_equal / d_arg_internal_names_match
          4.  d_arg_internal_valid_name
          5.  d_arg_internal_span / d_arg_internal_text_of
@@ -91,7 +91,7 @@ TABLE OF CONTENTS
     -----
     1.  Text and strings
          1.  d_arg_internal_text_push and kin
-         2.  d_arg_internal_string_adopt / d_arg_internal_string_copy
+         2.  d_arg_internal_string_adopt and kin
          3.  d_arg_internal_string_truncate
          4.  d_arg_internal_find_member
     2.  Records
@@ -185,8 +185,7 @@ TABLE OF CONTENTS
          4.  d_arg_internal_utf16_feed / d_arg_internal_utf16_finish
     4.  Suggestions
          1.  d_arg_internal_edit_distance
-         2.  d_arg_internal_suggest
-         3.  d_arg_internal_suggest_extras
+         2.  d_arg_internal_suggest_extras
     5.  The process
          1.  d_arg_internal_command_line
 10. HELP
@@ -371,13 +370,15 @@ d_arg_internal_valid_later_char(
 struct d_pack_text d_arg_internal_trim(struct d_pack_text _text);
 
 // 2.1.2
-// d_arg_internal_equal_cstr / d_arg_internal_equal_nocase_cstr
+// d_arg_internal_equal_cstr and kin
 //   predicates: whether a span holds exactly the NUL-terminated `_word`,
-// byte for byte, or with ASCII case folded. A NULL word equals nothing.
+// byte for byte, or with ASCII case folded -- a NULL word equals nothing --
+// and whether it is CLI11's is_separator: empty, or `%%`.
 bool               d_arg_internal_equal_cstr(struct d_pack_text _text,
                                              const char*        _word);
 bool               d_arg_internal_equal_nocase_cstr(struct d_pack_text _text,
                                                     const char*        _word);
+bool               d_arg_internal_is_separator(struct d_pack_text _text);
 
 // 2.1.3
 // d_arg_internal_equal / d_arg_internal_names_match
@@ -968,7 +969,18 @@ int    d_arg_internal_text_append(struct d_arg_text_list*       _list,
                                   size_t                        _count);
 
 // 6.1.2
-// d_arg_internal_string_adopt / d_arg_internal_string_copy
+// d_arg_internal_string_adopt and kin
+/**
+ * @brief Makes room in a string list for `_count` strings in all, so that
+ *        as many appends cannot fail for want of it -- or, past the last,
+ *        for the NULL that ends `argv`.
+ *
+ * @param[in,out] _list   the list.
+ * @param[in]     _count  the strings, in all, it is to have room for.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the list unchanged.
+ */
+int         d_arg_internal_string_reserve(struct d_arg_string_list* _list,
+                                          size_t                    _count);
 /**
  * @brief Appends a heap string to a string list, which then owns it.
  *
@@ -1758,16 +1770,20 @@ int  d_arg_internal_parse_resume(struct d_arg_parser* _parser);
 int  d_arg_internal_parse_name(struct d_arg_parser* _parser,
                                const char*          _name);
 /**
- * @brief Stacks words the parser's pool keeps -- a split line's, converted
- *        wide arguments -- from `_first` on, the first on top; then expands
- *        the response files, as the other entry points do.
+ * @brief Stacks words whose bytes the parser's pool keeps -- a split line's,
+ *        converted wide arguments -- from `_first` on, the first on top;
+ *        then expands the response files, as the other entry points do.
  *
  * @param[in,out] _parser  the parser.
- * @param[in]     _first   the index of the pool's first word to stack.
+ * @param[in]     _words   the words' spans, each to the length it was made
+ *                         with.
+ * @param[in]     _first   the index of the first word to stack; no more
+ *                         than `_words`' count.
  * @return D_ARG_OK, or a failure, recorded.
  */
-int  d_arg_internal_parse_words(struct d_arg_parser* _parser,
-                                size_t               _first);
+int  d_arg_internal_parse_words(struct d_arg_parser*          _parser,
+                                const struct d_arg_text_list* _words,
+                                size_t                        _first);
 
 // 8.2    Processing
 //------------------------------------------------------------------------------
@@ -1902,6 +1918,45 @@ int         d_arg_internal_split_up(struct d_pack_text        _text,
 int         d_arg_internal_split_step(struct d_pack_text* _rest,
                                       char                _delimiter,
                                       struct d_pack_text* _word);
+// d_arg_internal_words
+//   struct: where the words a split makes go: a copy of each into `strings`,
+// and, unless `spans` is NULL, the copy's span into `spans`, to the length
+// the word was made with -- so that a NUL byte within it stays the word's,
+// as CLI11's std::string keeps it, where a parse stacks the spans.
+struct d_arg_internal_words
+{
+    struct d_arg_string_list* strings;
+    struct d_arg_text_list*   spans;
+};
+/**
+ * @brief Stores one word where a split's words go. Defined in arg_argv.c.
+ *
+ * @param[in] _words  where the word goes.
+ * @param[in] _word   the word, NUL bytes and all.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY -- the copy kept when only
+ *         its span could not be, for the split's failure to cut back.
+ */
+int         d_arg_internal_words_add(const struct d_arg_internal_words* _words,
+                                     struct d_pack_text                 _word);
+/**
+ * @brief d_arg_split_line where a split's words go, their spans too.
+ *        Defined in arg_argv.c.
+ *
+ * @param[in]     _line     the text.
+ * @param[in]     _quoting  a d_arg_quoting value.
+ * @param[in]     _flags    D_ARG_SPLIT_* switches.
+ * @param[in]     _words    where the words go.
+ * @param[in,out] _error    receives a failure's description, appended; may
+ *                          be NULL.
+ * @post   on failure both lists are as they were.
+ * @return a status, as d_arg_split_line's; D_ARG_ERROR_BAD_ARGUMENT also
+ *         for NULL `_words` or `_words->strings`.
+ */
+int         d_arg_internal_split_words(struct d_pack_text                 _line,
+                                       int                                _quoting,
+                                       uint32_t                           _flags,
+                                       const struct d_arg_internal_words* _words,
+                                       struct d_arg_buffer*               _error);
 /**
  * @brief Whether a value is one of the four d_arg_quoting sets of rules.
  *        Defined in arg_argv.c.
@@ -1941,17 +1996,18 @@ int         d_arg_internal_close_sequence(struct d_pack_text _text,
  *       backquotes loses them alone; any other is kept as it is.
  *
  * @param[in]     _word   the word; not empty.
- * @param[in,out] _out    receives the word, appended.
+ * @param[in]     _out    where the word goes.
  * @param[in,out] _error  receives the description of a malformed escape,
  *                        appended; may be NULL.
- * @retval D_ARG_OK                   appended.
- * @retval D_ARG_ERROR_INVALID        a malformed escape, as CLI11's
- *                                    ParseError(InvalidError).
+ * @retval D_ARG_OK                   stored.
+ * @retval D_ARG_ERROR_INVALID        a malformed escape, which a parse and
+ *                                    the configuration reader report as
+ *                                    CLI11's ParseError, D_ARG_ERROR_PARSE.
  * @retval D_ARG_ERROR_OUT_OF_MEMORY  the word could not be stored.
  */
-int         d_arg_internal_remove_quotes(struct d_pack_text        _word,
-                                         struct d_arg_string_list* _out,
-                                         struct d_arg_buffer*      _error);
+int         d_arg_internal_remove_quotes(struct d_pack_text                 _word,
+                                         const struct d_arg_internal_words* _out,
+                                         struct d_arg_buffer*               _error);
 /**
  * @brief d_arg_internal_remove_quotes into a buffer, which keeps whatever
  *        bytes an escape resolves to, NUL among them. Defined in arg_argv.c.
@@ -2308,7 +2364,7 @@ int  d_arg_internal_utf16_finish(struct d_arg_internal_utf16* _state,
 
 // 9.4    Suggestions
 //------------------------------------------------------------------------------
-//   Defined in arg_suggest.c; the first two only with
+//   Defined in arg_suggest.c; the first only with
 // D_INTERNAL_ARG_PARSER_SUGGESTIONS.
 
 #if (D_INTERNAL_ARG_PARSER_SUGGESTIONS == 1)
@@ -2323,39 +2379,9 @@ size_t             d_arg_internal_edit_distance(struct d_pack_text _a,
                                                 struct d_pack_text _b,
                                                 size_t             _limit);
 
-// 9.4.2
-// d_arg_internal_suggest
-/**
- * @brief Writes the name an unexpected argument most likely meant.
- *
- * @note For `-x`, `--name` or `/name`, the short or long name of an option
- *       the command would have matched -- its own, its enabled option
- *       groups', and, with fallthrough, its parents' -- hidden ones left
- *       out, the name and value after `=` (or `:`) compared without its
- *       dashes or slash; for anything else, the name or alias of a
- *       subcommand it would have taken -- its own, its option groups', and,
- *       with subcommand fallthrough, its parents' -- disabled and hidden ones
- *       left out; and, either way, those of the commands the last parse used
- *       under it, where an argument they did not take may have meant one of
- *       theirs. Names are compared as their option or subcommand compares
- *       them, case or underscores ignored where it ignores them. Written as
- *       the user would type it -- with its dashes, or after a slash for a
- *       Windows-style argument -- only when one name is nearest, within
- *       D_INTERNAL_ARG_PARSER_SUGGESTION_DISTANCE edits, and not the
- *       argument itself.
- *
- * @param[in]     _command  the command that did not expect the argument.
- * @param[in]     _extra    the argument, with what it was taken to be.
- * @param[in,out] _out      receives the name, appended.
- * @return `true` when a name was written.
- */
-bool               d_arg_internal_suggest(const struct d_arg_command* _command,
-                                          const struct d_arg_extra*   _extra,
-                                          struct d_arg_buffer*        _out);
-
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
 
-// 9.4.3
+// 9.4.2
 // d_arg_internal_suggest_extras
 /**
  * @brief Adds suggestions to the message about unexpected arguments.
@@ -2363,7 +2389,9 @@ bool               d_arg_internal_suggest(const struct d_arg_command* _command,
  * @note With D_ARG_PARSER_SUGGESTIONS set on the command's parser, a line
  *       for each argument with a suggestion: "Did you mean '<name>'?" for a
  *       single argument, "Did you mean '<name>' for '<argument>'?" among
- *       several. Without D_INTERNAL_ARG_PARSER_SUGGESTIONS, nothing.
+ *       several. Without D_INTERNAL_ARG_PARSER_SUGGESTIONS, nothing. A line
+ *       that could not be written leaves the message's buffer failed, which
+ *       is how the caller learns of it.
  *
  * @param[in]     _command  the command that did not expect them.
  * @param[in]     _stack    the arguments as a stack, the first last, which
@@ -2372,10 +2400,8 @@ bool               d_arg_internal_suggest(const struct d_arg_command* _command,
  *                          to be, in order.
  * @param[in]     _count    how many arguments.
  * @param[in,out] _text     the message, appended to.
- * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the message's buffer
- *         has failed.
  */
-int     d_arg_internal_suggest_extras(const struct d_arg_command* _command,
+void    d_arg_internal_suggest_extras(const struct d_arg_command* _command,
                                       const struct d_pack_text*   _stack,
                                       const struct d_arg_extra*   _unused,
                                       size_t                      _count,

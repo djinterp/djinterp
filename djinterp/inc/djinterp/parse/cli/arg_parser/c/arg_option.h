@@ -24,7 +24,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_option.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 /*
@@ -608,9 +608,11 @@ int         d_arg_option_set_default_text(struct d_arg_option* _option,
  * @param[in,out] _option  the option.
  * @param[in]     _text    the default as text.
  * @retval D_ARG_OK                   set.
- * @retval D_ARG_ERROR_CONVERSION     the callback refused it: "<name>: given
- *                                    default value("<text>") produces an
- *                                    error : <reason>".
+ * @retval D_ARG_ERROR_CONVERSION     the callback refused it: "The value
+ *                                    <name> is not an allowed value for
+ *                                    given default value("<text>")
+ *                                    produces an error : <reason>", as
+ *                                    CLI11 words it.
  * @retval D_ARG_ERROR_VALIDATION     a validator refused it.
  * @retval D_ARG_ERROR_OUT_OF_MEMORY  a copy could not be made.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   an argument is NULL.
@@ -758,10 +760,11 @@ int         d_arg_option_each(struct d_arg_option* _option,
 
 // 4.7.4
 // d_arg_option_validator / d_arg_option_validator_at
-//   lookups: CLI11's get_validator(name) -- the validator so named, or the
-// first when the name is NULL or empty and there is one -- and
-// get_validator(index). NULL when there is none, which CLI11 throws as
-// OptionNotFound; the validator stays the option's.
+//   lookups: CLI11's get_validator(name) -- the first validator so named, a
+// NULL or empty name matching an unnamed one, else, for a NULL or empty
+// name, the first validator -- and get_validator(index). NULL when there is
+// none, which CLI11 throws as OptionNotFound; the validator stays the
+// option's.
 struct d_arg_validator* d_arg_option_validator(struct d_arg_option* _option,
                                                const char*          _name);
 struct d_arg_validator* d_arg_option_validator_at(struct d_arg_option* _option,

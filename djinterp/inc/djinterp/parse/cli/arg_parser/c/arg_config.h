@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_config.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 
 /*
@@ -397,8 +397,8 @@ int  d_arg_config_to_flag_default(const struct d_arg_config_format* _format,
  * @param[in,out] _out     receives the items, appended.
  * @param[in,out] _error   receives the description of a failure, appended.
  * @retval D_ARG_OK                   read.
- * @retval D_ARG_ERROR_INVALID        a quote or an escape is malformed, as
- *                                    CLI11's ParseError(InvalidError).
+ * @retval D_ARG_ERROR_PARSE          an escape is malformed: CLI11's
+ *                                    ParseError.
  * @retval D_ARG_ERROR_OUT_OF_MEMORY  an item could not be stored; the items
  *                                    read before it stay.
  * @retval D_ARG_ERROR_BAD_ARGUMENT   an argument is NULL.

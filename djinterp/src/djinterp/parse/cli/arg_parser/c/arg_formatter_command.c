@@ -16,7 +16,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_formatter_command.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_formatter.h"  // corresponding header
 // std
@@ -71,12 +71,11 @@ d_arg_internal_help_requirement(
     struct d_arg_buffer*        _out
 )
 {
-    const size_t low    = _command->require_option_min;
-    const size_t high   = _command->require_option_max;
-    const bool   range  = ( (low > 0u)   &&
-                            (high > 0u)  &&
-                            (high != low) );
-    int          status = D_ARG_OK;
+    const size_t low   = _command->require_option_min;
+    const size_t high  = _command->require_option_max;
+    const bool   range = ( (low > 0u)   &&
+                           (high > 0u)  &&
+                           (high != low) );
 
     // no requirement, no sentence
     if ( (low == 0u) &&
@@ -85,14 +84,15 @@ d_arg_internal_help_requirement(
         return D_ARG_OK;
     }
 
-    status = d_arg_buffer_append_cstr(_out,
-                                      (low == 0u)
-                                      ? " \n[At most "
-                                      : (high == low)
-                                        ? " \n[Exactly "
-                                        : (range)
-                                          ? " \n[Between "
-                                          : " \n[At least ");
+    int status = d_arg_buffer_append_cstr(_out,
+                                          (low == 0u)
+                                          ? " \n[At most "
+                                          : (high == low)
+                                            ? " \n[Exactly "
+                                            : (range)
+                                              ? " \n[Between "
+                                              : " \n[At least ");
+
     status = (status == D_ARG_OK)
              ? d_arg_internal_help_unsigned(_out,
                                             (low == 0u) ? high : low)
@@ -310,7 +310,6 @@ d_arg_internal_help_usage_marker(
 {
     const bool optional = (_command->require_subcommand_min == 0u);
     bool       any      = false;
-    int        status   = D_ARG_OK;
 
     // whether a subcommand can be given
     for (size_t index = 0u; index < _command->subcommands.count; ++index)
@@ -329,8 +328,9 @@ d_arg_internal_help_usage_marker(
         return D_ARG_OK;
     }
 
-    status = d_arg_buffer_append_cstr(_out,
-                                      (optional) ? " [" : " ");
+    int status = d_arg_buffer_append_cstr(_out,
+                                          (optional) ? " [" : " ");
+
     status = (status == D_ARG_OK)
              ? d_arg_internal_help_label(
                    _formatter,
@@ -592,15 +592,15 @@ d_arg_internal_help_group_visit(
         (struct d_arg_internal_help_groups*)_context;
 
     struct d_arg_option_list chosen = D_ARG_LIST_INIT;
-    int                      status = D_ARG_OK;
 
     groups->group = _group;
-    status        = d_arg_internal_command_options_where(
-                        groups->command,
-                        true,
-                        d_arg_internal_help_in_group,
-                        groups,
-                        &chosen);
+
+    int status = d_arg_internal_command_options_where(
+                     groups->command,
+                     true,
+                     d_arg_internal_help_in_group,
+                     groups,
+                     &chosen);
 
     // shown when named and not empty
     if ( (status == D_ARG_OK) &&
@@ -1354,8 +1354,7 @@ d_arg_internal_help_group_name(
     struct d_arg_buffer*        _out
 )
 {
-    const char* group  = d_arg_command_group(_command);
-    int         status = D_ARG_OK;
+    const char* group = d_arg_command_group(_command);
 
     // only a nameless command with a parent
     if ( (d_arg_command_name(_command)[0] != '\0') ||
@@ -1366,8 +1365,8 @@ d_arg_internal_help_group_name(
         return D_ARG_OK;
     }
 
-    status = d_arg_buffer_append_cstr(_out,
-                                      group);
+    const int status = d_arg_buffer_append_cstr(_out,
+                                                group);
 
     return (status == D_ARG_OK)
            ? d_arg_buffer_append_char(_out,

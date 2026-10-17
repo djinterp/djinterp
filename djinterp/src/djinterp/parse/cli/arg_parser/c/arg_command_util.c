@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command_util.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -416,17 +416,16 @@ d_arg_command_deprecate_option(
     const char*          _replacement
 )
 {
-    const char* const replacement = (_replacement != NULL)
-                                    ? _replacement
-                                    : "";
-
     // validate the parameters
     if (!_option)
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
 
-    char* const context = d_arg_internal_copy_cstr(replacement);
+    const char* const replacement = (_replacement != NULL)
+                                    ? _replacement
+                                    : "";
+    char* const       context     = d_arg_internal_copy_cstr(replacement);
 
     // check if memory allocation was successful
     if (!context)
@@ -571,8 +570,6 @@ d_arg_command_retire_option(
     struct d_arg_option*  _option
 )
 {
-    struct d_arg_buffer names = D_ARG_BUFFER_INIT;
-
     // validate the parameters
     if ( (!_command) ||
          (!_option) )
@@ -589,9 +586,10 @@ d_arg_command_retire_option(
         d_arg_option_has_flag(_option,
                               D_ARG_OPTION_ALLOW_EXTRA_ARGS)
     };
-    const int status = d_arg_option_name(_option,
-                                         D_ARG_NAME_ALL,
-                                         &names);
+    struct d_arg_buffer names  = D_ARG_BUFFER_INIT;
+    const int           status = d_arg_option_name(_option,
+                                                   D_ARG_NAME_ALL,
+                                                   &names);
 
     // the names, written and tried
     if (status != D_ARG_OK)
@@ -604,14 +602,15 @@ d_arg_command_retire_option(
     else if (d_arg_internal_command_try_names(_command,
                                               d_arg_buffer_text(&names).data))
     {
-        struct d_arg_option* retired = NULL;
-
         (void)d_arg_command_remove_option(_command,
                                           _option);
-        retired = d_arg_command_add_option(
-                      _command,
-                      d_arg_buffer_text(&names).data,
-                      "option has been retired and has no effect");
+
+        struct d_arg_option* const retired =
+            d_arg_command_add_option(
+                _command,
+                d_arg_buffer_text(&names).data,
+                "option has been retired and has no effect");
+
         d_arg_buffer_release(&names);
 
         return ( (retired != NULL) &&

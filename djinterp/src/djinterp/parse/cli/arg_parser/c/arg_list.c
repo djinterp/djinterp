@@ -6,13 +6,14 @@
 *   One push, one search and one removal for each element type -- spans,
 * owned strings, option and command pointers, unused arguments, validators
 * -- each growing through d_arg_internal_grow, so that every list doubles
-* from the same small start and a refused allocation leaves it as it was.
+* from the same small start and a refused allocation leaves it as it was;
+* and, for spans and owned strings, a reserve of room ahead.
 *
 *
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_list.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -117,9 +118,45 @@ d_arg_internal_text_append(
 }
 
 /*
+d_arg_internal_string_reserve
+  Grows only when the request exceeds the capacity, as
+d_arg_internal_text_reserve does.
+*/
+int
+d_arg_internal_string_reserve(
+    struct d_arg_string_list* _list,
+    size_t                    _count
+)
+{
+    // there is room already
+    if (_count <= _list->capacity)
+    {
+        return D_ARG_OK;
+    }
+
+    size_t      capacity = 0u;
+    void* const items    = d_arg_internal_grow(_list->items,
+                                               _list->capacity,
+                                               _count,
+                                               sizeof(*_list->items),
+                                               &capacity);
+
+    // check if memory allocation was successful
+    if (!items)
+    {
+        return D_ARG_ERROR_OUT_OF_MEMORY;
+    }
+
+    _list->items    = (char**)items;
+    _list->capacity = capacity;
+
+    return D_ARG_OK;
+}
+
+/*
 d_arg_internal_string_adopt
-  Frees the string when it cannot be kept, so a caller's every path past
-this call is free of the string.
+  A reserve of one more, then the string; the string freed when it cannot
+be kept, so a caller's every path past this call is free of it.
 */
 int
 d_arg_internal_string_adopt(
@@ -133,26 +170,15 @@ d_arg_internal_string_adopt(
         return D_ARG_ERROR_OUT_OF_MEMORY;
     }
 
-    // grow when full
-    if (_list->count == _list->capacity)
+    const int status = d_arg_internal_string_reserve(_list,
+                                                     _list->count + 1u);
+
+    // the list could not grow
+    if (status != D_ARG_OK)
     {
-        size_t      capacity = 0u;
-        void* const items    = d_arg_internal_grow(_list->items,
-                                                   _list->capacity,
-                                                   _list->count + 1u,
-                                                   sizeof(*_list->items),
-                                                   &capacity);
+        free(_string);
 
-        // check if memory allocation was successful
-        if (!items)
-        {
-            free(_string);
-
-            return D_ARG_ERROR_OUT_OF_MEMORY;
-        }
-
-        _list->items    = (char**)items;
-        _list->capacity = capacity;
+        return status;
     }
 
     _list->items[_list->count] = _string;

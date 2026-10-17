@@ -35,7 +35,7 @@
 # path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-#                                                            revised: 2026.10.13
+#                                                            revised: 2026.10.16
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -287,6 +287,15 @@ foreach(_level IN LISTS DJINTERP_ARG_PARSER_C_LEVELS)
         "${_tests}/c/arg_validator_member_tests.c"
         "${_tests}/c/arg_validator_unit_tests.c"
         "${_tests}/c/arg_validator_path_tests.c"
+        "${_tests}/c/arg_option_tests.c"
+        "${_tests}/c/arg_command_tests.c"
+        "${_tests}/c/arg_formatter_tests.c"
+        "${_tests}/c/arg_parse_tests.c"
+        "${_tests}/c/arg_process_tests.c"
+        "${_tests}/c/arg_config_tests.c"
+        "${_tests}/c/arg_argv_tests.c"
+        "${_tests}/c/arg_parser_tests.c"
+        "${_tests}/c/arg_suggest_tests.c"
         "${_tests}/c/arg_smoke_tests.c"
         "${CMAKE_CURRENT_LIST_DIR}/arg_parser_c_tests_runner.c")
 

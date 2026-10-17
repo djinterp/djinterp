@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command_set.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -61,19 +61,18 @@ d_arg_command_set_name(
     const char*           _name
 )
 {
-    const bool given = ( (_name != NULL) &&
-                         (_name[0] != '\0') );
-
     // validate the parameters
     if (!_command)
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
 
-    char* const name = given
-                       ? d_arg_internal_copy_cstr(_name)
-                       : NULL;
-    char* const old  = _command->name;
+    const bool  given = ( (_name != NULL) &&
+                          (_name[0] != '\0') );
+    char* const name  = given
+                        ? d_arg_internal_copy_cstr(_name)
+                        : NULL;
+    char* const old   = _command->name;
 
     // check if memory allocation was successful
     if ( (given) &&

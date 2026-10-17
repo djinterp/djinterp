@@ -3,14 +3,21 @@
 *
 * The runs the argument parser's C suites share, declared in
 * arg_tests_support.h: a parser made as the module was checked against
-* CLI11, the report of a parse in the probes' transcript form, and the
-* comparison that prints what differed.
+* CLI11, the report of a parse in the probes' transcript form, the
+* comparison that prints what differed, and the case tables written over
+* them, whose files are made in the scratch directories of
+* arg_tests_files.h.
+*   Setting an environment variable is the one thing here the system is
+* asked: POSIX's setenv where the environment layer finds POSIX's file
+* status, which goes with it, and the Microsoft runtime's _putenv_s where it
+* finds Windows. Needs POSIX.1-2008 where the C library hides setenv in a
+* strict ISO mode, which the ladders' _XOPEN_SOURCE=700 gives.
 *
 *
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_tests_support.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "./arg_tests_support.h"  // corresponding header
 // std
@@ -18,10 +25,13 @@
 #include <stdbool.h>  // bool, true, false
 #include <stddef.h>   // size_t, NULL
 #include <stdio.h>    // printf, vsnprintf
-#include <string.h>   // memchr, memcmp, strlen
+#include <stdlib.h>   // malloc, free, setenv, unsetenv, _putenv_s
+#include <string.h>   // memchr, memcmp, memcpy, strcspn, strlen
 // djinterp
 #include "../../../../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text
+#include "../../../../../../inc/djinterp/env/parse/cli/arg_parser/env_arg_parser.h"  // D_ENV_ARG_PARSER_STAT
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // the parser
+#include "./arg_tests_files.h"  // scratch directories, for a case's files
 // re_std
 #include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uintmax_t
 
@@ -90,34 +100,6 @@ d_tests_arg_quiet(
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
 
 /*
-d_tests_arg_report_status
-  The ERR line of a parse that did not come to D_ARG_OK: the status's name,
-the exit code and the message the parser recorded.
-*/
-static void
-d_tests_arg_report_status(
-    struct d_tests_arg_run* _run,
-    int                     _status
-)
-{
-    const struct d_arg_error* const error = d_arg_parser_error(&_run->parser);
-
-    // a parse that went on has no line
-    if (_status == (int)D_ARG_OK)
-    {
-        return;
-    }
-
-    (void)d_arg_buffer_printf(&_run->transcript,
-                              "ERR %s %d: %s\n",
-                              d_arg_status_name(_status),
-                              d_arg_error_exit_code(error),
-                              d_arg_error_message(error));
-
-    return;
-}
-
-/*
 d_tests_arg_report_command
   One `cmd` line: the uses, the arguments the command did not use, the
 subcommands it parsed, and its options in the order met.
@@ -141,8 +123,8 @@ d_tests_arg_report_command(
     {
         (void)d_arg_buffer_append_cstr(out,
                                        (index > 0u) ? "|" : "");
-        (void)d_arg_buffer_append_text(out,
-                                       command->missing.items[index].text);
+        d_tests_arg_escape(out,
+                           command->missing.items[index].text);
     }
 
     (void)d_arg_buffer_append_cstr(out,
@@ -183,7 +165,7 @@ d_tests_arg_report_command(
 /*
 d_tests_arg_report_option
   One `opt` line: how many values the option was given, and the values as
-given.
+given, escaped.
 */
 static void
 d_tests_arg_report_option(
@@ -208,8 +190,8 @@ d_tests_arg_report_option(
     {
         (void)d_arg_buffer_append_cstr(&_run->transcript,
                                        (index > 0u) ? "|" : "");
-        (void)d_arg_buffer_append_text(&_run->transcript,
-                                       results[index]);
+        d_tests_arg_escape(&_run->transcript,
+                           results[index]);
     }
 
     (void)d_arg_buffer_append_cstr(&_run->transcript,
@@ -280,6 +262,7 @@ d_tests_arg_begin(
 
     _run->command_count = 0u;
     _run->option_count  = 0u;
+    _run->kept_count    = 0u;
     _run->failed        = (status != (int)D_ARG_OK);
     d_arg_buffer_init(&_run->transcript);
     d_arg_buffer_init(&_run->out);
@@ -299,7 +282,8 @@ d_tests_arg_begin(
 
 /*
 d_tests_arg_end
-  The parser first, since its sinks write into the buffers.
+  The parser first, since its sinks write into the buffers and its values
+borrow the storage kept.
 */
 void
 d_tests_arg_end(
@@ -316,10 +300,53 @@ d_tests_arg_end(
     d_arg_buffer_release(&_run->transcript);
     d_arg_buffer_release(&_run->out);
     d_arg_buffer_release(&_run->err);
+
+    // each block kept for what the parses borrowed
+    for (size_t index = 0u; index < _run->kept_count; ++index)
+    {
+        free(_run->kept[index]);
+        _run->kept[index] = NULL;
+    }
+
     _run->command_count = 0u;
     _run->option_count  = 0u;
+    _run->kept_count    = 0u;
 
     return;
+}
+
+/*
+d_tests_arg_keep
+  A block of the run's, freed by d_tests_arg_end after the parser.
+*/
+void*
+d_tests_arg_keep(
+    struct d_tests_arg_run* _run,
+    size_t                  _size
+)
+{
+    // validate the parameters
+    if (!_run)
+    {
+        return NULL;
+    }
+
+    void* const block = (_run->kept_count < (size_t)D_TESTS_ARG_KEEP_MAX)
+                        ? malloc(_size)
+                        : NULL;
+
+    // a block that could not be had, or kept, fails the run
+    if (!block)
+    {
+        _run->failed = true;
+
+        return NULL;
+    }
+
+    _run->kept[_run->kept_count] = block;
+    _run->kept_count            += 1u;
+
+    return block;
 }
 
 /*
@@ -411,6 +438,160 @@ d_tests_arg_watch_all(
 }
 
 /*
+d_tests_arg_make_option
+  d_arg_command_add_option without a description, then watched.
+*/
+struct d_arg_option*
+d_tests_arg_make_option(
+    struct d_tests_arg_run* _run,
+    const char*             _label,
+    struct d_arg_command*   _command,
+    const char*             _names
+)
+{
+    return d_tests_arg_watch_option(_run,
+                                    _label,
+                                    d_arg_command_add_option(_command,
+                                                             _names,
+                                                             NULL));
+}
+
+/*
+d_tests_arg_make_all
+  d_arg_command_add_option without a description, then watched keeping
+every value.
+*/
+struct d_arg_option*
+d_tests_arg_make_all(
+    struct d_tests_arg_run* _run,
+    const char*             _label,
+    struct d_arg_command*   _command,
+    const char*             _names
+)
+{
+    return d_tests_arg_watch_all(_run,
+                                 _label,
+                                 d_arg_command_add_option(_command,
+                                                          _names,
+                                                          NULL));
+}
+
+/*
+d_tests_arg_make_flag
+  d_arg_command_add_flag without a description, then watched.
+*/
+struct d_arg_option*
+d_tests_arg_make_flag(
+    struct d_tests_arg_run* _run,
+    const char*             _label,
+    struct d_arg_command*   _command,
+    const char*             _names
+)
+{
+    return d_tests_arg_watch_option(_run,
+                                    _label,
+                                    d_arg_command_add_flag(_command,
+                                                           _names,
+                                                           NULL));
+}
+
+/*
+d_tests_arg_make_subcommand
+  d_arg_command_add_subcommand without a description, then watched under
+its name.
+*/
+struct d_arg_command*
+d_tests_arg_make_subcommand(
+    struct d_tests_arg_run* _run,
+    struct d_arg_command*   _parent,
+    const char*             _name
+)
+{
+    return d_tests_arg_watch_command(_run,
+                                     _name,
+                                     d_arg_command_add_subcommand(_parent,
+                                                                  _name,
+                                                                  NULL));
+}
+
+/*
+d_tests_arg_make_group
+  d_arg_command_add_option_group without a description, then watched under
+its name.
+*/
+struct d_arg_command*
+d_tests_arg_make_group(
+    struct d_tests_arg_run* _run,
+    struct d_arg_command*   _parent,
+    const char*             _name
+)
+{
+    return d_tests_arg_watch_command(_run,
+                                     _name,
+                                     d_arg_command_add_option_group(_parent,
+                                                                    _name,
+                                                                    NULL));
+}
+
+/*
+d_tests_arg_command_label
+  The first watch of the command, in the order named.
+*/
+const char*
+d_tests_arg_command_label(
+    const struct d_tests_arg_run* _run,
+    const struct d_arg_command*   _command
+)
+{
+    // validate the parameters
+    if (!_run)
+    {
+        return "?";
+    }
+
+    // each command watched
+    for (size_t index = 0u; index < _run->command_count; ++index)
+    {
+        // the command's watch
+        if (_run->commands[index].command == _command)
+        {
+            return _run->commands[index].label;
+        }
+    }
+
+    return "?";
+}
+
+/*
+d_tests_arg_option_label
+  The first watch of the option, in the order named.
+*/
+const char*
+d_tests_arg_option_label(
+    const struct d_tests_arg_run* _run,
+    const struct d_arg_option*    _option
+)
+{
+    // validate the parameters
+    if (!_run)
+    {
+        return "?";
+    }
+
+    // each option watched
+    for (size_t index = 0u; index < _run->option_count; ++index)
+    {
+        // the option's watch
+        if (_run->options[index].option == _option)
+        {
+            return _run->options[index].label;
+        }
+    }
+
+    return "?";
+}
+
+/*
 d_tests_arg_note
   Formatted into a line of NOTE_MAX bytes at most, then added with its
 newline.
@@ -461,12 +642,12 @@ d_tests_arg_note(
 }
 
 /*
-d_tests_arg_parse
+d_tests_arg_parse_quiet
   The arguments as spans over the caller's strings, which outlive the
-parse's values; then the report.
+parse's values, parsed without the program's name.
 */
 int
-d_tests_arg_parse(
+d_tests_arg_parse_quiet(
     struct d_tests_arg_run* _run,
     const char* const*      _args,
     size_t                  _count
@@ -496,10 +677,26 @@ d_tests_arg_parse(
         texts[index] = d_pack_text_from_cstr(_args[index]);
     }
 
-    const int status = d_arg_parser_parse_args(&_run->parser,
-                                               texts,
-                                               _count,
-                                               0u);
+    return d_arg_parser_parse_args(&_run->parser,
+                                   texts,
+                                   _count,
+                                   0u);
+}
+
+/*
+d_tests_arg_parse
+  The quiet parse, then its report; d_tests_arg_record ignores a NULL run.
+*/
+int
+d_tests_arg_parse(
+    struct d_tests_arg_run* _run,
+    const char* const*      _args,
+    size_t                  _count
+)
+{
+    const int status = d_tests_arg_parse_quiet(_run,
+                                               _args,
+                                               _count);
 
     d_tests_arg_record(_run,
                        status);
@@ -507,9 +704,127 @@ d_tests_arg_parse(
     return status;
 }
 
+/**
+ * @brief Counts the words of a text split at each space, as d_tests_arg_argv
+ *        splits it: one more than its spaces, none for an empty text.
+ *
+ * @param[in] _words  the text.
+ * @return how many words it holds.
+ */
+static size_t
+d_tests_arg_word_count(
+    const char* _words
+)
+{
+    size_t count = (_words[0] != '\0') ? 1u : 0u;
+
+    // one more after each space
+    for (const char* cursor = _words; *cursor != '\0'; ++cursor)
+    {
+        count += (*cursor == ' ') ? 1u : 0u;
+    }
+
+    return count;
+}
+
+/**
+ * @brief Splits a text where it lies, at each space, into its words: each
+ *        word ended where its space was.
+ *
+ * @param[out]    _words  receives a pointer to each word.
+ * @param[in,out] _text   the text, its spaces overwritten.
+ * @param[in]     _count  how many words it holds, as d_tests_arg_word_count
+ *                        counts them.
+ */
+static void
+d_tests_arg_split(
+    char** _words,
+    char*  _text,
+    size_t _count
+)
+{
+    char* cursor = _text;
+
+    // each word, ended where its space was
+    for (size_t index = 0u; index < _count; ++index)
+    {
+        char* const end = cursor + strcspn(cursor,
+                                           " ");
+
+        _words[index] = cursor;
+        cursor        = end + 1;
+        *end          = '\0';
+    }
+
+    return;
+}
+
+/*
+d_tests_arg_argv
+  One block the run keeps: the pointers, a NULL after the last, then the
+program's name and the words.
+*/
+char* const*
+d_tests_arg_argv(
+    struct d_tests_arg_run* _run,
+    const char*             _program,
+    const char*             _words,
+    int*                    _argc
+)
+{
+    // validate the parameters
+    if ( (!_run)   ||
+         (!_words) ||
+         (!_argc) )
+    {
+        return NULL;
+    }
+
+    const size_t named   = (_program != NULL) ? 1u : 0u;
+    const size_t program = (_program != NULL) ? (strlen(_program) + 1u) : 0u;
+    const size_t text    = strlen(_words) + 1u;
+    const size_t count   = named + d_tests_arg_word_count(_words);
+    const size_t bytes   = ((count + 1u) * sizeof(char*)) + program + text;
+    char** const argv    = (count <= (size_t)D_TESTS_ARG_ARGS_MAX)
+                           ? d_tests_arg_keep(_run,
+                                              bytes)
+                           : NULL;
+
+    // more arguments than a parse takes, or storage that could not be had,
+    // fail the run
+    if (!argv)
+    {
+        _run->failed = true;
+
+        return NULL;
+    }
+
+    char* const storage = (char*)(argv + count + 1u);
+
+    // the program's name, first
+    if (_program != NULL)
+    {
+        memcpy(storage,
+               _program,
+               program);
+        argv[0] = storage;
+    }
+
+    memcpy(storage + program,
+           _words,
+           text);
+    d_tests_arg_split(argv + named,
+                      storage + program,
+                      count - named);
+    argv[count] = NULL;
+    *_argc      = (int)count;
+
+    return argv;
+}
+
 /*
 d_tests_arg_record
-  The status, then each command named, then each option, in the order named.
+  The ERR line, then the lines of the report.
 */
 void
 d_tests_arg_record(
@@ -517,14 +832,59 @@ d_tests_arg_record(
     int                     _status
 )
 {
+    d_tests_arg_record_error(_run,
+                             _status);
+    d_tests_arg_report(_run);
+
+    return;
+}
+
+/*
+d_tests_arg_record_error
+  The ERR line of a parse that did not come to D_ARG_OK: the status's name,
+the exit code and the message the parser recorded, escaped.
+*/
+void
+d_tests_arg_record_error(
+    struct d_tests_arg_run* _run,
+    int                     _status
+)
+{
+    // validate the parameters; a parse that went on has no line
+    if ( (!_run) ||
+         (_status == (int)D_ARG_OK) )
+    {
+        return;
+    }
+
+    const struct d_arg_error* const error = d_arg_parser_error(&_run->parser);
+
+    (void)d_arg_buffer_printf(&_run->transcript,
+                              "ERR %s %d: ",
+                              d_arg_status_name(_status),
+                              d_arg_error_exit_code(error));
+    d_tests_arg_escape(&_run->transcript,
+                       d_pack_text_from_cstr(d_arg_error_message(error)));
+    (void)d_arg_buffer_append_char(&_run->transcript,
+                                   '\n');
+
+    return;
+}
+
+/*
+d_tests_arg_report
+  Each command named, then each option, in the order named.
+*/
+void
+d_tests_arg_report(
+    struct d_tests_arg_run* _run
+)
+{
     // validate the parameters
     if (!_run)
     {
         return;
     }
-
-    d_tests_arg_report_status(_run,
-                              _status);
 
     // each command
     for (size_t index = 0u; index < _run->command_count; ++index)
@@ -601,8 +961,404 @@ d_tests_arg_expect(
     return same;
 }
 
+/**
+ * @brief How many arguments a case gives: those before its first NULL.
+ *
+ * @param[in] _case  the case.
+ * @return the count, at most D_TESTS_ARG_CASE_ARGS.
+ */
+static size_t
+d_tests_arg_case_count(
+    const struct d_tests_arg_case* _case
+)
+{
+    size_t count = 0u;
+
+    // the arguments before the first NULL
+    while ( (count < (size_t)D_TESTS_ARG_CASE_ARGS) &&
+            (_case->args[count] != NULL) )
+    {
+        ++count;
+    }
+
+    return count;
+}
+
+/**
+ * @brief Appends a case's line: its tag, then its arguments in brackets,
+ *        separated by spaces, each escaped.
+ *
+ * @param[in,out] _out    the transcript.
+ * @param[in]     _case   the case.
+ * @param[in]     _count  how many arguments it gives.
+ */
+static void
+d_tests_arg_case_line(
+    struct d_arg_buffer*           _out,
+    const struct d_tests_arg_case* _case,
+    size_t                         _count
+)
+{
+    (void)d_arg_buffer_printf(_out,
+                              "%s [",
+                              _case->tag);
+
+    // each argument, after a space when one comes before it
+    for (size_t index = 0u; index < _count; ++index)
+    {
+        (void)d_arg_buffer_append_cstr(_out,
+                                       (index > 0u) ? " " : "");
+        d_tests_arg_escape(_out,
+                           d_pack_text_from_cstr(_case->args[index]));
+    }
+
+    (void)d_arg_buffer_append_cstr(_out,
+                                   "]\n");
+
+    return;
+}
+
+/**
+ * @brief Sets a case's environment variables, or removes them.
+ *
+ * @param[in] _variables  the variables, ending at a NULL name; NULL for
+ *                        none.
+ * @param[in] _set        whether they are set, rather than removed.
+ * @return whether each was set or removed.
+ */
+static bool
+d_tests_arg_case_variables(
+    const struct d_tests_arg_env_var* _variables,
+    bool                              _set
+)
+{
+    bool changed = true;
+
+    // each variable, until the NULL name
+    for (size_t index = 0u;
+         (_variables != NULL) && (_variables[index].name != NULL);
+         ++index)
+    {
+        changed = d_tests_arg_setenv(_variables[index].name,
+                                     (_set)
+                                     ? _variables[index].value
+                                     : NULL) && changed;
+    }
+
+    return changed;
+}
+
+/**
+ * @brief Makes the files a case parses with in a scratch directory, which
+ *        is the working directory until the case ends.
+ *
+ * @param[out] _scratch  receives the scratch directory; holds nothing for a
+ *                       case without files.
+ * @param[in]  _files    the files, ending at a NULL name; NULL for none.
+ * @return whether the directory and every file were made; `true` for no
+ *         files.
+ */
+static bool
+d_tests_arg_case_files(
+    struct d_tests_arg_files*      _scratch,
+    const struct d_tests_arg_file* _files
+)
+{
+    // no files: the working directory stays
+    if (!_files)
+    {
+        return true;
+    }
+
+    bool made = d_tests_arg_files_enter(_scratch);
+
+    // each file, until the NULL name
+    for (size_t index = 0u;
+         (made) && (_files[index].name != NULL);
+         ++index)
+    {
+        made = d_tests_arg_files_file(_scratch,
+                                      _files[index].name,
+                                      _files[index].content);
+    }
+
+    return made;
+}
+
+/**
+ * @brief Runs one case of a table on a run of its own and appends its line
+ *        and what its run's transcript came to.
+ *
+ * @param[in,out] _out   the table's transcript.
+ * @param[in]     _case  the case.
+ * @return whether the case ran: its root made, its watches, notes,
+ *         variables and files kept.
+ *
+ * The files are made first, then the definitions, before the line is
+ * written, as the reference programs make them before they print it; the
+ * variables are set only for the parse, so that a definition reads none of
+ * them.
+ */
+static bool
+d_tests_arg_case_run(
+    struct d_arg_buffer*           _out,
+    const struct d_tests_arg_case* _case
+)
+{
+    struct d_tests_arg_files    scratch = { 0 };
+    const bool                  made    = d_tests_arg_case_files(&scratch,
+                                                                 _case->files);
+    struct d_tests_arg_run      run     = { 0 };
+    struct d_arg_command* const app     = d_tests_arg_begin(&run);
+    const size_t                count   = d_tests_arg_case_count(_case);
+
+    // the definitions, on a root that was made
+    if (app != NULL)
+    {
+        _case->define(&run,
+                      app);
+    }
+
+    d_tests_arg_case_line(_out,
+                          _case,
+                          count);
+
+    const bool set = d_tests_arg_case_variables(_case->variables,
+                                                true);
+
+    (void)d_tests_arg_parse(&run,
+                            _case->args,
+                            count);
+
+    const bool unset = d_tests_arg_case_variables(_case->variables,
+                                                  false);
+    const bool held  = ( (made)                          &&
+                         (set)                           &&
+                         (unset)                         &&
+                         (!run.failed)                   &&
+                         (run.transcript.failed == 0) );
+
+    (void)d_arg_buffer_append_text(_out,
+                                   d_arg_buffer_text(&run.transcript));
+
+    // a case that did not run says so
+    if (!held)
+    {
+        printf("    %s: the case failed: a definition, a watch, a note, a "
+               "variable or a file\n",
+               _case->tag);
+    }
+
+    d_tests_arg_end(&run);
+    d_tests_arg_files_leave(&scratch);
+
+    return held;
+}
+
+/*
+d_tests_arg_cases
+  Every case runs, whatever the ones before it came to, so that a mismatch
+shows the whole transcript.
+*/
+bool
+d_tests_arg_cases(
+    const char*                    _name,
+    const struct d_tests_arg_case* _cases,
+    size_t                         _count,
+    const char*                    _expected
+)
+{
+    // validate the parameters
+    if ( (!_cases) &&
+         (_count > 0u) )
+    {
+        return false;
+    }
+
+    struct d_arg_buffer written = D_ARG_BUFFER_INIT;
+    bool                ran     = true;
+
+    // each case, on a run of its own
+    for (size_t index = 0u; index < _count; ++index)
+    {
+        ran = d_tests_arg_case_run(&written,
+                                   &_cases[index]) && ran;
+    }
+
+    const bool same = d_tests_arg_same(_name,
+                                       d_arg_buffer_text(&written),
+                                       _expected);
+    const bool kept = (written.failed == 0);
+
+    d_arg_buffer_release(&written);
+
+    return ( (same) &&
+             (ran)  &&
+             (kept) );
+}
+
+/**
+ * @brief Runs one case of a table of steps on a run of its own, and
+ *        appends what it wrote.
+ *
+ * @param[in,out] _out    the table's transcript.
+ * @param[in]     _step   the case.
+ * @param[in]     _index  its place in the table, from 0.
+ * @return whether the case ran: its run made, its watches, notes and
+ *         storage kept.
+ */
+static bool
+d_tests_arg_step_run(
+    struct d_arg_buffer*  _out,
+    d_tests_arg_define_fn _step,
+    size_t                _index
+)
+{
+    struct d_tests_arg_run      run = { 0 };
+    struct d_arg_command* const app = d_tests_arg_begin(&run);
+
+    // the case, on a root that was made
+    if (app != NULL)
+    {
+        _step(&run,
+              app);
+    }
+
+    (void)d_arg_buffer_append_text(_out,
+                                   d_arg_buffer_text(&run.transcript));
+
+    const bool held = ( (app != NULL)                &&
+                        (!run.failed)                &&
+                        (run.transcript.failed == 0) );
+
+    // a case that did not run says so
+    if (!held)
+    {
+        printf("    case %lu failed: its run, a definition, a watch, a note "
+               "or its storage\n",
+               (unsigned long)(_index + 1u));
+    }
+
+    d_tests_arg_end(&run);
+
+    return held;
+}
+
+/*
+d_tests_arg_steps
+  Every case runs, whatever the ones before it came to, so that a mismatch
+shows the whole transcript.
+*/
+bool
+d_tests_arg_steps(
+    const char*                  _name,
+    const d_tests_arg_define_fn* _steps,
+    size_t                       _count,
+    const char*                  _expected
+)
+{
+    // validate the parameters
+    if ( (!_steps) &&
+         (_count > 0u) )
+    {
+        return false;
+    }
+
+    struct d_arg_buffer written = D_ARG_BUFFER_INIT;
+    bool                ran     = true;
+
+    // each case, on a run of its own
+    for (size_t index = 0u; index < _count; ++index)
+    {
+        ran = d_tests_arg_step_run(&written,
+                                   _steps[index],
+                                   index) && ran;
+    }
+
+    const bool same = d_tests_arg_same(_name,
+                                       d_arg_buffer_text(&written),
+                                       _expected);
+    const bool kept = (written.failed == 0);
+
+    d_arg_buffer_release(&written);
+
+    return ( (same) &&
+             (ran)  &&
+             (kept) );
+}
+
+#if (D_ENV_ARG_PARSER_STAT == D_ENV_ARG_PARSER_STAT_POSIX)
+
+/*
+d_tests_arg_setenv
+  POSIX's setenv, overwriting, and unsetenv.
+*/
+bool
+d_tests_arg_setenv(
+    const char* _name,
+    const char* _value
+)
+{
+    // validate the parameters
+    if (!_name)
+    {
+        return false;
+    }
+
+    return (_value != NULL)
+           ? (setenv(_name,
+                     _value,
+                     1) == 0)
+           : (unsetenv(_name) == 0);
+}
+
+#elif (D_ENV_ARG_PARSER_STAT == D_ENV_ARG_PARSER_STAT_WINDOWS)
+
+/*
+d_tests_arg_setenv
+  The Microsoft runtime's _putenv_s, which the module's _dupenv_s reads
+back; an empty value is how it removes a variable, which is why a set value
+may not be empty.
+*/
+bool
+d_tests_arg_setenv(
+    const char* _name,
+    const char* _value
+)
+{
+    // validate the parameters
+    if (!_name)
+    {
+        return false;
+    }
+
+    return (_putenv_s(_name,
+                      (_value != NULL) ? _value : "") == 0);
+}
+
+#else
+
+/*
+d_tests_arg_setenv
+  A system whose environment the suites cannot change: nothing is set, and
+a case that needs a variable fails rather than parses without it.
+*/
+bool
+d_tests_arg_setenv(
+    const char* _name,
+    const char* _value
+)
+{
+    (void)_name;
+    (void)_value;
+
+    return false;
+}
+
+#endif  // D_ENV_ARG_PARSER_STAT
+
 //==============================================================================
-// 3.  COMPARING
+// 3.  TEXT
 //==============================================================================
 
 /*
@@ -640,19 +1396,20 @@ d_tests_arg_same(
     return same;
 }
 
-//==============================================================================
-// 4.  VALIDATORS
-//==============================================================================
-
-/*
-d_tests_arg_render
-  Appends text with each control character as its escape, so that a
-transcript line stays one line.
-*/
-void
-d_tests_arg_render(
+/**
+ * @brief Appends text with each control character as its escape -- `\\t`,
+ *        `\\n`, or `\\x` and two hexadecimal digits -- and, when asked, each
+ *        backslash as two.
+ *
+ * @param[in,out] _out        the transcript.
+ * @param[in]     _text       the text.
+ * @param[in]     _backslash  whether a backslash is doubled.
+ */
+static void
+d_tests_arg_write_escaped(
     struct d_arg_buffer* _out,
-    struct d_pack_text   _text
+    struct d_pack_text   _text,
+    bool                 _backslash
 )
 {
     // each byte
@@ -660,7 +1417,8 @@ d_tests_arg_render(
     {
         const unsigned char byte = (unsigned char)_text.data[index];
 
-        // a control character as its escape, anything else as itself
+        // a control character as its escape, a backslash doubled when
+        // asked, anything else as itself
         if (byte == '\t')
         {
             (void)d_arg_buffer_append_cstr(_out,
@@ -678,6 +1436,12 @@ d_tests_arg_render(
                                       "\\x%02x",
                                       (unsigned int)byte);
         }
+        else if ( (_backslash) &&
+                  (byte == '\\') )
+        {
+            (void)d_arg_buffer_append_cstr(_out,
+                                           "\\\\");
+        }
         else
         {
             (void)d_arg_buffer_append_char(_out,
@@ -687,6 +1451,45 @@ d_tests_arg_render(
 
     return;
 }
+
+/*
+d_tests_arg_render
+  Control characters escaped, so that a transcript line stays one line.
+*/
+void
+d_tests_arg_render(
+    struct d_arg_buffer* _out,
+    struct d_pack_text   _text
+)
+{
+    d_tests_arg_write_escaped(_out,
+                              _text,
+                              false);
+
+    return;
+}
+
+/*
+d_tests_arg_escape
+  Control characters escaped and backslashes doubled, so that the text can
+be read back.
+*/
+void
+d_tests_arg_escape(
+    struct d_arg_buffer* _out,
+    struct d_pack_text   _text
+)
+{
+    d_tests_arg_write_escaped(_out,
+                              _text,
+                              true);
+
+    return;
+}
+
+//==============================================================================
+// 4.  VALIDATORS
+//==============================================================================
 
 /*
 d_tests_arg_validation_line

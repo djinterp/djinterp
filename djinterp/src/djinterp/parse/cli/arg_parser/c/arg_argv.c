@@ -17,7 +17,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_argv.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_argv.h"  // corresponding header
 // std
@@ -97,7 +97,8 @@ d_arg_internal_close_quote(
 /*
 d_arg_internal_close_literal
   CLI11's close_literal_quote: the next `_closure` after `_start`, or the
-length.
+length. `_start` is the opening quote's position, within the text, so that
+the search -- of nothing, after a quote that is last -- stays within it.
 */
 D_STATIC size_t
 d_arg_internal_close_literal(
@@ -106,12 +107,10 @@ d_arg_internal_close_literal(
     char               _closure
 )
 {
-    const char* const found = ((_start + 1u) < _text.length)
-                              ? (const char*)memchr(
-                                    _text.data + _start + 1u,
-                                    (unsigned char)_closure,
-                                    _text.length - _start - 1u)
-                              : NULL;
+    const char* const found = (const char*)memchr(
+                                  _text.data + _start + 1u,
+                                  (unsigned char)_closure,
+                                  _text.length - _start - 1u);
 
     return (found != NULL)
            ? (size_t)(found - _text.data)
@@ -316,9 +315,11 @@ d_arg_internal_split_sequence(
                                                           follow) >= 0) );
     const size_t next   = end + (skip ? 2u : 1u);
 
+    // the byte taken after the closer is one the text holds: NUL, standing
+    // for none, is neither a split point nor an opener
     *_word  = d_arg_internal_span(_text.data,
                                   end + 1u);
-    *_taken = (next < _text.length) ? next : _text.length;
+    *_taken = next;
 
     return status;
 }
@@ -430,15 +431,40 @@ d_arg_internal_split_up(
 // 2.  THE WORD UNDER WAY
 //==============================================================================
 
+/*
+d_arg_internal_words_add
+  The copy first, then, where asked, its span, to the word's length; a span
+refused leaves the copy, which the split's failure cuts back.
+*/
+int
+d_arg_internal_words_add(
+    const struct d_arg_internal_words* _words,
+    struct d_pack_text                 _word
+)
+{
+    const char* copy   = NULL;
+    const int   status = d_arg_internal_string_copy(_words->strings,
+                                                    _word,
+                                                    &copy);
+
+    // the span, once the copy is kept
+    return ( (status == D_ARG_OK)        &&
+             (_words->spans != NULL) )
+           ? d_arg_internal_text_push(_words->spans,
+                                      d_arg_internal_span(copy,
+                                                          _word.length))
+           : status;
+}
+
 // d_arg_internal_split_word
-//   struct: what a split builds: the list the words go to, the bytes of the
-// one under way, and whether it has begun -- quotes with nothing between
-// them begin a word that holds no bytes.
+//   struct: what a split builds: where the words go, the bytes of the one
+// under way, and whether it has begun -- quotes with nothing between them
+// begin a word that holds no bytes.
 struct d_arg_internal_split_word
 {
-    struct d_arg_string_list* out;
-    struct d_arg_buffer       bytes;
-    bool                      begun;
+    const struct d_arg_internal_words* out;
+    struct d_arg_buffer                bytes;
+    bool                               begun;
 };
 
 /*
@@ -499,8 +525,8 @@ d_arg_internal_split_repeat(
 
 /*
 d_arg_internal_split_end
-  The word under way, once it has begun, copied into the list; the bytes
-then emptied for the next. A byte refused on the way is the failure.
+  The word under way, once it has begun, stored where the words go; the
+bytes then emptied for the next. A byte refused on the way is the failure.
 */
 D_STATIC int
 d_arg_internal_split_end(
@@ -515,9 +541,8 @@ d_arg_internal_split_end(
     if ( (status == D_ARG_OK) &&
          (_word->begun) )
     {
-        status = d_arg_internal_string_copy(_word->out,
-                                            d_arg_buffer_text(&_word->bytes),
-                                            NULL);
+        status = d_arg_internal_words_add(_word->out,
+                                          d_arg_buffer_text(&_word->bytes));
     }
 
     d_arg_buffer_clear(&_word->bytes);
@@ -548,7 +573,8 @@ d_arg_internal_split_refuse(
 
 /*
 d_arg_internal_split_find
-  The position of the first `_c` at or after `_from`, or the length.
+  The position of the first `_c` at or after `_from`, which is within the
+line or at its end, or the length.
 */
 D_STATIC size_t
 d_arg_internal_split_find(
@@ -557,11 +583,9 @@ d_arg_internal_split_find(
     char               _c
 )
 {
-    const char* const found = (_from < _line.length)
-                              ? (const char*)memchr(_line.data + _from,
-                                                    (unsigned char)_c,
-                                                    _line.length - _from)
-                              : NULL;
+    const char* const found = (const char*)memchr(_line.data + _from,
+                                                  (unsigned char)_c,
+                                                  _line.length - _from);
 
     return (found != NULL)
            ? (size_t)(found - _line.data)
@@ -1063,7 +1087,8 @@ d_arg_internal_split_windows(
 d_arg_internal_split_gnu_byte
   One byte of an argument by buildargv's rules, but a backslash: a quote
 opens when none is open, and closes the one it matches; any other byte is
-taken. Returns the quote open after it, or NUL.
+taken -- a NUL byte too, which the NUL standing for no quote must not
+close. Returns the quote open after it, or NUL.
 */
 D_STATIC char
 d_arg_internal_split_gnu_byte(
@@ -1080,8 +1105,9 @@ d_arg_internal_split_gnu_byte(
         return _c;
     }
 
-    // the quote closes
-    if (_c == _quote)
+    // the quote open closes
+    if ( (_quote != '\0') &&
+         (_c == _quote) )
     {
         return '\0';
     }
@@ -1332,22 +1358,21 @@ d_arg_internal_remove_quotes_text(
 
 /*
 d_arg_internal_remove_quotes
-  d_arg_internal_remove_quotes_text into a string list: a word that keeps
-its bytes copied straight in, a double-quoted one resolved first.
+  d_arg_internal_remove_quotes_text where the words go: a word that keeps
+its bytes stored straight away, a double-quoted one resolved first.
 */
 int
 d_arg_internal_remove_quotes(
-    struct d_pack_text        _word,
-    struct d_arg_string_list* _out,
-    struct d_arg_buffer*      _error
+    struct d_pack_text                 _word,
+    const struct d_arg_internal_words* _out,
+    struct d_arg_buffer*               _error
 )
 {
     // a single-quoted or plain word
     if (!d_arg_internal_quotes_double(_word))
     {
-        return d_arg_internal_string_copy(_out,
-                                          d_arg_internal_quotes_inner(_word),
-                                          NULL);
+        return d_arg_internal_words_add(_out,
+                                        d_arg_internal_quotes_inner(_word));
     }
 
     struct d_arg_buffer resolved = D_ARG_BUFFER_INIT;
@@ -1357,9 +1382,8 @@ d_arg_internal_remove_quotes(
                                        _error);
 
     status = (status == D_ARG_OK)
-             ? d_arg_internal_string_copy(_out,
-                                          d_arg_buffer_text(&resolved),
-                                          NULL)
+             ? d_arg_internal_words_add(_out,
+                                        d_arg_buffer_text(&resolved))
              : status;
     d_arg_buffer_release(&resolved);
 
@@ -1369,24 +1393,26 @@ d_arg_internal_remove_quotes(
 /*
 d_arg_internal_split_cli11
   CLI11's split of a command line in parse(string): the trimmed line's
-triggers rewritten -- `=`, and `:` for Windows-style options -- the line
-split up, empty pieces dropped, and each piece's quotes removed.
+triggers rewritten -- `=`, and `:` for Windows-style options -- then split
+up a piece at a time, each piece losing its quotes as it comes. The pieces
+stay spans of the line, so that a NUL byte in one is the piece's, as it is
+a std::string's: a copy would end the piece there before its quotes are
+found.
 */
 D_STATIC int
 d_arg_internal_split_cli11(
-    struct d_pack_text        _line,
-    uint32_t                  _flags,
-    struct d_arg_string_list* _out,
-    struct d_arg_buffer*      _error
+    struct d_pack_text                 _line,
+    uint32_t                           _flags,
+    const struct d_arg_internal_words* _out,
+    struct d_arg_buffer*               _error
 )
 {
-    struct d_arg_buffer      text   = D_ARG_BUFFER_INIT;
-    struct d_arg_string_list pieces = D_ARG_LIST_INIT;
-    int                      status = d_arg_buffer_append_text(
-                                          &text,
-                                          d_arg_internal_trim(_line));
+    struct d_arg_buffer text   = D_ARG_BUFFER_INIT;
+    int                 status = d_arg_buffer_append_text(
+                                     &text,
+                                     d_arg_internal_trim(_line));
 
-    // the triggers, then the pieces
+    // the triggers
     if (status == D_ARG_OK)
     {
         d_arg_internal_split_cli11_detect(&text,
@@ -1397,26 +1423,29 @@ d_arg_internal_split_cli11(
             d_arg_internal_split_cli11_detect(&text,
                                               ':');
         }
-
-        status = d_arg_internal_split_up(d_arg_buffer_text(&text),
-                                         '\0',
-                                         &pieces);
     }
 
-    // each piece but the empty, its quotes removed
-    for (size_t index = 0u;
-         (status == D_ARG_OK) && (index < pieces.count);
-         ++index)
+    struct d_pack_text rest = d_arg_buffer_text(&text);
+
+    // each piece, its quotes removed: none is empty, the rest being trimmed
+    // and a piece taking at least its first byte, so that CLI11's dropping
+    // of empty pieces drops nothing here
+    while ( (status == D_ARG_OK) &&
+            (rest.length > 0u) )
     {
-        status = (pieces.items[index][0] != '\0')
-                 ? d_arg_internal_remove_quotes(
-                       d_arg_internal_text_of(pieces.items[index]),
-                       _out,
-                       _error)
-                 : D_ARG_OK;
+        struct d_pack_text word = d_arg_internal_span(rest.data,
+                                                      0u);
+
+        status = d_arg_internal_split_step(&rest,
+                                           '\0',
+                                           &word);
+        status = (status == D_ARG_OK)
+                 ? d_arg_internal_remove_quotes(word,
+                                                _out,
+                                                _error)
+                 : status;
     }
 
-    d_arg_string_list_release(&pieces);
     d_arg_buffer_release(&text);
 
     return status;
@@ -1487,9 +1516,69 @@ d_arg_internal_split_by(
 }
 
 /*
+d_arg_internal_split_words
+  The words of a line by a set of rules, stored where they go; on failure
+both lists are cut back to what they held -- the spans borrow, so cutting
+them back is forgetting them.
+*/
+int
+d_arg_internal_split_words(
+    struct d_pack_text                 _line,
+    int                                _quoting,
+    uint32_t                           _flags,
+    const struct d_arg_internal_words* _words,
+    struct d_arg_buffer*               _error
+)
+{
+    // validate the parameters
+    if ( (!_words)                            ||
+         (!_words->strings)                   ||
+         ( (!_line.data) &&
+           (_line.length > 0u) )              ||
+         (!d_arg_internal_quoting_known(_quoting)) )
+    {
+        return D_ARG_ERROR_BAD_ARGUMENT;
+    }
+
+    const size_t                     before = _words->strings->count;
+    const size_t                     spans  = (_words->spans != NULL)
+                                              ? _words->spans->count
+                                              : 0u;
+    const struct d_pack_text         line   = (_line.data != NULL)
+                                              ? _line
+                                              : d_arg_internal_span("",
+                                                                    0u);
+    struct d_arg_internal_split_word word   = { _words,
+                                                D_ARG_BUFFER_INIT,
+                                                false };
+    const int                        status = d_arg_internal_split_by(
+                                                  line,
+                                                  _quoting,
+                                                  _flags,
+                                                  &word,
+                                                  _error);
+
+    // a failure leaves the lists as they were
+    if (status != D_ARG_OK)
+    {
+        d_arg_internal_string_truncate(_words->strings,
+                                       before);
+
+        if (_words->spans != NULL)
+        {
+            _words->spans->count = spans;
+        }
+    }
+
+    d_arg_buffer_release(&word.bytes);
+
+    return status;
+}
+
+/*
 d_arg_split_line
-  The words of a line by a set of rules, appended; on failure the list is cut
-back to what it held.
+  d_arg_internal_split_words into a string list alone, which validates the
+parameters.
 */
 int
 d_arg_split_line(
@@ -1500,40 +1589,14 @@ d_arg_split_line(
     struct d_arg_buffer*      _error
 )
 {
-    // validate the parameters
-    if ( (!_out)                              ||
-         ( (!_line.data) &&
-           (_line.length > 0u) )              ||
-         (!d_arg_internal_quoting_known(_quoting)) )
-    {
-        return D_ARG_ERROR_BAD_ARGUMENT;
-    }
+    const struct d_arg_internal_words words = { _out,
+                                                NULL };
 
-    const size_t                     before = _out->count;
-    const struct d_pack_text         line   = (_line.data != NULL)
-                                              ? _line
-                                              : d_arg_internal_span("",
-                                                                    0u);
-    struct d_arg_internal_split_word word   = { _out,
-                                                D_ARG_BUFFER_INIT,
-                                                false };
-    const int                        status = d_arg_internal_split_by(
-                                                  line,
-                                                  _quoting,
-                                                  _flags,
-                                                  &word,
-                                                  _error);
-
-    // a failure leaves the list as it was
-    if (status != D_ARG_OK)
-    {
-        d_arg_internal_string_truncate(_out,
-                                       before);
-    }
-
-    d_arg_buffer_release(&word.bytes);
-
-    return status;
+    return d_arg_internal_split_words(_line,
+                                      _quoting,
+                                      _flags,
+                                      &words,
+                                      _error);
 }
 
 //==============================================================================
@@ -1761,7 +1824,8 @@ d_arg_internal_quote_windows(
                                            _word.data[at]);
         }
 
-        at += (end) ? 0u : 1u;
+        // past the byte, or, after a run at the end, past the word
+        at++;
     }
 
     (void)d_arg_buffer_append_char(_out,

@@ -22,7 +22,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parse.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // corresponding header
 // std
@@ -39,6 +39,18 @@
 // re_std
 #include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
 
+
+//==============================================================================
+// FILE-LOCAL DEFINITIONS
+//==============================================================================
+
+// ONE_NOT_EXPECTED / MANY_NOT_EXPECTED
+//   constant: how CLI11's ExtrasError opens, for one argument and for
+// several.
+static const char ONE_NOT_EXPECTED[]  =
+    "The following argument was not expected:";
+static const char MANY_NOT_EXPECTED[] =
+    "The following arguments were not expected:";
 
 //==============================================================================
 // 1.  THE ARGUMENT STACK
@@ -473,28 +485,29 @@ d_arg_internal_parse_stack_args(
 
 /*
 d_arg_internal_parse_words
-  Words the parser's pool keeps, from `_first` on, onto the stack, the last
-first, as CLI11 reverses its vector; then the response files.
+  Words whose bytes the parser's pool keeps onto the stack, the last first,
+as CLI11 reverses its vector -- from `_first` on, which no caller gives past
+the words: a line stacks all of its, wmain's arguments all but the name --
+then the response files.
 */
 int
 d_arg_internal_parse_words(
-    struct d_arg_parser* _parser,
-    size_t               _first
+    struct d_arg_parser*          _parser,
+    const struct d_arg_text_list* _words,
+    size_t                        _first
 )
 {
-    const size_t count  = _parser->pool.count;
-    int          status = d_arg_internal_text_reserve(
-                              &_parser->pending,
-                              (count > _first) ? (count - _first) : 0u);
+    const size_t count  = _words->count;
+    int          status = d_arg_internal_text_reserve(&_parser->pending,
+                                                      count - _first);
 
     // the last word first
     for (size_t index = count;
          (status == D_ARG_OK) && (index > _first);
          --index)
     {
-        status = d_arg_internal_pending_push(
-                     _parser,
-                     d_arg_internal_text_of(_parser->pool.items[index - 1u]));
+        status = d_arg_internal_pending_push(_parser,
+                                             _words->items[index - 1u]);
     }
 
     // a refusal is the parse's failure
@@ -1174,19 +1187,17 @@ d_arg_internal_parse_extras_error(
 
     (void)d_arg_buffer_append_cstr(&text,
                                    (_count > 1u)
-                                   ? "The following arguments were not "
-                                     "expected:"
-                                   : "The following argument was not "
-                                     "expected:");
+                                   ? MANY_NOT_EXPECTED
+                                   : ONE_NOT_EXPECTED);
     d_arg_internal_parse_extras_join(&text,
                                      _stack,
                                      _unused,
                                      _count);
-    (void)d_arg_internal_suggest_extras(_command,
-                                        _stack,
-                                        _unused,
-                                        _count,
-                                        &text);
+    d_arg_internal_suggest_extras(_command,
+                                  _stack,
+                                  _unused,
+                                  _count,
+                                  &text);
 
     const int status = (text.failed == 0)
                        ? d_arg_internal_fail_text(_command,
@@ -1340,11 +1351,11 @@ d_arg_internal_parse_remaining(
         const int                        count   =
             (int)d_arg_option_count(option);
 
-        if ( (d_arg_option_is_positional(option))              &&
+        if ( (d_arg_option_is_positional(option))               &&
              ( (!_required) ||
                (d_arg_option_has_flag(option,
                                       D_ARG_OPTION_REQUIRED)) ) &&
-             (minimum > 0)                                     &&
+             (minimum > 0)                                      &&
              (count < minimum) )
         {
             total += (size_t)(minimum - count);

@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_config.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_config.h"  // corresponding header
 // std
@@ -220,14 +220,14 @@ d_arg_config_format_set_flag(
     bool                        _value
 )
 {
-    const uint32_t known = _flag & (D_ARG_CONFIG_COMMENT_DEFAULTS |
-                                    D_ARG_CONFIG_ALLOW_DUPLICATE_FIELDS);
-
     // validate the parameters
     if (!_format)
     {
         return;
     }
+
+    const uint32_t known = _flag & (D_ARG_CONFIG_COMMENT_DEFAULTS |
+                                    D_ARG_CONFIG_ALLOW_DUPLICATE_FIELDS);
 
     _format->flags = (_value)
                      ? (_format->flags | known)

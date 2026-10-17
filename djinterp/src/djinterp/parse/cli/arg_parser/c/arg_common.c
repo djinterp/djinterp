@@ -9,7 +9,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_common.h"  // corresponding header
 // std
@@ -59,6 +59,7 @@ static const char* const STATUS_NAMES[] =
     "HorribleError",          // D_ARG_ERROR_HORRIBLE
     "OptionNotFound",         // D_ARG_ERROR_OPTION_NOT_FOUND
     "ArgumentMismatch",       // D_ARG_ERROR_ARGUMENT_MISMATCH
+    "ParseError",             // D_ARG_ERROR_PARSE
     "OutOfMemory",            // D_ARG_ERROR_OUT_OF_MEMORY
     "BadArgument",            // D_ARG_ERROR_BAD_ARGUMENT
     "Unsupported"             // D_ARG_ERROR_UNSUPPORTED
@@ -96,6 +97,7 @@ static const int STATUS_EXIT_CODES[] =
     D_ARG_EXIT_HORRIBLE_ERROR,          // D_ARG_ERROR_HORRIBLE
     D_ARG_EXIT_OPTION_NOT_FOUND,        // D_ARG_ERROR_OPTION_NOT_FOUND
     D_ARG_EXIT_ARGUMENT_MISMATCH,       // D_ARG_ERROR_ARGUMENT_MISMATCH
+    D_ARG_EXIT_INVALID_ERROR,           // D_ARG_ERROR_PARSE
     D_ARG_EXIT_BASE_CLASS,              // D_ARG_ERROR_OUT_OF_MEMORY
     D_ARG_EXIT_BASE_CLASS,              // D_ARG_ERROR_BAD_ARGUMENT
     D_ARG_EXIT_BASE_CLASS               // D_ARG_ERROR_UNSUPPORTED
@@ -139,6 +141,7 @@ static const char* const STATUS_MESSAGES[] =
     "Horrible error",           // D_ARG_ERROR_HORRIBLE
     "Option not found",         // D_ARG_ERROR_OPTION_NOT_FOUND
     "Argument mismatch",        // D_ARG_ERROR_ARGUMENT_MISMATCH
+    "Parse error",              // D_ARG_ERROR_PARSE
     "Out of memory",            // D_ARG_ERROR_OUT_OF_MEMORY
     "Bad argument",             // D_ARG_ERROR_BAD_ARGUMENT
     "Unsupported"               // D_ARG_ERROR_UNSUPPORTED

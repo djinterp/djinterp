@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_option_result.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_option.h"  // corresponding header
 // std
@@ -21,7 +21,7 @@
 #include "../../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_common.h"  // buffers, lists, statuses
-#include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_type.h"  // d_arg_convert, d_arg_flag_value
+#include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_type.h"  // d_arg_convert, d_arg_flag_value_intmax
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_validator.h"  // d_arg_validator_describe
 #include "./arg_internal.h"  // spans, lists, failures, watches, numbers
 // re_std
@@ -126,7 +126,9 @@ d_arg_option_positional_name(
 /*
 d_arg_option_items_expected_min
   CLI11's type_size_min times expected_min, held at D_ARG_EXPECTED_UNLIMITED
-where the product would overflow, as the maximum is.
+where the product would overflow, as the maximum is. CLI11 checks only the
+maximum's product: its minimum overflows an `int` -- undefined behaviour,
+which its builds turn into 0 or a negative count -- where this one holds.
 */
 int
 d_arg_option_items_expected_min(
@@ -984,11 +986,12 @@ d_arg_internal_option_override(
 /*
 d_arg_internal_option_negated
   The text of a flag value's negation, worked out in uintmax_t where the
-value is negative, so that the most negative `long` negates too.
+value is negative, so that the most negative `long long` negates too: to
+its magnitude, where CLI11's std::to_string(-val) overflows.
 */
 D_STATIC int
 d_arg_internal_option_negated(
-    long                 _value,
+    intmax_t             _value,
     struct d_arg_buffer* _out
 )
 {
@@ -998,7 +1001,7 @@ d_arg_internal_option_negated(
     if (_value > 0)
     {
         d_arg_internal_text_signed(&text,
-                                   -(intmax_t)_value);
+                                   -_value);
     }
     else
     {
@@ -1015,7 +1018,8 @@ d_arg_internal_option_negated(
 d_arg_internal_option_invert
   An input to a name standing for "false", inverted as CLI11 inverts it: 1
 is "false", -1 is "true", any other flag value its negation; an input that
-is no flag value stands as given.
+is no flag value stands as given. The value is read over CLI11's whole
+range, which a `long` may not hold.
 */
 D_STATIC int
 d_arg_internal_option_invert(
@@ -1024,12 +1028,12 @@ d_arg_internal_option_invert(
     struct d_arg_buffer*       _out
 )
 {
-    long value = 0;
+    intmax_t value = 0;
 
     // an input that is no flag value stands
-    if (d_arg_flag_value(_input,
-                         _option->integer_rule,
-                         &value) != D_ARG_OK)
+    if (d_arg_flag_value_intmax(_input,
+                                _option->integer_rule,
+                                &value) != D_ARG_OK)
     {
         return d_arg_buffer_append_text(_out,
                                         _input);

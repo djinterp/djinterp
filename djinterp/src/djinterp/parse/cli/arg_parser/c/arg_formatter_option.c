@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_formatter_option.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_formatter.h"  // corresponding header
 // std
@@ -392,8 +392,7 @@ d_arg_internal_help_shown_default(
     struct d_arg_buffer*       _out
 )
 {
-    const char* text   = d_arg_option_default_text(_option);
-    int         status = D_ARG_OK;
+    const char* text = d_arg_option_default_text(_option);
 
     // no default, nothing shown
     if (text[0] == '\0')
@@ -401,8 +400,9 @@ d_arg_internal_help_shown_default(
         return D_ARG_OK;
     }
 
-    status = d_arg_buffer_append_cstr(_out,
-                                      " [");
+    int status = d_arg_buffer_append_cstr(_out,
+                                          " [");
+
     status = (status == D_ARG_OK)
              ? d_arg_buffer_append_cstr(_out,
                                         text)
@@ -536,8 +536,7 @@ d_arg_internal_help_environment(
     struct d_arg_buffer*          _out
 )
 {
-    const char* name   = d_arg_option_env_name(_option);
-    int         status = D_ARG_OK;
+    const char* name = d_arg_option_env_name(_option);
 
     // no variable, nothing shown
     if (name[0] == '\0')
@@ -545,8 +544,9 @@ d_arg_internal_help_environment(
         return D_ARG_OK;
     }
 
-    status = d_arg_buffer_append_cstr(_out,
-                                      " (");
+    int status = d_arg_buffer_append_cstr(_out,
+                                          " (");
+
     status = (status == D_ARG_OK)
              ? d_arg_internal_help_label(_formatter,
                                          "Env",
@@ -582,8 +582,7 @@ d_arg_format_option_opts_default(
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
 
-    const char* text   = d_arg_option_option_text(_option);
-    int         status = D_ARG_OK;
+    const char* text = d_arg_option_option_text(_option);
 
     // the option's own text stands for the rest
     if (text[0] != '\0')
@@ -593,11 +592,12 @@ d_arg_format_option_opts_default(
                                    text);
     }
 
-    status = (_option->type_size_min != 0)
-             ? d_arg_internal_help_valued(_formatter,
-                                          _option,
-                                          _out)
-             : D_ARG_OK;
+    int status = (_option->type_size_min != 0)
+                 ? d_arg_internal_help_valued(_formatter,
+                                              _option,
+                                              _out)
+                 : D_ARG_OK;
+
     status = (status == D_ARG_OK)
              ? d_arg_internal_help_environment(_formatter,
                                                _option,

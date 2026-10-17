@@ -9,7 +9,9 @@
 * wide lines, converted to UTF-8 first; and CLI11's ensure_utf8, which
 * recovers main's arguments from the process's wide command line, split by
 * the C runtime's rules. The words are the parser's pool's until the next
-* parse, and every parse here then runs as d_arg_parser_parse runs.
+* parse, each stacked whole -- a NUL byte an escape gives kept among its
+* bytes, as CLI11's std::string keeps it -- and every parse here then runs as
+* d_arg_parser_parse runs.
 *   Then CLI11's parse_from_stream: configuration text read with the root's
 * format and parsed as a configuration file's items are, adding to the
 * parse before it.
@@ -18,7 +20,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parse_text.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // corresponding header
 // std
@@ -42,26 +44,31 @@
 d_arg_internal_parse_text_split
   CLI11's split in parse(string) of what follows the program's name: into
 the parser's pool by CLI11's rules, `:` read as `=` where the root takes
-Windows-style options; a malformed escape recorded as CLI11's
-ParseError(InvalidError) words it.
+Windows-style options, each word's span after `_words`'s, to the length it
+was made with; a malformed escape -- the one text CLI11's rules refuse --
+recorded as CLI11's ParseError, in its words.
 */
 D_STATIC int
 d_arg_internal_parse_text_split(
-    struct d_arg_parser* _parser,
-    struct d_pack_text   _text
+    struct d_arg_parser*    _parser,
+    struct d_pack_text      _text,
+    struct d_arg_text_list* _words
 )
 {
-    struct d_arg_buffer error  = D_ARG_BUFFER_INIT;
-    const uint32_t      flags  = (d_arg_command_has_flag(
-                                      &_parser->command,
-                                      D_ARG_COMMAND_WINDOWS_STYLE))
-                                 ? D_ARG_SPLIT_WINDOWS_STYLE
-                                 : 0u;
-    int                 status = d_arg_split_line(_text,
-                                                  D_ARG_QUOTING_CLI11,
-                                                  flags,
-                                                  &_parser->pool,
-                                                  &error);
+    const struct d_arg_internal_words words  = { &_parser->pool,
+                                                 _words };
+    struct d_arg_buffer               error  = D_ARG_BUFFER_INIT;
+    const uint32_t                    flags  =
+        (d_arg_command_has_flag(&_parser->command,
+                                D_ARG_COMMAND_WINDOWS_STYLE))
+        ? D_ARG_SPLIT_WINDOWS_STYLE
+        : 0u;
+    int                               status = d_arg_internal_split_words(
+                                                   _text,
+                                                   D_ARG_QUOTING_CLI11,
+                                                   flags,
+                                                   &words,
+                                                   &error);
 
     // the escape CLI11 refuses, in its words; or a refused copy
     if ( (status == D_ARG_ERROR_INVALID) &&
@@ -69,7 +76,7 @@ d_arg_internal_parse_text_split(
     {
         status = d_arg_internal_fail(&_parser->command,
                                      NULL,
-                                     status,
+                                     D_ARG_ERROR_PARSE,
                                      "%s",
                                      error.data);
     }
@@ -88,7 +95,8 @@ d_arg_internal_parse_text_split(
 d_arg_internal_parse_text_line
   CLI11's parse(string) once the parse has begun: the program's name, when
 the line holds one, found as CLI11 finds it and naming the root; the rest
-split into the pool and stacked; the line trimmed otherwise.
+split into the pool and stacked, each word whole; the line trimmed
+otherwise.
 */
 D_STATIC int
 d_arg_internal_parse_text_line(
@@ -97,9 +105,10 @@ d_arg_internal_parse_text_line(
     bool                 _with_program_name
 )
 {
-    struct d_arg_buffer name   = D_ARG_BUFFER_INIT;
-    struct d_pack_text  rest   = d_arg_internal_trim(_line);
-    int                 status = D_ARG_OK;
+    struct d_arg_buffer    name   = D_ARG_BUFFER_INIT;
+    struct d_arg_text_list words  = D_ARG_LIST_INIT;
+    struct d_pack_text     rest   = d_arg_internal_trim(_line);
+    int                    status = D_ARG_OK;
 
     // the program's name, which names the root
     if (_with_program_name)
@@ -118,14 +127,18 @@ d_arg_internal_parse_text_line(
 
     status = (status == D_ARG_OK)
              ? d_arg_internal_parse_text_split(_parser,
-                                               rest)
+                                               rest,
+                                               &words)
              : status;
+    status = (status == D_ARG_OK)
+             ? d_arg_internal_parse_words(_parser,
+                                          &words,
+                                          0u)
+             : status;
+    d_arg_text_list_release(&words);
     d_arg_buffer_release(&name);
 
-    return (status == D_ARG_OK)
-           ? d_arg_internal_parse_words(_parser,
-                                        0u)
-           : status;
+    return status;
 }
 
 /*
@@ -173,18 +186,21 @@ d_arg_parser_parse_line(
 
 /*
 d_arg_internal_parse_text_wide
-  Wide arguments converted to UTF-8 into the parser's pool, in order; a
-refusal recorded.
+  Wide arguments converted to UTF-8 into the parser's pool, in order, each
+one's span after `_words`'s; a refusal recorded.
 */
 D_STATIC int
 d_arg_internal_parse_text_wide(
-    struct d_arg_parser* _parser,
-    int                  _argc,
-    wchar_t* const*      _argv
+    struct d_arg_parser*    _parser,
+    int                     _argc,
+    wchar_t* const*         _argv,
+    struct d_arg_text_list* _words
 )
 {
-    struct d_arg_buffer word   = D_ARG_BUFFER_INIT;
-    int                 status = D_ARG_OK;
+    const struct d_arg_internal_words words  = { &_parser->pool,
+                                                 _words };
+    struct d_arg_buffer               word   = D_ARG_BUFFER_INIT;
+    int                               status = D_ARG_OK;
 
     // each argument in turn
     for (int index = 0;
@@ -196,9 +212,8 @@ d_arg_internal_parse_text_wide(
                                       wcslen(_argv[index]),
                                       &word);
         status = (status == D_ARG_OK)
-                 ? d_arg_internal_string_copy(&_parser->pool,
-                                              d_arg_buffer_text(&word),
-                                              NULL)
+                 ? d_arg_internal_words_add(&words,
+                                            d_arg_buffer_text(&word))
                  : status;
     }
 
@@ -237,7 +252,8 @@ d_arg_parser_parse_wide(
         }
     }
 
-    int status = d_arg_internal_parse_begin(_parser);
+    struct d_arg_text_list words  = D_ARG_LIST_INIT;
+    int                    status = d_arg_internal_parse_begin(_parser);
 
     // the arguments converted, the first the name, the rest stacked
     if ( (status == D_ARG_OK) &&
@@ -245,16 +261,20 @@ d_arg_parser_parse_wide(
     {
         status = d_arg_internal_parse_text_wide(_parser,
                                                 _argc,
-                                                _argv);
+                                                _argv,
+                                                &words);
         status = (status == D_ARG_OK)
                  ? d_arg_internal_parse_name(_parser,
-                                             _parser->pool.items[0])
+                                             words.items[0].data)
                  : status;
         status = (status == D_ARG_OK)
                  ? d_arg_internal_parse_words(_parser,
+                                              &words,
                                               1u)
                  : status;
     }
+
+    d_arg_text_list_release(&words);
 
     return (status == D_ARG_OK)
            ? d_arg_internal_parse_run(_parser)
@@ -309,47 +329,12 @@ d_arg_parser_parse_line_wide(
 //==============================================================================
 
 /*
-d_arg_internal_parse_text_terminate
-  A list of words given the NULL after its last that `argv` has, its count
-unchanged; a refused growth is the failure.
-*/
-D_STATIC int
-d_arg_internal_parse_text_terminate(
-    struct d_arg_string_list* _words
-)
-{
-    // room for the NULL
-    if (_words->capacity <= _words->count)
-    {
-        size_t       capacity = 0u;
-        char** const grown    = (char**)d_arg_internal_grow(
-                                    _words->items,
-                                    _words->capacity,
-                                    _words->count + 1u,
-                                    sizeof(char*),
-                                    &capacity);
-
-        // check if memory allocation was successful
-        if (!grown)
-        {
-            return D_ARG_ERROR_OUT_OF_MEMORY;
-        }
-
-        _words->items    = grown;
-        _words->capacity = capacity;
-    }
-
-    _words->items[_words->count] = NULL;
-
-    return D_ARG_OK;
-}
-
-/*
 d_arg_parser_ensure_utf8
   CLI11's ensure_utf8: the process's wide command line split by the C
 runtime's rules, as the runtime made `argv` from it, kept by the parser and
-returned when it holds as many arguments as `argv` -- which it does not
-when the runtime expanded wildcards; `argv` where there is no such line.
+returned, a NULL after its last as `argv` has, when it holds as many
+arguments as `argv` -- which it does not when the runtime expanded
+wildcards; `argv` where there is no such line.
 */
 char**
 d_arg_parser_ensure_utf8(
@@ -378,16 +363,19 @@ d_arg_parser_ensure_utf8(
                                 &words,
                                 NULL)
              : status;
+    // room for the NULL after the last
     status = ( (status == D_ARG_OK) &&
                (words.count == count) )
-             ? d_arg_internal_parse_text_terminate(&words)
+             ? d_arg_internal_string_reserve(&words,
+                                             count + 1u)
              : status;
     d_arg_buffer_release(&line);
 
-    // the recovered arguments replace those kept before
+    // the recovered arguments, ending in NULL, replace those kept before
     if ( (status == D_ARG_OK) &&
          (words.count == count) )
     {
+        words.items[count] = NULL;
         d_arg_string_list_release(&_parser->utf8_argv);
         _parser->utf8_argv = words;
 

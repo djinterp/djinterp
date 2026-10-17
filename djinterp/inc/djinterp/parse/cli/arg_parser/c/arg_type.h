@@ -56,6 +56,7 @@ TABLE OF CONTENTS
     3.  Truth values
          1.  d_arg_parse_bool
          2.  d_arg_flag_value
+         3.  d_arg_flag_value_intmax
     4.  Through a descriptor
          1.  d_arg_convert / d_arg_format
     5.  Sums
@@ -402,7 +403,9 @@ int  d_arg_parse_bool(struct d_pack_text _text,
  *       integer is itself, read under `_rule`; the empty text is 0. As
  *       C23's strtoll reads it, which CLI11 reads it with, whitespace may
  *       come before an integer and nowhere else, a `0b` prefix is read, and
- *       neither digit separators nor a `0o` prefix are.
+ *       neither digit separators nor a `0o` prefix are. CLI11's numbers are
+ *       64 bits wide; where `long` is narrower, as on 64-bit Windows,
+ *       d_arg_flag_value_intmax reads them all.
  *
  * @param[in]  _text  the text.
  * @param[in]  _rule  a d_arg_integer_rule value.
@@ -415,6 +418,32 @@ int  d_arg_parse_bool(struct d_pack_text _text,
 int  d_arg_flag_value(struct d_pack_text _text,
                       int                _rule,
                       long*              _out);
+
+#if defined(INTMAX_MAX)
+
+// 2.3.3
+// d_arg_flag_value_intmax
+/**
+ * @brief Converts a flag's text to the number CLI11's to_flag_value gives,
+ *        as d_arg_flag_value, over the whole range CLI11 reads.
+ *
+ * @note An integer must fit a `long long`, which CLI11's strtoll reads it
+ *       into. Declared where dstdint.h declares intmax_t, as
+ *       d_arg_parse_intmax is.
+ *
+ * @param[in]  _text  the text.
+ * @param[in]  _rule  a d_arg_integer_rule value.
+ * @param[out] _out   receives the value on success.
+ * @retval D_ARG_OK                  converted.
+ * @retval D_ARG_ERROR_CONVERSION    not a flag value, or out of `long
+ *                                   long`'s range.
+ * @retval D_ARG_ERROR_BAD_ARGUMENT  `_out` is NULL.
+ */
+int  d_arg_flag_value_intmax(struct d_pack_text _text,
+                             int                _rule,
+                             intmax_t*          _out);
+
+#endif  // INTMAX_MAX
 
 // 2.4    Through a descriptor
 //------------------------------------------------------------------------------

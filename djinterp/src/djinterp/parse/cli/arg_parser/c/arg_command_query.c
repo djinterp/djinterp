@@ -11,7 +11,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command_query.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -262,8 +262,6 @@ d_arg_command_each_option(
     void*                 _context
 )
 {
-    struct d_arg_option_list list = D_ARG_LIST_INIT;
-
     // validate the parameters
     if ( (!_command) ||
          (!_visit) )
@@ -271,9 +269,10 @@ d_arg_command_each_option(
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
 
-    int status = d_arg_internal_command_options(_command,
-                                                false,
-                                                &list);
+    struct d_arg_option_list list   = D_ARG_LIST_INIT;
+    int                      status = d_arg_internal_command_options(_command,
+                                                                     false,
+                                                                     &list);
 
     // each option, until a visit stops
     for (size_t index = 0u;
@@ -328,14 +327,14 @@ d_arg_command_each_group(
     void*                       _context
 )
 {
-    int status = D_ARG_OK;
-
     // validate the parameters
     if ( (!_command) ||
          (!_visit) )
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
+
+    int status = D_ARG_OK;
 
     // each group the first time it is met
     for (size_t index = 0u;

@@ -23,7 +23,7 @@
 #include "./arg_type_tests.h"  // corresponding header
 // std
 #include <float.h>    // FLT_MAX, DBL_MAX
-#include <limits.h>   // ULONG_MAX, LONG_MAX
+#include <limits.h>   // ULONG_MAX, LONG_MAX, LLONG_MIN, LLONG_MAX
 #include <locale.h>   // setlocale, localeconv, LC_NUMERIC
 #include <math.h>     // isinf, isnan, signbit
 #include <stdbool.h>  // bool, true, false
@@ -540,6 +540,42 @@ static const struct d_tests_arg_type_long_row FLAG_ROWS[] =
     { "1,000",       false, 0L },
     { "1.5",         false, 0L },
     { "maybe",       false, 0L }
+};
+
+// d_tests_arg_type_wide_row
+//   struct: a text, and what a reader as wide as `long long` makes of it:
+// whether it converts, and to what.
+struct d_tests_arg_type_wide_row
+{
+    const char* text;
+    bool        converts;
+    long long   value;
+};
+
+// FLAG_WIDE_ROWS
+//   constant: d_arg_flag_value_intmax under the C rule, every row CLI11's
+// to_flag_value over the 64 bits it reads into: the limits, decimal and
+// hexadecimal, one past each, numbers past 32 bits, and the readings
+// d_arg_flag_value shares.
+static const struct d_tests_arg_type_wide_row FLAG_WIDE_ROWS[] =
+{
+    { "9223372036854775807",   true,  LLONG_MAX },
+    { "-9223372036854775808",  true,  LLONG_MIN },
+    { "0x7fffffffffffffff",    true,  LLONG_MAX },
+    { "-0x8000000000000000",   true,  LLONG_MIN },
+    { "4294967296",            true,  4294967296LL },
+    { "-2147483649",           true,  -2147483649LL },
+    { " 0x100000000",          true,  4294967296LL },
+    { "9223372036854775808",   false, 0LL },
+    { "-9223372036854775809",  false, 0LL },
+    { "0x8000000000000000",    false, 0LL },
+    { "",                      true,  0LL },
+    { "0",                     true,  -1LL },
+    { "7",                     true,  7LL },
+    { "yes",                   true,  1LL },
+    { "Disable",               true,  -1LL },
+    { "4294967296 ",           false, 0LL },
+    { "4_294_967_296",         false, 0LL }
 };
 
 // d_tests_arg_type_sum_row
@@ -1538,6 +1574,69 @@ d_tests_arg_type_flag_value(void)
     return held;
 }
 
+/*
+d_tests_arg_type_flag_value_intmax
+  d_arg_flag_value_intmax under the C rule, CLI11's to_flag_value over the
+64 bits it reads, and the `long` d_arg_flag_value narrows it to.
+  Tests the following:
+  - the 64-bit limits, decimal and hexadecimal, and one past each, refused
+    with the output untouched
+  - numbers past 32 bits, which a 32-bit `long` cannot hold
+  - the words, digits and spaces both readers read alike
+  - d_arg_flag_value reads a number past 32 bits as wide as the platform's
+    `long` is: where it is 32 bits, it refuses it
+*/
+bool
+d_tests_arg_type_flag_value_intmax(void)
+{
+    bool held = true;
+
+    // each row
+    for (size_t index = 0u;
+         index < sizeof(FLAG_WIDE_ROWS) / sizeof(FLAG_WIDE_ROWS[0]);
+         ++index)
+    {
+        const struct d_tests_arg_type_wide_row* const wide =
+            &FLAG_WIDE_ROWS[index];
+        intmax_t                                      value  = 999;
+        const int                                     status =
+            d_arg_flag_value_intmax(d_pack_text_from_cstr(wide->text),
+                                    D_ARG_INTEGER_C,
+                                    &value);
+        const bool                                    row    =
+            (wide->converts)
+            ? ( (status == D_ARG_OK) &&
+                (value == (intmax_t)wide->value) )
+            : ( (status == D_ARG_ERROR_CONVERSION) &&
+                (value == 999) );
+
+        // a row that did not hold is shown
+        if (!row)
+        {
+            printf("    [%s]: status %d, value %lld\n",
+                   wide->text,
+                   status,
+                   (long long)value);
+        }
+
+        held = ( (held) &&
+                 (row) );
+    }
+
+    long      narrow = 7L;
+    const int beyond = d_arg_flag_value(d_pack_text_from_cstr("4294967296"),
+                                        D_ARG_INTEGER_C,
+                                        &narrow);
+
+    // past 32 bits, as wide as the platform's `long` is
+    return ( (held) &&
+             ( (LONG_MAX > 2147483647L)
+               ? ( (beyond == D_ARG_OK) &&
+                   ((long long)narrow == 4294967296LL) )
+               : ( (beyond == D_ARG_ERROR_CONVERSION) &&
+                   (narrow == 7L) ) ) );
+}
+
 //==============================================================================
 // 2.4  THROUGH A DESCRIPTOR
 //==============================================================================
@@ -1949,6 +2048,8 @@ const struct d_tests_section d_tests_arg_type[] =
       d_tests_arg_type_bool },
     { "arg_type_flag_value",
       d_tests_arg_type_flag_value },
+    { "arg_type_flag_value_intmax",
+      d_tests_arg_type_flag_value_intmax },
     { "arg_type_empty_is_zero",
       d_tests_arg_type_empty_is_zero },
     { "arg_type_failure_keeps_target",

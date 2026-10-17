@@ -14,15 +14,24 @@
 * path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/arg_parser_c_tests_runner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
 #include <stdio.h>    // printf, fflush
 // djinterp
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_argv_tests.h"  // arguments from text
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_command_tests.h"  // commands
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_common_tests.h"  // the vocabulary
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_config_tests.h"  // configuration files
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_formatter_tests.h"  // help
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_option_tests.h"  // options
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_parse_tests.h"  // the parse
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_parser_tests.h"  // the parser itself
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_process_tests.h"  // its processing
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_smoke_tests.h"  // the C API end to end
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_suggest_tests.h"  // suggestions
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_type_tests.h"  // value types
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_validator_extra_tests.h"  // extra checks
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_validator_member_tests.h"  // sets and mappings
@@ -57,6 +66,15 @@ static const struct d_tests_arg_c_suite SUITES[] =
 #if (D_INTERNAL_ARG_PARSER_PATH_VALIDATORS == 1)
     { d_tests_arg_path,      &d_tests_arg_path_count      },
 #endif
+    { d_tests_arg_option,    &d_tests_arg_option_count    },
+    { d_tests_arg_command,   &d_tests_arg_command_count   },
+    { d_tests_arg_formatter, &d_tests_arg_formatter_count },
+    { d_tests_arg_parsing,   &d_tests_arg_parsing_count   },
+    { d_tests_arg_process,   &d_tests_arg_process_count   },
+    { d_tests_arg_config,    &d_tests_arg_config_count    },
+    { d_tests_arg_text,      &d_tests_arg_text_count      },
+    { d_tests_arg_parser,    &d_tests_arg_parser_count    },
+    { d_tests_arg_suggest,   &d_tests_arg_suggest_count   },
     { d_tests_arg_smoke,     &d_tests_arg_smoke_count     }
 };
 

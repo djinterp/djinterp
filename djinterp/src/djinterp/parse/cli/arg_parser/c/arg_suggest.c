@@ -8,12 +8,14 @@
 * that it needs no memory beyond three short rows on the stack and stops as
 * soon as a row has nothing within it. The name an unexpected argument most
 * likely meant: among the options the command would have matched for `-x`,
-* `--name` or `/name` -- its own, its option groups', and, with fallthrough,
-* its parents' -- or among the subcommands it would have taken for anything
-* else, the one nearest, when no other is as near; compared as the option or
-* subcommand compares names, case folded or underscores dropped when it
-* ignores them. And the lines the message about unexpected arguments gains,
-* "Did you mean '--verbose'?", when the parser asks for them.
+* `--name` or `/name` -- its own and its option groups' -- or among the
+* subcommands it would have taken for anything not starting with a dash --
+* its own, its option groups', and, with subcommand fallthrough, its
+* parents' -- and those of the commands the parse went on to, the one
+* nearest, when no other is as near; compared as the option or subcommand
+* compares names, case folded or underscores dropped when it ignores them.
+* And the lines the message about unexpected arguments gains, "Did you mean
+* '--verbose'?", when the parser asks for them.
 *   Without D_INTERNAL_ARG_PARSER_SUGGESTIONS the message gains nothing, and
 * only that step is compiled.
 *
@@ -21,7 +23,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_suggest.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -133,8 +135,8 @@ d_arg_internal_suggest_cell(
 /*
 d_arg_internal_suggest_row
   Row `_i` of the band: a cell outside the table is past the limit, and
-d[i][0] is i; returns the row's least cell, which the caller stops on when
-it passes the limit.
+d[i][0] is i -- in the band only for a row within the reach; returns the
+row's least cell, which the caller stops on when it passes the limit.
 */
 D_STATIC size_t
 d_arg_internal_suggest_row(
@@ -159,8 +161,7 @@ d_arg_internal_suggest_row(
         }
         else if ((_i + t) == reach)
         {
-            current[t] = d_arg_internal_suggest_least(_i,
-                                                      reach + 1u);
+            current[t] = _i;
         }
         else
         {
@@ -183,7 +184,10 @@ d_arg_internal_edit_distance
   Only the band of cells within the limit of the diagonal can hold a
 distance within it, so only that is computed, three rows of it at a time,
 row 0 being d[0][j] = j; the rows stop as soon as one has nothing within
-the limit, and lengths further apart than the limit stop at once.
+the limit, and lengths further apart than the limit stop at once. No cell
+of the table reads one outside it -- each neighbour of a cell inside lies
+inside, or in the first column, set apart -- so row 0 holds only the cells
+of the table, the others never read.
 */
 size_t
 d_arg_internal_edit_distance(
@@ -192,28 +196,28 @@ d_arg_internal_edit_distance(
     size_t             _limit
 )
 {
-    struct d_arg_internal_suggest_band band  = { 0u, { { 0u } } };
+    struct d_arg_internal_suggest_band band  =
+    {
+        d_arg_internal_suggest_least(_limit,
+                                     D_INTERNAL_ARG_SUGGEST_REACH),
+        { { 0u } }
+    };
     size_t                             least = 0u;
 
-    band.reach = d_arg_internal_suggest_least(_limit,
-                                              D_INTERNAL_ARG_SUGGEST_REACH);
-
     // lengths further apart than the limit
-    if ( ( (_a.length > _b.length) &&
-           ((_a.length - _b.length) > band.reach) ) ||
-         ( (_b.length > _a.length) &&
-           ((_b.length - _a.length) > band.reach) ) )
+    if ( (_a.length > (_b.length + band.reach)) ||
+         (_b.length > (_a.length + band.reach)) )
     {
         return band.reach + 1u;
     }
 
-    // row 0: as many insertions as columns
-    for (size_t t = 0u; t <= (2u * band.reach); ++t)
+    // row 0, d[0][j] = j: as many insertions as columns, as far as either
+    // the second text or the band reaches
+    for (size_t j = 0u;
+         (j <= _b.length) && (j <= band.reach);
+         ++j)
     {
-        band.cells[0][t] = ( (t < band.reach) ||
-                             ((t - band.reach) > _b.length) )
-                           ? (band.reach + 1u)
-                           : (t - band.reach);
+        band.cells[0][band.reach + j] = j;
     }
 
     // each later row, until one has nothing within the limit
@@ -234,24 +238,35 @@ d_arg_internal_edit_distance(
 // 2.  CANDIDATES
 //==============================================================================
 
+// d_arg_internal_suggest_target
+//   struct: what an unexpected argument names: its name -- without its dashes
+// or slash and value for an option's, the whole argument for a
+// subcommand's --; whether it names an option, else a subcommand; whether
+// candidates are written after a slash, as a Windows-style option is; and
+// whether it names anything at all.
+struct d_arg_internal_suggest_target
+{
+    struct d_pack_text name;
+    bool               option;
+    bool               slash;
+    bool               named;
+};
+
 // d_arg_internal_suggestion
-//   struct: a search for the nearest name: the argument's own name, as given
-// and without its dashes and value; how candidates are written (0 bare, a
-// subcommand's; 1 the argument's Windows-style slash; else dashes); the
-// nearest distance so far and whether another name is as near; the nearest
-// name, written; and scratch for a candidate written and for both names
-// folded.
+//   struct: a search for the nearest name: the argument as given, and what it
+// names; the nearest distance so far, and whether another name, written
+// differently, is as near; the nearest name, written; and scratch for a
+// candidate written and for both names folded.
 struct d_arg_internal_suggestion
 {
-    struct d_pack_text  given;
-    struct d_pack_text  name;
-    int                 form;
-    size_t              distance;
-    bool                tied;
-    struct d_arg_buffer best;
-    struct d_arg_buffer written;
-    struct d_arg_buffer left;
-    struct d_arg_buffer right;
+    struct d_pack_text                   given;
+    struct d_arg_internal_suggest_target target;
+    size_t                               distance;
+    bool                                 tied;
+    struct d_arg_buffer                  best;
+    struct d_arg_buffer                  written;
+    struct d_arg_buffer                  left;
+    struct d_arg_buffer                  right;
 };
 
 /*
@@ -290,9 +305,9 @@ d_arg_internal_suggest_fold(
 
 /*
 d_arg_internal_suggest_write
-  A candidate as the user would type it: bare for a subcommand; after the
-slash for a Windows-style argument; else with one dash for a short name and
-two for a long one.
+  A candidate as the user would type it: after the slash for a
+Windows-style argument; else after its dashes -- one for a short name, two
+for a long one, none for a subcommand's.
 */
 D_STATIC struct d_pack_text
 d_arg_internal_suggest_write(
@@ -303,13 +318,13 @@ d_arg_internal_suggest_write(
 {
     d_arg_buffer_clear(&_search->written);
 
-    // the prefix
-    if (_search->form == 1)
+    // the slash, or the dashes
+    if (_search->target.slash)
     {
         (void)d_arg_buffer_append_char(&_search->written,
                                        '/');
     }
-    else if (_search->form > 1)
+    else
     {
         (void)d_arg_buffer_append(&_search->written,
                                   "--",
@@ -346,7 +361,7 @@ d_arg_internal_suggest_consider(
                                               _candidate,
                                               _dashes);
     const struct d_pack_text left       = d_arg_internal_suggest_fold(
-                                              _search->name,
+                                              _search->target.name,
                                               fold_case,
                                               underscore,
                                               &_search->left);
@@ -366,7 +381,7 @@ d_arg_internal_suggest_consider(
     // the argument itself, too far to resemble it, or no nearer
     if ( (d_arg_internal_equal(written,
                                _search->given)) ||
-         ((2u * distance) > longer)              ||
+         ((2u * distance) > longer)             ||
          (distance > _search->distance) )
     {
         return;
@@ -456,15 +471,15 @@ d_arg_internal_suggest_option(
 
 /*
 d_arg_internal_suggest_options
-  The options a command matches: its own, its enabled option groups' -- not
-their parents again -- and, when it falls through, its fallthrough
-parent's, as CLI11's _parse_arg looks for them.
+  The options a command matches: its own, and its enabled option groups' --
+not their parents again. Never its parents': a command that falls through
+hands an option it does not know to its fallthrough parent, so the command
+an option is reported by never falls through.
 */
 D_STATIC void
 d_arg_internal_suggest_options(
     struct d_arg_internal_suggestion* _search,
-    const struct d_arg_command*       _command,
-    bool                              _upward
+    const struct d_arg_command*       _command
 )
 {
     // its own options
@@ -485,21 +500,8 @@ d_arg_internal_suggest_options(
                                       D_ARG_COMMAND_DISABLED)) )
         {
             d_arg_internal_suggest_options(_search,
-                                           sub,
-                                           false);
+                                           sub);
         }
-    }
-
-    // the parent it falls through to
-    if ( (_upward)                                      &&
-         (_command->parent != NULL)                     &&
-         (d_arg_command_has_flag(_command,
-                                 D_ARG_COMMAND_FALLTHROUGH)) )
-    {
-        d_arg_internal_suggest_options(
-            _search,
-            d_arg_internal_fallthrough_parent(_command),
-            true);
     }
 
     return;
@@ -552,15 +554,13 @@ d_arg_internal_suggest_command(
 
 /*
 d_arg_internal_suggest_commands
-  The subcommands a command takes: its own named ones, those of its option
-groups -- not their parents again -- and, when it lets subcommands fall
-through, its parent's.
+  The subcommands a command takes itself: its own named ones, and those of
+its option groups -- not their parents again.
 */
 D_STATIC void
 d_arg_internal_suggest_commands(
     struct d_arg_internal_suggestion* _search,
-    const struct d_arg_command*       _command,
-    bool                              _upward
+    const struct d_arg_command*       _command
 )
 {
     // each subcommand, an option group's in turn
@@ -572,8 +572,7 @@ d_arg_internal_suggest_commands(
         if (d_arg_command_name(sub)[0] == '\0')
         {
             d_arg_internal_suggest_commands(_search,
-                                            sub,
-                                            false);
+                                            sub);
         }
         else
         {
@@ -582,15 +581,31 @@ d_arg_internal_suggest_commands(
         }
     }
 
-    // the parent's, when subcommands fall through
-    if ( (_upward)                                              &&
-         (_command->parent != NULL)                             &&
-         (d_arg_command_has_flag(_command,
-                                 D_ARG_COMMAND_SUBCOMMAND_FALLTHROUGH)) )
+    return;
+}
+
+/*
+d_arg_internal_suggest_climb
+  The subcommands a command takes, then, while subcommands fall through,
+its parent's, and so on up, as CLI11's _valid_subcommand climbs to them.
+*/
+D_STATIC void
+d_arg_internal_suggest_climb(
+    struct d_arg_internal_suggestion* _search,
+    const struct d_arg_command*       _command
+)
+{
+    const struct d_arg_command* at = _command;
+
+    // the command, then each parent its subcommands fall through to
+    while (at != NULL)
     {
         d_arg_internal_suggest_commands(_search,
-                                        _command->parent,
-                                        true);
+                                        at);
+        at = (d_arg_command_has_flag(at,
+                                     D_ARG_COMMAND_SUBCOMMAND_FALLTHROUGH))
+             ? at->parent
+             : NULL;
     }
 
     return;
@@ -615,17 +630,15 @@ d_arg_internal_suggest_reached(
             _command->parsed_subcommands.items[index];
 
         // its options, or its subcommands
-        if (_search->form > 0)
+        if (_search->target.option)
         {
             d_arg_internal_suggest_options(_search,
-                                           sub,
-                                           false);
+                                           sub);
         }
         else
         {
             d_arg_internal_suggest_commands(_search,
-                                            sub,
-                                            false);
+                                            sub);
         }
 
         d_arg_internal_suggest_reached(_search,
@@ -640,63 +653,71 @@ d_arg_internal_suggest_reached(
 //==============================================================================
 
 /*
-d_arg_internal_suggest_bare
-  The name an argument gives an option, without its dashes or slash and
-without the value after `=` -- or, for a Windows-style one, `:` -- and the
-form candidates are written in: 1 for a slash, 2 for dashes; 0, with the
-whole argument, for a positional, which may be a subcommand's name; -1 for
-what names nothing: `--`, `++`, and a positional starting with a dash, such
-as a negative number.
+d_arg_internal_suggest_target
+  What an argument names: for `-x`, `--name` or `/name`, an option, by its
+name without the dashes or slash and without the value after `=` -- or,
+for a Windows-style one, `:` -- written after a slash for a slash; for
+anything else, a subcommand, by the whole argument, unless the argument is
+empty or starts with a dash, as `--` and a negative number do, when it
+names nothing.
 */
-D_STATIC int
-d_arg_internal_suggest_bare(
-    const struct d_arg_extra* _extra,
-    struct d_pack_text*       _name
+D_STATIC struct d_arg_internal_suggest_target
+d_arg_internal_suggest_target(
+    const struct d_arg_extra* _extra
 )
 {
     const struct d_pack_text text  = _extra->text;
     const int                kind  = _extra->classifier;
+    const bool               slash = (kind == (int)D_ARG_CLASS_WINDOWS_STYLE);
     const size_t             skip  = (kind == (int)D_ARG_CLASS_LONG)
                                      ? 2u
                                      : ( (kind == (int)D_ARG_CLASS_SHORT) ||
-                                         (kind ==
-                                          (int)D_ARG_CLASS_WINDOWS_STYLE) )
+                                         (slash) )
                                        ? 1u
                                        : 0u;
     size_t                   end   = skip;
 
-    *_name = text;
-
     // a subcommand's name -- which never starts with a dash -- or nothing
     if (skip == 0u)
     {
-        return ( ( (kind == (int)D_ARG_CLASS_NONE)       ||
-                   (kind == (int)D_ARG_CLASS_SUBCOMMAND) ) &&
-                 ( (text.length == 0u) ||
-                   (text.data[0] != '-') ) )
-               ? 0
-               : -1;
+        const struct d_arg_internal_suggest_target bare =
+        {
+            text,                       // name
+            false,                      // option
+            false,                      // slash
+            ( (text.length > 0u) &&
+              (text.data[0] != '-') )   // named
+        };
+
+        return bare;
     }
 
     // up to the value
-    while ( (end < text.length)                          &&
-            (text.data[end] != '=')                      &&
-            ( (kind != (int)D_ARG_CLASS_WINDOWS_STYLE) ||
+    while ( (end < text.length)          &&
+            (text.data[end] != '=')      &&
+            ( (!slash) ||
               (text.data[end] != ':') ) )
     {
         end++;
     }
 
-    *_name = d_arg_internal_span(text.data + skip,
-                                 (end > skip) ? end - skip : 0u);
+    const struct d_arg_internal_suggest_target option =
+    {
+        d_arg_internal_span(text.data + skip,
+                            end - skip),  // name
+        true,                             // option
+        slash,                            // slash
+        true                              // named
+    };
 
-    return (kind == (int)D_ARG_CLASS_WINDOWS_STYLE) ? 1 : 2;
+    return option;
 }
 
 /*
 d_arg_internal_suggest_search
-  Every candidate the argument's form calls for: an option's names, or a
-subcommand's; then those of the commands the parse went on to.
+  Every candidate the argument calls for: the options the command matches,
+or the subcommands it takes; then those of the commands the parse went on
+to under it.
 */
 D_STATIC void
 d_arg_internal_suggest_search(
@@ -705,55 +726,60 @@ d_arg_internal_suggest_search(
 )
 {
     // an option's name, or a subcommand's
-    if (_search->form > 0)
+    if (_search->target.option)
     {
         d_arg_internal_suggest_options(_search,
-                                       _command,
-                                       true);
-    }
-    else if (_search->form == 0)
-    {
-        d_arg_internal_suggest_commands(_search,
-                                        _command,
-                                        true);
-    }
-
-    // and the commands the parse went on to
-    if (_search->form >= 0)
-    {
-        d_arg_internal_suggest_reached(_search,
                                        _command);
     }
+    else
+    {
+        d_arg_internal_suggest_climb(_search,
+                                     _command);
+    }
+
+    d_arg_internal_suggest_reached(_search,
+                                   _command);
 
     return;
 }
 
-/*
-d_arg_internal_suggest
-  Every candidate considered, then the nearest written when it is near
-enough and alone -- and when no scratch ran out of memory, which could
-have hidden a nearer name; the scratch is freed before returning.
-*/
-bool
+/**
+ * @brief Writes the name an unexpected argument most likely meant.
+ *
+ * @note For `-x`, `--name` or `/name`, the short or long name of an option
+ *       the command would have matched -- its own and its enabled option
+ *       groups' -- hidden ones left out, the name and value after `=` (or
+ *       `:`) compared without its dashes or slash; for anything else not
+ *       starting with a dash, the name or alias of a subcommand it would
+ *       have taken -- its own, its option groups', and, with subcommand
+ *       fallthrough, its parents' -- disabled and hidden ones left out; and,
+ *       either way, those of the commands the last parse used under it,
+ *       where an argument they did not take may have meant one of theirs.
+ *       Names are compared as their option or subcommand compares them,
+ *       case or underscores ignored where it ignores them. Written as the
+ *       user would type it -- with its dashes, or after a slash for a
+ *       Windows-style argument -- only when one name is nearest, within
+ *       D_INTERNAL_ARG_PARSER_SUGGESTION_DISTANCE edits and half the longer
+ *       name, and is not the argument itself; and only when no scratch ran
+ *       out of memory, which could have hidden a nearer name. The scratch is
+ *       freed before returning.
+ *
+ * @param[in]     _command  the command that did not expect the argument.
+ * @param[in]     _extra    the argument, with what it was taken to be.
+ * @param[in,out] _out      receives the name, appended.
+ * @return `true` when a name was written.
+ */
+D_STATIC bool
 d_arg_internal_suggest(
     const struct d_arg_command* _command,
     const struct d_arg_extra*   _extra,
     struct d_arg_buffer*        _out
 )
 {
-    // validate the parameters
-    if ( (!_command) ||
-         (!_extra)   ||
-         (!_out) )
-    {
-        return false;
-    }
-
     struct d_arg_internal_suggestion search =
     {
         _extra->text,                                   // given
-        _extra->text,                                   // name
-        0,                                              // form
+        d_arg_internal_suggest_target(_extra),          // target
         D_INTERNAL_ARG_PARSER_SUGGESTION_DISTANCE + 1u, // distance
         false,                                          // tied
         D_ARG_BUFFER_INIT,                              // best
@@ -762,17 +788,19 @@ d_arg_internal_suggest(
         D_ARG_BUFFER_INIT                               // right
     };
 
-    search.form = d_arg_internal_suggest_bare(_extra,
-                                              &search.name);
-    d_arg_internal_suggest_search(&search,
-                                  _command);
+    // the candidates, when the argument names anything
+    if (search.target.named)
+    {
+        d_arg_internal_suggest_search(&search,
+                                      _command);
+    }
 
-    const bool found = ( (search.best.length > 0u)   &&
-                         (!search.tied)              &&
-                         (search.best.failed == 0)   &&
+    const bool found = ( (search.best.length > 0u)    &&
+                         (!search.tied)               &&
+                         (search.best.failed == 0)    &&
                          (search.written.failed == 0) &&
-                         (search.left.failed == 0)   &&
-                         (search.right.failed == 0)  &&
+                         (search.left.failed == 0)    &&
+                         (search.right.failed == 0)   &&
                          (d_arg_buffer_append_text(
                               _out,
                               d_arg_buffer_text(&search.best)) == D_ARG_OK) );
@@ -834,9 +862,11 @@ d_arg_internal_suggest_line(
 /*
 d_arg_internal_suggest_extras
   Each argument's line in turn. Arguments from the stack, which the parse
-has not classified, are classified as the command would take them.
+has not classified, are classified as the command would take them. A line
+that could not be written has failed the message's buffer, which the
+caller reads.
 */
-int
+void
 d_arg_internal_suggest_extras(
     const struct d_arg_command* _command,
     const struct d_pack_text*   _stack,
@@ -851,7 +881,7 @@ d_arg_internal_suggest_extras(
     if ( (_command->parser == NULL) ||
          ((_command->parser->flags & D_ARG_PARSER_SUGGESTIONS) == 0u) )
     {
-        return D_ARG_OK;
+        return;
     }
 
     // each argument in turn
@@ -879,9 +909,7 @@ d_arg_internal_suggest_extras(
 
     d_arg_buffer_release(&name);
 
-    return (_text->failed != 0)
-           ? D_ARG_ERROR_OUT_OF_MEMORY
-           : D_ARG_OK;
+    return;
 }
 
 #else
@@ -890,7 +918,7 @@ d_arg_internal_suggest_extras(
 d_arg_internal_suggest_extras
   Suggestions are not compiled: the message gains nothing.
 */
-int
+void
 d_arg_internal_suggest_extras(
     const struct d_arg_command* _command,
     const struct d_pack_text*   _stack,
@@ -905,7 +933,7 @@ d_arg_internal_suggest_extras(
     (void)_count;
     (void)_text;
 
-    return D_ARG_OK;
+    return;
 }
 
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS

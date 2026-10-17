@@ -691,13 +691,13 @@ static const char K_UNIT_OR[] =
     "[4 hours] -> status <hours unit not recognized. Allowed values: "
     "{b,kb,mb}>\n";
 
-// D_UFLT
+// DEPARTED_UFLT
 //   constant: CLI11's AsNumberWithUnit of std::map<std::string, float>
 // {{"x", 3.0f}}, run over FLOAT_UNITS. The product of `0.1 x` is written
 // as the `float` writes values, the shortest text that reads back as the
 // same number, `0.3`, where CLI11 writes every digit a `float` holds,
 // `0.300000012`. The two texts read back as the same `float`.
-static const char D_UFLT[] =
+static const char DEPARTED_UFLT[] =
     "desc <FLOAT [UNIT]>\n"
     "[0.1 x] -> pass <0.3>\n"
     "[1 x] -> pass <3>\n"
@@ -1393,7 +1393,7 @@ d_tests_arg_unit_departures(void)
 {
     static const struct d_arg_mapping THREE[] = { { "x", "3" } };
 
-    return d_tests_arg_holds("D_UFLT",
+    return d_tests_arg_holds("DEPARTED_UFLT",
                              d_tests_arg_unit_of(D_ARG_BUILTIN_FLOAT,
                                                  THREE,
                                                  1u,
@@ -1401,7 +1401,7 @@ d_tests_arg_unit_departures(void)
                                                  NULL),
                              FLOAT_UNITS,
                              sizeof(FLOAT_UNITS) / sizeof(FLOAT_UNITS[0]),
-                             D_UFLT);
+                             DEPARTED_UFLT);
 }
 
 //==============================================================================

@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_argv.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -108,8 +108,9 @@ D_EXTERN_C_BEGIN
  * @brief Splits a line of text into arguments.
  *
  * @note By `_quoting`. D_ARG_QUOTING_POSIX: a POSIX shell's words, without
- *       expansions or comments -- spaces, tabs and line feeds separate, as
- *       in the shells, other whitespace being ordinary; a backslash keeps
+ *       expansions, comments or operators -- `;`, `|`, `&`, `<`, `>` and
+ *       parentheses are ordinary -- spaces, tabs and line feeds separating,
+ *       as in the shells, other whitespace being ordinary; a backslash keeps
  *       the next character, removes a newline, and, last, is itself, as
  *       dash and bash read one; single quotes keep all up to the next;
  *       double quotes keep all but a backslash before `$`, a backquote,
@@ -131,8 +132,10 @@ D_EXTERN_C_BEGIN
  *       NATIVE and NATIVE_RESPONSE are the platform's choices.
  *
  * @param[in]     _line     the text; a NUL byte in it is an ordinary
- *                          character, though a word holding one reads, from
- *                          the list, as ending there.
+ *                          character, though a word holding one -- or one
+ *                          that CLI11's escapes `\\0` and `\\u0000` give --
+ *                          reads, from the list, as ending there, where
+ *                          d_arg_parser_parse_line keeps it whole.
  * @param[in]     _quoting  a d_arg_quoting value.
  * @param[in]     _flags    D_ARG_SPLIT_* switches; 0 for none.
  * @param[in,out] _out      receives the words, appended.
@@ -169,9 +172,9 @@ int     d_arg_split_line(struct d_pack_text        _line,
  *       double quotes for Windows, backslashes doubled before a `"` and at
  *       the end, each `"` escaped; in double quotes for CLI11, with CLI11's
  *       escapes, and a `=` or `:` that a quote would follow written
- *       `\\u003d` or `\\u003a`, where CLI11 would split the word; for GNU,
- *       each special character after a backslash. An empty word is an empty
- *       pair of quotes.
+ *       `\\u003d` or `\\u003a`, so that CLI11 cannot split the word there;
+ *       for GNU, each special character after a backslash. An empty word is
+ *       an empty pair of quotes.
  *
  * @param[in]     _word     the word.
  * @param[in]     _quoting  a d_arg_quoting value.
@@ -223,11 +226,17 @@ int     d_arg_split_program_name(struct d_pack_text   _line,
  *
  * @note The file is read whole -- its path taken as UTF-8 on Windows, or in
  *       the ANSI code page when it is not valid UTF-8 -- and split as
- *       d_arg_split_line splits it with D_ARG_SPLIT_LINE_BREAKS. A
- *       byte-order mark is honoured: UTF-8's is skipped, and a file starting
+ *       d_arg_split_line splits it with D_ARG_SPLIT_LINE_BREAKS, line
+ *       breaks parting words as the rules read them: by POSIX's, a carriage
+ *       return is an ordinary byte, as a shell reads one, so that a file with
+ *       Windows' line ends gives words ending in one. A byte-order mark is
+ *       honoured, whatever the rules: UTF-8's is skipped, and a file starting
  *       with UTF-16's, little- or big-endian, is read as UTF-16, as MSVC
- *       reads one, an unpaired surrogate becoming U+FFFD. A file of
- *       whitespace alone holds no arguments.
+ *       reads one, an unpaired surrogate -- or an odd byte left at the end --
+ *       becoming U+FFFD. A NUL byte is an ordinary character, as
+ *       d_arg_split_line reads one: a word holding one reads, from the
+ *       list, as ending there, where a parse reading the file keeps it whole
+ *       (d_arg_parser_set_response_files).
  *
  * @param[in]     _path     the file's path.
  * @param[in]     _quoting  a d_arg_quoting value.

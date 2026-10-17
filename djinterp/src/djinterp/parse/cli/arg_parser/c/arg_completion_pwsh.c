@@ -22,7 +22,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_completion_pwsh.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -699,7 +699,6 @@ d_arg_internal_complete_pwsh_text(
 )
 {
     bool   plain = true;
-    bool   open  = false;
     size_t size  = 1u;
 
     // whether one quoted run holds it
@@ -715,7 +714,8 @@ d_arg_internal_complete_pwsh_text(
 
     (void)d_arg_buffer_append_cstr(_out,
                                    (plain) ? " '" : " (''");
-    open = plain;
+
+    bool open = plain;
 
     // each character
     for (size_t at = 0u; at < _text.length; at += size)

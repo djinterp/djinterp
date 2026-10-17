@@ -19,7 +19,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_system.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -456,8 +456,6 @@ d_arg_internal_path_query(
     struct d_arg_internal_path_info* _info
 )
 {
-    struct _stat64 status = { 0 };
-
     // validate the parameters
     if (!_info)
     {
@@ -465,6 +463,8 @@ d_arg_internal_path_query(
     }
 
     *_info = PATH_NONE;
+
+    struct _stat64 status = { 0 };
 
     // a path that cannot be examined
     if ( (!_path) ||
@@ -499,8 +499,6 @@ d_arg_internal_path_query(
     struct d_arg_internal_path_info* _info
 )
 {
-    struct stat status = { 0 };
-
     // validate the parameters
     if (!_info)
     {
@@ -508,6 +506,8 @@ d_arg_internal_path_query(
     }
 
     *_info = PATH_NONE;
+
+    struct stat status = { 0 };
 
     // a path that cannot be examined
     if ( (!_path) ||
@@ -785,14 +785,14 @@ d_arg_internal_getenv(
     struct d_arg_buffer* _out
 )
 {
-    char*  value  = NULL;
-    size_t length = 0u;
-
     // validate the parameters
     if (!_out)
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
+
+    char*  value  = NULL;
+    size_t length = 0u;
 
     // unnamed, unset, or unreadable
     if ( (!_name)                            ||
@@ -824,15 +824,15 @@ d_arg_internal_getenv(
     struct d_arg_buffer* _out
 )
 {
-    const char* const value = (_name != NULL)
-                              ? getenv(_name)
-                              : NULL;
-
     // validate the parameters
     if (!_out)
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
+
+    const char* const value = (_name != NULL)
+                              ? getenv(_name)
+                              : NULL;
 
     return d_arg_buffer_append_cstr(_out,
                                     value);
@@ -858,15 +858,15 @@ d_arg_internal_command_line(
     struct d_arg_buffer* _out
 )
 {
-    const wchar_t* const        line   = GetCommandLineW();
-    struct d_arg_internal_utf16 state  = { 0u };
-    int                         status = D_ARG_OK;
-
     // validate the parameters
     if (!_out)
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
+
+    const wchar_t* const        line   = GetCommandLineW();
+    struct d_arg_internal_utf16 state  = { 0u };
+    int                         status = D_ARG_OK;
 
     // a process without one
     if (!line)
