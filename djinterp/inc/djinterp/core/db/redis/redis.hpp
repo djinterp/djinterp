@@ -1001,11 +1001,11 @@ public:
         return self().del_impl(_key);
     }
 
-    // key_exists
+    // has_key
     //   function: EXISTS <key>.
-    bool key_exists(const std::string& _key) const
+    bool has_key(const std::string& _key) const
     {
-        return self().key_exists_impl(_key);
+        return self().has_key_impl(_key);
     }
 
     // expire
@@ -1264,12 +1264,12 @@ public:
         return self().dbsize_impl();
     }
 
-    // select_db
+    // use_database
     //   function: SELECT <index> — switches the logical database.
-    void select_db(int _index)
+    void use_database(int _index)
     {
         this->ensure_connected();
-        self().select_db_impl(_index);
+        self().use_database_impl(_index);
     }
 
 
@@ -1502,7 +1502,7 @@ public:
     bool         set_impl(const std::string& _key,
                           const std::string& _value);
     re_std::int64_t del_impl(const std::string& _key);
-    bool         key_exists_impl(const std::string& _key) const;
+    bool         has_key_impl(const std::string& _key) const;
     bool         expire_impl(const std::string& _key,
                              re_std::int64_t       _seconds);
     re_std::int64_t ttl_impl(const std::string& _key) const;
@@ -1575,7 +1575,7 @@ public:
     std::string  info_impl() const;
     re_std::int64_t client_id_impl() const;
     re_std::int64_t dbsize_impl() const;
-    void         select_db_impl(int _index);
+    void         use_database_impl(int _index);
 
     // cluster
     std::string  cluster_info_impl() const;
@@ -1874,11 +1874,11 @@ using redis_del_t =
         std::declval<const std::string&>()));
 
 // redis_exists_t
-//   detector: key_exists(key) const method.
+//   detector: has_key(key) const method.
 // EXISTS <key>.
 template<typename Type>
 using redis_exists_t =
-    decltype(std::declval<const Type&>().key_exists(
+    decltype(std::declval<const Type&>().has_key(
         std::declval<const std::string&>()));
 
 // redis_expire_t
@@ -2129,12 +2129,12 @@ template<typename Type>
 using redis_dbsize_t =
     decltype(std::declval<const Type&>().dbsize());
 
-// redis_select_db_t
-//   detector: select_db(int) method.
+// redis_use_database_t
+//   detector: use_database(int) method.
 // SELECT <index> — switches the logical database (0–15 by default).
 template<typename Type>
-using redis_select_db_t =
-    decltype(std::declval<Type&>().select_db(
+using redis_use_database_t =
+    decltype(std::declval<Type&>().use_database(
         std::declval<int>()));
 
 
@@ -2306,7 +2306,7 @@ struct has_redis_scripting : djinterp::conjunction<
 
 // has_redis_key_ops
 //   trait: checks if type Type supports core key-space operations
-// (get + set + del + key_exists).
+// (get + set + del + has_key).
 template<typename Type>
 struct has_redis_key_ops : djinterp::conjunction<
     is_detected<redis_get_t, clean_t<Type>>,
@@ -2496,10 +2496,10 @@ struct has_redis_persistence : djinterp::conjunction<
 
 // has_redis_db_selection
 //   trait: checks if type Type supports logical database selection
-// (select_db).
+// (use_database).
 template<typename Type>
 struct has_redis_db_selection
-    : is_detected<redis_select_db_t, clean_t<Type>>
+    : is_detected<redis_use_database_t, clean_t<Type>>
 {
 };
 
@@ -2677,15 +2677,15 @@ template<typename Type>
 constexpr bool redis_can_cluster_query<Type,
     std::void_t<redis_cluster_info_t<Type>>> = true;
 
-// redis_can_select_db
-//   tagless trait: true if Type has select_db().
+// redis_can_use_database
+//   tagless trait: true if Type has use_database().
 template<typename Type,
          typename = void>
-constexpr bool redis_can_select_db = false;
+constexpr bool redis_can_use_database = false;
 
 template<typename Type>
-constexpr bool redis_can_select_db<Type,
-    std::void_t<redis_select_db_t<Type>>> = true;
+constexpr bool redis_can_use_database<Type,
+    std::void_t<redis_use_database_t<Type>>> = true;
 
 
 // -------------------------------------------------------------------------
@@ -3176,10 +3176,10 @@ concept redis_cluster_queryable_connection =
     redis_can_cluster_query<clean_t<Type>>;
 
 // redis_db_switch_connection
-//   concept: constrains types exposing select_db(index).
+//   concept: constrains types exposing use_database(index).
 template<typename Type>
 concept redis_db_switch_connection =
-    redis_can_select_db<clean_t<Type>>;
+    redis_can_use_database<clean_t<Type>>;
 
 
 // =============================================================================

@@ -35,7 +35,7 @@
 * table-based-but-not-relational vendors, this class is the strongest
 * candidate to migrate first; the public method names already mirror
 * the database_table<> surface (set_row / get_row / delete_row /
-* row_exists / refresh / commit / clear_table).
+* has_row / refresh / commit / clear_table).
 *
 * CAPABILITIES:
 *   - holds a cassandra_connection*, target keyspace, table name, and
@@ -43,7 +43,7 @@
 *     columns)
 *   - per-table default consistency level
 *   - row CRUD via the underlying connection (insert_row,
-*     select_rows, update_row, delete_row, row_exists)
+*     select_rows, update_row, delete_row, has_row)
 *   - field-level get/set helpers
 *   - lightweight transaction helpers (insert_if_not_exists,
 *     update_if, delete_if)
@@ -582,13 +582,13 @@ NS_DJINTERP
             return ok;
         }
 
-        // row_exists
+        // has_row
         //   function: SELECT-based existence check WHERE _key.
-        bool row_exists(const row& _key) const
+        bool has_row(const row& _key) const
         {
-            validate_connected("row_exists");
+            validate_connected("has_row");
 
-            return m_connection->row_exists(m_keyspace,
+            return m_connection->has_row(m_keyspace,
                                             m_table_name,
                                             _key);
         }

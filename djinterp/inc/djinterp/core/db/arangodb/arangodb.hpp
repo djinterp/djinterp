@@ -892,19 +892,19 @@ public:
         self().drop_collection_impl(_name);
     }
 
-    // collection_exists
+    // has_collection
     //   function: tests whether a collection exists.
-    bool collection_exists(const std::string& _name) const
+    bool has_collection(const std::string& _name) const
     {
-        return self().collection_exists_impl(_name);
+        return self().has_collection_impl(_name);
     }
 
-    // get_collection_names
+    // list_collections
     //   function: returns all collection names in the current
     // database.
-    std::vector<std::string> get_collection_names() const
+    std::vector<std::string> list_collections() const
     {
-        return self().get_collection_names_impl();
+        return self().list_collections_impl();
     }
 
     // -----------------------------------------------------------------
@@ -1011,11 +1011,11 @@ public:
         self().create_index_impl(_collection, _index_def_json);
     }
 
-    // get_indexes
+    // list_indexes
     //   function: returns the indexes on a collection as JSON.
-    std::string get_indexes(const std::string& _collection) const
+    std::string list_indexes(const std::string& _collection) const
     {
-        return self().get_indexes_impl(_collection);
+        return self().list_indexes_impl(_collection);
     }
 
     // -----------------------------------------------------------------
@@ -1173,8 +1173,8 @@ public:
         const std::string& _key);
     void create_collection_impl(const std::string& _name, int _type);
     void drop_collection_impl(const std::string& _name);
-    bool collection_exists_impl(const std::string& _name) const;
-    std::vector<std::string> get_collection_names_impl() const;
+    bool has_collection_impl(const std::string& _name) const;
+    std::vector<std::string> list_collections_impl() const;
     void create_graph_impl(const std::string& _name);
     std::string traverse_impl(
         const std::string& _graph,
@@ -1193,7 +1193,7 @@ public:
     void create_index_impl(
         const std::string& _collection,
         const std::string& _index_def);
-    std::string get_indexes_impl(
+    std::string list_indexes_impl(
         const std::string& _collection) const;
     void create_view_impl(
         const std::string& _name,
@@ -1371,18 +1371,18 @@ using arango_drop_collection_t =
     decltype(std::declval<Type&>().drop_collection(
         std::declval<const std::string&>()));
 
-// arango_collection_exists_t
-//   detector: collection_exists(const std::string&) const method.
+// arango_has_collection_t
+//   detector: has_collection(const std::string&) const method.
 template<typename Type>
-using arango_collection_exists_t =
-    decltype(std::declval<const Type&>().collection_exists(
+using arango_has_collection_t =
+    decltype(std::declval<const Type&>().has_collection(
         std::declval<const std::string&>()));
 
-// arango_get_collection_names_t
-//   detector: get_collection_names() const method.
+// arango_list_collections_t
+//   detector: list_collections() const method.
 template<typename Type>
-using arango_get_collection_names_t =
-    decltype(std::declval<const Type&>().get_collection_names());
+using arango_list_collections_t =
+    decltype(std::declval<const Type&>().list_collections());
 
 // -------------------------------------------------------------------------
 // D.  graph operations
@@ -1471,11 +1471,11 @@ using arango_create_index_t =
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
-// arango_get_indexes_t
-//   detector: get_indexes(const std::string&) const method.
+// arango_list_indexes_t
+//   detector: list_indexes(const std::string&) const method.
 template<typename Type>
-using arango_get_indexes_t =
-    decltype(std::declval<const Type&>().get_indexes(
+using arango_list_indexes_t =
+    decltype(std::declval<const Type&>().list_indexes(
         std::declval<const std::string&>()));
 
 // -------------------------------------------------------------------------
@@ -1550,8 +1550,8 @@ template<typename Type>
 struct has_arango_collections : djinterp::conjunction<
     is_detected<arango_create_collection_t, clean_t<Type>>,
     is_detected<arango_drop_collection_t, clean_t<Type>>,
-    is_detected<arango_collection_exists_t, clean_t<Type>>,
-    is_detected<arango_get_collection_names_t, clean_t<Type>>>
+    is_detected<arango_has_collection_t, clean_t<Type>>,
+    is_detected<arango_list_collections_t, clean_t<Type>>>
 {
 };
 
@@ -1611,7 +1611,7 @@ struct has_arango_cursor : djinterp::conjunction<
 template<typename Type>
 struct has_arango_indexes : djinterp::conjunction<
     is_detected<arango_create_index_t, clean_t<Type>>,
-    is_detected<arango_get_indexes_t, clean_t<Type>>>
+    is_detected<arango_list_indexes_t, clean_t<Type>>>
 {
 };
 
@@ -1961,17 +1961,17 @@ template<typename Type>
 concept collection_drop_connection =
     is_detected<arango_drop_collection_t, clean_t<Type>>::value;
 
-// collection_exists_query
-//   concept: constrains types exposing collection_exists().
+// has_collection_query
+//   concept: constrains types exposing has_collection().
 template<typename Type>
-concept collection_exists_query =
-    is_detected<arango_collection_exists_t, clean_t<Type>>::value;
+concept has_collection_query =
+    is_detected<arango_has_collection_t, clean_t<Type>>::value;
 
 // collection_name_query
-//   concept: constrains types exposing get_collection_names().
+//   concept: constrains types exposing list_collections().
 template<typename Type>
 concept collection_name_query =
-    is_detected<arango_get_collection_names_t, clean_t<Type>>::value;
+    is_detected<arango_list_collections_t, clean_t<Type>>::value;
 
 // graph_create_connection
 //   concept: constrains types exposing create_graph().
@@ -2027,10 +2027,10 @@ concept index_create_connection =
     arango_can_create_index<clean_t<Type>>;
 
 // index_query_connection
-//   concept: constrains types exposing get_indexes().
+//   concept: constrains types exposing list_indexes().
 template<typename Type>
 concept index_query_connection =
-    is_detected<arango_get_indexes_t, clean_t<Type>>::value;
+    is_detected<arango_list_indexes_t, clean_t<Type>>::value;
 
 // current_database_query
 //   concept: constrains types exposing current_database().

@@ -411,12 +411,12 @@ NS_DJINTERP
                 build_key(_partition_value));
         }
 
-        // row_exists
+        // has_row
         //   function: returns true if an item with the given partition
         // value exists.
-        bool row_exists(const std::string& _partition_value) const
+        bool has_row(const std::string& _partition_value) const
         {
-            validate_connected("row_exists");
+            validate_connected("has_row");
 
             return m_connection->get_item(
                 m_table_name,
@@ -454,13 +454,13 @@ NS_DJINTERP
                 build_key(_partition_value, _sort_value));
         }
 
-        // row_exists
+        // has_row
         //   function: returns true if an item with the given partition +
         // sort value exists.
-        bool row_exists(const std::string& _partition_value,
+        bool has_row(const std::string& _partition_value,
                         const std::string& _sort_value) const
         {
-            validate_connected("row_exists");
+            validate_connected("has_row");
 
             return m_connection->get_item(
                 m_table_name,

@@ -1,649 +1,699 @@
 /*******************************************************************************
 * djinterp [core]                                              mariadb_table.hpp
 *
-* djinterp MariaDB table module:
-*   MariaDB-specific database_table subclass providing vendor-specific
-* features beyond the shared MySQL-family base, including:
-*   - system-versioned table support (AS OF, BETWEEN ... AND ...)
-*   - RETURNING clause for INSERT/DELETE operations
-*   - MariaDB-extended data type mapping (INET6, UUID, JSON alias)
-*   - invisible column detection in schema introspection
-*   - Galera-aware synchronization (wsrep_sync_wait after commit)
-*   - sequence-backed auto-increment alternatives
-*   - MariaDB-specific storage engine selection (Aria, ColumnStore, S3)
-*
-*   LAYER DIAGRAM:
-*     mariadb_table<Config>
-*       -> mysql_common_table<mariadb_connection, value, Config>
-*         -> database_table<mariadb_connection, value, Config>
-*
-*   All version-gated features use the mariadb_type_support and
-* mariadb_feature_support compile-time structs from mariadb.hpp, which
-* are backed by D_ENV_MARIADB_* macros from env_mariadb.h.
-*
-*   PORTABILITY:
-*   Requires C++17 or later.
+* A table of a MariaDB database held in memory: mysql_common_table over a
+* mariadb_connection, with what MariaDB adds.
+*   mariadb_table is mysql_common_table<mariadb_connection> -- database_
+* table's cache, refresh, commit and table operations, the engine, MODIFY
+* COLUMN and SHOW CREATE TABLE -- and adds: system-versioned tables (MariaDB
+* 10.3.4), read as they stood at a point in time, between two, or in every
+* version; INSERT and DELETE that return the rows they wrote or removed
+* (10.5.0); a Galera cluster's causal reads after a commit; and what the
+* server supports, asked of it.
+*   What a server supports depends on its version, which the layer reads
+* when the connection opens: the has_ members ask it, never the headers.
 *
 *
 * path:      /inc/djinterp/core/db/mariadb/mariadb_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.20
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  MARIADB TABLE
+    -------------
+    1.  The class
+         1.  mariadb_table
+*/
+
 #ifndef DJINTERP_DB_MARIADB_MARIADB_TABLE_HPP
-#define DJINTERP_DB_MARIADB_MARIADB_TABLE_HPP
+#define DJINTERP_DB_MARIADB_MARIADB_TABLE_HPP 1
 
 // djinterp
 #include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+// std
+#include <chrono>    // std::chrono::system_clock, microseconds
+#include <optional>  // std::optional
+#include <set>       // std::set
+#include <string>    // std::string, std::to_string
+#include <utility>   // std::move
+#include <vector>    // std::vector
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../mysql/mysql_common_table.hpp"
-#include "./mariadb.hpp"
+#include "../../../djinterp.hpp"             // framework root
+#include "../mysql/mysql_common_table.hpp"  // mysql_common_table
+#include "./mariadb.hpp"                    // mariadb_connection
 
 
 NS_DJINTERP
 
-    // ===========================================================================
-    // I.   MARIADB TABLE
-    // ===========================================================================
 
-    // mariadb_table
-    //   class: MariaDB-specific database table. Extends the shared
-    // MySQL-family table with MariaDB vendor features. Uses
-    // mariadb_connection as the concrete connection type.
-    template<typename Config = void>
-    class mariadb_table : public mysql_common_table<mariadb_connection,
-                                                                  value,
-                                                                  Config>
+//==============================================================================
+// 1.  MARIADB TABLE
+//==============================================================================
+
+
+// 1.1    The class
+//------------------------------------------------------------------------------
+// 1.1.1
+// mariadb_table
+//   class template: a table of a MariaDB database, as the banner describes.
+// A refresh from the table's history reads rows that are not the table's
+// own, so a commit refuses them until a plain refresh() reads the table
+// again. Each member throws as database_table's do; one the server is too
+// old for, query_exception with D_DB_UNSUPPORTED. Not copyable; movable.
+//
+// Usage:
+//     mariadb_table<> prices(db, "prices");
+//
+//     prices.fetch_schema();             // and whether it is versioned
+//     prices.refresh_as_of(yesterday);   // the rows as they stood then
+template<typename Config = void>
+class mariadb_table
+    : public mysql_common_table<mariadb_connection, value, Config>
+{
+private:
+    using base_type = mysql_common_table<mariadb_connection, value, Config>;
+
+public:
+    using typename base_type::size_type;
+    using typename base_type::value_type;
+    using typename base_type::row_type;
+    using typename base_type::connection_type;
+    using typename base_type::schema_type;
+    using self_type = mariadb_table<Config>;
+
+    using type_support    = mariadb_type_support;
+    using feature_support = mariadb_feature_support;
+    using version_info    = mariadb_version_info;
+
+    // construction -- as database_table's
+    mariadb_table()
+        : base_type(),
+          m_system_versioned(),
+          m_galera_sync_on_commit(false)
+    {}
+
+    explicit mariadb_table(
+        mariadb_connection& _conn,
+        std::string         _table_name,
+        table_kind          _kind = table_kind::base_table
+    )
+        : base_type(_conn, std::move(_table_name), _kind),
+          m_system_versioned(),
+          m_galera_sync_on_commit(false)
+    {}
+
+    explicit mariadb_table(
+        mariadb_connection& _conn,
+        table_schema        _schema,
+        table_kind          _kind = table_kind::base_table
+    )
+        : base_type(_conn, std::move(_schema), _kind),
+          m_system_versioned(),
+          m_galera_sync_on_commit(false)
+    {}
+
+    explicit mariadb_table(
+        mariadb_connection& _conn,
+        table_schema        _schema,
+        table_kind          _kind,
+        const sync_config&  _sync
+    )
+        : base_type(_conn, std::move(_schema), _kind, _sync),
+          m_system_versioned(),
+          m_galera_sync_on_commit(false)
+    {}
+
+    ~mariadb_table() = default;
+
+    mariadb_table(const mariadb_table&)            = delete;
+    mariadb_table& operator=(const mariadb_table&) = delete;
+
+    mariadb_table(mariadb_table&&) noexcept            = default;
+    mariadb_table& operator=(mariadb_table&&) noexcept = default;
+
+    /**
+     * @brief Describes the table's columns, as database_table's
+     *        fetch_schema does, and finds out whether it is system-versioned.
+     *
+     * @throws as database_table's fetch_schema.
+     */
+    void
+    fetch_schema()
     {
-    private:
-        using base_type = mysql_common_table<mariadb_connection,
-                                                           value,
-                                                           Config>;
+        base_type::fetch_schema();
+        m_detect_system_versioning();
 
-    public:
-        using typename base_type::size_type;
-        using typename base_type::value_type;
-        using typename base_type::row_type;
-        using typename base_type::connection_type;
-        using typename base_type::schema_type;
-        using self_type = mariadb_table<Config>;
+        return;
+    }
 
-        using type_support    = mariadb_type_support;
-        using feature_support = mariadb_feature_support;
-        using version_info    = mariadb_version_info;
+    // is_system_versioned -- whether the table keeps its rows' history, as
+    // the server answered when fetch_schema or a refresh from the history
+    // last asked; false before either
+    bool
+    is_system_versioned() const noexcept
+    {
+        return m_system_versioned.value_or(false);
+    }
 
+    /**
+     * @brief Reads into the cache the rows the query selects as they stood
+     *        at a point in time, from the table's history.
+     *
+     * @param[in] _when  the point in time.
+     * @throws as refresh(); query_exception with D_DB_UNSUPPORTED for a table
+     *         that keeps no history.
+     * @post As refresh(), but commit() refuses the cache until a plain
+     *       refresh() reads the table again.
+     */
+    void
+    refresh_as_of(
+        std::chrono::system_clock::time_point _when
+    )
+    {
+        m_refresh_history("refresh_as_of",
+                          " FOR SYSTEM_TIME AS OF TIMESTAMP " +
+                              m_point_sql(_when));
 
-        // =================================================================
-        //  constructors
-        // =================================================================
+        return;
+    }
 
-        // mariadb_table()
-        //   constructor: default - empty, disconnected table.
-        mariadb_table()
-            : base_type(),
-              m_system_versioned(false),
-              m_galera_sync_on_commit(false)
-        {}
+    // refresh_as_of -- as above, the point given as SQL: a TIMESTAMP literal,
+    // an expression, or TRANSACTION and a transaction's id, as written
+    void
+    refresh_as_of(
+        const std::string& _point_sql
+    )
+    {
+        m_refresh_history("refresh_as_of",
+                          " FOR SYSTEM_TIME AS OF " + _point_sql);
 
-        // mariadb_table(connection, name)
-        //   constructor: binds to a MariaDB connection and table name.
-        explicit mariadb_table(
-                mariadb_connection& _conn,
-                std::string         _table_name,
-                table_kind          _kind = table_kind::base_table
-            )
-                : base_type(_conn,
-                            std::move(_table_name),
-                            _kind),
-                  m_system_versioned(false),
-                  m_galera_sync_on_commit(false)
-        {}
+        return;
+    }
 
-        // mariadb_table(connection, schema)
-        //   constructor: binds with an explicit schema.
-        explicit mariadb_table(
-                mariadb_connection& _conn,
-                table_schema        _schema,
-                table_kind          _kind = table_kind::base_table
-            )
-                : base_type(_conn,
-                            std::move(_schema),
-                            _kind)
-                , m_system_versioned(false)
-                , m_galera_sync_on_commit(false)
+    /**
+     * @brief Reads into the cache every version of the rows the query
+     *        selects that stood at any time from `_from` to `_to`, both
+     *        included.
+     *
+     * @param[in] _from  the first point in time.
+     * @param[in] _to    the last.
+     * @throws as refresh_as_of.
+     * @post As refresh_as_of.
+     */
+    void
+    refresh_between(
+        std::chrono::system_clock::time_point _from,
+        std::chrono::system_clock::time_point _to
+    )
+    {
+        m_refresh_history("refresh_between",
+                          " FOR SYSTEM_TIME BETWEEN TIMESTAMP " +
+                              m_point_sql(_from) + " AND TIMESTAMP " +
+                              m_point_sql(_to));
+
+        return;
+    }
+
+    // refresh_between -- as above, the points given as SQL, as written
+    void
+    refresh_between(
+        const std::string& _from_sql,
+        const std::string& _to_sql
+    )
+    {
+        m_refresh_history("refresh_between",
+                          " FOR SYSTEM_TIME BETWEEN " + _from_sql + " AND " +
+                              _to_sql);
+
+        return;
+    }
+
+    // refresh_all_versions -- every version of the rows the query selects,
+    // current and past; as refresh_as_of
+    void
+    refresh_all_versions()
+    {
+        m_refresh_history("refresh_all_versions", " FOR SYSTEM_TIME ALL");
+
+        return;
+    }
+
+    /**
+     * @brief Inserts a row into the table at once, and returns it as the
+     *        table holds it, with what the database filled in: a NULL left
+     *        to it, as commit() leaves one, a default, a trigger's change.
+     *
+     * @note A cache that stands for the table's rows takes the row; one the
+     *       table was not read for is left as it is. Without a primary key, a
+     *       cache that was read is read again, which it must not need to
+     *       lose changes for.
+     *
+     * @param[in] _row  the row, a cell for each column.
+     * @return the row as the table holds it.
+     * @throws as commit(); query_exception with D_DB_UNSUPPORTED before
+     *         MariaDB 10.5.0, and while a cache without a key that was read
+     *         holds changes not yet committed.
+     */
+    row_type
+    insert_row_returning(
+        const row_type& _row
+    )
+    {
+        this->validate_connected("insert_row_returning");
+        this->validate_mutable("insert_row_returning");
+        this->check_row_width(_row, "insert_row_returning");
+        m_require_returning("insert_row_returning");
+
+        const std::vector<size_type> keys = this->key_columns();
+
+        // a cache without a key is read again after, so it must hold nothing
+        // to lose
+        if ( (keys.empty()) &&
+             (this->m_loaded) )
         {
+            this->validate_clean("insert_row_returning");
         }
 
-        // mariadb_table(connection, schema, sync)
-        //   constructor: binds with schema and sync policy.
-        explicit mariadb_table(
-                mariadb_connection& _conn,
-                table_schema        _schema,
-                table_kind          _kind,
-                const sync_config&  _sync
-            )
-                : base_type(_conn,
-                            std::move(_schema),
-                            _kind,
-                            _sync)
-                , m_system_versioned(false)
-                , m_galera_sync_on_commit(false)
+        std::vector<bool> written(this->cols());
+        size_type         number = 0;
+
+        for (size_type c = 0; c < this->cols(); ++c)
         {
+            written[c] = !this->left_to_database(_row[c], c, keys);
         }
 
-        // non-virtual: the base is not a polymorphic type.
-        ~mariadb_table() = default;
+        auto statement = this->m_connection->prepare(
+            this->insert_sql(written) + " RETURNING " + m_column_list());
 
-        // disable copying
-        mariadb_table(const mariadb_table&)            = delete;
-        mariadb_table& operator=(const mariadb_table&) = delete;
-
-        // enable moving
-        mariadb_table(mariadb_table&&) noexcept            = default;
-        mariadb_table& operator=(mariadb_table&&) noexcept = default;
-
-
-        // =================================================================
-        //  schema introspection (MariaDB extensions)
-        // =================================================================
-
-        // fetch_schema
-        //   function: extends the MySQL-family schema introspection with
-        // MariaDB-specific column properties (IS_GENERATED, GENERATION_
-        // EXPRESSION, visibility via EXTRA column containing "INVISIBLE").
-        // Concrete (not an override): call on the concrete mariadb_table.
-        void fetch_schema()
+        for (size_type c = 0; c < this->cols(); ++c)
         {
-            // use the base MySQL-family introspection first
-            base_type::fetch_schema();
-
-            // detect system versioning on the table
-            detect_system_versioning();
-
-            return;
-        }
-
-
-        // =================================================================
-        //  system-versioned table support
-        // =================================================================
-
-        // is_system_versioned
-        //   function: returns whether this table uses MariaDB system
-        // versioning (temporal tables).
-        bool is_system_versioned() const noexcept
-        {
-            return m_system_versioned;
-        }
-
-        // refresh_as_of
-        //   function: refreshes the local cache with data as it existed
-        // at the specified timestamp. Requires system versioning on the
-        // table. The timestamp is a SQL expression (e.g. a quoted
-        // datetime string or TRANSACTION n).
-        void refresh_as_of(const std::string& _timestamp)
-        {
-            this->validate_connected("refresh_as_of");
-
-            if (!m_system_versioned)
+            if (written[c])
             {
-                throw query_exception(
-                    "mariadb_table::refresh_as_of: table is not "
-                    "system-versioned.");
+                this->bind_value(*statement, ++number, _row[c]);
+            }
+        }
+
+        std::unique_ptr<buffered_result_set> returned =
+            statement->execute_query();
+        row_type                             result;
+
+        // the row the table holds, cell by cell
+        if (returned->next())
+        {
+            result.reserve(this->cols());
+
+            for (size_type c = 0; c < this->cols(); ++c)
+            {
+                result.push_back(returned->get_value(c));
+            }
+        }
+
+        m_after_write(keys,
+                      [this, &result]() -> void
+                      {
+                          this->m_data.push_back(result);
+                          this->m_original.push_back(result);
+
+                          return;
+                      });
+
+        return result;
+    }
+
+    /**
+     * @brief Deletes from the table at once the rows a condition selects, and
+     *        returns them as they were.
+     *
+     * @note With a primary key, the rows of the deleted keys leave a cache
+     *       that stands for the table's rows; without one, a cache that was
+     *       read is read again, as for insert_row_returning.
+     *
+     * @param[in] _where  the condition, SQL as a WHERE clause's, without the
+     *                    keyword.
+     * @return the rows deleted.
+     * @throws as insert_row_returning.
+     */
+    std::vector<row_type>
+    delete_returning(
+        const std::string& _where
+    )
+    {
+        this->validate_connected("delete_returning");
+        this->validate_mutable("delete_returning");
+        m_require_returning("delete_returning");
+
+        const std::vector<size_type> keys = this->key_columns();
+
+        if ( (keys.empty()) &&
+             (this->m_loaded) )
+        {
+            this->validate_clean("delete_returning");
+        }
+
+        std::unique_ptr<buffered_result_set> returned =
+            this->m_connection->execute_query(
+                "DELETE FROM " + this->qualified_name() + " WHERE " + _where +
+                " RETURNING " + m_column_list());
+        std::vector<row_type>                deleted;
+
+        while (returned->next())
+        {
+            row_type record;
+
+            record.reserve(this->cols());
+
+            for (size_type c = 0; c < this->cols(); ++c)
+            {
+                record.push_back(returned->get_value(c));
             }
 
-            m_temporal_clause =
-                " FOR SYSTEM_TIME AS OF " + _timestamp;
-            this->invalidate();
+            deleted.push_back(std::move(record));
+        }
+
+        m_after_write(keys,
+                      [this, &deleted, &keys]() -> void
+                      {
+                          m_forget_keys(deleted, keys);
+
+                          return;
+                      });
+
+        return deleted;
+    }
+
+    // Galera -- whether a commit then makes the session's reads wait until
+    // the cluster has applied what came before them (wsrep_sync_wait = 1), so
+    // that a refresh on any node sees the commit; a server without Galera
+    // has no such setting, and the commit is as any other
+    void
+    set_galera_sync_on_commit(
+        bool _enabled
+    ) noexcept
+    {
+        m_galera_sync_on_commit = _enabled;
+
+        return;
+    }
+
+    bool
+    is_galera_sync_on_commit() const noexcept
+    {
+        return m_galera_sync_on_commit;
+    }
+
+    /**
+     * @brief Writes the cache's changes to the table, as database_table's
+     *        commit does, then, where Galera's causal reads are asked for,
+     *        turns them on for the session.
+     *
+     * @throws as database_table's commit; and what setting wsrep_sync_wait
+     *         throws, but for its absence (1193).
+     */
+    void
+    commit()
+    {
+        base_type::commit();
+
+        // causal reads, where the server has Galera
+        if ( (m_galera_sync_on_commit) &&
+             (this->is_connected()) )
+        {
+            this->m_connection->run_layer(
+                "commit",
+                [](face::mariadb& _db) -> int
+                {
+                    const int result = _db.set_variable("wsrep_sync_wait", "1");
+
+                    // no Galera, no setting
+                    return (result == 1193) ? 0 : result;
+                });
+        }
+
+        return;
+    }
+
+    // support -- what the connected server can do, as its version says:
+    // RETURNING (10.5.0), system versioning (10.3.4), sequences (10.3.0),
+    // the INET6 type (10.5.0) and the UUID type (10.7.0); false while the
+    // table has no open connection
+    bool
+    has_returning_support() const noexcept
+    {
+        return m_supports(D_MARIADB_FEATURE_RETURNING);
+    }
+
+    bool
+    has_system_versioning_support() const noexcept
+    {
+        return m_supports(D_MARIADB_FEATURE_SYSTEM_VERSIONING);
+    }
+
+    bool
+    has_sequences_support() const noexcept
+    {
+        return m_supports(D_MARIADB_FEATURE_SEQUENCES);
+    }
+
+    bool
+    has_inet6_type_support() const noexcept
+    {
+        return m_at_least(10u, 5u, 0u);
+    }
+
+    bool
+    has_uuid_type_support() const noexcept
+    {
+        return m_at_least(10u, 7u, 0u);
+    }
+
+protected:
+    std::optional<bool> m_system_versioned;
+    bool                m_galera_sync_on_commit;
+
+private:
+    // m_supports, m_at_least -- the layer's answer for the connected server
+    bool
+    m_supports(
+        d_mariadb_feature _feature
+    ) const noexcept
+    {
+        return ( (this->is_connected()) &&
+                 (this->m_connection->get_face().supports(_feature)) );
+    }
+
+    bool
+    m_at_least(
+        unsigned _major,
+        unsigned _minor,
+        unsigned _patch
+    ) const noexcept
+    {
+        return ( (this->is_connected()) &&
+                 (this->m_connection->get_face().server_at_least(
+                     D_MARIADB_FLAVOR_MARIADB,
+                     _major,
+                     _minor,
+                     _patch)) );
+    }
+
+    // m_require_returning -- query_exception with D_DB_UNSUPPORTED before
+    // MariaDB 10.5.0
+    void
+    m_require_returning(
+        const char* _caller
+    ) const
+    {
+        if (!has_returning_support())
+        {
+            throw query_exception(std::string("mariadb_table::") + _caller +
+                                      ": RETURNING needs MariaDB 10.5.0 or "
+                                      "later",
+                                  D_DB_UNSUPPORTED);
+        }
+
+        return;
+    }
+
+    // m_detect_system_versioning -- whether the table keeps its rows'
+    // history, by asking for it: a table that keeps none, or a server too old
+    // for the clause, refuses
+    void
+    m_detect_system_versioning()
+    {
+        try
+        {
+            (void)this->m_connection->execute_query(
+                "SELECT 1 FROM " + this->qualified_name() +
+                " FOR SYSTEM_TIME ALL WHERE 1=0");
+            m_system_versioned = true;
+        }
+        catch (const query_exception&)
+        {
+            m_system_versioned = false;
+        }
+
+        return;
+    }
+
+    // m_refresh_history -- a refresh from the table's history, through the
+    // clause after its name
+    void
+    m_refresh_history(
+        const char*        _caller,
+        const std::string& _clause
+    )
+    {
+        this->validate_connected(_caller);
+
+        // whether the table keeps a history, asked once
+        if (!m_system_versioned.has_value())
+        {
+            m_detect_system_versioning();
+        }
+
+        if (!m_system_versioned.value_or(false))
+        {
+            throw query_exception(std::string("mariadb_table::") + _caller +
+                                      ": the table is not system-versioned",
+                                  D_DB_UNSUPPORTED);
+        }
+
+        this->m_table_suffix = _clause;
+
+        try
+        {
             this->refresh();
-            m_temporal_clause.clear();
+        }
+        catch (...)
+        {
+            this->m_table_suffix.clear();
 
+            throw;
+        }
+
+        this->m_table_suffix.clear();
+
+        return;
+    }
+
+    // m_point_sql -- a point in time as the session reads one: the moment
+    // from the Unix epoch, which FROM_UNIXTIME gives in the session's time
+    // zone, to the microsecond
+    static std::string
+    m_point_sql(
+        std::chrono::system_clock::time_point _when
+    )
+    {
+        const long long micros =
+            static_cast<long long>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
+                    _when.time_since_epoch()).count());
+        const long long whole    = (micros >= 0) ? (micros / 1000000)
+                                                 : -((-micros) / 1000000);
+        std::string     fraction = std::to_string(((micros >= 0) ? micros
+                                                                 : -micros) %
+                                                  1000000);
+
+        fraction.insert(0, 6u - fraction.size(), '0');
+
+        return "FROM_UNIXTIME(" + std::string((micros < 0) ? "-" : "") +
+               std::to_string((whole >= 0) ? whole : -whole) + "." + fraction +
+               ")";
+    }
+
+    // m_column_list -- the schema's columns, by name, for RETURNING
+    std::string
+    m_column_list() const
+    {
+        std::string columns;
+
+        for (size_type c = 0; c < this->cols(); ++c)
+        {
+            columns += (c > 0) ? ", " : "";
+            columns += backtick_quote(this->get_schema().columns[c].name);
+        }
+
+        return columns;
+    }
+
+    // m_after_write -- the cache after a row was written at once: changed by
+    // the key where the cache stands for the table's rows, read again
+    // without one, and left as it is where it was never read
+    template<typename Function>
+    void
+    m_after_write(
+        const std::vector<size_type>& _keys,
+        Function&&                    _by_key
+    )
+    {
+        // a cache the table was not read for stands for nothing written
+        if (!this->m_loaded)
+        {
             return;
         }
 
-        // refresh_between
-        //   function: refreshes the local cache with rows that were
-        // valid between two timestamps. Includes rows visible at any
-        // point in the range.
-        void refresh_between(
-                const std::string& _from,
-                const std::string& _to
-            )
+        if (_keys.empty())
         {
-            this->validate_connected("refresh_between");
-
-            if (!m_system_versioned)
-            {
-                throw query_exception(
-                    "mariadb_table::refresh_between: table is not "
-                    "system-versioned.");
-            }
-
-            m_temporal_clause =
-                " FOR SYSTEM_TIME BETWEEN "
-                + _from + " AND " + _to;
-            this->invalidate();
             this->refresh();
-            m_temporal_clause.clear();
-
-            return;
+        }
+        else
+        {
+            _by_key();
         }
 
-        // refresh_all_versions
-        //   function: refreshes the local cache with all historical
-        // and current row versions.
-        void refresh_all_versions()
+        return;
+    }
+
+    // m_forget_keys -- the cache's rows of the keys given, and the rows read
+    // of them, removed
+    void
+    m_forget_keys(
+        const std::vector<row_type>&  _rows,
+        const std::vector<size_type>& _keys
+    )
+    {
+        std::set<row_type> gone;
+
+        for (const row_type& record : _rows)
         {
-            this->validate_connected("refresh_all_versions");
+            row_type key;
 
-            if (!m_system_versioned)
+            if (this->key_of(record, _keys, key))
             {
-                throw query_exception(
-                    "mariadb_table::refresh_all_versions: table is not "
-                    "system-versioned.");
+                gone.insert(std::move(key));
             }
-
-            m_temporal_clause =
-                " FOR SYSTEM_TIME ALL";
-            this->invalidate();
-            this->refresh();
-            m_temporal_clause.clear();
-
-            return;
         }
 
-
-        // =================================================================
-        //  RETURNING clause support
-        // =================================================================
-
-        // insert_row_returning
-        //   function: inserts a row and returns the server-side values
-        // (including generated columns, auto-increment, defaults) via
-        // the MariaDB RETURNING clause. Requires MariaDB 10.5+.
-        row_type insert_row_returning(const row_type& _row)
+        // each row held, the cache's and the read ones
+        for (typename base_type::storage_type* rows :
+             { &this->m_data, &this->m_original })
         {
-            this->validate_connected("insert_row_returning");
-            this->validate_mutable("insert_row_returning");
+            typename base_type::storage_type kept;
 
-            if constexpr (!feature_support::has_returning)
+            for (row_type& record : *rows)
             {
-                throw query_exception(
-                    "mariadb_table::insert_row_returning: RETURNING "
-                    "clause not supported in this MariaDB version.");
-            }
+                row_type key;
 
-            // width validation
-            if (_row.size() != this->m_num_cols)
-            {
-                throw query_exception(
-                    "mariadb_table::insert_row_returning: row width "
-                    "does not match column count.");
-            }
-
-            std::string query = build_insert_query(_row)
-                                + " RETURNING *";
-
-            auto rs = this->m_connection->execute_query(query);
-
-            row_type result;
-
-            if (rs->next())
-            {
-                result.reserve(this->m_num_cols);
-
-                for (size_type c = 0; c < this->m_num_cols; ++c)
+                if ( (!this->key_of(record, _keys, key)) ||
+                     (gone.find(key) == gone.end()) )
                 {
-                    result.push_back(
-                        rs->get_value(c));
+                    kept.push_back(std::move(record));
                 }
             }
 
-            // also add to local cache
-            if (!result.empty())
-            {
-                this->m_data.push_back(result);
-                ++this->m_num_rows;
-            }
-
-            return result;
+            rows->swap(kept);
         }
 
-        // delete_returning
-        //   function: deletes rows matching a WHERE clause and returns
-        // the deleted rows via RETURNING.
-        std::vector<row_type> delete_returning(
-                const std::string& _where
-            )
-        {
-            this->validate_connected("delete_returning");
-            this->validate_mutable("delete_returning");
-
-            if constexpr (!feature_support::has_returning)
-            {
-                throw query_exception(
-                    "mariadb_table::delete_returning: RETURNING "
-                    "clause not supported in this MariaDB version.");
-            }
-
-            std::string query =
-                "DELETE FROM "
-                + backtick_quote(
-                      this->m_schema.table_name)
-                + " WHERE " + _where
-                + " RETURNING *";
-
-            auto rs = this->m_connection->execute_query(query);
-
-            std::vector<row_type> deleted;
-
-            while (rs->next())
-            {
-                row_type row;
-                row.reserve(this->m_num_cols);
-
-                for (size_type c = 0; c < this->m_num_cols; ++c)
-                {
-                    row.push_back(rs->get_value(c));
-                }
-
-                deleted.push_back(std::move(row));
-            }
-
-            // invalidate local cache since rows were removed
-            this->invalidate();
-
-            return deleted;
-        }
-
-
-        // =================================================================
-        //  Galera-aware synchronization
-        // =================================================================
-
-        // set_galera_sync_on_commit
-        //   function: when enabled, issues SET wsrep_sync_wait = 1
-        // before each refresh after a commit to ensure Galera cluster
-        // nodes are synchronized.
-        void set_galera_sync_on_commit(bool _enabled) noexcept
-        {
-            m_galera_sync_on_commit = _enabled;
-
-            return;
-        }
-
-        // is_galera_sync_on_commit
-        //   function: returns whether Galera sync-on-commit is enabled.
-        bool is_galera_sync_on_commit() const noexcept
-        {
-            return m_galera_sync_on_commit;
-        }
-
-        // commit
-        //   function: concrete MariaDB commit. Shadows the MySQL-family
-        // commit (mysql_common_table::commit, itself concrete) and folds in
-        // a Galera cluster sync when configured. Called on the concrete
-        // mariadb_table.
-        void commit()
-        {
-            base_type::commit();
-
-            if ( (m_galera_sync_on_commit) &&
-                 (this->is_connected()) )
-            {
-                try
-                {
-                    this->m_connection->execute(
-                        "SET wsrep_sync_wait = 1");
-                }
-                catch (...)
-                {
-                    // non-fatal: sync hint may not be available if
-                    // not running under Galera
-                }
-            }
-
-            return;
-        }
-
-
-        // =================================================================
-        //  compile-time feature queries
-        // =================================================================
-
-        // has_returning_support
-        //   function: returns whether the RETURNING clause is available.
-        static constexpr bool has_returning_support() noexcept
-        {
-            return feature_support::has_returning;
-        }
-
-        // has_system_versioning_support
-        //   function: returns whether system-versioned tables are
-        // supported.
-        static constexpr bool has_system_versioning_support() noexcept
-        {
-            return feature_support::has_system_versioned_tables;
-        }
-
-        // has_sequences_support
-        //   function: returns whether CREATE SEQUENCE is available.
-        static constexpr bool has_sequences_support() noexcept
-        {
-            return feature_support::has_sequences;
-        }
-
-        // has_inet6_type_support
-        //   function: returns whether the INET6 data type is available.
-        static constexpr bool has_inet6_type_support() noexcept
-        {
-            return type_support::has_inet6_type;
-        }
-
-        // has_uuid_type_support
-        //   function: returns whether the native UUID type is available.
-        static constexpr bool has_uuid_type_support() noexcept
-        {
-            return type_support::has_uuid_type;
-        }
-
-
-    protected:
-
-        // =================================================================
-        //  protected helpers (concrete — not overrides)
-        // =================================================================
-
-        // build_select_query
-        //   function: the MySQL-family SELECT with a temporal clause (FOR
-        // SYSTEM_TIME ...) appended for system-versioned tables. Concrete
-        // (not an override): the concrete base is non-polymorphic, so the
-        // temporal SELECT is routed through the concrete refresh() below.
-        // Identifier quoting matches quote_identifier(name,
-        // database_type::mariadb).
-        std::string build_select_query() const
-        {
-            std::string query =
-                "SELECT * FROM "
-                + backtick_quote(
-                      this->m_schema.table_name);
-
-            // temporal clause (FOR SYSTEM_TIME ...)
-            if (!m_temporal_clause.empty())
-            {
-                query += m_temporal_clause;
-            }
-
-            if (!this->m_where_clause.empty())
-            {
-                query += " WHERE " + this->m_where_clause;
-            }
-
-            if (!this->m_order_clause.empty())
-            {
-                query += " ORDER BY " + this->m_order_clause;
-            }
-
-            if (this->m_limit.has_value())
-            {
-                query += " LIMIT "
-                         + std::to_string(this->m_limit.value());
-            }
-
-            if (this->m_offset.has_value())
-            {
-                query += " OFFSET "
-                         + std::to_string(this->m_offset.value());
-            }
-
-            return query;
-        }
-
-        // refresh
-        //   function: concrete MariaDB refresh that reloads the local cache
-        // through the temporal-aware SELECT above. Shadows base::refresh()
-        // for direct calls on the concrete mariadb_table; with no temporal
-        // clause set the emitted SQL is identical to the base path, in which
-        // case it simply defers to the base implementation.
-        void refresh()
-        {
-            if (m_temporal_clause.empty())
-            {
-                base_type::refresh();
-                return;
-            }
-
-            this->validate_connected("refresh");
-
-            const std::string query = build_select_query();
-            auto              rs    = this->m_connection->execute_query(query);
-
-            if (this->m_num_cols == 0)
-            {
-                this->m_num_cols = rs->column_count();
-            }
-
-            this->m_data.clear();
-
-            while (rs->next())
-            {
-                typename base_type::row_type r;
-                r.reserve(this->m_num_cols);
-
-                for (size_type c = 0; c < this->m_num_cols; ++c)
-                {
-                    r.push_back(rs->get_value(c));
-                }
-
-                this->m_data.push_back(std::move(r));
-            }
-
-            this->m_num_rows     = this->m_data.size();
-            this->m_stale        = false;
-            this->m_dirty        = false;
-            this->m_last_refresh = std::chrono::steady_clock::now();
-
-            return;
-        }
-
-        // NOTE: the former field_type_to_sql and map_mysql_data_type
-        // overrides were removed. MariaDB's forward spellings (LONGTEXT for
-        // JSON, native UUID on 10.7+) are produced by
-        // mysql_common_table::field_type_to_sql from
-        // mariadb_connection::type_support (has_json_type,
-        // has_uuid_type) at compile time; the reverse names ("uuid",
-        // "inet6") are recognised directly by the shared
-        // mysql_common_table::map_mysql_data_type. No per-leaf override is
-        // needed for either direction.
-
-
-        // =================================================================
-        //  protected helpers
-        // =================================================================
-
-        // detect_system_versioning
-        //   function: queries INFORMATION_SCHEMA to determine if this
-        // table uses system versioning.
-        void detect_system_versioning()
-        {
-            if (!this->is_connected())
-            {
-                return;
-            }
-
-            try
-            {
-                auto rs = this->m_connection->execute_query(
-                    "SELECT TABLE_NAME"
-                    " FROM INFORMATION_SCHEMA.TABLES"
-                    " WHERE TABLE_SCHEMA = DATABASE()"
-                    " AND TABLE_NAME = '"
-                    + this->m_schema.table_name + "'"
-                    " AND TABLE_TYPE = 'SYSTEM VERSIONED'");
-
-                m_system_versioned = rs->next();
-            }
-            catch (...)
-            {
-                // older MariaDB or non-versioned table
-                m_system_versioned = false;
-            }
-
-            return;
-        }
-
-        // build_insert_query
-        //   function: constructs a single-row INSERT statement.
-        std::string build_insert_query(const row_type& _row) const
-        {
-            std::string query =
-                "INSERT INTO "
-                + backtick_quote(
-                      this->m_schema.table_name)
-                + " (";
-
-            for (size_type c = 0; c < this->m_num_cols; ++c)
-            {
-                if (c > 0)
-                {
-                    query += ", ";
-                }
-
-                query += backtick_quote(
-                    this->m_schema.columns[c].name);
-            }
-
-            query += ") VALUES (";
-
-            for (size_type c = 0; c < this->m_num_cols; ++c)
-            {
-                if (c > 0)
-                {
-                    query += ", ";
-                }
-
-                query += value_to_string(_row[c]);
-            }
-
-            query += ")";
-
-            return query;
-        }
-
-
-        // =================================================================
-        //  protected members
-        // =================================================================
-
-        bool        m_system_versioned;
-        bool        m_galera_sync_on_commit;
-        std::string m_temporal_clause;
-    };
+        return;
+    }
+};
 
 
 NS_END  // djinterp

@@ -1,471 +1,263 @@
 /*******************************************************************************
 * djinterp [core]                                                mysql_table.hpp
 *
-* djinterp Oracle MySQL table module:
-*   Oracle-MySQL-specific database_table subclass providing vendor-specific
-* features beyond the shared MySQL-family base, including:
-*   - native JSON binary column handling (MYSQL_TYPE_JSON / 0xF5)
-*   - JSON_TABLE support for querying into JSON columns
-*   - generated column detection in schema introspection
-*   - MySQL-specific storage engines (NDB Cluster detection)
-*   - MySQL type spelling (native binary JSON, CHAR(36) for UUID) taken
-*     from mysql_connection::type_support at compile time in the shared
-*     base — no per-leaf override (native JSON binary vs MariaDB's LONGTEXT
-*     alias is decided by the connection's type_support flags)
-*   - optimizer hint support via a concrete refresh(), which wraps
-*     m_optimizer_hint in MySQL's optimizer-hint block comment and
-*     emits it immediately after SELECT
-*
-*   LAYER DIAGRAM:
-*     mysql_table<Config>
-*       -> mysql_common_table<mysql_connection, value, Config>
-*         -> database_table<mysql_connection, value, Config>
-*
-*   NOTE: this header forward-declares mysql_connection. The concrete
-* class definition lives in mysql.hpp, which is the Oracle MySQL
-* counterpart of mariadb.hpp. Include mysql.hpp before using
-* mysql_table in translation units that construct instances.
-*
-*   PORTABILITY:
-*   Requires C++17 or later.
+* A table of an Oracle MySQL database held in memory: mysql_common_table
+* over a mysql_connection, with what MySQL adds.
+*   mysql_table is mysql_common_table<mysql_connection> -- database_table's
+* cache, refresh, commit and table operations, the engine, MODIFY COLUMN and
+* SHOW CREATE TABLE -- and adds: JSON columns told apart, MySQL storing JSON
+* as a type of its own; an optimizer hint written into refresh()'s query;
+* and upkeep through the layer: ANALYZE TABLE, OPTIMIZE TABLE and CHECK
+* TABLE.
 *
 *
 * path:      /inc/djinterp/core/db/mysql/mysql_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.20
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  MYSQL TABLE
+    -----------
+    1.  The class
+         1.  mysql_table
+*/
+
 #ifndef DJINTERP_DB_MYSQL_MYSQL_TABLE_HPP
-#define DJINTERP_DB_MYSQL_MYSQL_TABLE_HPP
+#define DJINTERP_DB_MYSQL_MYSQL_TABLE_HPP 1
 
 // djinterp
 #include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+// std
+#include <string>       // std::string
+#include <string_view>  // std::string_view
+#include <utility>      // std::move
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../database.hpp"
-#include "./mysql_common_table.hpp"
-#include "./mysql.hpp"
+#include "../../../djinterp.hpp"     // framework root
+#include "./mysql_common_table.hpp"  // mysql_common_table
+#include "./mysql.hpp"               // mysql_connection
 
 
 NS_DJINTERP
 
 
-    // =========================================================================
-    // forward declaration
-    // =========================================================================
-
-    // mysql_connection
-    //   class: forward declaration of the Oracle MySQL connection
-    // implementation. Defined in mysql.hpp.
-    class mysql_connection;
+//==============================================================================
+// 1.  MYSQL TABLE
+//==============================================================================
 
 
-    // =========================================================================
-    // I.   MYSQL TABLE
-    // =========================================================================
+// 1.1    The class
+//------------------------------------------------------------------------------
+// 1.1.1
+// mysql_table
+//   class template: a table of an Oracle MySQL database, as the banner
+// describes. Each member throws as database_table's do. Not copyable;
+// movable.
+//
+// Usage:
+//     mysql_table<> orders(db, "orders");
+//
+//     orders.fetch_schema();
+//     orders.set_optimizer_hint("MAX_EXECUTION_TIME(1000)");
+//     orders.refresh();                  // SELECT /*+ ... */ ...
+template<typename Config = void>
+class mysql_table
+    : public mysql_common_table<mysql_connection, value, Config>
+{
+private:
+    using base_type = mysql_common_table<mysql_connection, value, Config>;
 
-    // mysql_table
-    //   class: Oracle-MySQL-specific database table. Extends the shared
-    // MySQL-family table with Oracle MySQL vendor features. Uses
-    // mysql_connection as the concrete connection type.
-    template<typename Config = void>
-    class mysql_table
-        : public mysql_common_table<
-              mysql_connection,
-              value,
-              Config>
+public:
+    using typename base_type::size_type;
+    using typename base_type::value_type;
+    using typename base_type::row_type;
+    using typename base_type::connection_type;
+    using typename base_type::schema_type;
+    using self_type = mysql_table<Config>;
+
+    // construction -- as database_table's
+    mysql_table()
+        : base_type()
+    {}
+
+    explicit mysql_table(
+        mysql_connection& _conn,
+        std::string       _table_name,
+        table_kind        _kind = table_kind::base_table
+    )
+        : base_type(_conn, std::move(_table_name), _kind)
+    {}
+
+    explicit mysql_table(
+        mysql_connection& _conn,
+        table_schema      _schema,
+        table_kind        _kind = table_kind::base_table
+    )
+        : base_type(_conn, std::move(_schema), _kind)
+    {}
+
+    explicit mysql_table(
+        mysql_connection&  _conn,
+        table_schema       _schema,
+        table_kind         _kind,
+        const sync_config& _sync
+    )
+        : base_type(_conn, std::move(_schema), _kind, _sync)
+    {}
+
+    ~mysql_table() = default;
+
+    mysql_table(const mysql_table&)            = delete;
+    mysql_table& operator=(const mysql_table&) = delete;
+
+    mysql_table(mysql_table&&) noexcept            = default;
+    mysql_table& operator=(mysql_table&&) noexcept = default;
+
+    // JSON -- whether a column holds JSON, by index or by name: a column the
+    // schema types field_type::json, as a query describes MySQL's JSON
+    // columns; false for a column the table lacks. MySQL stores JSON as a
+    // type of its own, where MariaDB's JSON is text.
+    bool
+    is_json_column(
+        size_type _col
+    ) const noexcept
     {
-    private:
-        using base_type = mysql_common_table<
-            mysql_connection,
-            value,
-            Config>;
+        return ( (_col < this->cols()) &&
+                 (this->get_schema().columns[_col].type == field_type::json) );
+    }
 
-    public:
-        using typename base_type::size_type;
-        using typename base_type::value_type;
-        using typename base_type::row_type;
-        using typename base_type::connection_type;
-        using typename base_type::schema_type;
-        using self_type = mysql_table<Config>;
+    bool
+    is_json_column(
+        std::string_view _name
+    ) const
+    {
+        const std::optional<std::size_t> index =
+            this->get_schema().column_index(_name);
 
+        return ( (index.has_value()) &&
+                 (is_json_column(index.value())) );
+    }
 
-        // =================================================================
-        //  constructors
-        // =================================================================
+    static constexpr bool
+    json_is_native() noexcept
+    {
+        return true;
+    }
 
-        // mysql_table()
-        //   constructor: default - empty, disconnected table.
-        mysql_table()
-            : base_type()
+    /**
+     * @brief Writes an optimizer hint into refresh()'s query, after SELECT,
+     *        in the comment MySQL reads hints from, whose opening mark is
+     *        followed by a plus.
+     *
+     * @param[in] _hint  the hint, without the comment's marks, which it must
+     *                   not hold.
+     * @throws query_exception with D_DB_INVALID_ARGUMENT for a hint holding
+     *         the comment's end, which would end it early.
+     * @post The cache is stale.
+     */
+    void
+    set_optimizer_hint(
+        std::string _hint
+    )
+    {
+        // a hint that would close its comment
+        if (_hint.find("*/") != std::string::npos)
         {
+            throw query_exception("mysql_table::set_optimizer_hint: the hint "
+                                  "holds */, which ends its comment",
+                                  D_DB_INVALID_ARGUMENT);
         }
 
-        // mysql_table(connection, name)
-        //   constructor: binds to a MySQL connection and table name.
-        explicit mysql_table(
-                mysql_connection& _conn,
-                std::string       _table_name,
-                table_kind        _kind = table_kind::base_table
-            )
-                : base_type(_conn,
-                            std::move(_table_name),
-                            _kind)
-        {
-        }
+        m_optimizer_hint    = std::move(_hint);
+        this->m_select_hint = (m_optimizer_hint.empty())
+                                  ? std::string()
+                                  : "/*+ " + m_optimizer_hint + " */";
+        this->invalidate();
 
-        // mysql_table(connection, schema)
-        //   constructor: binds with an explicit schema.
-        explicit mysql_table(
-                mysql_connection& _conn,
-                table_schema      _schema,
-                table_kind        _kind = table_kind::base_table
-            )
-                : base_type(_conn,
-                            std::move(_schema),
-                            _kind)
-        {
-        }
+        return;
+    }
 
-        // mysql_table(connection, schema, sync)
-        //   constructor: binds with schema and sync policy.
-        explicit mysql_table(
-                mysql_connection&  _conn,
-                table_schema       _schema,
-                table_kind         _kind,
-                const sync_config& _sync
-            )
-                : base_type(_conn,
-                            std::move(_schema),
-                            _kind,
-                            _sync)
-        {
-        }
+    void
+    clear_optimizer_hint()
+    {
+        m_optimizer_hint.clear();
+        this->m_select_hint.clear();
+        this->invalidate();
 
-        // non-virtual: the base is not a polymorphic type.
-        ~mysql_table() = default;
+        return;
+    }
 
-        // disable copying
-        mysql_table(const mysql_table&)            = delete;
-        mysql_table& operator=(const mysql_table&) = delete;
+    const std::string&
+    get_optimizer_hint() const noexcept
+    {
+        return m_optimizer_hint;
+    }
 
-        // enable moving
-        mysql_table(mysql_table&&) noexcept            = default;
-        mysql_table& operator=(mysql_table&&) noexcept = default;
+    // upkeep -- through the layer: ANALYZE TABLE, for the optimizer's key
+    // distribution; OPTIMIZE TABLE, which rebuilds the table; CHECK TABLE,
+    // which says whether it is sound. Each throws as database_table's
+    // members do, D_DB_NOT_FOUND for a table not there.
+    void
+    analyze_table()
+    {
+        this->validate_connected("analyze_table");
 
-
-        // =================================================================
-        //  schema introspection (MySQL extensions)
-        // =================================================================
-
-        // fetch_schema
-        //   function: extends the MySQL-family schema introspection with
-        // Oracle-MySQL-specific column properties. Detects generated
-        // columns via GENERATION_EXPRESSION and marks JSON columns by
-        // native type (unlike MariaDB where JSON is a LONGTEXT alias).
-        // Concrete (not an override): call on the concrete mysql_table.
-        void fetch_schema()
-        {
-            // use the base MySQL-family introspection
-            base_type::fetch_schema();
-
-            // detect JSON columns via native type
-            detect_json_columns();
-
-            return;
-        }
-
-
-        // =================================================================
-        //  JSON column support
-        // =================================================================
-
-        // is_json_column
-        //   function: returns whether the column at the given index is a
-        // native JSON binary column. Oracle MySQL sends MYSQL_TYPE_JSON
-        // (0xF5) over the wire for these columns.
-        bool is_json_column(size_type _col) const
-        {
-            // bounds validation
-            if (_col >= this->m_num_cols)
+        this->m_connection->run_layer(
+            "analyze_table",
+            [this](face::mariadb& _db) -> int
             {
-                return false;
-            }
+                return _db.analyze_table(this->layer_scope(),
+                                         face::string_arg(this->table_name()));
+            });
 
-            if (_col < m_json_flags.size())
+        return;
+    }
+
+    void
+    optimize_table()
+    {
+        this->validate_connected("optimize_table");
+
+        this->m_connection->run_layer(
+            "optimize_table",
+            [this](face::mariadb& _db) -> int
             {
-                return m_json_flags[_col];
-            }
+                return _db.optimize_table(
+                    this->layer_scope(),
+                    face::string_arg(this->table_name()));
+            });
 
-            return (this->m_schema.columns[_col].type
-                    == field_type::json);
-        }
+        return;
+    }
 
-        // is_json_column (by name)
-        //   function: returns whether the named column is a native JSON
-        // binary column.
-        bool is_json_column(std::string_view _name) const
-        {
-            auto idx = this->m_schema.column_index(_name);
+    bool
+    check_table() const
+    {
+        this->validate_connected("check_table");
 
-            if (!idx.has_value())
+        bool sound = false;
+
+        this->m_connection->ask_layer(
+            "check_table",
+            [this, &sound](const face::mariadb& _db) -> int
             {
-                return false;
-            }
+                return _db.check_table(this->layer_scope(),
+                                       face::string_arg(this->table_name()),
+                                       sound);
+            });
 
-            return is_json_column(idx.value());
-        }
+        return sound;
+    }
 
-        // json_is_native
-        //   function: returns true. Oracle MySQL uses native binary JSON
-        // storage (unlike MariaDB's LONGTEXT alias).
-        static constexpr bool json_is_native() noexcept
-        {
-            return true;
-        }
-
-
-        // =================================================================
-        //  optimizer hint support
-        // =================================================================
-
-        // set_optimizer_hint
-        //   function: sets a MySQL optimizer hint string that will be
-        // injected into SELECT queries as /*+ ... */. The hint should
-        // not include the comment delimiters.
-        void set_optimizer_hint(std::string _hint)
-        {
-            m_optimizer_hint = std::move(_hint);
-
-            return;
-        }
-
-        // clear_optimizer_hint
-        //   function: removes any active optimizer hint.
-        void clear_optimizer_hint()
-        {
-            m_optimizer_hint.clear();
-
-            return;
-        }
-
-        // get_optimizer_hint
-        //   function: returns the current optimizer hint, if any.
-        const std::string& get_optimizer_hint() const noexcept
-        {
-            return m_optimizer_hint;
-        }
-
-
-        // =================================================================
-        //  MySQL-specific queries
-        // =================================================================
-
-        // analyze_table
-        //   function: runs ANALYZE TABLE to update index statistics.
-        void analyze_table()
-        {
-            this->validate_connected("analyze_table");
-
-            this->m_connection->execute(
-                "ANALYZE TABLE "
-                + backtick_quote(
-                      this->m_schema.table_name));
-
-            return;
-        }
-
-        // optimize_table
-        //   function: runs OPTIMIZE TABLE to reclaim space and
-        // defragment.
-        void optimize_table()
-        {
-            this->validate_connected("optimize_table");
-
-            this->m_connection->execute(
-                "OPTIMIZE TABLE "
-                + backtick_quote(
-                      this->m_schema.table_name));
-
-            return;
-        }
-
-        // check_table
-        //   function: runs CHECK TABLE for integrity verification.
-        // Returns the result as a string.
-        std::string check_table()
-        {
-            this->validate_connected("check_table");
-
-            auto rs = this->m_connection->execute_query(
-                "CHECK TABLE "
-                + backtick_quote(
-                      this->m_schema.table_name));
-
-            std::string result;
-
-            while (rs->next())
-            {
-                auto msg = rs->get_string(static_cast<size_type>(3));
-
-                if (msg.has_value())
-                {
-                    if (!result.empty())
-                    {
-                        result += "; ";
-                    }
-
-                    result += msg.value();
-                }
-            }
-
-            return result;
-        }
-
-
-    protected:
-
-        // =================================================================
-        //  protected helpers (concrete — not overrides)
-        // =================================================================
-
-        // build_select_query
-        //   function: the MySQL-family SELECT with optimizer hints injected
-        // when configured. Concrete (not an override): the concrete base is
-        // non-polymorphic, so base::refresh() would bind to the base query
-        // builder; mysql_table therefore also supplies its own refresh()
-        // below that routes through this builder. Identifier quoting matches
-        // the base's quote_identifier(name, database_type::mysql).
-        std::string build_select_query() const
-        {
-            std::string query = "SELECT ";
-
-            // inject optimizer hint
-            if (!m_optimizer_hint.empty())
-            {
-                query += "/*+ " + m_optimizer_hint + " */ ";
-            }
-
-            query += "* FROM "
-                     + backtick_quote(
-                           this->m_schema.table_name);
-
-            if (!this->m_where_clause.empty())
-            {
-                query += " WHERE " + this->m_where_clause;
-            }
-
-            if (!this->m_order_clause.empty())
-            {
-                query += " ORDER BY " + this->m_order_clause;
-            }
-
-            if (this->m_limit.has_value())
-            {
-                query += " LIMIT "
-                         + std::to_string(this->m_limit.value());
-            }
-
-            if (this->m_offset.has_value())
-            {
-                query += " OFFSET "
-                         + std::to_string(this->m_offset.value());
-            }
-
-            return query;
-        }
-
-        // refresh
-        //   function: concrete MySQL refresh that reloads the local cache
-        // using the optimizer-hinted SELECT above. Shadows base::refresh()
-        // for direct calls on the concrete mysql_table; without a hint the
-        // emitted SQL is identical to the base path. When no hint is set
-        // this simply defers to the base implementation.
-        void refresh()
-        {
-            if (m_optimizer_hint.empty())
-            {
-                base_type::refresh();
-                return;
-            }
-
-            this->validate_connected("refresh");
-
-            const std::string query = build_select_query();
-            auto              rs    = this->m_connection->execute_query(query);
-
-            if (this->m_num_cols == 0)
-            {
-                this->m_num_cols = rs->column_count();
-            }
-
-            this->m_data.clear();
-
-            while (rs->next())
-            {
-                typename base_type::row_type r;
-                r.reserve(this->m_num_cols);
-
-                for (size_type c = 0; c < this->m_num_cols; ++c)
-                {
-                    r.push_back(rs->get_value(c));
-                }
-
-                this->m_data.push_back(std::move(r));
-            }
-
-            this->m_num_rows     = this->m_data.size();
-            this->m_stale        = false;
-            this->m_dirty        = false;
-            this->m_last_refresh = std::chrono::steady_clock::now();
-
-            return;
-        }
-
-        // NOTE: the former field_type_to_sql override was removed. Oracle
-        // MySQL's spellings (native binary JSON, CHAR(36) for UUID) are now
-        // produced by mysql_common_table::field_type_to_sql directly, which
-        // selects them at compile time from
-        // mysql_connection::type_support (has_json_type == true,
-        // has_uuid_type == false). No per-leaf override is needed.
-
-
-        // =================================================================
-        //  protected helpers
-        // =================================================================
-
-        // detect_json_columns
-        //   function: queries INFORMATION_SCHEMA to identify which
-        // columns are native JSON type, populating the m_json_flags
-        // vector.
-        void detect_json_columns()
-        {
-            m_json_flags.clear();
-            m_json_flags.resize(this->m_num_cols, false);
-
-            for (size_type c = 0; c < this->m_num_cols; ++c)
-            {
-                if (this->m_schema.columns[c].type == field_type::json)
-                {
-                    m_json_flags[c] = true;
-                }
-            }
-
-            return;
-        }
-
-
-        // =================================================================
-        //  protected members
-        // =================================================================
-
-        std::vector<bool> m_json_flags;
-        std::string       m_optimizer_hint;
-    };
+protected:
+    std::string m_optimizer_hint;
+};
 
 
 NS_END  // djinterp

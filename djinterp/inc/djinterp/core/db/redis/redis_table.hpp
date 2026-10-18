@@ -404,13 +404,13 @@ NS_DJINTERP
             return (n > 0);
         }
 
-        // row_exists
+        // has_row
         //   function: returns true if a row with the given ID exists.
-        bool row_exists(const std::string& _row_id) const
+        bool has_row(const std::string& _row_id) const
         {
-            validate_connected("row_exists");
+            validate_connected("has_row");
 
-            return m_connection->key_exists(row_key(_row_id));
+            return m_connection->has_key(row_key(_row_id));
         }
 
         // get_field

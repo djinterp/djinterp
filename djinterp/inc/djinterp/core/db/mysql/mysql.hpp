@@ -2,55 +2,40 @@
 * djinterp [core]                                                      mysql.hpp
 *
 * djinterp Oracle MySQL connection module:
-*   This header provides the Oracle MySQL-specific connection
-* implementation and associated infrastructure for the djinterp database
-* module, including:
-*   - MySQL wire protocol MYSQL_TYPE_* field type codes (shared enum from
-*     mysql_common.hpp) with MySQL-specific additions
-*   - compile-time type and feature availability via D_ENV_MYSQL_* macros
-*     covering JSON, X Protocol, authentication, InnoDB, replication,
-*     Group Replication, InnoDB Cluster, and optimizer features
-*   - Oracle MySQL-specific connection configuration (SSL mode,
-*     authentication plugin, X Protocol port, session tracking, query
-*     attributes, Group Replication monitoring)
-*   - the concrete mysql_connection CRTP leaf class inheriting from
-*     mysql_common_connection with MySQL-specific version-gated methods
-*     for reset_connection (5.7.3+), async API (8.0.16+), session
-*     tracking (5.7.4+), and query attributes (8.0.25+)
-*
-*   Oracle MySQL diverges from MariaDB in several key areas:
-*   - X Protocol and X DevAPI (5.7.12+) - MariaDB does not have this
-*   - Group Replication / InnoDB Cluster / ClusterSet - MariaDB uses
-*     Galera Cluster instead
-*   - HeatWave (cloud analytics engine) - MySQL-only
-*   - caching_sha2_password as default auth (8.0.4+) - MariaDB defaults
-*     to mysql_native_password or ed25519
-*   - non-blocking API via _nonblocking suffix (8.0.16+) - MariaDB uses
-*     _start/_cont suffix (Connector/C 5.5+)
-*   - data dictionary (8.0+) replaces FRM files - MariaDB keeps FRM
-*
-*   LAYER DIAGRAM:
+*   The MySQL connection, mysql_connection, over the MariaDB layer's C++ face
+* through mysql_common_connection, which holds the face and implements what
+* MySQL and MariaDB share; this leaf adds MySQL's configuration -- its TLS
+* modes, connect attributes, and the settings the layer cannot apply, which
+* it refuses -- and its compile-time knowledge: the types and features each
+* version has (JSON, the X Protocol, authentication, InnoDB, replication,
+* Group Replication, InnoDB Cluster, the optimizer), from env_mysql.h.
+*   MySQL parts from MariaDB in the X Protocol and X DevAPI (5.7.12), Group
+* Replication and InnoDB Cluster where MariaDB has Galera, HeatWave,
+* caching_sha2_password by default (8.0.4), its _nonblocking calls (8.0.16)
+* where MariaDB's client has _start and _cont, and its data dictionary (8.0).
 *     mysql_connection (this file)
 *       -> mysql_common_connection<mysql_connection, database_type::mysql>
 *         -> database_connection<mysql_connection, database_type::mysql>
 *           -> connection_template<mysql_connection, database_type::mysql>
 *             -> connection<mysql_connection>
-*
-*
-*   DETECTION:
-*   Also carries this database's capability-detection traits and C++20 concepts
-* (trailing sections), folded in from mysql_traits.hpp and the matching *_concepts.hpp;
-* detection now lives with the connection. Concepts gated on concept support.
+*   The leaf's hooks are defined in mysql.cpp, which instantiates the
+* family's members for it. The header needs C++17 and includes no client
+* header: env includes mysql.h only where a program asks for env's
+* detection (D_CFG_ENV_USING_MYSQL), which the compile-time feature queries
+* read. Such a program, under `using namespace djinterp`, names the enum
+* djinterp::mysql_ssl_mode, since libmysqlclient declares one of that name.
+* Its trailing sections carry MySQL's capability-detection traits and C++20
+* concepts.
 *
 *
 * path:      /inc/djinterp/core/db/mysql/mysql.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 #ifndef DJINTERP_DB_MYSQL_MYSQL_HPP
-#define DJINTERP_DB_MYSQL_MYSQL_HPP
+#define DJINTERP_DB_MYSQL_MYSQL_HPP 1
 
 // djinterp
 #include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
@@ -60,11 +45,16 @@
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+// std
+#include <cstddef>  // std::size_t
+#include <map>      // std::map
+#include <string>   // std::string
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../../meta/type_utility.hpp"  // clean_t, self
-#include "../../../env/db/mysql/env_mysql.h"
-#include "./mysql_common.hpp"
+#include "../../../djinterp.hpp"                   // framework root
+#include "../../../c/db/mariadb/mariadb_face.hpp"  // face::mariadb
+#include "../../../env/db/mysql/env_mysql.h"       // D_ENV_MYSQL_*
+#include "../../meta/type_utility.hpp"             // clean_t
+#include "./mysql_common.hpp"                      // mysql_common_connection
 
 
 NS_DJINTERP
@@ -488,38 +478,43 @@ struct mysql_version_info
 //   enum: MySQL SSL connection modes (mysql_ssl_mode from mysql.h).
 enum class mysql_ssl_mode : re_std::uint8_t
 {
-    disabled       = 1,     // SSL_MODE_DISABLED
-    preferred      = 2,     // SSL_MODE_PREFERRED
-    required       = 3,     // SSL_MODE_REQUIRED
-    verify_ca      = 4,     // SSL_MODE_VERIFY_CA
+    disabled        = 1,    // SSL_MODE_DISABLED
+    preferred       = 2,    // SSL_MODE_PREFERRED
+    required        = 3,    // SSL_MODE_REQUIRED
+    verify_ca       = 4,    // SSL_MODE_VERIFY_CA
     verify_identity = 5     // SSL_MODE_VERIFY_IDENTITY
 };
 
 // oracle_mysql_connect_config
-//   struct: Oracle MySQL-specific connection configuration extending
-// the shared mysql_connect_config.
+//   struct: what a MySQL connection needs beyond the family's. ssl_mode,
+// where not `preferred`, replaces enable_ssl's mode; connect_attributes join
+// the family's. The rest -- auth_plugin, tls_version, tls_ciphersuites,
+// enable_cleartext_plugin, enable_session_tracking, use_x_protocol and
+// statement_cache_size -- the layer has no setting for: connect refuses
+// them, with D_DB_UNSUPPORTED, unless they are left as they are made, and a
+// program that needs one sets its mysql_options option with set_option.
 struct oracle_mysql_connect_config
 {
     mysql_connect_config common;
-    mysql_ssl_mode       ssl_mode;
-    std::string          auth_plugin;
-    std::string          tls_version;
-    std::string          tls_ciphersuites;
-    re_std::uint16_t        x_protocol_port;
-    bool                 use_x_protocol;
-    bool                 enable_session_tracking;
-    bool                 enable_cleartext_plugin;
-    std::size_t          statement_cache_size;
+    mysql_ssl_mode       ssl_mode;                 // preferred
+    std::string          auth_plugin;              // refused unless ""
+    std::string          tls_version;              // refused unless ""
+    std::string          tls_ciphersuites;         // refused unless ""
+    re_std::uint16_t     x_protocol_port;          // 33060
+    bool                 use_x_protocol;           // refused unless false
+    bool                 enable_session_tracking;  // refused unless false
+    bool                 enable_cleartext_plugin;  // refused unless false
+    std::size_t          statement_cache_size;     // refused unless 0
 
-    std::map<std::string, std::string>  connect_attributes;
+    std::map<std::string, std::string> connect_attributes;
 
     oracle_mysql_connect_config()
-        : ssl_mode(mysql_ssl_mode::preferred)
-        , x_protocol_port(33060)
-        , use_x_protocol(false)
-        , enable_session_tracking(false)
-        , enable_cleartext_plugin(false)
-        , statement_cache_size(0)
+        : ssl_mode(mysql_ssl_mode::preferred),
+          x_protocol_port(33060),
+          use_x_protocol(false),
+          enable_session_tracking(false),
+          enable_cleartext_plugin(false),
+          statement_cache_size(0)
     {
         common.base.host = "localhost";
         common.base.port = 3306;
@@ -528,12 +523,12 @@ struct oracle_mysql_connect_config
     explicit oracle_mysql_connect_config(
         const connection_config& _base
     )
-        : ssl_mode(mysql_ssl_mode::preferred)
-        , x_protocol_port(33060)
-        , use_x_protocol(false)
-        , enable_session_tracking(false)
-        , enable_cleartext_plugin(false)
-        , statement_cache_size(0)
+        : ssl_mode(mysql_ssl_mode::preferred),
+          x_protocol_port(33060),
+          use_x_protocol(false),
+          enable_session_tracking(false),
+          enable_cleartext_plugin(false),
+          statement_cache_size(0)
     {
         common.base = _base;
     }
@@ -545,70 +540,37 @@ struct oracle_mysql_connect_config
 // ===========================================================================
 
 // mysql_connection
-//   class: concrete Oracle MySQL connection implementation. This is the
-// CRTP leaf class inheriting from mysql_common_connection, which
-// provides charset, multi-result, escape, autocommit, options, and
-// diagnostics. This class adds MySQL-specific features: reset_connection,
-// async API, session tracking, query attributes, and X Protocol
-// awareness.
+//   class: a connection to Oracle's MySQL, through either client, over the
+// MariaDB layer's face (mysql_common_connection, which holds it). Beside the
+// family's operations it has MySQL's compile-time feature queries, and
+// applies oracle_mysql_connect_config's TLS mode and connect attributes when
+// it connects. Not copyable; movable.
 class mysql_connection
-    : public mysql_common_connection<
-          mysql_connection,
-          database_type::mysql>
+    : public mysql_common_connection<mysql_connection,
+                                     database_type::mysql>
 {
-private:
-    using base_type = mysql_common_connection<
-        mysql_connection, database_type::mysql>;
-
 public:
+    using base_type = mysql_common_connection<mysql_connection,
+                                              database_type::mysql>;
+
     using type_support    = mysql_type_support;
     using feature_support = mysql_feature_support;
     using version_info    = mysql_version_info;
 
-    mysql_connection()
-        : base_type()
-    {}
-
-    explicit mysql_connection(
-        const connection_config& _config
-    )
-        : base_type(_config)
-    {}
-
-    explicit mysql_connection(
-        const oracle_mysql_connect_config& _config
-    )
-        : base_type(_config.common.base)
-        , m_mysql_config(_config)
-    {}
+    // construction -- with MySQL's defaults, or a generic, a family or a
+    // MySQL configuration, whose `common` the family keeps
+    mysql_connection();
+    explicit mysql_connection(const connection_config& _config);
+    explicit mysql_connection(const mysql_connect_config& _config);
+    explicit mysql_connection(const oracle_mysql_connect_config& _config);
 
     ~mysql_connection() = default;
 
-    // disable copying
     mysql_connection(const mysql_connection&)            = delete;
     mysql_connection& operator=(const mysql_connection&) = delete;
 
-    // enable moving
     mysql_connection(mysql_connection&&) noexcept            = default;
     mysql_connection& operator=(mysql_connection&&) noexcept = default;
-
-    // -----------------------------------------------------------------
-    // schema introspection
-    // -----------------------------------------------------------------
-
-    // table_exists
-    //   function: tests whether a table exists in the current database.
-    bool table_exists(const std::string& _table_name) const
-    {
-        return self().table_exists_helper(_table_name);
-    }
-
-    // get_table_names
-    //   function: returns all table names in the current database.
-    std::vector<std::string> get_table_names() const
-    {
-        return self().get_table_names_helper();
-    }
 
     // -----------------------------------------------------------------
     // feature queries (compile-time)
@@ -668,73 +630,25 @@ public:
     // MySQL-specific configuration
     // -----------------------------------------------------------------
 
-    const oracle_mysql_connect_config& get_mysql_config() const noexcept
-    {
-        return m_mysql_config;
-    }
+    // configuration -- MySQL's settings; setting them replaces the
+    // family's and the generic configuration with theirs, for the next
+    // connect
+    const oracle_mysql_connect_config& get_oracle_config() const noexcept;
+    void                               set_oracle_config(
+                                           const oracle_mysql_connect_config&
+                                               _config);
 
-    void set_mysql_config(
-        const oracle_mysql_connect_config& _config
-    )
-    {
-        m_mysql_config      = _config;
-        this->m_config      = _config.common.base;
-    }
+    // hooks (mysql.cpp), for mysql_common_connection's connect: MySQL's
+    // TLS mode and connect attributes, and the refusal of the settings the
+    // layer cannot apply, which throws connection_exception with
+    // D_DB_UNSUPPORTED; nothing to set once connected
+    void add_settings_helper(internal::mariadb_settings& _settings) const;
+    void on_connected_helper(face::mariadb& _db);
 
-    // -----------------------------------------------------------------
-    // _helper methods (defined in mysql.cpp)
-    // -----------------------------------------------------------------
-
-    void        connect_helper();
-    void        disconnect_helper();
-    bool        is_connected_helper() const;
-    bool        ping_helper() const;
-
-    auto        execute_query_helper(const std::string& _query)
-                    -> std::unique_ptr<
-                        result_set<struct mysql_result_set_helper>>;
-    re_std::int64_t execute_update_helper(const std::string& _query);
-    bool        execute_helper(const std::string& _query);
-
-    auto        prepare_helper(const std::string& _query)
-                    -> std::unique_ptr<
-                        statement<struct mysql_statement_helper>>;
-
-    std::string  get_server_version_helper() const;
-    std::string  get_last_error_helper() const;
-    int          get_last_error_code_helper() const;
-    re_std::int64_t get_last_insert_id_helper() const;
-    re_std::int64_t get_affected_rows_helper() const;
-
-    // MySQL-family common _helper methods
-    void          set_charset_helper(const std::string& _charset);
-    std::string   get_charset_helper() const;
-    int           next_result_helper();
-    bool          more_results_helper() const;
-    std::string   escape_string_helper(
-                      const std::string& _input) const;
-    void          select_db_helper(const std::string& _database);
-    void          change_user_helper(const std::string& _user,
-                                   const std::string& _password,
-                                   const std::string& _database);
-    std::string   get_stat_helper() const;
-    unsigned long get_thread_id_helper() const;
-    unsigned int  get_warning_count_helper() const;
-    std::string   get_sqlstate_helper() const;
-    void          set_autocommit_helper(bool _enabled);
-    void          set_option_helper(int         _option,
-                                  const void* _value);
-
-    // schema introspection _helper
-    bool table_exists_helper(const std::string& _name) const;
-    std::vector<std::string> get_table_names_helper() const;
-
-    // transaction _helper
-    void begin_transaction_helper();
-    void commit_helper();
-    void rollback_helper();
-
-    // version-gated methods
+    // version-gated methods: declared where env detects the feature in the
+    // client's header, and not yet defined -- the MariaDB layer has no
+    // connection reset, non-blocking calls, session tracking or query
+    // attributes for them to stand on
 
 #if D_ENV_MYSQL_DETECTED
     #if D_ENV_MYSQL_HAS_RESET_CONNECTION
@@ -774,33 +688,13 @@ public:
 #endif  // D_ENV_MYSQL_DETECTED
 
 private:
-    oracle_mysql_connect_config m_mysql_config;
-
-    mysql_connection& self()
-    {
-        return *this;
-    }
-
-    const mysql_connection& self() const
-    {
-        return *this;
-    }
+    oracle_mysql_connect_config m_oracle_config;
 };
 
-
-// ===========================================================================
-// VI.  FORWARD DECLARATIONS
-// ===========================================================================
-
-// mysql_result_set_helper
-//   struct: forward declaration of the Oracle MySQL result set
-// implementation.
-struct mysql_result_set_helper;
-
-// mysql_statement_helper
-//   struct: forward declaration of the Oracle MySQL prepared
-// statement implementation.
-struct mysql_statement_helper;
+// mysql_common_connection<mysql_connection, ...>
+//   class: the family's members for MySQL, instantiated once, in mysql.cpp.
+extern template class mysql_common_connection<mysql_connection,
+                                              database_type::mysql>;
 
 
 // ===========================================================================
@@ -811,7 +705,7 @@ struct mysql_statement_helper;
 // concepts appear under C++20.
 
 // ===========================================================================
-// VII.   EXPRESSION DETECTORS (Oracle MySQL-specific)
+// VI.  EXPRESSION DETECTORS (Oracle MySQL-specific)
 // ===========================================================================
 
 // -------------------------------------------------------------------------
@@ -894,22 +788,22 @@ using mysql_ora_has_x_protocol_t =
 // F.  schema introspection
 // -------------------------------------------------------------------------
 
-// mysql_ora_table_exists_t
-//   detector: table_exists(const std::string&) const method.
+// mysql_ora_has_table_t
+//   detector: has_table(const std::string&) const method.
 template<typename Type>
-using mysql_ora_table_exists_t =
-    decltype(std::declval<const Type&>().table_exists(
+using mysql_ora_has_table_t =
+    decltype(std::declval<const Type&>().has_table(
         std::declval<const std::string&>()));
 
-// mysql_ora_get_table_names_t
-//   detector: get_table_names() const method.
+// mysql_ora_list_tables_t
+//   detector: list_tables() const method.
 template<typename Type>
-using mysql_ora_get_table_names_t =
-    decltype(std::declval<const Type&>().get_table_names());
+using mysql_ora_list_tables_t =
+    decltype(std::declval<const Type&>().list_tables());
 
 
 // ===========================================================================
-// VIII.  TAGGED CAPABILITY TRAITS (struct-based)
+// VII. TAGGED CAPABILITY TRAITS (struct-based)
 // ===========================================================================
 
 // has_mysql_ora_reset
@@ -970,8 +864,8 @@ struct has_mysql_ora_query_attributes
 //   trait: checks if type Type supports schema introspection.
 template<typename Type>
 struct has_mysql_ora_schema_query : djinterp::conjunction<
-    is_detected<mysql_ora_table_exists_t, clean_t<Type>>,
-    is_detected<mysql_ora_get_table_names_t, clean_t<Type>>>
+    is_detected<mysql_ora_has_table_t, clean_t<Type>>,
+    is_detected<mysql_ora_list_tables_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -998,7 +892,7 @@ struct is_mysql_ora_connection : djinterp::conjunction<
 
 
 // ===========================================================================
-// IX. TAGLESS CAPABILITY TRAITS (constexpr bool)
+// VIII. TAGLESS CAPABILITY TRAITS (constexpr bool)
 // ===========================================================================
 
 // -------------------------------------------------------------------------
@@ -1046,14 +940,14 @@ constexpr bool mysql_ora_can_set_query_attribute<Type,
     std::void_t<mysql_ora_set_query_attribute_t<Type>>> = true;
 
 // mysql_ora_can_query_schema
-//   tagless trait: true if Type has table_exists().
+//   tagless trait: true if Type has has_table().
 template<typename Type,
          typename = void>
 constexpr bool mysql_ora_can_query_schema = false;
 
 template<typename Type>
 constexpr bool mysql_ora_can_query_schema<Type,
-    std::void_t<mysql_ora_table_exists_t<Type>>> = true;
+    std::void_t<mysql_ora_has_table_t<Type>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
@@ -1079,8 +973,8 @@ constexpr bool mysql_ora_does_schema_query = false;
 
 template<typename Type>
 constexpr bool mysql_ora_does_schema_query<Type, std::void_t<
-    mysql_ora_table_exists_t<Type>,
-    mysql_ora_get_table_names_t<Type>>> = true;
+    mysql_ora_has_table_t<Type>,
+    mysql_ora_list_tables_t<Type>>> = true;
 
 // mysql_ora_is_full_connection
 //   tagless trait: true if Type satisfies the complete Oracle MySQL
@@ -1092,7 +986,7 @@ constexpr bool mysql_ora_is_full_connection =
 
 
 // ===========================================================================
-// X.  SFINAE HELPERS
+// IX.  SFINAE HELPERS
 // ===========================================================================
 
 // enable_if_mysql_ora_connection
@@ -1129,7 +1023,7 @@ using enable_if_has_mysql_ora_query_attributes =
 
 
 // ===========================================================================
-// XI.   C++20 CONCEPTS
+// X.   C++20 CONCEPTS
 // ===========================================================================
 //   The Oracle MySQL classification concepts, folded in from the former
 // mysql_concepts.hpp.  Each forwards to a trait / tagless capability declared
@@ -1243,17 +1137,17 @@ template<typename Type>
 concept mysql_ora_query_attribute_settable =
     mysql_ora_can_set_query_attribute<clean_t<Type>>;
 
-// mysql_ora_table_exists_query
-//   concept: constrains types exposing table_exists(name).
+// mysql_ora_has_table_query
+//   concept: constrains types exposing has_table(name).
 template<typename Type>
-concept mysql_ora_table_exists_query =
+concept mysql_ora_has_table_query =
     mysql_ora_can_query_schema<clean_t<Type>>;
 
 // mysql_ora_table_names_query
-//   concept: constrains types exposing get_table_names().
+//   concept: constrains types exposing list_tables().
 template<typename Type>
 concept mysql_ora_table_names_query =
-    is_detected<mysql_ora_get_table_names_t, clean_t<Type>>::value;
+    is_detected<mysql_ora_list_tables_t, clean_t<Type>>::value;
 
 // mysql_ora_x_protocol_query
 //   concept: constrains types exposing supports_x_protocol().

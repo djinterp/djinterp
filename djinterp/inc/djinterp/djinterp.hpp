@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/djinterp.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 
 /*
@@ -66,8 +66,9 @@ TABLE OF CONTENTS
          3.  D_MOVE_ENABLED
          4.  D_EXPLICIT_BOOL
          5.  D_DELETED_FN
-         6.  D_NULLPTR
-         7.  D_OVERRIDE
+         6.  D_DELETED_FN_MSG
+         7.  D_NULLPTR
+         8.  D_OVERRIDE
 3.  NAMESPACE ALIASES
     -----------------
     1.  Framework aliases
@@ -626,6 +627,28 @@ TABLE OF CONTENTS
 #endif  // D_DELETED_FN
 
 // 2.4.6
+// D_DELETED_FN_MSG
+//   macro: D_DELETED_FN with the reason the member must not exist, which the
+// compiler then gives where the member is used: C++26's `= delete("reason")`
+// at C++26, where the compiler has it
+// (D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION); D_DELETED_FN's spelling
+// elsewhere, the reason dropped. The level is required as well as the
+// feature: Clang reports the feature below C++26, where -pedantic-errors
+// refuses the syntax.
+//       private:
+//           D_DELETED_FN_MSG(my_type(const my_type&),
+//                            "my_type owns its resource; move it instead")
+//   pre-definable.
+#ifndef D_DELETED_FN_MSG
+    #if ( (D_ENV_LANG_IS_CPP26_OR_HIGHER) &&                                  \
+          (D_ENV_CPP_FEATURE_LANG_DELETED_FUNCTION) )
+        #define D_DELETED_FN_MSG(_decl, _msg) _decl = delete(_msg);
+    #else
+        #define D_DELETED_FN_MSG(_decl, _msg) D_DELETED_FN(_decl)
+    #endif
+#endif  // D_DELETED_FN_MSG
+
+// 2.4.7
 // D_NULLPTR
 //   constant: the null pointer constant: `nullptr` from C++11; `0` below,
 // which is C++98's. Write it only where a pointer is expected: `0` is an int,
@@ -640,7 +663,7 @@ TABLE OF CONTENTS
     #endif
 #endif  // D_NULLPTR
 
-// 2.4.7
+// 2.4.8
 // D_OVERRIDE
 //   qualifier: `override` on a virtual function that must override one in a
 // base, from C++11; empty below, where the override is unchecked but the same.

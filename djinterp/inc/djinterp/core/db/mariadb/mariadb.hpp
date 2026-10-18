@@ -2,67 +2,37 @@
 * djinterp [core]                                                    mariadb.hpp
 *
 * djinterp MariaDB connection module:
-*   This header provides the MariaDB-specific connection implementation
-* and associated data type infrastructure for the djinterp database
-* module, including:
-*   - MySQL-family native field type enumeration (shared with Oracle MySQL)
-*   - MariaDB-specific extended field types (INET6, UUID, JSON alias)
-*   - compile-time type mapping between native MYSQL_TYPE_* constants and
-*     the djinterp field_type enumeration
-*   - version-gated data type availability queries using
-*     D_ENV_MARIADB_* macros from env_mariadb.h
-*   - MariaDB-specific SQL feature availability (sequences, system-
-*     versioned tables, CTEs, window functions, etc.)
-*   - MariaDB-specific connection configuration and Galera awareness
-*   - the concrete mariadb_connection CRTP leaf class
-*
-*   This module sits at the top of the connection hierarchy and provides
-* the final CRTP leaf class. The _helper methods declared here would be
-* defined in a corresponding mariadb.cpp source file that includes the
-* MariaDB C API header (<mariadb/mysql.h> or <mysql.h>).
-*
-*   LAYER DIAGRAM:
+*   The MariaDB connection, mariadb_connection, over the MariaDB layer's C++
+* face through mysql_common_connection, which holds the face and implements
+* what MariaDB and MySQL share; this leaf adds MariaDB's configuration --
+* Galera's causal reads, the default storage engine -- and its compile-time
+* knowledge: the wire protocol's field types (MYSQL_TYPE_*, as
+* mysql_field_type, without the client's header), MariaDB's own (INET6,
+* UUID, the JSON alias), how each maps to field_type, and the types and SQL
+* features each version has, from env_mariadb.h.
 *     mariadb_connection (this file)
 *       -> mysql_common_connection<mariadb_connection, database_type::mariadb>
 *         -> database_connection<mariadb_connection, database_type::mariadb>
-*           -> connection_template<mariadb_connection, database_type::mariadb>
+*           -> connection_template<mariadb_connection, ...>
 *             -> connection<mariadb_connection>
-*
-*   DATA TYPE DESIGN:
-*   The MySQL/MariaDB wire protocol uses MYSQL_TYPE_* constants to
-* identify column types. These are identical across Oracle MySQL and
-* MariaDB for the shared set (inherited from the pre-fork common
-* codebase). MariaDB extends this with vendor-specific types (INET6,
-* UUID). This header provides:
-*   1. mysql_field_type: a scoped enum mirroring MYSQL_TYPE_* values,
-*      usable without including <mysql.h>.
-*   2. mariadb_field_type: MariaDB-specific type extensions.
-*   3. Mapping functions between native types and djinterp::database::
-*      field_type.
-*   4. Compile-time predicates gated by version macros for type
-*      availability.
-*
-*   PORTABILITY:
-*   This header requires C++17 or later. It does not include the
-* MariaDB C API header. All version-gated features use
-* D_ENV_MARIADB_* and D_ENV_MYSQL_COMMON_* macros from the env
-* headers.
-*
-*
-*   DETECTION:
-*   Also carries this database's capability-detection traits and C++20 concepts
-* (trailing sections), folded in from mariadb_traits.hpp and the matching *_concepts.hpp;
-* detection now lives with the connection. Concepts gated on concept support.
+*   The leaf's hooks are defined in mariadb.cpp, which instantiates the
+* family's members for it. The header needs C++17 and includes no client
+* header: env includes mysql.h only where a program asks for env's
+* detection (D_CFG_ENV_USING_MARIADB), which the compile-time feature
+* queries read. Such a program, under `using namespace djinterp`, names the
+* class djinterp::mariadb_connection, since Connector/C declares a function
+* of that name. Its trailing sections carry MariaDB's capability-detection
+* traits and C++20 concepts.
 *
 *
 * path:      /inc/djinterp/core/db/mariadb/mariadb.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 #ifndef DJINTERP_DB_MARIADB_MARIADB_HPP
-#define DJINTERP_DB_MARIADB_MARIADB_HPP
+#define DJINTERP_DB_MARIADB_MARIADB_HPP 1
 
 // djinterp
 #include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
@@ -72,12 +42,15 @@
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+// std
+#include <string>  // std::string
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../../meta/type_utility.hpp"  // clean_t
-#include "../../../env/db/mariadb/env_mariadb.h"
-#include "../database.hpp"
-#include "../mysql/mysql_common.hpp"
+#include "../../../djinterp.hpp"                   // framework root
+#include "../../../c/db/mariadb/mariadb_face.hpp"  // face::mariadb
+#include "../../../env/db/mariadb/env_mariadb.h"   // D_ENV_MARIADB_*
+#include "../../meta/type_utility.hpp"             // clean_t
+#include "../database.hpp"                         // the vocabulary
+#include "../mysql/mysql_common.hpp"               // mysql_common_connection
 
 
 NS_DJINTERP
@@ -855,19 +828,22 @@ struct mariadb_version_info
 // ===========================================================================
 
 // mariadb_connect_config
-//   struct: MariaDB-specific connection configuration extending the
-// MySQL-family common configuration with Galera and MariaDB-specific
-// options.
+//   struct: what a MariaDB connection needs beyond the family's: Galera's
+// causal reads, and the session's default storage engine. With either Galera
+// switch on, the session sets wsrep_sync_wait to 1, so that each read waits
+// for the writes the cluster has committed; the default storage engine,
+// where named, is set for the session. Both are applied when the connection
+// opens.
 struct mariadb_connect_config
 {
-    mysql_connect_config  mysql_config;
+    mysql_connect_config mysql_config;
 
     // Galera-aware options
-    bool galera_wsrep_sync_wait;
-    bool galera_wsrep_causal_reads;
+    bool galera_wsrep_sync_wait;     // false
+    bool galera_wsrep_causal_reads;  // false; the same, by its old name
 
     // MariaDB-specific init
-    std::string default_storage_engine;
+    std::string default_storage_engine;  // "": the server's
 
     mariadb_connect_config()
         : galera_wsrep_sync_wait(false),
@@ -880,11 +856,12 @@ struct mariadb_connect_config
     }
 
     explicit mariadb_connect_config(
-        const connection_config& _base)
-        : mysql_config(_base)
-        , galera_wsrep_sync_wait(false)
-        , galera_wsrep_causal_reads(false)
-    {};
+        const connection_config& _base
+    )
+        : mysql_config(_base),
+          galera_wsrep_sync_wait(false),
+          galera_wsrep_causal_reads(false)
+    {}
 };
 
 
@@ -893,15 +870,15 @@ struct mariadb_connect_config
 // ===========================================================================
 
 // mariadb_connection
-//   class: concrete MariaDB connection implementation. This is the
-// CRTP leaf class that provides the _helper methods required by the
-// base class chain. The _helper method bodies would be defined in the
-// corresponding mariadb.cpp source file that includes the MariaDB
-// C API header.
+//   class: a connection to a MariaDB server, through either client, over the
+// MariaDB layer's face (mysql_common_connection, which holds it). Beside the
+// family's operations it has MariaDB's compile-time feature queries and type
+// mapping, and applies mariadb_connect_config's Galera and storage-engine
+// settings when it connects. Not copyable; movable.
 //
 // Usage:
-//   mariadb_connection conn;
-//   conn.connect(config);
+//   mariadb_connection conn(config);
+//   conn.connect();
 //   auto rs = conn.execute_query("SELECT 1");
 class mariadb_connection
     : public mysql_common_connection<mariadb_connection,
@@ -915,45 +892,26 @@ public:
     using feature_support = mariadb_feature_support;
     using version_info    = mariadb_version_info;
 
-    mariadb_connection()
-        : base_type()
-    {};
-
-    explicit mariadb_connection(
-        const connection_config& _config
-    )
-        : base_type(_config)
-    {};
-
-    explicit mariadb_connection(
-        const mysql_connect_config& _config)
-        : base_type(_config)
-    {};
-
-    explicit mariadb_connection(
-        const mariadb_connect_config& _config
-    )
-        : base_type(_config.mysql_config),
-          m_mariadb_config(_config)
-    {};
+    // construction -- with MariaDB's defaults, or a generic, family or
+    // MariaDB configuration
+    mariadb_connection();
+    explicit mariadb_connection(const connection_config& _config);
+    explicit mariadb_connection(const mysql_connect_config& _config);
+    explicit mariadb_connection(const mariadb_connect_config& _config);
 
     ~mariadb_connection() = default;
 
-    // disable copying
     mariadb_connection(const mariadb_connection&)            = delete;
     mariadb_connection& operator=(const mariadb_connection&) = delete;
 
-    // enable moving
     mariadb_connection(mariadb_connection&&) noexcept            = default;
     mariadb_connection& operator=(mariadb_connection&&) noexcept = default;
 
-    // MariaDB-specific feature queries (runtime)
+    // MariaDB-specific feature queries (compile-time)
 
     // supports_inet6_type
     //   function: returns true if the detected MariaDB version
-    // supports the INET6 data type. Compile-time constant when the
-    // version is known at build time; falls back to runtime version
-    // string parsing otherwise.
+    // supports the INET6 data type.
     static constexpr bool supports_inet6_type() noexcept
     {
         return type_support::has_inet6_type;
@@ -1051,73 +1009,23 @@ public:
         return field_type_to_mariadb_sql(_type);
     }
 
-    // MariaDB-specific configuration
+    // configuration -- MariaDB's settings; setting them replaces the
+    // family's and the generic configuration with theirs, for the next
+    // connect
+    const mariadb_connect_config& get_mariadb_config() const noexcept;
+    void                          set_mariadb_config(
+                                      const mariadb_connect_config& _config);
 
-    // get_mariadb_config
-    //   function: returns the MariaDB-specific configuration.
-    const mariadb_connect_config&
-    get_mariadb_config() const noexcept
-    {
-        return m_mariadb_config;
-    }
+    // hooks (mariadb.cpp), for mysql_common_connection's connect: MariaDB
+    // adds no client settings of its own, and once connected sets
+    // wsrep_sync_wait and the default storage engine where configured,
+    // throwing connection_exception when the server refuses either
+    void add_settings_helper(internal::mariadb_settings& _settings) const;
+    void on_connected_helper(face::mariadb& _db);
 
-    // set_mariadb_config
-    //   function: replaces the MariaDB-specific configuration. Must
-    // be called before connect().
-    void set_mariadb_config(const mariadb_connect_config& _config)
-    {
-        m_mariadb_config = _config;
-        this->set_mysql_config(_config.mysql_config);
-    }
-
-    // _helper methods (defined in mariadb.cpp)
-    // These provide the actual C API calls. They are declared here so
-    // the CRTP chain can resolve them at compile time; definitions
-    // live in the source file that includes the MariaDB C API header.
-
-    void        connect_helper();
-    void        disconnect_helper();
-    bool        is_connected_helper() const;
-    bool        ping_helper() const;
-
-    auto        execute_query_helper(const std::string& _query)
-                    -> std::unique_ptr<
-                        result_set<struct mariadb_result_set_helper>>;
-    re_std::int64_t execute_update_helper(const std::string& _query);
-    bool        execute_helper(const std::string& _query);
-
-    auto        prepare_helper(const std::string& _query)
-                    -> std::unique_ptr<
-                        statement<struct mariadb_statement_helper>>;
-
-    std::string   get_server_version_helper() const;
-    std::string   get_last_error_helper() const;
-    int           get_last_error_code_helper() const;
-
-    re_std::int64_t  get_last_insert_id_helper() const;
-    re_std::int64_t  get_affected_rows_helper() const;
-
-    // MySQL-family common _helper methods
-    void          set_charset_helper(const std::string& _charset);
-    std::string   get_charset_helper() const;
-    int           next_result_helper();
-    bool          more_results_helper() const;
-    std::string   escape_string_helper(const std::string& _input) const;
-    void          select_db_helper(const std::string& _database);
-    void          change_user_helper(const std::string& _user,
-                                     const std::string& _password,
-                                     const std::string& _database);
-    std::string   get_stat_helper() const;
-    unsigned long get_thread_id_helper() const;
-    unsigned int  get_warning_count_helper() const;
-    std::string   get_sqlstate_helper() const;
-    void          set_autocommit_helper(bool _enabled);
-    void          set_option_helper(int _option, const void* _value);
-
-    // transaction _helper methods
-    void begin_transaction_helper();
-    void commit_helper();
-    void rollback_helper();
+    // version-gated methods: declared where env detects the feature in the
+    // client's header, and not yet defined -- the MariaDB layer has no
+    // connection reset or non-blocking calls for them to stand on
 
 #if D_ENV_MARIADB_DETECTED
     #if D_ENV_MARIADB_HAS_RESET_CONNECTION
@@ -1140,23 +1048,11 @@ private:
     mariadb_connect_config m_mariadb_config;
 };
 
-
-// ===========================================================================
-// IX.  FORWARD DECLARATIONS
-// ===========================================================================
-// Vendor-specific result_set and statement implementations.
-// These would be defined in separate headers or in the mariadb.cpp
-// source file.
-
-// mariadb_result_set_helper
-//   struct: forward declaration of the MariaDB result set
-// implementation.
-struct mariadb_result_set_helper;
-
-// mariadb_statement_helper
-//   struct: forward declaration of the MariaDB prepared statement
-// implementation.
-struct mariadb_statement_helper;
+// mysql_common_connection<mariadb_connection, ...>
+//   class: the family's members for MariaDB, instantiated once, in
+// mariadb.cpp.
+extern template class mysql_common_connection<mariadb_connection,
+                                              database_type::mariadb>;
 
 
 // ===========================================================================
@@ -1167,12 +1063,12 @@ struct mariadb_statement_helper;
 // concepts appear under C++20.
 
 // ===========================================================================
-// X.   EXPRESSION DETECTORS (MariaDB-specific)
+// IX.  EXPRESSION DETECTORS (MariaDB-specific)
 // ===========================================================================
 // These detect methods that exist on MariaDB connections but not on
 // generic MySQL connections. All MySQL-common detectors (charset,
 // multi-result, options, diagnostics, result modes, autocommit,
-// escape, select_db, change_user, storage engine) are inherited from
+// escape, use_database, change_user, storage engine) are inherited from
 // mysql_common_traits.hpp in the mysql_common namespace.
 
 // -------------------------------------------------------------------------
@@ -1213,27 +1109,27 @@ using mariadb_connect_async_cont_t =
 // C.  schema introspection
 // -------------------------------------------------------------------------
 
-// mariadb_table_exists_t
-//   detector: table_exists(const std::string&) const method.
+// mariadb_has_table_t
+//   detector: has_table(const std::string&) const method.
 template<typename Type>
-using mariadb_table_exists_t =
-    decltype(std::declval<const Type&>().table_exists(
+using mariadb_has_table_t =
+    decltype(std::declval<const Type&>().has_table(
         std::declval<const std::string&>()));
 
-// mariadb_get_table_names_t
-//   detector: get_table_names() const method.
+// mariadb_list_tables_t
+//   detector: list_tables() const method.
 template<typename Type>
-using mariadb_get_table_names_t =
-    decltype(std::declval<const Type&>().get_table_names());
+using mariadb_list_tables_t =
+    decltype(std::declval<const Type&>().list_tables());
 
 
 // ===========================================================================
-// XI.  TAGGED CAPABILITY TRAITS (struct-based)
+// X.   TAGGED CAPABILITY TRAITS (struct-based)
 // ===========================================================================
 // MariaDB-specific traits. All mysql_common tagged traits (has_mysql_charset,
 // has_mysql_multi_result, has_mysql_options, has_mysql_diagnostics,
 // has_mysql_result_modes, has_mysql_autocommit, has_mysql_escape,
-// has_mysql_select_db, is_mysql_connection, etc.) are inherited from
+// has_mysql_use_database, is_mysql_connection, etc.) are inherited from
 // mysql_common_traits.hpp and available in the mysql_common namespace.
 
 // has_mariadb_reset
@@ -1266,11 +1162,11 @@ struct has_mariadb_async : djinterp::conjunction<
 
 // has_mariadb_schema_query
 //   trait: checks if type Type supports schema introspection
-// (table_exists + get_table_names).
+// (has_table + list_tables).
 template<typename Type>
 struct has_mariadb_schema_query : djinterp::conjunction<
-    is_detected<mariadb_table_exists_t, clean_t<Type>>,
-    is_detected<mariadb_get_table_names_t, clean_t<Type>>>
+    is_detected<mariadb_has_table_t, clean_t<Type>>,
+    is_detected<mariadb_list_tables_t, clean_t<Type>>>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -1300,7 +1196,7 @@ struct is_mariadb_connection : djinterp::conjunction<
 
 
 // ===========================================================================
-// XII. TAGLESS CAPABILITY TRAITS (constexpr bool)
+// XI.  TAGLESS CAPABILITY TRAITS (constexpr bool)
 // ===========================================================================
 // All mysql_common tagless traits (mysql_can_set_charset,
 // mysql_can_iterate_results, mysql_can_escape_string,
@@ -1333,14 +1229,14 @@ constexpr bool mariadb_can_async_connect<Type,
     std::void_t<mariadb_connect_async_start_t<Type>>> = true;
 
 // mariadb_can_query_schema
-//   tagless trait: true if Type has table_exists().
+//   tagless trait: true if Type has has_table().
 template<typename Type,
          typename = void>
 constexpr bool mariadb_can_query_schema = false;
 
 template<typename Type>
 constexpr bool mariadb_can_query_schema<Type,
-    std::void_t<mariadb_table_exists_t<Type>>> = true;
+    std::void_t<mariadb_has_table_t<Type>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
@@ -1365,8 +1261,8 @@ constexpr bool mariadb_does_schema_query = false;
 
 template<typename Type>
 constexpr bool mariadb_does_schema_query<Type, std::void_t<
-    mariadb_table_exists_t<Type>,
-    mariadb_get_table_names_t<Type>>> = true;
+    mariadb_has_table_t<Type>,
+    mariadb_list_tables_t<Type>>> = true;
 
 // mariadb_is_full_connection
 //   tagless trait: true if Type satisfies the complete MariaDB
@@ -1378,7 +1274,7 @@ constexpr bool mariadb_is_full_connection =
 
 
 // ===========================================================================
-// XIII.  SFINAE HELPERS
+// XII. SFINAE HELPERS
 // ===========================================================================
 
 // enable_if_mariadb_connection
@@ -1407,7 +1303,7 @@ using enable_if_has_mariadb_schema_query =
 
 
 // ===========================================================================
-// XIV.   C++20 CONCEPTS
+// XIII. C++20 CONCEPTS
 // ===========================================================================
 //   The MariaDB classification concepts, folded in from the former
 // mariadb_concepts.hpp.  Each forwards to a trait / tagless capability declared
@@ -1480,17 +1376,17 @@ template<typename Type>
 concept mariadb_async_connect_continuable =
     is_detected<mariadb_connect_async_cont_t, clean_t<Type>>::value;
 
-// mariadb_table_exists_query
-//   concept: constrains types exposing table_exists(name).
+// mariadb_has_table_query
+//   concept: constrains types exposing has_table(name).
 template<typename Type>
-concept mariadb_table_exists_query =
+concept mariadb_has_table_query =
     mariadb_can_query_schema<clean_t<Type>>;
 
 // mariadb_table_names_query
-//   concept: constrains types exposing get_table_names().
+//   concept: constrains types exposing list_tables().
 template<typename Type>
 concept mariadb_table_names_query =
-    is_detected<mariadb_get_table_names_t, clean_t<Type>>::value;
+    is_detected<mariadb_list_tables_t, clean_t<Type>>::value;
 
 
 // -------------------------------------------------------------------------

@@ -1,0 +1,236 @@
+/*******************************************************************************
+* djinterp [c]                                              postgres_statement.h
+*
+* Prepared statements on a PostgreSQL connection: SQL the server parses and
+* plans once, values bound to its parameters, and run as often as needed.
+*   d_postgres_prepare has the server prepare one statement under a name of
+* the layer's -- d_stmt_ and hexadecimal digits, which other code should not
+* give its own statements -- and asks it what type each parameter is.
+* Parameters are written $1, $2 and so on, as PostgreSQL writes them, and a
+* type the statement leaves open is the one the server infers. The bind
+* functions give them values, which the statement keeps until it runs, and a
+* parameter never bound is NULL. A value goes to the server as text, as its
+* own input functions read text -- an integer in decimal, a real number to
+* the seventeen digits that read back as the same double, NaN and the
+* infinities as PostgreSQL spells them, a boolean as 1 or 0, which boolean
+* and integer parameters alike accept -- and bytes go as bytes.
+* d_postgres_execute_update runs the statement and counts the rows it
+* changed; d_postgres_execute_query runs it and returns its rows, typed as
+* postgres_query.h describes. d_postgres_finalize releases the statement, and
+* the server's copy.
+*   RESULTS. As every module's (postgres_common.h): 0, or a failure's
+* SQLSTATE, packed, which d_postgres_error_message on the statement's
+* connection then describes; 42P02 (undefined parameter) for a parameter the
+* statement does not have; 53200 when memory runs out; D_DB_INVALID_ARGUMENT
+* for an argument that cannot be right.
+*   A statement belongs to its connection and holds it: finalize the
+* statement before closing the connection.
+*
+*
+* path:      /inc/djinterp/c/db/postgres/postgres_statement.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
+*                                                            revised: 2026.10.16
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  STATEMENTS
+    ----------
+    1.  Preparing
+    2.  Finalizing
+    3.  Describing
+2.  VALUES
+    ------
+    1.  Binding
+    2.  Clearing
+3.  RUNNING
+    -------
+    1.  Rows changed
+    2.  Rows
+*/
+
+#ifndef DJINTERP_C_DB_POSTGRES_POSTGRES_STATEMENT_H
+#define DJINTERP_C_DB_POSTGRES_POSTGRES_STATEMENT_H 1
+
+// std
+#include <stddef.h>  // size_t
+// djinterp
+#include "../../djinterp.h"     // framework root
+#include "./postgres_common.h"  // pg_conn, d_postgres_statement, the results
+// re_std
+#include "../../../../re_std/cstdint/dstdint.h"  // INT64_MAX: this header's
+                                                 // floor; int64_t
+
+// 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
+// declares only where the build can spell one. Below it -- ISO strict
+// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
+// ruling of 2026.10.03 on round 3's question 1, (a)).
+#if defined(INT64_MAX)
+
+
+D_EXTERN_C_BEGIN
+
+
+//==============================================================================
+// 1.  STATEMENTS
+//==============================================================================
+
+
+// 1.1    Preparing
+//------------------------------------------------------------------------------
+/**
+ * @brief Has the server prepare one SQL statement.
+ *
+ * @param[in]  _db         the connection.
+ * @param[out] _statement  receives the statement; `NULL` on failure.
+ * @param[in]  _sql        one statement; a second is the server's syntax
+ *                         error (42601).
+ * @return 0; the SQLSTATE of the failure, packed; 53200 when memory ran out;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` argument.
+ * @post On success the caller releases `*_statement` with
+ *       d_postgres_finalize.
+ */
+int    d_postgres_prepare(struct pg_conn*               _db,
+                          struct d_postgres_statement** _statement,
+                          const char*                   _sql) D_NOTHROW;
+/**
+ * @brief Formats one SQL statement and has the server prepare it, as
+ *        d_postgres_prepare.
+ *
+ * @param[in]  _db         the connection.
+ * @param[out] _statement  receives the statement; `NULL` on failure.
+ * @param[in]  _format     one statement, as a format (postgres_query.h);
+ *                         values are better bound than formatted, but a
+ *                         name cannot be bound.
+ * @param[in]  ...         the format's arguments.
+ * @return as d_postgres_prepare; D_DB_INVALID_ARGUMENT also for a format the
+ *         layer cannot read.
+ * @post As for d_postgres_prepare.
+ */
+int    d_postgres_preparef(struct pg_conn*               _db,
+                           struct d_postgres_statement** _statement,
+                           const char*                   _format,
+                           ...) D_NOTHROW;
+
+// 1.2    Finalizing
+//------------------------------------------------------------------------------
+/**
+ * @brief Releases a statement, and the server's copy of it.
+ *
+ * @note The server's copy is closed with libpq's PQclosePrepared where libpq
+ *       has it (17), which works inside a failed transaction too, and with
+ *       DEALLOCATE elsewhere, which does not: there the server keeps the
+ *       copy until the session ends, or until a statement prepared later
+ *       takes its name, which drops it first; the statement is released all
+ *       the same.
+ *
+ * @param[in] _statement  the statement; may be `NULL`.
+ * @return 0, or the SQLSTATE, packed, of a failure to close the server's
+ *         copy.
+ * @post `_statement` is invalid.
+ */
+int    d_postgres_finalize(struct d_postgres_statement* _statement)
+       D_NOTHROW;
+
+// 1.3    Describing
+//------------------------------------------------------------------------------
+// describing -- _parameter_count is the number of the highest parameter the
+// statement uses, 0 for NULL; _statement_connection is the connection it
+// belongs to, NULL for NULL
+size_t d_postgres_parameter_count(const struct d_postgres_statement* _statement)
+       D_NOTHROW;
+struct pg_conn*
+       d_postgres_statement_connection(
+           const struct d_postgres_statement* _statement) D_NOTHROW;
+
+
+//==============================================================================
+// 2.  VALUES
+//==============================================================================
+
+
+// 2.1    Binding
+//------------------------------------------------------------------------------
+// binding -- each gives the parameter numbered `_index`, from 1, a value
+// until another is bound or the values are cleared: NULL; a boolean, as 1 or
+// 0; an integer; a real number; text, copied, NULL binding NULL; bytes,
+// `_size` of them copied and sent as bytes, NULL binding NULL and a pointer
+// to none an empty bytea. Each returns 0; 42P02 for a parameter the
+// statement does not have; 53200 when memory ran out; or
+// D_DB_INVALID_ARGUMENT for a NULL statement, or text or bytes longer than
+// libpq can send.
+int    d_postgres_bind_null(struct d_postgres_statement* _statement,
+                            size_t                       _index) D_NOTHROW;
+int    d_postgres_bind_bool(struct d_postgres_statement* _statement,
+                            size_t                       _index,
+                            bool                         _value) D_NOTHROW;
+int    d_postgres_bind_int64(struct d_postgres_statement* _statement,
+                             size_t                       _index,
+                             int64_t                      _value) D_NOTHROW;
+int    d_postgres_bind_double(struct d_postgres_statement* _statement,
+                              size_t                       _index,
+                              double                       _value) D_NOTHROW;
+int    d_postgres_bind_text(struct d_postgres_statement* _statement,
+                            size_t                       _index,
+                            const char*                  _text) D_NOTHROW;
+int    d_postgres_bind_blob(struct d_postgres_statement* _statement,
+                            size_t                       _index,
+                            const void*                  _bytes,
+                            size_t                       _size) D_NOTHROW;
+
+// 2.2    Clearing
+//------------------------------------------------------------------------------
+// clearing -- every parameter NULL again: 0, or D_DB_INVALID_ARGUMENT for a
+// NULL statement
+int    d_postgres_clear_bindings(struct d_postgres_statement* _statement)
+       D_NOTHROW;
+
+
+//==============================================================================
+// 3.  RUNNING
+//==============================================================================
+
+
+// 3.1    Rows changed
+//------------------------------------------------------------------------------
+/**
+ * @brief Runs a statement, discarding any rows it returns.
+ *
+ * @param[in]  _statement  the statement.
+ * @param[out] _changes    receives, on success, the rows it inserted,
+ *                         updated, deleted or merged, or returned; 0 for a
+ *                         statement that counts none; may be `NULL`.
+ * @return 0; the SQLSTATE of the failure, packed; D_DB_UNSUPPORTED for COPY
+ *         to or from the client, which the layer ends at once;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` statement.
+ * @post Its values stay bound.
+ */
+int    d_postgres_execute_update(struct d_postgres_statement* _statement,
+                                 int64_t*                     _changes)
+       D_NOTHROW;
+
+// 3.2    Rows
+//------------------------------------------------------------------------------
+/**
+ * @brief Runs a statement and returns every row it produced.
+ *
+ * @param[in]  _statement  the statement.
+ * @param[out] _rows       receives the rows, typed as postgres_query.h
+ *                         describes; written only on success.
+ * @return as d_postgres_execute_update; 53200 also when the rows could not
+ *         be built; D_DB_INVALID_ARGUMENT for a `NULL` argument.
+ * @post Its values stay bound. On success the caller releases `_rows` with
+ *       d_db_rows_free.
+ */
+int    d_postgres_execute_query(struct d_postgres_statement* _statement,
+                                struct d_db_rows*            _rows) D_NOTHROW;
+
+
+D_EXTERN_C_END
+
+
+#endif  // defined(INT64_MAX)
+
+#endif  // DJINTERP_C_DB_POSTGRES_POSTGRES_STATEMENT_H

@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/c/djinterp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 
 /*
@@ -58,6 +58,7 @@ TABLE OF CONTENTS
          6.  C constexpr fallbacks
          7.  C inline-variable qualifiers
          8.  D_NOINLINE
+         9.  D_NOTHROW
     4.  Function pointers
          1.  fn_apply
          2.  fn_apply_context
@@ -377,14 +378,42 @@ TABLE OF CONTENTS
     #define D_INTERNAL_STATIC_ASSERT_UID __LINE__
 #endif
 
+// D_INTERNAL_STATIC_ASSERT_EXTENSION
+//   constant (internal): 1 where the compiler has _Static_assert as an
+// extension below C11 and C++11, which __extension__ keeps -pedantic from
+// reporting: Clang, in C and in C++, and GCC from 4.6, in C. There it is the
+// assertion rather than the typedef fallback, which names itself with
+// __COUNTER__: C2y made __COUNTER__ standard, and Clang from 21 reports it
+// as an extension before C2y, in C++ too (-Wc2y-extensions), so under
+// -pedantic-errors the fallback would not compile. Read from the compiler's
+// own macros rather than env's identity, which a build may simulate, since
+// it chooses syntax the compiler itself must accept.
+#if defined(__clang__)
+    #define D_INTERNAL_STATIC_ASSERT_EXTENSION 1
+#elif ( (defined(__GNUC__))                    &&                              \
+        (!defined(__cplusplus))                &&                              \
+        ( (__GNUC__ > 4) ||                                                    \
+          ( (__GNUC__ == 4) && (__GNUC_MINOR__ >= 6) ) ) )
+    #define D_INTERNAL_STATIC_ASSERT_EXTENSION 1
+#else
+    #define D_INTERNAL_STATIC_ASSERT_EXTENSION 0
+#endif
+
 // 2.2.1
 // D_STATIC_ASSERT
-//   macro: portable compile-time assertion across supported C and C++ modes.
+//   macro: portable compile-time assertion across supported C and C++ modes:
+// static_assert from C++11, _Static_assert from C11; below them, the same
+// assertion as a compiler extension where there is one
+// (D_INTERNAL_STATIC_ASSERT_EXTENSION), and elsewhere a typedef of an array
+// whose size is negative when the condition is false.
 #ifndef D_STATIC_ASSERT
     #if defined(D_ENV_LANG_DETECTED_CPP)
         // >=C++11 has the static_assert keyword.
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
             #define D_STATIC_ASSERT(cond, msg) static_assert((cond), msg)
+        #elif D_INTERNAL_STATIC_ASSERT_EXTENSION
+            #define D_STATIC_ASSERT(cond, msg)                                \
+                __extension__ _Static_assert((cond), msg)
         #else
             #define D_STATIC_ASSERT(cond, msg)                                \
                 typedef char D_CONCAT(static_assertion_failed_,               \
@@ -396,6 +425,9 @@ TABLE OF CONTENTS
         // C11+ has `_Static_assert`.
         #if D_ENV_LANG_IS_C11_OR_HIGHER
             #define D_STATIC_ASSERT(cond, msg) _Static_assert((cond), msg)
+        #elif D_INTERNAL_STATIC_ASSERT_EXTENSION
+            #define D_STATIC_ASSERT(cond, msg)                                \
+                __extension__ _Static_assert((cond), msg)
         #else
             #define D_STATIC_ASSERT(cond, msg)                                \
                 typedef char D_CONCAT(static_assertion_failed_,               \
@@ -642,6 +674,29 @@ TABLE OF CONTENTS
 //   qualifier: prevents inlining for debugging and profiling, by
 // env_compiler.h's D_ENV_COMPILER_NOINLINE; empty for an unknown compiler.
 #define D_NOINLINE          D_ENV_COMPILER_NOINLINE
+
+// 2.3.9
+// D_NOTHROW
+//   qualifier: ends a C function's declaration, to say the function throws
+// nothing, as C++ hears it: `noexcept` from C++11, `throw()` below; nothing
+// in C, where nothing throws, and nothing on the definition, compiled as C.
+// C++ then keeps no unwinding around a call -- no landing pad for what is
+// live across it, no terminate handler in a noexcept caller -- so a call in
+// tail position stays a tail call. Only for a function that runs nothing of
+// its caller's, no callback: an exception thrown through it would end the
+// program. MSVC assumes as much of every extern "C" function under /EHsc;
+// GCC and Clang assume it of none.
+//     int d_foo(int _x) D_NOTHROW;
+//   pre-definable.
+#ifndef D_NOTHROW
+    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #define D_NOTHROW                   noexcept
+    #elif D_ENV_LANG_USING_CPP
+        #define D_NOTHROW                   throw()
+    #else
+        #define D_NOTHROW
+    #endif
+#endif  // D_NOTHROW
 
 // 2.4    Function pointers
 //------------------------------------------------------------------------------

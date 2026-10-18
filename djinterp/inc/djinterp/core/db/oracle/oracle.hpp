@@ -1007,14 +1007,14 @@ public:
     // schema introspection
     // -----------------------------------------------------------------
 
-    bool table_exists(const std::string& _table_name) const
+    bool has_table(const std::string& _table_name) const
     {
-        return self().table_exists_impl(_table_name);
+        return self().has_table_impl(_table_name);
     }
 
-    std::vector<std::string> get_table_names() const
+    std::vector<std::string> list_tables() const
     {
-        return self().get_table_names_impl();
+        return self().list_tables_impl();
     }
 
     // -----------------------------------------------------------------
@@ -1138,8 +1138,8 @@ public:
     std::string  get_instance_name_impl() const;
     std::string  get_service_name_impl() const;
     re_std::int64_t get_session_id_impl() const;
-    bool table_exists_impl(const std::string& _name) const;
-    std::vector<std::string> get_table_names_impl() const;
+    bool has_table_impl(const std::string& _name) const;
+    std::vector<std::string> list_tables_impl() const;
 
     // transaction _impl methods
     void begin_transaction_impl();
@@ -1396,18 +1396,18 @@ using oci_get_session_id_t =
 // L.  schema introspection
 // -------------------------------------------------------------------------
 
-// oci_table_exists_t
-//   detector: table_exists(const std::string&) const method.
+// oci_has_table_t
+//   detector: has_table(const std::string&) const method.
 template<typename T>
-using oci_table_exists_t =
-    decltype(std::declval<const T&>().table_exists(
+using oci_has_table_t =
+    decltype(std::declval<const T&>().has_table(
         std::declval<const std::string&>()));
 
-// oci_get_table_names_t
-//   detector: get_table_names() const method.
+// oci_list_tables_t
+//   detector: list_tables() const method.
 template<typename T>
-using oci_get_table_names_t =
-    decltype(std::declval<const T&>().get_table_names());
+using oci_list_tables_t =
+    decltype(std::declval<const T&>().list_tables());
 
 // -------------------------------------------------------------------------
 // M.  CQN (Continuous Query Notification)
@@ -1589,8 +1589,8 @@ struct has_oci_diagnostics : djinterp::conjunction<
 //   trait: checks if type T supports schema introspection.
 template<typename T>
 struct has_oci_schema_query : djinterp::conjunction<
-    is_detected<oci_table_exists_t, clean_t<T>>,
-    is_detected<oci_get_table_names_t, clean_t<T>>>
+    is_detected<oci_has_table_t, clean_t<T>>,
+    is_detected<oci_list_tables_t, clean_t<T>>>
 {
 };
 
@@ -1733,13 +1733,13 @@ constexpr bool oci_can_subscribe<T,
     std::void_t<oci_subscribe_t<T>>> = true;
 
 // oci_can_query_schema
-//   tagless trait: true if T has table_exists().
+//   tagless trait: true if T has has_table().
 template<typename T, typename = void>
 constexpr bool oci_can_query_schema = false;
 
 template<typename T>
 constexpr bool oci_can_query_schema<T,
-    std::void_t<oci_table_exists_t<T>>> = true;
+    std::void_t<oci_has_table_t<T>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
